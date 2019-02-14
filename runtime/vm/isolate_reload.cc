@@ -165,10 +165,8 @@ void InstanceMorpher::RunNewFieldInitializers() const {
   TIR_Print("Running new field initializers for class: %s\n", to_.ToCString());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  String& initializing_expression = String::Handle(zone);
   Function& eval_func = Function::Handle(zone);
   Object& result = Object::Handle(zone);
-  Class& owning_class = Class::Handle(zone);
   // For each new field.
   for (intptr_t i = 0; i < new_fields_->length(); i++) {
     // Create a function that returns the expression.
@@ -176,14 +174,7 @@ void InstanceMorpher::RunNewFieldInitializers() const {
     if (field->kernel_offset() > 0) {
       eval_func ^= kernel::CreateFieldInitializerFunction(thread, zone, *field);
     } else {
-      owning_class ^= field->Owner();
-      ASSERT(!owning_class.IsNull());
-      // Extract the initializing expression.
-      initializing_expression = field->InitializingExpression();
-      TIR_Print("New `%s` has initializing expression `%s`\n",
-                field->ToCString(), initializing_expression.ToCString());
-      eval_func ^= Function::EvaluateHelper(
-          owning_class, initializing_expression, Array::empty_array(), true);
+      UNREACHABLE();
     }
 
     for (intptr_t j = 0; j < after_->length(); j++) {
@@ -575,11 +566,9 @@ void IsolateReloadContext::Reload(bool force_reload,
   const String& root_lib_url =
       (root_script_url == NULL) ? old_root_lib_url
                                 : String::Handle(String::New(root_script_url));
-  bool root_lib_modified = false;
 
   // Check to see if the base url of the loaded libraries has moved.
   if (!old_root_lib_url.Equals(root_lib_url)) {
-    root_lib_modified = true;
     const char* old_root_library_url_c = old_root_lib_url.ToCString();
     const char* root_library_url_c = root_lib_url.ToCString();
     const intptr_t common_suffix_length =
@@ -598,6 +587,12 @@ void IsolateReloadContext::Reload(bool force_reload,
     packages_url = String::New(packages_url_);
   }
 
+  // Reset stats.
+  num_received_libs_ = 0;
+  bytes_received_libs_ = 0;
+  num_received_classes_ = 0;
+  num_received_procedures_ = 0;
+
   bool did_kernel_compilation = false;
   bool skip_reload = false;
   {
@@ -606,13 +601,20 @@ void IsolateReloadContext::Reload(bool force_reload,
         GrowableObjectArray::Handle(object_store()->libraries());
     intptr_t num_libs = libs.Length();
     modified_libs_ = new (Z) BitVector(Z, num_libs);
+    intptr_t* p_num_received_classes = nullptr;
+    intptr_t* p_num_received_procedures = nullptr;
 
     // ReadKernelFromFile checks to see if the file at
     // root_script_url is a valid .dill file. If that's the case, a Program*
     // is returned. Otherwise, this is likely a source file that needs to be
     // compiled, so ReadKernelFromFile returns NULL.
     kernel_program.set(kernel::Program::ReadFromFile(root_script_url));
-    if (kernel_program.get() == NULL) {
+    if (kernel_program.get() != NULL) {
+      num_received_libs_ = kernel_program.get()->library_count();
+      bytes_received_libs_ = kernel_program.get()->kernel_data_size();
+      p_num_received_classes = &num_received_classes_;
+      p_num_received_procedures = &num_received_procedures_;
+    } else {
       Dart_KernelCompilationResult retval;
       if (kernel_buffer != NULL && kernel_buffer_size != 0) {
         retval.kernel = const_cast<uint8_t*>(kernel_buffer);
@@ -670,7 +672,8 @@ void IsolateReloadContext::Reload(bool force_reload,
     }
 
     kernel::KernelLoader::FindModifiedLibraries(
-        kernel_program.get(), I, modified_libs_, force_reload, &skip_reload);
+        kernel_program.get(), I, modified_libs_, force_reload, &skip_reload,
+        p_num_received_classes, p_num_received_procedures);
   }
   if (skip_reload) {
     ASSERT(modified_libs_->IsEmpty());
@@ -707,6 +710,18 @@ void IsolateReloadContext::Reload(bool force_reload,
 
   // Disable the background compiler while we are performing the reload.
   BackgroundCompiler::Disable(I);
+
+  // Wait for any concurrent marking tasks to finish and turn off the
+  // concurrent marker during reload as we might be allocating new instances
+  // (constants) when loading the new kernel file and this could cause
+  // inconsistency between the saved class table and the new class table.
+  Heap* heap = thread->heap();
+  const bool old_concurrent_mark_flag =
+      heap->old_space()->enable_concurrent_mark();
+  if (old_concurrent_mark_flag) {
+    heap->WaitForMarkerTasks(thread);
+    heap->old_space()->set_enable_concurrent_mark(false);
+  }
 
   // Ensure all functions on the stack have unoptimized code.
   EnsuredUnoptimizedCodeForStack();
@@ -769,6 +784,9 @@ void IsolateReloadContext::Reload(bool force_reload,
   // Re-enable the background compiler. Do this before propagating any errors.
   BackgroundCompiler::Enable(I);
 
+  // Reenable concurrent marking if it was initially on.
+  heap->old_space()->set_enable_concurrent_mark(old_concurrent_mark_flag);
+
   if (result.IsUnwindError()) {
     if (thread->top_exit_frame_info() == 0) {
       // We can only propagate errors when there are Dart frames on the stack.
@@ -811,7 +829,7 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   if (!old_cls.is_enum_class()) {
     new_cls.CopyCanonicalConstants(old_cls);
   }
-  new_cls.CopyCanonicalType(old_cls);
+  new_cls.CopyDeclarationType(old_cls);
   AddBecomeMapping(old_cls, new_cls);
   AddClassMapping(new_cls, old_cls);
 }
@@ -861,32 +879,35 @@ void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
   jsobj.AddProperty("type", "ReloadReport");
   jsobj.AddProperty("success", reload_skipped_ || !HasReasonsForCancelling());
   {
-    JSONObject details(&jsobj, "details");
-    if (reload_skipped_) {
-      // Reload was skipped.
-      const GrowableObjectArray& libs =
-          GrowableObjectArray::Handle(object_store()->libraries());
-      const intptr_t final_library_count = libs.Length();
-      details.AddProperty("savedLibraryCount", final_library_count);
-      details.AddProperty("loadedLibraryCount", static_cast<intptr_t>(0));
-      details.AddProperty("finalLibraryCount", final_library_count);
-    } else if (HasReasonsForCancelling()) {
+    if (HasReasonsForCancelling()) {
       // Reload was rejected.
       JSONArray array(&jsobj, "notices");
       for (intptr_t i = 0; i < reasons_to_cancel_reload_.length(); i++) {
         ReasonForCancelling* reason = reasons_to_cancel_reload_.At(i);
         reason->AppendTo(&array);
       }
+      return;
+    }
+
+    JSONObject details(&jsobj, "details");
+    const GrowableObjectArray& libs =
+        GrowableObjectArray::Handle(object_store()->libraries());
+    const intptr_t final_library_count = libs.Length();
+    details.AddProperty("finalLibraryCount", final_library_count);
+    details.AddProperty("receivedLibraryCount", num_received_libs_);
+    details.AddProperty("receivedLibrariesBytes", bytes_received_libs_);
+    details.AddProperty("receivedClassesCount", num_received_classes_);
+    details.AddProperty("receivedProceduresCount", num_received_procedures_);
+    if (reload_skipped_) {
+      // Reload was skipped.
+      details.AddProperty("savedLibraryCount", final_library_count);
+      details.AddProperty("loadedLibraryCount", static_cast<intptr_t>(0));
     } else {
       // Reload was successful.
-      const GrowableObjectArray& libs =
-          GrowableObjectArray::Handle(object_store()->libraries());
-      const intptr_t final_library_count = libs.Length();
       const intptr_t loaded_library_count =
           final_library_count - num_saved_libs_;
       details.AddProperty("savedLibraryCount", num_saved_libs_);
       details.AddProperty("loadedLibraryCount", loaded_library_count);
-      details.AddProperty("finalLibraryCount", final_library_count);
       JSONArray array(&jsobj, "shapeChangeMappings");
       for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
         instance_morphers_.At(i)->AppendTo(&array);
@@ -904,12 +925,10 @@ void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
   Function& func = Function::Handle();
   while (it.HasNextFrame()) {
     StackFrame* frame = it.NextFrame();
-    if (frame->IsDartFrame()) {
+    if (frame->IsDartFrame() && !frame->is_interpreted()) {
       func = frame->LookupDartFunction();
       ASSERT(!func.IsNull());
-      if (!frame->is_interpreted()) {
-        func.EnsureHasCompiledUnoptimizedCode();
-      }
+      func.EnsureHasCompiledUnoptimizedCode();
     }
   }
 }
@@ -1334,13 +1353,6 @@ static void RecordChanges(const GrowableObjectArray& changed_in_last_reload,
                           const Class& new_cls) {
   // All members of enum classes are synthetic, so nothing to report here.
   if (new_cls.is_enum_class()) {
-    return;
-  }
-
-  // Don't report synthetic classes like the superclass of
-  // `class MA extends S with M {}` or `class MA = S with M'. The relevant
-  // changes with be reported as changes in M.
-  if (new_cls.IsMixinApplication() || new_cls.is_mixin_app_alias()) {
     return;
   }
 
@@ -1843,22 +1855,28 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
   Zone* zone = stack_zone.GetZone();
 
   Code& code = Code::Handle(zone);
+  Bytecode& bytecode = Bytecode::Handle(zone);
   Function& function = Function::Handle(zone);
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   while (frame != NULL) {
-    code = frame->LookupDartCode();
-    if (code.is_optimized()) {
-      // If this code is optimized, we need to reset the ICs in the
-      // corresponding unoptimized code, which will be executed when the stack
-      // unwinds to the optimized code.
-      function = code.function();
-      code = function.unoptimized_code();
-      ASSERT(!code.IsNull());
-      code.ResetICDatas(zone);
+    if (frame->is_interpreted()) {
+      bytecode = frame->LookupDartBytecode();
+      bytecode.ResetICDatas(zone);
     } else {
-      code.ResetICDatas(zone);
+      code = frame->LookupDartCode();
+      if (code.is_optimized()) {
+        // If this code is optimized, we need to reset the ICs in the
+        // corresponding unoptimized code, which will be executed when the stack
+        // unwinds to the optimized code.
+        function = code.function();
+        code = function.unoptimized_code();
+        ASSERT(!code.IsNull());
+        code.ResetICDatas(zone);
+      } else {
+        code.ResetICDatas(zone);
+      }
     }
     frame = iterator.NextFrame();
   }
@@ -1882,6 +1900,7 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
         owning_class_(Class::Handle(zone)),
         owning_lib_(Library::Handle(zone)),
         code_(Code::Handle(zone)),
+        bytecode_(Bytecode::Handle(zone)),
         reload_context_(reload_context),
         zone_(zone) {}
 
@@ -1903,19 +1922,25 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
       // Grab the current code.
       code_ = func.CurrentCode();
       ASSERT(!code_.IsNull());
+      bytecode_ = func.bytecode();
       const bool clear_code = IsFromDirtyLibrary(func);
       const bool stub_code = code_.IsStubCode();
 
       // Zero edge counters.
       func.ZeroEdgeCounters();
 
-      if (!stub_code) {
+      if (!stub_code || !bytecode_.IsNull()) {
         if (clear_code) {
-          VTIR_Print("Marking %s for recompilation, clearning code\n",
+          VTIR_Print("Marking %s for recompilation, clearing code\n",
                      func.ToCString());
           ClearAllCode(func);
         } else {
-          PreserveUnoptimizedCode();
+          if (!stub_code) {
+            PreserveUnoptimizedCode();
+          }
+          if (!bytecode_.IsNull()) {
+            PreserveBytecode();
+          }
         }
       }
 
@@ -1942,6 +1967,13 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
     code_.ResetICDatas(zone_);
   }
 
+  void PreserveBytecode() {
+    ASSERT(!bytecode_.IsNull());
+    // We are preserving the bytecode, fill all ICData arrays with
+    // the sentinel values so that we have no stale type feedback.
+    bytecode_.ResetICDatas(zone_);
+  }
+
   bool IsFromDirtyLibrary(const Function& func) {
     owning_class_ = func.Owner();
     owning_lib_ = owning_class_.library();
@@ -1952,6 +1984,7 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
   Class& owning_class_;
   Library& owning_lib_;
   Code& code_;
+  Bytecode& bytecode_;
   IsolateReloadContext* reload_context_;
   Zone* zone_;
 };

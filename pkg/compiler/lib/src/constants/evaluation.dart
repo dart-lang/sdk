@@ -59,6 +59,12 @@ abstract class EvaluationEnvironment {
 
   /// `true` if assertions are enabled.
   bool get enableAssertions;
+
+  /// If `true`, implicit casts should be checked.
+  ///
+  /// This is used to avoid circular dependencies between js-interop classes
+  /// and their metadata. For non-metadata constants we always check the casts.
+  bool get checkCasts;
 }
 
 abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
@@ -70,6 +76,8 @@ abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
   EvaluationEnvironmentBase(Spannable spannable, {this.constantRequired}) {
     _spannableStack = _spannableStack.prepend(spannable);
   }
+
+  bool get checkCasts => true;
 
   DiagnosticReporter get reporter;
 

@@ -1,0 +1,6 @@
+pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:13:5: Context: Write to y@427
+  y = "world";
+    ^
+pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:14:5: Context: Write to y@427
+  y = /*error:INVALID_ASSIGNMENT*/ 42;
+    ^

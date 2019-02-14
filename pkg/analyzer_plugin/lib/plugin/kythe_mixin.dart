@@ -19,18 +19,18 @@ import 'package:analyzer_plugin/utilities/kythe/entries.dart';
  * request based on the assumption that the driver being created is an
  * [AnalysisDriver].
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin] that also uses
- * [KytheMixin] as a mix-in.
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin] that also uses [KytheMixin] as a
+ * mix-in.
  */
-abstract class DartEntryMixin implements EntryMixin {
+mixin DartEntryMixin implements EntryMixin {
   @override
   Future<EntryRequest> getEntryRequest(
       KytheGetKytheEntriesParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String path = parameters.file;
-    ResolveResult result = await getResolveResult(path);
+    ResolvedUnitResult result = await getResolvedUnitResult(path);
     return new DartEntryRequestImpl(resourceProvider, result);
   }
 }
@@ -39,10 +39,10 @@ abstract class DartEntryMixin implements EntryMixin {
  * A mixin that can be used when creating a subclass of [ServerPlugin] to
  * provide most of the implementation for handling kythe.getEntries requests.
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin].
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin].
  */
-abstract class EntryMixin implements ServerPlugin {
+mixin EntryMixin implements ServerPlugin {
   /**
    * Return a list containing the entry contributors that should be used to
    * create entries for the file with the given [path]

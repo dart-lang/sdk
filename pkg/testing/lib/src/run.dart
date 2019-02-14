@@ -23,7 +23,13 @@ import '../testing.dart'
 
 import 'analyze.dart' show Analyze;
 
-import 'log.dart' show isVerbose, logMessage, logNumberedLines, splitLines;
+import 'log.dart'
+    show
+        enableVerboseOutput,
+        isVerbose,
+        logMessage,
+        logNumberedLines,
+        splitLines;
 
 import 'suite.dart' show Dart, Suite;
 
@@ -54,6 +60,7 @@ Future<Null> runMe(List<String> arguments, CreateContext f,
     TestRoot testRoot =
         await computeTestRoot(configurationPath, Platform.script);
     CommandLine cl = CommandLine.parse(arguments);
+    if (cl.verbose) enableVerboseOutput();
     for (Chain suite in testRoot.toolChains) {
       if (Platform.script == suite.source) {
         print("Running suite ${suite.name}...");

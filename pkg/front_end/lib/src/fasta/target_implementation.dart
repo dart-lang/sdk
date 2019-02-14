@@ -18,6 +18,8 @@ import 'ticker.dart' show Ticker;
 
 import 'uri_translator.dart' show UriTranslator;
 
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+
 /// Provides the implementation details used by a loader for a target.
 abstract class TargetImplementation extends Target {
   final UriTranslator uriTranslator;
@@ -33,8 +35,15 @@ abstract class TargetImplementation extends Target {
   Declaration cachedNativeAnnotation;
   Declaration cachedNativeExtensionAnnotation;
 
+  bool enableSetLiterals;
+  bool enableConstantUpdate2018;
+
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
-      : super(ticker);
+      : enableSetLiterals = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.setLiterals),
+        enableConstantUpdate2018 = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.constantUpdate2018),
+        super(ticker);
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist
   /// already.
@@ -45,9 +54,6 @@ abstract class TargetImplementation extends Target {
   /// [origin] is non-null if the created library is a patch to [origin].
   LibraryBuilder createLibraryBuilder(
       Uri uri, Uri fileUri, covariant LibraryBuilder origin);
-
-  /// Add the classes extended or implemented directly by [cls] to [set].
-  void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set);
 
   /// The class [cls] is involved in a cyclic definition. This method should
   /// ensure that the cycle is broken, for example, by removing superclass and

@@ -3,9 +3,9 @@ import self as self;
 import "dart:core" as core;
 
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
@@ -16,7 +16,7 @@ Bytecode (version: stable) {
 ConstantPool {
   [0] = String 'Hello, Dart Bytecode!'
   [1] = ArgDesc num-args 1, num-type-args 0, names []
-  [2] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [2] = StaticICData target 'dart:core::print', arg-desc CP#1
 }
 ]static method main() → dynamic {
   core::print("Hello, Dart Bytecode!");

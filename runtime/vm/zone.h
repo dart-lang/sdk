@@ -8,9 +8,8 @@
 #include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/handles.h"
-#include "vm/json_stream.h"
 #include "vm/memory_region.h"
-#include "vm/thread.h"
+#include "vm/thread_state.h"
 
 namespace dart {
 
@@ -175,7 +174,7 @@ class Zone {
 class StackZone : public StackResource {
  public:
   // Create an empty zone and set is at the current zone for the Thread.
-  explicit StackZone(Thread* thread);
+  explicit StackZone(ThreadState* thread);
 
   // Delete all memory associated with the zone.
   ~StackZone();

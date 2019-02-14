@@ -14,6 +14,7 @@ namespace dart {
 class Code;
 class Isolate;
 class ObjectPointerVisitor;
+class ObjectPoolWrapper;
 class RawCode;
 class SnapshotReader;
 class SnapshotWriter;
@@ -28,6 +29,7 @@ class SnapshotWriter;
   V(DeoptForRewind)                                                            \
   V(WriteBarrier)                                                              \
   V(WriteBarrierWrappers)                                                      \
+  V(ArrayWriteBarrier)                                                         \
   V(PrintStopMessage)                                                          \
   V(AllocateArray)                                                             \
   V(AllocateContext)                                                           \
@@ -117,32 +119,6 @@ class SnapshotWriter;
 // using Smi 0 instead of Object::null() is slightly more efficient, since a Smi
 // does not require relocation.
 
-// class StubEntry is used to describe stub methods generated in dart to
-// abstract out common code executed from generated dart code.
-class StubEntry {
- public:
-  explicit StubEntry(const Code& code);
-  ~StubEntry() {}
-
-  const ExternalLabel& label() const { return label_; }
-  uword EntryPoint() const { return entry_point_; }
-  uword MonomorphicEntryPoint() const { return monomorphic_entry_point_; }
-  RawCode* code() const { return code_; }
-  intptr_t Size() const { return size_; }
-
-  // Visit all object pointers.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor);
-
- private:
-  RawCode* code_;
-  uword entry_point_;
-  uword monomorphic_entry_point_;
-  intptr_t size_;
-  ExternalLabel label_;
-
-  DISALLOW_COPY_AND_ASSIGN(StubEntry);
-};
-
 // class StubCode is used to maintain the lifecycle of stubs.
 class StubCode : public AllStatic {
  public:
@@ -168,33 +144,33 @@ class StubCode : public AllStatic {
 
 // Define the shared stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \
-  static const StubEntry* name##_entry() { return entries_[k##name##Index]; }  \
-  static intptr_t name##Size() { return name##_entry()->Size(); }
+  static const Code& name() { return *entries_[k##name##Index]; }              \
+  static intptr_t name##Size() { return name().Size(); }
   VM_STUB_CODE_LIST(STUB_CODE_ACCESSOR);
 #undef STUB_CODE_ACCESSOR
 
   static RawCode* GetAllocationStubForClass(const Class& cls);
 
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
-  static RawCode* GetBuildMethodExtractorStub();
+  static RawCode* GetBuildMethodExtractorStub(ObjectPoolWrapper* pool);
   static void GenerateBuildMethodExtractorStub(Assembler* assembler);
 #endif
 
-  static const StubEntry* UnoptimizedStaticCallEntry(intptr_t num_args_tested);
+  static const Code& UnoptimizedStaticCallEntry(intptr_t num_args_tested);
 
   static const intptr_t kNoInstantiator = 0;
   static const intptr_t kInstantiationSizeInWords = 3;
 
-  static StubEntry* EntryAt(intptr_t index) { return entries_[index]; }
-  static void EntryAtPut(intptr_t index, StubEntry* entry) {
+  static const Code& EntryAt(intptr_t index) { return *entries_[index]; }
+  static void EntryAtPut(intptr_t index, Code* entry) {
+    ASSERT(entry->IsReadOnlyHandle());
+    ASSERT(entries_[index] == nullptr);
     entries_[index] = entry;
   }
   static intptr_t NumEntries() { return kNumStubEntries; }
 
  private:
   friend class MegamorphicCacheTable;
-
-  static const intptr_t kStubCodeSize = 4 * KB;
 
   enum {
 #define STUB_CODE_ENTRY(name) k##name##Index,
@@ -203,7 +179,7 @@ class StubCode : public AllStatic {
         kNumStubEntries
   };
 
-  static StubEntry* entries_[kNumStubEntries];
+  static Code* entries_[kNumStubEntries];
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #define STUB_CODE_GENERATE(name)                                               \
@@ -214,6 +190,7 @@ class StubCode : public AllStatic {
   // Generate the stub and finalize the generated code into the stub
   // code executable area.
   static RawCode* Generate(const char* name,
+                           ObjectPoolWrapper* object_pool_wrapper,
                            void (*GenerateStub)(Assembler* assembler));
 
   static void GenerateSharedStub(Assembler* assembler,

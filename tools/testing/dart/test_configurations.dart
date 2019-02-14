@@ -60,25 +60,10 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   var printTiming = firstConf.printTiming;
   var listTests = firstConf.listTests;
   var listStatusFiles = firstConf.listStatusFiles;
-
   var reportInJson = firstConf.reportInJson;
 
   Browser.resetBrowserConfiguration = firstConf.resetBrowser;
-
-  if (!firstConf.appendLogs) {
-    var files = [
-      new File(TestUtils.flakyFileName),
-      new File(TestUtils.testOutcomeFileName)
-    ];
-    for (var file in files) {
-      if (file.existsSync()) {
-        file.deleteSync();
-      }
-    }
-  }
-
-  DebugLogger.init(firstConf.writeDebugLog ? TestUtils.debugLogFilePath : null,
-      append: firstConf.appendLogs);
+  DebugLogger.init(firstConf.writeDebugLog ? TestUtils.debugLogFilePath : null);
 
   // Print the configurations being run by this execution of
   // test.dart. However, don't do it if the silent progress indicator
@@ -182,7 +167,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     }
 
     DebugLogger.close();
-    TestUtils.deleteTempSnapshotDirectory(configurations[0]);
+    if (!firstConf.keepGeneratedFiles) {
+      TestUtils.deleteTempSnapshotDirectory(configurations[0]);
+    }
   }
 
   var eventListener = <EventListener>[];
@@ -201,8 +188,10 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       printFailures = false;
       eventListener.add(new StatusFileUpdatePrinter());
     }
+    if (firstConf.silentFailures) {
+      printFailures = false;
+    }
     eventListener.add(new SummaryPrinter());
-    eventListener.add(new FlakyLogWriter());
     if (printFailures) {
       // The buildbot has it's own failure summary since it needs to wrap it
       // into '@@@'-annotated sections.
@@ -223,14 +212,6 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     }
   }
 
-  if (firstConf.writeTestOutcomeLog) {
-    eventListener.add(new TestOutcomeLogWriter());
-  }
-
-  if (firstConf.writeResultLog) {
-    eventListener.add(new ResultLogWriter(firstConf.outputDirectory));
-  }
-
   if (firstConf.writeResults) {
     eventListener.add(new ResultWriter(firstConf, startTime, startStopwatch));
   }
@@ -244,7 +225,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   if (listTests) {
     eventListener.add(new SummaryPrinter(jsonOnly: reportInJson));
   } else {
-    eventListener.add(new ExitCodeSetter());
+    if (!firstConf.cleanExit) {
+      eventListener.add(new ExitCodeSetter());
+    }
     eventListener.add(new IgnoredTestMonitor());
   }
 

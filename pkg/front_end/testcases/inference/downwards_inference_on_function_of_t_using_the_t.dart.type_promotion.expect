@@ -1,0 +1,6 @@
+pkg/front_end/testcases/inference/downwards_inference_on_function_of_t_using_the_t.dart:12:8: Context: Write to v1@368
+    v1 = <S> /*@returnType=main::::S*/ (/*@type=main::::S*/ x) => x;
+       ^
+pkg/front_end/testcases/inference/downwards_inference_on_function_of_t_using_the_t.dart:17:8: Context: Write to v2@553
+    v2 = <S> /*@returnType=List<main::::S>*/
+       ^

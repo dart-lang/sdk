@@ -10,7 +10,8 @@ import 'analysis_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     await run(Uri.parse('memory:main.dart'),
-        'tests/compiler/dart2js/analyses/api_allowed.json', ['dart:'],
+        'tests/compiler/dart2js/analyses/api_allowed.json',
+        analyzedUrisFilter: (Uri uri) => uri.scheme == 'dart',
         memorySourceFiles: {'main.dart': 'main() {}'},
         verbose: args.contains('-v'),
         generate: args.contains('-g'));

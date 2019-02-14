@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -31,6 +31,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   String oldFile;
   String newFile;
+
+  final packagePrefixedStringPattern = new RegExp(r'''^r?['"]+package:''');
 
   MoveFileRefactoringImpl(ResourceProvider resourceProvider, this.workspace,
       this.source, this.oldFile)
@@ -90,7 +92,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       });
     } else {
       // Otherwise, we need to update any relative part-of references.
-      Iterable<PartOfDirective> partOfs = element.unit.directives
+      final result = await driver.currentSession.getResolvedUnit(oldFile);
+      Iterable<PartOfDirective> partOfs = result.unit.directives
           .whereType<PartOfDirective>()
           .where((po) => po.uri != null && _isRelativeUri(po.uri.stringValue));
 
@@ -139,19 +142,18 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     return _getRelativeUri(newFile, refDir);
   }
 
-  final packagePrefixedStringPattern = new RegExp(r'''^r?['"]+package:''');
+  String _getRelativeUri(String path, String from) {
+    String uri = pathContext.relative(path, from: from);
+    List<String> parts = pathContext.split(uri);
+    return pathos.posix.joinAll(parts);
+  }
+
   bool _isPackageReference(SourceReference reference) {
     final Source source = reference.element.source;
     final String quotedImportUri = source.contents.data.substring(
         reference.range.offset,
         reference.range.offset + reference.range.length);
     return packagePrefixedStringPattern.hasMatch(quotedImportUri);
-  }
-
-  String _getRelativeUri(String path, String from) {
-    String uri = pathContext.relative(path, from: from);
-    List<String> parts = pathContext.split(uri);
-    return pathos.posix.joinAll(parts);
   }
 
   /**

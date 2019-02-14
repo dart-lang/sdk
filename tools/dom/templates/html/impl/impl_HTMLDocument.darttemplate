@@ -49,9 +49,9 @@ $!MEMBERS
    *
    * ## Other resources
    *
-   * * [Using the fullscreen
-   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
-   *   from WebPlatform.org.
+   * * [Fullscreen
+   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
+   *   from MDN.
    * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @SupportedBrowser(SupportedBrowser.CHROME)

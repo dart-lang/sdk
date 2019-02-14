@@ -5,25 +5,24 @@
 library fasta.kernel_field_builder;
 
 import 'package:kernel/ast.dart'
-    show DartType, Expression, Field, Name, NullLiteral;
+    show DartType, DynamicType, Expression, Field, Name, NullLiteral;
 
 import '../../base/instrumentation.dart'
     show Instrumentation, InstrumentationValueForType;
 
-import '../../scanner/token.dart' show Token;
-
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 
-import '../problems.dart' show internalProblem;
+import '../problems.dart' show internalProblem, unsupported;
 
 import 'kernel_body_builder.dart' show KernelBodyBuilder;
 
 import 'kernel_builder.dart'
     show
         Declaration,
+        ImplicitType,
         FieldBuilder,
+        KernelLibraryBuilder,
         KernelTypeBuilder,
-        LibraryBuilder,
         MetadataBuilder;
 
 import 'kernel_shadow_ast.dart' show ShadowField;
@@ -32,21 +31,13 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   final ShadowField field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
-  Token initializerTokenForInference;
-  final bool hasInitializer;
 
-  KernelFieldBuilder(
-      this.metadata,
-      this.type,
-      String name,
-      int modifiers,
-      Declaration compilationUnit,
-      int charOffset,
-      this.initializerTokenForInference,
-      this.hasInitializer)
+  KernelFieldBuilder(this.metadata, this.type, String name, int modifiers,
+      Declaration compilationUnit, int charOffset, int charEndOffset)
       : field = new ShadowField(null, type == null,
             fileUri: compilationUnit?.fileUri)
-          ..fileOffset = charOffset,
+          ..fileOffset = charOffset
+          ..fileEndOffset = charEndOffset,
         super(name, modifiers, compilationUnit, charOffset);
 
   void set initializer(Expression value) {
@@ -57,10 +48,13 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
     field.initializer = value..parent = field;
   }
 
-  bool get isEligibleForInference =>
-      type == null && (hasInitializer || isInstanceMember);
+  bool get isEligibleForInference {
+    return !library.legacyMode &&
+        type == null &&
+        (hasInitializer || isInstanceMember);
+  }
 
-  Field build(LibraryBuilder library) {
+  Field build(KernelLibraryBuilder library) {
     field.name ??= new Name(name, library.target);
     if (type != null) {
       field.type = type.build(library);
@@ -73,9 +67,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       ..hasImplicitGetter = isInstanceMember
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
-    if (!library.disableTypeInference &&
-        isEligibleForInference &&
-        !isInstanceMember) {
+    if (isEligibleForInference && !isInstanceMember) {
       library.loader.typeInferenceEngine
           .recordStaticFieldInferenceCandidate(field, library);
     }
@@ -84,17 +76,23 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
 
   Field get target => field;
 
-  @override
   void prepareTopLevelInference() {
     if (!isEligibleForInference) return;
+    KernelLibraryBuilder library = this.library;
     var typeInferrer = library.loader.typeInferenceEngine
         .createTopLevelTypeInferrer(
             field.enclosingClass?.thisType, field, null);
     if (hasInitializer) {
+      if (field.type is! ImplicitType) {
+        unsupported(
+            "$name has unexpected type ${field.type}", charOffset, fileUri);
+        return;
+      }
+      ImplicitType type = field.type;
+      field.type = const DynamicType();
       initializer = new KernelBodyBuilder.forField(this, typeInferrer)
-          .parseFieldInitializer(initializerTokenForInference);
+          .parseFieldInitializer(type.initializerToken);
     }
-    initializerTokenForInference = null;
   }
 
   @override
@@ -107,8 +105,4 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
 
   @override
   DartType get builtType => field.type;
-
-  @override
-  bool get hasTypeInferredFromInitializer =>
-      ShadowField.hasTypeInferredFromInitializer(field);
 }

@@ -17,6 +17,11 @@ import 'package:path/path.dart' as pathos;
 export 'package:analyzer/source/line_info.dart' show LineInfo;
 export 'package:analyzer/source/source_range.dart';
 
+/**
+ * A function that is used to visit [ContentCache] entries.
+ */
+typedef void ContentCacheVisitor(String fullPath, int stamp, String contents);
+
 /// Base class providing implementations for the methods in [Source] that don't
 /// require filesystem access.
 abstract class BasicSource extends Source {
@@ -42,11 +47,6 @@ abstract class BasicSource extends Source {
   @override
   bool operator ==(Object object) => object is Source && object.uri == uri;
 }
-
-/**
- * A function that is used to visit [ContentCache] entries.
- */
-typedef void ContentCacheVisitor(String fullPath, int stamp, String contents);
 
 /**
  * A cache used to override the default content of a [Source].
@@ -565,6 +565,12 @@ abstract class SourceFactory {
   Map<String, List<Folder>> get packageMap;
 
   /**
+   * Clear any cached URI resolution information in the [SourceFactory] itself,
+   * and also ask each [UriResolver]s to clear its caches.
+   */
+  void clearCache();
+
+  /**
    * Return a source factory that will resolve URI's in the same way that this
    * source factory does.
    */
@@ -769,8 +775,19 @@ class UriKind implements Comparable<UriKind> {
  * The abstract class `UriResolver` defines the behavior of objects that are used to resolve
  * URI's for a source factory. Subclasses of this class are expected to resolve a single scheme of
  * absolute URI.
+ *
+ * NOTICE: in a future breaking change release of the analyzer, a method
+ * `void clearCache()` will be added.  Clients that implement, but do not
+ * extend, this class, can prepare for the breaking change by adding an
+ * implementation of this method that clears any cached URI resolution
+ * information.
  */
 abstract class UriResolver {
+  /**
+   * Clear any cached URI resolution information.
+   */
+  void clearCache() {}
+
   /**
    * Resolve the given absolute URI. Return a [Source] representing the file to which
    * it was resolved, whether or not the resulting source exists, or `null` if it could not be

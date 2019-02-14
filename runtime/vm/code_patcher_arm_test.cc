@@ -44,7 +44,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   __ set_constant_pool_allowed(true);
 
   __ LoadObject(R9, ic_data);
-  __ BranchLinkPatchable(*StubCode::OneArgCheckInlineCache_entry());
+  __ BranchLinkPatchable(StubCode::OneArgCheckInlineCache());
   __ Ret();
 }
 

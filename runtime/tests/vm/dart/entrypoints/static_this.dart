@@ -1,7 +1,7 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
+//
 // Test that 'StaticCall's against "this" go through the unchecked entry-point.
 
 import "common.dart";
@@ -10,6 +10,7 @@ import "package:expect/expect.dart";
 class C<T> {
   @pragma("vm:testing.unsafe.trace-entrypoints-fn", validate)
   @NeverInline
+  @AlwaysInline
   void target2(T x) {
     Expect.notEquals(x, -1);
   }
@@ -37,8 +38,8 @@ test(List<String> args) {
   }
 
   expectedEntryPoint = 0;
-  dynamic f = c.target2;
-  f(0);
+  dynamic x = c;
+  x.target2(0);
 
   Expect.isTrue(validateRan);
 }

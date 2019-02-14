@@ -1,22 +1,25 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
 import 'dart:math' show min;
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine;
+    show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
@@ -105,6 +108,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitClassElement(this);
 
+  @deprecated
   @override
   NamedCompilationUnitMember computeNode() {
     if (isEnum) {
@@ -506,22 +510,49 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<ConstructorElement> get constructors {
+    if (_constructors != null) {
+      return _constructors;
+    }
+
     if (isMixinApplication) {
-      return _computeMixinAppConstructors();
+      return _constructors = _computeMixinAppConstructors();
     }
-    if (_unlinkedClass != null && _constructors == null) {
-      _constructors = _unlinkedClass.executables
-          .where((e) => e.kind == UnlinkedExecutableKind.constructor)
-          .map((e) => new ConstructorElementImpl.forSerialized(e, this))
-          .toList(growable: false);
-      // Ensure at least implicit default constructor.
-      if (_constructors.isEmpty) {
-        ConstructorElementImpl constructor = new ConstructorElementImpl('', -1);
-        constructor.isSynthetic = true;
-        constructor.enclosingElement = this;
-        _constructors = <ConstructorElement>[constructor];
+
+    if (_unlinkedClass != null) {
+      var unlinkedExecutables = _unlinkedClass.executables;
+
+      var length = unlinkedExecutables.length;
+      if (length != 0) {
+        var count = 0;
+        for (var i = 0; i < length; i++) {
+          var e = unlinkedExecutables[i];
+          if (e.kind == UnlinkedExecutableKind.constructor) {
+            count++;
+          }
+        }
+
+        if (count != 0) {
+          var constructors = new List<ConstructorElement>(count);
+          var index = 0;
+          for (var i = 0; i < length; i++) {
+            var e = unlinkedExecutables[i];
+            if (e.kind == UnlinkedExecutableKind.constructor) {
+              constructors[index++] =
+                  new ConstructorElementImpl.forSerialized(e, this);
+            }
+          }
+          return _constructors = constructors;
+        }
       }
+
+      // There are no explicit constructors.
+      // Create the implicit default constructor.
+      var constructor = new ConstructorElementImpl('', -1);
+      constructor.isSynthetic = true;
+      constructor.enclosingElement = this;
+      _constructors = <ConstructorElement>[constructor];
     }
+
     assert(_constructors != null);
     return _constructors ?? const <ConstructorElement>[];
   }
@@ -645,17 +676,39 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<InterfaceType> get interfaces {
-    if (_interfaces == null) {
-      if (_unlinkedClass != null) {
-        ResynthesizerContext context = enclosingUnit.resynthesizerContext;
-        _interfaces = _unlinkedClass.interfaces
-            .map((EntityRef t) => context.resolveTypeRef(this, t))
-            .where(_isInterfaceTypeInterface)
-            .cast<InterfaceType>()
-            .toList(growable: false);
-      }
+    if (_interfaces != null) {
+      return _interfaces;
     }
-    return _interfaces ?? const <InterfaceType>[];
+
+    if (_unlinkedClass != null) {
+      var unlinkedInterfaces = _unlinkedClass.interfaces;
+      var length = unlinkedInterfaces.length;
+      if (length == 0) {
+        return _interfaces = const <InterfaceType>[];
+      }
+
+      ResynthesizerContext context = enclosingUnit.resynthesizerContext;
+      var interfaces = new List<InterfaceType>(length);
+      var index = 0;
+      var hasNonInterfaceType = false;
+      for (var i = 0; i < length; i++) {
+        var t = unlinkedInterfaces[i];
+        var type = context.resolveTypeRef(this, t);
+        if (_isInterfaceTypeInterface(type)) {
+          interfaces[index++] = type;
+        } else {
+          hasNonInterfaceType = true;
+        }
+      }
+
+      if (hasNonInterfaceType) {
+        interfaces = interfaces.sublist(0, index);
+      }
+
+      return _interfaces = interfaces;
+    }
+
+    return _interfaces = const <InterfaceType>[];
   }
 
   void set interfaces(List<InterfaceType> interfaces) {
@@ -720,13 +773,40 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<MethodElement> get methods {
-    if (_unlinkedClass != null) {
-      _methods ??= _unlinkedClass.executables
-          .where((e) => e.kind == UnlinkedExecutableKind.functionOrMethod)
-          .map((e) => new MethodElementImpl.forSerialized(e, this))
-          .toList(growable: false);
+    if (_methods != null) {
+      return _methods;
     }
-    return _methods ?? const <MethodElement>[];
+
+    if (_unlinkedClass != null) {
+      var unlinkedExecutables = _unlinkedClass.executables;
+
+      var length = unlinkedExecutables.length;
+      if (length == 0) {
+        return _methods = const <MethodElement>[];
+      }
+
+      var count = 0;
+      for (var i = 0; i < length; i++) {
+        var e = unlinkedExecutables[i];
+        if (e.kind == UnlinkedExecutableKind.functionOrMethod) {
+          count++;
+        }
+      }
+      if (count == 0) {
+        return _methods = const <MethodElement>[];
+      }
+
+      var methods = new List<MethodElement>(count);
+      var index = 0;
+      for (var i = 0; i < length; i++) {
+        var e = unlinkedExecutables[i];
+        if (e.kind == UnlinkedExecutableKind.functionOrMethod) {
+          methods[index++] = new MethodElementImpl.forSerialized(e, this);
+        }
+      }
+      return _methods = methods;
+    }
+    return _methods = const <MethodElement>[];
   }
 
   /// Set the methods contained in this class to the given [methods].
@@ -746,17 +826,39 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<InterfaceType> get mixins {
-    if (_mixins == null) {
-      if (_unlinkedClass != null) {
-        ResynthesizerContext context = enclosingUnit.resynthesizerContext;
-        _mixins = _unlinkedClass.mixins
-            .map((EntityRef t) => context.resolveTypeRef(this, t))
-            .where(_isInterfaceTypeInterface)
-            .cast<InterfaceType>()
-            .toList(growable: false);
-      }
+    if (_mixins != null) {
+      return _mixins;
     }
-    return _mixins ?? const <InterfaceType>[];
+
+    if (_unlinkedClass != null) {
+      var unlinkedMixins = _unlinkedClass.mixins;
+      var length = unlinkedMixins.length;
+      if (length == 0) {
+        return _mixins = const <InterfaceType>[];
+      }
+
+      ResynthesizerContext context = enclosingUnit.resynthesizerContext;
+      var mixins = new List<InterfaceType>(length);
+      var index = 0;
+      var hasNonInterfaceType = false;
+      for (var i = 0; i < length; i++) {
+        var t = unlinkedMixins[i];
+        var type = context.resolveTypeRef(this, t);
+        if (_isInterfaceTypeInterface(type)) {
+          mixins[index++] = type;
+        } else {
+          hasNonInterfaceType = true;
+        }
+      }
+
+      if (hasNonInterfaceType) {
+        mixins = mixins.sublist(0, index);
+      }
+
+      return _mixins = mixins;
+    }
+
+    return _mixins = const <InterfaceType>[];
   }
 
   void set mixins(List<InterfaceType> mixins) {
@@ -1066,60 +1168,105 @@ class ClassElementImpl extends AbstractClassElementImpl
   void _resynthesizeFieldsAndPropertyAccessors() {
     assert(_fields == null);
     assert(_accessors == null);
-    var explicitFields = <FieldElement>[];
-    var implicitAccessors = <PropertyAccessorElement>[];
-    var explicitAccessors = <PropertyAccessorElement>[];
-    var implicitFields = <String, FieldElementImpl>{};
+
+    var unlinkedFields = _unlinkedClass.fields;
+    var unlinkedExecutables = _unlinkedClass.executables;
 
     // Build explicit fields and implicit property accessors.
-    for (UnlinkedVariable v in _unlinkedClass.fields) {
-      FieldElementImpl field =
-          new FieldElementImpl.forSerializedFactory(v, this);
-      explicitFields.add(field);
-      implicitAccessors.add(
-          new PropertyAccessorElementImpl_ImplicitGetter(field)
-            ..enclosingElement = this);
-      if (!field.isConst && !field.isFinal) {
+    List<FieldElement> explicitFields;
+    List<PropertyAccessorElement> implicitAccessors;
+    var unlinkedFieldsLength = unlinkedFields.length;
+    if (unlinkedFieldsLength != 0) {
+      explicitFields = new List<FieldElement>(unlinkedFieldsLength);
+      implicitAccessors = <PropertyAccessorElement>[];
+      for (var i = 0; i < unlinkedFieldsLength; i++) {
+        var v = unlinkedFields[i];
+        FieldElementImpl field =
+            new FieldElementImpl.forSerializedFactory(v, this);
+        explicitFields[i] = field;
         implicitAccessors.add(
-            new PropertyAccessorElementImpl_ImplicitSetter(field)
+            new PropertyAccessorElementImpl_ImplicitGetter(field)
               ..enclosingElement = this);
+        if (!field.isConst && !field.isFinal) {
+          implicitAccessors.add(
+              new PropertyAccessorElementImpl_ImplicitSetter(field)
+                ..enclosingElement = this);
+        }
       }
+    } else {
+      explicitFields = const <FieldElement>[];
+      implicitAccessors = const <PropertyAccessorElement>[];
     }
-    // Build explicit property accessors and implicit fields.
-    for (UnlinkedExecutable e in _unlinkedClass.executables) {
+
+    var unlinkedExecutablesLength = unlinkedExecutables.length;
+    var getterSetterCount = 0;
+    for (var i = 0; i < unlinkedExecutablesLength; i++) {
+      var e = unlinkedExecutables[i];
       if (e.kind == UnlinkedExecutableKind.getter ||
           e.kind == UnlinkedExecutableKind.setter) {
-        PropertyAccessorElementImpl accessor =
-            new PropertyAccessorElementImpl.forSerialized(e, this);
-        explicitAccessors.add(accessor);
-        // Create or update the implicit field.
-        String fieldName = accessor.displayName;
-        FieldElementImpl field = implicitFields[fieldName];
-        if (field == null) {
-          field = new FieldElementImpl(fieldName, -1);
-          implicitFields[fieldName] = field;
-          field.enclosingElement = this;
-          field.isSynthetic = true;
-          field.isFinal = e.kind == UnlinkedExecutableKind.getter;
-          field.isStatic = e.isStatic;
-        } else {
-          field.isFinal = false;
-        }
-        accessor.variable = field;
-        if (e.kind == UnlinkedExecutableKind.getter) {
-          field.getter = accessor;
-        } else {
-          field.setter = accessor;
-        }
+        getterSetterCount++;
       }
     }
+
+    // Build explicit property accessors and implicit fields.
+    List<PropertyAccessorElement> explicitAccessors;
+    Map<String, FieldElementImpl> implicitFields;
+    if (getterSetterCount != 0) {
+      explicitAccessors = new List<PropertyAccessorElement>(getterSetterCount);
+      implicitFields = <String, FieldElementImpl>{};
+      var index = 0;
+      for (var i = 0; i < unlinkedExecutablesLength; i++) {
+        var e = unlinkedExecutables[i];
+        if (e.kind == UnlinkedExecutableKind.getter ||
+            e.kind == UnlinkedExecutableKind.setter) {
+          PropertyAccessorElementImpl accessor =
+              new PropertyAccessorElementImpl.forSerialized(e, this);
+          explicitAccessors[index++] = accessor;
+          // Create or update the implicit field.
+          String fieldName = accessor.displayName;
+          FieldElementImpl field = implicitFields[fieldName];
+          if (field == null) {
+            field = new FieldElementImpl(fieldName, -1);
+            implicitFields[fieldName] = field;
+            field.enclosingElement = this;
+            field.isSynthetic = true;
+            field.isFinal = e.kind == UnlinkedExecutableKind.getter;
+            field.isStatic = e.isStatic;
+          } else {
+            field.isFinal = false;
+          }
+          accessor.variable = field;
+          if (e.kind == UnlinkedExecutableKind.getter) {
+            field.getter = accessor;
+          } else {
+            field.setter = accessor;
+          }
+        }
+      }
+    } else {
+      explicitAccessors = const <PropertyAccessorElement>[];
+      implicitFields = const <String, FieldElementImpl>{};
+    }
+
     // Combine explicit and implicit fields and property accessors.
-    _fields = <FieldElement>[]
-      ..addAll(explicitFields)
-      ..addAll(implicitFields.values);
-    _accessors = <PropertyAccessorElement>[]
-      ..addAll(explicitAccessors)
-      ..addAll(implicitAccessors);
+    if (implicitFields.isEmpty) {
+      _fields = explicitFields;
+    } else if (explicitFields.isEmpty) {
+      _fields = implicitFields.values.toList(growable: false);
+    } else {
+      _fields = <FieldElement>[]
+        ..addAll(explicitFields)
+        ..addAll(implicitFields.values);
+    }
+    if (explicitAccessors.isEmpty) {
+      _accessors = implicitAccessors;
+    } else if (implicitAccessors.isEmpty) {
+      _accessors = explicitAccessors;
+    } else {
+      _accessors = <PropertyAccessorElement>[]
+        ..addAll(explicitAccessors)
+        ..addAll(implicitAccessors);
+    }
   }
 
   bool _safeIsOrInheritsProxy(
@@ -1523,6 +1670,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
   }
 
+  @deprecated
   @override
   CompilationUnit computeNode() => unit;
 
@@ -1783,6 +1931,9 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
   }
 
   @override
+  bool get isConstantEvaluated => true;
+
+  @override
   void set isFinal(bool isFinal) {
     assert(false);
   }
@@ -1834,6 +1985,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// set it to `false` during computing constant values if we detect that it
   /// is a part of a cycle.
   bool _isCycleFree = true;
+
+  @override
+  bool isConstantEvaluated = false;
 
   /// Initialize a newly created constructor element to have the given [name
   /// ] and[offset].
@@ -2042,6 +2196,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     super.appendTo(buffer);
   }
 
+  @deprecated
   @override
   ConstructorDeclaration computeNode() =>
       getNodeMatching((node) => node is ConstructorDeclaration);
@@ -2134,8 +2289,7 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
 /// This interface is only used for constant variables that have initializers.
 ///
 /// This class is not intended to be part of the public API for analyzer.
-abstract class ConstVariableElement
-    implements ElementImpl, ConstantEvaluationTarget {
+mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// If this element represents a constant variable, and it has an initializer,
   /// a copy of the initializer for the constant.  Otherwise `null`.
   ///
@@ -2168,6 +2322,9 @@ abstract class ConstVariableElement
     _evaluationResult = evaluationResult;
   }
 
+  @override
+  bool get isConstantEvaluated => _evaluationResult != null;
+
   /// If this element is resynthesized from the summary, return the unlinked
   /// initializer, otherwise return `null`.
   UnlinkedExpr get _unlinkedConst;
@@ -2178,7 +2335,9 @@ abstract class ConstVariableElement
   /// of this variable could not be computed because of errors.
   DartObject computeConstantValue() {
     if (evaluationResult == null) {
-      context?.computeResult(this, CONSTANT_VALUE);
+      AnalysisOptionsImpl analysisOptions = context.analysisOptions;
+      computeConstants(context.typeProvider, context.typeSystem,
+          context.declaredVariables, [this], analysisOptions.experimentStatus);
     }
     return evaluationResult?.value;
   }
@@ -2218,6 +2377,7 @@ class DefaultParameterElementImpl extends ParameterElementImpl
       UnlinkedParam unlinkedParam, ElementImpl enclosingElement)
       : super.forSerialized(unlinkedParam, enclosingElement);
 
+  @deprecated
   @override
   DefaultFormalParameter computeNode() =>
       getNodeMatching((node) => node is DefaultFormalParameter);
@@ -2253,10 +2413,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// throws, for dead code purposes.
   static String _ALWAYS_THROWS_VARIABLE_NAME = "alwaysThrows";
 
-  /// The name of the top-level variable used to mark a method parameter as
-  /// covariant.
-  static String _COVARIANT_VARIABLE_NAME = "checked";
-
   /// The name of the class used to mark an element as being deprecated.
   static String _DEPRECATED_CLASS_NAME = "Deprecated";
 
@@ -2271,6 +2427,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// The name of the top-level variable used to mark a class and its subclasses
   /// as being immutable.
   static String _IMMUTABLE_VARIABLE_NAME = "immutable";
+
+  /// The name of the top-level variable used to mark a constructor as being
+  /// literal.
+  static String _LITERAL_VARIABLE_NAME = "literal";
 
   /// The name of the top-level variable used to mark a function as running
   /// a single test.
@@ -2348,6 +2508,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   ElementAnnotationImpl(this.compilationUnit);
 
   @override
+  List<AnalysisError> get constantEvaluationErrors =>
+      evaluationResult?.errors ?? const <AnalysisError>[];
+
+  @override
   DartObject get constantValue => evaluationResult?.value;
 
   @override
@@ -2359,12 +2523,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element.name == _ALWAYS_THROWS_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
 
-  /// Return `true` if this annotation marks the associated parameter as being
-  /// covariant, meaning it is allowed to have a narrower type in an override.
-  bool get isCovariant =>
-      element is PropertyAccessorElement &&
-      element.name == _COVARIANT_VARIABLE_NAME &&
-      element.library?.name == _META_LIB_NAME;
+  @override
+  bool get isConstantEvaluated => evaluationResult != null;
 
   @override
   bool get isDeprecated {
@@ -2407,6 +2567,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is ConstructorElement &&
       element.enclosingElement.name == _JS_CLASS_NAME &&
       element.library?.name == _JS_LIB_NAME;
+
+  @override
+  bool get isLiteral =>
+      element is PropertyAccessorElement &&
+      element.name == _LITERAL_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isMustCallSuper =>
@@ -2468,7 +2634,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   DartObject computeConstantValue() {
     if (evaluationResult == null) {
-      context?.computeResult(this, CONSTANT_VALUE);
+      AnalysisOptionsImpl analysisOptions = context.analysisOptions;
+      computeConstants(context.typeProvider, context.typeSystem,
+          context.declaredVariables, [this], analysisOptions.experimentStatus);
     }
     return constantValue;
   }
@@ -2659,6 +2827,18 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get hasLiteral {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isLiteral) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get hasOverride {
     var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
@@ -2829,6 +3009,11 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  AnalysisSession get session {
+    return _enclosingElement?.session;
+  }
+
+  @override
   Source get source {
     if (_enclosingElement == null) {
       return null;
@@ -2843,6 +3028,7 @@ abstract class ElementImpl implements Element {
     return _enclosingElement?.typeParameterContext;
   }
 
+  @deprecated
   @override
   CompilationUnit get unit => context.resolveCompilationUnit(source, library);
 
@@ -2889,6 +3075,7 @@ abstract class ElementImpl implements Element {
   @override
   String computeDocumentationComment() => documentationComment;
 
+  @deprecated
   @override
   AstNode computeNode() => getNodeMatching((node) => node is AstNode);
 
@@ -2926,6 +3113,7 @@ abstract class ElementImpl implements Element {
   }
 
   /// Return the resolved [AstNode] of the given type enclosing [getNameOffset].
+  @deprecated
   AstNode getNodeMatching(Predicate<AstNode> predicate) {
     CompilationUnit unit = this.unit;
     if (unit == null) {
@@ -2936,7 +3124,7 @@ abstract class ElementImpl implements Element {
     if (node == null) {
       return null;
     }
-    return node.getAncestor(predicate);
+    return node.thisOrAncestorMatching(predicate);
   }
 
   /// Return `true` if this element has the given [modifier] associated with it.
@@ -3376,6 +3564,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   /// Create the only method enums have - `toString()`.
   void createToStringMethodElement() {
     var method = new MethodElementImpl('toString', -1);
+    method.isSynthetic = true;
     if (_unlinkedEnum != null) {
       method.returnType = context.typeProvider.stringType;
       method.type = new FunctionTypeImpl(method);
@@ -3745,7 +3934,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   /// order in which they were specified.
   List<NamespaceCombinator> _combinators;
 
-  /// The URI that was selected based on the [context] declared variables.
+  /// The URI that was selected based on the declared variables.
   String _selectedUri;
 
   /// Initialize a newly created export element at the given [offset].
@@ -3952,6 +4141,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
 
+  @deprecated
   @override
   AstNode computeNode() {
     if (isEnumConstant) {
@@ -4016,7 +4206,10 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
   @override
   DartType get type {
-    if (unlinkedParam != null && unlinkedParam.type == null && field != null) {
+    if (unlinkedParam != null &&
+        unlinkedParam.type == null &&
+        !unlinkedParam.isFunctionTyped &&
+        field != null) {
       _type ??= field?.type ?? DynamicTypeImpl.instance;
     }
     return super.type;
@@ -4124,6 +4317,7 @@ class FunctionElementImpl extends ExecutableElementImpl
     super.appendTo(buffer);
   }
 
+  @deprecated
   @override
   FunctionDeclaration computeNode() =>
       getNodeMatching((node) => node is FunctionDeclaration);
@@ -4596,6 +4790,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
     }
   }
 
+  @deprecated
   @override
   GenericTypeAlias computeNode() =>
       getNodeMatching((node) => node is GenericTypeAlias);
@@ -4723,7 +4918,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   ///` if there was no prefix specified.
   PrefixElement _prefix;
 
-  /// The URI that was selected based on the [context] declared variables.
+  /// The URI that was selected based on the declared variables.
   String _selectedUri;
 
   /// The cached value of [namespace].
@@ -5007,6 +5202,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// The analysis context in which this library is defined.
   final AnalysisContext context;
 
+  @override
+  final AnalysisSession session;
+
   final LibraryResynthesizerContext resynthesizerContext;
 
   final UnlinkedUnit unlinkedDefiningUnit;
@@ -5061,22 +5259,29 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
-  LibraryElementImpl(this.context, String name, int offset, this.nameLength)
+  LibraryElementImpl(
+      this.context, this.session, String name, int offset, this.nameLength)
       : resynthesizerContext = null,
         unlinkedDefiningUnit = null,
         super(name, offset);
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name].
-  LibraryElementImpl.forNode(this.context, LibraryIdentifier name)
+  LibraryElementImpl.forNode(this.context, this.session, LibraryIdentifier name)
       : nameLength = name != null ? name.length : 0,
         resynthesizerContext = null,
         unlinkedDefiningUnit = null,
         super.forNode(name);
 
   /// Initialize using the given serialized information.
-  LibraryElementImpl.forSerialized(this.context, String name, int offset,
-      this.nameLength, this.resynthesizerContext, this.unlinkedDefiningUnit)
+  LibraryElementImpl.forSerialized(
+      this.context,
+      this.session,
+      String name,
+      int offset,
+      this.nameLength,
+      this.resynthesizerContext,
+      this.unlinkedDefiningUnit)
       : super.forSerialized(null) {
     _name = name;
     _nameOffset = offset;
@@ -5468,6 +5673,19 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
+  Iterable<Element> get topLevelElements sync* {
+    for (var unit in units) {
+      yield* unit.accessors;
+      yield* unit.enums;
+      yield* unit.functionTypeAliases;
+      yield* unit.functions;
+      yield* unit.mixins;
+      yield* unit.topLevelVariables;
+      yield* unit.types;
+    }
+  }
+
+  @override
   List<CompilationUnitElement> get units {
     List<CompilationUnitElement> units = new List<CompilationUnitElement>();
     units.add(_definingCompilationUnit);
@@ -5770,6 +5988,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
     buffer.write(displayName);
   }
 
+  @deprecated
   @override
   Declaration computeNode() => getNodeMatching(
       (node) => node is DeclaredIdentifier || node is VariableDeclaration);
@@ -5866,6 +6085,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     super.appendTo(buffer);
   }
 
+  @deprecated
   @override
   MethodDeclaration computeNode() =>
       getNodeMatching((node) => node is MethodDeclaration);
@@ -6143,6 +6363,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   final AnalysisContext context;
 
+  @override
+  final AnalysisSession session;
+
   /// The name of the conflicting elements.
   @override
   final String name;
@@ -6152,7 +6375,8 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   /// Initialize a newly created element in the given [context] to represent
   /// the given non-empty [conflictingElements].
-  MultiplyDefinedElementImpl(this.context, this.name, this.conflictingElements);
+  MultiplyDefinedElementImpl(
+      this.context, this.session, this.name, this.conflictingElements);
 
   @override
   String get displayName => name;
@@ -6180,6 +6404,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasJS => false;
+
+  @override
+  bool get hasLiteral => false;
 
   @override
   bool get hasOverride => false;
@@ -6277,6 +6504,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   String computeDocumentationComment() => null;
 
+  @deprecated
   @override
   AstNode computeNode() => null;
 
@@ -6729,11 +6957,6 @@ class ParameterElementImpl extends VariableElementImpl
     if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
-    for (ElementAnnotationImpl annotation in metadata) {
-      if (annotation.isCovariant) {
-        return true;
-      }
-    }
     return false;
   }
 
@@ -6901,6 +7124,7 @@ class ParameterElementImpl extends VariableElementImpl
     buffer.write(right);
   }
 
+  @deprecated
   @override
   FormalParameter computeNode() =>
       getNodeMatching((node) => node is FormalParameter);
@@ -6996,11 +7220,6 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
     if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
-    for (ElementAnnotationImpl annotation in setter.variable.metadata) {
-      if (annotation.isCovariant) {
-        return true;
-      }
-    }
     return false;
   }
 
@@ -7024,7 +7243,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
 /// A mixin that provides a common implementation for methods defined in
 /// [ParameterElement].
-abstract class ParameterElementMixin implements ParameterElement {
+mixin ParameterElementMixin implements ParameterElement {
   @override
   bool get isNamed => parameterKind == ParameterKind.NAMED;
 
@@ -7278,6 +7497,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     super.appendTo(buffer);
   }
 
+  @deprecated
   @override
   AstNode computeNode() {
     if (isSynthetic) {
@@ -7390,6 +7610,9 @@ abstract class PropertyInducingElementImpl
   PropertyInducingElementImpl.forSerialized(
       UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
       : super.forSerialized(unlinkedVariable, enclosingElement);
+
+  @override
+  bool get isConstantEvaluated => true;
 
   @deprecated
   @override
@@ -7543,7 +7766,7 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
 /// Mixin providing the implementation of
 /// [TypeParameterizedElement.isSimplyBounded] for elements that define a type.
-abstract class SimplyBoundableMixin implements TypeParameterizedElement {
+mixin SimplyBoundableMixin implements TypeParameterizedElement {
   CompilationUnitElementImpl get enclosingUnit;
 
   @override
@@ -7592,6 +7815,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitTopLevelVariableElement(this);
 
+  @deprecated
   @override
   VariableDeclaration computeNode() =>
       getNodeMatching((node) => node is VariableDeclaration);
@@ -7728,7 +7952,7 @@ class TypeParameterElementImpl extends ElementImpl
 }
 
 /// Mixin representing an element which can have type parameters.
-abstract class TypeParameterizedElementMixin
+mixin TypeParameterizedElementMixin
     implements
         TypeParameterizedElement,
         ElementImpl,
@@ -7993,6 +8217,9 @@ abstract class VariableElementImpl extends ElementImpl
   void set isConst(bool isConst) {
     setModifier(Modifier.CONST, isConst);
   }
+
+  @override
+  bool get isConstantEvaluated => true;
 
   @override
   bool get isFinal {

@@ -57,7 +57,8 @@ void main() {
 
     // Test that inlineSameContext was inlined into lib1.
     RegExp re4 = new RegExp(r"inline same context");
-    Expect.isFalse(re4.hasMatch(lib3Output));
+    // Output can be null when it contains no code.
+    Expect.isTrue(lib3Output == null || !re4.hasMatch(lib3Output));
     Expect.isTrue(re4.hasMatch(lib1Output));
   });
 }

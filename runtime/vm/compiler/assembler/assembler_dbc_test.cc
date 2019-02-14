@@ -75,7 +75,8 @@ static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
   const Function& dummy_instance_function =
       Function::Handle(CreateFunction(dummy_function_name));
   Code& code = Code::Handle(
-      Code::FinalizeCode(dummy_instance_function, nullptr, &_assembler_));
+      Code::FinalizeCode(dummy_instance_function, nullptr, &_assembler_,
+                         Code::PoolAttachment::kAttachPool));
   dummy_instance_function.AttachCode(code);
 
   // Make a dummy ICData.

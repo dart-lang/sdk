@@ -14,19 +14,17 @@ abstract class Operation {
 }
 
 abstract class UnaryOperation extends Operation {
-  /** Returns [:null:] if it was unable to fold the operation. */
+  /// Returns [:null:] if it was unable to fold the operation.
   ConstantValue fold(ConstantValue constant);
 }
 
 abstract class BinaryOperation extends Operation {
-  /** Returns [:null:] if it was unable to fold the operation. */
+  /// Returns [:null:] if it was unable to fold the operation.
   ConstantValue fold(ConstantValue left, ConstantValue right);
   apply(left, right);
 }
 
-/**
- * A [ConstantSystem] is responsible for creating constants and folding them.
- */
+/// A [ConstantSystem] is responsible for creating constants and folding them.
 abstract class ConstantSystem {
   BinaryOperation get add;
   BinaryOperation get bitAnd;
@@ -75,15 +73,19 @@ abstract class ConstantSystem {
   // system because an int is a double at runtime.
   bool isSubtype(DartTypes types, DartType s, DartType t);
 
-  /** Returns true if the [constant] is an integer at runtime. */
+  /// Returns true if the [constant] is an integer at runtime.
   bool isInt(ConstantValue constant);
-  /** Returns true if the [constant] is a double at runtime. */
+
+  /// Returns true if the [constant] is a double at runtime.
   bool isDouble(ConstantValue constant);
-  /** Returns true if the [constant] is a string at runtime. */
+
+  /// Returns true if the [constant] is a string at runtime.
   bool isString(ConstantValue constant);
-  /** Returns true if the [constant] is a boolean at runtime. */
+
+  /// Returns true if the [constant] is a boolean at runtime.
   bool isBool(ConstantValue constant);
-  /** Returns true if the [constant] is null at runtime. */
+
+  /// Returns true if the [constant] is null at runtime.
   bool isNull(ConstantValue constant);
 
   UnaryOperation lookupUnary(UnaryOperator operator) {

@@ -4,6 +4,7 @@ import "dart:core" as core;
 
 class C = self::D with self::E {
   synthetic constructor •() → self::C
+    : super self::D::•()
     ;
 }
 class D extends core::Object {

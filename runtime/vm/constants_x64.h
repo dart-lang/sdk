@@ -115,6 +115,7 @@ const Register kStackTraceObjectReg = RDX;
 // ABI for write barrier stub.
 const Register kWriteBarrierObjectReg = RDX;
 const Register kWriteBarrierValueReg = RAX;
+const Register kWriteBarrierSlotReg = R13;
 
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
@@ -122,10 +123,12 @@ const RegList kAllFpuRegistersList = 0xFFFF;
 
 const RegList kReservedCpuRegisters =
     (1 << SPREG) | (1 << FPREG) | (1 << TMP) | (1 << PP) | (1 << THR);
+constexpr intptr_t kNumberOfReservedCpuRegisters = 5;
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
-constexpr int kNumberOfDartAvailableCpuRegs = kNumberOfCpuRegisters - 5;
+constexpr int kNumberOfDartAvailableCpuRegs =
+    kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
 constexpr int kStoreBufferWrapperSize = 13;
 
 enum ScaleFactor {

@@ -18,9 +18,14 @@ main() {
 main() {
   runTest() async {
     String generated = await compileAll(CODE);
-    RegExp regexp = new RegExp(r'\A: {[ \n]*"\^": "[A-Za-z]+;"');
+
+    RegExp regexp = RegExp(r'\.A\.prototype = {');
     Iterator<Match> matches = regexp.allMatches(generated).iterator;
     checkNumberOfMatches(matches, 1);
+
+    RegExp regexp2 = RegExp(r'A\$\w+: function');
+    Iterator<Match> matches2 = regexp2.allMatches(generated).iterator;
+    checkNumberOfMatches(matches2, 1);
   }
 
   asyncTest(() async {

@@ -172,9 +172,9 @@ _writeNumber(sb, before, now, {color: false}) {
   if (now < 1024) {
     string = ' ${now}b';
   } else if (now < mega) {
-    string = ' ${(now/1024).toStringAsFixed(0)}K';
+    string = ' ${(now / 1024).toStringAsFixed(0)}K';
   } else {
-    string = ' ${(now/mega).toStringAsFixed(1)}M';
+    string = ' ${(now / mega).toStringAsFixed(1)}M';
   }
   if (string.length < 10) string = '${' ' * (8 - string.length)}$string';
   sb.write(string);

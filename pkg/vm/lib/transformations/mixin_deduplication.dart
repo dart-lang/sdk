@@ -126,26 +126,24 @@ class DeduplicateMixinsTransformer extends Transformer {
       throw 'Unexpected node ${node.runtimeType}: $node';
 }
 
-/// Corrects synthetic forwarding constructors inserted by mixin resolution
-/// after replacing superclass.
+/// Corrects forwarding constructors inserted by mixin resolution after
+/// replacing superclass.
 void _correctForwardingConstructors(Class c, Class oldSuper, Class newSuper) {
   for (var constructor in c.constructors) {
-    if (constructor.isSynthetic) {
-      for (var initializer in constructor.initializers) {
-        if ((initializer is SuperInitializer) &&
-            initializer.target.enclosingClass == oldSuper) {
-          Constructor replacement = null;
-          for (var c in newSuper.constructors) {
-            if (c.name == initializer.target.name) {
-              replacement = c;
-              break;
-            }
+    for (var initializer in constructor.initializers) {
+      if ((initializer is SuperInitializer) &&
+          initializer.target.enclosingClass == oldSuper) {
+        Constructor replacement = null;
+        for (var c in newSuper.constructors) {
+          if (c.name == initializer.target.name) {
+            replacement = c;
+            break;
           }
-          if (replacement == null) {
-            throw 'Unable to find a replacement for $c in $newSuper';
-          }
-          initializer.target = replacement;
         }
+        if (replacement == null) {
+          throw 'Unable to find a replacement for $c in $newSuper';
+        }
+        initializer.target = replacement;
       }
     }
   }

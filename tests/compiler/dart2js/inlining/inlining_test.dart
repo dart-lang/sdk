@@ -11,7 +11,7 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/js_model/element_map.dart';
-import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/ssa/builder_kernel.dart' as kernel;
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/use.dart';
@@ -26,15 +26,15 @@ main(List<String> args) {
   });
 }
 
-class InliningDataComputer extends DataComputer {
+class InliningDataComputer extends DataComputer<String> {
   const InliningDataComputer();
 
   /// Compute type inference data for [member] from kernel based inference.
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
@@ -43,17 +43,20 @@ class InliningDataComputer extends DataComputer {
             compiler.backend, closedWorld.closureDataLookup)
         .run(definition.node);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
 /// AST visitor for computing inference data for a member.
-class InliningIrComputer extends IrDataExtractor {
+class InliningIrComputer extends IrDataExtractor<String> {
   final JavaScriptBackend backend;
   final JsToElementMap _elementMap;
   final ClosureData _closureDataLookup;
 
   InliningIrComputer(
       DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap,
+      Map<Id, ActualData<String>> actualMap,
       this._elementMap,
       MemberEntity member,
       this.backend,

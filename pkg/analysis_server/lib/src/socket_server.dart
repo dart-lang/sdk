@@ -1,10 +1,11 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
@@ -13,13 +14,18 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 
+abstract class AbstractSocketServer {
+  AnalysisServerOptions get analysisServerOptions;
+  AbstractAnalysisServer get analysisServer;
+}
+
 /**
  * Instances of the class [SocketServer] implement the common parts of
  * http-based and stdio-based analysis servers.  The primary responsibility of
  * the SocketServer is to manage the lifetime of the AnalysisServer and to
  * encode and decode the JSON messages exchanged with the client.
  */
-class SocketServer {
+class SocketServer implements AbstractSocketServer {
   final AnalysisServerOptions analysisServerOptions;
 
   /**

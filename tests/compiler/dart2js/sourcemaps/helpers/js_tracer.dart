@@ -53,6 +53,7 @@ class StepTraceListener extends TraceListener
             CallPosition.getSemanticPositionForCall(node);
         sourcePositionKind = callPosition.sourcePositionKind;
         break;
+      case StepKind.ACCESS:
       case StepKind.NEW:
       case StepKind.RETURN:
       case StepKind.BREAK:

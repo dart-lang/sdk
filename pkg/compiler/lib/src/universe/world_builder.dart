@@ -4,47 +4,15 @@
 
 library world_builder;
 
-import 'dart:collection';
-
-import '../common.dart';
-import '../common/names.dart' show Identifiers, Names;
 import '../common_elements.dart';
-import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
-import '../js_backend/annotations.dart';
-import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
-import '../js_backend/backend_usage.dart'
-    show BackendUsage, BackendUsageBuilder;
-import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
-import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
-import '../js_backend/no_such_method_registry.dart';
-import '../js_backend/runtime_types.dart';
-import '../js_model/locals.dart';
-import '../js_model/element_map_impl.dart';
-import '../js_model/elements.dart' show JSignatureMethod;
-import '../kernel/element_map_impl.dart';
-import '../kernel/kelements.dart';
-import '../native/enqueue.dart' show NativeResolutionEnqueuer;
-import '../options.dart';
-import '../universe/class_set.dart';
-import '../util/enumset.dart';
-import '../util/util.dart';
-import '../world.dart' show World, JClosedWorld, KClosedWorld, OpenWorld;
-import 'class_hierarchy.dart' show ClassHierarchyBuilder, ClassQueries;
+import '../ir/static_type.dart';
+import '../js_backend/native_data.dart' show NativeBasicData;
+import '../world.dart' show World, JClosedWorld, OpenWorld;
 import 'selector.dart' show Selector;
-import 'use.dart'
-    show
-        ConstantUse,
-        ConstantUseKind,
-        DynamicUse,
-        DynamicUseKind,
-        StaticUse,
-        StaticUseKind;
-
-part 'codegen_world_builder.dart';
-part 'member_usage.dart';
-part 'resolution_world_builder.dart';
+import 'use.dart' show DynamicUse, StaticUse;
 
 /// The combined constraints on receivers all the dynamic call sites of the same
 /// selector.
@@ -66,7 +34,7 @@ part 'resolution_world_builder.dart';
 /// the selector constraints for dynamic calls to 'foo' with two positional
 /// arguments could be 'receiver of exact instance `A` or `B`'.
 abstract class SelectorConstraints {
-  /// Returns `true` if [selector] applies to [element] under these constraints
+  /// Returns `true` if [name] applies to [element] under these constraints
   /// given the closed [world].
   ///
   /// Consider for instance in this world:
@@ -81,7 +49,7 @@ abstract class SelectorConstraints {
   ///
   /// Ideally the selector constraints for calls `foo` with two positional
   /// arguments apply to `A.foo` but `B.foo`.
-  bool applies(MemberEntity element, Selector selector, covariant World world);
+  bool canHit(MemberEntity element, Name name, covariant World world);
 
   /// Returns `true` if at least one of the receivers matching these constraints
   /// in the closed [world] have no implementation matching [selector].
@@ -109,7 +77,8 @@ abstract class UniverseSelectorConstraints extends SelectorConstraints {
 abstract class SelectorConstraintsStrategy {
   /// Create a [UniverseSelectorConstraints] to represent the global receiver
   /// constraints for dynamic call sites with [selector].
-  UniverseSelectorConstraints createSelectorConstraints(Selector selector);
+  UniverseSelectorConstraints createSelectorConstraints(
+      Selector selector, Object initialConstraint);
 
   /// Returns `true`  if [member] is a potential target of [dynamicUse].
   bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member, World world);
@@ -122,8 +91,10 @@ abstract class SelectorConstraintsStrategy {
 class StrongModeWorldStrategy implements SelectorConstraintsStrategy {
   const StrongModeWorldStrategy();
 
-  StrongModeWorldConstraints createSelectorConstraints(Selector selector) {
-    return new StrongModeWorldConstraints();
+  StrongModeWorldConstraints createSelectorConstraints(
+      Selector selector, Object initialConstraint) {
+    return new StrongModeWorldConstraints()
+      ..addReceiverConstraint(initialConstraint);
   }
 
   @override
@@ -132,7 +103,8 @@ class StrongModeWorldStrategy implements SelectorConstraintsStrategy {
     Selector selector = dynamicUse.selector;
     StrongModeConstraint constraint = dynamicUse.receiverConstraint;
     return selector.appliesUnnamed(member) &&
-        (constraint == null || constraint.canHit(member, selector, world));
+        (constraint == null ||
+            constraint.canHit(member, selector.memberName, world));
   }
 }
 
@@ -141,11 +113,11 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
   Set<StrongModeConstraint> _constraints;
 
   @override
-  bool applies(MemberEntity element, Selector selector, World world) {
+  bool canHit(MemberEntity element, Name name, World world) {
     if (isAll) return true;
     if (_constraints == null) return false;
     for (StrongModeConstraint constraint in _constraints) {
-      if (constraint.canHit(element, selector, world)) {
+      if (constraint.canHit(element, name, world)) {
         return true;
       }
     }
@@ -192,34 +164,42 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
 
 class StrongModeConstraint {
   final ClassEntity cls;
+  final ClassRelation relation;
 
   factory StrongModeConstraint(CommonElements commonElements,
-      NativeBasicData nativeBasicData, ClassEntity cls) {
+      NativeBasicData nativeBasicData, ClassEntity cls,
+      [ClassRelation relation = ClassRelation.subtype]) {
     if (nativeBasicData.isJsInteropClass(cls)) {
       // We can not tell js-interop classes apart, so we just assume the
       // receiver could be any js-interop class.
       cls = commonElements.jsJavaScriptObjectClass;
+      relation = ClassRelation.subtype;
     }
-    return new StrongModeConstraint.internal(cls);
+    return new StrongModeConstraint.internal(cls, relation);
   }
 
-  const StrongModeConstraint.internal(this.cls);
+  const StrongModeConstraint.internal(this.cls, this.relation);
 
   bool needsNoSuchMethodHandling(Selector selector, World world) => true;
 
-  bool canHit(MemberEntity element, Selector selector, OpenWorld world) {
-    return world.isInheritedInSubtypeOf(element, cls);
+  bool canHit(MemberEntity element, Name name, OpenWorld world) {
+    return world.isInheritedIn(element, cls, relation);
   }
 
-  bool operator ==(other) {
+  bool get isExact => relation == ClassRelation.exact;
+
+  bool get isThis => relation == ClassRelation.thisExpression;
+
+  bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! StrongModeConstraint) return false;
-    return cls == other.cls;
+    return other is StrongModeConstraint &&
+        cls == other.cls &&
+        relation == other.relation;
   }
 
   int get hashCode => cls.hashCode * 13;
 
-  String toString() => 'StrongModeConstraint($cls)';
+  String toString() => 'StrongModeConstraint($cls,$relation)';
 }
 
 /// The [WorldBuilder] is an auxiliary class used in the process of computing

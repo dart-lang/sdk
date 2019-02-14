@@ -484,4 +484,20 @@ class TestIncrementalCompiler extends IncrementalCompiler {
   void recordInvalidatedImportUrisForTesting(List<Uri> uris) {
     invalidatedImportUrisForTesting = uris.isEmpty ? null : uris.toSet();
   }
+
+  @override
+  Future<Component> computeDelta(
+      {Uri entryPoint, bool fullComponent = false}) async {
+    Component result = await super
+        .computeDelta(entryPoint: entryPoint, fullComponent: fullComponent);
+
+    // We should at least have the SDK builders available. Slight smoke test.
+    if (!dillLoadedData.loader.builders.keys
+        .map((uri) => uri.toString())
+        .contains("dart:core")) {
+      throw "Loaders builder should contain the sdk, "
+          "but didn't even contain dart:core.";
+    }
+    return result;
+  }
 }

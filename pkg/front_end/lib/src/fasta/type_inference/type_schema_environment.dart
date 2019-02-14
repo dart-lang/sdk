@@ -23,7 +23,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/src/hierarchy_based_type_environment.dart'
+    show HierarchyBasedTypeEnvironment;
 
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
@@ -46,7 +47,9 @@ FunctionType substituteTypeParams(
           .toList(),
       typeParameters: newTypeParameters,
       requiredParameterCount: type.requiredParameterCount,
-      typedefReference: type.typedefReference);
+      typedefType: type.typedefType == null
+          ? null
+          : substitution.substituteType(type.typedefType));
 }
 
 /// Given a [FunctionType], gets the type of the named parameter with the given
@@ -87,10 +90,9 @@ class TypeConstraint {
       '${typeSchemaToString(lower)} <: <type> <: ${typeSchemaToString(upper)}';
 }
 
-class TypeSchemaEnvironment extends TypeEnvironment {
-  TypeSchemaEnvironment(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, bool strongMode)
-      : super(coreTypes, hierarchy, strongMode: strongMode);
+class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment {
+  TypeSchemaEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy)
+      : super(coreTypes, hierarchy);
 
   /// Modify the given [constraint]'s lower bound to include [lower].
   void addLowerBound(TypeConstraint constraint, DartType lower) {
@@ -743,7 +745,7 @@ class TypeSchemaEnvironment extends TypeEnvironment {
       }
       return new InterfaceType(type1.classNode, tArgs);
     }
-    return hierarchy.getClassicLeastUpperBound(type1, type2);
+    return hierarchy.getLegacyLeastUpperBound(type1, type2);
   }
 
   DartType _typeParameterStandardUpperBound(DartType type1, DartType type2) {

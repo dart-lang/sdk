@@ -143,6 +143,7 @@ Dart_Port ServiceIsolate::Port() {
 }
 
 Dart_Port ServiceIsolate::WaitForLoadPort() {
+  VMTagScope tagScope(Thread::Current(), VMTag::kLoadWaitTagId);
   MonitorLocker ml(monitor_);
   while (initializing_ && (load_port_ == ILLEGAL_PORT)) {
     ml.Wait();
@@ -384,7 +385,6 @@ class RunServiceTask : public ThreadPool::Task {
       if (!error.IsNull() && !error.IsUnwindError()) {
         OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
       }
-      TransitionVMToNative transition(T);
       Dart::RunShutdownCallback();
     }
     ASSERT(ServiceIsolate::IsServiceIsolate(I));

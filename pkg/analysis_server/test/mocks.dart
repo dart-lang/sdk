@@ -1,33 +1,23 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:convert';
 
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:test/test.dart';
 
-/**
- * Answer the absolute path the SDK relative to the currently running
- * script or throw an exception if it cannot be found.
- */
-String get sdkPath {
-  Uri sdkUri = Platform.script.resolve('../../../sdk/');
-
-  // Verify the directory exists
-  Directory sdkDir = new Directory.fromUri(sdkUri);
-  if (!sdkDir.existsSync()) {
-    throw 'Specified Dart SDK does not exist: $sdkDir';
-  }
-
-  return sdkDir.path;
-}
+const _jsonEncoder = const JsonEncoder.withIndent('    ');
 
 /**
  * A [Matcher] that check that the given [Response] has an expected identifier
@@ -43,6 +33,186 @@ Matcher isResponseFailure(String id, [RequestErrorCode code]) =>
 Matcher isResponseSuccess(String id) => new _IsResponseSuccess(id);
 
 /**
+ * A mock [LspServerCommunicationChannel] for testing [LspAnalysisServer].
+ */
+class MockLspServerChannel implements LspServerCommunicationChannel {
+  final StreamController<lsp.Message> _clientToServer =
+      new StreamController<lsp.Message>.broadcast();
+  final StreamController<lsp.Message> _serverToClient =
+      new StreamController<lsp.Message>.broadcast();
+
+  String name;
+
+  /**
+   * Completer that will be signalled when the input stream is closed.
+   */
+  final Completer _closed = new Completer();
+
+  MockLspServerChannel(bool _printMessages) {
+    if (_printMessages) {
+      _serverToClient.stream
+          .listen((message) => print('<== ' + jsonEncode(message)));
+      _clientToServer.stream
+          .listen((message) => print('==> ' + jsonEncode(message)));
+    }
+  }
+
+  /**
+   * Future that will be completed when the input stream is closed.
+   */
+  Future get closed {
+    return _closed.future;
+  }
+
+  /**
+   * A stream of [NotificationMessage]s from the server that may be errors.
+   */
+  Stream<lsp.NotificationMessage> get errorNotificationsFromServer {
+    return notificationsFromServer.where(_isErrorNotification);
+  }
+
+  /**
+   * A stream of [NotificationMessage]s from the server.
+   */
+  Stream<lsp.NotificationMessage> get notificationsFromServer {
+    return _serverToClient.stream
+        .where((m) => m is lsp.NotificationMessage)
+        .cast<lsp.NotificationMessage>();
+  }
+
+  /**
+   * A stream of [RequestMessage]s from the server.
+   */
+  Stream<lsp.RequestMessage> get requestsFromServer {
+    return _serverToClient.stream
+        .where((m) => m is lsp.RequestMessage)
+        .cast<lsp.RequestMessage>();
+  }
+
+  Stream<lsp.Message> get serverToClient => _serverToClient.stream;
+
+  @override
+  void close() {
+    if (!_closed.isCompleted) {
+      _closed.complete();
+    }
+  }
+
+  @override
+  void listen(void Function(lsp.Message message) onMessage,
+      {Function onError, void Function() onDone}) {
+    _clientToServer.stream.listen(onMessage, onError: onError, onDone: onDone);
+  }
+
+  @override
+  void sendNotification(lsp.NotificationMessage notification) {
+    // Don't deliver notifications after the connection is closed.
+    if (_closed.isCompleted) {
+      return;
+    }
+    _serverToClient.add(notification);
+  }
+
+  void sendNotificationToServer(lsp.NotificationMessage notification) {
+    // Don't deliver notifications after the connection is closed.
+    if (_closed.isCompleted) {
+      return;
+    }
+    notification = _convertJson(notification, lsp.NotificationMessage.fromJson);
+    _clientToServer.add(notification);
+  }
+
+  @override
+  void sendRequest(lsp.RequestMessage request) {
+    // Don't deliver notifications after the connection is closed.
+    if (_closed.isCompleted) {
+      return;
+    }
+    _serverToClient.add(request);
+  }
+
+  /**
+   * Send the given [request] to the server and return a future that will
+   * complete when a response associated with the [request] has been received.
+   * The value of the future will be the received response.
+   */
+  Future<lsp.ResponseMessage> sendRequestToServer(lsp.RequestMessage request) {
+    // No further requests should be sent after the connection is closed.
+    if (_closed.isCompleted) {
+      throw new Exception('sendLspRequest after connection closed');
+    }
+    request = _convertJson(request, lsp.RequestMessage.fromJson);
+    // Wrap send request in future to simulate WebSocket.
+    new Future(() => _clientToServer.add(request));
+    return waitForResponse(request);
+  }
+
+  @override
+  void sendResponse(lsp.ResponseMessage response) {
+    // Don't deliver responses after the connection is closed.
+    if (_closed.isCompleted) {
+      return;
+    }
+    // Wrap send response in future to simulate WebSocket.
+    new Future(() => _serverToClient.add(response));
+  }
+
+  void sendResponseToServer(lsp.ResponseMessage response) {
+    // Don't deliver notifications after the connection is closed.
+    if (_closed.isCompleted) {
+      return;
+    }
+    response = _convertJson(response, lsp.ResponseMessage.fromJson);
+    _clientToServer.add(response);
+  }
+
+  /**
+   * Return a future that will complete when a response associated with the
+   * given [request] has been received. The value of the future will be the
+   * received response. The returned future will throw an exception if a server
+   * error is reported before the response has been received.
+   *
+   * Unlike [sendLspRequest], this method assumes that the [request] has already
+   * been sent to the server.
+   */
+  Future<lsp.ResponseMessage> waitForResponse(
+    lsp.RequestMessage request, {
+    bool throwOnError = true,
+  }) async {
+    final response = await _serverToClient.stream.firstWhere((message) =>
+        (message is lsp.ResponseMessage && message.id == request.id) ||
+        (throwOnError &&
+            message is lsp.NotificationMessage &&
+            message.method == Method.window_showMessage));
+
+    if (response is lsp.ResponseMessage) {
+      return response;
+    } else {
+      throw 'An error occurred while waiting for a response to ${request.method}: '
+          '${_jsonEncoder.convert(response.toJson())}';
+    }
+  }
+
+  /// Round trips the object to JSON and back to ensure it behaves the same as
+  /// when running over the real STDIO server. Without this, the object passed
+  /// to the handlers will have concrete types as constructed in tests rather
+  /// than the maps as they would be (the server expects to do the conversion).
+  T _convertJson<T>(
+      lsp.ToJsonable message, T Function(Map<String, dynamic>) constructor) {
+    return constructor(jsonDecode(jsonEncode(message.toJson())));
+  }
+
+  /// Checks whether a notification is likely an error from the server (for
+  /// example a window/showMessage). This is useful for tests that want to
+  /// ensure no errors come from the server in response to notifications (which
+  /// don't have their own responses).
+  bool _isErrorNotification(lsp.NotificationMessage notification) {
+    return notification.method == Method.window_logMessage ||
+        notification.method == Method.window_showMessage;
+  }
+}
+
+/**
  * A mock [ServerCommunicationChannel] for testing [AnalysisServer].
  */
 class MockServerChannel implements ServerCommunicationChannel {
@@ -55,6 +225,7 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   List<Response> responsesReceived = [];
   List<Notification> notificationsReceived = [];
+
   bool _closed = false;
 
   String name;
@@ -134,7 +305,7 @@ class MockServerChannel implements ServerCommunicationChannel {
    * received response. If [throwOnError] is `true` (the default) then the
    * returned future will throw an exception if a server error is reported
    * before the response has been received.
-   * 
+   *
    * Unlike [sendRequest], this method assumes that the [request] has already
    * been sent to the server.
    */
@@ -155,45 +326,6 @@ class MockServerChannel implements ServerCommunicationChannel {
     }
     return response;
   }
-}
-
-/**
- * A mock [WebSocket] for testing.
- */
-class MockSocket<T> implements WebSocket {
-  StreamController<T> controller = new StreamController<T>();
-  MockSocket<T> twin;
-  Stream<T> stream;
-
-  MockSocket();
-
-  factory MockSocket.pair() {
-    MockSocket<T> socket1 = new MockSocket<T>();
-    MockSocket<T> socket2 = new MockSocket<T>();
-    socket1.twin = socket2;
-    socket2.twin = socket1;
-    socket1.stream = socket2.controller.stream;
-    socket2.stream = socket1.controller.stream;
-    return socket1;
-  }
-
-  void add(dynamic text) => controller.add(text as T);
-
-  void allowMultipleListeners() {
-    stream = stream.asBroadcastStream();
-  }
-
-  Future close([int code, String reason]) =>
-      controller.close().then((_) => twin.controller.close());
-
-  StreamSubscription<T> listen(void onData(dynamic event),
-          {Function onError, void onDone(), bool cancelOnError}) =>
-      stream.listen((T data) => onData(data),
-          onError: onError, onDone: onDone, cancelOnError: cancelOnError);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  Stream<T> where(bool test(dynamic t)) => stream.where((T data) => test(data));
 }
 
 class MockSource extends StringTypedMock implements Source {

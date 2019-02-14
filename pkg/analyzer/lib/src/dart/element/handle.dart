@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -43,6 +44,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
 
   @override
   bool get hasJS => actualElement.hasJS;
+
+  @override
+  bool get hasLiteral => actualElement.hasLiteral;
 
   @override
   bool get hasNonFinalField => actualElement.hasNonFinalField;
@@ -117,6 +121,7 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   @override
   ConstructorElement get unnamedConstructor => actualElement.unnamedConstructor;
 
+  @deprecated
   @override
   NamedCompilationUnitMember computeNode() => super.computeNode();
 
@@ -246,6 +251,7 @@ class CompilationUnitElementHandle extends ElementHandle
   @override
   int get uriOffset => actualElement.uriOffset;
 
+  @deprecated
   @override
   CompilationUnit computeNode() => actualElement.computeNode();
 
@@ -281,6 +287,9 @@ class ConstructorElementHandle extends ExecutableElementHandle
   bool get isConst => actualElement.isConst;
 
   @override
+  bool get isConstantEvaluated => actualElement.isConstantEvaluated;
+
+  @override
   bool get isDefaultConstructor => actualElement.isDefaultConstructor;
 
   @override
@@ -299,6 +308,7 @@ class ConstructorElementHandle extends ExecutableElementHandle
   ConstructorElement get redirectedConstructor =>
       actualElement.redirectedConstructor;
 
+  @deprecated
   @override
   ConstructorDeclaration computeNode() => actualElement.computeNode();
 }
@@ -382,6 +392,9 @@ abstract class ElementHandle implements Element {
   bool get hasJS => actualElement.hasJS;
 
   @override
+  bool get hasLiteral => actualElement.hasLiteral;
+
+  @override
   bool get hasOverride => actualElement.hasOverride;
 
   @override
@@ -455,8 +468,12 @@ abstract class ElementHandle implements Element {
   int get nameOffset => actualElement.nameOffset;
 
   @override
+  AnalysisSession get session => _resynthesizer.session;
+
+  @override
   Source get source => actualElement.source;
 
+  @deprecated
   @override
   CompilationUnit get unit => actualElement.unit;
 
@@ -470,6 +487,7 @@ abstract class ElementHandle implements Element {
   @override
   String computeDocumentationComment() => documentationComment;
 
+  @deprecated
   @override
   AstNode computeNode() => actualElement.computeNode();
 
@@ -506,10 +524,17 @@ abstract class ElementResynthesizer {
   final AnalysisContext context;
 
   /**
+   * The session that owns the element to be resynthesized.
+   * 
+   * Note that this will be `null` if the task model is being used.
+   */
+  final AnalysisSession session;
+
+  /**
    * Initialize a newly created resynthesizer to resynthesize elements in the
    * given [context].
    */
-  ElementResynthesizer(this.context);
+  ElementResynthesizer(this.context, this.session);
 
   /**
    * Return the element referenced by the given [location].
@@ -643,6 +668,7 @@ class FieldElementHandle extends PropertyInducingElementHandle
   @override
   ElementKind get kind => ElementKind.FIELD;
 
+  @deprecated
   @override
   VariableDeclaration computeNode() => actualElement.computeNode();
 }
@@ -673,6 +699,7 @@ class FunctionElementHandle extends ExecutableElementHandle
   @override
   SourceRange get visibleRange => actualElement.visibleRange;
 
+  @deprecated
   @override
   FunctionDeclaration computeNode() => actualElement.computeNode();
 }
@@ -720,6 +747,7 @@ class FunctionTypeAliasElementHandle extends ElementHandle
   @override
   List<TypeParameterElement> get typeParameters => actualElement.typeParameters;
 
+  @deprecated
   @override
   FunctionTypeAlias computeNode() => actualElement.computeNode();
 
@@ -766,6 +794,7 @@ class GenericTypeAliasElementHandle extends ElementHandle
   @override
   List<TypeParameterElement> get typeParameters => actualElement.typeParameters;
 
+  @deprecated
   @override
   FunctionTypeAlias computeNode() => actualElement.computeNode();
 
@@ -920,6 +949,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
   Namespace get publicNamespace => actualElement.publicNamespace;
 
   @override
+  Iterable<Element> get topLevelElements => actualElement.topLevelElements;
+
+  @override
   List<CompilationUnitElement> get units => actualElement.units;
 
   @override
@@ -954,6 +986,7 @@ class LocalVariableElementHandle extends VariableElementHandle
   @override
   SourceRange get visibleRange => actualElement.visibleRange;
 
+  @deprecated
   @override
   VariableDeclaration computeNode() => actualElement.computeNode();
 }
@@ -984,6 +1017,7 @@ class MethodElementHandle extends ExecutableElementHandle
   @override
   ElementKind get kind => ElementKind.METHOD;
 
+  @deprecated
   @override
   MethodDeclaration computeNode() => actualElement.computeNode();
 
@@ -1036,6 +1070,7 @@ class ParameterElementHandle extends VariableElementHandle
   @override
   SourceRange get visibleRange => actualElement.visibleRange;
 
+  @deprecated
   @override
   FormalParameter computeNode() => super.computeNode();
 }
@@ -1138,6 +1173,9 @@ abstract class PropertyInducingElementHandle extends VariableElementHandle
   DartType get propagatedType => null;
 
   @override
+  bool get isConstantEvaluated => actualElement.isConstantEvaluated;
+
+  @override
   PropertyAccessorElement get setter => actualElement.setter;
 }
 
@@ -1158,6 +1196,7 @@ class TopLevelVariableElementHandle extends PropertyInducingElementHandle
   @override
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
 
+  @deprecated
   @override
   VariableDeclaration computeNode() => super.computeNode();
 }
@@ -1215,6 +1254,9 @@ abstract class VariableElementHandle extends ElementHandle
 
   @override
   FunctionElement get initializer => actualElement.initializer;
+
+  @override
+  bool get isConstantEvaluated => actualElement.isConstantEvaluated;
 
   @override
   bool get isConst => actualElement.isConst;

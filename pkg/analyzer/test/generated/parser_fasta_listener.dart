@@ -201,12 +201,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginExpressionStatement(Token token) {
-    super.beginExpressionStatement(token);
-    begin('ExpressionStatement');
-  }
-
-  @override
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {
     super.beginFactoryMethod(lastConsumed, externalToken, constToken);
@@ -338,12 +332,6 @@ class ForwardingTestListener extends ForwardingListener {
   void beginLibraryName(Token token) {
     super.beginLibraryName(token);
     begin('LibraryName');
-  }
-
-  @override
-  void beginLiteralMapEntry(Token token) {
-    super.beginLiteralMapEntry(token);
-    begin('LiteralMapEntry');
   }
 
   @override
@@ -688,12 +676,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endExpressionStatement(Token token) {
-    end('ExpressionStatement');
-    super.endExpressionStatement(token);
-  }
-
-  @override
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     end('FactoryMethod');
@@ -782,9 +764,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     end('FunctionType');
-    super.endFunctionType(functionToken);
+    super.endFunctionType(functionToken, questionMark);
   }
 
   @override
@@ -846,12 +828,6 @@ class ForwardingTestListener extends ForwardingListener {
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     end('LibraryName');
     super.endLibraryName(libraryKeyword, semicolon);
-  }
-
-  @override
-  void endLiteralMapEntry(Token colon, Token endToken) {
-    end('LiteralMapEntry');
-    super.endLiteralMapEntry(colon, endToken);
   }
 
   @override

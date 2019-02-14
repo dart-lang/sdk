@@ -1,14 +1,17 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:mirrors';
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/error/option_codes.dart';
+import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -66,8 +69,8 @@ analyzer:
         new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
       ['x']
     ]);
-    var invalid_assignment =
-        new AnalysisError(new TestSource(), 0, 1, HintCode.INVALID_ASSIGNMENT, [
+    var invalid_assignment = new AnalysisError(
+        new TestSource(), 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
       ['x'],
       ['y']
     ]);
@@ -193,6 +196,7 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.INVALID_CAST_LITERAL);
         removeCode(StrongModeCode.INVALID_CAST_LITERAL_LIST);
         removeCode(StrongModeCode.INVALID_CAST_LITERAL_MAP);
+        removeCode(StrongModeCode.INVALID_CAST_LITERAL_SET);
         removeCode(StrongModeCode.INVALID_CAST_FUNCTION_EXPR);
         removeCode(StrongModeCode.INVALID_CAST_NEW_EXPR);
         removeCode(StrongModeCode.INVALID_CAST_METHOD);
@@ -485,6 +489,22 @@ class OptionsFileValidatorTest {
   final OptionsFileValidator validator =
       new OptionsFileValidator(new TestSource());
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+
+  test_analyzer_enableExperiment_badValue() {
+    validate('''
+analyzer:
+  enable-experiment:
+    - not-an-experiment
+    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES]);
+  }
+
+  test_analyzer_enableExperiment_notAList() {
+    validate('''
+analyzer:
+  enable-experiment:
+    experiment: true
+    ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
 
   test_analyzer_error_code_supported() {
     validate('''

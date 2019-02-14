@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.21.1
+  1.22.1
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -810,33 +810,16 @@ a:focus, a:hover {
       </dd></dl></dd><dt class="request"><a name="request_analysis.reanalyze">analysis.reanalyze</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.reanalyze"
-  "params": {
-    "<b>roots</b>": <span style="color:#999999">optional</span> List&lt;<a href="#type_FilePath">FilePath</a>&gt;
-  }
 }</pre><br><pre>response: {
   "id": String
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
     <p>
-      Force the re-analysis of everything contained in the specified
-      analysis roots. This will cause all previously computed analysis
-      results to be discarded and recomputed, and will cause all subscribed
-      notifications to be re-sent.
+      Force re-reading of all potentially changed files, re-resolving of all
+      referenced URIs, and corresponding re-analysis of everything affected in
+      the current analysis roots.
     </p>
-    <p>
-      If no analysis roots are provided, then all current analysis roots
-      will be re-analyzed. If an empty list of analysis roots is provided,
-      then nothing will be re-analyzed. If the list contains one or more
-      paths that are not currently analysis roots, then an error of type
-      <tt>INVALID_ANALYSIS_ROOT</tt> will be generated.
-    </p>
-    
-  <h4>parameters:</h4><dl><dt class="field"><b>roots: List&lt;<a href="#type_FilePath">FilePath</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
-        
-        <p>
-          A list of the analysis roots that are to be re-analyzed.
-        </p>
-      </dd></dl></dd><dt class="request"><a name="request_analysis.setAnalysisRoots">analysis.setAnalysisRoots</a></dt><dd><div class="box"><pre>request: {
+  </dd><dt class="request"><a name="request_analysis.setAnalysisRoots">analysis.setAnalysisRoots</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.setAnalysisRoots"
   "params": {
@@ -2934,6 +2917,12 @@ a:focus, a:hover {
           Text to be displayed in, for example, a completion pop-up. This field
           is only defined if the displayed text should be different than the
           completion.  Otherwise it is omitted.
+        </p>
+      </dd><dt class="field"><b>elementUri: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The URI of the element corresponding to this suggestion. It will be
+          set whenever analysis server is able to compute it.
         </p>
       </dd><dt class="field"><b>selectionOffset: int</b></dt><dd>
         

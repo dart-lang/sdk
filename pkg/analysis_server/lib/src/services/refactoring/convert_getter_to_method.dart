@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,10 +10,11 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -23,13 +24,13 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     implements ConvertGetterToMethodRefactoring {
   final SearchEngine searchEngine;
-  final AstProvider astProvider;
+  final AnalysisSession session;
   final PropertyAccessorElement element;
 
   SourceChange change;
 
   ConvertGetterToMethodRefactoringImpl(
-      this.searchEngine, this.astProvider, this.element);
+      this.searchEngine, this.session, this.element);
 
   @override
   String get refactoringName => 'Convert Getter To Method';
@@ -92,8 +93,9 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     // prepare "get" keyword
     Token getKeyword = null;
     {
-      AstNode name = await astProvider.getParsedNameForElement(element);
-      AstNode declaration = name?.parent;
+      var sessionHelper = AnalysisSessionHelper(session);
+      var result = await sessionHelper.getElementDeclaration(element);
+      var declaration = result.node;
       if (declaration is MethodDeclaration) {
         getKeyword = declaration.propertyKeyword;
       } else if (declaration is FunctionDeclaration) {

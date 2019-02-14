@@ -6,7 +6,7 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' hide AnalysisResult;
+import 'package:analyzer/src/dart/analysis/driver.dart' show AnalysisDriver;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptions;
 
 /**
@@ -31,7 +31,9 @@ class DriverBasedAnalysisContext implements AnalysisContext {
    * to access the file system and that is based on the given analysis [driver].
    */
   DriverBasedAnalysisContext(
-      this.resourceProvider, this.contextRoot, this.driver);
+      this.resourceProvider, this.contextRoot, this.driver) {
+    driver.analysisContext = this;
+  }
 
   @override
   AnalysisOptions get analysisOptions => driver.analysisOptions;

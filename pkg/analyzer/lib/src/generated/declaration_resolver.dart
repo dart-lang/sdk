@@ -103,7 +103,7 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
     ConstructorElement element = _match(node.name, _walker.getConstructor(),
         offset: node.name?.offset ?? node.returnType.offset);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
-      node.element = element;
+      (node as ConstructorDeclarationImpl).declaredElement = element;
       super.visitConstructorDeclaration(node);
     });
     resolveMetadata(node, node.metadata, element);
@@ -232,7 +232,8 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
       }
     }
     _setGenericFunctionType(node.returnType, element.returnType);
-    node.functionExpression.element = element;
+    (node.functionExpression as FunctionExpressionImpl).declaredElement =
+        element;
     _walker._elementHolder?.addFunction(element);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitFunctionDeclaration(node);

@@ -61,6 +61,7 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   /// superclass.
   bool get isMixinApplication => mixedInType != null;
 
+  @override
   bool get isNamedMixinApplication {
     return isMixinApplication && super.isNamedMixinApplication;
   }
@@ -144,8 +145,6 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     library.addProblem(message, charOffset, length, fileUri,
         wasHandled: wasHandled, context: context);
   }
-
-  void prepareTopLevelInference() {}
 
   /// Find the first member of this class with [name]. This method isn't
   /// suitable for scope lookups as it will throw an error if the name isn't

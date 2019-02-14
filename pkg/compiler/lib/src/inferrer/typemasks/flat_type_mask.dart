@@ -4,10 +4,8 @@
 
 part of masks;
 
-/**
- * A flat type mask is a type mask that has been flattened to contain a
- * base type.
- */
+/// A flat type mask is a type mask that has been flattened to contain a
+/// base type.
 class FlatTypeMask implements TypeMask {
   /// Tag used for identifying serialized [FlatTypeMask] objects in a
   /// debugging data stream.
@@ -45,10 +43,8 @@ class FlatTypeMask implements TypeMask {
 
   FlatTypeMask.internal(this.base, this.flags);
 
-  /**
-   * Ensures that the generated mask is normalized, i.e., a call to
-   * [TypeMask.assertIsNormalized] with the factory's result returns `true`.
-   */
+  /// Ensures that the generated mask is normalized, i.e., a call to
+  /// [TypeMask.assertIsNormalized] with the factory's result returns `true`.
   factory FlatTypeMask.normalized(
       ClassEntity base, int flags, JClosedWorld world) {
     if ((flags >> 1) == EMPTY || ((flags >> 1) == EXACT)) {
@@ -260,9 +256,7 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  /**
-   * Returns whether or not this type mask contains all types.
-   */
+  /// Returns whether or not this type mask contains all types.
   bool containsAll(JClosedWorld closedWorld) {
     if (isEmptyOrNull || isExact) return false;
     return identical(base, closedWorld.commonElements.objectClass);
@@ -519,33 +513,30 @@ class FlatTypeMask implements TypeMask {
         : new TypeMask.nonNullEmpty();
   }
 
-  /**
-   * Returns whether [element] is a potential target when being
-   * invoked on this type mask. [selector] is used to ensure library
-   * privacy is taken into account.
-   */
-  bool canHit(
-      MemberEntity element, Selector selector, JClosedWorld closedWorld) {
+  /// Returns whether [element] is a potential target when being
+  /// invoked on this type mask. [selector] is used to ensure library
+  /// privacy is taken into account.
+  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
     CommonElements commonElements = closedWorld.commonElements;
-    assert(element.name == selector.name);
+    assert(element.name == name.text);
     if (isEmpty) return false;
     if (isNull) {
       return closedWorld.hasElementIn(
-          commonElements.jsNullClass, selector, element);
+          commonElements.jsNullClass, name, element);
     }
 
     ClassEntity other = element.enclosingClass;
     if (other == commonElements.jsNullClass) {
       return isNullable;
     } else if (isExact) {
-      return closedWorld.hasElementIn(base, selector, element);
+      return closedWorld.hasElementIn(base, name, element);
     } else if (isSubclass) {
-      return closedWorld.hasElementIn(base, selector, element) ||
+      return closedWorld.hasElementIn(base, name, element) ||
           closedWorld.classHierarchy.isSubclassOf(other, base) ||
           closedWorld.hasAnySubclassThatMixes(base, other);
     } else {
       assert(isSubtype);
-      bool result = closedWorld.hasElementIn(base, selector, element) ||
+      bool result = closedWorld.hasElementIn(base, name, element) ||
           closedWorld.classHierarchy.isSubtypeOf(other, base) ||
           closedWorld.hasAnySubclassThatImplements(other, base) ||
           closedWorld.hasAnySubclassOfMixinUseThatImplements(other, base);
@@ -554,7 +545,7 @@ class FlatTypeMask implements TypeMask {
       // can be hit from any of the mixin applications.
       Iterable<ClassEntity> mixinUses = closedWorld.mixinUsesOf(base);
       return mixinUses.any((mixinApplication) =>
-          closedWorld.hasElementIn(mixinApplication, selector, element) ||
+          closedWorld.hasElementIn(mixinApplication, name, element) ||
           closedWorld.classHierarchy.isSubclassOf(other, mixinApplication) ||
           closedWorld.hasAnySubclassThatMixes(mixinApplication, other));
     }

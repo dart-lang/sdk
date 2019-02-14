@@ -3,24 +3,24 @@ import self as self;
 import "dart:core" as core;
 
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                2
-  CheckStack
+  CheckStack           0
   PushNull
   PopLocal             r0
   Push                 FP[-5]
   PopLocal             r1
   Push                 r1
   PushInt              1
-  InstanceCall         2, CP#1
+  InterfaceCall        2, CP#1
   JumpIfTrue           L1
   Push                 r1
   PushInt              2
-  InstanceCall         2, CP#2
+  InterfaceCall        2, CP#1
   JumpIfTrue           L2
   Push                 r1
   PushInt              3
-  InstanceCall         2, CP#3
+  InterfaceCall        2, CP#1
   JumpIfTrue           L3
   Jump                 L4
 L1:
@@ -41,9 +41,8 @@ L4:
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = ICData target-name '==', arg-desc CP#0
-  [2] = ICData target-name '==', arg-desc CP#0
-  [3] = ICData target-name '==', arg-desc CP#0
+  [1] = InterfaceCall target-name '==', arg-desc CP#0
+  [2] = Reserved
 }
 ]static method foo1(core::int x) → core::int {
   core::int y;
@@ -71,36 +70,36 @@ ConstantPool {
   return y;
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                2
-  CheckStack
+  CheckStack           0
   PushNull
   PopLocal             r0
   Push                 FP[-5]
   PopLocal             r1
   Push                 r1
   PushInt              1
-  InstanceCall         2, CP#1
+  InterfaceCall        2, CP#1
   JumpIfTrue           L1
   Push                 r1
   PushInt              2
-  InstanceCall         2, CP#2
+  InterfaceCall        2, CP#1
   JumpIfTrue           L1
   Push                 r1
   PushInt              3
-  InstanceCall         2, CP#3
+  InterfaceCall        2, CP#1
   JumpIfTrue           L1
   Push                 r1
   PushInt              4
-  InstanceCall         2, CP#4
+  InterfaceCall        2, CP#1
   JumpIfTrue           L2
   Push                 r1
   PushInt              5
-  InstanceCall         2, CP#5
+  InterfaceCall        2, CP#1
   JumpIfTrue           L2
   Push                 r1
   PushInt              6
-  InstanceCall         2, CP#6
+  InterfaceCall        2, CP#1
   JumpIfTrue           L2
   Jump                 L3
 L1:
@@ -120,12 +119,8 @@ L4:
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = ICData target-name '==', arg-desc CP#0
-  [2] = ICData target-name '==', arg-desc CP#0
-  [3] = ICData target-name '==', arg-desc CP#0
-  [4] = ICData target-name '==', arg-desc CP#0
-  [5] = ICData target-name '==', arg-desc CP#0
-  [6] = ICData target-name '==', arg-desc CP#0
+  [1] = InterfaceCall target-name '==', arg-desc CP#0
+  [2] = Reserved
 }
 ]static method foo2(core::int x) → core::int {
   core::int y;
@@ -156,36 +151,36 @@ ConstantPool {
   return y;
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                2
-  CheckStack
+  CheckStack           0
   PushNull
   PopLocal             r0
   Push                 FP[-5]
   PopLocal             r1
   Push                 r1
   PushInt              1
-  InstanceCall         2, CP#1
+  InterfaceCall        2, CP#1
   JumpIfTrue           L1
   Push                 r1
   PushInt              2
-  InstanceCall         2, CP#2
+  InterfaceCall        2, CP#1
   JumpIfTrue           L1
   Push                 r1
   PushInt              3
-  InstanceCall         2, CP#3
+  InterfaceCall        2, CP#1
   JumpIfTrue           L1
   Push                 r1
   PushInt              4
-  InstanceCall         2, CP#4
+  InterfaceCall        2, CP#1
   JumpIfTrue           L2
   Push                 r1
   PushInt              5
-  InstanceCall         2, CP#5
+  InterfaceCall        2, CP#1
   JumpIfTrue           L2
   Push                 r1
   PushInt              6
-  InstanceCall         2, CP#6
+  InterfaceCall        2, CP#1
   JumpIfTrue           L2
   Jump                 L3
 L1:
@@ -205,12 +200,8 @@ L3:
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = ICData target-name '==', arg-desc CP#0
-  [2] = ICData target-name '==', arg-desc CP#0
-  [3] = ICData target-name '==', arg-desc CP#0
-  [4] = ICData target-name '==', arg-desc CP#0
-  [5] = ICData target-name '==', arg-desc CP#0
-  [6] = ICData target-name '==', arg-desc CP#0
+  [1] = InterfaceCall target-name '==', arg-desc CP#0
+  [2] = Reserved
 }
 ]static method foo3(core::int x) → core::int {
   core::int y;
@@ -240,9 +231,9 @@ ConstantPool {
   return y;
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }

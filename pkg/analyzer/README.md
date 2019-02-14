@@ -4,7 +4,7 @@ This package provides a low-level _library_ that performs static analysis
 of Dart code. It is useful for tool
 integration and embedding.
 
-End-users should use the [dartanalyzer][analyzercli] command-line tool
+End-users should use the [dartanalyzer][] command-line tool
 to analyze their Dart code.
 
 Integrators that want to add Dart support to their editor
@@ -96,9 +96,9 @@ this causes for our clients, but some pain is inevitable.
 See the [LICENSE] file.
 
 [serverapi]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html
-[analyzercli]: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer_cli
+[dartanalyzer]: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer_cli#dartanalyzer
 [list]: https://groups.google.com/a/dartlang.org/forum/#!forum/analyzer-discuss
-[lintrules]: http://dart-lang.github.io/linter/lints/
+[lintrules]: https://dart-lang.github.io/linter/lints/
 [glob]: https://pub.dartlang.org/packages/glob
 [LICENSE]: https://github.com/dart-lang/sdk/blob/master/pkg/analyzer/LICENSE
 [dartfmt]: https://github.com/dart-lang/dart_style

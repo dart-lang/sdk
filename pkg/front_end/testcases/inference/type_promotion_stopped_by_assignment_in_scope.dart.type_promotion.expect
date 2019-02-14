@@ -1,0 +1,6 @@
+pkg/front_end/testcases/inference/type_promotion_stopped_by_assignment_in_scope.dart:10:9: Context: Possible promotion of n@279
+  if (n is int) {
+        ^^
+pkg/front_end/testcases/inference/type_promotion_stopped_by_assignment_in_scope.dart:12:7: Context: Write to n@279
+    n = null;
+      ^

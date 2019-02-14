@@ -624,7 +624,8 @@ abstract class AstFactory {
       TypeAnnotation returnType,
       Token functionKeyword,
       TypeParameterList typeParameters,
-      FormalParameterList parameters);
+      FormalParameterList parameters,
+      {Token question});
 
   /**
    * Returns a newly created generic type alias. Either or both of the
@@ -939,6 +940,15 @@ abstract class AstFactory {
   ScriptTag scriptTag(Token scriptTag);
 
   /**
+   * Returns a newly created set literal. The [constKeyword] can be `null`
+   * if the literal is not a constant. The [typeArguments] can be `null` if no
+   * type arguments were declared. The list of [elements] can be `null` if the
+   * set is empty.
+   */
+  SetLiteral setLiteral(Token constKeyword, TypeArgumentList typeArguments,
+      Token leftBracket, List<Expression> elements, Token rightBracket);
+
+  /**
    * Returns a newly created import show combinator.
    */
   ShowCombinator showCombinator(
@@ -1075,9 +1085,11 @@ abstract class AstFactory {
 
   /**
    * Returns a newly created type name. The [typeArguments] can be `null` if
-   * there are no type arguments.
+   * there are no type arguments. The [question] can be `null` if there is no
+   * question mark.
    */
-  TypeName typeName(Identifier name, TypeArgumentList typeArguments);
+  TypeName typeName(Identifier name, TypeArgumentList typeArguments,
+      {Token question});
 
   /**
    * Returns a newly created type parameter. Either or both of the [comment]

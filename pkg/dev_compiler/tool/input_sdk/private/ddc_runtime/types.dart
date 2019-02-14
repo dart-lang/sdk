@@ -306,13 +306,6 @@ _canonicalizeNamed(named, map) => JS('', '''(() => {
   return $_memoizeArray($map, key, () => $named);
 })()''');
 
-_lookupNonTerminal(map, key) => JS('', '''(() => {
-  let result = $map.get($key);
-  if (result !== void 0) return result;
-  $map.set($key, result = new Map());
-  return result;
-})()''');
-
 // TODO(leafp): This handles some low hanging fruit, but
 // really we should make all of this faster, and also
 // handle more cases here.

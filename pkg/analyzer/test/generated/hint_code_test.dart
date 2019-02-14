@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,7 +7,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -17,18 +17,12 @@ import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(CrossPackageHintCodeTest);
     defineReflectiveTests(HintCodeTest);
   });
 }
 
-@reflectiveTest
-class HintCodeTest extends ResolverTestCase {
-  @override
-  void reset() {
-    super.resetWith(packages: [
-      [
-        'meta',
-        r'''
+final metaLibraryStub = r'''
 library meta;
 
 const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
@@ -70,8 +64,301 @@ class _Sealed {
 class _VisibleForTesting {
   const _VisibleForTesting();
 }
+''';
+
+@reflectiveTest
+class CrossPackageHintCodeTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_subtypeOfSealedClass_extending() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed class Foo {}
 '''
-      ],
+      ]
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    class Bar extends Foo {}
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    verify([source]);
+  }
+
+  test_subtypeOfSealedClass_implementing() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed class Foo {}
+'''
+      ]
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    class Bar implements Foo {}
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    verify([source]);
+  }
+
+  test_subtypeOfSealedClass_mixinApplication() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed class Foo {}
+'''
+      ]
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    class Bar1 {}
+                    class Bar2 = Bar1 with Foo;
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    verify([source]);
+  }
+
+  test_subtypeOfSealedClass_mixinImplements() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed class Foo {}
+'''
+      ]
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    mixin Bar implements Foo {}
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    verify([source]);
+  }
+
+  test_subtypeOfSealedClass_mixinOn() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed class Foo {}
+'''
+      ]
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    mixin Bar on Foo {}
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MIXIN_ON_SEALED_CLASS]);
+    verify([source]);
+  }
+
+  test_subtypeOfSealedClass_with() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed class Foo {}
+'''
+      ]
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    class Bar extends Object with Foo {}
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    verify([source]);
+  }
+
+  test_subtypeOfSealedClass_withinLibrary_OK() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:meta/meta.dart';
+                    @sealed class Foo {}
+
+                    class Bar1 extends Foo {}
+                    class Bar2 implements Foo {}
+                    class Bar4 = Bar1 with Foo;
+                    mixin Bar5 on Foo {}
+                    mixin Bar6 implements Foo {}
+                    ''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_subtypeOfSealedClass_withinPackageLibDirectory_OK() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                     import 'package:meta/meta.dart';
+                     @sealed class Foo {}
+                     ''');
+    Source source2 = addNamedSource('/pkg1/lib/src/lib2.dart', r'''
+                     import '../lib1.dart';
+                     class Bar1 extends Foo {}
+                     class Bar2 implements Foo {}
+                     class Bar4 = Bar1 with Foo;
+                     mixin Bar5 on Foo {}
+                     mixin Bar6 implements Foo {}
+                     ''');
+    await computeAnalysisResult(source1);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source1);
+    assertNoErrors(source2);
+    verify([source1, source2]);
+  }
+
+  test_subtypeOfSealedClass_withinPackageTestDirectory_OK() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+    ]);
+
+    newFolder('/pkg1');
+    _newPubPackageRoot('/pkg1');
+
+    Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                     import 'package:meta/meta.dart';
+                     @sealed class Foo {}
+                     ''');
+    Source source2 = addNamedSource('/pkg1/test/test.dart', r'''
+                     import '../lib/lib1.dart';
+                     class Bar1 extends Foo {}
+                     class Bar2 implements Foo {}
+                     class Bar4 = Bar1 with Foo;
+                     mixin Bar5 on Foo {}
+                     mixin Bar6 implements Foo {}
+                     ''');
+    await computeAnalysisResult(source1);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source1);
+    assertNoErrors(source2);
+    verify([source1, source2]);
+  }
+
+  test_subtypeOfSealedClass_withinPart_OK() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source1 = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                     import 'package:meta/meta.dart';
+                     part 'part1.dart';
+                     @sealed class Foo {}
+                     ''');
+    addNamedSource('/pkg1/lib/part1.dart', r'''
+                     part of 'lib1.dart';
+                     class Bar1 extends Foo {}
+                     class Bar2 implements Foo {}
+                     class Bar4 = Bar1 with Foo;
+                     mixin Bar5 on Foo {}
+                     mixin Bar6 implements Foo {}
+                     ''');
+    await computeAnalysisResult(source1);
+    assertNoErrors(source1);
+    verify([source1]);
+  }
+
+  test_subtypeOfSealedMixin_mixinApplication() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed mixin Foo {}
+'''
+      ]
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    class Bar1 {}
+                    class Bar2 = Bar1 with Foo;
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    verify([source]);
+  }
+
+  test_subtypeOfSealedMixin_with() async {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
+      [
+        'foo',
+        r'''
+import 'package:meta/meta.dart';
+@sealed mixin Foo {}
+'''
+      ]
+    ]);
+
+    _newPubPackageRoot('/pkg1');
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
+                    import 'package:foo/foo.dart';
+                    class Bar extends Object with Foo {}
+                    ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    verify([source]);
+  }
+
+  /// Write a pubspec file at [root], so that BestPracticesVerifier can see
+  /// that [root] is the root of a PubWorkspace, and a PubWorkspacePackage.
+  void _newPubPackageRoot(String root) {
+    newFile('$root/pubspec.yaml');
+  }
+}
+
+@reflectiveTest
+class HintCodeTest extends ResolverTestCase {
+  @override
+  void reset() {
+    super.resetWith(packages: [
+      ['meta', metaLibraryStub],
       [
         'js',
         r'''
@@ -94,164 +381,6 @@ class _VisibleForTemplate {
 '''
       ],
     ]);
-  }
-
-  test_argumentTypeNotAssignable_functionType() async {
-    Source source = addSource(r'''
-m() {
-  var a = new A();
-  a.n(() => 0);
-}
-class A {
-  n(void f(int i)) {}
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    } else {
-      assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    }
-    verify([source]);
-  }
-
-  test_argumentTypeNotAssignable_message() async {
-    // The implementation of HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE assumes that
-    // StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE has the same message.
-    expect(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.message,
-        HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.message);
-  }
-
-  test_argumentTypeNotAssignable_type() async {
-    Source source = addSource(r'''
-m() {
-  var i = '';
-  n(i);
-}
-n(int i) {}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    } else {
-      assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    }
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_after_cascade() async {
-    Source source = addSource(r'''
-m(x) {
-  x..a?.b.c;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_before_cascade() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a..m();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_cascade_parenthesis() async {
-    Source source = addSource(r'''
-m(x) {
-  (x?.a)..m();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_false_methodInvocation() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a()?.b();
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_false_null() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a.hashCode;
-  x?.a.runtimeType;
-  x?.a.toString();
-  x?.b().hashCode;
-  x?.b().runtimeType;
-  x?.b().toString();
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_false_propertyAccess() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a?.b;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_methodInvocation() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a.b();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_parenthesized() async {
-    Source source = addSource(r'''
-m(x) {
-  (x?.a).b;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_propertyAccess() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a.b;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
-  }
-
-  test_canBeNullAfterNullAware_several() async {
-    Source source = addSource(r'''
-m(x) {
-  x?.a
-    ..m()
-    ..m();
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
-    verify([source]);
   }
 
   test_deadCode_deadBlock_conditionalElse() async {
@@ -790,233 +919,6 @@ f() {
     verify([source]);
   }
 
-  test_deprecatedAnnotationUse_assignment() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  A operator+(A a) { return a; }
-}
-f(A a) {
-  A b;
-  a += b;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_call() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  call() {}
-  m() {
-    A a = new A();
-    a();
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_deprecated() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  m() {}
-  n() {m();}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_Deprecated() async {
-    Source source = addSource(r'''
-class A {
-  @Deprecated('0.9')
-  m() {}
-  n() {m();}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_export() async {
-    Source source = addSource("export 'deprecated_library.dart';");
-    addNamedSource("/deprecated_library.dart", r'''
-@deprecated
-library deprecated_library;
-class A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_field() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  int x = 1;
-}
-f(A a) {
-  return a.x;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_getter() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  get m => 1;
-}
-f(A a) {
-  return a.m;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_import() async {
-    Source source = addSource(r'''
-import 'deprecated_library.dart';
-f(A a) {}''');
-    addNamedSource("/deprecated_library.dart", r'''
-@deprecated
-library deprecated_library;
-class A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_indexExpression() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  operator[](int i) {}
-}
-f(A a) {
-  return a[1];
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_instanceCreation() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  A(int i) {}
-}
-f() {
-  A a = new A(1);
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_instanceCreation_namedConstructor() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  A.named(int i) {}
-}
-f() {
-  A a = new A.named(1);
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_named() async {
-    Source source = addSource(r'''
-class A {
-  m({@deprecated int x}) {}
-  n() {m(x: 1);}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_operator() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  operator+(A a) {}
-}
-f(A a) {
-  A b;
-  return a + b;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_positional() async {
-    Source source = addSource(r'''
-class A {
-  m([@deprecated int x]) {}
-  n() {m(1);}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_setter() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  set s(v) {}
-}
-f(A a) {
-  return a.s = 1;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_superConstructor() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  A() {}
-}
-class B extends A {
-  B() : super() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
-  test_deprecatedAnnotationUse_superConstructor_namedConstructor() async {
-    Source source = addSource(r'''
-class A {
-  @deprecated
-  A.named() {}
-}
-class B extends A {
-  B() : super.named() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
-    verify([source]);
-  }
-
   test_deprecatedFunction_class() async {
     Source source = addSource(r'''
 class Function {}
@@ -1067,53 +969,6 @@ class A extends Object with Function {}
       HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION,
       HintCode.DEPRECATED_MIXIN_FUNCTION
     ]);
-    verify([source]);
-  }
-
-  test_divisionOptimization_double() async {
-    Source source = addSource(r'''
-f(double x, double y) {
-  var v = (x / y).toInt();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
-    verify([source]);
-  }
-
-  test_divisionOptimization_int() async {
-    Source source = addSource(r'''
-f(int x, int y) {
-  var v = (x / y).toInt();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
-    verify([source]);
-  }
-
-  test_divisionOptimization_propagatedType() async {
-    // Tests the propagated type information of the '/' method
-    Source source = addSource(r'''
-f(x, y) {
-  x = 1;
-  y = 1;
-  var v = (x / y).toInt();
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
-    }
-    verify([source]);
-  }
-
-  test_divisionOptimization_wrappedBinaryExpression() async {
-    Source source = addSource(r'''
-f(int x, int y) {
-  var v = (((x / y))).toInt();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
 
@@ -1383,92 +1238,6 @@ main() { lib1.f(); }'''
     ]);
   }
 
-  test_invalidAssignment_instanceVariable() async {
-    Source source = addSource(r'''
-class A {
-  int x;
-}
-f(var y) {
-  A a;
-  if(y is String) {
-    a.x = y;
-  }
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    } else {
-      assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
-    }
-    verify([source]);
-  }
-
-  test_invalidAssignment_localVariable() async {
-    Source source = addSource(r'''
-f(var y) {
-  if(y is String) {
-    int x = y;
-  }
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    } else {
-      assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
-    }
-    verify([source]);
-  }
-
-  test_invalidAssignment_message() async {
-    // The implementation of HintCode.INVALID_ASSIGNMENT assumes that
-    // StaticTypeWarningCode.INVALID_ASSIGNMENT has the same message.
-    expect(StaticTypeWarningCode.INVALID_ASSIGNMENT.message,
-        HintCode.INVALID_ASSIGNMENT.message);
-  }
-
-  test_invalidAssignment_staticVariable() async {
-    Source source = addSource(r'''
-class A {
-  static int x;
-}
-f(var y) {
-  if(y is String) {
-    A.x = y;
-  }
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    } else {
-      assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
-    }
-    verify([source]);
-  }
-
-  test_invalidAssignment_variableDeclaration() async {
-    // 17971
-    Source source = addSource(r'''
-class Point {
-  final num x, y;
-  Point(this.x, this.y);
-  Point operator +(Point other) {
-    return new Point(x+other.x, y+other.y);
-  }
-}
-main() {
-  var p1 = new Point(0, 0);
-  var p2 = new Point(10, 10);
-  int n = p1 + p2;
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    } else {
-      assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
-    }
-    verify([source]);
-  }
-
   test_invalidImmutableAnnotation_method() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -1482,63 +1251,78 @@ class A {
     verify([source]);
   }
 
-  test_invalidRequiredParam_on_named_parameter_with_default() async {
-    Source source = addNamedSource('/lib1.dart', r'''
+  test_invalidLiteralAnnotation_nonConstConstructor() async {
+    Source source = addSource(r'''
 import 'package:meta/meta.dart';
-
-m({@required a = 1}) => null;
+class A {
+  @literal
+  A() {}
+}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_REQUIRED_PARAM]);
+    assertErrors(source, [HintCode.INVALID_LITERAL_ANNOTATION]);
     verify([source]);
   }
 
-  test_invalidRequiredParam_on_positional_parameter() async {
-    Source source = addNamedSource('/lib1.dart', r'''
+  test_nonConstCallToLiteralConstructor_nonConstContext() async {
+    Source source = addSource(r'''
 import 'package:meta/meta.dart';
-
-m([@required a]) => null;
+class A {
+  @literal
+  const A();
+}
+void main() {
+  var a = A();
+}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_REQUIRED_PARAM]);
+    assertErrors(source, [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR]);
     verify([source]);
   }
 
-  test_invalidRequiredParam_on_positional_parameter_with_default() async {
-    Source source = addNamedSource('/lib1.dart', r'''
+  test_nonConstCallToLiteralConstructor_usingNew() async {
+    Source source = addSource(r'''
 import 'package:meta/meta.dart';
-
-m([@required a = 1]) => null;
+class A {
+  @literal
+  const A();
+}
+void main() {
+  var a = new A();
+}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_REQUIRED_PARAM]);
+    assertErrors(
+        source, [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW]);
     verify([source]);
   }
 
-  test_invalidRequiredParam_on_required_parameter() async {
-    Source source = addNamedSource('/lib1.dart', r'''
+  test_nonConstCallToLiteralConstructor_namedConstructor() async {
+    Source source = addSource(r'''
 import 'package:meta/meta.dart';
-
-m(@required a) => null;
+class A {
+  @literal
+  const A.named();
+}
+void main() {
+  var a = A.named();
+}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.INVALID_REQUIRED_PARAM]);
+    assertErrors(source, [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR]);
     verify([source]);
   }
 
-  test_invalidRequiredParam_valid() async {
-    Source source = addNamedSource('/lib1.dart', r'''
+  test_invalidLiteralAnnotation_nonConstructor() async {
+    Source source = addSource(r'''
 import 'package:meta/meta.dart';
-
-m1() => null;
-m2(a) => null;
-m3([a]) => null;
-m4({a}) => null;
-m5({@required a}) => null;
-m6({a, @required b}) => null;
+class A {
+  @literal
+  void m() {}
+}
 ''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    assertErrors(source, [HintCode.INVALID_LITERAL_ANNOTATION]);
     verify([source]);
   }
 
@@ -1560,7 +1344,7 @@ import 'package:meta/meta.dart';
 @sealed mixin M {}
 ''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    assertErrors(source, [HintCode.INVALID_SEALED_ANNOTATION]);
     verify([source]);
   }
 
@@ -2594,6 +2378,19 @@ class A {
     verify([source]);
   }
 
+  test_mustBeImmutable_directMixin() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+mixin A {
+  int x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
+    verify([source]);
+  }
+
   test_mustBeImmutable_extends() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -2633,6 +2430,36 @@ class A {
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, []);
+    verify([source]);
+  }
+
+  test_mustBeImmutable_mixinApplication() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {}
+class B {
+  int x;
+}
+class C = A with B;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
+    verify([source]);
+  }
+
+  test_mustBeImmutable_mixinApplicationBase() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  int x;
+}
+class B {}
+@immutable
+class C = A with B;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
     verify([source]);
   }
 
@@ -3931,11 +3758,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_GETTER]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
   test_undefinedIdentifier_exportHide() async {
@@ -3980,38 +3803,6 @@ import 'lib1.dart' show a;''');
     verify([source]);
   }
 
-  test_undefinedMethod() async {
-    Source source = addSource(r'''
-f() {
-  var a = 'str';
-  a.notAMethodOnString();
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_METHOD]);
-    }
-  }
-
-  test_undefinedMethod_assignmentExpression() async {
-    Source source = addSource(r'''
-class A {}
-class B {
-  f(var a, var a2) {
-    a = new A();
-    a2 = new A();
-    a += a2;
-  }
-}''');
-    await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_METHOD]);
-    }
-  }
-
   test_undefinedOperator_binaryExpression() async {
     Source source = addSource(r'''
 class A {}
@@ -4021,11 +3812,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_indexBoth() async {
@@ -4037,11 +3824,10 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
-    }
+    assertErrors(source, [
+      StaticTypeWarningCode.UNDEFINED_OPERATOR,
+      StaticTypeWarningCode.UNDEFINED_OPERATOR,
+    ]);
   }
 
   test_undefinedOperator_indexGetter() async {
@@ -4053,11 +3839,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_indexSetter() async {
@@ -4069,11 +3851,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_postfixExpression() async {
@@ -4085,11 +3863,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
-    }
+    assertNoErrors(source);
   }
 
   test_undefinedOperator_prefixExpression() async {
@@ -4101,11 +3875,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
-    }
+    assertNoErrors(source);
   }
 
   test_undefinedSetter() async {
@@ -4117,31 +3887,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
-    } else {
-      assertErrors(source, [HintCode.UNDEFINED_SETTER]);
-    }
-  }
-
-  test_unnecessaryCast_type_supertype() async {
-    Source source = addSource(r'''
-m(int i) {
-  var b = i as Object;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNNECESSARY_CAST]);
-    verify([source]);
-  }
-
-  test_unnecessaryCast_type_type() async {
-    Source source = addSource(r'''
-m(num i) {
-  var b = i as num;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNNECESSARY_CAST]);
-    verify([source]);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
   test_unnecessaryNoSuchMethod_blockBody() async {
@@ -4970,346 +4716,6 @@ main() {
     verify([source]);
   }
 
-  test_unusedField_isUsed_argument() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f = 0;
-  main() {
-    print(++_f);
-  }
-}
-print(x) {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_isUsed_reference_implicitThis() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  main() {
-    print(_f);
-  }
-}
-print(x) {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_isUsed_reference_implicitThis_expressionFunctionBody() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  m() => _f;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_isUsed_reference_implicitThis_subclass() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  main() {
-    print(_f);
-  }
-}
-class B extends A {
-  int _f;
-}
-print(x) {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_isUsed_reference_qualified_propagatedElement() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-}
-main() {
-  var a = new A();
-  print(a._f);
-}
-print(x) {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_isUsed_reference_qualified_staticElement() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-}
-main() {
-  A a = new A();
-  print(a._f);
-}
-print(x) {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_isUsed_reference_qualified_unresolved() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-}
-main(a) {
-  print(a._f);
-}
-print(x) {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_compoundAssign() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  main() {
-    _f += 2;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_constructorFieldInitializers() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  A() : _f = 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_fieldFormalParameter() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  A(this._f);
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_noReference() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_nullAssign() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  var _f;
-  m() {
-    _f ??= doSomething();
-  }
-}
-doSomething() => 0;
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_postfixExpr() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f = 0;
-  main() {
-    _f++;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_prefixExpr() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f = 0;
-  main() {
-    ++_f;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedField_notUsed_simpleAssignment() async {
-    enableUnusedElement = true;
-    Source source = addSource(r'''
-class A {
-  int _f;
-  m() {
-    _f = 1;
-  }
-}
-main(A a) {
-  a._f = 2;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_FIELD]);
-    verify([source]);
-  }
-
-  test_unusedImport() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart';''');
-    Source source2 = addNamedSource("/lib1.dart", "library lib1;");
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  test_unusedImport_as() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart';
-import 'lib1.dart' as one;
-one.A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  @failingTest
-  test_unusedImport_as_equalPrefixes() async {
-    // See todo at ImportsVerifier.prefixElementMap.
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' as one;
-import 'lib2.dart' as one;
-one.A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}''');
-    Source source3 = addNamedSource("/lib2.dart", r'''
-library lib2;
-class B {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    await computeAnalysisResult(source3);
-    assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    assertNoErrors(source2);
-    assertNoErrors(source3);
-    verify([source, source2, source3]);
-  }
-
-  test_unusedImport_hide() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart';
-import 'lib1.dart' hide A;
-A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  test_unusedImport_inComment_libraryDirective() async {
-    Source source = addSource(r'''
-/// Use [Future] class.
-library L;
-import 'dart:async';
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_unusedImport_show() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' show A;
-import 'lib1.dart' show B;
-A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}
-class B {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_IMPORT]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  test_unusedLabel_inSwitch() async {
-    Source source = addSource(r'''
-f(x) {
-  switch (x) {
-    label: case 0:
-      break;
-    default:
-      break;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_LABEL]);
-    verify([source]);
-  }
-
-  test_unusedLabel_onWhile() async {
-    Source source = addSource(r'''
-f(condition()) {
-  label: while (condition()) {
-    break;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.UNUSED_LABEL]);
-    verify([source]);
-  }
-
   test_unusedLocalVariable_inCatch_exception() async {
     enableUnusedLocalVariable = true;
     Source source = addSource(r'''
@@ -5510,79 +4916,5 @@ main() {
     await computeAnalysisResult(source);
     assertErrors(source);
     verify([source]);
-  }
-
-  test_unusedShownName() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' show A, B;
-A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}
-class B {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  test_unusedShownName_as() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' as p show A, B;
-p.A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}
-class B {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  test_unusedShownName_duplicates() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' show A, B;
-import 'lib1.dart' show C, D;
-A a;
-C c;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-class A {}
-class B {}
-class C {}
-class D {}''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(
-        source, [HintCode.UNUSED_SHOWN_NAME, HintCode.UNUSED_SHOWN_NAME]);
-    assertNoErrors(source2);
-    verify([source, source2]);
-  }
-
-  test_unusedShownName_topLevelVariable() async {
-    Source source = addSource(r'''
-library L;
-import 'lib1.dart' show var1, var2;
-import 'lib1.dart' show var3, var4;
-int a = var1;
-int b = var2;
-int c = var3;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
-library lib1;
-const int var1 = 1;
-const int var2 = 2;
-const int var3 = 3;
-const int var4 = 4;''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
-    assertNoErrors(source2);
-    verify([source, source2]);
   }
 }

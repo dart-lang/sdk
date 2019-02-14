@@ -33,6 +33,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/engine_test.dart';
 import '../../generated/test_support.dart';
+import '../../util/element_type_matchers.dart';
 import 'abstract_context.dart';
 
 main() {
@@ -1671,8 +1672,7 @@ main() {}''');
     expect(library, isNotNull);
     Namespace namespace = context.getPublicNamespace(library);
     expect(namespace, isNotNull);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ClassElement, ClassElement, namespace.get("A"));
+    expect(namespace.get("A"), isClassElement);
   }
 
   void test_getResolvedCompilationUnit_library() {
@@ -2686,7 +2686,7 @@ int aa = 0;''';
   void test_validateCacheConsistency_deletedFile() {
     String pathA = '/a.dart';
     String pathB = '/b.dart';
-    var fileA = newFile(pathA, content: "");
+    var fileA = newFile(pathA);
     var fileB = newFile(pathB, content: "import 'a.dart';");
     Source sourceA = fileA.createSource();
     Source sourceB = fileB.createSource();

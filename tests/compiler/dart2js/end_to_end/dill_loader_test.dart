@@ -9,7 +9,7 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, ClassEntity;
 import 'package:compiler/src/kernel/dart2js_target.dart';
-import 'package:compiler/src/library_loader.dart';
+import 'package:compiler/src/kernel/loader.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
@@ -44,9 +44,8 @@ main() {
         diagnosticHandler: diagnostics,
         outputProvider: output);
     await compiler.setupSdk();
-    LoadedLibraries loadedLibraries =
-        await compiler.libraryLoader.loadLibraries(entryPoint);
-    compiler.frontendStrategy.registerLoadedLibraries(loadedLibraries);
+    KernelResult result = await compiler.kernelLoader.load(entryPoint);
+    compiler.frontendStrategy.registerLoadedLibraries(result);
 
     Expect.equals(0, diagnostics.errors.length);
     Expect.equals(0, diagnostics.warnings.length);

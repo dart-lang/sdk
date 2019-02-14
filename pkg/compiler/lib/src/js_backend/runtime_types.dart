@@ -15,13 +15,16 @@ import '../common_elements.dart'
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../ir/runtime_type_analysis.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/js_emitter.dart' show Emitter;
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_hierarchy.dart';
+import '../universe/codegen_world_builder.dart';
 import '../universe/feature.dart';
+import '../universe/resolution_world_builder.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart' show JClosedWorld, KClosedWorld;
@@ -701,15 +704,13 @@ abstract class _RuntimeTypesBase {
 
   _RuntimeTypesBase(this._types);
 
-  /**
-   * Compute type arguments of classes that use one of their type variables in
-   * is-checks and add the is-checks that they imply.
-   *
-   * This function must be called after all is-checks have been registered.
-   *
-   * TODO(karlklose): move these computations into a function producing an
-   * immutable datastructure.
-   */
+  /// Compute type arguments of classes that use one of their type variables in
+  /// is-checks and add the is-checks that they imply.
+  ///
+  /// This function must be called after all is-checks have been registered.
+  ///
+  /// TODO(karlklose): move these computations into a function producing an
+  /// immutable datastructure.
   void registerImplicitChecks(
       Set<InterfaceType> instantiatedTypes,
       Iterable<ClassEntity> classesUsingChecks,
@@ -1682,21 +1683,24 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
     Set<ClassEntity> classesDirectlyNeedingRuntimeType = new Set<ClassEntity>();
 
-    ClassEntity impliedClass(DartType type) {
+    Iterable<ClassEntity> impliedClasses(DartType type) {
       if (type is InterfaceType) {
-        return type.element;
+        return [type.element];
       } else if (type is DynamicType) {
-        return commonElements.objectClass;
+        return [commonElements.objectClass];
       } else if (type is FunctionType) {
         // TODO(johnniwinther): Include only potential function type subtypes.
-        return commonElements.functionClass;
+        return [commonElements.functionClass];
       } else if (type is VoidType) {
         // No classes implied.
       } else if (type is FunctionTypeVariable) {
-        return impliedClass(type.bound);
+        return impliedClasses(type.bound);
+      } else if (type is FutureOrType) {
+        return [commonElements.futureClass]
+          ..addAll(impliedClasses(type.typeArgument));
       } else if (type is TypeVariableType) {
         // TODO(johnniwinther): Can we do better?
-        return impliedClass(
+        return impliedClasses(
             _elementEnvironment.getTypeVariableBound(type.element));
       }
       throw new UnsupportedError('Unexpected type $type');
@@ -1718,43 +1722,47 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       switch (runtimeTypeUse.kind) {
         case RuntimeTypeUseKind.string:
           if (!options.laxRuntimeTypeToString) {
-            addClass(impliedClass(runtimeTypeUse.receiverType));
+            impliedClasses(runtimeTypeUse.receiverType).forEach(addClass);
           }
 
           break;
         case RuntimeTypeUseKind.equals:
-          ClassEntity receiverClass = impliedClass(runtimeTypeUse.receiverType);
-          ClassEntity argumentClass = impliedClass(runtimeTypeUse.argumentType);
+          Iterable<ClassEntity> receiverClasses =
+              impliedClasses(runtimeTypeUse.receiverType);
+          Iterable<ClassEntity> argumentClasses =
+              impliedClasses(runtimeTypeUse.argumentType);
 
-          // TODO(johnniwinther): Special case use of `this.runtimeType`.
-          SubclassResult result = closedWorld.classHierarchy.commonSubclasses(
-              receiverClass,
-              ClassQuery.SUBTYPE,
-              argumentClass,
-              ClassQuery.SUBTYPE);
-          switch (result.kind) {
-            case SubclassResultKind.EMPTY:
-              break;
-            case SubclassResultKind.EXACT1:
-            case SubclassResultKind.SUBCLASS1:
-            case SubclassResultKind.SUBTYPE1:
-              addClass(receiverClass);
-              break;
-            case SubclassResultKind.EXACT2:
-            case SubclassResultKind.SUBCLASS2:
-            case SubclassResultKind.SUBTYPE2:
-              addClass(argumentClass);
-              break;
-            case SubclassResultKind.SET:
-              for (ClassEntity cls in result.classes) {
-                addClass(cls);
-                if (neededOnAll) break;
+          for (ClassEntity receiverClass in receiverClasses) {
+            for (ClassEntity argumentClass in argumentClasses) {
+              // TODO(johnniwinther): Special case use of `this.runtimeType`.
+              SubclassResult result = closedWorld.classHierarchy
+                  .commonSubclasses(receiverClass, ClassQuery.SUBTYPE,
+                      argumentClass, ClassQuery.SUBTYPE);
+              switch (result.kind) {
+                case SubclassResultKind.EMPTY:
+                  break;
+                case SubclassResultKind.EXACT1:
+                case SubclassResultKind.SUBCLASS1:
+                case SubclassResultKind.SUBTYPE1:
+                  addClass(receiverClass);
+                  break;
+                case SubclassResultKind.EXACT2:
+                case SubclassResultKind.SUBCLASS2:
+                case SubclassResultKind.SUBTYPE2:
+                  addClass(argumentClass);
+                  break;
+                case SubclassResultKind.SET:
+                  for (ClassEntity cls in result.classes) {
+                    addClass(cls);
+                    if (neededOnAll) break;
+                  }
+                  break;
               }
-              break;
+            }
           }
           break;
         case RuntimeTypeUseKind.unknown:
-          addClass(impliedClass(runtimeTypeUse.receiverType));
+          impliedClasses(runtimeTypeUse.receiverType).forEach(addClass);
           break;
       }
       if (neededOnAll) break;
@@ -2267,20 +2275,18 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
     }
   }
 
-  /**
-   * Compute a JavaScript expression that describes the necessary substitution
-   * for type arguments in a subtype test.
-   *
-   * The result can be:
-   *  1) `null`, if no substituted check is necessary, because the
-   *     type variables are the same or there are no type variables in the class
-   *     that is checked for.
-   *  2) A list expression describing the type arguments to be used in the
-   *     subtype check, if the type arguments to be used in the check do not
-   *     depend on the type arguments of the object.
-   *  3) A function mapping the type variables of the object to be checked to
-   *     a list expression.
-   */
+  /// Compute a JavaScript expression that describes the necessary substitution
+  /// for type arguments in a subtype test.
+  ///
+  /// The result can be:
+  ///  1) `null`, if no substituted check is necessary, because the type
+  ///     variables are the same or there are no type variables in the class
+  ///     that is checked for.
+  ///  2) A list expression describing the type arguments to be used in the
+  ///     subtype check, if the type arguments to be used in the check do not
+  ///     depend on the type arguments of the object.
+  ///  3) A function mapping the type variables of the object to be checked to
+  ///     a list expression.
   @override
   jsAst.Expression getSubstitutionCode(
       Emitter emitter, Substitution substitution) {
@@ -2372,10 +2378,8 @@ class TypeRepresentationGenerator
 
   TypeRepresentationGenerator(this.namer, this._nativeData);
 
-  /**
-   * Creates a type representation for [type]. [onVariable] is called to provide
-   * the type representation for type variables.
-   */
+  /// Creates a type representation for [type]. [onVariable] is called to
+  /// provide the type representation for type variables.
   jsAst.Expression getTypeRepresentation(
       Emitter emitter,
       DartType type,
@@ -2778,10 +2782,8 @@ class Substitution {
       'parameters=$parameters,length=$length)';
 }
 
-/**
- * A pair of a class that we need a check against and the type argument
- * substitution for this check.
- */
+/// A pair of a class that we need a check against and the type argument
+/// substitution for this check.
 class TypeCheck {
   final ClassEntity cls;
   final bool needsIs;

@@ -6,13 +6,13 @@ import '../closure.dart';
 import '../common.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_model/closure.dart' show JRecordField, JClosureField;
 import '../js_model/locals.dart' show JLocal;
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../world.dart' show JClosedWorld;
 
 import 'graph_builder.dart';
@@ -202,7 +202,7 @@ class LocalsHandler {
 
     parameters.forEach((Local local, AbstractValue typeMask) {
       if (isGenerativeConstructorBody) {
-        if (scopeData.isBoxed(local)) {
+        if (scopeData.isBoxedVariable(local)) {
           // The parameter will be a field in the box passed as the
           // last parameter. So no need to have it.
           return;

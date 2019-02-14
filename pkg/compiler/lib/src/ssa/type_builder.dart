@@ -6,8 +6,8 @@ import 'graph_builder.dart';
 import 'nodes.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/use.dart' show TypeUse;
 
 /// Enum that defines how a member has access to the current type variables.

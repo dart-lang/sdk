@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -24,7 +25,7 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, RecordingErrorListener;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart'
-    show StrongTypeSystemImpl, TypeSystem;
+    show Dart2TypeSystem, TypeSystem;
 import 'package:analyzer/src/task/dart.dart';
 
 /**
@@ -36,6 +37,7 @@ class ConstantEvaluationEngine {
    * Parameter to "fromEnvironment" methods that denotes the default value.
    */
   static String _DEFAULT_VALUE_PARAM = "defaultValue";
+
   /**
    * Source of RegExp matching declarable operator names.
    * From sdk/lib/internal/symbol.dart.
@@ -84,6 +86,11 @@ class ConstantEvaluationEngine {
   final DeclaredVariables _declaredVariables;
 
   /**
+   * Return the object representing the state of active experiments.
+   */
+  final ExperimentStatus experimentStatus;
+
+  /**
    * Validator used to verify correct dependency analysis when running unit
    * tests.
    */
@@ -103,12 +110,14 @@ class ConstantEvaluationEngine {
    */
   ConstantEvaluationEngine(TypeProvider typeProvider, this._declaredVariables,
       {ConstantEvaluationValidator validator,
+      ExperimentStatus experimentStatus,
       TypeSystem typeSystem,
       this.forAnalysisDriver: false})
       : typeProvider = typeProvider,
         validator =
             validator ?? new ConstantEvaluationValidator_ForProduction(),
-        typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider);
+        typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
+        experimentStatus = experimentStatus ?? new ExperimentStatus();
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The
@@ -183,15 +192,20 @@ class ConstantEvaluationEngine {
   void computeConstantValue(ConstantEvaluationTarget constant) {
     validator.beforeComputeValue(constant);
     if (constant is ParameterElementImpl) {
-      Expression defaultValue = constant.constantInitializer;
-      if (defaultValue != null) {
-        RecordingErrorListener errorListener = new RecordingErrorListener();
-        ErrorReporter errorReporter =
-            new ErrorReporter(errorListener, constant.source);
-        DartObjectImpl dartObject =
-            defaultValue.accept(new ConstantVisitor(this, errorReporter));
-        constant.evaluationResult =
-            new EvaluationResultImpl(dartObject, errorListener.errors);
+      if (constant.isOptional) {
+        Expression defaultValue = constant.constantInitializer;
+        if (defaultValue != null) {
+          RecordingErrorListener errorListener = new RecordingErrorListener();
+          ErrorReporter errorReporter =
+              new ErrorReporter(errorListener, constant.source);
+          DartObjectImpl dartObject =
+              defaultValue.accept(new ConstantVisitor(this, errorReporter));
+          constant.evaluationResult =
+              new EvaluationResultImpl(dartObject, errorListener.errors);
+        } else {
+          constant.evaluationResult =
+              EvaluationResultImpl(typeProvider.nullObject);
+        }
       }
     } else if (constant is VariableElementImpl) {
       Expression constantInitializer = constant.constantInitializer;
@@ -216,12 +230,13 @@ class ConstantEvaluationEngine {
         constant.evaluationResult =
             new EvaluationResultImpl(dartObject, errorListener.errors);
       }
-    } else if (constant is ConstructorElement) {
+    } else if (constant is ConstructorElementImpl) {
       if (constant.isConst) {
         // No evaluation needs to be done; constructor declarations are only in
         // the dependency graph to ensure that any constants referred to in
         // initializer lists and parameter defaults are evaluated before
         // invocations of the constructor.
+        constant.isConstantEvaluated = true;
       }
     } else if (constant is ElementAnnotationImpl) {
       Annotation constNode = constant.annotationAst;
@@ -240,7 +255,7 @@ class ConstantEvaluationEngine {
           // ignore it here.
           constant.evaluationResult = new EvaluationResultImpl(null);
         }
-      } else if (element is ConstructorElementImpl &&
+      } else if (element is ConstructorElement &&
           element.isConst &&
           constNode.arguments != null) {
         RecordingErrorListener errorListener = new RecordingErrorListener();
@@ -439,6 +454,7 @@ class ConstantEvaluationEngine {
           CompileTimeErrorCode.CONST_WITH_NON_CONST, node);
       return null;
     }
+
     if (!getConstructorImpl(constructor).isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
       // TODO(paulberry): ensure that a reasonable error message is produced
@@ -447,34 +463,35 @@ class ConstantEvaluationEngine {
       // itself")
       return new DartObjectImpl.validWithUnknownValue(constructor.returnType);
     }
+
     int argumentCount = arguments.length;
-    List<DartObjectImpl> argumentValues =
-        new List<DartObjectImpl>(argumentCount);
-    List<DartObjectImpl> positionalArguments = <DartObjectImpl>[];
-    List<Expression> argumentNodes = new List<Expression>(argumentCount);
-    Map<String, DartObjectImpl> namedArgumentValues =
-        new HashMap<String, DartObjectImpl>();
-    Map<String, NamedExpression> namedArgumentNodes =
-        new HashMap<String, NamedExpression>();
+    var argumentValues = new List<DartObjectImpl>(argumentCount);
+    Map<String, NamedExpression> namedNodes;
+    Map<String, DartObjectImpl> namedValues;
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
       if (argument is NamedExpression) {
+        namedNodes ??= new HashMap<String, NamedExpression>();
+        namedValues ??= new HashMap<String, DartObjectImpl>();
         String name = argument.name.label.name;
-        namedArgumentValues[name] =
-            constantVisitor._valueOf(argument.expression);
-        namedArgumentNodes[name] = argument;
-        argumentValues[i] = typeProvider.nullObject;
+        namedNodes[name] = argument;
+        namedValues[name] = constantVisitor._valueOf(argument.expression);
       } else {
         var argumentValue = constantVisitor._valueOf(argument);
         argumentValues[i] = argumentValue;
-        positionalArguments.add(argumentValue);
-        argumentNodes[i] = argument;
       }
     }
+    namedNodes ??= const {};
+    namedValues ??= const {};
+
     if (invocation == null) {
       invocation = new ConstructorInvocation(
-          constructor, positionalArguments, namedArgumentValues);
+        constructor,
+        argumentValues,
+        namedValues,
+      );
     }
+
     constructor = followConstantRedirectionChain(constructor);
     InterfaceType definingClass = constructor.returnType as InterfaceType;
     if (constructor.isFactory) {
@@ -483,7 +500,7 @@ class ConstantEvaluationEngine {
       // that we can emulate.
       if (constructor.name == "fromEnvironment") {
         if (!checkFromEnvironmentArguments(
-            arguments, argumentValues, namedArgumentValues, definingClass)) {
+            arguments, argumentValues, namedValues, definingClass)) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
           return null;
@@ -497,7 +514,7 @@ class ConstantEvaluationEngine {
           return computeValueFromEnvironment(
               valueFromEnvironment,
               new DartObjectImpl(typeProvider.boolType, BoolState.FALSE_STATE),
-              namedArgumentValues);
+              namedValues);
         } else if (definingClass == typeProvider.intType) {
           DartObject valueFromEnvironment;
           valueFromEnvironment =
@@ -505,7 +522,7 @@ class ConstantEvaluationEngine {
           return computeValueFromEnvironment(
               valueFromEnvironment,
               new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE),
-              namedArgumentValues);
+              namedValues);
         } else if (definingClass == typeProvider.stringType) {
           DartObject valueFromEnvironment;
           valueFromEnvironment =
@@ -513,13 +530,12 @@ class ConstantEvaluationEngine {
           return computeValueFromEnvironment(
               valueFromEnvironment,
               new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE),
-              namedArgumentValues);
+              namedValues);
         }
       } else if (constructor.name == "" &&
           definingClass == typeProvider.symbolType &&
           argumentCount == 1) {
-        if (!checkSymbolArguments(
-            arguments, argumentValues, namedArgumentValues)) {
+        if (!checkSymbolArguments(arguments, argumentValues, namedValues)) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
           return null;
@@ -556,27 +572,9 @@ class ConstantEvaluationEngine {
     // into the current ErrorReporter, because they usually happen in a
     // different source. But they still should cause a constant evaluation
     // error for the current node.
-    var externalErrorListener = new RecordingErrorListener();
+    var externalErrorListener = new BooleanErrorListener();
     var externalErrorReporter =
         new ErrorReporter(externalErrorListener, constructor.source);
-
-    void reportLocalErrorForRecordedExternalErrors() {
-      ErrorCode errorCode;
-      for (AnalysisError error in externalErrorListener.errors) {
-        if (error.errorCode is CompileTimeErrorCode) {
-          errorCode = CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION;
-          break;
-        }
-        if (error.errorCode is CheckedModeCompileTimeErrorCode) {
-          errorCode =
-              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION;
-          break;
-        }
-      }
-      if (errorCode != null) {
-        errorReporter.reportErrorForNode(errorCode, node);
-      }
-    }
 
     // Start with final fields that are initialized at their declaration site.
     List<FieldElement> fields = constructor.enclosingElement.fields;
@@ -623,11 +621,11 @@ class ConstantEvaluationEngine {
       DartObjectImpl argumentValue = null;
       AstNode errorTarget = null;
       if (baseParameter.isNamed) {
-        argumentValue = namedArgumentValues[baseParameter.name];
-        errorTarget = namedArgumentNodes[baseParameter.name];
+        argumentValue = namedValues[baseParameter.name];
+        errorTarget = namedNodes[baseParameter.name];
       } else if (i < argumentCount) {
         argumentValue = argumentValues[i];
-        errorTarget = argumentNodes[i];
+        errorTarget = arguments[i];
       }
       if (errorTarget == null) {
         // No argument node that we can direct error messages to, because we
@@ -689,7 +687,8 @@ class ConstantEvaluationEngine {
         lexicalEnvironment: parameterMap);
     String superName = null;
     NodeList<Expression> superArguments = null;
-    for (ConstructorInitializer initializer in initializers) {
+    for (var i = 0; i < initializers.length; i++) {
+      var initializer = initializers[i];
       if (initializer is ConstructorFieldInitializer) {
         Expression initializerExpression = initializer.expression;
         DartObjectImpl evaluationResult =
@@ -737,23 +736,24 @@ class ConstantEvaluationEngine {
               initializerVisitor,
               externalErrorReporter,
               invocation: invocation);
-          reportLocalErrorForRecordedExternalErrors();
+          if (externalErrorListener.errorReported) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
+          }
           return result;
         }
       } else if (initializer is AssertInitializer) {
         Expression condition = initializer.condition;
         if (condition == null) {
           errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-              node);
+              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
         }
         DartObjectImpl evaluationResult = condition.accept(initializerVisitor);
         if (evaluationResult == null ||
             !evaluationResult.isBool ||
             evaluationResult.toBoolValue() != true) {
           errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-              node);
+              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
           return null;
         }
       }
@@ -772,7 +772,10 @@ class ConstantEvaluationEngine {
             superArguments, initializerVisitor, externalErrorReporter);
       }
     }
-    reportLocalErrorForRecordedExternalErrors();
+    if (externalErrorListener.errorReported) {
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
+    }
     return new DartObjectImpl(
         definingClass, new GenericState(fieldMap, invocation: invocation));
   }
@@ -900,11 +903,6 @@ class ConstantEvaluationEngine {
     }
     if (type.isUndefined) {
       return false;
-    }
-    // TODO(mfairhurst): Remove this once #33441 is solved and we can use
-    // inference properly. This is a hack.
-    if (obj.type == typeProvider.intType && type == typeProvider.doubleType) {
-      return true;
     }
     return obj.type.isSubtypeOf(type);
   }
@@ -1065,19 +1063,24 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       {Map<String, DartObjectImpl> lexicalEnvironment})
       : _lexicalEnvironment = lexicalEnvironment {
     this._dartObjectComputer =
-        new DartObjectComputer(_errorReporter, evaluationEngine.typeProvider);
+        new DartObjectComputer(_errorReporter, evaluationEngine);
   }
 
   /**
-   * Convenience getter to gain access to the [evalationEngine]'s type
-   * provider.
+   * Return the object representing the state of active experiments.
    */
-  TypeProvider get _typeProvider => evaluationEngine.typeProvider;
+  ExperimentStatus get experimentStatus => evaluationEngine.experimentStatus;
 
   /**
    * Convenience getter to gain access to the [evaluationEngine]'s type system.
    */
   TypeSystem get typeSystem => evaluationEngine.typeSystem;
+
+  /**
+   * Convenience getter to gain access to the [evaluationEngine]'s type
+   * provider.
+   */
+  TypeProvider get _typeProvider => evaluationEngine.typeProvider;
 
   /**
    * Given a [type] that may contain free type variables, evaluate them against
@@ -1127,27 +1130,50 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
+  DartObjectImpl visitAsExpression(AsExpression node) {
+    if (experimentStatus.constant_update_2018) {
+      DartObjectImpl expressionResult = node.expression.accept(this);
+      DartObjectImpl typeResult = node.type.accept(this);
+      return _dartObjectComputer.castToType(node, expressionResult, typeResult);
+    }
+    // TODO(brianwilkerson) Figure out which error to report.
+    _error(node, null);
+    return null;
+  }
+
+  @override
   DartObjectImpl visitBinaryExpression(BinaryExpression node) {
     TokenType operatorType = node.operator.type;
     DartObjectImpl leftResult = node.leftOperand.accept(this);
     // evaluate lazy operators
     if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
-      return _dartObjectComputer.logicalAnd(
+      return _dartObjectComputer.lazyAnd(
           node, leftResult, () => node.rightOperand.accept(this));
     } else if (operatorType == TokenType.BAR_BAR) {
-      return _dartObjectComputer.logicalOr(
+      return _dartObjectComputer.lazyOr(
           node, leftResult, () => node.rightOperand.accept(this));
+    } else if (operatorType == TokenType.QUESTION_QUESTION) {
+      if (experimentStatus.constant_update_2018) {
+        return _dartObjectComputer.lazyQuestionQuestion(
+            node, leftResult, () => node.rightOperand.accept(this));
+      } else {
+        return _dartObjectComputer.eagerQuestionQuestion(
+            node, leftResult, node.rightOperand.accept(this));
+      }
     }
     // evaluate eager operators
     DartObjectImpl rightResult = node.rightOperand.accept(this);
     if (operatorType == TokenType.AMPERSAND) {
-      return _dartObjectComputer.bitAnd(node, leftResult, rightResult);
+      return _dartObjectComputer.eagerAnd(
+          node, leftResult, rightResult, experimentStatus.constant_update_2018);
     } else if (operatorType == TokenType.BANG_EQ) {
       return _dartObjectComputer.notEqual(node, leftResult, rightResult);
     } else if (operatorType == TokenType.BAR) {
-      return _dartObjectComputer.bitOr(node, leftResult, rightResult);
+      return _dartObjectComputer.eagerOr(
+          node, leftResult, rightResult, experimentStatus.constant_update_2018);
     } else if (operatorType == TokenType.CARET) {
-      return _dartObjectComputer.bitXor(node, leftResult, rightResult);
+      return _dartObjectComputer.eagerXor(
+          node, leftResult, rightResult, experimentStatus.constant_update_2018);
     } else if (operatorType == TokenType.EQ_EQ) {
       return _dartObjectComputer.equalEqual(node, leftResult, rightResult);
     } else if (operatorType == TokenType.GT) {
@@ -1157,6 +1183,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
           node, leftResult, rightResult);
     } else if (operatorType == TokenType.GT_GT) {
       return _dartObjectComputer.shiftRight(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.GT_GT_GT) {
+      return _dartObjectComputer.logicalShiftRight(
+          node, leftResult, rightResult);
     } else if (operatorType == TokenType.LT) {
       return _dartObjectComputer.lessThan(node, leftResult, rightResult);
     } else if (operatorType == TokenType.LT_EQ) {
@@ -1175,9 +1204,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return _dartObjectComputer.divide(node, leftResult, rightResult);
     } else if (operatorType == TokenType.TILDE_SLASH) {
       return _dartObjectComputer.integerDivide(node, leftResult, rightResult);
-    } else if (operatorType == TokenType.QUESTION_QUESTION) {
-      return _dartObjectComputer.questionQuestion(
-          node, leftResult, rightResult);
     } else {
       // TODO(brianwilkerson) Figure out which error to report.
       _error(node, null);
@@ -1193,6 +1219,30 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   DartObjectImpl visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
     DartObjectImpl conditionResult = condition.accept(this);
+    if (experimentStatus.constant_update_2018) {
+      if (conditionResult == null) {
+        return conditionResult;
+      } else if (!conditionResult.isBool) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, condition);
+        return null;
+      }
+      conditionResult = _dartObjectComputer.applyBooleanConversion(
+          condition, conditionResult);
+      if (conditionResult == null) {
+        return conditionResult;
+      }
+      if (conditionResult.toBoolValue() == true) {
+        return node.thenExpression.accept(this);
+      } else if (conditionResult.toBoolValue() == false) {
+        return node.elseExpression.accept(this);
+      }
+      // We used to return an object with a known type and an unknown value, but
+      // we can't do that without evaluating both the 'then' and 'else'
+      // expressions, and we're not suppose to do that under lazy semantics. I'm
+      // not sure which failure mode is worse.
+      return null;
+    }
     DartObjectImpl thenResult = node.thenExpression.accept(this);
     DartObjectImpl elseResult = node.elseExpression.accept(this);
     if (conditionResult == null) {
@@ -1246,8 +1296,13 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
-  DartObjectImpl visitIntegerLiteral(IntegerLiteral node) =>
-      new DartObjectImpl(_typeProvider.intType, new IntState(node.value));
+  DartObjectImpl visitIntegerLiteral(IntegerLiteral node) {
+    if (node.staticType == _typeProvider.doubleType) {
+      return new DartObjectImpl(
+          _typeProvider.doubleType, new DoubleState(node.value?.toDouble()));
+    }
+    return new DartObjectImpl(_typeProvider.intType, new IntState(node.value));
+  }
 
   @override
   DartObjectImpl visitInterpolationExpression(InterpolationExpression node) {
@@ -1262,6 +1317,18 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   @override
   DartObjectImpl visitInterpolationString(InterpolationString node) =>
       new DartObjectImpl(_typeProvider.stringType, new StringState(node.value));
+
+  @override
+  DartObjectImpl visitIsExpression(IsExpression node) {
+    if (experimentStatus.constant_update_2018) {
+      DartObjectImpl expressionResult = node.expression.accept(this);
+      DartObjectImpl typeResult = node.type.accept(this);
+      return _dartObjectComputer.typeTest(node, expressionResult, typeResult);
+    }
+    // TODO(brianwilkerson) Figure out which error to report.
+    _error(node, null);
+    return null;
+  }
 
   @override
   DartObjectImpl visitListLiteral(ListLiteral node) {
@@ -1427,6 +1494,35 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
+  DartObjectImpl visitSetLiteral(SetLiteral node) {
+    if (!node.isConst) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL, node);
+      return null;
+    }
+    bool errorOccurred = false;
+    Set<DartObjectImpl> elements = new Set<DartObjectImpl>();
+    for (Expression element in node.elements) {
+      DartObjectImpl elementResult = element.accept(this);
+      if (elementResult == null) {
+        errorOccurred = true;
+      } else {
+        elements.add(elementResult);
+      }
+    }
+    if (errorOccurred) {
+      return null;
+    }
+    DartType nodeType = node.staticType;
+    DartType elementType =
+        nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
+            ? nodeType.typeArguments[0]
+            : _typeProvider.dynamicType;
+    InterfaceType setType = _typeProvider.setType.instantiate([elementType]);
+    return new DartObjectImpl(setType, new SetState(elements));
+  }
+
+  @override
   DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {
     if (_lexicalEnvironment != null &&
         _lexicalEnvironment.containsKey(node.name)) {
@@ -1515,8 +1611,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       // Driver, we compute values of all dependencies first (or detect  cycle).
       // So, the value has already been computed. Just return it.
       if (evaluationEngine.forAnalysisDriver) {
-        if (variableElement.isConst) {
-          return variableElement.evaluationResult.value;
+        EvaluationResultImpl value = variableElement.evaluationResult;
+        if (variableElement.isConst && value != null) {
+          return value.value;
         }
       } else {
         // TODO(scheglov) Once we remove task model, we can remove this code.
@@ -1584,12 +1681,22 @@ class DartObjectComputer {
   final ErrorReporter _errorReporter;
 
   /**
-   * The type provider used to create objects of the appropriate types, and to
-   * identify when an object is of a built-in type.
+   * The type provider used to access the known types.
    */
-  final TypeProvider _typeProvider;
+  final ConstantEvaluationEngine _evaluationEngine;
 
-  DartObjectComputer(this._errorReporter, this._typeProvider);
+  DartObjectComputer(this._errorReporter, this._evaluationEngine);
+
+  /**
+   * Convenience getter to gain access to the [evaluationEngine]'s type
+   * provider.
+   */
+  TypeProvider get _typeProvider => _evaluationEngine.typeProvider;
+
+  /**
+   * Convenience getter to gain access to the [evaluationEngine]'s type system.
+   */
+  TypeSystem get _typeSystem => _evaluationEngine.typeSystem;
 
   DartObjectImpl add(BinaryExpression node, DartObjectImpl leftOperand,
       DartObjectImpl rightOperand) {
@@ -1620,18 +1727,6 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl bitAnd(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.bitAnd(_typeProvider, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
-    }
-    return null;
-  }
-
   DartObjectImpl bitNot(Expression node, DartObjectImpl evaluationResult) {
     if (evaluationResult != null) {
       try {
@@ -1643,23 +1738,11 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl bitOr(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
+  DartObjectImpl castToType(
+      AsExpression node, DartObjectImpl expression, DartObjectImpl type) {
+    if (expression != null && type != null) {
       try {
-        return leftOperand.bitOr(_typeProvider, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
-    }
-    return null;
-  }
-
-  DartObjectImpl bitXor(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.bitXor(_typeProvider, rightOperand);
+        return expression.castToType(_typeProvider, _typeSystem, type);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1684,6 +1767,53 @@ class DartObjectComputer {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.divide(_typeProvider, rightOperand);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
+      }
+    }
+    return null;
+  }
+
+  DartObjectImpl eagerAnd(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand, bool allowBool) {
+    if (leftOperand != null && rightOperand != null) {
+      try {
+        return leftOperand.eagerAnd(_typeProvider, rightOperand, allowBool);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
+      }
+    }
+    return null;
+  }
+
+  DartObjectImpl eagerOr(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand, bool allowBool) {
+    if (leftOperand != null && rightOperand != null) {
+      try {
+        return leftOperand.eagerOr(_typeProvider, rightOperand, allowBool);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
+      }
+    }
+    return null;
+  }
+
+  DartObjectImpl eagerQuestionQuestion(Expression node,
+      DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+    if (leftOperand != null && rightOperand != null) {
+      if (leftOperand.isNull) {
+        return rightOperand;
+      }
+      return leftOperand;
+    }
+    return null;
+  }
+
+  DartObjectImpl eagerXor(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand, bool allowBool) {
+    if (leftOperand != null && rightOperand != null) {
+      try {
+        return leftOperand.eagerXor(_typeProvider, rightOperand, allowBool);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1751,6 +1881,41 @@ class DartObjectComputer {
     return null;
   }
 
+  DartObjectImpl lazyAnd(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperandComputer()) {
+    if (leftOperand != null) {
+      try {
+        return leftOperand.lazyAnd(_typeProvider, rightOperandComputer);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
+      }
+    }
+    return null;
+  }
+
+  DartObjectImpl lazyOr(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperandComputer()) {
+    if (leftOperand != null) {
+      try {
+        return leftOperand.lazyOr(_typeProvider, rightOperandComputer);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
+      }
+    }
+    return null;
+  }
+
+  DartObjectImpl lazyQuestionQuestion(Expression node,
+      DartObjectImpl leftOperand, DartObjectImpl rightOperandComputer()) {
+    if (leftOperand != null) {
+      if (leftOperand.isNull) {
+        return rightOperandComputer();
+      }
+      return leftOperand;
+    }
+    return null;
+  }
+
   DartObjectImpl lessThan(BinaryExpression node, DartObjectImpl leftOperand,
       DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
@@ -1775,18 +1940,6 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl logicalAnd(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperandComputer()) {
-    if (leftOperand != null) {
-      try {
-        return leftOperand.logicalAnd(_typeProvider, rightOperandComputer);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
-    }
-    return null;
-  }
-
   DartObjectImpl logicalNot(Expression node, DartObjectImpl evaluationResult) {
     if (evaluationResult != null) {
       try {
@@ -1798,11 +1951,11 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl logicalOr(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperandComputer()) {
-    if (leftOperand != null) {
+  DartObjectImpl logicalShiftRight(BinaryExpression node,
+      DartObjectImpl leftOperand, DartObjectImpl rightOperand) {
+    if (leftOperand != null && rightOperand != null) {
       try {
-        return leftOperand.logicalOr(_typeProvider, rightOperandComputer);
+        return leftOperand.logicalShiftRight(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1853,17 +2006,6 @@ class DartObjectComputer {
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
-    }
-    return null;
-  }
-
-  DartObjectImpl questionQuestion(Expression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      if (leftOperand.isNull) {
-        return rightOperand;
-      }
-      return leftOperand;
     }
     return null;
   }
@@ -1927,6 +2069,23 @@ class DartObjectComputer {
     if (leftOperand != null && rightOperand != null) {
       try {
         return leftOperand.times(_typeProvider, rightOperand);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
+      }
+    }
+    return null;
+  }
+
+  DartObjectImpl typeTest(
+      IsExpression node, DartObjectImpl expression, DartObjectImpl type) {
+    if (expression != null && type != null) {
+      try {
+        DartObjectImpl result =
+            expression.hasType(_typeProvider, _typeSystem, type);
+        if (node.notOperator != null) {
+          return result.logicalNot(_typeProvider);
+        }
+        return result;
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }

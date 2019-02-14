@@ -160,5 +160,5 @@ abstract class DartCompletionRequest implements CompletionRequest {
    * The analysis result for the file in which the completion is being
    * requested.
    */
-  ResolveResult get result;
+  ResolvedUnitResult get result;
 }

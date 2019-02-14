@@ -85,10 +85,6 @@ const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 0;
 #define TAG_IC_DATA
 #endif
 
-#if !defined(TARGET_OS_MACOS_IOS) && !defined(TARGET_OS_ANDROID)
-#define CONCURRENT_MARKING 1
-#endif
-
 // The expression OFFSET_OF(type, field) computes the byte-offset of
 // the specified field relative to the containing type.
 //

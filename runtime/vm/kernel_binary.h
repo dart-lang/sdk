@@ -17,7 +17,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kBinaryFormatVersion = 12;
+static const uint32_t kBinaryFormatVersion = 16;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -72,6 +72,7 @@ static const uint32_t kBinaryFormatVersion = 12;
   V(Rethrow, 47)                                                               \
   V(Throw, 48)                                                                 \
   V(ListLiteral, 49)                                                           \
+  V(SetLiteral, 109)                                                           \
   V(MapLiteral, 50)                                                            \
   V(AwaitExpression, 51)                                                       \
   V(FunctionExpression, 52)                                                    \
@@ -81,6 +82,7 @@ static const uint32_t kBinaryFormatVersion = 12;
   V(NegativeIntLiteral, 56)                                                    \
   V(BigIntLiteral, 57)                                                         \
   V(ConstListLiteral, 58)                                                      \
+  V(ConstSetLiteral, 110)                                                      \
   V(ConstMapLiteral, 59)                                                       \
   V(ExpressionStatement, 61)                                                   \
   V(Block, 62)                                                                 \
@@ -145,6 +147,12 @@ enum ConstantTag {
   kPartialInstantiationConstant = 9,
   kTearOffConstant = 10,
   kTypeLiteralConstant = 11,
+  // These constants are not expected to be seen by the VM, because all
+  // constants are fully evaluated.
+  kEnvironmentBoolConstant = 12,
+  kEnvironmentIntConstant = 13,
+  kEnvironmentStringConstant = 14,
+  kUnevaluatedConstant = 15,
 };
 
 static const int SpecializedIntLiteralBias = 3;
@@ -236,6 +244,11 @@ class Reader : public ValueObject {
       offset_ += 4;
       return value;
     }
+  }
+
+  intptr_t ReadSLEB128() {
+    const uint8_t* buffer = this->buffer();
+    return Utils::DecodeSLEB128(buffer, size_, &offset_);
   }
 
   /**

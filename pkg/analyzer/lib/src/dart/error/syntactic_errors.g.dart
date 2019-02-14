@@ -88,6 +88,18 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _FACTORY_TOP_LEVEL_DECLARATION,
   _FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
   _FINAL_AND_COVARIANT,
+  _FINAL_AND_VAR,
+  _INITIALIZED_VARIABLE_IN_FOR_EACH,
+  _CATCH_SYNTAX_EXTRA_PARAMETERS,
+  _CATCH_SYNTAX,
+  _EXTERNAL_FACTORY_REDIRECTION,
+  _EXTERNAL_FACTORY_WITH_BODY,
+  _EXTERNAL_CONSTRUCTOR_WITH_BODY,
+  _FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS,
+  _VAR_AND_TYPE,
+  _INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER,
+  _STACK_OVERFLOW,
+  _MISSING_CATCH_OR_FINALLY,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -100,6 +112,17 @@ const ParserErrorCode _BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
     'BREAK_OUTSIDE_OF_LOOP',
     r"A break statement can't be used outside of a loop or switch statement.",
     correction: "Try removing the break statement.");
+
+const ParserErrorCode _CATCH_SYNTAX = const ParserErrorCode('CATCH_SYNTAX',
+    r"'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
+    correction:
+        "No types are needed, the first is given by 'on', the second is always 'StackTrace'.");
+
+const ParserErrorCode _CATCH_SYNTAX_EXTRA_PARAMETERS = const ParserErrorCode(
+    'CATCH_SYNTAX_EXTRA_PARAMETERS',
+    r"'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
+    correction:
+        "No types are needed, the first is given by 'on', the second is always 'StackTrace'.");
 
 const ParserErrorCode _CLASS_IN_CLASS = const ParserErrorCode(
     'CLASS_IN_CLASS', r"Classes can't be declared inside other classes.",
@@ -243,9 +266,24 @@ const ParserErrorCode _EXTERNAL_CLASS = const ParserErrorCode(
     'EXTERNAL_CLASS', r"Classes can't be declared to be 'external'.",
     correction: "Try removing the keyword 'external'.");
 
+const ParserErrorCode _EXTERNAL_CONSTRUCTOR_WITH_BODY = const ParserErrorCode(
+    'EXTERNAL_CONSTRUCTOR_WITH_BODY',
+    r"External constructors can't have a body.",
+    correction:
+        "Try removing the body of the constructor, or removing the keyword 'external'.");
+
 const ParserErrorCode _EXTERNAL_ENUM = const ParserErrorCode(
     'EXTERNAL_ENUM', r"Enums can't be declared to be 'external'.",
     correction: "Try removing the keyword 'external'.");
+
+const ParserErrorCode _EXTERNAL_FACTORY_REDIRECTION = const ParserErrorCode(
+    'EXTERNAL_FACTORY_REDIRECTION', r"A redirecting factory can't be external.",
+    correction: "Try removing the 'external' modifier.");
+
+const ParserErrorCode _EXTERNAL_FACTORY_WITH_BODY = const ParserErrorCode(
+    'EXTERNAL_FACTORY_WITH_BODY', r"External factories can't have a body.",
+    correction:
+        "Try removing the body of the factory, or removing the keyword 'external'.");
 
 const ParserErrorCode _EXTERNAL_FIELD = const ParserErrorCode(
     'EXTERNAL_FIELD', r"Fields can't be declared to be 'external'.",
@@ -268,6 +306,12 @@ const ParserErrorCode _FACTORY_TOP_LEVEL_DECLARATION = const ParserErrorCode(
     r"Top-level declarations can't be declared to be 'factory'.",
     correction: "Try removing the keyword 'factory'.");
 
+const ParserErrorCode _FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS =
+    const ParserErrorCode('FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS',
+        r"A field can only be initialized in it's declaring class",
+        correction:
+            "Try passing a value into the superclass constructor, or moving the initialization into the constructor body.");
+
 const ParserErrorCode _FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR =
     const ParserErrorCode('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
         r"Field formal parameters can only be used in a constructor.",
@@ -277,6 +321,10 @@ const ParserErrorCode _FINAL_AND_COVARIANT = const ParserErrorCode(
     'FINAL_AND_COVARIANT',
     r"Members can't be declared to be both 'final' and 'covariant'.",
     correction: "Try removing either the 'final' or 'covariant' keyword.");
+
+const ParserErrorCode _FINAL_AND_VAR = const ParserErrorCode(
+    'FINAL_AND_VAR', r"Members can't be declared to be both 'final' and 'var'.",
+    correction: "Try removing the keyword 'var'.");
 
 const ParserErrorCode _ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE =
     const ParserErrorCode('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE',
@@ -303,6 +351,12 @@ const ParserErrorCode _IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
         correction:
             "Try moving the import directives before the part directives.");
 
+const ParserErrorCode _INITIALIZED_VARIABLE_IN_FOR_EACH = const ParserErrorCode(
+    'INITIALIZED_VARIABLE_IN_FOR_EACH',
+    r"The loop variable in a for-each loop can't be initialized.",
+    correction:
+        "Try removing the initializer, or using a different kind of loop.");
+
 const ParserErrorCode _INVALID_AWAIT_IN_FOR = const ParserErrorCode(
     'INVALID_AWAIT_IN_FOR',
     r"The keyword 'await' isn't allowed for a normal 'for' statement.",
@@ -315,6 +369,11 @@ const ParserErrorCode _INVALID_HEX_ESCAPE = const ParserErrorCode(
 const ParserErrorCode _INVALID_OPERATOR = const ParserErrorCode(
     'INVALID_OPERATOR',
     r"The string '#lexeme' isn't a user-definable operator.");
+
+const ParserErrorCode _INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER =
+    const ParserErrorCode('INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER',
+        r"The operator '?.' cannot be used with 'super' because 'super' cannot be null.",
+        correction: "Try replacing '?.' with '.'");
 
 const ParserErrorCode _INVALID_UNICODE_ESCAPE = const ParserErrorCode(
     'INVALID_UNICODE_ESCAPE',
@@ -335,6 +394,12 @@ const ParserErrorCode _MISSING_ASSIGNMENT_IN_INITIALIZER =
     const ParserErrorCode('MISSING_ASSIGNMENT_IN_INITIALIZER',
         r"Expected an assignment after the field name.",
         correction: "To initialize a field, use the syntax 'name = value'.");
+
+const ParserErrorCode _MISSING_CATCH_OR_FINALLY = const ParserErrorCode(
+    'MISSING_CATCH_OR_FINALLY',
+    r"A try block must be followed by an 'on', 'catch', or 'finally' clause.",
+    correction:
+        "Try adding either a catch or finally clause, or remove the try statement.");
 
 const ParserErrorCode _MISSING_CONST_FINAL_VAR_OR_TYPE = const ParserErrorCode(
     'MISSING_CONST_FINAL_VAR_OR_TYPE',
@@ -412,6 +477,10 @@ const ParserErrorCode _REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR =
         correction:
             "Try making this a factory constructor, or remove the redirection.");
 
+const ParserErrorCode _STACK_OVERFLOW = const ParserErrorCode('STACK_OVERFLOW',
+    r"The file has too many nested expressions or statements.",
+    correction: "Try simplifying the code.");
+
 const ParserErrorCode _STATIC_AFTER_CONST = const ParserErrorCode(
     'STATIC_AFTER_CONST',
     r"The modifier 'static' should be before the modifier 'const'.",
@@ -459,6 +528,10 @@ const ParserErrorCode _TYPE_ARGUMENTS_ON_TYPE_VARIABLE = const ParserErrorCode(
     'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
     r"Can't use type arguments with type variable '#name'.",
     correction: "Try removing the type arguments.");
+
+const ParserErrorCode _VAR_AND_TYPE = const ParserErrorCode('VAR_AND_TYPE',
+    r"Variables can't be declared using both 'var' and a type name.",
+    correction: "Try removing 'var.'");
 
 const ParserErrorCode _VAR_AS_TYPE_NAME = const ParserErrorCode(
     'VAR_AS_TYPE_NAME', r"The keyword 'var' can't be used as a type name.");

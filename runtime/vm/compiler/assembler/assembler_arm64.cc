@@ -18,17 +18,14 @@ namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
+DECLARE_FLAG(bool, precompiled_mode);
 
 DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
 Assembler::Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches)
-    : buffer_(),
-      object_pool_wrapper_(object_pool_wrapper),
-      prologue_offset_(-1),
-      has_single_entry_point_(true),
+    : AssemblerBase(object_pool_wrapper),
       use_far_branches_(use_far_branches),
-      comments_(),
       constant_pool_allowed_(false) {}
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
@@ -630,10 +627,9 @@ void Assembler::LoadDImmediate(VRegister vd, double immd) {
   }
 }
 
-void Assembler::Branch(const StubEntry& stub_entry,
+void Assembler::Branch(const Code& target,
                        Register pp,
                        ObjectPool::Patchability patchable) {
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper().FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset, pp);
@@ -641,13 +637,12 @@ void Assembler::Branch(const StubEntry& stub_entry,
   br(TMP);
 }
 
-void Assembler::BranchPatchable(const StubEntry& stub_entry) {
-  Branch(stub_entry, PP, ObjectPool::kPatchable);
+void Assembler::BranchPatchable(const Code& code) {
+  Branch(code, PP, ObjectPool::kPatchable);
 }
 
-void Assembler::BranchLink(const StubEntry& stub_entry,
+void Assembler::BranchLink(const Code& target,
                            ObjectPool::Patchability patchable) {
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper().FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset);
@@ -655,18 +650,13 @@ void Assembler::BranchLink(const StubEntry& stub_entry,
   blr(TMP);
 }
 
-void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  BranchLink(stub_entry, ObjectPool::kPatchable);
-}
-
 void Assembler::BranchLinkToRuntime() {
   ldr(LR, Address(THR, Thread::call_to_runtime_entry_point_offset()));
   blr(LR);
 }
 
-void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
+void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           const Object& equivalence) {
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper().FindObject(target, equivalence));
   LoadWordFromPoolOffset(CODE_REG, offset);
@@ -979,8 +969,6 @@ void Assembler::StoreIntoObject(Register object,
   ASSERT(object != value);
   ASSERT(object != LR);
   ASSERT(value != LR);
-
-#if defined(CONCURRENT_MARKING)
   ASSERT(object != TMP);
   ASSERT(object != TMP2);
   ASSERT(value != TMP);
@@ -1032,20 +1020,53 @@ void Assembler::StoreIntoObject(Register object,
   }
   if (!lr_reserved) Pop(LR);
   Bind(&done);
-#else
-  ASSERT(object != value);
-  ASSERT(object != LR);
-  ASSERT(value != LR);
+}
 
-  str(value, dest);
+void Assembler::StoreIntoArray(Register object,
+                               Register slot,
+                               Register value,
+                               CanBeSmi can_be_smi,
+                               bool lr_reserved) {
+  ASSERT(object != TMP);
+  ASSERT(object != TMP2);
+  ASSERT(value != TMP);
+  ASSERT(value != TMP2);
+  ASSERT(slot != TMP);
+  ASSERT(slot != TMP2);
+
+  str(value, Address(slot, 0));
+
+  // In parallel, test whether
+  //  - object is old and not remembered and value is new, or
+  //  - object is old and value is old and not marked and concurrent marking is
+  //    in progress
+  // If so, call the WriteBarrier stub, which will either add object to the
+  // store buffer (case 1) or add value to the marking stack (case 2).
+  // Compare RawObject::StorePointer.
   Label done;
-  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
+  if (can_be_smi == kValueCanBeSmi) {
+    BranchIfSmi(value, &done);
+  }
+  ldr(TMP, FieldAddress(object, Object::tags_offset()), kUnsignedByte);
+  ldr(TMP2, FieldAddress(value, Object::tags_offset()), kUnsignedByte);
+  and_(TMP, TMP2, Operand(TMP, LSR, RawObject::kBarrierOverlapShift));
+  tst(TMP, Operand(BARRIER_MASK));
+  b(&done, ZERO);
   if (!lr_reserved) Push(LR);
-  ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)));
+
+  if ((object != kWriteBarrierObjectReg) || (value != kWriteBarrierValueReg) ||
+      (slot != kWriteBarrierSlotReg)) {
+    // Spill and shuffle unimplemented. Currently StoreIntoArray is only used
+    // from StoreIndexInstr, which gets these exact registers from the register
+    // allocator.
+    UNIMPLEMENTED();
+  }
+
+  ldr(LR, Address(THR, Thread::array_write_barrier_entry_point_offset()));
   blr(LR);
+
   if (!lr_reserved) Pop(LR);
   Bind(&done);
-#endif
 }
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
@@ -1185,7 +1206,7 @@ void Assembler::SetupDartSP() {
 #if defined(TARGET_OS_FUCHSIA)
   // Make any future signal handlers fail fast. Verifies our assumption in
   // EnterFrame.
-  LoadImmediate(CSP, 0);
+  orri(CSP, ZR, Immediate(16));
 #endif
 }
 
@@ -1230,15 +1251,18 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   ASSERT(!constant_pool_allowed());
   // Setup the frame.
   EnterFrame(0);
-  TagAndPushPPAndPcMarker();  // Save PP and PC marker.
 
-  // Load the pool pointer.
-  if (new_pp == kNoRegister) {
-    LoadPoolPointer();
-  } else {
-    mov(PP, new_pp);
-    set_constant_pool_allowed(true);
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    TagAndPushPPAndPcMarker();  // Save PP and PC marker.
+
+    // Load the pool pointer.
+    if (new_pp == kNoRegister) {
+      LoadPoolPointer();
+    } else {
+      mov(PP, new_pp);
+    }
   }
+  set_constant_pool_allowed(true);
 
   // Reserve space.
   if (frame_size > 0) {
@@ -1263,13 +1287,15 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
 }
 
 void Assembler::LeaveDartFrame(RestorePP restore_pp) {
-  if (restore_pp == kRestoreCallerPP) {
-    set_constant_pool_allowed(false);
-    // Restore and untag PP.
-    LoadFromOffset(PP, FP,
-                   compiler_frame_layout.saved_caller_pp_from_fp * kWordSize);
-    sub(PP, PP, Operand(kHeapObjectTag));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    if (restore_pp == kRestoreCallerPP) {
+      // Restore and untag PP.
+      LoadFromOffset(PP, FP,
+                     compiler_frame_layout.saved_caller_pp_from_fp * kWordSize);
+      sub(PP, PP, Operand(kHeapObjectTag));
+    }
   }
+  set_constant_pool_allowed(false);
   LeaveFrame();
 }
 
@@ -1305,7 +1331,8 @@ void Assembler::LeaveCallRuntimeFrame() {
   const intptr_t kPushedRegistersSize =
       kDartVolatileCpuRegCount * kWordSize +
       kDartVolatileFpuRegCount * kWordSize +
-      2 * kWordSize;  // PP and pc marker from EnterStubFrame.
+      (compiler_frame_layout.dart_fixed_frame_size - 2) *
+          kWordSize;  // From EnterStubFrame (excluding PC / FP)
   AddImmediate(SP, FP, -kPushedRegistersSize);
   for (int i = kDartLastVolatileCpuReg; i >= kDartFirstVolatileCpuReg; i--) {
     const Register reg = static_cast<Register>(i);
@@ -1353,13 +1380,13 @@ void Assembler::MonomorphicCheckedEntry() {
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  ASSERT(CodeSize() == Instructions::kPolymorphicEntryOffset);
   LoadClassIdMayBeSmi(IP0, R0);
   cmp(R5, Operand(IP0, LSL, 1));
   b(&miss, NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
+  ASSERT(CodeSize() == Instructions::kMonomorphicEntryOffset);
 
   set_use_far_branches(saved_use_far_branches);
 }
@@ -1517,6 +1544,11 @@ void Assembler::TryAllocateArray(intptr_t cid,
   } else {
     b(failure);
   }
+}
+
+void Assembler::GenerateUnRelocatedPcRelativeCall() {
+  // Emit "bl <offset>".
+  EmitUnconditionalBranchOp(BL, 0x686868);
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

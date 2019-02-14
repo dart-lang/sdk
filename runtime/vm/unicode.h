@@ -74,6 +74,9 @@ class Utf8 : AllStatic {
                             intptr_t array_len,
                             int32_t* dst,
                             intptr_t len);
+  static intptr_t ReportInvalidByte(const uint8_t* utf8_array,
+                                    intptr_t array_len,
+                                    intptr_t len);
   static bool DecodeCStringToUTF32(const char* str, int32_t* dst, intptr_t len);
 
   static const int32_t kMaxOneByteChar = 0x7F;

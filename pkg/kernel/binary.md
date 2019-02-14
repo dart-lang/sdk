@@ -131,7 +131,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 12;
+  UInt32 formatVersion = 16;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -198,6 +198,11 @@ type ConstructorReference {
 
 type ProcedureReference {
   // Must be populated by a procedure (possibly later in the file).
+  CanonicalNameReference canonicalName;
+}
+
+type TypedefReference {
+  // Must be populated by a typedef (possibly later in the file).
   CanonicalNameReference canonicalName;
 }
 
@@ -368,8 +373,8 @@ type Procedure extends Member {
   Name name;
   List<Expression> annotations;
   // Only present if the 'isForwardingStub' flag is set.
-  Option<MemberReference> forwardingStubSuperTarget;
-  Option<MemberReference> forwardingStubInterfaceTarget;
+  MemberReference forwardingStubSuperTarget; // May be NullReference.
+  MemberReference forwardingStubInterfaceTarget; // May be NullReference.
   // Can only be absent if abstract, but tag is there anyway.
   Option<FunctionNode> function;
 }
@@ -779,6 +784,20 @@ type ConstListLiteral extends Expression {
   List<Expression> values;
 }
 
+type SetLiteral extends Expression {
+  Byte tag = 109; // Note: tag is out of order.
+  FileOffset fileOffset;
+  DartType typeArgument;
+  List<Expression> values;
+}
+
+type ConstSetLiteral extends Expression {
+  Byte tag = 110; // Note: tag is out of order.
+  FileOffset fileOffset;
+  DartType typeArgument;
+  List<Expression> values;
+}
+
 type MapLiteral extends Expression {
   Byte tag = 50;
   FileOffset fileOffset;
@@ -867,7 +886,7 @@ type StringConstant extends Constant {
 
 type SymbolConstant extends Constant {
   Byte tag = 5;
-  Option<LibraryReference> library;
+  LibraryReference library; // May be NullReference.
   StringReference name;
 }
 
@@ -905,6 +924,29 @@ type TearOffConstant extends Constant {
 type TypeLiteralConstant extends Constant {
   Byte tag = 11;
   DartType type;
+}
+
+type EnvironmentBoolConstant extends Constant {
+  Byte tag = 12;
+  StringReference name;
+  ConstantReference defaultValue;
+}
+
+type EnvironmentIntConstant extends Constant {
+  Byte tag = 13;
+  StringReference name;
+  ConstantReference defaultValue;
+}
+
+type EnvironmentStringConstant extends Constant {
+  Byte tag = 14;
+  StringReference name;
+  ConstantReference defaultValue;
+}
+
+type UnevaluatedConstant extends Constant {
+  Byte tag = 15;
+  Expression expression;
 }
 
 abstract type Statement extends Node {}
@@ -1141,7 +1183,7 @@ type FunctionType extends DartType {
   UInt totalParameterCount;
   List<DartType> positionalParameters;
   List<NamedDartType> namedParameters;
-  CanonicalNameReference typedefReference;
+  Option<TypedefType> typedef;
   DartType returnType;
 }
 
@@ -1181,6 +1223,12 @@ type TypeParameterType extends DartType {
   // class.
   UInt index;
   Option<DartType> bound;
+}
+
+type TypedefType {
+  Byte tag = 87;
+  TypedefReference typedefReference;
+  List<DartType> typeArguments;
 }
 
 type TypeParameter {

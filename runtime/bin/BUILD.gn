@@ -89,6 +89,35 @@ build_libdart_builtin("libdart_builtin_product_fuchsia") {
   ]
 }
 
+static_library("crashpad") {
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
+  include_dirs = [ ".." ]
+  sources = [
+    "crashpad.cc",
+  ]
+
+  if (dart_use_crashpad) {
+    assert(is_win, "dart_use_crashpad is only supported on Windows")
+    deps = [
+      "//third_party/crashpad/crashpad/client",
+      "//third_party/mini_chromium/mini_chromium/base",
+
+      # This binary is used to handle crashes of the dart binary.
+      "//third_party/crashpad/crashpad/handler:crashpad_handler",
+    ]
+    include_dirs += [ "//third_party/crashpad" ]
+    defines = [ "DART_USE_CRASHPAD" ]
+  }
+}
+
 template("build_gen_snapshot") {
   extra_configs = []
   if (defined(invoker.extra_configs)) {
@@ -311,6 +340,7 @@ template("dart_io") {
                  "..:dart_config",
                  "..:dart_os_config",
                ] + extra_configs
+    public_configs = [ "..:dart_public_config" ]
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
@@ -664,6 +694,7 @@ template("dart_executable") {
              ":libdart_builtin",
              "//third_party/boringssl",
              "//third_party/zlib",
+             ":crashpad",
            ] + extra_deps
 
     defines = extra_defines
@@ -679,19 +710,6 @@ template("dart_executable") {
       "..",
       "//third_party",
     ]
-
-    if (dart_use_crashpad) {
-      assert(is_win, "dart_use_crashpad is only supported on Windows")
-      deps += [
-        "//third_party/crashpad/crashpad/client",
-        "//third_party/mini_chromium/mini_chromium/base",
-
-        # This binary is used to handle crashes of the dart binary.
-        "//third_party/crashpad/crashpad/handler:crashpad_handler",
-      ]
-      include_dirs += [ "//third_party/crashpad" ]
-      defines += [ "DART_USE_CRASHPAD" ]
-    }
 
     sources = [
                 "dart_embedder_api_impl.cc",
@@ -882,6 +900,7 @@ executable("run_vm_tests") {
   }
 
   deps = [
+    ":crashpad",
     ":dart_kernel_platform_cc",
     ":dart_snapshot_cc",
     ":gen_kernel_bytecode_dill",

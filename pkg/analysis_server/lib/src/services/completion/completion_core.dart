@@ -1,11 +1,11 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -13,7 +13,7 @@ import 'package:analyzer/src/generated/source.dart';
  */
 class CompletionRequestImpl implements CompletionRequest {
   @override
-  final AnalysisResult result;
+  final ResolvedUnitResult result;
 
   @override
   final int offset;

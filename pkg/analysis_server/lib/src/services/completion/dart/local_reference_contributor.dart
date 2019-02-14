@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -219,6 +219,20 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           declaration.documentationComment,
           declaration.name,
           declaration.returnType,
+          protocol.ElementKind.FUNCTION_TYPE_ALIAS,
+          isAbstract: true,
+          isDeprecated: isDeprecated(declaration));
+    }
+  }
+
+  @override
+  void declaredGenericTypeAlias(GenericTypeAlias declaration) {
+    if (optype.includeTypeNameSuggestions) {
+      // TODO (danrubel) determine parameters and return type
+      _addLocalSuggestion_includeTypeNameSuggestions(
+          declaration.documentationComment,
+          declaration.name,
+          declaration.functionType.returnType,
           protocol.ElementKind.FUNCTION_TYPE_ALIAS,
           isAbstract: true,
           isDeprecated: isDeprecated(declaration));

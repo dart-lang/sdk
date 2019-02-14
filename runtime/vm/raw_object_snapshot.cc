@@ -72,50 +72,6 @@ void RawClass::WriteTo(SnapshotWriter* writer,
   }
 }
 
-RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
-                                              intptr_t object_id,
-                                              intptr_t tags,
-                                              Snapshot::Kind kind,
-                                              bool as_reference) {
-  ASSERT(reader != NULL);
-
-  // Allocate unresolved class object.
-  UnresolvedClass& unresolved_class =
-      UnresolvedClass::ZoneHandle(reader->zone(), UnresolvedClass::New());
-  reader->AddBackRef(object_id, &unresolved_class, kIsDeserialized);
-
-  // Set all non object fields.
-  unresolved_class.set_token_pos(
-      TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
-
-  // Set all the object fields.
-  READ_OBJECT_FIELDS(unresolved_class, unresolved_class.raw()->from(),
-                     unresolved_class.raw()->to(), kAsReference);
-
-  return unresolved_class.raw();
-}
-
-void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
-                                 intptr_t object_id,
-                                 Snapshot::Kind kind,
-                                 bool as_reference) {
-  ASSERT(writer != NULL);
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-
-  // Write out the class and tags information.
-  writer->WriteVMIsolateObject(kUnresolvedClassCid);
-  writer->WriteTags(writer->GetObjectTags(this));
-
-  // Write out all the non object pointer fields.
-  writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
-
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
-}
-
 RawAbstractType* AbstractType::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
                                         intptr_t tags,
@@ -339,62 +295,6 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   RawClass* param_class =
       writer->isolate()->class_table()->At(ptr()->parameterized_class_id_);
   writer->WriteObjectImpl(param_class, kAsReference);
-}
-
-RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
-                                      intptr_t object_id,
-                                      intptr_t tags,
-                                      Snapshot::Kind kind,
-                                      bool as_reference) {
-  ASSERT(reader != NULL);
-
-  // Allocate bounded type object.
-  BoundedType& bounded_type =
-      BoundedType::ZoneHandle(reader->zone(), BoundedType::New());
-  reader->AddBackRef(object_id, &bounded_type, kIsDeserialized);
-
-  // Read the code object for the type testing stub and set its entrypoint.
-  reader->EnqueueTypePostprocessing(bounded_type);
-
-  // Set all the object fields.
-  READ_OBJECT_FIELDS(bounded_type, bounded_type.raw()->from(),
-                     bounded_type.raw()->to(), kAsReference);
-
-  return bounded_type.raw();
-}
-
-void RawBoundedType::WriteTo(SnapshotWriter* writer,
-                             intptr_t object_id,
-                             Snapshot::Kind kind,
-                             bool as_reference) {
-  ASSERT(writer != NULL);
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-
-  // Write out the class and tags information.
-  writer->WriteIndexedObject(kBoundedTypeCid);
-  writer->WriteTags(writer->GetObjectTags(this));
-
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
-}
-
-RawMixinAppType* MixinAppType::ReadFrom(SnapshotReader* reader,
-                                        intptr_t object_id,
-                                        intptr_t tags,
-                                        Snapshot::Kind kind,
-                                        bool as_reference) {
-  UNREACHABLE();  // MixinAppType objects do not survive finalization.
-  return MixinAppType::null();
-}
-
-void RawMixinAppType::WriteTo(SnapshotWriter* writer,
-                              intptr_t object_id,
-                              Snapshot::Kind kind,
-                              bool as_reference) {
-  UNREACHABLE();  // MixinAppType objects do not survive finalization.
 }
 
 RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
@@ -692,6 +592,22 @@ void RawCode::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
                       Snapshot::Kind kind,
                       bool as_reference) {
+  UNREACHABLE();
+}
+
+RawBytecode* Bytecode::ReadFrom(SnapshotReader* reader,
+                                intptr_t object_id,
+                                intptr_t tags,
+                                Snapshot::Kind kind,
+                                bool as_reference) {
+  UNREACHABLE();
+  return Bytecode::null();
+}
+
+void RawBytecode::WriteTo(SnapshotWriter* writer,
+                          intptr_t object_id,
+                          Snapshot::Kind kind,
+                          bool as_reference) {
   UNREACHABLE();
 }
 
@@ -1982,67 +1898,51 @@ void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
   intptr_t cid = this->GetClassId();
   intptr_t length = Smi::Value(ptr()->length_);  // In elements.
-  intptr_t internal_cid;
   intptr_t bytes;
   switch (cid) {
     case kExternalTypedDataInt8ArrayCid:
-      internal_cid = kTypedDataInt8ArrayCid;
       bytes = length * sizeof(int8_t);
       break;
     case kExternalTypedDataUint8ArrayCid:
-      internal_cid = kTypedDataUint8ArrayCid;
       bytes = length * sizeof(uint8_t);
       break;
     case kExternalTypedDataUint8ClampedArrayCid:
-      internal_cid = kTypedDataUint8ClampedArrayCid;
       bytes = length * sizeof(uint8_t);
       break;
     case kExternalTypedDataInt16ArrayCid:
-      internal_cid = kTypedDataInt16ArrayCid;
       bytes = length * sizeof(int16_t);
       break;
     case kExternalTypedDataUint16ArrayCid:
-      internal_cid = kTypedDataUint16ArrayCid;
       bytes = length * sizeof(uint16_t);
       break;
     case kExternalTypedDataInt32ArrayCid:
-      internal_cid = kTypedDataInt32ArrayCid;
       bytes = length * sizeof(int32_t);
       break;
     case kExternalTypedDataUint32ArrayCid:
-      internal_cid = kTypedDataUint32ArrayCid;
       bytes = length * sizeof(uint32_t);
       break;
     case kExternalTypedDataInt64ArrayCid:
-      internal_cid = kTypedDataInt64ArrayCid;
       bytes = length * sizeof(int64_t);
       break;
     case kExternalTypedDataUint64ArrayCid:
-      internal_cid = kTypedDataUint64ArrayCid;
       bytes = length * sizeof(uint64_t);
       break;
     case kExternalTypedDataFloat32ArrayCid:
-      internal_cid = kTypedDataFloat32ArrayCid;
       bytes = length * sizeof(float);  // NOLINT.
       break;
     case kExternalTypedDataFloat64ArrayCid:
-      internal_cid = kTypedDataFloat64ArrayCid,
       bytes = length * sizeof(double);  // NOLINT.
       break;
     case kExternalTypedDataInt32x4ArrayCid:
-      internal_cid = kTypedDataInt32x4ArrayCid;
       bytes = length * sizeof(int32_t) * 4;
       break;
     case kExternalTypedDataFloat32x4ArrayCid:
-      internal_cid = kTypedDataFloat32x4ArrayCid;
       bytes = length * sizeof(float) * 4;
       break;
     case kExternalTypedDataFloat64x2ArrayCid:
-      internal_cid = kTypedDataFloat64x2ArrayCid;
       bytes = length * sizeof(double) * 2;
       break;
     default:
-      internal_cid = kIllegalCid;
       bytes = 0;
       UNREACHABLE();
   }

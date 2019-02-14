@@ -16,7 +16,7 @@ class UnionTypeMask implements TypeMask {
   // helpful in debugging.
   static const bool PERFORM_EXTRA_CONTAINS_CHECK = false;
 
-  final Iterable<FlatTypeMask> disjointMasks;
+  final List<FlatTypeMask> disjointMasks;
 
   UnionTypeMask._internal(this.disjointMasks) {
     assert(disjointMasks.length > 1);
@@ -216,7 +216,7 @@ class UnionTypeMask implements TypeMask {
     Iterable<FlatTypeMask> newIterable = disjointMasks.map((e) {
       FlatTypeMask r = e.nonNullable();
       return r;
-    });
+    }).toList();
     return new UnionTypeMask._internal(newIterable);
   }
 
@@ -232,14 +232,12 @@ class UnionTypeMask implements TypeMask {
   bool get isForwarding => false;
   bool get isValue => false;
 
-  /**
-   * Checks whether [other] is contained in this union.
-   *
-   * Invariants:
-   * - [other] may not be a [UnionTypeMask] itself
-   * - the cheap test matching against individual members of [disjointMasks]
-   *   must have failed.
-   */
+  /// Checks whether [other] is contained in this union.
+  ///
+  /// Invariants:
+  /// - [other] may not be a [UnionTypeMask] itself
+  /// - the cheap test matching against individual members of [disjointMasks]
+  ///   must have failed.
   bool slowContainsCheck(TypeMask other, JClosedWorld closedWorld) {
     // Unions should never make it here.
     assert(!other.isUnion);
@@ -357,9 +355,8 @@ class UnionTypeMask implements TypeMask {
         .any((e) => e.needsNoSuchMethodHandling(selector, closedWorld));
   }
 
-  bool canHit(
-      MemberEntity element, Selector selector, JClosedWorld closedWorld) {
-    return disjointMasks.any((e) => e.canHit(element, selector, closedWorld));
+  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
+    return disjointMasks.any((e) => e.canHit(element, name, closedWorld));
   }
 
   MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {

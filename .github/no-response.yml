@@ -4,7 +4,7 @@
 daysUntilClose: 21
 
 # Label requiring a response.
-responseRequiredLabel: "need-info"
+responseRequiredLabel: "needs-info"
 
 # Comment to post when closing an Issue for lack of response.
 closeComment: >-

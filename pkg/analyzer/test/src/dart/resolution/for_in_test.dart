@@ -20,7 +20,7 @@ main() {
 class ForInDriverResolutionTest extends DriverResolutionTest
     with ForInResolutionMixin {}
 
-abstract class ForInResolutionMixin implements ResolutionTest {
+mixin ForInResolutionMixin implements ResolutionTest {
   test_importPrefix_asIterable() async {
     // TODO(scheglov) Remove this test (already tested as import prefix).
     // TODO(scheglov) Move other for-in tests here.

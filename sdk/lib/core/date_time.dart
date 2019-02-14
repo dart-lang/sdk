@@ -117,7 +117,7 @@ part of dart.core;
  *
  * The DateTime class does not provide internationalization.
  * To internationalize your code, use
- * the [intl](http://pub.dartlang.org/packages/intl) package.
+ * the [intl](https://pub.dartlang.org/packages/intl) package.
  *
  */
 class DateTime implements Comparable<DateTime> {
@@ -237,10 +237,10 @@ class DateTime implements Comparable<DateTime> {
    *   The time part is a two digit hour,
    *   then optionally a two digit minutes value,
    *   then optionally a two digit seconds value, and
-   *   then optionally a '.' followed by a one-to-six digit second fraction.
+   *   then optionally a '.' or ',' followed by a one-to-six digit second fraction.
    *   The minutes and seconds may be separated from the previous parts by a
    *   ':'.
-   *   Examples: "12", "12:30:24.124", "123010.50".
+   *   Examples: "12", "12:30:24.124", "12:30:24,124", "123010.50".
    * * An optional time-zone offset part,
    *   possibly separated from the previous by a space.
    *   The time zone is either 'z' or 'Z', or it is a signed two digit hour
@@ -261,6 +261,7 @@ class DateTime implements Comparable<DateTime> {
    *
    * * `"2012-02-27 13:27:00"`
    * * `"2012-02-27 13:27:00.123456z"`
+   * * `"2012-02-27 13:27:00,123456z"`
    * * `"20120227 13:27:00"`
    * * `"20120227T132700"`
    * * `"20120227"`
@@ -404,10 +405,7 @@ class DateTime implements Comparable<DateTime> {
    * See [isAtSameMomentAs] for a comparison that compares moments in time
    * independently of their zones.
    */
-  bool operator ==(other) {
-    if (!(other is DateTime)) return false;
-    return (_value == other._value && isUtc == other.isUtc);
-  }
+  external bool operator ==(dynamic other);
 
   /**
    * Returns true if [this] occurs before [other].
@@ -429,9 +427,7 @@ class DateTime implements Comparable<DateTime> {
    * assert(!now.isBefore(now.toUtc()));
    * ```
    */
-  bool isBefore(DateTime other) {
-    return _value < other._value;
-  }
+  external bool isBefore(DateTime other);
 
   /**
    * Returns true if [this] occurs after [other].
@@ -453,9 +449,7 @@ class DateTime implements Comparable<DateTime> {
    * assert(!now.isBefore(now.toUtc()));
    * ```
    */
-  bool isAfter(DateTime other) {
-    return _value > other._value;
-  }
+  external bool isAfter(DateTime other);
 
   /**
    * Returns true if [this] occurs at the same moment as [other].
@@ -477,9 +471,7 @@ class DateTime implements Comparable<DateTime> {
    * assert(now.isAtSameMomentAs(now.toUtc()));
    * ```
    */
-  bool isAtSameMomentAs(DateTime other) {
-    return _value == other._value;
-  }
+  external bool isAtSameMomentAs(DateTime other);
 
   /**
    * Compares this DateTime object to [other],
@@ -489,7 +481,7 @@ class DateTime implements Comparable<DateTime> {
    * if it [isAtSameMomentAs] [other], and returns a positive value otherwise
    * (when this [isAfter] [other]).
    */
-  int compareTo(DateTime other) => _value.compareTo(other._value);
+  external int compareTo(DateTime other);
 
   int get hashCode => (_value ^ (_value >> 30)) & 0x3FFFFFFF;
 
@@ -561,7 +553,7 @@ class DateTime implements Comparable<DateTime> {
    * The returned string is constructed for the time zone of this instance.
    * The `toString()` method provides a simply formatted string.
    * It does not support internationalized strings.
-   * Use the [intl](http://pub.dartlang.org/packages/intl) package
+   * Use the [intl](https://pub.dartlang.org/packages/intl) package
    * at the pub shared packages repo.
    *
    * The resulting string can be parsed back using [parse].
@@ -861,7 +853,7 @@ class DateTime implements Comparable<DateTime> {
    * time_opt ::= <empty> | (' ' | 'T') hour minutes_opt
    * minutes_opt ::= <empty> | colon_opt digit{2} seconds_opt
    * seconds_opt ::= <empty> | colon_opt digit{2} millis_opt
-   * micros_opt ::= <empty> | '.' digit{1,6}
+   * micros_opt ::= <empty> | ('.' | ',') digit{1,6}
    * timezone_opt ::= <empty> | space_opt timezone
    * space_opt :: ' ' | <empty>
    * timezone ::= 'z' | 'Z' | sign digit{2} timezonemins_opt
@@ -869,6 +861,6 @@ class DateTime implements Comparable<DateTime> {
    */
   static final RegExp _parseFormat = new RegExp(
       r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
-      r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:\.(\d{1,6}))?)?)?' // Time part.
+      r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:[.,](\d{1,6}))?)?)?' // Time part.
       r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
 }

@@ -36,16 +36,6 @@ _precompiled_runtime_product_config =
       "$_dart_runtime:dart_product_config",
     ]
 
-_precompiler_config = _base_config + [
-                        "$_dart_runtime:dart_maybe_product_config",
-                        "$_dart_runtime:dart_precompiler_config",
-                      ]
-
-_precompiler_product_config = _base_config + [
-                                "$_dart_runtime:dart_product_config",
-                                "$_dart_runtime:dart_precompiler_config",
-                              ]
-
 _nosnapshot_precompiler_base = [
   "$_dart_runtime:dart_nosnapshot_config",
   "$_dart_runtime:dart_precompiler_config",
@@ -82,16 +72,6 @@ _all_configs = [
   {
     suffix = "_precompiled_runtime_product"
     configs = _precompiled_runtime_product_config
-    snapshot = true
-  },
-  {
-    suffix = "_with_precompiler"
-    configs = _precompiler_config
-    snapshot = true
-  },
-  {
-    suffix = "_with_precompiler_product"
-    configs = _precompiler_product_config
     snapshot = true
   },
   {

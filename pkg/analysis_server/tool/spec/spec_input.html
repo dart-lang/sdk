@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.21.1</version>
+  <version>1.22.1</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -715,28 +715,10 @@
   </request>
   <request method="reanalyze">
     <p>
-      Force the re-analysis of everything contained in the specified
-      analysis roots. This will cause all previously computed analysis
-      results to be discarded and recomputed, and will cause all subscribed
-      notifications to be re-sent.
+      Force re-reading of all potentially changed files, re-resolving of all
+      referenced URIs, and corresponding re-analysis of everything affected in
+      the current analysis roots.
     </p>
-    <p>
-      If no analysis roots are provided, then all current analysis roots
-      will be re-analyzed. If an empty list of analysis roots is provided,
-      then nothing will be re-analyzed. If the list contains one or more
-      paths that are not currently analysis roots, then an error of type
-      <tt>INVALID_ANALYSIS_ROOT</tt> will be generated.
-    </p>
-    <params>
-      <field name="roots" optional="true">
-        <list>
-          <ref>FilePath</ref>
-        </list>
-        <p>
-          A list of the analysis roots that are to be re-analyzed.
-        </p>
-      </field>
-    </params>
   </request>
   <request method="setAnalysisRoots">
     <p>

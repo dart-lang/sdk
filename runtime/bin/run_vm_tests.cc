@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/console.h"
+#include "bin/crashpad.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/eventhandler.h"
@@ -165,9 +166,9 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
     ASSERT(kernel_service_buffer != NULL);
     isolate_data =
         new bin::IsolateData(script_uri, package_root, packages_config, NULL);
-    isolate_data->set_kernel_buffer(const_cast<uint8_t*>(kernel_service_buffer),
-                                    kernel_service_buffer_size,
-                                    false /* take_ownership */);
+    isolate_data->SetKernelBufferUnowned(
+        const_cast<uint8_t*>(kernel_service_buffer),
+        kernel_service_buffer_size);
     isolate = Dart_CreateIsolateFromKernel(
         script_uri, main, kernel_service_buffer, kernel_service_buffer_size,
         flags, isolate_data, error);
@@ -209,6 +210,15 @@ static void CleanupIsolate(void* callback_data) {
   delete isolate_data;
 }
 
+void ShiftArgs(int* argc, const char** argv) {
+  // Remove the first flag from the list by shifting all arguments down.
+  for (intptr_t i = 1; i < *argc - 1; i++) {
+    argv[i] = argv[i + 1];
+  }
+  argv[*argc - 1] = nullptr;
+  (*argc)--;
+}
+
 static int Main(int argc, const char** argv) {
   // Flags being passed to the Dart VM.
   int dart_argc = 0;
@@ -244,7 +254,19 @@ static int Main(int argc, const char** argv) {
 
   int arg_pos = 1;
   bool start_kernel_isolate = false;
-  if (strstr(argv[arg_pos], "--dfe") == argv[arg_pos]) {
+  bool suppress_core_dump = false;
+  if (strcmp(argv[arg_pos], "--suppress-core-dump") == 0) {
+    suppress_core_dump = true;
+    ShiftArgs(&argc, argv);
+  }
+
+  if (suppress_core_dump) {
+    bin::Platform::SetCoreDumpResourceLimit(0);
+  } else {
+    bin::InitializeCrashpadClient();
+  }
+
+  if (strncmp(argv[arg_pos], "--dfe", strlen("--dfe")) == 0) {
     const char* delim = strstr(argv[arg_pos], "=");
     if (delim == NULL || strlen(delim + 1) == 0) {
       bin::Log::PrintErr("Invalid value for the option: %s\n", argv[arg_pos]);
@@ -252,13 +274,8 @@ static int Main(int argc, const char** argv) {
       return 1;
     }
     kernel_snapshot = strdup(delim + 1);
-    // Remove this flag from the list by shifting all arguments down.
-    for (intptr_t i = arg_pos; i < argc - 1; i++) {
-      argv[i] = argv[i + 1];
-    }
-    argv[argc - 1] = nullptr;
-    argc--;
     start_kernel_isolate = true;
+    ShiftArgs(&argc, argv);
   }
 
   if (arg_pos == argc - 1 && strcmp(argv[arg_pos], "--benchmarks") == 0) {
@@ -273,7 +290,6 @@ static int Main(int argc, const char** argv) {
     dart_argv = &argv[1];
   }
 
-  bin::Thread::InitOnce();
   bin::TimerUtils::InitOnce();
   bin::EventHandler::Start();
 

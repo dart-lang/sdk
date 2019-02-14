@@ -139,7 +139,10 @@ String getWrapperContent(
     try {
       dartMainRunner(main, []);
     } catch(e) {
-      console.error(e.toString(), dart.stackTrace(e).toString());
+      console.error(e);
+      // d8 does not seem to print the `.stack` property like
+      // node.js and browsers do.
+      console.error(e.stack);
     }
     """;
 }

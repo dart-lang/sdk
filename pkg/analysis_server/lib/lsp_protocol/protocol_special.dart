@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-Object id(Object obj) => obj;
+import 'dart:async';
+
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+
+const jsonRpcVersion = '2.0';
 
 Object specToJson(Object obj) {
   if (obj is ToJsonable) {
@@ -145,7 +149,45 @@ class Either4<T1, T2, T3, T4> {
       map((t) => t == o, (t) => t == o, (t) => t == o, (t) => t == o);
 }
 
-class FileOperation {}
+class ErrorOr<T> extends Either2<ResponseError, T> {
+  ErrorOr.error(ResponseError error) : super.t1(error);
+  ErrorOr.success([T result]) : super.t2(result);
+
+  /// Returns the error or throws if object is not an error. Check [isError]
+  /// before accessing [error].
+  ResponseError get error {
+    return _which == 1 ? _t1 : (throw 'Value is not an error');
+  }
+
+  /// Returns true if this object is an error, false if it is a result. Prefer
+  /// [mapResult] instead of checking this flag if [errors] will simply be
+  /// propagated as-is.
+  bool get isError => _which == 1;
+
+  /// Returns the result or throws if this object is an error. Check [isError]
+  /// before accessing [result]. It is valid for this to return null is the
+  /// object does not represent an error but the resulting value was null.
+  T get result {
+    return _which == 2 ? _t2 : (throw 'Value is not a result');
+  }
+
+  /// If this object is a result, maps [result] through [f], otherwise returns
+  /// a new error object representing [error].
+  FutureOr<ErrorOr<N>> mapResult<N>(FutureOr<ErrorOr<N>> Function(T) f) {
+    return isError
+        // Re-wrap the error using our new type arg
+        ? new ErrorOr<N>.error(error)
+        // Otherwise call the map function
+        : f(result);
+  }
+}
+
+/// A base class containing the fields common to RequestMessage and
+/// NotificationMessage to simplify handling.
+abstract class IncomingMessage {
+  Method get method;
+  dynamic get params;
+}
 
 abstract class ToJsonable {
   Object toJson();

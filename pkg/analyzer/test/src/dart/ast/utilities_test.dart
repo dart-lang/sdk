@@ -11,8 +11,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine.dart' show Predicate;
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
@@ -21,6 +19,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/parser_test.dart' show ParserTestCase;
 import '../../../generated/test_support.dart';
+import '../../../util/ast_type_matchers.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -72,21 +71,18 @@ class ConstantEvaluatorTest extends ParserTestCase {
   }
 
   void test_binary_bitAnd() {
-    Object value = _getConstantValue("74 & 42");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, 74 & 42);
+    int value = _getConstantValue("74 & 42");
+    expect(value, 74 & 42);
   }
 
   void test_binary_bitOr() {
-    Object value = _getConstantValue("74 | 42");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, 74 | 42);
+    int value = _getConstantValue("74 | 42");
+    expect(value, 74 | 42);
   }
 
   void test_binary_bitXor() {
-    Object value = _getConstantValue("74 ^ 42");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, 74 ^ 42);
+    int value = _getConstantValue("74 ^ 42");
+    expect(value, 74 ^ 42);
   }
 
   void test_binary_divide_double() {
@@ -135,9 +131,8 @@ class ConstantEvaluatorTest extends ParserTestCase {
   }
 
   void test_binary_leftShift() {
-    Object value = _getConstantValue("16 << 2");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, 64);
+    int value = _getConstantValue("16 << 2");
+    expect(value, 64);
   }
 
   void test_binary_lessThan() {
@@ -241,9 +236,8 @@ class ConstantEvaluatorTest extends ParserTestCase {
   }
 
   void test_binary_rightShift() {
-    Object value = _getConstantValue("64 >> 2");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, 16);
+    int value = _getConstantValue("64 >> 2");
+    expect(value, 16);
   }
 
   void test_binary_times_double() {
@@ -257,15 +251,13 @@ class ConstantEvaluatorTest extends ParserTestCase {
   }
 
   void test_binary_truncatingDivide_double() {
-    Object value = _getConstantValue("3.2 ~/ 2.3");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, 1);
+    int value = _getConstantValue("3.2 ~/ 2.3");
+    expect(value, 1);
   }
 
   void test_binary_truncatingDivide_integer() {
-    Object value = _getConstantValue("10 ~/ 3");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, 3);
+    int value = _getConstantValue("10 ~/ 3");
+    expect(value, 3);
   }
 
   void test_literal_boolean_false() {
@@ -279,23 +271,19 @@ class ConstantEvaluatorTest extends ParserTestCase {
   }
 
   void test_literal_list() {
-    Object value = _getConstantValue("['a', 'b', 'c']");
-    EngineTestCase.assertInstanceOf((obj) => obj is List, List, value);
-    List list = value as List;
-    expect(list.length, 3);
-    expect(list[0], "a");
-    expect(list[1], "b");
-    expect(list[2], "c");
+    List value = _getConstantValue("['a', 'b', 'c']");
+    expect(value.length, 3);
+    expect(value[0], "a");
+    expect(value[1], "b");
+    expect(value[2], "c");
   }
 
   void test_literal_map() {
-    Object value = _getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}");
-    EngineTestCase.assertInstanceOf((obj) => obj is Map, Map, value);
-    Map map = value as Map;
-    expect(map.length, 3);
-    expect(map["a"], "m");
-    expect(map["b"], "n");
-    expect(map["c"], "o");
+    Map value = _getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}");
+    expect(value.length, 3);
+    expect(value["a"], "m");
+    expect(value["b"], "n");
+    expect(value["c"], "o");
   }
 
   void test_literal_null() {
@@ -339,9 +327,8 @@ class ConstantEvaluatorTest extends ParserTestCase {
   }
 
   void test_unary_bitNot() {
-    Object value = _getConstantValue("~42");
-    EngineTestCase.assertInstanceOf((obj) => obj is int, int, value);
-    expect(value as int, ~42);
+    int value = _getConstantValue("~42");
+    expect(value, ~42);
   }
 
   void test_unary_logicalNot() {
@@ -411,8 +398,8 @@ class NodeLocator2Test extends ParserTestCase {
 class NodeLocatorTest extends ParserTestCase {
   void test_range() {
     CompilationUnit unit = parseCompilationUnit("library myLib;");
-    _assertLocate(
-        unit, 4, 10, (node) => node is LibraryDirective, LibraryDirective);
+    var node = _assertLocate(unit, 4, 10);
+    expect(node, isLibraryDirective);
   }
 
   void test_searchWithin_null() {
@@ -422,8 +409,8 @@ class NodeLocatorTest extends ParserTestCase {
 
   void test_searchWithin_offset() {
     CompilationUnit unit = parseCompilationUnit("library myLib;");
-    _assertLocate(
-        unit, 10, 10, (node) => node is SimpleIdentifier, SimpleIdentifier);
+    var node = _assertLocate(unit, 10, 10);
+    expect(node, isSimpleIdentifier);
   }
 
   void test_searchWithin_offsetAfterNode() {
@@ -444,8 +431,11 @@ class B {}''');
     expect(node, isNull);
   }
 
-  void _assertLocate(CompilationUnit unit, int start, int end,
-      Predicate<Object> predicate, Type expectedClass) {
+  AstNode _assertLocate(
+    CompilationUnit unit,
+    int start,
+    int end,
+  ) {
     NodeLocator locator = new NodeLocator(start, end);
     AstNode node = locator.searchWithin(unit);
     expect(node, isNotNull);
@@ -453,7 +443,7 @@ class B {}''');
     expect(node.offset <= start, isTrue, reason: "Node starts after range");
     expect(node.offset + node.length > end, isTrue,
         reason: "Node ends before range");
-    EngineTestCase.assertInstanceOf(predicate, expectedClass, node);
+    return node;
   }
 }
 
@@ -580,14 +570,14 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitConstructorDeclaration() {
     String className = "A";
     String constructorName = "c";
-    ConstructorDeclaration fromNode = AstTestFactory.constructorDeclaration(
+    ConstructorDeclarationImpl fromNode = AstTestFactory.constructorDeclaration(
         AstTestFactory.identifier3(className),
         constructorName,
         AstTestFactory.formalParameterList(),
         null);
     ConstructorElement element = ElementFactory.constructorElement2(
         ElementFactory.classElement2(className), constructorName);
-    fromNode.element = element;
+    fromNode.declaredElement = element;
     ConstructorDeclaration toNode = AstTestFactory.constructorDeclaration(
         AstTestFactory.identifier3(className),
         constructorName,
@@ -628,12 +618,12 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitFunctionExpression() {
-    FunctionExpression fromNode = AstTestFactory.functionExpression2(
+    FunctionExpressionImpl fromNode = AstTestFactory.functionExpression2(
         AstTestFactory.formalParameterList(),
         AstTestFactory.emptyFunctionBody());
     MethodElement element = ElementFactory.methodElement(
         "m", ElementFactory.classElement2("C").type);
-    fromNode.element = element;
+    fromNode.declaredElement = element;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     FunctionExpression toNode = AstTestFactory.functionExpression2(
@@ -805,7 +795,7 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitPartDirective() {
     PartDirective fromNode = AstTestFactory.partDirective2("part.dart");
     LibraryElement element = new LibraryElementImpl.forNode(
-        null, AstTestFactory.libraryIdentifier2(["lib"]));
+        null, null, AstTestFactory.libraryIdentifier2(["lib"]));
     fromNode.element = element;
     PartDirective toNode = AstTestFactory.partDirective2("part.dart");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -816,7 +806,7 @@ class ResolutionCopierTest extends EngineTestCase {
     PartOfDirective fromNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));
     LibraryElement element = new LibraryElementImpl.forNode(
-        null, AstTestFactory.libraryIdentifier2(["lib"]));
+        null, null, AstTestFactory.libraryIdentifier2(["lib"]));
     fromNode.element = element;
     PartOfDirective toNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));
@@ -2404,6 +2394,19 @@ class ToSourceVisitor2Test extends EngineTestCase {
             ])));
   }
 
+  void test_visitGenericFunctionType_withQuestion() {
+    _assertSource(
+        "int Function<T>(T)?",
+        AstTestFactory.genericFunctionType(
+            AstTestFactory.typeName4("int"),
+            AstTestFactory.typeParameterList(['T']),
+            AstTestFactory.formalParameterList([
+              AstTestFactory.simpleFormalParameter4(
+                  AstTestFactory.typeName4("T"), null)
+            ]),
+            question: true));
+  }
+
   void test_visitGenericTypeAlias() {
     _assertSource(
         "typedef X<S> = S Function<T>(T)",
@@ -3260,9 +3263,18 @@ class ToSourceVisitor2Test extends EngineTestCase {
     _assertSource("C", AstTestFactory.typeName4("C"));
   }
 
+  void test_visitTypeName_noArgs_withQuestion() {
+    _assertSource("C?", AstTestFactory.typeName4("C", null, true));
+  }
+
   void test_visitTypeName_singleArg() {
     _assertSource(
         "C<D>", AstTestFactory.typeName4("C", [AstTestFactory.typeName4("D")]));
+  }
+
+  void test_visitTypeName_singleArg_withQuestion() {
+    _assertSource("C<D>?",
+        AstTestFactory.typeName4("C", [AstTestFactory.typeName4("D")], true));
   }
 
   void test_visitTypeParameter_withExtends() {
@@ -4788,6 +4800,19 @@ class ToSourceVisitorTest extends EngineTestCase {
               AstTestFactory.simpleFormalParameter4(
                   AstTestFactory.typeName4("T"), null)
             ])));
+  }
+
+  void test_visitGenericFunctionType_withQuestion() {
+    _assertSource(
+        "int Function<T>(T)?",
+        AstTestFactory.genericFunctionType(
+            AstTestFactory.typeName4("int"),
+            AstTestFactory.typeParameterList(['T']),
+            AstTestFactory.formalParameterList([
+              AstTestFactory.simpleFormalParameter4(
+                  AstTestFactory.typeName4("T"), null)
+            ]),
+            question: true));
   }
 
   void test_visitGenericTypeAlias() {

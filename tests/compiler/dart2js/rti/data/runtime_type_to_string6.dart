@@ -24,4 +24,5 @@ main() {
   dynamic cls1 = new Class1<int>();
   print('${cls1.runtimeType}');
   new Class2<int>();
+  cls1 = null;
 }

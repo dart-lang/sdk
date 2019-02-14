@@ -1,0 +1,24 @@
+pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:25:5: Context: Write to s@537
+  s = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
+    ^
+pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:26:5: Context: Write to s@537
+  s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::y*/ y;
+    ^
+pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:27:5: Context: Write to s@537
+  s = new B(). /*@target=B::z*/ z;
+    ^
+pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:28:5: Context: Write to s@537
+  s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::w*/ w;
+    ^
+pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:30:5: Context: Write to i@546
+  i = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
+    ^
+pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:31:5: Context: Write to i@546
+  i = new B(). /*@target=B::y*/ y;
+    ^
+pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:32:5: Context: Write to i@546
+  i = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::z*/ z;
+    ^
+pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:33:5: Context: Write to i@546
+  i = new B(). /*@target=B::w*/ w;
+    ^

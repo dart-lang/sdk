@@ -14,18 +14,19 @@
 
 namespace dart {
 
-class Isolate;
-class RawObject;
-class SimulatorSetjmpBuffer;
-class Thread;
-class Code;
 class Array;
+class Code;
+class Isolate;
+class ObjectPointerVisitor;
+class RawArray;
+class RawCode;
+class RawFunction;
 class RawICData;
 class RawImmutableArray;
-class RawArray;
+class RawObject;
 class RawObjectPool;
-class RawFunction;
-class ObjectPointerVisitor;
+class SimulatorSetjmpBuffer;
+class Thread;
 
 // Simulator intrinsic handler. It is invoked on entry to the intrinsified
 // function via Intrinsic bytecode before the frame is setup.
@@ -49,6 +50,8 @@ class Simulator {
 
   // Low address (DBC stack grows up).
   uword stack_base() const { return stack_base_; }
+  // Limit for StackOverflowError.
+  uword overflow_stack_limit() const { return overflow_stack_limit_; }
   // High address (DBC stack grows up).
   uword stack_limit() const { return stack_limit_; }
 
@@ -67,7 +70,7 @@ class Simulator {
   uword get_pc() const { return reinterpret_cast<uword>(pc_); }
 
   enum IntrinsicId {
-#define V(test_class_name, test_function_name, enum_name, type, fp)            \
+#define V(test_class_name, test_function_name, enum_name, fp)                  \
   k##enum_name##Intrinsic,
     ALL_INTRINSICS_LIST(V) GRAPH_INTRINSICS_LIST(V)
 #undef V
@@ -89,6 +92,7 @@ class Simulator {
  private:
   uintptr_t* stack_;
   uword stack_base_;
+  uword overflow_stack_limit_;
   uword stack_limit_;
 
   RawObject** fp_;

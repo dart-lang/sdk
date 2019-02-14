@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -435,257 +435,257 @@ class DartUnitHighlightsComputer2 {
 /**
  * An AST visitor for [DartUnitHighlightsComputer2].
  */
-class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
+class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<void> {
   final DartUnitHighlightsComputer2 computer;
 
   _DartUnitHighlightsComputerVisitor2(this.computer);
 
   @override
-  Object visitAnnotation(Annotation node) {
+  void visitAnnotation(Annotation node) {
     computer._addIdentifierRegion_annotation(node);
-    return super.visitAnnotation(node);
+    super.visitAnnotation(node);
   }
 
   @override
-  Object visitAsExpression(AsExpression node) {
+  void visitAsExpression(AsExpression node) {
     computer._addRegion_token(node.asOperator, HighlightRegionType.BUILT_IN);
-    return super.visitAsExpression(node);
+    super.visitAsExpression(node);
   }
 
   @override
-  Object visitAssertStatement(AssertStatement node) {
+  void visitAssertStatement(AssertStatement node) {
     computer._addRegion_token(node.assertKeyword, HighlightRegionType.KEYWORD);
-    return super.visitAssertStatement(node);
+    super.visitAssertStatement(node);
   }
 
   @override
-  Object visitAwaitExpression(AwaitExpression node) {
+  void visitAwaitExpression(AwaitExpression node) {
     computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitAwaitExpression(node);
+    super.visitAwaitExpression(node);
   }
 
   @override
-  Object visitBlockFunctionBody(BlockFunctionBody node) {
+  void visitBlockFunctionBody(BlockFunctionBody node) {
     _addRegions_functionBody(node);
-    return super.visitBlockFunctionBody(node);
+    super.visitBlockFunctionBody(node);
   }
 
   @override
-  Object visitBooleanLiteral(BooleanLiteral node) {
+  void visitBooleanLiteral(BooleanLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.KEYWORD);
     computer._addRegion_node(node, HighlightRegionType.LITERAL_BOOLEAN);
-    return super.visitBooleanLiteral(node);
+    super.visitBooleanLiteral(node);
   }
 
   @override
-  Object visitBreakStatement(BreakStatement node) {
+  void visitBreakStatement(BreakStatement node) {
     computer._addRegion_token(node.breakKeyword, HighlightRegionType.KEYWORD);
-    return super.visitBreakStatement(node);
+    super.visitBreakStatement(node);
   }
 
   @override
-  Object visitCatchClause(CatchClause node) {
+  void visitCatchClause(CatchClause node) {
     computer._addRegion_token(node.catchKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitCatchClause(node);
+    super.visitCatchClause(node);
   }
 
   @override
-  Object visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     computer._addRegion_token(node.classKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitClassDeclaration(node);
+    super.visitClassDeclaration(node);
   }
 
   @override
-  Object visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(ClassTypeAlias node) {
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitClassTypeAlias(node);
+    super.visitClassTypeAlias(node);
   }
 
   @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.factoryKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration(node);
   }
 
   @override
-  Object visitContinueStatement(ContinueStatement node) {
+  void visitContinueStatement(ContinueStatement node) {
     computer._addRegion_token(
         node.continueKeyword, HighlightRegionType.KEYWORD);
-    return super.visitContinueStatement(node);
+    super.visitContinueStatement(node);
   }
 
   @override
-  Object visitDoStatement(DoStatement node) {
+  void visitDoStatement(DoStatement node) {
     computer._addRegion_token(node.doKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(node.whileKeyword, HighlightRegionType.KEYWORD);
-    return super.visitDoStatement(node);
+    super.visitDoStatement(node);
   }
 
   @override
-  Object visitDoubleLiteral(DoubleLiteral node) {
+  void visitDoubleLiteral(DoubleLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_DOUBLE);
-    return super.visitDoubleLiteral(node);
+    super.visitDoubleLiteral(node);
   }
 
   @override
-  Object visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration(EnumDeclaration node) {
     computer._addRegion_token(node.enumKeyword, HighlightRegionType.KEYWORD);
-    return super.visitEnumDeclaration(node);
+    super.visitEnumDeclaration(node);
   }
 
   @override
-  Object visitExportDirective(ExportDirective node) {
+  void visitExportDirective(ExportDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
-    return super.visitExportDirective(node);
+    super.visitExportDirective(node);
   }
 
   @override
-  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _addRegions_functionBody(node);
-    return super.visitExpressionFunctionBody(node);
+    super.visitExpressionFunctionBody(node);
   }
 
   @override
-  Object visitExtendsClause(ExtendsClause node) {
+  void visitExtendsClause(ExtendsClause node) {
     computer._addRegion_token(node.extendsKeyword, HighlightRegionType.KEYWORD);
-    return super.visitExtendsClause(node);
+    super.visitExtendsClause(node);
   }
 
   @override
-  Object visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(FieldDeclaration node) {
     computer._addRegion_token(node.staticKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitFieldDeclaration(node);
+    super.visitFieldDeclaration(node);
   }
 
   @override
-  Object visitForEachStatement(ForEachStatement node) {
+  void visitForEachStatement(ForEachStatement node) {
     computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.forKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(node.inKeyword, HighlightRegionType.KEYWORD);
-    return super.visitForEachStatement(node);
+    super.visitForEachStatement(node);
   }
 
   @override
-  Object visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     computer._addRegion_token(node.forKeyword, HighlightRegionType.KEYWORD);
-    return super.visitForStatement(node);
+    super.visitForStatement(node);
   }
 
   @override
-  Object visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.propertyKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitFunctionDeclaration(node);
+    super.visitFunctionDeclaration(node);
   }
 
   @override
-  Object visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
     computer._addRegion_token(
         node.typedefKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitFunctionTypeAlias(node);
+    super.visitFunctionTypeAlias(node);
   }
 
   @override
-  Object visitGenericFunctionType(GenericFunctionType node) {
+  void visitGenericFunctionType(GenericFunctionType node) {
     computer._addRegion_token(
         node.functionKeyword, HighlightRegionType.KEYWORD);
-    return super.visitGenericFunctionType(node);
+    super.visitGenericFunctionType(node);
   }
 
   @override
-  Object visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias(GenericTypeAlias node) {
     computer._addRegion_token(node.typedefKeyword, HighlightRegionType.KEYWORD);
-    return super.visitGenericTypeAlias(node);
+    super.visitGenericTypeAlias(node);
   }
 
   @override
-  Object visitHideCombinator(HideCombinator node) {
+  void visitHideCombinator(HideCombinator node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
-    return super.visitHideCombinator(node);
+    super.visitHideCombinator(node);
   }
 
   @override
-  Object visitIfStatement(IfStatement node) {
+  void visitIfStatement(IfStatement node) {
     computer._addRegion_token(node.ifKeyword, HighlightRegionType.KEYWORD);
-    return super.visitIfStatement(node);
+    super.visitIfStatement(node);
   }
 
   @override
-  Object visitImplementsClause(ImplementsClause node) {
+  void visitImplementsClause(ImplementsClause node) {
     computer._addRegion_token(
         node.implementsKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitImplementsClause(node);
+    super.visitImplementsClause(node);
   }
 
   @override
-  Object visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.deferredKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.asKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitImportDirective(node);
+    super.visitImportDirective(node);
   }
 
   @override
-  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.keyword != null) {
       computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     }
-    return super.visitInstanceCreationExpression(node);
+    super.visitInstanceCreationExpression(node);
   }
 
   @override
-  Object visitIntegerLiteral(IntegerLiteral node) {
+  void visitIntegerLiteral(IntegerLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_INTEGER);
-    return super.visitIntegerLiteral(node);
+    super.visitIntegerLiteral(node);
   }
 
   @override
-  Object visitIsExpression(IsExpression node) {
+  void visitIsExpression(IsExpression node) {
     computer._addRegion_token(node.isOperator, HighlightRegionType.KEYWORD);
-    return super.visitIsExpression(node);
+    super.visitIsExpression(node);
   }
 
   @override
-  Object visitLibraryDirective(LibraryDirective node) {
+  void visitLibraryDirective(LibraryDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
-    return super.visitLibraryDirective(node);
+    super.visitLibraryDirective(node);
   }
 
   @override
-  Object visitLibraryIdentifier(LibraryIdentifier node) {
+  void visitLibraryIdentifier(LibraryIdentifier node) {
     computer._addRegion_node(node, HighlightRegionType.LIBRARY_NAME);
-    return null;
+    null;
   }
 
   @override
-  Object visitListLiteral(ListLiteral node) {
+  void visitListLiteral(ListLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_LIST);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
-    return super.visitListLiteral(node);
+    super.visitListLiteral(node);
   }
 
   @override
-  Object visitMapLiteral(MapLiteral node) {
+  void visitMapLiteral(MapLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_MAP);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
-    return super.visitMapLiteral(node);
+    super.visitMapLiteral(node);
   }
 
   @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
@@ -694,117 +694,117 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
         node.operatorKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.propertyKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitMethodDeclaration(node);
+    super.visitMethodDeclaration(node);
   }
 
   @override
-  Object visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(MixinDeclaration node) {
     computer._addRegion_token(node.mixinKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitMixinDeclaration(node);
+    super.visitMixinDeclaration(node);
   }
 
   @override
-  Object visitNativeClause(NativeClause node) {
+  void visitNativeClause(NativeClause node) {
     computer._addRegion_token(node.nativeKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitNativeClause(node);
+    super.visitNativeClause(node);
   }
 
   @override
-  Object visitNativeFunctionBody(NativeFunctionBody node) {
+  void visitNativeFunctionBody(NativeFunctionBody node) {
     computer._addRegion_token(node.nativeKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitNativeFunctionBody(node);
+    super.visitNativeFunctionBody(node);
   }
 
   @override
-  Object visitOnClause(OnClause node) {
+  void visitOnClause(OnClause node) {
     computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitOnClause(node);
+    super.visitOnClause(node);
   }
 
   @override
-  Object visitPartDirective(PartDirective node) {
+  void visitPartDirective(PartDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
-    return super.visitPartDirective(node);
+    super.visitPartDirective(node);
   }
 
   @override
-  Object visitPartOfDirective(PartOfDirective node) {
+  void visitPartOfDirective(PartOfDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_tokenStart_tokenEnd(
         node.partKeyword, node.ofKeyword, HighlightRegionType.BUILT_IN);
-    return super.visitPartOfDirective(node);
+    super.visitPartOfDirective(node);
   }
 
   @override
-  Object visitRethrowExpression(RethrowExpression node) {
+  void visitRethrowExpression(RethrowExpression node) {
     computer._addRegion_token(node.rethrowKeyword, HighlightRegionType.KEYWORD);
-    return super.visitRethrowExpression(node);
+    super.visitRethrowExpression(node);
   }
 
   @override
-  Object visitReturnStatement(ReturnStatement node) {
+  void visitReturnStatement(ReturnStatement node) {
     computer._addRegion_token(node.returnKeyword, HighlightRegionType.KEYWORD);
-    return super.visitReturnStatement(node);
+    super.visitReturnStatement(node);
   }
 
   @override
-  Object visitShowCombinator(ShowCombinator node) {
+  void visitShowCombinator(ShowCombinator node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
-    return super.visitShowCombinator(node);
+    super.visitShowCombinator(node);
   }
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     computer._addIdentifierRegion(node);
-    return super.visitSimpleIdentifier(node);
+    super.visitSimpleIdentifier(node);
   }
 
   @override
-  Object visitSimpleStringLiteral(SimpleStringLiteral node) {
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_STRING);
-    return super.visitSimpleStringLiteral(node);
+    super.visitSimpleStringLiteral(node);
   }
 
   @override
-  Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     computer._addRegion_token(node.superKeyword, HighlightRegionType.KEYWORD);
-    return super.visitSuperConstructorInvocation(node);
+    super.visitSuperConstructorInvocation(node);
   }
 
   @override
-  Object visitSwitchCase(SwitchCase node) {
+  void visitSwitchCase(SwitchCase node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
-    return super.visitSwitchCase(node);
+    super.visitSwitchCase(node);
   }
 
   @override
-  Object visitSwitchDefault(SwitchDefault node) {
+  void visitSwitchDefault(SwitchDefault node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
-    return super.visitSwitchDefault(node);
+    super.visitSwitchDefault(node);
   }
 
   @override
-  Object visitSwitchStatement(SwitchStatement node) {
+  void visitSwitchStatement(SwitchStatement node) {
     computer._addRegion_token(node.switchKeyword, HighlightRegionType.KEYWORD);
-    return super.visitSwitchStatement(node);
+    super.visitSwitchStatement(node);
   }
 
   @override
-  Object visitThisExpression(ThisExpression node) {
+  void visitThisExpression(ThisExpression node) {
     computer._addRegion_token(node.thisKeyword, HighlightRegionType.KEYWORD);
-    return super.visitThisExpression(node);
+    super.visitThisExpression(node);
   }
 
   @override
-  Object visitTryStatement(TryStatement node) {
+  void visitTryStatement(TryStatement node) {
     computer._addRegion_token(node.tryKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(node.finallyKeyword, HighlightRegionType.KEYWORD);
-    return super.visitTryStatement(node);
+    super.visitTryStatement(node);
   }
 
   @override
-  Object visitTypeName(TypeName node) {
+  void visitTypeName(TypeName node) {
     DartType type = node.type;
     if (type != null) {
       if (type.isDynamic && node.name.name == "dynamic") {
@@ -812,35 +812,35 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
         return null;
       }
     }
-    return super.visitTypeName(node);
+    super.visitTypeName(node);
   }
 
   @override
-  Object visitVariableDeclarationList(VariableDeclarationList node) {
+  void visitVariableDeclarationList(VariableDeclarationList node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
-    return super.visitVariableDeclarationList(node);
+    super.visitVariableDeclarationList(node);
   }
 
   @override
-  Object visitWhileStatement(WhileStatement node) {
+  void visitWhileStatement(WhileStatement node) {
     computer._addRegion_token(node.whileKeyword, HighlightRegionType.KEYWORD);
-    return super.visitWhileStatement(node);
+    super.visitWhileStatement(node);
   }
 
   @override
-  Object visitWithClause(WithClause node) {
+  void visitWithClause(WithClause node) {
     computer._addRegion_token(node.withKeyword, HighlightRegionType.KEYWORD);
-    return super.visitWithClause(node);
+    super.visitWithClause(node);
   }
 
   @override
-  Object visitYieldStatement(YieldStatement node) {
+  void visitYieldStatement(YieldStatement node) {
     Token keyword = node.yieldKeyword;
     Token star = node.star;
     int offset = keyword.offset;
     int end = star != null ? star.end : keyword.end;
     computer._addRegion(offset, end - offset, HighlightRegionType.BUILT_IN);
-    return super.visitYieldStatement(node);
+    super.visitYieldStatement(node);
   }
 
   void _addRegions_functionBody(FunctionBody node) {

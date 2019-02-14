@@ -68,9 +68,6 @@ abstract class DartType {
   /// Is `true` if this type is a `FutureOr` type.
   bool get isFutureOr => false;
 
-  /// Is `true` if this type is a malformed type.
-  bool get isMalformed => false;
-
   /// Whether this type contains a type variable.
   bool get containsTypeVariables => false;
 
@@ -106,7 +103,8 @@ abstract class DartType {
   bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) => false;
 }
 
-/// Pairs of [FunctionTypeVariable]s that are currently assumed to be equivalent.
+/// Pairs of [FunctionTypeVariable]s that are currently assumed to be
+/// equivalent.
 ///
 /// This is used to compute the equivalence relation on types coinductively.
 class _Assumptions {
@@ -357,22 +355,6 @@ class TypedefType extends DartType {
   }
 }
 
-/// Provides a thin model of method type variables for compabitility with the
-/// old compiler behavior in Dart 1: They are treated as if their value were
-/// `dynamic` when used in a type annotation, and as a malformed type when
-/// used in an `as` or `is` expression.
-class Dart1MethodTypeVariableType extends TypeVariableType {
-  Dart1MethodTypeVariableType(TypeVariableEntity element) : super(element);
-
-  @override
-  bool get treatAsDynamic => true;
-
-  @override
-  bool get isMalformed => true;
-
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) => false;
-}
-
 class TypeVariableType extends DartType {
   final TypeVariableEntity element;
 
@@ -571,7 +553,17 @@ class FunctionType extends DartType {
       this.optionalParameterTypes,
       this.namedParameters,
       this.namedParameterTypes,
-      this.typeVariables);
+      this.typeVariables) {
+    assert(returnType != null, "Invalid return type in $this.");
+    assert(!parameterTypes.contains(null), "Invalid parameter types in $this.");
+    assert(!optionalParameterTypes.contains(null),
+        "Invalid optional parameter types in $this.");
+    assert(
+        !namedParameters.contains(null), "Invalid named parameters in $this.");
+    assert(!namedParameterTypes.contains(null),
+        "Invalid named parameter types in $this.");
+    assert(!typeVariables.contains(null), "Invalid type variables in $this.");
+  }
 
   bool get containsTypeVariables {
     return typeVariables.any((type) => type.bound.containsTypeVariables) ||

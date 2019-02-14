@@ -13,9 +13,12 @@
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 #include "vm/heap/heap.h"
+#include "vm/image_snapshot.h"
 #include "vm/object.h"
+#include "vm/raw_object_fields.h"
 #include "vm/snapshot.h"
 #include "vm/type_testing_stubs.h"
+#include "vm/v8_snapshot_writer.h"
 #include "vm/version.h"
 
 #if defined(DEBUG)
@@ -125,14 +128,16 @@ class SmiObjectIdPairTrait {
 
 typedef DirectChainedHashMap<SmiObjectIdPairTrait> SmiObjectIdMap;
 
-class Serializer : public StackResource {
+class Serializer : public ThreadStackResource {
  public:
   Serializer(Thread* thread,
              Snapshot::Kind kind,
              uint8_t** buffer,
              ReAlloc alloc,
              intptr_t initial_size,
-             ImageWriter* image_writer_);
+             ImageWriter* image_writer_,
+             bool vm_,
+             V8SnapshotProfileWriter* profile_writer = nullptr);
   ~Serializer();
 
   intptr_t WriteVMSnapshot(const Array& symbols,
@@ -142,12 +147,26 @@ class Serializer : public StackResource {
 
   void AddVMIsolateBaseObjects();
 
-  void AddBaseObject(RawObject* base_object) {
-    AssignRef(base_object);
+  void AddBaseObject(RawObject* base_object,
+                     const char* type = nullptr,
+                     const char* name = nullptr) {
+    intptr_t ref = AssignRef(base_object);
     num_base_objects_++;
+
+    if (profile_writer_ != nullptr) {
+      if (type == nullptr) {
+        type = "Unknown";
+      }
+      if (name == nullptr) {
+        name = "<base object>";
+      }
+      profile_writer_->SetObjectTypeAndName(
+          {V8SnapshotProfileWriter::kSnapshot, ref}, type, name);
+      profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, ref});
+    }
   }
 
-  void AssignRef(RawObject* object) {
+  intptr_t AssignRef(RawObject* object) {
     ASSERT(next_ref_index_ != 0);
     if (object->IsHeapObject()) {
       // The object id weak table holds image offsets for Instructions instead
@@ -168,7 +187,7 @@ class Serializer : public StackResource {
         smi_ids_.Insert(new_pair);
       }
     }
-    next_ref_index_++;
+    return next_ref_index_++;
   }
 
   void Push(RawObject* object);
@@ -202,6 +221,11 @@ class Serializer : public StackResource {
   WriteStream* stream() { return &stream_; }
   intptr_t bytes_written() { return stream_.bytes_written(); }
 
+  void TraceStartWritingObject(const char* type,
+                               RawObject* obj,
+                               RawString* name);
+  void TraceEndWritingObject();
+
   // Writes raw data to the stream (basic type).
   // sizeof(T) must be in {1,2,4,8}.
   template <typename T>
@@ -212,36 +236,114 @@ class Serializer : public StackResource {
   void WriteBytes(const uint8_t* addr, intptr_t len) {
     stream_.WriteBytes(addr, len);
   }
+  void Align(intptr_t alignment) { stream_.Align(alignment); }
 
-  void WriteRef(RawObject* object) {
+ private:
+  intptr_t WriteRefId(RawObject* object) {
+    intptr_t id = 0;
     if (!object->IsHeapObject()) {
       RawSmi* smi = Smi::RawCast(object);
-      intptr_t id = smi_ids_.Lookup(smi)->id_;
+      id = smi_ids_.Lookup(smi)->id_;
       if (id == 0) {
         FATAL("Missing ref");
       }
-      WriteUnsigned(id);
-      return;
+    } else {
+      // The object id weak table holds image offsets for Instructions instead
+      // of ref indices.
+      ASSERT(!object->IsInstructions());
+      id = heap_->GetObjectId(object);
+      if (id == 0) {
+        if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
+          return WriteRefId(Object::null());
+        }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
+          return WriteRefId(Object::null());
+        }
+#endif  // !DART_PRECOMPILED_RUNTIME
+        if (object->IsSendPort()) {
+          // TODO(rmacnak): Do a better job of resetting fields in
+          // precompilation and assert this is unreachable.
+          return WriteRefId(Object::null());
+        }
+        FATAL("Missing ref");
+      }
     }
+    return id;
+  }
 
-    // The object id weak table holds image offsets for Instructions instead
-    // of ref indices.
-    ASSERT(!object->IsInstructions());
-    intptr_t id = heap_->GetObjectId(object);
-    if (id == 0) {
-      if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
-        WriteRef(Object::null());
-        return;
-      }
-      if (object->IsSendPort()) {
-        // TODO(rmacnak): Do a better job of resetting fields in precompilation
-        // and assert this is unreachable.
-        WriteRef(Object::null());
-        return;
-      }
-      FATAL("Missing ref");
-    }
+ public:
+  void WriteRootRef(RawObject* object) {
+    intptr_t id = WriteRefId(object);
     WriteUnsigned(id);
+    if (profile_writer_ != nullptr) {
+      profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, id});
+    }
+  }
+
+  void WriteElementRef(RawObject* object, intptr_t index) {
+    intptr_t id = WriteRefId(object);
+    WriteUnsigned(id);
+    if (profile_writer_ != nullptr) {
+      profile_writer_->AttributeReferenceTo(
+          {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
+          {{V8SnapshotProfileWriter::kSnapshot, id},
+           V8SnapshotProfileWriter::Reference::kElement,
+           index});
+    }
+  }
+
+  void WritePropertyRef(RawObject* object, const char* property) {
+    intptr_t id = WriteRefId(object);
+    WriteUnsigned(id);
+    if (profile_writer_ != nullptr) {
+      profile_writer_->AttributeReferenceTo(
+          {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
+          {{V8SnapshotProfileWriter::kSnapshot, id},
+           V8SnapshotProfileWriter::Reference::kProperty,
+           profile_writer_->EnsureString(property)});
+    }
+  }
+
+  void WriteOffsetRef(RawObject* object, intptr_t offset) {
+    intptr_t id = WriteRefId(object);
+    WriteUnsigned(id);
+    if (profile_writer_ != nullptr) {
+      const char* property = offsets_table_->FieldNameForOffset(
+          object_currently_writing_.cid_, offset);
+      if (property != nullptr) {
+        profile_writer_->AttributeReferenceTo(
+            {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
+            {{V8SnapshotProfileWriter::kSnapshot, id},
+             V8SnapshotProfileWriter::Reference::kProperty,
+             profile_writer_->EnsureString(property)});
+      } else {
+        profile_writer_->AttributeReferenceTo(
+            {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
+            {{V8SnapshotProfileWriter::kSnapshot, id},
+             V8SnapshotProfileWriter::Reference::kElement,
+             offset});
+      }
+    }
+  }
+
+  template <typename T, typename... P>
+  void WriteFromTo(T* obj, P&&... args) {
+    RawObject** from = obj->from();
+    RawObject** to = obj->to_snapshot(kind(), args...);
+    for (RawObject** p = from; p <= to; p++) {
+      WriteOffsetRef(*p, (p - reinterpret_cast<RawObject**>(obj->ptr())) *
+                             sizeof(RawObject*));
+    }
+  }
+
+  template <typename T, typename... P>
+  void PushFromTo(T* obj, P&&... args) {
+    RawObject** from = obj->from();
+    RawObject** to = obj->to_snapshot(kind(), args...);
+    for (RawObject** p = from; p <= to; p++) {
+      Push(*p);
+    }
   }
 
   void WriteTokenPosition(TokenPosition pos) {
@@ -256,6 +358,7 @@ class Serializer : public StackResource {
   void WriteInstructions(RawInstructions* instr, RawCode* code);
   bool GetSharedDataOffset(RawObject* object, uint32_t* offset) const;
   uint32_t GetDataOffset(RawObject* object) const;
+  void TraceDataOffset(uint32_t offset);
   intptr_t GetDataSize() const;
   intptr_t GetTextSize() const;
 
@@ -279,6 +382,18 @@ class Serializer : public StackResource {
   intptr_t next_ref_index_;
   SmiObjectIdMap smi_ids_;
 
+  // True if writing VM snapshot, false for Isolate snapshot.
+  bool vm_;
+
+  V8SnapshotProfileWriter* profile_writer_ = nullptr;
+  struct ProfilingObject {
+    RawObject* object_ = nullptr;
+    intptr_t id_ = 0;
+    intptr_t stream_start_ = 0;
+    intptr_t cid_ = -1;
+  } object_currently_writing_;
+  OffsetsTable* offsets_table_ = nullptr;
+
 #if defined(SNAPSHOT_BACKTRACE)
   RawObject* current_parent_;
   GrowableArray<Object*> parent_pairs_;
@@ -287,7 +402,36 @@ class Serializer : public StackResource {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Serializer);
 };
 
-class Deserializer : public StackResource {
+#define AutoTraceObject(obj)                                                   \
+  SerializerWritingObjectScope scope_##__COUNTER__(s, name(), obj, nullptr)
+
+#define AutoTraceObjectName(obj, str)                                          \
+  SerializerWritingObjectScope scope_##__COUNTER__(s, name(), obj, str)
+
+#define WriteFieldValue(field, value) s->WritePropertyRef(value, #field);
+
+#define WriteFromTo(obj, ...) s->WriteFromTo(obj, ##__VA_ARGS__);
+
+#define PushFromTo(obj, ...) s->PushFromTo(obj, ##__VA_ARGS__);
+
+#define WriteField(obj, field) s->WritePropertyRef(obj->ptr()->field, #field)
+
+struct SerializerWritingObjectScope {
+  SerializerWritingObjectScope(Serializer* serializer,
+                               const char* type,
+                               RawObject* object,
+                               RawString* name)
+      : serializer_(serializer) {
+    serializer_->TraceStartWritingObject(type, object, name);
+  }
+
+  ~SerializerWritingObjectScope() { serializer_->TraceEndWritingObject(); }
+
+ private:
+  Serializer* serializer_;
+};
+
+class Deserializer : public ThreadStackResource {
  public:
   Deserializer(Thread* thread,
                Snapshot::Kind kind,
@@ -324,6 +468,7 @@ class Deserializer : public StackResource {
   }
 
   void Advance(intptr_t value) { stream_.Advance(value); }
+  void Align(intptr_t alignment) { stream_.Align(alignment); }
 
   intptr_t PendingBytes() const { return stream_.PendingBytes(); }
 
@@ -343,6 +488,20 @@ class Deserializer : public StackResource {
 
   RawObject* ReadRef() { return Ref(ReadUnsigned()); }
 
+  template <typename T, typename... P>
+  void ReadFromTo(T* obj, P&&... params) {
+    RawObject** from = obj->from();
+    RawObject** to_snapshot = obj->to_snapshot(kind(), params...);
+    RawObject** to = obj->to(params...);
+    for (RawObject** p = from; p <= to_snapshot; p++) {
+      *p = ReadRef();
+    }
+    // TODO(sjindel/rmacnak): Is this really necessary?
+    for (RawObject** p = to_snapshot + 1; p <= to; p++) {
+      *p = Object::null();
+    }
+  }
+
   TokenPosition ReadTokenPosition() {
     return TokenPosition::SnapshotDecode(Read<int32_t>());
   }
@@ -356,6 +515,8 @@ class Deserializer : public StackResource {
   RawObject* GetObjectAt(uint32_t offset) const;
   RawObject* GetSharedObjectAt(uint32_t offset) const;
 
+  void SkipHeader() { stream_.SetPosition(Snapshot::kHeaderSize); }
+
   RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
 
   void Prepare();
@@ -367,6 +528,21 @@ class Deserializer : public StackResource {
   Heap* heap() const { return heap_; }
   Snapshot::Kind kind() const { return kind_; }
 
+  // The number of code objects which were relocated during AOT snapshot
+  // writing.
+  //
+  // After relocating the instructions in the ".text" segment, the
+  // [CodeSerializationCluster] will re-order those code objects that get
+  // written out in the cluster.  The order will be dictated by the order of
+  // the code's instructions in the ".text" segment.
+  //
+  // The [code_order_length] represents therefore the prefix of code objects in
+  // the written out code cluster. (There might be code objects for which no
+  // relocation was performed.)
+  //
+  // This will be used to construct [ObjectStore::code_order_table].
+  intptr_t code_order_length() const { return code_order_length_; }
+
  private:
   Heap* heap_;
   Zone* zone_;
@@ -376,10 +552,13 @@ class Deserializer : public StackResource {
   intptr_t num_base_objects_;
   intptr_t num_objects_;
   intptr_t num_clusters_;
+  intptr_t code_order_length_ = 0;
   RawArray* refs_;
   intptr_t next_ref_index_;
   DeserializationCluster** clusters_;
 };
+
+#define ReadFromTo(obj, ...) d->ReadFromTo(obj, ##__VA_ARGS__);
 
 class FullSnapshotWriter {
  public:
@@ -435,6 +614,8 @@ class FullSnapshotWriter {
   intptr_t clustered_isolate_size_;
   intptr_t mapped_data_size_;
   intptr_t mapped_text_size_;
+
+  V8SnapshotProfileWriter* profile_writer_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);
 };

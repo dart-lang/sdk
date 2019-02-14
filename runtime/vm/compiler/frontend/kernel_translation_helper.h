@@ -154,7 +154,7 @@ class TranslationHelper {
                                     const String& method_name);
   RawFunction* LookupDynamicFunction(const Class& klass, const String& name);
 
-  Type& GetCanonicalType(const Class& klass);
+  Type& GetDeclarationType(const Class& klass);
 
   void ReportError(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void ReportError(const Script& script,
@@ -168,6 +168,11 @@ class TranslationHelper {
                    const TokenPosition position,
                    const char* format,
                    ...) PRINTF_ATTRIBUTE(5, 6);
+
+  RawArray* GetBytecodeComponent() const { return info_.bytecode_component(); }
+  void SetBytecodeComponent(const Array& bytecode_component) {
+    info_.set_bytecode_component(bytecode_component);
+  }
 
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
@@ -514,13 +519,16 @@ class ProcedureHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  bool IsStatic() { return (flags_ & kStatic) != 0; }
-  bool IsAbstract() { return (flags_ & kAbstract) != 0; }
-  bool IsExternal() { return (flags_ & kExternal) != 0; }
-  bool IsConst() { return (flags_ & kConst) != 0; }
-  bool IsForwardingStub() { return (flags_ & kForwardingStub) != 0; }
-  bool IsRedirectingFactoryConstructor() {
+  bool IsStatic() const { return (flags_ & kStatic) != 0; }
+  bool IsAbstract() const { return (flags_ & kAbstract) != 0; }
+  bool IsExternal() const { return (flags_ & kExternal) != 0; }
+  bool IsConst() const { return (flags_ & kConst) != 0; }
+  bool IsForwardingStub() const { return (flags_ & kForwardingStub) != 0; }
+  bool IsRedirectingFactoryConstructor() const {
     return (flags_ & kRedirectingFactoryConstructor) != 0;
+  }
+  bool IsNoSuchMethodForwarder() const {
+    return (flags_ & kNoSuchMethodForwarder) != 0;
   }
 
   NameIndex canonical_name_;
@@ -794,6 +802,9 @@ class MetadataHelper {
   // Assumes metadata is accesses for nodes in linear order most of the time.
   intptr_t GetNextMetadataPayloadOffset(intptr_t node_offset);
 
+  // Returns metadata associated with component.
+  intptr_t GetComponentMetadataPayloadOffset();
+
   KernelReaderHelper* helper_;
   TranslationHelper& translation_helper_;
 
@@ -843,6 +854,7 @@ struct InferredTypeMetadata {
   enum Flag {
     kFlagNullable = 1 << 0,
     kFlagInt = 1 << 1,
+    kFlagSkipCheck = 1 << 2,
   };
 
   InferredTypeMetadata(intptr_t cid_, uint8_t flags_)
@@ -856,6 +868,7 @@ struct InferredTypeMetadata {
   }
   bool IsNullable() const { return (flags & kFlagNullable) != 0; }
   bool IsInt() const { return (flags & kFlagInt) != 0; }
+  bool IsSkipCheck() const { return (flags & kFlagSkipCheck) != 0; }
 
   CompileType ToCompileType(Zone* zone) const {
     if (IsInt()) {
@@ -1202,19 +1215,11 @@ class TypeTranslator {
                  ActiveClass* active_class,
                  bool finalize = false);
 
-  // Can return a malformed type.
   AbstractType& BuildType();
-  // Can return a malformed type.
   AbstractType& BuildTypeWithoutFinalization();
-  // Is guaranteed to be not malformed.
-  AbstractType& BuildVariableType();
 
-  // Will return `TypeArguments::null()` in case any of the arguments are
-  // malformed.
   const TypeArguments& BuildTypeArguments(intptr_t length);
 
-  // Will return `TypeArguments::null()` in case any of the arguments are
-  // malformed.
   const TypeArguments& BuildInstantiatedTypeArguments(
       const Class& receiver_class,
       intptr_t length);
@@ -1233,8 +1238,7 @@ class TypeTranslator {
                                FunctionNodeHelper* function_node_helper);
 
  private:
-  // Can build a malformed type.
-  void BuildTypeInternal(bool invalid_as_dynamic = false);
+  void BuildTypeInternal();
   void BuildInterfaceType(bool simple);
   void BuildFunctionType(bool simple);
   void BuildTypeParameterType();

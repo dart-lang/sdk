@@ -17,7 +17,7 @@ class DartHighlightsRequestImpl implements DartHighlightsRequest {
   final ResourceProvider resourceProvider;
 
   @override
-  final ResolveResult result;
+  final ResolvedUnitResult result;
 
   /**
    * Initialize a newly create request with the given data.

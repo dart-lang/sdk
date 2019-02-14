@@ -82,6 +82,32 @@ class HeapPage {
     return reinterpret_cast<HeapPage*>(addr & kPageMask);
   }
 
+  // 1 card = 128 slots.
+  static const intptr_t kSlotsPerCardLog2 = 7;
+  static const intptr_t kBytesPerCardLog2 = kWordSizeLog2 + kSlotsPerCardLog2;
+
+  intptr_t card_table_size() const {
+    return memory_->size() >> kBytesPerCardLog2;
+  }
+
+  static intptr_t card_table_offset() {
+    return OFFSET_OF(HeapPage, card_table_);
+  }
+
+  void RememberCard(RawObject* const* slot) {
+    ASSERT(Contains(reinterpret_cast<uword>(slot)));
+    if (card_table_ == NULL) {
+      card_table_ = reinterpret_cast<uint8_t*>(
+          calloc(card_table_size(), sizeof(uint8_t)));
+    }
+    intptr_t offset =
+        reinterpret_cast<uword>(slot) - reinterpret_cast<uword>(this);
+    intptr_t index = offset >> kBytesPerCardLog2;
+    ASSERT((index >= 0) && (index < card_table_size()));
+    card_table_[index] = 1;
+  }
+  void VisitRememberedCards(ObjectPointerVisitor* visitor);
+
  private:
   void set_object_end(uword value) {
     ASSERT((value & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
@@ -102,6 +128,7 @@ class HeapPage {
   uword object_end_;
   uword used_in_bytes_;
   ForwardingPage* forwarding_page_;
+  uint8_t* card_table_;  // Remembered set, not marking.
   PageType type_;
 
   friend class PageSpace;
@@ -277,6 +304,8 @@ class PageSpace {
   void VisitObjectsImagePages(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
+  void VisitRememberedCards(ObjectPointerVisitor* visitor) const;
+
   RawObject* FindObject(FindObjectVisitor* visitor,
                         HeapPage::PageType type) const;
 
@@ -374,6 +403,11 @@ class PageSpace {
   // Have threads release marking stack blocks, etc.
   void AbandonMarkingForShutdown();
 
+  bool enable_concurrent_mark() const { return enable_concurrent_mark_; }
+  void set_enable_concurrent_mark(bool enable_concurrent_mark) {
+    enable_concurrent_mark_ = enable_concurrent_mark;
+  }
+
  private:
   // Ids for time and data records in Heap::GCStats.
   enum {
@@ -407,7 +441,7 @@ class PageSpace {
                                     bool is_locked);
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
-  HeapPage* AllocatePage(HeapPage::PageType type);
+  HeapPage* AllocatePage(HeapPage::PageType type, bool link = true);
   void FreePage(HeapPage* page, HeapPage* previous_page);
   HeapPage* AllocateLargePage(intptr_t size, HeapPage::PageType type);
   void TruncateLargePage(HeapPage* page, intptr_t new_object_size_in_bytes);
@@ -424,16 +458,13 @@ class PageSpace {
 
   static intptr_t LargePageSizeInWordsFor(intptr_t size);
 
-  bool CanIncreaseCapacityInWords(intptr_t increase_in_words) {
+  bool CanIncreaseCapacityInWordsLocked(intptr_t increase_in_words) {
     if (max_capacity_in_words_ == 0) {
       // Unlimited.
       return true;
     }
-    // TODO(issue 27413): Make the check against capacity and the bump
-    // of capacity atomic so that CapacityInWords does not exceed
-    // max_capacity_in_words_.
     intptr_t free_capacity_in_words =
-        (max_capacity_in_words_ - CapacityInWords());
+        (max_capacity_in_words_ - usage_.capacity_in_words);
     return ((free_capacity_in_words > 0) &&
             (increase_in_words <= free_capacity_in_words));
   }
@@ -479,6 +510,8 @@ class PageSpace {
   int64_t gc_time_micros_;
   intptr_t collections_;
   intptr_t mark_words_per_micro_;
+
+  bool enable_concurrent_mark_;
 
   friend class ExclusivePageIterator;
   friend class ExclusiveCodePageIterator;

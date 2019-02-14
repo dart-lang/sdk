@@ -21,7 +21,7 @@ main() {
 class ClassDriverResolutionTest extends DriverResolutionTest
     with ClassResolutionMixin {}
 
-abstract class ClassResolutionMixin implements ResolutionTest {
+mixin ClassResolutionMixin implements ResolutionTest {
   test_abstractSuperMemberReference_getter() async {
     addTestFile(r'''
 abstract class A {
@@ -55,28 +55,7 @@ class Baz extends Bar {
     assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     assertElement(
       findNode.simple('foo; // ref'),
-      findElement.getter('foo', className: 'Foo'),
-    );
-  }
-
-  test_abstractSuperMemberReference_method_invocation() async {
-    addTestFile(r'''
-abstract class A {
-  foo();
-}
-abstract class B extends A {
-  bar() {
-    super.foo(); // ref
-  }
-
-  foo() {} // does not matter
-}
-''');
-    await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    assertElement(
-      findNode.simple('foo(); // ref'),
-      findElement.method('foo', of: 'A'),
+      findElement.getter('foo', of: 'Foo'),
     );
   }
 
@@ -94,31 +73,6 @@ abstract class B extends A {
     await resolveTestFile();
     assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     assertElement(findNode.simple('foo; // ref'), findElement.method('foo'));
-  }
-
-  test_abstractSuperMemberReference_OK_mixinHasConcrete2_method() async {
-    addTestFile('''
-class A {
-}
-
-class M {
-  void foo() {}
-}
-
-class B = A with M;
-
-class C extends B {
-  void bar() {
-    super.foo(); // ref
-  }
-}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertElement(
-      findNode.simple('foo(); // ref'),
-      findElement.method('foo', of: 'M'),
-    );
   }
 
   test_abstractSuperMemberReference_OK_superHasConcrete_mixinHasAbstract_method() async {
@@ -163,31 +117,7 @@ class C extends B {
     assertNoTestErrors();
     assertElement(
       findNode.simple('foo; // ref'),
-      findElement.getter('foo', className: 'A'),
-    );
-  }
-
-  test_abstractSuperMemberReference_OK_superSuperHasConcrete_method() async {
-    addTestFile('''
-abstract class A {
-  void foo() {}
-}
-
-abstract class B extends A {
-  void foo();
-}
-
-class C extends B {
-  void bar() {
-    super.foo(); // ref
-  }
-}
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-    assertElement(
-      findNode.simple('foo(); // ref'),
-      findElement.method('foo', of: 'A'),
+      findElement.getter('foo', of: 'A'),
     );
   }
 
@@ -211,7 +141,7 @@ class C extends B {
     assertNoTestErrors();
     assertElement(
       findNode.simple('foo = 0;'),
-      findElement.setter('foo', className: 'A'),
+      findElement.setter('foo', of: 'A'),
     );
   }
 
@@ -1371,6 +1301,32 @@ class B extends A {
     assertNoTestErrors();
   }
 
+  test_error_mismatchedGetterAndSetterTypes_OK_setterParameter_0() async {
+    addTestFile(r'''
+class C {
+  int get foo => 0;
+  set foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+    ]);
+  }
+
+  test_error_mismatchedGetterAndSetterTypes_OK_setterParameter_2() async {
+    addTestFile(r'''
+class C {
+  int get foo => 0;
+  set foo(String p1, String p2) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+    ]);
+  }
+
   test_error_mismatchedGetterAndSetterTypes_superGetter() async {
     addTestFile(r'''
 class A {
@@ -1483,6 +1439,22 @@ abstract class C implements A, B {}
     ]);
   }
 
+  test_issue32815() async {
+    addTestFile(r'''
+class A<T> extends B<T> {}
+class B<T> extends A<T> {}
+class C<T> extends B<T> implements I<T> {}
+
+abstract class I<T> {}
+
+main() {
+  Iterable<I<int>> x = [new C()];
+}
+''');
+    await resolveTestFile();
+    assertHasTestErrors();
+  }
+
   test_recursiveInterfaceInheritance_extends() async {
     addTestFile(r'''
 class A extends B {}
@@ -1539,8 +1511,6 @@ class M {}
     assertTestErrors([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
-      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
     ]);
   }
 
@@ -1596,7 +1566,6 @@ class C extends C {
     await resolveTestFile();
     assertTestErrors([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS,
-      StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
     ]);
   }
 
@@ -1670,7 +1639,10 @@ class B extends A {
   }
 }''');
     await resolveTestFile();
-    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+    assertTestErrors([
+      StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+      StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+    ]);
   }
 
   test_undefinedSuperOperator_indexGetter() async {

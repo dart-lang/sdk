@@ -4,14 +4,13 @@
 
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/jumps.dart';
 import 'package:compiler/src/js_model/element_map.dart';
-import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/js_model/locals.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -21,12 +20,11 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const JumpDataComputer(),
-        options: [Flags.disableTypeInference, stopAfterTypeInference],
-        args: args);
+        options: [stopAfterTypeInference], args: args);
   });
 }
 
-class JumpDataComputer extends DataComputer {
+class JumpDataComputer extends DataComputer<String> {
   const JumpDataComputer();
 
   /// Compute closure data mapping for [member] as a kernel based element.
@@ -34,8 +32,8 @@ class JumpDataComputer extends DataComputer {
   /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
   /// for the data origin.
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
@@ -45,6 +43,9 @@ class JumpDataComputer extends DataComputer {
             compiler.reporter, actualMap, localsMap.getLocalsMap(member))
         .run(definition.node);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
 class TargetData {
@@ -70,15 +71,15 @@ class GotoData {
 }
 
 /// Kernel IR visitor for computing jump data.
-class JumpsIrChecker extends IrDataExtractor {
+class JumpsIrChecker extends IrDataExtractor<String> {
   final KernelToLocalsMap _localsMap;
 
   int index = 0;
   Map<JumpTarget, TargetData> targets = <JumpTarget, TargetData>{};
   List<GotoData> gotos = <GotoData>[];
 
-  JumpsIrChecker(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
-      this._localsMap)
+  JumpsIrChecker(DiagnosticReporter reporter,
+      Map<Id, ActualData<String>> actualMap, this._localsMap)
       : super(reporter, actualMap);
 
   void processData() {

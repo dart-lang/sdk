@@ -54,8 +54,6 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *
    * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
    *   from MDN.
-   * * [Window open](http://docs.webplatform.org/wiki/dom/methods/open)
-   *   from WebPlatform.org.
    */
   WindowBase open(String url, String name, [String options]) {
     if (options == null) {

@@ -7,7 +7,9 @@
 
 #include "vm/allocation.h"
 #include "vm/code_descriptors.h"
+#include "vm/compiler/backend/compile_type.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/backend/slot.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/flags.h"
@@ -41,178 +43,6 @@ class RangeAnalysis;
 class RangeBoundary;
 class UnboxIntegerInstr;
 class TypeUsageInfo;
-
-// CompileType describes type of the value produced by the definition.
-//
-// It captures the following properties:
-//    - whether value can potentially be null or it is definitely not null;
-//    - concrete class id of the value or kDynamicCid if unknown statically;
-//    - abstract super type of the value, concrete type of the value in runtime
-//      is guaranteed to be sub type of this type.
-//
-// Values of CompileType form a lattice with a None type as a bottom and a
-// nullable Dynamic type as a top element. Method Union provides a join
-// operation for the lattice.
-class CompileType : public ZoneAllocated {
- public:
-  static const bool kNullable = true;
-  static const bool kNonNullable = false;
-
-  CompileType(bool is_nullable, intptr_t cid, const AbstractType* type)
-      : is_nullable_(is_nullable), cid_(cid), type_(type) {}
-
-  CompileType(const CompileType& other)
-      : ZoneAllocated(),
-        is_nullable_(other.is_nullable_),
-        cid_(other.cid_),
-        type_(other.type_) {}
-
-  CompileType& operator=(const CompileType& other) {
-    is_nullable_ = other.is_nullable_;
-    cid_ = other.cid_;
-    type_ = other.type_;
-    return *this;
-  }
-
-  bool is_nullable() const { return is_nullable_; }
-
-  // Return type such that concrete value's type in runtime is guaranteed to
-  // be subtype of it.
-  const AbstractType* ToAbstractType();
-
-  // Return class id such that it is either kDynamicCid or in runtime
-  // value is guaranteed to have an equal class id.
-  intptr_t ToCid();
-
-  // Return class id such that it is either kDynamicCid or in runtime
-  // value is guaranteed to be either null or have an equal class id.
-  intptr_t ToNullableCid();
-
-  // Returns true if the value is guaranteed to be not-null or is known to be
-  // always null.
-  bool HasDecidableNullability();
-
-  // Returns true if the value is known to be always null.
-  bool IsNull();
-
-  // Returns true if this type is more specific than given type.
-  bool IsMoreSpecificThan(const AbstractType& other);
-
-  // Returns true if value of this type is assignable to a location of the
-  // given type.
-  bool IsAssignableTo(const AbstractType& type) {
-    bool is_instance;
-    return CanComputeIsInstanceOf(type, kNullable, &is_instance) && is_instance;
-  }
-
-  // Create a new CompileType representing given combination of class id and
-  // abstract type. The pair is assumed to be coherent.
-  static CompileType Create(intptr_t cid, const AbstractType& type);
-
-  CompileType CopyNonNullable() const {
-    return CompileType(kNonNullable, kIllegalCid, type_);
-  }
-
-  static CompileType CreateNullable(bool is_nullable, intptr_t cid) {
-    return CompileType(is_nullable, cid, NULL);
-  }
-
-  // Create a new CompileType representing given abstract type. By default
-  // values as assumed to be nullable.
-  static CompileType FromAbstractType(const AbstractType& type,
-                                      bool is_nullable = kNullable);
-
-  // Create a new CompileType representing a value with the given class id.
-  // Resulting CompileType is nullable only if cid is kDynamicCid or kNullCid.
-  static CompileType FromCid(intptr_t cid);
-
-  // Create None CompileType. It is the bottom of the lattice and is used to
-  // represent type of the phi that was not yet inferred.
-  static CompileType None() {
-    return CompileType(kNullable, kIllegalCid, NULL);
-  }
-
-  // Create Dynamic CompileType. It is the top of the lattice and is used to
-  // represent unknown type.
-  static CompileType Dynamic();
-
-  static CompileType Null();
-
-  // Create non-nullable Bool type.
-  static CompileType Bool();
-
-  // Create non-nullable Int type.
-  static CompileType Int();
-
-  // Create non-nullable Smi type.
-  static CompileType Smi();
-
-  // Create non-nullable Double type.
-  static CompileType Double();
-
-  // Create non-nullable String type.
-  static CompileType String();
-
-  // Perform a join operation over the type lattice.
-  void Union(CompileType* other);
-
-  // Refine old type with newly inferred type (it could be more or less
-  // specific, or even unrelated to an old type in case of unreachable code).
-  // May return 'old_type', 'new_type' or create a new CompileType instance.
-  static CompileType* ComputeRefinedType(CompileType* old_type,
-                                         CompileType* new_type);
-
-  // Returns true if this and other types are the same.
-  bool IsEqualTo(CompileType* other) {
-    return (is_nullable_ == other->is_nullable_) &&
-           (ToNullableCid() == other->ToNullableCid()) &&
-           (ToAbstractType()->Equals(*other->ToAbstractType()));
-  }
-
-  bool IsNone() const { return (cid_ == kIllegalCid) && (type_ == NULL); }
-
-  bool IsInt() {
-    return !is_nullable() &&
-           ((ToCid() == kSmiCid) || (ToCid() == kMintCid) ||
-            ((type_ != NULL) &&
-             (type_->Equals(Type::Handle(Type::Int64Type())))));
-  }
-
-  // Returns true if value of this type is either int or null.
-  bool IsNullableInt() {
-    if ((cid_ == kSmiCid) || (cid_ == kMintCid)) {
-      return true;
-    }
-    if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
-      return (type_ != NULL) && ((type_->IsIntType() || type_->IsInt64Type() ||
-                                  type_->IsSmiType()));
-    }
-    return false;
-  }
-
-  // Returns true if value of this type is either double or null.
-  bool IsNullableDouble() {
-    if (cid_ == kDoubleCid) {
-      return true;
-    }
-    if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
-      return (type_ != NULL) && type_->IsDoubleType();
-    }
-    return false;
-  }
-
-  void PrintTo(BufferFormatter* f) const;
-  const char* ToCString() const;
-
- private:
-  bool CanComputeIsInstanceOf(const AbstractType& type,
-                              bool is_nullable,
-                              bool* is_instance);
-
-  bool is_nullable_;
-  intptr_t cid_;
-  const AbstractType* type_;
-};
 
 class Value : public ZoneAllocated {
  public:
@@ -351,10 +181,10 @@ struct CidRange : public ZoneAllocated {
 
 typedef MallocGrowableArray<CidRange> CidRangeVector;
 
-class HierarchyInfo : public StackResource {
+class HierarchyInfo : public ThreadStackResource {
  public:
   explicit HierarchyInfo(Thread* thread)
-      : StackResource(thread),
+      : ThreadStackResource(thread),
         cid_subtype_ranges_(NULL),
         cid_subtype_ranges_abstract_(NULL),
         cid_subclass_ranges_(NULL) {
@@ -660,18 +490,18 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
   DECLARE_COMPARISON_METHODS
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 #define PRINT_TO_SUPPORT virtual void PrintTo(BufferFormatter* f) const;
 #else
 #define PRINT_TO_SUPPORT
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 #define PRINT_OPERANDS_TO_SUPPORT                                              \
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 #else
 #define PRINT_OPERANDS_TO_SUPPORT
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 // Together with CidRange, this represents a mapping from a range of class-ids
 // to a method for a given selector (method name).  Also can contain an
@@ -894,7 +724,7 @@ class Instruction : public ZoneAllocated {
 
   // Printing support.
   const char* ToCString() const;
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 #endif
@@ -1360,6 +1190,7 @@ class BlockEntryInstr : public Instruction {
   LoopInfo* loop_info() const { return loop_info_; }
   void set_loop_info(LoopInfo* loop_info) { loop_info_ = loop_info; }
   bool IsLoopHeader() const;
+  intptr_t NestingDepth() const;
 
   virtual BlockEntryInstr* GetBlock() { return this; }
 
@@ -2146,8 +1977,6 @@ class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
 
-class InductionVariableInfo;
-
 class PhiInstr : public Definition {
  public:
   PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
@@ -2155,7 +1984,6 @@ class PhiInstr : public Definition {
         inputs_(num_inputs),
         representation_(kTagged),
         reaching_defs_(NULL),
-        loop_variable_info_(NULL),
         is_alive_(false),
         is_receiver_(kUnknownReceiver) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
@@ -2211,14 +2039,6 @@ class PhiInstr : public Definition {
   // A phi is redundant if all input operands are the same.
   bool IsRedundant() const;
 
-  void set_induction_variable_info(InductionVariableInfo* info) {
-    loop_variable_info_ = info;
-  }
-
-  InductionVariableInfo* induction_variable_info() {
-    return loop_variable_info_;
-  }
-
   PRINT_TO_SUPPORT
 
   enum ReceiverType { kUnknownReceiver = -1, kNotReceiver = 0, kReceiver = 1 };
@@ -2240,7 +2060,6 @@ class PhiInstr : public Definition {
   GrowableArray<Value*> inputs_;
   Representation representation_;
   BitVector* reaching_defs_;
-  InductionVariableInfo* loop_variable_info_;
   bool is_alive_;
   int8_t is_receiver_;
 
@@ -2293,7 +2112,7 @@ class ParameterInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
 };
 
-// Stores a tagged pointer to a slot accessable from a fixed register.  It has
+// Stores a tagged pointer to a slot accessible from a fixed register.  It has
 // the form:
 //
 //     base_reg[index + #constant] = value
@@ -2304,7 +2123,7 @@ class ParameterInstr : public Definition {
 //
 // Currently this instruction uses pinpoints the register to be FP.
 //
-// This lowlevel instruction is non-inlinable since it makes assumptons about
+// This low-level instruction is non-inlinable since it makes assumptions about
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class StoreIndexedUnsafeInstr : public TemplateDefinition<2, NoThrow> {
  public:
@@ -3098,7 +2917,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_type.IsTypeRef());
     ASSERT(!dst_name.IsNull());
-    ASSERT(!FLAG_strong || !dst_type.IsDynamicType());
+    ASSERT(!dst_type.IsDynamicType());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
     SetInputAt(2, function_type_arguments);
@@ -3268,6 +3087,18 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
         arguments_(arguments),
         token_pos_(token_pos) {
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
+  }
+
+  RawString* Selector() {
+    // The Token::Kind we have does unfortunately not encode whether the call is
+    // a dyn: call or not.
+    if (auto static_call = this->AsStaticCall()) {
+      return static_call->ic_data()->target_name();
+    } else if (auto instance_call = this->AsInstanceCall()) {
+      return instance_call->ic_data()->target_name();
+    } else {
+      UNREACHABLE();
+    }
   }
 
   intptr_t FirstArgIndex() const { return type_args_len_ > 0 ? 1 : 0; }
@@ -4259,51 +4090,76 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
 
 enum StoreBarrierType { kNoStoreBarrier, kEmitStoreBarrier };
 
+// StoreInstanceField instruction represents a store of the given [value] into
+// the specified [slot] on the [instance] object. [emit_store_barrier] allows to
+// specify whether the store should omit the write barrier. [kind] specifies
+// whether this store is an initializing store, i.e. the first store into a
+// field after the allocation.
+//
+// In JIT mode a slot might be a subject to the field unboxing optimization:
+// if field type profiling shows that this slot always contains a double or SIMD
+// value then this field becomes "unboxed" - in this case when storing into
+// such field we update the payload of the box referenced by the field, rather
+// than updating the field itself.
+//
+// Note: even if [emit_store_barrier] is set to [kEmitStoreBarrier] the store
+// can still omit the barrier if it establishes that it is not needed.
+//
+// Note: stores generated from the constructor initializer list and from
+// field initializers *must* be marked as initializing. Initializing stores
+// into unboxed fields are responsible for allocating the mutable box which
+// would be mutated by subsequent stores.
 class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
  public:
+  enum class Kind {
+    // Store is known to be the first store into a slot of an object after
+    // object was allocated and before it escapes (e.g. stores in constructor
+    // initializer list).
+    kInitializing,
+
+    // All other stores.
+    kOther,
+  };
+
+  StoreInstanceFieldInstr(const Slot& slot,
+                          Value* instance,
+                          Value* value,
+                          StoreBarrierType emit_store_barrier,
+                          TokenPosition token_pos,
+                          Kind kind = Kind::kOther)
+      : slot_(slot),
+        emit_store_barrier_(emit_store_barrier),
+        token_pos_(token_pos),
+        is_initialization_(kind == Kind::kInitializing) {
+    SetInputAt(kInstancePos, instance);
+    SetInputAt(kValuePos, value);
+  }
+
+  // Convenience constructor that looks up an IL Slot for the given [field].
   StoreInstanceFieldInstr(const Field& field,
                           Value* instance,
                           Value* value,
                           StoreBarrierType emit_store_barrier,
-                          TokenPosition token_pos)
-      : field_(field),
-        offset_in_bytes_(field.Offset()),
-        emit_store_barrier_(emit_store_barrier),
-        token_pos_(token_pos),
-        is_initialization_(false) {
-    SetInputAt(kInstancePos, instance);
-    SetInputAt(kValuePos, value);
-    CheckField(field);
-  }
-
-  StoreInstanceFieldInstr(intptr_t offset_in_bytes,
-                          Value* instance,
-                          Value* value,
-                          StoreBarrierType emit_store_barrier,
-                          TokenPosition token_pos)
-      : field_(Field::ZoneHandle()),
-        offset_in_bytes_(offset_in_bytes),
-        emit_store_barrier_(emit_store_barrier),
-        token_pos_(token_pos),
-        is_initialization_(false) {
-    SetInputAt(kInstancePos, instance);
-    SetInputAt(kValuePos, value);
-  }
+                          TokenPosition token_pos,
+                          const ParsedFunction* parsed_function,
+                          Kind kind = Kind::kOther)
+      : StoreInstanceFieldInstr(Slot::Get(field, parsed_function),
+                                instance,
+                                value,
+                                emit_store_barrier,
+                                token_pos,
+                                kind) {}
 
   DECLARE_INSTRUCTION(StoreInstanceField)
-
-  void set_is_initialization(bool value) { is_initialization_ = value; }
 
   enum { kInstancePos = 0, kValuePos = 1 };
 
   Value* instance() const { return inputs_[kInstancePos]; }
+  const Slot& slot() const { return slot_; }
   Value* value() const { return inputs_[kValuePos]; }
-  bool is_initialization() const { return is_initialization_; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
-
-  const Field& field() const { return field_; }
-  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
+  bool is_initialization() const { return is_initialization_; }
 
   bool ShouldEmitStoreBarrier() const {
     if (instance()->definition() == value()->definition()) {
@@ -4335,7 +4191,6 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   bool IsUnboxedStore() const;
-
   bool IsPotentialUnboxedStore() const;
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const;
@@ -4345,14 +4200,9 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
  private:
   friend class JitCallSpecializer;  // For ASSERT(initialization_).
 
-  Assembler::CanBeSmi CanValueBeSmi() const {
-    Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() && !FLAG_strong) {
-      // Dart 1 sometimes places a store into a context before a parameter
-      // type check.
-      return Assembler::kValueCanBeSmi;
-    }
+  intptr_t OffsetInBytes() const { return slot().offset_in_bytes(); }
 
+  Assembler::CanBeSmi CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
@@ -4360,12 +4210,11 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
                               : Assembler::kValueIsNotSmi;
   }
 
-  const Field& field_;
-  intptr_t offset_in_bytes_;
+  const Slot& slot_;
   StoreBarrierType emit_store_barrier_;
   const TokenPosition token_pos_;
   // Marks initializing stores. E.g. in the constructor.
-  bool is_initialization_;
+  const bool is_initialization_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldInstr);
 };
@@ -4519,13 +4368,6 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   Assembler::CanBeSmi CanValueBeSmi() const {
-    Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() && !FLAG_strong) {
-      // Dart 1 sometimes places a store into a context before a parameter
-      // type check.
-      return Assembler::kValueCanBeSmi;
-    }
-
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
@@ -4955,6 +4797,9 @@ class AllocateObjectInstr : public TemplateAllocation<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
 
+// TODO(vegorov) the name of the instruction is confusing. At some point
+// it used to allocate uninitialized storage, but this is no longer true.
+// These days it allocates null initialized storage.
 class AllocateUninitializedContextInstr
     : public TemplateAllocation<0, NoThrow> {
  public:
@@ -4998,7 +4843,7 @@ class AllocateUninitializedContextInstr
 class MaterializeObjectInstr : public Definition {
  public:
   MaterializeObjectInstr(AllocateObjectInstr* allocation,
-                         const ZoneGrowableArray<const Object*>& slots,
+                         const ZoneGrowableArray<const Slot*>& slots,
                          ZoneGrowableArray<Value*>* values)
       : allocation_(allocation),
         cls_(allocation->cls()),
@@ -5016,7 +4861,7 @@ class MaterializeObjectInstr : public Definition {
   }
 
   MaterializeObjectInstr(AllocateUninitializedContextInstr* allocation,
-                         const ZoneGrowableArray<const Object*>& slots,
+                         const ZoneGrowableArray<const Slot*>& slots,
                          ZoneGrowableArray<Value*>* values)
       : allocation_(allocation),
         cls_(Class::ZoneHandle(Object::context_class())),
@@ -5039,8 +4884,7 @@ class MaterializeObjectInstr : public Definition {
   intptr_t num_variables() const { return num_variables_; }
 
   intptr_t FieldOffsetAt(intptr_t i) const {
-    return slots_[i]->IsField() ? Field::Cast(*slots_[i]).Offset()
-                                : Smi::Cast(*slots_[i]).Value();
+    return slots_[i]->offset_in_bytes();
   }
 
   const Location& LocationAt(intptr_t i) { return locations_[i]; }
@@ -5084,7 +4928,7 @@ class MaterializeObjectInstr : public Definition {
   Definition* allocation_;
   const Class& cls_;
   intptr_t num_variables_;
-  const ZoneGrowableArray<const Object*>& slots_;
+  const ZoneGrowableArray<const Slot*>& slots_;
   ZoneGrowableArray<Value*>* values_;
   Location* locations_;
 
@@ -5125,7 +4969,15 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
   virtual AliasIdentity Identity() const { return identity_; }
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
-  virtual bool WillAllocateNewOrRemembered() const { return true; }
+  virtual bool WillAllocateNewOrRemembered() const {
+    // Large arrays will use cards instead; cannot skip write barrier.
+    if (!num_elements()->BindsToConstant()) return false;
+    const Object& length = num_elements()->BoundConstant();
+    if (!length.IsSmi()) return false;
+    intptr_t raw_length = Smi::Cast(length).Value();
+    // Compare Array::New.
+    return (raw_length >= 0) && (raw_length < Array::kMaxNewSpaceElements);
+  }
 
  private:
   const TokenPosition token_pos_;
@@ -5187,159 +5039,28 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(LoadClassIdInstr);
 };
 
-#define NATIVE_FIELDS_LIST(V)                                                  \
-  V(Array, length, Smi, IMMUTABLE)                                             \
-  V(GrowableObjectArray, length, Smi, MUTABLE)                                 \
-  V(TypedData, length, Smi, IMMUTABLE)                                         \
-  V(String, length, Smi, IMMUTABLE)                                            \
-  V(LinkedHashMap, index, TypedDataUint32Array, MUTABLE)                       \
-  V(LinkedHashMap, data, Array, MUTABLE)                                       \
-  V(LinkedHashMap, hash_mask, Smi, MUTABLE)                                    \
-  V(LinkedHashMap, used_data, Smi, MUTABLE)                                    \
-  V(LinkedHashMap, deleted_keys, Smi, MUTABLE)                                 \
-  V(ArgumentsDescriptor, type_args_len, Smi, IMMUTABLE)
-
-class NativeFieldDesc : public ZoneAllocated {
- public:
-  // clang-format off
-  enum Kind {
-#define DECLARE_KIND(ClassName, FieldName, cid, mutability)                    \
-  k##ClassName##_##FieldName,
-    NATIVE_FIELDS_LIST(DECLARE_KIND)
-#undef DECLARE_KIND
-    kTypeArguments,
-  };
-  // clang-format on
-
-#define DEFINE_GETTER(ClassName, FieldName, cid, mutability)                   \
-  static const NativeFieldDesc* ClassName##_##FieldName() {                    \
-    return Get(k##ClassName##_##FieldName);                                    \
-  }
-
-  NATIVE_FIELDS_LIST(DEFINE_GETTER)
-#undef DEFINE_GETTER
-
-  static const NativeFieldDesc* Get(Kind kind);
-  static const NativeFieldDesc* GetLengthFieldForArrayCid(intptr_t array_cid);
-  static const NativeFieldDesc* GetTypeArgumentsField(Zone* zone,
-                                                      intptr_t offset);
-  static const NativeFieldDesc* GetTypeArgumentsFieldFor(Zone* zone,
-                                                         const Class& cls);
-
-  const char* name() const;
-
-  Kind kind() const { return kind_; }
-
-  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
-
-  bool is_immutable() const { return immutable_; }
-
-  intptr_t cid() const { return cid_; }
-
-  RawAbstractType* type() const;
-
- private:
-  NativeFieldDesc(Kind kind,
-                  intptr_t offset_in_bytes,
-                  intptr_t cid,
-                  bool immutable)
-      : kind_(kind),
-        offset_in_bytes_(offset_in_bytes),
-        immutable_(immutable),
-        cid_(cid) {}
-
-  NativeFieldDesc(const NativeFieldDesc& other)
-      : NativeFieldDesc(other.kind_,
-                        other.offset_in_bytes_,
-                        other.immutable_,
-                        other.cid_) {}
-
-  const Kind kind_;
-  const intptr_t offset_in_bytes_;
-  const bool immutable_;
-
-  const intptr_t cid_;
-};
-
+// LoadFieldInstr represents a load from the given [slot] in the given
+// [instance].
+//
+// Note: if slot was a subject of the field unboxing optimization then this load
+// would both load the box stored in the field and then load the content of
+// the box.
 class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  LoadFieldInstr(Value* instance,
-                 intptr_t offset_in_bytes,
-                 const AbstractType& type,
-                 TokenPosition token_pos)
-      : offset_in_bytes_(offset_in_bytes),
-        type_(type),
-        result_cid_(kDynamicCid),
-        immutable_(false),
-        native_field_(nullptr),
-        field_(nullptr),
-        token_pos_(token_pos) {
-    ASSERT(offset_in_bytes >= 0);
-    // May be null if field is not an instance.
-    ASSERT(type_.IsZoneHandle() || type_.IsReadOnlyHandle());
+  LoadFieldInstr(Value* instance, const Slot& slot, TokenPosition token_pos)
+      : slot_(slot), token_pos_(token_pos) {
     SetInputAt(0, instance);
   }
-
-  LoadFieldInstr(Value* instance,
-                 const NativeFieldDesc* native_field,
-                 TokenPosition token_pos)
-      : offset_in_bytes_(native_field->offset_in_bytes()),
-        type_(AbstractType::ZoneHandle(native_field->type())),
-        result_cid_(native_field->cid()),
-        immutable_(native_field->is_immutable()),
-        native_field_(native_field),
-        field_(nullptr),
-        token_pos_(token_pos) {
-    ASSERT(offset_in_bytes_ >= 0);
-    // May be null if field is not an instance.
-    ASSERT(type_.IsZoneHandle() || type_.IsReadOnlyHandle());
-    SetInputAt(0, instance);
-  }
-
-  LoadFieldInstr(Value* instance,
-                 const Field* field,
-                 const AbstractType& type,
-                 TokenPosition token_pos,
-                 const ParsedFunction* parsed_function)
-      : offset_in_bytes_(field->Offset()),
-        type_(type),
-        result_cid_(kDynamicCid),
-        immutable_(false),
-        native_field_(nullptr),
-        field_(field),
-        token_pos_(token_pos) {
-    ASSERT(Class::Handle(field->Owner()).is_finalized());
-    ASSERT(field->IsZoneHandle());
-    // May be null if field is not an instance.
-    ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
-    SetInputAt(0, instance);
-
-    if (parsed_function != nullptr && field->guarded_cid() != kIllegalCid) {
-      if (!field->is_nullable() || (field->guarded_cid() == kNullCid)) {
-        set_result_cid(field->guarded_cid());
-      }
-      parsed_function->AddToGuardedFields(field);
-    }
-  }
-
-  void set_is_immutable(bool value) { immutable_ = value; }
 
   Value* instance() const { return inputs_[0]; }
-  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
-  const AbstractType& type() const { return type_; }
-  void set_result_cid(intptr_t value) { result_cid_ = value; }
-  intptr_t result_cid() const { return result_cid_; }
-  virtual TokenPosition token_pos() const { return token_pos_; }
+  const Slot& slot() const { return slot_; }
 
-  const Field* field() const { return field_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual Representation representation() const;
 
   bool IsUnboxedLoad() const;
-
   bool IsPotentialUnboxedLoad() const;
-
-  const NativeFieldDesc* native_field() const { return native_field_; }
 
   DECLARE_INSTRUCTION(LoadField)
   virtual CompileType ComputeType() const;
@@ -5357,11 +5078,19 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   // instance has the field.
   bool Evaluate(const Object& instance_value, Object* result);
 
+  static bool TryEvaluateLoad(const Object& instance,
+                              const Field& field,
+                              Object* result);
+
+  static bool TryEvaluateLoad(const Object& instance,
+                              const Slot& field,
+                              Object* result);
+
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   static bool IsFixedLengthArrayCid(intptr_t cid);
 
-  virtual bool AllowsCSE() const { return immutable_; }
+  virtual bool AllowsCSE() const { return slot_.is_immutable(); }
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const;
@@ -5369,13 +5098,9 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  const intptr_t offset_in_bytes_;
-  const AbstractType& type_;
-  intptr_t result_cid_;
-  bool immutable_;
+  intptr_t OffsetInBytes() const { return slot().offset_in_bytes(); }
 
-  const NativeFieldDesc* native_field_;
-  const Field* field_;
+  const Slot& slot_;
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
@@ -5419,14 +5144,18 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   InstantiateTypeArgumentsInstr(TokenPosition token_pos,
                                 const TypeArguments& type_arguments,
                                 const Class& instantiator_class,
+                                const Function& function,
                                 Value* instantiator_type_arguments,
                                 Value* function_type_arguments,
                                 intptr_t deopt_id)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         type_arguments_(type_arguments),
-        instantiator_class_(instantiator_class) {
+        instantiator_class_(instantiator_class),
+        function_(function) {
     ASSERT(type_arguments.IsZoneHandle());
+    ASSERT(instantiator_class.IsZoneHandle());
+    ASSERT(function.IsZoneHandle());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
   }
@@ -5437,6 +5166,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   Value* function_type_arguments() const { return inputs_[1]; }
   const TypeArguments& type_arguments() const { return type_arguments_; }
   const Class& instantiator_class() const { return instantiator_class_; }
+  const Function& function() const { return function_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool ComputeCanDeoptimize() const { return true; }
@@ -5451,20 +5181,30 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   const TokenPosition token_pos_;
   const TypeArguments& type_arguments_;
   const Class& instantiator_class_;
+  const Function& function_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsInstr);
 };
 
+// [AllocateContext] instruction allocates a new Context object with the space
+// for the given [context_variables].
 class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
  public:
-  AllocateContextInstr(TokenPosition token_pos, intptr_t num_context_variables)
-      : token_pos_(token_pos), num_context_variables_(num_context_variables) {}
+  AllocateContextInstr(TokenPosition token_pos,
+                       const GrowableArray<LocalVariable*>& context_variables)
+      : token_pos_(token_pos), context_variables_(context_variables) {}
 
   DECLARE_INSTRUCTION(AllocateContext)
   virtual CompileType ComputeType() const;
 
   virtual TokenPosition token_pos() const { return token_pos_; }
-  intptr_t num_context_variables() const { return num_context_variables_; }
+  const GrowableArray<LocalVariable*>& context_variables() const {
+    return context_variables_;
+  }
+
+  intptr_t num_context_variables() const {
+    return context_variables().length();
+  }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -5472,14 +5212,14 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
 
   virtual bool WillAllocateNewOrRemembered() const {
     return Heap::IsAllocatableInNewSpace(
-        Context::InstanceSize(num_context_variables_));
+        Context::InstanceSize(context_variables().length()));
   }
 
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
   const TokenPosition token_pos_;
-  const intptr_t num_context_variables_;
+  const GrowableArray<LocalVariable*>& context_variables_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);
 };
@@ -5507,23 +5247,26 @@ class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
   DISALLOW_COPY_AND_ASSIGN(InitStaticFieldInstr);
 };
 
+// [CloneContext] instruction clones the given Context object assuming that
+// it contains exactly the provided [context_variables].
 class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
  public:
   CloneContextInstr(TokenPosition token_pos,
                     Value* context_value,
-                    intptr_t num_context_variables,
+                    const GrowableArray<LocalVariable*>& context_variables,
                     intptr_t deopt_id)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
-        num_context_variables_(num_context_variables) {
+        context_variables_(context_variables) {
     SetInputAt(0, context_value);
   }
 
-  static const intptr_t kUnknownContextSize = -1;
-
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* context_value() const { return inputs_[0]; }
-  intptr_t num_context_variables() const { return num_context_variables_; }
+
+  const GrowableArray<LocalVariable*>& context_variables() const {
+    return context_variables_;
+  }
 
   DECLARE_INSTRUCTION(CloneContext)
   virtual CompileType ComputeType() const;
@@ -5534,7 +5277,7 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   const TokenPosition token_pos_;
-  const intptr_t num_context_variables_;
+  const GrowableArray<LocalVariable*>& context_variables_;
 
   DISALLOW_COPY_AND_ASSIGN(CloneContextInstr);
 };
@@ -6319,14 +6062,14 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
   CheckedSmiOpInstr(Token::Kind op_kind,
                     Value* left,
                     Value* right,
-                    InstanceCallInstr* call)
+                    TemplateDartCall<0>* call)
       : TemplateDefinition(call->deopt_id()), call_(call), op_kind_(op_kind) {
     ASSERT(call->type_args_len() == 0);
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
 
-  InstanceCallInstr* call() const { return call_; }
+  TemplateDartCall<0>* call() const { return call_; }
   Token::Kind op_kind() const { return op_kind_; }
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
@@ -6344,7 +6087,7 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
   DECLARE_INSTRUCTION(CheckedSmiOp)
 
  private:
-  InstanceCallInstr* call_;
+  TemplateDartCall<0>* call_;
   const Token::Kind op_kind_;
   DISALLOW_COPY_AND_ASSIGN(CheckedSmiOpInstr);
 };
@@ -6354,7 +6097,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
   CheckedSmiComparisonInstr(Token::Kind op_kind,
                             Value* left,
                             Value* right,
-                            InstanceCallInstr* call)
+                            TemplateDartCall<0>* call)
       : TemplateComparison(call->token_pos(), op_kind, call->deopt_id()),
         call_(call),
         is_negated_(false) {
@@ -6363,7 +6106,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
     SetInputAt(1, right);
   }
 
-  InstanceCallInstr* call() const { return call_; }
+  TemplateDartCall<0>* call() const { return call_; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -6400,7 +6143,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
  private:
-  InstanceCallInstr* call_;
+  TemplateDartCall<0>* call_;
   bool is_negated_;
   DISALLOW_COPY_AND_ASSIGN(CheckedSmiComparisonInstr);
 };
@@ -7462,10 +7205,15 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(CheckClassIdInstr);
 };
 
-class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
+// Performs an array bounds check, where
+//   safe_index := CheckArrayBound(length, index)
+// returns the "safe" index when
+//   0 <= index < length
+// or otherwise deoptimizes (viz. speculative).
+class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id),
+      : TemplateDefinition(deopt_id),
         generalized_(false),
         licm_hoisted_(false) {
     SetInputAt(kLengthPos, length);
@@ -7483,7 +7231,7 @@ class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
 
   void mark_generalized() { generalized_ = true; }
 
-  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   // Returns the length offset for array and string types.
   static intptr_t LengthOffsetFor(intptr_t class_id);
@@ -7504,10 +7252,15 @@ class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };
 
-class GenericCheckBoundInstr : public TemplateInstruction<2, Throws, NoCSE> {
+// Performs an array bounds check, where
+//   safe_index := CheckArrayBound(length, index)
+// returns the "safe" index when
+//   0 <= index < length
+// or otherwise throws an out-of-bounds exception (viz. non-speculative).
+class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, NoCSE> {
  public:
   GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
   }
@@ -7522,6 +7275,8 @@ class GenericCheckBoundInstr : public TemplateInstruction<2, Throws, NoCSE> {
   // GenericCheckBound can implicitly call Dart code (RangeError or
   // ArgumentError constructor), so it can lazily deopt.
   virtual bool ComputeCanDeoptimize() const { return true; }
+
+  bool IsRedundant(const RangeBoundary& length);
 
   // Give a name to the location/input indices.
   enum { kLengthPos = 0, kIndexPos = 1 };

@@ -4,11 +4,9 @@
 
 part of masks;
 
-/**
- * A [MapTypeMask] is a [TypeMask] for a specific allocation
- * site of a map (currently only internal Map class) that will get specialized
- * once the [TypeGraphInferrer] phase finds a key and/or value type for it.
- */
+/// A [MapTypeMask] is a [TypeMask] for a specific allocation
+/// site of a map (currently only internal Map class) that will get specialized
+/// once the [TypeGraphInferrer] phase finds a key and/or value type for it.
 class MapTypeMask extends AllocationTypeMask {
   /// Tag used for identifying serialized [MapTypeMask] objects in a
   /// debugging data stream.
@@ -36,8 +34,8 @@ class MapTypeMask extends AllocationTypeMask {
       DataSource source, JClosedWorld closedWorld) {
     source.begin(tag);
     TypeMask forwardTo = new TypeMask.readFromDataSource(source, closedWorld);
-    ir.TreeNode allocationNode = source.readTreeNode();
-    MemberEntity allocationElement = source.readMember();
+    ir.TreeNode allocationNode = source.readTreeNodeOrNull();
+    MemberEntity allocationElement = source.readMemberOrNull();
     TypeMask keyType = new TypeMask.readFromDataSource(source, closedWorld);
     TypeMask valueType = new TypeMask.readFromDataSource(source, closedWorld);
     source.end(tag);
@@ -50,10 +48,10 @@ class MapTypeMask extends AllocationTypeMask {
     sink.writeEnum(TypeMaskKind.map);
     sink.begin(tag);
     forwardTo.writeToDataSink(sink);
-    sink.writeTreeNode(allocationNode);
-    sink.writeMember(allocationElement);
-    valueType.writeToDataSink(sink);
+    sink.writeTreeNodeOrNull(allocationNode);
+    sink.writeMemberOrNull(allocationElement);
     keyType.writeToDataSink(sink);
+    valueType.writeToDataSink(sink);
     sink.end(tag);
   }
 

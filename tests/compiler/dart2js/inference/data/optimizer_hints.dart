@@ -9,9 +9,7 @@ main() {
   assumeDynamic();
   notAssumeDynamic();
   trustReturnTypeString();
-  notTrustReturnTypeString();
   trustParameterTypeString();
-  notTrustParameterTypeString();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,49 +42,22 @@ notAssumeDynamic() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Use annotation to trust return type annotation.
+// No annotation is needed to trust return type annotation.
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: trustReturnTypeString:[null|exact=JSString]*/
-@TrustTypeAnnotations()
 String trustReturnTypeString() {
   return _assumeDynamic(0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// As above but without the annotation.
-////////////////////////////////////////////////////////////////////////////////
-
-/*strong.element: notTrustReturnTypeString:[null|exact=JSString]*/
-String notTrustReturnTypeString() {
-  return _assumeDynamic(0);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Use annotation to trust parameter type annotation.
+// No annotation is needed to trust parameter type annotation.
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _trustParameterTypeString:[null]*/
-@TrustTypeAnnotations()
 _trustParameterTypeString(String /*[null|exact=JSString]*/ o) {}
 
 /*element: trustParameterTypeString:[null]*/
 trustParameterTypeString() {
   _trustParameterTypeString(_assumeDynamic(0));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// As above but without the annotation.
-////////////////////////////////////////////////////////////////////////////////
-
-/*element: _notTrustParameterTypeString:[null]*/
-_notTrustParameterTypeString(
-    String
-
-        /*strong.[null|exact=JSString]*/
-        o) {}
-
-/*element: notTrustParameterTypeString:[null]*/
-notTrustParameterTypeString() {
-  _notTrustParameterTypeString(_assumeDynamic(0));
 }

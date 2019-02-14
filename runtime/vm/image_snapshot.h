@@ -5,12 +5,17 @@
 #ifndef RUNTIME_VM_IMAGE_SNAPSHOT_H_
 #define RUNTIME_VM_IMAGE_SNAPSHOT_H_
 
+#include <utility>
+
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/datastream.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
+#include "vm/object.h"
+#include "vm/reusable_handles.h"
+#include "vm/v8_snapshot_writer.h"
 
 namespace dart {
 
@@ -94,9 +99,39 @@ class ObjectOffsetTrait {
 
 typedef DirectChainedHashMap<ObjectOffsetTrait> ObjectOffsetMap;
 
+// A command which instructs the image writer to emit something into the ".text"
+// segment.
+//
+// For now this just supports emitting the instructions of a [Code] object.
+// In the future we might also want to add support for emitting trampolines.
+struct ImageWriterCommand {
+  enum Opcode {
+    InsertInstructionOfCode,
+  };
+
+  ImageWriterCommand(intptr_t expected_offset,
+                     ImageWriterCommand::Opcode opcode,
+                     RawCode* code)
+      : expected_offset(expected_offset),
+        op(opcode),
+        insert_instruction_of_code({code}) {}
+
+  // The offset (relative to the very first [ImageWriterCommand]) we expect
+  // this [ImageWriterCommand] to have.
+  intptr_t expected_offset;
+
+  Opcode op;
+  union {
+    struct {
+      RawCode* code;
+    } insert_instruction_of_code;
+  };
+};
+
 class ImageWriter : public ValueObject {
  public:
-  ImageWriter(const void* shared_objects,
+  ImageWriter(Heap* heap,
+              const void* shared_objects,
               const void* shared_instructions,
               const void* reused_instructions);
   virtual ~ImageWriter() {}
@@ -109,6 +144,10 @@ class ImageWriter : public ValueObject {
     instructions_.Clear();
   }
 
+  // Will start preparing the ".text" segment by interpreting the provided
+  // [ImageWriterCommand]s.
+  void PrepareForSerialization(GrowableArray<ImageWriterCommand>* commands);
+
   int32_t GetTextOffsetFor(RawInstructions* instructions, RawCode* code);
   bool GetSharedDataOffsetFor(RawObject* raw_object, uint32_t* offset);
   uint32_t GetDataOffsetFor(RawObject* raw_object);
@@ -119,6 +158,14 @@ class ImageWriter : public ValueObject {
 
   void DumpStatistics();
 
+  void SetProfileWriter(V8SnapshotProfileWriter* profile_writer) {
+    profile_writer_ = profile_writer;
+  }
+
+  void ClearProfileWriter() { profile_writer_ = nullptr; }
+
+  void TraceInstructions(const Instructions& instructions);
+
  protected:
   void WriteROData(WriteStream* stream);
   virtual void WriteText(WriteStream* clustered_stream, bool vm) = 0;
@@ -127,10 +174,10 @@ class ImageWriter : public ValueObject {
   void DumpInstructionsSizes();
 
   struct InstructionsData {
-    explicit InstructionsData(RawInstructions* insns,
-                              RawCode* code,
-                              intptr_t offset)
-        : raw_insns_(insns), raw_code_(code), offset_(offset) {}
+    InstructionsData(RawInstructions* insns,
+                     RawCode* code,
+                     intptr_t text_offset)
+        : raw_insns_(insns), raw_code_(code), text_offset_(text_offset) {}
 
     union {
       RawInstructions* raw_insns_;
@@ -140,7 +187,7 @@ class ImageWriter : public ValueObject {
       RawCode* raw_code_;
       const Code* code_;
     };
-    intptr_t offset_;
+    intptr_t text_offset_;
   };
 
   struct ObjectData {
@@ -152,6 +199,7 @@ class ImageWriter : public ValueObject {
     };
   };
 
+  Heap* heap_;  // Used for mapping RawInstructiosn to object ids.
   intptr_t next_data_offset_;
   intptr_t next_text_offset_;
   GrowableArray<ObjectData> objects_;
@@ -160,13 +208,67 @@ class ImageWriter : public ValueObject {
   ObjectOffsetMap shared_instructions_;
   ObjectOffsetMap reuse_instructions_;
 
+  V8SnapshotProfileWriter::IdSpace offset_space_ =
+      V8SnapshotProfileWriter::kSnapshot;
+  V8SnapshotProfileWriter* profile_writer_ = nullptr;
+
+  template <class T>
+  friend class TraceImageObjectScope;
+
  private:
   DISALLOW_COPY_AND_ASSIGN(ImageWriter);
 };
 
+#define AutoTraceImage(object, section_offset, stream)                         \
+  auto AutoTraceImagObjectScopeVar##__COUNTER__ =                              \
+      TraceImageObjectScope<std::remove_pointer<decltype(stream)>::type>(      \
+          this, section_offset, stream, object);
+
+template <typename T>
+class TraceImageObjectScope {
+ public:
+  TraceImageObjectScope(ImageWriter* writer,
+                        intptr_t section_offset,
+                        const T* stream,
+                        const Object& object)
+      : writer_(writer),
+        stream_(stream),
+        section_offset_(section_offset),
+        start_offset_(stream_->Position() - section_offset) {
+    if (writer_->profile_writer_ != nullptr) {
+      Thread* thread = Thread::Current();
+      REUSABLE_CLASS_HANDLESCOPE(thread);
+      REUSABLE_STRING_HANDLESCOPE(thread);
+      Class& klass = thread->ClassHandle();
+      String& name = thread->StringHandle();
+      klass = object.clazz();
+      name = klass.UserVisibleName();
+      ASSERT(writer_->offset_space_ != V8SnapshotProfileWriter::kSnapshot);
+      writer_->profile_writer_->SetObjectTypeAndName(
+          {writer_->offset_space_, start_offset_}, name.ToCString(), nullptr);
+    }
+  }
+
+  ~TraceImageObjectScope() {
+    if (writer_->profile_writer_ != nullptr) {
+      ASSERT(writer_->offset_space_ != V8SnapshotProfileWriter::kSnapshot);
+      writer_->profile_writer_->AttributeBytesTo(
+          {writer_->offset_space_, start_offset_},
+          stream_->Position() - section_offset_ - start_offset_);
+    }
+  }
+
+ private:
+  ImageWriter* writer_;
+  const T* stream_;
+  intptr_t section_offset_;
+  intptr_t start_offset_;
+};
+
 class AssemblyImageWriter : public ImageWriter {
  public:
-  AssemblyImageWriter(Dart_StreamingWriteCallback callback,
+  AssemblyImageWriter(Thread* thread,
+                      Dart_StreamingWriteCallback callback,
                       void* callback_data,
                       const void* shared_objects,
                       const void* shared_instructions);
@@ -195,12 +297,13 @@ class AssemblyImageWriter : public ImageWriter {
 
 class BlobImageWriter : public ImageWriter {
  public:
-  BlobImageWriter(uint8_t** instructions_blob_buffer,
+  BlobImageWriter(Thread* thread,
+                  uint8_t** instructions_blob_buffer,
                   ReAlloc alloc,
                   intptr_t initial_size,
                   const void* shared_objects,
                   const void* shared_instructions,
-                  const void* reused_instructions = NULL);
+                  const void* reused_instructions);
 
   virtual void WriteText(WriteStream* clustered_stream, bool vm);
 

@@ -17,17 +17,16 @@ import '../elements/types.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_model/element_map.dart';
-import '../js_model/js_strategy.dart';
+import '../js_model/js_world.dart';
 import '../js_model/locals.dart';
-import '../native/behavior.dart' as native;
+import '../native/behavior.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
+import 'abstract_value_domain.dart';
 import 'builder_kernel.dart';
 import 'closure_tracer.dart';
 import 'debug.dart' as debug;
@@ -38,6 +37,7 @@ import 'type_graph_dump.dart';
 import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
+import 'types.dart';
 
 /// An inferencing engine that computes a call graph of [TypeInformation] nodes
 /// by visiting the AST of the application, and then does the inferencing on the
@@ -216,8 +216,8 @@ abstract class InferrerEngine {
   TypeInformation typeOfParameter(Local element);
 
   /// Returns the type for [nativeBehavior]. See documentation on
-  /// [native.NativeBehavior].
-  TypeInformation typeOfNativeBehavior(native.NativeBehavior nativeBehavior);
+  /// [NativeBehavior].
+  TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior);
 
   bool returnsListElementType(Selector selector, AbstractValue mask);
 
@@ -241,10 +241,6 @@ abstract class InferrerEngine {
   /// backend calls, but the optimizations don't see those calls.
   bool canFunctionParametersBeUsedForGlobalOptimizations(
       FunctionEntity function);
-
-  /// Returns `true` if parameter and returns types should be trusted for
-  /// [member].
-  bool trustTypeAnnotations(MemberEntity member);
 
   /// Returns `true` if inference of parameter types is disabled for [member].
   bool assumeDynamic(MemberEntity member);
@@ -314,10 +310,8 @@ class InferrerEngineImpl extends InferrerEngine {
   GlobalTypeInferenceElementData dataOfMember(MemberEntity element) =>
       _memberData[element] ??= new KernelGlobalTypeInferenceElementData();
 
-  /**
-   * Update [sideEffects] with the side effects of [callee] being
-   * called with [selector].
-   */
+  /// Update [sideEffects] with the side effects of [callee] being
+  /// called with [selector].
   void updateSideEffects(SideEffectsBuilder sideEffectsBuilder,
       Selector selector, MemberEntity callee) {
     if (callee.isField) {
@@ -346,14 +340,14 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  TypeInformation typeOfNativeBehavior(native.NativeBehavior nativeBehavior) {
+  TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior) {
     if (nativeBehavior == null) return types.dynamicType;
     List typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return types.dynamicType;
     TypeInformation returnType;
     for (var type in typesReturned) {
       TypeInformation mappedType;
-      if (type == native.SpecialType.JsObject) {
+      if (type == SpecialType.JsObject) {
         mappedType = types.nonNullExact(commonElements.objectClass);
       } else if (type == commonElements.stringType) {
         mappedType = types.stringType;
@@ -388,7 +382,7 @@ class InferrerEngineImpl extends InferrerEngine {
 
   void updateSelectorInMember(MemberEntity owner, CallType callType,
       ir.Node node, Selector selector, AbstractValue mask) {
-    GlobalTypeInferenceElementData data = dataOfMember(owner);
+    KernelGlobalTypeInferenceElementData data = dataOfMember(owner);
     assert(validCallType(callType, node));
     switch (callType) {
       case CallType.access:
@@ -473,10 +467,7 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   void runOverAllElements() {
-    progress.startPhase();
-
     analyzeAllElements();
-
     TypeGraphDump dump =
         debug.PRINT_GRAPH ? new TypeGraphDump(_compilerOutput, this) : null;
 
@@ -648,6 +639,7 @@ class InferrerEngineImpl extends InferrerEngine {
     Iterable<MemberEntity> processedMembers = closedWorld.processedMembers
         .where((MemberEntity member) => !member.isAbstract);
 
+    progress.startPhase();
     processedMembers.forEach((MemberEntity member) {
       progress.showProgress(
           'Added ', addedInGraph, ' elements in inferencing graph.');
@@ -784,7 +776,8 @@ class InferrerEngineImpl extends InferrerEngine {
         this,
         member,
         body,
-        closedWorld.globalLocalsMap.getLocalsMap(member));
+        closedWorld.globalLocalsMap.getLocalsMap(member),
+        closedWorld.elementMap.getStaticTypeProvider(member));
     return visitor.run();
   }
 
@@ -834,7 +827,7 @@ class InferrerEngineImpl extends InferrerEngine {
         MemberEntity member = info.calledElement;
         inferredDataBuilder.addFunctionCalledInLoop(member);
       } else if (info.mask != null &&
-          !abstractValueDomain.containsAll(info.mask)) {
+          abstractValueDomain.containsAll(info.mask).isDefinitelyFalse) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
@@ -847,6 +840,7 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   void refine() {
+    progress.startPhase();
     while (!workQueue.isEmpty) {
       progress.showProgress('Inferred ', overallRefineCount, ' types.');
       TypeInformation info = workQueue.remove();
@@ -1247,12 +1241,6 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   @override
-  bool trustTypeAnnotations(MemberEntity member) {
-    return closedWorld.annotationsData.trustTypeAnnotationsMembers
-        .contains(member);
-  }
-
-  @override
   bool assumeDynamic(MemberEntity member) {
     return closedWorld.annotationsData.assumeDynamicMembers.contains(member);
   }
@@ -1279,7 +1267,8 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
   bool checkLoopPhiNode(ir.Node node) => true;
 
   @override
-  bool checkPhiNode(ir.Node node) => true;
+  bool checkPhiNode(ir.Node node) =>
+      node == null || node is ir.TryCatch || node is ir.TryFinally;
 
   @override
   void forEachParameter(FunctionEntity function, void f(Local parameter)) {
@@ -1426,7 +1415,7 @@ class KernelGlobalTypeInferenceElementData
   }
 
   @override
-  void compress() {
+  GlobalTypeInferenceElementData compress() {
     if (_sendMap != null) {
       _sendMap.removeWhere(_mapsToNull);
       if (_sendMap.isEmpty) {
@@ -1451,6 +1440,13 @@ class KernelGlobalTypeInferenceElementData
         _moveNextMap = null;
       }
     }
+    if (_sendMap == null &&
+        _iteratorMap == null &&
+        _currentMap == null &&
+        _moveNextMap == null) {
+      return null;
+    }
+    return this;
   }
 
   @override
@@ -1459,23 +1455,17 @@ class KernelGlobalTypeInferenceElementData
     return _sendMap[node];
   }
 
-  @override
-  void setCurrentTypeMask(
-      covariant ir.ForInStatement node, AbstractValue mask) {
+  void setCurrentTypeMask(ir.ForInStatement node, AbstractValue mask) {
     _currentMap ??= <ir.ForInStatement, AbstractValue>{};
     _currentMap[node] = mask;
   }
 
-  @override
-  void setMoveNextTypeMask(
-      covariant ir.ForInStatement node, AbstractValue mask) {
+  void setMoveNextTypeMask(ir.ForInStatement node, AbstractValue mask) {
     _moveNextMap ??= <ir.ForInStatement, AbstractValue>{};
     _moveNextMap[node] = mask;
   }
 
-  @override
-  void setIteratorTypeMask(
-      covariant ir.ForInStatement node, AbstractValue mask) {
+  void setIteratorTypeMask(ir.ForInStatement node, AbstractValue mask) {
     _iteratorMap ??= <ir.ForInStatement, AbstractValue>{};
     _iteratorMap[node] = mask;
   }
@@ -1498,7 +1488,6 @@ class KernelGlobalTypeInferenceElementData
     return _iteratorMap[node];
   }
 
-  @override
   void setTypeMask(ir.TreeNode node, AbstractValue mask) {
     _sendMap ??= <ir.TreeNode, AbstractValue>{};
     _sendMap[node] = mask;

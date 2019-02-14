@@ -6,8 +6,6 @@ library dart2js.world.class_set;
 
 import 'dart:collection' show IterableBase, MapBase;
 
-import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
-
 import '../elements/entities.dart' show ClassEntity;
 import '../elements/indexed.dart' show IndexedClass;
 import '../serialization/serialization.dart';
@@ -206,7 +204,7 @@ class ClassHierarchyNode {
   }
 
   /// The nodes for the direct subclasses of [cls].
-  Link<ClassHierarchyNode> _directSubclasses = const Link<ClassHierarchyNode>();
+  List<ClassHierarchyNode> _directSubclasses = <ClassHierarchyNode>[];
 
   ClassHierarchyNode(this.parentNode, this.cls, this.hierarchyDepth) {
     if (parentNode != null) {
@@ -249,7 +247,7 @@ class ClassHierarchyNode {
   /// Adds [subclass] as a direct subclass of [cls].
   void addDirectSubclass(ClassHierarchyNode subclass) {
     assert(!_directSubclasses.contains(subclass));
-    _directSubclasses = _directSubclasses.prepend(subclass);
+    _directSubclasses.add(subclass);
   }
 
   Iterable<ClassHierarchyNode> get directSubclasses => _directSubclasses;
@@ -360,12 +358,10 @@ class ClassHierarchyNode {
       return null;
     }
     ClassHierarchyNode subclass;
-    for (Link<ClassHierarchyNode> link = _directSubclasses;
-        !link.isEmpty;
-        link = link.tail) {
-      if (link.head.isInstantiated) {
+    for (ClassHierarchyNode node in _directSubclasses) {
+      if (node.isInstantiated) {
         if (subclass == null) {
-          subclass = link.head;
+          subclass = node;
         } else {
           return cls;
         }
@@ -616,10 +612,16 @@ class ClassSet {
     return true;
   }
 
+  /// Returns an [Iterable] of the classes that implement [cls] directly or
+  /// through supertypes.
+  ///
+  /// A class that implements [cls] through its superclasses is not included in
+  /// the iterable.
   Iterable<ClassHierarchyNode> get subtypeNodes {
     return _subtypes ?? const <ClassHierarchyNode>[];
   }
 
+  /// Returns an [Iterable] of the classes that mix in [cls] directly.
   Iterable<ClassHierarchyNode> get mixinApplicationNodes {
     return _mixinApplications ?? const <ClassHierarchyNode>[];
   }
@@ -894,7 +896,7 @@ class ClassHierarchyNodeIterator implements Iterator<ClassEntity> {
   /// Stack of pending class nodes.
   ///
   /// This is `null` before the first call to [moveNext].
-  Link<ClassHierarchyNode> stack;
+  List<ClassHierarchyNode> stack;
 
   ClassHierarchyNodeIterator(this.iterable);
 
@@ -917,7 +919,7 @@ class ClassHierarchyNodeIterator implements Iterator<ClassEntity> {
   bool moveNext() {
     if (stack == null) {
       // First call to moveNext
-      stack = const Link<ClassHierarchyNode>().prepend(root);
+      stack = [root];
       return _findNext();
     } else {
       // Initialized state.
@@ -935,17 +937,16 @@ class ClassHierarchyNodeIterator implements Iterator<ClassEntity> {
         currentNode = null;
         return false;
       }
-      currentNode = stack.head;
-      stack = stack.tail;
+      currentNode = stack.removeLast();
       if (!includeUninstantiated && !currentNode.isInstantiated) {
         // We're only iterating instantiated classes so there is no use in
         // visiting the current node and its subtree.
         continue;
       }
-      for (Link<ClassHierarchyNode> link = currentNode._directSubclasses;
-          !link.isEmpty;
-          link = link.tail) {
-        stack = stack.prepend(link.head);
+      // Add direct subclasses in reverse order so will visit them in the list
+      // order.
+      for (int i = currentNode._directSubclasses.length - 1; i >= 0; i--) {
+        stack.add(currentNode._directSubclasses[i]);
       }
       if (_isValid(currentNode)) {
         return true;

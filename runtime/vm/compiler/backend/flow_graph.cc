@@ -450,7 +450,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     // a null check rather than the more elaborate class check
     CompileType* type = receiver->Type();
     const AbstractType* atype = type->ToAbstractType();
-    if (atype->IsInstantiated() && atype->HasResolvedTypeClass() &&
+    if (atype->IsInstantiated() && atype->HasTypeClass() &&
         !atype->IsDynamicType()) {
       if (type->is_nullable()) {
         receiver_maybe_null = true;
@@ -544,15 +544,25 @@ Instruction* FlowGraph::CreateCheckClass(Definition* to_check,
       CheckClassInstr(new (zone()) Value(to_check), deopt_id, cids, token_pos);
 }
 
+Definition* FlowGraph::CreateCheckBound(Definition* length,
+                                        Definition* index,
+                                        intptr_t deopt_id) {
+  Value* val1 = new (zone()) Value(length);
+  Value* val2 = new (zone()) Value(index);
+  if (FLAG_precompiled_mode) {
+    return new (zone()) GenericCheckBoundInstr(val1, val2, deopt_id);
+  }
+  return new (zone()) CheckArrayBoundInstr(val1, val2, deopt_id);
+}
+
 void FlowGraph::AddExactnessGuard(InstanceCallInstr* call,
                                   intptr_t receiver_cid) {
   const Class& cls = Class::Handle(
       zone(), Isolate::Current()->class_table()->At(receiver_cid));
 
-  Definition* load_type_args = new (zone())
-      LoadFieldInstr(call->Receiver()->CopyWithType(),
-                     NativeFieldDesc::GetTypeArgumentsFieldFor(zone(), cls),
-                     call->token_pos());
+  Definition* load_type_args = new (zone()) LoadFieldInstr(
+      call->Receiver()->CopyWithType(),
+      Slot::GetTypeArgumentsSlotFor(thread(), cls), call->token_pos());
   InsertBefore(call, load_type_args, call->env(), FlowGraph::kValue);
 
   const AbstractType& type =
@@ -1112,10 +1122,7 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
 
   // Check if inlining_parameters include a type argument vector parameter.
   const intptr_t inlined_type_args_param =
-      (FLAG_reify_generic_functions && (inlining_parameters != NULL) &&
-       function().IsGeneric())
-          ? 1
-          : 0;
+      ((inlining_parameters != NULL) && function().IsGeneric()) ? 1 : 0;
 
   for (intptr_t i = 0; i < parameter_count; i++) {
     ParameterInstr* param = new (zone()) ParameterInstr(i, function_entry);
@@ -1140,11 +1147,9 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
     }
 
     // Replace the type arguments slot with a special parameter.
-    const bool reify_generic_argument =
-        function().IsGeneric() && FLAG_reify_generic_functions;
+    const bool reify_generic_argument = function().IsGeneric();
     if (reify_generic_argument) {
       ASSERT(parsed_function().function_type_arguments() != NULL);
-
       Definition* defn;
       if (inlining_parameters == NULL) {
         // Note: If we are not inlining, then the prologue builder will
@@ -1560,21 +1565,30 @@ RedefinitionInstr* FlowGraph::EnsureRedefinition(Instruction* prev,
   return redef;
 }
 
-void FlowGraph::RemoveRedefinitions() {
-  // Remove redefinition instructions inserted to inhibit hoisting.
+void FlowGraph::RemoveRedefinitions(bool keep_checks) {
+  // Remove redefinition and check instructions that were inserted
+  // to make a control dependence explicit with a data dependence,
+  // for example, to inhibit hoisting.
   for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
        block_it.Advance()) {
     thread()->CheckForSafepoint();
     for (ForwardInstructionIterator instr_it(block_it.Current());
          !instr_it.Done(); instr_it.Advance()) {
-      RedefinitionInstr* redefinition = instr_it.Current()->AsRedefinition();
-      if (redefinition != NULL) {
-        Definition* original;
-        do {
-          original = redefinition->value()->definition();
-        } while (original->IsRedefinition());
-        redefinition->ReplaceUsesWith(original);
+      Instruction* instruction = instr_it.Current();
+      if (instruction->IsRedefinition()) {
+        RedefinitionInstr* redef = instruction->AsRedefinition();
+        redef->ReplaceUsesWith(redef->value()->definition());
         instr_it.RemoveCurrentFromGraph();
+      } else if (keep_checks) {
+        continue;
+      } else if (instruction->IsCheckArrayBound()) {
+        CheckArrayBoundInstr* check = instruction->AsCheckArrayBound();
+        check->ReplaceUsesWith(check->index()->definition());
+        check->ClearSSATempIndex();
+      } else if (instruction->IsGenericCheckBound()) {
+        GenericCheckBoundInstr* check = instruction->AsGenericCheckBound();
+        check->ReplaceUsesWith(check->index()->definition());
+        check->ClearSSATempIndex();
       }
     }
   }

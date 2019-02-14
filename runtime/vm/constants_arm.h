@@ -283,6 +283,7 @@ const Register kStackTraceObjectReg = R1;
 // ABI for write barrier stub.
 const Register kWriteBarrierObjectReg = R1;
 const Register kWriteBarrierValueReg = R0;
+const Register kWriteBarrierSlotReg = R9;
 
 // List of registers used in load/store multiple.
 typedef uint16_t RegList;
@@ -308,10 +309,12 @@ const int kAbiPreservedFpuRegCount = 4;
 const RegList kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << TMP) |
                                       (1 << PP) | (1 << THR) | (1 << LR) |
                                       (1 << PC);
+constexpr intptr_t kNumberOfReservedCpuRegisters = 7;
 // CPU registers available to Dart allocator.
 constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
-constexpr int kNumberOfDartAvailableCpuRegs = kNumberOfCpuRegisters - 7;
+constexpr int kNumberOfDartAvailableCpuRegs =
+    kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
 const intptr_t kStoreBufferWrapperSize = 24;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =

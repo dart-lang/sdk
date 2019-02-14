@@ -3,17 +3,14 @@
 # BSD-style license that can be found in the LICENSE file.
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
-#
-# Note: Sections in this file are normalized so we can update them with
-# automated tools. Please add any new status lines affecting those two compilers
-# in the existing sections, if possible keep the alphabetic ordering. If we are
-# missing a section you need, please reach out to sigmund@ to see the best way
-# to add them.
+
+fragmentation_test: Pass, Slow # GC heavy
+io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
 
 [ $builder_tag == asan ]
 io/file_test: Fail # Issue 34724
 io/http_server_response_test: Fail # Issue 34724
-io/process_sync_test: Fail # Issue 34724 (child process)
+io/process_sync_test: Pass, Fail # https://github.com/dart-lang/sdk/issues/34724
 io/signals_test: Fail # Issue 34724
 io/test_extension_fail_test: Fail # Issue 32187
 
@@ -22,7 +19,6 @@ io/file_error_test: RuntimeError
 io/file_test: RuntimeError
 io/http_auth_digest_test: RuntimeError
 io/http_auth_test: RuntimeError
-io/http_compression_test: RuntimeError
 io/http_cookie_date_test: CompileTimeError
 io/http_headers_test: CompileTimeError
 io/http_parser_test: CompileTimeError
@@ -32,14 +28,14 @@ io/http_server_response_test: RuntimeError
 io/platform_test: RuntimeError
 io/regress_10026_test: RuntimeError
 io/secure_socket_argument_test: CompileTimeError
-io/socket_upgrade_to_secure_test: RuntimeError
 io/test_extension_fail_test: RuntimeError
 io/test_extension_test: RuntimeError
 io/web_socket_pipe_test: RuntimeError
 io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError
-oom_error_stacktrace_test: RuntimeError
-out_of_memory_test: RuntimeError
+
+[ $compiler == dartkp ]
+io/test_runner_test: SkipByDesign # Is not relevant for AOT.
 
 [ $fasta ]
 deferred_transitive_import_error_test: CompileTimeError
@@ -61,15 +57,11 @@ io/http_bind_test: Pass, Slow
 [ $arch == x64 && $builder_tag == asan && $compiler == dartk ]
 io/file_test: Fail # Memory leak (issue 34724)
 io/http_server_response_test: Fail # Memory leak (issue 34724)
-io/process_sync_test: Pass, RuntimeError # Issue 34734
 io/signals_test: Pass, RuntimeError # Issue 34734
 io/test_extension_fail_test: Fail # Memory leak (issue 34724)
 
 [ $builder_tag == optimization_counter_threshold && ($compiler == dartk || $compiler == dartkb) ]
 map_insert_remove_oom_test: Skip # Heap limit too low.
-
-[ $compiler == app_jitk && ($mode == debug || $mode == release) ]
-dart_developer_disabled_env_test: RuntimeError
 
 # The failures below still need to be investigated and possibly fixed, or marked as skipped.
 [ $compiler == dartkb && $strong ]
@@ -85,7 +77,6 @@ io/test_extension_test: RuntimeError # Platform.script points to dill file.
 no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
-io/compile_all_test: Crash # Issue 32373
 io/raw_socket_test: Crash
 io/skipping_dart2js_compilations_test: Crash
 io/socket_exception_test: Pass, Crash
@@ -102,12 +93,10 @@ io/compile_all_test: Pass
 io/namespace_test: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
-dwarf_stack_trace_test: RuntimeError
-io/compile_all_test: RuntimeError # Issue 32338
+io/compile_all_test: Skip # We do not support --compile-all for precompilation
 io/file_fuzz_test: RuntimeError, Pass
 io/http_client_connect_test: Skip # Flaky.
 io/http_close_test: Crash
-io/http_compression_test: RuntimeError
 io/http_content_length_test: Skip # Flaky.
 io/http_cookie_test: Skip # Flaky
 io/http_proxy_advanced_test: Skip # Flaky
@@ -159,7 +148,6 @@ io/web_socket_ping_test: Crash, Pass
 
 [ $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
 io/http_client_request_test: Pass, Timeout
-io/http_compression_test: RuntimeError
 io/platform_resolved_executable_test/03: Pass, RuntimeError
 io/platform_resolved_executable_test/04: Pass, RuntimeError
 io/secure_builtin_roots_test: Pass, Timeout
@@ -220,7 +208,7 @@ io/addlatexhash_test: Skip # Timeout
 io/http_advanced_test: Skip # Timeout
 io/http_auth_digest_test: Crash
 io/http_auth_test: Skip # Timeout
-io/http_basic_test: Pass, Crash # Sporadic crash, issue 33824
+io/http_basic_test: Pass, Timeout # Issue 28046
 io/http_proxy_advanced_test: Skip # Timeout
 io/http_read_test: Skip # Timeout
 io/non_utf8_directory_test: Pass, Timeout

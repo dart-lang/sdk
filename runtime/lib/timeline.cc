@@ -15,7 +15,7 @@ namespace dart {
 
 // Native implementations for the dart:developer library.
 
-DEFINE_NATIVE_ENTRY(Timeline_isDartStreamEnabled, 0) {
+DEFINE_NATIVE_ENTRY(Timeline_isDartStreamEnabled, 0, 0) {
 #ifndef PRODUCT
   if (!FLAG_support_timeline) {
     return Bool::False().raw();
@@ -27,7 +27,7 @@ DEFINE_NATIVE_ENTRY(Timeline_isDartStreamEnabled, 0) {
   return Bool::False().raw();
 }
 
-DEFINE_NATIVE_ENTRY(Timeline_getNextAsyncId, 0) {
+DEFINE_NATIVE_ENTRY(Timeline_getNextAsyncId, 0, 0) {
   if (!FLAG_support_timeline) {
     return Integer::New(0);
   }
@@ -38,15 +38,15 @@ DEFINE_NATIVE_ENTRY(Timeline_getNextAsyncId, 0) {
   return Integer::New(recorder->GetNextAsyncId());
 }
 
-DEFINE_NATIVE_ENTRY(Timeline_getTraceClock, 0) {
+DEFINE_NATIVE_ENTRY(Timeline_getTraceClock, 0, 0) {
   return Integer::New(OS::GetCurrentMonotonicMicros(), Heap::kNew);
 }
 
-DEFINE_NATIVE_ENTRY(Timeline_getThreadCpuClock, 0) {
+DEFINE_NATIVE_ENTRY(Timeline_getThreadCpuClock, 0, 0) {
   return Integer::New(OS::GetCurrentThreadCPUMicros(), Heap::kNew);
 }
 
-DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
+DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 0, 6) {
 #ifndef PRODUCT
   if (!FLAG_support_timeline) {
     return Object::null();
@@ -76,7 +76,7 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
+DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 0, 5) {
 #ifndef PRODUCT
   if (!FLAG_support_timeline) {
     return Object::null();
@@ -105,7 +105,7 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Timeline_reportFlowEvent, 7) {
+DEFINE_NATIVE_ENTRY(Timeline_reportFlowEvent, 0, 7) {
 #ifndef PRODUCT
   if (!FLAG_support_timeline) {
     return Object::null();
@@ -137,7 +137,7 @@ DEFINE_NATIVE_ENTRY(Timeline_reportFlowEvent, 7) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Timeline_reportInstantEvent, 4) {
+DEFINE_NATIVE_ENTRY(Timeline_reportInstantEvent, 0, 4) {
 #ifndef PRODUCT
   if (!FLAG_support_timeline) {
     return Object::null();

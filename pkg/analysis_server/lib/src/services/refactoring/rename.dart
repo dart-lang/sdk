@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,17 +18,17 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
  * Helper for renaming one or more [Element]s.
  */
 class RenameProcessor {
-  final SearchEngine searchEngine;
+  final RefactoringWorkspace workspace;
   final SourceChange change;
   final String newName;
 
-  RenameProcessor(this.searchEngine, this.change, this.newName);
+  RenameProcessor(this.workspace, this.change, this.newName);
 
   /**
    * Add the edit that updates the [element] declaration.
    */
   void addDeclarationEdit(Element element) {
-    if (element != null) {
+    if (element != null && workspace.containsElement(element)) {
       SourceEdit edit =
           newSourceEdit_range(range.elementName(element), newName);
       doSourceChange_addElementEdit(change, element, edit);
@@ -41,6 +41,9 @@ class RenameProcessor {
   void addReferenceEdits(List<SearchMatch> matches) {
     List<SourceReference> references = getSourceReferences(matches);
     for (SourceReference reference in references) {
+      if (!workspace.containsElement(reference.element)) {
+        continue;
+      }
       reference.addEdit(change, newName);
     }
   }
@@ -50,7 +53,9 @@ class RenameProcessor {
    */
   Future<void> renameElement(Element element) {
     addDeclarationEdit(element);
-    return searchEngine.searchReferences(element).then(addReferenceEdits);
+    return workspace.searchEngine
+        .searchReferences(element)
+        .then(addReferenceEdits);
   }
 }
 
@@ -86,7 +91,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
           getElementQualifiedName(element));
       result.addFatalError(message);
     }
-    if (!workspace.containsFile(element.source.fullName)) {
+    if (!workspace.containsElement(element)) {
       String message = format(
           "The {0} '{1}' is defined outside of the project, so cannot be renamed.",
           getElementKindName(element),

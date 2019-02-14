@@ -3495,83 +3495,28 @@ class AnalysisOverridesParams implements HasToJson {
 /**
  * analysis.reanalyze params
  *
- * {
- *   "roots": optional List<FilePath>
- * }
- *
  * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisReanalyzeParams implements RequestParams {
-  List<String> _roots;
-
-  /**
-   * A list of the analysis roots that are to be re-analyzed.
-   */
-  List<String> get roots => _roots;
-
-  /**
-   * A list of the analysis roots that are to be re-analyzed.
-   */
-  void set roots(List<String> value) {
-    this._roots = value;
-  }
-
-  AnalysisReanalyzeParams({List<String> roots}) {
-    this.roots = roots;
-  }
-
-  factory AnalysisReanalyzeParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
-    if (json is Map) {
-      List<String> roots;
-      if (json.containsKey("roots")) {
-        roots = jsonDecoder.decodeList(
-            jsonPath + ".roots", json["roots"], jsonDecoder.decodeString);
-      }
-      return new AnalysisReanalyzeParams(roots: roots);
-    } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.reanalyze params", json);
-    }
-  }
-
-  factory AnalysisReanalyzeParams.fromRequest(Request request) {
-    return new AnalysisReanalyzeParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
-  }
-
   @override
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
-    if (roots != null) {
-      result["roots"] = roots;
-    }
-    return result;
-  }
+  Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.reanalyze", toJson());
+    return new Request(id, "analysis.reanalyze", null);
   }
-
-  @override
-  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
     if (other is AnalysisReanalyzeParams) {
-      return listEqual(roots, other.roots, (String a, String b) => a == b);
+      return true;
     }
     return false;
   }
 
   @override
   int get hashCode {
-    int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, roots.hashCode);
-    return JenkinsSmiHash.finish(hash);
+    return 613039876;
   }
 }
 

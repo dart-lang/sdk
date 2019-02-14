@@ -124,7 +124,6 @@ KernelTypeBuilder substituteRange(
               formal.modifiers,
               parameterType,
               formal.name,
-              formal.hasThis,
               formal.parent,
               formal.charOffset);
           changed = true;

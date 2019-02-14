@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -70,7 +70,7 @@ class WatchListener {
 }
 
 @reflectiveTest
-class WatchManagerTest extends Object with ResourceProviderMixin {
+class WatchManagerTest with ResourceProviderMixin {
   WatchListener listener;
   WatchManager<Token> manager;
 
@@ -194,7 +194,7 @@ class WatchManagerTest extends Object with ResourceProviderMixin {
 }
 
 @reflectiveTest
-class WatchNodeTest extends Object with ResourceProviderMixin {
+class WatchNodeTest with ResourceProviderMixin {
   void test_creation_folder() {
     Folder folder = getFolder('/a/b');
     WatchNode node = new WatchNode(folder);

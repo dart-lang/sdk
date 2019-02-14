@@ -16,7 +16,7 @@ import '../constants/expressions.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../native/enqueue.dart';
-import '../native/native.dart' as native;
+import '../native/behavior.dart';
 import '../options.dart';
 import '../universe/feature.dart';
 import '../universe/use.dart'
@@ -286,7 +286,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       }
     }
 
-    for (native.NativeBehavior behavior in worldImpact.nativeData) {
+    for (NativeBehavior behavior in worldImpact.nativeData) {
       _nativeResolutionEnqueuer.registerNativeBehavior(
           transformed, behavior, worldImpact);
     }
@@ -317,9 +317,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     type = _elementEnvironment.getUnaliasedType(type);
     registerImpact(_impacts.typeCheck);
 
-    if (type.isMalformed) {
-      registerImpact(_impacts.malformedTypeCheck);
-    }
     if (!type.treatAsRaw || type.containsTypeVariables || type.isFunctionType) {
       registerImpact(_impacts.genericTypeCheck);
       if (type.isTypeVariable) {

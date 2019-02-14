@@ -137,8 +137,8 @@ class VmConstantsBackend implements ConstantsBackend {
       kvListPairs[2 * i] = entry.key;
       kvListPairs[2 * i + 1] = entry.value;
     }
-    // Strong mode is a bit fishy here, since we merge the key and the value
-    // type by putting both into the same list!
+    // This is a bit fishy, since we merge the key and the value type by
+    // putting both into the same list.
     final kvListConstant = new ListConstant(const DynamicType(), kvListPairs);
     assert(immutableMapClass.fields.length == 1);
     final Field kvPairListField = immutableMapClass.fields[0];

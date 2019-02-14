@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*element: main:static=[
-  testAs(0),
-  testAsGeneric(0),
-  testAsGenericDynamic(0),
-  testAsGenericRaw(0),
+  testAs(1),
+  testAsGeneric(1),
+  testAsGenericDynamic(1),
+  testAsGenericRaw(1),
   testConditional(0),
   testIfNotNull(1),
   testIfNotNullSet(1),
@@ -56,10 +56,10 @@ main() {
   testIsTypedefGenericRaw();
   testIsTypedefGenericDynamic();
   testIsTypedefDeep();
-  testAs();
-  testAsGeneric();
-  testAsGenericRaw();
-  testAsGenericDynamic();
+  testAs(null);
+  testAsGeneric(null);
+  testAsGenericRaw(null);
+  testAsGenericDynamic(null);
   testThrow();
   testIfNotNull(null);
   testTypedIfNotNull(null);
@@ -269,10 +269,10 @@ testIsTypedefDeep() => null is List<GenericTypedef<int, GenericTypedef>>;
 
 /*element: testAs:
  static=[throwRuntimeError],
- type=[as:Class,inst:JSBool,inst:JSNull]
+ type=[as:Class,inst:JSBool]
 */
 // ignore: UNNECESSARY_CAST
-testAs() => null as Class;
+testAs(dynamic o) => o as Class;
 
 /*element: testAsGeneric:static=[checkSubtype,
   getRuntimeTypeArgument,
@@ -288,24 +288,23 @@ testAs() => null as Class;
   inst:JSExtendableArray<dynamic>,
   inst:JSFixedArray<dynamic>,
   inst:JSMutableArray<dynamic>,
-  inst:JSNull,
   inst:JSUnmodifiableArray<dynamic>]*/
 // ignore: UNNECESSARY_CAST
-testAsGeneric() => null as GenericClass<int, String>;
+testAsGeneric(dynamic o) => o as GenericClass<int, String>;
 
 /*element: testAsGenericRaw:
  static=[throwRuntimeError],
- type=[as:GenericClass<dynamic,dynamic>,inst:JSBool,inst:JSNull]
+ type=[as:GenericClass<dynamic,dynamic>,inst:JSBool]
 */
 // ignore: UNNECESSARY_CAST
-testAsGenericRaw() => null as GenericClass;
+testAsGenericRaw(dynamic o) => o as GenericClass;
 
 /*element: testAsGenericDynamic:
  static=[throwRuntimeError],
- type=[as:GenericClass<dynamic,dynamic>,inst:JSBool,inst:JSNull]
+ type=[as:GenericClass<dynamic,dynamic>,inst:JSBool]
 */
 // ignore: UNNECESSARY_CAST
-testAsGenericDynamic() => null as GenericClass<dynamic, dynamic>;
+testAsGenericDynamic(dynamic o) => o as GenericClass<dynamic, dynamic>;
 
 /*element: testThrow:
  static=[throwExpression,wrapException],

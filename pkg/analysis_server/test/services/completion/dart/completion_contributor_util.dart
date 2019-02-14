@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,6 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -460,19 +459,10 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  /**
-   * Return a [Future] that completes with the containing library information
-   * after it is accessible via [context.getLibrariesContaining].
-   */
-  Future<void> computeLibrariesContaining([int times = 200]) {
-    return driver.getResult(testFile).then((result) => null);
-  }
-
   Future computeSuggestions({int times = 200}) async {
-    AnalysisResult analysisResult =
-        await driver.getResult(convertPath(testFile));
+    var resolveResult = await session.getResolvedUnit(testFile);
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        analysisResult, completionOffset, new CompletionPerformance());
+        resolveResult, completionOffset, new CompletionPerformance());
 
     // Build the request
     var request = await DartCompletionRequestImpl.from(baseRequest);
@@ -553,7 +543,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = resourceProvider.convertPath('/completionTest.dart');
+    testFile = convertPath('/home/test/lib/test.dart');
     contributor = createContributor();
   }
 }

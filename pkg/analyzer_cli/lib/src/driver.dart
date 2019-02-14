@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,7 +7,6 @@ import 'dart:io' as io;
 import 'dart:isolate';
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
@@ -93,11 +92,11 @@ void setAnalytics(telemetry.Analytics replacementAnalytics) {
   _analytics = replacementAnalytics;
 }
 
-class Driver extends Object with HasContextMixin implements CommandLineStarter {
+class Driver with HasContextMixin implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
       new PerformanceTag("Driver._analyzeAll");
 
-  static ByteStore analysisDriverMemoryByteStore = new MemoryByteStore();
+  static final ByteStore analysisDriverMemoryByteStore = new MemoryByteStore();
 
   ContextCache contextCache;
 
@@ -125,8 +124,8 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
   /**
    * The resource provider used to access the file system.
    */
-  file_system.ResourceProvider resourceProvider =
-      PhysicalResourceProvider.INSTANCE;
+  @override
+  final ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
 
   /// Collected analysis statistics.
   final AnalysisStats stats = new AnalysisStats();
@@ -166,9 +165,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
   }
 
   @override
-  Future<Null> start(List<String> args, {SendPort sendPort}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  Future<void> start(List<String> args, {SendPort sendPort}) async {
     if (analysisDriver != null) {
       throw new StateError("start() can only be called once");
     }
@@ -357,7 +354,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
         var shortName = resourceProvider.pathContext.basename(path);
         if (shortName == AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE ||
             shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE) {
-          file_system.File file = resourceProvider.getFile(path);
+          File file = resourceProvider.getFile(path);
           String content = file.readAsStringSync();
           LineInfo lineInfo = new LineInfo.fromContent(content);
           List<AnalysisError> errors =
@@ -373,7 +370,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
           }
         } else if (shortName == AnalysisEngine.PUBSPEC_YAML_FILE) {
           try {
-            file_system.File file = resourceProvider.getFile(path);
+            File file = resourceProvider.getFile(path);
             String content = file.readAsStringSync();
             YamlNode node = loadYamlNode(content);
             if (node is YamlMap) {
@@ -472,14 +469,14 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
   /// In this situation, [analysisOptions] is ignored and can be `null`.
   SourceFactory _chooseUriResolutionPolicy(
       CommandLineOptions options,
-      Map<file_system.Folder, YamlMap> embedderMap,
+      Map<Folder, YamlMap> embedderMap,
       _PackageInfo packageInfo,
       SummaryDataStore summaryDataStore,
       bool includeSdkResolver,
       AnalysisOptions analysisOptions) {
     // Create a custom package resolver if one has been specified.
     if (packageResolverProvider != null) {
-      file_system.Folder folder = resourceProvider.getResource('.');
+      Folder folder = resourceProvider.getFolder('.');
       UriResolver resolver = packageResolverProvider(folder);
       if (resolver != null) {
         // TODO(brianwilkerson) This doesn't handle sdk extensions.
@@ -610,7 +607,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     _PackageInfo packageInfo = _findPackages(options);
 
     // Process embedders.
-    Map<file_system.Folder, YamlMap> embedderMap =
+    Map<Folder, YamlMap> embedderMap =
         new EmbedderYamlLocator(packageInfo.packageMap).embedderYamls;
 
     // Scan for SDK extenders.
@@ -679,7 +676,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     }
 
     Packages packages;
-    Map<String, List<file_system.Folder>> packageMap;
+    Map<String, List<Folder>> packageMap;
 
     if (options.packageConfigPath != null) {
       String packageConfigPath = options.packageConfigPath;
@@ -698,7 +695,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
       packageMap = _PackageRootPackageMapBuilder.buildPackageMap(
           options.packageRootPath);
     } else {
-      file_system.Resource cwd = resourceProvider.getResource(path.current);
+      Resource cwd = resourceProvider.getResource(path.current);
       // Look for .packages.
       packages = _discoverPackagespec(new Uri.directory(cwd.path));
       packageMap = _getPackageMap(packages);
@@ -707,13 +704,12 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     return new _PackageInfo(packages, packageMap);
   }
 
-  Map<String, List<file_system.Folder>> _getPackageMap(Packages packages) {
+  Map<String, List<Folder>> _getPackageMap(Packages packages) {
     if (packages == null) {
       return null;
     }
 
-    Map<String, List<file_system.Folder>> folderMap =
-        new Map<String, List<file_system.Folder>>();
+    Map<String, List<Folder>> folderMap = new Map<String, List<Folder>>();
     var pathContext = resourceProvider.pathContext;
     packages.asMap().forEach((String packagePath, Uri uri) {
       String path = fileUriToNormalizedPath(pathContext, uri);
@@ -722,11 +718,11 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     return folderMap;
   }
 
-  bool _hasSdkExt(Iterable<List<file_system.Folder>> folders) {
+  bool _hasSdkExt(Iterable<List<Folder>> folders) {
     if (folders != null) {
       //TODO: ideally share this traversal with SdkExtUriResolver
-      for (Iterable<file_system.Folder> libDirs in folders) {
-        if (libDirs.any((file_system.Folder libDir) =>
+      for (Iterable<Folder> libDirs in folders) {
+        if (libDirs.any((Folder libDir) =>
             libDir.getChild(SdkExtUriResolver.SDK_EXT_NAME).exists)) {
           return true;
         }
@@ -800,48 +796,23 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
   /// Return whether the [newOptions] are equal to the [previous].
   static bool _equalCommandLineOptions(
       CommandLineOptions previous, CommandLineOptions newOptions) {
-    if (previous == null || newOptions == null) {
-      return false;
-    }
-    if (newOptions.packageRootPath != previous.packageRootPath) {
-      return false;
-    }
-    if (newOptions.packageConfigPath != previous.packageConfigPath) {
-      return false;
-    }
-    if (!_equalMaps(newOptions.definedVariables, previous.definedVariables)) {
-      return false;
-    }
-    if (newOptions.log != previous.log) {
-      return false;
-    }
-    if (newOptions.disableHints != previous.disableHints) {
-      return false;
-    }
-    if (newOptions.showPackageWarnings != previous.showPackageWarnings) {
-      return false;
-    }
-    if (newOptions.showPackageWarningsPrefix !=
-        previous.showPackageWarningsPrefix) {
-      return false;
-    }
-    if (newOptions.showSdkWarnings != previous.showSdkWarnings) {
-      return false;
-    }
-    if (newOptions.lints != previous.lints) {
-      return false;
-    }
-    if (newOptions.strongMode != previous.strongMode) {
-      return false;
-    }
-    if (!_equalLists(
-        newOptions.buildSummaryInputs, previous.buildSummaryInputs)) {
-      return false;
-    }
-    if (newOptions.disableCacheFlushing != previous.disableCacheFlushing) {
-      return false;
-    }
-    return true;
+    return previous != null &&
+        newOptions != null &&
+        newOptions.packageRootPath == previous.packageRootPath &&
+        newOptions.packageConfigPath == previous.packageConfigPath &&
+        _equalMaps(newOptions.definedVariables, previous.definedVariables) &&
+        newOptions.log == previous.log &&
+        newOptions.disableHints == previous.disableHints &&
+        newOptions.showPackageWarnings == previous.showPackageWarnings &&
+        newOptions.showPackageWarningsPrefix ==
+            previous.showPackageWarningsPrefix &&
+        newOptions.showSdkWarnings == previous.showSdkWarnings &&
+        newOptions.lints == previous.lints &&
+        newOptions.strongMode == previous.strongMode &&
+        _equalLists(
+            newOptions.buildSummaryInputs, previous.buildSummaryInputs) &&
+        newOptions.disableCacheFlushing == previous.disableCacheFlushing &&
+        _equalLists(newOptions.enabledExperiments, previous.enabledExperiments);
   }
 
   /// Perform a deep comparison of two string lists.
@@ -872,14 +843,14 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
 }
 
 class _DriverError implements Exception {
-  String msg;
+  final String msg;
 
   _DriverError(this.msg);
 }
 
 class _PackageInfo {
-  Packages packages;
-  Map<String, List<file_system.Folder>> packageMap;
+  final Packages packages;
+  final Map<String, List<Folder>> packageMap;
 
   _PackageInfo(this.packages, this.packageMap);
 }
@@ -890,15 +861,14 @@ class _PackageInfo {
 /// [_PackageRootPackageMapBuilder] creates a simple mapping from package name
 /// to full path on disk (resolving any symbolic links).
 class _PackageRootPackageMapBuilder {
-  static Map<String, List<file_system.Folder>> buildPackageMap(
-      String packageRootPath) {
+  static Map<String, List<Folder>> buildPackageMap(String packageRootPath) {
     var packageRoot = new io.Directory(packageRootPath);
     if (!packageRoot.existsSync()) {
       throw new _DriverError(
           'Package root directory ($packageRootPath) does not exist.');
     }
     var packages = packageRoot.listSync(followLinks: false);
-    var result = new Map<String, List<file_system.Folder>>();
+    var result = new Map<String, List<Folder>>();
     for (var package in packages) {
       var packageName = path.basename(package.path);
       var realPath = package.resolveSymbolicLinksSync();

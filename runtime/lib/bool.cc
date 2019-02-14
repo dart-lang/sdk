@@ -16,7 +16,7 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(Bool_fromEnvironment, 3) {
+DEFINE_NATIVE_ENTRY(Bool_fromEnvironment, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(Bool, default_value, arguments->NativeArgAt(2));
   // Call the embedder to supply us with the environment.

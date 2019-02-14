@@ -121,7 +121,7 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
   void listen(void onRequest(Request request),
       {Function onError, void onDone()}) {
     void onData(data) {
-      Map<String, Object> requestMap = data;
+      Map<String, Object> requestMap = data as Map<String, Object>;
       Request request = new Request.fromJson(requestMap);
       if (request != null) {
         onRequest(request);

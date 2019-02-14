@@ -10,11 +10,10 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
-import 'package:compiler/src/types/types.dart';
+import 'package:compiler/src/inferrer/types.dart';
 import 'package:compiler/src/js_model/element_map.dart';
-import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/js_model/locals.dart';
-import 'package:compiler/src/inferrer/builder_kernel.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -38,21 +37,19 @@ runTests(List<String> args, [int shardIndex]) {
         options: [stopAfterTypeInference],
         skipForStrong: skipForStrong,
         shardIndex: shardIndex ?? 0,
-        shards: shardIndex != null ? 2 : 1, onTest: (Uri uri) {
-      useStaticResultTypes = uri.path.endsWith('/use_static_types.dart');
-    });
+        shards: shardIndex != null ? 2 : 1);
   });
 }
 
-class TypeMaskDataComputer extends DataComputer {
+class TypeMaskDataComputer extends DataComputer<String> {
   const TypeMaskDataComputer();
 
   /// Compute type inference data for [member] from kernel based inference.
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
@@ -68,10 +65,13 @@ class TypeMaskDataComputer extends DataComputer {
             closedWorld.closureDataLookup)
         .run(definition.node);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
 /// IR visitor for computing inference data for a member.
-class TypeMaskIrComputer extends IrDataExtractor {
+class TypeMaskIrComputer extends IrDataExtractor<String> {
   final GlobalTypeInferenceResults results;
   GlobalTypeInferenceMemberResult result;
   final JsToElementMap _elementMap;
@@ -80,7 +80,7 @@ class TypeMaskIrComputer extends IrDataExtractor {
 
   TypeMaskIrComputer(
       DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap,
+      Map<Id, ActualData<String>> actualMap,
       this._elementMap,
       MemberEntity member,
       this._localsMap,

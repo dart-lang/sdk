@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24,22 +24,21 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
 
   test_partFile_Constructor() async {
     // SimpleIdentifier  TypeName  ConstructorName
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library libA;
-        import "${convertAbsolutePathToUri("/testB.dart")}";
-        part "${convertAbsolutePathToUri(testFile)}";
+        import "b.dart";
+        part "test.dart";
         class A { }
         var m;''');
     addTestSource('''
         part of libA;
         class B { factory B.bar(int x) => null; }
         main() {new ^}''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -59,22 +58,21 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
 
   test_partFile_Constructor2() async {
     // SimpleIdentifier  TypeName  ConstructorName
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         part of libA;
         class B { }''');
     addTestSource('''
         library libA;
-        import "${convertAbsolutePathToUri("/testB.dart")}";
-        part "${convertAbsolutePathToUri("/testA.dart")}";
+        import "b.dart";
+        part "a.dart";
         class A { A({String boo: 'hoo'}) { } }
         main() {new ^}
         var m;''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -94,19 +92,19 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
 
   test_partFile_InstanceCreationExpression_assignment_filter() async {
     // ConstructorName  InstanceCreationExpression  VariableDeclarationList
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         part of libA;
         class A {} class B extends A {} class C implements A {} class D {}
         ''');
     addTestSource('''
         library libA;
-        import "${convertAbsolutePathToUri("/testB.dart")}";
-        part "${convertAbsolutePathToUri("/testA.dart")}";
+        import "b.dart";
+        part "a.dart";
         class Local { }
         main() {
           A a;
@@ -114,7 +112,6 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
           a = new ^
         }
         var m;''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -147,25 +144,24 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
 
   test_partFile_InstanceCreationExpression_variable_declaration_filter() async {
     // ConstructorName  InstanceCreationExpression  VariableDeclarationList
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         part of libA;
         class A {} class B extends A {} class C implements A {} class D {}
         ''');
     addTestSource('''
         library libA;
-        import "${convertAbsolutePathToUri("/testB.dart")}";
-        part "${convertAbsolutePathToUri("/testA.dart")}";
+        import "b.dart";
+        part "a.dart";
         class Local { }
         main() {
           A a = new ^
         }
         var m;''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -197,15 +193,15 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
   }
 
   test_partFile_TypeName() async {
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         library libA;
-        import "${convertAbsolutePathToUri("/testB.dart")}";
-        part "${convertAbsolutePathToUri(testFile)}";
+        import "b.dart";
+        part "test.dart";
         class A { var a1; a2(){}}
         var m;
         typedef t1(int blue);
@@ -214,7 +210,6 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         part of libA;
         class B { factory B.bar(int x) => null; }
         main() {^}''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -243,12 +238,12 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
   }
 
   test_partFile_TypeName2() async {
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         part of libA;
         class B { var b1; b2(){}}
         int bf() => 0;
@@ -256,12 +251,11 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         var n;''');
     addTestSource('''
         library libA;
-        import "${convertAbsolutePathToUri("/testB.dart")}";
-        part "${convertAbsolutePathToUri("/testA.dart")}";
+        import "b.dart";
+        part "a.dart";
         class A { A({String boo: 'hoo'}) { } }
         main() {^}
         var m;''');
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);

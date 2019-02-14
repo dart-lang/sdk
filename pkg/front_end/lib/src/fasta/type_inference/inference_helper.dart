@@ -8,15 +8,14 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../fasta_codes.dart' show LocatedMessage, Message;
 
-import '../kernel/kernel_shadow_ast.dart' show SyntheticExpressionJudgment;
-
 abstract class InferenceHelper {
   CoreTypes get coreTypes;
 
   Uri get uri;
 
-  SyntheticExpressionJudgment buildProblem(
-      Message message, int charOffset, int length,
+  set transformSetLiterals(bool value);
+
+  Expression buildProblem(Message message, int charOffset, int length,
       {List<LocatedMessage> context, bool suppressMessage});
 
   LocatedMessage checkArgumentsForType(
@@ -30,4 +29,6 @@ abstract class InferenceHelper {
 
   String constructorNameForDiagnostics(String name,
       {String className, bool isSuper});
+
+  Expression desugarSyntheticExpression(Expression node);
 }

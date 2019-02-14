@@ -20,7 +20,7 @@ abstract class DartFixesRequest implements FixesRequest {
   /**
    * The analysis result for the file in which the fixes are being requested.
    */
-  ResolveResult get result;
+  ResolvedUnitResult get result;
 }
 
 /**
@@ -147,11 +147,6 @@ class FixKind {
   final String appliedTogetherMessage;
 
   /**
-   * The change can be made with other fixes of this [FixKind].
-   */
-  bool canBeAppliedTogether() => appliedTogetherMessage != null;
-
-  /**
    * Initialize a newly created kind of fix to have the given [name],
    * [priority], [message], and optionally [canBeAppliedTogether] and
    * [appliedTogetherMessage].
@@ -160,11 +155,16 @@ class FixKind {
       {this.appliedTogetherMessage: null});
 
   @override
-  String toString() => name;
+  int get hashCode => name.hashCode;
 
   @override
   bool operator ==(o) => o is FixKind && o.name == name;
 
+  /**
+   * The change can be made with other fixes of this [FixKind].
+   */
+  bool canBeAppliedTogether() => appliedTogetherMessage != null;
+
   @override
-  int get hashCode => name.hashCode;
+  String toString() => name;
 }

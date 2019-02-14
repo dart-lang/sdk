@@ -523,20 +523,18 @@ void main() {
   }
 
   test_covariantOverride() async {
-    _addMetaLibrary();
     await checkFile(r'''
-import 'meta.dart';
 class C {
   num f(num x) => x;
 }
 class D extends C {
-  int f(@checked int x) => x;
+  int f(covariant int x) => x;
 }
 class E extends D {
   int f(Object x) => /*info:DOWN_CAST_IMPLICIT*/x;
 }
 class F extends E {
-  int f(@checked int x) => x;
+  int f(covariant int x) => x;
 }
 class G extends E implements D {}
 
@@ -544,32 +542,30 @@ class D_error extends C {
   /*error:INVALID_OVERRIDE*/int f(int x) => x;
 }
 class E_error extends D {
-  /*error:INVALID_OVERRIDE*/int f(@checked double x) => 0;
+  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
 }
 class F_error extends E {
-  /*error:INVALID_OVERRIDE*/int f(@checked double x) => 0;
+  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
 }
 class G_error extends E implements D {
-  /*error:INVALID_OVERRIDE*/int f(@checked double x) => 0;
+  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
 }
     ''');
   }
 
   @failingTest
   test_covariantOverride_fields() async {
-    _addMetaLibrary();
     await checkFile(r'''
-import 'meta.dart';
 class A {
   get foo => '';
   set foo(_) {}
 }
 
 class B extends A {
-  @checked num foo;
+  covariant num foo;
 }
 class C extends A {
-  @checked @virtual num foo;
+  covariant @virtual num foo;
 }
 class D extends C {
   @virtual int foo;
@@ -581,9 +577,7 @@ class E extends D {
   }
 
   test_covariantOverride_leastUpperBound() async {
-    _addMetaLibrary();
     await checkFile(r'''
-import "meta.dart";
 abstract class Top {}
 abstract class Left implements Top {}
 abstract class Right implements Top {}
@@ -600,17 +594,15 @@ abstract class TakesTop implements TakesLeft, TakesRight {
 }
 abstract class TakesBottom implements TakesLeft, TakesRight {
   // LUB(Left, Right) == Top, so this is an implicit cast from Top to Bottom.
-  m(@checked Bottom x);
+  m(covariant Bottom x);
 }
     ''');
   }
 
   test_covariantOverride_markerIsInherited() async {
-    _addMetaLibrary();
     await checkFile(r'''
-import 'meta.dart';
 class C {
-  num f(@checked num x) => x;
+  num f(covariant num x) => x;
 }
 class D extends C {
   int f(int x) => x;
@@ -2134,73 +2126,49 @@ main() {
     addFile(
         'num n; int i; void main() { i = /*info:DOWN_CAST_IMPLICIT*/n;}//yy');
     await check();
+
     addFile(
         'num n; int i; void main() { i = /*error:INVALID_ASSIGNMENT*/n;}//ny');
-    await check(implicitCasts: false, declarationCasts: true);
-    addFile(
-        'num n; int i; void main() { i = /*info:DOWN_CAST_IMPLICIT*/n;}//yn');
-    await check(implicitCasts: true, declarationCasts: false);
-    addFile(
-        'num n; int i; void main() { i = /*error:INVALID_ASSIGNMENT*/n;}//nn');
-    await check(implicitCasts: false, declarationCasts: false);
+    await check(implicitCasts: false);
   }
 
   test_implicitCasts_compoundAssignment() async {
     addFile('''f(num n, int i) {
                /*info:DOWN_CAST_IMPLICIT_ASSIGN*/i += n;}//yy''');
     await check();
+
     addFile('''f(num n, int i) {
                i += /*error:INVALID_ASSIGNMENT*/n;}//ny''');
-    await check(implicitCasts: false, declarationCasts: true);
-    addFile('''f(num n, int i) {
-               /*info:DOWN_CAST_IMPLICIT_ASSIGN*/i += n;}//yn''');
-    await check(implicitCasts: true, declarationCasts: false);
-    addFile('''f(num n, int i) {
-               i += /*error:INVALID_ASSIGNMENT*/n;}//nn''');
-    await check(implicitCasts: false, declarationCasts: false);
+    await check(implicitCasts: false);
   }
 
   test_implicitCasts_constructorInitializer() async {
     addFile(
         'class A { int i; A(num n) : i = /*info:DOWN_CAST_IMPLICIT*/n;}//yy');
     await check();
+
     addFile(
         'class A { int i; A(num n) : i = /*error:FIELD_INITIALIZER_NOT_ASSIGNABLE*/n;}//ny');
-    await check(implicitCasts: false, declarationCasts: true);
-    addFile(
-        'class A { int i; A(num n) : i = /*info:DOWN_CAST_IMPLICIT*/n;}//yn');
-    await check(implicitCasts: true, declarationCasts: false);
-    addFile(
-        'class A { int i; A(num n) : i = /*error:FIELD_INITIALIZER_NOT_ASSIGNABLE*/n;}//nn');
-    await check(implicitCasts: false, declarationCasts: false);
+    await check(implicitCasts: false);
   }
 
   test_implicitCasts_defaultValue() async {
     addFile('''const num n = 0;
                f({int i = /*info:DOWN_CAST_IMPLICIT*/n}) => i;//yy''');
     await check();
+
     addFile('''const num n = 0;
                f({int i = /*error:INVALID_ASSIGNMENT*/n}) => i;//ny''');
-    await check(implicitCasts: false, declarationCasts: true);
-    addFile('''const num n = 0;
-               f({int i = /*info:DOWN_CAST_IMPLICIT*/n}) => i;//yn''');
-    await check(implicitCasts: true, declarationCasts: false);
-    addFile('''const num n = 0;
-               f({int i = /*error:INVALID_ASSIGNMENT*/n}) => i;//nn''');
-    await check(implicitCasts: false, declarationCasts: false);
+    await check(implicitCasts: false);
   }
 
   test_implicitCasts_fieldInitializer() async {
     addFile('class A { static num n; int i = /*info:ASSIGNMENT_CAST*/n;}//yy');
     await check();
-    addFile('class A { static num n; int i = /*info:ASSIGNMENT_CAST*/n;}//ny');
-    await check(implicitCasts: false, declarationCasts: true);
-    addFile(
-        'class A { static num n; int i = /*error:INVALID_ASSIGNMENT*/n;}//yn');
-    await check(implicitCasts: true, declarationCasts: false);
+
     addFile(
         'class A { static num n; int i = /*error:INVALID_ASSIGNMENT*/n;}//nn');
-    await check(implicitCasts: false, declarationCasts: false);
+    await check(implicitCasts: false);
   }
 
   test_implicitCasts_functionCall() async {
@@ -2208,18 +2176,11 @@ main() {
                f(int i) => i;
                var i = f(/*info:DOWN_CAST_IMPLICIT*/n);//yy''');
     await check();
-    addFile('''num n;
-               f(int i) => i;
-               var i = f(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/n);//ny''');
-    await check(implicitCasts: false, declarationCasts: true);
-    addFile('''num n;
-               f(int i) => i;
-               var i = f(/*info:DOWN_CAST_IMPLICIT*/n);//yn''');
-    await check(implicitCasts: true, declarationCasts: false);
+
     addFile('''num n;
              f(int i) => i;
              var i = f(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/n);//nn''');
-    await check(implicitCasts: false, declarationCasts: false);
+    await check(implicitCasts: false);
   }
 
   test_implicitCasts_genericMethods() async {
@@ -2232,12 +2193,9 @@ var x = <String>[].map<String>(/*info:INFERRED_TYPE_CLOSURE*/(x) => "");
   test_implicitCasts_initializer() async {
     addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;//yy');
     await check();
-    addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;//ny');
-    await check(implicitCasts: false, declarationCasts: true);
-    addFile('num n; int i = /*error:INVALID_ASSIGNMENT*/n;//yn');
-    await check(implicitCasts: true, declarationCasts: false);
+
     addFile('num n; int i = /*error:INVALID_ASSIGNMENT*/n;//nn');
-    await check(implicitCasts: false, declarationCasts: false);
+    await check(implicitCasts: false);
   }
 
   test_implicitCasts_numericOps() async {
@@ -2257,29 +2215,19 @@ void f() {
              int i;
              var r = i & /*info:DOWN_CAST_IMPLICIT*/n;//yy''');
     await check();
-    addFile('''num n;
-             int i;
-             var r = i & /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/n;//ny''');
-    await check(implicitCasts: false, declarationCasts: true);
-    addFile('''num n;
-             int i;
-             var r = i & /*info:DOWN_CAST_IMPLICIT*/n;//yn''');
-    await check(implicitCasts: true, declarationCasts: false);
+
     addFile('''num n;
              int i;
              var r = i & /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/n;//nn''');
-    await check(implicitCasts: false, declarationCasts: false);
+    await check(implicitCasts: false);
   }
 
   test_implicitCasts_return() async {
     addFile('int f(num n) => /*info:DOWN_CAST_IMPLICIT*/n;//yy');
     await check();
-    addFile('int f(num n) => /*error:RETURN_OF_INVALID_TYPE*/n;//ny');
-    await check(implicitCasts: false, declarationCasts: true);
-    addFile('int f(num n) => /*info:DOWN_CAST_IMPLICIT*/n;//yn');
-    await check(implicitCasts: true, declarationCasts: false);
+
     addFile('int f(num n) => /*error:RETURN_OF_INVALID_TYPE*/n;//nn');
-    await check(implicitCasts: false, declarationCasts: false);
+    await check(implicitCasts: false);
   }
 
   test_implicitCasts_return_async() async {
@@ -3445,11 +3393,9 @@ abstract class D extends C {
 
   test_overrideNarrowsType_legalWithChecked() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25232
-    _addMetaLibrary();
     await checkFile(r'''
-import 'meta.dart';
 abstract class A { void test(A arg) { } }
-abstract class B extends A { void test(@checked B arg) { } }
+abstract class B extends A { void test(covariant B arg) { } }
 abstract class X implements A { }
 class C extends B with X { }
 class D extends B implements A { }

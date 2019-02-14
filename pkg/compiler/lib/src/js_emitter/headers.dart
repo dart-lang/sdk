@@ -33,6 +33,11 @@ const String HOOKS_API_USAGE = """
 //    successCallback. If it fails to do so, it should call errorCallback with
 //    an error.
 //
+// dartCallInstrumentation(id, qualifiedName):
+//    if this function is defined, it will be called at each entry of a
+//    method or constructor. Used only when compiling programs with
+//    --experiment-call-instrumentation.
+//
 // defaultPackagesBase:
 //    Override the location where `package:` uris are resolved from. By default
 //    they are resolved under "packages/" from the current window location.

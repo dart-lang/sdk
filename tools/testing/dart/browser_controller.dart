@@ -538,12 +538,24 @@ class IE extends Browser {
     });
   }
 
-  // Clears the recovery cache if the static resetBrowserConfiguration flag is
-  // set.
-  Future<bool> resetConfiguration() {
-    if (!Browser.resetBrowserConfiguration) return new Future.value(true);
-    var localAppData = Platform.environment['LOCALAPPDATA'];
+  // Clears the recovery cache and allows popups on localhost if the static
+  // resetBrowserConfiguration flag is set.
+  Future<bool> resetConfiguration() async {
+    if (!Browser.resetBrowserConfiguration) return true;
+    // todo(athom) Move this into the puppet configuration
+    var args = [
+      "add",
+      r"HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\New Windows\Allow",
+      "/v",
+      "127.0.0.1",
+      "/f"
+    ];
+    var result = await Process.run("reg", args);
+    if (result.exitCode != 0) {
+      _logEvent("Failed to override user popup blocker settings");
+    }
 
+    var localAppData = Platform.environment['LOCALAPPDATA'];
     Directory dir = new Directory("$localAppData\\Microsoft\\"
         "Internet Explorer\\Recovery");
     return dir.delete(recursive: true).then((_) {
@@ -972,13 +984,6 @@ class BrowserTestRunner {
     var id = status.browser.id;
 
     status.currentTest.stopwatch.stop();
-
-    // Before closing the browser, we'll try to capture a screenshot on
-    // windows when using IE (to debug flakiness).
-    if (status.browser is IE) {
-      await captureInternetExplorerScreenshot(
-          'IE screenshot for ${status.currentTest.url}');
-    }
     await status.browser.close();
     var lastKnownMessage =
         'Dom could not be fetched, since the test timed out.';
@@ -1642,58 +1647,4 @@ body div {
 """;
     return driverContent;
   }
-}
-
-Future captureInternetExplorerScreenshot(String message) async {
-  if (Platform.environment['USERNAME'] != 'chrome-bot') {
-    return;
-  }
-
-  print('--------------------------------------------------------------------');
-  final String date =
-      new DateTime.now().toUtc().toIso8601String().replaceAll(':', '_');
-  final screenshotName = 'ie_screenshot_${date}.png';
-
-  // The "capture_screen.ps1" script is next to "test.dart" in "tools/"
-  final powerShellScript =
-      Platform.script.resolve('../../capture_screenshot.ps1').toFilePath();
-  final screenshotFile =
-      Platform.script.resolve('../../../$screenshotName').toFilePath();
-
-  final args = [
-    '-ExecutionPolicy',
-    'ByPass',
-    '-File',
-    powerShellScript,
-    screenshotFile
-  ];
-  final ProcessResult result =
-      await Process.run('powershell.exe', args, runInShell: true);
-  if (result.exitCode != 0) {
-    print('[$message] Failed to capture IE screenshot on windows: '
-        'powershell.exe "${args.join(' ')}" returned with:\n'
-        'exit code: ${result.exitCode}\n'
-        'stdout: ${result.stdout}\n'
-        'stderr: ${result.stderr}');
-  } else {
-    final storageUrl = 'gs://dart-temp-crash-archive/$screenshotName';
-    final args = [
-      r'e:\b\depot_tools\gsutil.py',
-      'cp',
-      screenshotFile,
-      storageUrl,
-    ];
-    final ProcessResult result = await Process.run('python', args);
-    if (result.exitCode != 0) {
-      print('[$message] Failed upload captured IE screenshot to cloud storage: '
-          '"${args.join(' ')}" returned with:\n'
-          'exit code: ${result.exitCode}\n'
-          'stdout: ${result.stdout}\n'
-          'stderr: ${result.stderr}');
-    } else {
-      print('[$message] Successfully uploaded screenshot to $storageUrl');
-    }
-    new File(screenshotFile).deleteSync();
-  }
-  print('--------------------------------------------------------------------');
 }

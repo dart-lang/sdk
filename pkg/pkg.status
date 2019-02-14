@@ -9,7 +9,6 @@
 */*/*/packages/*/*: Skip
 */*/packages/*/*: Skip
 */packages/*/*: Skip
-analysis_server/tool/spec/check_all_test: Skip # Issue 29133
 analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
 analyzer/test/generated/compile_time_error_code_kernel_test: Slow, Pass
 analyzer/test/generated/compile_time_error_code_test: Slow, Pass
@@ -25,7 +24,6 @@ analyzer/test/src/dart/analysis/driver_kernel_test: Slow, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 analyzer/test/src/task/strong/checker_test: Slow, Pass
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
-analyzer_plugin/tool/spec/check_all_test: Skip # Issue 29133
 dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
 dev_compiler/test/sourcemap/testfiles/*: SkipByDesign # Skip dev_compiler codegen tests
@@ -33,12 +31,13 @@ dev_compiler/test/worker/*: Skip # test needs fixes
 front_end/test/fasta/analyze_test: Pass, Slow
 front_end/test/fasta/ast_builder_test: Pass, Slow
 front_end/test/fasta/bootstrap_test: Pass, Slow
-front_end/test/fasta/compile_test: Pass, ExtraSlow
+front_end/test/fasta/legacy_test: Pass, ExtraSlow
 front_end/test/fasta/outline_test: Pass, Slow
 front_end/test/fasta/rasta/*: SkipByDesign # Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
 front_end/test/fasta/sdk_test: SkipByDesign # sdk_test would take too long to complete, and should be run in a different way.
 front_end/test/fasta/shaker_test: Skip # Issue http://dartbug.com/32531
 front_end/test/fasta/strong_test: Pass, ExtraSlow
+front_end/test/fasta/text_serialization_test: Pass, ExtraSlow
 front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
 front_end/test/whole_program_test: Slow, Pass
 front_end/testcases/*: Skip # These are not tests but input for tests.
@@ -58,6 +57,8 @@ analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
 
 [ $compiler == dart2js ]
 analysis_server/test/integration: SkipByDesign # Analysis server integration tests don't make sense to run under dart2js, since the code under test always runs in the Dart vm as a subprocess.
+analysis_server/tool/*: SkipByDesign # Only meant to run on vm
+analysis_server_client/test/live_test: SkipByDesign # Only meant to run on vm
 analyzer_cli/test/*: SkipByDesign # Only meant to run on vm
 analyzer_plugin/test/*: SkipByDesign # Only meant to run on vm
 analyzer_plugin/tool/*: SkipByDesign # Only meant to run on vm
@@ -122,6 +123,7 @@ analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
 analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Pass, Slow
 analyzer_plugin/test/src/utilities/completion/optype_test: Pass, Slow
+dartfix/test/src/driver_test: RuntimeError # dartbug.com/35478
 mutation_observer: Skip # Skip tests on the VM if the package depends on dart:html
 
 [ $runtime != vm ]
@@ -137,7 +139,7 @@ analysis_server/test/integration/analysis/get_errors_nonStandard_sdk_test: Skip
 front_end/test/fasta/ast_builder_test: Pass, Slow, Timeout
 front_end/test/fasta/bootstrap_test: Skip # Issue 31902
 front_end/test/fasta/strong_test: Pass, Slow, Timeout
-front_end/test/hot_reload_e2e_test: Skip # Issue 31901
+front_end/test/fasta/text_serialization_test: Pass, Slow, Timeout
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
 front_end/test/whole_program_test: Skip # Issue 31902
 

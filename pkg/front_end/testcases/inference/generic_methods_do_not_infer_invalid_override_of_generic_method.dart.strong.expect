@@ -1,14 +1,14 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: Declared type variables of 'D::m' doesn't match those on overridden method 'C::m'.
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
 // /*@error=OverrideTypeMismatchReturnType*/ /*@topType=dynamic*/ m(
 //                                                                ^
 // pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
 //   T m<T>(T x) => x;
 //     ^
 //
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: The return type of the method 'D::m' is dynamic, which does not match the return type of the overridden method (test::C::m::T).
-// Change to a subtype of test::C::m::T.
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: The return type of the method 'D.m' is 'dynamic', which does not match the return type of the overridden method, 'T'.
+// Change to a subtype of 'T'.
 // /*@error=OverrideTypeMismatchReturnType*/ /*@topType=dynamic*/ m(
 //                                                                ^
 // pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
@@ -21,12 +21,12 @@
 
 // Unhandled errors:
 //
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: Declared type variables of 'D::m' doesn't match those on overridden method 'C::m'.
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
 // /*@error=OverrideTypeMismatchReturnType*/ /*@topType=dynamic*/ m(
 //                                                                ^
 //
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: The return type of the method 'D::m' is dynamic, which does not match the return type of the overridden method (test::C::m::T).
-// Change to a subtype of test::C::m::T.
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: The return type of the method 'D.m' is 'dynamic', which does not match the return type of the overridden method, 'T'.
+// Change to a subtype of 'T'.
 // /*@error=OverrideTypeMismatchReturnType*/ /*@topType=dynamic*/ m(
 //                                                                ^
 //

@@ -12387,8 +12387,10 @@ class Element extends Node
    *
    * See also:
    *
-   * * [CSS Inheritance and Cascade](http://docs.webplatform.org/wiki/tutorials/inheritance_and_cascade)
-   * * [Pseudo-elements](http://docs.webplatform.org/wiki/css/selectors/pseudo-elements)
+   * * [Cascade and Inheritance](https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Cascade_and_inheritance)
+   *   from MDN.
+   * * [Pseudo-elements](https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements)
+   *   from MDN.
    */
   CssStyleDeclaration getComputedStyle([String pseudoElement]) {
     if (pseudoElement == null) {
@@ -12570,8 +12572,10 @@ class Element extends Node
    *
    * See also:
    *
-   * * [scrollIntoView](http://docs.webplatform.org/wiki/dom/methods/scrollIntoView)
-   * * [scrollIntoViewIfNeeded](http://docs.webplatform.org/wiki/dom/methods/scrollIntoViewIfNeeded)
+   * * [scrollIntoView](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView)
+   *   from MDN.
+   * * [scrollIntoViewIfNeeded](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoViewIfNeeded)
+   *   from MDN.
    */
   void scrollIntoView([ScrollAlignment alignment]) {
     var hasScrollIntoViewIfNeeded = true;
@@ -14039,9 +14043,9 @@ class Element extends Node
    *
    * ## Other resources
    *
-   * * [Using the fullscreen
-   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
-   *   tutorial from WebPlatform.org.
+   * * [Fullscreen
+   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
+   *   from MDN.
    * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -16845,9 +16849,9 @@ class HtmlDocument extends Document {
    *
    * ## Other resources
    *
-   * * [Using the fullscreen
-   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
-   *   from WebPlatform.org.
+   * * [Fullscreen
+   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
+   *   from MDN.
    * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -17092,9 +17096,6 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Creates a GET request for the specified [url].
    *
-   * The server response must be a `text/` mime type for this request to
-   * succeed.
-   *
    * This is similar to [request] but specialized for HTTP GET requests which
    * return text content.
    *
@@ -17105,7 +17106,7 @@ class HttpRequest extends HttpRequestEventTarget {
    *     var name = Uri.encodeQueryComponent('John');
    *     var id = Uri.encodeQueryComponent('42');
    *     HttpRequest.getString('users.json?name=$name&id=$id')
-   *       .then((HttpRequest resp) {
+   *       .then((String resp) {
    *         // Do something with the response.
    *     });
    *
@@ -17123,8 +17124,8 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Makes a server POST request with the specified data encoded as form data.
    *
-   * This is roughly the POST equivalent of getString. This method is similar
-   * to sending a FormData object with broader browser support but limited to
+   * This is roughly the POST equivalent of [getString]. This method is similar
+   * to sending a [FormData] object with broader browser support but limited to
    * String values.
    *
    * If [data] is supplied, the key/value pairs are URI encoded with
@@ -17421,11 +17422,11 @@ class HttpRequest extends HttpRequestEventTarget {
    * Specify the desired `url`, and `method` to use in making the request.
    *
    * By default the request is done asyncronously, with no user or password
-   * authentication information. If `async` is false, the request will be send
+   * authentication information. If `async` is false, the request will be sent
    * synchronously.
    *
    * Calling `open` again on a currently active request is equivalent to
-   * calling `abort`.
+   * calling [abort].
    *
    * Note: Most simple HTTP requests can be accomplished using the [getString],
    * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
@@ -17655,7 +17656,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * response.
    *
    * This value must be set before the request has been sent. See also the list
-   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml)
+   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml).
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -30365,8 +30366,6 @@ class Window extends EventTarget
    *
    * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
    *   from MDN.
-   * * [Window open](http://docs.webplatform.org/wiki/dom/methods/open)
-   *   from WebPlatform.org.
    */
   WindowBase open(String url, String name, [String options]) {
     if (options == null) {
@@ -30753,8 +30752,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [innerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight)
-   *   from WebPlatform.org.
+   * * [Window.innerHeight](https://developer.mozilla.org/en-US/docs/Web/API/Window/innerHeight)
+   *   from MDN.
    */
   final int innerHeight;
 
@@ -30763,8 +30762,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [innerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth)
-   *   from WebPlatform.org.
+   * * [Window.innerWidth](https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth)
+   *   from MDN.
    */
   final int innerWidth;
 
@@ -30811,8 +30810,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window name](http://docs.webplatform.org/wiki/html/attributes/name_(window))
-   *   from WebPlatform.org.
+   * * [Window.name](https://developer.mozilla.org/en-US/docs/Web/API/Window/name)
+   *   from MDN.
    */
   String name;
 
@@ -30832,7 +30831,7 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [offscreenBuffering](http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering)
+   * * [offscreenBuffering](https://webplatform.github.io/docs/dom/HTMLElement/offscreenBuffering/)
    *   from WebPlatform.org.
    */
   final bool offscreenBuffering;
@@ -30856,8 +30855,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [outerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight)
-   *   from WebPlatform.org.
+   * * [Window.outerHeight](https://developer.mozilla.org/en-US/docs/Web/API/Window/outerHeight)
+   *   from MDN.
    */
   final int outerHeight;
 
@@ -30866,8 +30865,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [outerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth)
-   *   from WebPlatform.org.
+   * * [Window.outerWidth](https://developer.mozilla.org/en-US/docs/Web/API/Window/outerWidth)
+   *   from MDN.
    */
   final int outerWidth;
 
@@ -31274,8 +31273,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window resizeBy](http://docs.webplatform.org/wiki/dom/methods/resizeBy)
-   *   from WebPlatform.org.
+   * * [Window.resizeBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/resizeBy)
+   *   from MDN.
    */
   void resizeBy(int x, int y) native;
 
@@ -31284,8 +31283,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window resizeTo](http://docs.webplatform.org/wiki/dom/methods/resizeTo)
-   *   from WebPlatform.org.
+   * * [Window.resizeTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/resizeTo)
+   *   from MDN.
    */
   void resizeTo(int x, int y) native;
 
@@ -31296,8 +31295,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
-   *   from WebPlatform.org.
+   * * [Window scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   *   from MDN.
    */
   void scroll([options_OR_x, y, Map scrollOptions]) {
     if (options_OR_x == null && y == null && scrollOptions == null) {
@@ -31333,8 +31332,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
-   *   from WebPlatform.org.
+   * * [Window scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   *   from MDN.
    */
   void _scroll_1() native;
   @JSName('scroll')
@@ -31345,8 +31344,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
-   *   from WebPlatform.org.
+   * * [Window scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   *   from MDN.
    */
   void _scroll_2(options) native;
   @JSName('scroll')
@@ -31357,8 +31356,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
-   *   from WebPlatform.org.
+   * * [Window scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   *   from MDN.
    */
   void _scroll_3(num x, num y) native;
   @JSName('scroll')
@@ -31369,8 +31368,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
-   *   from WebPlatform.org.
+   * * [Window scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   *   from MDN.
    */
   void _scroll_4(int x, int y) native;
   @JSName('scroll')
@@ -31381,8 +31380,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
-   *   from WebPlatform.org.
+   * * [Window scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
+   *   from MDN.
    */
   void _scroll_5(int x, int y, scrollOptions) native;
 
@@ -31391,8 +31390,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   *   from WebPlatform.org.
+   * * [Window scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   *   from MDN.
    */
   void scrollBy([options_OR_x, y, Map scrollOptions]) {
     if (options_OR_x == null && y == null && scrollOptions == null) {
@@ -31426,8 +31425,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   *   from WebPlatform.org.
+   * * [Window scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   *   from MDN.
    */
   void _scrollBy_1() native;
   @JSName('scrollBy')
@@ -31436,8 +31435,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   *   from WebPlatform.org.
+   * * [Window scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   *   from MDN.
    */
   void _scrollBy_2(options) native;
   @JSName('scrollBy')
@@ -31446,8 +31445,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   *   from WebPlatform.org.
+   * * [Window scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   *   from MDN.
    */
   void _scrollBy_3(num x, num y) native;
   @JSName('scrollBy')
@@ -31456,8 +31455,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   *   from WebPlatform.org.
+   * * [Window scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   *   from MDN.
    */
   void _scrollBy_4(int x, int y) native;
   @JSName('scrollBy')
@@ -31466,8 +31465,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   *   from WebPlatform.org.
+   * * [Window scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
+   *   from MDN.
    */
   void _scrollBy_5(int x, int y, scrollOptions) native;
 
@@ -31478,8 +31477,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   *   from WebPlatform.org.
+   * * [Window scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   *   from MDN.
    */
   void scrollTo([options_OR_x, y, Map scrollOptions]) {
     if (options_OR_x == null && y == null && scrollOptions == null) {
@@ -31515,8 +31514,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   *   from WebPlatform.org.
+   * * [Window scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   *   from MDN.
    */
   void _scrollTo_1() native;
   @JSName('scrollTo')
@@ -31527,8 +31526,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   *   from WebPlatform.org.
+   * * [Window scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   *   from MDN.
    */
   void _scrollTo_2(options) native;
   @JSName('scrollTo')
@@ -31539,8 +31538,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   *   from WebPlatform.org.
+   * * [Window scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   *   from MDN.
    */
   void _scrollTo_3(num x, num y) native;
   @JSName('scrollTo')
@@ -31551,8 +31550,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   *   from WebPlatform.org.
+   * * [Window scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   *   from MDN.
    */
   void _scrollTo_4(int x, int y) native;
   @JSName('scrollTo')
@@ -31563,8 +31562,8 @@ class Window extends EventTarget
    *
    * ## Other resources
    *
-   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   *   from WebPlatform.org.
+   * * [Window scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
+   *   from MDN.
    */
   void _scrollTo_5(int x, int y, scrollOptions) native;
 
@@ -35259,7 +35258,8 @@ class EventStreamProvider<T extends Event> {
    *
    * See also:
    *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+   *   from MDN.
    */
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
       new _EventStream<T>(e, _eventType, useCapture);
@@ -35283,7 +35283,8 @@ class EventStreamProvider<T extends Event> {
    *
    * See also:
    *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+   *   from MDN.
    */
   ElementStream<T> forElement(Element e, {bool useCapture: false}) {
     return new _ElementEventStreamImpl<T>(e, _eventType, useCapture);
@@ -35301,7 +35302,8 @@ class EventStreamProvider<T extends Event> {
    *
    * See also:
    *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+   *   from MDN.
    */
   ElementStream<T> _forElementList(ElementList<Element> e,
       {bool useCapture: false}) {

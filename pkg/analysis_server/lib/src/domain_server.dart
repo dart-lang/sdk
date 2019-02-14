@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -28,8 +28,7 @@ class ServerDomainHandler implements RequestHandler {
    * Return the version number of the analysis server.
    */
   Response getVersion(Request request) {
-    return new ServerGetVersionResult(AnalysisServer.VERSION)
-        .toResponse(request.id);
+    return new ServerGetVersionResult(PROTOCOL_VERSION).toResponse(request.id);
   }
 
   @override

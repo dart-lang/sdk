@@ -15,7 +15,7 @@
   testLocalAsyncStar(0),
   testLocalSyncStar(0),
   testSyncStar(0)],
-  type=[inst:JSNull]
+ type=[inst:JSNull]
 */
 main() {
   testSyncStar();

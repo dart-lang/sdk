@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -49,14 +49,6 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
           "'{1}'.");
 
   /**
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   */
-  static const CheckedModeCompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION =
-      const CheckedModeCompileTimeErrorCode('CONST_EVAL_THROWS_EXCEPTION',
-          "Evaluation of this constant expression throws an exception.");
-
-  /**
    * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error
    * if o is not <b>null</b> and the interface of the class of <i>o</i> is not a
    * subtype of the static type of the field <i>v</i>.
@@ -87,6 +79,10 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
    * the type of the named parameter <i>q</i> of <i>f</i>. It is a static
    * warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>,
    * 1 &lt;= j &lt;= m</i>.
+   *
+   * Parameters:
+   * 0: the actual type of the list element
+   * 1: the expected type of the list element
    */
   static const CheckedModeCompileTimeErrorCode
       LIST_ELEMENT_TYPE_NOT_ASSIGNABLE = const CheckedModeCompileTimeErrorCode(
@@ -132,6 +128,15 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
           'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
           "The element type '{0}' can't be assigned to the map value type "
           "'{1}'.");
+
+  /**
+   * Parameters:
+   * 0: the actual type of the set element
+   * 1: the expected type of the set element
+   */
+  static const CheckedModeCompileTimeErrorCode SET_ELEMENT_TYPE_NOT_ASSIGNABLE =
+      const CheckedModeCompileTimeErrorCode('SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
+          "The element type '{0}' can't be assigned to the set type '{1}'.");
 
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -539,7 +544,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
           "Const constructor can't be declared for a class with a mixin "
-          "that declares a field.",
+          "that declares an instance field.",
           correction: "Try removing the 'const' keyword or "
               "removing the 'with' clause from the class declaration, "
               "or removing fields from the mixin class.");
@@ -659,6 +664,18 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try adding an initialization to the declaration.");
 
   /**
+   * Parameters:
+   * 0: the type of the element
+   */
+  static const CompileTimeErrorCode CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS =
+      const CompileTimeErrorCode(
+          'CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS',
+          "The constant set element type '{0}' can't override "
+          "the == operator.",
+          correction: "Try using a different value for the element, or "
+              "removing the keyword 'const' from the set.");
+
+  /**
    * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
    * where e, e1 and e2 are constant expressions that evaluate to a boolean
    * value.
@@ -668,6 +685,17 @@ class CompileTimeErrorCode extends ErrorCode {
           'CONST_EVAL_TYPE_BOOL',
           "In constant expressions, operands of this operator must be of type "
           "'bool'.");
+
+  /**
+   * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
+   * where e, e1 and e2 are constant expressions that evaluate to a boolean
+   * value.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_INT =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_BOOL_INT',
+          "In constant expressions, operands of this operator must be of type "
+          "'bool' or 'int'.");
 
   /**
    * 16.12.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where
@@ -702,6 +730,12 @@ class CompileTimeErrorCode extends ErrorCode {
           'CONST_EVAL_TYPE_NUM',
           "In constant expressions, operands of this operator must be of type "
           "'num'.");
+
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_TYPE =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_TYPE',
+          "In constant expressions, operands of this operator must be of type "
+          "'Type'.");
 
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -1587,6 +1621,14 @@ class CompileTimeErrorCode extends ErrorCode {
           correction:
               "Try replacing the type parameter with a different type.");
 
+  static const CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_SET =
+      const CompileTimeErrorCode(
+          'INVALID_TYPE_ARGUMENT_IN_CONST_SET',
+          "Constant set literals can't include a type parameter as a type "
+          "argument, such as '{0}'.",
+          correction:
+              "Try replacing the type parameter with a different type.");
+
   /**
    * The 'covariant' keyword was found in an inappropriate location.
    */
@@ -1677,6 +1719,16 @@ class CompileTimeErrorCode extends ErrorCode {
           "expression.",
           correction: "Try adding the keyword 'const' before the literal.");
 
+  /**
+   * 12.1 Constants: A constant expression is ... a constant set literal.
+   */
+  static const CompileTimeErrorCode MISSING_CONST_IN_SET_LITERAL =
+      const CompileTimeErrorCode(
+          'MISSING_CONST_IN_SET_LITERAL',
+          "Set literals must be prefixed with 'const' when used as a constant "
+          "expression.",
+          correction: "Try adding the keyword 'const' before the literal.");
+
   static const CompileTimeErrorCode MISSING_DART_LIBRARY =
       const CompileTimeErrorCode(
           'MISSING_DART_LIBRARY', "Required library '{0}' is missing.",
@@ -1714,7 +1766,8 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode
       MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE = const CompileTimeErrorCode(
           'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
-          "The class doesn't implement the required class '{0}'.");
+          "The class doesn't implement the required class '{0}'.",
+          correction: "Try extending the class '{0}'.");
 
   /**
    * It's a compile-time error to apply a mixin containing super-invocations to
@@ -1967,8 +2020,8 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode NON_CONST_MAP_AS_EXPRESSION_STATEMENT =
       const CompileTimeErrorCode(
           'NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
-          "A non-constant map literal without type arguments can't be used as "
-          "an expression statement.");
+          "A non-constant map or set literal without type arguments can't be "
+          "used as an expression statement.");
 
   /**
    * 13.9 Switch: Given a switch statement of the form <i>switch (e) {
@@ -2041,7 +2094,8 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode NON_CONSTANT_LIST_ELEMENT =
       const CompileTimeErrorCode('NON_CONSTANT_LIST_ELEMENT',
           "The values in a const list literal must be constants.",
-          correction: "Try removing the keyword 'const' from the map literal.");
+          correction:
+              "Try removing the keyword 'const' from the list literal.");
 
   /**
    * 12.6 Lists: It is a compile time error if an element of a constant list
@@ -2117,6 +2171,19 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode NON_CONSTANT_ANNOTATION_CONSTRUCTOR =
       const CompileTimeErrorCode('NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
           "Annotation creation can only call a const constructor.");
+
+  static const CompileTimeErrorCode NON_CONSTANT_SET_ELEMENT =
+      const CompileTimeErrorCode('NON_CONSTANT_SET_ELEMENT',
+          "The values in a const set literal must be constants.",
+          correction: "Try removing the keyword 'const' from the set literal.");
+
+  static const CompileTimeErrorCode
+      NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY =
+      const CompileTimeErrorCode(
+          'NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY',
+          "Constant values from a deferred library can't be used as values in "
+          "a 'const' set.",
+          correction: "Try removing the keyword 'const' from the set literal.");
 
   /**
    * 7.6.3 Constant Constructors: Any expression that appears within the
@@ -2251,9 +2318,9 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode PRIVATE_COLLISION_IN_MIXIN_APPLICATION =
       const CompileTimeErrorCode(
           'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
-          "The private name {0}, defined by {1}, conflicts with the same name "
-          "defined by {2}.",
-          correction: "Try removing {1} from the 'with' clause.");
+          "The private name '{0}', defined by '{1}', "
+          "conflicts with the same name defined by '{2}'.",
+          correction: "Try removing '{1}' from the 'with' clause.");
 
   /**
    * 6.2.2 Optional Formals: It is a compile-time error if the name of a named
@@ -2555,13 +2622,13 @@ class CompileTimeErrorCode extends ErrorCode {
    * It is a compile-time error if a generic function type is used as an actual
    * type argument.
    */
-  static const CompileTimeErrorCode GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT =
+  static const CompileTimeErrorCode
+      GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT =
       const CompileTimeErrorCode(
-          'GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT',
-          "Generic function has type parameters '<{0}>', so it may not be used"
-          ' as a type argument',
-          correction: "Try removing the type parameters '<{0}>', or using"
-              " 'dynamic' as the type argument here instead of a function.");
+          'GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
+          "A generic function type cannot be a type argument.",
+          correction: "Try removing type parameters from the generic function "
+              "type, or using 'dynamic' as the type argument here.");
 
   /**
    * 15.3.1 Typedef: Any self reference, either directly, or recursively via
@@ -2808,6 +2875,17 @@ class StaticTypeWarningCode extends ErrorCode {
           correction: "Try adjusting the number of type arguments.");
 
   /**
+   * Parameters:
+   * 0: the number of provided type arguments
+   */
+  static const StaticTypeWarningCode EXPECTED_ONE_SET_TYPE_ARGUMENTS =
+      const StaticTypeWarningCode(
+          'EXPECTED_ONE_SET_TYPE_ARGUMENTS',
+          "Set literals require exactly one type argument or none, "
+          "but {0} found.",
+          correction: "Try adjusting the number of type arguments.");
+
+  /**
    * 12.8 Maps: A fresh instance (7.6.1) <i>m</i>, of size <i>n</i>, whose class
    * implements the built-in class <i>Map&lt;K, V></i> is allocated.
    *
@@ -2938,7 +3016,7 @@ class StaticTypeWarningCode extends ErrorCode {
    */
   static const StaticTypeWarningCode INVOCATION_OF_NON_FUNCTION_EXPRESSION =
       const StaticTypeWarningCode('INVOCATION_OF_NON_FUNCTION_EXPRESSION',
-          "The expression doesn't evaluate to a function, so it can't invoked.");
+          "The expression doesn't evaluate to a function, so it can't be invoked.");
 
   /**
    * 12.20 Conditional: It is a static type warning if the type of
@@ -3143,22 +3221,6 @@ class StaticTypeWarningCode extends ErrorCode {
           correction:
               "Try correcting the name to the name of an existing method, or "
               "defining a method named '{0}'.");
-
-  /**
-   * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
-   * It is a static type warning if <i>T</i> does not have an accessible
-   * instance member named <i>m</i>.
-   *
-   * Parameters:
-   * 0: the name of the method that is undefined
-   * 1: the resolved type name that the method lookup is happening on
-   */
-  static const StaticTypeWarningCode UNDEFINED_METHOD_WITH_CONSTRUCTOR =
-      const StaticTypeWarningCode('UNDEFINED_METHOD_WITH_CONSTRUCTOR',
-          "The method '{0}' isn't defined for the class '{1}', but a constructor with that name is defined.",
-          correction:
-              "Try adding 'new' or 'const' to invoke the constructor, or "
-              "correcting the name to the name of an existing method.");
 
   /**
    * 12.18 Assignment: Evaluation of an assignment of the form
@@ -3599,6 +3661,14 @@ class StaticWarningCode extends ErrorCode {
       'EQUAL_KEYS_IN_MAP', "Two keys in a map literal can't be equal.");
 
   /**
+   * It is a compile-time error if any two of the values in a constant set are
+   * equal according to `==`.
+   */
+  static const StaticWarningCode EQUAL_VALUES_IN_CONST_SET =
+      const StaticWarningCode('EQUAL_VALUES_IN_CONST_SET',
+          "Two values in a constant set can't be equal.");
+
+  /**
    * 14.2 Exports: It is a static warning to export two different libraries with
    * the same name.
    *
@@ -3931,6 +4001,10 @@ class StaticWarningCode extends ErrorCode {
    * the type of the named parameter <i>q</i> of <i>f</i>. It is a static
    * warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1
    * &lt;= j &lt;= m</i>.
+   *
+   * Parameters:
+   * 0: the actual type of the list element
+   * 1: the expected type of the list element
    */
   static const StaticWarningCode LIST_ELEMENT_TYPE_NOT_ASSIGNABLE =
       const StaticWarningCode('LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
@@ -4380,6 +4454,15 @@ class StaticWarningCode extends ErrorCode {
       correction: null);
 
   /**
+   * Parameters:
+   * 0: the actual type of the set element
+   * 1: the expected type of the set element
+   */
+  static const StaticWarningCode SET_ELEMENT_TYPE_NOT_ASSIGNABLE =
+      const StaticWarningCode('SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
+          "The element type '{0}' can't be assigned to the set type '{1}'.");
+
+  /**
    * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not
    * declare a static method or getter <i>m</i>.
    *
@@ -4638,6 +4721,13 @@ class StrongModeCode extends ErrorCode {
       "The map literal type '{0}' isn't of expected type '{1}'. The maps's "
       "type can be changed with an explicit generic type arguments or by "
       "changing the key and value types.");
+
+  static const StrongModeCode INVALID_CAST_LITERAL_SET = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'INVALID_CAST_LITERAL_SET',
+      "The set literal type '{0}' isn't of expected type '{1}'. The set's "
+      "type can be changed with an explicit generic type argument or by "
+      "changing the element types.");
 
   static const StrongModeCode INVALID_CAST_FUNCTION_EXPR = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,

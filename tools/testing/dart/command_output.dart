@@ -66,14 +66,19 @@ class CommandOutput extends UniqueObject {
     // dart2js exits with code 253 in case of unhandled exceptions.
     // The dart binary exits with code 253 in case of an API error such
     // as an invalid snapshot file.
+    // The batch mode can also exit 253 (unhandledCompilerExceptionExitCode).
     // In either case an exit code of 253 is considered a crash.
-    if (exitCode == 253) return true;
+    if (exitCode == unhandledCompilerExceptionExitCode) return true;
     if (exitCode == parseFailExitCode) return false;
     if (hasTimedOut) return false;
     if (io.Platform.isWindows) {
       // The VM uses std::abort to terminate on asserts.
       // std::abort terminates with exit code 3 on Windows.
-      if (exitCode == 3 || exitCode == browserCrashExitCode) return true;
+      if (exitCode == 3) return true;
+
+      // When VM is built with Crashpad support we get STATUS_FATAL_APP_EXIT
+      // for all crashes that Crashpad has intercepted.
+      if (exitCode == 0x40000015) return true;
 
       // If a program receives an uncaught system exception, the program
       // terminates with the exception code as exit code.
@@ -85,6 +90,11 @@ class CommandOutput extends UniqueObject {
       return (exitCode < 0) && (masked >= 4) && ((masked & 3) == 0);
     }
     return exitCode < 0;
+  }
+
+  bool get hasCoreDump {
+    // Unhandled dart exceptions don't produce crashdumps.
+    return hasCrashed && exitCode != 253;
   }
 
   bool _didFail(TestCase testCase) => exitCode != 0 && !hasCrashed;
@@ -314,11 +324,6 @@ class BrowserCommandOutput extends CommandOutput
   Expectation result(TestCase testCase) {
     // Handle timeouts first.
     if (_result.didTimeout) {
-      if (testCase.configuration.runtime == Runtime.ie11) {
-        // TODO(28955): See http://dartbug.com/28955
-        DebugLogger.warning("Timeout of ie11 on test ${testCase.displayName}");
-        return Expectation.ignore;
-      }
       return Expectation.timeout;
     }
 
@@ -338,11 +343,6 @@ class BrowserCommandOutput extends CommandOutput
   Expectation realResult(TestCase testCase) {
     // Handle timeouts first.
     if (_result.didTimeout) {
-      if (testCase.configuration.runtime == Runtime.ie11) {
-        // TODO(28955): See http://dartbug.com/28955
-        DebugLogger.warning("Timeout of ie11 on test ${testCase.displayName}");
-        return Expectation.ignore;
-      }
       return Expectation.timeout;
     }
 
@@ -849,7 +849,6 @@ class DevCompilerCommandOutput extends CommandOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
-  /// This code can return Expectation.ignore - we may want to fix that.
   Expectation realResult(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
@@ -921,7 +920,6 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
-  /// This code can return Expectation.ignore - we may want to fix that.
   Expectation realResult(TestCase testCase) {
     // TODO(kustermann): Currently the batch mode runner (which can be found
     // in `test_runner.dart:BatchRunnerProcess`) does not really distinguish
@@ -987,7 +985,6 @@ class JSCommandLineOutput extends CommandOutput
 
   /// Cloned code from member result(), with changes.
   /// Delete existing result() function and rename, when status files are gone.
-  /// This code can return Expectation.ignore - we may want to fix that.
   Expectation realResult(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;

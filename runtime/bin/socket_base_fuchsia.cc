@@ -118,8 +118,7 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
                               intptr_t num_bytes,
                               RawAddr* addr,
                               SocketOpKind sync) {
-  LOG_ERR("SocketBase::RecvFrom is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return -1;
 }
 
@@ -152,8 +151,7 @@ intptr_t SocketBase::SendTo(intptr_t fd,
                             intptr_t num_bytes,
                             const RawAddr& addr,
                             SocketOpKind sync) {
-  LOG_ERR("SocketBase::SendTo is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return -1;
 }
 
@@ -182,19 +180,16 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
 }
 
 void SocketBase::GetError(intptr_t fd, OSError* os_error) {
-  LOG_ERR("SocketBase::GetError is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
+  os_error->SetCodeAndMessage(OSError::kSystem, errno);
 }
 
 int SocketBase::GetType(intptr_t fd) {
-  LOG_ERR("SocketBase::GetType is unimplemented\n");
-  UNIMPLEMENTED();
-  return File::kOther;
+  errno = ENOSYS;
+  return -1;
 }
 
 intptr_t SocketBase::GetStdioHandle(intptr_t num) {
-  LOG_ERR("SocketBase::GetStdioHandle is unimplemented\n");
-  UNIMPLEMENTED();
   return num;
 }
 
@@ -246,8 +241,7 @@ bool SocketBase::ReverseLookup(const RawAddr& addr,
                                char* host,
                                intptr_t host_len,
                                OSError** os_error) {
-  LOG_ERR("SocketBase::ReverseLookup is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
@@ -335,8 +329,7 @@ void SocketBase::Close(intptr_t fd) {
 }
 
 bool SocketBase::GetNoDelay(intptr_t fd, bool* enabled) {
-  LOG_ERR("SocketBase::GetNoDelay is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
@@ -351,40 +344,34 @@ bool SocketBase::SetNoDelay(intptr_t fd, bool enabled) {
 bool SocketBase::GetMulticastLoop(intptr_t fd,
                                   intptr_t protocol,
                                   bool* enabled) {
-  LOG_ERR("SocketBase::GetMulticastLoop is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
 bool SocketBase::SetMulticastLoop(intptr_t fd,
                                   intptr_t protocol,
                                   bool enabled) {
-  LOG_ERR("SocketBase::SetMulticastLoop is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
 bool SocketBase::GetMulticastHops(intptr_t fd, intptr_t protocol, int* value) {
-  LOG_ERR("SocketBase::GetMulticastHops is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
 bool SocketBase::SetMulticastHops(intptr_t fd, intptr_t protocol, int value) {
-  LOG_ERR("SocketBase::SetMulticastHops is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
 bool SocketBase::GetBroadcast(intptr_t fd, bool* enabled) {
-  LOG_ERR("SocketBase::GetBroadcast is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
 bool SocketBase::SetBroadcast(intptr_t fd, bool enabled) {
-  LOG_ERR("SocketBase::SetBroadcast is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
@@ -392,8 +379,7 @@ bool SocketBase::JoinMulticast(intptr_t fd,
                                const RawAddr& addr,
                                const RawAddr&,
                                int interfaceIndex) {
-  LOG_ERR("SocketBase::JoinMulticast is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 
@@ -401,8 +387,7 @@ bool SocketBase::LeaveMulticast(intptr_t fd,
                                 const RawAddr& addr,
                                 const RawAddr&,
                                 int interfaceIndex) {
-  LOG_ERR("SocketBase::LeaveMulticast is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return false;
 }
 

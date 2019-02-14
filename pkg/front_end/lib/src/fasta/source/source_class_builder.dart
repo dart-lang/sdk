@@ -5,7 +5,7 @@
 library fasta.source_class_builder;
 
 import 'package:kernel/ast.dart'
-    show Class, Constructor, Member, Supertype, TreeNode, setParents;
+    show Class, Constructor, Member, Supertype, TreeNode;
 
 import '../../base/instrumentation.dart' show Instrumentation;
 
@@ -24,13 +24,14 @@ import '../fasta_codes.dart'
 
 import '../kernel/kernel_builder.dart'
     show
+        ClassBuilder,
         ConstructorReferenceBuilder,
         Declaration,
-        FieldBuilder,
         KernelClassBuilder,
         KernelFieldBuilder,
         KernelFunctionBuilder,
         KernelLibraryBuilder,
+        KernelNamedTypeBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -51,7 +52,11 @@ ShadowClass initializeClass(
     int startCharOffset,
     int charOffset,
     int charEndOffset) {
-  cls ??= new ShadowClass(name: name);
+  cls ??= new ShadowClass(
+      name: name,
+      typeParameters:
+          KernelTypeVariableBuilder.kernelTypeParametersFromBuilders(
+              typeVariables));
   cls.fileUri ??= parent.fileUri;
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
@@ -63,17 +68,11 @@ ShadowClass initializeClass(
     cls.fileEndOffset = charEndOffset;
   }
 
-  if (typeVariables != null) {
-    for (KernelTypeVariableBuilder t in typeVariables) {
-      cls.typeParameters.add(t.parameter);
-    }
-    setParents(cls.typeParameters, cls);
-  }
-
   return cls;
 }
 
-class SourceClassBuilder extends KernelClassBuilder {
+class SourceClassBuilder extends KernelClassBuilder
+    implements Comparable<SourceClassBuilder> {
   @override
   final Class actualCls;
 
@@ -133,6 +132,7 @@ class SourceClassBuilder extends KernelClassBuilder {
           }
         } else if (declaration is KernelFunctionBuilder) {
           Member function = declaration.build(library);
+          function.parent = cls;
           if (!declaration.isPatch && declaration.next == null) {
             cls.addMember(function);
           }
@@ -244,14 +244,18 @@ class SourceClassBuilder extends KernelClassBuilder {
     constructorScopeBuilder.addMember(name, memberBuilder);
   }
 
-  @override
   void prepareTopLevelInference() {
     scope.forEach((String name, Declaration declaration) {
-      if (declaration is FieldBuilder) {
-        declaration.prepareTopLevelInference();
-      }
+      do {
+        if (declaration is KernelFieldBuilder) {
+          declaration.prepareTopLevelInference();
+        }
+        declaration = declaration.next;
+      } while (declaration != null);
     });
-    cls.setupApiMembers(library.loader.interfaceResolver);
+    if (!isPatch) {
+      cls.setupApiMembers(library.loader.interfaceResolver);
+    }
   }
 
   @override
@@ -277,5 +281,34 @@ class SourceClassBuilder extends KernelClassBuilder {
       count += declaration.finishPatch();
     });
     return count;
+  }
+
+  List<Declaration> computeDirectSupertypes(ClassBuilder objectClass) {
+    final List<Declaration> result = <Declaration>[];
+    final KernelNamedTypeBuilder supertype = this.supertype;
+    if (supertype != null) {
+      result.add(supertype.declaration);
+    } else if (objectClass != this) {
+      result.add(objectClass);
+    }
+    final List<KernelTypeBuilder> interfaces = this.interfaces;
+    if (interfaces != null) {
+      for (int i = 0; i < interfaces.length; i++) {
+        KernelNamedTypeBuilder interface = interfaces[i];
+        result.add(interface.declaration);
+      }
+    }
+    final KernelNamedTypeBuilder mixedInType = this.mixedInType;
+    if (mixedInType != null) {
+      result.add(mixedInType.declaration);
+    }
+    return result;
+  }
+
+  @override
+  int compareTo(SourceClassBuilder other) {
+    int result = "$fileUri".compareTo("${other.fileUri}");
+    if (result != 0) return result;
+    return charOffset.compareTo(other.charOffset);
   }
 }

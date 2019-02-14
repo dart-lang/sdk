@@ -5,13 +5,14 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/ir/static_type.dart';
-import 'package:compiler/src/library_loader.dart';
+import 'package:compiler/src/kernel/loader.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../helpers/memory_compiler.dart';
+import 'analysis_helper.dart';
 
 const String source = '''
 main() {}
@@ -21,18 +22,17 @@ main() {
   asyncTest(() async {
     Compiler compiler =
         await compilerFor(memorySourceFiles: {'main.dart': source});
-    LoadedLibraries loadedLibraries = await compiler.libraryLoader
-        .loadLibraries(Uri.parse('memory:main.dart'));
-    ir.Component component = loadedLibraries.component;
+    KernelResult result =
+        await compiler.kernelLoader.load(Uri.parse('memory:main.dart'));
+    ir.Component component = result.component;
     StaticTypeVisitor visitor = new Visitor(component);
     component.accept(visitor);
   });
 }
 
-class Visitor extends StaticTypeTraversalVisitor {
+class Visitor extends StaticTypeVisitorBase {
   Visitor(ir.Component component)
-      : super(new ir.TypeEnvironment(
-            new ir.CoreTypes(component), new ir.ClassHierarchy(component)));
+      : super(component, new ir.ClassHierarchy(component));
 
   ir.DartType getStaticType(ir.Expression node) {
     if (typeEnvironment == null) {

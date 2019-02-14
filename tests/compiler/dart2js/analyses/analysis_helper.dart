@@ -5,54 +5,139 @@
 import 'dart:convert' as json;
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
-import 'package:compiler/src/library_loader.dart';
+import 'package:compiler/src/ir/scope.dart';
 import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/ir/util.dart';
+import 'package:compiler/src/kernel/loader.dart';
 import 'package:compiler/src/util/uri_extras.dart';
 import 'package:expect/expect.dart';
+import 'package:front_end/src/api_unstable/dart2js.dart' as ir
+    show RedirectingFactoryBody;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
+import '../helpers/args_helper.dart';
 import '../helpers/memory_compiler.dart';
 
-run(Uri entryPoint, String allowedListPath, List<String> analyzedPaths,
+main(List<String> args) {
+  ArgParser argParser = createArgParser();
+  ArgResults argResults = argParser.parse(args);
+
+  Uri entryPoint = getEntryPoint(argResults);
+  if (entryPoint == null) {
+    throw new ArgumentError("Missing entry point.");
+  }
+  Uri librariesSpecificationUri = getLibrariesSpec(argResults);
+  Uri packageConfig = getPackages(argResults);
+  List<String> options = getOptions(argResults);
+  run(entryPoint, null,
+      analyzedUrisFilter: (Uri uri) => uri.scheme != 'dart',
+      librariesSpecificationUri: librariesSpecificationUri,
+      packageConfig: packageConfig,
+      options: options);
+}
+
+run(Uri entryPoint, String allowedListPath,
     {Map<String, String> memorySourceFiles = const {},
+    Uri librariesSpecificationUri,
+    Uri packageConfig,
     bool verbose = false,
-    bool generate = false}) {
+    bool generate = false,
+    List<String> options = const <String>[],
+    bool analyzedUrisFilter(Uri uri)}) {
   asyncTest(() async {
-    Compiler compiler = await compilerFor(memorySourceFiles: memorySourceFiles);
-    LoadedLibraries loadedLibraries =
-        await compiler.libraryLoader.loadLibraries(entryPoint);
-    new DynamicVisitor(compiler.reporter, loadedLibraries.component,
-            allowedListPath, analyzedPaths)
+    Compiler compiler = await compilerFor(
+        memorySourceFiles: memorySourceFiles,
+        librariesSpecificationUri: librariesSpecificationUri,
+        packageConfig: packageConfig,
+        options: options);
+    KernelResult result = await compiler.kernelLoader.load(entryPoint);
+    new DynamicVisitor(compiler.reporter, result.component, allowedListPath,
+            analyzedUrisFilter)
         .run(verbose: verbose, generate: generate);
   });
 }
 
-class DynamicVisitor extends StaticTypeTraversalVisitor {
+class StaticTypeVisitorBase extends StaticTypeVisitor {
+  VariableScopeModel variableScopeModel;
+
+  StaticTypeVisitorBase(
+      ir.Component component, ir.ClassHierarchy classHierarchy)
+      : super(
+            new ir.TypeEnvironment(new ir.CoreTypes(component), classHierarchy),
+            classHierarchy);
+
+  @override
+  bool get useAsserts => false;
+
+  @override
+  bool get inferEffectivelyFinalVariableTypes => true;
+
+  @override
+  Null visitProcedure(ir.Procedure node) {
+    if (node.kind == ir.ProcedureKind.Factory) {
+      if (node.function.body is ir.RedirectingFactoryBody) {
+        // Don't visit redirecting factories.
+        return;
+      }
+    }
+    if (node.name.name.contains('#')) {
+      // Skip synthetic .dill members.
+      return;
+    }
+    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    super.visitProcedure(node);
+    variableScopeModel = null;
+  }
+
+  @override
+  Null visitField(ir.Field node) {
+    if (node.name.name.contains('#')) {
+      // Skip synthetic .dill members.
+      return;
+    }
+    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    super.visitField(node);
+    variableScopeModel = null;
+  }
+
+  @override
+  Null visitConstructor(ir.Constructor node) {
+    if (node.name.name.contains('#')) {
+      // Skip synthetic .dill members.
+      return;
+    }
+    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    super.visitConstructor(node);
+    variableScopeModel = null;
+  }
+}
+
+class DynamicVisitor extends StaticTypeVisitorBase {
   final DiagnosticReporter reporter;
   final ir.Component component;
   final String _allowedListPath;
-  final List<String> analyzedPaths;
+  final bool Function(Uri uri) analyzedUrisFilter;
 
   Map _expectedJson = {};
   Map<String, Map<String, List<DiagnosticMessage>>> _actualMessages = {};
 
-  DynamicVisitor(
-      this.reporter, this.component, this._allowedListPath, this.analyzedPaths)
-      : super(new ir.TypeEnvironment(
-            new ir.CoreTypes(component), new ir.ClassHierarchy(component)));
+  DynamicVisitor(this.reporter, this.component, this._allowedListPath,
+      this.analyzedUrisFilter)
+      : super(component, new ir.ClassHierarchy(component));
 
   void run({bool verbose = false, bool generate = false}) {
-    if (!generate) {
+    if (!generate && _allowedListPath != null) {
       File file = new File(_allowedListPath);
       if (file.existsSync()) {
         try {
@@ -63,7 +148,7 @@ class DynamicVisitor extends StaticTypeTraversalVisitor {
       }
     }
     component.accept(this);
-    if (generate) {
+    if (generate && _allowedListPath != null) {
       Map<String, Map<String, int>> actualJson = {};
       _actualMessages.forEach(
           (String uri, Map<String, List<DiagnosticMessage>> actualMessagesMap) {
@@ -122,18 +207,16 @@ class DynamicVisitor extends StaticTypeTraversalVisitor {
             }
           }
         });
-        _actualMessages.forEach((String uri,
-            Map<String, List<DiagnosticMessage>> actualMessagesMap) {
-          if (!_expectedJson.containsKey(uri)) {
-            actualMessagesMap.forEach(
-                (String message, List<DiagnosticMessage> actualMessages) {
-              if (!expectedMessages.containsKey(message)) {
-                for (DiagnosticMessage message in actualMessages) {
-                  reporter.reportError(message);
-                  errorCount++;
-                }
-              }
-            });
+      }
+    });
+    _actualMessages.forEach(
+        (String uri, Map<String, List<DiagnosticMessage>> actualMessagesMap) {
+      if (!_expectedJson.containsKey(uri)) {
+        actualMessagesMap
+            .forEach((String message, List<DiagnosticMessage> actualMessages) {
+          for (DiagnosticMessage message in actualMessages) {
+            reporter.reportError(message);
+            errorCount++;
           }
         });
       }
@@ -210,58 +293,70 @@ class DynamicVisitor extends StaticTypeTraversalVisitor {
 
   ir.DartType visitNode(ir.Node node) {
     ir.DartType staticType = node?.accept(this);
-    assert(node is! ir.Expression ||
-        staticType == _getStaticTypeFromExpression(node));
+    assert(
+        node is! ir.Expression ||
+            staticType == typeEnvironment.nullType ||
+            typeEnvironment.isSubtypeOf(
+                staticType, _getStaticTypeFromExpression(node)),
+        reportAssertionFailure(
+            node,
+            "Unexpected static type for $node (${node.runtimeType}): "
+            "Found ${staticType}, expected ${_getStaticTypeFromExpression(node)}."));
     return staticType;
   }
 
   @override
   Null visitLibrary(ir.Library node) {
-    for (String path in analyzedPaths) {
-      if ('${node.importUri}'.startsWith(path)) {
-        return super.visitLibrary(node);
+    if (analyzedUrisFilter != null) {
+      if (analyzedUrisFilter(node.importUri)) {
+        super.visitLibrary(node);
       }
+    } else {
+      super.visitLibrary(node);
     }
   }
 
   @override
-  ir.DartType visitPropertyGet(ir.PropertyGet node) {
-    ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType result = computePropertyGetType(node, receiverType);
-    receiverType = narrowInstanceReceiver(node.interfaceTarget, receiverType);
+  void handlePropertyGet(
+      ir.PropertyGet node, ir.DartType receiverType, ir.DartType resultType) {
     if (receiverType is ir.DynamicType) {
-      reportError(node, "Dynamic access of '${node.name}'.");
+      registerError(node, "Dynamic access of '${node.name}'.");
     }
-    return result;
   }
 
   @override
-  ir.DartType visitPropertySet(ir.PropertySet node) {
-    ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType result = visitNode(node.value);
-    receiverType = narrowInstanceReceiver(node.interfaceTarget, receiverType);
+  void handlePropertySet(
+      ir.PropertySet node, ir.DartType receiverType, ir.DartType valueType) {
     if (receiverType is ir.DynamicType) {
-      reportError(node, "Dynamic update to '${node.name}'.");
+      registerError(node, "Dynamic update to '${node.name}'.");
     }
-    return result;
   }
 
   @override
-  ir.DartType visitMethodInvocation(ir.MethodInvocation node) {
-    ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType result = computeMethodInvocationType(node, receiverType);
-    if (!isSpecialCasedBinaryOperator(node.interfaceTarget)) {
-      visitNodes(node.arguments.positional);
-      visitNodes(node.arguments.named);
-    }
-    receiverType = narrowInstanceReceiver(node.interfaceTarget, receiverType);
+  void handleMethodInvocation(
+      ir.MethodInvocation node,
+      ir.DartType receiverType,
+      ArgumentTypes argumentTypes,
+      ir.DartType returnType) {
     if (receiverType is ir.DynamicType) {
-      reportError(node, "Dynamic invocation of '${node.name}'.");
+      registerError(node, "Dynamic invocation of '${node.name}'.");
     }
-    return result;
   }
 
-  void reportError(ir.Node node, String message) {
+  String reportAssertionFailure(ir.Node node, String message) {
+    SourceSpan span = computeSourceSpanFromTreeNode(node);
+    Uri uri = span.uri;
+    if (uri.scheme == 'org-dartlang-sdk') {
+      span = new SourceSpan(
+          Uri.base.resolve(uri.path.substring(1)), span.begin, span.end);
+    }
+    DiagnosticMessage diagnosticMessage =
+        reporter.createMessage(span, MessageKind.GENERIC, {'text': message});
+    reporter.reportError(diagnosticMessage);
+    return message;
+  }
+
+  void registerError(ir.Node node, String message) {
     SourceSpan span = computeSourceSpanFromTreeNode(node);
     Uri uri = span.uri;
     String uriString = relativize(Uri.base, uri, Platform.isWindows);

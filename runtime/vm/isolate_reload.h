@@ -286,6 +286,10 @@ class IsolateReloadContext {
   intptr_t saved_num_cids_;
   ClassAndSize* saved_class_table_;
   intptr_t num_saved_libs_;
+  intptr_t num_received_libs_;
+  intptr_t bytes_received_libs_;
+  intptr_t num_received_classes_;
+  intptr_t num_received_procedures_;
 
   // Collect the necessary instance transformation for schema changes.
   ZoneGrowableArray<InstanceMorpher*> instance_morphers_;

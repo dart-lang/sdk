@@ -187,6 +187,10 @@ void CallSpecializer::ApplyClassIds() {
             VisitInstanceCall(call);
           }
         }
+      } else if (auto static_call = instr->AsStaticCall()) {
+        // If TFA devirtualized instance calls to static calls we also want to
+        // process them here.
+        VisitStaticCall(static_call);
       } else if (instr->IsPolymorphicInstanceCall()) {
         SpecializePolymorphicInstanceCall(instr->AsPolymorphicInstanceCall());
       }
@@ -894,19 +898,17 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
 
 void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
                                                    const Field& field) {
+  const Slot& slot = Slot::Get(field, &flow_graph()->parsed_function());
   LoadFieldInstr* load = new (Z) LoadFieldInstr(
-      new (Z) Value(call->ArgumentAt(0)), &field,
-      AbstractType::ZoneHandle(Z, field.type()), call->token_pos(),
-      isolate()->use_field_guards() ? &flow_graph()->parsed_function() : NULL);
-  load->set_is_immutable(field.is_final());
+      new (Z) Value(call->ArgumentAt(0)), slot, call->token_pos());
 
   // Discard the environment from the original instruction because the load
   // can't deoptimize.
   call->RemoveEnvironment();
   ReplaceCall(call, load);
 
-  if (load->result_cid() != kDynamicCid) {
-    // Reset value types if guarded_cid was used.
+  if (load->slot().nullable_cid() != kDynamicCid) {
+    // Reset value types if we know concrete cid.
     for (Value::Iterator it(load->input_use_list()); !it.Done(); it.Advance()) {
       it.Current()->SetReachingType(NULL);
     }
@@ -1003,8 +1005,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
     // Compute if we need to type check the value. Always type check if
     // not in strong mode or if at a dynamic invocation.
     bool needs_check = true;
-    if (FLAG_strong && !instr->interface_target().IsNull() &&
-        (field.kernel_offset() >= 0)) {
+    if (!instr->interface_target().IsNull() && (field.kernel_offset() >= 0)) {
       bool is_covariant = false;
       bool is_generic_covariant = false;
       field.GetCovarianceAttributes(&is_covariant, &is_generic_covariant);
@@ -1034,10 +1035,10 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       if (!dst_type.IsInstantiated()) {
         const Class& owner = Class::Handle(Z, field.Owner());
         if (owner.NumTypeArguments() > 0) {
-          instantiator_type_args = new (Z) LoadFieldInstr(
-              new (Z) Value(instr->ArgumentAt(0)),
-              NativeFieldDesc::GetTypeArgumentsFieldFor(zone(), owner),
-              instr->token_pos());
+          instantiator_type_args = new (Z)
+              LoadFieldInstr(new (Z) Value(instr->ArgumentAt(0)),
+                             Slot::GetTypeArgumentsSlotFor(thread(), owner),
+                             instr->token_pos());
           InsertBefore(instr, instantiator_type_args, instr->env(),
                        FlowGraph::kValue);
         }
@@ -1056,15 +1057,10 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 
   // Field guard was detached.
   ASSERT(instr->FirstArgIndex() == 0);
-  StoreInstanceFieldInstr* store = new (Z)
-      StoreInstanceFieldInstr(field, new (Z) Value(instr->ArgumentAt(0)),
-                              new (Z) Value(instr->ArgumentAt(1)),
-                              kEmitStoreBarrier, instr->token_pos());
-
-  ASSERT(I->use_field_guards() || !store->IsUnboxedStore());
-  if (I->use_field_guards() && store->IsUnboxedStore()) {
-    flow_graph()->parsed_function().AddToGuardedFields(&field);
-  }
+  StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
+      field, new (Z) Value(instr->ArgumentAt(0)),
+      new (Z) Value(instr->ArgumentAt(1)), kEmitStoreBarrier,
+      instr->token_pos(), &flow_graph()->parsed_function());
 
   // Discard the environment from the original instruction because the store
   // can't deoptimize.
@@ -1228,7 +1224,7 @@ RawBool* CallSpecializer::InstanceOfAsBool(
   ASSERT(results->is_empty());
   ASSERT(ic_data.NumArgsTested() == 1);  // Unary checks only.
   if (type.IsFunctionType() || type.IsDartFunctionType() ||
-      !type.IsInstantiated() || type.IsMalformedOrMalbounded()) {
+      !type.IsInstantiated()) {
     return Bool::null();
   }
   const Class& type_class = Class::Handle(Z, type.type_class());
@@ -1266,9 +1262,8 @@ RawBool* CallSpecializer::InstanceOfAsBool(
         cls.IsNullClass()
             ? (type_class.IsNullClass() || type_class.IsObjectClass() ||
                type_class.IsDynamicClass())
-            : cls.IsSubtypeOf(Object::null_type_arguments(), type_class,
-                              Object::null_type_arguments(), NULL, NULL,
-                              Heap::kOld);
+            : Class::IsSubtypeOf(cls, Object::null_type_arguments(), type_class,
+                                 Object::null_type_arguments(), Heap::kOld);
     results->Add(cls.id());
     results->Add(is_subtype);
     if (prev.IsNull()) {
@@ -1284,7 +1279,7 @@ RawBool* CallSpecializer::InstanceOfAsBool(
 
 // Returns true if checking against this type is a direct class id comparison.
 bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+  ASSERT(type.IsFinalized());
   // Requires CHA.
   if (!type.IsInstantiated()) return false;
   // Function types have different type checking rules.
@@ -1351,7 +1346,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   const intptr_t receiver_index = call->FirstArgIndex();
   Value* left_value = call->PushArgumentAt(receiver_index)->value();
 
-  if (left_value->Type()->IsMoreSpecificThan(type)) {
+  if (left_value->Type()->IsSubtypeOf(type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
         call->token_pos(),
         type.IsNullType() ? Token::kEQ_STRICT : Token::kNE_STRICT,
@@ -1583,11 +1578,11 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
   ASSERT(results->length() >= 2);  // At least on entry.
   const ClassTable& class_table = *Isolate::Current()->class_table();
   if ((*results)[0] != kSmiCid) {
-    const Class& cls = Class::Handle(class_table.At(kSmiCid));
+    const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
     const Class& type_class = Class::Handle(type.type_class());
     const bool smi_is_subtype =
-        cls.IsSubtypeOf(Object::null_type_arguments(), type_class,
-                        Object::null_type_arguments(), NULL, NULL, Heap::kOld);
+        Class::IsSubtypeOf(smi_class, Object::null_type_arguments(), type_class,
+                           Object::null_type_arguments(), Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {
@@ -1597,7 +1592,7 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
     (*results)[1] = smi_is_subtype;
   }
 
-  ASSERT(type.IsInstantiated() && !type.IsMalformedOrMalbounded());
+  ASSERT(type.IsInstantiated());
   ASSERT(results->length() >= 2);
   if (type.IsSmiType()) {
     ASSERT((*results)[0] == kSmiCid);

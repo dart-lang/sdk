@@ -20,11 +20,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool,
-            trace_natives,
-            false,
-            "Trace invocation of natives (debug mode only)");
-
 void DartNativeThrowArgumentException(const Instance& instance) {
   const Array& __args__ = Array::Handle(Array::New(1));
   __args__.SetAt(0, instance);
@@ -44,12 +39,14 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
   Dart_NativeFunction native_function = NULL;
   {
     Thread* T = Thread::Current();
-    TransitionVMToNative transition(T);
-    Dart_EnterScope();  // Enter a new Dart API scope as we invoke API entries.
-    Dart_NativeEntryResolver resolver = library.native_entry_resolver();
-    native_function = resolver(Api::NewHandle(T, function_name.raw()),
-                               number_of_arguments, auto_setup_scope);
-    Dart_ExitScope();  // Exit the Dart API scope.
+    Api::Scope api_scope(T);
+    Dart_Handle api_function_name = Api::NewHandle(T, function_name.raw());
+    {
+      TransitionVMToNative transition(T);
+      Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+      native_function =
+          resolver(api_function_name, number_of_arguments, auto_setup_scope);
+    }
   }
   return reinterpret_cast<NativeFunction>(native_function);
 }
@@ -180,34 +177,16 @@ void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
     Isolate* isolate = thread->isolate();
     ApiState* state = isolate->api_state();
     ASSERT(state != NULL);
-    ApiLocalScope* current_top_scope = thread->api_top_scope();
-    ApiLocalScope* scope = thread->api_reusable_scope();
     TRACE_NATIVE_CALL("0x%" Px "", reinterpret_cast<uintptr_t>(func));
-    TransitionGeneratedToNative transition(thread);
-    if (scope == NULL) {
-      scope =
-          new ApiLocalScope(current_top_scope, thread->top_exit_frame_info());
-      ASSERT(scope != NULL);
-    } else {
-      scope->Reinit(thread, current_top_scope, thread->top_exit_frame_info());
-      thread->set_api_reusable_scope(NULL);
+    thread->EnterApiScope();
+    {
+      TransitionGeneratedToNative transition(thread);
+      func(args);
+      if (ReturnValueIsError(arguments)) {
+        PropagateErrors(arguments);
+      }
     }
-    thread->set_api_top_scope(scope);  // New scope is now the top scope.
-
-    func(args);
-    if (ReturnValueIsError(arguments)) {
-      PropagateErrors(arguments);
-    }
-
-    ASSERT(current_top_scope == scope->previous());
-    thread->set_api_top_scope(current_top_scope);  // Reset top scope to prev.
-    if (thread->api_reusable_scope() == NULL) {
-      scope->Reset(thread);  // Reset the old scope which we just exited.
-      thread->set_api_reusable_scope(scope);
-    } else {
-      ASSERT(thread->api_reusable_scope() != scope);
-      delete scope;
-    }
+    thread->ExitApiScope();
     DEOPTIMIZE_ALOT;
   }
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
@@ -268,8 +247,16 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* caller_frame = iterator.NextFrame();
 
-    const Code& code = Code::Handle(zone, caller_frame->LookupDartCode());
-    const Function& func = Function::Handle(zone, code.function());
+    Code& code = Code::Handle(zone);
+    Bytecode& bytecode = Bytecode::Handle(zone);
+    Function& func = Function::Handle(zone);
+    if (caller_frame->is_interpreted()) {
+      bytecode = caller_frame->LookupDartBytecode();
+      func = bytecode.function();
+    } else {
+      code = caller_frame->LookupDartCode();
+      func = code.function();
+    }
 
     if (FLAG_trace_natives) {
       THR_Print("Resolving native target for %s\n", func.ToCString());
@@ -286,7 +273,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
       ASSERT(FLAG_enable_interpreter);
       NativeFunctionWrapper current_trampoline = KBCPatcher::GetNativeCallAt(
-          caller_frame->pc(), code, &current_function);
+          caller_frame->pc(), bytecode, &current_function);
       ASSERT(current_function ==
              reinterpret_cast<NativeFunction>(LinkNativeCall));
       ASSERT(current_trampoline == &BootstrapNativeCallWrapper ||
@@ -309,8 +296,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
               reinterpret_cast<uword>(LinkNativeCall),
               Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments)));
 #endif
-      ASSERT(current_trampoline.raw() ==
-             StubCode::CallBootstrapNative_entry()->code());
+      ASSERT(current_trampoline.raw() == StubCode::CallBootstrapNative().raw());
     }
 #endif
 
@@ -338,7 +324,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       } else {
         trampoline = &NoScopeNativeCallWrapper;
       }
-      KBCPatcher::PatchNativeCallAt(caller_frame->pc(), code,
+      KBCPatcher::PatchNativeCallAt(caller_frame->pc(), bytecode,
                                     patch_target_function, trampoline);
 #else
       UNREACHABLE();
@@ -346,7 +332,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
     } else {
       Code& trampoline = Code::Handle(zone);
       if (is_bootstrap_native) {
-        trampoline = StubCode::CallBootstrapNative_entry()->code();
+        trampoline = StubCode::CallBootstrapNative().raw();
 #if defined(USING_SIMULATOR)
         patch_target_function = reinterpret_cast<NativeFunction>(
             Simulator::RedirectExternalReference(
@@ -354,9 +340,9 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
                 Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments));
 #endif  // defined USING_SIMULATOR
       } else if (is_auto_scope) {
-        trampoline = StubCode::CallAutoScopeNative_entry()->code();
+        trampoline = StubCode::CallAutoScopeNative().raw();
       } else {
-        trampoline = StubCode::CallNoScopeNative_entry()->code();
+        trampoline = StubCode::CallNoScopeNative().raw();
       }
       CodePatcher::PatchNativeCallAt(caller_frame->pc(), code,
                                      patch_target_function, trampoline);

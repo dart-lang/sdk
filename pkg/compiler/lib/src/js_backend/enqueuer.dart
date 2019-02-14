@@ -14,7 +14,8 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
 import '../options.dart';
-import '../universe/world_builder.dart';
+import '../universe/codegen_world_builder.dart';
+import '../universe/member_usage.dart';
 import '../universe/use.dart'
     show
         ConstantUse,

@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -36,8 +36,8 @@ class CompletionTargetTest extends AbstractContextTest {
     expect(nextOffset, equals(-1), reason: 'too many ^');
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
-    testSource = addSource(provider.convertPath('/test.dart'), content);
-    AnalysisResult result = await driver.getResult(testSource.fullName);
+    testSource = addSource('/test.dart', content);
+    ResolvedUnitResult result = await driver.getResult(testSource.fullName);
     target = new CompletionTarget.forOffset(result.unit, completionOffset);
   }
 
@@ -56,7 +56,7 @@ class CompletionTargetTest extends AbstractContextTest {
 
     // Assert with parsed unit
     assertCommon();
-    AnalysisResult result = await driver.getResult(testSource.fullName);
+    ResolvedUnitResult result = await driver.getResult(testSource.fullName);
     target = new CompletionTarget.forOffset(result.unit, completionOffset);
     // Assert more with resolved unit
     assertCommon();

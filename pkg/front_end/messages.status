@@ -62,11 +62,14 @@ ConstEvalDeferredLibrary/example: Fail
 ConstEvalDuplicateKey/example: Fail
 ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
+ConstEvalFreeTypeParameter/analyzerCode: Fail
+ConstEvalFreeTypeParameter/example: Fail
 ConstEvalInvalidBinaryOperandType/analyzerCode: Fail # CONST_EVAL_TYPE_NUM / CONST_EVAL_TYPE_BOOL
 ConstEvalInvalidBinaryOperandType/example: Fail
 ConstEvalInvalidMethodInvocation/example: Fail
 ConstEvalInvalidStaticInvocation/example: Fail
 ConstEvalInvalidStringInterpolationOperand/example: Fail
+ConstEvalInvalidSymbolName/example: Fail
 ConstEvalInvalidType/analyzerCode: Fail # CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / ...
 ConstEvalInvalidType/example: Fail
 ConstEvalNegativeShift/analyzerCode: Fail # http://dartbug.com/33481
@@ -169,6 +172,7 @@ FastaUsageLong/analyzerCode: Fail
 FastaUsageLong/example: Fail
 FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
+FieldInitializedOutsideDeclaringClass/script1: Fail
 FieldInitializerOutsideConstructor/script1: Fail
 FinalAndCovariant/script2: Fail
 FinalFieldWithoutInitializer/example: Fail
@@ -196,6 +200,7 @@ ImplementsBeforeWith/script: Fail
 ImplementsFutureOr/analyzerCode: Fail # The analyzer doesn't report this error.
 ImplicitCallOfNonMethod/example: Fail
 ImportAfterPart/script1: Fail
+IncompatibleRedirecteeFunctionType/script6: Fail # Triggers multiple errors.
 InitializerForStaticField/example: Fail
 InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail
@@ -214,6 +219,7 @@ InvalidCastTopLevelFunction/example: Fail
 InvalidCatchArguments/example: Fail
 InvalidContinueTarget/analyzerCode: Fail
 InvalidContinueTarget/example: Fail
+InvalidInitializer/analyzerCode: Fail # The analyzer reports a different error
 InvalidInitializer/example: Fail
 InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
@@ -277,7 +283,6 @@ PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail
 PackagesFileFormat/analyzerCode: Fail # Analyzer crashes when .packages file has format error
 PartOfLibraryNameMismatch/example: Fail
-PartOfTwice/script2: Fail # TODO(ahe): Investigate why this fails.
 PartOfUriMismatch/example: Fail
 PartOfUseUri/example: Fail
 PartOrphan/analyzerCode: Fail # Analyzer can't handle this situation
@@ -307,6 +312,11 @@ SdkSpecificationNotFound/analyzerCode: Fail
 SdkSpecificationNotFound/example: Fail
 SdkSummaryNotFound/analyzerCode: Fail
 SdkSummaryNotFound/example: Fail
+SetLiteralTooManyTypeArguments/analyzerCode: Fail
+SetLiteralTooManyTypeArguments/example: Fail
+SetLiteralsNotSupported/analyzerCode: Fail
+SetOrMapLiteralTooManyTypeArguments/analyzerCode: Fail
+SetOrMapLiteralTooManyTypeArguments/example: Fail
 SetterNotFound/example: Fail
 SetterNotSync/example: Fail
 SetterWithWrongNumberOfFormals/example: Fail

@@ -192,6 +192,7 @@ class ProcessInfo {
   static _currentRss() native "ProcessInfo_CurrentRSS";
 }
 
+@pragma("vm:entry-point")
 class _ProcessStartStatus {
   @pragma("vm:entry-point", "set")
   int _errorCode; // Set to OS error code if process start failed.

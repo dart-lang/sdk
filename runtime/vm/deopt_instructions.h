@@ -97,9 +97,9 @@ class DeoptContext {
 
   double FpuRegisterValue(FpuRegister reg) const {
     ASSERT(FlowGraphCompiler::SupportsUnboxedDoubles());
+#if !defined(TARGET_ARCH_DBC)
     ASSERT(fpu_registers_ != NULL);
     ASSERT(reg >= 0);
-#if !defined(TARGET_ARCH_DBC)
     ASSERT(reg < kNumberOfFpuRegisters);
     return *reinterpret_cast<double*>(&fpu_registers_[reg]);
 #else

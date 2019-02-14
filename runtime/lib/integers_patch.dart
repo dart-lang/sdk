@@ -49,7 +49,9 @@ class int {
   @patch
   static int parse(String source, {int radix, int onError(String source)}) {
     if (source == null) throw new ArgumentError("The source must not be null");
-    if (source.isEmpty) return _throwFormatException(onError, source, 0, radix);
+    if (source.isEmpty) {
+      return _throwFormatException(onError, source, 0, radix, null);
+    }
     if (radix == null || radix == 10) {
       // Try parsing immediately, without trimming whitespace.
       int result = _tryParseSmi(source, 0, source.length - 1);
@@ -64,7 +66,7 @@ class int {
   static int _parse(_StringBase source, int radix, onError) {
     int end = source._lastNonWhitespace() + 1;
     if (end == 0) {
-      return _throwFormatException(onError, source, source.length, radix);
+      return _throwFormatException(onError, source, source.length, radix, null);
     }
     int start = source._firstNonWhitespace();
 
@@ -74,7 +76,7 @@ class int {
       sign = 0x2c - first; // -1 if '-', +1 if '+'.
       start++;
       if (start == end) {
-        return _throwFormatException(onError, source, end, radix);
+        return _throwFormatException(onError, source, end, radix, null);
       }
       first = source.codeUnitAt(start);
     }
@@ -88,22 +90,14 @@ class int {
         if ((first | 0x20) == 0x78 /* x */) {
           index++;
           if (index == end) {
-            return _throwFormatException(onError, source, index, null);
+            return _throwFormatException(onError, source, index, null, null);
           }
-          int result = _parseRadix(source, 16, index, end, sign, sign > 0);
-          if (result == null) {
-            return _throwFormatException(onError, source, null, null);
-          }
-          return result;
+          return _parseRadix(source, 16, index, end, sign, sign > 0, onError);
         }
       }
       radix = 10;
     }
-    int result = _parseRadix(source, radix, start, end, sign, false);
-    if (result == null) {
-      return _throwFormatException(onError, source, null, radix);
-    }
-    return result;
+    return _parseRadix(source, radix, start, end, sign, false, onError);
   }
 
   @patch
@@ -117,28 +111,37 @@ class int {
     } else if (radix < 2 || radix > 36) {
       throw new RangeError("Radix $radix not in range 2..36");
     }
-    return _parse(source, radix, _kNull);
+    try {
+      return _parse(source, radix, _kNull);
+    } catch (e) {
+      return null;
+    }
   }
 
   static Null _kNull(_) => null;
 
-  static int _throwFormatException(onError, source, index, radix) {
+  static int _throwFormatException(onError, source, index, radix, message) {
     if (onError != null) return onError(source);
+    if (message != null) {
+      throw new FormatException(message, source, index);
+    }
     if (radix == null) {
       throw new FormatException("Invalid number", source, index);
     }
     throw new FormatException("Invalid radix-$radix number", source, index);
   }
 
-  static int _parseRadix(
-      String source, int radix, int start, int end, int sign, bool allowU64) {
+  static int _parseRadix(String source, int radix, int start, int end, int sign,
+      bool allowU64, onError) {
     int tableIndex = (radix - 2) * 4 + (is64Bit ? 2 : 0);
     int blockSize = _PARSE_LIMITS[tableIndex];
     int length = end - start;
     if (length <= blockSize) {
       _Smi smi = _parseBlock(source, radix, start, end);
-      if (smi != null) return sign * smi;
-      return null;
+      if (smi == null) {
+        return _throwFormatException(onError, source, start, radix, null);
+      }
+      return sign * smi;
     }
 
     // Often cheaper than: int smallBlockSize = length % blockSize;
@@ -150,7 +153,9 @@ class int {
     if (smallBlockSize > 0) {
       int blockEnd = start + smallBlockSize;
       _Smi smi = _parseBlock(source, radix, start, blockEnd);
-      if (smi == null) return null;
+      if (smi == null) {
+        return _throwFormatException(onError, source, start, radix, null);
+      }
       result = sign * smi;
       start = blockEnd;
     }
@@ -166,7 +171,9 @@ class int {
     int blockEnd = start + blockSize;
     do {
       _Smi smi = _parseBlock(source, radix, start, blockEnd);
-      if (smi == null) return null;
+      if (smi == null) {
+        return _throwFormatException(onError, source, start, radix, null);
+      }
       if (result >= positiveOverflowLimit) {
         if ((result > positiveOverflowLimit) ||
             (smi > _int64OverflowLimits[tableIndex + 2])) {
@@ -181,12 +188,14 @@ class int {
               blockEnd + blockSize > end) {
             return (result * multiplier) + smi;
           }
-          return null;
+          return _throwFormatException(onError, source, null, radix,
+              "Positive input exceeds the limit of integer");
         }
       } else if (result <= negativeOverflowLimit) {
         if ((result < negativeOverflowLimit) ||
             (smi > _int64OverflowLimits[tableIndex + 3])) {
-          return null;
+          return _throwFormatException(onError, source, null, radix,
+              "Negative input exceeds the limit of integer");
         }
       }
       result = (result * multiplier) + (sign * smi);

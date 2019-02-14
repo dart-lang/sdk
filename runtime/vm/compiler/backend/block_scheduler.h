@@ -18,10 +18,12 @@ class BlockScheduler : public ValueObject {
   FlowGraph* flow_graph() const { return flow_graph_; }
 
   void AssignEdgeWeights() const;
-
   void ReorderBlocks() const;
 
  private:
+  void ReorderBlocksAOT() const;
+  void ReorderBlocksJIT() const;
+
   FlowGraph* const flow_graph_;
 };
 

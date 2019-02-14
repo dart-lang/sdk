@@ -1,13 +1,11 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -102,15 +100,15 @@ linter:
     handleSuccessfulRequest(request);
 
     await waitForTasksFinished();
-    List<Linter> lints;
-    AnalysisDriver testDriver = (server.contextManager as ContextManagerImpl)
-        .getContextInfoFor(getFolder(projectPath))
-        .analysisDriver;
-    lints = testDriver.analysisOptions.lintRules;
+
+    var testDriver = server.getAnalysisDriver(testFile);
+    List<Linter> lints = testDriver.analysisOptions.lintRules;
+
     // Registry should only contain single lint rule.
     expect(lints, hasLength(1));
     LintRule lint = lints.first as LintRule;
     expect(lint.name, camelCaseTypesLintName);
+
     // Verify lint error result.
     List<AnalysisError> errors = filesErrors[testFile];
     expect(errors, hasLength(1));

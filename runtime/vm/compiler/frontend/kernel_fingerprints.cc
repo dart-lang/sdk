@@ -261,7 +261,14 @@ void KernelFingerprintHelper::CalculateOptionalDartTypeFingerprint() {
 }
 
 void KernelFingerprintHelper::CalculateInterfaceTypeFingerprint(bool simple) {
-  BuildHash(ReadUInt());  // read klass_name.
+  NameIndex kernel_class = ReadCanonicalNameReference();
+  ASSERT(H.IsClass(kernel_class));
+  const String& class_name = H.DartClassName(kernel_class);
+  NameIndex kernel_library = H.CanonicalNameParent(kernel_class);
+  const String& library_name =
+      H.DartSymbolPlain(H.CanonicalNameString(kernel_library));
+  BuildHash(class_name.Hash());
+  BuildHash(library_name.Hash());
   if (!simple) {
     CalculateListOfDartTypesFingerprint();  // read list of types.
   }
@@ -289,7 +296,7 @@ void KernelFingerprintHelper::CalculateFunctionTypeFingerprint(bool simple) {
 
   if (!simple) {
     // TODO(bkonyi): include in hash.
-    SkipCanonicalNameReference();  // read typedef reference.
+    SkipOptionalDartType();  // read typedef type.
   }
 
   CalculateDartTypeFingerprint();  // read return type.
@@ -297,14 +304,14 @@ void KernelFingerprintHelper::CalculateFunctionTypeFingerprint(bool simple) {
 
 void KernelFingerprintHelper::CalculateGetterNameFingerprint() {
   const NameIndex name = ReadCanonicalNameReference();
-  if (FLAG_strong && !H.IsRoot(name) && (H.IsGetter(name) || H.IsField(name))) {
+  if (!H.IsRoot(name) && (H.IsGetter(name) || H.IsField(name))) {
     BuildHash(H.DartGetterName(name).Hash());
   }
 }
 
 void KernelFingerprintHelper::CalculateSetterNameFingerprint() {
   const NameIndex name = ReadCanonicalNameReference();
-  if (FLAG_strong && !H.IsRoot(name)) {
+  if (!H.IsRoot(name)) {
     BuildHash(H.DartSetterName(name).Hash());
   }
 }
@@ -312,7 +319,7 @@ void KernelFingerprintHelper::CalculateSetterNameFingerprint() {
 void KernelFingerprintHelper::CalculateMethodNameFingerprint() {
   const NameIndex name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (FLAG_strong && !H.IsRoot(name) && !H.IsField(name)) {
+  if (!H.IsRoot(name) && !H.IsField(name)) {
     BuildHash(H.DartProcedureName(name).Hash());
   }
 }
@@ -471,6 +478,12 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       ReadPosition();                           // read position.
       CalculateDartTypeFingerprint();           // read type.
       CalculateListOfExpressionsFingerprint();  // read list of expressions.
+      return;
+    case kSetLiteral:
+    case kConstSetLiteral:
+      // Set literals are currently desugared in the frontend and will not
+      // reach the VM. See http://dartbug.com/35124 for discussion.
+      UNREACHABLE();
       return;
     case kMapLiteral:
     case kConstMapLiteral: {
@@ -766,12 +779,6 @@ uint32_t KernelSourceFingerprintHelper::CalculateClassFingerprint(
   hash = KernelFingerprintHelper::CalculateHash(hash, name.Hash());
 
   type ^= klass.super_type();
-  if (!type.IsNull()) {
-    name ^= type.Name();
-    hash = KernelFingerprintHelper::CalculateHash(hash, name.Hash());
-  }
-
-  type ^= klass.mixin();
   if (!type.IsNull()) {
     name ^= type.Name();
     hash = KernelFingerprintHelper::CalculateHash(hash, name.Hash());

@@ -6,39 +6,19 @@
 import "dart:async";
 import "dart:io";
 
-import "package:async_helper/async_helper.dart";
-import "package:expect/expect.dart";
-
-import 'test_utils.dart' show freeIPv4AndIPv6Port, retry;
-
-Future throws(Function f, Function check) async {
-  try {
-    await f();
-    Expect.fail('Did not throw');
-  } catch (e) {
-    if (check != null) {
-      if (!check(e)) {
-        Expect.fail('Unexpected: $e');
-      }
-    }
-  }
-}
+import 'test_utils.dart' show retry, throws;
 
 Future testArguments(connectFunction) async {
-  int freePort = await freeIPv4AndIPv6Port();
-
   var sourceAddress;
-  asyncStart();
-  var server =
-      await ServerSocket.bind(InternetAddress.loopbackIPv4, freePort);
+  final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   server.listen((_) {
     throw 'Unexpected connection from address $sourceAddress';
-  }, onDone: () => asyncEnd());
+  });
 
-  asyncStart();
   // Illegal type for sourceAddress.
   for (sourceAddress in ['www.google.com', 'abc']) {
-    await throws(() => connectFunction('127.0.0.1', server.port,
+    await throws(
+        () => connectFunction('127.0.0.1', server.port,
             sourceAddress: sourceAddress),
         (e) => e is ArgumentError);
   }
@@ -58,8 +38,7 @@ Future testArguments(connectFunction) async {
             sourceAddress: sourceAddress),
         (e) => e is SocketException);
   }
-  asyncEnd();
-  server.close();
+  await server.close();
 }
 
 // IPv4 addresses to use as source address when connecting locally.
@@ -80,8 +59,6 @@ var ipV6SourceAddresses = [
 
 Future testConnect(InternetAddress bindAddress, bool v6Only,
     Function connectFunction, Function closeDestroyFunction) async {
-  int freePort = await freeIPv4AndIPv6Port();
-
   var successCount = 0;
   if (!v6Only) successCount += ipV4SourceAddresses.length;
   if (bindAddress.type == InternetAddressType.IPv6) {
@@ -91,17 +68,14 @@ Future testConnect(InternetAddress bindAddress, bool v6Only,
   var allConnected = new Completer();
   if (successCount == 0) allConnected.complete();
 
-  asyncStart();
-  var server = await ServerSocket.bind(bindAddress, freePort, v6Only: v6Only);
+  var server = await ServerSocket.bind(bindAddress, 0, v6Only: v6Only);
   server.listen((s) {
     s.destroy();
     count++;
     if (count == successCount) allConnected.complete();
-  }, onDone: () => asyncEnd());
+  });
 
-  asyncStart();
-
-  // Connect with IPv4 source addesses.
+  // Connect with IPv4 source addresses.
   for (var sourceAddress in ipV4SourceAddresses) {
     if (!v6Only) {
       var s = await connectFunction(InternetAddress.loopbackIPv4, server.port,
@@ -117,7 +91,7 @@ Future testConnect(InternetAddress bindAddress, bool v6Only,
     }
   }
 
-  // Connect with IPv6 source addesses.
+  // Connect with IPv6 source addresses.
   for (var sourceAddress in ipV6SourceAddresses) {
     if (bindAddress.type == InternetAddressType.IPv6) {
       var s = await connectFunction(InternetAddress.loopbackIPv6, server.port,
@@ -134,12 +108,9 @@ Future testConnect(InternetAddress bindAddress, bool v6Only,
 
   await allConnected.future;
   await server.close();
-  asyncEnd();
 }
 
 main() async {
-  asyncStart();
-
   await retry(() async {
     await testArguments(RawSocket.connect);
   });
@@ -171,6 +142,4 @@ main() async {
     await testConnect(
         InternetAddress.anyIPv6, true, Socket.connect, (s) => s.destroy());
   });
-
-  asyncEnd();
 }

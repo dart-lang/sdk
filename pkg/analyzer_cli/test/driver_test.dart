@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -36,35 +36,6 @@ main() {
   }, name: 'Driver');
 }
 
-/**
- * Call a test that we think will fail.
- *
- * Ensure that we return any thrown exception correctly (avoiding the
- * package:test zone error handler).
- */
-callFailingTest(NoArgFunction expectedFailingTestFn) {
-  final Completer completer = new Completer();
-
-  try {
-    runZoned(
-      () async => await expectedFailingTestFn(),
-      onError: (error) {
-        completer.completeError(error);
-      },
-    ).then((result) {
-      completer.complete(result);
-    }).catchError((error) {
-      completer.completeError(error);
-    });
-  } catch (error) {
-    completer.completeError(error);
-  }
-
-  return completer.future;
-}
-
-typedef dynamic NoArgFunction();
-
 class BaseTest {
   static const emptyOptionsFile = 'data/empty_options.yaml';
 
@@ -85,7 +56,7 @@ class BaseTest {
   /// [args] and an [options] file path. The value of [options] defaults to an
   /// empty options file to avoid unwanted configuration from an otherwise
   /// discovered options file.
-  Future<Null> drive(
+  Future<void> drive(
     String source, {
     String options: emptyOptionsFile,
     List<String> args: const <String>[],
@@ -94,7 +65,7 @@ class BaseTest {
   }
 
   /// Like [drive], but takes an array of sources.
-  Future<Null> driveMany(
+  Future<void> driveMany(
     List<String> sources, {
     String options: emptyOptionsFile,
     List<String> args: const <String>[],
@@ -240,7 +211,7 @@ import 'package:aaa/a.dart';
 var b = a;
 ''');
 
-      Future<Null> buildUnlinked(String uri, String path, String output) async {
+      Future<void> buildUnlinked(String uri, String path, String output) async {
         await _doDrive(path, uri: uri, additionalArgs: [
           '--build-summary-only',
           '--build-summary-only-unlinked',
@@ -514,7 +485,7 @@ var b = new B();
     });
   }
 
-  Future<Null> _doDrive(String path,
+  Future<void> _doDrive(String path,
       {String uri,
       List<String> additionalArgs: const [],
       String dartSdkSummaryPath}) async {
@@ -777,17 +748,17 @@ linter:
   YamlMap _parseOptions(String src) =>
       new AnalysisOptionsProvider().getOptionsFromString(src);
 
-  Future<Null> _runLinter_defaultLints() async {
+  Future<void> _runLinter_defaultLints() async {
     await drive('data/linter_project/test_file.dart',
         options: 'data/linter_project/$optionsFileName', args: ['--lints']);
   }
 
-  Future<Null> _runLinter_lintsInOptions() async {
+  Future<void> _runLinter_lintsInOptions() async {
     await drive('data/linter_project/test_file.dart',
         options: 'data/linter_project/$optionsFileName', args: ['--lints']);
   }
 
-  Future<Null> _runLinter_noLintsFlag() async {
+  Future<void> _runLinter_noLintsFlag() async {
     await drive('data/no_lints_project/test_file.dart',
         options: 'data/no_lints_project/$optionsFileName');
   }
@@ -946,21 +917,17 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString(), contains("1 error and 1 warning found."));
   }
 
-  Future<Null> _driveBasic() async {
+  Future<void> _driveBasic() async {
     await drive('data/options_tests_project/test_file.dart',
         options: 'data/options_tests_project/$optionsFileName');
   }
 
   void _expectUndefinedClassErrorsWithoutExclusions() {
-    bool isStrong = usePreviewDart2 || new AnalysisOptionsImpl().previewDart2;
-    final String issueType = isStrong ? 'error' : 'warning';
     expect(bulletToDash(outSink),
-        contains("$issueType - Undefined class 'IncludedUndefinedClass'"));
-    expect(
-        bulletToDash(outSink),
-        isNot(
-            contains("$issueType - Undefined class 'ExcludedUndefinedClass'")));
-    expect(outSink.toString(), contains("1 $issueType found."));
+        contains("error - Undefined class 'IncludedUndefinedClass'"));
+    expect(bulletToDash(outSink),
+        isNot(contains("error - Undefined class 'ExcludedUndefinedClass'")));
+    expect(outSink.toString(), contains("1 error found."));
   }
 }
 

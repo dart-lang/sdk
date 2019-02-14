@@ -151,6 +151,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
    * If multiple [entries] have the same key,
    * later occurrences overwrite the earlier ones.
    */
+  @Since("2.1")
   factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       <K, V>{}..addEntries(entries);
 }

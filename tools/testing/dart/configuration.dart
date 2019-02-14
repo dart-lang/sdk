@@ -26,7 +26,6 @@ class TestConfiguration {
       this.progress,
       this.selectors,
       this.testList,
-      this.appendLogs,
       this.repeat,
       this.batch,
       this.batchDart2JS,
@@ -34,6 +33,8 @@ class TestConfiguration {
       this.isVerbose,
       this.listTests,
       this.listStatusFiles,
+      this.cleanExit,
+      this.silentFailures,
       this.printTiming,
       this.printReport,
       this.reportInJson,
@@ -41,9 +42,8 @@ class TestConfiguration {
       this.skipCompilation,
       this.useKernelBytecode,
       this.writeDebugLog,
-      this.writeTestOutcomeLog,
-      this.writeResultLog,
       this.writeResults,
+      this.writeLogs,
       this.drtPath,
       this.chromePath,
       this.safariPath,
@@ -59,6 +59,7 @@ class TestConfiguration {
       this.testServerCrossOriginPort,
       this.testDriverErrorPort,
       this.localIP,
+      this.keepGeneratedFiles,
       this.dart2jsOptions,
       String packages,
       this.packageRoot,
@@ -77,7 +78,6 @@ class TestConfiguration {
 
   // Boolean flags.
 
-  final bool appendLogs;
   final bool batch;
   final bool batchDart2JS;
   final bool copyCoreDumps;
@@ -85,6 +85,8 @@ class TestConfiguration {
   final bool isVerbose;
   final bool listTests;
   final bool listStatusFiles;
+  final bool cleanExit;
+  final bool silentFailures;
   final bool printTiming;
   final bool printReport;
   final bool reportInJson;
@@ -92,9 +94,8 @@ class TestConfiguration {
   final bool skipCompilation;
   final bool useKernelBytecode;
   final bool writeDebugLog;
-  final bool writeTestOutcomeLog;
-  final bool writeResultLog;
   final bool writeResults;
+  final bool writeLogs;
   final bool printPassingStdout;
 
   Architecture get architecture => configuration.architecture;
@@ -141,6 +142,7 @@ class TestConfiguration {
   final int testServerCrossOriginPort;
   final int testDriverErrorPort;
   final String localIP;
+  final bool keepGeneratedFiles;
 
   /// Extra dart2js options passed to the testing script.
   final List<String> dart2jsOptions;

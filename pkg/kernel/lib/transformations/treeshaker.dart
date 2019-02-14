@@ -663,14 +663,15 @@ class _TreeShakerVisitor extends RecursiveVisitor {
   final TreeShaker shaker;
   final CoreTypes coreTypes;
   final TypeEnvironment types;
-  final bool strongMode;
+  final bool legacyMode;
   List<Node> summary;
 
   _TreeShakerVisitor(TreeShaker shaker)
       : this.shaker = shaker,
         this.coreTypes = shaker.coreTypes,
-        this.strongMode = !shaker.legacyMode,
-        this.types = new TypeEnvironment(shaker.coreTypes, shaker.hierarchy) {
+        this.legacyMode = shaker.legacyMode,
+        this.types = new TypeEnvironment(shaker.coreTypes, shaker.hierarchy,
+            legacyMode: true) {
     types.errorHandler = handleError;
   }
 
@@ -795,7 +796,7 @@ class _TreeShakerVisitor extends RecursiveVisitor {
   }
 
   Class getStaticType(Expression node) {
-    if (!strongMode) return coreTypes.objectClass;
+    if (legacyMode) return coreTypes.objectClass;
     return getKnownSupertype(node.getStaticType(types));
   }
 

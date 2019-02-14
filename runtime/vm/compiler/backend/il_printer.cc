@@ -13,7 +13,7 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 DEFINE_FLAG(bool,
             display_sorted_ic_data,
@@ -612,14 +612,8 @@ void GuardFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  if (field().IsNull()) {
-    f->Print("{%" Pd "}, ", offset_in_bytes());
-  } else {
-    f->Print("%s {%" Pd "}, ", String::Handle(field().name()).ToCString(),
-             field().Offset());
-  }
   instance()->PrintTo(f);
-  f->Print(", ");
+  f->Print(" . %s = ", slot().Name());
   value()->PrintTo(f);
   if (!ShouldEmitStoreBarrier()) f->Print(", barrier removed");
 }
@@ -671,27 +665,14 @@ void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(cls_.ScrubbedName()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
     f->Print(", ");
-    f->Print("%s: ", slots_[i]->ToCString());
+    f->Print("%s: ", slots_[i]->Name());
     InputAt(i)->PrintTo(f);
   }
 }
 
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
-  f->Print(", %" Pd, offset_in_bytes());
-
-  if (field() != nullptr) {
-    f->Print(" {%s} %s", String::Handle(field()->name()).ToCString(),
-             field()->GuardedPropertiesAsCString());
-  }
-
-  if (native_field() != nullptr) {
-    f->Print(" {%s}", native_field()->name());
-  }
-
-  if (immutable_) {
-    f->Print(", immutable");
-  }
+  f->Print(" . %s%s", slot().Name(), slot().is_immutable() ? " {final}" : "");
 }
 
 void InstantiateTypeInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -1158,7 +1139,7 @@ const char* Environment::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
-#else  // PRODUCT
+#else  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 const char* Instruction::ToCString() const {
   return DebugName();
@@ -1196,7 +1177,7 @@ bool FlowGraphPrinter::ShouldPrint(const Function& function) {
   return false;
 }
 
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 }  // namespace dart
 

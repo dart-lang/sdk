@@ -30,13 +30,22 @@ abstract class ContextBuilder {
    * the the variable names found in `fromEnvironment` invocations to the
    * constant value that will be returned. If none is given, then no variables
    * will be defined.
+   * 
+   * If a list of [librarySummaryPaths] is provided, then the summary files at
+   * those paths will be used, when possible, when analyzing the libraries
+   * contained in the summary files.
    *
    * If an [sdkPath] is provided, and if it is a valid path to a directory
    * containing a valid SDK, then the SDK in the referenced directory will be
    * used when analyzing the code in the context.
+   * 
+   * If an [sdkSummaryPath] is provided, then that file will be used as the
+   * summary file for the SDK.
    */
   AnalysisContext createContext(
       {@required ContextRoot contextRoot,
       DeclaredVariables declaredVariables,
-      String sdkPath});
+      List<String> librarySummaryPaths,
+      String sdkPath,
+      String sdkSummaryPath});
 }

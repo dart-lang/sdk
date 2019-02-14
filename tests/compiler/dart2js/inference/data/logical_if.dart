@@ -226,7 +226,7 @@ _promotedNotOrIfThenElse(
   if (o is! Class9 || c) {
     o. /*invoke: Union([exact=Class9], [exact=JSUInt31])*/ toString();
   } else {
-    o. /*invoke: Union([exact=Class9], [exact=JSUInt31])*/ toString();
+    o. /*invoke: [exact=Class9]*/ toString();
   }
 }
 

@@ -24,7 +24,7 @@ abstract class _A&M0&M1 = self::M0<core::int> with self::M1<core::int> {
 }
 class A extends self::_A&M0&M1 {
   synthetic constructor •() → self::A
-    : super self::M0::•()
+    : super self::_A&M0&M1::•()
     ;
 }
 static method main() → dynamic {}

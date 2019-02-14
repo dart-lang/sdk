@@ -1,0 +1,26 @@
+// Formatted problems:
+//
+// pkg/front_end/testcases/rasta/try_label.dart:9:5: Error: A continue statement can't be used outside of a loop or switch statement.
+// Try removing the continue statement.
+//     continue L;
+//     ^^^^^^^^
+
+// Unhandled errors:
+//
+// pkg/front_end/testcases/rasta/try_label.dart:9:5: Error: A continue statement can't be used outside of a loop or switch statement.
+// Try removing the continue statement.
+//     continue L;
+//     ^^^^^^^^
+
+library;
+import self as self;
+
+static method main() → dynamic {
+  #L1:
+  try {
+    break #L1;
+  }
+  finally {
+    break #L1;
+  }
+}

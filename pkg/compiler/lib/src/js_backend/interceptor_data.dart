@@ -9,9 +9,9 @@ import '../common_elements.dart'
     show CommonElements, KCommonElements, KElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../js/js.dart' as jsAst;
 import '../serialization/serialization.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart';
 import '../world.dart' show JClosedWorld;
 import 'namer.dart';
@@ -182,7 +182,9 @@ class InterceptorDataImpl implements InterceptorData {
     return elements.any((element) {
       return selector.applies(element) &&
           (mask == null ||
-              closedWorld.abstractValueDomain.canHit(mask, element, selector));
+              closedWorld.abstractValueDomain
+                  .isTargetingMember(mask, element, selector.memberName)
+                  .isPotentiallyTrue);
     });
   }
 

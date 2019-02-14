@@ -1,10 +1,10 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -63,14 +63,8 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
 
   _computeCompletion(int offset) async {
     driver.changeFile(testFile);
-    AnalysisResult result = await driver.getResult(testFile);
-    StatementCompletionContext context = new StatementCompletionContext(
-        testFile,
-        result.lineInfo,
-        offset,
-        testUnit,
-        testUnitElement,
-        result.errors);
+    ResolvedUnitResult result = await session.getResolvedUnit(testFile);
+    var context = new StatementCompletionContext(result, offset);
     StatementCompletionProcessor processor =
         new StatementCompletionProcessor(context);
     StatementCompletion completion = await processor.compute();

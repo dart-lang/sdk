@@ -17,7 +17,7 @@ abstract class _Foo&Object&Mixin = core::Object with self::Mixin {
 }
 class Foo extends self::_Foo&Object&Mixin {
   synthetic constructor •() → self::Foo
-    : super core::Object::•()
+    : super self::_Foo&Object&Mixin::•()
     ;
   method foo() → dynamic
     return super.{self::Mixin::foo}();

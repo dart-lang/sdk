@@ -15,6 +15,13 @@ assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not repo
 assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
+set_literals/*: Skip
+
+[ $runtime == vm ]
+async_star/async_star_await_for_test: RuntimeError
+async_star/async_star_cancel_test: RuntimeError
+async_star/async_star_test: RuntimeError
+set_literals/*: Skip
 
 [ $arch == arm64 && $runtime == vm ]
 closure_cycles_test: Pass, Slow

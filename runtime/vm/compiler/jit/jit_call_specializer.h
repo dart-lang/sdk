@@ -30,9 +30,10 @@ class JitCallSpecializer : public CallSpecializer {
 
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call);
 
-  void LowerContextAllocation(Definition* instr,
-                              intptr_t num_context_variables,
-                              Value* context_value);
+  void LowerContextAllocation(
+      Definition* instr,
+      const GrowableArray<LocalVariable*>& context_variables,
+      Value* context_value);
 
   void ReplaceWithStaticCall(InstanceCallInstr* instr,
                              const ICData& unary_checks,

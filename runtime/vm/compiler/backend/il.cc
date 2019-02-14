@@ -187,7 +187,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     bool test_succeded = false;
     if (use_subtype_test) {
       cls_type = cls.RareType();
-      test_succeded = cls_type.IsSubtypeOf(dst_type, NULL, NULL, Heap::kNew);
+      test_succeded = cls_type.IsSubtypeOf(dst_type, Heap::kNew);
     } else {
       while (!cls.IsObjectClass()) {
         if (cls.raw() == klass.raw()) {
@@ -311,7 +311,7 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
 }
 
 bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+  ASSERT(type.IsFinalized());
 
   if (!type.IsInstantiated() || !type.IsType() || type.IsFunctionType() ||
       type.IsDartFunctionType()) {
@@ -354,7 +354,7 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
 
 bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
     const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+  ASSERT(type.IsFinalized());
 
   if (!type.IsType() || type.IsFunctionType() || type.IsDartFunctionType()) {
     return false;
@@ -463,11 +463,16 @@ Object& Definition::constant_value() {
 
 Definition* Definition::OriginalDefinition() {
   Definition* defn = this;
-  while (defn->IsRedefinition() || defn->IsAssertAssignable()) {
+  while (defn->IsRedefinition() || defn->IsAssertAssignable() ||
+         defn->IsCheckArrayBound() || defn->IsGenericCheckBound()) {
     if (defn->IsRedefinition()) {
       defn = defn->AsRedefinition()->value()->definition();
-    } else {
+    } else if (defn->IsAssertAssignable()) {
       defn = defn->AsAssertAssignable()->value()->definition();
+    } else if (defn->IsCheckArrayBound()) {
+      defn = defn->AsCheckArrayBound()->index()->definition();
+    } else {
+      defn = defn->AsGenericCheckBound()->index()->definition();
     }
   }
   return defn;
@@ -735,103 +740,19 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
   return mask;
 }
 
-const NativeFieldDesc* NativeFieldDesc::Get(Kind kind) {
-  static const NativeFieldDesc fields[] = {
-#define IMMUTABLE true
-#define MUTABLE false
-#define DEFINE_NATIVE_FIELD(ClassName, FieldName, cid, mutability)             \
-  NativeFieldDesc(k##ClassName##_##FieldName, ClassName::FieldName##_offset(), \
-                  k##cid##Cid, mutability),
-
-      NATIVE_FIELDS_LIST(DEFINE_NATIVE_FIELD)
-
-#undef DEFINE_FIELD
-#undef MUTABLE
-#undef IMMUTABLE
-  };
-
-  return &fields[kind];
-}
-
-const NativeFieldDesc* NativeFieldDesc::GetLengthFieldForArrayCid(
-    intptr_t array_cid) {
-  if (RawObject::IsExternalTypedDataClassId(array_cid) ||
-      RawObject::IsTypedDataClassId(array_cid)) {
-    return Get(kTypedData_length);
-  }
-
-  switch (array_cid) {
-    case kGrowableObjectArrayCid:
-      return Get(kGrowableObjectArray_length);
-
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-    case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
-      return Get(kString_length);
-
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return Get(kArray_length);
-
-    default:
-      UNREACHABLE();
-      return nullptr;
-  }
-}
-
-const NativeFieldDesc* NativeFieldDesc::GetTypeArgumentsField(Zone* zone,
-                                                              intptr_t offset) {
-  // TODO(vegorov) consider caching type arguments fields for specific classes
-  // in some sort of a flow-graph specific cache.
-  ASSERT(offset != Class::kNoTypeArguments);
-  return new (zone) NativeFieldDesc(kTypeArguments, offset, kDynamicCid,
-                                    /*immutable=*/true);
-}
-
-const NativeFieldDesc* NativeFieldDesc::GetTypeArgumentsFieldFor(
-    Zone* zone,
-    const Class& cls) {
-  return GetTypeArgumentsField(zone, cls.type_arguments_field_offset());
-}
-
-RawAbstractType* NativeFieldDesc::type() const {
-  if (cid() == kSmiCid) {
-    return Type::SmiType();
-  }
-
-  return Type::DynamicType();
-}
-
-const char* NativeFieldDesc::name() const {
-  switch (kind()) {
-#define HANDLE_CASE(ClassName, FieldName, cid, mutability)                     \
-  case k##ClassName##_##FieldName:                                             \
-    return #ClassName "." #FieldName;
-
-    NATIVE_FIELDS_LIST(HANDLE_CASE)
-
-#undef HANDLE_CASE
-    case kTypeArguments:
-      return ":type_arguments";
-  }
-  UNREACHABLE();
-  return nullptr;
-}
-
 bool LoadFieldInstr::IsUnboxedLoad() const {
-  return FLAG_unbox_numeric_fields && (field() != NULL) &&
-         FlowGraphCompiler::IsUnboxedField(*field());
+  return FLAG_unbox_numeric_fields && slot().IsDartField() &&
+         FlowGraphCompiler::IsUnboxedField(slot().field());
 }
 
 bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
-  return FLAG_unbox_numeric_fields && (field() != NULL) &&
-         FlowGraphCompiler::IsPotentialUnboxedField(*field());
+  return FLAG_unbox_numeric_fields && slot().IsDartField() &&
+         FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
 }
 
 Representation LoadFieldInstr::representation() const {
   if (IsUnboxedLoad()) {
-    const intptr_t cid = field()->UnboxedFieldCid();
+    const intptr_t cid = slot().field().UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:
         return kUnboxedDouble;
@@ -847,20 +768,20 @@ Representation LoadFieldInstr::representation() const {
 }
 
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
-  return FLAG_unbox_numeric_fields && !field().IsNull() &&
-         FlowGraphCompiler::IsUnboxedField(field());
+  return FLAG_unbox_numeric_fields && slot().IsDartField() &&
+         FlowGraphCompiler::IsUnboxedField(slot().field());
 }
 
 bool StoreInstanceFieldInstr::IsPotentialUnboxedStore() const {
-  return FLAG_unbox_numeric_fields && !field().IsNull() &&
-         FlowGraphCompiler::IsPotentialUnboxedField(field());
+  return FLAG_unbox_numeric_fields && slot().IsDartField() &&
+         FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
 }
 
 Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
     intptr_t index) const {
   ASSERT((index == 0) || (index == 1));
   if ((index == 1) && IsUnboxedStore()) {
-    const intptr_t cid = field().UnboxedFieldCid();
+    const intptr_t cid = slot().field().UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:
         return kUnboxedDouble;
@@ -918,13 +839,11 @@ Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
     const TypeArguments& function_type_args = TypeArguments::Handle(
         Z, TypeArguments::RawCast(constant_function_type_args->value().raw()));
 
-    Error& error_bound = Error::Handle(Z);
-
     AbstractType& sub_type = AbstractType::Handle(Z, sub_type_.raw());
     AbstractType& super_type = AbstractType::Handle(Z, super_type_.raw());
-    if (AbstractType::InstantiateAndTestSubtype(
-            &sub_type, &super_type, &error_bound, instantiator_type_args,
-            function_type_args)) {
+    if (AbstractType::InstantiateAndTestSubtype(&sub_type, &super_type,
+                                                instantiator_type_args,
+                                                function_type_args)) {
       return NULL;
     }
   }
@@ -963,12 +882,7 @@ bool BinaryIntegerOpInstr::AttributesEqual(Instruction* other) const {
 bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   LoadFieldInstr* other_load = other->AsLoadField();
   ASSERT(other_load != NULL);
-  if (field() != NULL) {
-    return (other_load->field() != NULL) &&
-           (field()->raw() == other_load->field()->raw());
-  }
-  return (other_load->field() == NULL) &&
-         (offset_in_bytes() == other_load->offset_in_bytes());
+  return &this->slot_ == &other_load->slot_;
 }
 
 Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -1600,6 +1514,10 @@ bool BlockEntryInstr::IsLoopHeader() const {
   return loop_info_ != nullptr && loop_info_->header() == this;
 }
 
+intptr_t BlockEntryInstr::NestingDepth() const {
+  return loop_info_ == nullptr ? 0 : loop_info_->NestingDepth();
+}
+
 // Helper to mutate the graph during inlining. This block should be
 // replaced with new_block as a predecessor of all of this block's
 // successors.  For each successor, the predecessors will be reordered
@@ -2167,7 +2085,12 @@ static bool IsRepresentable(const Integer& value, Representation rep) {
     case kUnboxedInt64:
       return value.IsSmi() || value.IsMint();
 
-    case kUnboxedUint32:  // Only truncating Uint32 arithmetic is supported.
+    case kUnboxedUint32:
+      if (value.IsSmi() || value.IsMint()) {
+        return Utils::IsUint(32, value.AsInt64Value());
+      }
+      return false;
+
     default:
       UNREACHABLE();
   }
@@ -2569,26 +2492,37 @@ Instruction* CheckStackOverflowInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 bool LoadFieldInstr::IsImmutableLengthLoad() const {
-  if (native_field() != nullptr) {
-    switch (native_field()->kind()) {
-      case NativeFieldDesc::kArray_length:
-      case NativeFieldDesc::kTypedData_length:
-      case NativeFieldDesc::kString_length:
-        return true;
-      case NativeFieldDesc::kGrowableObjectArray_length:
-        return false;
+  switch (slot().kind()) {
+    case Slot::Kind::kArray_length:
+    case Slot::Kind::kTypedData_length:
+    case Slot::Kind::kString_length:
+      return true;
+    case Slot::Kind::kGrowableObjectArray_length:
+      return false;
 
-      // Not length loads.
-      case NativeFieldDesc::kLinkedHashMap_index:
-      case NativeFieldDesc::kLinkedHashMap_data:
-      case NativeFieldDesc::kLinkedHashMap_hash_mask:
-      case NativeFieldDesc::kLinkedHashMap_used_data:
-      case NativeFieldDesc::kLinkedHashMap_deleted_keys:
-      case NativeFieldDesc::kArgumentsDescriptor_type_args_len:
-      case NativeFieldDesc::kTypeArguments:
-        return false;
-    }
+    // Not length loads.
+    case Slot::Kind::kLinkedHashMap_index:
+    case Slot::Kind::kLinkedHashMap_data:
+    case Slot::Kind::kLinkedHashMap_hash_mask:
+    case Slot::Kind::kLinkedHashMap_used_data:
+    case Slot::Kind::kLinkedHashMap_deleted_keys:
+    case Slot::Kind::kArgumentsDescriptor_type_args_len:
+    case Slot::Kind::kArgumentsDescriptor_positional_count:
+    case Slot::Kind::kArgumentsDescriptor_count:
+    case Slot::Kind::kTypeArguments:
+    case Slot::Kind::kGrowableObjectArray_data:
+    case Slot::Kind::kContext_parent:
+    case Slot::Kind::kClosure_context:
+    case Slot::Kind::kClosure_delayed_type_arguments:
+    case Slot::Kind::kClosure_function:
+    case Slot::Kind::kClosure_function_type_arguments:
+    case Slot::Kind::kClosure_instantiator_type_arguments:
+    case Slot::Kind::kClosure_hash:
+    case Slot::Kind::kCapturedVariable:
+    case Slot::Kind::kDartField:
+      return false;
   }
+  UNREACHABLE();
   return false;
 }
 
@@ -2618,40 +2552,52 @@ Definition* MathUnaryInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
-bool LoadFieldInstr::Evaluate(const Object& instance, Object* result) {
-  if (native_field() != nullptr) {
-    switch (native_field()->kind()) {
-      case NativeFieldDesc::kArgumentsDescriptor_type_args_len:
-        if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
-          ArgumentsDescriptor desc(Array::Cast(instance));
-          *result = Smi::New(desc.TypeArgsLen());
-          return true;
-        }
-        return false;
+bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
+                                     const Slot& field,
+                                     Object* result) {
+  switch (field.kind()) {
+    case Slot::Kind::kDartField:
+      return TryEvaluateLoad(instance, field.field(), result);
 
-      default:
-        break;
-    }
+    case Slot::Kind::kArgumentsDescriptor_type_args_len:
+      if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
+        ArgumentsDescriptor desc(Array::Cast(instance));
+        *result = Smi::New(desc.TypeArgsLen());
+        return true;
+      }
+      return false;
+
+    default:
+      break;
   }
+  return false;
+}
 
-  if (field() == nullptr || !field()->is_final() || !instance.IsInstance()) {
+bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
+                                     const Field& field,
+                                     Object* result) {
+  if (!field.is_final() || !instance.IsInstance()) {
     return false;
   }
 
   // Check that instance really has the field which we
   // are trying to load from.
   Class& cls = Class::Handle(instance.clazz());
-  while (cls.raw() != Class::null() && cls.raw() != field()->Owner()) {
+  while (cls.raw() != Class::null() && cls.raw() != field.Owner()) {
     cls = cls.SuperClass();
   }
-  if (cls.raw() != field()->Owner()) {
+  if (cls.raw() != field.Owner()) {
     // Failed to find the field in class or its superclasses.
     return false;
   }
 
   // Object has the field: execute the load.
-  *result = Instance::Cast(instance).GetField(*field());
+  *result = Instance::Cast(instance).GetField(field);
   return true;
+}
+
+bool LoadFieldInstr::Evaluate(const Object& instance, Object* result) {
+  return TryEvaluateLoad(instance, slot(), result);
 }
 
 Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -2668,21 +2614,21 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         return call->ArgumentAt(1);
       }
     } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
-      if (native_field() == NativeFieldDesc::Array_length()) {
+      if (slot().kind() == Slot::Kind::kArray_length) {
         return create_array->num_elements()->definition();
       }
     } else if (LoadFieldInstr* load_array = array->AsLoadField()) {
       // For arrays with guarded lengths, replace the length load
       // with a constant.
-      if (const Field* field = load_array->field()) {
-        if (field->guarded_list_length() >= 0) {
+      const Slot& slot = load_array->slot();
+      if (slot.IsDartField()) {
+        if (slot.field().guarded_list_length() >= 0) {
           return flow_graph->GetConstant(
-              Smi::Handle(Smi::New(field->guarded_list_length())));
+              Smi::Handle(Smi::New(slot.field().guarded_list_length())));
         }
       }
     }
-  } else if (native_field() != nullptr &&
-             native_field()->kind() == NativeFieldDesc::kTypeArguments) {
+  } else if (slot().IsTypeArguments()) {
     Definition* array = instance()->definition()->OriginalDefinition();
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (call->is_known_list_constructor()) {
@@ -2694,18 +2640,24 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
       return create_array->element_type()->definition();
     } else if (LoadFieldInstr* load_array = array->AsLoadField()) {
-      const Field* field = load_array->field();
-      // For trivially exact fields we know that type arguments match
-      // static type arguments exactly.
-      if ((field != nullptr) &&
-          field->static_type_exactness_state().IsTriviallyExact()) {
-        return flow_graph->GetConstant(TypeArguments::Handle(
-            AbstractType::Handle(field->type()).arguments()));
-      } else if (const NativeFieldDesc* native_field =
-                     load_array->native_field()) {
-        if (native_field == NativeFieldDesc::LinkedHashMap_data()) {
-          return flow_graph->constant_null();
+      const Slot& slot = load_array->slot();
+      switch (slot.kind()) {
+        case Slot::Kind::kDartField: {
+          // For trivially exact fields we know that type arguments match
+          // static type arguments exactly.
+          const Field& field = slot.field();
+          if (field.static_type_exactness_state().IsTriviallyExact()) {
+            return flow_graph->GetConstant(TypeArguments::Handle(
+                AbstractType::Handle(field.type()).arguments()));
+          }
+          break;
         }
+
+        case Slot::Kind::kLinkedHashMap_data:
+          return flow_graph->constant_null();
+
+        default:
+          break;
       }
     }
   }
@@ -2731,7 +2683,7 @@ Definition* AssertBooleanInstr::Canonicalize(FlowGraph* flow_graph) {
 
     // In strong mode type is already verified either by static analysis
     // or runtime checks, so AssertBoolean just ensures that value is not null.
-    if (FLAG_strong && !value()->Type()->is_nullable()) {
+    if (!value()->Type()->is_nullable()) {
       return value()->definition();
     }
   }
@@ -2786,19 +2738,18 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   if (instantiator_type_args == nullptr) {
     if (LoadFieldInstr* load_type_args =
             instantiator_type_arguments()->definition()->AsLoadField()) {
-      if (load_type_args->native_field() != nullptr &&
-          load_type_args->native_field()->kind() ==
-              NativeFieldDesc::kTypeArguments) {
+      if (load_type_args->slot().IsTypeArguments()) {
         if (LoadFieldInstr* load_field = load_type_args->instance()
                                              ->definition()
                                              ->OriginalDefinition()
                                              ->AsLoadField()) {
-          if (load_field->field() != nullptr &&
-              load_field->field()
-                  ->static_type_exactness_state()
+          if (load_field->slot().IsDartField() &&
+              load_field->slot()
+                  .field()
+                  .static_type_exactness_state()
                   .IsHasExactSuperClass()) {
             instantiator_type_args = &TypeArguments::Handle(
-                Z, AbstractType::Handle(Z, load_field->field()->type())
+                Z, AbstractType::Handle(Z, load_field->slot().field().type())
                        .arguments());
           }
         }
@@ -2807,36 +2758,37 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if ((instantiator_type_args != nullptr) && (function_type_args != nullptr)) {
-    Error& bound_error = Error::Handle(Z);
-
     AbstractType& new_dst_type = AbstractType::Handle(
-        Z, dst_type().InstantiateFrom(
-               *instantiator_type_args, *function_type_args, kAllFree,
-               &bound_error, nullptr, nullptr, Heap::kOld));
-    if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
+        Z,
+        dst_type().InstantiateFrom(*instantiator_type_args, *function_type_args,
+                                   kAllFree, nullptr, Heap::kOld));
+    if (new_dst_type.IsNull()) {
+      // Failed instantiation in dead code.
       return this;
     }
     if (new_dst_type.IsTypeRef()) {
       new_dst_type = TypeRef::Cast(new_dst_type).type();
     }
     new_dst_type = new_dst_type.Canonicalize();
+
+    // Successfully instantiated destination type: update the type attached
+    // to this instruction and set type arguments to null because we no
+    // longer need them (the type was instantiated).
     set_dst_type(new_dst_type);
+    instantiator_type_arguments()->BindTo(flow_graph->constant_null());
+    function_type_arguments()->BindTo(flow_graph->constant_null());
 
     if (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType() ||
         (FLAG_eliminate_type_checks &&
          value()->Type()->IsAssignableTo(new_dst_type))) {
       return value()->definition();
     }
-
-    ConstantInstr* null_constant = flow_graph->constant_null();
-    instantiator_type_arguments()->BindTo(null_constant);
-    function_type_arguments()->BindTo(null_constant);
   }
   return this;
 }
 
 Definition* InstantiateTypeArgumentsInstr::Canonicalize(FlowGraph* flow_graph) {
-  return (Isolate::Current()->type_checks() || HasUses()) ? this : NULL;
+  return HasUses() ? this : NULL;
 }
 
 LocationSummary* DebugStepCheckInstr::MakeLocationSummary(Zone* zone,
@@ -2959,7 +2911,8 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
         box_defn->value()->definition()->representation();
     if (from_representation == representation()) {
       return box_defn->value()->definition();
-    } else {
+    } else if (from_representation != kTagged) {
+      // Only operate on explicit unboxed operands.
       UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
           from_representation, representation(),
           box_defn->value()->CopyWithType(),
@@ -3105,14 +3058,22 @@ static bool MayBeBoxableNumber(intptr_t cid) {
   return (cid == kDynamicCid) || (cid == kMintCid) || (cid == kDoubleCid);
 }
 
-static bool MaybeNumber(CompileType* type) {
-  ASSERT(Type::Handle(Type::Number())
-             .IsMoreSpecificThan(Type::Handle(Type::Number()), NULL, NULL,
-                                 Heap::kOld));
-  return type->ToAbstractType()->IsDynamicType() ||
-         type->ToAbstractType()->IsObjectType() ||
-         type->ToAbstractType()->IsTypeParameter() ||
-         type->IsMoreSpecificThan(Type::Handle(Type::Number()));
+static bool MayBeNumber(CompileType* type) {
+  if (type->IsNone()) {
+    return false;
+  }
+  auto& compile_type = AbstractType::Handle(type->ToAbstractType()->raw());
+  if (compile_type.IsType() &&
+      Class::Handle(compile_type.type_class()).IsFutureOrClass()) {
+    const auto& type_args = TypeArguments::Handle(compile_type.arguments());
+    if (type_args.IsNull()) {
+      return true;
+    }
+    compile_type = type_args.TypeAt(0);
+  }
+  // Note that type 'Number' is a subtype of itself.
+  return compile_type.IsTopType() || compile_type.IsTypeParameter() ||
+         compile_type.IsSubtypeOf(Type::Handle(Type::Number()), Heap::kOld);
 }
 
 // Returns a replacement for a strict comparison and signals if the result has
@@ -3127,8 +3088,8 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
     if (!MayBeBoxableNumber(compare->left()->Type()->ToCid()) ||
         !MayBeBoxableNumber(compare->right()->Type()->ToCid())) {
       compare->set_needs_number_check(false);
-    } else if (!MaybeNumber(compare->left()->Type()) ||
-               !MaybeNumber(compare->right()->Type())) {
+    } else if (!MayBeNumber(compare->left()->Type()) ||
+               !MayBeNumber(compare->right()->Type())) {
       compare->set_needs_number_check(false);
     }
   }
@@ -3698,26 +3659,39 @@ LocationSummary* FunctionEntryInstr::MakeLocationSummary(
 }
 
 void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#if defined(TARGET_ARCH_X64)
+  // Ensure the start of the monomorphic checked entry is 2-byte aligned (see
+  // also Assembler::MonomorphicCheckedEntry()).
+  if (__ CodeSize() % 2 == 1) {
+    __ nop();
+  }
+#endif
   __ Bind(compiler->GetJumpLabel(this));
 
   // In the AOT compiler we want to reduce code size, so generate no
   // fall-through code in [FlowGraphCompiler::CompileGraph()].
   // (As opposed to here where we don't check for the return value of
   // [Intrinsify]).
-  if (!FLAG_precompiled_mode) {
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
-    // NOTE: Because in JIT X64/ARM mode the graph can have multiple
-    // entrypoints, so we generate several times the same intrinsification &
-    // frame setup.  That's why we cannot rely on the constant pool being
-    // `false` when we come in here.
-    __ set_constant_pool_allowed(false);
-    // TODO(#34162): Don't emit more code if 'TryIntrinsify' returns 'true'
-    // (meaning the function was fully intrinsified).
-    compiler->TryIntrinsify();
-    compiler->EmitPrologue();
-    ASSERT(__ constant_pool_allowed());
-#endif
+  if (FLAG_precompiled_mode) {
+    const Function& function = compiler->parsed_function().function();
+    if (function.IsDynamicFunction()) {
+      compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
+      __ MonomorphicCheckedEntry();
+      compiler->SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
+    }
   }
+  // NOTE: Because in JIT X64/ARM mode the graph can have multiple
+  // entrypoints, so we generate several times the same intrinsification &
+  // frame setup.  That's why we cannot rely on the constant pool being
+  // `false` when we come in here.
+  __ set_constant_pool_allowed(false);
+  // TODO(#34162): Don't emit more code if 'TryIntrinsify' returns 'true'
+  // (meaning the function was fully intrinsified).
+  compiler->TryIntrinsify();
+  compiler->EmitPrologue();
+  ASSERT(__ constant_pool_allowed());
+#endif
 
   if (!compiler->is_optimizing()) {
 #if !defined(TARGET_ARCH_DBC)
@@ -3972,19 +3946,19 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary(Zone* zone,
 
 // DBC does not use specialized inline cache stubs for smi operations.
 #if !defined(TARGET_ARCH_DBC)
-static const StubEntry* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
+static RawCode* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
   if (!FLAG_two_args_smi_icd) {
-    return 0;
+    return Code::null();
   }
   switch (kind) {
     case Token::kADD:
-      return StubCode::SmiAddInlineCache_entry();
+      return StubCode::SmiAddInlineCache().raw();
     case Token::kSUB:
-      return StubCode::SmiSubInlineCache_entry();
+      return StubCode::SmiSubInlineCache().raw();
     case Token::kEQ:
-      return StubCode::SmiEqualInlineCache_entry();
+      return StubCode::SmiEqualInlineCache().raw();
     default:
-      return NULL;
+      return Code::null();
   }
 }
 #else
@@ -4056,7 +4030,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // static receiver type on the ICData.
     if (checked_argument_count() == 1) {
       if (static_receiver_type_ != nullptr &&
-          static_receiver_type_->HasResolvedTypeClass()) {
+          static_receiver_type_->HasTypeClass()) {
         const Class& cls =
             Class::Handle(zone, static_receiver_type_->type_class());
         if (cls.IsGeneric() && !cls.IsFutureOrClass()) {
@@ -4092,16 +4066,17 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
                                    token_pos());
     bool is_smi_two_args_op = false;
-    const StubEntry* stub_entry = TwoArgsSmiOpInlineCacheEntry(token_kind());
-    if (stub_entry != nullptr) {
+    const Code& stub =
+        Code::ZoneHandle(TwoArgsSmiOpInlineCacheEntry(token_kind()));
+    if (!stub.IsNull()) {
       // We have a dedicated inline cache stub for this operation, add an
       // an initial Smi/Smi check with count 0.
       is_smi_two_args_op = call_ic_data->AddSmiSmiCheckForFastSmiStubs();
     }
     if (is_smi_two_args_op) {
       ASSERT(ArgumentCount() == 2);
-      compiler->EmitInstanceCall(*stub_entry, *call_ic_data, deopt_id(),
-                                 token_pos(), locs());
+      compiler->EmitInstanceCall(stub, *call_ic_data, deopt_id(), token_pos(),
+                                 locs());
     } else {
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
                                      *call_ic_data);
@@ -4596,7 +4571,7 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
   const Register temp =
       (locs()->temp_count() > 0) ? locs()->temp(0).reg() : kNoRegister;
-  Label* deopt = compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptCheckClass);
+  Label* deopt = compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnbox);
   Label is_smi;
 
   if ((value()->Type()->ToNullableCid() == box_cid) &&
@@ -4852,9 +4827,9 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
   return LoadFieldInstr::IsFixedLengthArrayCid(cid);
 }
 
-Instruction* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
+Definition* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
   return IsRedundant(RangeBoundary::FromDefinition(length()->definition()))
-             ? NULL
+             ? index()->definition()
              : this;
 }
 

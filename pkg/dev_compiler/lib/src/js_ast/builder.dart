@@ -663,7 +663,7 @@ class MiniJsParser {
 
   void getToken() {
     skippedNewline = false;
-    for (;;) {
+    while (true) {
       if (position >= src.length) break;
       int code = src.codeUnitAt(position);
       //  Skip '//' and '/*' style comments.
@@ -990,7 +990,7 @@ class MiniJsParser {
 
     expectCategory(LPAREN);
     if (!acceptCategory(RPAREN)) {
-      for (;;) {
+      while (true) {
         if (acceptCategory(ELLIPSIS)) {
           params.add(RestParameter(parseParameter()));
           expectCategory(RPAREN);
@@ -1039,7 +1039,7 @@ class MiniJsParser {
 
   Expression parseObjectInitializer() {
     List<Property> properties = <Property>[];
-    for (;;) {
+    while (true) {
       if (acceptCategory(RBRACE)) break;
       // Limited subset of ES6 object initializers.
       //

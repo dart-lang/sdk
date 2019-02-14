@@ -15,7 +15,6 @@ final _functionRepository = new FunctionRepository();
 final _heapSnapshotRepository = new HeapSnapshotRepository();
 final _icdataRepository = new ICDataRepository();
 final _inboundReferencesRepository = new InboundReferencesRepository();
-final _instanceRepository = new InstanceRepository();
 final _isolateSampleProfileRepository = new IsolateSampleProfileRepository();
 final _libraryRepository = new LibraryRepository();
 final _megamorphicCacheRepository = new MegamorphicCacheRepository();

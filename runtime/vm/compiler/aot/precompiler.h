@@ -6,6 +6,7 @@
 #define RUNTIME_VM_COMPILER_AOT_PRECOMPILER_H_
 
 #include "vm/allocation.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/hash_map.h"
 #include "vm/hash_table.h"
 #include "vm/object.h"
@@ -239,9 +240,6 @@ class Precompiler : public ValueObject {
                                    Zone* zone,
                                    const Function& function);
 
-  static RawObject* EvaluateStaticInitializer(const Field& field);
-  static RawObject* ExecuteOnce(SequenceNode* fragment);
-
   static RawFunction* CompileStaticInitializer(const Field& field);
 
   // Returns true if get:runtimeType is not overloaded by any class.
@@ -249,8 +247,18 @@ class Precompiler : public ValueObject {
     return get_runtime_type_is_unique_;
   }
 
+  ObjectPoolWrapper* global_object_pool_wrapper() {
+    ASSERT(FLAG_use_bare_instructions);
+    return &global_object_pool_wrapper_;
+  }
+
+  static Precompiler* Instance() { return singleton_; }
+
  private:
+  static Precompiler* singleton_;
+
   explicit Precompiler(Thread* thread);
+  ~Precompiler();
 
   void DoCompileAll();
   void AddRoots();
@@ -261,8 +269,11 @@ class Precompiler : public ValueObject {
   void AddTypesOf(const Class& cls);
   void AddTypesOf(const Function& function);
   void AddTypeArguments(const TypeArguments& args);
-  void AddCalleesOf(const Function& function);
-  void AddConstObject(const Instance& instance);
+  void AddCalleesOf(const Function& function, intptr_t gop_offset);
+  void AddCalleesOfHelper(const Object& entry,
+                          String* temp_selector,
+                          Class* temp_cls);
+  void AddConstObject(const class Instance& instance);
   void AddClosureCall(const Array& arguments_descriptor);
   void AddField(const Field& field);
   void AddFunction(const Function& function);
@@ -272,7 +283,6 @@ class Precompiler : public ValueObject {
 
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
-  void TraceConstFunctions();
   void CollectCallbackFields();
 
   void AttachOptimizedTypeTestingStub();
@@ -321,6 +331,7 @@ class Precompiler : public ValueObject {
   intptr_t dropped_type_count_;
   intptr_t dropped_library_count_;
 
+  ObjectPoolWrapper global_object_pool_wrapper_;
   GrowableObjectArray& libraries_;
   const GrowableObjectArray& pending_functions_;
   SymbolSet sent_selectors_;

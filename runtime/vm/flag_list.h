@@ -68,6 +68,8 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(compilation_counter_threshold, int, 10,                                    \
     "Function's usage-counter value before interpreted function is compiled, " \
     "-1 means never")                                                          \
+  P(concurrent_mark, bool, USING_MULTICORE,                                    \
+    "Concurrent mark for old generation.")                                     \
   P(concurrent_sweep, bool, USING_MULTICORE,                                   \
     "Concurrent sweep for old generation.")                                    \
   R(dedup_instructions, true, bool, false,                                     \
@@ -90,11 +92,6 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Compile expressions with the Kernel front-end.")                          \
   P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
-  R(enable_type_checks, false, bool, false, "Enable type checks.")             \
-  R(error_on_bad_override, false, bool, false,                                 \
-    "Report error for bad overrides. Ignored in strong mode.")                 \
-  R(error_on_bad_type, false, bool, false,                                     \
-    "Report error for malformed types.")                                       \
   P(fields_may_be_reset, bool, false,                                          \
     "Don't optimize away static field initialization")                         \
   C(force_clone_compiler_objects, false, false, bool, false,                   \
@@ -156,13 +153,10 @@ constexpr bool kDartPrecompiledRuntime = false;
   R(profiler, false, bool, false, "Enable the profiler.")                      \
   R(profiler_native_memory, false, bool, false,                                \
     "Enable native memory statistic collection.")                              \
-  P(reify_generic_functions, bool, true,                                       \
-    "Enable reification of generic functions (not yet supported).")            \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  P(strong, bool, true, "Enable strong mode.")                                 \
-  P(sync_async, bool, true, "Start `async` functions synchronously.")          \
+  P(use_bare_instructions, bool, false, "Enable bare instructions mode.")      \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
   C(support_reload, false, false, bool, true, "Support isolate reload.")       \
@@ -170,20 +164,31 @@ constexpr bool kDartPrecompiledRuntime = false;
   R(support_timeline, false, bool, true, "Support timeline.")                  \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
   R(trace_field_guards, false, bool, false, "Trace changes in field's cids.")  \
+  D(trace_ic, bool, false, "Trace IC handling")                                \
+  D(trace_ic_miss_in_optimized, bool, false,                                   \
+    "Trace IC miss in optimized code")                                         \
   C(trace_irregexp, false, false, bool, false, "Trace irregexps.")             \
+  D(trace_intrinsified_natives, bool, false,                                   \
+    "Report if any of the intrinsified natives are called")                    \
   D(trace_isolates, bool, false, "Trace isolate creation and shut down.")      \
   D(trace_handles, bool, false, "Traces allocation of handles.")               \
   D(trace_kernel_binary, bool, false, "Trace Kernel reader/writer.")           \
+  D(trace_natives, bool, false, "Trace invocation of natives")                 \
   D(trace_optimization, bool, false, "Print optimization details.")            \
   R(trace_profiler, false, bool, false, "Profiler trace")                      \
   D(trace_profiler_verbose, bool, false, "Verbose profiler trace")             \
+  D(trace_runtime_calls, bool, false, "Trace runtime calls.")                  \
   D(trace_ssa_allocator, bool, false, "Trace register allocation over SSA.")   \
   P(trace_strong_mode_types, bool, false,                                      \
     "Trace optimizations based on strong mode types.")                         \
+  D(trace_type_checks, bool, false, "Trace runtime type checks.")              \
+  D(trace_patching, bool, false, "Trace patching of code.")                    \
+  D(trace_optimized_ic_calls, bool, false,                                     \
+    "Trace IC calls in optimized code.")                                       \
   D(trace_zones, bool, false, "Traces allocation sizes in the zone.")          \
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \
-  C(use_bytecode_compiler, false, false, bool, false, "Compile from bytecode") \
+  P(use_bytecode_compiler, bool, false, "Compile from bytecode")               \
   P(use_compactor, bool, false, "Compact the heap during old-space GC.")       \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \

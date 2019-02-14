@@ -163,6 +163,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
    * If multiple [entries] have the same key,
    * later occurrences overwrite the earlier ones.
    */
+  @Since("2.1")
   factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       HashMap<K, V>()..addEntries(entries);
 }

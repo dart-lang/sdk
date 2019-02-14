@@ -6,8 +6,11 @@ library vm.bytecode.assembler;
 
 import 'dart:typed_data';
 
+import 'package:kernel/ast.dart' show TreeNode;
+
 import 'dbc.dart';
 import 'exceptions.dart' show ExceptionsTable;
+import 'source_positions.dart' show SourcePositions;
 
 class Label {
   final bool allowsBackwardJumps;
@@ -48,7 +51,9 @@ class BytecodeAssembler {
   final Uint32List _encodeBufferIn;
   final Uint8List _encodeBufferOut;
   final ExceptionsTable exceptionsTable = new ExceptionsTable();
+  final SourcePositions sourcePositions = new SourcePositions();
   bool isUnreachable = false;
+  int currentSourcePosition = TreeNode.noOffset;
 
   BytecodeAssembler._(this._encodeBufferIn, this._encodeBufferOut);
 
@@ -67,6 +72,12 @@ class BytecodeAssembler {
     }
     if (jumps.isNotEmpty || label.allowsBackwardJumps) {
       isUnreachable = false;
+    }
+  }
+
+  void emitSourcePosition() {
+    if (currentSourcePosition != TreeNode.noOffset && !isUnreachable) {
+      sourcePositions.add(offsetInWords, currentSourcePosition);
     }
   }
 
@@ -121,11 +132,8 @@ class BytecodeAssembler {
   int _encodeAD(Opcode opcode, int ra, int rd) =>
       _uint8(opcode.index) | (_uint8(ra) << 8) | (_uint16(rd) << 16);
 
-// TODO(alexmarkov) This format is currently unused. Restore it if needed, or
-// remove it once bytecode instruction set is finalized.
-//
-//  int _encodeAX(Opcode opcode, int ra, int rx) =>
-//      _uint8(opcode.index) | (_uint8(ra) << 8) | (_int16(rx) << 16);
+  int _encodeAX(Opcode opcode, int ra, int rx) =>
+      _uint8(opcode.index) | (_uint8(ra) << 8) | (_int16(rx) << 16);
 
   int _encodeD(Opcode opcode, int rd) =>
       _uint8(opcode.index) | (_uint16(rd) << 16);
@@ -153,6 +161,7 @@ class BytecodeAssembler {
 
   void emitBytecode0(Opcode opcode) {
     assert(BytecodeFormats[opcode].encoding == Encoding.k0);
+    emitSourcePosition();
     emitWord(_encode0(opcode));
   }
 
@@ -258,18 +267,27 @@ class BytecodeAssembler {
   }
 
   void emitIndirectStaticCall(int ra, int rd) {
+    emitSourcePosition();
     emitWord(_encodeAD(Opcode.kIndirectStaticCall, ra, rd));
   }
 
-  void emitInstanceCall(int ra, int rd) {
-    emitWord(_encodeAD(Opcode.kInstanceCall, ra, rd));
+  void emitInterfaceCall(int ra, int rd) {
+    emitSourcePosition();
+    emitWord(_encodeAD(Opcode.kInterfaceCall, ra, rd));
+  }
+
+  void emitDynamicCall(int ra, int rd) {
+    emitSourcePosition();
+    emitWord(_encodeAD(Opcode.kDynamicCall, ra, rd));
   }
 
   void emitNativeCall(int rd) {
+    emitSourcePosition();
     emitWord(_encodeD(Opcode.kNativeCall, rd));
   }
 
   void emitStoreStaticTOS(int rd) {
+    emitSourcePosition();
     emitWord(_encodeD(Opcode.kStoreStaticTOS, rd));
   }
 
@@ -282,10 +300,12 @@ class BytecodeAssembler {
   }
 
   void emitAllocate(int rd) {
+    emitSourcePosition();
     emitWord(_encodeD(Opcode.kAllocate, rd));
   }
 
   void emitAllocateT() {
+    emitSourcePosition();
     emitWord(_encode0(Opcode.kAllocateT));
   }
 
@@ -294,6 +314,7 @@ class BytecodeAssembler {
   }
 
   void emitStoreFieldTOS(int rd) {
+    emitSourcePosition();
     emitWord(_encodeD(Opcode.kStoreFieldTOS, rd));
   }
 
@@ -301,8 +322,8 @@ class BytecodeAssembler {
     emitWord(_encode0(Opcode.kStoreContextParent));
   }
 
-  void emitStoreContextVar(int rd) {
-    emitWord(_encodeD(Opcode.kStoreContextVar, rd));
+  void emitStoreContextVar(int ra, int rd) {
+    emitWord(_encodeAD(Opcode.kStoreContextVar, ra, rd));
   }
 
   void emitLoadFieldTOS(int rd) {
@@ -317,8 +338,8 @@ class BytecodeAssembler {
     emitWord(_encode0(Opcode.kLoadContextParent));
   }
 
-  void emitLoadContextVar(int rd) {
-    emitWord(_encodeD(Opcode.kLoadContextVar, rd));
+  void emitLoadContextVar(int ra, int rd) {
+    emitWord(_encodeAD(Opcode.kLoadContextVar, ra, rd));
   }
 
   void emitBooleanNegateTOS() {
@@ -326,6 +347,7 @@ class BytecodeAssembler {
   }
 
   void emitThrow(int ra) {
+    emitSourcePosition();
     emitWord(_encodeA(Opcode.kThrow, ra));
     isUnreachable = true;
   }
@@ -342,43 +364,50 @@ class BytecodeAssembler {
     emitWord(_encodeA(Opcode.kSetFrame, ra));
   }
 
-  void emitAllocateContext(int rd) {
-    emitWord(_encodeD(Opcode.kAllocateContext, rd));
+  void emitAllocateContext(int ra, int rd) {
+    emitWord(_encodeAD(Opcode.kAllocateContext, ra, rd));
   }
 
-  void emitCloneContext() {
-    emitWord(_encode0(Opcode.kCloneContext));
+  void emitCloneContext(int ra, int rd) {
+    emitWord(_encodeAD(Opcode.kCloneContext, ra, rd));
   }
 
-  void emitMoveSpecial(int ra, SpecialIndex rd) {
-    emitWord(_encodeAD(Opcode.kMoveSpecial, ra, rd.index));
+  void emitMoveSpecial(SpecialIndex ra, int rx) {
+    emitWord(_encodeAX(Opcode.kMoveSpecial, ra.index, rx));
   }
 
   void emitInstantiateType(int rd) {
+    emitSourcePosition();
     emitWord(_encodeD(Opcode.kInstantiateType, rd));
   }
 
   void emitInstantiateTypeArgumentsTOS(int ra, int rd) {
+    emitSourcePosition();
     emitWord(_encodeAD(Opcode.kInstantiateTypeArgumentsTOS, ra, rd));
   }
 
   void emitAssertAssignable(int ra, int rd) {
+    emitSourcePosition();
     emitWord(_encodeAD(Opcode.kAssertAssignable, ra, rd));
   }
 
   void emitAssertSubtype() {
+    emitSourcePosition();
     emitWord(_encode0(Opcode.kAssertSubtype));
   }
 
   void emitAssertBoolean(int ra) {
+    emitSourcePosition();
     emitWord(_encodeA(Opcode.kAssertBoolean, ra));
   }
 
-  void emitCheckStack() {
-    emitWord(_encode0(Opcode.kCheckStack));
+  void emitCheckStack(int ra) {
+    emitSourcePosition();
+    emitWord(_encodeA(Opcode.kCheckStack, ra));
   }
 
   void emitCheckFunctionTypeArgs(int ra, int rd) {
+    emitSourcePosition();
     emitWord(_encodeAD(Opcode.kCheckFunctionTypeArgs, ra, rd));
   }
 

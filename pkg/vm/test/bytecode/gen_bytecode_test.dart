@@ -31,10 +31,14 @@ runTestCase(Uri source) async {
   await runWithFrontEndCompilerContext(source, options, component, () {
     // Need to omit source positions from bytecode as they are different on
     // Linux and Windows (due to differences in newline characters).
-    generateBytecode(component, omitSourcePositions: true);
+    generateBytecode(component, omitAssertSourcePositions: true);
   });
 
-  final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+  String actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+
+  // Remove absolute library URIs.
+  actual = actual.replaceAll(new Uri.file(pkgVmDir).toString(), '#pkg/vm');
+
   compareResultWithExpectationsFile(source, actual);
 }
 

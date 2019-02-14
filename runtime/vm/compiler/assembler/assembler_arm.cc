@@ -24,6 +24,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
+DECLARE_FLAG(bool, precompiled_mode);
 
 uint32_t Address::encoding3() const {
   if (kind_ == Immediate) {
@@ -1591,8 +1592,6 @@ void Assembler::StoreIntoObject(Register object,
   ASSERT(object != value);
   ASSERT(object != LR);
   ASSERT(value != LR);
-
-#if defined(CONCURRENT_MARKING)
   ASSERT(object != TMP);
   ASSERT(value != TMP);
 
@@ -1645,31 +1644,55 @@ void Assembler::StoreIntoObject(Register object,
   }
   if (!lr_reserved) Pop(LR);
   Bind(&done);
-#else
-  str(value, dest);
-  // A store buffer update is required.
-  if (lr_reserved) {
-    StoreIntoObjectFilter(object, value, nullptr, can_be_smi, kNoJump);
-    ldr(LR, Address(THR, Thread::write_barrier_wrappers_offset(object)), NE);
-    blx(LR, NE);
-  } else {
-    Label done;
-    StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
-    RegList regs = 0;
-    regs |= (1 << LR);
-    if (value != kWriteBarrierObjectReg) {
-      regs |= (1 << kWriteBarrierObjectReg);
-    }
-    PushList(regs);
-    if (object != kWriteBarrierObjectReg) {
-      mov(kWriteBarrierObjectReg, Operand(object));
-    }
-    ldr(LR, Address(THR, Thread::write_barrier_entry_point_offset()));
-    blx(LR);
-    PopList(regs);
-    Bind(&done);
+}
+
+void Assembler::StoreIntoArray(Register object,
+                               Register slot,
+                               Register value,
+                               CanBeSmi can_be_smi,
+                               bool lr_reserved) {
+  // x.slot = x. Barrier should have be removed at the IL level.
+  ASSERT(object != value);
+  ASSERT(object != LR);
+  ASSERT(value != LR);
+  ASSERT(slot != LR);
+  ASSERT(object != TMP);
+  ASSERT(value != TMP);
+  ASSERT(slot != TMP);
+
+  str(value, Address(slot, 0));
+
+  // In parallel, test whether
+  //  - object is old and not remembered and value is new, or
+  //  - object is old and value is old and not marked and concurrent marking is
+  //    in progress
+  // If so, call the WriteBarrier stub, which will either add object to the
+  // store buffer (case 1) or add value to the marking stack (case 2).
+  // Compare RawObject::StorePointer.
+  Label done;
+  if (can_be_smi == kValueCanBeSmi) {
+    BranchIfSmi(value, &done);
   }
-#endif
+  if (!lr_reserved) Push(LR);
+  ldrb(TMP, FieldAddress(object, Object::tags_offset()));
+  ldrb(LR, FieldAddress(value, Object::tags_offset()));
+  and_(TMP, LR, Operand(TMP, LSR, RawObject::kBarrierOverlapShift));
+  ldr(LR, Address(THR, Thread::write_barrier_mask_offset()));
+  tst(TMP, Operand(LR));
+
+  if ((object != kWriteBarrierObjectReg) || (value != kWriteBarrierValueReg) ||
+      (slot != kWriteBarrierSlotReg)) {
+    // Spill and shuffle unimplemented. Currently StoreIntoArray is only used
+    // from StoreIndexInstr, which gets these exact registers from the register
+    // allocator.
+    UNIMPLEMENTED();
+  }
+
+  ldr(LR, Address(THR, Thread::array_write_barrier_entry_point_offset()), NE);
+  blx(LR, NE);
+
+  if (!lr_reserved) Pop(LR);
+  Bind(&done);
 }
 
 void Assembler::StoreIntoObjectOffset(Register object,
@@ -2500,13 +2523,12 @@ void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
   vmulqs(qd, qn, qd);
 }
 
-void Assembler::Branch(const StubEntry& stub_entry,
+void Assembler::Branch(const Code& target,
                        ObjectPool::Patchability patchable,
                        Register pp,
                        Condition cond) {
-  const Code& target_code = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper().FindObject(target_code, patchable));
+      object_pool_wrapper().FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp, cond);
   Branch(FieldAddress(CODE_REG, Code::entry_point_offset()), cond);
 }
@@ -2529,12 +2551,6 @@ void Assembler::BranchLink(const Code& target,
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
-void Assembler::BranchLink(const StubEntry& stub_entry,
-                           ObjectPool::Patchability patchable) {
-  const Code& code = Code::ZoneHandle(stub_entry.code());
-  BranchLink(code, patchable);
-}
-
 void Assembler::BranchLinkPatchable(const Code& target,
                                     Code::EntryKind entry_kind) {
   BranchLink(target, ObjectPool::kPatchable, entry_kind);
@@ -2554,10 +2570,9 @@ void Assembler::CallNullErrorShared(bool save_fpu_registers) {
   blx(LR);
 }
 
-void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
+void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           const Object& equivalence,
                                           Code::EntryKind entry_kind) {
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
@@ -2572,11 +2587,6 @@ void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
 void Assembler::BranchLink(const ExternalLabel* label) {
   LoadImmediate(LR, label->address());  // Target address is never patched.
   blx(LR);  // Use blx instruction so that the return branch prediction works.
-}
-
-void Assembler::BranchLinkPatchable(const StubEntry& stub_entry,
-                                    Code::EntryKind entry_kind) {
-  BranchLinkPatchable(Code::ZoneHandle(stub_entry.code()), entry_kind);
 }
 
 void Assembler::BranchLinkOffset(Register base, int32_t offset) {
@@ -3153,10 +3163,16 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   COMPILE_ASSERT(PP < CODE_REG);
   COMPILE_ASSERT(CODE_REG < FP);
   COMPILE_ASSERT(FP < LR);
-  EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0);
 
-  // Setup pool pointer for this dart function.
-  LoadPoolPointer();
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0);
+
+    // Setup pool pointer for this dart function.
+    LoadPoolPointer();
+  } else {
+    EnterFrame((1 << FP) | (1 << LR), 0);
+  }
+  set_constant_pool_allowed(true);
 
   // Reserve space for locals.
   AddImmediate(SP, -frame_size);
@@ -3177,8 +3193,10 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 }
 
 void Assembler::LeaveDartFrame() {
-  ldr(PP,
-      Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    ldr(PP,
+        Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  }
   set_constant_pool_allowed(false);
 
   // This will implicitly drop saved PP, PC marker due to restoring SP from FP
@@ -3187,8 +3205,10 @@ void Assembler::LeaveDartFrame() {
 }
 
 void Assembler::LeaveDartFrameAndReturn() {
-  ldr(PP,
-      Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    ldr(PP,
+        Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
+  }
   set_constant_pool_allowed(false);
 
   // This will implicitly drop saved PP, PC marker due to restoring SP from FP
@@ -3207,21 +3227,21 @@ void Assembler::LeaveStubFrame() {
 // R0 receiver, R9 guarded cid as Smi.
 // Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntry() {
-  ASSERT(has_single_entry_point_);
   has_single_entry_point_ = false;
 #if defined(TESTING) || defined(DEBUG)
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
 #endif
+  intptr_t start = CodeSize();
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
   LoadClassIdMayBeSmi(IP, R0);
   cmp(R9, Operand(IP, LSL, 1));
   Branch(Address(THR, Thread::monomorphic_miss_entry_offset()), NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffset);
 
 #if defined(TESTING) || defined(DEBUG)
   set_use_far_branches(saved_use_far_branches);
@@ -3386,12 +3406,18 @@ void Assembler::TryAllocateArray(intptr_t cid,
   }
 }
 
+void Assembler::GenerateUnRelocatedPcRelativeCall() {
+  // Emit "blr <offset>".
+  EmitType5(AL, 0x686868, /*link=*/true);
+}
+
 void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
     PushList((1 << R0) | (1 << IP) | (1 << LR));  // Preserve R0, IP, LR.
     LoadImmediate(R0, reinterpret_cast<int32_t>(message));
     // PrintStopMessage() preserves all registers.
-    BranchLink(&StubCode::PrintStopMessage_entry()->label());
+    ExternalLabel label(StubCode::PrintStopMessage().EntryPoint());
+    BranchLink(&label);
     PopList((1 << R0) | (1 << IP) | (1 << LR));  // Restore R0, IP, LR.
   }
   bkpt(Instr::kStopMessageCode);

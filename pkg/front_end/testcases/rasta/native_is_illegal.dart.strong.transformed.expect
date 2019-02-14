@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Bar extends core::Object {
+  @_in::ExternalName::•("Bar_get_x")
+  external get x() → self::Bar;
+  @_in::ExternalName::•("Bar_set_x")
+  external set x(self::Bar value) → void;
+  @_in::ExternalName::•("Bar_f")
+  external method f() → dynamic;
+  @_in::ExternalName::•("Bar_constructor")
+  external static factory •() → self::Bar;
+}
+@_in::ExternalName::•("foo")
+external static method foo() → dynamic;

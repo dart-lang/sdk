@@ -5,10 +5,10 @@
 import 'dart:convert' show json;
 import 'dart:io' show File;
 
-import 'package:analyzer/analyzer.dart'
-    show AnalysisError, CompilationUnit, StaticWarningCode;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart'
     show LibraryElement, UriReferencedElement;
+import 'package:analyzer/error/error.dart';
 
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:args/args.dart' show ArgParser, ArgResults;
@@ -56,7 +56,6 @@ JSModuleFile compileWithAnalyzer(
     AnalyzerOptions analyzerOptions,
     CompilerOptions options) {
   var trees = <CompilationUnit>[];
-  var errors = <AnalysisError>[];
 
   var explicitSources = <Uri>[];
   var compilingSdk = false;
@@ -67,10 +66,19 @@ JSModuleFile compileWithAnalyzer(
     }
     explicitSources.add(sourceUri);
   }
-
   var driver = compilerDriver.linkLibraries(explicitSources, analyzerOptions);
 
+  var errors = ErrorCollector(driver.analysisOptions, options.replCompile);
   for (var libraryUri in driver.libraryUris) {
+    var analysisResults = driver.analyzeLibrary(libraryUri);
+
+    CompilationUnit definingUnit;
+    for (var result in analysisResults.values) {
+      if (result.file.uriStr == libraryUri) definingUnit = result.unit;
+      errors.addAll(result.unit.lineInfo, result.errors);
+      trees.add(result.unit);
+    }
+
     var library = driver.getLibrary(libraryUri);
 
     // TODO(jmesserly): remove "dart:mirrors" from DDC's SDK, and then remove
@@ -78,29 +86,19 @@ JSModuleFile compileWithAnalyzer(
     if (!compilingSdk && !options.emitMetadata) {
       var node = _getDartMirrorsImport(library);
       if (node != null) {
-        errors.add(AnalysisError(library.source, node.uriOffset, node.uriEnd,
-            invalidImportDartMirrors));
+        errors.add(
+            definingUnit.lineInfo,
+            AnalysisError(library.source, node.uriOffset, node.uriEnd,
+                invalidImportDartMirrors));
       }
     }
-
-    var analysisResults = driver.analyzeLibrary(libraryUri);
-    for (var result in analysisResults.values) {
-      errors.addAll(_filterJsErrors(libraryUri, result.errors));
-      trees.add(result.unit);
-    }
-  }
-
-  var context = driver.context;
-
-  bool anyFatalErrors() {
-    return errors.any((e) => isFatalError(context, e, options.replCompile));
   }
 
   JS.Program jsProgram;
-  if (options.unsafeForceCompile || !anyFatalErrors()) {
+  if (options.unsafeForceCompile || !errors.hasFatalErrors) {
     var codeGenerator = CodeGenerator(
         driver,
-        driver.context.typeProvider,
+        driver.typeProvider,
         compilerDriver.summaryData,
         options,
         compilerDriver.extensionTypes,
@@ -110,35 +108,17 @@ JSModuleFile compileWithAnalyzer(
     } catch (e) {
       // If force compilation failed, suppress the exception and report the
       // static errors instead. Otherwise, rethrow an internal compiler error.
-      if (!anyFatalErrors()) rethrow;
+      if (!errors.hasFatalErrors) rethrow;
     }
 
-    if (!options.unsafeForceCompile && anyFatalErrors()) {
+    if (!options.unsafeForceCompile && errors.hasFatalErrors) {
       jsProgram = null;
     }
   }
 
   var jsModule = JSModuleFile(
-      formatErrors(context, errors), options, jsProgram, driver.summaryBytes);
-  driver.dispose();
+      errors.formattedErrors.toList(), options, jsProgram, driver.summaryBytes);
   return jsModule;
-}
-
-Iterable<AnalysisError> _filterJsErrors(
-    String libraryUriStr, Iterable<AnalysisError> errors) {
-  if (libraryUriStr == 'dart:html' ||
-      libraryUriStr == 'dart:svg' ||
-      libraryUriStr == 'dart:_interceptors') {
-    return errors.where((error) {
-      return error.errorCode !=
-              StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 &&
-          error.errorCode !=
-              StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 &&
-          error.errorCode !=
-              StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS;
-    });
-  }
-  return errors;
 }
 
 UriReferencedElement _getDartMirrorsImport(LibraryElement library) {

@@ -45,7 +45,6 @@ class B extends test::A {}
 
     // No updated classes, the same hierarchy.
     expect(hierarchy.applyTreeChanges([], []), same(hierarchy));
-    expect(hierarchy.hasProperSubtypes(a), true);
 
     // Has updated classes, still the same hierarchy (instance). Can answer
     // queries about the new classes.
@@ -59,11 +58,9 @@ class B extends test::A {}
     expect(hierarchy.applyTreeChanges([libWithB], [libWithC]), same(hierarchy));
     expect(hierarchy.isSubclassOf(a, c), false);
     expect(hierarchy.isSubclassOf(c, a), true);
-    expect(hierarchy.hasProperSubtypes(a), true);
 
     // Remove so A should no longer be a super of anything.
     expect(hierarchy.applyTreeChanges([libWithC], []), same(hierarchy));
-    expect(hierarchy.hasProperSubtypes(a), false);
   }
 
   void test_applyMemberChanges() {
@@ -650,7 +647,7 @@ class Z {}
   }
 
   /// Copy of the tests/language/least_upper_bound_expansive_test.dart test.
-  void test_getClassicLeastUpperBound_expansive() {
+  void test_getLegacyLeastUpperBound_expansive() {
     var int = coreTypes.intClass.rawType;
     var string = coreTypes.stringClass.rawType;
 
@@ -705,7 +702,7 @@ class C2<T> extends self::N<self::N<self::C2<self::N<self::C2<self::C2::T>>>>> {
     //     {N<C1<String>>, Object} for N<C1<String>> and
     // Object is the most specific type in the intersection of the supertypes.
     expect(
-        hierarchy.getClassicLeastUpperBound(
+        hierarchy.getLegacyLeastUpperBound(
             new InterfaceType(C1, [int]),
             new InterfaceType(N, [
               new InterfaceType(C1, [string])
@@ -718,7 +715,7 @@ class C2<T> extends self::N<self::N<self::C2<self::N<self::C2<self::C2::T>>>>> {
     //     {N<C2<String>>, Object} for N<C2<String>> and
     // Object is the most specific type in the intersection of the supertypes.
     expect(
-        hierarchy.getClassicLeastUpperBound(
+        hierarchy.getLegacyLeastUpperBound(
             new InterfaceType(C2, [int]),
             new InterfaceType(N, [
               new InterfaceType(C2, [string])
@@ -726,7 +723,7 @@ class C2<T> extends self::N<self::N<self::C2<self::N<self::C2<self::C2::T>>>>> {
         objectClass.thisType);
   }
 
-  void test_getClassicLeastUpperBound_generic() {
+  void test_getLegacyLeastUpperBound_generic() {
     var int = coreTypes.intClass.rawType;
     var double = coreTypes.doubleClass.rawType;
     var bool = coreTypes.boolClass.rawType;
@@ -763,26 +760,26 @@ class F implements self::D<core::int, core::bool> {}
 ''');
 
     expect(
-        hierarchy.getClassicLeastUpperBound(new InterfaceType(d, [int, double]),
+        hierarchy.getLegacyLeastUpperBound(new InterfaceType(d, [int, double]),
             new InterfaceType(d, [int, double])),
         new InterfaceType(d, [int, double]));
     expect(
-        hierarchy.getClassicLeastUpperBound(new InterfaceType(d, [int, double]),
+        hierarchy.getLegacyLeastUpperBound(new InterfaceType(d, [int, double]),
             new InterfaceType(d, [int, bool])),
         new InterfaceType(b, [int]));
     expect(
-        hierarchy.getClassicLeastUpperBound(new InterfaceType(d, [int, double]),
+        hierarchy.getLegacyLeastUpperBound(new InterfaceType(d, [int, double]),
             new InterfaceType(d, [bool, double])),
         new InterfaceType(c, [double]));
     expect(
-        hierarchy.getClassicLeastUpperBound(new InterfaceType(d, [int, double]),
+        hierarchy.getLegacyLeastUpperBound(new InterfaceType(d, [int, double]),
             new InterfaceType(d, [bool, int])),
         a.rawType);
-    expect(hierarchy.getClassicLeastUpperBound(e.rawType, f.rawType),
+    expect(hierarchy.getLegacyLeastUpperBound(e.rawType, f.rawType),
         new InterfaceType(b, [int]));
   }
 
-  void test_getClassicLeastUpperBound_nonGeneric() {
+  void test_getLegacyLeastUpperBound_nonGeneric() {
     var a = addImplementsClass('A', []);
     var b = addImplementsClass('B', []);
     var c = addImplementsClass('C', [a]);
@@ -805,22 +802,17 @@ class H implements self::C, self::D, self::E {}
 class I implements self::C, self::D, self::E {}
 ''');
 
-    expect(hierarchy.getClassicLeastUpperBound(a.rawType, b.rawType),
+    expect(hierarchy.getLegacyLeastUpperBound(a.rawType, b.rawType),
         objectClass.rawType);
-    expect(hierarchy.getClassicLeastUpperBound(a.rawType, objectClass.rawType),
+    expect(hierarchy.getLegacyLeastUpperBound(a.rawType, objectClass.rawType),
         objectClass.rawType);
-    expect(hierarchy.getClassicLeastUpperBound(objectClass.rawType, b.rawType),
+    expect(hierarchy.getLegacyLeastUpperBound(objectClass.rawType, b.rawType),
         objectClass.rawType);
-    expect(
-        hierarchy.getClassicLeastUpperBound(c.rawType, d.rawType), a.rawType);
-    expect(
-        hierarchy.getClassicLeastUpperBound(c.rawType, a.rawType), a.rawType);
-    expect(
-        hierarchy.getClassicLeastUpperBound(a.rawType, d.rawType), a.rawType);
-    expect(
-        hierarchy.getClassicLeastUpperBound(f.rawType, g.rawType), a.rawType);
-    expect(
-        hierarchy.getClassicLeastUpperBound(h.rawType, i.rawType), a.rawType);
+    expect(hierarchy.getLegacyLeastUpperBound(c.rawType, d.rawType), a.rawType);
+    expect(hierarchy.getLegacyLeastUpperBound(c.rawType, a.rawType), a.rawType);
+    expect(hierarchy.getLegacyLeastUpperBound(a.rawType, d.rawType), a.rawType);
+    expect(hierarchy.getLegacyLeastUpperBound(f.rawType, g.rawType), a.rawType);
+    expect(hierarchy.getLegacyLeastUpperBound(h.rawType, i.rawType), a.rawType);
   }
 
   void test_getDeclaredMembers() {

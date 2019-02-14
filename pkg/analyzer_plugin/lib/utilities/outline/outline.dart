@@ -21,7 +21,7 @@ abstract class DartOutlineRequest implements OutlineRequest {
   /**
    * The analysis result for the file for which the outline is being requested.
    */
-  ResolveResult get result;
+  ResolvedUnitResult get result;
 }
 
 /**

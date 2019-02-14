@@ -39,7 +39,6 @@ class MegamorphicCache;
 class PageSpace;
 class RawApiError;
 class RawArray;
-class RawBoundedType;
 class RawCapability;
 class RawClass;
 class RawClosure;
@@ -66,7 +65,6 @@ class RawLinkedHashMap;
 class RawLocalVarDescriptors;
 class RawMegamorphicCache;
 class RawMint;
-class RawMixinAppType;
 class RawNamespace;
 class RawObject;
 class RawObjectPool;
@@ -90,7 +88,6 @@ class RawTypedData;
 class RawTypeParameter;
 class RawTypeRef;
 class RawUnhandledException;
-class RawUnresolvedClass;
 class RawWeakProperty;
 class String;
 class TypeArguments;
@@ -177,15 +174,15 @@ class Snapshot {
   }
   Kind kind() const { return static_cast<Kind>(Read<int64_t>(kKindOffset)); }
   void set_kind(Kind value) { return Write<int64_t>(kKindOffset, value); }
-  const uint8_t* content() const {
-    return reinterpret_cast<const uint8_t*>(this) + kHeaderSize;
-  }
 
   static bool IsFull(Kind kind) {
     return (kind == kFull) || (kind == kFullJIT) || (kind == kFullAOT);
   }
   static bool IncludesCode(Kind kind) {
     return (kind == kFullJIT) || (kind == kFullAOT);
+  }
+  static bool IncludesBytecode(Kind kind) {
+    return (kind == kFull) || (kind == kFullJIT);
   }
 
   const uint8_t* Addr() const { return reinterpret_cast<const uint8_t*>(this); }
@@ -448,7 +445,6 @@ class SnapshotReader : public BaseReader {
 
   friend class ApiError;
   friend class Array;
-  friend class BoundedType;
   friend class Class;
   friend class Closure;
   friend class ClosureData;
@@ -466,7 +462,6 @@ class SnapshotReader : public BaseReader {
   friend class LibraryPrefix;
   friend class LinkedHashMap;
   friend class MirrorReference;
-  friend class MixinAppType;
   friend class Namespace;
   friend class PatchClass;
   friend class RedirectionData;
@@ -479,7 +474,6 @@ class SnapshotReader : public BaseReader {
   friend class TypeParameter;
   friend class TypeRef;
   friend class UnhandledException;
-  friend class UnresolvedClass;
   friend class WeakProperty;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
 };
@@ -749,7 +743,6 @@ class SnapshotWriter : public BaseWriter {
   friend class RawSubtypeTestCache;
   friend class RawType;
   friend class RawTypeRef;
-  friend class RawBoundedType;
   friend class RawTypeArguments;
   friend class RawTypeParameter;
   friend class RawUserTag;

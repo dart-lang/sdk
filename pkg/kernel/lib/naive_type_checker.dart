@@ -14,10 +14,10 @@ abstract class FailureListener {
   void reportInvalidOverride(Member member, Member inherited, String message);
 }
 
-class StrongModeTypeChecker extends type_checker.TypeChecker {
+class NaiveTypeChecker extends type_checker.TypeChecker {
   final FailureListener failures;
 
-  StrongModeTypeChecker(FailureListener failures, Component component,
+  NaiveTypeChecker(FailureListener failures, Component component,
       {bool ignoreSdk: false})
       : this._(
             failures,
@@ -29,7 +29,7 @@ class StrongModeTypeChecker extends type_checker.TypeChecker {
             }),
             ignoreSdk);
 
-  StrongModeTypeChecker._(this.failures, CoreTypes coreTypes,
+  NaiveTypeChecker._(this.failures, CoreTypes coreTypes,
       ClassHierarchy hierarchy, bool ignoreSdk)
       : super(coreTypes, hierarchy, ignoreSdk: ignoreSdk);
 

@@ -4,7 +4,8 @@
 
 import 'package:test/test.dart';
 
-import '../../../tool/lsp_spec/typescript.dart';
+import '../../../tool/lsp_spec/typescript_parser.dart';
+import 'matchers.dart';
 
 main() {
   group('typescript parser', () {
@@ -20,22 +21,57 @@ export interface SomeOptions {
 	options?: OptionKind[];
 }
     ''';
-      final List<ApiItem> output = extractTypes(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
       final Interface interface = output[0];
       expect(interface.name, equals('SomeOptions'));
-      expect(interface.comment, equals('Some options.'));
+      expect(interface.commentText, equals('Some options.'));
       expect(interface.baseTypes, hasLength(0));
       expect(interface.members, hasLength(1));
       expect(interface.members[0], const TypeMatcher<Field>());
       final Field field = interface.members[0];
       expect(field.name, equals('options'));
-      expect(field.comment, equals('''Options used by something.'''));
+      expect(field.commentText, equals('''Options used by something.'''));
       expect(field.allowsNull, isFalse);
       expect(field.allowsUndefined, isTrue);
-      expect(field.types, hasLength(1));
-      expect(field.types[0], equals('OptionKind[]'));
+      expect(field.type, isArrayOf(isSimpleType('OptionKind')));
+    });
+
+    test('parses an interface with a field with an inline/unnamed type', () {
+      final String input = '''
+export interface Capabilities {
+	textDoc?: {
+    deprecated?: bool;
+  };
+}
+    ''';
+      final List<AstNode> output = parseString(input);
+      // Length is two because we'll fabricate the type of textDoc.
+      expect(output, hasLength(2));
+
+      // Check there was a full fabricarted interface for this type.
+      expect(output[0], const TypeMatcher<Interface>());
+      Interface interface = output[0];
+      expect(interface.name, equals('CapabilitiesTextDoc'));
+      expect(interface.members, hasLength(1));
+      expect(interface.members[0], const TypeMatcher<Field>());
+      Field field = interface.members[0];
+      expect(field.name, equals('deprecated'));
+      expect(field.allowsNull, isFalse);
+      expect(field.allowsUndefined, isTrue);
+      expect(field.type, isSimpleType('bool'));
+      expect(field.allowsUndefined, isTrue);
+
+      expect(output[1], const TypeMatcher<Interface>());
+      interface = output[1];
+      expect(interface.name, equals('Capabilities'));
+      expect(interface.members, hasLength(1));
+      expect(interface.members[0], const TypeMatcher<Field>());
+      field = interface.members[0];
+      expect(field.name, equals('textDoc'));
+      expect(field.allowsNull, isFalse);
+      expect(field.type, isSimpleType('CapabilitiesTextDoc'));
     });
 
     test('parses an interface with multiple fields', () {
@@ -51,7 +87,7 @@ export interface SomeOptions {
 	options1: any;
 }
     ''';
-      final List<ApiItem> output = extractTypes(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
       final Interface interface = output[0];
@@ -60,7 +96,7 @@ export interface SomeOptions {
         expect(interface.members[i], const TypeMatcher<Field>());
         final Field field = interface.members[i];
         expect(field.name, equals('options$i'));
-        expect(field.comment, equals('''Options$i used by something.'''));
+        expect(field.commentText, equals('''Options$i used by something.'''));
       });
     });
 
@@ -70,7 +106,7 @@ interface ResponseError<D> {
 	data?: D;
 }
     ''';
-      final List<ApiItem> output = extractTypes(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
       final Interface interface = output[0];
@@ -78,21 +114,21 @@ interface ResponseError<D> {
       final Field field = interface.members.first;
       expect(field, const TypeMatcher<Field>());
       expect(field.name, equals('data'));
-      expect(field.allowsUndefined, true);
-      expect(field.allowsNull, false);
-      expect(field.types, equals(['D']));
+      expect(field.allowsUndefined, isTrue);
+      expect(field.allowsNull, isFalse);
+      expect(field.type, isSimpleType('D'));
     });
 
     test('parses an interface with Arrays in Array<T> format', () {
       final String input = '''
-export interface RequestMessage {
+export interface MyMessage {
 	/**
 	 * The method's params.
 	 */
 	params?: Array<any> | object;
 }
     ''';
-      final List<ApiItem> output = extractTypes(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
       final Interface interface = output[0];
@@ -100,10 +136,32 @@ export interface RequestMessage {
       final Field field = interface.members.first;
       expect(field, const TypeMatcher<Field>());
       expect(field.name, equals('params'));
-      expect(field.comment, equals('''The method's params.'''));
-      expect(field.allowsUndefined, true);
-      expect(field.allowsNull, false);
-      expect(field.types, equals(['Array<any>', 'object']));
+      expect(field.commentText, equals('''The method's params.'''));
+      expect(field.allowsUndefined, isTrue);
+      expect(field.allowsNull, isFalse);
+      expect(field.type, const TypeMatcher<UnionType>());
+      UnionType union = field.type;
+      expect(union.types, hasLength(2));
+      expect(union.types[0], isArrayOf(isSimpleType('any')));
+      expect(union.types[1], isSimpleType('object'));
+    });
+
+    test('parses an interface with a map into a MapType', () {
+      final String input = '''
+export interface WorkspaceEdit {
+	changes: { [uri: string]: TextEdit[]; };
+}
+    ''';
+      final List<AstNode> output = parseString(input);
+      expect(output, hasLength(1));
+      expect(output[0], const TypeMatcher<Interface>());
+      final Interface interface = output[0];
+      expect(interface.members, hasLength(1));
+      final Field field = interface.members.first;
+      expect(field, const TypeMatcher<Field>());
+      expect(field.name, equals('changes'));
+      expect(field.type,
+          isMapOf(isSimpleType('string'), isArrayOf(isSimpleType('TextEdit'))));
     });
 
     test('flags nullable undefined values', () {
@@ -115,7 +173,7 @@ export interface A {
   canBeUndefined?: string;
 }
     ''';
-      final List<ApiItem> output = extractTypes(input);
+      final List<AstNode> output = parseString(input);
       final Interface interface = output[0];
       expect(interface.members, hasLength(4));
       interface.members.forEach((m) => expect(m, const TypeMatcher<Field>()));
@@ -143,21 +201,21 @@ export interface A {
  * Blank lines should remain in-tact, as should:
  *   - Indented
  *   - Things
- * 
+ *
  * Some docs have:
  * - List items that are not indented
- * 
+ *
  * Sometimes after a blank line we'll have a note.
- * 
+ *
  * *Note* that something.
  */
 export interface A {
   a: a;
 }
     ''';
-      final List<ApiItem> output = extractTypes(input);
+      final List<AstNode> output = parseString(input);
       final Interface interface = output[0];
-      expect(interface.comment, equals('''
+      expect(interface.commentText, equals('''
 Describes the what this class in lots of words that wrap onto multiple lines that will need re-wrapping to format nicely when converted into Dart.
 
 Blank lines should remain in-tact, as should:
@@ -176,12 +234,12 @@ Sometimes after a blank line we'll have a note.
       final String input = '''
 export type DocumentSelector = DocumentFilter[];
     ''';
-      final List<ApiItem> output = extractTypes(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<TypeAlias>());
       final TypeAlias typeAlias = output[0];
       expect(typeAlias.name, equals('DocumentSelector'));
-      expect(typeAlias.baseType, equals('DocumentFilter[]'));
+      expect(typeAlias.baseType, isArrayOf(isSimpleType('DocumentFilter')));
     });
 
     test('parses a namespace of constants', () {
@@ -203,7 +261,7 @@ export namespace ResourceOperationKind {
 	export const Rename: ResourceOperationKind = 'rename';
 }
     ''';
-      final List<ApiItem> output = extractTypes(input);
+      final List<AstNode> output = parseString(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Namespace>());
       final Namespace namespace = output[0];
@@ -213,17 +271,38 @@ export namespace ResourceOperationKind {
           delete = namespace.members[1],
           rename = namespace.members[2];
       expect(create.name, equals('Create'));
-      expect(create.type, equals('ResourceOperationKind'));
-      expect(
-          create.comment, equals('Supports creating new files and folders.'));
+      expect(create.type, isSimpleType('ResourceOperationKind'));
+      expect(create.commentText,
+          equals('Supports creating new files and folders.'));
       expect(rename.name, equals('Rename'));
-      expect(rename.type, equals('ResourceOperationKind'));
-      expect(rename.comment,
+      expect(rename.type, isSimpleType('ResourceOperationKind'));
+      expect(rename.commentText,
           equals('Supports renaming existing files and folders.'));
       expect(delete.name, equals('Delete'));
-      expect(delete.type, equals('ResourceOperationKind'));
-      expect(delete.comment,
+      expect(delete.type, isSimpleType('ResourceOperationKind'));
+      expect(delete.commentText,
           equals('Supports deleting existing files and folders.'));
+    });
+
+    test('parses a tuple in an array', () {
+      final String input = '''
+interface SomeInformation {
+	label: string | [number, number];
+}
+    ''';
+      final List<AstNode> output = parseString(input);
+      expect(output, hasLength(1));
+      expect(output[0], const TypeMatcher<Interface>());
+      final Interface interface = output[0];
+      expect(interface.members, hasLength(1));
+      final Field field = interface.members.first;
+      expect(field, const TypeMatcher<Field>());
+      expect(field.name, equals('label'));
+      expect(field.type, const TypeMatcher<UnionType>());
+      UnionType union = field.type;
+      expect(union.types, hasLength(2));
+      expect(union.types[0], isSimpleType('string'));
+      expect(union.types[1], isArrayOf(isSimpleType('number')));
     });
   });
 }

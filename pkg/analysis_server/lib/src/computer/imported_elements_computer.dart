@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -50,7 +50,7 @@ class ImportedElementsComputer {
  * The visitor used by an [ImportedElementsComputer] to record the names of all
  * imported elements.
  */
-class _Visitor extends UnifyingAstVisitor<Object> {
+class _Visitor extends UnifyingAstVisitor<void> {
   /**
    * The element representing the library containing the code being visited.
    */
@@ -79,15 +79,14 @@ class _Visitor extends UnifyingAstVisitor<Object> {
   _Visitor(this.containingLibrary, this.startOffset, this.endOffset);
 
   @override
-  Object visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     if (node.offset <= endOffset && node.end >= startOffset) {
       node.visitChildren(this);
     }
-    return null;
   }
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (!node.inDeclarationContext() &&
         node.offset <= endOffset &&
         node.end >= startOffset &&
@@ -119,7 +118,6 @@ class _Visitor extends UnifyingAstVisitor<Object> {
         }
       }
     }
-    return null;
   }
 
   static bool _isConstructorDeclarationReturnType(SimpleIdentifier node) {

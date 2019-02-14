@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -20,7 +21,7 @@ main() {
 class EnumDriverResolutionTest extends DriverResolutionTest
     with EnumResolutionMixin {}
 
-abstract class EnumResolutionMixin implements ResolutionTest {
+mixin EnumResolutionMixin implements ResolutionTest {
   test_error_conflictingStaticAndInstance_index() async {
     addTestFile(r'''
 enum E {
@@ -43,6 +44,20 @@ var v = [E1.a, E2.b];
 
     var v = findElement.topVar('v');
     assertElementTypeString(v.type, 'List<Object>');
+  }
+
+  test_isConstantEvaluated() async {
+    addTestFile(r'''
+enum E {
+  aaa, bbb
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    expect(findElement.field('aaa').isConstantEvaluated, isTrue);
+    expect(findElement.field('bbb').isConstantEvaluated, isTrue);
+    expect(findElement.field('values').isConstantEvaluated, isTrue);
   }
 }
 

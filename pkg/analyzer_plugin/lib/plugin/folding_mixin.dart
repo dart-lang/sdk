@@ -18,16 +18,16 @@ import 'package:analyzer_plugin/utilities/generator.dart';
  * request based on the assumption that the driver being created is an
  * [AnalysisDriver].
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin] that also uses
- * [FoldingMixin] as a mix-in.
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin] that also uses [FoldingMixin] as a
+ * mix-in.
  */
-abstract class DartFoldingMixin implements FoldingMixin {
+mixin DartFoldingMixin implements FoldingMixin {
   @override
   Future<FoldingRequest> getFoldingRequest(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolveResult result = await getResolveResult(path);
+    ResolvedUnitResult result = await getResolvedUnitResult(path);
     return new DartFoldingRequestImpl(resourceProvider, result);
   }
 }
@@ -36,10 +36,10 @@ abstract class DartFoldingMixin implements FoldingMixin {
  * A mixin that can be used when creating a subclass of [ServerPlugin] to
  * provide most of the implementation for producing folding notifications.
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin].
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin].
  */
-abstract class FoldingMixin implements ServerPlugin {
+mixin FoldingMixin implements ServerPlugin {
   /**
    * Return a list containing the folding contributors that should be used
    * to create folding regions for the file with the given [path].

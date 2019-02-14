@@ -97,21 +97,50 @@ class NativeCallPattern : public ValueObject {
 //   load guarded cid            load ICData             load MegamorphicCache
 //   load monomorphic target <-> load ICLookup stub  ->  load MMLookup stub
 //   call target.entry           call stub.entry         call stub.entry
-class SwitchableCallPattern : public ValueObject {
+class SwitchableCallPatternBase : public ValueObject {
  public:
-  SwitchableCallPattern(uword pc, const Code& code);
+  explicit SwitchableCallPatternBase(const Code& code);
 
   RawObject* data() const;
-  RawCode* target() const;
   void SetData(const Object& data) const;
-  void SetTarget(const Code& target) const;
 
- private:
+ protected:
   const ObjectPool& object_pool_;
   intptr_t data_pool_index_;
   intptr_t target_pool_index_;
 
+ private:
+  DISALLOW_COPY_AND_ASSIGN(SwitchableCallPatternBase);
+};
+
+// See [SwitchableCallBase] for a switchable calls in general.
+//
+// The target slot is always a [Code] object: Either the code of the
+// monomorphic function or a stub code.
+class SwitchableCallPattern : public SwitchableCallPatternBase {
+ public:
+  SwitchableCallPattern(uword pc, const Code& code);
+
+  RawCode* target() const;
+  void SetTarget(const Code& target) const;
+
+ private:
   DISALLOW_COPY_AND_ASSIGN(SwitchableCallPattern);
+};
+
+// See [SwitchableCallBase] for a switchable calls in general.
+//
+// The target slot is always a direct entrypoint address: Either the entry point
+// of the monomorphic function or a stub entry point.
+class BareSwitchableCallPattern : public SwitchableCallPatternBase {
+ public:
+  BareSwitchableCallPattern(uword pc, const Code& code);
+
+  RawCode* target() const;
+  void SetTarget(const Code& target) const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BareSwitchableCallPattern);
 };
 
 class ReturnPattern : public ValueObject {
@@ -127,6 +156,66 @@ class ReturnPattern : public ValueObject {
 
  private:
   const uword pc_;
+};
+
+class PcRelativeCallPattern : public ValueObject {
+ public:
+  explicit PcRelativeCallPattern(uword pc) : pc_(pc) {}
+
+  static const int kLengthInBytes = 1 * Instr::kInstrSize;
+
+  int32_t distance() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return Assembler::DecodeBranchOffset(*reinterpret_cast<int32_t*>(pc_));
+#else
+    UNREACHABLE();
+    return 0;
+#endif
+  }
+
+  void set_distance(int32_t distance) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    int32_t* word = reinterpret_cast<int32_t*>(pc_);
+    *word = Assembler::EncodeBranchOffset(distance, *word);
+#else
+    UNREACHABLE();
+#endif
+  }
+
+  bool IsValid() const;
+
+ private:
+  uword pc_;
+};
+
+class PcRelativeJumpPattern : public ValueObject {
+ public:
+  explicit PcRelativeJumpPattern(uword pc) : pc_(pc) {}
+
+  static const int kLengthInBytes = 1 * Instr::kInstrSize;
+
+  int32_t distance() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return Assembler::DecodeBranchOffset(*reinterpret_cast<int32_t*>(pc_));
+#else
+    UNREACHABLE();
+    return 0;
+#endif
+  }
+
+  void set_distance(int32_t distance) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    int32_t* word = reinterpret_cast<int32_t*>(pc_);
+    *word = Assembler::EncodeBranchOffset(distance, *word);
+#else
+    UNREACHABLE();
+#endif
+  }
+
+  bool IsValid() const;
+
+ private:
+  uword pc_;
 };
 
 }  // namespace dart

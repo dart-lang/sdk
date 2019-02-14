@@ -10,7 +10,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/js_interop_analysis.dart';
+import '../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart'
     show
@@ -95,27 +95,18 @@ class RuntimeTypeGenerator {
   final Namer _namer;
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
-  final JsInteropAnalysis _jsInteropAnalysis;
   final _TypeContainedInOutputUnitVisitor _outputUnitVisitor;
 
-  RuntimeTypeGenerator(
-      this._commonElements,
-      this._outputUnitData,
-      this.emitterTask,
-      this._namer,
-      this._rtiChecks,
-      this._rtiEncoder,
-      this._jsInteropAnalysis)
+  RuntimeTypeGenerator(this._commonElements, this._outputUnitData,
+      this.emitterTask, this._namer, this._rtiChecks, this._rtiEncoder)
       : _outputUnitVisitor = new _TypeContainedInOutputUnitVisitor(
             _commonElements, _outputUnitData);
 
-  /**
-   * Generate "is tests" for [cls] itself, and the "is tests" for the
-   * classes it implements and type argument substitution functions for these
-   * tests.   We don't need to add the "is tests" of the super class because
-   * they will be inherited at runtime, but we may need to generate the
-   * substitutions, because they may have changed.
-   */
+  /// Generate "is tests" for [cls] itself, and the "is tests" for the
+  /// classes it implements and type argument substitution functions for these
+  /// tests.   We don't need to add the "is tests" of the super class because
+  /// they will be inherited at runtime, but we may need to generate the
+  /// substitutions, because they may have changed.
 
   /// Generates all properties necessary for is-checks on the [classElement].
   ///
@@ -206,7 +197,7 @@ class RuntimeTypeGenerator {
         classElement, generateFunctionTypeSignature, generateTypeCheck);
 
     if (classElement == _commonElements.jsJavaScriptFunctionClass) {
-      var type = _jsInteropAnalysis.buildJsFunctionType();
+      var type = jsInteropAnalysis.buildJsFunctionType();
       if (type != null) {
         jsAst.Expression thisAccess = new jsAst.This();
         jsAst.Expression encoding = _rtiEncoder.getSignatureEncoding(

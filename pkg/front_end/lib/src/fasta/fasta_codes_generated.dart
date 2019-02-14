@@ -122,18 +122,14 @@ Message _withArgumentsAmbiguousSupertypes(
     String name, DartType _type, DartType _type2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeAmbiguousSupertypes,
-      message: """'${name}' can't implement both '${type}' and '${type2}'""",
+      message: """'${name}' can't implement both '${type}' and '${type2}'""" +
+          labeler.originMessages,
       arguments: {'name': name, 'type': _type, 'type2': _type2});
 }
 
@@ -181,19 +177,15 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsArgumentTypeNotAssignable(
     DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeArgumentTypeNotAssignable,
       message:
-          """The argument type '${type}' can't be assigned to the parameter type '${type2}'.""",
+          """The argument type '${type}' can't be assigned to the parameter type '${type2}'.""" +
+              labeler.originMessages,
       tip: """Try changing the type of the parameter, or casting the argument to '${type2}'.""",
       arguments: {'type': _type, 'type2': _type2});
 }
@@ -679,7 +671,7 @@ const Code<Null> codeCatchSyntax = messageCatchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCatchSyntax = const MessageCode("CatchSyntax",
-    analyzerCodes: <String>["CATCH_SYNTAX"],
+    index: 84,
     message:
         r"""'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
     tip:
@@ -692,7 +684,7 @@ const Code<Null> codeCatchSyntaxExtraParameters =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCatchSyntaxExtraParameters = const MessageCode(
     "CatchSyntaxExtraParameters",
-    analyzerCodes: <String>["CATCH_SYNTAX"],
+    index: 83,
     message:
         r"""'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
     tip:
@@ -931,18 +923,6 @@ const MessageCode messageConstClass = const MessageCode("ConstClass",
         r"""Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstConstructorInSubclassOfMixinApplication =
-    messageConstConstructorInSubclassOfMixinApplication;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstConstructorInSubclassOfMixinApplication =
-    const MessageCode("ConstConstructorInSubclassOfMixinApplication",
-        analyzerCodes: <String>[
-      "CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION"
-    ],
-        message: r"""Can't extend a mixin application and be 'const'.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstConstructorNonFinalField =
     messageConstConstructorNonFinalField;
 
@@ -1051,15 +1031,13 @@ const Code<Message Function(Constant _constant)> codeConstEvalDuplicateKey =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalDuplicateKey(Constant _constant) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_constant);
-  String constant = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
   return new Message(codeConstEvalDuplicateKey,
       message:
-          """The key '${constant}' conflicts with another existing key in the map.""",
+          """The key '${constant}' conflicts with another existing key in the map.""" +
+              labeler.originMessages,
       arguments: {'constant': _constant});
 }
 
@@ -1098,6 +1076,35 @@ Message _withArgumentsConstEvalFailedAssertionWithMessage(String string) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        DartType
+            _type)> templateConstEvalFreeTypeParameter = const Template<
+        Message Function(DartType _type)>(
+    messageTemplate:
+        r"""The type '#type' is not a constant because it depends on a type parameter, only instantiated types are allowed.""",
+    withArguments: _withArgumentsConstEvalFreeTypeParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)> codeConstEvalFreeTypeParameter =
+    const Code<Message Function(DartType _type)>(
+  "ConstEvalFreeTypeParameter",
+  templateConstEvalFreeTypeParameter,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalFreeTypeParameter(DartType _type) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeConstEvalFreeTypeParameter,
+      message:
+          """The type '${type}' is not a constant because it depends on a type parameter, only instantiated types are allowed.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String string,
         Constant _constant,
         DartType _type,
@@ -1123,23 +1130,17 @@ const Code<
 Message _withArgumentsConstEvalInvalidBinaryOperandType(
     String string, Constant _constant, DartType _type, DartType _type2) {
   if (string.isEmpty) throw 'No string provided';
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_constant);
-  String constant = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String constant = constantParts.join();
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeConstEvalInvalidBinaryOperandType,
       message:
-          """Binary operator '${string}' on '${constant}' requires operand of type '${type}', but was of type '${type2}'.""",
+          """Binary operator '${string}' on '${constant}' requires operand of type '${type}', but was of type '${type2}'.""" +
+              labeler.originMessages,
       arguments: {
         'string': string,
         'constant': _constant,
@@ -1171,15 +1172,13 @@ const Code<Message Function(String string, Constant _constant)>
 Message _withArgumentsConstEvalInvalidMethodInvocation(
     String string, Constant _constant) {
   if (string.isEmpty) throw 'No string provided';
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_constant);
-  String constant = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
   return new Message(codeConstEvalInvalidMethodInvocation,
       message:
-          """The method '${string}' can't be invoked on '${constant}' within a const context.""",
+          """The method '${string}' can't be invoked on '${constant}' within a const context.""" +
+              labeler.originMessages,
       arguments: {'string': string, 'constant': _constant});
 }
 
@@ -1230,15 +1229,42 @@ const Code<Message Function(Constant _constant)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidStringInterpolationOperand(
     Constant _constant) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_constant);
-  String constant = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
   return new Message(codeConstEvalInvalidStringInterpolationOperand,
       message:
-          """The '${constant}' can't be used as part of a string interpolation within a const context, only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""",
+          """The '${constant}' can't be used as part of a string interpolation within a const context, only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Constant
+            _constant)> templateConstEvalInvalidSymbolName = const Template<
+        Message Function(Constant _constant)>(
+    messageTemplate:
+        r"""The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#constant'.""",
+    withArguments: _withArgumentsConstEvalInvalidSymbolName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant)>
+    codeConstEvalInvalidSymbolName =
+    const Code<Message Function(Constant _constant)>(
+        "ConstEvalInvalidSymbolName", templateConstEvalInvalidSymbolName,
+        analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidSymbolName(Constant _constant) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalInvalidSymbolName,
+      message:
+          """The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '${constant}'.""" +
+              labeler.originMessages,
       arguments: {'constant': _constant});
 }
 
@@ -1266,23 +1292,17 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidType(
     Constant _constant, DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_constant);
-  String constant = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String constant = constantParts.join();
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeConstEvalInvalidType,
       message:
-          """Expected constant '${constant}' to be of type '${type}', but was of type '${type2}'.""",
+          """Expected constant '${constant}' to be of type '${type}', but was of type '${type2}'.""" +
+              labeler.originMessages,
       arguments: {'constant': _constant, 'type': _type, 'type2': _type2});
 }
 
@@ -1734,27 +1754,24 @@ Message _withArgumentsCycleInTypeVariables(String name, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
-    templateCyclicClassHierarchy =
-    const Template<Message Function(String name, String string)>(
-        messageTemplate: r"""'#name' is a supertype of itself via '#string'.""",
+const Template<Message Function(String name)> templateCyclicClassHierarchy =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""'#name' is a supertype of itself.""",
         withArguments: _withArgumentsCyclicClassHierarchy);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String string)>
-    codeCyclicClassHierarchy =
-    const Code<Message Function(String name, String string)>(
+const Code<Message Function(String name)> codeCyclicClassHierarchy =
+    const Code<Message Function(String name)>(
         "CyclicClassHierarchy", templateCyclicClassHierarchy,
         analyzerCodes: <String>["RECURSIVE_INTERFACE_INHERITANCE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCyclicClassHierarchy(String name, String string) {
+Message _withArgumentsCyclicClassHierarchy(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  if (string.isEmpty) throw 'No string provided';
   return new Message(codeCyclicClassHierarchy,
-      message: """'${name}' is a supertype of itself via '${string}'.""",
-      arguments: {'name': name, 'string': string});
+      message: """'${name}' is a supertype of itself.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1935,17 +1952,15 @@ const Code<Message Function(DartType _type, String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDeferredTypeAnnotation(DartType _type, String name) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
+  String type = typeParts.join();
   return new Message(codeDeferredTypeAnnotation,
       message:
-          """The type '${type}' is deferred loaded via prefix '${name}' and can't be used as a type annotation.""",
+          """The type '${type}' is deferred loaded via prefix '${name}' and can't be used as a type annotation.""" +
+              labeler.originMessages,
       tip: """Try removing 'deferred' from the import of '${name}' or use a supertype of '${type}' that isn't deferred.""",
       arguments: {'type': _type, 'name': name});
 }
@@ -2022,28 +2037,6 @@ Message _withArgumentsDirectCycleInTypeVariables(String name) {
       message: """Type '${name}' can't use itself as a bound.""",
       tip:
           """Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateDirectCyclicClassHierarchy =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""'#name' can't use itself as a supertype.""",
-        withArguments: _withArgumentsDirectCyclicClassHierarchy);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDirectCyclicClassHierarchy =
-    const Code<Message Function(String name)>(
-        "DirectCyclicClassHierarchy", templateDirectCyclicClassHierarchy,
-        analyzerCodes: <String>["RECURSIVE_INTERFACE_INHERITANCE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDirectCyclicClassHierarchy(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeDirectCyclicClassHierarchy,
-      message: """'${name}' can't use itself as a supertype.""",
       arguments: {'name': name});
 }
 
@@ -3111,7 +3104,7 @@ const Code<Null> codeExternalConstructorWithBody =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalConstructorWithBody = const MessageCode(
     "ExternalConstructorWithBody",
-    analyzerCodes: <String>["EXTERNAL_CONSTRUCTOR_WITH_BODY"],
+    index: 87,
     message: r"""External constructors can't have a body.""",
     tip:
         r"""Try removing the body of the constructor, or removing the keyword 'external'.""");
@@ -3144,7 +3137,7 @@ const Code<Null> codeExternalFactoryRedirection =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalFactoryRedirection = const MessageCode(
     "ExternalFactoryRedirection",
-    analyzerCodes: <String>["EXTERNAL_CONSTRUCTOR_WITH_BODY"],
+    index: 85,
     message: r"""A redirecting factory can't be external.""",
     tip: r"""Try removing the 'external' modifier.""");
 
@@ -3154,7 +3147,7 @@ const Code<Null> codeExternalFactoryWithBody = messageExternalFactoryWithBody;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalFactoryWithBody = const MessageCode(
     "ExternalFactoryWithBody",
-    analyzerCodes: <String>["EXTERNAL_CONSTRUCTOR_WITH_BODY"],
+    index: 86,
     message: r"""External factories can't have a body.""",
     tip:
         r"""Try removing the body of the factory, or removing the keyword 'external'.""");
@@ -3215,80 +3208,6 @@ const Code<Null> codeFactoryNotSync = messageFactoryNotSync;
 const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
     analyzerCodes: <String>["NON_SYNC_FACTORY"],
     message: r"""Factory bodies can't use 'async', 'async*', or 'sync*'.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, int count)>
-    templateFactoryRedirecteeHasTooFewPositionalParameters =
-    const Template<Message Function(String name, int count)>(
-        messageTemplate:
-            r"""Redirection target '#name' accepts fewer arguments ('#count') than the redirecting factory can provide.""",
-        tipTemplate: r"""Try redirecting to a different constructor.""",
-        withArguments:
-            _withArgumentsFactoryRedirecteeHasTooFewPositionalParameters);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, int count)>
-    codeFactoryRedirecteeHasTooFewPositionalParameters =
-    const Code<Message Function(String name, int count)>(
-        "FactoryRedirecteeHasTooFewPositionalParameters",
-        templateFactoryRedirecteeHasTooFewPositionalParameters,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFactoryRedirecteeHasTooFewPositionalParameters(
-    String name, int count) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (count == null) throw 'No count provided';
-  return new Message(codeFactoryRedirecteeHasTooFewPositionalParameters,
-      message:
-          """Redirection target '${name}' accepts fewer arguments ('${count}') than the redirecting factory can provide.""",
-      tip: """Try redirecting to a different constructor.""",
-      arguments: {'name': name, 'count': count});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        DartType _type,
-        String name,
-        DartType
-            _type2)> templateFactoryRedirecteeInvalidReturnType = const Template<
-        Message Function(DartType _type, String name, DartType _type2)>(
-    messageTemplate:
-        r"""The return type '#type' of the constructor '#name' isn't a subtype of '#type2'.""",
-    tipTemplate: r"""Try redirecting to a different constructor.""",
-    withArguments: _withArgumentsFactoryRedirecteeInvalidReturnType);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, String name, DartType _type2)>
-    codeFactoryRedirecteeInvalidReturnType =
-    const Code<Message Function(DartType _type, String name, DartType _type2)>(
-        "FactoryRedirecteeInvalidReturnType",
-        templateFactoryRedirecteeInvalidReturnType,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_RETURN_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFactoryRedirecteeInvalidReturnType(
-    DartType _type, String name, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
-  return new Message(codeFactoryRedirecteeInvalidReturnType,
-      message:
-          """The return type '${type}' of the constructor '${name}' isn't a subtype of '${type2}'.""",
-      tip: """Try redirecting to a different constructor.""",
-      arguments: {'type': _type, 'name': name, 'type2': _type2});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFactoryTopLevelDeclaration =
@@ -3365,6 +3284,9 @@ const MessageCode messageFastaUsageLong =
   --dump-ir
     Print compiled libraries in Kernel source notation.
 
+  --omit-platform
+    Exclude the platform from the serialized dill file.
+
   --bytecode
     Generate bytecode. Supported only for SDK platform compilation.
 
@@ -3398,7 +3320,12 @@ const MessageCode messageFastaUsageLong =
     Makes messages of the given kinds fatal, that is, immediately stop the
     compiler with a non-zero exit-code. In --verbose mode, also display an
     internal stack trace from the compiler. Multiple kinds can be separated by
-    commas, for example, --fatal=errors,warnings.""");
+    commas, for example, --fatal=errors,warnings.
+
+  --enable-experiment=<flag>
+    Enable or disable an experimental flag, used to guard features currently
+    in development. Prefix an experiment name with 'no-' to disable it.
+    Multiple experiments can be separated by commas.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFastaUsageShort = messageFastaUsageShort;
@@ -3409,6 +3336,18 @@ const MessageCode messageFastaUsageShort =
 
   -o <file> Generate the output into <file>.
   -h        Display this message (add -v for information about all options).""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFieldInitializedOutsideDeclaringClass =
+    messageFieldInitializedOutsideDeclaringClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFieldInitializedOutsideDeclaringClass = const MessageCode(
+    "FieldInitializedOutsideDeclaringClass",
+    index: 88,
+    message: r"""A field can only be initialized in it's declaring class""",
+    tip:
+        r"""Try passing a value into the superclass constructor, or moving the initialization into the constructor body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFieldInitializerOutsideConstructor =
@@ -3437,7 +3376,7 @@ const Code<Null> codeFinalAndVar = messageFinalAndVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFinalAndVar = const MessageCode("FinalAndVar",
-    analyzerCodes: <String>["FINAL_AND_VAR"],
+    index: 81,
     message: r"""Members can't be declared to be both 'final' and 'var'.""",
     tip: r"""Try removing the keyword 'var'.""");
 
@@ -3605,19 +3544,15 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsForInLoopElementTypeNotAssignable(
     DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeForInLoopElementTypeNotAssignable,
       message:
-          """A value of type '${type}' can't be assigned to a variable of type '${type2}'.""",
+          """A value of type '${type}' can't be assigned to a variable of type '${type2}'.""" +
+              labeler.originMessages,
       tip: """Try changing the type of the variable.""",
       arguments: {'type': _type, 'type2': _type2});
 }
@@ -3661,19 +3596,15 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsForInLoopTypeNotIterable(
     DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeForInLoopTypeNotIterable,
       message:
-          """The type '${type}' used in the 'for' loop must implement '${type2}'.""",
+          """The type '${type}' used in the 'for' loop must implement '${type2}'.""" +
+              labeler.originMessages,
       arguments: {'type': _type, 'type2': _type2});
 }
 
@@ -3751,15 +3682,13 @@ const Code<Message Function(DartType _type)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument(
     DartType _type) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
   return new Message(codeGenericFunctionTypeInferredAsActualTypeArgument,
       message:
-          """Unexpected generic function type '${type}' inferred as a type argument.""",
+          """Unexpected generic function type '${type}' inferred as a type argument.""" +
+              labeler.originMessages,
       tip: """Try providing a non-generic function type explicitly.""",
       arguments: {'type': _type});
 }
@@ -4049,15 +3978,13 @@ const Code<Message Function(DartType _type)> codeImplicitCallOfNonMethod =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImplicitCallOfNonMethod(DartType _type) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
   return new Message(codeImplicitCallOfNonMethod,
       message:
-          """Cannot invoke an instance of '${type}' because it declares 'call' to be something other than a method.""",
+          """Cannot invoke an instance of '${type}' because it declares 'call' to be something other than a method.""" +
+              labeler.originMessages,
       tip: """Try changing 'call' to a method or explicitly invoke 'call'.""",
       arguments: {'type': _type});
 }
@@ -4132,213 +4059,433 @@ Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
 const Template<
     Message Function(
         DartType _type,
-        String
-            name)> templateIncorrectTypeArgument = const Template<
-        Message Function(DartType _type, String name)>(
+        DartType
+            _type2)> templateIncompatibleRedirecteeFunctionType = const Template<
+        Message Function(DartType _type, DartType _type2)>(
     messageTemplate:
-        r"""Type argument '#type' violates the corresponding type variable bound of '#name'.""",
-    tipTemplate:
-        r"""Try changing type arguments so that they conform to the bounds.""",
-    withArguments: _withArgumentsIncorrectTypeArgument);
+        r"""The constructor function type '#type' isn't a subtype of '#type2'.""",
+    withArguments: _withArgumentsIncompatibleRedirecteeFunctionType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, String name)>
-    codeIncorrectTypeArgument =
-    const Code<Message Function(DartType _type, String name)>(
-        "IncorrectTypeArgument", templateIncorrectTypeArgument,
-        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeIncompatibleRedirecteeFunctionType =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "IncompatibleRedirecteeFunctionType",
+        templateIncompatibleRedirecteeFunctionType,
+        analyzerCodes: <String>["REDIRECT_TO_INVALID_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgument(DartType _type, String name) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeIncorrectTypeArgument,
+Message _withArgumentsIncompatibleRedirecteeFunctionType(
+    DartType _type, DartType _type2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeIncompatibleRedirecteeFunctionType,
       message:
-          """Type argument '${type}' violates the corresponding type variable bound of '${name}'.""",
-      tip: """Try changing type arguments so that they conform to the bounds.""",
-      arguments: {'type': _type, 'name': name});
+          """The constructor function type '${type}' isn't a subtype of '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,
+        DartType _type2,
+        String name,
         String
-            name)> templateIncorrectTypeArgumentInReturnType = const Template<
-        Message Function(DartType _type, String name)>(
+            name2)> templateIncorrectTypeArgument = const Template<
+        Message Function(
+            DartType _type, DartType _type2, String name, String name2)>(
     messageTemplate:
-        r"""Type argument '#type' violates the corresponding type variable bound of '#name' in the return type.""",
+        r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
+    tipTemplate:
+        r"""Try changing type arguments so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgument);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, String name, String name2)>
+    codeIncorrectTypeArgument = const Code<
+            Message Function(
+                DartType _type, DartType _type2, String name, String name2)>(
+        "IncorrectTypeArgument", templateIncorrectTypeArgument,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgument(
+    DartType _type, DartType _type2, String name, String name2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeIncorrectTypeArgument,
+      message:
+          """Type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${name2}'.""" +
+              labeler.originMessages,
+      tip: """Try changing type arguments so that they conform to the bounds.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType _type2,
+        String name,
+        String
+            name2)> templateIncorrectTypeArgumentInReturnType = const Template<
+        Message Function(
+            DartType _type, DartType _type2, String name, String name2)>(
+    messageTemplate:
+        r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the return type.""",
     tipTemplate:
         r"""Try changing type arguments so that they conform to the bounds.""",
     withArguments: _withArgumentsIncorrectTypeArgumentInReturnType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, String name)>
-    codeIncorrectTypeArgumentInReturnType =
-    const Code<Message Function(DartType _type, String name)>(
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, String name, String name2)>
+    codeIncorrectTypeArgumentInReturnType = const Code<
+            Message Function(
+                DartType _type, DartType _type2, String name, String name2)>(
         "IncorrectTypeArgumentInReturnType",
         templateIncorrectTypeArgumentInReturnType,
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInReturnType(
-    DartType _type, String name) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
+    DartType _type, DartType _type2, String name, String name2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeIncorrectTypeArgumentInReturnType,
       message:
-          """Type argument '${type}' violates the corresponding type variable bound of '${name}' in the return type.""",
+          """Type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${name2}' in the return type.""" +
+              labeler.originMessages,
       tip: """Try changing type arguments so that they conform to the bounds.""",
-      arguments: {'type': _type, 'name': name});
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'name2': name2
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,
+        DartType _type2,
         String name,
         String name2,
+        String name3,
         String
-            name3)> templateIncorrectTypeArgumentInSupertype = const Template<
-        Message Function(
-            DartType _type, String name, String name2, String name3)>(
+            name4)> templateIncorrectTypeArgumentInSupertype = const Template<
+        Message Function(DartType _type, DartType _type2, String name,
+            String name2, String name3, String name4)>(
     messageTemplate:
-        r"""Type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'.""",
+        r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'.""",
     tipTemplate:
         r"""Try changing type arguments so that they conform to the bounds.""",
     withArguments: _withArgumentsIncorrectTypeArgumentInSupertype);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
-        Message Function(
-            DartType _type, String name, String name2, String name3)>
+        Message Function(DartType _type, DartType _type2, String name,
+            String name2, String name3, String name4)>
     codeIncorrectTypeArgumentInSupertype = const Code<
-            Message Function(
-                DartType _type, String name, String name2, String name3)>(
+            Message Function(DartType _type, DartType _type2, String name,
+                String name2, String name3, String name4)>(
         "IncorrectTypeArgumentInSupertype",
         templateIncorrectTypeArgumentInSupertype,
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentInSupertype(
-    DartType _type, String name, String name2, String name3) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
+Message _withArgumentsIncorrectTypeArgumentInSupertype(DartType _type,
+    DartType _type2, String name, String name2, String name3, String name4) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
   if (name3.isEmpty) throw 'No name provided';
   name3 = demangleMixinApplicationName(name3);
+  if (name4.isEmpty) throw 'No name provided';
+  name4 = demangleMixinApplicationName(name4);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeIncorrectTypeArgumentInSupertype,
       message:
-          """Type argument '${type}' violates the corresponding type variable bound of '${name}' in the supertype '${name2}' of class '${name3}'.""",
-      tip: """Try changing type arguments so that they conform to the bounds.""",
-      arguments: {'type': _type, 'name': name, 'name2': name2, 'name3': name3});
+          """Type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${name2}' in the supertype '${name3}' of class '${name4}'.""" +
+              labeler.originMessages,
+      tip:
+          """Try changing type arguments so that they conform to the bounds.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'name2': name2,
+        'name3': name3,
+        'name4': name4
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,
+        DartType _type2,
         String name,
         String name2,
+        String name3,
         String
-            name3)> templateIncorrectTypeArgumentInSupertypeInferred = const Template<
-        Message Function(DartType _type, String name, String name2,
-            String name3)>(
+            name4)> templateIncorrectTypeArgumentInSupertypeInferred = const Template<
+        Message Function(
+            DartType _type,
+            DartType _type2,
+            String name,
+            String name2,
+            String name3,
+            String
+                name4)>(
     messageTemplate:
-        r"""Inferred type argument '#type' violates the corresponding type variable bound of '#name' in the supertype '#name2' of class '#name3'.""",
+        r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'.""",
     tipTemplate:
         r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
     withArguments: _withArgumentsIncorrectTypeArgumentInSupertypeInferred);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
-        Message Function(
-            DartType _type, String name, String name2, String name3)>
+        Message Function(DartType _type, DartType _type2, String name,
+            String name2, String name3, String name4)>
     codeIncorrectTypeArgumentInSupertypeInferred = const Code<
-            Message Function(
-                DartType _type, String name, String name2, String name3)>(
+            Message Function(DartType _type, DartType _type2, String name,
+                String name2, String name3, String name4)>(
         "IncorrectTypeArgumentInSupertypeInferred",
         templateIncorrectTypeArgumentInSupertypeInferred,
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentInSupertypeInferred(
-    DartType _type, String name, String name2, String name3) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
+Message _withArgumentsIncorrectTypeArgumentInSupertypeInferred(DartType _type,
+    DartType _type2, String name, String name2, String name3, String name4) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
   if (name3.isEmpty) throw 'No name provided';
   name3 = demangleMixinApplicationName(name3);
+  if (name4.isEmpty) throw 'No name provided';
+  name4 = demangleMixinApplicationName(name4);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeIncorrectTypeArgumentInSupertypeInferred,
       message:
-          """Inferred type argument '${type}' violates the corresponding type variable bound of '${name}' in the supertype '${name2}' of class '${name3}'.""",
-      tip: """Try specifying type arguments explicitly so that they conform to the bounds.""",
-      arguments: {'type': _type, 'name': name, 'name2': name2, 'name3': name3});
+          """Inferred type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${name2}' in the supertype '${name3}' of class '${name4}'.""" +
+              labeler.originMessages,
+      tip:
+          """Try specifying type arguments explicitly so that they conform to the bounds.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'name2': name2,
+        'name3': name3,
+        'name4': name4
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,
+        DartType _type2,
+        String name,
         String
-            name)> templateIncorrectTypeArgumentInferred = const Template<
-        Message Function(DartType _type,
-            String name)>(
+            name2)> templateIncorrectTypeArgumentInferred = const Template<
+        Message Function(
+            DartType _type, DartType _type2, String name, String name2)>(
     messageTemplate:
-        r"""Inferred type argument '#type' violates the corresponding type variable bound of '#name'.""",
+        r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'.""",
     tipTemplate:
         r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
     withArguments: _withArgumentsIncorrectTypeArgumentInferred);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, String name)>
-    codeIncorrectTypeArgumentInferred =
-    const Code<Message Function(DartType _type, String name)>(
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, String name, String name2)>
+    codeIncorrectTypeArgumentInferred = const Code<
+            Message Function(
+                DartType _type, DartType _type2, String name, String name2)>(
         "IncorrectTypeArgumentInferred", templateIncorrectTypeArgumentInferred,
         analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInferred(
-    DartType _type, String name) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
+    DartType _type, DartType _type2, String name, String name2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeIncorrectTypeArgumentInferred,
       message:
-          """Inferred type argument '${type}' violates the corresponding type variable bound of '${name}'.""",
+          """Inferred type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${name2}'.""" +
+              labeler.originMessages,
       tip: """Try specifying type arguments explicitly so that they conform to the bounds.""",
-      arguments: {'type': _type, 'name': name});
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType _type2,
+        String name,
+        DartType _type3,
+        String
+            name2)> templateIncorrectTypeArgumentQualified = const Template<
+        Message Function(
+            DartType _type,
+            DartType _type2,
+            String name,
+            DartType _type3,
+            String
+                name2)>(
+    messageTemplate:
+        r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
+    tipTemplate:
+        r"""Try changing type arguments so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentQualified);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, String name,
+            DartType _type3, String name2)> codeIncorrectTypeArgumentQualified =
+    const Code<
+            Message Function(DartType _type, DartType _type2, String name,
+                DartType _type3, String name2)>(
+        "IncorrectTypeArgumentQualified",
+        templateIncorrectTypeArgumentQualified,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentQualified(DartType _type,
+    DartType _type2, String name, DartType _type3, String name2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  return new Message(codeIncorrectTypeArgumentQualified,
+      message:
+          """Type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${type3}.${name2}'.""" +
+              labeler.originMessages,
+      tip: """Try changing type arguments so that they conform to the bounds.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'type3': _type3,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType _type2,
+        String name,
+        DartType _type3,
+        String
+            name2)> templateIncorrectTypeArgumentQualifiedInferred = const Template<
+        Message Function(DartType _type, DartType _type2, String name,
+            DartType _type3, String name2)>(
+    messageTemplate:
+        r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'.""",
+    tipTemplate:
+        r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
+    withArguments: _withArgumentsIncorrectTypeArgumentQualifiedInferred);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, String name,
+            DartType _type3, String name2)>
+    codeIncorrectTypeArgumentQualifiedInferred = const Code<
+            Message Function(DartType _type, DartType _type2, String name,
+                DartType _type3, String name2)>(
+        "IncorrectTypeArgumentQualifiedInferred",
+        templateIncorrectTypeArgumentQualifiedInferred,
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentQualifiedInferred(DartType _type,
+    DartType _type2, String name, DartType _type3, String name2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  return new Message(codeIncorrectTypeArgumentQualifiedInferred,
+      message:
+          """Inferred type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${type3}.${name2}'.""" +
+              labeler.originMessages,
+      tip: """Try specifying type arguments explicitly so that they conform to the bounds.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'type3': _type3,
+        'name2': name2
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4349,7 +4496,7 @@ const Code<Null> codeIncorrectTypeArgumentVariable =
 const MessageCode messageIncorrectTypeArgumentVariable = const MessageCode(
     "IncorrectTypeArgumentVariable",
     severity: Severity.context,
-    message: r"""Bound of this variable is violated.""");
+    message: r"""This is the type variable whose bound isn't conformed to.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateInferredPackageUri =
@@ -4378,7 +4525,6 @@ const Code<Null> codeInheritedMembersConflict = messageInheritedMembersConflict;
 const MessageCode messageInheritedMembersConflict = const MessageCode(
     "InheritedMembersConflict",
     analyzerCodes: <String>["CONFLICTS_WITH_INHERITED_MEMBER"],
-    severity: Severity.errorLegacyWarning,
     message: r"""Can't inherit members that conflict with each other.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4404,27 +4550,67 @@ const MessageCode messageInheritedMembersConflictCause2 = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
-        String
-            string)> templateInitializeFromDillNotSelfContained = const Template<
-        Message Function(String string)>(
+        String string,
+        Uri
+            uri_)> templateInitializeFromDillNotSelfContained = const Template<
+        Message Function(String string, Uri uri_)>(
     messageTemplate:
-        r"""Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new.""",
+        r"""Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug.
+
+The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
+If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #uri in your error report, but be aware that this file includes your source code.
+Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
     withArguments: _withArgumentsInitializeFromDillNotSelfContained);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)>
+const Code<Message Function(String string, Uri uri_)>
     codeInitializeFromDillNotSelfContained =
-    const Code<Message Function(String string)>(
+    const Code<Message Function(String string, Uri uri_)>(
         "InitializeFromDillNotSelfContained",
         templateInitializeFromDillNotSelfContained,
         severity: Severity.warning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInitializeFromDillNotSelfContained(String string) {
+Message _withArgumentsInitializeFromDillNotSelfContained(
+    String string, Uri uri_) {
   if (string.isEmpty) throw 'No string provided';
+  String uri = relativizeUri(uri_);
   return new Message(codeInitializeFromDillNotSelfContained,
       message:
-          """Tried to initialize from a previous compilation (${string}), but the file was not self-contained. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new.""",
+          """Tried to initialize from a previous compilation (${string}), but the file was not self-contained. This might be a bug.
+
+The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
+If you are comfortable with it, it would improve the chances of fixing any bug if you included the file ${uri} in your error report, but be aware that this file includes your source code.
+Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
+      arguments: {'string': string, 'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateInitializeFromDillNotSelfContainedNoDump =
+    const Template<Message Function(String string)>(
+        messageTemplate:
+            r"""Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug.
+
+The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
+        withArguments: _withArgumentsInitializeFromDillNotSelfContainedNoDump);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeInitializeFromDillNotSelfContainedNoDump =
+    const Code<Message Function(String string)>(
+        "InitializeFromDillNotSelfContainedNoDump",
+        templateInitializeFromDillNotSelfContainedNoDump,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInitializeFromDillNotSelfContainedNoDump(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeInitializeFromDillNotSelfContainedNoDump,
+      message:
+          """Tried to initialize from a previous compilation (${string}), but the file was not self-contained. This might be a bug.
+
+The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
       arguments: {'string': string});
 }
 
@@ -4432,29 +4618,74 @@ Message _withArgumentsInitializeFromDillNotSelfContained(String string) {
 const Template<
     Message Function(
         String string,
-        String
-            string2)> templateInitializeFromDillUnknownProblem = const Template<
-        Message Function(String string, String string2)>(
+        String string2,
+        Uri
+            uri_)> templateInitializeFromDillUnknownProblem = const Template<
+        Message Function(String string, String string2, Uri uri_)>(
     messageTemplate:
-        r"""Tried to initialize from a previous compilation (#string), but couldn't. Error message was '#string2'. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new.""",
+        r"""Tried to initialize from a previous compilation (#string), but couldn't.
+Error message was '#string2'. This might be a bug.
+
+The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
+If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #uri in your error report, but be aware that this file includes your source code.
+Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
     withArguments: _withArgumentsInitializeFromDillUnknownProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string, String string2)>
+const Code<Message Function(String string, String string2, Uri uri_)>
     codeInitializeFromDillUnknownProblem =
-    const Code<Message Function(String string, String string2)>(
+    const Code<Message Function(String string, String string2, Uri uri_)>(
         "InitializeFromDillUnknownProblem",
         templateInitializeFromDillUnknownProblem,
         severity: Severity.warning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializeFromDillUnknownProblem(
+    String string, String string2, Uri uri_) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  String uri = relativizeUri(uri_);
+  return new Message(codeInitializeFromDillUnknownProblem,
+      message:
+          """Tried to initialize from a previous compilation (${string}), but couldn't.
+Error message was '${string2}'. This might be a bug.
+
+The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
+If you are comfortable with it, it would improve the chances of fixing any bug if you included the file ${uri} in your error report, but be aware that this file includes your source code.
+Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
+      arguments: {'string': string, 'string2': string2, 'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, String string2)>
+    templateInitializeFromDillUnknownProblemNoDump =
+    const Template<Message Function(String string, String string2)>(
+        messageTemplate:
+            r"""Tried to initialize from a previous compilation (#string), but couldn't.
+Error message was '#string2'. This might be a bug.
+
+The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
+        withArguments: _withArgumentsInitializeFromDillUnknownProblemNoDump);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeInitializeFromDillUnknownProblemNoDump =
+    const Code<Message Function(String string, String string2)>(
+        "InitializeFromDillUnknownProblemNoDump",
+        templateInitializeFromDillUnknownProblemNoDump,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInitializeFromDillUnknownProblemNoDump(
     String string, String string2) {
   if (string.isEmpty) throw 'No string provided';
   if (string2.isEmpty) throw 'No string provided';
-  return new Message(codeInitializeFromDillUnknownProblem,
+  return new Message(codeInitializeFromDillUnknownProblemNoDump,
       message:
-          """Tried to initialize from a previous compilation (${string}), but couldn't. Error message was '${string2}'. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new.""",
+          """Tried to initialize from a previous compilation (${string}), but couldn't.
+Error message was '${string2}'. This might be a bug.
+
+The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
       arguments: {'string': string, 'string2': string2});
 }
 
@@ -4465,7 +4696,7 @@ const Code<Null> codeInitializedVariableInForEach =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInitializedVariableInForEach = const MessageCode(
     "InitializedVariableInForEach",
-    analyzerCodes: <String>["INITIALIZED_VARIABLE_IN_FOR_EACH"],
+    index: 82,
     message: r"""The loop variable in a for-each loop can't be initialized.""",
     tip:
         r"""Try removing the initializer, or using a different kind of loop.""");
@@ -4527,9 +4758,9 @@ const Template<
             _type2)> templateInitializingFormalTypeMismatch = const Template<
         Message Function(String name, DartType _type, DartType _type2)>(
     messageTemplate:
-        r"""The type of parameter '#name' (#type) is not a subtype of the corresponding field's type (#type2).""",
+        r"""The type of parameter '#name', '#type' is not a subtype of the corresponding field's type, '#type2'.""",
     tipTemplate:
-        r"""Try changing the type of parameter '#name' to a subtype of #type2.""",
+        r"""Try changing the type of parameter '#name' to a subtype of '#type2'.""",
     withArguments: _withArgumentsInitializingFormalTypeMismatch);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4546,20 +4777,16 @@ Message _withArgumentsInitializingFormalTypeMismatch(
     String name, DartType _type, DartType _type2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeInitializingFormalTypeMismatch,
       message:
-          """The type of parameter '${name}' (${type}) is not a subtype of the corresponding field's type (${type2}).""",
-      tip: """Try changing the type of parameter '${name}' to a subtype of ${type2}.""",
+          """The type of parameter '${name}', '${type}' is not a subtype of the corresponding field's type, '${type2}'.""" +
+              labeler.originMessages,
+      tip: """Try changing the type of parameter '${name}' to a subtype of '${type2}'.""",
       arguments: {'name': name, 'type': _type, 'type2': _type2});
 }
 
@@ -4752,6 +4979,17 @@ const MessageCode messageInternalProblemExtendingUnmodifiableScope =
         message: r"""Can't extend an unmodifiable scope.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemLabelUsageInVariablesDeclaration =
+    messageInternalProblemLabelUsageInVariablesDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemLabelUsageInVariablesDeclaration =
+    const MessageCode("InternalProblemLabelUsageInVariablesDeclaration",
+        severity: Severity.internalProblem,
+        message:
+            r"""Unexpected usage of label inside declaration of variables.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemMissingContext =
     messageInternalProblemMissingContext;
 
@@ -4906,7 +5144,7 @@ const Template<Message Function(DartType _type, String name)>
     templateInternalProblemStoringMultipleInferredTypes =
     const Template<Message Function(DartType _type, String name)>(
         messageTemplate:
-            r"""There's already an inferred type (#type) for '#name'.""",
+            r"""There's already an inferred type, '#type', for '#name'.""",
         withArguments:
             _withArgumentsInternalProblemStoringMultipleInferredTypes);
 
@@ -4921,16 +5159,15 @@ const Code<Message Function(DartType _type, String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemStoringMultipleInferredTypes(
     DartType _type, String name) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
+  String type = typeParts.join();
   return new Message(codeInternalProblemStoringMultipleInferredTypes,
-      message: """There's already an inferred type (${type}) for '${name}'.""",
+      message:
+          """There's already an inferred type, '${type}', for '${name}'.""" +
+              labeler.originMessages,
       arguments: {'type': _type, 'name': name});
 }
 
@@ -5096,19 +5333,15 @@ const Code<Message Function(DartType _type, DartType _type2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidAssignment(DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeInvalidAssignment,
       message:
-          """A value of type '${type}' can't be assigned to a variable of type '${type2}'.""",
+          """A value of type '${type}' can't be assigned to a variable of type '${type2}'.""" +
+              labeler.originMessages,
       tip: """Try changing the type of the left hand side, or casting the right hand side to '${type2}'.""",
       arguments: {'type': _type, 'type2': _type2});
 }
@@ -5166,19 +5399,15 @@ const Code<Message Function(DartType _type, DartType _type2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastFunctionExpr(DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeInvalidCastFunctionExpr,
       message:
-          """The function expression type '${type}' isn't of expected type '${type2}'.""",
+          """The function expression type '${type}' isn't of expected type '${type2}'.""" +
+              labeler.originMessages,
       tip: """Change the type of the function expression or the context in which it is used.""",
       arguments: {'type': _type, 'type2': _type2});
 }
@@ -5205,19 +5434,15 @@ const Code<Message Function(DartType _type, DartType _type2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLiteralList(DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeInvalidCastLiteralList,
       message:
-          """The list literal type '${type}' isn't of expected type '${type2}'.""",
+          """The list literal type '${type}' isn't of expected type '${type2}'.""" +
+              labeler.originMessages,
       tip: """Change the type of the list literal or the context in which it is used.""",
       arguments: {'type': _type, 'type2': _type2});
 }
@@ -5244,19 +5469,15 @@ const Code<Message Function(DartType _type, DartType _type2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLiteralMap(DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeInvalidCastLiteralMap,
       message:
-          """The map literal type '${type}' isn't of expected type '${type2}'.""",
+          """The map literal type '${type}' isn't of expected type '${type2}'.""" +
+              labeler.originMessages,
       tip: """Change the type of the map literal or the context in which it is used.""",
       arguments: {'type': _type, 'type2': _type2});
 }
@@ -5284,19 +5505,15 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLocalFunction(
     DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeInvalidCastLocalFunction,
       message:
-          """The local function has type '${type}' that isn't of expected type '${type2}'.""",
+          """The local function has type '${type}' that isn't of expected type '${type2}'.""" +
+              labeler.originMessages,
       tip: """Change the type of the function or the context in which it is used.""",
       arguments: {'type': _type, 'type2': _type2});
 }
@@ -5323,19 +5540,15 @@ const Code<Message Function(DartType _type, DartType _type2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastNewExpr(DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeInvalidCastNewExpr,
       message:
-          """The constructor returns type '${type}' that isn't of expected type '${type2}'.""",
+          """The constructor returns type '${type}' that isn't of expected type '${type2}'.""" +
+              labeler.originMessages,
       tip: """Change the type of the object being constructed or the context in which it is used.""",
       arguments: {'type': _type, 'type2': _type2});
 }
@@ -5362,19 +5575,15 @@ const Code<Message Function(DartType _type, DartType _type2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastStaticMethod(DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeInvalidCastStaticMethod,
       message:
-          """The static method has type '${type}' that isn't of expected type '${type2}'.""",
+          """The static method has type '${type}' that isn't of expected type '${type2}'.""" +
+              labeler.originMessages,
       tip: """Change the type of the method or the context in which it is used.""",
       arguments: {'type': _type, 'type2': _type2});
 }
@@ -5402,19 +5611,15 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastTopLevelFunction(
     DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeInvalidCastTopLevelFunction,
       message:
-          """The top level function has type '${type}' that isn't of expected type '${type2}'.""",
+          """The top level function has type '${type}' that isn't of expected type '${type2}'.""" +
+              labeler.originMessages,
       tip: """Change the type of the function or the context in which it is used.""",
       arguments: {'type': _type, 'type2': _type2});
 }
@@ -5475,7 +5680,6 @@ const Code<Null> codeInvalidInitializer = messageInvalidInitializer;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidInitializer = const MessageCode(
     "InvalidInitializer",
-    analyzerCodes: <String>["INVALID_INITIALIZER"],
     message: r"""Not a valid initializer.""",
     tip: r"""To initialize a field, use the syntax 'name = value'.""");
 
@@ -5743,7 +5947,7 @@ const MessageCode messageMapLiteralTypeArgumentMismatch = const MessageCode(
     "MapLiteralTypeArgumentMismatch",
     analyzerCodes: <String>["EXPECTED_TWO_MAP_TYPE_ARGUMENTS"],
     severity: Severity.errorLegacyWarning,
-    message: r"""Map literal requires exactly two type arguments.""");
+    message: r"""A map literal requires exactly two type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMemberWithSameNameAsClass =
@@ -5908,12 +6112,12 @@ Message _withArgumentsMissingImplementationCause(String name) {
 const Template<
     Message Function(
         String name,
-        String
-            string)> templateMissingImplementationNotAbstract = const Template<
-        Message Function(String name, String string)>(
+        List<String>
+            _names)> templateMissingImplementationNotAbstract = const Template<
+        Message Function(String name, List<String> _names)>(
     messageTemplate:
         r"""The non-abstract class '#name' is missing implementations for these members:
-  #string.""",
+#names""",
     tipTemplate: r"""Try to either
  - provide an implementation,
  - inherit an implementation from a superclass or mixin,
@@ -5923,31 +6127,31 @@ const Template<
     withArguments: _withArgumentsMissingImplementationNotAbstract);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String string)>
+const Code<Message Function(String name, List<String> _names)>
     codeMissingImplementationNotAbstract =
-    const Code<Message Function(String name, String string)>(
+    const Code<Message Function(String name, List<String> _names)>(
         "MissingImplementationNotAbstract",
         templateMissingImplementationNotAbstract,
-        analyzerCodes: <String>["CONCRETE_CLASS_WITH_ABSTRACT_MEMBER"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["CONCRETE_CLASS_WITH_ABSTRACT_MEMBER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMissingImplementationNotAbstract(
-    String name, String string) {
+    String name, List<String> _names) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  if (string.isEmpty) throw 'No string provided';
+  if (_names.isEmpty) throw 'No names provided';
+  String names = itemizeNames(_names);
   return new Message(codeMissingImplementationNotAbstract,
       message:
           """The non-abstract class '${name}' is missing implementations for these members:
-  ${string}.""",
+${names}""",
       tip: """Try to either
  - provide an implementation,
  - inherit an implementation from a superclass or mixin,
  - mark the class as abstract, or
  - provide a 'noSuchMethod' implementation.
 """,
-      arguments: {'name': name, 'string': string});
+      arguments: {'name': name, 'names': _names});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6050,23 +6254,17 @@ const Code<Message Function(DartType _type, DartType _type2, DartType _type3)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMixinApplicationIncompatibleSupertype(
     DartType _type, DartType _type2, DartType _type3) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type3);
-  String type3 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
   return new Message(codeMixinApplicationIncompatibleSupertype,
       message:
-          """'${type}' doesn't implement '${type2}' so it can't be used with '${type3}'.""",
+          """'${type}' doesn't implement '${type2}' so it can't be used with '${type3}'.""" +
+              labeler.originMessages,
       arguments: {'type': _type, 'type2': _type2, 'type3': _type3});
 }
 
@@ -6096,15 +6294,13 @@ Message _withArgumentsMixinInferenceNoMatchingClass(
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
   return new Message(codeMixinInferenceNoMatchingClass,
       message:
-          """Type parameters could not be inferred for the mixin '${name}' because '${name2}' does not implement the mixin's supertype constraint '${type}'.""",
+          """Type parameters could not be inferred for the mixin '${name}' because '${name2}' does not implement the mixin's supertype constraint '${type}'.""" +
+              labeler.originMessages,
       arguments: {'name': name, 'name2': name2, 'type': _type});
 }
 
@@ -6518,14 +6714,37 @@ Message _withArgumentsNotConstantExpression(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeObjectExtends = messageObjectExtends;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageObjectExtends = const MessageCode("ObjectExtends",
+    message: r"""The class 'Object' can't have a superclass.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeObjectImplements = messageObjectImplements;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageObjectImplements = const MessageCode(
+    "ObjectImplements",
+    message: r"""The class 'Object' can't implement anything.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeObjectMixesIn = messageObjectMixesIn;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageObjectMixesIn = const MessageCode("ObjectMixesIn",
+    message: r"""The class 'Object' can't use mixins.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeOnlyTry = messageOnlyTry;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageOnlyTry = const MessageCode("OnlyTry",
-    analyzerCodes: <String>["MISSING_CATCH_OR_FINALLY"],
+    index: 92,
     message:
-        r"""Try block should be followed by 'on', 'catch', or 'finally' block.""",
-    tip: r"""Did you forget to add a 'finally' block?""");
+        r"""A try block must be followed by an 'on', 'catch', or 'finally' clause.""",
+    tip:
+        r"""Try adding either a catch or finally clause, or remove the try statement.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6797,9 +7016,9 @@ const Template<
         Message Function(String name, String name2, DartType _type,
             DartType _type2)>(
     messageTemplate:
-        r"""The parameter '#name' of the method '#name2' has type #type, which does not match the corresponding type in the overridden method (#type2).""",
+        r"""The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type in the overridden method, '#type2'.""",
     tipTemplate:
-        r"""Change to a supertype of #type2 (or, for a covariant parameter, a subtype).""",
+        r"""Change to a supertype of '#type2', or, for a covariant parameter, a subtype.""",
     withArguments: _withArgumentsOverrideTypeMismatchParameter);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6819,20 +7038,16 @@ Message _withArgumentsOverrideTypeMismatchParameter(
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeOverrideTypeMismatchParameter,
       message:
-          """The parameter '${name}' of the method '${name2}' has type ${type}, which does not match the corresponding type in the overridden method (${type2}).""",
-      tip: """Change to a supertype of ${type2} (or, for a covariant parameter, a subtype).""",
+          """The parameter '${name}' of the method '${name2}' has type '${type}', which does not match the corresponding type in the overridden method, '${type2}'.""" +
+              labeler.originMessages,
+      tip: """Change to a supertype of '${type2}', or, for a covariant parameter, a subtype.""",
       arguments: {
         'name': name,
         'name2': name2,
@@ -6850,8 +7065,8 @@ const Template<
             _type2)> templateOverrideTypeMismatchReturnType = const Template<
         Message Function(String name, DartType _type, DartType _type2)>(
     messageTemplate:
-        r"""The return type of the method '#name' is #type, which does not match the return type of the overridden method (#type2).""",
-    tipTemplate: r"""Change to a subtype of #type2.""",
+        r"""The return type of the method '#name' is '#type', which does not match the return type of the overridden method, '#type2'.""",
+    tipTemplate: r"""Change to a subtype of '#type2'.""",
     withArguments: _withArgumentsOverrideTypeMismatchReturnType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6867,20 +7082,16 @@ Message _withArgumentsOverrideTypeMismatchReturnType(
     String name, DartType _type, DartType _type2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeOverrideTypeMismatchReturnType,
       message:
-          """The return type of the method '${name}' is ${type}, which does not match the return type of the overridden method (${type2}).""",
-      tip: """Change to a subtype of ${type2}.""",
+          """The return type of the method '${name}' is '${type}', which does not match the return type of the overridden method, '${type2}'.""" +
+              labeler.originMessages,
+      tip: """Change to a subtype of '${type2}'.""",
       arguments: {'name': name, 'type': _type, 'type2': _type2});
 }
 
@@ -7347,174 +7558,16 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsRedirectingFactoryIncompatibleTypeArgument(
     DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeRedirectingFactoryIncompatibleTypeArgument,
-      message: """The type '${type}' doesn't extend '${type2}'.""",
+      message: """The type '${type}' doesn't extend '${type2}'.""" +
+          labeler.originMessages,
       tip: """Try using a different type as argument.""",
       arguments: {'type': _type, 'type2': _type2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type, DartType _type2)>
-    templateRedirectingFactoryInvalidNamedParameterType = const Template<
-            Message Function(String name, DartType _type, DartType _type2)>(
-        messageTemplate:
-            r"""The type of the named parameter '#name' (#type) is not a subtype of the redirection target's corresponding named parameter type (#type2).""",
-        tipTemplate:
-            r"""Try changing either the type of the parameter or the redirection target.""",
-        withArguments:
-            _withArgumentsRedirectingFactoryInvalidNamedParameterType);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type, DartType _type2)>
-    codeRedirectingFactoryInvalidNamedParameterType =
-    const Code<Message Function(String name, DartType _type, DartType _type2)>(
-        "RedirectingFactoryInvalidNamedParameterType",
-        templateRedirectingFactoryInvalidNamedParameterType,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryInvalidNamedParameterType(
-    String name, DartType _type, DartType _type2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
-  return new Message(codeRedirectingFactoryInvalidNamedParameterType,
-      message:
-          """The type of the named parameter '${name}' (${type}) is not a subtype of the redirection target's corresponding named parameter type (${type2}).""",
-      tip: """Try changing either the type of the parameter or the redirection target.""",
-      arguments: {'name': name, 'type': _type, 'type2': _type2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, DartType _type, DartType _type2)>
-    templateRedirectingFactoryInvalidPositionalParameterType = const Template<
-            Message Function(String name, DartType _type, DartType _type2)>(
-        messageTemplate:
-            r"""The type of parameter '#name' (#type) is not a subtype of the redirection target's corresponding parameter type (#type2).""",
-        tipTemplate:
-            r"""Try changing either the type of the parameter or the redirection target.""",
-        withArguments:
-            _withArgumentsRedirectingFactoryInvalidPositionalParameterType);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type, DartType _type2)>
-    codeRedirectingFactoryInvalidPositionalParameterType =
-    const Code<Message Function(String name, DartType _type, DartType _type2)>(
-        "RedirectingFactoryInvalidPositionalParameterType",
-        templateRedirectingFactoryInvalidPositionalParameterType,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryInvalidPositionalParameterType(
-    String name, DartType _type, DartType _type2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
-  return new Message(codeRedirectingFactoryInvalidPositionalParameterType,
-      message:
-          """The type of parameter '${name}' (${type}) is not a subtype of the redirection target's corresponding parameter type (${type2}).""",
-      tip: """Try changing either the type of the parameter or the redirection target.""",
-      arguments: {'name': name, 'type': _type, 'type2': _type2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
-    templateRedirectingFactoryMissingNamedParameter =
-    const Template<Message Function(String name, String name2)>(
-        messageTemplate:
-            r"""The constructor '#name' does not have a named parameter '#name2'.""",
-        tipTemplate:
-            r"""Try adding '#name2' as a named parameter to '#name'.""",
-        withArguments: _withArgumentsRedirectingFactoryMissingNamedParameter);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2)>
-    codeRedirectingFactoryMissingNamedParameter =
-    const Code<Message Function(String name, String name2)>(
-        "RedirectingFactoryMissingNamedParameter",
-        templateRedirectingFactoryMissingNamedParameter,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryMissingNamedParameter(
-    String name, String name2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  return new Message(codeRedirectingFactoryMissingNamedParameter,
-      message:
-          """The constructor '${name}' does not have a named parameter '${name2}'.""",
-      tip: """Try adding '${name2}' as a named parameter to '${name}'.""",
-      arguments: {'name': name, 'name2': name2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(String name, int count, String name2, int count2)>
-    templateRedirectingFactoryProvidesTooFewRequiredParameters = const Template<
-            Message Function(String name, int count, String name2, int count2)>(
-        messageTemplate:
-            r"""Redirecting factory '#name' can provide less arguments ('#count') than required by the redirection target '#name2' ('#count2').""",
-        tipTemplate: r"""Try redirecting to a different constructor.""",
-        withArguments:
-            _withArgumentsRedirectingFactoryProvidesTooFewRequiredParameters);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, int count, String name2, int count2)>
-    codeRedirectingFactoryProvidesTooFewRequiredParameters = const Code<
-            Message Function(String name, int count, String name2, int count2)>(
-        "RedirectingFactoryProvidesTooFewRequiredParameters",
-        templateRedirectingFactoryProvidesTooFewRequiredParameters,
-        analyzerCodes: <String>["REDIRECT_TO_INVALID_FUNCTION_TYPE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryProvidesTooFewRequiredParameters(
-    String name, int count, String name2, int count2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (count == null) throw 'No count provided';
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  if (count2 == null) throw 'No count provided';
-  return new Message(codeRedirectingFactoryProvidesTooFewRequiredParameters,
-      message:
-          """Redirecting factory '${name}' can provide less arguments ('${count}') than required by the redirection target '${name2}' ('${count2}').""",
-      tip: """Try redirecting to a different constructor.""",
-      arguments: {
-        'name': name,
-        'count': count,
-        'name2': name2,
-        'count2': count2
-      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7671,6 +7724,35 @@ Message _withArgumentsSdkSummaryNotFound(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSetLiteralTooManyTypeArguments =
+    messageSetLiteralTooManyTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSetLiteralTooManyTypeArguments = const MessageCode(
+    "SetLiteralTooManyTypeArguments",
+    severity: Severity.errorLegacyWarning,
+    message: r"""A set literal requires exactly one type argument.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSetLiteralsNotSupported = messageSetLiteralsNotSupported;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSetLiteralsNotSupported = const MessageCode(
+    "SetLiteralsNotSupported",
+    message: r"""Set literals are not supported yet.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSetOrMapLiteralTooManyTypeArguments =
+    messageSetOrMapLiteralTooManyTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSetOrMapLiteralTooManyTypeArguments = const MessageCode(
+    "SetOrMapLiteralTooManyTypeArguments",
+    severity: Severity.errorLegacyWarning,
+    message:
+        r"""A set or map literal requires exactly one or two type arguments, respectively.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSetterNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Setter not found: '#name'.""",
@@ -7816,7 +7898,9 @@ const Code<Null> codeStackOverflow = messageStackOverflow;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStackOverflow = const MessageCode("StackOverflow",
-    analyzerCodes: <String>["STACK_OVERFLOW"], message: r"""Stack overflow.""");
+    index: 91,
+    message: r"""The file has too many nested expressions or statements.""",
+    tip: r"""Try simplifying the code.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStaticAfterConst = messageStaticAfterConst;
@@ -7902,8 +7986,9 @@ const Code<Null> codeSuperNullAware = messageSuperNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperNullAware = const MessageCode("SuperNullAware",
-    analyzerCodes: <String>["INVALID_OPERATOR_FOR_SUPER"],
-    message: r"""'super' can't be null.""",
+    index: 90,
+    message:
+        r"""The operator '?.' cannot be used with 'super' because 'super' cannot be null.""",
     tip: r"""Try replacing '?.' with '.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8135,19 +8220,15 @@ const Code<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSwitchExpressionNotAssignable(
     DartType _type, DartType _type2) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-  String type2 = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
   return new Message(codeSwitchExpressionNotAssignable,
       message:
-          """Type '${type}' of the switch expression isn't assignable to the type '${type2}' of this case expression.""",
+          """Type '${type}' of the switch expression isn't assignable to the type '${type2}' of this case expression.""" +
+              labeler.originMessages,
       arguments: {'type': _type, 'type2': _type2});
 }
 
@@ -8330,8 +8411,9 @@ const Code<Null> codeTypeAfterVar = messageTypeAfterVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeAfterVar = const MessageCode("TypeAfterVar",
-    analyzerCodes: <String>["VAR_AND_TYPE"],
-    message: r"""Can't have both a type and 'var'.""",
+    index: 89,
+    message:
+        r"""Variables can't be declared using both 'var' and a type name.""",
     tip: r"""Try removing 'var.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8399,6 +8481,55 @@ Message _withArgumentsTypeNotFound(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeTypeNotFound,
       message: """Type '${name}' not found.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_)> templateTypeOrigin =
+    const Template<Message Function(String name, Uri uri_)>(
+        messageTemplate: r"""'#name' is from '#uri'.""",
+        withArguments: _withArgumentsTypeOrigin);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_)> codeTypeOrigin =
+    const Code<Message Function(String name, Uri uri_)>(
+  "TypeOrigin",
+  templateTypeOrigin,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTypeOrigin(String name, Uri uri_) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  String uri = relativizeUri(uri_);
+  return new Message(codeTypeOrigin,
+      message: """'${name}' is from '${uri}'.""",
+      arguments: {'name': name, 'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_, Uri uri2_)>
+    templateTypeOriginWithFileUri =
+    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+        messageTemplate: r"""'#name' is from '#uri' ('#uri2').""",
+        withArguments: _withArgumentsTypeOriginWithFileUri);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_, Uri uri2_)>
+    codeTypeOriginWithFileUri =
+    const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
+  "TypeOriginWithFileUri",
+  templateTypeOriginWithFileUri,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTypeOriginWithFileUri(String name, Uri uri_, Uri uri2_) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  String uri = relativizeUri(uri_);
+  String uri2 = relativizeUri(uri2_);
+  return new Message(codeTypeOriginWithFileUri,
+      message: """'${name}' is from '${uri}' ('${uri2}').""",
+      arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8506,15 +8637,13 @@ const Code<Message Function(String name, DartType _type)> codeUndefinedGetter =
 Message _withArgumentsUndefinedGetter(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
   return new Message(codeUndefinedGetter,
       message:
-          """The getter '${name}' isn't defined for the class '${type}'.""",
+          """The getter '${name}' isn't defined for the class '${type}'.""" +
+              labeler.originMessages,
       tip:
           """Try correcting the name to the name of an existing getter, or defining a getter or field named '${name}'.""",
       arguments: {'name': name, 'type': _type});
@@ -8543,15 +8672,13 @@ const Code<Message Function(String name, DartType _type)> codeUndefinedMethod =
 Message _withArgumentsUndefinedMethod(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
   return new Message(codeUndefinedMethod,
       message:
-          """The method '${name}' isn't defined for the class '${type}'.""",
+          """The method '${name}' isn't defined for the class '${type}'.""" +
+              labeler.originMessages,
       tip:
           """Try correcting the name to the name of an existing method, or defining a method named '${name}'.""",
       arguments: {'name': name, 'type': _type});
@@ -8580,15 +8707,13 @@ const Code<Message Function(String name, DartType _type)> codeUndefinedSetter =
 Message _withArgumentsUndefinedSetter(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
   return new Message(codeUndefinedSetter,
       message:
-          """The setter '${name}' isn't defined for the class '${type}'.""",
+          """The setter '${name}' isn't defined for the class '${type}'.""" +
+              labeler.originMessages,
       tip:
           """Try correcting the name to the name of an existing setter, or defining a setter or field named '${name}'.""",
       arguments: {'name': name, 'type': _type});

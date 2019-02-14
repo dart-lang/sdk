@@ -133,14 +133,14 @@ class _BufferingStreamSubscription<T>
   // StreamSubscription interface.
 
   void onData(void handleData(T event)) {
-    if (handleData == null) handleData = _nullDataHandler;
+    handleData ??= _nullDataHandler;
     // TODO(floitsch): the return type should be 'void', and the type
     // should be inferred.
     _onData = _zone.registerUnaryCallback<dynamic, T>(handleData);
   }
 
   void onError(Function handleError) {
-    if (handleError == null) handleError = _nullErrorHandler;
+    handleError ??= _nullErrorHandler;
     if (handleError is void Function(Object, StackTrace)) {
       _onError = _zone
           .registerBinaryCallback<dynamic, Object, StackTrace>(handleError);
@@ -153,7 +153,7 @@ class _BufferingStreamSubscription<T>
   }
 
   void onDone(void handleDone()) {
-    if (handleDone == null) handleDone = _nullDoneHandler;
+    handleDone ??= _nullDoneHandler;
     _onDone = _zone.registerCallback(handleDone);
   }
 
@@ -203,7 +203,7 @@ class _BufferingStreamSubscription<T>
     _onDone = () {
       result._complete(futureValue);
     };
-    _onError = (error, stackTrace) {
+    _onError = (error, StackTrace stackTrace) {
       Future cancelFuture = cancel();
       if (!identical(cancelFuture, Future._nullFuture)) {
         cancelFuture.whenComplete(() {
@@ -363,7 +363,7 @@ class _BufferingStreamSubscription<T>
     if (_cancelOnError) {
       _state |= _STATE_WAIT_FOR_CANCEL;
       _cancel();
-      if (_cancelFuture is Future &&
+      if (_cancelFuture != null &&
           !identical(_cancelFuture, Future._nullFuture)) {
         _cancelFuture.whenComplete(sendError);
       } else {
@@ -392,7 +392,7 @@ class _BufferingStreamSubscription<T>
 
     _cancel();
     _state |= _STATE_WAIT_FOR_CANCEL;
-    if (_cancelFuture is Future &&
+    if (_cancelFuture != null &&
         !identical(_cancelFuture, Future._nullFuture)) {
       _cancelFuture.whenComplete(sendDone);
     } else {
@@ -682,10 +682,10 @@ abstract class _PendingEvents<T> {
 /** Class holding pending events for a [_StreamImpl]. */
 class _StreamImplEvents<T> extends _PendingEvents<T> {
   /// Single linked list of [_DelayedEvent] objects.
-  _DelayedEvent firstPendingEvent = null;
+  _DelayedEvent firstPendingEvent;
 
   /// Last element in the list of pending events. New events are added after it.
-  _DelayedEvent lastPendingEvent = null;
+  _DelayedEvent lastPendingEvent;
 
   bool get isEmpty => lastPendingEvent == null;
 
@@ -813,10 +813,8 @@ class _AsBroadcastStream<T> extends Stream<T> {
       // it will only ever send one done event.
       return new _DoneStreamSubscription<T>(onDone);
     }
-    if (_subscription == null) {
-      _subscription = _source.listen(_controller.add,
-          onError: _controller.addError, onDone: _controller.close);
-    }
+    _subscription ??= _source.listen(_controller.add,
+        onError: _controller.addError, onDone: _controller.close);
     cancelOnError = identical(true, cancelOnError);
     return _controller._subscribe(onData, onError, onDone, cancelOnError);
   }

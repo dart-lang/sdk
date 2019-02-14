@@ -35,6 +35,6 @@ static method main() → dynamic {
   core::print([@vm.direct-call.metadata=#lib::Point::x] [@vm.inferred-type.metadata=!] a.{self::Point::x});
   self::Point c = new self::Point::•(new self::T2::•());
   [@vm.direct-call.metadata=#lib::Point::x] [@vm.inferred-type.metadata=!] c.{self::Point::x}.{self::I::foo}();
-  self::getX([@vm.direct-call.metadata=#lib::Point::newPoint1] [@vm.inferred-type.metadata=#lib::Point] a.{self::Point::newPoint1}());
-  self::getX([@vm.direct-call.metadata=#lib::Point::newPoint2] [@vm.inferred-type.metadata=#lib::Point] a.{self::Point::newPoint2}());
+  self::getX([@vm.direct-call.metadata=#lib::Point::newPoint1] [@vm.inferred-type.metadata=#lib::Point (skip check)] a.{self::Point::newPoint1}());
+  self::getX([@vm.direct-call.metadata=#lib::Point::newPoint2] [@vm.inferred-type.metadata=#lib::Point (skip check)] a.{self::Point::newPoint2}());
 }

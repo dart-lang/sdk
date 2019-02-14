@@ -71,9 +71,6 @@ Future main(List<String> arguments) async {
   await compileModule('expect', libs: ['minitest']);
   await compileModule('js', libs: ['js_util']);
   await compileModule('meta');
-  if (isTravis) {
-    await compileModule('microlytics', libs: ['html_channels']);
-  }
 
   // Under third_party/pkg.
   await compileModule('collection');

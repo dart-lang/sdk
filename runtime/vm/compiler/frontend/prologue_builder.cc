@@ -40,8 +40,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
   const intptr_t previous_block_id = last_used_block_id_;
 
   const bool load_optional_arguments = function_.HasOptionalParameters();
-  const bool expect_type_args =
-      function_.IsGeneric() && FLAG_reify_generic_functions;
+  const bool expect_type_args = function_.IsGeneric();
   const bool check_arguments = function_.IsClosureFunction();
 
   Fragment prologue = Fragment(entry);
@@ -95,8 +94,7 @@ Fragment PrologueBuilder::BuildTypeArgumentsLengthCheck(JoinEntryInstr* nsm,
   // If expect_type_args, a non-zero length must match the declaration length.
   TargetEntryInstr *then, *fail;
   check_type_args += LoadArgDescriptor();
-  check_type_args += LoadNativeField(NativeFieldDesc::Get(
-      NativeFieldDesc::kArgumentsDescriptor_type_args_len));
+  check_type_args += LoadNativeField(Slot::ArgumentsDescriptor_type_args_len());
   if (expect_type_args) {
     JoinEntryInstr* join2 = BuildJoinEntry();
 
@@ -146,11 +144,11 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
 
   copy_args_prologue += LoadArgDescriptor();
   copy_args_prologue +=
-      LoadField(ArgumentsDescriptor::positional_count_offset());
+      LoadNativeField(Slot::ArgumentsDescriptor_positional_count());
   LocalVariable* positional_count_var = MakeTemporary();
 
   copy_args_prologue += LoadArgDescriptor();
-  copy_args_prologue += LoadField(ArgumentsDescriptor::count_offset());
+  copy_args_prologue += LoadNativeField(Slot::ArgumentsDescriptor_count());
   LocalVariable* count_var = MakeTemporary();
 
   // Ensure the caller provided at least [min_num_pos_args] arguments.
@@ -363,7 +361,7 @@ Fragment PrologueBuilder::BuildFixedParameterLengthChecks(JoinEntryInstr* nsm) {
   JoinEntryInstr* done = BuildJoinEntry();
 
   check_args += LoadArgDescriptor();
-  check_args += LoadField(ArgumentsDescriptor::count_offset());
+  check_args += LoadNativeField(Slot::ArgumentsDescriptor_count());
   LocalVariable* count = MakeTemporary();
 
   TargetEntryInstr *then, *fail;
@@ -374,7 +372,7 @@ Fragment PrologueBuilder::BuildFixedParameterLengthChecks(JoinEntryInstr* nsm) {
   TargetEntryInstr *then2, *fail2;
   Fragment check_len(then);
   check_len += LoadArgDescriptor();
-  check_len += LoadField(ArgumentsDescriptor::positional_count_offset());
+  check_len += LoadNativeField(Slot::ArgumentsDescriptor_positional_count());
   check_len += BranchIfEqual(&then2, &fail2);
 
   Fragment(fail) + Goto(nsm);
@@ -394,7 +392,7 @@ Fragment PrologueBuilder::BuildClosureContextHandling() {
   // (both load/store happen on the copyied-down places).
   Fragment populate_context;
   populate_context += LoadLocal(closure_parameter);
-  populate_context += LoadField(Closure::context_offset());
+  populate_context += LoadNativeField(Slot::Closure_context());
   populate_context += StoreLocal(TokenPosition::kNoSource, context);
   populate_context += Drop();
   return populate_context;
@@ -407,7 +405,7 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
 
   Fragment store_type_args;
   store_type_args += LoadArgDescriptor();
-  store_type_args += LoadField(ArgumentsDescriptor::count_offset());
+  store_type_args += LoadNativeField(Slot::ArgumentsDescriptor_count());
   store_type_args += LoadFpRelativeSlot(
       kWordSize * (1 + compiler_frame_layout.param_end_from_fp));
   store_type_args += StoreLocal(TokenPosition::kNoSource, type_args_var);
@@ -430,7 +428,7 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
     Fragment use_delayed_type_args;
     use_delayed_type_args += LoadLocal(closure);
     use_delayed_type_args +=
-        LoadField(Closure::delayed_type_arguments_offset());
+        LoadNativeField(Slot::Closure_delayed_type_arguments());
     use_delayed_type_args +=
         StoreLocal(TokenPosition::kNoSource, type_args_var);
     use_delayed_type_args += Drop();

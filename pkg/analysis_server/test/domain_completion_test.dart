@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -238,7 +238,7 @@ class A {
     //
     // We no longer support the analysis of non-dart files.
     //
-    testFile = resourceProvider.convertPath('/project/web/test.html');
+    testFile = convertPath('/project/web/test.html');
     addTestFile('''
       <html>^</html>
     ''');
@@ -647,9 +647,9 @@ main() {
   }
 
   test_local_override() {
-    newFile('/libA.dart', content: 'class A {m() {}}');
+    newFile('/project/bin/a.dart', content: 'class A {m() {}}');
     addTestFile('''
-import '../../libA.dart';
+import 'a.dart';
 class B extends A {
   m() {}
   x() {^}
@@ -718,9 +718,9 @@ main() {
   }
 
   test_overrides() {
-    newFile('/libA.dart', content: 'class A {m() {}}');
+    newFile('/project/bin/a.dart', content: 'class A {m() {}}');
     addTestFile('''
-import '../../libA.dart';
+import 'a.dart';
 class B extends A {m() {^}}
 ''');
     return getSuggestions().then((_) {
@@ -732,10 +732,10 @@ class B extends A {m() {^}}
   }
 
   test_partFile() {
-    newFile('/project/bin/testA.dart', content: '''
+    newFile('/project/bin/a.dart', content: '''
       library libA;
-      part "${convertAbsolutePathToUri(testFile)}";
       import 'dart:html';
+      part 'test.dart';
       class A { }
     ''');
     addTestFile('''
@@ -755,12 +755,12 @@ class B extends A {m() {^}}
   }
 
   test_partFile2() {
-    newFile('/testA.dart', content: '''
+    newFile('/project/bin/a.dart', content: '''
       part of libA;
       class A { }''');
     addTestFile('''
       library libA;
-      part "${convertAbsolutePathToUri("/testA.dart")}";
+      part "a.dart";
       import 'dart:html';
       main() {^}
     ''');

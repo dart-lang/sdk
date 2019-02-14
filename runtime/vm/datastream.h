@@ -80,6 +80,12 @@ class ReadStream : public ValueObject {
     current_ = buffer_ + value;
   }
 
+  void Align(intptr_t alignment) {
+    intptr_t position_before = Position();
+    intptr_t position_after = Utils::RoundUp(position_before, alignment);
+    Advance(position_after - position_before);
+  }
+
   const uint8_t* AddressOfCurrentPosition() const { return current_; }
 
   void Advance(intptr_t value) {
@@ -366,7 +372,7 @@ class WriteStream : public ValueObject {
     WriteByte(static_cast<uint8_t>(value + kEndUnsignedByteMarker));
   }
 
-  void WriteBytes(const uint8_t* addr, intptr_t len) {
+  void WriteBytes(const void* addr, intptr_t len) {
     if ((end_ - current_) < len) {
       Resize(len);
     }

@@ -22,7 +22,7 @@ class B extends core::Object implements self::A {
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#foo=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 abstract class _C&Object&B extends core::Object implements self::B {
-  synthetic constructor •() → self::_C&Object&B
+  const synthetic constructor •() → self::_C&Object&B
     : super core::Object::•()
     ;
   method noSuchMethod(core::Invocation i) → dynamic {
@@ -32,7 +32,7 @@ abstract class _C&Object&B extends core::Object implements self::B {
 }
 class C extends self::_C&Object&B {
   synthetic constructor •() → self::C
-    : super core::Object::•()
+    : super self::_C&Object&B::•()
     ;
   get foo() → core::int
     return 42;

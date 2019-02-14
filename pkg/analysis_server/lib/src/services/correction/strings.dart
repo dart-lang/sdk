@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,11 +10,6 @@ import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
  * "$"
  */
 const int CHAR_DOLLAR = 0x24;
-
-/**
- * "."
- */
-const int CHAR_DOT = 0x2E;
 
 /**
  * "_"
@@ -98,39 +93,6 @@ int countTrailingWhitespaces(String str) {
 }
 
 /**
- * Returns the number of characters common to the end of [a] and the start
- * of [b].
- */
-int findCommonOverlap(String a, String b) {
-  int a_length = a.length;
-  int b_length = b.length;
-  // all empty
-  if (a_length == 0 || b_length == 0) {
-    return 0;
-  }
-  // truncate
-  if (a_length > b_length) {
-    a = a.substring(a_length - b_length);
-  } else if (a_length < b_length) {
-    b = b.substring(0, a_length);
-  }
-  int text_length = min(a_length, b_length);
-  // the worst case
-  if (a == b) {
-    return text_length;
-  }
-  // increase common length one by one
-  int length = 0;
-  while (length < text_length) {
-    if (a.codeUnitAt(text_length - 1 - length) != b.codeUnitAt(length)) {
-      break;
-    }
-    length++;
-  }
-  return length;
-}
-
-/**
  * Return the number of characters common to the start of [a] and [b].
  */
 int findCommonPrefix(String a, String b) {
@@ -193,13 +155,6 @@ bool isWhitespace(int c) {
   return isSpace(c) || isEOL(c);
 }
 
-String remove(String str, String remove) {
-  if (isEmpty(str) || isEmpty(remove)) {
-    return str;
-  }
-  return str.replaceAll(remove, '');
-}
-
 String removeEnd(String str, String remove) {
   if (isEmpty(str) || isEmpty(remove)) {
     return str;
@@ -230,24 +185,6 @@ String shorten(String text, int limit) {
         text.substring(text.length - tailLength);
   }
   return text;
-}
-
-/**
- * Gets the substring after the last occurrence of a separator.
- * The separator is not returned.
- */
-String substringAfterLast(String str, String separator) {
-  if (isEmpty(str)) {
-    return str;
-  }
-  if (isEmpty(separator)) {
-    return '';
-  }
-  int pos = str.lastIndexOf(separator);
-  if (pos == -1) {
-    return str;
-  }
-  return str.substring(pos + separator.length);
 }
 
 /**

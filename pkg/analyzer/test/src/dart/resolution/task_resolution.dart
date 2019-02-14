@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,15 +9,14 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
 import '../../../generated/analysis_context_factory.dart';
-import '../../context/mock_sdk.dart';
 import 'resolution.dart';
 
 /// Task model based implementation of [ResolutionTest].
-class TaskResolutionTest extends Object
-    with ResourceProviderMixin, ResolutionTest {
+class TaskResolutionTest with ResourceProviderMixin, ResolutionTest {
   DartSdk sdk;
 
   SourceFactory sourceFactory;

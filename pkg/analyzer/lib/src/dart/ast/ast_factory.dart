@@ -546,9 +546,11 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation returnType,
           Token functionKeyword,
           TypeParameterList typeParameters,
-          FormalParameterList parameters) =>
+          FormalParameterList parameters,
+          {Token question}) =>
       new GenericFunctionTypeImpl(
-          returnType, functionKeyword, typeParameters, parameters);
+          returnType, functionKeyword, typeParameters, parameters,
+          question: question);
 
   @override
   GenericTypeAlias genericTypeAlias(
@@ -832,6 +834,12 @@ class AstFactoryImpl extends AstFactory {
   ScriptTag scriptTag(Token scriptTag) => new ScriptTagImpl(scriptTag);
 
   @override
+  SetLiteral setLiteral(Token constKeyword, TypeArgumentList typeArguments,
+          Token leftBracket, List<Expression> elements, Token rightBracket) =>
+      new SetLiteralImpl(
+          constKeyword, typeArguments, leftBracket, elements, rightBracket);
+
+  @override
   ShowCombinator showCombinator(
           Token keyword, List<SimpleIdentifier> shownNames) =>
       new ShowCombinatorImpl(keyword, shownNames);
@@ -946,8 +954,9 @@ class AstFactoryImpl extends AstFactory {
       new TypeArgumentListImpl(leftBracket, arguments, rightBracket);
 
   @override
-  TypeName typeName(Identifier name, TypeArgumentList typeArguments) =>
-      new TypeNameImpl(name, typeArguments);
+  TypeName typeName(Identifier name, TypeArgumentList typeArguments,
+          {Token question}) =>
+      new TypeNameImpl(name, typeArguments, question: question);
 
   @override
   TypeParameter typeParameter(Comment comment, List<Annotation> metadata,

@@ -2,15 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(johnniwinther): Add a test that ensure that this library doesn't depend
+// on the dart2js internals.
 library compiler.src.kernel.dart2js_target;
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/target/targets.dart';
+import 'invocation_mirror_constants.dart';
 
-import '../native/native.dart' show maybeEnableNative;
-import '../universe/selector.dart';
+const Iterable<String> _allowedDartSchemePaths = const <String>[
+  'async',
+  'html',
+  'html_common',
+  'indexed_db',
+  'js',
+  'js_util',
+  'svg',
+  '_native_typed_data',
+  'web_audio',
+  'web_gl',
+  'web_sql'
+];
+
+bool maybeEnableNative(Uri uri) {
+  bool allowedTestLibrary() {
+    String scriptName = uri.path;
+    return scriptName.contains('tests/compiler/dart2js_native') ||
+        scriptName.contains('tests/compiler/dart2js_extra');
+  }
+
+  bool allowedDartLibrary() {
+    if (uri.scheme != 'dart') return false;
+    return _allowedDartSchemePaths.contains(uri.path);
+  }
+
+  return allowedTestLibrary() || allowedDartLibrary();
+}
 
 /// A kernel [Target] to configure the Dart Front End for dart2js.
 class Dart2jsTarget extends Target {
@@ -59,13 +88,13 @@ class Dart2jsTarget extends Target {
       bool isSuper) {
     int kind;
     if (name.startsWith('get:')) {
-      kind = Selector.invocationMirrorGetterKind;
+      kind = invocationMirrorGetterKind;
       name = name.substring(4);
     } else if (name.startsWith('set:')) {
-      kind = Selector.invocationMirrorSetterKind;
+      kind = invocationMirrorSetterKind;
       name = name.substring(4);
     } else {
-      kind = Selector.invocationMirrorMethodKind;
+      kind = invocationMirrorMethodKind;
     }
     return new ir.StaticInvocation(
         coreTypes.index

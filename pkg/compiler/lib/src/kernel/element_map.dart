@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../constants/values.dart';
@@ -13,7 +14,7 @@ import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
-import '../native/native.dart' as native;
+import '../native/behavior.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 
@@ -29,7 +30,11 @@ abstract class KernelToElementMap {
   /// Access to the [DartTypes] object.
   DartTypes get types;
 
+  /// Returns the type environment for the underlying kernel model.
   ir.TypeEnvironment get typeEnvironment;
+
+  /// Returns the class hierarchy for the underlying kernel model.
+  ir.ClassHierarchy get classHierarchy;
 
   /// Returns the [DartType] corresponding to [type].
   DartType getDartType(ir.DartType type);
@@ -54,6 +59,10 @@ abstract class KernelToElementMap {
   /// Returns the [Selector] corresponding to the invocation or getter/setter
   /// access of [node].
   Selector getSelector(ir.Expression node);
+
+  /// Returns the [Selector] corresponding to the invocation of [name] with
+  /// [arguments].
+  Selector getInvocationSelector(ir.Name name, ir.Arguments arguments);
 
   /// Returns the [MemberEntity] corresponding to the member [node].
   MemberEntity getMember(ir.Member node);
@@ -86,17 +95,16 @@ abstract class KernelToElementMap {
   /// Returns the [Name] corresponding to [name].
   Name getName(ir.Name name);
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
+  /// Computes the [NativeBehavior] for a call to the [JS] function.
+  NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN]
   /// function.
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node);
+  NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node);
 
-  /// Computes the [native.NativeBehavior] for a call to the
+  /// Computes the [NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+  NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node);
 
   /// Returns the [js.Name] for the `JsGetName` [constant] value.
@@ -113,10 +121,6 @@ abstract class KernelToElementMap {
 
   /// Returns the defining node for [cls].
   ir.Class getClassNode(covariant ClassEntity cls);
-
-  /// Returns the static type of [node].
-  // TODO(johnniwinther): This should be provided directly from kernel.
-  DartType getStaticType(ir.Expression node);
 
   /// Adds libraries in [component] to the set of libraries.
   ///
@@ -147,15 +151,15 @@ abstract class KernelToElementMap {
   bool isNativeClass(ir.Class node);
 
   /// Computes the native behavior for reading the native [field].
-  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+  NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
       {bool isJsInterop});
 
   /// Computes the native behavior for writing to the native [field].
-  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
+  NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
 
   /// Computes the native behavior for calling the function or constructor
   /// [member].
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Member member,
+  NativeBehavior getNativeBehaviorForMethod(ir.Member member,
       {bool isJsInterop});
 
   /// Compute the kind of foreign helper function called by [node], if any.
@@ -177,9 +181,6 @@ abstract class KernelToElementMap {
 
   /// Returns the defining node for [member].
   ir.Member getMemberNode(covariant MemberEntity member);
-
-  /// Returns the element type of a async/sync*/async* function.
-  DartType getFunctionAsyncOrSyncStarElementType(ir.FunctionNode functionNode);
 }
 
 /// Kinds of foreign functions.

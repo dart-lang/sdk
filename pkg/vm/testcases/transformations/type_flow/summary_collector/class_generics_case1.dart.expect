@@ -3,8 +3,8 @@
 t1 = _Call direct [dart.core::Object::] (%this)
 RESULT: _T {}?
 ------------ #lib::MockHashMap:: ------------
-%K = _Parameter #0 [null]
-%V = _Parameter #1 [null]
+%K = _Parameter #0
+%V = _Parameter #1
 t2 = _CreateConcreteType (#lib::_NotRealHashMap @ (%K, %V))
 t3 = _Call direct [#lib::_NotRealHashMap::] (t2)
 RESULT: t2
@@ -14,12 +14,12 @@ t1 = _Call direct [dart.core::Object::] (%this)
 RESULT: _T {}?
 ------------ #lib::_NotRealHashMap::setEntry ------------
 %this = _Parameter #0 [_T (#lib::_NotRealHashMap<dynamic, dynamic>)+]
-%key = _Parameter #1 [_T (dart.core::Object)+?]
-%value = _Parameter #2 [_T (dart.core::Object)+?]
+%key = _Parameter #1
+%value = _Parameter #2
 t3 = _Extract (%this[#lib::_NotRealHashMap/0])
-t4 = _TypeCheck (%key against t3) (for parameter key)
+t4 = _TypeCheck (%key against t3) (for key)
 t5 = _Extract (%this[#lib::_NotRealHashMap/1])
-t6 = _TypeCheck (%value against t5) (for parameter value)
+t6 = _TypeCheck (%value against t5) (for value)
 RESULT: _T {}?
 ------------ #lib::InheritedElement:: ------------
 %this = _Parameter #0 [_T (#lib::InheritedElement)+]

@@ -37,6 +37,7 @@ compiler_sources = [
   "backend/code_statistics.h",
   "backend/constant_propagator.cc",
   "backend/constant_propagator.h",
+  "backend/compile_type.h",
   "backend/flow_graph.cc",
   "backend/flow_graph.h",
   "backend/flow_graph_compiler.cc",
@@ -69,6 +70,8 @@ compiler_sources = [
   "backend/range_analysis.h",
   "backend/redundancy_elimination.cc",
   "backend/redundancy_elimination.h",
+  "backend/slot.cc",
+  "backend/slot.h",
   "backend/type_propagator.cc",
   "backend/type_propagator.h",
   "call_specializer.cc",
@@ -77,6 +80,7 @@ compiler_sources = [
   "cha.h",
   "compiler_pass.cc",
   "compiler_pass.h",
+  "compiler_state.cc",
   "compiler_state.h",
   "frontend/base_flow_graph_builder.cc",
   "frontend/base_flow_graph_builder.h",
@@ -113,6 +117,8 @@ compiler_sources = [
   "jit/jit_call_specializer.h",
   "method_recognizer.cc",
   "method_recognizer.h",
+  "relocation.cc",
+  "relocation.h",
 ]
 
 compiler_sources_tests = [
@@ -125,6 +131,8 @@ compiler_sources_tests = [
   "assembler/disassembler_test.cc",
   "backend/il_test.cc",
   "backend/locations_helpers_test.cc",
+  "backend/loops_test.cc",
   "backend/range_analysis_test.cc",
+  "backend/slot_test.cc",
   "cha_test.cc",
 ]

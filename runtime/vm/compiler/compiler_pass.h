@@ -36,7 +36,6 @@ namespace dart {
   V(OptimizeBranches)                                                          \
   V(RangeAnalysis)                                                             \
   V(ReorderBlocks)                                                             \
-  V(ReplaceArrayBoundChecksForAOT)                                             \
   V(SelectRepresentations)                                                     \
   V(SetOuterInliningId)                                                        \
   V(TryCatchOptimization)                                                      \
@@ -52,6 +51,7 @@ class FlowGraph;
 class Function;
 class Precompiler;
 class SpeculativeInliningPolicy;
+class TimelineStream;
 
 struct CompilerPassState {
   CompilerPassState(Thread* thread,

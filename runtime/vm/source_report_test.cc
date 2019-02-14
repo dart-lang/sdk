@@ -11,15 +11,15 @@ namespace dart {
 #ifndef PRODUCT
 
 static RawObject* ExecuteScript(const char* script) {
-  TransitionVMToNative transition(Thread::Current());
-  Dart_Handle h_lib = TestCase::LoadTestScript(script, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  return Api::UnwrapHandle(h_lib);
+  Dart_Handle lib;
+  {
+    TransitionVMToNative transition(Thread::Current());
+    lib = TestCase::LoadTestScript(script, NULL);
+    EXPECT_VALID(lib);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    EXPECT_VALID(result);
+  }
+  return Api::UnwrapHandle(lib);
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NoCalls) {
@@ -664,6 +664,51 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      buffer);
+}
+
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue35453_NoSuchMethod) {
+  char buffer[1024];
+  const char* kScript =
+      "class Foo {\n"
+      "  void bar() {}\n"
+      "}\n"
+      "class Unused implements Foo {\n"
+      "  dynamic noSuchMethod(_) {}\n"
+      "}\n"
+      "void main() {\n"
+      "  Foo().bar();\n"
+      "}\n";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // Foo is hit.
+      "{\"scriptIndex\":0,\"startPos\":14,\"endPos\":26,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[14],\"misses\":[]}},"
+
+      // Unused is missed.
+      "{\"scriptIndex\":0,\"startPos\":62,\"endPos\":87,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[62]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":91,\"endPos\":120,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[91,107,113],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
       buffer);
 }
 

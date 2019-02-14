@@ -4,12 +4,14 @@
 
 #include "vm/compilation_trace.h"
 
+#include "vm/compiler/jit/compiler.h"
 #include "vm/globals.h"
 #include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/symbols.h"
+#include "vm/version.h"
 
 namespace dart {
 
@@ -247,7 +249,7 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
   if (!field_.IsNull() && field_.is_const() && field_.is_static() &&
       (field_.StaticValue() == Object::sentinel().raw())) {
     processed = true;
-    error_ = EvaluateInitializer(field_);
+    error_ = field_.EvaluateInitializer();
     if (error_.IsError()) {
       if (FLAG_trace_compilation_trace) {
         THR_Print(
@@ -303,17 +305,555 @@ RawObject* CompilationTraceLoader::CompileFunction(const Function& function) {
   return Compiler::CompileFunction(thread_, function);
 }
 
-RawObject* CompilationTraceLoader::EvaluateInitializer(const Field& field) {
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    field_.EvaluateInitializer();
-  } else {
-    Thread* thread = Thread::Current();
-    const Error& error = Error::Handle(thread->sticky_error());
-    thread->clear_sticky_error();
-    return error.raw();
+TypeFeedbackSaver::TypeFeedbackSaver(WriteStream* stream)
+    : stream_(stream),
+      cls_(Class::Handle()),
+      lib_(Library::Handle()),
+      str_(String::Handle()),
+      fields_(Array::Handle()),
+      field_(Field::Handle()),
+      code_(Code::Handle()),
+      call_sites_(Array::Handle()),
+      call_site_(ICData::Handle()) {}
+
+void TypeFeedbackSaver::WriteHeader() {
+  const char* expected_version = Version::SnapshotString();
+  ASSERT(expected_version != NULL);
+  const intptr_t version_len = strlen(expected_version);
+  stream_->WriteBytes(reinterpret_cast<const uint8_t*>(expected_version),
+                      version_len);
+}
+
+void TypeFeedbackSaver::SaveClasses() {
+  ClassTable* table = Isolate::Current()->class_table();
+
+  intptr_t num_cids = table->NumCids();
+  WriteInt(num_cids);
+
+  for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
+    cls_ = table->At(cid);
+    WriteClassByName(cls_);
   }
-  return Object::null();
+}
+
+void TypeFeedbackSaver::SaveFields() {
+  ClassTable* table = Isolate::Current()->class_table();
+  intptr_t num_cids = table->NumCids();
+  for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
+    cls_ = table->At(cid);
+    WriteClassByName(cls_);
+
+    fields_ = cls_.fields();
+    WriteInt(fields_.Length());
+    for (intptr_t i = 0; i < fields_.Length(); i++) {
+      field_ ^= fields_.At(i);
+
+      str_ = field_.name();
+      str_ = String::RemovePrivateKey(str_);
+      WriteString(str_);
+
+      WriteInt(field_.guarded_cid());
+      WriteInt(field_.is_nullable());
+    }
+  }
+}
+
+void TypeFeedbackSaver::Visit(const Function& function) {
+  if (!function.HasCode()) {
+    return;  // Not compiled.
+  }
+
+  cls_ = function.Owner();
+  WriteClassByName(cls_);
+
+  str_ = function.name();
+  str_ = String::RemovePrivateKey(str_);
+  WriteString(str_);
+
+  WriteInt(function.kind());
+  WriteInt(function.token_pos().value());
+
+  code_ = function.CurrentCode();
+  intptr_t usage = function.usage_counter();
+  if (usage < 0) {
+    // Usage is set to INT_MIN while in the background compilation queue ...
+    usage = (usage - INT_MIN) + FLAG_optimization_counter_threshold;
+  } else if (code_.is_optimized()) {
+    // ... and set to 0 when an optimizing compile completes.
+    usage = usage + FLAG_optimization_counter_threshold;
+  }
+  WriteInt(usage);
+
+  WriteInt(function.inlining_depth());
+
+  call_sites_ = function.ic_data_array();
+  if (call_sites_.IsNull()) {
+    call_sites_ = Object::empty_array().raw();  // Remove edge case.
+  }
+
+  // First element is edge counters.
+  WriteInt(call_sites_.Length() - 1);
+  for (intptr_t i = 1; i < call_sites_.Length(); i++) {
+    call_site_ ^= call_sites_.At(i);
+
+    WriteInt(call_site_.deopt_id());
+    WriteInt(call_site_.rebind_rule());
+
+    str_ = call_site_.target_name();
+    str_ = String::RemovePrivateKey(str_);
+    WriteString(str_);
+
+    intptr_t num_checked_arguments = call_site_.NumArgsTested();
+    WriteInt(num_checked_arguments);
+
+    intptr_t num_entries = call_site_.NumberOfChecks();
+    WriteInt(num_entries);
+
+    for (intptr_t entry_index = 0; entry_index < num_entries; entry_index++) {
+      WriteInt(call_site_.GetCountAt(entry_index));
+
+      for (intptr_t argument_index = 0; argument_index < num_checked_arguments;
+           argument_index++) {
+        WriteInt(call_site_.GetClassIdAt(entry_index, argument_index));
+      }
+    }
+  }
+}
+
+void TypeFeedbackSaver::WriteClassByName(const Class& cls) {
+  lib_ = cls.library();
+
+  str_ = lib_.url();
+  WriteString(str_);
+
+  str_ = cls_.Name();
+  str_ = String::RemovePrivateKey(str_);
+  WriteString(str_);
+}
+
+void TypeFeedbackSaver::WriteString(const String& value) {
+  const char* cstr = value.ToCString();
+  intptr_t len = strlen(cstr);
+  stream_->WriteUnsigned(len);
+  stream_->WriteBytes(cstr, len);
+}
+
+TypeFeedbackLoader::TypeFeedbackLoader(Thread* thread)
+    : thread_(thread),
+      zone_(thread->zone()),
+      stream_(nullptr),
+      uri_(String::Handle(zone_)),
+      lib_(Library::Handle(zone_)),
+      cls_name_(String::Handle(zone_)),
+      cls_(Class::Handle(zone_)),
+      field_name_(String::Handle(zone_)),
+      fields_(Array::Handle(zone_)),
+      field_(Field::Handle(zone_)),
+      func_name_(String::Handle(zone_)),
+      func_(Function::Handle(zone_)),
+      call_sites_(Array::Handle(zone_)),
+      call_site_(ICData::Handle(zone_)),
+      target_name_(String::Handle(zone_)),
+      target_(Function::Handle(zone_)),
+      args_desc_(Array::Handle(zone_)),
+      functions_to_compile_(
+          GrowableObjectArray::Handle(zone_, GrowableObjectArray::New())),
+      error_(Error::Handle(zone_)) {}
+
+RawObject* TypeFeedbackLoader::LoadFeedback(ReadStream* stream) {
+  stream_ = stream;
+
+  error_ = CheckHeader();
+  if (error_.IsError()) {
+    return error_.raw();
+  }
+
+  error_ = LoadClasses();
+  if (error_.IsError()) {
+    return error_.raw();
+  }
+
+  error_ = LoadFields();
+  if (error_.IsError()) {
+    return error_.raw();
+  }
+
+  while (stream_->PendingBytes() > 0) {
+    error_ = LoadFunction();
+    if (error_.IsError()) {
+      return error_.raw();
+    }
+  }
+
+  while (functions_to_compile_.Length() > 0) {
+    func_ ^= functions_to_compile_.RemoveLast();
+
+    if (Compiler::CanOptimizeFunction(thread_, func_) &&
+        (func_.usage_counter() >= FLAG_optimization_counter_threshold)) {
+      error_ = Compiler::CompileOptimizedFunction(thread_, func_);
+      if (error_.IsError()) {
+        return error_.raw();
+      }
+    }
+  }
+
+  if (FLAG_trace_compilation_trace) {
+    THR_Print("Done loading feedback\n");
+  }
+
+  return Error::null();
+}
+
+RawObject* TypeFeedbackLoader::CheckHeader() {
+  const char* expected_version = Version::SnapshotString();
+  ASSERT(expected_version != NULL);
+  const intptr_t version_len = strlen(expected_version);
+  if (stream_->PendingBytes() < version_len) {
+    const intptr_t kMessageBufferSize = 128;
+    char message_buffer[kMessageBufferSize];
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "No snapshot version found, expected '%s'",
+                   expected_version);
+    const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
+    return ApiError::New(msg, Heap::kOld);
+  }
+
+  const char* version =
+      reinterpret_cast<const char*>(stream_->AddressOfCurrentPosition());
+  ASSERT(version != NULL);
+  if (strncmp(version, expected_version, version_len)) {
+    const intptr_t kMessageBufferSize = 256;
+    char message_buffer[kMessageBufferSize];
+    char* actual_version = Utils::StrNDup(version, version_len);
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "Wrong snapshot version, expected '%s' found '%s'",
+                   expected_version, actual_version);
+    free(actual_version);
+    const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
+    return ApiError::New(msg, Heap::kOld);
+  }
+  stream_->Advance(version_len);
+
+  return Error::null();
+}
+
+RawObject* TypeFeedbackLoader::LoadClasses() {
+  num_cids_ = ReadInt();
+
+  cid_map_ = new intptr_t[num_cids_];
+  for (intptr_t cid = 0; cid < num_cids_; cid++) {
+    cid_map_[cid] = kIllegalCid;
+  }
+  for (intptr_t cid = kInstanceCid; cid < kNumPredefinedCids; cid++) {
+    cid_map_[cid] = cid;
+  }
+
+  for (intptr_t cid = kNumPredefinedCids; cid < num_cids_; cid++) {
+    cls_ = ReadClassByName();
+    if (!cls_.IsNull()) {
+      cid_map_[cid] = cls_.id();
+    }
+  }
+
+  return Error::null();
+}
+
+RawObject* TypeFeedbackLoader::LoadFields() {
+  for (intptr_t cid = kNumPredefinedCids; cid < num_cids_; cid++) {
+    cls_ = ReadClassByName();
+    bool skip = cls_.IsNull();
+
+    intptr_t num_fields = ReadInt();
+    if (!skip && (num_fields > 0)) {
+      error_ = cls_.EnsureIsFinalized(thread_);
+      if (error_.IsError()) {
+        return error_.raw();
+      }
+      fields_ = cls_.fields();
+    }
+
+    for (intptr_t i = 0; i < num_fields; i++) {
+      field_name_ = ReadString();
+      intptr_t guarded_cid = cid_map_[ReadInt()];
+      intptr_t is_nullable = ReadInt();
+
+      if (skip) {
+        continue;
+      }
+
+      if (i >= fields_.Length()) {
+        if (FLAG_trace_compilation_trace) {
+          THR_Print("Missing field %s\n", field_name_.ToCString());
+        }
+        continue;
+      }
+
+      field_ ^= fields_.At(i);
+      if (!String::EqualsIgnoringPrivateKey(String::Handle(field_.name()),
+                                            field_name_)) {
+        if (FLAG_trace_compilation_trace) {
+          THR_Print("Missing field %s\n", field_name_.ToCString());
+        }
+        continue;
+      }
+
+      if (guarded_cid == kIllegalCid) {
+        // Guarded CID from feedback is not in current program: assume the field
+        // will become polymorphic.
+        field_.set_guarded_cid(kDynamicCid);
+        field_.set_is_nullable(true);
+      } else if ((field_.guarded_cid() != kIllegalCid) &&
+                 (field_.guarded_cid() == guarded_cid)) {
+        // Guarded CID from feedback is different from initialized guarded CID
+        // in the current program: assume the field will become polymorphic.
+        field_.set_guarded_cid(kDynamicCid);
+        field_.set_is_nullable(true);
+      } else {
+        field_.set_guarded_cid(guarded_cid);
+        field_.set_is_nullable(is_nullable || field_.is_nullable());
+      }
+
+      // TODO(rmacnak): Merge other field type feedback.
+      field_.set_guarded_list_length(Field::kNoFixedLength);
+      field_.set_guarded_list_length_in_object_offset(
+          Field::kUnknownLengthOffset);
+      field_.set_static_type_exactness_state(
+          StaticTypeExactnessState::NotTracking());
+      field_.DeoptimizeDependentCode();
+    }
+  }
+
+  return Error::null();
+}
+
+RawObject* TypeFeedbackLoader::LoadFunction() {
+  bool skip = false;
+
+  cls_ = ReadClassByName();
+  if (!cls_.IsNull()) {
+    error_ = cls_.EnsureIsFinalized(thread_);
+    if (error_.IsError()) {
+      return error_.raw();
+    }
+  } else {
+    skip = true;
+  }
+
+  func_name_ = ReadString();  // Without private mangling.
+  RawFunction::Kind kind = static_cast<RawFunction::Kind>(ReadInt());
+  intptr_t token_pos = ReadInt();
+  intptr_t usage = ReadInt();
+  intptr_t inlining_depth = ReadInt();
+  intptr_t num_call_sites = ReadInt();
+
+  if (!skip) {
+    func_ = FindFunction(kind, token_pos);
+    if (func_.IsNull()) {
+      skip = true;
+      if (FLAG_trace_compilation_trace) {
+        THR_Print("Missing function %s %s\n", func_name_.ToCString(),
+                  Function::KindToCString(kind));
+      }
+    }
+  }
+
+  if (!skip) {
+    error_ = Compiler::CompileFunction(thread_, func_);
+    if (error_.IsError()) {
+      return error_.raw();
+    }
+    call_sites_ = func_.ic_data_array();
+    if (call_sites_.IsNull()) {
+      call_sites_ = Object::empty_array().raw();  // Remove edge case.
+    }
+    if (call_sites_.Length() != num_call_sites + 1) {
+      skip = true;
+      if (FLAG_trace_compilation_trace) {
+        THR_Print("Mismatched call site count %s %" Pd " %" Pd "\n",
+                  func_name_.ToCString(), call_sites_.Length(), num_call_sites);
+      }
+    }
+  }
+
+  // First element is edge counters.
+  for (intptr_t i = 1; i <= num_call_sites; i++) {
+    intptr_t deopt_id = ReadInt();
+    intptr_t rebind_rule = ReadInt();
+    target_name_ = ReadString();
+    intptr_t num_checked_arguments = ReadInt();
+    intptr_t num_entries = ReadInt();
+
+    if (!skip) {
+      call_site_ ^= call_sites_.At(i);
+      if ((call_site_.deopt_id() != deopt_id) ||
+          (call_site_.rebind_rule() != rebind_rule) ||
+          (call_site_.NumArgsTested() != num_checked_arguments)) {
+        skip = true;
+        if (FLAG_trace_compilation_trace) {
+          THR_Print("Mismatched call site %s\n", call_site_.ToCString());
+        }
+      }
+    }
+
+    for (intptr_t entry_index = 0; entry_index < num_entries; entry_index++) {
+      intptr_t entry_usage = ReadInt();
+      bool skip_entry = skip;
+      GrowableArray<intptr_t> cids(num_checked_arguments);
+
+      for (intptr_t argument_index = 0; argument_index < num_checked_arguments;
+           argument_index++) {
+        intptr_t cid = cid_map_[ReadInt()];
+        cids.Add(cid);
+        if (cid == kIllegalCid) {
+          // Alternative: switch to a sentinel value such as kDynamicCid and
+          // have the optimizer generate a megamorphic call.
+          skip_entry = true;
+        }
+      }
+
+      if (skip_entry) {
+        continue;
+      }
+
+      intptr_t reuse_index = call_site_.FindCheck(cids);
+      if (reuse_index == -1) {
+        cls_ = thread_->isolate()->class_table()->At(cids[0]);
+        // Use target name and args descriptor from the current program
+        // instead of saved feedback to get the correct private mangling and
+        // ensure no arity mismatch crashes.
+        target_name_ = call_site_.target_name();
+        args_desc_ = call_site_.arguments_descriptor();
+        target_ = Resolver::ResolveDynamicForReceiverClass(
+            cls_, target_name_, ArgumentsDescriptor(args_desc_));
+        if (!target_.IsNull()) {
+          if (num_checked_arguments == 1) {
+            call_site_.AddReceiverCheck(cids[0], target_, entry_usage);
+          } else {
+            call_site_.AddCheck(cids, target_, entry_usage);
+          }
+        }
+      } else {
+        call_site_.IncrementCountAt(reuse_index, entry_usage);
+      }
+    }
+  }
+
+  if (!skip) {
+    func_.set_usage_counter(usage);
+    func_.set_inlining_depth(inlining_depth);
+
+    // Delay compilation until all feedback is loaded so feedback is available
+    // for inlined functions.
+    functions_to_compile_.Add(func_);
+  }
+
+  return Error::null();
+}
+
+RawFunction* TypeFeedbackLoader::FindFunction(RawFunction::Kind kind,
+                                              intptr_t token_pos) {
+  if (cls_name_.Equals(Symbols::TopLevel())) {
+    func_ = lib_.LookupFunctionAllowPrivate(func_name_);
+  } else {
+    func_ = cls_.LookupFunctionAllowPrivate(func_name_);
+  }
+
+  if (!func_.IsNull()) {
+    // Found regular method.
+  } else if (kind == RawFunction::kMethodExtractor) {
+    ASSERT(Field::IsGetterName(func_name_));
+    // Without private mangling:
+    String& name = String::Handle(zone_, Field::NameFromGetter(func_name_));
+    func_ = cls_.LookupFunctionAllowPrivate(name);
+    if (!func_.IsNull() && func_.IsDynamicFunction()) {
+      name = func_.name();  // With private mangling.
+      name = Field::GetterName(name);
+      func_ = func_.GetMethodExtractor(name);
+    } else {
+      func_ = Function::null();
+    }
+  } else if (kind == RawFunction::kDynamicInvocationForwarder) {
+    // Without private mangling:
+    String& name = String::Handle(
+        zone_, Function::DemangleDynamicInvocationForwarderName(func_name_));
+    func_ = cls_.LookupFunctionAllowPrivate(name);
+    if (!func_.IsNull() && func_.IsDynamicFunction()) {
+      name = func_.name();  // With private mangling.
+      name = Function::CreateDynamicInvocationForwarderName(name);
+      func_ = func_.CreateDynamicInvocationForwarder(name);
+    } else {
+      func_ = Function::null();
+    }
+  } else if (kind == RawFunction::kClosureFunction) {
+    // Note this lookup relies on parent functions appearing before child
+    // functions in the serialized feedback, so the parent will have already
+    // been unoptimized compilated and the child function created and added to
+    // ObjectStore::closure_functions_.
+    const GrowableObjectArray& closure_functions = GrowableObjectArray::Handle(
+        zone_, thread_->isolate()->object_store()->closure_functions());
+    bool found = false;
+    for (intptr_t i = 0; i < closure_functions.Length(); i++) {
+      func_ ^= closure_functions.At(i);
+      if ((func_.Owner() == cls_.raw()) &&
+          (func_.token_pos().value() == token_pos)) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      func_ = Function::null();
+    }
+  } else {
+    // This leaves unhandled:
+    // - kInvokeFieldDispatcher (how to get a valid args descriptor?)
+    // - static field getters
+    // - static field initializers (not retained by the field object)
+  }
+
+  if (!func_.IsNull()) {
+    if (kind == RawFunction::kImplicitClosureFunction) {
+      func_ = func_.ImplicitClosureFunction();
+    }
+    if (func_.is_abstract() || (func_.kind() != kind)) {
+      func_ = Function::null();
+    }
+  }
+
+  return func_.raw();
+}
+
+RawClass* TypeFeedbackLoader::ReadClassByName() {
+  uri_ = ReadString();
+  cls_name_ = ReadString();
+
+  lib_ = Library::LookupLibrary(thread_, uri_);
+  if (lib_.IsNull()) {
+    if (FLAG_trace_compilation_trace) {
+      THR_Print("Missing library %s\n", uri_.ToCString());
+    }
+    return Class::null();
+  }
+
+  if (cls_name_.Equals(Symbols::TopLevel())) {
+    cls_ = lib_.toplevel_class();
+  } else {
+    cls_ = lib_.SlowLookupClassAllowMultiPartPrivate(cls_name_);
+    if (cls_.IsNull()) {
+      if (FLAG_trace_compilation_trace) {
+        THR_Print("Missing class %s %s\n", uri_.ToCString(),
+                  cls_name_.ToCString());
+      }
+    }
+  }
+  return cls_.raw();
+}
+
+RawString* TypeFeedbackLoader::ReadString() {
+  intptr_t len = stream_->ReadUnsigned();
+  const char* cstr =
+      reinterpret_cast<const char*>(stream_->AddressOfCurrentPosition());
+  stream_->Advance(len);
+  return Symbols::New(thread_, cstr, len);
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

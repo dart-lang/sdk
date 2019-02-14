@@ -952,8 +952,8 @@ var tests = <IsolateTest>[
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Code'));
-    expect(result['name'], equals('_DummyClass.dummyFunction'));
-    expect(result['_vmName'], equals('dummyFunction'));
+    expect(result['name'], endsWith('_DummyClass.dummyFunction'));
+    expect(result['_vmName'], endsWith('dummyFunction'));
     expect(result['kind'], equals('Dart'));
     expect(result['_optimized'], new isInstanceOf<bool>());
     expect(result['function']['type'], equals('@Function'));

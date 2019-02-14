@@ -67,12 +67,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                               LocalVariable* first_parameter);
 
   Fragment EnterScope(intptr_t kernel_offset,
-                      intptr_t* num_context_variables = NULL);
+                      const LocalScope** scope = nullptr);
   Fragment ExitScope(intptr_t kernel_offset);
 
   Fragment AdjustContextTo(int depth);
 
-  Fragment PushContext(int size);
+  Fragment PushContext(const LocalScope* scope);
   Fragment PopContext();
 
   Fragment LoadInstantiatorTypeArguments();
@@ -90,7 +90,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                            bool is_synthesized);
   Fragment TryCatch(int try_handler_index);
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
-  Fragment CloneContext(intptr_t num_context_variables);
+  Fragment CloneContext(const GrowableArray<LocalVariable*>& context_variables);
 
   Fragment InstanceCall(
       TokenPosition position,
@@ -135,9 +135,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       const Array& argument_names,
                       ICData::RebindRule rebind_rule,
                       const InferredTypeMetadata* result_type = NULL,
-                      intptr_t type_args_len = 0);
-  Fragment StoreInstanceFieldGuarded(const Field& field,
-                                     bool is_initialization_store);
+                      intptr_t type_args_len = 0,
+                      bool use_unchecked_entry = false);
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
@@ -180,6 +179,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   intptr_t next_function_id_;
   intptr_t AllocateFunctionId() { return next_function_id_++; }
 
+  intptr_t loop_depth_;
   intptr_t try_depth_;
   intptr_t catch_depth_;
   intptr_t for_in_depth_;

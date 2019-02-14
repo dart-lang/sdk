@@ -43,11 +43,21 @@ class PlatformWin {
     // Disable the message box for assertions in the CRT in Debug builds.
     // See: https://msdn.microsoft.com/en-us/library/1y71x448.aspx
     _CrtSetReportMode(_CRT_ASSERT, 0);
+
     // Disable dialog boxes for "critical" errors or when OpenFile cannot find
-    // the requested file. See:
+    // the requested file. However only disable error boxes for general
+    // protection faults if an environment variable is set. Passing
+    // SEM_NOGPFAULTERRORBOX completely disables WindowsErrorReporting (WER)
+    // for the process, which means users loose ability to enable local dump
+    // archiving to collect minidumps for Dart VM crashes.
+    // Our test runner would set DART_SUPPRESS_WER to suppress WER UI during
+    // test suite execution.
     // See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms680621(v=vs.85).aspx
-    SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX |
-                 SEM_NOGPFAULTERRORBOX);
+    UINT uMode = SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX;
+    if (getenv("DART_SUPPRESS_WER") != nullptr) {
+      uMode |= SEM_NOGPFAULTERRORBOX;
+    }
+    SetErrorMode(uMode);
 #ifndef PRODUCT
     // Set up global exception handler to be able to dump stack trace on crash.
     SetExceptionHandler();
@@ -71,8 +81,12 @@ class PlatformWin {
           ExceptionInfo->ExceptionRecord->ExceptionFlags,
           ExceptionInfo->ExceptionRecord->ExceptionAddress);
       Dart_DumpNativeStackTrace(ExceptionInfo->ContextRecord);
-      const int kAbortExitCode = 3;
-      Platform::Exit(kAbortExitCode);
+      Console::RestoreConfig();
+      // TODO(zra): Remove once VM shuts down cleanly.
+      ::dart::private_flag_windows_run_tls_destructors = false;
+      // Note: we want to abort(...) here instead of exiting because exiting
+      // would not cause WER to generate a minidump.
+      abort();
     }
     return EXCEPTION_CONTINUE_SEARCH;
   }
@@ -285,6 +299,10 @@ void Platform::Exit(int exit_code) {
   // On Windows we use ExitProcess so that threads can't clobber the exit_code.
   // See: https://code.google.com/p/nativeclient/issues/detail?id=2870
   ::ExitProcess(exit_code);
+}
+
+void Platform::SetCoreDumpResourceLimit(int value) {
+  // Not supported.
 }
 
 }  // namespace bin

@@ -22,7 +22,8 @@
 //   var f = Map<A, B> {};
 //                       ^
 //
-// pkg/front_end/testcases/regress/issue_31155.dart:11:14: Error: The method '<' isn't defined for the class 'dart.core::Type'.
+// pkg/front_end/testcases/regress/issue_31155.dart:11:14: Error: The method '<' isn't defined for the class 'Type'.
+//  - 'Type' is from 'dart:core'.
 // Try correcting the name to the name of an existing method, or defining a method named '<'.
 //   var f = Map<A, B> {};
 //              ^
@@ -66,7 +67,8 @@ class B extends core::Object {
     ;
 }
 class C extends core::Object {
-  field dynamic f = let final dynamic #t1 = core::Map<dynamic, dynamic> in invalid-expression "pkg/front_end/testcases/regress/issue_31155.dart:11:14: Error: The method '<' isn't defined for the class 'dart.core::Type'.
+  field dynamic f = let final dynamic #t1 = core::Map<dynamic, dynamic> in invalid-expression "pkg/front_end/testcases/regress/issue_31155.dart:11:14: Error: The method '<' isn't defined for the class 'Type'.
+ - 'Type' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named '<'.
   var f = Map<A, B> {};
              ^";

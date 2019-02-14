@@ -7,7 +7,7 @@
 import 'dart:io';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-import 'incremental_perf.dart' as m;
+import 'incremental_perf.dart' as m show main;
 
 main() async {
   var sdkOutline = computePlatformBinariesLocation(forceBuildDir: true).resolve(

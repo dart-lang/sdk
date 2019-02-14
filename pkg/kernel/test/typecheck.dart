@@ -11,7 +11,7 @@ import 'dart:io';
 final String usage = '''
 Usage: typecheck FILE.dill
 
-Runs the strong mode type checker on the given component.
+Runs the type checker on the given component.
 ''';
 
 main(List<String> args) {

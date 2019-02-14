@@ -1,0 +1,6 @@
+pkg/front_end/testcases/no_such_method_forwarders/default_argument_values.dart:34:14: Context: Write to value@1053
+  if ((value = b.foo()) != "baz") {
+             ^
+pkg/front_end/testcases/no_such_method_forwarders/default_argument_values.dart:37:14: Context: Write to value@1053
+  if ((value = b.hest()) != 42) {
+             ^

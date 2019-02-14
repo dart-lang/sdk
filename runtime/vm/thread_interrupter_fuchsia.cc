@@ -23,7 +23,6 @@ namespace dart {
 
 #ifndef PRODUCT
 
-DECLARE_FLAG(bool, thread_interrupter);
 DECLARE_FLAG(bool, trace_thread_interrupter);
 
 // TODO(ZX-430): Currently, CPU profiling for Fuchsia is arranged very similarly

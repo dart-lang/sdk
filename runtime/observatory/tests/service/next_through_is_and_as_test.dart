@@ -25,7 +25,7 @@ code() {
   }
   if (hex is int) {
     print("hex is int");
-    int x = hex as int;
+    int x = hex as dynamic;
     if (x.isEven) {
       print("it's even even!");
     } else {

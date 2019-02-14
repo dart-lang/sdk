@@ -553,19 +553,19 @@ typedef struct {
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x00000009)
+#define DART_FLAGS_CURRENT_VERSION (0x0000000b)
 
 typedef struct {
   int32_t version;
-  bool enable_type_checks;
   bool enable_asserts;
-  bool enable_error_on_bad_type;
   bool use_field_guards;
   bool use_osr;
   bool obfuscate;
   Dart_QualifiedFunctionName* entry_points;
+  bool use_bare_instructions;
   bool load_vmservice_library;
   bool unsafe_trust_strong_mode_types;
+  bool copy_parent_code;
 } Dart_IsolateFlags;
 
 /**
@@ -601,7 +601,7 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  *   Isolate.spawn, or the argument to Isolate.spawnUri canonicalized by the
  *   library tag handler of the parent isolate.
  *   The callback is responsible for loading the program by a call to
- *   Dart_LoadScript or Dart_LoadScriptFromKernel.
+ *   Dart_LoadScriptFromKernel.
  * \param main The name of the main entry point this isolate will
  *   eventually run.  This is provided for advisory purposes only to
  *   improve debugging messages.  The main function is not invoked by
@@ -1509,6 +1509,19 @@ DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function);
  */
 DART_EXPORT Dart_Handle Dart_FunctionIsStatic(Dart_Handle function,
                                               bool* is_static);
+
+/**
+ * Is this object a closure resulting from a tear-off (closurized method)?
+ *
+ * Returns true for closures produced when an ordinary method is accessed
+ * through a getter call. Returns false otherwise, in particular for closures
+ * produced from local function declarations.
+ *
+ * \param object Some Object.
+ *
+ * \return true if Object is a tear-off.
+ */
+DART_EXPORT bool Dart_IsTearOff(Dart_Handle object);
 
 /**
  * Retrieves the function of a closure.
@@ -2448,15 +2461,6 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
  */
 
 /**
- * Creates a native wrapper class.
- *
- * TODO(turnidge): Document.
- */
-DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
-                                                      Dart_Handle class_name,
-                                                      int field_count);
-
-/**
  * Gets the number of native instance fields in an object.
  */
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
@@ -2820,26 +2824,18 @@ typedef enum {
  *
  * Dart_kScriptTag
  *
- * This tag indicates that the root script should be loaded from
- * 'url'.  If the 'library' parameter is not null, it is the url of the
- * package map that should be used when loading.  Once the root
- * script is loaded, the embedder should call Dart_LoadScript to
- * install the root script in the VM.  The return value should be an
- * error or null.
+ * No longer used.
  *
  * Dart_kSourceTag
  *
- * This tag is used to load a file referenced by Dart language "part
- * of" directive.  Once the file's source is loaded, the embedder
- * should call Dart_LoadSource to provide the file contents to the VM.
- * The return value should be an error or null.
+ * No longer used.
  *
  * Dart_kImportTag
  *
- * This tag is used to load a script referenced by Dart language
- * "import" directive.  Once the script is loaded, the embedder should
- * call Dart_LoadLibrary to provide the script source to the VM.  The
- * return value should be an error or null.
+ * This tag is used to load a library from IsolateMirror.loadUri. The embedder
+ * should call Dart_LoadLibraryFromKernel to provide the library to the VM. The
+ * return value should be an error or library (the result from
+ * Dart_LoadLibraryFromKernel).
  *
  * Dart_kKernelTag
  *
@@ -2848,7 +2844,8 @@ typedef enum {
  * of an application is needed and the VM is 'use dart front end' mode.
  * The dart front end typically compiles all the scripts, imports and part
  * files into one intermediate file hence we don't use the source/import or
- * script tags.
+ * script tags. The return value should be an error or a TypedData containing
+ * the kernel bytes.
  *
  * Dart_kImportExtensionTag
  *
@@ -3155,6 +3152,12 @@ DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate);
  */
 DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
 
+/*
+ * ====================
+ * Compilation Feedback
+ * ====================
+ */
+
 /**
  * Record all functions which have been compiled in the current isolate.
  *
@@ -3177,6 +3180,29 @@ Dart_SaveCompilationTrace(uint8_t** buffer, intptr_t* buffer_length);
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length);
+
+/**
+ * Record runtime feedback for the current isolate, including type feedback
+ * and usage counters.
+ *
+ * \param buffer Returns a pointer to a buffer containing the trace.
+ *   This buffer is scope allocated and is only valid  until the next call to
+ *   Dart_ExitScope.
+ * \param size Returns the size of the buffer.
+ * \return Returns an valid handle upon success.
+ */
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_SaveTypeFeedback(uint8_t** buffer, intptr_t* buffer_length);
+
+/**
+ * Compile functions using data from Dart_SaveTypeFeedback. The data must from a
+ * VM with the same version and compiler flags.
+ *
+ * \return Returns an error handle if a compilation error was encountered or a
+ *   version mismatch is detected.
+ */
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_LoadTypeFeedback(uint8_t* buffer, intptr_t buffer_length);
 
 /*
  * ==============

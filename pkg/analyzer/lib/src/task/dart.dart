@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,6 +13,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
@@ -1627,7 +1629,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     //
     if (libraryElement == null) {
       libraryElement =
-          new LibraryElementImpl.forNode(owningContext, libraryNameNode);
+          new LibraryElementImpl.forNode(owningContext, null, libraryNameNode);
       libraryElement.isSynthetic = modificationTime < 0;
       libraryElement.definingCompilationUnit = definingCompilationUnitElement;
       libraryElement.entryPoint = entryPoint;
@@ -2383,6 +2385,11 @@ abstract class ConstantEvaluationTarget extends AnalysisTarget {
    * constant.
    */
   AnalysisContext get context;
+
+  /**
+   * Return whether this constant is evaluated.
+   */
+  bool get isConstantEvaluated;
 }
 
 /**
@@ -2856,10 +2863,11 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     // Dart best practices.
     var inheritanceManager2 = new InheritanceManager2(context.typeSystem);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
 
     unit.accept(new BestPracticesVerifier(
         errorReporter, typeProvider, libraryElement,
-        typeSystem: typeSystem));
+        typeSystem: typeSystem, resourceProvider: resourceProvider));
     unit.accept(new OverrideVerifier(
       inheritanceManager2,
       libraryElement,
@@ -3230,7 +3238,7 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
           "${variable.displayName} at $offset in $variableSource");
     }
     VariableDeclaration declaration =
-        node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
+        node.thisOrAncestorOfType<VariableDeclaration>();
     if (declaration == null || declaration.name != node) {
       Source variableSource = variable.source;
       Source unitSource =
@@ -5446,9 +5454,8 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
     if (options.strongMode) {
       CodeChecker checker = new CodeChecker(
           typeProvider,
-          new StrongTypeSystemImpl(typeProvider,
-              implicitCasts: options.implicitCasts,
-              declarationCasts: options.declarationCasts),
+          new Dart2TypeSystem(typeProvider,
+              implicitCasts: options.implicitCasts),
           errorListener,
           options);
       checker.visitCompilationUnit(unit);

@@ -1,15 +1,19 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/override_check_accessor_basic.dart:23:56: Error: The return type of the method 'E::y' is dart.core::Object, which does not match the return type of the overridden method (#lib1::A).
-// Change to a subtype of #lib1::A.
+// pkg/front_end/testcases/override_check_accessor_basic.dart:23:56: Error: The return type of the method 'E.y' is 'Object', which does not match the return type of the overridden method, 'A'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/override_check_accessor_basic.dart'.
+// Change to a subtype of 'A'.
 //   Object get /*@error=OverrideTypeMismatchReturnType*/ y => null;
 //                                                        ^
 // pkg/front_end/testcases/override_check_accessor_basic.dart:13:9: Context: This is the overridden method ('y').
 //   A get y => null;
 //         ^
 //
-// pkg/front_end/testcases/override_check_accessor_basic.dart:22:57: Error: The parameter 'value' of the method 'E::x' has type #lib1::B, which does not match the corresponding type in the overridden method (#lib1::A).
-// Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
+// pkg/front_end/testcases/override_check_accessor_basic.dart:22:57: Error: The parameter 'value' of the method 'E.x' has type 'B', which does not match the corresponding type in the overridden method, 'A'.
+//  - 'B' is from 'pkg/front_end/testcases/override_check_accessor_basic.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/override_check_accessor_basic.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
 //   void set x(B /*@error=OverrideTypeMismatchParameter*/ value) {}
 //                                                         ^
 // pkg/front_end/testcases/override_check_accessor_basic.dart:12:12: Context: This is the overridden method ('x').
@@ -18,13 +22,17 @@
 
 // Unhandled errors:
 //
-// pkg/front_end/testcases/override_check_accessor_basic.dart:23:56: Error: The return type of the method 'E::y' is dart.core::Object, which does not match the return type of the overridden method (#lib1::A).
-// Change to a subtype of #lib1::A.
+// pkg/front_end/testcases/override_check_accessor_basic.dart:23:56: Error: The return type of the method 'E.y' is 'Object', which does not match the return type of the overridden method, 'A'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/override_check_accessor_basic.dart'.
+// Change to a subtype of 'A'.
 //   Object get /*@error=OverrideTypeMismatchReturnType*/ y => null;
 //                                                        ^
 //
-// pkg/front_end/testcases/override_check_accessor_basic.dart:22:57: Error: The parameter 'value' of the method 'E::x' has type #lib1::B, which does not match the corresponding type in the overridden method (#lib1::A).
-// Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
+// pkg/front_end/testcases/override_check_accessor_basic.dart:22:57: Error: The parameter 'value' of the method 'E.x' has type 'B', which does not match the corresponding type in the overridden method, 'A'.
+//  - 'B' is from 'pkg/front_end/testcases/override_check_accessor_basic.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/override_check_accessor_basic.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
 //   void set x(B /*@error=OverrideTypeMismatchParameter*/ value) {}
 //                                                         ^
 

@@ -1,7 +1,8 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:48:7: Error: The return type of the method 'M::y' is dart.core::int, which does not match the return type of the overridden method (dart.core::Object).
-// Change to a subtype of dart.core::Object.
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:48:7: Error: The return type of the method 'M.y' is 'int', which does not match the return type of the overridden method, 'Object'.
+//  - 'Object' is from 'dart:core'.
+// Change to a subtype of 'Object'.
 //   int y;
 //       ^
 // pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:43:12: Context: This is the overridden method ('y').
@@ -13,8 +14,9 @@
 
 // Unhandled errors:
 //
-// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:48:7: Error: The return type of the method 'M::y' is dart.core::int, which does not match the return type of the overridden method (dart.core::Object).
-// Change to a subtype of dart.core::Object.
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:48:7: Error: The return type of the method 'M.y' is 'int', which does not match the return type of the overridden method, 'Object'.
+//  - 'Object' is from 'dart:core'.
+// Change to a subtype of 'Object'.
 //   int y;
 //       ^
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,8 +11,6 @@ abstract class ProcessProfiler {
   ProcessProfiler._();
 
   Future<UsageInfo> getProcessUsage(int processId);
-
-  UsageInfo getProcessUsageSync(int processId);
 
   /// Return a [ProcessProfiler] instance suitable for the current host
   /// platform. This can return `null` if we're not able to gather memory and
@@ -62,17 +60,6 @@ class _PosixProcessProfiler extends ProcessProfiler {
       });
     } catch (e) {
       return new Future.error(e);
-    }
-  }
-
-  UsageInfo getProcessUsageSync(int processId) {
-    try {
-      // Execution time is typically 2-4ms.
-      ProcessResult result =
-          Process.runSync('ps', ['-o', '%cpu=,rss=', processId.toString()]);
-      return result.exitCode == 0 ? _parse(result.stdout) : null;
-    } catch (e) {
-      return null;
     }
   }
 

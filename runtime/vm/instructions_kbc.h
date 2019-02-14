@@ -15,7 +15,7 @@ namespace dart {
 
 class KBCNativeCallPattern : public AllStatic {
  public:
-  static RawTypedData* GetNativeEntryDataAt(uword pc, const Code& bytecode);
+  static RawTypedData* GetNativeEntryDataAt(uword pc, const Bytecode& bytecode);
 };
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

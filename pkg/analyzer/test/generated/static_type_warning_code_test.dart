@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_core.dart' show formatList;
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
@@ -28,21 +25,6 @@ enum E { ONE }
 E e() {
   return E.TWO;
 }''', [StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT]);
-  }
-
-  test_ambiguousImport_function() async {
-    Source source = addSource(r'''
-import 'lib1.dart';
-import 'lib2.dart';
-g() { return f(); }''');
-    addNamedSource("/lib1.dart", r'''
-library lib1;
-f() {}''');
-    addNamedSource("/lib2.dart", r'''
-library lib2;
-f() {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_assert_message_suppresses_type_promotion() async {
@@ -211,6 +193,13 @@ void main() {
     ]);
   }
 
+  test_defaultSetLiteralNotEnabled() async {
+    await assertErrorsInCode(r'''
+void main() {
+  Set _ = {};
+}''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
   test_expectedOneListTypeArgument() async {
     await assertErrorsInCode(r'''
 main() {
@@ -218,11 +207,12 @@ main() {
 }''', [StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS]);
   }
 
-  test_expectedTwoMapTypeArguments_one() async {
+  @failingTest
+  test_expectedOneSetTypeArgument() async {
     await assertErrorsInCode(r'''
 main() {
-  <int> {};
-}''', [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
+  <int, int>{2, 3};
+}''', [StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS]);
   }
 
   test_expectedTwoMapTypeArguments_three() async {
@@ -457,16 +447,6 @@ class C {
 ''', [StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE]);
   }
 
-  test_instanceAccessToStaticMember_method_invocation() async {
-    await assertErrorsInCode(r'''
-class A {
-  static m() {}
-}
-main(A a) {
-  a.m();
-}''', [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
-  }
-
   test_instanceAccessToStaticMember_method_reference() async {
     await assertErrorsInCode(r'''
 class A {
@@ -576,6 +556,70 @@ f() {
 }''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
+  test_invalidAssignment_postfixExpression_localVariable() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+f(A a) {
+  a++;
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  test_invalidAssignment_postfixExpression_property() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+class C {
+  A a;
+}
+
+f(C c) {
+  c.a++;
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  test_invalidAssignment_prefixExpression_localVariable() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+f(A a) {
+  ++a;
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  test_invalidAssignment_prefixExpression_property() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+class C {
+  A a;
+}
+
+f(C c) {
+  ++c.a;
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
   test_invalidAssignment_regressionInIssue18468Fix() async {
     // https://code.google.com/p/dart/issues/detail?id=18628
     await assertErrorsInCode(r'''
@@ -615,85 +659,6 @@ class B<T> {
 class A {
   int x = 'string';
 }''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-  }
-
-  test_invocationOfNonFunction_class() async {
-    await assertErrorsInCode(r'''
-class A {
-  void m() {
-    A();
-  }
-}''', previewDart2 ? [] : [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
-  }
-
-  test_invocationOfNonFunction_dynamic() async {
-    await assertErrorsInCode(r'''
-main() {
-  dynamic d;
-  d.hashCode();
-}
-''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
-  }
-
-  test_invocationOfNonFunction_localGenericFunction() async {
-    // Invoking `.call` on a `Function` type works similarly to invoking it on
-    // `dynamic`--the invocation is accepted at compile time, and all type
-    // checking is deferred until runtime.
-    await assertErrorsInCode('''
-f(Function f) {
-  return f();
-}''', []);
-  }
-
-  test_invocationOfNonFunction_localObject() async {
-    await assertErrorsInCode('''
-f(Object o) {
-  return o();
-}''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
-  }
-
-  test_invocationOfNonFunction_localVariable() async {
-    await assertErrorsInCode(r'''
-f() {
-  int x;
-  return x();
-}''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
-  }
-
-  test_invocationOfNonFunction_ordinaryInvocation() async {
-    await assertErrorsInCode(r'''
-class A {
-  static int x;
-}
-class B {
-  m() {
-    A.x();
-  }
-}''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
-    // A call to verify(source) fails as A.x() cannot be resolved.
-  }
-
-  test_invocationOfNonFunction_staticInvocation() async {
-    await assertErrorsInCode(r'''
-class A {
-  static int get g => 0;
-  f() {
-    A.g();
-  }
-}''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
-    // A call to verify(source) fails as g() cannot be resolved.
-  }
-
-  test_invocationOfNonFunction_superExpression() async {
-    await assertErrorsInCode(r'''
-class A {
-  int get g => 0;
-}
-class B extends A {
-  m() {
-    var v = super.g();
-  }
-}''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
   }
 
   test_invocationOfNonFunctionExpression_literal() async {
@@ -1348,34 +1313,6 @@ main(A<V> p) {
 }''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  test_undefinedFunction() async {
-    await assertErrorsInCode(r'''
-void f() {
-  g();
-}''', [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
-  }
-
-  test_undefinedFunction_inCatch() async {
-    await assertErrorsInCode(r'''
-void f() {
-  try {
-  } on Object {
-    g();
-  }
-}''', [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
-  }
-
-  test_undefinedFunction_inImportedLib() async {
-    Source source = addSource(r'''
-import 'lib.dart' as f;
-main() { return f.g(); }''');
-    addNamedSource("/lib.dart", r'''
-library lib;
-h() {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
-  }
-
   test_undefinedGetter() async {
     await assertErrorsInUnverifiedCode(r'''
 class T {}
@@ -1433,12 +1370,11 @@ main() {
   test_undefinedGetter_typeLiteral_conditionalAccess() async {
     // When applied to a type literal, the conditional access operator '?.'
     // cannot be used to access instance getters of Type.
-    // TODO(brianwilkerson) We cannot verify in previewDart2 because hashCode
-    // isn't resolved.
+    // TODO(brianwilkerson) We cannot verify because hashCode isn't resolved.
     await assertErrorsInCode('''
 class A {}
 f() => A?.hashCode;
-''', [StaticTypeWarningCode.UNDEFINED_GETTER], verify: !previewDart2);
+''', [StaticTypeWarningCode.UNDEFINED_GETTER], verify: false);
   }
 
   test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() async {
@@ -1471,15 +1407,6 @@ main(A<NoSuchType> a) {
 }''', [StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
   }
 
-  test_undefinedMethod() async {
-    await assertErrorsInCode(r'''
-class A {
-  void m() {
-    n();
-  }
-}''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
-  }
-
   test_undefinedMethod_assignmentExpression() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -1489,17 +1416,6 @@ class B {
     a += a2;
   }
 }''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
-  }
-
-  test_undefinedMethod_generic_function_call() async {
-    // Invoking `.call` on a `Function` type works similarly to invoking it on
-    // `dynamic`--the invocation is accepted at compile time, and all type
-    // checking is deferred until runtime.
-    await assertErrorsInCode('''
-f(Function f) {
-  f.call();
-}
-''', []);
   }
 
   test_undefinedMethod_ignoreTypePropagation() async {
@@ -1521,14 +1437,6 @@ class C {
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  test_undefinedMethod_object_call() async {
-    await assertErrorsInCode('''
-f(Object o) {
-  o.call();
-}
-''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
-  }
-
   test_undefinedMethod_ofNull() async {
     // TODO(scheglov) Track https://github.com/dart-lang/sdk/issues/28430 to
     // decide whether a warning should be reported here.
@@ -1540,69 +1448,15 @@ main() {
 ''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  test_undefinedMethod_private() async {
-    addNamedSource("/lib.dart", r'''
-library lib;
-class A {
-  _foo() {}
-}''');
-    await assertErrorsInCode(r'''
-import 'lib.dart';
-class B extends A {
-  test() {
-    _foo();
-  }
-}''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
-  }
-
-  test_undefinedMethod_proxy_annotation_fakeProxy() async {
-    await assertErrorsInCode(r'''
-library L;
-class Fake {
-  const Fake();
-}
-const proxy = const Fake();
-@proxy class PrefixProxy {}
-main() {
-  new PrefixProxy().foo();
-}''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
-  }
-
-  test_undefinedMethod_typeLiteral_cascadeTarget() async {
-    await assertErrorsInCode('''
-class T {
-  static void foo() {}
-}
-main() {
-  T..foo();
-}
-''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
-  }
-
-  test_undefinedMethod_typeLiteral_conditionalAccess() async {
-    // When applied to a type literal, the conditional access operator '?.'
-    // cannot be used to access instance methods of Type.
-    await assertErrorsInCode('''
-class A {}
-f() => A?.toString();
-''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
-  }
-
   test_undefinedMethodWithConstructor() async {
-    // TODO(brianwilkerson) We cannot verify in previewDart2 because 'C' could
-    // not be resolved.
-    await assertErrorsInCode(
-        r'''
+    // TODO(brianwilkerson) We cannot verify because 'C' could not be resolved.
+    await assertErrorsInCode(r'''
 class C {
   C.m();
 }
 f() {
   C c = C.m();
-}''',
-        previewDart2
-            ? []
-            : [StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR],
-        verify: !previewDart2);
+}''', [], verify: false);
   }
 
   test_undefinedOperator_indexBoth() async {
@@ -1610,7 +1464,10 @@ f() {
 class A {}
 f(A a) {
   a[0]++;
-}''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      StaticTypeWarningCode.UNDEFINED_OPERATOR,
+      StaticTypeWarningCode.UNDEFINED_OPERATOR,
+    ]);
   }
 
   test_undefinedOperator_indexGetter() async {
@@ -1699,18 +1556,6 @@ class B extends A {
   }
 }
 ''', [StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER]);
-  }
-
-  test_unqualifiedReferenceToNonLocalStaticMember_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  static void a() {}
-}
-class B extends A {
-  void b() {
-    a();
-  }
-}''', [StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER]);
   }
 
   test_unqualifiedReferenceToNonLocalStaticMember_setter() async {
@@ -1881,26 +1726,6 @@ class StrongModeStaticTypeWarningCodeTest extends ResolverTestCase {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     resetWith(options: options);
-  }
-
-  test_genericMethodWrongNumberOfTypeArguments() async {
-    Source source = addSource('''
-f() {}
-main() {
-  f<int>();
-}
-''');
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD]);
-    for (AnalysisError error in analysisResult.errors) {
-      if (error.errorCode ==
-          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS) {
-        expect(error.message,
-            formatList(error.errorCode.message, ['() → dynamic', 0, 1]));
-      }
-    }
-    verify([source]);
   }
 
   test_legalAsyncGeneratorReturnType_function_supertypeOfStream() async {

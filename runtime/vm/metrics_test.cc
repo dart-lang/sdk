@@ -48,6 +48,7 @@ VM_UNIT_TEST_CASE(Metric_OnDemand) {
   TestCase::CreateTestIsolate();
   {
     Thread* thread = Thread::Current();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     MyMetric metric;

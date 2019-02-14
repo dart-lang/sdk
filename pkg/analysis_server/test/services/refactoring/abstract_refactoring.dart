@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,11 +8,7 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show
@@ -44,7 +40,6 @@ int findIdentifierLength(String search) {
  */
 abstract class RefactoringTest extends AbstractSingleUnitTest {
   SearchEngine searchEngine;
-  AstProvider astProvider;
 
   SourceChange refactoringChange;
 
@@ -151,14 +146,6 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     expect(actualCode, expectedCode);
   }
 
-  /**
-   * Completes with a fully resolved unit that contains the [element].
-   */
-  Future<CompilationUnit> getResolvedUnitWithElement(Element element) async {
-    return element.context
-        .resolveCompilationUnit(element.source, element.library);
-  }
-
   Future<void> indexTestUnit(String code) async {
     await resolveTestUnit(code);
   }
@@ -170,6 +157,5 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     searchEngine = new SearchEngineImpl([driver]);
-    astProvider = new AstProviderForDriver(driver);
   }
 }

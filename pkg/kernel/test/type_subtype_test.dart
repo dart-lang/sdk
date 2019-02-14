@@ -22,140 +22,151 @@ var classEnvironment = <String, List<String>>{
 };
 
 List<TestCase> testCases = <TestCase>[
-  subtype('int', 'num'),
-  subtype('int', 'Comparable<num>'),
-  subtype('int', 'Comparable<Object>'),
-  subtype('int', 'Object'),
-  subtype('double', 'num'),
+  subtype('int', 'num', legacyMode: true),
+  subtype('int', 'Comparable<num>', legacyMode: true),
+  subtype('int', 'Comparable<Object>', legacyMode: true),
+  subtype('int', 'Object', legacyMode: true),
+  subtype('double', 'num', legacyMode: true),
 
-  notSubtype('int', 'double'),
-  notSubtype('int', 'Comparable<int>'),
-  notSubtype('int', 'Iterable<int>'),
-  notSubtype('Comparable<int>', 'Iterable<int>'),
+  notSubtype('int', 'double', legacyMode: true),
+  notSubtype('int', 'Comparable<int>', legacyMode: true),
+  notSubtype('int', 'Iterable<int>', legacyMode: true),
+  notSubtype('Comparable<int>', 'Iterable<int>', legacyMode: true),
 
-  subtype('List<int>', 'List<int>'),
-  subtype('List<int>', 'Iterable<int>'),
-  subtype('List<int>', 'List<num>'),
-  subtype('List<int>', 'Iterable<num>'),
-  subtype('List<int>', 'List<Object>'),
-  subtype('List<int>', 'Iterable<Object>'),
-  subtype('List<int>', 'Object'),
-  subtype('List<int>', 'List<Comparable<Object>>'),
-  subtype('List<int>', 'List<Comparable<num>>'),
-  subtype('List<int>', 'List<Comparable<Comparable<num>>>'),
+  subtype('List<int>', 'List<int>', legacyMode: true),
+  subtype('List<int>', 'Iterable<int>', legacyMode: true),
+  subtype('List<int>', 'List<num>', legacyMode: true),
+  subtype('List<int>', 'Iterable<num>', legacyMode: true),
+  subtype('List<int>', 'List<Object>', legacyMode: true),
+  subtype('List<int>', 'Iterable<Object>', legacyMode: true),
+  subtype('List<int>', 'Object', legacyMode: true),
+  subtype('List<int>', 'List<Comparable<Object>>', legacyMode: true),
+  subtype('List<int>', 'List<Comparable<num>>', legacyMode: true),
+  subtype('List<int>', 'List<Comparable<Comparable<num>>>', legacyMode: true),
 
-  notSubtype('List<int>', 'List<double>'),
-  notSubtype('List<int>', 'Iterable<double>'),
-  notSubtype('List<int>', 'Comparable<int>'),
-  notSubtype('List<int>', 'List<Comparable<int>>'),
-  notSubtype('List<int>', 'List<Comparable<Comparable<int>>>'),
+  notSubtype('List<int>', 'List<double>', legacyMode: true),
+  notSubtype('List<int>', 'Iterable<double>', legacyMode: true),
+  notSubtype('List<int>', 'Comparable<int>', legacyMode: true),
+  notSubtype('List<int>', 'List<Comparable<int>>', legacyMode: true),
+  notSubtype('List<int>', 'List<Comparable<Comparable<int>>>',
+      legacyMode: true),
 
-  subtype('(num) => num', '(int) => num'),
-  subtype('(num) => int', '(num) => num'),
-  subtype('(num) => int', '(int) => num'),
-  notSubtype('(int) => int', '(num) => num'),
+  subtype('(num) => num', '(int) => num', legacyMode: true),
+  subtype('(num) => int', '(num) => num', legacyMode: true),
+  subtype('(num) => int', '(int) => num', legacyMode: true),
+  notSubtype('(int) => int', '(num) => num', legacyMode: true),
 
-  subtype('(num) => (num) => num', '(num) => (int) => num'),
-  notSubtype('(num) => (int) => int', '(num) => (num) => num'),
+  subtype('(num) => (num) => num', '(num) => (int) => num', legacyMode: true),
+  notSubtype('(num) => (int) => int', '(num) => (num) => num',
+      legacyMode: true),
 
-  subtype('(x:num) => num', '(x:int) => num'), // named parameters
-  subtype('(num,x:num) => num', '(int,x:int) => num'),
-  subtype('(x:num) => int', '(x:num) => num'),
-  notSubtype('(x:int) => int', '(x:num) => num'),
+  subtype('(x:num) => num', '(x:int) => num',
+      legacyMode: true), // named parameters
+  subtype('(num,x:num) => num', '(int,x:int) => num', legacyMode: true),
+  subtype('(x:num) => int', '(x:num) => num', legacyMode: true),
+  notSubtype('(x:int) => int', '(x:num) => num', legacyMode: true),
 
-  subtype('<E>(E) => int', '<E>(E) => num'), // type parameters
-  subtype('<E>(num) => E', '<E>(int) => E'),
-  subtype('<E>(E,num) => E', '<E>(E,int) => E'),
-  notSubtype('<E>(E,num) => E', '<E>(E,E) => E'),
+  subtype('<E>(E) => int', '<E>(E) => num',
+      legacyMode: true), // type parameters
+  subtype('<E>(num) => E', '<E>(int) => E', legacyMode: true),
+  subtype('<E>(E,num) => E', '<E>(E,int) => E', legacyMode: true),
+  notSubtype('<E>(E,num) => E', '<E>(E,E) => E', legacyMode: true),
 
-  subtype('<E>(E) => (E) => E', '<F>(F) => (F) => F'),
-  subtype('<E>(E, (int,E) => E) => E', '<E>(E, (int,E) => E) => E'),
-  subtype('<E>(E, (int,E) => E) => E', '<E>(E, (num,E) => E) => E'),
-  notSubtype('<E,F>(E) => (F) => E', '<E>(E) => <F>(F) => E'),
-  notSubtype('<E,F>(E) => (F) => E', '<F,E>(E) => (F) => E'),
+  subtype('<E>(E) => (E) => E', '<F>(F) => (F) => F', legacyMode: true),
+  subtype('<E>(E, (int,E) => E) => E', '<E>(E, (int,E) => E) => E',
+      legacyMode: true),
+  subtype('<E>(E, (int,E) => E) => E', '<E>(E, (num,E) => E) => E',
+      legacyMode: true),
+  notSubtype('<E,F>(E) => (F) => E', '<E>(E) => <F>(F) => E', legacyMode: true),
+  notSubtype('<E,F>(E) => (F) => E', '<F,E>(E) => (F) => E', legacyMode: true),
 
-  notSubtype('<E>(E,num) => E', '<E:num>(E,E) => E'),
-  notSubtype('<E:num>(E) => int', '<E:int>(E) => int'),
-  notSubtype('<E:num>(E) => E', '<E:int>(E) => E'),
-  notSubtype('<E:num>(int) => E', '<E:int>(int) => E'),
-  subtype('<E:num>(E) => E', '<F:num>(F) => num'),
-  subtype('<E:int>(E) => E', '<F:int>(F) => num'),
-  subtype('<E:int>(E) => E', '<F:int>(F) => int'),
-  notSubtype('<E>(int) => int', '(int) => int'),
-  notSubtype('<E,F>(int) => int', '<E>(int) => int'),
+  notSubtype('<E>(E,num) => E', '<E:num>(E,E) => E', legacyMode: true),
+  notSubtype('<E:num>(E) => int', '<E:int>(E) => int', legacyMode: true),
+  notSubtype('<E:num>(E) => E', '<E:int>(E) => E', legacyMode: true),
+  notSubtype('<E:num>(int) => E', '<E:int>(int) => E', legacyMode: true),
+  subtype('<E:num>(E) => E', '<F:num>(F) => num', legacyMode: true),
+  subtype('<E:int>(E) => E', '<F:int>(F) => num', legacyMode: true),
+  subtype('<E:int>(E) => E', '<F:int>(F) => int', legacyMode: true),
+  notSubtype('<E>(int) => int', '(int) => int', legacyMode: true),
+  notSubtype('<E,F>(int) => int', '<E>(int) => int', legacyMode: true),
 
-  subtype('<E:List<E>>(E) => E', '<F:List<F>>(F) => F'),
-  notSubtype('<E:Iterable<E>>(E) => E', '<F:List<F>>(F) => F'),
-  notSubtype('<E>(E,List<Object>) => E', '<F:List<F>>(F,F) => F'),
-  notSubtype('<E>(E,List<Object>) => List<E>', '<F:List<F>>(F,F) => F'),
-  notSubtype('<E>(E,List<Object>) => int', '<F:List<F>>(F,F) => F'),
-  notSubtype('<E>(E,List<Object>) => E', '<F:List<F>>(F,F) => void'),
+  subtype('<E:List<E>>(E) => E', '<F:List<F>>(F) => F', legacyMode: true),
+  notSubtype('<E:Iterable<E>>(E) => E', '<F:List<F>>(F) => F',
+      legacyMode: true),
+  notSubtype('<E>(E,List<Object>) => E', '<F:List<F>>(F,F) => F',
+      legacyMode: true),
+  notSubtype('<E>(E,List<Object>) => List<E>', '<F:List<F>>(F,F) => F',
+      legacyMode: true),
+  notSubtype('<E>(E,List<Object>) => int', '<F:List<F>>(F,F) => F',
+      legacyMode: true),
+  notSubtype('<E>(E,List<Object>) => E', '<F:List<F>>(F,F) => void',
+      legacyMode: true),
 
-  subtype('int', 'FutureOr<int>', strongMode: true),
-  subtype('int', 'FutureOr<num>', strongMode: true),
-  subtype('Future<int>', 'FutureOr<int>', strongMode: true),
-  subtype('Future<int>', 'FutureOr<num>', strongMode: true),
-  subtype('Future<int>', 'FutureOr<Object>', strongMode: true),
-  subtype('FutureOr<int>', 'FutureOr<int>', strongMode: true),
-  subtype('FutureOr<int>', 'FutureOr<num>', strongMode: true),
-  subtype('FutureOr<int>', 'Object', strongMode: true),
-  notSubtype('int', 'FutureOr<double>', strongMode: true),
-  notSubtype('FutureOr<double>', 'int', strongMode: true),
-  notSubtype('FutureOr<int>', 'Future<num>', strongMode: true),
-  notSubtype('FutureOr<int>', 'num', strongMode: true),
+  subtype('int', 'FutureOr<int>'),
+  subtype('int', 'FutureOr<num>'),
+  subtype('Future<int>', 'FutureOr<int>'),
+  subtype('Future<int>', 'FutureOr<num>'),
+  subtype('Future<int>', 'FutureOr<Object>'),
+  subtype('FutureOr<int>', 'FutureOr<int>'),
+  subtype('FutureOr<int>', 'FutureOr<num>'),
+  subtype('FutureOr<int>', 'Object'),
+  notSubtype('int', 'FutureOr<double>'),
+  notSubtype('FutureOr<double>', 'int'),
+  notSubtype('FutureOr<int>', 'Future<num>'),
+  notSubtype('FutureOr<int>', 'num'),
 
   // T & B <: T & A if B <: A
-  subtype('T & int', 'T & int'),
-  subtype('T & int', 'T & num'),
-  subtype('T & num', 'T & num'),
-  notSubtype('T & num', 'T & int'),
+  subtype('T & int', 'T & int', legacyMode: true),
+  subtype('T & int', 'T & num', legacyMode: true),
+  subtype('T & num', 'T & num', legacyMode: true),
+  notSubtype('T & num', 'T & int', legacyMode: true),
 
   // T & B <: T extends A if B <: A
   // (Trivially satisfied since promoted bounds are always a subtype of the
   // original bound)
-  subtype('T & int', 'T', typeParameters: 'T: int'),
-  subtype('T & int', 'T', typeParameters: 'T: num'),
-  subtype('T & num', 'T', typeParameters: 'T: num'),
+  subtype('T & int', 'T', legacyMode: true, typeParameters: 'T: int'),
+  subtype('T & int', 'T', legacyMode: true, typeParameters: 'T: num'),
+  subtype('T & num', 'T', legacyMode: true, typeParameters: 'T: num'),
 
   // T extends B <: T & A if B <: A
-  subtype('T', 'T & int', typeParameters: 'T: int'),
-  subtype('T', 'T & num', typeParameters: 'T: int'),
-  subtype('T', 'T & num', typeParameters: 'T: num'),
-  notSubtype('T', 'T & int', typeParameters: 'T: num'),
+  subtype('T', 'T & int', legacyMode: true, typeParameters: 'T: int'),
+  subtype('T', 'T & num', legacyMode: true, typeParameters: 'T: int'),
+  subtype('T', 'T & num', legacyMode: true, typeParameters: 'T: num'),
+  notSubtype('T', 'T & int', legacyMode: true, typeParameters: 'T: num'),
 
   // T extends A <: T extends A
-  subtype('T', 'T', typeParameters: 'T: num'),
+  subtype('T', 'T', legacyMode: true, typeParameters: 'T: num'),
 
   // S & B <: A if B <: A, A is not S (or a promotion thereof)
-  subtype('S & int', 'int'),
-  subtype('S & int', 'num'),
-  subtype('S & num', 'num'),
-  notSubtype('S & num', 'int'),
-  notSubtype('S & num', 'T'),
-  notSubtype('S & num', 'T & num'),
+  subtype('S & int', 'int', legacyMode: true),
+  subtype('S & int', 'num', legacyMode: true),
+  subtype('S & num', 'num', legacyMode: true),
+  notSubtype('S & num', 'int', legacyMode: true),
+  notSubtype('S & num', 'T', legacyMode: true),
+  notSubtype('S & num', 'T & num', legacyMode: true),
 
   // S extends B <: A if B <: A, A is not S (or a promotion thereof)
-  subtype('S', 'int', typeParameters: 'S: int'),
-  subtype('S', 'num', typeParameters: 'S: int'),
-  subtype('S', 'num', typeParameters: 'S: num'),
-  notSubtype('S', 'int', typeParameters: 'S: num'),
-  notSubtype('S', 'T', typeParameters: 'S: num'),
-  notSubtype('S', 'T & num', typeParameters: 'S: num'),
+  subtype('S', 'int', legacyMode: true, typeParameters: 'S: int'),
+  subtype('S', 'num', legacyMode: true, typeParameters: 'S: int'),
+  subtype('S', 'num', legacyMode: true, typeParameters: 'S: num'),
+  notSubtype('S', 'int', legacyMode: true, typeParameters: 'S: num'),
+  notSubtype('S', 'T', legacyMode: true, typeParameters: 'S: num'),
+  notSubtype('S', 'T & num', legacyMode: true, typeParameters: 'S: num'),
 ];
 
 /// Assert that [subtype] is a subtype of [supertype], and that [supertype]
 /// is not a subtype of [subtype] (unless the two strings are equal).
 TestCase subtype(String subtype_, String supertype,
-    {bool strongMode: false, String typeParameters}) {
+    {bool legacyMode: false, String typeParameters}) {
   return new TestCase(subtype_, supertype,
-      isSubtype: true, strongMode: strongMode, typeParameters: typeParameters);
+      isSubtype: true, legacyMode: legacyMode, typeParameters: typeParameters);
 }
 
 /// Assert that neither type is a subtype of the other.
 TestCase notSubtype(String subtype_, String supertype,
-    {bool strongMode: false, String typeParameters}) {
+    {bool legacyMode: false, String typeParameters}) {
   return new TestCase(subtype_, supertype,
-      isSubtype: false, strongMode: strongMode, typeParameters: typeParameters);
+      isSubtype: false, legacyMode: legacyMode, typeParameters: typeParameters);
 }
 
 class TestCase {
@@ -163,10 +174,10 @@ class TestCase {
   String supertype;
   String typeParameters;
   bool isSubtype;
-  bool strongMode;
+  bool legacyMode;
 
   TestCase(this.subtype, this.supertype,
-      {this.isSubtype, this.strongMode: false, this.typeParameters});
+      {this.isSubtype, this.legacyMode: false, this.typeParameters});
 
   String toString() {
     var description =
@@ -174,8 +185,8 @@ class TestCase {
     if (typeParameters != null) {
       description += ' (type parameters: $typeParameters)';
     }
-    if (strongMode) {
-      description += ' (strong mode)';
+    if (legacyMode) {
+      description += ' (legacy mode)';
     }
     return description;
   }
@@ -189,10 +200,15 @@ class MockSubtypeTester extends SubtypeTester {
   Class futureClass;
   Class futureOrClass;
   LazyTypeEnvironment environment;
-  bool strongMode = false;
+  bool legacyMode = false;
 
   InterfaceType futureType(DartType type) =>
       new InterfaceType(futureClass, [type]);
+
+  @override
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
+    return hierarchy.getTypeAsInstanceOf(type, superclass);
+  }
 
   MockSubtypeTester(
       this.hierarchy,
@@ -242,7 +258,7 @@ main() {
   var tester = makeSubtypeTester(classEnvironment);
   for (var testCase in testCases) {
     test('$testCase', () {
-      tester.strongMode = testCase.strongMode;
+      tester.legacyMode = testCase.legacyMode;
       var environment = tester.environment;
       environment.clearTypeParameters();
       if (testCase.typeParameters != null) {

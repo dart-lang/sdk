@@ -27,6 +27,7 @@
 #include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
+#include "vm/reverse_pc_lookup_cache.h"
 #include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/snapshot.h"
@@ -42,7 +43,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
-DECLARE_FLAG(bool, trace_time_all);
 DEFINE_FLAG(bool, keep_code, false, "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
 DECLARE_FLAG(bool, strong);
@@ -84,16 +84,19 @@ class ReadOnlyHandles {
 };
 
 static void CheckOffsets() {
+  bool ok = true;
 #define CHECK_OFFSET(expr, offset)                                             \
   if ((expr) != (offset)) {                                                    \
-    FATAL2("%s == %" Pd, #expr, (expr));                                       \
+    OS::PrintErr("%s got %" Pd " expected %" Pd "\n", #expr, (expr),           \
+                 static_cast<intptr_t>(offset));                               \
+    ok = false;                                                                \
   }
 
 #if defined(TARGET_ARCH_ARM)
   // These offsets are embedded in precompiled instructions. We need simarm
   // (compiler) and arm (runtime) to agree.
-  CHECK_OFFSET(Thread::stack_limit_offset(), 4);
-  CHECK_OFFSET(Thread::object_null_offset(), 64);
+  CHECK_OFFSET(Thread::stack_limit_offset(), 28);
+  CHECK_OFFSET(Thread::object_null_offset(), 88);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
   CHECK_OFFSET(Isolate::object_store_offset(), 20);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 168));
@@ -101,12 +104,16 @@ static void CheckOffsets() {
 #if defined(TARGET_ARCH_ARM64)
   // These offsets are embedded in precompiled instructions. We need simarm64
   // (compiler) and arm64 (runtime) to agree.
-  CHECK_OFFSET(Thread::stack_limit_offset(), 8);
-  CHECK_OFFSET(Thread::object_null_offset(), 112);
+  CHECK_OFFSET(Thread::stack_limit_offset(), 56);
+  CHECK_OFFSET(Thread::object_null_offset(), 168);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 26);
   CHECK_OFFSET(Isolate::object_store_offset(), 40);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 288));
 #endif
+
+  if (!ok) {
+    FATAL("CheckOffsets failed.");
+  }
 #undef CHECK_OFFSET
 }
 
@@ -144,14 +151,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         "a sim* architecture.");
 #endif  // defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
 
-#if defined(TARGET_OS_WINDOWS)
-    // TODO(34393): The interpreter currently relies on computed gotos, which
-    // aren't supported on Windows.
-    return strdup("--enable-interpreter is not supported on Windows.");
-#endif  // defined(TARGET_OS_WINDOWS)
-
     FLAG_use_field_guards = false;
-    FLAG_optimization_counter_threshold = -1;
   }
 
   FrameLayout::Init();
@@ -170,7 +170,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   NOT_IN_PRODUCT(
       TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init"));
   Isolate::InitVM();
-  IdleNotifier::Init();
   PortMap::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
@@ -257,6 +256,9 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         // Must copy before leaving the zone.
         return strdup(error.ToErrorCString());
       }
+
+      ReversePcLookupCache::BuildAndAttachToIsolate(vm_isolate_);
+
       Object::FinishInit(vm_isolate_);
 #if !defined(PRODUCT)
       if (tds.enabled()) {
@@ -300,7 +302,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // We need to initialize the constants here for the vm isolate thread due to
     // bootstrapping issues.
     T->InitVMConstants();
-    Scanner::Init();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
     if (!TargetCPUFeatures::sse2_supported()) {
@@ -330,7 +331,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   }
 
   const bool is_dart2_aot_precompiler =
-      FLAG_strong && FLAG_precompiled_mode && !kDartPrecompiledRuntime;
+      FLAG_precompiled_mode && !kDartPrecompiledRuntime;
 
   if (!is_dart2_aot_precompiler &&
       (FLAG_support_service || !kDartPrecompiledRuntime)) {
@@ -441,8 +442,6 @@ char* Dart::Cleanup() {
   }
   WaitForIsolateShutdown();
 
-  IdleNotifier::Stop();
-
 #if !defined(PRODUCT)
   {
     // IMPORTANT: the code below enters VM isolate so that Metric::Cleanup could
@@ -500,7 +499,6 @@ char* Dart::Cleanup() {
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
   PortMap::Cleanup();
-  IdleNotifier::Cleanup();
   ICData::Cleanup();
   ArgumentsDescriptor::Cleanup();
   TargetCPUFeatures::Cleanup();
@@ -617,6 +615,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
     if (!error.IsNull()) {
       return error.raw();
     }
+
+    ReversePcLookupCache::BuildAndAttachToIsolate(I);
+
 #if !defined(PRODUCT)
     if (tds.enabled()) {
       tds.SetNumArguments(2);
@@ -643,17 +644,17 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
 #if defined(DART_PRECOMPILED_RUNTIME)
   // AOT: The megamorphic miss function and code come from the snapshot.
   ASSERT(I->object_store()->megamorphic_miss_code() != Code::null());
+  ASSERT(I->object_store()->build_method_extractor_code() != Code::null());
 #else
   // JIT: The megamorphic miss function and code come from the snapshot in JIT
   // app snapshot, otherwise create them.
   if (I->object_store()->megamorphic_miss_code() == Code::null()) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
-
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
   if (I != Dart::vm_isolate()) {
     I->object_store()->set_build_method_extractor_code(
-        Code::Handle(StubCode::GetBuildMethodExtractorStub()));
+        Code::Handle(StubCode::GetBuildMethodExtractorStub(nullptr)));
   }
 #endif
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -724,25 +725,13 @@ const char* Dart::FeaturesString(Isolate* isolate,
     buffer.AddString(name ? (" " #name) : (" no-" #name));                     \
   } while (0);
 
-  // We don't write the strong flag into the features list for the VM isolate
-  // snapshot as the implementation is in an intermediate state where the VM
-  // isolate is always initialized from a vm_snapshot generated in non strong
-  // mode.
-  if (!is_vm_isolate) {
-    buffer.AddString(FLAG_strong ? " strong" : " no-strong");
-  }
-
   if (Snapshot::IncludesCode(kind)) {
-    // Checked mode affects deopt ids.
-    ADD_FLAG(type_checks, enable_type_checks, FLAG_enable_type_checks);
+    // enabling assertions affects deopt ids.
     ADD_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
-    ADD_FLAG(error_on_bad_type, enable_error_on_bad_type,
-             FLAG_error_on_bad_type);
-    // sync-async and reify_generic_functions also affect deopt_ids.
-    buffer.AddString(FLAG_sync_async ? " sync_async" : " no-sync_async");
-    buffer.AddString(FLAG_reify_generic_functions
-                         ? " reify_generic_functions"
-                         : " no-reify_generic_functions");
+    if (kind == Snapshot::kFullAOT) {
+      ADD_FLAG(use_bare_instructions, use_bare_instructions,
+               FLAG_use_bare_instructions);
+    }
     if (kind == Snapshot::kFullJIT) {
       ADD_FLAG(use_field_guards, use_field_guards, FLAG_use_field_guards);
       ADD_FLAG(use_osr, use_osr, FLAG_use_osr);
@@ -796,11 +785,12 @@ const char* Dart::FeaturesString(Isolate* isolate,
 
 void Dart::RunShutdownCallback() {
   Thread* thread = Thread::Current();
-  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   Isolate* isolate = thread->isolate();
   void* callback_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
   if (callback != NULL) {
+    TransitionVMToNative transition(thread);
     (callback)(callback_data);
   }
 }

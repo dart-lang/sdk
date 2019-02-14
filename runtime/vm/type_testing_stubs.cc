@@ -105,21 +105,19 @@ RawInstructions* TypeTestingStubGenerator::DefaultCodeForType(
 
   if (type.raw() == Type::ObjectType() || type.raw() == Type::DynamicType() ||
       type.raw() == Type::VoidType()) {
-    return Code::InstructionsOf(StubCode::TopTypeTypeTest_entry()->code());
+    return StubCode::TopTypeTypeTest().instructions();
   }
 
   if (type.IsTypeRef()) {
-    return Code::InstructionsOf(StubCode::TypeRefTypeTest_entry()->code());
+    return StubCode::TypeRefTypeTest().instructions();
   }
 
   if (type.IsType() || type.IsTypeParameter()) {
     const bool should_specialize = !FLAG_precompiled_mode && lazy_specialize;
-    return Code::InstructionsOf(
-        should_specialize ? StubCode::LazySpecializeTypeTest_entry()->code()
-                          : StubCode::DefaultTypeTest_entry()->code());
+    return should_specialize ? StubCode::LazySpecializeTypeTest().instructions()
+                             : StubCode::DefaultTypeTest().instructions();
   } else {
-    ASSERT(type.IsBoundedType() || type.IsMixinAppType());
-    return Code::InstructionsOf(StubCode::UnreachableTypeTest_entry()->code());
+    return StubCode::UnreachableTypeTest().instructions();
   }
 }
 
@@ -145,15 +143,14 @@ RawInstructions* TypeTestingStubGenerator::OptimizedCodeForType(
   ASSERT(StubCode::HasBeenInitialized());
 
   if (type.IsTypeRef()) {
-    return Code::InstructionsOf(StubCode::TypeRefTypeTest_entry()->code());
+    return StubCode::TypeRefTypeTest().instructions();
   }
 
   if (type.raw() == Type::ObjectType() || type.raw() == Type::DynamicType()) {
-    return Code::InstructionsOf(StubCode::TopTypeTypeTest_entry()->code());
+    return StubCode::TopTypeTypeTest().instructions();
   }
 
   if (type.IsCanonical()) {
-    ASSERT(type.IsResolved());
     if (type.IsType()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
       // Lazily create the type testing stubs array.
@@ -169,14 +166,13 @@ RawInstructions* TypeTestingStubGenerator::OptimizedCodeForType(
         array_.Add(instr_);
       } else {
         // Fall back to default.
-        instr_ =
-            Code::InstructionsOf(StubCode::DefaultTypeTest_entry()->code());
+        instr_ = StubCode::DefaultTypeTest().instructions();
       }
 #else
       // In the precompiled runtime we cannot lazily create new optimized type
       // testing stubs, so if we cannot find one, we'll just return the default
       // one.
-      instr_ = Code::InstructionsOf(StubCode::DefaultTypeTest_entry()->code());
+      instr_ = StubCode::DefaultTypeTest().instructions();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
       return instr_.raw();
     }
@@ -200,23 +196,23 @@ TypeTestingStubFinder::TypeTestingStubFinder()
 RawInstructions* TypeTestingStubFinder::LookupByAddresss(
     uword entry_point) const {
   // First test the 4 common ones:
-  code_ = StubCode::DefaultTypeTest_entry()->code();
+  code_ = StubCode::DefaultTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
-  code_ = StubCode::LazySpecializeTypeTest_entry()->code();
+  code_ = StubCode::LazySpecializeTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
-  code_ = StubCode::TopTypeTypeTest_entry()->code();
+  code_ = StubCode::TopTypeTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
-  code_ = StubCode::TypeRefTypeTest_entry()->code();
+  code_ = StubCode::TypeRefTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
-  code_ = StubCode::UnreachableTypeTest_entry()->code();
+  code_ = StubCode::UnreachableTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
@@ -228,23 +224,23 @@ RawInstructions* TypeTestingStubFinder::LookupByAddresss(
 const char* TypeTestingStubFinder::StubNameFromAddresss(
     uword entry_point) const {
   // First test the 4 common ones:
-  code_ = StubCode::DefaultTypeTest_entry()->code();
+  code_ = StubCode::DefaultTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_Default";
   }
-  code_ = StubCode::LazySpecializeTypeTest_entry()->code();
+  code_ = StubCode::LazySpecializeTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_LazySpecialize";
   }
-  code_ = StubCode::TopTypeTypeTest_entry()->code();
+  code_ = StubCode::TopTypeTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_Top";
   }
-  code_ = StubCode::TypeRefTypeTest_entry()->code();
+  code_ = StubCode::TypeRefTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_Ref";
   }
-  code_ = StubCode::UnreachableTypeTest_entry()->code();
+  code_ = StubCode::UnreachableTypeTest().raw();
   if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_Unreachable";
   }
@@ -345,13 +341,15 @@ RawInstructions* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   ASSERT(!type_class.IsNull());
 
   // To use the already-defined __ Macro !
-  ObjectPoolWrapper object_pool_wrapper;
-  Assembler assembler(&object_pool_wrapper);
+  Assembler assembler(nullptr);
   BuildOptimizedTypeTestStub(&assembler, hi, type, type_class);
 
   const char* name = namer_.StubNameForType(type);
-  const Code& code = Code::Handle(
-      Code::FinalizeCode(name, nullptr, &assembler, false /* optimized */));
+  const auto pool_attachment = FLAG_use_bare_instructions
+                                   ? Code::PoolAttachment::kNotAttachPool
+                                   : Code::PoolAttachment::kAttachPool;
+  const Code& code = Code::Handle(Code::FinalizeCode(
+      name, nullptr, &assembler, pool_attachment, false /* optimized */));
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
     LogBlock lb;
@@ -360,7 +358,9 @@ RawInstructions* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
     code.Disassemble(&formatter);
     THR_Print("}\n");
     const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
-    object_pool.DebugPrint();
+    if (!object_pool.IsNull()) {
+      object_pool.DebugPrint();
+    }
   }
 #endif  // !PRODUCT
 
@@ -401,7 +401,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
 
     const Type& int_type = Type::Handle(Type::IntType());
-    const bool smi_is_ok = int_type.IsSubtypeOf(type, NULL, NULL, Heap::kNew);
+    const bool smi_is_ok = int_type.IsSubtypeOf(type, Heap::kNew);
 
     BuildOptimizedSubtypeRangeCheck(assembler, ranges, class_id_reg,
                                     instance_reg, smi_is_ok);
@@ -629,16 +629,16 @@ void RegisterTypeArgumentsUse(const Function& function,
     if (cid != kDynamicCid) {
       const Class& instance_klass =
           Class::Handle(Isolate::Current()->class_table()->At(cid));
-      if (instance_klass.IsGeneric() &&
+      if (load_field->slot().IsTypeArguments() && instance_klass.IsGeneric() &&
           instance_klass.type_arguments_field_offset() ==
-              load_field->offset_in_bytes()) {
+              load_field->slot().offset_in_bytes()) {
         // This is a subset of Case c) above, namely forwarding the type
         // argument vector.
         //
         // We use the declaration type arguments for the instance creation,
         // which is a non-instantiated, expanded, type arguments vector.
-        const AbstractType& declaration_type =
-            AbstractType::Handle(instance_klass.DeclarationType());
+        const Type& declaration_type =
+            Type::Handle(instance_klass.DeclarationType());
         TypeArguments& declaration_type_args =
             TypeArguments::Handle(declaration_type.arguments());
         type_usage_info->UseTypeArgumentsInInstanceCreation(
@@ -651,12 +651,12 @@ void RegisterTypeArgumentsUse(const Function& function,
     // where we forward the type argument vector to object allocation.
     //
     // Theoretically this could be a false-positive, which is still ok, but
-    // practically it's guranteed that this is a forward of a type argument
+    // practically it's guaranteed that this is a forward of a type argument
     // vector passed in by the caller.
     if (function.IsFactory()) {
       const Class& enclosing_class = Class::Handle(function.Owner());
-      const AbstractType& declaration_type =
-          AbstractType::Handle(enclosing_class.DeclarationType());
+      const Type& declaration_type =
+          Type::Handle(enclosing_class.DeclarationType());
       TypeArguments& declaration_type_args =
           TypeArguments::Handle(declaration_type.arguments());
       type_usage_info->UseTypeArgumentsInInstanceCreation(
@@ -748,7 +748,7 @@ RawAbstractType* TypeArgumentInstantiator::InstantiateType(
 }
 
 TypeUsageInfo::TypeUsageInfo(Thread* thread)
-    : StackResource(thread),
+    : ThreadStackResource(thread),
       zone_(thread->zone()),
       finder_(zone_),
       assert_assignable_types_(),
@@ -994,7 +994,7 @@ bool TypeUsageInfo::IsUsedInTypeTest(const AbstractType& type) {
   if (type.IsTypeRef()) {
     dereferenced_type = &AbstractType::Handle(TypeRef::Cast(type).type());
   }
-  if (dereferenced_type->IsResolved() && dereferenced_type->IsFinalized()) {
+  if (dereferenced_type->IsFinalized()) {
     return assert_assignable_types_.HasKey(dereferenced_type);
   }
   return false;

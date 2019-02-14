@@ -11,16 +11,18 @@ import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../ir/closure.dart';
+import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/namer.dart';
 import '../js_emitter/code_emitter_task.dart';
-import '../js_model/closure.dart' show JRecordField, KernelScopeInfo;
+import '../js_model/closure.dart' show JRecordField;
 import '../js_model/elements.dart' show JGeneratorBody;
-import '../native/native.dart' as native;
+import '../native/behavior.dart';
 import '../serialization/serialization.dart';
 import '../ssa/type_builder.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../world.dart';
@@ -91,16 +93,15 @@ abstract class JsToElementMap {
   Name getName(ir.Name name);
 
   /// Computes the [native.NativeBehavior] for a call to the [JS] function.
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
+  NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
 
   /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
   /// function.
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node);
+  NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node);
 
   /// Computes the [native.NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+  NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node);
 
   /// Returns the [js.Name] for the `JsGetName` [constant] value.
@@ -117,10 +118,6 @@ abstract class JsToElementMap {
 
   /// Returns the definition information for [cls].
   ClassDefinition getClassDefinition(covariant ClassEntity cls);
-
-  /// Returns the static type of [node].
-  // TODO(johnniwinther): This should be provided directly from kernel.
-  DartType getStaticType(ir.Expression node);
 
   /// [ElementEnvironment] for library, class and member lookup.
   JElementEnvironment get elementEnvironment;
@@ -165,6 +162,9 @@ abstract class JsToElementMap {
   /// modified in another get their values updated correctly.
   Map<Local, JRecordField> makeRecordContainer(
       KernelScopeInfo info, MemberEntity member, KernelToLocalsMap localsMap);
+
+  /// Returns a provider for static types for [member].
+  StaticTypeProvider getStaticTypeProvider(MemberEntity member);
 }
 
 /// Interface for type inference results for kernel IR nodes.
@@ -187,7 +187,7 @@ abstract class KernelToTypeInferenceMap {
       ir.PropertySet write, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of [listLiteral].
-  AbstractValue typeOfListLiteral(MemberEntity owner,
+  AbstractValue typeOfListLiteral(
       ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of iterator in [forInStatement].
@@ -219,7 +219,7 @@ abstract class KernelToTypeInferenceMap {
 
   /// Returns the returned type annotation in the [nativeBehavior].
   AbstractValue typeFromNativeBehavior(
-      native.NativeBehavior nativeBehavior, JClosedWorld closedWorld);
+      NativeBehavior nativeBehavior, JClosedWorld closedWorld);
 }
 
 /// Map from kernel IR nodes to local entities.

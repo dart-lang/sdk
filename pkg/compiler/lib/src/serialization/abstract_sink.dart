@@ -17,6 +17,9 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   /// Visitor used for serializing [DartType]s.
   DartTypeWriter _dartTypeWriter;
 
+  /// Visitor used for serializing [ir.DartType]s.
+  DartTypeNodeWriter _dartTypeNodeWriter;
+
   /// Stack of tags used when [useDataKinds] is `true` to help debugging section
   /// inconsistencies between serialization and deserialization.
   List<String> _tags;
@@ -24,8 +27,20 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   /// Map of [_MemberData] object for serialized kernel member nodes.
   Map<ir.Member, _MemberData> _memberData = {};
 
+  IndexedSink<String> _stringIndex;
+  IndexedSink<Uri> _uriIndex;
+  IndexedSink<ir.Member> _memberNodeIndex;
+  IndexedSink<ImportEntity> _importIndex;
+
+  Map<Type, IndexedSink> _generalCaches = {};
+
   AbstractDataSink({this.useDataKinds: false}) {
     _dartTypeWriter = new DartTypeWriter(this);
+    _dartTypeNodeWriter = new DartTypeNodeWriter(this);
+    _stringIndex = new IndexedSink<String>(this);
+    _uriIndex = new IndexedSink<Uri>(this);
+    _memberNodeIndex = new IndexedSink<ir.Member>(this);
+    _importIndex = new IndexedSink<ImportEntity>(this);
   }
 
   void begin(String tag) {
@@ -47,11 +62,17 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   }
 
   @override
+  void writeCached<E>(E value, void f(E value)) {
+    IndexedSink sink = _generalCaches[E] ??= new IndexedSink<E>(this);
+    sink.write(value, (v) => f(v));
+  }
+
+  @override
   void writeSourceSpan(SourceSpan value) {
     _writeDataKind(DataKind.sourceSpan);
     _writeUri(value.uri);
-    _writeInt(value.begin);
-    _writeInt(value.end);
+    _writeIntInternal(value.begin);
+    _writeIntInternal(value.end);
   }
 
   @override
@@ -74,19 +95,42 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   }
 
   @override
+  void writeDartTypeNode(ir.DartType value, {bool allowNull: false}) {
+    _writeDataKind(DataKind.dartTypeNode);
+    _writeDartTypeNode(value, [], allowNull: allowNull);
+  }
+
+  void _writeDartTypeNode(
+      ir.DartType value, List<ir.TypeParameter> functionTypeVariables,
+      {bool allowNull: false}) {
+    if (value == null) {
+      if (!allowNull) {
+        throw new UnsupportedError("Missing ir.DartType node is not allowed.");
+      }
+      writeEnum(DartTypeNodeKind.none);
+    } else {
+      value.accept1(_dartTypeNodeWriter, functionTypeVariables);
+    }
+  }
+
+  @override
   void writeMemberNode(ir.Member value) {
     _writeDataKind(DataKind.memberNode);
     _writeMemberNode(value);
   }
 
   void _writeMemberNode(ir.Member value) {
+    _memberNodeIndex.write(value, _writeMemberNodeInternal);
+  }
+
+  void _writeMemberNodeInternal(ir.Member value) {
     ir.Class cls = value.enclosingClass;
     if (cls != null) {
-      _writeEnum(MemberContextKind.cls);
+      _writeEnumInternal(MemberContextKind.cls);
       _writeClassNode(cls);
       _writeString(_computeMemberName(value));
     } else {
-      _writeEnum(MemberContextKind.library);
+      _writeEnumInternal(MemberContextKind.library);
       _writeLibraryNode(value.enclosingLibrary);
       _writeString(_computeMemberName(value));
     }
@@ -104,6 +148,17 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   }
 
   @override
+  void writeTypedefNode(ir.Typedef value) {
+    _writeDataKind(DataKind.typedefNode);
+    _writeTypedefNode(value);
+  }
+
+  void _writeTypedefNode(ir.Typedef value) {
+    _writeLibraryNode(value.enclosingLibrary);
+    _writeString(value.name);
+  }
+
+  @override
   void writeLibraryNode(ir.Library value) {
     _writeDataKind(DataKind.libraryNode);
     _writeLibraryNode(value);
@@ -116,14 +171,18 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   @override
   void writeEnum(dynamic value) {
     _writeDataKind(DataKind.enumValue);
-    _writeEnum(value);
+    _writeEnumInternal(value);
   }
 
   @override
   void writeBool(bool value) {
     assert(value != null);
     _writeDataKind(DataKind.bool);
-    _writeInt(value ? 1 : 0);
+    _writeBool(value);
+  }
+
+  void _writeBool(bool value) {
+    _writeIntInternal(value ? 1 : 0);
   }
 
   @override
@@ -145,7 +204,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     assert(value != null);
     assert(value >= 0 && value >> 30 == 0);
     _writeDataKind(DataKind.int);
-    _writeInt(value);
+    _writeIntInternal(value);
   }
 
   void writeTreeNode(ir.TreeNode value) {
@@ -155,23 +214,23 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   void _writeTreeNode(ir.TreeNode value) {
     if (value is ir.Class) {
-      _writeEnum(_TreeNodeKind.cls);
+      _writeEnumInternal(_TreeNodeKind.cls);
       _writeClassNode(value);
     } else if (value is ir.Member) {
-      _writeEnum(_TreeNodeKind.member);
+      _writeEnumInternal(_TreeNodeKind.member);
       _writeMemberNode(value);
     } else if (value is ir.VariableDeclaration &&
         value.parent is ir.FunctionDeclaration) {
-      _writeEnum(_TreeNodeKind.functionDeclarationVariable);
+      _writeEnumInternal(_TreeNodeKind.functionDeclarationVariable);
       _writeTreeNode(value.parent);
     } else if (value is ir.FunctionNode) {
-      _writeEnum(_TreeNodeKind.functionNode);
+      _writeEnumInternal(_TreeNodeKind.functionNode);
       _writeFunctionNode(value);
     } else if (value is ir.TypeParameter) {
-      _writeEnum(_TreeNodeKind.typeParameter);
+      _writeEnumInternal(_TreeNodeKind.typeParameter);
       _writeTypeParameter(value);
     } else {
-      _writeEnum(_TreeNodeKind.node);
+      _writeEnumInternal(_TreeNodeKind.node);
       ir.TreeNode member = value;
       while (member is! ir.Member) {
         if (member == null) {
@@ -183,24 +242,25 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
       _writeMemberNode(member);
       _MemberData memberData = _memberData[member] ??= new _MemberData(member);
       int index = memberData.getIndexByTreeNode(value);
-      assert(index != null, "No index found for ${value.runtimeType}.");
-      _writeInt(index);
+      assert(
+          index != null, "No TreeNode index found for ${value.runtimeType}.");
+      _writeIntInternal(index);
     }
   }
 
   void _writeFunctionNode(ir.FunctionNode value) {
     ir.TreeNode parent = value.parent;
     if (parent is ir.Procedure) {
-      _writeEnum(_FunctionNodeKind.procedure);
+      _writeEnumInternal(_FunctionNodeKind.procedure);
       _writeMemberNode(parent);
     } else if (parent is ir.Constructor) {
-      _writeEnum(_FunctionNodeKind.constructor);
+      _writeEnumInternal(_FunctionNodeKind.constructor);
       _writeMemberNode(parent);
     } else if (parent is ir.FunctionExpression) {
-      _writeEnum(_FunctionNodeKind.functionExpression);
+      _writeEnumInternal(_FunctionNodeKind.functionExpression);
       _writeTreeNode(parent);
     } else if (parent is ir.FunctionDeclaration) {
-      _writeEnum(_FunctionNodeKind.functionDeclaration);
+      _writeEnumInternal(_FunctionNodeKind.functionDeclaration);
       _writeTreeNode(parent);
     } else {
       throw new UnsupportedError(
@@ -217,13 +277,13 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   void _writeTypeParameter(ir.TypeParameter value) {
     ir.TreeNode parent = value.parent;
     if (parent is ir.Class) {
-      _writeEnum(_TypeParameterKind.cls);
+      _writeEnumInternal(_TypeParameterKind.cls);
       _writeClassNode(parent);
-      _writeInt(parent.typeParameters.indexOf(value));
+      _writeIntInternal(parent.typeParameters.indexOf(value));
     } else if (parent is ir.FunctionNode) {
-      _writeEnum(_TypeParameterKind.functionNode);
+      _writeEnumInternal(_TypeParameterKind.functionNode);
       _writeFunctionNode(parent);
-      _writeInt(parent.typeParameters.indexOf(value));
+      _writeIntInternal(parent.typeParameters.indexOf(value));
     } else {
       throw new UnsupportedError(
           "Unsupported TypeParameter parent ${parent.runtimeType}");
@@ -231,7 +291,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   }
 
   void _writeDataKind(DataKind kind) {
-    if (useDataKinds) _writeEnum(kind);
+    if (useDataKinds) _writeEnumInternal(kind);
   }
 
   void writeLibrary(IndexedLibrary value) {
@@ -279,7 +339,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   }
 
   void _writeConstant(ConstantValue value) {
-    _writeEnum(value.kind);
+    _writeEnumInternal(value.kind);
     switch (value.kind) {
       case ConstantValueKind.BOOL:
         BoolConstantValue constant = value;
@@ -304,11 +364,73 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
         break;
       case ConstantValueKind.NULL:
         break;
-      default:
-        // TODO(johnniwinther): Support remaining constant values.
+      case ConstantValueKind.FUNCTION:
+        FunctionConstantValue constant = value;
+        IndexedFunction function = constant.element;
+        writeMember(function);
+        writeDartType(constant.type);
+        break;
+      case ConstantValueKind.LIST:
+        ListConstantValue constant = value;
+        writeDartType(constant.type);
+        writeConstants(constant.entries);
+        break;
+      case ConstantValueKind.MAP:
+        MapConstantValue constant = value;
+        writeDartType(constant.type);
+        writeConstants(constant.keys);
+        writeConstants(constant.values);
+        break;
+      case ConstantValueKind.CONSTRUCTED:
+        ConstructedConstantValue constant = value;
+        writeDartType(constant.type);
+        writeMemberMap(constant.fields, writeConstant);
+        break;
+      case ConstantValueKind.TYPE:
+        TypeConstantValue constant = value;
+        writeDartType(constant.representedType);
+        writeDartType(constant.type);
+        break;
+      case ConstantValueKind.INSTANTIATION:
+        InstantiationConstantValue constant = value;
+        writeDartTypes(constant.typeArguments);
+        writeConstant(constant.function);
+        break;
+      case ConstantValueKind.NON_CONSTANT:
+        break;
+      case ConstantValueKind.DEFERRED_GLOBAL:
+      case ConstantValueKind.INTERCEPTOR:
+      case ConstantValueKind.SYNTHETIC:
+        // These are only created in the SSA graph builder.
         throw new UnsupportedError(
-            "Unexpected constant value kind ${value.kind}.");
+            "Unsupported constant value kind ${value.kind}.");
     }
+  }
+
+  void _writeString(String value) {
+    _stringIndex.write(value, _writeStringInternal);
+  }
+
+  void _writeUri(Uri value) {
+    _uriIndex.write(value, _writeUriInternal);
+  }
+
+  @override
+  void writeImport(ImportEntity value) {
+    _writeDataKind(DataKind.import);
+    _writeImport(value);
+  }
+
+  void _writeImport(ImportEntity value) {
+    _importIndex.write(value, _writeImportInternal);
+  }
+
+  void _writeImportInternal(ImportEntity value) {
+    // TODO(johnniwinther): Do we need to serialize non-deferred imports?
+    writeStringOrNull(value.name);
+    _writeUri(value.uri);
+    _writeUri(value.enclosingLibraryUri);
+    _writeBool(value.isDeferred);
   }
 
   /// Actual serialization of a section begin tag, implemented by subclasses.
@@ -318,15 +440,15 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   void _end(String tag);
 
   /// Actual serialization of a URI value, implemented by subclasses.
-  void _writeUri(Uri value);
+  void _writeUriInternal(Uri value);
 
   /// Actual serialization of a String value, implemented by subclasses.
-  void _writeString(String value);
+  void _writeStringInternal(String value);
 
   /// Actual serialization of a non-negative integer value, implemented by
   /// subclasses.
-  void _writeInt(int value);
+  void _writeIntInternal(int value);
 
   /// Actual serialization of an enum value, implemented by subclasses.
-  void _writeEnum(dynamic value);
+  void _writeEnumInternal(dynamic value);
 }

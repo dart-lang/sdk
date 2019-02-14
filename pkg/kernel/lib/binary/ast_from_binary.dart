@@ -134,11 +134,15 @@ class BinaryBuilder {
     return _doubleBuffer[0];
   }
 
-  List<int> readByteList() {
-    List<int> bytes = new Uint8List(readUInt());
+  List<int> readBytes(int length) {
+    List<int> bytes = new Uint8List(length);
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
     _byteOffset += bytes.length;
     return bytes;
+  }
+
+  List<int> readByteList() {
+    return readBytes(readUInt());
   }
 
   String readStringEntry(int numBytes) {
@@ -212,10 +216,7 @@ class BinaryBuilder {
       case ConstantTag.StringConstant:
         return new StringConstant(readStringReference());
       case ConstantTag.SymbolConstant:
-        Reference libraryReference;
-        if (readAndCheckOptionTag()) {
-          libraryReference = readLibraryReference();
-        }
+        Reference libraryReference = readLibraryReference(allowNull: true);
         return new SymbolConstant(readStringReference(), libraryReference);
       case ConstantTag.MapConstant:
         final DartType keyType = readDartType();
@@ -269,6 +270,21 @@ class BinaryBuilder {
       case ConstantTag.TypeLiteralConstant:
         final DartType type = readDartType();
         return new TypeLiteralConstant(type);
+      case ConstantTag.EnvironmentBoolConstant:
+        final String name = readStringReference();
+        final Constant defaultValue = readConstantReference();
+        return new EnvironmentBoolConstant(name, defaultValue);
+      case ConstantTag.EnvironmentIntConstant:
+        final String name = readStringReference();
+        final Constant defaultValue = readConstantReference();
+        return new EnvironmentIntConstant(name, defaultValue);
+      case ConstantTag.EnvironmentStringConstant:
+        final String name = readStringReference();
+        final Constant defaultValue = readConstantReference();
+        return new EnvironmentStringConstant(name, defaultValue);
+      case ConstantTag.UnevaluatedConstant:
+        final Expression expression = readExpression();
+        return new UnevaluatedConstant(expression);
     }
 
     throw fail('unexpected constant tag: $constantTag');
@@ -489,40 +505,44 @@ class BinaryBuilder {
   }
 
   void _checkCanonicalNameChildren(CanonicalName parent) {
-    for (CanonicalName child in parent.children) {
-      if (child.name != '@methods' &&
-          child.name != '@typedefs' &&
-          child.name != '@fields' &&
-          child.name != '@getters' &&
-          child.name != '@setters' &&
-          child.name != '@factories' &&
-          child.name != '@constructors') {
-        bool checkReferenceNode = true;
-        if (child.reference == null) {
-          // OK for "if private: URI of library" part of "Qualified name"...
-          Iterable<CanonicalName> children = child.children;
-          if (parent.parent != null &&
-              children.isNotEmpty &&
-              children.first.name.startsWith("_")) {
-            // OK then.
-            checkReferenceNode = false;
-          } else {
-            throw new CanonicalNameError(
-                "Null reference (${child.name}) ($child).");
+    Iterable<CanonicalName> parentChildren = parent.childrenOrNull;
+    if (parentChildren != null) {
+      for (CanonicalName child in parentChildren) {
+        if (child.name != '@methods' &&
+            child.name != '@typedefs' &&
+            child.name != '@fields' &&
+            child.name != '@getters' &&
+            child.name != '@setters' &&
+            child.name != '@factories' &&
+            child.name != '@constructors') {
+          bool checkReferenceNode = true;
+          if (child.reference == null) {
+            // OK for "if private: URI of library" part of "Qualified name"...
+            Iterable<CanonicalName> children = child.childrenOrNull;
+            if (parent.parent != null &&
+                children != null &&
+                children.isNotEmpty &&
+                children.first.name.startsWith("_")) {
+              // OK then.
+              checkReferenceNode = false;
+            } else {
+              throw new CanonicalNameError(
+                  "Null reference (${child.name}) ($child).");
+            }
+          }
+          if (checkReferenceNode) {
+            if (child.reference.canonicalName != child) {
+              throw new CanonicalNameError(
+                  "Canonical name and reference doesn't agree.");
+            }
+            if (child.reference.node == null) {
+              throw new CanonicalNameError(
+                  "Reference is null (${child.name}) ($child).");
+            }
           }
         }
-        if (checkReferenceNode) {
-          if (child.reference.canonicalName != child) {
-            throw new CanonicalNameError(
-                "Canonical name and reference doesn't agree.");
-          }
-          if (child.reference.node == null) {
-            throw new CanonicalNameError(
-                "Reference is null (${child.name}) ($child).");
-          }
-        }
+        _checkCanonicalNameChildren(child);
       }
-      _checkCanonicalNameChildren(child);
     }
   }
 
@@ -617,6 +637,8 @@ class BinaryBuilder {
     _byteOffset = index.binaryOffsetForStringTable; // Read backwards.
     _readMetadataMappings(component, index.binaryOffsetForMetadataPayloads);
 
+    _associateMetadata(component, _componentStartOffset);
+
     _byteOffset = index.binaryOffsetForSourceTable;
     Map<Uri, Source> uriToSource = readUriToSource();
     component.uriToSource.addAll(uriToSource);
@@ -633,8 +655,6 @@ class BinaryBuilder {
     var mainMethod =
         getMemberReferenceFromInt(index.mainMethodReference, allowNull: true);
     component.mainMethodName ??= mainMethod;
-
-    _associateMetadata(component, _componentStartOffset);
 
     _byteOffset = _componentStartOffset + componentFileSize;
   }
@@ -681,8 +701,11 @@ class BinaryBuilder {
     return _linkTable[index - 1];
   }
 
-  Reference readLibraryReference() {
-    return readCanonicalNameReference().getReference();
+  Reference readLibraryReference({bool allowNull: false}) {
+    CanonicalName canonicalName = readCanonicalNameReference();
+    if (canonicalName != null) return canonicalName.getReference();
+    if (allowNull) return null;
+    throw 'Expected a library reference to be valid but was `null`.';
   }
 
   LibraryDependency readLibraryDependencyReference() {
@@ -823,7 +846,7 @@ class BinaryBuilder {
     var fileOffset = readOffset();
     var flags = readByte();
     var annotations = readExpressionList();
-    var targetLibrary = readLibraryReference();
+    var targetLibrary = readLibraryReference(allowNull: true);
     var prefixName = readStringOrNullIfEmpty();
     var names = readCombinatorList();
     return new LibraryDependency.byReference(
@@ -1102,9 +1125,9 @@ class BinaryBuilder {
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
     var forwardingStubSuperTargetReference =
-        readAndCheckOptionTag() ? readMemberReference() : null;
+        readMemberReference(allowNull: true);
     var forwardingStubInterfaceTargetReference =
-        readAndCheckOptionTag() ? readMemberReference() : null;
+        readMemberReference(allowNull: true);
     var function = readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     var transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
@@ -1148,7 +1171,10 @@ class BinaryBuilder {
     var flags = readByte();
     var name = readName();
     var annotations = readAnnotationList(node);
-    debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
+    assert(() {
+      debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
+      return true;
+    }());
     var targetReference = readMemberReference();
     var typeArguments = readDartTypeList();
     int typeParameterStackHeight = typeParameterStack.length;
@@ -1519,6 +1545,18 @@ class BinaryBuilder {
         return new ListLiteral(readExpressionList(),
             typeArgument: typeArgument, isConst: true)
           ..fileOffset = offset;
+      case Tag.SetLiteral:
+        int offset = readOffset();
+        var typeArgument = readDartType();
+        return new SetLiteral(readExpressionList(),
+            typeArgument: typeArgument, isConst: false)
+          ..fileOffset = offset;
+      case Tag.ConstSetLiteral:
+        int offset = readOffset();
+        var typeArgument = readDartType();
+        return new SetLiteral(readExpressionList(),
+            typeArgument: typeArgument, isConst: true)
+          ..fileOffset = offset;
       case Tag.MapLiteral:
         int offset = readOffset();
         var keyType = readDartType();
@@ -1828,7 +1866,7 @@ class BinaryBuilder {
         var totalParameterCount = readUInt();
         var positional = readDartTypeList();
         var named = readNamedTypeList();
-        var typedefReference = readTypedefReference();
+        var typedefType = readDartTypeOption();
         assert(positional.length + named.length == totalParameterCount);
         var returnType = readDartType();
         typeParameterStack.length = typeParameterStackHeight;
@@ -1836,7 +1874,7 @@ class BinaryBuilder {
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
             namedParameters: named,
-            typedefReference: typedefReference);
+            typedefType: typedefType);
       case Tag.SimpleFunctionType:
         var positional = readDartTypeList();
         var returnType = readDartType();

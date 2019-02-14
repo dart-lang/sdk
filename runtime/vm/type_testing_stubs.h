@@ -10,6 +10,8 @@
 
 namespace dart {
 
+class ObjectPoolWrapper;
+
 class TypeTestingStubNamer {
  public:
   TypeTestingStubNamer();
@@ -266,9 +268,6 @@ class TypeArgumentClassFinder {
         }
       }
       return true;
-    } else if (type.IsBoundedType()) {
-      // No support for bounded types.
-      return false;
     }
     UNREACHABLE();
     return false;
@@ -318,7 +317,7 @@ class TypeArgumentInstantiator {
 };
 
 // Collects data on how [Type] objects are used in generated code.
-class TypeUsageInfo : public StackResource {
+class TypeUsageInfo : public ThreadStackResource {
  public:
   explicit TypeUsageInfo(Thread* thread);
   ~TypeUsageInfo();

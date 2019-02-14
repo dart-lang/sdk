@@ -37,7 +37,7 @@ static void LengthCheck(intptr_t len, intptr_t max) {
   }
 }
 
-DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
+DEFINE_NATIVE_ENTRY(TypedData_length, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
   if (instance.IsTypedData()) {
     const TypedData& array = TypedData::Cast(instance);
@@ -105,14 +105,16 @@ static bool IsUint8(intptr_t cid) {
   }
 }
 
-DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
-  const Instance& dst = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  const Smi& dst_start = Smi::CheckedHandle(arguments->NativeArgAt(1));
-  const Smi& length = Smi::CheckedHandle(arguments->NativeArgAt(2));
-  const Instance& src = Instance::CheckedHandle(arguments->NativeArgAt(3));
-  const Smi& src_start = Smi::CheckedHandle(arguments->NativeArgAt(4));
-  const Smi& to_cid_smi = Smi::CheckedHandle(arguments->NativeArgAt(5));
-  const Smi& from_cid_smi = Smi::CheckedHandle(arguments->NativeArgAt(6));
+DEFINE_NATIVE_ENTRY(TypedData_setRange, 0, 7) {
+  const Instance& dst =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Smi& dst_start = Smi::CheckedHandle(zone, arguments->NativeArgAt(1));
+  const Smi& length = Smi::CheckedHandle(zone, arguments->NativeArgAt(2));
+  const Instance& src =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(3));
+  const Smi& src_start = Smi::CheckedHandle(zone, arguments->NativeArgAt(4));
+  const Smi& to_cid_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(5));
+  const Smi& from_cid_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(6));
 
   if (length.Value() < 0) {
     const String& error = String::Handle(String::NewFormatted(
@@ -145,12 +147,18 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
 }
 
 // We check the length parameter against a possible maximum length for the
-// array based on available physical addressable memory on the system. The
-// maximum possible length is a scaled value of kSmiMax which is set up based
-// on whether the underlying architecture is 32-bit or 64-bit.
+// array based on available physical addressable memory on the system.
+//
+// More specifically
+//
+//   TypedData::MaxElements(cid) is equal to (kSmiMax / ElementSizeInBytes(cid))
+//
+// which ensures that the number of bytes the array holds is guaranteed to fit
+// into a _Smi.
+//
 // Argument 0 is type arguments and is ignored.
 #define TYPED_DATA_NEW(name)                                                   \
-  DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 2) {                             \
+  DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 0, 2) {                          \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));      \
     intptr_t cid = kTypedData##name##Cid;                                      \
     intptr_t len = length.Value();                                             \
@@ -164,7 +172,7 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
 CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 
 #define TYPED_DATA_GETTER(getter, object, ctor, access_size)                   \
-  DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                 \
+  DEFINE_NATIVE_ENTRY(TypedData_##getter, 0, 2) {                              \
     GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance,                           \
                                  arguments->NativeArgAt(0));                   \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes,                           \
@@ -189,7 +197,7 @@ CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 
 #define TYPED_DATA_SETTER(setter, object, get_object_value, access_size,       \
                           access_type)                                         \
-  DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                 \
+  DEFINE_NATIVE_ENTRY(TypedData_##setter, 0, 3) {                              \
     GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance,                           \
                                  arguments->NativeArgAt(0));                   \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes,                           \

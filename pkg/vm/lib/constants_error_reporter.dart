@@ -12,11 +12,11 @@ import 'package:front_end/src/api_unstable/vm.dart'
 import 'package:front_end/src/api_unstable/vm.dart' as codes;
 
 import 'package:kernel/ast.dart'
-    show Constant, DartType, FileUriNode, IntConstant, Procedure, TreeNode;
+    show Constant, DartType, IntConstant, Procedure, TreeNode;
 import 'package:kernel/transformations/constants.dart' as constants;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
-class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
+class ForwardConstantEvaluationErrors extends constants.ErrorReporter {
   // This will get the currently active [CompilerContext] from a zone variable.
   // If there is no active context, this will throw.
   final CompilerContext compilerContext = CompilerContext.current;
@@ -25,19 +25,29 @@ class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
 
   ForwardConstantEvaluationErrors(this.typeEnvironment);
 
-  duplicateKey(List<TreeNode> context, TreeNode node, Constant key) {
+  @override
+  void freeTypeParameter(List<TreeNode> context, TreeNode node, DartType type) {
+    final message =
+        codes.templateConstEvalFreeTypeParameter.withArguments(type);
+    reportIt(context, message, node);
+  }
+
+  @override
+  void duplicateKey(List<TreeNode> context, TreeNode node, Constant key) {
     final message = codes.templateConstEvalDuplicateKey.withArguments(key);
     reportIt(context, message, node);
   }
 
-  invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
+  @override
+  void invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
       DartType expectedType) {
     final message = codes.templateConstEvalInvalidType.withArguments(
         receiver, expectedType, receiver.getType(typeEnvironment));
     reportIt(context, message, node);
   }
 
-  invalidBinaryOperandType(
+  @override
+  void invalidBinaryOperandType(
       List<TreeNode> context,
       TreeNode node,
       Constant receiver,
@@ -49,48 +59,63 @@ class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
     reportIt(context, message, node);
   }
 
-  invalidMethodInvocation(
+  @override
+  void invalidMethodInvocation(
       List<TreeNode> context, TreeNode node, Constant receiver, String op) {
     final message = codes.templateConstEvalInvalidMethodInvocation
         .withArguments(op, receiver);
     reportIt(context, message, node);
   }
 
-  invalidStaticInvocation(
+  @override
+  void invalidStaticInvocation(
       List<TreeNode> context, TreeNode node, Procedure target) {
     final message = codes.templateConstEvalInvalidStaticInvocation
         .withArguments(target.name.toString());
     reportIt(context, message, node);
   }
 
-  invalidStringInterpolationOperand(
+  @override
+  void invalidStringInterpolationOperand(
       List<TreeNode> context, TreeNode node, Constant constant) {
     final message = codes.templateConstEvalInvalidStringInterpolationOperand
         .withArguments(constant);
     reportIt(context, message, node);
   }
 
-  zeroDivisor(
+  @override
+  void invalidSymbolName(
+      List<TreeNode> context, TreeNode node, Constant constant) {
+    final message =
+        codes.templateConstEvalInvalidSymbolName.withArguments(constant);
+    reportIt(context, message, node);
+  }
+
+  @override
+  void zeroDivisor(
       List<TreeNode> context, TreeNode node, IntConstant receiver, String op) {
     final message = codes.templateConstEvalZeroDivisor
         .withArguments(op, '${receiver.value}');
     reportIt(context, message, node);
   }
 
-  negativeShift(List<TreeNode> context, TreeNode node, IntConstant receiver,
-      String op, IntConstant argument) {
+  @override
+  void negativeShift(List<TreeNode> context, TreeNode node,
+      IntConstant receiver, String op, IntConstant argument) {
     final message = codes.templateConstEvalNegativeShift
         .withArguments(op, '${receiver.value}', '${argument.value}');
     reportIt(context, message, node);
   }
 
-  nonConstLiteral(List<TreeNode> context, TreeNode node, String klass) {
+  @override
+  void nonConstLiteral(List<TreeNode> context, TreeNode node, String klass) {
     final message =
         codes.templateConstEvalNonConstantLiteral.withArguments(klass);
     reportIt(context, message, node);
   }
 
-  failedAssertion(List<TreeNode> context, TreeNode node, String string) {
+  @override
+  void failedAssertion(List<TreeNode> context, TreeNode node, String string) {
     final message = string == null
         ? codes.messageConstEvalFailedAssertion
         : codes.templateConstEvalFailedAssertionWithMessage
@@ -98,20 +123,23 @@ class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
     reportIt(context, message, node);
   }
 
-  nonConstantVariableGet(
+  @override
+  void nonConstantVariableGet(
       List<TreeNode> context, TreeNode node, String variableName) {
     final message = codes.templateConstEvalNonConstantVariableGet
         .withArguments(variableName);
     reportIt(context, message, node);
   }
 
-  deferredLibrary(List<TreeNode> context, TreeNode node, String importName) {
+  @override
+  void deferredLibrary(
+      List<TreeNode> context, TreeNode node, String importName) {
     final message =
         codes.templateConstEvalDeferredLibrary.withArguments(importName);
     reportIt(context, message, node);
   }
 
-  reportIt(List<TreeNode> context, codes.Message message, TreeNode node) {
+  void reportIt(List<TreeNode> context, codes.Message message, TreeNode node) {
     final Uri uri = getFileUri(node);
     final int fileOffset = getFileOffset(node);
 
@@ -128,19 +156,5 @@ class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
 
     compilerContext.options
         .report(locatedMessage, Severity.error, context: contextMessages);
-  }
-
-  getFileUri(TreeNode node) {
-    while (node is! FileUriNode) {
-      node = node.parent;
-    }
-    return (node as FileUriNode).fileUri;
-  }
-
-  getFileOffset(TreeNode node) {
-    while (node?.fileOffset == TreeNode.noOffset) {
-      node = node.parent;
-    }
-    return node == null ? TreeNode.noOffset : node.fileOffset;
   }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,7 +13,7 @@ import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/services/kythe/kythe_visitors.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/type_system.dart';
@@ -56,10 +56,9 @@ class KytheDomainHandler extends AbstractRequestHandler {
       //
       List<KytheGetKytheEntriesResult> allResults =
           <KytheGetKytheEntriesResult>[];
-      AnalysisResult result = await server.getAnalysisResult(file);
-      CompilationUnit unit = result?.unit;
-      TypeSystem typeSystem = result.libraryElement.context.typeSystem;
-      if (unit != null && result.exists) {
+      ResolvedUnitResult result = await server.getResolvedUnit(file);
+      if (result?.state == ResultState.VALID) {
+        TypeSystem typeSystem = await result.libraryElement.session.typeSystem;
         List<KytheEntry> entries = <KytheEntry>[];
         // TODO(brianwilkerson) Figure out how to get the list of files.
         List<String> files = <String>[];

@@ -2249,9 +2249,6 @@ ISOLATE_UNIT_TEST_CASE(Script) {
   const char* kScript = "main() {}";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 }
@@ -2431,13 +2428,14 @@ ISOLATE_UNIT_TEST_CASE(ObjectPrinting) {
 
 ISOLATE_UNIT_TEST_CASE(CheckedHandle) {
   // Ensure that null handles have the correct C++ vtable setup.
-  const String& str1 = String::Handle();
+  Zone* zone = Thread::Current()->zone();
+  const String& str1 = String::Handle(zone);
   EXPECT(str1.IsString());
   EXPECT(str1.IsNull());
-  const String& str2 = String::CheckedHandle(Object::null());
+  const String& str2 = String::CheckedHandle(zone, Object::null());
   EXPECT(str2.IsString());
   EXPECT(str2.IsNull());
-  String& str3 = String::Handle();
+  String& str3 = String::Handle(zone);
   str3 ^= Object::null();
   EXPECT(str3.IsString());
   EXPECT(str3.IsNull());
@@ -2476,8 +2474,8 @@ ISOLATE_UNIT_TEST_CASE(Code) {
   Assembler _assembler_(&object_pool_wrapper);
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
-  Code& code =
-      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
+  Code& code = Code::Handle(Code::FinalizeCode(
+      function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
   const Instructions& instructions = Instructions::Handle(code.instructions());
   uword payload_start = instructions.PayloadStart();
@@ -2498,8 +2496,8 @@ ISOLATE_UNIT_TEST_CASE(CodeImmutability) {
   Assembler _assembler_(&object_pool_wrapper);
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
-  Code& code =
-      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
+  Code& code = Code::Handle(Code::FinalizeCode(
+      function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
   Instructions& instructions = Instructions::Handle(code.instructions());
   uword payload_start = instructions.PayloadStart();
@@ -2526,8 +2524,8 @@ ISOLATE_UNIT_TEST_CASE(EmbedStringInCode) {
   GenerateEmbedStringInCode(&_assembler_, kHello);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedStringInCode"));
-  const Code& code =
-      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
+  const Code& code = Code::Handle(Code::FinalizeCode(
+      function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
@@ -2549,8 +2547,8 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedSmiInCode"));
-  const Code& code =
-      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
+  const Code& code = Code::Handle(Code::FinalizeCode(
+      function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
@@ -2567,8 +2565,8 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedSmiIn64BitCode"));
-  const Code& code =
-      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
+  const Code& code = Code::Handle(Code::FinalizeCode(
+      function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
@@ -2596,8 +2594,9 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   ObjectPoolWrapper object_pool_wrapper;
   Assembler _assembler_(&object_pool_wrapper);
   GenerateIncrement(&_assembler_);
-  Code& code = Code::Handle(Code::FinalizeCode(
-      Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_));
+  Code& code = Code::Handle(
+      Code::FinalizeCode(Function::Handle(CreateFunction("Test_Code")), nullptr,
+                         &_assembler_, Code::PoolAttachment::kAttachPool));
   code.set_exception_handlers(exception_handlers);
 
   // Verify the exception handler table entries by accessing them.
@@ -2637,8 +2636,9 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   ObjectPoolWrapper object_pool_wrapper;
   Assembler _assembler_(&object_pool_wrapper);
   GenerateIncrement(&_assembler_);
-  Code& code = Code::Handle(Code::FinalizeCode(
-      Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_));
+  Code& code = Code::Handle(
+      Code::FinalizeCode(Function::Handle(CreateFunction("Test_Code")), nullptr,
+                         &_assembler_, Code::PoolAttachment::kAttachPool));
   code.set_pc_descriptors(descriptors);
 
   // Verify the PcDescriptor entries by accessing them.
@@ -2699,8 +2699,9 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   ObjectPoolWrapper object_pool_wrapper;
   Assembler _assembler_(&object_pool_wrapper);
   GenerateIncrement(&_assembler_);
-  Code& code = Code::Handle(Code::FinalizeCode(
-      Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_));
+  Code& code = Code::Handle(
+      Code::FinalizeCode(Function::Handle(CreateFunction("Test_Code")), nullptr,
+                         &_assembler_, Code::PoolAttachment::kAttachPool));
   code.set_pc_descriptors(descriptors);
 
   // Verify the PcDescriptor entries by accessing them.
@@ -3831,7 +3832,7 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
   Dart_Handle result = Dart_Invoke(lib, NewString("test"), 0, NULL);
   EXPECT_VALID(result);
 
-  Function& func_b = Function::Handle();
+  // With no breakpoint, function A.b is inlineable.
   {
     TransitionNativeToVM transition(thread);
     const String& name = String::Handle(String::New(TestCase::url()));
@@ -3840,16 +3841,25 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
     EXPECT(!vmlib.IsNull());
     const Class& class_a = Class::Handle(
         vmlib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
-    func_b = GetFunction(class_a, "b");
+    Function& func_b = Function::Handle(GetFunction(class_a, "b"));
+    EXPECT(func_b.CanBeInlined());
   }
 
-  // With no breakpoint, function A.b is inlineable.
-  EXPECT(func_b.CanBeInlined());
-
-  // After setting a breakpoint in a function A.b, it is no longer inlineable.
   result = Dart_SetBreakpoint(NewString(TestCase::url()), kBreakpointLine);
   EXPECT_VALID(result);
-  EXPECT(!func_b.CanBeInlined());
+
+  // After setting a breakpoint in a function A.b, it is no longer inlineable.
+  {
+    TransitionNativeToVM transition(thread);
+    const String& name = String::Handle(String::New(TestCase::url()));
+    const Library& vmlib =
+        Library::Handle(Library::LookupLibrary(thread, name));
+    EXPECT(!vmlib.IsNull());
+    const Class& class_a = Class::Handle(
+        vmlib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
+    Function& func_b = Function::Handle(GetFunction(class_a, "b"));
+    EXPECT(!func_b.CanBeInlined());
+  }
 }
 
 ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
@@ -4191,13 +4201,12 @@ TEST_CASE(InstanceEquality) {
 
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
   TransitionNativeToVM transition(thread);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
   const Class& clazz = Class::Handle(GetClass(lib, "A"));
   EXPECT(!clazz.IsNull());
   const Instance& a0 = Instance::Handle(Instance::New(clazz));
@@ -4218,15 +4227,12 @@ TEST_CASE(HashCode) {
 
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
   Dart_Handle h_result = Dart_Invoke(h_lib, NewString("foo"), 0, NULL);
   EXPECT_VALID(h_result);
-  Integer& result = Integer::Handle();
-  result ^= Api::UnwrapHandle(h_result);
 
   TransitionNativeToVM transition(thread);
+  Integer& result = Integer::Handle();
+  result ^= Api::UnwrapHandle(h_result);
   String& foo = String::Handle(String::New("foo"));
   Integer& expected = Integer::Handle();
   expected ^= foo.HashCode();
@@ -4286,9 +4292,6 @@ TEST_CASE(LinkedHashMap) {
       "}";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
   Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
   EXPECT_VALID(h_result);
 
@@ -4313,12 +4316,10 @@ TEST_CASE(LinkedHashMap_iteration) {
       "}";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
   Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
   EXPECT_VALID(h_result);
 
+  TransitionNativeToVM transition(thread);
   Instance& dart_map = Instance::Handle();
   dart_map ^= Api::UnwrapHandle(h_result);
   ASSERT(dart_map.IsLinkedHashMap());

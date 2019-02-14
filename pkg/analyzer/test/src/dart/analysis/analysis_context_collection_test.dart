@@ -1,14 +1,13 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../context/mock_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class AnalysisContextCollectionTest extends Object with ResourceProviderMixin {
+class AnalysisContextCollectionTest with ResourceProviderMixin {
   void setUp() {
     new MockSdk(resourceProvider: resourceProvider);
   }

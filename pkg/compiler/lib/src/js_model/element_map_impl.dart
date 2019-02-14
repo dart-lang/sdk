@@ -27,10 +27,14 @@ import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
+import '../ir/cached_static_type.dart';
+import '../ir/closure.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
+import '../ir/static_type_base.dart';
+import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/constant_system_javascript.dart';
@@ -40,14 +44,13 @@ import '../js_emitter/code_emitter_task.dart';
 import '../kernel/element_map_impl.dart';
 import '../kernel/env.dart';
 import '../kernel/kelements.dart';
-import '../native/native.dart' as native;
+import '../native/behavior.dart';
 import '../options.dart';
 import '../ordered_typeset.dart';
 import '../serialization/serialization.dart';
 import '../ssa/type_builder.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
-import '../universe/world_builder.dart';
 
 import 'closure.dart';
 import 'elements.dart';
@@ -69,7 +72,26 @@ abstract class JsToWorldBuilder implements JsToElementMap {
       void f(DartType type, String name, ConstantValue defaultValue));
 }
 
-abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
+class JsKernelToElementMap
+    implements JsToWorldBuilder, JsToElementMap, IrToElementMap {
+  /// Tag used for identifying serialized [JsKernelToElementMap] objects in a
+  /// debugging data stream.
+  static const String tag = 'js-kernel-to-element-map';
+
+  /// Tags used for identifying serialized subsections of a
+  /// [JsKernelToElementMap] object in a debugging data stream.
+  static const String libraryTag = 'libraries';
+  static const String classTag = 'classes';
+  static const String typedefTag = 'typedefs';
+  static const String memberTag = 'members';
+  static const String typeVariableTag = 'type-variables';
+  static const String libraryDataTag = 'library-data';
+  static const String classDataTag = 'class-data';
+  static const String typedefDataTag = 'typedef-data';
+  static const String memberDataTag = 'member-data';
+  static const String typeVariableDataTag = 'type-variable-data';
+  static const String nestedClosuresTag = 'nested-closures';
+
   final CompilerOptions options;
   final DiagnosticReporter reporter;
   CommonElementsImpl _commonElements;
@@ -78,6 +100,7 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
   JsConstantEnvironment _constantEnvironment;
   KernelDartTypes _types;
   ir.TypeEnvironment _typeEnvironment;
+  ir.ClassHierarchy _classHierarchy;
 
   /// Library environment. Used for fast lookup.
   JProgramEnv programEnv;
@@ -93,15 +116,367 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
   final EntityDataMap<IndexedTypedef, JTypedefData> typedefs =
       new EntityDataMap<IndexedTypedef, JTypedefData>();
 
-  JsToElementMapBase(this.options, this.reporter, Environment environment) {
+  final Map<ir.Library, IndexedLibrary> libraryMap = {};
+  final Map<ir.Class, IndexedClass> classMap = {};
+  final Map<ir.Typedef, IndexedTypedef> typedefMap = {};
+
+  /// Map from [ir.TypeParameter] nodes to the corresponding
+  /// [TypeVariableEntity].
+  ///
+  /// Normally the type variables are [IndexedTypeVariable]s, but for type
+  /// parameters on local function (in the frontend) these are _not_ since
+  /// their type declaration is neither a class nor a member. In the backend,
+  /// these type parameters belong to the call-method and are therefore indexed.
+  final Map<ir.TypeParameter, TypeVariableEntity> typeVariableMap = {};
+  final Map<ir.Member, IndexedConstructor> constructorMap = {};
+  final Map<ir.Procedure, IndexedFunction> methodMap = {};
+  final Map<ir.Field, IndexedField> fieldMap = {};
+  final Map<ir.TreeNode, Local> localFunctionMap = {};
+
+  /// Map from members to the call methods created for their nested closures.
+  Map<IndexedMember, List<IndexedFunction>> _nestedClosureMap = {};
+
+  /// NativeBasicData is need for computation of the default super class.
+  NativeBasicData nativeBasicData;
+
+  Map<IndexedFunction, JGeneratorBody> _generatorBodies = {};
+
+  Map<IndexedClass, List<IndexedMember>> _injectedClassMembers = {};
+
+  JsKernelToElementMap(this.reporter, Environment environment,
+      KernelToElementMapImpl _elementMap, Iterable<MemberEntity> liveMembers)
+      : this.options = _elementMap.options {
     _elementEnvironment = new JsElementEnvironment(this);
     _commonElements = new CommonElementsImpl(_elementEnvironment);
     _constantEnvironment = new JsConstantEnvironment(this, environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
+
+    programEnv = _elementMap.env.convert();
+    for (int libraryIndex = 0;
+        libraryIndex < _elementMap.libraries.length;
+        libraryIndex++) {
+      IndexedLibrary oldLibrary = _elementMap.libraries.getEntity(libraryIndex);
+      KLibraryEnv oldEnv = _elementMap.libraries.getEnv(oldLibrary);
+      KLibraryData data = _elementMap.libraries.getData(oldLibrary);
+      IndexedLibrary newLibrary = convertLibrary(oldLibrary);
+      JLibraryEnv newEnv = oldEnv.convert(_elementMap, liveMembers);
+      libraryMap[oldEnv.library] =
+          libraries.register<IndexedLibrary, JLibraryData, JLibraryEnv>(
+              newLibrary, data.convert(), newEnv);
+      assert(newLibrary.libraryIndex == oldLibrary.libraryIndex);
+      programEnv.registerLibrary(newEnv);
+    }
+    // TODO(johnniwinther): Filter unused classes.
+    for (int classIndex = 0;
+        classIndex < _elementMap.classes.length;
+        classIndex++) {
+      IndexedClass oldClass = _elementMap.classes.getEntity(classIndex);
+      KClassEnv env = _elementMap.classes.getEnv(oldClass);
+      KClassData data = _elementMap.classes.getData(oldClass);
+      IndexedLibrary oldLibrary = oldClass.library;
+      LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
+      IndexedClass newClass = convertClass(newLibrary, oldClass);
+      JClassEnv newEnv = env.convert(_elementMap, liveMembers);
+      classMap[env.cls] = classes.register(newClass, data.convert(), newEnv);
+      assert(newClass.classIndex == oldClass.classIndex);
+      libraries.getEnv(newClass.library).registerClass(newClass.name, newEnv);
+    }
+    for (int typedefIndex = 0;
+        typedefIndex < _elementMap.typedefs.length;
+        typedefIndex++) {
+      IndexedTypedef oldTypedef = _elementMap.typedefs.getEntity(typedefIndex);
+      KTypedefData data = _elementMap.typedefs.getData(oldTypedef);
+      IndexedLibrary oldLibrary = oldTypedef.library;
+      LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
+      IndexedTypedef newTypedef = convertTypedef(newLibrary, oldTypedef);
+      typedefMap[data.node] = typedefs.register(
+          newTypedef,
+          new JTypedefData(
+              data.node,
+              new TypedefType(
+                  newTypedef,
+                  new List<DartType>.filled(
+                      data.node.typeParameters.length, const DynamicType()),
+                  getDartType(data.node.type))));
+      assert(newTypedef.typedefIndex == oldTypedef.typedefIndex);
+    }
+    for (int memberIndex = 0;
+        memberIndex < _elementMap.members.length;
+        memberIndex++) {
+      IndexedMember oldMember = _elementMap.members.getEntity(memberIndex);
+      if (!liveMembers.contains(oldMember)) {
+        members.skipIndex(oldMember.memberIndex);
+        continue;
+      }
+      KMemberData data = _elementMap.members.getData(oldMember);
+      IndexedLibrary oldLibrary = oldMember.library;
+      IndexedClass oldClass = oldMember.enclosingClass;
+      LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
+      ClassEntity newClass =
+          oldClass != null ? classes.getEntity(oldClass.classIndex) : null;
+      IndexedMember newMember = convertMember(newLibrary, newClass, oldMember);
+      members.register(newMember, data.convert());
+      assert(newMember.memberIndex == oldMember.memberIndex);
+      if (newMember.isField) {
+        fieldMap[data.node] = newMember;
+      } else if (newMember.isConstructor) {
+        constructorMap[data.node] = newMember;
+      } else {
+        methodMap[data.node] = newMember;
+      }
+    }
+    for (int typeVariableIndex = 0;
+        typeVariableIndex < _elementMap.typeVariables.length;
+        typeVariableIndex++) {
+      IndexedTypeVariable oldTypeVariable =
+          _elementMap.typeVariables.getEntity(typeVariableIndex);
+      KTypeVariableData oldTypeVariableData =
+          _elementMap.typeVariables.getData(oldTypeVariable);
+      Entity newTypeDeclaration;
+      if (oldTypeVariable.typeDeclaration is ClassEntity) {
+        IndexedClass cls = oldTypeVariable.typeDeclaration;
+        newTypeDeclaration = classes.getEntity(cls.classIndex);
+        // TODO(johnniwinther): Skip type variables of unused classes.
+      } else if (oldTypeVariable.typeDeclaration is MemberEntity) {
+        IndexedMember member = oldTypeVariable.typeDeclaration;
+        newTypeDeclaration = members.getEntity(member.memberIndex);
+        if (newTypeDeclaration == null) {
+          typeVariables.skipIndex(typeVariableIndex);
+          continue;
+        }
+      } else {
+        assert(oldTypeVariable.typeDeclaration is Local);
+      }
+      IndexedTypeVariable newTypeVariable = createTypeVariable(
+          newTypeDeclaration, oldTypeVariable.name, oldTypeVariable.index);
+      typeVariableMap[oldTypeVariableData.node] =
+          typeVariables.register<IndexedTypeVariable, JTypeVariableData>(
+              newTypeVariable, oldTypeVariableData.copy());
+      assert(newTypeVariable.typeVariableIndex ==
+          oldTypeVariable.typeVariableIndex);
+    }
+    // TODO(johnniwinther): We should close the environment in the beginning of
+    // this constructor but currently we need the [MemberEntity] to query if the
+    // member is live, thus potentially creating the [MemberEntity] in the
+    // process. Avoid this.
+    _elementMap.envIsClosed = true;
   }
 
-  bool checkFamily(Entity entity);
+  JsKernelToElementMap.readFromDataSource(this.options, this.reporter,
+      Environment environment, ir.Component component, DataSource source) {
+    _elementEnvironment = new JsElementEnvironment(this);
+    _commonElements = new CommonElementsImpl(_elementEnvironment);
+    _constantEnvironment = new JsConstantEnvironment(this, environment);
+    _typeConverter = new DartTypeConverter(this);
+    _types = new KernelDartTypes(this);
+
+    source.registerComponentLookup(new ComponentLookup(component));
+    _EntityLookup entityLookup = new _EntityLookup();
+    source.registerEntityLookup(entityLookup);
+
+    source.begin(tag);
+    source.begin(libraryTag);
+    int libraryCount = source.readInt();
+    for (int i = 0; i < libraryCount; i++) {
+      int index = source.readInt();
+      JLibrary library = new JLibrary.readFromDataSource(source);
+      entityLookup.registerLibrary(index, library);
+    }
+    source.end(libraryTag);
+
+    source.begin(classTag);
+    int classCount = source.readInt();
+    for (int i = 0; i < classCount; i++) {
+      int index = source.readInt();
+      JClass cls = new JClass.readFromDataSource(source);
+      entityLookup.registerClass(index, cls);
+    }
+    source.end(classTag);
+
+    source.begin(typedefTag);
+    int typedefCount = source.readInt();
+    for (int i = 0; i < typedefCount; i++) {
+      int index = source.readInt();
+      JTypedef typedef = new JTypedef.readFromDataSource(source);
+      entityLookup.registerTypedef(index, typedef);
+    }
+    source.end(typedefTag);
+
+    source.begin(memberTag);
+    int memberCount = source.readInt();
+    for (int i = 0; i < memberCount; i++) {
+      int index = source.readInt();
+      JMember member = new JMember.readFromDataSource(source);
+      entityLookup.registerMember(index, member);
+    }
+    source.end(memberTag);
+
+    source.begin(typeVariableTag);
+    int typeVariableCount = source.readInt();
+    for (int i = 0; i < typeVariableCount; i++) {
+      int index = source.readInt();
+      JTypeVariable typeVariable = new JTypeVariable.readFromDataSource(source);
+      entityLookup.registerTypeVariable(index, typeVariable);
+    }
+    source.end(typeVariableTag);
+
+    programEnv = new JProgramEnv([component]);
+    source.begin(libraryDataTag);
+    entityLookup.forEachLibrary((int index, JLibrary library) {
+      JLibraryEnv env = new JLibraryEnv.readFromDataSource(source);
+      JLibraryData data = new JLibraryData.readFromDataSource(source);
+      libraryMap[env.library] =
+          libraries.registerByIndex(index, library, data, env);
+      programEnv.registerLibrary(env);
+      assert(index == library.libraryIndex);
+    });
+    source.end(libraryDataTag);
+
+    source.begin(classDataTag);
+    entityLookup.forEachClass((int index, JClass cls) {
+      JClassEnv env = new JClassEnv.readFromDataSource(source);
+      JClassData data = new JClassData.readFromDataSource(source);
+      classMap[env.cls] = classes.registerByIndex(index, cls, data, env);
+      if (cls is! JRecord && cls is! JClosureClass) {
+        // Synthesized classes are not part of the library environment.
+        libraries.getEnv(cls.library).registerClass(cls.name, env);
+      }
+      assert(index == cls.classIndex);
+    });
+    source.end(classDataTag);
+
+    source.begin(typedefDataTag);
+    entityLookup.forEachTypedef((int index, JTypedef typedef) {
+      JTypedefData data = new JTypedefData.readFromDataSource(source);
+      typedefMap[data.node] = typedefs.registerByIndex(index, typedef, data);
+      assert(index == typedef.typedefIndex);
+    });
+    source.end(typedefDataTag);
+
+    source.begin(memberDataTag);
+    entityLookup.forEachMember((int index, IndexedMember member) {
+      JMemberData data = new JMemberData.readFromDataSource(source);
+      members.registerByIndex(index, member, data);
+      switch (data.definition.kind) {
+        case MemberKind.regular:
+        case MemberKind.constructor:
+          ir.Member node = data.definition.node;
+          if (member.isField) {
+            fieldMap[node] = member;
+          } else if (member.isConstructor) {
+            constructorMap[node] = member;
+          } else {
+            methodMap[node] = member;
+          }
+          break;
+        default:
+      }
+      assert(index == member.memberIndex);
+    });
+    source.end(memberDataTag);
+
+    source.begin(typeVariableDataTag);
+    entityLookup.forEachTypeVariable((int index, JTypeVariable typeVariable) {
+      JTypeVariableData data = new JTypeVariableData.readFromDataSource(source);
+      typeVariableMap[data.node] =
+          typeVariables.registerByIndex(index, typeVariable, data);
+      assert(index == typeVariable.typeVariableIndex);
+    });
+    source.end(typeVariableDataTag);
+
+    source.begin(nestedClosuresTag);
+    _nestedClosureMap.addAll(
+        source.readMemberMap(() => source.readMembers<IndexedFunction>()));
+    source.end(nestedClosuresTag);
+
+    source.end(tag);
+  }
+
+  /// Serializes this [JsToElementMap] to [sink].
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+
+    // Serialize the entities before serializing the data.
+    sink.begin(libraryTag);
+    sink.writeInt(libraries.size);
+    libraries.forEach((JLibrary library, _, __) {
+      sink.writeInt(library.libraryIndex);
+      library.writeToDataSink(sink);
+    });
+    sink.end(libraryTag);
+
+    sink.begin(classTag);
+    sink.writeInt(classes.size);
+    classes.forEach((JClass cls, _, __) {
+      sink.writeInt(cls.classIndex);
+      cls.writeToDataSink(sink);
+    });
+    sink.end(classTag);
+
+    sink.begin(typedefTag);
+    sink.writeInt(typedefs.size);
+    typedefs.forEach((JTypedef typedef, _) {
+      sink.writeInt(typedef.typedefIndex);
+      typedef.writeToDataSink(sink);
+    });
+    sink.end(typedefTag);
+
+    sink.begin(memberTag);
+    sink.writeInt(members.size);
+    members.forEach((JMember member, _) {
+      sink.writeInt(member.memberIndex);
+      member.writeToDataSink(sink);
+    });
+    sink.end(memberTag);
+
+    sink.begin(typeVariableTag);
+    sink.writeInt(typeVariables.size);
+    typeVariables.forEach((JTypeVariable typeVariable, _) {
+      sink.writeInt(typeVariable.typeVariableIndex);
+      typeVariable.writeToDataSink(sink);
+    });
+    sink.end(typeVariableTag);
+
+    // Serialize the entity data after having serialized the entities.
+    sink.begin(libraryDataTag);
+    libraries.forEach((_, JLibraryData data, JLibraryEnv env) {
+      env.writeToDataSink(sink);
+      data.writeToDataSink(sink);
+    });
+    sink.end(libraryDataTag);
+
+    sink.begin(classDataTag);
+    classes.forEach((_, JClassData data, JClassEnv env) {
+      env.writeToDataSink(sink);
+      data.writeToDataSink(sink);
+    });
+    sink.end(classDataTag);
+
+    sink.begin(typedefDataTag);
+    typedefs.forEach((_, JTypedefData data) {
+      data.writeToDataSink(sink);
+    });
+    sink.end(typedefDataTag);
+
+    sink.begin(memberDataTag);
+    members.forEach((_, JMemberData data) {
+      data.writeToDataSink(sink);
+    });
+    sink.end(memberDataTag);
+
+    sink.begin(typeVariableDataTag);
+    typeVariables.forEach((_, JTypeVariableData data) {
+      data.writeToDataSink(sink);
+    });
+    sink.end(typeVariableDataTag);
+
+    sink.begin(nestedClosuresTag);
+    sink.writeMemberMap(_nestedClosureMap, sink.writeMembers);
+    sink.end(nestedClosuresTag);
+
+    sink.end(tag);
+  }
 
   DartTypes get types => _types;
 
@@ -109,9 +484,6 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
 
   @override
   CommonElementsImpl get commonElements => _commonElements;
-
-  /// NativeBasicData is need for computation of the default super class.
-  NativeBasicData get nativeBasicData;
 
   FunctionEntity get _mainFunction {
     return programEnv.mainMethod != null
@@ -124,8 +496,6 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
         ? getLibraryInternal(programEnv.mainMethod.enclosingLibrary)
         : null;
   }
-
-  Iterable<LibraryEntity> get libraryListInternal;
 
   SourceSpan getSourceSpan(Spannable spannable, Entity currentElement) {
     SourceSpan fromSpannable(Spannable spannable) {
@@ -224,12 +594,8 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
 
   LibraryEntity getLibrary(ir.Library node) => getLibraryInternal(node);
 
-  LibraryEntity getLibraryInternal(ir.Library node, [JLibraryEnv libraryEnv]);
-
   @override
   ClassEntity getClass(ir.Class node) => getClassInternal(node);
-
-  ClassEntity getClassInternal(ir.Class node, [JClassEnv classEnv]);
 
   InterfaceType getSuperType(IndexedClass cls) {
     assert(checkFamily(cls));
@@ -263,8 +629,6 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
 
   TypeVariableEntity getTypeVariable(ir.TypeParameter node) =>
       getTypeVariableInternal(node);
-
-  TypeVariableEntity getTypeVariableInternal(ir.TypeParameter node);
 
   void _ensureSupertypes(ClassEntity cls, JClassData data) {
     assert(checkFamily(cls));
@@ -347,8 +711,6 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
     return typedefs.getData(typedef).rawType;
   }
 
-  TypedefEntity getTypedefInternal(ir.Typedef node);
-
   @override
   MemberEntity getMember(ir.Member node) {
     if (node is ir.Field) {
@@ -394,8 +756,6 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
   ConstructorEntity getConstructor(ir.Member node) =>
       getConstructorInternal(node);
 
-  ConstructorEntity getConstructorInternal(ir.Member node);
-
   ConstructorEntity getSuperConstructor(
       ir.Constructor sourceNode, ir.Member targetNode) {
     ConstructorEntity source = getConstructor(sourceNode);
@@ -417,12 +777,8 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
   @override
   FunctionEntity getMethod(ir.Procedure node) => getMethodInternal(node);
 
-  FunctionEntity getMethodInternal(ir.Procedure node);
-
   @override
   FieldEntity getField(ir.Field node) => getFieldInternal(node);
-
-  FieldEntity getFieldInternal(ir.Field node);
 
   @override
   DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
@@ -618,28 +974,12 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
     env.forEachConstructor(this, f);
   }
 
-  void forEachConstructorBody(
-      IndexedClass cls, void f(ConstructorBodyEntity member)) {
-    throw new UnsupportedError(
-        'KernelToElementMapBase._forEachConstructorBody');
-  }
-
-  void forEachNestedClosure(
-      MemberEntity member, void f(FunctionEntity closure));
-
   void _forEachLocalClassMember(IndexedClass cls, void f(MemberEntity member)) {
     assert(checkFamily(cls));
     JClassEnv env = classes.getEnv(cls);
     env.forEachMember(this, (MemberEntity member) {
       f(member);
     });
-  }
-
-  void forEachInjectedClassMember(
-      IndexedClass cls, void f(MemberEntity member)) {
-    assert(checkFamily(cls));
-    throw new UnsupportedError(
-        'KernelToElementMapBase._forEachInjectedClassMember');
   }
 
   void _forEachClassMember(
@@ -719,26 +1059,52 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
   ir.TypeEnvironment get typeEnvironment {
     if (_typeEnvironment == null) {
       _typeEnvironment ??= new ir.TypeEnvironment(
-          new ir.CoreTypes(programEnv.mainComponent),
-          new ir.ClassHierarchy(programEnv.mainComponent));
+          new ir.CoreTypes(programEnv.mainComponent), classHierarchy);
     }
     return _typeEnvironment;
   }
 
-  DartType getStaticType(ir.Expression node) {
-    ir.TreeNode enclosingClass = node;
-    while (enclosingClass != null && enclosingClass is! ir.Class) {
-      enclosingClass = enclosingClass.parent;
+  ir.ClassHierarchy get classHierarchy {
+    if (_classHierarchy == null) {
+      _classHierarchy ??= new ir.ClassHierarchy(programEnv.mainComponent);
     }
-    try {
-      typeEnvironment.thisType =
-          enclosingClass is ir.Class ? enclosingClass.thisType : null;
-      return getDartType(node.getStaticType(typeEnvironment));
-    } catch (e) {
-      // The static type computation crashes on type errors. Use `dynamic`
-      // as static type.
-      return commonElements.dynamicType;
+    return _classHierarchy;
+  }
+
+  StaticTypeProvider getStaticTypeProvider(MemberEntity member) {
+    MemberDefinition memberDefinition = members.getData(member).definition;
+    Map<ir.Expression, ir.DartType> cachedStaticTypes;
+    ir.InterfaceType thisType;
+    switch (memberDefinition.kind) {
+      case MemberKind.regular:
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+        ir.Member node = memberDefinition.node;
+        thisType = node.enclosingClass?.thisType;
+        cachedStaticTypes = members.getData(member).staticTypes;
+        break;
+      case MemberKind.closureCall:
+        ir.TreeNode node = memberDefinition.node;
+        while (node != null) {
+          if (node is ir.Member) {
+            ir.Member member = node;
+            thisType = member.enclosingClass?.thisType;
+            cachedStaticTypes = members.getData(getMember(member)).staticTypes;
+            break;
+          }
+          node = node.parent;
+        }
+        break;
+      case MemberKind.closureField:
+      case MemberKind.signature:
+      case MemberKind.generatorBody:
+        cachedStaticTypes = const {};
+        break;
     }
+
+    assert(cachedStaticTypes != null, "No static types cached for $member.");
+    return new CachedStaticType(typeEnvironment, cachedStaticTypes,
+        new ThisInterfaceType.from(thisType));
   }
 
   Name getName(ir.Name name) {
@@ -773,6 +1139,9 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
     // folks.
     if (node is ir.PropertyGet) {
       return getGetterSelector(node.name);
+    }
+    if (node is ir.DirectPropertyGet) {
+      return getGetterSelector(node.target.name);
     }
     if (node is ir.SuperPropertyGet) {
       return getGetterSelector(node.name);
@@ -824,16 +1193,16 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
   /// Looks up [typeName] for use in the spec-string of a `JS` call.
   // TODO(johnniwinther): Use this in [native.NativeBehavior] instead of calling
   // the `ForeignResolver`.
-  native.TypeLookup typeLookup({bool resolveAsRaw: true}) {
+  TypeLookup typeLookup({bool resolveAsRaw: true}) {
     return resolveAsRaw
         ? (_cachedTypeLookupRaw ??= _typeLookup(resolveAsRaw: true))
         : (_cachedTypeLookupFull ??= _typeLookup(resolveAsRaw: false));
   }
 
-  native.TypeLookup _cachedTypeLookupRaw;
-  native.TypeLookup _cachedTypeLookupFull;
+  TypeLookup _cachedTypeLookupRaw;
+  TypeLookup _cachedTypeLookupFull;
 
-  native.TypeLookup _typeLookup({bool resolveAsRaw: true}) {
+  TypeLookup _typeLookup({bool resolveAsRaw: true}) {
     bool cachedMayLookupInMain;
     bool mayLookupInMain() {
       var mainUri = elementEnvironment.mainLibrary.canonicalUri;
@@ -898,28 +1267,28 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
 
   /// Computes the [native.NativeBehavior] for a call to the [JS] function.
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
+  NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 2 ||
         node.arguments.named.isNotEmpty) {
       reporter.reportErrorMessage(
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS);
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     String specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.reportErrorMessage(
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
 
     String codeString = _getStringArgument(node, 1);
     if (codeString == null) {
       reporter.reportErrorMessage(
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
 
-    return native.NativeBehavior.ofJsCall(
+    return NativeBehavior.ofJsCall(
         specString,
         codeString,
         typeLookup(resolveAsRaw: true),
@@ -928,28 +1297,27 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
         commonElements);
   }
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN]
   /// function.
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node) {
+  NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "JS builtin expression has no type.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     if (node.arguments.positional.length < 2) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "JS builtin is missing name.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     String specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
-    return native.NativeBehavior.ofJsBuiltinCall(
+    return NativeBehavior.ofJsBuiltinCall(
         specString,
         typeLookup(resolveAsRaw: true),
         CURRENT_ELEMENT_SPANNABLE,
@@ -957,34 +1325,34 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
         commonElements);
   }
 
-  /// Computes the [native.NativeBehavior] for a call to the
+  /// Computes the [NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+  NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
       reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
           "JS embedded global expression has no type.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     if (node.arguments.positional.length < 2) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "JS embedded global is missing name.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     if (node.arguments.positional.length > 2 ||
         node.arguments.named.isNotEmpty) {
       reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
           "JS embedded global has more than 2 arguments.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
     String specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
-      return new native.NativeBehavior();
+      return new NativeBehavior();
     }
-    return native.NativeBehavior.ofJsEmbeddedGlobalCall(
+    return NativeBehavior.ofJsEmbeddedGlobalCall(
         specString,
         typeLookup(resolveAsRaw: true),
         CURRENT_ELEMENT_SPANNABLE,
@@ -1076,731 +1444,144 @@ abstract class JsToElementMapBase implements IrToElementMap, JsToElementMap {
         failedAt(cls, "No super noSuchMethod found for class $cls."));
     return function;
   }
-}
 
-class JsElementEnvironment extends ElementEnvironment
-    implements JElementEnvironment {
-  final JsToElementMapBase elementMap;
-
-  JsElementEnvironment(this.elementMap);
-
-  @override
-  DartType get dynamicType => const DynamicType();
-
-  @override
-  LibraryEntity get mainLibrary => elementMap._mainLibrary;
-
-  @override
-  FunctionEntity get mainFunction => elementMap._mainFunction;
-
-  @override
-  Iterable<LibraryEntity> get libraries => elementMap.libraryListInternal;
-
-  @override
-  String getLibraryName(LibraryEntity library) {
-    return elementMap._getLibraryName(library);
+  IndexedLibrary createLibrary(String name, Uri canonicalUri) {
+    return new JLibrary(name, canonicalUri);
   }
 
-  @override
-  InterfaceType getThisType(ClassEntity cls) {
-    return elementMap.getThisType(cls);
+  IndexedClass createClass(LibraryEntity library, String name,
+      {bool isAbstract}) {
+    return new JClass(library, name, isAbstract: isAbstract);
   }
 
-  @override
-  InterfaceType getRawType(ClassEntity cls) {
-    return elementMap._getRawType(cls);
+  IndexedTypedef createTypedef(LibraryEntity library, String name) {
+    return new JTypedef(library, name);
   }
 
-  @override
-  bool isGenericClass(ClassEntity cls) {
-    return getThisType(cls).typeArguments.isNotEmpty;
+  TypeVariableEntity createTypeVariable(
+      Entity typeDeclaration, String name, int index) {
+    return new JTypeVariable(typeDeclaration, name, index);
   }
 
-  @override
-  bool isMixinApplication(ClassEntity cls) {
-    return elementMap._isMixinApplication(cls);
+  IndexedConstructor createGenerativeConstructor(ClassEntity enclosingClass,
+      Name name, ParameterStructure parameterStructure,
+      {bool isExternal, bool isConst}) {
+    return new JGenerativeConstructor(enclosingClass, name, parameterStructure,
+        isExternal: isExternal, isConst: isConst);
   }
 
-  @override
-  bool isUnnamedMixinApplication(ClassEntity cls) {
-    return elementMap._isUnnamedMixinApplication(cls);
+  IndexedConstructor createFactoryConstructor(ClassEntity enclosingClass,
+      Name name, ParameterStructure parameterStructure,
+      {bool isExternal, bool isConst, bool isFromEnvironmentConstructor}) {
+    return new JFactoryConstructor(enclosingClass, name, parameterStructure,
+        isExternal: isExternal,
+        isConst: isConst,
+        isFromEnvironmentConstructor: isFromEnvironmentConstructor);
   }
 
-  @override
-  bool isSuperMixinApplication(ClassEntity cls) {
-    return elementMap._isSuperMixinApplication(cls);
+  JConstructorBody createConstructorBody(ConstructorEntity constructor) {
+    return new JConstructorBody(constructor);
   }
 
-  @override
-  ClassEntity getEffectiveMixinClass(ClassEntity cls) {
-    if (!isMixinApplication(cls)) return null;
-    do {
-      cls = elementMap.getAppliedMixin(cls);
-    } while (isMixinApplication(cls));
-    return cls;
+  JGeneratorBody createGeneratorBody(
+      FunctionEntity function, DartType elementType) {
+    return new JGeneratorBody(function, elementType);
   }
 
-  @override
-  DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
-    return elementMap.getTypeVariableBound(typeVariable);
+  IndexedFunction createGetter(LibraryEntity library,
+      ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
+      {bool isStatic, bool isExternal, bool isAbstract}) {
+    return new JGetter(library, enclosingClass, name, asyncMarker,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
-  @override
-  DartType getTypeVariableDefaultType(TypeVariableEntity typeVariable) {
-    return elementMap._getTypeVariableDefaultType(typeVariable);
+  IndexedFunction createMethod(
+      LibraryEntity library,
+      ClassEntity enclosingClass,
+      Name name,
+      ParameterStructure parameterStructure,
+      AsyncMarker asyncMarker,
+      {bool isStatic,
+      bool isExternal,
+      bool isAbstract}) {
+    return new JMethod(
+        library, enclosingClass, name, parameterStructure, asyncMarker,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
-  @override
-  InterfaceType createInterfaceType(
-      ClassEntity cls, List<DartType> typeArguments) {
-    return new InterfaceType(cls, typeArguments);
+  IndexedFunction createSetter(
+      LibraryEntity library, ClassEntity enclosingClass, Name name,
+      {bool isStatic, bool isExternal, bool isAbstract}) {
+    return new JSetter(library, enclosingClass, name,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
-  @override
-  FunctionType getFunctionType(FunctionEntity function) {
-    return elementMap._getFunctionType(function);
+  IndexedField createField(
+      LibraryEntity library, ClassEntity enclosingClass, Name name,
+      {bool isStatic, bool isAssignable, bool isConst}) {
+    return new JField(library, enclosingClass, name,
+        isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
   }
 
-  @override
-  List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function) {
-    return elementMap._getFunctionTypeVariables(function);
+  LibraryEntity convertLibrary(IndexedLibrary library) {
+    return createLibrary(library.name, library.canonicalUri);
   }
 
-  @override
-  DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function) {
-    // TODO(sra): Should be getting the DartType from the node.
-    DartType returnType = getFunctionType(function).returnType;
-    return getAsyncOrSyncStarElementType(function.asyncMarker, returnType);
+  ClassEntity convertClass(LibraryEntity library, IndexedClass cls) {
+    return createClass(library, cls.name, isAbstract: cls.isAbstract);
   }
 
-  @override
-  DartType getAsyncOrSyncStarElementType(
-      AsyncMarker asyncMarker, DartType returnType) {
-    switch (asyncMarker) {
-      case AsyncMarker.SYNC:
-        return returnType;
-      case AsyncMarker.SYNC_STAR:
-        if (returnType is InterfaceType) {
-          if (returnType.element == elementMap.commonElements.iterableClass) {
-            return returnType.typeArguments.first;
-          }
-        }
-        return dynamicType;
-      case AsyncMarker.ASYNC:
-        if (returnType is FutureOrType) return returnType.typeArgument;
-        if (returnType is InterfaceType) {
-          if (returnType.element == elementMap.commonElements.futureClass) {
-            return returnType.typeArguments.first;
-          }
-        }
-        return dynamicType;
-      case AsyncMarker.ASYNC_STAR:
-        if (returnType is InterfaceType) {
-          if (returnType.element == elementMap.commonElements.streamClass) {
-            return returnType.typeArguments.first;
-          }
-        }
-        return dynamicType;
-    }
-    assert(false, 'Unexpected marker ${asyncMarker}');
-    return null;
+  TypedefEntity convertTypedef(LibraryEntity library, IndexedTypedef typedef) {
+    return createTypedef(library, typedef.name);
   }
 
-  @override
-  DartType getFieldType(FieldEntity field) {
-    return elementMap._getFieldType(field);
-  }
-
-  @override
-  FunctionType getLocalFunctionType(covariant KLocalFunction function) {
-    return function.functionType;
-  }
-
-  @override
-  DartType getUnaliasedType(DartType type) => type;
-
-  @override
-  ConstructorEntity lookupConstructor(ClassEntity cls, String name,
-      {bool required: false}) {
-    ConstructorEntity constructor = elementMap.lookupConstructor(cls, name);
-    if (constructor == null && required) {
-      throw failedAt(
-          CURRENT_ELEMENT_SPANNABLE,
-          "The constructor '$name' was not found in class '${cls.name}' "
-          "in library ${cls.library.canonicalUri}.");
-    }
-    return constructor;
-  }
-
-  @override
-  MemberEntity lookupLocalClassMember(ClassEntity cls, String name,
-      {bool setter: false, bool required: false}) {
-    MemberEntity member =
-        elementMap.lookupClassMember(cls, name, setter: setter);
-    if (member == null && required) {
-      throw failedAt(CURRENT_ELEMENT_SPANNABLE,
-          "The member '$name' was not found in ${cls.name}.");
-    }
-    return member;
-  }
-
-  @override
-  ClassEntity getSuperClass(ClassEntity cls,
-      {bool skipUnnamedMixinApplications: false}) {
-    assert(elementMap.checkFamily(cls));
-    ClassEntity superclass = elementMap.getSuperType(cls)?.element;
-    if (skipUnnamedMixinApplications) {
-      while (superclass != null &&
-          elementMap._isUnnamedMixinApplication(superclass)) {
-        superclass = elementMap.getSuperType(superclass)?.element;
-      }
-    }
-    return superclass;
-  }
-
-  @override
-  void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype)) {
-    elementMap._forEachSupertype(cls, f);
-  }
-
-  @override
-  void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member)) {
-    elementMap._forEachLocalClassMember(cls, f);
-  }
-
-  @override
-  void forEachInjectedClassMember(
-      ClassEntity cls, void f(MemberEntity member)) {
-    elementMap.forEachInjectedClassMember(cls, f);
-  }
-
-  @override
-  void forEachClassMember(
-      ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
-    elementMap._forEachClassMember(cls, f);
-  }
-
-  @override
-  void forEachConstructor(
-      ClassEntity cls, void f(ConstructorEntity constructor)) {
-    elementMap._forEachConstructor(cls, f);
-  }
-
-  @override
-  void forEachConstructorBody(
-      ClassEntity cls, void f(ConstructorBodyEntity constructor)) {
-    elementMap.forEachConstructorBody(cls, f);
-  }
-
-  @override
-  void forEachNestedClosure(
-      MemberEntity member, void f(FunctionEntity closure)) {
-    elementMap.forEachNestedClosure(member, f);
-  }
-
-  @override
-  void forEachLibraryMember(
-      LibraryEntity library, void f(MemberEntity member)) {
-    elementMap._forEachLibraryMember(library, f);
-  }
-
-  @override
-  MemberEntity lookupLibraryMember(LibraryEntity library, String name,
-      {bool setter: false, bool required: false}) {
-    MemberEntity member =
-        elementMap.lookupLibraryMember(library, name, setter: setter);
-    if (member == null && required) {
-      failedAt(CURRENT_ELEMENT_SPANNABLE,
-          "The member '${name}' was not found in library '${library.name}'.");
-    }
-    return member;
-  }
-
-  @override
-  ClassEntity lookupClass(LibraryEntity library, String name,
-      {bool required: false}) {
-    ClassEntity cls = elementMap.lookupClass(library, name);
-    if (cls == null && required) {
-      failedAt(CURRENT_ELEMENT_SPANNABLE,
-          "The class '$name'  was not found in library '${library.name}'.");
-    }
-    return cls;
-  }
-
-  @override
-  void forEachClass(LibraryEntity library, void f(ClassEntity cls)) {
-    elementMap._forEachClass(library, f);
-  }
-
-  @override
-  LibraryEntity lookupLibrary(Uri uri, {bool required: false}) {
-    LibraryEntity library = elementMap.lookupLibrary(uri);
-    if (library == null && required) {
-      failedAt(CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
-    }
-    return library;
-  }
-
-  @override
-  bool isEnumClass(ClassEntity cls) {
-    assert(elementMap.checkFamily(cls));
-    JClassData classData = elementMap.classes.getData(cls);
-    return classData.isEnumClass;
-  }
-}
-
-/// [native.BehaviorBuilder] for kernel based elements.
-class JsBehaviorBuilder extends native.BehaviorBuilder {
-  final ElementEnvironment elementEnvironment;
-  final CommonElements commonElements;
-  final DiagnosticReporter reporter;
-  final NativeBasicData nativeBasicData;
-  final CompilerOptions _options;
-
-  JsBehaviorBuilder(this.elementEnvironment, this.commonElements,
-      this.nativeBasicData, this.reporter, this._options);
-
-  @override
-  bool get trustJSInteropTypeAnnotations =>
-      _options.trustJSInteropTypeAnnotations;
-}
-
-/// Constant environment mapping [ConstantExpression]s to [ConstantValue]s using
-/// [_EvaluationEnvironment] for the evaluation.
-class JsConstantEnvironment implements ConstantEnvironment {
-  final JsToElementMapBase _elementMap;
-  final Environment _environment;
-
-  Map<ConstantExpression, ConstantValue> _valueMap =
-      <ConstantExpression, ConstantValue>{};
-
-  JsConstantEnvironment(this._elementMap, this._environment);
-
-  @override
-  ConstantSystem get constantSystem => JavaScriptConstantSystem.only;
-
-  ConstantValue _getConstantValue(
-      Spannable spannable, ConstantExpression expression,
-      {bool constantRequired}) {
-    return _valueMap.putIfAbsent(expression, () {
-      return expression.evaluate(
-          new JsEvaluationEnvironment(_elementMap, _environment, spannable,
-              constantRequired: constantRequired),
-          constantSystem);
-    });
-  }
-}
-
-/// Evaluation environment used for computing [ConstantValue]s for
-/// kernel based [ConstantExpression]s.
-class JsEvaluationEnvironment extends EvaluationEnvironmentBase {
-  final JsToElementMapBase _elementMap;
-  final Environment _environment;
-
-  JsEvaluationEnvironment(
-      this._elementMap, this._environment, Spannable spannable,
-      {bool constantRequired})
-      : super(spannable, constantRequired: constantRequired);
-
-  @override
-  CommonElements get commonElements => _elementMap.commonElements;
-
-  @override
-  DartTypes get types => _elementMap.types;
-
-  @override
-  DartType substByContext(DartType base, InterfaceType target) {
-    return _elementMap.substByContext(base, target);
-  }
-
-  @override
-  ConstantConstructor getConstructorConstant(ConstructorEntity constructor) {
-    return _elementMap._getConstructorConstant(constructor);
-  }
-
-  @override
-  ConstantExpression getFieldConstant(FieldEntity field) {
-    return _elementMap._getFieldConstantExpression(field);
-  }
-
-  @override
-  ConstantExpression getLocalConstant(Local local) {
-    throw new UnimplementedError("_EvaluationEnvironment.getLocalConstant");
-  }
-
-  @override
-  String readFromEnvironment(String name) {
-    return _environment.valueOf(name);
-  }
-
-  @override
-  DiagnosticReporter get reporter => _elementMap.reporter;
-
-  @override
-  bool get enableAssertions => _elementMap.options.enableUserAssertions;
-}
-
-class JsKernelToElementMap extends JsToElementMapBase
-    with JsElementCreatorMixin
-    implements JsToWorldBuilder, JsToElementMap {
-  /// Tag used for identifying serialized [JsKernelToElementMap] objects in a
-  /// debugging data stream.
-  static const String tag = 'js-kernel-to-element-map';
-
-  /// Tags used for identifying serialized subsections of a
-  /// [JsKernelToElementMap] object in a debugging data stream.
-  static const String libraryTag = 'libraries';
-  static const String classTag = 'classes';
-  static const String typedefTag = 'typedefs';
-  static const String memberTag = 'members';
-  static const String typeVariableTag = 'type-variables';
-  static const String libraryDataTag = 'library-data';
-  static const String classDataTag = 'class-data';
-  static const String typedefDataTag = 'typedef-data';
-  static const String memberDataTag = 'member-data';
-  static const String typeVariableDataTag = 'type-variable-data';
-
-  final Map<ir.Library, IndexedLibrary> libraryMap = {};
-  final Map<ir.Class, IndexedClass> classMap = {};
-  final Map<ir.Typedef, IndexedTypedef> typedefMap = {};
-
-  /// Map from [ir.TypeParameter] nodes to the corresponding
-  /// [TypeVariableEntity].
-  ///
-  /// Normally the type variables are [IndexedTypeVariable]s, but for type
-  /// parameters on local function (in the frontend) these are _not_ since
-  /// their type declaration is neither a class nor a member. In the backend,
-  /// these type parameters belong to the call-method and are therefore indexed.
-  final Map<ir.TypeParameter, TypeVariableEntity> typeVariableMap = {};
-  final Map<ir.Member, IndexedConstructor> constructorMap = {};
-  final Map<ir.Procedure, IndexedFunction> methodMap = {};
-  final Map<ir.Field, IndexedField> fieldMap = {};
-  final Map<ir.TreeNode, Local> localFunctionMap = {};
-
-  /// Map from members to the call methods created for their nested closures.
-  Map<IndexedMember, List<IndexedFunction>> _nestedClosureMap = {};
-
-  @override
-  NativeBasicData nativeBasicData;
-
-  Map<IndexedFunction, JGeneratorBody> _generatorBodies = {};
-
-  Map<IndexedClass, List<IndexedMember>> _injectedClassMembers = {};
-
-  JsKernelToElementMap(DiagnosticReporter reporter, Environment environment,
-      KernelToElementMapImpl _elementMap, Iterable<MemberEntity> liveMembers)
-      : super(_elementMap.options, reporter, environment) {
-    programEnv = _elementMap.env.convert();
-    for (int libraryIndex = 0;
-        libraryIndex < _elementMap.libraries.length;
-        libraryIndex++) {
-      IndexedLibrary oldLibrary = _elementMap.libraries.getEntity(libraryIndex);
-      KLibraryEnv oldEnv = _elementMap.libraries.getEnv(oldLibrary);
-      KLibraryData data = _elementMap.libraries.getData(oldLibrary);
-      IndexedLibrary newLibrary = convertLibrary(oldLibrary);
-      JLibraryEnv newEnv = oldEnv.convert(_elementMap, liveMembers);
-      libraryMap[oldEnv.library] =
-          libraries.register<IndexedLibrary, JLibraryData, JLibraryEnv>(
-              newLibrary, data.convert(), newEnv);
-      assert(newLibrary.libraryIndex == oldLibrary.libraryIndex);
-      programEnv.registerLibrary(newEnv);
-    }
-    // TODO(johnniwinther): Filter unused classes.
-    for (int classIndex = 0;
-        classIndex < _elementMap.classes.length;
-        classIndex++) {
-      IndexedClass oldClass = _elementMap.classes.getEntity(classIndex);
-      KClassEnv env = _elementMap.classes.getEnv(oldClass);
-      KClassData data = _elementMap.classes.getData(oldClass);
-      IndexedLibrary oldLibrary = oldClass.library;
-      LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
-      IndexedClass newClass = convertClass(newLibrary, oldClass);
-      JClassEnv newEnv = env.convert(_elementMap, liveMembers);
-      classMap[env.cls] = classes.register(newClass, data.convert(), newEnv);
-      assert(newClass.classIndex == oldClass.classIndex);
-      libraries.getEnv(newClass.library).registerClass(newClass.name, newEnv);
-    }
-    for (int typedefIndex = 0;
-        typedefIndex < _elementMap.typedefs.length;
-        typedefIndex++) {
-      IndexedTypedef oldTypedef = _elementMap.typedefs.getEntity(typedefIndex);
-      KTypedefData data = _elementMap.typedefs.getData(oldTypedef);
-      IndexedLibrary oldLibrary = oldTypedef.library;
-      LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
-      IndexedTypedef newTypedef = convertTypedef(newLibrary, oldTypedef);
-      typedefMap[data.node] = typedefs.register(
-          newTypedef,
-          new JTypedefData(new TypedefType(
-              newTypedef,
-              new List<DartType>.filled(
-                  data.node.typeParameters.length, const DynamicType()),
-              getDartType(data.node.type))));
-      assert(newTypedef.typedefIndex == oldTypedef.typedefIndex);
-    }
-    for (int memberIndex = 0;
-        memberIndex < _elementMap.members.length;
-        memberIndex++) {
-      IndexedMember oldMember = _elementMap.members.getEntity(memberIndex);
-      if (!liveMembers.contains(oldMember)) {
-        members.skipIndex(oldMember.memberIndex);
-        continue;
-      }
-      KMemberData data = _elementMap.members.getData(oldMember);
-      IndexedLibrary oldLibrary = oldMember.library;
-      IndexedClass oldClass = oldMember.enclosingClass;
-      LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
-      ClassEntity newClass =
-          oldClass != null ? classes.getEntity(oldClass.classIndex) : null;
-      IndexedMember newMember = convertMember(newLibrary, newClass, oldMember);
-      members.register(newMember, data.convert());
-      assert(newMember.memberIndex == oldMember.memberIndex);
-      if (newMember.isField) {
-        fieldMap[data.node] = newMember;
-      } else if (newMember.isConstructor) {
-        constructorMap[data.node] = newMember;
+  MemberEntity convertMember(
+      LibraryEntity library, ClassEntity cls, IndexedMember member) {
+    Name memberName = new Name(member.memberName.text, library,
+        isSetter: member.memberName.isSetter);
+    if (member.isField) {
+      IndexedField field = member;
+      return createField(library, cls, memberName,
+          isStatic: field.isStatic,
+          isAssignable: field.isAssignable,
+          isConst: field.isConst);
+    } else if (member.isConstructor) {
+      IndexedConstructor constructor = member;
+      if (constructor.isFactoryConstructor) {
+        // TODO(redemption): This should be a JFunction.
+        return createFactoryConstructor(
+            cls, memberName, constructor.parameterStructure,
+            isExternal: constructor.isExternal,
+            isConst: constructor.isConst,
+            isFromEnvironmentConstructor:
+                constructor.isFromEnvironmentConstructor);
       } else {
-        methodMap[data.node] = newMember;
+        return createGenerativeConstructor(
+            cls, memberName, constructor.parameterStructure,
+            isExternal: constructor.isExternal, isConst: constructor.isConst);
       }
+    } else if (member.isGetter) {
+      IndexedFunction getter = member;
+      return createGetter(library, cls, memberName, getter.asyncMarker,
+          isStatic: getter.isStatic,
+          isExternal: getter.isExternal,
+          isAbstract: getter.isAbstract);
+    } else if (member.isSetter) {
+      IndexedFunction setter = member;
+      return createSetter(library, cls, memberName,
+          isStatic: setter.isStatic,
+          isExternal: setter.isExternal,
+          isAbstract: setter.isAbstract);
+    } else {
+      IndexedFunction function = member;
+      return createMethod(library, cls, memberName, function.parameterStructure,
+          function.asyncMarker,
+          isStatic: function.isStatic,
+          isExternal: function.isExternal,
+          isAbstract: function.isAbstract);
     }
-    for (int typeVariableIndex = 0;
-        typeVariableIndex < _elementMap.typeVariables.length;
-        typeVariableIndex++) {
-      IndexedTypeVariable oldTypeVariable =
-          _elementMap.typeVariables.getEntity(typeVariableIndex);
-      KTypeVariableData oldTypeVariableData =
-          _elementMap.typeVariables.getData(oldTypeVariable);
-      Entity newTypeDeclaration;
-      if (oldTypeVariable.typeDeclaration is ClassEntity) {
-        IndexedClass cls = oldTypeVariable.typeDeclaration;
-        newTypeDeclaration = classes.getEntity(cls.classIndex);
-        // TODO(johnniwinther): Skip type variables of unused classes.
-      } else if (oldTypeVariable.typeDeclaration is MemberEntity) {
-        IndexedMember member = oldTypeVariable.typeDeclaration;
-        newTypeDeclaration = members.getEntity(member.memberIndex);
-        if (newTypeDeclaration == null) {
-          typeVariables.skipIndex(typeVariableIndex);
-          continue;
-        }
-      } else {
-        assert(oldTypeVariable.typeDeclaration is Local);
-      }
-      IndexedTypeVariable newTypeVariable = createTypeVariable(
-          newTypeDeclaration, oldTypeVariable.name, oldTypeVariable.index);
-      typeVariableMap[oldTypeVariableData.node] =
-          typeVariables.register<IndexedTypeVariable, JTypeVariableData>(
-              newTypeVariable, oldTypeVariableData.copy());
-      assert(newTypeVariable.typeVariableIndex ==
-          oldTypeVariable.typeVariableIndex);
-    }
-    // TODO(johnniwinther): We should close the environment in the beginning of
-    // this constructor but currently we need the [MemberEntity] to query if the
-    // member is live, thus potentially creating the [MemberEntity] in the
-    // process. Avoid this.
-    _elementMap.envIsClosed = true;
   }
 
-  JsKernelToElementMap.readFromDataSource(
-      CompilerOptions options,
-      DiagnosticReporter reporter,
-      Environment environment,
-      ir.Component component,
-      DataSource source)
-      : super(options, reporter, environment) {
-    source.registerComponentLookup(new ComponentLookup(component));
-    _EntityLookup entityLookup = new _EntityLookup();
-    source.registerEntityLookup(entityLookup);
-
-    source.begin(tag);
-    source.begin(libraryTag);
-    int libraryCount = source.readInt();
-    for (int i = 0; i < libraryCount; i++) {
-      int index = source.readInt();
-      JLibrary library = new JLibrary.readFromDataSource(source);
-      entityLookup.registerLibrary(index, library);
-    }
-    source.end(libraryTag);
-
-    source.begin(classTag);
-    int classCount = source.readInt();
-    for (int i = 0; i < classCount; i++) {
-      int index = source.readInt();
-      JClass cls = new JClass.readFromDataSource(source);
-      entityLookup.registerClass(index, cls);
-    }
-    source.end(classTag);
-
-    source.begin(typedefTag);
-    int typedefCount = source.readInt();
-    for (int i = 0; i < typedefCount; i++) {
-      int index = source.readInt();
-      JTypedef typedef = new JTypedef.readFromDataSource(source);
-      entityLookup.registerTypedef(index, typedef);
-    }
-    source.end(typedefTag);
-
-    source.begin(memberTag);
-    int memberCount = source.readInt();
-    for (int i = 0; i < memberCount; i++) {
-      int index = source.readInt();
-      JMember member = new JMember.readFromDataSource(source);
-      entityLookup.registerMember(index, member);
-    }
-    source.end(memberTag);
-
-    source.begin(typeVariableTag);
-    int typeVariableCount = source.readInt();
-    for (int i = 0; i < typeVariableCount; i++) {
-      int index = source.readInt();
-      JTypeVariable typeVariable = new JTypeVariable.readFromDataSource(source);
-      entityLookup.registerTypeVariable(index, typeVariable);
-    }
-    source.end(typeVariableTag);
-
-    programEnv = new JProgramEnv([component]);
-    source.begin(libraryDataTag);
-    entityLookup.forEachLibrary((int index, JLibrary library) {
-      JLibraryEnv env = new JLibraryEnv.readFromDataSource(source);
-      JLibraryData data = new JLibraryData.readFromDataSource(source);
-      libraryMap[env.library] =
-          libraries.registerByIndex(index, library, data, env);
-      programEnv.registerLibrary(env);
-      assert(index == library.libraryIndex);
-    });
-    source.end(libraryDataTag);
-
-    source.begin(classDataTag);
-    entityLookup.forEachClass((int index, JClass cls) {
-      JClassEnv env = new JClassEnv.readFromDataSource(source);
-      JClassData data = new JClassData.readFromDataSource(source);
-      classMap[env.cls] = classes.registerByIndex(index, cls, data, env);
-      libraries.getEnv(cls.library).registerClass(cls.name, env);
-      assert(index == cls.classIndex);
-    });
-    source.end(classDataTag);
-
-    source.begin(typedefDataTag);
-    entityLookup.forEachTypedef((int index, JTypedef typedef) {
-      JTypedefData data = new JTypedefData.readFromDataSource(source);
-      typedefs.registerByIndex(index, typedef, data);
-      assert(index == typedef.typedefIndex);
-    });
-    source.end(typedefDataTag);
-
-    source.begin(memberDataTag);
-    entityLookup.forEachMember((int index, IndexedMember member) {
-      JMemberData data = new JMemberData.readFromDataSource(source);
-      members.registerByIndex(index, member, data);
-      switch (data.definition.kind) {
-        case MemberKind.regular:
-        case MemberKind.constructor:
-          ir.Member node = data.definition.node;
-          if (member.isField) {
-            fieldMap[node] = member;
-          } else if (member.isConstructor) {
-            constructorMap[node] = member;
-          } else {
-            methodMap[node] = member;
-          }
-          break;
-        default:
-      }
-      assert(index == member.memberIndex);
-    });
-    source.end(memberDataTag);
-
-    source.begin(typeVariableDataTag);
-    entityLookup.forEachTypeVariable((int index, JTypeVariable typeVariable) {
-      JTypeVariableData data = new JTypeVariableData.readFromDataSource(source);
-      typeVariableMap[data.node] =
-          typeVariables.registerByIndex(index, typeVariable, data);
-      assert(index == typeVariable.typeVariableIndex);
-    });
-    source.end(typeVariableDataTag);
-    source.end(tag);
-  }
-
-  /// Serializes this [JsToElementMap] to [sink].
-  void writeToDataSink(DataSink sink) {
-    sink.begin(tag);
-
-    // Serialize the entities before serializing the data.
-    sink.begin(libraryTag);
-    sink.writeInt(libraries.size);
-    libraries.forEach((JLibrary library, _, __) {
-      sink.writeInt(library.libraryIndex);
-      library.writeToDataSink(sink);
-    });
-    sink.end(libraryTag);
-
-    sink.begin(classTag);
-    sink.writeInt(classes.size);
-    classes.forEach((JClass cls, _, __) {
-      sink.writeInt(cls.classIndex);
-      cls.writeToDataSink(sink);
-    });
-    sink.end(classTag);
-
-    sink.begin(typedefTag);
-    sink.writeInt(typedefs.size);
-    typedefs.forEach((JTypedef typedef, _) {
-      sink.writeInt(typedef.typedefIndex);
-      typedef.writeToDataSink(sink);
-    });
-    sink.end(typedefTag);
-
-    sink.begin(memberTag);
-    sink.writeInt(members.size);
-    members.forEach((JMember member, _) {
-      sink.writeInt(member.memberIndex);
-      member.writeToDataSink(sink);
-    });
-    sink.end(memberTag);
-
-    sink.begin(typeVariableTag);
-    sink.writeInt(typeVariables.size);
-    typeVariables.forEach((JTypeVariable typeVariable, _) {
-      sink.writeInt(typeVariable.typeVariableIndex);
-      typeVariable.writeToDataSink(sink);
-    });
-    sink.end(typeVariableTag);
-
-    // Serialize the entity data after having serialized the entities.
-    sink.begin(libraryDataTag);
-    libraries.forEach((_, JLibraryData data, JLibraryEnv env) {
-      env.writeToDataSink(sink);
-      data.writeToDataSink(sink);
-    });
-    sink.end(libraryDataTag);
-
-    sink.begin(classDataTag);
-    classes.forEach((_, JClassData data, JClassEnv env) {
-      env.writeToDataSink(sink);
-      data.writeToDataSink(sink);
-    });
-    sink.end(classDataTag);
-
-    sink.begin(typedefDataTag);
-    typedefs.forEach((_, JTypedefData data) {
-      data.writeToDataSink(sink);
-    });
-    sink.end(typedefDataTag);
-
-    sink.begin(memberDataTag);
-    members.forEach((_, JMemberData data) {
-      data.writeToDataSink(sink);
-    });
-    sink.end(memberDataTag);
-
-    sink.begin(typeVariableDataTag);
-    typeVariables.forEach((_, JTypeVariableData data) {
-      data.writeToDataSink(sink);
-    });
-    sink.end(typeVariableDataTag);
-
-    sink.end(tag);
-  }
-
-  @override
   void forEachNestedClosure(
       MemberEntity member, void f(FunctionEntity closure)) {
     assert(checkFamily(member));
@@ -1818,7 +1599,6 @@ class JsKernelToElementMap extends JsToElementMapBase
     return members.getData(member).classTypeVariableAccess;
   }
 
-  @override
   bool checkFamily(Entity entity) {
     assert(
         '$entity'.startsWith(jsElementPrefix),
@@ -1837,47 +1617,40 @@ class JsKernelToElementMap extends JsToElementMapBase
     return sourceSpan;
   }
 
-  @override
   Iterable<LibraryEntity> get libraryListInternal {
     return libraryMap.values;
   }
 
-  @override
   LibraryEntity getLibraryInternal(ir.Library node, [JLibraryEnv env]) {
     LibraryEntity library = libraryMap[node];
     assert(library != null, "No library entity for $node");
     return library;
   }
 
-  @override
   ClassEntity getClassInternal(ir.Class node, [JClassEnv env]) {
     ClassEntity cls = classMap[node];
     assert(cls != null, "No class entity for $node");
     return cls;
   }
 
-  @override
   FieldEntity getFieldInternal(ir.Field node) {
     FieldEntity field = fieldMap[node];
     assert(field != null, "No field entity for $node");
     return field;
   }
 
-  @override
   FunctionEntity getMethodInternal(ir.Procedure node) {
     FunctionEntity function = methodMap[node];
     assert(function != null, "No function entity for $node");
     return function;
   }
 
-  @override
   ConstructorEntity getConstructorInternal(ir.Member node) {
     ConstructorEntity constructor = constructorMap[node];
     assert(constructor != null, "No constructor entity for $node");
     return constructor;
   }
 
-  @override
   TypeVariableEntity getTypeVariableInternal(ir.TypeParameter node) {
     TypeVariableEntity typeVariable = typeVariableMap[node];
     if (typeVariable == null) {
@@ -1906,7 +1679,6 @@ class JsKernelToElementMap extends JsToElementMapBase
     return typeVariable;
   }
 
-  @override
   TypedefEntity getTypedefInternal(ir.Typedef node) {
     TypedefEntity typedef = typedefMap[node];
     assert(typedef != null, "No typedef entity for $node");
@@ -1926,8 +1698,11 @@ class JsKernelToElementMap extends JsToElementMapBase
       JConstructorBody constructorBody = createConstructorBody(constructor);
       members.register<IndexedFunction, FunctionData>(
           constructorBody,
-          new ConstructorBodyDataImpl(node, node.function,
-              new SpecialMemberDefinition(node, MemberKind.constructorBody)));
+          new ConstructorBodyDataImpl(
+              node,
+              node.function,
+              new SpecialMemberDefinition(node, MemberKind.constructorBody),
+              data.staticTypes));
       IndexedClass cls = constructor.enclosingClass;
       JClassEnvImpl classEnv = classes.getEnv(cls);
       // TODO(johnniwinther): Avoid this by only including live members in the
@@ -1937,9 +1712,6 @@ class JsKernelToElementMap extends JsToElementMapBase
     }
     return data.constructorBody;
   }
-
-  @override
-  JConstructorBody createConstructorBody(ConstructorEntity constructor);
 
   @override
   MemberDefinition getMemberDefinition(MemberEntity member) {
@@ -1977,14 +1749,12 @@ class JsKernelToElementMap extends JsToElementMapBase
     data.forEachParameter(this, f);
   }
 
-  @override
   void forEachConstructorBody(
       IndexedClass cls, void f(ConstructorBodyEntity member)) {
     JClassEnv env = classes.getEnv(cls);
     env.forEachConstructorBody(f);
   }
 
-  @override
   void forEachInjectedClassMember(
       IndexedClass cls, void f(MemberEntity member)) {
     _injectedClassMembers[cls]?.forEach(f);
@@ -2396,10 +2166,6 @@ class JsKernelToElementMap extends JsToElementMapBase
   }
 
   @override
-  JGeneratorBody createGeneratorBody(
-      FunctionEntity function, DartType elementType);
-
-  @override
   js.Template getJsBuiltinTemplate(
       ConstantValue constant, CodeEmitterTask emitter) {
     int index = extractEnumIndexFromConstantValue(
@@ -2409,9 +2175,371 @@ class JsKernelToElementMap extends JsToElementMapBase
   }
 }
 
+class JsElementEnvironment extends ElementEnvironment
+    implements JElementEnvironment {
+  final JsKernelToElementMap elementMap;
+
+  JsElementEnvironment(this.elementMap);
+
+  @override
+  DartType get dynamicType => const DynamicType();
+
+  @override
+  LibraryEntity get mainLibrary => elementMap._mainLibrary;
+
+  @override
+  FunctionEntity get mainFunction => elementMap._mainFunction;
+
+  @override
+  Iterable<LibraryEntity> get libraries => elementMap.libraryListInternal;
+
+  @override
+  String getLibraryName(LibraryEntity library) {
+    return elementMap._getLibraryName(library);
+  }
+
+  @override
+  InterfaceType getThisType(ClassEntity cls) {
+    return elementMap.getThisType(cls);
+  }
+
+  @override
+  InterfaceType getRawType(ClassEntity cls) {
+    return elementMap._getRawType(cls);
+  }
+
+  @override
+  bool isGenericClass(ClassEntity cls) {
+    return getThisType(cls).typeArguments.isNotEmpty;
+  }
+
+  @override
+  bool isMixinApplication(ClassEntity cls) {
+    return elementMap._isMixinApplication(cls);
+  }
+
+  @override
+  bool isUnnamedMixinApplication(ClassEntity cls) {
+    return elementMap._isUnnamedMixinApplication(cls);
+  }
+
+  @override
+  bool isSuperMixinApplication(ClassEntity cls) {
+    return elementMap._isSuperMixinApplication(cls);
+  }
+
+  @override
+  ClassEntity getEffectiveMixinClass(ClassEntity cls) {
+    if (!isMixinApplication(cls)) return null;
+    do {
+      cls = elementMap.getAppliedMixin(cls);
+    } while (isMixinApplication(cls));
+    return cls;
+  }
+
+  @override
+  DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
+    return elementMap.getTypeVariableBound(typeVariable);
+  }
+
+  @override
+  DartType getTypeVariableDefaultType(TypeVariableEntity typeVariable) {
+    return elementMap._getTypeVariableDefaultType(typeVariable);
+  }
+
+  @override
+  InterfaceType createInterfaceType(
+      ClassEntity cls, List<DartType> typeArguments) {
+    return new InterfaceType(cls, typeArguments);
+  }
+
+  @override
+  FunctionType getFunctionType(FunctionEntity function) {
+    return elementMap._getFunctionType(function);
+  }
+
+  @override
+  List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function) {
+    return elementMap._getFunctionTypeVariables(function);
+  }
+
+  @override
+  DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function) {
+    // TODO(sra): Should be getting the DartType from the node.
+    DartType returnType = getFunctionType(function).returnType;
+    return getAsyncOrSyncStarElementType(function.asyncMarker, returnType);
+  }
+
+  @override
+  DartType getAsyncOrSyncStarElementType(
+      AsyncMarker asyncMarker, DartType returnType) {
+    switch (asyncMarker) {
+      case AsyncMarker.SYNC:
+        return returnType;
+      case AsyncMarker.SYNC_STAR:
+        if (returnType is InterfaceType) {
+          if (returnType.element == elementMap.commonElements.iterableClass) {
+            return returnType.typeArguments.first;
+          }
+        }
+        return dynamicType;
+      case AsyncMarker.ASYNC:
+        if (returnType is FutureOrType) return returnType.typeArgument;
+        if (returnType is InterfaceType) {
+          if (returnType.element == elementMap.commonElements.futureClass) {
+            return returnType.typeArguments.first;
+          }
+        }
+        return dynamicType;
+      case AsyncMarker.ASYNC_STAR:
+        if (returnType is InterfaceType) {
+          if (returnType.element == elementMap.commonElements.streamClass) {
+            return returnType.typeArguments.first;
+          }
+        }
+        return dynamicType;
+    }
+    assert(false, 'Unexpected marker ${asyncMarker}');
+    return null;
+  }
+
+  @override
+  DartType getFieldType(FieldEntity field) {
+    return elementMap._getFieldType(field);
+  }
+
+  @override
+  FunctionType getLocalFunctionType(covariant KLocalFunction function) {
+    return function.functionType;
+  }
+
+  @override
+  DartType getUnaliasedType(DartType type) => type;
+
+  @override
+  ConstructorEntity lookupConstructor(ClassEntity cls, String name,
+      {bool required: false}) {
+    ConstructorEntity constructor = elementMap.lookupConstructor(cls, name);
+    if (constructor == null && required) {
+      throw failedAt(
+          CURRENT_ELEMENT_SPANNABLE,
+          "The constructor '$name' was not found in class '${cls.name}' "
+          "in library ${cls.library.canonicalUri}.");
+    }
+    return constructor;
+  }
+
+  @override
+  MemberEntity lookupLocalClassMember(ClassEntity cls, String name,
+      {bool setter: false, bool required: false}) {
+    MemberEntity member =
+        elementMap.lookupClassMember(cls, name, setter: setter);
+    if (member == null && required) {
+      throw failedAt(CURRENT_ELEMENT_SPANNABLE,
+          "The member '$name' was not found in ${cls.name}.");
+    }
+    return member;
+  }
+
+  @override
+  ClassEntity getSuperClass(ClassEntity cls,
+      {bool skipUnnamedMixinApplications: false}) {
+    assert(elementMap.checkFamily(cls));
+    ClassEntity superclass = elementMap.getSuperType(cls)?.element;
+    if (skipUnnamedMixinApplications) {
+      while (superclass != null &&
+          elementMap._isUnnamedMixinApplication(superclass)) {
+        superclass = elementMap.getSuperType(superclass)?.element;
+      }
+    }
+    return superclass;
+  }
+
+  @override
+  void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype)) {
+    elementMap._forEachSupertype(cls, f);
+  }
+
+  @override
+  void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member)) {
+    elementMap._forEachLocalClassMember(cls, f);
+  }
+
+  @override
+  void forEachInjectedClassMember(
+      ClassEntity cls, void f(MemberEntity member)) {
+    elementMap.forEachInjectedClassMember(cls, f);
+  }
+
+  @override
+  void forEachClassMember(
+      ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
+    elementMap._forEachClassMember(cls, f);
+  }
+
+  @override
+  void forEachConstructor(
+      ClassEntity cls, void f(ConstructorEntity constructor)) {
+    elementMap._forEachConstructor(cls, f);
+  }
+
+  @override
+  void forEachConstructorBody(
+      ClassEntity cls, void f(ConstructorBodyEntity constructor)) {
+    elementMap.forEachConstructorBody(cls, f);
+  }
+
+  @override
+  void forEachNestedClosure(
+      MemberEntity member, void f(FunctionEntity closure)) {
+    elementMap.forEachNestedClosure(member, f);
+  }
+
+  @override
+  void forEachLibraryMember(
+      LibraryEntity library, void f(MemberEntity member)) {
+    elementMap._forEachLibraryMember(library, f);
+  }
+
+  @override
+  MemberEntity lookupLibraryMember(LibraryEntity library, String name,
+      {bool setter: false, bool required: false}) {
+    MemberEntity member =
+        elementMap.lookupLibraryMember(library, name, setter: setter);
+    if (member == null && required) {
+      failedAt(CURRENT_ELEMENT_SPANNABLE,
+          "The member '${name}' was not found in library '${library.name}'.");
+    }
+    return member;
+  }
+
+  @override
+  ClassEntity lookupClass(LibraryEntity library, String name,
+      {bool required: false}) {
+    ClassEntity cls = elementMap.lookupClass(library, name);
+    if (cls == null && required) {
+      failedAt(CURRENT_ELEMENT_SPANNABLE,
+          "The class '$name'  was not found in library '${library.name}'.");
+    }
+    return cls;
+  }
+
+  @override
+  void forEachClass(LibraryEntity library, void f(ClassEntity cls)) {
+    elementMap._forEachClass(library, f);
+  }
+
+  @override
+  LibraryEntity lookupLibrary(Uri uri, {bool required: false}) {
+    LibraryEntity library = elementMap.lookupLibrary(uri);
+    if (library == null && required) {
+      failedAt(CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
+    }
+    return library;
+  }
+
+  @override
+  bool isEnumClass(ClassEntity cls) {
+    assert(elementMap.checkFamily(cls));
+    JClassData classData = elementMap.classes.getData(cls);
+    return classData.isEnumClass;
+  }
+}
+
+/// [BehaviorBuilder] for kernel based elements.
+class JsBehaviorBuilder extends BehaviorBuilder {
+  final ElementEnvironment elementEnvironment;
+  final CommonElements commonElements;
+  final DiagnosticReporter reporter;
+  final NativeBasicData nativeBasicData;
+  final CompilerOptions _options;
+
+  JsBehaviorBuilder(this.elementEnvironment, this.commonElements,
+      this.nativeBasicData, this.reporter, this._options);
+
+  @override
+  bool get trustJSInteropTypeAnnotations =>
+      _options.trustJSInteropTypeAnnotations;
+}
+
+/// Constant environment mapping [ConstantExpression]s to [ConstantValue]s using
+/// [_EvaluationEnvironment] for the evaluation.
+class JsConstantEnvironment implements ConstantEnvironment {
+  final JsKernelToElementMap _elementMap;
+  final Environment _environment;
+
+  Map<ConstantExpression, ConstantValue> _valueMap =
+      <ConstantExpression, ConstantValue>{};
+
+  JsConstantEnvironment(this._elementMap, this._environment);
+
+  @override
+  ConstantSystem get constantSystem => JavaScriptConstantSystem.only;
+
+  ConstantValue _getConstantValue(
+      Spannable spannable, ConstantExpression expression,
+      {bool constantRequired}) {
+    return _valueMap.putIfAbsent(expression, () {
+      return expression.evaluate(
+          new JsEvaluationEnvironment(_elementMap, _environment, spannable,
+              constantRequired: constantRequired),
+          constantSystem);
+    });
+  }
+}
+
+/// Evaluation environment used for computing [ConstantValue]s for
+/// kernel based [ConstantExpression]s.
+class JsEvaluationEnvironment extends EvaluationEnvironmentBase {
+  final JsKernelToElementMap _elementMap;
+  final Environment _environment;
+
+  JsEvaluationEnvironment(
+      this._elementMap, this._environment, Spannable spannable,
+      {bool constantRequired})
+      : super(spannable, constantRequired: constantRequired);
+
+  @override
+  CommonElements get commonElements => _elementMap.commonElements;
+
+  @override
+  DartTypes get types => _elementMap.types;
+
+  @override
+  DartType substByContext(DartType base, InterfaceType target) {
+    return _elementMap.substByContext(base, target);
+  }
+
+  @override
+  ConstantConstructor getConstructorConstant(ConstructorEntity constructor) {
+    return _elementMap._getConstructorConstant(constructor);
+  }
+
+  @override
+  ConstantExpression getFieldConstant(FieldEntity field) {
+    return _elementMap._getFieldConstantExpression(field);
+  }
+
+  @override
+  ConstantExpression getLocalConstant(Local local) {
+    throw new UnimplementedError("_EvaluationEnvironment.getLocalConstant");
+  }
+
+  @override
+  String readFromEnvironment(String name) {
+    return _environment.valueOf(name);
+  }
+
+  @override
+  DiagnosticReporter get reporter => _elementMap.reporter;
+
+  @override
+  bool get enableAssertions => _elementMap.options.enableUserAssertions;
+}
+
 class JsToFrontendMapImpl extends JsToFrontendMapBase
     implements JsToFrontendMap {
-  final JsToElementMapBase _backend;
+  final JsKernelToElementMap _backend;
 
   JsToFrontendMapImpl(this._backend);
 

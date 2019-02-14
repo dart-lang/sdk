@@ -326,10 +326,10 @@ class NativeBasicDataImpl implements NativeBasicData {
     Map<LibraryEntity, String> jsInteropLibraries =
         source.readLibraryMap(source.readString);
     Map<ClassEntity, String> jsInteropClasses =
-        source.readLibraryMap(source.readString);
+        source.readClassMap(source.readString);
     Set<ClassEntity> anonymousJsInteropClasses = source.readClasses().toSet();
     Map<MemberEntity, String> jsInteropMembers =
-        source.readLibraryMap(source.readString);
+        source.readMemberMap(source.readString);
     source.end(tag);
     return new NativeBasicDataImpl(
         elementEnvironment,

@@ -12,9 +12,13 @@ import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
 import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+
 import '../api_prototype/file_system.dart' show FileSystem;
 
 import '../base/processed_options.dart' show ProcessedOptions;
+
+import '../base/libraries_specification.dart' show LibrariesSpecification;
 
 import '../fasta/compiler_context.dart' show CompilerContext;
 
@@ -28,9 +32,12 @@ import '../fasta/scanner.dart' show ErrorToken, StringToken, Token;
 
 import 'compiler_state.dart' show InitializedCompilerState;
 
-export '../api_prototype/compiler_options.dart' show CompilerOptions;
+export '../api_prototype/compiler_options.dart'
+    show CompilerOptions, parseExperimentalFlags;
 
 export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
+
+export '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
 export '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -96,11 +103,22 @@ InitializedCompilerState initializeCompiler(
     Target target,
     Uri librariesSpecificationUri,
     Uri sdkPlatformUri,
-    Uri packagesFileUri) {
+    Uri packagesFileUri,
+    {Map<ExperimentalFlag, bool> experimentalFlags}) {
+  bool mapEqual(Map<ExperimentalFlag, bool> a, Map<ExperimentalFlag, bool> b) {
+    if (a == null || b == null) return a == b;
+    if (a.length != b.length) return false;
+    for (var flag in a.keys) {
+      if (!b.containsKey(flag) || a[flag] != b[flag]) return false;
+    }
+    return true;
+  }
+
   if (oldState != null &&
       oldState.options.packagesFileUri == packagesFileUri &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
-      oldState.options.linkedDependencies[0] == sdkPlatformUri) {
+      oldState.options.linkedDependencies[0] == sdkPlatformUri &&
+      mapEqual(oldState.options.experimentalFlags, experimentalFlags)) {
     return oldState;
   }
 
@@ -109,7 +127,8 @@ InitializedCompilerState initializeCompiler(
     ..legacyMode = target.legacyMode
     ..linkedDependencies = [sdkPlatformUri]
     ..librariesSpecificationUri = librariesSpecificationUri
-    ..packagesFileUri = packagesFileUri;
+    ..packagesFileUri = packagesFileUri
+    ..experimentalFlags = experimentalFlags;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 
@@ -164,4 +183,24 @@ Object tokenToString(Object value) {
   } else {
     return value;
   }
+}
+
+/// Retrieve the name of the libraries that are supported by [target] according
+/// to the libraries specification [json] file.
+///
+/// Dart2js uses these names to determine the value of library environment
+/// constants, such as `const bool.fromEnvironment("dart.library.io")`.
+// TODO(sigmund): refactor dart2js so that we can retrieve this data later in
+// the compilation pipeline. At that point we can get it from the CFE
+// results directly and completely hide the libraries specification file from
+// dart2js.
+// TODO(sigmund): delete after all constant evaluation is done in the CFE, as
+// this data will no longer be needed on the dart2js side.
+Iterable<String> getSupportedLibraryNames(
+    Uri librariesSpecificationUri, String json, String target) {
+  return LibrariesSpecification.parse(librariesSpecificationUri, json)
+      .specificationFor(target)
+      .allLibraries
+      .where((l) => l.isSupported)
+      .map((l) => l.name);
 }

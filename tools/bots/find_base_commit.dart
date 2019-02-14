@@ -5,6 +5,7 @@
 
 // Find the newest commit that has a full set of results on the bots.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -50,15 +51,31 @@ ${parser.usage}""");
       "&max_builds=$maxBuilds"
       "&status=COMPLETED"
       "&fields=builds(url%2Cparameters_json)");
-  final client = new HttpClient();
-  final request = await client.getUrl(url).timeout(const Duration(seconds: 30));
-  final response = await request.close().timeout(const Duration(seconds: 30));
-  final Map<String, dynamic> object = await response
-      .transform(new Utf8Decoder())
-      .transform(new JsonDecoder())
-      .first
-      .timeout(const Duration(seconds: 30));
-  client.close();
+  const maxRetries = 3;
+  const timeout = const Duration(seconds: 30);
+  Map<String, dynamic> object;
+  for (int i = 1; i <= maxRetries; i++) {
+    try {
+      final client = new HttpClient();
+      final request = await client.getUrl(url).timeout(timeout);
+      final response = await request.close().timeout(timeout);
+      object = await response
+          .transform(new Utf8Decoder())
+          .transform(new JsonDecoder())
+          .first
+          .timeout(timeout);
+      client.close();
+      break;
+    } on TimeoutException catch (e) {
+      final inSeconds = e.duration.inSeconds;
+      stderr.writeln(
+          "Attempt $i of $maxRetries timed out after $inSeconds seconds");
+      if (i == maxRetries) {
+        stderr.writeln("error: Failed to download $url");
+        exit(1);
+      }
+    }
+  }
 
   // Locate the builds we're interested in and map them to each commit. The
   // builds returned by the API are sorted with the newest first. Since bots

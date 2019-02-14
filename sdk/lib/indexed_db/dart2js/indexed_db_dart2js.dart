@@ -67,8 +67,8 @@
  * check out
  * [Use IndexedDB](http://www.dartlang.org/docs/tutorials/indexeddb/).
  *
- * [IndexedDB reference](http://docs.webplatform.org/wiki/apis/indexeddb)
- * provides wiki-style docs about indexedDB
+ * MDN provides [API
+ * documentation](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
  *
  * {@category Web}
  */

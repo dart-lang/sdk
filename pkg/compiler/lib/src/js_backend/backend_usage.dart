@@ -7,6 +7,7 @@ import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../frontend_strategy.dart';
+import '../ir/runtime_type_analysis.dart';
 import '../serialization/serialization.dart';
 import '../universe/feature.dart';
 import '../util/util.dart' show Setlet;

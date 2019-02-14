@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15,21 +15,20 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A [Refactoring] for renaming [LocalElement]s.
  */
 class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
-  final AstProvider astProvider;
-  final ResolvedUnitCache unitCache;
+  final AnalysisSessionHelper sessionHelper;
 
   List<LocalElement> elements = [];
 
   RenameLocalRefactoringImpl(
-      RefactoringWorkspace workspace, this.astProvider, LocalElement element)
-      : unitCache = new ResolvedUnitCache(astProvider),
+      RefactoringWorkspace workspace, LocalElement element)
+      : sessionHelper = AnalysisSessionHelper(element.session),
         super(workspace, element);
 
   @override
@@ -53,10 +52,9 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     RefactoringStatus result = new RefactoringStatus();
     await _prepareElements();
     for (LocalElement element in elements) {
-      CompilationUnit unit = await unitCache.getUnit(element);
-      if (unit != null) {
-        unit.accept(new _ConflictValidatorVisitor(result, newName, element));
-      }
+      var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
+      var unit = resolvedUnit.unit;
+      unit.accept(new _ConflictValidatorVisitor(result, newName, element));
     }
     return result;
   }
@@ -76,7 +74,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() async {
-    var processor = new RenameProcessor(searchEngine, change, newName);
+    var processor = new RenameProcessor(workspace, change, newName);
     for (Element element in elements) {
       processor.addDeclarationEdit(element);
       var references = await searchEngine.searchReferences(element);

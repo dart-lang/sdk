@@ -104,8 +104,7 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
 
 intptr_t Socket::CreateBindConnect(const RawAddr& addr,
                                    const RawAddr& source_addr) {
-  LOG_ERR("SocketBase::CreateBindConnect is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return -1;
 }
 
@@ -113,8 +112,7 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
                                     bool reuseAddress,
                                     bool reusePort,
                                     int ttl) {
-  LOG_ERR("SocketBase::CreateBindDatagram is unimplemented\n");
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return -1;
 }
 

@@ -8,6 +8,8 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import 'diagnostic_message.dart' show DiagnosticMessageHandler;
 
+import 'experimental_flags.dart' show ExperimentalFlag, parseExperimentalFlag;
+
 import 'file_system.dart' show FileSystem;
 
 import 'standard_file_system.dart' show StandardFileSystem;
@@ -118,7 +120,12 @@ class CompilerOptions {
   /// directly, while relative URIs are resolved from the [sdkRoot].
   // TODO(sigmund): provide also a flag to load this data from a file (like
   // libraries.json)
-  Map<String, List<Uri>> targetPatches = {};
+  Map<String, List<Uri>> targetPatches = <String, List<Uri>>{};
+
+  /// Enable or disable experimental features. Features mapping to `true` are
+  /// explicitly enabled. Features mapping to `false` are explicitly disabled.
+  /// Features not mentioned in the map will have their default value.
+  Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
 
   /// The target platform that will consume the compiled code.
   ///
@@ -154,6 +161,10 @@ class CompilerOptions {
   /// Dumped data is printed in stdout.
   bool debugDump = false;
 
+  /// Whether to exclode the platform when serializing the result from a
+  /// 'fasta compile' run.
+  bool omitPlatform = false;
+
   /// Whether to set the exit code to non-zero if any problem (including
   /// warning, etc.) is encountered during compilation.
   bool setExitCodeOnProblem = false;
@@ -181,4 +192,35 @@ class CompilerOptions {
 
   /// Whether to generate bytecode.
   bool bytecode = false;
+
+  /// Whether to write a file (e.g. a dill file) when reporting a crash.
+  bool writeFileOnCrashReport = true;
+}
+
+/// Parse experimental flags from a list of strings, each of which is either a
+/// flag name or a flag name prefixed by 'no-'. Return a map of flags to their
+/// values that can be passed to [experimentalFlags].
+///
+/// If an unknown flag is mentioned, or a flag is mentioned more than once,
+/// the supplied error handler is called with an error message.
+Map<ExperimentalFlag, bool> parseExperimentalFlags(
+    Iterable<String> experiments, void onError(String message)) {
+  Map<ExperimentalFlag, bool> flags = <ExperimentalFlag, bool>{};
+  if (experiments == null) return flags;
+  for (String experiment in experiments) {
+    bool value = true;
+    if (experiment.startsWith("no-")) {
+      value = false;
+      experiment = experiment.substring(3);
+    }
+    ExperimentalFlag flag = parseExperimentalFlag(experiment);
+    if (flag == null) {
+      onError("Unknown experiment: " + experiment);
+    } else if (flags.containsKey(flag)) {
+      onError("Experiment mentioned more than once: " + experiment);
+    } else {
+      flags[flag] = value;
+    }
+  }
+  return flags;
 }

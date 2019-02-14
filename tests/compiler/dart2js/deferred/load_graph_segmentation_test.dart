@@ -57,7 +57,7 @@ void main() {
     // InputElement is native, so it should be in the mainOutputUnit.
     Expect.equals(mainOutputUnit, outputUnitForClass(inputElement));
 
-    var hunksToLoad = compiler.deferredLoadTask.hunksToLoad;
+    var hunksToLoad = closedWorld.outputUnitData.hunksToLoad;
 
     var hunksLib1 = hunksToLoad["lib1"];
     var hunksLib2 = hunksToLoad["lib2"];

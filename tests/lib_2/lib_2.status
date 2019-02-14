@@ -108,7 +108,6 @@ isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not
 
 [ $hot_reload ]
 async/stream_periodic4_test: Pass, RuntimeError # Issue 30904
-async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
 mirrors/dynamic_load_test: RuntimeError # Issue 26869 - Reload fails to preserve library identity
 
 [ $jscl ]
@@ -131,6 +130,9 @@ async/future_or_type_test: Fail # Strong mode implements FutureOr, non-strong tr
 
 [ $compiler != dartdevc && $checked && !$strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
+
+[ $compiler == dartk && $system == macos && $hot_reload && ($arch == simdbc || $arch == simdbc64) ]
+isolate/unresolved_ports_test: Pass, RuntimeError #  Issue 35410
 
 [ $compiler == none && $mode == product ]
 mirrors/library_enumeration_deferred_loading_test: RuntimeError, OK # Deferred loaded eagerly
@@ -212,6 +214,7 @@ isolate/isolate_complex_messages_test: Skip # Isolate.spawnUri
 isolate/issue_21398_parent_isolate1_test: Skip # Isolate.spawnUri
 isolate/issue_21398_parent_isolate_test: Skip # Isolate.spawnUri
 isolate/issue_24243_parent_isolate_test: Skip # Isolate.spawnUri
+isolate/issue_6610_test: Skip # Isolate.spawnUri
 isolate/mandel_isolate_test: Skip # Isolate.spawnUri
 isolate/message2_test: Skip # Isolate.spawnUri
 isolate/message_test: Skip # Isolate.spawnUri

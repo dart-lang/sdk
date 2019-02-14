@@ -13,8 +13,7 @@
 namespace dart {
 
 // Forward declarations.
-class Isolate;
-class Thread;
+class ThreadState;
 
 // Stack resources subclass from this base class. The VM will ensure that the
 // destructors of these objects are called before the stack is unwound past the
@@ -23,27 +22,24 @@ class Thread;
 // to a stack frame above the frame where these objects were allocated.
 class StackResource {
  public:
-  explicit StackResource(Thread* thread) : thread_(NULL), previous_(NULL) {
+  explicit StackResource(ThreadState* thread) : thread_(NULL), previous_(NULL) {
     Init(thread);
   }
 
   virtual ~StackResource();
 
-  // Convenient access to the isolate of the thread of this resource.
-  Isolate* isolate() const;
-
   // The thread that owns this resource.
-  Thread* thread() const { return thread_; }
+  ThreadState* thread() const { return thread_; }
 
   // Destroy stack resources of thread until top exit frame.
-  static void Unwind(Thread* thread) { UnwindAbove(thread, NULL); }
+  static void Unwind(ThreadState* thread) { UnwindAbove(thread, NULL); }
   // Destroy stack resources of thread above new_top, exclusive.
-  static void UnwindAbove(Thread* thread, StackResource* new_top);
+  static void UnwindAbove(ThreadState* thread, StackResource* new_top);
 
  private:
-  void Init(Thread* thread);
+  void Init(ThreadState* thread);
 
-  Thread* thread_;
+  ThreadState* thread_;
   StackResource* previous_;
 
   DISALLOW_ALLOCATION();
@@ -76,27 +72,6 @@ class ZoneAllocated {
  private:
   DISALLOW_COPY_AND_ASSIGN(ZoneAllocated);
 };
-
-// Within a NoSafepointScope, the thread must not reach any safepoint. Used
-// around code that manipulates raw object pointers directly without handles.
-#if defined(DEBUG)
-class NoSafepointScope : public StackResource {
- public:
-  explicit NoSafepointScope(Thread* thread = nullptr);
-  ~NoSafepointScope();
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
-};
-#else   // defined(DEBUG)
-class NoSafepointScope : public ValueObject {
- public:
-  explicit NoSafepointScope(Thread* thread = nullptr) {}
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
-};
-#endif  // defined(DEBUG)
 
 }  // namespace dart
 

@@ -21,6 +21,7 @@
 #include "vm/random.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
+#include "vm/thread_stack_resource.h"
 #include "vm/token_position.h"
 
 namespace dart {
@@ -64,6 +65,7 @@ class RawInteger;
 class RawFloat32x4;
 class RawInt32x4;
 class RawUserTag;
+class ReversePcLookupCache;
 class SafepointHandler;
 class SampleBuffer;
 class SendPort;
@@ -105,7 +107,7 @@ class IsolateVisitor {
 };
 
 // Disallow OOB message handling within this scope.
-class NoOOBMessageScope : public StackResource {
+class NoOOBMessageScope : public ThreadStackResource {
  public:
   explicit NoOOBMessageScope(Thread* thread);
   ~NoOOBMessageScope();
@@ -115,7 +117,7 @@ class NoOOBMessageScope : public StackResource {
 };
 
 // Disallow isolate reload.
-class NoReloadScope : public StackResource {
+class NoReloadScope : public ThreadStackResource {
  public:
   NoReloadScope(Isolate* isolate, Thread* thread);
   ~NoReloadScope();
@@ -133,14 +135,12 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 // List of Isolate flags with corresponding members of Dart_IsolateFlags and
 // corresponding global command line flags.
 //
-//       V(when, name, Dart_IsolateFlags-member-name, command-line-flag-name)
+//       V(when, name, bit-name, Dart_IsolateFlags-name, command-line-flag-name)
 //
 #define ISOLATE_FLAG_LIST(V)                                                   \
-  V(NONPRODUCT, type_checks, EnableTypeChecks, enable_type_checks,             \
-    FLAG_enable_type_checks)                                                   \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
-  V(NONPRODUCT, error_on_bad_type, ErrorOnBadType, enable_error_on_bad_type,   \
-    FLAG_error_on_bad_type)                                                    \
+  V(PRODUCT, use_bare_instructions, Bare, use_bare_instructions,               \
+    FLAG_use_bare_instructions)                                                \
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
   V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
@@ -199,11 +199,15 @@ class Isolate : public BaseIsolate {
 
   // Prepares all threads in an isolate for Garbage Collection.
   void ReleaseStoreBuffers();
-  void EnableIncrementalBarrier(MarkingStack* marking_stack);
+  void EnableIncrementalBarrier(MarkingStack* marking_stack,
+                                MarkingStack* deferred_marking_stack);
   void DisableIncrementalBarrier();
 
   StoreBuffer* store_buffer() const { return store_buffer_; }
   MarkingStack* marking_stack() const { return marking_stack_; }
+  MarkingStack* deferred_marking_stack() const {
+    return deferred_marking_stack_;
+  }
 
   ThreadRegistry* thread_registry() const { return thread_registry_; }
   SafepointHandler* safepoint_handler() const { return safepoint_handler_; }
@@ -223,9 +227,12 @@ class Isolate : public BaseIsolate {
   Dart_MessageNotifyCallback message_notify_callback() const {
     return message_notify_callback_;
   }
+
   void set_message_notify_callback(Dart_MessageNotifyCallback value) {
     message_notify_callback_ = value;
   }
+
+  bool HasPendingMessages();
 
   Thread* mutator_thread() const;
 
@@ -280,9 +287,10 @@ class Isolate : public BaseIsolate {
     environment_callback_ = value;
   }
 
-  Dart_LibraryTagHandler library_tag_handler() const {
-    return library_tag_handler_;
-  }
+  bool HasTagHandler() const { return library_tag_handler_ != nullptr; }
+  RawObject* CallTagHandler(Dart_LibraryTag tag,
+                            const Object& arg1,
+                            const Object& arg2);
   void set_library_tag_handler(Dart_LibraryTagHandler value) {
     library_tag_handler_ = value;
   }
@@ -356,6 +364,10 @@ class Isolate : public BaseIsolate {
   Mutex* kernel_data_class_cache_mutex() const {
     return kernel_data_class_cache_mutex_;
   }
+
+  // Any access to constants arrays must be locked since mutator and
+  // background compiler can access the arrays at the same time.
+  Mutex* kernel_constants_mutex() const { return kernel_constants_mutex_; }
 
 #if !defined(PRODUCT)
   Debugger* debugger() const {
@@ -598,7 +610,7 @@ class Isolate : public BaseIsolate {
   void SetStickyError(RawError* sticky_error);
 
   RawError* sticky_error() const { return sticky_error_; }
-  void clear_sticky_error();
+  DART_WARN_UNUSED_RESULT RawError* StealStickyError();
 
   void RetainKernelBlob(const ExternalTypedData& kernel_blob);
 
@@ -622,20 +634,6 @@ class Isolate : public BaseIsolate {
   }
   void set_remapping_cids(bool value) {
     isolate_flags_ = RemappingCidsBit::update(value, isolate_flags_);
-  }
-
-  // True during top level parsing.
-  bool IsTopLevelParsing() {
-    const intptr_t value =
-        AtomicOperations::LoadRelaxed(&top_level_parsing_count_);
-    ASSERT(value >= 0);
-    return value > 0;
-  }
-  void IncrTopLevelParsingCount() {
-    AtomicOperations::IncrementBy(&top_level_parsing_count_, 1);
-  }
-  void DecrTopLevelParsingCount() {
-    AtomicOperations::DecrementBy(&top_level_parsing_count_, 1);
   }
 
   static const intptr_t kInvalidGen = 0;
@@ -697,8 +695,7 @@ class Isolate : public BaseIsolate {
   }
 
   bool can_use_strong_mode_types() const {
-    return FLAG_strong && FLAG_use_strong_mode_types &&
-           !unsafe_trust_strong_mode_types();
+    return FLAG_use_strong_mode_types && !unsafe_trust_strong_mode_types();
   }
 
   bool should_load_vmservice() const {
@@ -714,6 +711,17 @@ class Isolate : public BaseIsolate {
 
   void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
   const char** obfuscation_map() const { return obfuscation_map_; }
+
+  // Returns the pc -> code lookup cache object for this isolate.
+  ReversePcLookupCache* reverse_pc_lookup_cache() const {
+    return reverse_pc_lookup_cache_;
+  }
+
+  // Sets the pc -> code lookup cache object for this isolate.
+  void set_reverse_pc_lookup_cache(ReversePcLookupCache* table) {
+    ASSERT(reverse_pc_lookup_cache_ == nullptr);
+    reverse_pc_lookup_cache_ = table;
+  }
 
   // Isolate-specific flag handling.
   static void FlagsInitialize(Dart_IsolateFlags* api_flags);
@@ -756,12 +764,10 @@ class Isolate : public BaseIsolate {
 
   // Convenience flag tester indicating whether incoming function arguments
   // should be type checked.
-  bool argument_type_checks() const {
-    return should_emit_strong_mode_checks() || type_checks();
-  }
+  bool argument_type_checks() const { return should_emit_strong_mode_checks(); }
 
   bool should_emit_strong_mode_checks() const {
-    return FLAG_strong && !unsafe_trust_strong_mode_types();
+    return !unsafe_trust_strong_mode_types();
   }
 
   static void KillAllIsolates(LibMsgId msg_id);
@@ -861,6 +867,7 @@ class Isolate : public BaseIsolate {
 
   StoreBuffer* store_buffer_;
   MarkingStack* marking_stack_;
+  MarkingStack* deferred_marking_stack_;
   Heap* heap_;
 
 #define ISOLATE_FLAG_BITS(V)                                                   \
@@ -878,6 +885,7 @@ class Isolate : public BaseIsolate {
   V(EnableAsserts)                                                             \
   V(ErrorOnBadType)                                                            \
   V(ErrorOnBadOverride)                                                        \
+  V(Bare)                                                                      \
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
   V(Obfuscate)                                                                 \
@@ -976,6 +984,7 @@ class Isolate : public BaseIsolate {
   Mutex* megamorphic_lookup_mutex_;  // Protects megamorphic table lookup.
   Mutex* kernel_data_lib_cache_mutex_;
   Mutex* kernel_data_class_cache_mutex_;
+  Mutex* kernel_constants_mutex_;
   MessageHandler* message_handler_;
   IsolateSpawnState* spawn_state_;
   intptr_t defer_finalization_count_;
@@ -1001,7 +1010,6 @@ class Isolate : public BaseIsolate {
   // to background compilation. The counters may overflow, which is OK
   // since we check for equality to detect if an event occured.
   intptr_t loading_invalidation_gen_;
-  intptr_t top_level_parsing_count_;
 
   // Protect access to boxed_field_list_.
   Mutex* field_list_mutex_;
@@ -1018,6 +1026,8 @@ class Isolate : public BaseIsolate {
 
   Dart_QualifiedFunctionName* embedder_entry_points_;
   const char** obfuscation_map_;
+
+  ReversePcLookupCache* reverse_pc_lookup_cache_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;

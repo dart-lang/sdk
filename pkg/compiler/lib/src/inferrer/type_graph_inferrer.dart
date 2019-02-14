@@ -12,18 +12,16 @@ import '../compiler.dart';
 import '../elements/entities.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/elements.dart' show JClosureCallMethod;
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../world.dart';
+import 'abstract_value_domain.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
+import 'types.dart';
 
-/**
- * A work queue for the inferrer. It filters out nodes that are tagged as
- * [TypeInformation.doNotEnqueue], as well as ensures through
- * [TypeInformation.inQueue] that a node is in the queue only once at
- * a time.
- */
+/// A work queue for the inferrer. It filters out nodes that are tagged as
+/// [TypeInformation.doNotEnqueue], as well as ensures through
+/// [TypeInformation.inQueue] that a node is in the queue only once at
+/// a time.
 class WorkQueue {
   final Queue<TypeInformation> queue = new Queue<TypeInformation>();
 
@@ -89,26 +87,14 @@ class TypeGraphInferrer implements TypesInferrer {
   GlobalTypeInferenceResults buildResults() {
     inferrer.close();
 
-    Map<ir.TreeNode, AbstractValue> allocatedLists =
-        <ir.TreeNode, AbstractValue>{};
-    Set<ir.TreeNode> checkedForGrowableLists = new Set<ir.TreeNode>();
-    inferrer.types.allocatedLists
-        .forEach((ir.TreeNode node, ListTypeInformation typeInformation) {
-      ListTypeInformation info = inferrer.types.allocatedLists[node];
-      if (info.checksGrowable) {
-        checkedForGrowableLists.add(node);
-      }
-      allocatedLists[node] = typeInformation.type;
-    });
-
     Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults =
         <MemberEntity, GlobalTypeInferenceMemberResult>{};
     Map<Local, AbstractValue> parameterResults = <Local, AbstractValue>{};
 
     void createMemberResults(
         MemberEntity member, MemberTypeInformation typeInformation) {
-      GlobalTypeInferenceElementData data = inferrer.dataOfMember(member);
-      data.compress();
+      GlobalTypeInferenceElementData data =
+          inferrer.dataOfMember(member).compress();
       bool isJsInterop = closedWorld.nativeData.isJsInteropMember(member);
 
       AbstractValue returnType;
@@ -126,13 +112,14 @@ class TypeGraphInferrer implements TypesInferrer {
 
       bool throwsAlways =
           // Always throws if the return type was inferred to be non-null empty.
-          returnType != null && abstractValueDomain.isEmpty(returnType);
+          returnType != null &&
+              abstractValueDomain.isEmpty(returnType).isDefinitelyTrue;
 
       bool isCalledOnce =
           typeInformation.isCalledOnce(); //isMemberCalledOnce(member);
 
       memberResults[member] = new GlobalTypeInferenceMemberResultImpl(
-          data, allocatedLists, returnType, type,
+          data, returnType, type,
           throwsAlways: throwsAlways, isCalledOnce: isCalledOnce);
     }
 
@@ -163,13 +150,26 @@ class TypeGraphInferrer implements TypesInferrer {
       parameterResults[parameter] = type;
     });
 
+    Map<ir.TreeNode, AbstractValue> allocatedLists =
+        <ir.TreeNode, AbstractValue>{};
+    Set<ir.TreeNode> checkedForGrowableLists = new Set<ir.TreeNode>();
+    inferrer.types.allocatedLists
+        .forEach((ir.TreeNode node, ListTypeInformation typeInformation) {
+      ListTypeInformation info = inferrer.types.allocatedLists[node];
+      if (info.checksGrowable) {
+        checkedForGrowableLists.add(node);
+      }
+      allocatedLists[node] = typeInformation.type;
+    });
+
     GlobalTypeInferenceResults results = new GlobalTypeInferenceResultsImpl(
         closedWorld,
         _inferredDataBuilder.close(closedWorld),
         memberResults,
         parameterResults,
         checkedForGrowableLists,
-        inferrer.returnsListElementTypeSet);
+        inferrer.returnsListElementTypeSet,
+        allocatedLists);
 
     inferrer.clear();
 

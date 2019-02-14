@@ -4,9 +4,9 @@
 
 import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
-import '../native/native.dart' as native;
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/types.dart';
+import '../native/behavior.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 
@@ -36,7 +36,7 @@ class AbstractValueFactory {
   }
 
   static AbstractValue fromNativeBehavior(
-      native.NativeBehavior nativeBehavior, JClosedWorld closedWorld) {
+      NativeBehavior nativeBehavior, JClosedWorld closedWorld) {
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
     var typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return abstractValueDomain.dynamicType;
@@ -46,7 +46,7 @@ class AbstractValueFactory {
     // [type] is either an instance of [DartType] or special objects
     // like [native.SpecialType.JsObject].
     AbstractValue fromNativeType(dynamic type) {
-      if (type == native.SpecialType.JsObject) {
+      if (type == SpecialType.JsObject) {
         return abstractValueDomain
             .createNonNullExact(commonElements.objectClass);
       } else if (type.isVoid) {
@@ -64,7 +64,7 @@ class AbstractValueFactory {
 
     AbstractValue result =
         abstractValueDomain.unionOfMany(typesReturned.map(fromNativeType));
-    assert(!abstractValueDomain.isEmpty(result),
+    assert(abstractValueDomain.isEmpty(result).isPotentiallyFalse,
         "Unexpected empty return value for $nativeBehavior.");
     return result;
   }

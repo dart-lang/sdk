@@ -83,7 +83,7 @@ abstract class Node {
   const Node();
 
   accept(Visitor v);
-  visitChildren(Visitor v);
+  void visitChildren(Visitor v);
 
   /// Returns the textual representation of this node for use in debugging.
   ///
@@ -383,16 +383,20 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
 
   void computeCanonicalNames() {
     assert(canonicalName != null);
-    for (var typedef_ in typedefs) {
+    for (int i = 0; i < typedefs.length; ++i) {
+      Typedef typedef_ = typedefs[i];
       canonicalName.getChildFromTypedef(typedef_).bindTo(typedef_.reference);
     }
-    for (var field in fields) {
+    for (int i = 0; i < fields.length; ++i) {
+      Field field = fields[i];
       canonicalName.getChildFromMember(field).bindTo(field.reference);
     }
-    for (var member in procedures) {
+    for (int i = 0; i < procedures.length; ++i) {
+      Procedure member = procedures[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
-    for (var class_ in classes) {
+    for (int i = 0; i < classes.length; ++i) {
+      Class class_ = classes[i];
       canonicalName.getChild(class_.name).bindTo(class_.reference);
       class_.computeCanonicalNames();
     }
@@ -605,6 +609,10 @@ class Typedef extends NamedNode implements FileUriNode {
   }
 
   Library get enclosingLibrary => parent;
+
+  TypedefType get thisType {
+    return new TypedefType(this, _getAsTypeArguments(typeParameters));
+  }
 
   accept(TreeVisitor v) {
     return v.visitTypedef(this);
@@ -874,16 +882,20 @@ class Class extends NamedNode implements FileUriNode {
 
   void computeCanonicalNames() {
     assert(canonicalName != null);
-    for (var member in fields) {
+    for (int i = 0; i < fields.length; ++i) {
+      Field member = fields[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
-    for (var member in procedures) {
+    for (int i = 0; i < procedures.length; ++i) {
+      Procedure member = procedures[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
-    for (var member in constructors) {
+    for (int i = 0; i < constructors.length; ++i) {
+      Constructor member = constructors[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
-    for (var member in redirectingFactoryConstructors) {
+    for (int i = 0; i < redirectingFactoryConstructors.length; ++i) {
+      RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
   }
@@ -2149,15 +2161,15 @@ enum AsyncMarker {
 abstract class Expression extends TreeNode {
   /// Returns the static type of the expression.
   ///
-  /// Should only be used on code compiled in strong mode, as this method
-  /// assumes the IR is strongly typed.
+  /// Shouldn't be used on code compiled in legacy mode, as this method assumes
+  /// the IR is strongly typed.
   DartType getStaticType(TypeEnvironment types);
 
   /// Returns the static type of the expression as an instantiation of
   /// [superclass].
   ///
-  /// Should only be used on code compiled in strong mode, as this method
-  /// assumes the IR is strongly typed.
+  /// Shouldn't be used on code compiled in legacy mode, as this method assumes
+  /// the IR is strongly typed.
   ///
   /// This method furthermore assumes that the type of the expression actually
   /// is a subtype of (some instantiation of) the given [superclass].
@@ -2178,7 +2190,7 @@ abstract class Expression extends TreeNode {
       type = (type as TypeParameterType).parameter.bound;
     }
     if (type is InterfaceType) {
-      var upcastType = types.hierarchy.getTypeAsInstanceOf(type, superclass);
+      var upcastType = types.getTypeAsInstanceOf(type, superclass);
       if (upcastType != null) return upcastType;
     } else if (type is BottomType) {
       return superclass.bottomType;
@@ -2546,8 +2558,7 @@ class SuperPropertyGet extends Expression {
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
     }
-    var receiver =
-        types.hierarchy.getTypeAsInstanceOf(types.thisType, declaringClass);
+    var receiver = types.getTypeAsInstanceOf(types.thisType, declaringClass);
     return Substitution.fromInterfaceType(receiver)
         .substituteType(interfaceTarget.getterType);
   }
@@ -2869,8 +2880,7 @@ class SuperMethodInvocation extends InvocationExpression {
   DartType getStaticType(TypeEnvironment types) {
     if (interfaceTarget == null) return const DynamicType();
     Class superclass = interfaceTarget.enclosingClass;
-    var receiverType =
-        types.hierarchy.getTypeAsInstanceOf(types.thisType, superclass);
+    var receiverType = types.getTypeAsInstanceOf(types.thisType, superclass);
     var returnType = Substitution.fromInterfaceType(receiverType)
         .substituteType(interfaceTarget.function.returnType);
     return Substitution.fromPairs(
@@ -3401,6 +3411,35 @@ class ListLiteral extends Expression {
 
   accept(ExpressionVisitor v) => v.visitListLiteral(this);
   accept1(ExpressionVisitor1 v, arg) => v.visitListLiteral(this, arg);
+
+  visitChildren(Visitor v) {
+    typeArgument?.accept(v);
+    visitList(expressions, v);
+  }
+
+  transformChildren(Transformer v) {
+    typeArgument = v.visitDartType(typeArgument);
+    transformList(expressions, v, this);
+  }
+}
+
+class SetLiteral extends Expression {
+  bool isConst;
+  DartType typeArgument; // Not null, defaults to DynamicType.
+  final List<Expression> expressions;
+
+  SetLiteral(this.expressions,
+      {this.typeArgument: const DynamicType(), this.isConst: false}) {
+    assert(typeArgument != null);
+    setParents(expressions, this);
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.literalSetType(typeArgument);
+  }
+
+  accept(ExpressionVisitor v) => v.visitSetLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSetLiteral(this, arg);
 
   visitChildren(Visitor v) {
     typeArgument?.accept(v);
@@ -4538,6 +4577,7 @@ abstract class DartType extends Node {
   const DartType();
 
   accept(DartTypeVisitor v);
+  accept1(DartTypeVisitor1 v, arg);
 
   bool operator ==(Object other);
 
@@ -4562,6 +4602,7 @@ class InvalidType extends DartType {
   const InvalidType();
 
   accept(DartTypeVisitor v) => v.visitInvalidType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitInvalidType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is InvalidType;
@@ -4573,6 +4614,7 @@ class DynamicType extends DartType {
   const DynamicType();
 
   accept(DartTypeVisitor v) => v.visitDynamicType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitDynamicType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is DynamicType;
@@ -4584,6 +4626,7 @@ class VoidType extends DartType {
   const VoidType();
 
   accept(DartTypeVisitor v) => v.visitVoidType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitVoidType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is VoidType;
@@ -4595,6 +4638,7 @@ class BottomType extends DartType {
   const BottomType();
 
   accept(DartTypeVisitor v) => v.visitBottomType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitBottomType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is BottomType;
@@ -4627,6 +4671,7 @@ class InterfaceType extends DartType {
   }
 
   accept(DartTypeVisitor v) => v.visitInterfaceType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitInterfaceType(this, arg);
 
   visitChildren(Visitor v) {
     classNode.acceptReference(v);
@@ -4666,8 +4711,7 @@ class FunctionType extends DartType {
   final List<NamedType> namedParameters; // Must be sorted.
 
   /// The [Typedef] this function type is created for.
-  @nocoq
-  Reference typedefReference;
+  final TypedefType typedefType;
 
   final DartType returnType;
   int _hashCode;
@@ -4676,20 +4720,24 @@ class FunctionType extends DartType {
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int requiredParameterCount,
-      this.typedefReference})
+      this.typedefType})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
             requiredParameterCount ?? positionalParameters.length;
 
-  /// The [Typedef] this function type is created for.
+  @nocoq
+  Reference get typedefReference => typedefType?.typedefReference;
+
   Typedef get typedef => typedefReference?.asTypedef;
 
   accept(DartTypeVisitor v) => v.visitFunctionType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitFunctionType(this, arg);
 
   visitChildren(Visitor v) {
     visitList(typeParameters, v);
     visitList(positionalParameters, v);
     visitList(namedParameters, v);
+    typedefType?.accept(v);
     returnType.accept(v);
   }
 
@@ -4735,7 +4783,7 @@ class FunctionType extends DartType {
     return new FunctionType(positionalParameters, returnType,
         requiredParameterCount: requiredParameterCount,
         namedParameters: namedParameters,
-        typedefReference: typedefReference);
+        typedefType: typedefType);
   }
 
   /// Looks up the type of the named parameter with the given name.
@@ -4800,6 +4848,7 @@ class TypedefType extends DartType {
   Typedef get typedefNode => typedefReference.asTypedef;
 
   accept(DartTypeVisitor v) => v.visitTypedefType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitTypedefType(this, arg);
 
   visitChildren(Visitor v) {
     visitList(typeArguments, v);
@@ -4888,6 +4937,7 @@ class TypeParameterType extends DartType {
   TypeParameterType(this.parameter, [this.promotedBound]);
 
   accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitTypeParameterType(this, arg);
 
   visitChildren(Visitor v) {}
 
@@ -5390,6 +5440,67 @@ class TypeLiteralConstant extends Constant {
   DartType getType(TypeEnvironment types) => types.typeType;
 }
 
+abstract class EnvironmentConstant extends Constant {
+  final String name;
+  final Constant defaultValue;
+
+  EnvironmentConstant(this.name, this.defaultValue);
+  visitChildren(Visitor v) {
+    defaultValue.acceptReference(v);
+  }
+}
+
+class EnvironmentBoolConstant extends EnvironmentConstant {
+  EnvironmentBoolConstant(String name, Constant defaultValue)
+      : super(name, defaultValue);
+
+  accept(ConstantVisitor v) => v.visitEnvironmentBoolConstant(this);
+  acceptReference(Visitor v) {
+    return v.visitEnvironmentBoolConstantReference(this);
+  }
+
+  DartType getType(TypeEnvironment types) => types.boolType;
+}
+
+class EnvironmentIntConstant extends EnvironmentConstant {
+  EnvironmentIntConstant(String name, Constant defaultValue)
+      : super(name, defaultValue);
+
+  accept(ConstantVisitor v) => v.visitEnvironmentIntConstant(this);
+  acceptReference(Visitor v) {
+    return v.visitEnvironmentIntConstantReference(this);
+  }
+
+  DartType getType(TypeEnvironment types) => types.intType;
+}
+
+class EnvironmentStringConstant extends EnvironmentConstant {
+  EnvironmentStringConstant(String name, Constant defaultValue)
+      : super(name, defaultValue);
+
+  accept(ConstantVisitor v) => v.visitEnvironmentStringConstant(this);
+  acceptReference(Visitor v) {
+    return v.visitEnvironmentStringConstantReference(this);
+  }
+
+  DartType getType(TypeEnvironment types) => types.stringType;
+}
+
+class UnevaluatedConstant extends Constant {
+  final Expression expression;
+
+  UnevaluatedConstant(this.expression);
+
+  visitChildren(Visitor v) {
+    expression.accept(v);
+  }
+
+  accept(ConstantVisitor v) => v.visitUnevaluatedConstant(this);
+  acceptReference(Visitor v) => v.visitUnevaluatedConstantReference(this);
+
+  DartType getType(TypeEnvironment types) => expression.getStaticType(types);
+}
+
 // ------------------------------------------------------------------------
 //                                COMPONENT
 // ------------------------------------------------------------------------
@@ -5435,8 +5546,8 @@ class Component extends TreeNode {
   }
 
   void computeCanonicalNames() {
-    for (var library in libraries) {
-      computeCanonicalNamesForLibrary(library);
+    for (int i = 0; i < libraries.length; ++i) {
+      computeCanonicalNamesForLibrary(libraries[i]);
     }
   }
 
@@ -5531,6 +5642,8 @@ abstract class MetadataRepository<T> {
 }
 
 abstract class BinarySink {
+  int getBufferOffset();
+
   void writeByte(int byte);
   void writeBytes(List<int> bytes);
   void writeUInt32(int value);
@@ -5539,7 +5652,7 @@ abstract class BinarySink {
   /// Write List<Byte> into the sink.
   void writeByteList(List<int> bytes);
 
-  void writeCanonicalNameReference(CanonicalName name);
+  void writeNullAllowedCanonicalNameReference(CanonicalName name);
   void writeStringReference(String str);
   void writeName(Name node);
   void writeDartType(DartType type);
@@ -5560,6 +5673,7 @@ abstract class BinarySource {
   List<int> get bytes;
 
   int readByte();
+  List<int> readBytes(int length);
   int readUInt();
   int readUint32();
 
@@ -5677,7 +5791,7 @@ class Source {
   /// number. The returned line contains no line separators.
   String getTextLine(int line) {
     RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
-    if (source == null) return null;
+    if (source == null || source.isEmpty) return null;
 
     cachedText ??= utf8.decode(source, allowMalformed: true);
     // -1 as line numbers start at 1.

@@ -478,7 +478,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   }
 }
 
-/// Configuration for `dartdevc` and `dartdevk`
+/// Configuration for `dartdevc` and `dartdevk` (DDC with Kernel)
 class DevCompilerConfiguration extends CompilerConfiguration {
   DevCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
@@ -622,7 +622,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     commands.add(
         computeDartBootstrapCommand(tempDir, arguments, environmentOverrides));
 
-    if (previewDart2) {
+    if (previewDart2 && !_configuration.keepGeneratedFiles) {
       commands.add(computeRemoveKernelFileCommand(
           tempDir, arguments, environmentOverrides));
     }
@@ -630,8 +630,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     if (!_configuration.useBlobs) {
       commands.add(
           computeAssembleCommand(tempDir, arguments, environmentOverrides));
-      commands.add(computeRemoveAssemblyCommand(
-          tempDir, arguments, environmentOverrides));
+      if (!_configuration.keepGeneratedFiles) {
+        commands.add(computeRemoveAssemblyCommand(
+            tempDir, arguments, environmentOverrides));
+      }
     }
 
     return new CommandArtifact(
@@ -1108,6 +1110,7 @@ abstract class VMKernelCompilerMixin {
     if (_configuration.useKernelBytecode) {
       args.add('--gen-bytecode');
       args.add('--drop-ast');
+      args.add('--emit-bytecode-source-positions');
     }
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
@@ -1166,7 +1169,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
         Uri.base.resolveUri(new Uri.directory(tempDir)).resolve("out.dill");
     var outputFileName = output.toFilePath();
 
-    var compilerArguments = <String>[];
+    var compilerArguments = <String>['--verify'];
     if (_isLegacy) {
       compilerArguments.add("--legacy-mode");
     }

@@ -22,6 +22,7 @@ abstract class Link implements FileSystemEntity {
     return overrides.createLink(path);
   }
 
+  @pragma("vm:entry-point")
   factory Link.fromRawPath(Uint8List rawPath) {
     // TODO(bkonyi): handle overrides
     return new _Link.fromRawPath(rawPath);
@@ -161,10 +162,7 @@ class _Link extends FileSystemEntity implements Link {
   Uint8List _rawPath;
 
   _Link(String path) {
-    if (path is! String) {
-      throw new ArgumentError('${Error.safeToString(path)} '
-          'is not a String');
-    }
+    ArgumentError.checkNotNull(path, 'path');
     _path = path;
     _rawPath = FileSystemEntity._toUtf8Array(path);
   }
@@ -223,8 +221,8 @@ class _Link extends FileSystemEntity implements Link {
       return '\\??\\$result';
     } else {
       throw new FileSystemException(
-          'Target $result of Link.create on Windows cannot be converted' +
-              ' to start with a drive letter.  Unexpected error.');
+          'Target $result of Link.create on Windows cannot be converted'
+          ' to start with a drive letter.  Unexpected error.');
     }
   }
 

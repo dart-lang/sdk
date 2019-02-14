@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -93,16 +93,16 @@ class C extends B {
   }
 
   test_fromPart() async {
-    addSource('/myLib.dart', '''
+    addSource('/home/test/lib/myLib.dart', '''
 library myLib;
-part '${convertAbsolutePathToUri(testFile)}'
-part '${convertAbsolutePathToUri('/otherPart.dart')}'
+part 'test.dart';
+part 'otherPart.dart';
 class A {
   A suggested1(int x) => null;
   B suggested2(String y) => null;
 }
 ''');
-    addSource('/otherPart.dart', '''
+    addSource('/home/test/lib/otherPart.dart', '''
 part of myLib;
 class B extends A {
   B suggested2(String y) => null;
@@ -116,7 +116,6 @@ class C extends B {
 }
 ''');
     // assume information for context.getLibrariesContaining has been cached
-    await computeLibrariesContaining();
     await computeSuggestions();
     _assertOverride('''
 @override
@@ -174,6 +173,62 @@ method() {
         displayText: 'method() { … }',
         selectionOffset: 45,
         selectionLength: 22);
+  }
+
+  test_private_otherLibrary() async {
+    addSource('/home/test/lib/a.dart', '''
+class A {
+  void foo() {}
+  void _bar() {}
+}
+''');
+    addTestSource(r'''
+import 'a.dart';
+
+class B extends A {
+  f^
+}
+''');
+    await computeSuggestions();
+
+    _assertOverride('''
+@override
+  void foo() {
+    // TODO: implement foo
+    super.foo();
+  }''', displayText: 'foo() { … }', selectionOffset: 56, selectionLength: 12);
+
+    expect(suggestions, _notSuggestedPredicate((suggestion) {
+      return suggestion.completion.contains('void _bar()');
+    }));
+  }
+
+  test_private_thisLibrary() async {
+    addTestSource(r'''
+class A {
+  void foo() {}
+  void _bar() {}
+}
+
+class B extends A {
+  f^
+}
+''');
+    await computeSuggestions();
+
+    _assertOverride('''
+@override
+  void foo() {
+    // TODO: implement foo
+    super.foo();
+  }''', displayText: 'foo() { … }', selectionOffset: 56, selectionLength: 12);
+
+    _assertOverride('''
+@override
+  void _bar() {
+    // TODO: implement _bar
+    super._bar();
+  }''', displayText: '_bar() { … }', selectionOffset: 58, selectionLength: 13);
   }
 
   test_withExistingOverride() async {
@@ -244,5 +299,9 @@ method() {
     expect(cs.element, isNotNull);
     expect(cs.displayText, displayText);
     return cs;
+  }
+
+  static Matcher _notSuggestedPredicate(bool Function(CompletionSuggestion) f) {
+    return isNot(contains(predicate(f)));
   }
 }

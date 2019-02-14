@@ -131,12 +131,12 @@ const char* CanonicalFunction(const char* func);
 class Api : AllStatic {
  public:
   // Create on the stack to provide a new throw-safe api scope.
-  class Scope : public StackResource {
+  class Scope : public ThreadStackResource {
    public:
-    explicit Scope(Thread* thread) : StackResource(thread) {
-      Dart_EnterScope();
+    explicit Scope(Thread* thread) : ThreadStackResource(thread) {
+      thread->EnterApiScope();
     }
-    ~Scope() { Dart_ExitScope(); }
+    ~Scope() { thread()->ExitApiScope(); }
 
    private:
     DISALLOW_COPY_AND_ASSIGN(Scope);

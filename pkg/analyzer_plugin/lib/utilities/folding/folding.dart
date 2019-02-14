@@ -23,7 +23,7 @@ abstract class DartFoldingRequest implements FoldingRequest {
    * The analysis result for the file for which the folding regions are being
    * requested.
    */
-  ResolveResult get result;
+  ResolvedUnitResult get result;
 }
 
 /**

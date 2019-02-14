@@ -18,17 +18,17 @@ main() {
   invokeGenericMethods();
 }
 
-/*strong.element: invokeFunction1:[null|subclass=A]*/
+/*element: invokeFunction1:[null|subclass=A]*/
 invokeFunction1(A Function() /*[subclass=Closure]*/ f) {
   return f();
 }
 
-/*strong.element: invokeFunction2:[null|exact=B]*/
+/*element: invokeFunction2:[null|exact=B]*/
 invokeFunction2(B Function() /*[subclass=Closure]*/ f) {
   return f();
 }
 
-/*strong.element: invokeFunction3:[null|exact=C]*/
+/*element: invokeFunction3:[null|exact=C]*/
 invokeFunction3(C Function() /*[subclass=Closure]*/ f) {
   return f();
 }
@@ -36,36 +36,36 @@ invokeFunction3(C Function() /*[subclass=Closure]*/ f) {
 /*element: genericFunction:[null|subclass=Object]*/
 T genericFunction<T>(T Function() /*[subclass=Closure]*/ f) => f();
 
-/*strong.element: invokeGenericFunction1:[null|subclass=A]*/
+/*element: invokeGenericFunction1:[null|subclass=A]*/
 invokeGenericFunction1() {
   return genericFunction<A>(/*[exact=A]*/ () => new A());
 }
 
-/*strong.element: invokeGenericFunction2:[null|exact=B]*/
+/*element: invokeGenericFunction2:[null|exact=B]*/
 invokeGenericFunction2() {
   return genericFunction<B>(/*[exact=B]*/ () => new B());
 }
 
-/*strong.element: invokeGenericFunction3:[null|exact=C]*/
+/*element: invokeGenericFunction3:[null|exact=C]*/
 invokeGenericFunction3() {
   return genericFunction<C>(/*[exact=C]*/ () => new C());
 }
 
-/*strong.element: invokeGenericLocalFunction1:[null|subclass=A]*/
+/*element: invokeGenericLocalFunction1:[null|subclass=A]*/
 invokeGenericLocalFunction1() {
   /*[null|subclass=Object]*/
   T local<T>(T Function() /*[subclass=Closure]*/ f) => f();
   return local<A>(/*[exact=A]*/ () => new A());
 }
 
-/*strong.element: invokeGenericLocalFunction2:[null|exact=B]*/
+/*element: invokeGenericLocalFunction2:[null|exact=B]*/
 invokeGenericLocalFunction2() {
   /*[null|subclass=Object]*/
   T local<T>(T Function() /*[subclass=Closure]*/ f) => f();
   return local<B>(/*[exact=B]*/ () => new B());
 }
 
-/*strong.element: invokeGenericLocalFunction3:[null|exact=C]*/
+/*element: invokeGenericLocalFunction3:[null|exact=C]*/
 invokeGenericLocalFunction3() {
   /*[null|subclass=Object]*/
   T local<T>(T Function() /*[subclass=Closure]*/ f) => f();
@@ -134,39 +134,39 @@ class GenericSubclass<T> extends GenericClass<T> {
   superMethodInvoke() => super.functionTypedMethod()();
 }
 
-/*strong.element: invokeInstanceMethod1:[subclass=A]*/
+/*element: invokeInstanceMethod1:[subclass=A]*/
 invokeInstanceMethod1(GenericClass<A> /*[exact=GenericClass]*/ c) =>
     c. /*invoke: [exact=GenericClass]*/ method();
 
-/*strong.element: invokeInstanceMethod2:[exact=B]*/
+/*element: invokeInstanceMethod2:[exact=B]*/
 invokeInstanceMethod2(GenericClass<B> /*[exact=GenericClass]*/ c) =>
     c. /*invoke: [exact=GenericClass]*/ method();
 
-/*strong.element: invokeInstanceMethod3:[exact=C]*/
+/*element: invokeInstanceMethod3:[exact=C]*/
 invokeInstanceMethod3(GenericClass<C> /*[exact=GenericClass]*/ c) =>
     c. /*invoke: [exact=GenericClass]*/ method();
 
-/*strong.element: invokeInstanceGetter1:[subclass=A]*/
+/*element: invokeInstanceGetter1:[subclass=A]*/
 invokeInstanceGetter1(GenericClass<A> /*[exact=GenericClass]*/ c) =>
     c. /*[exact=GenericClass]*/ getter;
 
-/*strong.element: invokeInstanceGetter2:[exact=B]*/
+/*element: invokeInstanceGetter2:[exact=B]*/
 invokeInstanceGetter2(GenericClass<B> /*[exact=GenericClass]*/ c) =>
     c. /*[exact=GenericClass]*/ getter;
 
-/*strong.element: invokeInstanceGetter3:[exact=C]*/
+/*element: invokeInstanceGetter3:[exact=C]*/
 invokeInstanceGetter3(GenericClass<C> /*[exact=GenericClass]*/ c) =>
     c. /*[exact=GenericClass]*/ getter;
 
-/*strong.element: accessInstanceField1:[subclass=A]*/
+/*element: accessInstanceField1:[subclass=A]*/
 accessInstanceField1(GenericClass<A> /*[exact=GenericClass]*/ c) =>
     c. /*[exact=GenericClass]*/ field;
 
-/*strong.element: accessInstanceField2:[exact=B]*/
+/*element: accessInstanceField2:[exact=B]*/
 accessInstanceField2(GenericClass<B> /*[exact=GenericClass]*/ c) =>
     c. /*[exact=GenericClass]*/ field;
 
-/*strong.element: accessInstanceField3:[exact=C]*/
+/*element: accessInstanceField3:[exact=C]*/
 accessInstanceField3(GenericClass<C> /*[exact=GenericClass]*/ c) =>
     c. /*[exact=GenericClass]*/ field;
 
@@ -206,45 +206,45 @@ accessSuperField2(GenericSubclass<B> /*[exact=GenericSubclass]*/ c) =>
 accessSuperField3(GenericSubclass<C> /*[exact=GenericSubclass]*/ c) =>
     c. /*invoke: [exact=GenericSubclass]*/ superField();
 
-/*strong.element: invokeFunctionTypedInstanceMethod1:[null|subclass=A]*/
+/*element: invokeFunctionTypedInstanceMethod1:[null|subclass=A]*/
 invokeFunctionTypedInstanceMethod1(
         GenericClass<A> /*[exact=GenericClass]*/ c) =>
     c. /*invoke: [exact=GenericClass]*/ functionTypedMethod()();
 
-/*strong.element: invokeFunctionTypedInstanceMethod2:[null|exact=B]*/
+/*element: invokeFunctionTypedInstanceMethod2:[null|exact=B]*/
 invokeFunctionTypedInstanceMethod2(
         GenericClass<B> /*[exact=GenericClass]*/ c) =>
     c. /*invoke: [exact=GenericClass]*/ functionTypedMethod()();
 
-/*strong.element: invokeFunctionTypedInstanceMethod3:[null|exact=C]*/
+/*element: invokeFunctionTypedInstanceMethod3:[null|exact=C]*/
 invokeFunctionTypedInstanceMethod3(
         GenericClass<C> /*[exact=GenericClass]*/ c) =>
     c. /*invoke: [exact=GenericClass]*/ functionTypedMethod()();
 
-/*strong.element: invokeFunctionTypedInstanceGetter1:[null|subclass=A]*/
+/*element: invokeFunctionTypedInstanceGetter1:[null|subclass=A]*/
 invokeFunctionTypedInstanceGetter1(
         GenericClass<A> /*[exact=GenericClass]*/ c) =>
     c. /*invoke: [exact=GenericClass]*/ functionTypedGetter();
 
-/*strong.element: invokeFunctionTypedInstanceGetter2:[null|exact=B]*/
+/*element: invokeFunctionTypedInstanceGetter2:[null|exact=B]*/
 invokeFunctionTypedInstanceGetter2(
         GenericClass<B> /*[exact=GenericClass]*/ c) =>
     c. /*invoke: [exact=GenericClass]*/ functionTypedGetter();
 
-/*strong.element: invokeFunctionTypedInstanceGetter3:[null|exact=C]*/
+/*element: invokeFunctionTypedInstanceGetter3:[null|exact=C]*/
 invokeFunctionTypedInstanceGetter3(
         GenericClass<C> /*[exact=GenericClass]*/ c) =>
     c. /*invoke: [exact=GenericClass]*/ functionTypedGetter();
 
-/*strong.element: invokeFunctionTypedInstanceField1:[null|subclass=A]*/
+/*element: invokeFunctionTypedInstanceField1:[null|subclass=A]*/
 invokeFunctionTypedInstanceField1(GenericClass<A> /*[exact=GenericClass]*/ c) =>
     c. /*invoke: [exact=GenericClass]*/ functionTypedField();
 
-/*strong.element: invokeFunctionTypedInstanceField2:[null|exact=B]*/
+/*element: invokeFunctionTypedInstanceField2:[null|exact=B]*/
 invokeFunctionTypedInstanceField2(GenericClass<B> /*[exact=GenericClass]*/ c) =>
     c. /*invoke: [exact=GenericClass]*/ functionTypedField();
 
-/*strong.element: invokeFunctionTypedInstanceField3:[null|exact=C]*/
+/*element: invokeFunctionTypedInstanceField3:[null|exact=C]*/
 invokeFunctionTypedInstanceField3(GenericClass<C> /*[exact=GenericClass]*/ c) =>
     c. /*invoke: [exact=GenericClass]*/ functionTypedField();
 
@@ -357,103 +357,103 @@ class Class {
 
 /*element: Subclass.:[exact=Subclass]*/
 class Subclass extends Class {
-  /*strong.element: Subclass.superMethod1:[subclass=A]*/
+  /*element: Subclass.superMethod1:[subclass=A]*/
   superMethod1() {
     return super.genericMethod<A>(new A());
   }
 
-  /*strong.element: Subclass.superMethod2:[exact=B]*/
+  /*element: Subclass.superMethod2:[exact=B]*/
   superMethod2() {
     return super.genericMethod<B>(new B());
   }
 
-  /*strong.element: Subclass.superMethod3:[exact=C]*/
+  /*element: Subclass.superMethod3:[exact=C]*/
   superMethod3() {
     return super.genericMethod<C>(new C());
   }
 
-  /*strong.element: Subclass.functionTypedSuperMethod1:[null|subclass=A]*/
+  /*element: Subclass.functionTypedSuperMethod1:[null|subclass=A]*/
   functionTypedSuperMethod1() {
     return super.functionTypedGenericMethod<A>(new A())();
   }
 
-  /*strong.element: Subclass.functionTypedSuperMethod2:[null|exact=B]*/
+  /*element: Subclass.functionTypedSuperMethod2:[null|exact=B]*/
   functionTypedSuperMethod2() {
     return super.functionTypedGenericMethod<B>(new B())();
   }
 
-  /*strong.element: Subclass.functionTypedSuperMethod3:[null|exact=C]*/
+  /*element: Subclass.functionTypedSuperMethod3:[null|exact=C]*/
   functionTypedSuperMethod3() {
     return super.functionTypedGenericMethod<C>(new C())();
   }
 }
 
-/*strong.element: invokeGenericMethod1:[subclass=A]*/
+/*element: invokeGenericMethod1:[subclass=A]*/
 invokeGenericMethod1(A /*[exact=A]*/ a) => genericMethod<A>(a);
 
-/*strong.element: invokeGenericMethod2:[exact=B]*/
+/*element: invokeGenericMethod2:[exact=B]*/
 invokeGenericMethod2(B /*[exact=B]*/ b) => genericMethod<B>(b);
 
-/*strong.element: invokeGenericMethod3:[exact=C]*/
+/*element: invokeGenericMethod3:[exact=C]*/
 invokeGenericMethod3(C /*[exact=C]*/ c) => genericMethod<C>(c);
 
-/*strong.element: invokeGenericInstanceMethod1:[subclass=A]*/
+/*element: invokeGenericInstanceMethod1:[subclass=A]*/
 invokeGenericInstanceMethod1() =>
     new Class(). /*invoke: [exact=Class]*/ genericMethod<A>(new A());
 
-/*strong.element: invokeGenericInstanceMethod2:[exact=B]*/
+/*element: invokeGenericInstanceMethod2:[exact=B]*/
 invokeGenericInstanceMethod2() =>
     new Class(). /*invoke: [exact=Class]*/ genericMethod<B>(new B());
 
-/*strong.element: invokeGenericInstanceMethod3:[exact=C]*/
+/*element: invokeGenericInstanceMethod3:[exact=C]*/
 invokeGenericInstanceMethod3() =>
     new Class(). /*invoke: [exact=Class]*/ genericMethod<C>(new C());
 
-/*strong.element: invokeGenericSuperMethod1:[subclass=A]*/
+/*element: invokeGenericSuperMethod1:[subclass=A]*/
 invokeGenericSuperMethod1() =>
     new Subclass(). /*invoke: [exact=Subclass]*/ superMethod1();
 
-/*strong.element: invokeGenericSuperMethod2:[exact=B]*/
+/*element: invokeGenericSuperMethod2:[exact=B]*/
 invokeGenericSuperMethod2() =>
     new Subclass(). /*invoke: [exact=Subclass]*/ superMethod2();
 
-/*strong.element: invokeGenericSuperMethod3:[exact=C]*/
+/*element: invokeGenericSuperMethod3:[exact=C]*/
 invokeGenericSuperMethod3() =>
     new Subclass(). /*invoke: [exact=Subclass]*/ superMethod3();
 
-/*strong.element: invokeFunctionTypedGenericMethod1:[null|subclass=A]*/
+/*element: invokeFunctionTypedGenericMethod1:[null|subclass=A]*/
 invokeFunctionTypedGenericMethod1(A /*[exact=A]*/ a) =>
     functionTypedGenericMethod<A>(a)();
 
-/*strong.element: invokeFunctionTypedGenericMethod2:[null|exact=B]*/
+/*element: invokeFunctionTypedGenericMethod2:[null|exact=B]*/
 invokeFunctionTypedGenericMethod2(B /*[exact=B]*/ b) =>
     functionTypedGenericMethod<B>(b)();
 
-/*strong.element: invokeFunctionTypedGenericMethod3:[null|exact=C]*/
+/*element: invokeFunctionTypedGenericMethod3:[null|exact=C]*/
 invokeFunctionTypedGenericMethod3(C /*[exact=C]*/ c) =>
     functionTypedGenericMethod<C>(c)();
 
-/*strong.element: invokeFunctionTypedGenericInstanceMethod1:[null|subclass=A]*/
+/*element: invokeFunctionTypedGenericInstanceMethod1:[null|subclass=A]*/
 invokeFunctionTypedGenericInstanceMethod1() => new Class()
     . /*invoke: [exact=Class]*/ functionTypedGenericMethod<A>(new A())();
 
-/*strong.element: invokeFunctionTypedGenericInstanceMethod2:[null|exact=B]*/
+/*element: invokeFunctionTypedGenericInstanceMethod2:[null|exact=B]*/
 invokeFunctionTypedGenericInstanceMethod2() => new Class()
     . /*invoke: [exact=Class]*/ functionTypedGenericMethod<B>(new B())();
 
-/*strong.element: invokeFunctionTypedGenericInstanceMethod3:[null|exact=C]*/
+/*element: invokeFunctionTypedGenericInstanceMethod3:[null|exact=C]*/
 invokeFunctionTypedGenericInstanceMethod3() => new Class()
     . /*invoke: [exact=Class]*/ functionTypedGenericMethod<C>(new C())();
 
-/*strong.element: invokeFunctionTypedGenericSuperMethod1:[null|subclass=A]*/
+/*element: invokeFunctionTypedGenericSuperMethod1:[null|subclass=A]*/
 invokeFunctionTypedGenericSuperMethod1() =>
     new Subclass(). /*invoke: [exact=Subclass]*/ functionTypedSuperMethod1();
 
-/*strong.element: invokeFunctionTypedGenericSuperMethod2:[null|exact=B]*/
+/*element: invokeFunctionTypedGenericSuperMethod2:[null|exact=B]*/
 invokeFunctionTypedGenericSuperMethod2() =>
     new Subclass(). /*invoke: [exact=Subclass]*/ functionTypedSuperMethod2();
 
-/*strong.element: invokeFunctionTypedGenericSuperMethod3:[null|exact=C]*/
+/*element: invokeFunctionTypedGenericSuperMethod3:[null|exact=C]*/
 invokeFunctionTypedGenericSuperMethod3() =>
     new Subclass(). /*invoke: [exact=Subclass]*/ functionTypedSuperMethod3();
 

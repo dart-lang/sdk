@@ -12,7 +12,10 @@ import 'package:build_integration/file_system/single_root.dart'
     show SingleRootFileSystem;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, parseExperimentalFlags;
+
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag;
 
 import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 
@@ -238,7 +241,9 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--bytecode": false,
   "--compile-sdk": Uri,
   "--dump-ir": false,
+  "--enable-experiment": ",",
   "--exclude-source": false,
+  "--omit-platform": false,
   "--fatal": ",",
   "--help": false,
   "--legacy": "--legacy-mode",
@@ -251,7 +256,6 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--single-root-base": Uri,
   "--single-root-scheme": String,
   "--supermixin": true,
-  "--sync-async": true,
   "--target": String,
   "--verbose": false,
   "--verify": false,
@@ -263,6 +267,10 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "/?": "--help",
   "/h": "--help",
 };
+
+void throwCommandLineProblem(String message) {
+  throw new CommandLineProblem.deprecated(message);
+}
 
 ProcessedOptions analyzeCommandLine(
     String programName,
@@ -288,12 +296,9 @@ ProcessedOptions analyzeCommandLine(
 
   final bool legacyMode = options["--legacy-mode"];
 
-  final bool syncAsync = options["--sync-async"];
-
   final String targetName = options["--target"] ?? "vm";
 
-  final TargetFlags flags =
-      new TargetFlags(legacyMode: legacyMode, syncAsync: syncAsync);
+  final TargetFlags flags = new TargetFlags(legacyMode: legacyMode);
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {
@@ -307,6 +312,8 @@ ProcessedOptions analyzeCommandLine(
   final bool dumpIr = options["--dump-ir"];
 
   final bool excludeSource = options["--exclude-source"];
+
+  final bool omitPlatform = options["--omit-platform"];
 
   final Uri packages = options["--packages"];
 
@@ -339,6 +346,9 @@ ProcessedOptions analyzeCommandLine(
     });
   }
 
+  Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
+      options["--enable-experiment"], throwCommandLineProblem);
+
   if (programName == "compile_platform") {
     if (arguments.length != 5) {
       return throw new CommandLineProblem.deprecated(
@@ -367,9 +377,11 @@ ProcessedOptions analyzeCommandLine(
           ..throwOnWarningsForDebugging = warningsAreFatal
           ..embedSourceText = !excludeSource
           ..debugDump = dumpIr
+          ..omitPlatform = omitPlatform
           ..verbose = verbose
           ..verify = verify
-          ..bytecode = bytecode,
+          ..bytecode = bytecode
+          ..experimentalFlags = experimentalFlags,
         inputs: <Uri>[Uri.parse(arguments[0])],
         output: resolveInputUri(arguments[3], extraSchemes: extraSchemes));
   } else if (arguments.isEmpty) {
@@ -401,8 +413,10 @@ ProcessedOptions analyzeCommandLine(
     ..throwOnWarningsForDebugging = warningsAreFatal
     ..embedSourceText = !excludeSource
     ..debugDump = dumpIr
+    ..omitPlatform = omitPlatform
     ..verbose = verbose
-    ..verify = verify;
+    ..verify = verify
+    ..experimentalFlags = experimentalFlags;
 
   // TODO(ahe): What about chase dependencies?
 

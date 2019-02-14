@@ -26,7 +26,7 @@ class PackageBundleAssembler {
    * data that was previously not summarized), this value should be incremented
    * by 1.
    */
-  static const int currentMinorVersion = 0;
+  static const int currentMinorVersion = 1;
 
   final List<String> _linkedLibraryUris = <String>[];
   final List<LinkedLibraryBuilder> _linkedLibraries = <LinkedLibraryBuilder>[];

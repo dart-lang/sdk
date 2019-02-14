@@ -36,6 +36,9 @@ import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag;
+
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 
@@ -56,7 +59,13 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
-    show MatchExpectation, Print, TypeCheck, Verify, WriteDill;
+    show
+        KernelTextSerialization,
+        MatchExpectation,
+        Print,
+        TypeCheck,
+        Verify,
+        WriteDill;
 
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     show ValidatingInstrumentation;
@@ -67,33 +76,52 @@ import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
-const String STRONG_MODE = " strong mode ";
+const String LEGACY_MODE = " legacy mode ";
 
 const String ENABLE_FULL_COMPILE = " full compile ";
 
 const String EXPECTATIONS = '''
 [
   {
-    "name": "VerificationError",
+    "name": "ExpectationFileMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "ExpectationFileMissing",
+    "group": "Fail"
+  },
+  {
+    "name": "InstrumentationMismatch",
     "group": "Fail"
   },
   {
     "name": "TypeCheckError",
     "group": "Fail"
+  },
+  {
+    "name": "VerificationError",
+    "group": "Fail"
+  },
+  {
+    "name": "TextSerializationFailure",
+    "group": "Fail"
   }
 ]
 ''';
 
-String generateExpectationName(bool strongMode) {
-  return strongMode ? "strong" : "direct";
+const String KERNEL_TEXT_SERIALIZATION = " kernel text serialization ";
+
+String generateExpectationName(bool legacyMode) {
+  return legacyMode ? "legacy" : "strong";
 }
 
 class FastaContext extends ChainContext {
   final UriTranslator uriTranslator;
   final List<Step> steps;
   final Uri vm;
-  final bool strongMode;
+  final bool legacyMode;
   final bool onlyCrashes;
+  final bool enableSetLiterals;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
   final Map<Component, StringBuffer> componentToDiagnostics =
@@ -108,17 +136,19 @@ class FastaContext extends ChainContext {
 
   FastaContext(
       this.vm,
-      this.strongMode,
+      this.legacyMode,
       this.platformBinaries,
       this.onlyCrashes,
+      this.enableSetLiterals,
       bool ignoreExpectations,
       bool updateExpectations,
       bool updateComments,
       bool skipVm,
+      bool kernelTextSerialization,
       this.uriTranslator,
       bool fullCompile)
       : steps = <Step>[
-          new Outline(fullCompile, strongMode, updateComments: updateComments),
+          new Outline(fullCompile, legacyMode, updateComments: updateComments),
           const Print(),
           new Verify(fullCompile)
         ] {
@@ -126,20 +156,23 @@ class FastaContext extends ChainContext {
     if (!ignoreExpectations) {
       steps.add(new MatchExpectation(
           fullCompile
-              ? ".${generateExpectationName(strongMode)}.expect"
+              ? ".${generateExpectationName(legacyMode)}.expect"
               : ".outline.expect",
           updateExpectations: updateExpectations));
     }
-    if (strongMode) {
+    if (!legacyMode) {
       steps.add(const TypeCheck());
     }
     steps.add(const EnsureNoErrors());
+    if (kernelTextSerialization) {
+      steps.add(const KernelTextSerialization());
+    }
     if (fullCompile && !skipVm) {
       steps.add(const Transform());
       if (!ignoreExpectations) {
         steps.add(new MatchExpectation(
             fullCompile
-                ? ".${generateExpectationName(strongMode)}.transformed.expect"
+                ? ".${generateExpectationName(legacyMode)}.transformed.expect"
                 : ".outline.transformed.expect",
             updateExpectations: updateExpectations));
       }
@@ -152,7 +185,7 @@ class FastaContext extends ChainContext {
   Future ensurePlatformUris() async {
     if (platformUri == null) {
       platformUri = platformBinaries
-          .resolve(strongMode ? "vm_platform_strong.dill" : "vm_platform.dill");
+          .resolve(legacyMode ? "vm_platform.dill" : "vm_platform_strong.dill");
     }
   }
 
@@ -183,35 +216,43 @@ class FastaContext extends ChainContext {
     Uri sdk = Uri.base.resolve("sdk/");
     Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
     Uri packages = Uri.base.resolve(".packages");
+    bool enableSetLiterals = environment["enableSetLiterals"] != "false";
     var options = new ProcessedOptions(
         options: new CompilerOptions()
           ..onDiagnostic = (DiagnosticMessage message) {
             throw message.plainTextFormatted.join("\n");
           }
           ..sdkRoot = sdk
-          ..packagesFileUri = packages);
+          ..packagesFileUri = packages
+          ..experimentalFlags = <ExperimentalFlag, bool>{
+            ExperimentalFlag.setLiterals: enableSetLiterals
+          });
     UriTranslator uriTranslator = await options.getUriTranslator();
-    bool strongMode = environment.containsKey(STRONG_MODE);
+    bool legacyMode = environment.containsKey(LEGACY_MODE);
     bool onlyCrashes = environment["onlyCrashes"] == "true";
     bool ignoreExpectations = environment["ignoreExpectations"] == "true";
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
     bool skipVm = environment["skipVm"] == "true";
+    bool kernelTextSerialization =
+        environment.containsKey(KERNEL_TEXT_SERIALIZATION);
     String platformBinaries = environment["platformBinaries"];
     if (platformBinaries != null && !platformBinaries.endsWith('/')) {
       platformBinaries = '$platformBinaries/';
     }
     return new FastaContext(
         vm,
-        strongMode,
+        legacyMode,
         platformBinaries == null
             ? computePlatformBinariesLocation(forceBuildDir: true)
             : Uri.base.resolve(platformBinaries),
         onlyCrashes,
+        enableSetLiterals,
         ignoreExpectations,
         updateExpectations,
         updateComments,
         skipVm,
+        kernelTextSerialization,
         uriTranslator,
         environment.containsKey(ENABLE_FULL_COMPILE));
   }
@@ -234,12 +275,6 @@ class Run extends Step<Uri, int, FastaContext> {
     StdioProcess process;
     try {
       var args = <String>[];
-      if (context.strongMode) {
-        // TODO(ahe): This argument is probably ignored by the VM.
-        args.add('--strong');
-        // TODO(ahe): This argument is probably ignored by the VM.
-        args.add('--reify-generic-functions');
-      }
       args.add(generated.path);
       process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);
@@ -253,9 +288,9 @@ class Run extends Step<Uri, int, FastaContext> {
 class Outline extends Step<TestDescription, Component, FastaContext> {
   final bool fullCompile;
 
-  final bool strongMode;
+  final bool legacyMode;
 
-  const Outline(this.fullCompile, this.strongMode,
+  const Outline(this.fullCompile, this.legacyMode,
       {this.updateComments: false});
 
   final bool updateComments;
@@ -271,12 +306,15 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
     StringBuffer errors = new StringBuffer();
     ProcessedOptions options = new ProcessedOptions(
         options: new CompilerOptions()
-          ..legacyMode = !strongMode
+          ..legacyMode = legacyMode
           ..onDiagnostic = (DiagnosticMessage message) {
             if (errors.isNotEmpty) {
               errors.write("\n\n");
             }
             errors.writeAll(message.plainTextFormatted, "\n");
+          }
+          ..experimentalFlags = <ExperimentalFlag, bool>{
+            ExperimentalFlag.setLiterals: context.enableSetLiterals
           },
         inputs: <Uri>[description.uri]);
     return await CompilerContext.runWithOptions(options, (_) async {
@@ -286,7 +324,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       Component platform = await context.loadPlatform();
       Ticker ticker = new Ticker();
       DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
-          new TestVmTarget(new TargetFlags(legacyMode: !strongMode)));
+          new TestVmTarget(new TargetFlags(legacyMode: legacyMode)));
       dillTarget.loader.appendLibraries(platform);
       // We create a new URI translator to avoid reading platform libraries from
       // file system.
@@ -299,12 +337,16 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       sourceTarget.setEntryPoints(<Uri>[description.uri]);
       await dillTarget.buildOutlines();
       ValidatingInstrumentation instrumentation;
-      if (strongMode) {
+      if (!legacyMode) {
         instrumentation = new ValidatingInstrumentation();
         await instrumentation.loadExpectations(description.uri);
         sourceTarget.loader.instrumentation = instrumentation;
       }
       Component p = await sourceTarget.buildOutlines();
+      context.componentToTarget.clear();
+      context.componentToTarget[p] = sourceTarget;
+      context.componentToDiagnostics.clear();
+      context.componentToDiagnostics[p] = errors;
       if (fullCompile) {
         p = await sourceTarget.buildComponent();
         instrumentation?.finish();
@@ -312,14 +354,14 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
           if (updateComments) {
             await instrumentation.fixSource(description.uri, false);
           } else {
-            return fail(null, instrumentation.problemsAsString);
+            return new Result<Component>(
+                p,
+                context.expectationSet["InstrumentationMismatch"],
+                instrumentation.problemsAsString,
+                null);
           }
         }
       }
-      context.componentToTarget.clear();
-      context.componentToTarget[p] = sourceTarget;
-      context.componentToDiagnostics.clear();
-      context.componentToDiagnostics[p] = errors;
       return pass(p);
     });
   }

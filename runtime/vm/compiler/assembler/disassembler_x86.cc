@@ -19,7 +19,7 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 enum OperandType {
   UNSET_OP_ORDER = 0,
@@ -1991,7 +1991,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
 #endif
 }
 
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 }  // namespace dart
 

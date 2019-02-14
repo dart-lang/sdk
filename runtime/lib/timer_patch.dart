@@ -26,9 +26,7 @@ class Timer {
   static Timer _createPeriodicTimer(
       Duration duration, void callback(Timer timer)) {
     // TODO(iposva): Remove _TimerFactory and use VMLibraryHooks exclusively.
-    if (_TimerFactory._factory == null) {
-      _TimerFactory._factory = VMLibraryHooks.timerFactory;
-    }
+    _TimerFactory._factory ??= VMLibraryHooks.timerFactory;
     if (_TimerFactory._factory == null) {
       throw new UnsupportedError("Timer interface not supported.");
     }

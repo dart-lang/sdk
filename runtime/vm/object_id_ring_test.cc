@@ -176,7 +176,11 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT_NE(RawObject::ToAddr(raw_obj1), RawObject::ToAddr(raw_object_moved1));
   EXPECT_NE(RawObject::ToAddr(raw_obj2), RawObject::ToAddr(raw_object_moved2));
   // Test that we still point at the same list.
-  Dart_Handle moved_handle = Api::NewHandle(thread, raw_object_moved1);
+  Dart_Handle moved_handle;
+  {
+    TransitionNativeToVM transition(thread);
+    moved_handle = Api::NewHandle(thread, raw_object_moved1);
+  }
   EXPECT_VALID(moved_handle);
   EXPECT(!Dart_IsNull(moved_handle));
   EXPECT(Dart_IsList(moved_handle));
@@ -197,18 +201,12 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
   intptr_t raw_obj_id1 = -1;
   intptr_t raw_obj_id2 = -1;
   {
-    Dart_EnterScope();
-    Dart_Handle result;
-    // Create a string in the old heap.
-    result = Api::NewHandle(thread, String::New("old", Heap::kOld));
-    EXPECT_VALID(result);
-    intptr_t string_length = 0;
-    // Inspect string.
-    EXPECT(!Dart_IsNull(result));
-    EXPECT(Dart_IsString(result));
-    EXPECT_VALID(Dart_StringLength(result, &string_length));
-    EXPECT_EQ(3, string_length);
-    RawObject* raw_obj = Api::UnwrapHandle(result);
+    HandleScope handle_scope(thread);
+    const String& str = String::Handle(String::New("old", Heap::kOld));
+    EXPECT(!str.IsNull());
+    EXPECT_EQ(3, str.Length());
+
+    RawObject* raw_obj = Object::RawCast(str.raw());
     // Verify that it is located in old heap.
     EXPECT(raw_obj->IsOldObject());
     EXPECT_NE(Object::null(), raw_obj);
@@ -224,8 +222,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
     EXPECT_NE(Object::null(), raw_obj2);
     EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj1));
     EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj2));
-    // Exit scope. Freeing result handle.
-    Dart_ExitScope();
+    // Exit scope. Freeing String handle.
   }
   // Force a GC. No reference exist to the old string anymore. It should be
   // collected and the object id ring will now return the null object for

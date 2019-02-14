@@ -10,32 +10,36 @@
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
 //
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:163: Error: The return type of the method 'C1::a' is dynamic, which does not match the return type of the overridden method (test::I1).
-// Change to a subtype of test::I1.
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:163: Error: The return type of the method 'C1.a' is 'dynamic', which does not match the return type of the overridden method, 'I1'.
+//  - 'I1' is from 'pkg/front_end/testcases/inference/conflicts_can_happen.dart'.
+// Change to a subtype of 'I1'.
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
 // pkg/front_end/testcases/inference/conflicts_can_happen.dart:17:12: Context: This is the overridden method ('a').
 //   final I1 a = null;
 //            ^
 //
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:163: Error: The return type of the method 'C1::a' is dynamic, which does not match the return type of the overridden method (test::I2).
-// Change to a subtype of test::I2.
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:163: Error: The return type of the method 'C1.a' is 'dynamic', which does not match the return type of the overridden method, 'I2'.
+//  - 'I2' is from 'pkg/front_end/testcases/inference/conflicts_can_happen.dart'.
+// Change to a subtype of 'I2'.
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
 // pkg/front_end/testcases/inference/conflicts_can_happen.dart:21:12: Context: This is the overridden method ('a').
 //   final I2 a = null;
 //            ^
 //
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:163: Error: The return type of the method 'C2::a' is dynamic, which does not match the return type of the overridden method (test::I2).
-// Change to a subtype of test::I2.
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:163: Error: The return type of the method 'C2.a' is 'dynamic', which does not match the return type of the overridden method, 'I2'.
+//  - 'I2' is from 'pkg/front_end/testcases/inference/conflicts_can_happen.dart'.
+// Change to a subtype of 'I2'.
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
 // pkg/front_end/testcases/inference/conflicts_can_happen.dart:21:12: Context: This is the overridden method ('a').
 //   final I2 a = null;
 //            ^
 //
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:163: Error: The return type of the method 'C2::a' is dynamic, which does not match the return type of the overridden method (test::I1).
-// Change to a subtype of test::I1.
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:163: Error: The return type of the method 'C2.a' is 'dynamic', which does not match the return type of the overridden method, 'I1'.
+//  - 'I1' is from 'pkg/front_end/testcases/inference/conflicts_can_happen.dart'.
+// Change to a subtype of 'I1'.
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
 // pkg/front_end/testcases/inference/conflicts_can_happen.dart:17:12: Context: This is the overridden method ('a').
@@ -54,23 +58,27 @@
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
 //
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:163: Error: The return type of the method 'C1::a' is dynamic, which does not match the return type of the overridden method (test::I1).
-// Change to a subtype of test::I1.
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:163: Error: The return type of the method 'C1.a' is 'dynamic', which does not match the return type of the overridden method, 'I1'.
+//  - 'I1' is from 'pkg/front_end/testcases/inference/conflicts_can_happen.dart'.
+// Change to a subtype of 'I1'.
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
 //
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:163: Error: The return type of the method 'C1::a' is dynamic, which does not match the return type of the overridden method (test::I2).
-// Change to a subtype of test::I2.
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:163: Error: The return type of the method 'C1.a' is 'dynamic', which does not match the return type of the overridden method, 'I2'.
+//  - 'I2' is from 'pkg/front_end/testcases/inference/conflicts_can_happen.dart'.
+// Change to a subtype of 'I2'.
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
 //
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:163: Error: The return type of the method 'C2::a' is dynamic, which does not match the return type of the overridden method (test::I2).
-// Change to a subtype of test::I2.
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:163: Error: The return type of the method 'C2.a' is 'dynamic', which does not match the return type of the overridden method, 'I2'.
+//  - 'I2' is from 'pkg/front_end/testcases/inference/conflicts_can_happen.dart'.
+// Change to a subtype of 'I2'.
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
 //
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:163: Error: The return type of the method 'C2::a' is dynamic, which does not match the return type of the overridden method (test::I1).
-// Change to a subtype of test::I1.
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:163: Error: The return type of the method 'C2.a' is 'dynamic', which does not match the return type of the overridden method, 'I1'.
+//  - 'I1' is from 'pkg/front_end/testcases/inference/conflicts_can_happen.dart'.
+// Change to a subtype of 'I1'.
 //   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
 //                                                                                                                                                                   ^
 

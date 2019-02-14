@@ -6,14 +6,18 @@ library fasta.kernel_formal_parameter_builder;
 
 import 'package:kernel/ast.dart' show VariableDeclaration;
 
-import '../modifier.dart' show finalMask;
+import '../modifier.dart' show finalMask, initializingFormalMask;
 
 import 'kernel_builder.dart'
     show
+        ClassBuilder,
+        Declaration,
         FormalParameterBuilder,
+        KernelFieldBuilder,
         KernelLibraryBuilder,
         KernelTypeBuilder,
-        MetadataBuilder;
+        MetadataBuilder,
+        TypeBuilder;
 
 import 'kernel_shadow_ast.dart' show VariableDeclarationJudgment;
 
@@ -26,11 +30,9 @@ class KernelFormalParameterBuilder
       int modifiers,
       KernelTypeBuilder type,
       String name,
-      bool hasThis,
       KernelLibraryBuilder compilationUnit,
       int charOffset)
-      : super(metadata, modifiers, type, name, hasThis, compilationUnit,
-            charOffset);
+      : super(metadata, modifiers, type, name, compilationUnit, charOffset);
 
   VariableDeclaration get target => declaration;
 
@@ -41,20 +43,44 @@ class KernelFormalParameterBuilder
           type: type?.build(library),
           isFinal: isFinal,
           isConst: isConst,
-          isFieldFormal: hasThis,
+          isFieldFormal: isInitializingFormal,
           isCovariant: isCovariant)
         ..fileOffset = charOffset;
     }
     return declaration;
   }
 
+  KernelFormalParameterBuilder clone(List<TypeBuilder> newTypes) {
+    // TODO(dmitryas):  It's not clear how [metadata] is used currently, and
+    // how it should be cloned.  Consider cloning it instead of reusing it.
+    return new KernelFormalParameterBuilder(
+        metadata, modifiers, type?.clone(newTypes), name, parent, charOffset)
+      ..kind = kind;
+  }
+
   @override
   FormalParameterBuilder forFormalParameterInitializerScope() {
     assert(declaration != null);
-    return !hasThis
+    return !isInitializingFormal
         ? this
-        : (new KernelFormalParameterBuilder(metadata, modifiers | finalMask,
-            type, name, hasThis, parent, charOffset)
+        : (new KernelFormalParameterBuilder(
+            metadata,
+            modifiers | finalMask | initializingFormalMask,
+            type,
+            name,
+            null,
+            charOffset)
+          ..parent = parent
           ..declaration = declaration);
+  }
+
+  void finalizeInitializingFormal() {
+    Object cls = parent.parent;
+    if (cls is ClassBuilder) {
+      Declaration field = cls.scope.lookup(name, charOffset, fileUri);
+      if (field is KernelFieldBuilder) {
+        target.type = field.target.type;
+      }
+    }
   }
 }

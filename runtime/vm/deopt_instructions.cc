@@ -184,6 +184,7 @@ DeoptContext::~DeoptContext() {
 }
 
 void DeoptContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&object_pool_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&deopt_info_));
 
@@ -406,6 +407,7 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* top_frame = iterator.NextFrame();
     ASSERT(top_frame != NULL);
+    ASSERT(!top_frame->is_interpreted());
     const Code& code = Code::Handle(top_frame->LookupDartCode());
     const Function& top_function = Function::Handle(code.function());
     const Script& script = Script::Handle(top_function.script());
@@ -741,8 +743,8 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     if (function.IsNull()) {
       *reinterpret_cast<RawObject**>(dest_addr) =
           deopt_context->is_lazy_deopt()
-              ? StubCode::DeoptimizeLazyFromReturn_entry()->code()
-              : StubCode::Deoptimize_entry()->code();
+              ? StubCode::DeoptimizeLazyFromReturn().raw()
+              : StubCode::Deoptimize().raw();
       return;
     }
 
@@ -752,7 +754,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     // materialization to maintain the invariant that Dart frames always have
     // a pc marker.
     *reinterpret_cast<RawObject**>(dest_addr) =
-        StubCode::FrameAwaitingMaterialization_entry()->code();
+        StubCode::FrameAwaitingMaterialization().raw();
     deopt_context->DeferPcMarkerMaterialization(object_table_index_, dest_addr);
   }
 

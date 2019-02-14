@@ -202,6 +202,7 @@ final Matcher isCompletionId = isString;
  *   "relevance": int
  *   "completion": String
  *   "displayText": optional String
+ *   "elementUri": optional String
  *   "selectionOffset": int
  *   "selectionLength": int
  *   "isDeprecated": bool
@@ -233,6 +234,7 @@ final Matcher isCompletionSuggestion =
           "isPotential": isBool
         }, optionalFields: {
           "displayText": isString,
+          "elementUri": isString,
           "docSummary": isString,
           "docComplete": isString,
           "declaringType": isString,
@@ -1849,14 +1851,8 @@ final Matcher isAnalysisOverridesParams = new LazyMatcher(() =>
 
 /**
  * analysis.reanalyze params
- *
- * {
- *   "roots": optional List<FilePath>
- * }
  */
-final Matcher isAnalysisReanalyzeParams = new LazyMatcher(() =>
-    new MatchesJsonObject("analysis.reanalyze params", null,
-        optionalFields: {"roots": isListOf(isFilePath)}));
+final Matcher isAnalysisReanalyzeParams = isNull;
 
 /**
  * analysis.reanalyze result

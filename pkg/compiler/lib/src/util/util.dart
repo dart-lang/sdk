@@ -64,6 +64,17 @@ class Hashing {
     return h;
   }
 
+  /// Mix the bits of the element hash codes of [iterable] with [existing].
+  static int setHash<E>(Iterable<E> iterable, [int existing = 0]) {
+    int h = existing;
+    if (iterable != null) {
+      for (E e in iterable) {
+        h += objectsHash(e);
+      }
+    }
+    return h & SMI_MASK;
+  }
+
   /// Mix the bits of the hash codes of the unordered key/value from [map] with
   /// [existing].
   static int unorderedMapHash(Map map, [int existing = 0]) {
@@ -97,10 +108,14 @@ bool equalElements<E>(List<E> a, List<E> b) {
   return true;
 }
 
-/**
- * File name prefix used to shorten the file name in stack traces printed by
- * [trace].
- */
+bool equalSets<E>(Set<E> a, Set<E> b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  return a.length == b.length && a.containsAll(b) && b.containsAll(a);
+}
+
+/// File name prefix used to shorten the file name in stack traces printed by
+/// [trace].
 String stackTraceFilePrefix = null;
 
 /// Writes the characters of [string] on [buffer].  The characters

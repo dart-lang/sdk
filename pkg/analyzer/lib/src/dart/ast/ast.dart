@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -899,14 +899,9 @@ abstract class AstNodeImpl implements AstNode {
       util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
 
   @override
-  E getAncestor<E extends AstNode>(Predicate<AstNode> predicate) {
-    // TODO(brianwilkerson) It is a bug that this method can return `this`.
-    AstNode node = this;
-    while (node != null && !predicate(node)) {
-      node = node.parent;
-    }
-    return node as E;
-  }
+  @deprecated
+  E getAncestor<E extends AstNode>(Predicate<AstNode> predicate) =>
+      thisOrAncestorMatching(predicate);
 
   @override
   E getProperty<E>(String name) {
@@ -931,6 +926,25 @@ abstract class AstNodeImpl implements AstNode {
       }
       _propertyMap[name] = value;
     }
+  }
+
+  @override
+  E thisOrAncestorMatching<E extends AstNode>(Predicate<AstNode> predicate) {
+    // TODO(brianwilkerson) It is a bug that this method can return `this`.
+    AstNode node = this;
+    while (node != null && !predicate(node)) {
+      node = node.parent;
+    }
+    return node as E;
+  }
+
+  @override
+  T thisOrAncestorOfType<T extends AstNode>() {
+    AstNode node = this;
+    while (node != null && node is! T) {
+      node = node.parent;
+    }
+    return node as T;
   }
 
   @override
@@ -1591,7 +1605,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 /**
  * Helper class to allow iteration of child entities of an AST node.
  */
-class ChildEntities extends Object
+class ChildEntities
     with IterableMixin<SyntacticEntity>
     implements Iterable<SyntacticEntity> {
   /**
@@ -2328,6 +2342,12 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   Map<int, AstNode> localDeclarations;
 
   /**
+   * Is `true` if the non-nullable feature is enabled, and this library
+   * unit is annotated with `@pragma('analyzer:non-nullable')`.
+   */
+  bool hasPragmaAnalyzerNonNullable = false;
+
+  /**
    * Initialize a newly created compilation unit to have the given directives
    * and declarations. The [scriptTag] can be `null` if there is no script tag
    * in the compilation unit. The list of [directives] can be `null` if there
@@ -2682,17 +2702,21 @@ class ConstantAnalysisErrorListener extends AnalysisErrorListener {
     if (errorCode is CompileTimeErrorCode) {
       switch (errorCode) {
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+        case CompileTimeErrorCode.CONST_WITH_NON_CONST:
         case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
         case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
         case CompileTimeErrorCode
             .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
         case CompileTimeErrorCode.INVALID_CONSTANT:
         case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
+        case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
+        case CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL:
           hasConstError = true;
       }
     }
@@ -5703,34 +5727,35 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   FormalParameterListImpl _parameters;
 
   @override
+  Token question;
+
+  @override
   DartType type;
 
   /**
    * Initialize a newly created generic function type.
    */
-  GenericFunctionTypeImpl(
-      TypeAnnotationImpl returnType,
-      this.functionKeyword,
-      TypeParameterListImpl typeParameters,
-      FormalParameterListImpl parameters) {
+  GenericFunctionTypeImpl(TypeAnnotationImpl returnType, this.functionKeyword,
+      TypeParameterListImpl typeParameters, FormalParameterListImpl parameters,
+      {this.question}) {
     _returnType = _becomeParentOf(returnType);
     _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
   }
 
   @override
-  Token get beginToken =>
-      _returnType == null ? functionKeyword : _returnType.beginToken;
+  Token get beginToken => _returnType?.beginToken ?? functionKeyword;
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(_returnType)
     ..add(functionKeyword)
     ..add(_typeParameters)
-    ..add(_parameters);
+    ..add(_parameters)
+    ..add(question);
 
   @override
-  Token get endToken => _parameters.endToken;
+  Token get endToken => question ?? _parameters.endToken;
 
   @override
   FormalParameterList get parameters => _parameters;
@@ -6389,8 +6414,6 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
  *
  *    newExpression ::=
  *        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
- *
- * 'new' | 'const' are only optional if the previewDart2 option is enabled.
  */
 class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
@@ -6482,8 +6505,6 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
 
   /**
    * Return `true` if this is an implicit constructor invocations.
-   *
-   * This can only be `true` when the previewDart2 option is enabled.
    */
   bool get isImplicit => keyword == null;
 
@@ -6526,7 +6547,10 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
    *
    * Also note that this method can cause constant evaluation to occur, which
    * can be computationally expensive.
+   * 
+   * Deprecated: Use `LinterContext.canBeConst` instead.
    */
+  @deprecated
   bool canBeConst() {
     //
     // Verify that the invoked constructor is a const constructor.
@@ -7748,6 +7772,12 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   SimpleIdentifierImpl _methodName;
 
   /**
+   * The invoke type of the [methodName] if the target element is a getter,
+   * or `null` otherwise.
+   */
+  DartType _methodNameType;
+
+  /**
    * Initialize a newly created method invocation. The [target] and [operator]
    * can be `null` if there is no target.
    */
@@ -7795,6 +7825,26 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   void set methodName(SimpleIdentifier identifier) {
     _methodName = _becomeParentOf(identifier as SimpleIdentifierImpl);
+  }
+
+  /**
+   * The invoke type of the [methodName].
+   *
+   * If the target element is a [MethodElement], this is the same as the
+   * [staticInvokeType]. If the target element is a getter, presumably
+   * returning an [ExecutableElement] so that it can be invoked in this
+   * [MethodInvocation], then this type is the type of the getter, and the
+   * [staticInvokeType] is the invoked type of the returned element.
+   */
+  DartType get methodNameType => _methodNameType ?? staticInvokeType;
+
+  /**
+   * Set the [methodName] invoke type, only if the target element is a getter.
+   * Otherwise, the target element itself is invoked, [_methodNameType] is
+   * `null`, and the getter will return [staticInvokeType].
+   */
+  set methodNameType(DartType methodNameType) {
+    _methodNameType = methodNameType;
   }
 
   @override
@@ -8247,9 +8297,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
 /**
  * A list of AST nodes that have a common parent.
  */
-class NodeListImpl<E extends AstNode> extends Object
-    with ListMixin<E>
-    implements NodeList<E> {
+class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   /**
    * The node that is the parent of each of the elements in the list.
    */
@@ -9451,6 +9499,78 @@ class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
+  }
+}
+
+/**
+ * A literal set.
+ *
+ *    setLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] '>')?
+ *        '{' [Expression] (',' [Expression])* ','? '}'
+ *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
+ */
+class SetLiteralImpl extends TypedLiteralImpl implements SetLiteral {
+  /**
+   * The left curly bracket.
+   */
+  @override
+  Token leftBracket;
+
+  /**
+   * The elements in the set.
+   */
+  NodeList<Expression> _elements;
+
+  /**
+   * The right curly bracket.
+   */
+  @override
+  Token rightBracket;
+
+  /**
+   * Initialize a newly created set literal. The [constKeyword] can be `null` if
+   * the literal is not a constant. The [typeArguments] can be `null` if no type
+   * arguments were declared. The [elements] can be `null` if the set is empty.
+   */
+  SetLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      this.leftBracket, List<Expression> elements, this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _elements = new NodeListImpl<Expression>(this, elements);
+  }
+
+  @override
+  Token get beginToken {
+    if (constKeyword != null) {
+      return constKeyword;
+    }
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
+    }
+    return leftBracket;
+  }
+
+  @override
+  // TODO(paulberry): add commas.
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(leftBracket)
+    ..addAll(elements)
+    ..add(rightBracket);
+
+  @override
+  NodeList<Expression> get elements => _elements;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _elements.accept(visitor);
   }
 }
 
@@ -10944,7 +11064,7 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
  * The name of a type, which can optionally include type arguments.
  *
  *    typeName ::=
- *        [Identifier] typeArguments?
+ *        [Identifier] typeArguments? '?'?
  */
 class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
   /**
@@ -10958,6 +11078,9 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
    */
   TypeArgumentListImpl _typeArguments;
 
+  @override
+  Token question;
+
   /**
    * The type being named, or `null` if the AST structure has not been resolved.
    */
@@ -10967,7 +11090,8 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
    * Initialize a newly created type name. The [typeArguments] can be `null` if
    * there are no type arguments.
    */
-  TypeNameImpl(IdentifierImpl name, TypeArgumentListImpl typeArguments) {
+  TypeNameImpl(IdentifierImpl name, TypeArgumentListImpl typeArguments,
+      {this.question}) {
     _name = _becomeParentOf(name);
     _typeArguments = _becomeParentOf(typeArguments);
   }
@@ -10977,15 +11101,10 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
 
   @override
   Iterable<SyntacticEntity> get childEntities =>
-      new ChildEntities()..add(_name)..add(_typeArguments);
+      new ChildEntities()..add(_name)..add(_typeArguments)..add(question);
 
   @override
-  Token get endToken {
-    if (_typeArguments != null) {
-      return _typeArguments.endToken;
-    }
-    return _name.endToken;
-  }
+  Token get endToken => question ?? _typeArguments?.endToken ?? _name.endToken;
 
   @override
   bool get isDeferred {

@@ -299,6 +299,7 @@ void SimulatorDebugger::PrintBacktrace() {
   Code& unoptimized_code = Code::Handle();
   while (frame != NULL) {
     if (frame->IsDartFrame()) {
+      ASSERT(!frame->is_interpreted());  // Not yet supported.
       code = frame->LookupDartCode();
       function = code.function();
       if (code.is_optimized()) {
@@ -722,9 +723,11 @@ Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
       new char[(OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer +
                 kSimulatorStackUnderflowSize)];
   // Low address.
-  stack_limit_ = reinterpret_cast<uword>(stack_) + OSThread::kStackSizeBuffer;
+  stack_limit_ = reinterpret_cast<uword>(stack_);
+  // Limit for StackOverflowError.
+  overflow_stack_limit_ = stack_limit_ + OSThread::kStackSizeBuffer;
   // High address.
-  stack_base_ = stack_limit_ + OSThread::GetSpecifiedStackSize();
+  stack_base_ = overflow_stack_limit_ + OSThread::GetSpecifiedStackSize();
 
   pc_modified_ = false;
   icount_ = 0;
@@ -3556,14 +3559,16 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   set_register(NULL, FP, static_cast<int64_t>(fp));
   set_register(NULL, THR, reinterpret_cast<int64_t>(thread));
   // Set the tag.
-  thread->set_vm_tag(VMTag::kDartTagId);
+  thread->set_vm_tag(VMTag::kDartCompiledTagId);
   // Clear top exit frame.
   thread->set_top_exit_frame_info(0);
   // Restore pool pointer.
   int64_t code =
       *reinterpret_cast<int64_t*>(fp + kPcMarkerSlotFromFp * kWordSize);
-  int64_t pp = *reinterpret_cast<int64_t*>(code + Code::object_pool_offset() -
-                                           kHeapObjectTag);
+  int64_t pp = (FLAG_precompiled_mode && FLAG_use_bare_instructions)
+                   ? reinterpret_cast<int64_t>(thread->global_object_pool())
+                   : *reinterpret_cast<int64_t*>(
+                         code + Code::object_pool_offset() - kHeapObjectTag);
   pp -= kHeapObjectTag;  // In the PP register, the pool pointer is untagged.
   set_register(NULL, CODE_REG, code);
   set_register(NULL, PP, pp);

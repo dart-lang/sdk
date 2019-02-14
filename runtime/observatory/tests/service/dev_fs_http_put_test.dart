@@ -39,7 +39,7 @@ var tests = <VMTest>[
         await client.putUrl(Uri.parse(serviceHttpAddress));
     request.headers.add('dev_fs_name', fsId);
     request.headers.add('dev_fs_path', filePath);
-    request.add(GZIP.encode([9]));
+    request.add(gzip.encode([9]));
     HttpClientResponse response = await request.close();
     String responseBody = await readResponse(response);
     result = jsonDecode(responseBody);
@@ -49,7 +49,7 @@ var tests = <VMTest>[
     request = await client.putUrl(Uri.parse(serviceHttpAddress));
     request.headers.add('dev_fs_name', fsId);
     // omit the 'dev_fs_path' parameter.
-    request.write(GZIP.encode(fileContents));
+    request.write(gzip.encode(fileContents));
     response = await request.close();
     responseBody = await readResponse(response);
     result = jsonDecode(responseBody);
@@ -62,7 +62,7 @@ var tests = <VMTest>[
     request = await client.putUrl(Uri.parse(serviceHttpAddress));
     request.headers.add('dev_fs_name', fsId);
     request.headers.add('dev_fs_path', filePath);
-    request.add(GZIP.encode(fileContents));
+    request.add(gzip.encode(fileContents));
     response = await request.close();
     responseBody = await readResponse(response);
     result = jsonDecode(responseBody);

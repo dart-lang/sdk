@@ -181,7 +181,7 @@ class TypeConstraintGatherer {
     // above is irrelevant; we just need to find the matched superclass,
     // substitute, and then iterate through type variables.
     var matchingSupertypeOfSubtype =
-        environment.hierarchy.getTypeAsInstanceOf(subtype, supertype.classNode);
+        environment.getTypeAsInstanceOf(subtype, supertype.classNode);
     if (matchingSupertypeOfSubtype == null) return false;
     for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
       if (!_isSubtypeMatch(matchingSupertypeOfSubtype.typeArguments[i],

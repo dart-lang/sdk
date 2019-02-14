@@ -21,6 +21,9 @@ class FrequencyBasedNamer extends Namer
   final String getterPrefix = 'g';
   final String setterPrefix = 's';
   final String callPrefix = ''; // this will create function names $<n>
+  String get operatorIsPrefix => r'$i';
+  String get operatorAsPrefix => r'$a';
+  String get callCatchAllName => r'$C';
   String get requiredParameterField => r'$R';
   String get defaultValuesField => r'$D';
   String get operatorSignature => r'$S';

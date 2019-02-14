@@ -7,7 +7,6 @@ library dart2js.js_emitter.constant_ordering;
 import '../constants/values.dart';
 import '../elements/entities.dart'
     show ClassEntity, FieldEntity, MemberEntity, TypedefEntity;
-import '../elements/entity_utils.dart' as utils;
 import '../elements/types.dart';
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 import 'sorter.dart' show Sorter;
@@ -177,15 +176,6 @@ class _ConstantOrdering
     }
   }
 
-  int visitDeferred(DeferredConstantValue a, DeferredConstantValue b) {
-    int r = compareValues(a.referenced, b.referenced);
-    if (r != 0) return r;
-    r = a.import.name.compareTo(b.import.name);
-    if (r != 0) return r;
-    return utils.compareLibrariesUris(
-        a.import.enclosingLibraryUri, b.import.enclosingLibraryUri);
-  }
-
   int visitDeferredGlobal(
       DeferredGlobalConstantValue a, DeferredGlobalConstantValue b) {
     int r = compareValues(a.referenced, b.referenced);
@@ -216,10 +206,9 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   static const int TYPE = 10;
   static const int INTERCEPTOR = 11;
   static const int SYNTHETIC = 12;
-  static const int DEFERRED = 13;
-  static const int DEFERRED_GLOBAL = 14;
-  static const int NONCONSTANT = 15;
-  static const int INSTANTIATION = 16;
+  static const int DEFERRED_GLOBAL = 13;
+  static const int NONCONSTANT = 14;
+  static const int INSTANTIATION = 15;
 
   static int kind(ConstantValue constant) =>
       constant.accept(const _KindVisitor(), null);
@@ -237,7 +226,6 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   int visitType(TypeConstantValue a, _) => TYPE;
   int visitInterceptor(InterceptorConstantValue a, _) => INTERCEPTOR;
   int visitSynthetic(SyntheticConstantValue a, _) => SYNTHETIC;
-  int visitDeferred(DeferredConstantValue a, _) => DEFERRED;
   int visitDeferredGlobal(DeferredGlobalConstantValue a, _) => DEFERRED_GLOBAL;
   int visitInstantiation(InstantiationConstantValue a, _) => INSTANTIATION;
 }

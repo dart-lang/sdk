@@ -11,7 +11,7 @@ import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_model/element_map.dart';
-import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:compiler/src/js_model/js_world.dart';
 import 'package:expect/expect.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -34,8 +34,7 @@ main(List<String> args) {
     await checkTests(dataDir, const OutputUnitDataComputer(),
         libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
         options: compilerOptions,
-        args: args,
-        testOmit: true, setUpFunction: () {
+        args: args, setUpFunction: () {
       importPrefixes.clear();
     });
   });
@@ -76,7 +75,7 @@ String outputUnitString(OutputUnit unit) {
   return 'OutputUnit(${unit.name}, {$sb})';
 }
 
-class OutputUnitDataComputer extends DataComputer {
+class OutputUnitDataComputer extends DataComputer<String> {
   const OutputUnitDataComputer();
 
   /// OutputData for [member] as a kernel based element.
@@ -86,8 +85,8 @@ class OutputUnitDataComputer extends DataComputer {
   /// fill [actualMap] with the data computed about what the resulting OutputUnit
   /// is.
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
@@ -102,7 +101,7 @@ class OutputUnitDataComputer extends DataComputer {
 
   @override
   void computeClassData(
-      Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
+      Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     OutputUnitData data = closedWorld.outputUnitData;
@@ -119,16 +118,19 @@ class OutputUnitDataComputer extends DataComputer {
         actualMap,
         compiler.reporter);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
-class OutputUnitIrComputer extends IrDataExtractor {
+class OutputUnitIrComputer extends IrDataExtractor<String> {
   final JsToElementMap _elementMap;
   final OutputUnitData _data;
   final ClosureData _closureDataLookup;
 
   OutputUnitIrComputer(
       DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap,
+      Map<Id, ActualData<String>> actualMap,
       this._elementMap,
       MemberEntity member,
       this._data,
@@ -180,10 +182,10 @@ class OutputUnitIrComputer extends IrDataExtractor {
 /// Set [actualMap] to hold a key of [id] with the computed data [value]
 /// corresponding to [object] at location [sourceSpan]. We also perform error
 /// checking to ensure that the same [id] isn't added twice.
-void _registerValue(Id id, String value, Object object, SourceSpan sourceSpan,
-    Map<Id, ActualData> actualMap, CompilerDiagnosticReporter reporter) {
+void _registerValue<T>(Id id, T value, Object object, SourceSpan sourceSpan,
+    Map<Id, ActualData<T>> actualMap, CompilerDiagnosticReporter reporter) {
   if (actualMap.containsKey(id)) {
-    ActualData existingData = actualMap[id];
+    ActualData<T> existingData = actualMap[id];
     reportHere(reporter, sourceSpan,
         "Duplicate id ${id}, value=$value, object=$object");
     reportHere(
@@ -194,6 +196,6 @@ void _registerValue(Id id, String value, Object object, SourceSpan sourceSpan,
     Expect.fail("Duplicate id $id.");
   }
   if (value != null) {
-    actualMap[id] = new ActualData(new IdValue(id, value), sourceSpan, object);
+    actualMap[id] = new ActualData<T>(id, value, sourceSpan, object);
   }
 }

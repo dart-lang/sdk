@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -118,24 +118,6 @@ convert(x) => _s_ as T;
 ''');
   }
 
-  @failingTest
-  void test_initializerList_missingComma() {
-    // https://github.com/dart-lang/sdk/issues/33241
-    testRecovery('''
-class Test {
-  Test()
-    : assert(true)
-      assert(true);
-}
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
-class Test {
-  Test()
-    : assert(true),
-      assert(true);
-}
-''');
-  }
-
   void test_asExpression_missingRight() {
     testRecovery('''
 convert(x) => x as ;
@@ -196,6 +178,14 @@ import 'bar.dart' deferred as _s_;
 ''');
   }
 
+  void test_comma_missing() {
+    testRecovery('''
+f(int a int b) { }
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f(int a, int b) { }
+''');
+  }
+
   void test_conditionalExpression_else() {
     testRecovery('''
 f() => x ? y : 
@@ -250,6 +240,24 @@ f() => x ? _s_ : z;
 
   void test_hat_super() {
     testUserDefinableOperatorWithSuper('^');
+  }
+
+  @failingTest
+  void test_initializerList_missingComma() {
+    // https://github.com/dart-lang/sdk/issues/33241
+    testRecovery('''
+class Test {
+  Test()
+    : assert(true)
+      assert(true);
+}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+class Test {
+  Test()
+    : assert(true),
+      assert(true);
+}
+''');
   }
 
   void test_isExpression_missingLeft() {

@@ -25,12 +25,12 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
 import '../abstract_single_unit.dart';
-import '../context/abstract_context.dart';
 import 'element_text.dart';
 import 'test_strategies.dart';
 
@@ -100,7 +100,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     }
   }
 
-  DartSdk createDartSdk() => AbstractContextTest.SHARED_MOCK_SDK;
+  DartSdk createDartSdk() => new MockSdk(resourceProvider: resourceProvider);
 
   /**
    * Create the analysis options that should be used for this test.
@@ -117,7 +117,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 /// Mixin containing test cases exercising summary resynthesis.  Intended to be
 /// applied to a class implementing [ResynthesizeTestStrategy], along with the
 /// mixin [ResynthesizeTestHelpers].
-abstract class ResynthesizeTestCases implements ResynthesizeTestHelpers {
+mixin ResynthesizeTestCases implements ResynthesizeTestHelpers {
   test_class_abstract() async {
     var library = await checkLibrary('abstract class C {}');
     checkElementText(library, r'''
@@ -447,6 +447,36 @@ class C {
 class C {
   dynamic x;
   C(dynamic this.x);
+}
+''');
+  }
+
+  test_class_constructor_field_formal_functionTyped_noReturnType() async {
+    var library = await checkLibrary(r'''
+class C {
+  var x;
+  C(this.x(double b));
+}
+''');
+    checkElementText(library, r'''
+class C {
+  dynamic x;
+  C((double) → dynamic this.x);
+}
+''');
+  }
+
+  test_class_constructor_field_formal_functionTyped_withReturnType() async {
+    var library = await checkLibrary(r'''
+class C {
+  var x;
+  C(int this.x(double b));
+}
+''');
+    checkElementText(library, r'''
+class C {
+  dynamic x;
+  C((double) → int this.x);
 }
 ''');
   }
@@ -2152,7 +2182,9 @@ const V = const C.named();
     checkElementText(library, r'''
 class C {
 }
-const dynamic V = #invalidConst;
+const dynamic V = const
+        C/*location: test.dart;C*/.
+        named/*location: null*/();
 ''');
   }
 
@@ -2162,7 +2194,9 @@ const dynamic V = #invalidConst;
 const V = const C.named();
 ''', allowErrors: true);
     checkElementText(library, r'''
-const dynamic V = #invalidConst;
+const dynamic V = const
+        C/*location: null*/.
+        named/*location: null*/();
 ''');
   }
 
@@ -2178,7 +2212,10 @@ const V = const p.C.named();
 ''', allowErrors: true);
     checkElementText(library, r'''
 import 'a.dart' as p;
-const dynamic V = #invalidConst;
+const dynamic V = const
+        p/*location: test.dart;p*/.
+        C/*location: a.dart;C*/.
+        named/*location: null*/();
 ''');
   }
 
@@ -2191,7 +2228,10 @@ const V = const p.C.named();
 ''', allowErrors: true);
     checkElementText(library, r'''
 import 'a.dart' as p;
-const dynamic V = #invalidConst;
+const dynamic V = const
+        p/*location: test.dart;p*/.
+        C/*location: null*/.
+        named/*location: null*/();
 ''');
   }
 
@@ -2201,7 +2241,10 @@ const dynamic V = #invalidConst;
 const V = const p.C.named();
 ''', allowErrors: true);
     checkElementText(library, r'''
-const dynamic V = #invalidConst;
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/.
+        named/*location: null*/();
 ''');
   }
 
@@ -2214,7 +2257,9 @@ const V = const C.named();
     checkElementText(library, r'''
 class C<T> {
 }
-const dynamic V = #invalidConst;
+const dynamic V = const
+        C/*location: test.dart;C*/.
+        named/*location: null*/();
 ''');
   }
 
@@ -2274,7 +2319,8 @@ const C V = const
 const V = const C();
 ''', allowErrors: true);
     checkElementText(library, r'''
-const dynamic V = #invalidConst;
+const dynamic V = const
+        C/*location: null*/();
 ''');
   }
 
@@ -2287,7 +2333,9 @@ const V = const p.C();
 ''', allowErrors: true);
     checkElementText(library, r'''
 import 'a.dart' as p;
-const dynamic V = #invalidConst;
+const dynamic V = const
+        p/*location: test.dart;p*/.
+        C/*location: null*/();
 ''');
   }
 
@@ -2297,7 +2345,9 @@ const dynamic V = #invalidConst;
 const V = const p.C();
 ''', allowErrors: true);
     checkElementText(library, r'''
-const dynamic V = #invalidConst;
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/();
 ''');
   }
 
@@ -2863,7 +2913,8 @@ class C<T> {
 const V = foo;
 ''', allowErrors: true);
     checkElementText(library, r'''
-const dynamic V = #invalidConst;
+const dynamic V =
+        foo/*location: null*/;
 ''');
   }
 
@@ -2876,7 +2927,9 @@ const V = C.foo;
     checkElementText(library, r'''
 class C {
 }
-const dynamic V = #invalidConst;
+const dynamic V =
+        C/*location: test.dart;C*/.
+        foo/*location: null*/;
 ''');
   }
 
@@ -2891,7 +2944,10 @@ const V = p.C.foo;
 ''', allowErrors: true);
     checkElementText(library, r'''
 import 'foo.dart' as p;
-const dynamic V = #invalidConst;
+const dynamic V =
+        p/*location: test.dart;p*/.
+        C/*location: foo.dart;C*/.
+        foo/*location: null*/;
 ''');
   }
 
@@ -3029,7 +3085,7 @@ const int vComplement = ~1;
 const vSuper = super;
 ''');
     checkElementText(library, r'''
-const dynamic vSuper = #invalidConst;
+const dynamic vSuper = super;
 ''');
   }
 
@@ -3039,7 +3095,7 @@ const dynamic vSuper = #invalidConst;
 const vThis = this;
 ''');
     checkElementText(library, r'''
-const dynamic vThis = #invalidConst;
+const dynamic vThis = this;
 ''');
   }
 
@@ -5145,7 +5201,8 @@ Future<dynamic> f;
 import '';
 ''');
     checkElementText(library, r'''
-@#invalidConst
+@
+        foo/*location: null*/
 import '<unresolved>';
 ''');
   }
@@ -5894,7 +5951,10 @@ class D {}
 ''');
     checkElementText(library, r'''
 import 'a.dart' as a;
-@#invalidConst
+@
+        a/*location: test.dart;a*/.
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/
 class D {
 }
 ''');
@@ -5914,7 +5974,9 @@ class D {}
 ''');
     checkElementText(library, r'''
 import 'a.dart';
-@#invalidConst
+@
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/
 class D {
 }
 ''');
@@ -5948,7 +6010,8 @@ foo([p = V]) {}
     checkElementText(library, r'''
 import 'a.dart';
 import 'b.dart';
-dynamic foo([dynamic p = #invalidConst]) {}
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
 ''');
   }
 
@@ -5967,7 +6030,8 @@ foo([p = V]) {}
 ''');
     checkElementText(library, r'''
 import 'c.dart';
-dynamic foo([dynamic p = #invalidConst]) {}
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
 ''');
   }
 
@@ -5981,7 +6045,8 @@ var V;
 ''');
     checkElementText(library, r'''
 dynamic V;
-dynamic foo([dynamic p = #invalidConst]) {}
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
 dynamic V() {}
 ''');
   }
@@ -6662,7 +6727,8 @@ const dynamic a =
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('f(_) {} @f(42) class C {}');
     checkElementText(library, r'''
-@#invalidConst
+@
+        __unresolved__/*location: null*/
 class C {
 }
 dynamic f(dynamic _) {}
@@ -7218,54 +7284,6 @@ class C {
 void main@5(int p@14) {}
 ''',
         withOffsets: true);
-  }
-
-  test_parameter_checked() async {
-    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
-    // its presence in a library called "meta".  If that bug is fixed, this test
-    // my need to be changed.
-    var library = await checkLibrary(r'''
-library meta;
-const checked = null;
-class A<T> {
-  void f(@checked T t) {}
-}
-''');
-    checkElementText(library, r'''
-library meta;
-class A<T> {
-  void f(@
-        checked/*location: test.dart;checked?*/ covariant T t) {}
-}
-const dynamic checked = null;
-''');
-  }
-
-  test_parameter_checked_inherited() async {
-    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
-    // its presence in a library called "meta".  If that bug is fixed, this test
-    // my need to be changed.
-    var library = await checkLibrary(r'''
-library meta;
-const checked = null;
-class A<T> {
-  void f(@checked T t) {}
-}
-class B<T> extends A<T> {
-  void f(T t) {}
-}
-''');
-    checkElementText(library, r'''
-library meta;
-class A<T> {
-  void f(@
-        checked/*location: test.dart;checked?*/ covariant T t) {}
-}
-class B<T> extends A<T> {
-  void f(covariant T t) {}
-}
-const dynamic checked = null;
-''');
   }
 
   test_parameter_covariant() async {
@@ -8323,7 +8341,8 @@ class C {}
 class A {
   const A(dynamic _);
 }
-@#invalidConst
+@
+        A/*location: test.dart;A*/(this)
 class C {
 }
 ''');
@@ -8334,7 +8353,9 @@ class C {
     var library =
         await checkLibrary('@foo.bar() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@#invalidConst
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
 class C {
 }
 ''');
@@ -8345,7 +8366,9 @@ class C {
     var library =
         await checkLibrary('@String.foo() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@#invalidConst
+@
+        String/*location: dart:core;String*/.
+        foo/*location: null*/()
 class C {
 }
 ''');
@@ -8355,7 +8378,9 @@ class C {
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('@foo.bar class C {}', allowErrors: true);
     checkElementText(library, r'''
-@#invalidConst
+@
+        foo/*location: null*/.
+        bar/*location: null*/
 class C {
 }
 ''');
@@ -8368,7 +8393,9 @@ class C {
         allowErrors: true);
     checkElementText(library, r'''
 import 'dart:async' as foo;
-@#invalidConst
+@
+        foo/*location: test.dart;foo*/.
+        bar/*location: null*/
 class C {
 }
 ''');
@@ -8379,7 +8406,10 @@ class C {
     var library =
         await checkLibrary('@foo.bar.baz() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@#invalidConst
+@
+        foo/*location: null*/.
+        bar/*location: null*/.
+        baz/*location: null*/()
 class C {
 }
 ''');
@@ -8392,7 +8422,10 @@ class C {
         allowErrors: true);
     checkElementText(library, r'''
 import 'dart:async' as foo;
-@#invalidConst
+@
+        foo/*location: test.dart;foo*/.
+        bar/*location: null*/.
+        baz/*location: null*/()
 class C {
 }
 ''');
@@ -8405,7 +8438,10 @@ class C {
         allowErrors: true);
     checkElementText(library, r'''
 import 'dart:async' as foo;
-@#invalidConst
+@
+        foo/*location: test.dart;foo*/.
+        Future/*location: dart:async;Future*/.
+        bar/*location: null*/()
 class C {
 }
 ''');
@@ -8416,7 +8452,9 @@ class C {
     var library =
         await checkLibrary('@foo.bar() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@#invalidConst
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
 class C {
 }
 ''');
@@ -8429,7 +8467,9 @@ class C {
         allowErrors: true);
     checkElementText(library, r'''
 import 'dart:async' as foo;
-@#invalidConst
+@
+        foo/*location: test.dart;foo*/.
+        bar/*location: null*/()
 class C {
 }
 ''');
@@ -8439,7 +8479,8 @@ class C {
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('@foo class C {}', allowErrors: true);
     checkElementText(library, r'''
-@#invalidConst
+@
+        foo/*location: null*/
 class C {
 }
 ''');
@@ -8449,7 +8490,8 @@ class C {
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('@foo() class C {}', allowErrors: true);
     checkElementText(library, r'''
-@#invalidConst
+@
+        foo/*location: null*/()
 class C {
 }
 ''');
@@ -8746,7 +8788,7 @@ int j;
 
 /// Mixin containing helper methods for testing summary resynthesis.  Intended
 /// to be applied to a class implementing [ResynthesizeTestStrategy].
-abstract class ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
+mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
   /**
    * Names of variables which have initializers that are not valid constants,
    * so they are not resynthesized.
@@ -10012,7 +10054,7 @@ class TestSummaryResynthesizer extends SummaryResynthesizer {
 
   TestSummaryResynthesizer(AnalysisContext context, this.unlinkedSummaries,
       this.linkedSummaries, this.allowMissingFiles)
-      : super(context, context.sourceFactory, true) {
+      : super(context, null, context.sourceFactory, true) {
     // Clear after resynthesizing TypeProvider in super().
     unlinkedSummariesRequested.clear();
     linkedSummariesRequested.clear();

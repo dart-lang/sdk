@@ -11,10 +11,8 @@ accessor_conflict_import2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
-additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 cascaded_forwarding_stubs_test: CompileTimeError # Issue 34329
 config_import_corelib_test: CompileTimeError, StaticWarning, OK # failing-by-design: Will never pass, see Issue #34332
-conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Issue #34333 (loops forever)
 const_cast2_test/01: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
 const_cast2_test/none: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
 const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
@@ -73,12 +71,10 @@ issue34498_test: MissingCompileTimeError # Issue 34500
 large_class_declaration_test: Slow, Pass
 malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
 mixin_declaration/mixin_declaration_factory_test/02: Crash # Issue 34809
-mixin_declaration/mixin_declaration_invalid_superinvocation_test/10: CompileTimeError # Issue 30552
 mixin_method_override_test/01: MissingCompileTimeError
 mixin_super_2_test: CompileTimeError
 mixin_super_use_test: CompileTimeError
 mock_writable_final_private_field_test: CompileTimeError # failing-by-design, see Issue #34377
-multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 nested_generic_closure_test: CompileTimeError # Issue #28515
 no_main_test/01: Fail # failing-by-design, the analyzer has no restriction that a library include a main function.
 no_such_constructor2_test: StaticWarning
@@ -95,17 +91,12 @@ regress_27617_test/1: MissingCompileTimeError
 regress_29025_test: CompileTimeError # Issue 29081
 regress_29405_test: CompileTimeError # Issue 29421
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
-regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError
 regress_33479_test/01: Crash # Issue #33479
 setter3_test/01: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 setter3_test/02: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-string_split_test: CompileTimeError
-string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_no_such_method1_test: CompileTimeError # Invalid test, probably, see https://github.com/dart-lang/sdk/issues/33963
-super_no_such_method2_test: CompileTimeError # Invalid test, probably, see https://github.com/dart-lang/sdk/issues/33963
-super_no_such_method3_test: CompileTimeError # Invalid test, probably, see https://github.com/dart-lang/sdk/issues/33963
+super_call4_test/01: MissingCompileTimeError
 super_setter_test: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 syntax_test/60: MissingCompileTimeError
 syntax_test/61: MissingCompileTimeError
@@ -126,10 +117,13 @@ vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
 vm/reflect_core_vm_test: CompileTimeError # Issue 33994
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
+vm/regression_32912_test/01: MissingCompileTimeError # Issue 32912
+vm/regression_32912_test/02: MissingCompileTimeError # Issue 32912
+vm/regression_32912_test/03: MissingCompileTimeError # Issue 32912
 void/return_future_future_or_void_async_error1_test/none: CompileTimeError # issue #34319
 void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
 void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319
-void/void_type_usage_test/final_local_for_in2: MissingCompileTimeError
+void/void_type_usage_test/final_local_for_in2: MissingCompileTimeError # issue 35508
 web_int_literals_test/01: MissingCompileTimeError
 web_int_literals_test/02: MissingCompileTimeError
 web_int_literals_test/03: MissingCompileTimeError

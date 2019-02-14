@@ -65,9 +65,15 @@ static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   // TODO(abarth): Handle time zone changes.
   static const auto* tz_name = new std::string([] {
+#ifdef USE_STD_FOR_NON_NULLABLE_FIDL_FIELDS
+    std::string result;
+    tz->GetTimezoneId(&result);
+    return result;
+#else
     fidl::StringPtr result;
     tz->GetTimezoneId(&result);
     return *result;
+#endif
   }());
   return tz_name->c_str();
 }
@@ -222,6 +228,8 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   int i = 0;
   if (str[0] == '-') {
     i = 1;
+  } else if (str[0] == '+') {
+    i = 1;
   }
   if ((str[i] == '0') && (str[i + 1] == 'x' || str[i + 1] == 'X') &&
       (str[i + 2] != '\0')) {
@@ -267,7 +275,7 @@ void OS::Abort() {
 }
 
 void OS::Exit(int code) {
-  UNIMPLEMENTED();
+  exit(code);
 }
 
 }  // namespace dart

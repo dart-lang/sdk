@@ -6,9 +6,7 @@ import '../common.dart';
 import '../js_backend/js_backend.dart';
 import 'nodes.dart';
 
-/**
- * The [LiveRange] class covers a range where an instruction is live.
- */
+/// The [LiveRange] class covers a range where an instruction is live.
 class LiveRange {
   final int start;
   // [end] is not final because it can be updated due to loops.
@@ -20,14 +18,10 @@ class LiveRange {
   String toString() => '[$start $end[';
 }
 
-/**
- * The [LiveInterval] class contains the list of ranges where an
- * instruction is live.
- */
+/// The [LiveInterval] class contains the list of ranges where an
+/// instruction is live.
 class LiveInterval {
-  /**
-   * The id where the instruction is defined.
-   */
+  /// The id where the instruction is defined.
   int start;
   final List<LiveRange> ranges;
   LiveInterval() : ranges = <LiveRange>[];
@@ -38,10 +32,8 @@ class LiveInterval {
   LiveInterval.forCheck(this.start, LiveInterval checkedInterval)
       : ranges = checkedInterval.ranges;
 
-  /**
-   * Update all ranges that are contained in [from, to[ to
-   * die at [to].
-   */
+  /// Update all ranges that are contained in [from, to[ to
+  /// die at [to].
   void loopUpdate(int from, int to) {
     for (LiveRange range in ranges) {
       if (from <= range.start && range.end < to) {
@@ -50,16 +42,12 @@ class LiveInterval {
     }
   }
 
-  /**
-   * Add a new range to this interval.
-   */
+  /// Add a new range to this interval.
   void add(LiveRange interval) {
     ranges.add(interval);
   }
 
-  /**
-   * Returns true if one of the ranges of this interval dies at [at].
-   */
+  /// Returns true if one of the ranges of this interval dies at [at].
   bool diesAt(int at) {
     for (LiveRange range in ranges) {
       if (range.end == at) return true;
@@ -74,53 +62,39 @@ class LiveInterval {
   }
 }
 
-/**
- * The [LiveEnvironment] class contains the liveIn set of a basic
- * block. A liveIn set of a block contains the instructions that are
- * live when entering that block.
- */
+/// The [LiveEnvironment] class contains the liveIn set of a basic
+/// block. A liveIn set of a block contains the instructions that are
+/// live when entering that block.
 class LiveEnvironment {
-  /**
-   * The instruction id where the basic block starts. See
-   * [SsaLiveIntervalBuilder.instructionId].
-   */
+  /// The instruction id where the basic block starts. See
+  /// [SsaLiveIntervalBuilder.instructionId].
   int startId;
 
-  /**
-   * The instruction id where the basic block ends.
-   */
+  /// The instruction id where the basic block ends.
   final int endId;
 
-  /**
-   * Loop markers that will be updated once the loop header is
-   * visited. The liveIn set of the loop header will be merged into this
-   * environment. [loopMarkers] is a mapping from block header to the
-   * end instruction id of the loop exit block.
-   */
+  /// Loop markers that will be updated once the loop header is
+  /// visited. The liveIn set of the loop header will be merged into this
+  /// environment. [loopMarkers] is a mapping from block header to the
+  /// end instruction id of the loop exit block.
   final Map<HBasicBlock, int> loopMarkers;
 
-  /**
-   * The instructions that are live in this basic block. The values of
-   * the map contain the instruction ids where the instructions die.
-   * It will be used when adding a range to the live interval of an
-   * instruction.
-   */
+  /// The instructions that are live in this basic block. The values of
+  /// the map contain the instruction ids where the instructions die.
+  /// It will be used when adding a range to the live interval of an
+  /// instruction.
   final Map<HInstruction, int> liveInstructions;
 
-  /**
-   * Map containing the live intervals of instructions.
-   */
+  /// Map containing the live intervals of instructions.
   final Map<HInstruction, LiveInterval> liveIntervals;
 
   LiveEnvironment(this.liveIntervals, this.endId)
       : liveInstructions = new Map<HInstruction, int>(),
         loopMarkers = new Map<HBasicBlock, int>();
 
-  /**
-   * Remove an instruction from the liveIn set. This method also
-   * updates the live interval of [instruction] to contain the new
-   * range: [id, / id contained in [liveInstructions] /].
-   */
+  /// Remove an instruction from the liveIn set. This method also
+  /// updates the live interval of [instruction] to contain the new
+  /// range: [id, / id contained in [liveInstructions] /].
   void remove(HInstruction instruction, int id) {
     LiveInterval interval =
         liveIntervals.putIfAbsent(instruction, () => new LiveInterval());
@@ -132,20 +106,16 @@ class LiveEnvironment {
     liveInstructions.remove(instruction);
   }
 
-  /**
-   * Add [instruction] to the liveIn set. If the instruction is not
-   * already in the set, we save the id where it dies.
-   */
+  /// Add [instruction] to the liveIn set. If the instruction is not
+  /// already in the set, we save the id where it dies.
   void add(HInstruction instruction, int userId) {
     // Note that we are visiting the graph in post-dominator order, so
     // the first time we see a variable is when it dies.
     liveInstructions.putIfAbsent(instruction, () => userId);
   }
 
-  /**
-   * Merge this environment with [other]. Update the end id of
-   * instructions in case they are different between this and [other].
-   */
+  /// Merge this environment with [other]. Update the end id of
+  /// instructions in case they are different between this and [other].
   void mergeWith(LiveEnvironment other) {
     other.liveInstructions.forEach((HInstruction instruction, int existingId) {
       // If both environments have the same instruction id of where
@@ -180,31 +150,23 @@ class LiveEnvironment {
   String toString() => liveInstructions.toString();
 }
 
-/**
- * Builds the live intervals of each instruction. The algorithm visits
- * the graph post-dominator tree to find the last uses of an
- * instruction, and computes the liveIns of each basic block.
- */
+/// Builds the live intervals of each instruction. The algorithm visits
+/// the graph post-dominator tree to find the last uses of an
+/// instruction, and computes the liveIns of each basic block.
 class SsaLiveIntervalBuilder extends HBaseVisitor {
   final Set<HInstruction> generateAtUseSite;
   final Set<HInstruction> controlFlowOperators;
 
-  /**
-   * A counter to assign start and end ids to live ranges. The initial
-   * value is not relevant. Note that instructionId goes downward to ease
-   * reasoning about live ranges (the first instruction of a graph has
-   * the lowest id).
-   */
+  /// A counter to assign start and end ids to live ranges. The initial
+  /// value is not relevant. Note that instructionId goes downward to ease
+  /// reasoning about live ranges (the first instruction of a graph has
+  /// the lowest id).
   int instructionId = 0;
 
-  /**
-   * The liveIns of basic blocks.
-   */
+  /// The liveIns of basic blocks.
   final Map<HBasicBlock, LiveEnvironment> liveInstructions;
 
-  /**
-   * The live intervals of instructions.
-   */
+  /// The live intervals of instructions.
   final Map<HInstruction, LiveInterval> liveIntervals;
 
   SsaLiveIntervalBuilder(this.generateAtUseSite, this.controlFlowOperators)
@@ -384,11 +346,9 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
   }
 }
 
-/**
- * Represents a copy from one instruction to another. The codegen
- * also uses this class to represent a copy from one variable to
- * another.
- */
+/// Represents a copy from one instruction to another. The codegen
+/// also uses this class to represent a copy from one variable to
+/// another.
 class Copy<T> {
   final T source;
   final T destination;
@@ -398,20 +358,14 @@ class Copy<T> {
   String toString() => '$destination <- $source';
 }
 
-/**
- * A copy handler contains the copies that a basic block needs to do
- * after executing all its instructions.
- */
+/// A copy handler contains the copies that a basic block needs to do
+/// after executing all its instructions.
 class CopyHandler {
-  /**
-   * The copies from an instruction to a phi of the successor.
-   */
+  /// The copies from an instruction to a phi of the successor.
   final List<Copy<HInstruction>> copies;
 
-  /**
-   * Assignments from an instruction that does not need a name (e.g. a
-   * constant) to the phi of a successor.
-   */
+  /// Assignments from an instruction that does not need a name (e.g. a
+  /// constant) to the phi of a successor.
   final List<Copy<HInstruction>> assignments;
 
   CopyHandler()
@@ -431,21 +385,18 @@ class CopyHandler {
   bool get isEmpty => copies.isEmpty && assignments.isEmpty;
 }
 
-/**
- * Contains the mapping between instructions and their names for code
- * generation, as well as the [CopyHandler] for each basic block.
- */
+/// Contains the mapping between instructions and their names for code
+/// generation, as well as the [CopyHandler] for each basic block.
 class VariableNames {
   final Map<HInstruction, String> ownName;
   final Map<HBasicBlock, CopyHandler> copyHandlers;
 
   // Used to control heuristic that determines how local variables are declared.
   final Set<String> allUsedNames;
-  /**
-   * Name that is used as a temporary to break cycles in
-   * parallel copies. We make sure this name is not being used
-   * anywhere by reserving it when we allocate names for instructions.
-   */
+
+  /// Name that is used as a temporary to break cycles in
+  /// parallel copies. We make sure this name is not being used
+  /// anywhere by reserving it when we allocate names for instructions.
   final String swapTemp;
 
   String getSwapTemp() {
@@ -488,9 +439,7 @@ class VariableNames {
   }
 }
 
-/**
- * Allocates variable names for instructions, making sure they don't collide.
- */
+/// Allocates variable names for instructions, making sure they don't collide.
 class VariableNamer {
   final VariableNames names;
   final Namer _namer;
@@ -586,9 +535,7 @@ class VariableNamer {
     return name;
   }
 
-  /**
-   * Frees [instruction]'s name so it can be used for other instructions.
-   */
+  /// Frees [instruction]'s name so it can be used for other instructions.
   void freeName(HInstruction instruction) {
     String ownName = names.ownName[instruction];
     if (ownName != null) {
@@ -604,18 +551,16 @@ class VariableNamer {
   }
 }
 
-/**
- * Visits all blocks in the graph, sets names to instructions, and
- * creates the [CopyHandler] for each block. This class needs to have
- * the liveIns set as well as all the live intervals of instructions.
- * It visits the graph in dominator order, so that at each entry of a
- * block, the instructions in its liveIns set have names.
- *
- * When visiting a block, it goes through all instructions. For each
- * instruction, it frees the names of the inputs that die at that
- * instruction, and allocates a name to the instruction. For each phi,
- * it adds a copy to the CopyHandler of the corresponding predecessor.
- */
+/// Visits all blocks in the graph, sets names to instructions, and
+/// creates the [CopyHandler] for each block. This class needs to have
+/// the liveIns set as well as all the live intervals of instructions.
+/// It visits the graph in dominator order, so that at each entry of a
+/// block, the instructions in its liveIns set have names.
+///
+/// When visiting a block, it goes through all instructions. For each
+/// instruction, it frees the names of the inputs that die at that
+/// instruction, and allocates a name to the instruction. For each phi,
+/// it adds a copy to the CopyHandler of the corresponding predecessor.
 class SsaVariableAllocator extends HBaseVisitor {
   final Namer _namer;
   final Map<HBasicBlock, LiveEnvironment> liveInstructions;
@@ -645,10 +590,8 @@ class SsaVariableAllocator extends HBaseVisitor {
     });
   }
 
-  /**
-   * Returns whether [instruction] needs a name. Instructions that
-   * have no users or that are generated at use site do not need a name.
-   */
+  /// Returns whether [instruction] needs a name. Instructions that
+  /// have no users or that are generated at use site do not need a name.
   bool needsName(instruction) {
     if (instruction is HThis) return false;
     if (instruction is HParameterValue) return true;
@@ -657,9 +600,7 @@ class SsaVariableAllocator extends HBaseVisitor {
     return !instruction.nonCheck().isCodeMotionInvariant();
   }
 
-  /**
-   * Returns whether [instruction] dies at the instruction [at].
-   */
+  /// Returns whether [instruction] dies at the instruction [at].
   bool diesAt(HInstruction instruction, HInstruction at) {
     LiveInterval atInterval = liveIntervals[at];
     LiveInterval instructionInterval = liveIntervals[instruction];

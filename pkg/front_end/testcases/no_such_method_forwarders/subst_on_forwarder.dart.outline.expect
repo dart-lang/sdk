@@ -14,7 +14,7 @@ class M extends core::Object {
     ;
 }
 abstract class _A&Object&M = core::Object with self::M {
-  synthetic constructor •() → self::_A&Object&M
+  const synthetic constructor •() → self::_A&Object&M
     : super core::Object::•()
     ;
 }

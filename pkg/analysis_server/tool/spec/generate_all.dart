@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,6 +8,8 @@ import 'package:analyzer/src/codegen/tools.dart';
 import 'package:path/path.dart';
 
 import 'codegen_analysis_server.dart' as codegen_analysis_server;
+import 'codegen_dart_notification_handler.dart'
+    as codegen_dart_notification_handler;
 import 'codegen_dart_protocol.dart' as codegen_dart_protocol;
 import 'codegen_inttest_methods.dart' as codegen_inttest_methods;
 import 'codegen_java_types.dart' as codegen_java_types;
@@ -30,6 +32,7 @@ main() async {
 List<GeneratedContent> get allTargets {
   List<GeneratedContent> targets = <GeneratedContent>[];
   targets.add(codegen_analysis_server.target);
+  targets.add(codegen_dart_notification_handler.clientTarget());
   targets.add(codegen_dart_protocol.clientTarget(false));
   targets.add(codegen_dart_protocol.serverTarget(false));
   targets.add(codegen_java_types.targetDir);

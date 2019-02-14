@@ -413,6 +413,9 @@ class Printer extends Visitor<Null> {
     writeSpaced('=');
     inner.writeMemberReferenceFromReference(component.mainMethodName);
     endLine(';');
+    if (showMetadata) {
+      inner.writeMetadata(component);
+    }
     for (var library in component.libraries) {
       if (library.isExternal) {
         if (!showExternal) {
@@ -1261,6 +1264,21 @@ class Printer extends Visitor<Null> {
     writeSymbol(']');
   }
 
+  visitSetLiteral(SetLiteral node) {
+    if (node.isConst) {
+      writeWord('const');
+      writeSpace();
+    }
+    if (node.typeArgument != null) {
+      writeSymbol('<');
+      writeType(node.typeArgument);
+      writeSymbol('>');
+    }
+    writeSymbol('{');
+    writeList(node.expressions, writeNode);
+    writeSymbol('}');
+  }
+
   visitMapLiteral(MapLiteral node) {
     if (node.isConst) {
       writeWord('const');
@@ -1345,10 +1363,10 @@ class Printer extends Visitor<Null> {
     writeIndentation();
     writeWord(node.isImport ? 'import' : 'export');
     var uriString;
-    if (node.importedLibraryReference.node != null) {
+    if (node.importedLibraryReference?.node != null) {
       uriString = '${node.targetLibrary.importUri}';
     } else {
-      uriString = '${node.importedLibraryReference.canonicalName.name}';
+      uriString = '${node.importedLibraryReference?.canonicalName?.name}';
     }
     writeWord('"$uriString"');
     if (node.isDeferred) {
@@ -1893,6 +1911,24 @@ class Printer extends Visitor<Null> {
     endLine(sb.toString());
   }
 
+  visitEnvironmentBoolConstant(EnvironmentBoolConstant node) {
+    final String name = syntheticNames.nameConstant(node);
+    final String defaultValue = syntheticNames.nameConstant(node.defaultValue);
+    endLine('  $name = bool.fromEnvironment(${node.name}, ${defaultValue})');
+  }
+
+  visitEnvironmentIntConstant(EnvironmentIntConstant node) {
+    final String name = syntheticNames.nameConstant(node);
+    final String defaultValue = syntheticNames.nameConstant(node.defaultValue);
+    endLine('  $name = int.fromEnvironment(${node.name}, ${defaultValue})');
+  }
+
+  visitEnvironmentStringConstant(EnvironmentStringConstant node) {
+    final String name = syntheticNames.nameConstant(node);
+    final String defaultValue = syntheticNames.nameConstant(node.defaultValue);
+    endLine('  $name = String.fromEnvironment(${node.name}, ${defaultValue})');
+  }
+
   defaultNode(Node node) {
     write('<${node.runtimeType}>');
   }
@@ -1970,6 +2006,7 @@ class Precedence extends ExpressionVisitor<int> {
   int visitRethrow(Rethrow node) => PRIMARY;
   int visitThrow(Throw node) => EXPRESSION;
   int visitListLiteral(ListLiteral node) => PRIMARY;
+  int visitSetLiteral(SetLiteral node) => PRIMARY;
   int visitMapLiteral(MapLiteral node) => PRIMARY;
   int visitAwaitExpression(AwaitExpression node) => PREFIX;
   int visitFunctionExpression(FunctionExpression node) => EXPRESSION;

@@ -79,6 +79,13 @@ class IndexElementInfo {
               : IndexSyntheticElementKind.setter;
           element = accessor.variable;
         }
+      } else if (elementKind == ElementKind.METHOD) {
+        Element enclosing = element.enclosingElement;
+        bool isEnumMethod = enclosing is ClassElement && enclosing.isEnum;
+        if (isEnumMethod && element.name == 'toString') {
+          kind = IndexSyntheticElementKind.enumToString;
+          element = enclosing;
+        }
       } else if (elementKind == ElementKind.TOP_LEVEL_VARIABLE) {
         TopLevelVariableElement property = element;
         kind = IndexSyntheticElementKind.topLevelVariable;

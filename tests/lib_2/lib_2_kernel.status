@@ -3,12 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
-#
-# Note: Sections in this file are normalized so we can update them with
-# automated tools. Please add any new status lines affecting those two compilers
-# in the existing sections, if possible keep the alphabetic ordering. If we are
-# missing a section you need, please reach out to sigmund@ to see the best way
-# to add them.
 
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
 
@@ -50,6 +44,9 @@ isolate/isolate_complex_messages_test: Crash # http://dartbug.com/33128
 
 [ $arch == simdbc64 && $hot_reload_rollback ]
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
+
+[ $arch == simdbc64 && $strong && ($compiler == dartk || $compiler == dartkb) ]
+isolate/issue_24243_parent_isolate_test: RuntimeError # dartbug.com/35373
 
 [ $arch == x64 && $builder_tag == asan && $compiler == dartk ]
 mirrors/dynamic_load_test: Fail # Memory leak (issue 34724)
@@ -142,7 +139,7 @@ async/timer_not_available_test: RuntimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
-isolate/issue_21398_parent_isolate1_test: RuntimeError # Issue 31402 (List literal)
+isolate/issue_21398_parent_isolate1_test: RuntimeError, Crash # Issue 31402 (List literal), Issue 35374.
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/message_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/mint_maker_test: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -254,6 +251,9 @@ typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
 
+[ $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
+isolate/issue_6610_test: RuntimeError, Crash # Sources are looked up on every reload request.
+
 [ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
 isolate/illegal_msg_function_test: Skip # Timeout
 isolate/pause_test: Skip # Timeout
@@ -262,26 +262,8 @@ isolate/pause_test: Skip # Timeout
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
-isolate/cross_isolate_message_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/error_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/error_exit_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/exit_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/issue_21398_parent_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/issue_24243_parent_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
 isolate/mandel_isolate_test: Pass, Timeout
-isolate/message2_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/nested_spawn2_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/nested_spawn_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/raw_port_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/request_reply_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_function_custom_class_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_function_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_uri_exported_main_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_uri_multi_test/none: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_uri_nested_vm_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_uri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/spawn_uri_vm_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/unresolved_ports_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/nested_spawn2_test: Pass, RuntimeError # RuntimeError caused by timeout
 mirrors/library_uri_io_test: RuntimeError # Please triage.
 
 [ $strong && ($compiler == dartk || $compiler == dartkb) ]
@@ -313,40 +295,8 @@ mirrors/redirecting_factory_reflection_test: RuntimeError
 *: SkipByDesign
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-async/stream_from_iterable_test: Skip # Timeout
-async/stream_iterator_test: Skip # Timeout
-async/stream_periodic2_test: Skip # Timeout
-async/stream_periodic3_test: Skip # Timeout
-async/stream_periodic4_test: Skip # Timeout
-async/stream_periodic5_test: Skip # Timeout
-async/stream_periodic6_test: Skip # Timeout
-async/stream_periodic_test: Skip # Timeout
-async/stream_single_test: Skip # Timeout
-async/stream_single_to_multi_subscriber_test: Skip # Timeout
-async/stream_state_test: Skip # Timeout
-async/stream_timeout_test: Skip # Timeout
-async/stream_transform_test: Skip # Timeout
-async/stream_transformation_broadcast_test: Skip # Timeout
-async/timer_cancel1_test: Skip # Timeout
-async/timer_isActive_test: Skip # Timeout
-async/timer_test: Skip # Timeout
-isolate/count_test: Skip # Timeout
-isolate/cross_isolate_message_test: Skip # Timeout
-isolate/isolate_complex_messages_test: Skip # Timeout
-isolate/isolate_import_test/none: Skip # Timeout
-isolate/issue_21398_parent_isolate1_test: Skip # Timeout
-isolate/mandel_isolate_test: Skip # Timeout
-isolate/message2_test: Skip # Timeout
+isolate/mandel_isolate_test: Pass, Timeout, RuntimeError # Test can time out which results in runtime error
 isolate/message4_test: Pass, Timeout, Crash # Timeout and sporadic crash (issue 33824)
-isolate/nested_spawn2_test: Skip # Timeout
-isolate/nested_spawn_test: Skip # Timeout
-isolate/raw_port_test: Skip # Timeout
-isolate/spawn_function_test: Skip # Timeout
-isolate/spawn_uri_test: Skip # Timeout
-isolate/spawn_uri_vm_test: Skip # Timeout
-isolate/timer_isolate_test: Skip # Timeout
-isolate/timer_multiple_isolates_test: Skip # Timeout
-isolate/unresolved_ports_test: Skip # Timeout
 mirrors/dynamic_load_test: Crash
 mirrors/library_uri_io_test: Skip # Timeout
 mirrors/library_uri_package_test: Skip # Timeout

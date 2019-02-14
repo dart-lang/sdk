@@ -48,7 +48,7 @@ Map<String, String> sdkLibraryVariables = {
   'dart.library.web_sql': 'true',
 };
 
-/// Shared compiler options between `dartdevc` and `dartdevk`.
+/// Shared compiler options between `dartdevc` kernel and analyzer backends.
 class SharedCompilerOptions {
   /// Whether to emit the source mapping file.
   ///
@@ -81,6 +81,11 @@ class SharedCompilerOptions {
 
   final List<ModuleFormat> moduleFormats;
 
+  /// Experimental language features that are enabled/disabled, see
+  /// [the spec](https://github.com/dart-lang/sdk/blob/master/docs/process/experimental-flags.md)
+  /// for more details.
+  final Map<String, bool> experiments;
+
   /// The name of the module.
   ///
   /// This used when to support file concatenation. The JS module will contain
@@ -97,6 +102,7 @@ class SharedCompilerOptions {
       this.bazelMapping = const {},
       this.summaryModules = const {},
       this.moduleFormats = const [],
+      this.experiments = const {},
       this.moduleName});
 
   SharedCompilerOptions.fromArguments(ArgResults args,
@@ -106,6 +112,8 @@ class SharedCompilerOptions {
             summarizeApi: args['summarize'] as bool,
             emitMetadata: args['emit-metadata'] as bool,
             enableAsserts: args['enable-asserts'] as bool,
+            experiments:
+                _parseExperiments(args['enable-experiment'] as List<String>),
             bazelMapping:
                 _parseBazelMappings(args['bazel-mapping'] as List<String>),
             summaryModules: _parseCustomSummaryModules(
@@ -121,6 +129,9 @@ class SharedCompilerOptions {
           abbr: 's',
           help: 'summary file(s) of imported libraries, optionally\n'
               'with module import path: -s path.sum=js/import/path')
+      ..addMultiOption('enable-experiment',
+          help: 'used to enable/disable experimental language features',
+          hide: hide)
       ..addFlag('summarize',
           help: 'emit an API summary file', defaultsTo: true, hide: hide)
       ..addFlag('source-map',
@@ -202,6 +213,20 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
     pathToModule[summaryPath] = modulePath;
   }
   return pathToModule;
+}
+
+Map<String, bool> _parseExperiments(List<String> arguments) {
+  var result = <String, bool>{};
+  for (var argument in arguments) {
+    for (var feature in argument.split(',')) {
+      if (feature.startsWith('no-')) {
+        result[feature.substring(3)] = false;
+      } else {
+        result[feature] = true;
+      }
+    }
+  }
+  return result;
 }
 
 Map<String, String> _parseBazelMappings(List<String> argument) {
@@ -466,7 +491,11 @@ class ParsedArguments {
       var arg = args[i];
       var isLastArg = i == len - 1;
       if (isLastArg && arg.startsWith('@')) {
-        newArgs.addAll(_readLines(arg.substring(1)));
+        var extra = _readLines(arg.substring(1)).toList();
+        if (extra.remove('--kernel') || extra.remove('-k')) {
+          isKernel = true;
+        }
+        newArgs.addAll(extra);
       } else if (arg == '--persistent_worker') {
         isWorker = true;
       } else if (isLastArg && arg == '--batch') {

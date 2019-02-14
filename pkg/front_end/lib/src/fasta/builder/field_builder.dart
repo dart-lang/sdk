@@ -26,8 +26,4 @@ abstract class FieldBuilder<T> extends MemberBuilder {
   bool get hasInitializer;
 
   bool get isField => true;
-
-  bool get hasTypeInferredFromInitializer;
-
-  void prepareTopLevelInference() {}
 }

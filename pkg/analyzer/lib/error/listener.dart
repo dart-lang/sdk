@@ -196,10 +196,10 @@ class ErrorReporter {
    * clarify the message.
    */
   void _convertTypeNames(List<Object> arguments) {
-    String displayName(DartType type) {
+    String computeDisplayName(DartType type) {
       if (type is FunctionType) {
         String name = type.name;
-        if (name != null && name.length > 0) {
+        if (name != null && name.isNotEmpty) {
           StringBuffer buffer = new StringBuffer();
           buffer.write(name);
           (type as TypeImpl).appendTo(buffer, new Set.identity());
@@ -209,45 +209,53 @@ class ErrorReporter {
       return type.displayName;
     }
 
-    if (_hasEqualTypeNames(arguments)) {
-      int count = arguments.length;
-      for (int i = 0; i < count; i++) {
-        Object argument = arguments[i];
-        if (argument is DartType) {
-          Element element = argument.element;
+    Map<String, List<_TypeToConvert>> typeGroups = {};
+    for (int i = 0; i < arguments.length; i++) {
+      Object argument = arguments[i];
+      if (argument is DartType) {
+        String displayName = computeDisplayName(argument);
+        List<_TypeToConvert> types =
+            typeGroups.putIfAbsent(displayName, () => <_TypeToConvert>[]);
+        types.add(new _TypeToConvert(i, argument, displayName));
+      }
+    }
+    for (List<_TypeToConvert> typeGroup in typeGroups.values) {
+      if (typeGroup.length == 1) {
+        _TypeToConvert typeToConvert = typeGroup[0];
+        if (typeToConvert.type is DartType) {
+          arguments[typeToConvert.index] = typeToConvert.displayName;
+        }
+      } else {
+        Map<String, Set<Element>> nameToElementMap = {};
+        for (_TypeToConvert typeToConvert in typeGroup) {
+          for (Element element in typeToConvert.allElements()) {
+            Set<Element> elements = nameToElementMap.putIfAbsent(
+                element.name, () => new Set<Element>());
+            elements.add(element);
+          }
+        }
+        for (_TypeToConvert typeToConvert in typeGroup) {
+          Element element = typeToConvert.type.element;
           if (element == null) {
-            arguments[i] = displayName(argument);
+            arguments[typeToConvert.index] = typeToConvert.displayName;
           } else {
-            arguments[i] =
-                element.getExtendedDisplayName(displayName(argument));
+            // TODO(brianwilkerson) When analyzer supports info or context
+            //  messages, expose the additional information that way (rather
+            //  than being poorly inserted into the problem message).
+            StringBuffer buffer = new StringBuffer();
+            for (Element element in typeToConvert.allElements()) {
+              String name = element.name;
+              if (nameToElementMap[name].length > 1) {
+                buffer.write(buffer.isEmpty ? 'where ' : ', ');
+                buffer.write('$name is defined in ${element.source.fullName}');
+              }
+            }
+            arguments[typeToConvert.index] =
+                '${typeToConvert.displayName} ($buffer)';
           }
         }
       }
-    } else {
-      int count = arguments.length;
-      for (int i = 0; i < count; i++) {
-        Object argument = arguments[i];
-        if (argument is DartType) {
-          arguments[i] = displayName(argument);
-        }
-      }
     }
-  }
-
-  /**
-   * Return `true` if the given array of [arguments] contains two or more types
-   * with the same display name.
-   */
-  bool _hasEqualTypeNames(List<Object> arguments) {
-    int count = arguments.length;
-    HashSet<String> typeNames = new HashSet<String>();
-    for (int i = 0; i < count; i++) {
-      Object argument = arguments[i];
-      if (argument is DartType && !typeNames.add(argument.displayName)) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 
@@ -256,58 +264,32 @@ class ErrorReporter {
  * way that is appropriate for caching those errors within an analysis context.
  */
 class RecordingErrorListener implements AnalysisErrorListener {
-  /**
-   * A map of sets containing the errors that were collected, keyed by each
-   * source.
-   */
-  Map<Source, HashSet<AnalysisError>> _errors =
-      new HashMap<Source, HashSet<AnalysisError>>();
+  Set<AnalysisError> _errors;
 
   /**
    * Return the errors collected by the listener.
    */
   List<AnalysisError> get errors {
-    int numEntries = _errors.length;
-    if (numEntries == 0) {
-      return AnalysisError.NO_ERRORS;
+    if (_errors == null) {
+      return const <AnalysisError>[];
     }
-    List<AnalysisError> resultList = new List<AnalysisError>();
-    for (HashSet<AnalysisError> errors in _errors.values) {
-      resultList.addAll(errors);
-    }
-    return resultList;
-  }
-
-  /**
-   * Add all of the errors recorded by the given [listener] to this listener.
-   */
-  void addAll(RecordingErrorListener listener) {
-    for (AnalysisError error in listener.errors) {
-      onError(error);
-    }
+    return _errors.toList();
   }
 
   /**
    * Return the errors collected by the listener for the given [source].
    */
   List<AnalysisError> getErrorsForSource(Source source) {
-    HashSet<AnalysisError> errorsForSource = _errors[source];
-    if (errorsForSource == null) {
-      return AnalysisError.NO_ERRORS;
-    } else {
-      return new List.from(errorsForSource);
+    if (_errors == null) {
+      return const <AnalysisError>[];
     }
+    return _errors.where((error) => error.source == source).toList();
   }
 
   @override
   void onError(AnalysisError error) {
-    Source source = error.source;
-    HashSet<AnalysisError> errorsForSource = _errors[source];
-    if (_errors[source] == null) {
-      errorsForSource = new HashSet<AnalysisError>();
-      _errors[source] = errorsForSource;
-    }
-    errorsForSource.add(error);
+    _errors ??= new HashSet<AnalysisError>();
+    _errors.add(error);
   }
 }
 
@@ -318,5 +300,50 @@ class _NullErrorListener implements AnalysisErrorListener {
   @override
   void onError(AnalysisError event) {
     // Ignore errors
+  }
+}
+
+/**
+ * Used by `ErrorReporter._convertTypeNames` to keep track of a type that is
+ * being converted.
+ */
+class _TypeToConvert {
+  final int index;
+  final DartType type;
+  final String displayName;
+
+  List<Element> _allElements;
+
+  _TypeToConvert(this.index, this.type, this.displayName);
+
+  List<Element> allElements() {
+    if (_allElements == null) {
+      Set<Element> elements = new Set<Element>();
+
+      void addElementsFrom(DartType type) {
+        Element element = type?.element;
+        if (element != null) {
+          if (type is InterfaceType && elements.add(element)) {
+            for (DartType typeArgument in type.typeArguments) {
+              addElementsFrom(typeArgument);
+            }
+          } else if (type is FunctionType && elements.add(element)) {
+            addElementsFrom(type.returnType);
+            for (DartType typeArgument in type.typeArguments) {
+              addElementsFrom(typeArgument);
+            }
+            for (ParameterElement parameter in type.parameters) {
+              addElementsFrom(parameter.type);
+            }
+          }
+        }
+      }
+
+      addElementsFrom(type);
+      _allElements = elements
+          .where((element) => element.name != null && element.name.isNotEmpty)
+          .toList();
+    }
+    return _allElements;
   }
 }

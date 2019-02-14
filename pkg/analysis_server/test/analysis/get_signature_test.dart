@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -116,6 +116,21 @@ main() {
         equals(new ParameterInfo(ParameterKind.NAMED, "length", "int")));
   }
 
+  test_does_not_walk_up_over_closure() async {
+    addTestFile('''
+one(String name, int length) {}
+main() {
+  one("Danny", () {
+    /*^*/
+  });
+}
+''');
+    var result = await prepareRawSignature('/*^*/');
+    expect(result.error, isNotNull);
+    expect(result.error.code,
+        equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
+  }
+
   test_error_file_invalid_path() async {
     var result = await prepareRawSignatureAt(0, file: ':\\/?*');
     expect(result.error, isNotNull);
@@ -125,10 +140,10 @@ main() {
 
   test_error_file_not_analyzed() async {
     var result = await prepareRawSignatureAt(0,
-        file: resourceProvider.convertPath('/not/in/project.dart'));
+        file: convertPath('/not/in/project.dart'));
     expect(result.error, isNotNull);
-    expect(result.error.code,
-        equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
+    expect(
+        result.error.code, equals(RequestErrorCode.GET_SIGNATURE_INVALID_FILE));
   }
 
   test_error_function_unknown() async {
@@ -437,20 +452,5 @@ main() {
         equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
     expect(result.parameters[1],
         equals(new ParameterInfo(ParameterKind.NAMED, "length", "int")));
-  }
-
-  test_does_not_walk_up_over_closure() async {
-    addTestFile('''
-one(String name, int length) {}
-main() {
-  one("Danny", () {
-    /*^*/
-  });
-}
-''');
-    var result = await prepareRawSignature('/*^*/');
-    expect(result.error, isNotNull);
-    expect(result.error.code,
-        equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
   }
 }

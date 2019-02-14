@@ -125,17 +125,17 @@ String compileTemplate(String name, int index, String template, String tip,
   template = template.trimRight();
   var parameters = new Set<String>();
   var conversions = new Set<String>();
+  var conversions2 = new Set<String>();
   var arguments = new Set<String>();
-  bool hasNameSystem = false;
-  void ensureNameSystem() {
-    if (hasNameSystem) return;
-    conversions.add(r"""
-NameSystem nameSystem = new NameSystem();
-StringBuffer buffer;""");
-    hasNameSystem = true;
+  bool hasLabeler = false;
+  void ensureLabeler() {
+    if (hasLabeler) return;
+    conversions.add("TypeLabeler labeler = new TypeLabeler();");
+    hasLabeler = true;
   }
 
-  for (Match match in placeholderPattern.allMatches("$template${tip ?? ''}")) {
+  for (Match match
+      in placeholderPattern.allMatches("$template\n${tip ?? ''}")) {
     String name = match[1];
     String padding = match[2];
     String fractionDigits = match[3];
@@ -196,6 +196,20 @@ StringBuffer buffer;""");
         conversions.add("name3 = demangleMixinApplicationName(name3);");
         break;
 
+      case "name4":
+        parameters.add("String name4");
+        conversions.add("if (name4.isEmpty) throw 'No name provided';");
+        arguments.add("'name4': name4");
+        conversions.add("name4 = demangleMixinApplicationName(name4);");
+        break;
+
+      case "names":
+        parameters.add("List<String> _names");
+        conversions.add("if (_names.isEmpty) throw 'No names provided';");
+        arguments.add("'names': _names");
+        conversions.add("String names = itemizeNames(_names);");
+        break;
+
       case "lexeme":
         parameters.add("Token token");
         conversions.add("String lexeme = token.lexeme;");
@@ -230,12 +244,10 @@ StringBuffer buffer;""");
       case "type2":
       case "type3":
         parameters.add("DartType _${name}");
-        ensureNameSystem();
-        conversions.add("""
-buffer = new StringBuffer();
-new Printer(buffer, syntheticNames: nameSystem).writeNode(_${name});
-String ${name} = '\$buffer';
-""");
+        ensureLabeler();
+        conversions
+            .add("List<Object> ${name}Parts = labeler.labelType(_${name});");
+        conversions2.add("String ${name} = ${name}Parts.join();");
         arguments.add("'${name}': _${name}");
         break;
 
@@ -271,15 +283,11 @@ String ${name} = '\$buffer';
 
       case "constant":
         parameters.add("Constant _constant");
-        ensureNameSystem();
-        conversions.add(r"""
-buffer = new StringBuffer();
-new Printer(buffer, syntheticNames: nameSystem).writeNode(_constant);
-String constant = '$buffer';
-""");
-
+        ensureLabeler();
+        conversions.add(
+            "List<Object> ${name}Parts = labeler.labelConstant(_${name});");
+        conversions2.add("String ${name} = ${name}Parts.join();");
         arguments.add("'constant': _constant");
-
         break;
 
       case "num1":
@@ -308,11 +316,13 @@ String constant = '$buffer';
     }
   }
 
-  String interpolate(String name, String text) {
+  conversions.addAll(conversions2);
+
+  String interpolate(String text) {
     text = text
         .replaceAll(r"$", r"\$")
         .replaceAllMapped(placeholderPattern, (Match m) => "\${${m[1]}}");
-    return "$name: \"\"\"$text\"\"\"";
+    return "\"\"\"$text\"\"\"";
   }
 
   List<String> codeArguments = <String>[];
@@ -364,9 +374,13 @@ const MessageCode message$name =
   templateArguments.add("withArguments: _withArguments$name");
 
   List<String> messageArguments = <String>[];
-  messageArguments.add(interpolate("message", template));
+  String message = interpolate(template);
+  if (hasLabeler) {
+    message += " + labeler.originMessages";
+  }
+  messageArguments.add("message: ${message}");
   if (tip != null) {
-    messageArguments.add(interpolate("tip", tip));
+    messageArguments.add("tip: ${interpolate(tip)}");
   }
   messageArguments.add("arguments: { ${arguments.join(', ')} }");
 

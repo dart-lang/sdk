@@ -1,3 +1,7 @@
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:io';
 
@@ -71,7 +75,7 @@ class _Runner {
 
   String get stdout => _stdout.toString();
 
-  Future<Null> run2(List<String> args) async {
+  Future<void> run2(List<String> args) async {
     await new Driver(isTesting: true).start(args);
     if (stderr.isNotEmpty) {
       fail("Unexpected output to stderr:\n$stderr");

@@ -9,6 +9,7 @@ import("../create_timestamp.gni")
 patched_sdk_dir = "$target_gen_dir/patched_sdk"
 sdk_summary = "$target_gen_dir/ddc_sdk.sum"
 sdk_dill = "$target_gen_dir/kernel/ddc_sdk.dill"
+sdk_libraries_json = "$target_gen_dir/libraries.json"
 
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
@@ -30,25 +31,6 @@ application_snapshot("dartdevc") {
   ]
 
   inputs = [ sdk_summary ]
-}
-
-application_snapshot("dartdevk") {
-  main_dart = "../../pkg/dev_compiler/bin/dartdevk.dart"
-
-  training_args = [
-    "--dart-sdk-summary",
-    rebase_path(sdk_dill),
-    "-o",
-    "dartdevk.js",
-    rebase_path("../../pkg/dev_compiler/bin/dartdevk.dart"),
-  ]
-
-  deps = [
-    ":dartdevc_sdk",
-    ":dartdevk_sdk",
-  ]
-
-  inputs = [ sdk_dill ]
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
@@ -224,25 +206,24 @@ prebuilt_dart_action("dartdevc_sdk") {
   ]
 }
 
-# Builds everything needed to run dartdevc and dartdevk tests using test.dart.
+# Builds everything needed to run dartdevc tests using test.dart.
 group("dartdevc_test") {
   deps = [
     ":dartdevc",
     ":dartdevc_sdk",
-    ":dartdevk_sdk",
+    ":dartdevc_kernel_sdk",
     ":dartdevc_test_pkg",
-    ":dartdevk",
     "../../sdk:create_sdk",
   ]
 }
 
-# Builds everything needed to run dartdevc and dartdevk tests locally using
-# test.dart without --use-sdk. This is the same as dartdevc_test, but skips
-# things rely on building the Dart VM and create_sdk.
+# Builds everything needed to run dartdevc tests locally using test.dart without
+# --use-sdk. This is the same as dartdevc_test, but skips things rely on
+# building the Dart VM and create_sdk.
 group("dartdevc_test_local") {
   deps = [
     ":dartdevc_sdk",
-    ":dartdevk_sdk",
+    ":dartdevc_kernel_sdk",
     ":dartdevc_test_pkg",
   ]
 }
@@ -263,12 +244,13 @@ prebuilt_dart_action("dartdevc_test_pkg") {
   deps = [
     ":dartdevc_files_stamp",
     ":dartdevc_sdk",
-    ":dartdevk_sdk",
+    ":dartdevc_kernel_sdk",
     "../../pkg:pkg_files_stamp",
   ]
 
   inputs = [
     sdk_dill,
+    sdk_libraries_json,
     sdk_summary,
     "$target_gen_dir/dartdevc_files.stamp",
     "$root_gen_dir/pkg_files.stamp",
@@ -333,7 +315,7 @@ prebuilt_dart_action("dartdevc_test_pkg") {
 }
 
 # Compiles the DDC SDK's kernel summary and JS code.
-prebuilt_dart_action("dartdevk_sdk") {
+prebuilt_dart_action("dartdevc_kernel_sdk") {
   deps = [
     "../../pkg:pkg_files_stamp",
     ":dartdevc_files_stamp",
@@ -348,6 +330,7 @@ prebuilt_dart_action("dartdevk_sdk") {
 
   outputs = [
     sdk_dill,
+    sdk_libraries_json,
     "$target_gen_dir/kernel/amd/dart_sdk.js",
     "$target_gen_dir/kernel/amd/dart_sdk.js.map",
     "$target_gen_dir/kernel/common/dart_sdk.js",

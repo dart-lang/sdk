@@ -6,8 +6,8 @@ import 'dart:collection' show Queue;
 
 import '../common.dart';
 import '../elements/entities.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../serialization/serialization.dart';
-import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';

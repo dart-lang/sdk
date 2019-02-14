@@ -1,6 +1,6 @@
 // Formatted problems:
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
@@ -10,7 +10,7 @@
 // class A0 = S with M;
 //       ^^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
@@ -20,7 +20,7 @@
 // class A1 = S with M1, M;
 //       ^^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
@@ -30,7 +30,7 @@
 // class A2 = S with M1, M2, M;
 //       ^^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
@@ -40,7 +40,7 @@
 // class A0X = S with M, MX;
 //       ^^^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
@@ -50,7 +50,7 @@
 // class A1X = S with M1, M, MX;
 //       ^^^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
@@ -60,7 +60,7 @@
 // class A2X = S with M1, M2, M, MX;
 //       ^^^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
@@ -70,7 +70,7 @@
 // class B0 extends S with M {}
 //       ^^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
@@ -80,7 +80,7 @@
 // class B1 extends S with M1, M {}
 //       ^^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
@@ -90,7 +90,7 @@
 // class B2 extends S with M1, M2, M {}
 //       ^^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
@@ -100,7 +100,7 @@
 // class B0X extends S with M, MX {}
 //       ^^^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
@@ -110,7 +110,7 @@
 // class B1X extends S with M1, M, MX {}
 //       ^^^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 // pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
@@ -122,51 +122,51 @@
 
 // Unhandled errors:
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M::foo' has fewer positional arguments than those of overridden method 'S::foo'.
+// pkg/front_end/testcases/mixin_application_override.dart:12:3: Error: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
 //   foo() {}
 //   ^
 
@@ -290,7 +290,7 @@ abstract class _B0&S&M = self::S with self::M {
 }
 class B0 extends self::_B0&S&M {
   synthetic constructor •() → self::B0
-    : super self::S::•()
+    : super self::_B0&S&M::•()
     ;
 }
 abstract class _B1&S&M1 = self::S with self::M1 {
@@ -306,7 +306,7 @@ abstract class _B1&S&M1&M = self::_B1&S&M1 with self::M {
 }
 class B1 extends self::_B1&S&M1&M {
   synthetic constructor •() → self::B1
-    : super self::S::•()
+    : super self::_B1&S&M1&M::•()
     ;
 }
 abstract class _B2&S&M1 = self::S with self::M1 {
@@ -327,7 +327,7 @@ abstract class _B2&S&M1&M2&M = self::_B2&S&M1&M2 with self::M {
 }
 class B2 extends self::_B2&S&M1&M2&M {
   synthetic constructor •() → self::B2
-    : super self::S::•()
+    : super self::_B2&S&M1&M2&M::•()
     ;
 }
 abstract class _B0X&S&M = self::S with self::M {
@@ -343,7 +343,7 @@ abstract class _B0X&S&M&MX = self::_B0X&S&M with self::MX {
 }
 class B0X extends self::_B0X&S&M&MX {
   synthetic constructor •() → self::B0X
-    : super self::S::•()
+    : super self::_B0X&S&M&MX::•()
     ;
 }
 abstract class _B1X&S&M1 = self::S with self::M1 {
@@ -364,7 +364,7 @@ abstract class _B1X&S&M1&M&MX = self::_B1X&S&M1&M with self::MX {
 }
 class B1X extends self::_B1X&S&M1&M&MX {
   synthetic constructor •() → self::B1X
-    : super self::S::•()
+    : super self::_B1X&S&M1&M&MX::•()
     ;
 }
 abstract class _B2X&S&M1 = self::S with self::M1 {
@@ -390,7 +390,7 @@ abstract class _B2X&S&M1&M2&M&MX = self::_B2X&S&M1&M2&M with self::MX {
 }
 class B2X extends self::_B2X&S&M1&M2&M&MX {
   synthetic constructor •() → self::B2X
-    : super self::S::•()
+    : super self::_B2X&S&M1&M2&M&MX::•()
     ;
 }
 static method main() → dynamic {}

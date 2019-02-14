@@ -54,7 +54,9 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy, MixinInferrer;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart'
-    show calculateBounds, getFreshTypeParameters, Substitution;
+    show getFreshTypeParameters, Substitution;
+
+import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
 
 import '../../base/instrumentation.dart'
     show
@@ -101,6 +103,8 @@ import '../kernel/kernel_shadow_ast.dart'
         ShadowClass,
         ShadowField,
         ShadowMember,
+        ShadowTypeInferenceEngine,
+        ShadowTypeInferrer,
         VariableDeclarationJudgment,
         getExplicitTypeArguments,
         getInferredType;
@@ -122,7 +126,7 @@ import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 import 'type_inference_engine.dart'
     show IncludesTypeParametersCovariantly, TypeInferenceEngine;
 
-import 'type_promotion.dart' show TypePromoter, TypePromoterDisabled;
+import 'type_promotion.dart' show TypePromoter;
 
 import 'type_schema.dart' show isKnown, UnknownType;
 
@@ -444,7 +448,14 @@ enum MethodContravarianceCheckKind {
 abstract class TypeInferrer {
   final CoreTypes coreTypes;
 
-  TypeInferrer(this.coreTypes);
+  TypeInferrer.private(this.coreTypes);
+
+  factory TypeInferrer(
+      ShadowTypeInferenceEngine engine,
+      Uri uri,
+      bool topLevel,
+      InterfaceType thisType,
+      KernelLibraryBuilder library) = ShadowTypeInferrer.private;
 
   KernelLibraryBuilder get library;
 
@@ -484,49 +495,6 @@ abstract class TypeInferrer {
       kernel.Expression initializer, DartType declaredType);
 }
 
-/// Implementation of [TypeInferrer] which doesn't do any type inference.
-///
-/// This is intended for profiling, to ensure that type inference and type
-/// promotion do not slow down compilation too much.
-class TypeInferrerDisabled extends TypeInferrer {
-  @override
-  final typePromoter = new TypePromoterDisabled();
-
-  @override
-  final TypeSchemaEnvironment typeSchemaEnvironment;
-
-  TypeInferrerDisabled(this.typeSchemaEnvironment) : super(null);
-
-  @override
-  KernelLibraryBuilder get library => null;
-
-  @override
-  Uri get uri => null;
-
-  @override
-  void inferFieldInitializer(InferenceHelper helper, DartType declaredType,
-      kernel.Expression initializer) {}
-
-  @override
-  void inferFunctionBody(InferenceHelper helper, DartType returnType,
-      AsyncMarker asyncMarker, Statement body) {}
-
-  @override
-  void inferInitializer(
-      InferenceHelper helper, kernel.Initializer initializer) {}
-
-  @override
-  void inferMetadata(
-      InferenceHelper helper, List<kernel.Expression> annotations) {}
-
-  @override
-  void inferMetadataKeepingHelper(List<kernel.Expression> annotations) {}
-
-  @override
-  void inferParameterInitializer(InferenceHelper helper,
-      kernel.Expression initializer, DartType declaredType) {}
-}
-
 /// Derived class containing generic implementations of [TypeInferrer].
 ///
 /// This class contains as much of the implementation of type inference as
@@ -547,8 +515,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// is outside of a method body, and hence top level type inference rules
   /// should apply.
   final bool isTopLevel;
-
-  final bool strongMode;
 
   final ClassHierarchy classHierarchy;
 
@@ -577,14 +543,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// if the last invocation didn't require any inference.
   FunctionType lastCalleeType;
 
-  TypeInferrerImpl(
+  TypeInferrerImpl.private(
       this.engine, this.uri, bool topLevel, this.thisType, this.library)
-      : strongMode = engine.strongMode,
-        classHierarchy = engine.classHierarchy,
+      : classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel,
-        super(engine.coreTypes);
+        super.private(engine.coreTypes);
 
   DartType storeInferredType(TreeNode node, DartType type) {
     if (node is ExpressionJudgment) {
@@ -666,9 +631,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // inference since top level type inference only cares about the type that
     // is inferred (the kernel code is discarded).
     if (isTopLevel) return null;
-
-    // This logic is strong mode only; in legacy mode anything goes.
-    if (!strongMode) return null;
 
     // If an interface type is being assigned to a function type, see if we
     // should tear off `.call`.
@@ -777,11 +739,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       bool instrumented: true}) {
     assert(receiverType != null && isKnown(receiverType));
 
-    // Our non-strong golden files currently don't include interface
-    // targets, so we can't store the interface target without causing tests
-    // to fail.  TODO(paulberry): fix this.
-    if (!strongMode) return null;
-
     receiverType = resolveTypeParameter(receiverType);
 
     if (receiverType is FunctionType && name.name == 'call') {
@@ -815,12 +772,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           new Let(
               new VariableDeclaration.forValue(receiver)
                 ..fileOffset = receiver.fileOffset,
-              helper
-                  .buildProblem(
-                      errorTemplate.withArguments(name.name, receiverType),
-                      fileOffset,
-                      length)
-                  .desugared)
+              helper.desugarSyntheticExpression(helper.buildProblem(
+                  errorTemplate.withArguments(name.name, receiverType),
+                  fileOffset,
+                  length)))
             ..fileOffset = fileOffset);
     }
     return interfaceMember;
@@ -859,7 +814,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
               new InstrumentationValueForMember(interfaceMember));
         }
         methodInvocation.interfaceTarget = interfaceMember;
-      } else if (strongMode && interfaceMember is Member) {
+      } else if (interfaceMember is Member) {
         methodInvocation.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -868,7 +823,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, methodInvocation.name, methodInvocation.fileOffset,
           instrumented: instrumented);
-      if (strongMode && interfaceMember is Member) {
+      if (interfaceMember is Member) {
         methodInvocation.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -891,7 +846,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           expression: propertyGet,
           receiver: propertyGet.receiver,
           instrumented: instrumented);
-      if (strongMode && interfaceMember is Member) {
+      if (interfaceMember is Member) {
         if (instrumented &&
             instrumentation != null &&
             receiverType == const DynamicType()) {
@@ -906,7 +861,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, propertyGet.name, propertyGet.fileOffset,
           instrumented: instrumented);
-      if (strongMode && interfaceMember is Member) {
+      if (interfaceMember is Member) {
         propertyGet.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -928,7 +883,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           receiver: propertySet.receiver,
           setter: true,
           instrumented: instrumented);
-      if (strongMode && interfaceMember is Member) {
+      if (interfaceMember is Member) {
         if (instrumented &&
             instrumentation != null &&
             receiverType == const DynamicType()) {
@@ -943,7 +898,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, propertySet.name, propertySet.fileOffset,
           setter: true, instrumented: instrumented);
-      if (strongMode && interfaceMember is Member) {
+      if (interfaceMember is Member) {
         propertySet.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -1191,20 +1146,18 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       {bool isVoidAllowed});
 
   @override
-  void inferFieldInitializer(InferenceHelper helper, DartType declaredType,
-      kernel.Expression initializer) {
+  void inferFieldInitializer(
+    InferenceHelper helper,
+    DartType context,
+    kernel.Expression initializer,
+  ) {
     assert(closureContext == null);
+    assert(!isTopLevel);
     this.helper = helper;
-    var actualType = inferExpression(
-        initializer,
-        declaredType ?? const UnknownType(),
-        !isTopLevel || declaredType != null,
-        isVoidAllowed: true);
-    if (declaredType != null) {
-      ensureAssignable(
-          declaredType, actualType, initializer, initializer.fileOffset,
-          isVoidAllowed: declaredType is VoidType);
-    }
+    var actualType =
+        inferExpression(initializer, context, true, isVoidAllowed: true);
+    ensureAssignable(context, actualType, initializer, initializer.fileOffset,
+        isVoidAllowed: context is VoidType);
     this.helper = null;
   }
 
@@ -1254,7 +1207,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     List<DartType> explicitTypeArguments = getExplicitTypeArguments(arguments);
     bool inferenceNeeded = !skipTypeArgumentInference &&
         explicitTypeArguments == null &&
-        strongMode &&
         calleeTypeParameters.isNotEmpty;
     bool typeChecksNeeded = !isTopLevel;
     List<DartType> inferredTypes;
@@ -1317,10 +1269,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (named.length == 2) {
       if (named[0].name == named[1].name) {
         var name = named[1].name;
-        var error = helper
-            .buildProblem(templateDuplicatedNamedArgument.withArguments(name),
-                named[1].fileOffset, name.length)
-            .desugared;
+        var error = helper.desugarSyntheticExpression(helper.buildProblem(
+            templateDuplicatedNamedArgument.withArguments(name),
+            named[1].fileOffset,
+            name.length));
         arguments.named = [new kernel.NamedExpression(named[1].name, error)];
         formalTypes.removeLast();
         actualTypes.removeLast();
@@ -1335,10 +1287,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (seenNames.containsKey(name)) {
           hasProblem = true;
           var prevNamedExpression = seenNames[name];
-          prevNamedExpression.value = helper
-              .buildProblem(templateDuplicatedNamedArgument.withArguments(name),
-                  expression.fileOffset, name.length)
-              .desugared
+          prevNamedExpression.value = helper.desugarSyntheticExpression(
+              helper.buildProblem(
+                  templateDuplicatedNamedArgument.withArguments(name),
+                  expression.fileOffset,
+                  name.length))
             ..parent = prevNamedExpression;
           formalTypes.removeAt(namedTypeIndex);
           actualTypes.removeAt(namedTypeIndex);
@@ -1414,19 +1367,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       for (var i = 0; i < positionalParameters.length; i++) {
         var parameter = positionalParameters[i];
         inferMetadataKeepingHelper(parameter.annotations);
-        if (i >= function.requiredParameterCount &&
-            parameter.initializer == null) {
-          parameter.initializer = new NullLiteral()..parent = parameter;
-        }
         if (parameter.initializer != null) {
           inferExpression(parameter.initializer, parameter.type, !isTopLevel);
         }
       }
       for (var parameter in function.namedParameters) {
         inferMetadataKeepingHelper(parameter.annotations);
-        if (parameter.initializer == null) {
-          parameter.initializer = new NullLiteral()..parent = parameter;
-        }
         inferExpression(parameter.initializer, parameter.type, !isTopLevel);
       }
     }
@@ -1453,7 +1399,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     Substitution substitution;
     List<DartType> formalTypesFromContext =
         new List<DartType>.filled(formals.length, null);
-    if (strongMode && typeContext is FunctionType) {
+    if (typeContext is FunctionType) {
       for (int i = 0; i < formals.length; i++) {
         if (i < function.positionalParameters.length) {
           formalTypesFromContext[i] =
@@ -1513,7 +1459,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
     // Apply type inference to `B` in return context `N’`, with any references
     // to `xi` in `B` having type `Pi`.  This produces `B’`.
-    bool needToSetReturnType = hasImplicitReturnType && strongMode;
+    bool needToSetReturnType = hasImplicitReturnType;
     ClosureContext oldClosureContext = this.closureContext;
     ClosureContext closureContext = new ClosureContext(
         this, function.asyncMarker, returnContext, needToSetReturnType);
@@ -1537,9 +1483,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       instrumentation?.record(uri, fileOffset, 'returnType',
           new InstrumentationValueForType(inferredReturnType));
       function.returnType = inferredReturnType;
-    } else if (!strongMode && hasImplicitReturnType) {
-      function.returnType =
-          closureContext._wrapAsyncOrGenerator(this, const DynamicType());
     }
     this.closureContext = oldClosureContext;
     return new ExpressionInferenceResult(null, function.functionType);
@@ -1589,9 +1532,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     var receiverType = receiver == null
         ? thisType
         : inferExpression(receiver, const UnknownType(), true);
-    if (strongMode) {
-      receiverVariable?.type = receiverType;
-    }
+    receiverVariable?.type = receiverType;
     if (desugaredInvocation != null) {
       interfaceMember =
           findMethodInvocationMember(receiverType, desugaredInvocation);
@@ -1627,8 +1568,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
         expression, inferredType, functionType, fileOffset);
     if (!identical(interfaceMember, 'call')) {
-      if (strongMode &&
-          isImplicitCall &&
+      if (isImplicitCall &&
           interfaceMember != null &&
           !(interfaceMember is Procedure &&
               interfaceMember.kind == ProcedureKind.Method) &&
@@ -1667,6 +1607,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       library.checkBoundsInMethodInvocation(
           actualReceiverType,
           typeSchemaEnvironment,
+          classHierarchy,
           this,
           actualMethodName,
           interfaceTarget,
@@ -1706,9 +1647,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       inferExpression(receiver, const UnknownType(), true);
       receiverType = getInferredType(receiver, this);
     }
-    if (strongMode) {
-      receiverVariable?.type = receiverType;
-    }
+    receiverVariable?.type = receiverType;
     propertyName ??= desugaredGet.name;
     if (desugaredGet != null) {
       interfaceMember = findInterfaceMember(
@@ -1716,7 +1655,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           errorTemplate: templateUndefinedGetter,
           expression: expression,
           receiver: receiver);
-      if (strongMode && interfaceMember is Member) {
+      if (interfaceMember is Member) {
         if (instrumentation != null && receiverType == const DynamicType()) {
           instrumentation.record(uri, desugaredGet.fileOffset, 'target',
               new InstrumentationValueForMember(interfaceMember));
@@ -1755,8 +1694,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// (if necessary).
   DartType instantiateTearOff(
       DartType tearoffType, DartType context, Expression expression) {
-    if (strongMode &&
-        tearoffType is FunctionType &&
+    if (tearoffType is FunctionType &&
         context is FunctionType &&
         context.typeParameters.isEmpty) {
       var typeParameters = tearoffType.typeParameters;
@@ -2092,7 +2030,7 @@ class StrongModeMixinInferrer implements MixinInferrer {
       Class mixinClass = mixedInType.classNode;
       Supertype mixinSupertype = mixinClass.supertype;
       gatherer = new TypeConstraintGatherer(
-          new TypeSchemaEnvironment(loader.coreTypes, hierarchy, true),
+          new TypeSchemaEnvironment(loader.coreTypes, hierarchy),
           mixinClass.typeParameters);
       // Generate constraints based on the mixin's supertype.
       generateConstraints(hierarchy, mixinClass, baseType, mixinSupertype);

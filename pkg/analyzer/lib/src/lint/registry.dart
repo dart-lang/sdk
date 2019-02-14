@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,7 +10,7 @@ import 'package:analyzer/src/lint/linter.dart';
 /**
  * Registry of lint rules.
  */
-class Registry extends Object with IterableMixin<LintRule> {
+class Registry with IterableMixin<LintRule> {
   /**
    * The default registry to be used by clients.
    */

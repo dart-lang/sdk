@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
-import 'package:build_integration/file_system/multi_root.dart';
 // front_end/src imports below that require lint `ignore_for_file`
 // are a temporary state of things until frontend team builds better api
 // that would replace api used below. This api was made private in
@@ -21,14 +20,18 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart'
     show Component, loadComponentSourceFromBytes;
-import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
 
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart'
-    show compileToKernel, parseCommandLineDefines;
-import 'package:vm/target/install.dart' show installAdditionalTargets;
+    show
+        compileToKernel,
+        parseCommandLineDefines,
+        convertFileOrUriArgumentToUri,
+        createFrontEndTarget,
+        createFrontEndFileSystem,
+        writeDepfile;
 
 ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -45,7 +48,6 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       defaultsTo: false)
   // TODO(alexmarkov): Cleanup uses in Flutter and remove these obsolete flags.
   ..addFlag('strong', help: 'Obsolete', defaultsTo: true)
-  ..addFlag('sync-async', help: 'Obsolete', defaultsTo: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -69,7 +71,7 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help: '.packages file to use for compilation', defaultsTo: null)
   ..addOption('target',
       help: 'Target model that determines what core libraries are available',
-      allowed: <String>['vm', 'flutter'],
+      allowed: <String>['vm', 'flutter', 'flutter_runner', 'dart_runner'],
       defaultsTo: 'vm')
   ..addMultiOption('filesystem-root',
       help: 'File path that is used as a root in virtual filesystem used in'
@@ -223,6 +225,7 @@ class FrontendCompiler implements CompilerInterface {
   bool unsafePackageSerialization;
 
   CompilerOptions _compilerOptions;
+  FileSystem _fileSystem;
   Uri _mainSource;
   ArgResults _options;
 
@@ -248,6 +251,8 @@ class FrontendCompiler implements CompilerInterface {
     IncrementalCompiler generator,
   }) async {
     _options = options;
+    _fileSystem = createFrontEndFileSystem(
+        options['filesystem-scheme'], options['filesystem-root']);
     setMainSourceFilename(filename);
     _kernelBinaryFilenameFull = _options['output-dill'] ?? '$filename.dill';
     _kernelBinaryFilenameIncremental = _options['output-incremental-dill'] ??
@@ -264,6 +269,7 @@ class FrontendCompiler implements CompilerInterface {
         options['platform'] ?? 'platform_strong.dill';
     final CompilerOptions compilerOptions = new CompilerOptions()
       ..sdkRoot = sdkRoot
+      ..fileSystem = _fileSystem
       ..packagesFileUri = _getFileOrUri(_options['packages'])
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
       ..verbose = options['verbose']
@@ -288,14 +294,8 @@ class FrontendCompiler implements CompilerInterface {
           printDiagnosticMessage(message, _outputStream.writeln);
         }
       };
-    if (options.wasParsed('filesystem-root')) {
-      List<Uri> rootUris = <Uri>[];
-      for (String root in options['filesystem-root']) {
-        rootUris.add(Uri.base.resolveUri(new Uri.file(root)));
-      }
-      compilerOptions.fileSystem = new MultiRootFileSystem(
-          options['filesystem-scheme'], rootUris, compilerOptions.fileSystem);
 
+    if (options.wasParsed('filesystem-root')) {
       if (_options['output-dill'] == null) {
         print('When --filesystem-root is specified it is required to specify'
             ' --output-dill option that points to physical file system location'
@@ -310,11 +310,7 @@ class FrontendCompiler implements CompilerInterface {
       return false;
     }
 
-    // Ensure that Flutter and VM targets are added to targets dictionary.
-    installAdditionalTargets();
-
-    final TargetFlags targetFlags = new TargetFlags(syncAsync: true);
-    compilerOptions.target = getTarget(options['target'], targetFlags);
+    compilerOptions.target = createFrontEndTarget(options['target']);
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
       return false;
@@ -360,7 +356,8 @@ class FrontendCompiler implements CompilerInterface {
           .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
       final String depfile = options['depfile'];
       if (depfile != null) {
-        await _writeDepfile(component, _kernelBinaryFilename, depfile);
+        await writeDepfile(compilerOptions.fileSystem, component,
+            _kernelBinaryFilename, depfile);
       }
 
       _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
@@ -614,23 +611,8 @@ class FrontendCompiler implements CompilerInterface {
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
   }
 
-  Uri _getFileOrUri(String fileOrUri) {
-    if (fileOrUri == null) {
-      return null;
-    }
-    if (_options.wasParsed('filesystem-root')) {
-      // This is a hack.
-      // Only expect uri when filesystem-root option is specified. It has to
-      // be uri for filesystem-root use case because mapping is done on
-      // scheme-basis.
-      // This is so that we don't deal with Windows files paths that can not
-      // be processed as uris.
-      return Uri.base.resolve(fileOrUri);
-    }
-    Uri uri = Uri.parse(fileOrUri);
-    if (uri.scheme == 'package') return uri;
-    return Uri.base.resolveUri(new Uri.file(fileOrUri));
-  }
+  Uri _getFileOrUri(String fileOrUri) =>
+      convertFileOrUriArgumentToUri(_fileSystem, fileOrUri);
 
   IncrementalCompiler _createGenerator(Uri initializeFromDillUri) {
     return new IncrementalCompiler(_compilerOptions, _mainSource,
@@ -664,25 +646,6 @@ class ByteSink implements Sink<List<int>> {
   }
 
   void close() {}
-}
-
-String _escapePath(String path) {
-  return path.replaceAll(r'\', r'\\').replaceAll(r' ', r'\ ');
-}
-
-// https://ninja-build.org/manual.html#_depfile
-_writeDepfile(Component component, String output, String depfile) async {
-  final IOSink file = new File(depfile).openWrite();
-  file.write(_escapePath(output));
-  file.write(':');
-  for (Uri dep in component.uriToSource.keys) {
-    // Skip empty or corelib dependencies.
-    if (dep == null || dep.scheme == 'org-dartlang-sdk') continue;
-    file.write(' ');
-    file.write(_escapePath(dep.toFilePath()));
-  }
-  file.write('\n');
-  await file.close();
 }
 
 class _CompileExpressionRequest {

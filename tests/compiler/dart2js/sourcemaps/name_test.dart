@@ -11,7 +11,7 @@ import 'package:compiler/src/common_elements.dart' show JElementEnvironment;
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/io/kernel_source_information.dart';
-import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:compiler/src/js_model/js_world.dart';
 import '../helpers/memory_compiler.dart';
 
 const String SOURCE = '''

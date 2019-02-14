@@ -456,7 +456,6 @@ async/timer_cancel1_test: RuntimeError # Timer interface not supported: Issue 77
 async/timer_cancel2_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/timer_cancel_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/timer_isActive_test: RuntimeError # Timer interface not supported: Issue 7728.
-async/timer_regress22626_test: RuntimeError # Non-zero timers not supported; Issue 7728.
 async/timer_repeat_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/timer_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_bind_test: Fail # Timer interface not supported: Issue 7728.

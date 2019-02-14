@@ -7,9 +7,9 @@ typedef _ScheduleImmediateClosure = (() → void) → void;
 class _ScheduleImmediate extends core::Object {
   static field (() → void) → void _closure = null;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -19,7 +19,7 @@ Bytecode (version: stable) {
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
+  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
 }
 ]  synthetic constructor •() → self::_ScheduleImmediate
     : super core::Object::•()
@@ -28,9 +28,9 @@ ConstantPool {
 class _NamespaceImpl extends core::Object implements self::_Namespace {
   static field self::_NamespaceImpl _cachedNamespace = null;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -40,15 +40,15 @@ Bytecode (version: stable) {
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
+  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
 }
 ]  constructor _() → self::_NamespaceImpl
     : super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-6]
   Push                 FP[-5]
   NativeCall           CP#0
@@ -60,9 +60,9 @@ ConstantPool {
 ]  @_in::ExternalName::•("Namespace_Create")
   external static method _create(self::_NamespaceImpl namespace, dynamic n) → self::_NamespaceImpl;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   NativeCall           CP#0
   ReturnTOS
@@ -73,9 +73,9 @@ ConstantPool {
 ]  @_in::ExternalName::•("Namespace_GetPointer")
   external static method _getPointer(self::_NamespaceImpl namespace) → core::int;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   NativeCall           CP#0
   ReturnTOS
 }
@@ -85,9 +85,9 @@ ConstantPool {
 ]  @_in::ExternalName::•("Namespace_GetDefault")
   external static method _getDefault() → core::int;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                2
-  CheckStack
+  CheckStack           0
   Allocate             CP#0
   StoreLocal           r1
   Push                 r1
@@ -104,22 +104,21 @@ Bytecode (version: stable) {
 ConstantPool {
   [0] = Class #lib::_NamespaceImpl
   [1] = ArgDesc num-args 1, num-type-args 0, names []
-  [2] = StaticICData target '#lib::_NamespaceImpl::_', arg-desc CP#1
+  [2] = StaticICData target '#lib::_NamespaceImpl::_ (constructor)', arg-desc CP#1
   [3] = ArgDesc num-args 2, num-type-args 0, names []
   [4] = StaticICData target '#lib::_NamespaceImpl::_create', arg-desc CP#3
-  [5] = StaticField #lib::_NamespaceImpl::_cachedNamespace
+  [5] = StaticField #lib::_NamespaceImpl::_cachedNamespace (field)
 }
 ]  static method _setupNamespace(dynamic namespace) → void {
     self::_NamespaceImpl::_cachedNamespace = self::_NamespaceImpl::_create(new self::_NamespaceImpl::_(), namespace);
   }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                2
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushStatic           CP#0
   EqualsNull
-  AssertBoolean        0
   JumpIfFalse          L1
   Allocate             CP#1
   StoreLocal           r1
@@ -138,10 +137,10 @@ L1:
   ReturnTOS
 }
 ConstantPool {
-  [0] = StaticField #lib::_NamespaceImpl::_cachedNamespace
+  [0] = StaticField #lib::_NamespaceImpl::_cachedNamespace (field)
   [1] = Class #lib::_NamespaceImpl
   [2] = ArgDesc num-args 1, num-type-args 0, names []
-  [3] = StaticICData target '#lib::_NamespaceImpl::_', arg-desc CP#2
+  [3] = StaticICData target '#lib::_NamespaceImpl::_ (constructor)', arg-desc CP#2
   [4] = ArgDesc num-args 0, num-type-args 0, names []
   [5] = StaticICData target '#lib::_NamespaceImpl::_getDefault', arg-desc CP#4
   [6] = ArgDesc num-args 2, num-type-args 0, names []
@@ -154,9 +153,9 @@ ConstantPool {
     return self::_NamespaceImpl::_cachedNamespace;
   }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
   PushConstant         CP#3
@@ -165,7 +164,7 @@ Bytecode (version: stable) {
 }
 ConstantPool {
   [0] = ArgDesc num-args 0, num-type-args 0, names []
-  [1] = StaticICData get target '#lib::_NamespaceImpl::_namespace', arg-desc CP#0
+  [1] = StaticICData target '#lib::_NamespaceImpl::get:_namespace', arg-desc CP#0
   [2] = ArgDesc num-args 1, num-type-args 0, names []
   [3] = StaticICData target '#lib::_NamespaceImpl::_getPointer', arg-desc CP#2
 }
@@ -174,9 +173,9 @@ ConstantPool {
 }
 class _Namespace extends core::Object {
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -186,15 +185,15 @@ Bytecode (version: stable) {
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
+  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
 }
 ]  synthetic constructor •() → self::_Namespace
     : super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -210,30 +209,30 @@ ConstantPool {
     self::_NamespaceImpl::_setupNamespace(namespace);
   }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
   ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 0, num-type-args 0, names []
-  [1] = StaticICData get target '#lib::_NamespaceImpl::_namespace', arg-desc CP#0
+  [1] = StaticICData target '#lib::_NamespaceImpl::get:_namespace', arg-desc CP#0
 }
 ]  static get _namespace() → self::_Namespace
     return self::_NamespaceImpl::_namespace;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#1
   IndirectStaticCall   0, CP#0
   ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 0, num-type-args 0, names []
-  [1] = StaticICData get target '#lib::_NamespaceImpl::_namespacePointer', arg-desc CP#0
+  [1] = StaticICData target '#lib::_NamespaceImpl::get:_namespacePointer', arg-desc CP#0
 }
 ]  static get _namespacePointer() → core::int
     return self::_NamespaceImpl::_namespacePointer;
@@ -251,9 +250,9 @@ class VMLibraryHooks extends core::Object {
   static field dynamic _computeScriptUri = null;
   static field dynamic _cachedScript = null;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#1
   IndirectStaticCall   1, CP#0
@@ -263,15 +262,15 @@ Bytecode (version: stable) {
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
+  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
 }
 ]  synthetic constructor •() → self::VMLibraryHooks
     : super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode (version: stable) {
-  Entry                2
-  CheckStack
+Bytecode {
+  Entry                1
+  CheckStack           0
   Push                 FP[-5]
   StoreStaticTOS       CP#0
   PushNull
@@ -280,26 +279,24 @@ Bytecode (version: stable) {
   ReturnTOS
 }
 ConstantPool {
-  [0] = StaticField #lib::VMLibraryHooks::_computeScriptUri
-  [1] = StaticField #lib::VMLibraryHooks::_cachedScript
+  [0] = StaticField #lib::VMLibraryHooks::_computeScriptUri (field)
+  [1] = StaticField #lib::VMLibraryHooks::_cachedScript (field)
 }
 ]  static set platformScript(dynamic f) → void {
     self::VMLibraryHooks::_computeScriptUri = f;
     self::VMLibraryHooks::_cachedScript = null;
   }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                1
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushStatic           CP#0
   EqualsNull
-  AssertBoolean        0
   JumpIfFalse          L1
   PushConstant         CP#1
   PushStatic           CP#1
   EqualsNull
-  AssertBoolean        0
   BooleanNegateTOS
   PopLocal             r0
   Jump                 L2
@@ -308,11 +305,10 @@ L1:
   PopLocal             r0
 L2:
   Push                 r0
-  AssertBoolean        0
   JumpIfFalse          L3
   PushConstant         CP#1
   PushStatic           CP#1
-  InstanceCall         1, CP#3
+  DynamicCall          1, CP#3
   StoreStaticTOS       CP#0
 L3:
   PushConstant         CP#0
@@ -320,8 +316,8 @@ L3:
   ReturnTOS
 }
 ConstantPool {
-  [0] = StaticField #lib::VMLibraryHooks::_cachedScript
-  [1] = StaticField #lib::VMLibraryHooks::_computeScriptUri
+  [0] = StaticField #lib::VMLibraryHooks::_cachedScript (field)
+  [1] = StaticField #lib::VMLibraryHooks::_computeScriptUri (field)
   [2] = ArgDesc num-args 1, num-type-args 0, names []
   [3] = ICData dynamic target-name 'call', arg-desc CP#2
 }
@@ -332,14 +328,66 @@ ConstantPool {
     return self::VMLibraryHooks::_cachedScript;
   }
 }
+class Stdin extends core::Object {
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  PushConstant         CP#1
+  IndirectStaticCall   1, CP#0
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
+}
+]  synthetic constructor •() → self::Stdin
+    : super core::Object::•()
+    ;
+}
+class _StdIOUtils extends core::Object {
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  PushConstant         CP#1
+  IndirectStaticCall   1, CP#0
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
+}
+]  synthetic constructor •() → self::_StdIOUtils
+    : super core::Object::•()
+    ;
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+]  static method _getStdioInputStream(core::int fd) → self::Stdin
+    return null;
+}
 static field core::int _stdinFD = 0;
 static field core::int _stdoutFD = 1;
 static field core::int _stderrFD = 2;
 static field core::String _rawScript;
+static field self::Stdin _stdin;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   NativeCall           CP#0
   ReturnTOS
@@ -350,12 +398,12 @@ ConstantPool {
 ]@_in::ExternalName::•("Builtin_PrintString")
 external static method _printString(core::String s) → void;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
-  InstanceCall         1, CP#1
-  PushConstant         CP#2
+  InterfaceCall        1, CP#1
+  PushConstant         CP#3
   IndirectStaticCall   1, CP#0
   Drop1
   PushNull
@@ -363,16 +411,17 @@ Bytecode (version: stable) {
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = ICData target-name 'toString', arg-desc CP#0
-  [2] = StaticICData target '#lib::_printString', arg-desc CP#0
+  [1] = InterfaceCall target-name 'toString', arg-desc CP#0
+  [2] = Reserved
+  [3] = StaticICData target '#lib::_printString', arg-desc CP#0
 }
 ]static method _print(dynamic arg) → void {
   self::_printString(arg.{core::Object::toString}());
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   ReturnTOS
 }
@@ -382,24 +431,24 @@ ConstantPool {
 ]static method _getPrintClosure() → dynamic
   return self::_print;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                1
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   StoreStaticTOS       CP#0
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = StaticField #lib::_ScheduleImmediate::_closure
+  [0] = StaticField #lib::_ScheduleImmediate::_closure (field)
 }
 ]static method _setScheduleImmediateClosure((() → void) → void closure) → void {
   self::_ScheduleImmediate::_closure = closure;
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
-  Entry                3
-  CheckStack
+Bytecode {
+  Entry                1
+  CheckStack           0
   Push                 FP[-7]
   StoreStaticTOS       CP#0
   Push                 FP[-6]
@@ -410,9 +459,9 @@ Bytecode (version: stable) {
   ReturnTOS
 }
 ConstantPool {
-  [0] = StaticField #lib::_stdinFD
-  [1] = StaticField #lib::_stdoutFD
-  [2] = StaticField #lib::_stderrFD
+  [0] = StaticField #lib::_stdinFD (field)
+  [1] = StaticField #lib::_stdoutFD (field)
+  [2] = StaticField #lib::_stderrFD (field)
 }
 ]static method _setStdioFDs(core::int stdin, core::int stdout, core::int stderr) → void {
   self::_stdinFD = stdin;
@@ -420,19 +469,19 @@ ConstantPool {
   self::_stderrFD = stderr;
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                2
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#1
-  InstanceCall         2, CP#3
+  InterfaceCall        2, CP#3
   AssertBoolean        0
   JumpIfTrue           L1
   PushConstant         CP#0
   PushStatic           CP#0
-  PushConstant         CP#4
-  InstanceCall         2, CP#5
+  PushConstant         CP#5
+  InterfaceCall        2, CP#3
   AssertBoolean        0
   PopLocal             r1
   Jump                 L2
@@ -441,12 +490,11 @@ L1:
   PopLocal             r1
 L2:
   Push                 r1
-  AssertBoolean        0
   JumpIfTrue           L3
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#6
-  InstanceCall         2, CP#7
+  InterfaceCall        2, CP#3
   AssertBoolean        0
   PopLocal             r0
   Jump                 L4
@@ -455,39 +503,38 @@ L3:
   PopLocal             r0
 L4:
   Push                 r0
-  AssertBoolean        0
   JumpIfFalse          L5
   PushConstant         CP#0
   PushStatic           CP#0
-  PushConstant         CP#9
-  IndirectStaticCall   1, CP#8
+  PushConstant         CP#8
+  IndirectStaticCall   1, CP#7
   ReturnTOS
 L5:
-  PushConstant         CP#11
-  IndirectStaticCall   0, CP#10
+  PushConstant         CP#10
+  IndirectStaticCall   0, CP#9
   PushNull
   PushConstant         CP#0
   PushStatic           CP#0
-  PushConstant         CP#12
+  PushConstant         CP#11
   IndirectStaticCall   2, CP#2
-  InstanceCall         2, CP#13
+  InterfaceCall        2, CP#12
   ReturnTOS
 }
 ConstantPool {
-  [0] = StaticField #lib::_rawScript
+  [0] = StaticField #lib::_rawScript (field)
   [1] = String 'http:'
   [2] = ArgDesc num-args 2, num-type-args 0, names []
-  [3] = ICData target-name 'startsWith', arg-desc CP#2
-  [4] = String 'https:'
-  [5] = ICData target-name 'startsWith', arg-desc CP#2
+  [3] = InterfaceCall target-name 'startsWith', arg-desc CP#2
+  [4] = Reserved
+  [5] = String 'https:'
   [6] = String 'file:'
-  [7] = ICData target-name 'startsWith', arg-desc CP#2
-  [8] = ArgDesc num-args 1, num-type-args 0, names []
-  [9] = StaticICData target 'dart.core::Uri::parse', arg-desc CP#8
-  [10] = ArgDesc num-args 0, num-type-args 0, names []
-  [11] = StaticICData get target 'dart.core::Uri::base', arg-desc CP#10
-  [12] = StaticICData target 'dart.core::_Uri::file', arg-desc CP#2
-  [13] = ICData target-name 'resolveUri', arg-desc CP#2
+  [7] = ArgDesc num-args 1, num-type-args 0, names []
+  [8] = StaticICData target 'dart:core::Uri::parse', arg-desc CP#7
+  [9] = ArgDesc num-args 0, num-type-args 0, names []
+  [10] = StaticICData target 'dart:core::Uri::get:base', arg-desc CP#9
+  [11] = StaticICData target 'dart:core::_Uri::file (constructor)', arg-desc CP#2
+  [12] = InterfaceCall target-name 'resolveUri', arg-desc CP#2
+  [13] = Reserved
 }
 ]static method _scriptUri() → core::Uri {
   if(self::_rawScript.{core::String::startsWith}("http:") || self::_rawScript.{core::String::startsWith}("https:") || self::_rawScript.{core::String::startsWith}("file:")) {
@@ -498,9 +545,9 @@ ConstantPool {
   }
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                1
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
@@ -511,15 +558,52 @@ Bytecode (version: stable) {
 ConstantPool {
   [0] = TearOff #lib::_scriptUri
   [1] = ArgDesc num-args 1, num-type-args 0, names []
-  [2] = StaticICData set target '#lib::VMLibraryHooks::platformScript', arg-desc CP#1
+  [2] = StaticICData target '#lib::VMLibraryHooks::set:platformScript', arg-desc CP#1
 }
 ]static method _setupHooks() → dynamic {
   self::VMLibraryHooks::platformScript = self::_scriptUri;
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
+  Entry                2
+  CheckStack           0
+  PushConstant         CP#0
+  PushStatic           CP#0
+  EqualsNull
+  JumpIfFalse          L1
+  PushConstant         CP#1
+  PushStatic           CP#1
+  PushConstant         CP#3
+  IndirectStaticCall   1, CP#2
+  StoreLocal           r1
+  Push                 r1
+  StoreStaticTOS       CP#0
+  PopLocal             r0
+  Jump                 L2
+L1:
+  PushNull
+  PopLocal             r0
+L2:
+  Push                 r0
+  Drop1
+  PushConstant         CP#0
+  PushStatic           CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = StaticField #lib::_stdin (field)
+  [1] = StaticField #lib::_stdinFD (field)
+  [2] = ArgDesc num-args 1, num-type-args 0, names []
+  [3] = StaticICData target '#lib::_StdIOUtils::_getStdioInputStream', arg-desc CP#2
+}
+]static get stdin() → self::Stdin {
+  self::_stdin.{core::Object::==}(null) ?{self::Stdin} self::_stdin = self::_StdIOUtils::_getStdioInputStream(self::_stdinFD) : null;
+  return self::_stdin;
+}
+[@vm.bytecode=
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }

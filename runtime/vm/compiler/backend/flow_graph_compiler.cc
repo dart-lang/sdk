@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/globals.h"  // Needed here to get TARGET_ARCH_XXX.
-
 #include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/globals.h"  // Needed here to get TARGET_ARCH_XXX.
 
 #include "platform/utils.h"
 #include "vm/bit_vector.h"
@@ -66,6 +65,7 @@ DECLARE_FLAG(int, regexp_optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
+DECLARE_FLAG(int, gc_every);
 DECLARE_FLAG(bool, trace_compiler);
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
@@ -241,16 +241,9 @@ bool FlowGraphCompiler::CanOSRFunction() const {
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
 #if !defined(PRODUCT)
   if ((FLAG_stacktrace_every > 0) || (FLAG_deoptimize_every > 0) ||
+      (FLAG_gc_every > 0) ||
       (isolate()->reload_every_n_stack_overflow_checks() > 0)) {
-    bool is_auxiliary_isolate = ServiceIsolate::IsServiceIsolate(isolate());
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    // Certain flags should not effect the kernel isolate itself.  They might be
-    // used by tests via the "VMOptions=--..." annotation to test VM
-    // functionality in the main isolate.
-    is_auxiliary_isolate =
-        is_auxiliary_isolate || KernelIsolate::IsKernelIsolate(isolate());
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-    if (!is_auxiliary_isolate) {
+    if (!Isolate::IsVMInternalIsolate(isolate())) {
       return true;
     }
   }
@@ -271,11 +264,11 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
 bool FlowGraphCompiler::IsEmptyBlock(BlockEntryInstr* block) const {
   // Entry-points cannot be merged because they must have assembly
   // prologue emitted which should not be included in any block they jump to.
-  return !block->IsCatchBlockEntry() && !block->HasNonRedundantParallelMove() &&
+  return !block->IsGraphEntry() && !block->IsFunctionEntry() &&
+         !block->IsCatchBlockEntry() && !block->IsOsrEntry() &&
+         !block->IsIndirectEntry() && !block->HasNonRedundantParallelMove() &&
          block->next()->IsGoto() &&
-         !block->next()->AsGoto()->HasNonRedundantParallelMove() &&
-         !block->IsIndirectEntry() && !block->IsFunctionEntry() &&
-         !block->IsOsrEntry();
+         !block->next()->AsGoto()->HasNonRedundantParallelMove();
 }
 
 void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
@@ -325,6 +318,16 @@ void FlowGraphCompiler::CompactBlocks() {
 }
 
 intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
+  // On ARM64 we cannot use the position of the label bound in the
+  // FunctionEntryInstr, because `FunctionEntryInstr::EmitNativeCode` does not
+  // emit the monomorphic entry and frame entry (instead on ARM64 this is done
+  // in FlowGraphCompiler::CompileGraph()).
+  //
+  // See http://dartbug.com/34162
+#if defined(TARGET_ARCH_ARM64)
+  return 0;
+#endif
+
   BlockEntryInstr* entry = flow_graph().graph_entry()->unchecked_entry();
   if (entry == nullptr) {
     entry = flow_graph().graph_entry()->normal_entry();
@@ -342,7 +345,7 @@ intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
   // Intrinsification happened.
 #ifdef DART_PRECOMPILER
   if (parsed_function().function().IsDynamicFunction()) {
-    return Instructions::kUncheckedEntryOffset;
+    return Instructions::kMonomorphicEntryOffset;
   }
 #endif
   return 0;
@@ -700,16 +703,40 @@ void FlowGraphCompiler::AddNullCheck(intptr_t pc_offset,
                                           null_check_name_idx);
 }
 
-void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
-  ASSERT(func.IsZoneHandle());
+void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function,
+                                                Code::EntryKind entry_kind) {
+  ASSERT(function.IsZoneHandle());
+  const auto entry_point = entry_kind == Code::EntryKind::kUnchecked
+                               ? Code::kUncheckedEntry
+                               : Code::kDefaultEntry;
   static_calls_target_table_.Add(
-      new (zone()) StaticCallsStruct(assembler()->CodeSize(), &func, NULL));
+      new (zone()) StaticCallsStruct(Code::kPcRelativeCall, entry_point,
+                                     assembler()->CodeSize(), &function, NULL));
+}
+
+void FlowGraphCompiler::AddPcRelativeCallStubTarget(const Code& stub_code) {
+  ASSERT(stub_code.IsZoneHandle() || stub_code.IsReadOnlyHandle());
+  ASSERT(!stub_code.IsNull());
+  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
+      Code::kPcRelativeCall, Code::kDefaultEntry, assembler()->CodeSize(), NULL,
+      &stub_code));
+}
+
+void FlowGraphCompiler::AddStaticCallTarget(const Function& func,
+                                            Code::EntryKind entry_kind) {
+  ASSERT(func.IsZoneHandle());
+  const auto entry_point = entry_kind == Code::EntryKind::kUnchecked
+                               ? Code::kUncheckedEntry
+                               : Code::kDefaultEntry;
+  static_calls_target_table_.Add(new (zone()) StaticCallsStruct(
+      Code::kCallViaCode, entry_point, assembler()->CodeSize(), &func, NULL));
 }
 
 void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
-  ASSERT(code.IsZoneHandle());
+  ASSERT(code.IsZoneHandle() || code.IsReadOnlyHandle());
   static_calls_target_table_.Add(
-      new (zone()) StaticCallsStruct(assembler()->CodeSize(), NULL, &code));
+      new (zone()) StaticCallsStruct(Code::kCallViaCode, Code::kDefaultEntry,
+                                     assembler()->CodeSize(), NULL, &code));
 }
 
 CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
@@ -1063,22 +1090,28 @@ void FlowGraphCompiler::FinalizeCatchEntryMovesMap(const Code& code) {
 
 void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
   ASSERT(code.static_calls_target_table() == Array::null());
-  const Array& targets =
-      Array::Handle(zone(), Array::New((static_calls_target_table_.length() *
-                                        Code::kSCallTableEntryLength),
-                                       Heap::kOld));
-  Smi& smi_offset = Smi::Handle(zone());
-  for (intptr_t i = 0; i < static_calls_target_table_.length(); i++) {
-    const intptr_t target_ix = Code::kSCallTableEntryLength * i;
-    smi_offset = Smi::New(static_calls_target_table_[i]->offset);
-    targets.SetAt(target_ix + Code::kSCallTableOffsetEntry, smi_offset);
-    if (static_calls_target_table_[i]->function != NULL) {
-      targets.SetAt(target_ix + Code::kSCallTableFunctionEntry,
-                    *static_calls_target_table_[i]->function);
+  const auto& calls = static_calls_target_table_;
+  const intptr_t array_length = calls.length() * Code::kSCallTableEntryLength;
+  const auto& targets =
+      Array::Handle(zone(), Array::New(array_length, Heap::kOld));
+
+  StaticCallsTable entries(targets);
+  auto& kind_type_and_offset = Smi::Handle(zone());
+  for (intptr_t i = 0; i < calls.length(); i++) {
+    auto entry = calls[i];
+    kind_type_and_offset =
+        Smi::New(Code::KindField::encode(entry->call_kind) |
+                 Code::EntryPointField::encode(entry->entry_point) |
+                 Code::OffsetField::encode(entry->offset));
+    auto view = entries[i];
+    view.Set<Code::kSCallTableKindAndOffset>(kind_type_and_offset);
+    const Object* target = nullptr;
+    if (entry->function != nullptr) {
+      view.Set<Code::kSCallTableFunctionTarget>(*calls[i]->function);
     }
-    if (static_calls_target_table_[i]->code != NULL) {
-      targets.SetAt(target_ix + Code::kSCallTableCodeEntry,
-                    *static_calls_target_table_[i]->code);
+    if (entry->code != NULL) {
+      ASSERT(target == nullptr);
+      view.Set<Code::kSCallTableCodeTarget>(*calls[i]->code);
     }
   }
   code.set_static_calls_target_table(targets);
@@ -1192,10 +1225,10 @@ bool FlowGraphCompiler::TryIntrinsify() {
 #if !defined(TARGET_ARCH_DBC)
 void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
                                               intptr_t deopt_id,
-                                              const StubEntry& stub_entry,
+                                              const Code& stub,
                                               RawPcDescriptors::Kind kind,
                                               LocationSummary* locs) {
-  GenerateCall(token_pos, stub_entry, kind, locs);
+  GenerateCall(token_pos, stub, kind, locs);
   const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     AddDeoptIndexAtCall(deopt_id_after);
@@ -1206,31 +1239,31 @@ void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
   }
 }
 
-static const StubEntry* StubEntryFor(const ICData& ic_data, bool optimized) {
+static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
   switch (ic_data.NumArgsTested()) {
     case 1:
 #if defined(TARGET_ARCH_X64)
       if (ic_data.IsTrackingExactness()) {
         if (optimized) {
-          return StubCode::
-              OneArgOptimizedCheckInlineCacheWithExactnessCheck_entry();
+          return StubCode::OneArgOptimizedCheckInlineCacheWithExactnessCheck();
         } else {
-          return StubCode::OneArgCheckInlineCacheWithExactnessCheck_entry();
+          return StubCode::OneArgCheckInlineCacheWithExactnessCheck();
         }
       }
 #else
       // TODO(dartbug.com/34170) Port exactness tracking to other platforms.
       ASSERT(!ic_data.IsTrackingExactness());
 #endif
-      return optimized ? StubCode::OneArgOptimizedCheckInlineCache_entry()
-                       : StubCode::OneArgCheckInlineCache_entry();
+      return optimized ? StubCode::OneArgOptimizedCheckInlineCache()
+                       : StubCode::OneArgCheckInlineCache();
     case 2:
       ASSERT(!ic_data.IsTrackingExactness());
-      return optimized ? StubCode::TwoArgsOptimizedCheckInlineCache_entry()
-                       : StubCode::TwoArgsCheckInlineCache_entry();
+      return optimized ? StubCode::TwoArgsOptimizedCheckInlineCache()
+                       : StubCode::TwoArgsCheckInlineCache();
     default:
+      ic_data.Print();
       UNIMPLEMENTED();
-      return nullptr;
+      return Code::Handle();
   }
 }
 
@@ -1243,7 +1276,7 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
   if (FLAG_precompiled_mode) {
     // TODO(#34162): Support unchecked entry-points in precompiled mode.
     ic_data = ic_data.AsUnaryClassChecks();
-    EmitSwitchableInstanceCall(ic_data, deopt_id, token_pos, locs);
+    EmitSwitchableInstanceCall(ic_data, deopt_id, token_pos, locs, entry_kind);
     return;
   }
   ASSERT(!ic_data.IsNull());
@@ -1251,7 +1284,7 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
     // Emit IC call that will count and thus may need reoptimization at
     // function entry.
     ASSERT(may_reoptimize() || flow_graph().IsCompiledForOsr());
-    EmitOptimizedInstanceCall(*StubEntryFor(ic_data, /*optimized=*/true),
+    EmitOptimizedInstanceCall(StubEntryFor(ic_data, /*optimized=*/true),
                               ic_data, deopt_id, token_pos, locs, entry_kind);
     return;
   }
@@ -1265,7 +1298,7 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
     return;
   }
 
-  EmitInstanceCall(*StubEntryFor(ic_data, /*optimized=*/false), ic_data,
+  EmitInstanceCall(StubEntryFor(ic_data, /*optimized=*/false), ic_data,
                    deopt_id, token_pos, locs);
 }
 
@@ -1948,9 +1981,8 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(smi_case)->target;
-    GenerateStaticDartCall(
-        deopt_id, token_index, *StubCode::CallStaticFunction_entry(),
-        RawPcDescriptors::kOther, locs, function, entry_kind);
+    GenerateStaticDartCall(deopt_id, token_index, RawPcDescriptors::kOther,
+                           locs, function, entry_kind);
     __ Drop(args_info.count_with_type_args);
     if (match_found != NULL) {
       __ Jump(match_found);
@@ -1999,9 +2031,8 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(i)->target;
-    GenerateStaticDartCall(
-        deopt_id, token_index, *StubCode::CallStaticFunction_entry(),
-        RawPcDescriptors::kOther, locs, function, entry_kind);
+    GenerateStaticDartCall(deopt_id, token_index, RawPcDescriptors::kOther,
+                           locs, function, entry_kind);
     __ Drop(args_info.count_with_type_args);
     if (!is_last_check || add_megamorphic_call) {
       __ Jump(match_found);
@@ -2090,7 +2121,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   // caller side!
   const Type& int_type = Type::Handle(zone(), Type::IntType());
   bool is_non_smi = false;
-  if (int_type.IsSubtypeOf(dst_type, NULL, NULL, Heap::kOld)) {
+  if (int_type.IsSubtypeOf(dst_type, Heap::kOld)) {
     __ BranchIfSmi(instance_reg, done);
     is_non_smi = true;
   }

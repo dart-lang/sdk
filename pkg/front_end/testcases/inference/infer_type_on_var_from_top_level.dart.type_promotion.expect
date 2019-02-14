@@ -1,0 +1,18 @@
+pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:12:5: Context: Write to a@304
+  a = /*error:INVALID_ASSIGNMENT*/ "hi";
+    ^
+pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:13:5: Context: Write to a@304
+  a = 3;
+    ^
+pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:15:5: Context: Write to b@381
+  b = /*error:INVALID_ASSIGNMENT*/ "hi";
+    ^
+pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:16:5: Context: Write to b@381
+  b = 4;
+    ^
+pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:18:5: Context: Write to c@458
+  c = /*error:INVALID_ASSIGNMENT*/ "hi";
+    ^
+pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:19:5: Context: Write to c@458
+  c = 4;
+    ^

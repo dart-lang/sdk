@@ -74,13 +74,13 @@ class Log {
 // Can be nested.
 class LogBlock : public StackResource {
  public:
-  LogBlock(Thread* thread, Log* log)
+  LogBlock(ThreadState* thread, Log* log)
       : StackResource(thread), log_(log), cursor_(log->cursor()) {
     Initialize();
   }
 
   LogBlock()
-      : StackResource(Thread::Current()),
+      : StackResource(ThreadState::Current()),
         log_(Log::Current()),
         cursor_(Log::Current()->cursor()) {
     Initialize();

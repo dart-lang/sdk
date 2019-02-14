@@ -6,7 +6,7 @@ import 'package:expect/expect.dart' deferred as expect;
 
 // Synthetic getter added by kernel.
 
-/*strong.element: __loadLibrary_expect:[null|exact=_Future]*/
+/*element: __loadLibrary_expect:[null|exact=_Future]*/
 
 /*element: main:[null]*/
 main() {

@@ -246,11 +246,14 @@ config("compiler") {
     ldflags += [ "-pthread" ]
     if (is_clang) {
       if (current_cpu == "arm") {
-        cflags += [ "--target=arm-linux-gnueabihf" ]
-        ldflags += [ "--target=arm-linux-gnueabihf" ]
+        cflags += [ "--target=armv7-linux-gnueabihf" ]
+        ldflags += [ "--target=armv7-linux-gnueabihf" ]
       } else if (current_cpu == "arm64") {
         cflags += [ "--target=aarch64-linux-gnu" ]
         ldflags += [ "--target=aarch64-linux-gnu" ]
+      } else if (current_cpu == "x86") {
+        cflags += [ "--target=i386-linux-gnu" ]
+        ldflags += [ "--target=i386-linux-gnu" ]
       }
     }
   }
@@ -261,12 +264,13 @@ config("compiler") {
     cflags += [ "-fcolor-diagnostics" ]
   }
 
-  # C++14 compiler flags setup.
+  # C++11 compiler flags setup.
   # ---------------------------
   if (is_win) {
+    # Up-to-date toolchain MSVC doesn't support c++11 flag any longer.
     cc_std = [ "/std:c++14" ]
   } else {
-    cc_std = [ "-std=c++14" ]
+    cc_std = [ "-std=c++11" ]
   }
   cflags_cc += cc_std
   cflags_objcc += cc_std
@@ -278,6 +282,7 @@ config("compiler") {
       "-ffunction-sections",
       "-funwind-tables",
       "-fno-short-enums",
+      "-nostdinc++",
     ]
     if (!is_clang) {
       # Clang doesn't support these flags.
@@ -444,14 +449,17 @@ config("runtime_library") {
     # strange errors. The include ordering here is important; change with
     # caution.
     cflags += [
-      "-isystem" +
-          rebase_path("$android_libcpp_root/libcxx/include", root_build_dir),
+      "-isystem" + rebase_path("$android_libcpp_root/include", root_build_dir),
       "-isystem" + rebase_path(
-              "$android_ndk_root/sources/cxx-stl/llvm-libc++abi/libcxxabi/include",
+              "$android_ndk_root/sources/cxx-stl/llvm-libc++abi/include",
               root_build_dir),
       "-isystem" +
           rebase_path("$android_ndk_root/sources/android/support/include",
                       root_build_dir),
+      "-isystem" + rebase_path(
+              "$android_ndk_root/sysroot/usr/include/$android_target_triple",
+              root_build_dir),
+      "-D__ANDROID_API__=$android_api_level",
     ]
 
     lib_dirs += [ "$android_libcpp_root/libs/$android_app_abi" ]
@@ -459,8 +467,11 @@ config("runtime_library") {
     libs += [
       "$android_libcpp_library",
       "c++abi",
-      "android_support",
     ]
+
+    if (android_api_level < 21) {
+      libs += [ "android_support" ]
+    }
 
     if (current_cpu == "arm") {
       libs += [ "unwind" ]
@@ -692,7 +703,7 @@ if (is_win) {
       "-Wl,--gc-sections",
     ]
 
-    if (is_clang) {
+    if (is_clang && !using_sanitizer) {
       # Identical code folding to reduce size.
       # Warning: This changes C/C++ semantics of function pointer comparison.
       common_optimize_on_ldflags += [ "-Wl,--icf=all" ]

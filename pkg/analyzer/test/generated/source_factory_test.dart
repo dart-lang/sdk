@@ -13,6 +13,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart';
@@ -217,9 +218,7 @@ class CustomUriResolver extends UriResolver {
 }
 
 @reflectiveTest
-class SourceFactoryTest {
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-
+class SourceFactoryTest with ResourceProviderMixin {
   void test_creation() {
     expect(new SourceFactory([]), isNotNull);
   }
@@ -252,12 +251,11 @@ class SourceFactoryTest {
   void test_resolveUri_nonAbsolute_absolute() {
     SourceFactory factory =
         new SourceFactory([new AbsoluteUriResolver(resourceProvider)]);
-    String sourcePath = resourceProvider.convertPath('/does/not/exist.dart');
+    String sourcePath = convertPath('/does/not/exist.dart');
     String targetRawPath = '/does/not/matter.dart';
-    String targetPath = resourceProvider.convertPath(targetRawPath);
-    String targetUri =
-        resourceProvider.pathContext.toUri(targetRawPath).toString();
-    Source sourceSource = new FileSource(resourceProvider.getFile(sourcePath));
+    String targetPath = convertPath(targetRawPath);
+    String targetUri = toUri(targetRawPath).toString();
+    Source sourceSource = new FileSource(getFile(sourcePath));
     Source result = factory.resolveUri(sourceSource, targetUri);
     expect(result.fullName, targetPath);
   }
@@ -265,10 +263,9 @@ class SourceFactoryTest {
   void test_resolveUri_nonAbsolute_relative() {
     SourceFactory factory =
         new SourceFactory([new AbsoluteUriResolver(resourceProvider)]);
-    String path = _p('/does/not/have.dart');
-    Source containingSource = new FileSource(resourceProvider.getFile(path));
+    Source containingSource = new FileSource(getFile('/does/not/have.dart'));
     Source result = factory.resolveUri(containingSource, 'exist.dart');
-    expect(result.fullName, _p('/does/not/exist.dart'));
+    expect(result.fullName, convertPath('/does/not/exist.dart'));
   }
 
   void test_resolveUri_nonAbsolute_relative_package() {
@@ -301,8 +298,8 @@ class SourceFactoryTest {
   }
 
   void test_restoreUri() {
-    File file1 = resourceProvider.getFile(_p("/some/file1.dart"));
-    File file2 = resourceProvider.getFile(_p("/some/file2.dart"));
+    File file1 = getFile("/some/file1.dart");
+    File file2 = getFile("/some/file2.dart");
     Source source1 = new FileSource(file1);
     Source source2 = new FileSource(file2);
     Uri expected1 = Uri.parse("file:///my_file.dart");
@@ -311,11 +308,6 @@ class SourceFactoryTest {
     expect(factory.restoreUri(source1), same(expected1));
     expect(factory.restoreUri(source2), same(null));
   }
-
-  /**
-   * Return the [resourceProvider] specific path for the given Posix [path].
-   */
-  String _p(String path) => resourceProvider.convertPath(path);
 }
 
 class UriResolver_absolute extends UriResolver {

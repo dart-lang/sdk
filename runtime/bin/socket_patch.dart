@@ -1071,16 +1071,17 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   getOption(SocketOption option) {
-    if (option is! SocketOption) throw new ArgumentError(option);
+    if (option == null) throw new ArgumentError.notNull("option");
     var result = nativeGetOption(option._value, address.type._value);
     if (result is OSError) throw result;
     return result;
   }
 
   bool setOption(SocketOption option, value) {
-    if (option is! SocketOption) throw new ArgumentError(option);
+    if (option == null) throw new ArgumentError.notNull("option");
     var result = nativeSetOption(option._value, address.type._value, value);
-    if (result is OSError) throw result;
+    if (result != null) throw result;
+    return true;
   }
 
   InternetAddress multicastAddress(
@@ -1145,7 +1146,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   int nativeGetSocketId() native "Socket_GetSocketId";
   OSError nativeGetError() native "Socket_GetError";
   nativeGetOption(int option, int protocol) native "Socket_GetOption";
-  bool nativeSetOption(int option, int protocol, value)
+  OSError nativeSetOption(int option, int protocol, value)
       native "Socket_SetOption";
   OSError nativeJoinMulticast(List<int> addr, List<int> interfaceAddr,
       int interfaceIndex) native "Socket_JoinMulticast";

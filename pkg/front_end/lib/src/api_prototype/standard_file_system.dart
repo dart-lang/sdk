@@ -63,7 +63,7 @@ class _IoFileSystemEntity implements FileSystemEntity {
   Future<List<int>> readAsBytes() async {
     try {
       CompilerContext.recordDependency(uri);
-      return await new io.File.fromUri(uri).readAsBytes();
+      return new io.File.fromUri(uri).readAsBytesSync();
     } on io.FileSystemException catch (exception) {
       throw _toFileSystemException(exception);
     }

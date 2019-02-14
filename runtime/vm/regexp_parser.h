@@ -53,7 +53,7 @@ class RegExpParser : public ValueObject {
  public:
   RegExpParser(const String& in, String* error, bool multiline_mode);
 
-  static bool ParseRegExp(const String& input,
+  static void ParseRegExp(const String& input,
                           bool multiline,
                           RegExpCompileData* result);
 
@@ -97,7 +97,6 @@ class RegExpParser : public ValueObject {
     return captures_ == NULL ? 0 : captures_->length();
   }
   intptr_t position() { return next_pos_ - 1; }
-  bool failed() { return failed_; }
 
   static const intptr_t kMaxCaptures = 1 << 16;
   static const uint32_t kEndMarker = (1 << 21);
@@ -154,7 +153,6 @@ class RegExpParser : public ValueObject {
   void ScanForCaptures();
 
   Zone* zone_;
-  String* error_;
   ZoneGrowableArray<RegExpCapture*>* captures_;
   const String& in_;
   uint32_t current_;
@@ -166,7 +164,6 @@ class RegExpParser : public ValueObject {
   bool simple_;
   bool contains_anchor_;
   bool is_scanned_for_captures_;
-  bool failed_;
 };
 
 }  // namespace dart

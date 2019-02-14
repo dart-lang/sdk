@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 analyses/analyze_test: Slow, Pass
+analyses/api_dynamic_test: Slow, Pass
+analyses/dart2js_dynamic_test: Slow, Pass
 closure/closure_test: Pass, Slow
 codegen/gvn_dynamic_field_get_test: Fail # Issue 18519
 codegen/list_tracer_length_test: Fail # Issue 33051

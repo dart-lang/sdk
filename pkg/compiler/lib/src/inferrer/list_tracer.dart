@@ -11,11 +11,9 @@ import '../util/util.dart' show Setlet;
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 
-/**
- * A set of selector names that [List] implements, that we know do not
- * change the element type of the list, or let the list escape to code
- * that might change the element type.
- */
+/// A set of selector names that [List] implements, that we know do not
+/// change the element type of the list, or let the list escape to code
+/// that might change the element type.
 Set<String> okListSelectorsSet = new Set<String>.from(const <String>[
   // From Object.
   '==',
@@ -137,11 +135,9 @@ class ListTracerVisitor extends TracerVisitor {
 
   ListTracerVisitor(tracedType, inferrer) : super(tracedType, inferrer);
 
-  /**
-   * Returns [true] if the analysis completed successfully, [false] if it
-   * bailed out. In the former case, [assignments] holds a list of
-   * [TypeInformation] nodes that flow into the element type of this list.
-   */
+  /// Returns [true] if the analysis completed successfully, [false] if it
+  /// bailed out. In the former case, [assignments] holds a list of
+  /// [TypeInformation] nodes that flow into the element type of this list.
   bool run() {
     analyze();
     ListTypeInformation list = tracedType;

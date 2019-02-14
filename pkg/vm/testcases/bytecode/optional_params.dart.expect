@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   EntryOptional        1, 2, 0
   LoadConstant         r1, CP#0
   LoadConstant         r2, CP#1
   Frame                1
-  CheckStack
+  CheckStack           0
   PushNull
   PushInt              2
   CreateArrayTOS
@@ -68,14 +68,14 @@ ConstantPool {
   [1] = String 'default_b'
   [2] = String 'x = '
   [3] = ArgDesc num-args 1, num-type-args 0, names []
-  [4] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#3
-  [5] = StaticICData target 'dart.core::print', arg-desc CP#3
+  [4] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#3
+  [5] = StaticICData target 'dart:core::print', arg-desc CP#3
   [6] = String 'a = '
-  [7] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#3
-  [8] = StaticICData target 'dart.core::print', arg-desc CP#3
+  [7] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#3
+  [8] = StaticICData target 'dart:core::print', arg-desc CP#3
   [9] = String 'b = '
-  [10] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#3
-  [11] = StaticICData target 'dart.core::print', arg-desc CP#3
+  [10] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#3
+  [11] = StaticICData target 'dart:core::print', arg-desc CP#3
 }
 ]static method foo1(dynamic x, [dynamic a = "default_a", dynamic b = "default_b"]) → void {
   core::print("x = ${x}");
@@ -83,7 +83,7 @@ ConstantPool {
   core::print("b = ${b}");
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   EntryOptional        2, 0, 3
   LoadConstant         r2, CP#0
   LoadConstant         r2, CP#1
@@ -92,7 +92,7 @@ Bytecode (version: stable) {
   LoadConstant         r4, CP#5
   LoadConstant         r4, CP#6
   Frame                1
-  CheckStack
+  CheckStack           0
   PushNull
   PushInt              2
   CreateArrayTOS
@@ -186,25 +186,25 @@ ConstantPool {
   [1] = Int 42
   [2] = String 'b'
   [3] = String 'default_b'
-  [4] = List type-arg dart.core::String, entries CP# [3]
+  [4] = List type-arg dart:core::String, entries CP# [3]
   [5] = String 'c'
   [6] = String 'default_c'
   [7] = String 'y = '
   [8] = ArgDesc num-args 1, num-type-args 0, names []
-  [9] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#8
-  [10] = StaticICData target 'dart.core::print', arg-desc CP#8
+  [9] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#8
+  [10] = StaticICData target 'dart:core::print', arg-desc CP#8
   [11] = String 'z = '
-  [12] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#8
-  [13] = StaticICData target 'dart.core::print', arg-desc CP#8
+  [12] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#8
+  [13] = StaticICData target 'dart:core::print', arg-desc CP#8
   [14] = String 'a = '
-  [15] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#8
-  [16] = StaticICData target 'dart.core::print', arg-desc CP#8
+  [15] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#8
+  [16] = StaticICData target 'dart:core::print', arg-desc CP#8
   [17] = String 'b = '
-  [18] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#8
-  [19] = StaticICData target 'dart.core::print', arg-desc CP#8
+  [18] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#8
+  [19] = StaticICData target 'dart:core::print', arg-desc CP#8
   [20] = String 'c = '
-  [21] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#8
-  [22] = StaticICData target 'dart.core::print', arg-desc CP#8
+  [21] = StaticICData target 'dart:core::_StringBase::_interpolate', arg-desc CP#8
+  [22] = StaticICData target 'dart:core::print', arg-desc CP#8
 }
 ]static method foo2(dynamic y, dynamic z, {dynamic c = "default_c", dynamic a = 42, dynamic b = const <core::String>["default_b"]}) → void {
   core::print("y = ${y}");
@@ -214,15 +214,15 @@ ConstantPool {
   core::print("c = ${c}");
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   EntryOptional        2, 0, 2
   LoadConstant         r2, CP#0
   LoadConstant         r2, CP#1
   LoadConstant         r3, CP#2
   LoadConstant         r3, CP#3
   Frame                1
-  CheckStack
-  CheckFunctionTypeArgs 2, 4
+  CheckStack           0
+  CheckFunctionTypeArgs 2, r4
   PushNull
   Push                 r4
   InstantiateType      CP#4
@@ -245,11 +245,11 @@ ConstantPool {
   [1] = Bool false
   [2] = String 'b'
   [3] = Null
-  [4] = Type #lib::foo3::P
+  [4] = Type #lib::foo3::TypeParam/0
   [5] = ArgDesc num-args 1, num-type-args 0, names []
-  [6] = StaticICData target 'dart.core::print', arg-desc CP#5
-  [7] = StaticICData target 'dart.core::print', arg-desc CP#5
-  [8] = StaticICData target 'dart.core::print', arg-desc CP#5
+  [6] = StaticICData target 'dart:core::print', arg-desc CP#5
+  [7] = StaticICData target 'dart:core::print', arg-desc CP#5
+  [8] = StaticICData target 'dart:core::print', arg-desc CP#5
 }
 ]static method foo3<P extends core::Object = dynamic, Q extends core::Object = dynamic>(dynamic z, dynamic y, {core::bool a = false, core::Map<self::foo3::P, self::foo3::Q> b = null}) → void {
   core::print(self::foo3::P);
@@ -257,9 +257,9 @@ ConstantPool {
   core::print(b);
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#1
   PushConstant         CP#3

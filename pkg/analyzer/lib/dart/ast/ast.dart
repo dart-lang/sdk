@@ -532,6 +532,7 @@ abstract class AstNode implements SyntacticEntity {
    * returns `true`, or `null` if there is no such ancestor. Note that this node
    * will never be returned.
    */
+  @deprecated
   E getAncestor<E extends AstNode>(Predicate<AstNode> predicate);
 
   /**
@@ -545,6 +546,18 @@ abstract class AstNode implements SyntacticEntity {
    * If the value is `null`, the property will effectively be removed.
    */
   void setProperty(String name, Object value);
+
+  /**
+   * Return either this node or the most immediate ancestor of this node for
+   * which the [predicate] returns `true`, or `null` if there is no such node.
+   */
+  E thisOrAncestorMatching<E extends AstNode>(Predicate<AstNode> predicate);
+
+  /**
+   * Return either this node or the most immediate ancestor of this node that
+   * has the given type, or `null` if there is no such node.
+   */
+  T thisOrAncestorOfType<T extends AstNode>();
 
   /**
    * Return a textual description of this node in a form approximating valid
@@ -749,6 +762,8 @@ abstract class AstVisitor<R> {
   R visitReturnStatement(ReturnStatement node);
 
   R visitScriptTag(ScriptTag node);
+
+  R visitSetLiteral(SetLiteral node);
 
   R visitShowCombinator(ShowCombinator node);
 
@@ -3764,7 +3779,8 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
  * An anonymous function type.
  *
  *    functionType ::=
- *        [TypeAnnotation]? 'Function' [TypeParameterList]? [FormalParameterList]
+ *        [TypeAnnotation]? 'Function' [TypeParameterList]?
+ *        [FormalParameterList] '?'?
  *
  * where the FormalParameterList is being used to represent the following
  * grammar, despite the fact that FormalParameterList can represent a much
@@ -3812,6 +3828,18 @@ abstract class GenericFunctionType extends TypeAnnotation {
    * [parameters].
    */
   void set parameters(FormalParameterList parameters);
+
+  /**
+   * The question mark indicating that the type is nullable, or `null` if there
+   * is no question mark.
+   */
+  Token get question;
+
+  /**
+   * Set the question mark indicating that the type is nullable to the given
+   * [token].
+   */
+  void set question(Token token);
 
   /**
    * Return the return type of the function type being defined, or `null` if
@@ -4340,8 +4368,6 @@ abstract class IndexExpression extends Expression
  *        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
  *
  * Clients may not extend, implement or mix-in this class.
- *
- * 'new' | 'const' are only optional if the previewDart2 option is enabled.
  */
 abstract class InstanceCreationExpression extends Expression
     implements ConstructorReferenceNode {
@@ -5283,6 +5309,18 @@ abstract class NamedType extends TypeAnnotation {
   void set name(Identifier identifier);
 
   /**
+   * The question mark indicating that the type is nullable, or `null` if there
+   * is no question mark.
+   */
+  Token get question;
+
+  /**
+   * Set the question mark indicating that the type is nullable to the given
+   * [token].
+   */
+  void set question(Token token);
+
+  /**
    * Set the type being named to the given [type].
    */
   void set type(DartType type);
@@ -6019,6 +6057,43 @@ abstract class ScriptTag extends AstNode {
    * Set the token representing this script tag to the given [token].
    */
   void set scriptTag(Token token);
+}
+
+/**
+ * A literal set.
+ *
+ *    setLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] '>')?
+ *        '{' [Expression] (',' [Expression])* ','? '}'
+ *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class SetLiteral extends TypedLiteral {
+  /**
+   * Return the expressions used to compute the elements of the set.
+   */
+  NodeList<Expression> get elements;
+
+  /**
+   * Return the left curly bracket.
+   */
+  Token get leftBracket;
+
+  /**
+   * Set the left curly bracket to the given [token].
+   */
+  void set leftBracket(Token token);
+
+  /**
+   * Return the right curly bracket.
+   */
+  Token get rightBracket;
+
+  /**
+   * Set the right curly bracket to the given [token].
+   */
+  void set rightBracket(Token token);
 }
 
 /**

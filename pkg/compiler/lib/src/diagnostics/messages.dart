@@ -133,14 +133,12 @@ class MessageTemplate {
   /// Should describe how to fix the problem. Elided when using --terse option.
   final String howToFix;
 
-  /**
-   *  Examples will be checked by
-   *  tests/compiler/dart2js/message_kind_test.dart.
-   *
-   *  An example is either a String containing the example source code or a Map
-   *  from filenames to source code. In the latter case, the filename for the
-   *  main library code must be 'main.dart'.
-   */
+  ///  Examples will be checked by
+  ///  tests/compiler/dart2js/message_kind_test.dart.
+  ///
+  ///  An example is either a String containing the example source code or a Map
+  ///  from filenames to source code. In the latter case, the filename for the
+  ///  main library code must be 'main.dart'.
   final List examples;
 
   /// Additional options needed for the examples to work.

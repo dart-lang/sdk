@@ -90,6 +90,10 @@ abstract class _Invocation extends _DependencyTracker
   /// Number of times result of this invocation was invalidated.
   int invalidationCounter = 0;
 
+  /// Whether a call-site directed to this invocation can call through the
+  /// unchecked entry-point.
+  bool typeChecksNeeded = false;
+
   /// If an invocation is invalidated more than [invalidationLimit] times,
   /// its result is saturated in order to guarantee convergence.
   static const int invalidationLimit = 1000;
@@ -143,7 +147,17 @@ abstract class _Invocation extends _DependencyTracker
 
 class _DirectInvocation extends _Invocation {
   _DirectInvocation(DirectSelector selector, Args<Type> args)
-      : super(selector, args);
+      : super(selector, args) {
+    // We don't emit [TypeCheck] statements for bounds checks of type
+    // parameters, so if there are any type parameters, we must assume
+    // they could fail bounds checks.
+    //
+    // TODO(sjindel): Use [TypeCheck] to avoid bounds checks.
+    if (selector.member.function != null) {
+      typeChecksNeeded = selector.member.function.typeParameters
+          .any((t) => t.isGenericCovariantImpl);
+    }
+  }
 
   @override
   Type process(TypeFlowAnalysis typeFlowAnalysis) {
@@ -206,6 +220,7 @@ class _DirectInvocation extends _Invocation {
         }
         fieldValue.setValue(initializerResult, typeFlowAnalysis,
             field.isStatic ? null : args.receiver);
+        fieldValue.isInitialized = true;
         return const EmptyType();
     }
 
@@ -287,6 +302,15 @@ class _DispatchableInvocation extends _Invocation {
   Set<Call> _callSites; // Populated only if not polymorphic.
   Member _monomorphicTarget;
 
+  @override
+  set typeChecksNeeded(bool value) {
+    if (typeChecksNeeded) return;
+    if (value) {
+      super.typeChecksNeeded = true;
+      _notifyCallSites();
+    }
+  }
+
   /// Marker for noSuchMethod() invocation in the map of invocation targets.
   static final Member kNoSuchMethodMarker =
       new Procedure(new Name('noSuchMethod&&'), ProcedureKind.Method, null);
@@ -329,6 +353,8 @@ class _DispatchableInvocation extends _Invocation {
         Type type;
 
         if (target == kNoSuchMethodMarker) {
+          // Non-dynamic call-sites must hit NSM-forwarders in Dart 2.
+          assertx(selector is DynamicSelector);
           type = _processNoSuchMethod(receiver, typeFlowAnalysis);
         } else {
           final directSelector =
@@ -359,6 +385,10 @@ class _DispatchableInvocation extends _Invocation {
             } else {
               typeFlowAnalysis._calledViaInterfaceSelector.add(target);
             }
+          }
+
+          if (directInvocation.typeChecksNeeded) {
+            typeChecksNeeded = true;
           }
         }
 
@@ -515,10 +545,10 @@ class _DispatchableInvocation extends _Invocation {
     if (!_isPolymorphic) {
       _isPolymorphic = true;
       _monomorphicTarget = null;
+      typeChecksNeeded = true;
 
       _notifyCallSites();
-
-      _callSites = null; // No longer needed.
+      _callSites = null;
     }
   }
 
@@ -536,14 +566,13 @@ class _DispatchableInvocation extends _Invocation {
     }
 
     _notifyCallSite(callSite);
-
     if (!callSite.isPolymorphic) {
-      assertx(!_isPolymorphic);
       (_callSites ??= new Set<Call>()).add(callSite);
     }
   }
 
-  /// Notify call site about changes in polymorphism of this invocation.
+  /// Notify call site about changes in polymorphism or checkedness of this
+  /// invocation.
   void _notifyCallSite(Call callSite) {
     assert(selector is! DirectSelector);
 
@@ -553,6 +582,10 @@ class _DispatchableInvocation extends _Invocation {
       if (_monomorphicTarget != null) {
         callSite.addTarget(_monomorphicTarget);
       }
+    }
+
+    if (typeChecksNeeded) {
+      callSite.setUseCheckedEntry();
     }
   }
 
@@ -700,20 +733,15 @@ class _FieldValue extends _DependencyTracker {
   final Summary typeGuardSummary;
   Type value;
 
+  /// Flag indicating if field initializer was executed.
+  bool isInitialized = false;
+
   _FieldValue(this.field, this.typeGuardSummary)
       : staticType = new Type.fromStatic(field.type) {
     if (field.initializer == null && _isDefaultValueOfFieldObservable()) {
       value = new Type.nullable(const EmptyType());
     } else {
       value = const EmptyType();
-    }
-  }
-
-  bool get staticCallSiteSkipCheck {
-    if (typeGuardSummary != null) {
-      return (typeGuardSummary.result as TypeCheck).canSkipOnStaticCallSite;
-    } else {
-      return false;
     }
   }
 
@@ -1024,8 +1052,16 @@ class _ClassHierarchyCache implements TypeHierarchy {
       return true;
     }
 
-    if (superType is DynamicType || superType is VoidType) return true;
-    if (subType is DynamicType || subType is VoidType) return false;
+    if (superType is DynamicType ||
+        superType is VoidType ||
+        subType is BottomType) {
+      return true;
+    }
+    if (subType is DynamicType ||
+        subType is VoidType ||
+        superType is BottomType) {
+      return false;
+    }
 
     // TODO(alexmarkov): handle function types properly
     if (subType is FunctionType) {
@@ -1175,6 +1211,7 @@ class _ClassHierarchyCache implements TypeHierarchy {
 
   Class get futureOrClass => environment.coreTypes.futureOrClass;
   Class get futureClass => environment.coreTypes.futureClass;
+  Class get functionClass => environment.coreTypes.functionClass;
 }
 
 class _WorkList {
@@ -1324,7 +1361,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     hierarchyCache = new _ClassHierarchyCache(
         this, hierarchy, _genericInterfacesInfo, environment);
     summaryCollector = new SummaryCollector(
-        target, environment, this, nativeCodeOracle, hierarchyCache);
+        target, environment, hierarchy, this, nativeCodeOracle, hierarchyCache);
     _invocationsCache = new _InvocationsCache(this);
     workList = new _WorkList(this);
 
@@ -1352,6 +1389,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     hierarchyCache.seal();
   }
 
+  /// Returns true if analysis found that given member
+  /// could be executed / field could be accessed.
   bool isMemberUsed(Member member) {
     if (member is Field) {
       return _fieldValues.containsKey(member);
@@ -1360,19 +1399,29 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     }
   }
 
+  /// Returns true if analysis found that initializer of the given [field]
+  /// could be executed.
+  bool isFieldInitializerUsed(Field field) {
+    final fieldValue = _fieldValues[field];
+    if (fieldValue != null) {
+      return fieldValue.isInitialized;
+    }
+    return false;
+  }
+
   bool isClassAllocated(Class c) => hierarchyCache.allocatedClasses.contains(c);
 
   Call callSite(TreeNode node) => summaryCollector.callSites[node];
 
+  TypeCheck explicitCast(AsExpression cast) =>
+      summaryCollector.explicitCasts[cast];
+
   Type fieldType(Field field) => _fieldValues[field]?.value;
 
-  // True if a the runtime type-check for this field can be skipped on
-  // statically-typed setter calls. (The type-check is only simulated after
-  // narrowing by the static parameter type.)
-  bool fieldStaticCallSiteSkipCheck(Field field) =>
-      _fieldValues[field]?.staticCallSiteSkipCheck;
-
   Args<Type> argumentTypes(Member member) => _summaries[member]?.argumentTypes;
+
+  List<VariableDeclaration> uncheckedParameters(Member member) =>
+      _summaries[member]?.uncheckedParameters;
 
   bool isTearOffTaken(Member member) => _tearOffTaken.contains(member);
 
@@ -1390,12 +1439,6 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   bool isCalledNotViaThis(Member member) =>
       _calledViaDynamicSelector.contains(member) ||
       _calledViaInterfaceSelector.contains(member);
-
-  // Returns parameters for which a runtime type-check can be skipped on
-  // statically-typed call-sites. (The type-check is only simulated after
-  // narrowing by the static parameter type.)
-  List<VariableDeclaration> staticCallSiteSkipCheckParams(Member member) =>
-      _summaries[member]?.staticCallSiteSkipCheckParams;
 
   /// ---- Implementation of [CallHandler] interface. ----
 
@@ -1432,6 +1475,11 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
       return null;
     }
+  }
+
+  @override
+  void typeCheckTriggered() {
+    currentInvocation.typeChecksNeeded = true;
   }
 
   /// ---- Implementation of [EntryPointsListener] interface. ----

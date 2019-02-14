@@ -106,146 +106,6 @@ abstract class JsToFrontendMapBase extends JsToFrontendMap {
   TypeVariableEntity toBackendTypeVariable(TypeVariableEntity typeVariable);
 }
 
-// TODO(johnniwinther): Merge this with [JsKernelToElementMap].
-class JsElementCreatorMixin {
-  IndexedLibrary createLibrary(String name, Uri canonicalUri) {
-    return new JLibrary(name, canonicalUri);
-  }
-
-  IndexedClass createClass(LibraryEntity library, String name,
-      {bool isAbstract}) {
-    return new JClass(library, name, isAbstract: isAbstract);
-  }
-
-  IndexedTypedef createTypedef(LibraryEntity library, String name) {
-    return new JTypedef(library, name);
-  }
-
-  TypeVariableEntity createTypeVariable(
-      Entity typeDeclaration, String name, int index) {
-    return new JTypeVariable(typeDeclaration, name, index);
-  }
-
-  IndexedConstructor createGenerativeConstructor(ClassEntity enclosingClass,
-      Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst}) {
-    return new JGenerativeConstructor(enclosingClass, name, parameterStructure,
-        isExternal: isExternal, isConst: isConst);
-  }
-
-  IndexedConstructor createFactoryConstructor(ClassEntity enclosingClass,
-      Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst, bool isFromEnvironmentConstructor}) {
-    return new JFactoryConstructor(enclosingClass, name, parameterStructure,
-        isExternal: isExternal,
-        isConst: isConst,
-        isFromEnvironmentConstructor: isFromEnvironmentConstructor);
-  }
-
-  JConstructorBody createConstructorBody(ConstructorEntity constructor) {
-    return new JConstructorBody(constructor);
-  }
-
-  JGeneratorBody createGeneratorBody(
-      FunctionEntity function, DartType elementType) {
-    return new JGeneratorBody(function, elementType);
-  }
-
-  IndexedFunction createGetter(LibraryEntity library,
-      ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
-      {bool isStatic, bool isExternal, bool isAbstract}) {
-    return new JGetter(library, enclosingClass, name, asyncMarker,
-        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-  }
-
-  IndexedFunction createMethod(
-      LibraryEntity library,
-      ClassEntity enclosingClass,
-      Name name,
-      ParameterStructure parameterStructure,
-      AsyncMarker asyncMarker,
-      {bool isStatic,
-      bool isExternal,
-      bool isAbstract}) {
-    return new JMethod(
-        library, enclosingClass, name, parameterStructure, asyncMarker,
-        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-  }
-
-  IndexedFunction createSetter(
-      LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isExternal, bool isAbstract}) {
-    return new JSetter(library, enclosingClass, name,
-        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-  }
-
-  IndexedField createField(
-      LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isAssignable, bool isConst}) {
-    return new JField(library, enclosingClass, name,
-        isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
-  }
-
-  LibraryEntity convertLibrary(IndexedLibrary library) {
-    return createLibrary(library.name, library.canonicalUri);
-  }
-
-  ClassEntity convertClass(LibraryEntity library, IndexedClass cls) {
-    return createClass(library, cls.name, isAbstract: cls.isAbstract);
-  }
-
-  TypedefEntity convertTypedef(LibraryEntity library, IndexedTypedef typedef) {
-    return createTypedef(library, typedef.name);
-  }
-
-  MemberEntity convertMember(
-      LibraryEntity library, ClassEntity cls, IndexedMember member) {
-    Name memberName = new Name(member.memberName.text, library,
-        isSetter: member.memberName.isSetter);
-    if (member.isField) {
-      IndexedField field = member;
-      return createField(library, cls, memberName,
-          isStatic: field.isStatic,
-          isAssignable: field.isAssignable,
-          isConst: field.isConst);
-    } else if (member.isConstructor) {
-      IndexedConstructor constructor = member;
-      if (constructor.isFactoryConstructor) {
-        // TODO(redemption): This should be a JFunction.
-        return createFactoryConstructor(
-            cls, memberName, constructor.parameterStructure,
-            isExternal: constructor.isExternal,
-            isConst: constructor.isConst,
-            isFromEnvironmentConstructor:
-                constructor.isFromEnvironmentConstructor);
-      } else {
-        return createGenerativeConstructor(
-            cls, memberName, constructor.parameterStructure,
-            isExternal: constructor.isExternal, isConst: constructor.isConst);
-      }
-    } else if (member.isGetter) {
-      IndexedFunction getter = member;
-      return createGetter(library, cls, memberName, getter.asyncMarker,
-          isStatic: getter.isStatic,
-          isExternal: getter.isExternal,
-          isAbstract: getter.isAbstract);
-    } else if (member.isSetter) {
-      IndexedFunction setter = member;
-      return createSetter(library, cls, memberName,
-          isStatic: setter.isStatic,
-          isExternal: setter.isExternal,
-          isAbstract: setter.isAbstract);
-    } else {
-      IndexedFunction function = member;
-      return createMethod(library, cls, memberName, function.parameterStructure,
-          function.asyncMarker,
-          isStatic: function.isStatic,
-          isExternal: function.isExternal,
-          isAbstract: function.isAbstract);
-    }
-  }
-}
-
 typedef Entity EntityConverter(Entity cls);
 
 class TypeConverter implements DartTypeVisitor<DartType, EntityConverter> {
@@ -901,7 +761,8 @@ class JSetter extends JFunction {
     bool isExternal = source.readBool();
     bool isAbstract = source.readBool();
     source.end(tag);
-    return new JSetter(library, enclosingClass, new Name(name, library),
+    return new JSetter(
+        library, enclosingClass, new Name(name, library, isSetter: true),
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 

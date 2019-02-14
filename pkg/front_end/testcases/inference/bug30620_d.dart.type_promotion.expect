@@ -1,0 +1,3 @@
+pkg/front_end/testcases/inference/bug30620_d.dart:8:24: Context: Possible promotion of obj@273
+String foo(obj) => obj is String
+                       ^^

@@ -1,0 +1,12 @@
+pkg/front_end/testcases/inference/void_return_type_subtypes_dynamic.dart:29:5: Context: Write to x@559
+  x = 123;
+    ^
+pkg/front_end/testcases/inference/void_return_type_subtypes_dynamic.dart:30:5: Context: Write to x@559
+  x = 'hi';
+    ^
+pkg/front_end/testcases/inference/void_return_type_subtypes_dynamic.dart:31:5: Context: Write to y@612
+  y = /*error:INVALID_ASSIGNMENT*/ 123;
+    ^
+pkg/front_end/testcases/inference/void_return_type_subtypes_dynamic.dart:32:5: Context: Write to y@612
+  y = /*error:INVALID_ASSIGNMENT*/ 'hi';
+    ^

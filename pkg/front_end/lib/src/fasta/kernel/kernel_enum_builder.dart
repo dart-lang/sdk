@@ -37,7 +37,13 @@ import '../fasta_codes.dart'
         templateDuplicatedDeclarationSyntheticCause,
         templateEnumConstantSameNameAsEnclosing;
 
-import '../modifier.dart' show constMask, finalMask, staticMask;
+import '../modifier.dart'
+    show
+        constMask,
+        finalMask,
+        hasInitializerMask,
+        initializingFormalMask,
+        staticMask;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
@@ -126,10 +132,10 @@ class KernelEnumBuilder extends SourceClassBuilder
     ///   String toString() => _name;
     /// }
 
-    members["index"] = new KernelFieldBuilder(
-        null, intType, "index", finalMask, parent, charOffset, null, true);
-    members["_name"] = new KernelFieldBuilder(
-        null, stringType, "_name", finalMask, parent, charOffset, null, true);
+    members["index"] = new KernelFieldBuilder(null, intType, "index",
+        finalMask | hasInitializerMask, parent, charOffset, charOffset);
+    members["_name"] = new KernelFieldBuilder(null, stringType, "_name",
+        finalMask | hasInitializerMask, parent, charOffset, charOffset);
     KernelConstructorBuilder constructorBuilder = new KernelConstructorBuilder(
         null,
         constMask,
@@ -137,10 +143,10 @@ class KernelEnumBuilder extends SourceClassBuilder
         "",
         null,
         <FormalParameterBuilder>[
-          new KernelFormalParameterBuilder(
-              null, 0, intType, "index", true, parent, charOffset),
-          new KernelFormalParameterBuilder(
-              null, 0, stringType, "_name", true, parent, charOffset)
+          new KernelFormalParameterBuilder(null, initializingFormalMask,
+              intType, "index", parent, charOffset),
+          new KernelFormalParameterBuilder(null, initializingFormalMask,
+              stringType, "_name", parent, charOffset)
         ],
         parent,
         charOffset,
@@ -148,8 +154,14 @@ class KernelEnumBuilder extends SourceClassBuilder
         charOffset,
         charEndOffset);
     constructors[""] = constructorBuilder;
-    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(null, listType,
-        "values", constMask | staticMask, parent, charOffset, null, true);
+    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(
+        null,
+        listType,
+        "values",
+        constMask | staticMask | hasInitializerMask,
+        parent,
+        charOffset,
+        charOffset);
     members["values"] = valuesBuilder;
     KernelProcedureBuilder toStringBuilder = new KernelProcedureBuilder(
         null,
@@ -205,11 +217,10 @@ class KernelEnumBuilder extends SourceClassBuilder
             metadata,
             selfType,
             name,
-            constMask | staticMask,
+            constMask | staticMask | hasInitializerMask,
             parent,
             enumConstantInfo.charOffset,
-            null,
-            true);
+            enumConstantInfo.charOffset);
         metadataCollector?.setDocumentationComment(
             fieldBuilder.target, documentationComment);
         members[name] = fieldBuilder..next = existing;
@@ -222,8 +233,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         name,
         new Scope(members, null, parent.scope, "enum $name",
             isModifiable: false),
-        new Scope(constructors, null, null, "constructors",
-            isModifiable: false),
+        new Scope(constructors, null, null, name, isModifiable: false),
         cls,
         enumConstantInfos,
         intType,

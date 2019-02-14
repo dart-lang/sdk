@@ -16,11 +16,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool,
-            trace_intrinsified_natives,
-            false,
-            "Report if any of the intrinsified natives are called");
-
 // Smi natives.
 
 // Returns false if integer is in wrong representation, e.g., as is a Mint
@@ -33,8 +28,9 @@ static bool CheckInteger(const Integer& i) {
   return true;
 }
 
-DEFINE_NATIVE_ENTRY(Integer_bitAndFromInteger, 2) {
-  const Integer& right = Integer::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Integer_bitAndFromInteger, 0, 2) {
+  const Integer& right =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(right));
   ASSERT(CheckInteger(left));
@@ -45,8 +41,9 @@ DEFINE_NATIVE_ENTRY(Integer_bitAndFromInteger, 2) {
   return left.BitOp(Token::kBIT_AND, right);
 }
 
-DEFINE_NATIVE_ENTRY(Integer_bitOrFromInteger, 2) {
-  const Integer& right = Integer::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Integer_bitOrFromInteger, 0, 2) {
+  const Integer& right =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(right));
   ASSERT(CheckInteger(left));
@@ -57,8 +54,9 @@ DEFINE_NATIVE_ENTRY(Integer_bitOrFromInteger, 2) {
   return left.BitOp(Token::kBIT_OR, right);
 }
 
-DEFINE_NATIVE_ENTRY(Integer_bitXorFromInteger, 2) {
-  const Integer& right = Integer::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Integer_bitXorFromInteger, 0, 2) {
+  const Integer& right =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(right));
   ASSERT(CheckInteger(left));
@@ -69,8 +67,9 @@ DEFINE_NATIVE_ENTRY(Integer_bitXorFromInteger, 2) {
   return left.BitOp(Token::kBIT_XOR, right);
 }
 
-DEFINE_NATIVE_ENTRY(Integer_addFromInteger, 2) {
-  const Integer& right_int = Integer::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Integer_addFromInteger, 0, 2) {
+  const Integer& right_int =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left_int, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(right_int));
   ASSERT(CheckInteger(left_int));
@@ -81,8 +80,9 @@ DEFINE_NATIVE_ENTRY(Integer_addFromInteger, 2) {
   return left_int.ArithmeticOp(Token::kADD, right_int);
 }
 
-DEFINE_NATIVE_ENTRY(Integer_subFromInteger, 2) {
-  const Integer& right_int = Integer::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Integer_subFromInteger, 0, 2) {
+  const Integer& right_int =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left_int, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(right_int));
   ASSERT(CheckInteger(left_int));
@@ -93,8 +93,9 @@ DEFINE_NATIVE_ENTRY(Integer_subFromInteger, 2) {
   return left_int.ArithmeticOp(Token::kSUB, right_int);
 }
 
-DEFINE_NATIVE_ENTRY(Integer_mulFromInteger, 2) {
-  const Integer& right_int = Integer::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Integer_mulFromInteger, 0, 2) {
+  const Integer& right_int =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left_int, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(right_int));
   ASSERT(CheckInteger(left_int));
@@ -105,8 +106,9 @@ DEFINE_NATIVE_ENTRY(Integer_mulFromInteger, 2) {
   return left_int.ArithmeticOp(Token::kMUL, right_int);
 }
 
-DEFINE_NATIVE_ENTRY(Integer_truncDivFromInteger, 2) {
-  const Integer& right_int = Integer::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Integer_truncDivFromInteger, 0, 2) {
+  const Integer& right_int =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left_int, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(right_int));
   ASSERT(CheckInteger(left_int));
@@ -114,8 +116,9 @@ DEFINE_NATIVE_ENTRY(Integer_truncDivFromInteger, 2) {
   return left_int.ArithmeticOp(Token::kTRUNCDIV, right_int);
 }
 
-DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 2) {
-  const Integer& right_int = Integer::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 0, 2) {
+  const Integer& right_int =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left_int, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(right_int));
   ASSERT(CheckInteger(left_int));
@@ -130,8 +133,9 @@ DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 2) {
   return left_int.ArithmeticOp(Token::kMOD, right_int);
 }
 
-DEFINE_NATIVE_ENTRY(Integer_greaterThanFromInteger, 2) {
-  const Integer& right = Integer::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Integer_greaterThanFromInteger, 0, 2) {
+  const Integer& right =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(right));
   ASSERT(CheckInteger(left));
@@ -142,8 +146,8 @@ DEFINE_NATIVE_ENTRY(Integer_greaterThanFromInteger, 2) {
   return Bool::Get(left.CompareWith(right) == 1).raw();
 }
 
-DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 2) {
-  const Integer& left = Integer::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 0, 2) {
+  const Integer& left = Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, right, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(left));
   ASSERT(CheckInteger(right));
@@ -172,26 +176,15 @@ static RawInteger* ParseInteger(const String& value) {
     }
   }
 
-  const String* int_string;
-  bool is_positive;
-  if (Scanner::IsValidInteger(value, &is_positive, &int_string)) {
-    if (is_positive) {
-      return Integer::New(*int_string);
-    }
-    String& temp = String::Handle();
-    temp = String::Concat(Symbols::Dash(), *int_string);
-    return Integer::New(temp);
-  }
-
-  return Integer::null();
+  return Integer::New(value);
 }
 
-DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
+DEFINE_NATIVE_ENTRY(Integer_parse, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
   return ParseInteger(value);
 }
 
-DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 3) {
+DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(Integer, default_value, arguments->NativeArgAt(2));
   // Call the embedder to supply us with the environment.
@@ -218,8 +211,9 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
   return value.ShiftOp(kind, amount, Heap::kNew);
 }
 
-DEFINE_NATIVE_ENTRY(Integer_shrFromInteger, 2) {
-  const Integer& amount = Integer::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Integer_shrFromInteger, 0, 2) {
+  const Integer& amount =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, value, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(amount));
   ASSERT(CheckInteger(value));
@@ -230,8 +224,9 @@ DEFINE_NATIVE_ENTRY(Integer_shrFromInteger, 2) {
   return ShiftOperationHelper(Token::kSHR, value, amount);
 }
 
-DEFINE_NATIVE_ENTRY(Integer_shlFromInteger, 2) {
-  const Integer& amount = Integer::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Integer_shlFromInteger, 0, 2) {
+  const Integer& amount =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, value, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(amount));
   ASSERT(CheckInteger(value));
@@ -242,8 +237,8 @@ DEFINE_NATIVE_ENTRY(Integer_shlFromInteger, 2) {
   return ShiftOperationHelper(Token::kSHL, value, amount);
 }
 
-DEFINE_NATIVE_ENTRY(Smi_bitAndFromSmi, 2) {
-  const Smi& left = Smi::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Smi_bitAndFromSmi, 0, 2) {
+  const Smi& left = Smi::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, right, arguments->NativeArgAt(1));
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Smi_bitAndFromSmi %s & %s\n", left.ToCString(),
@@ -254,8 +249,8 @@ DEFINE_NATIVE_ENTRY(Smi_bitAndFromSmi, 2) {
   return Smi::New(left_value.Value() & right_value.Value());
 }
 
-DEFINE_NATIVE_ENTRY(Smi_bitNegate, 1) {
-  const Smi& operand = Smi::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Smi_bitNegate, 0, 1) {
+  const Smi& operand = Smi::CheckedHandle(zone, arguments->NativeArgAt(0));
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Smi_bitNegate: %s\n", operand.ToCString());
   }
@@ -264,8 +259,8 @@ DEFINE_NATIVE_ENTRY(Smi_bitNegate, 1) {
   return Smi::New(result);
 }
 
-DEFINE_NATIVE_ENTRY(Smi_bitLength, 1) {
-  const Smi& operand = Smi::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Smi_bitLength, 0, 1) {
+  const Smi& operand = Smi::CheckedHandle(zone, arguments->NativeArgAt(0));
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Smi_bitLength: %s\n", operand.ToCString());
   }
@@ -277,8 +272,8 @@ DEFINE_NATIVE_ENTRY(Smi_bitLength, 1) {
 
 // Mint natives.
 
-DEFINE_NATIVE_ENTRY(Mint_bitNegate, 1) {
-  const Mint& operand = Mint::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Mint_bitNegate, 0, 1) {
+  const Mint& operand = Mint::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(CheckInteger(operand));
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Mint_bitNegate: %s\n", operand.ToCString());
@@ -287,8 +282,8 @@ DEFINE_NATIVE_ENTRY(Mint_bitNegate, 1) {
   return Integer::New(result);
 }
 
-DEFINE_NATIVE_ENTRY(Mint_bitLength, 1) {
-  const Mint& operand = Mint::CheckedHandle(arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Mint_bitLength, 0, 1) {
+  const Mint& operand = Mint::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(CheckInteger(operand));
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Mint_bitLength: %s\n", operand.ToCString());

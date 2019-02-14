@@ -99,6 +99,7 @@ void ThreadRegistry::AcquireMarkingStacks() {
   while (thread != NULL) {
     if (!thread->BypassSafepoints()) {
       thread->MarkingStackAcquire();
+      thread->DeferredMarkingStackAcquire();
     }
     thread = thread->next_;
   }
@@ -110,6 +111,7 @@ void ThreadRegistry::ReleaseMarkingStacks() {
   while (thread != NULL) {
     if (!thread->BypassSafepoints()) {
       thread->MarkingStackRelease();
+      thread->DeferredMarkingStackRelease();
     }
     thread = thread->next_;
   }
@@ -190,7 +192,7 @@ Thread* ThreadRegistry::GetFromFreelistLocked(Isolate* isolate) {
 
 void ThreadRegistry::ReturnToFreelistLocked(Thread* thread) {
   ASSERT(thread != NULL);
-  ASSERT(thread->os_thread_ == NULL);
+  ASSERT(thread->os_thread() == NULL);
   ASSERT(thread->isolate_ == NULL);
   ASSERT(thread->heap_ == NULL);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());

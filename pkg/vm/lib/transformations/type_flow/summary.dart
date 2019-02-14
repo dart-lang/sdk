@@ -16,6 +16,7 @@ import 'utils.dart';
 abstract class CallHandler {
   Type applyCall(Call callSite, Selector selector, Args<Type> args,
       {bool isResultUsed});
+  void typeCheckTriggered();
 }
 
 /// Base class for all statements in a summary.
@@ -65,13 +66,15 @@ class StatementVisitor {
 class Parameter extends Statement {
   final String name;
 
-  // 'staticType' is null for type parameters to factory constructors.
-  final Type staticType;
+  // [staticType] is null if no narrowing should be performed. This happens for
+  // type parameters and for parameters whose type is narrowed by a [TypeCheck]
+  // statement.
+  final Type staticTypeForNarrowing;
 
   Type defaultValue;
   Type _argumentType = const EmptyType();
 
-  Parameter(this.name, this.staticType);
+  Parameter(this.name, this.staticTypeForNarrowing);
 
   @override
   String get label => "%$name";
@@ -80,7 +83,13 @@ class Parameter extends Statement {
   void accept(StatementVisitor visitor) => visitor.visitParameter(this);
 
   @override
-  String dump() => "$label = _Parameter #$index [$staticType]";
+  String dump() {
+    String text = "$label = _Parameter #$index";
+    if (staticTypeForNarrowing != null) {
+      text += " [$staticTypeForNarrowing]";
+    }
+    return text;
+  }
 
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
@@ -168,7 +177,13 @@ class Call extends Statement {
   final Selector selector;
   final Args<TypeExpr> args;
 
-  Call(this.selector, this.args);
+  Call(this.selector, this.args) {
+    // TODO(sjindel/tfa): Support inferring unchecked entry-points for dynamic
+    // and direct calls as well.
+    if (selector is DynamicSelector || selector is DirectSelector) {
+      setUseCheckedEntry();
+    }
+  }
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitCall(this);
@@ -212,6 +227,7 @@ class Call extends Statement {
   static const int kNullableReceiver = (1 << 2);
   static const int kResultUsed = (1 << 3);
   static const int kReachable = (1 << 4);
+  static const int kUseCheckedEntry = (1 << 5);
 
   Member _monomorphicTarget;
 
@@ -227,7 +243,13 @@ class Call extends Statement {
 
   bool get isReachable => (_flags & kReachable) != 0;
 
+  bool get useCheckedEntry => (_flags & kUseCheckedEntry) != 0;
+
   Type get resultType => _resultType;
+
+  void setUseCheckedEntry() {
+    _flags |= kUseCheckedEntry;
+  }
 
   void setResultUsed() {
     _flags |= kResultUsed;
@@ -391,16 +413,30 @@ class TypeCheck extends Statement {
   TypeExpr arg;
   TypeExpr type;
 
-  bool _canSkip = true;
+  // The Kernel which this TypeCheck corresponds to. Can be a
+  // VariableDeclaration, AsExpression or Field.
+  //
+  // VariableDeclaration is used for parameter type-checks.
+  // Field is used for type-checks of parameters to implicit setters.
+  final TreeNode node;
 
-  // True if a the runtime type-check for this parameter can be skipped on
-  // statically-typed call-sites. (The type-check is only simulated after
-  // narrowing by the static parameter type.)
-  bool get canSkipOnStaticCallSite => _canSkip;
+  final Type staticType;
 
-  final VariableDeclaration parameter;
+  // 'isTestedOnlyOnCheckedEntryPoint' is whether or not this parameter's type-check will
+  // occur on the "checked" entrypoint in the VM but will be skipped on
+  // "unchecked" entrypoint.
+  bool isTestedOnlyOnCheckedEntryPoint;
 
-  TypeCheck(this.arg, this.type, this.parameter);
+  VariableDeclaration get parameter =>
+      node is VariableDeclaration ? node : null;
+
+  bool canAlwaysSkip = true;
+
+  TypeCheck(this.arg, this.type, this.node, this.staticType) {
+    assertx(node != null);
+    isTestedOnlyOnCheckedEntryPoint =
+        parameter != null && !parameter.isCovariant;
+  }
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitTypeCheck(this);
@@ -408,9 +444,7 @@ class TypeCheck extends Statement {
   @override
   String dump() {
     String result = "$label = _TypeCheck ($arg against $type)";
-    if (parameter != null) {
-      result += " (for parameter ${parameter.name})";
-    }
+    result += " (for ${node})";
     return result;
   }
 
@@ -421,25 +455,36 @@ class TypeCheck extends Statement {
     Type checkType = type.getComputedType(computedTypes);
     // TODO(sjindel/tfa): Narrow the result if possible.
     assertx(checkType is AnyType || checkType is RuntimeType);
-    if (_canSkip) {
-      if (checkType is AnyType) {
-        // If we don't know what the RHS of the check is going to be, we can't
-        // guarantee that it will pass.
-        if (kPrintTrace) {
-          tracePrint("TypeCheck failed, type is unknown");
-        }
-        _canSkip = false;
-      } else if (checkType is RuntimeType) {
-        _canSkip = argType.isSubtypeOfRuntimeType(typeHierarchy, checkType);
-        if (kPrintTrace && !_canSkip) {
-          tracePrint("TypeCheck of $argType against $checkType failed.");
-        }
-        argType = argType.intersection(
-            Type.fromStatic(checkType.representedTypeRaw), typeHierarchy);
-      } else {
-        assertx(false, details: "Cannot see $checkType on RHS of TypeCheck.");
+
+    bool canSkip = true; // Can this check be skipped on this invocation.
+
+    if (checkType is AnyType) {
+      // If we don't know what the RHS of the check is going to be, we can't
+      // guarantee that it will pass.
+      canSkip = false;
+    } else if (checkType is RuntimeType) {
+      canSkip = argType.isSubtypeOfRuntimeType(typeHierarchy, checkType);
+      argType = argType.intersection(
+          Type.fromStatic(checkType.representedTypeRaw), typeHierarchy);
+    } else {
+      assertx(false, details: "Cannot see $checkType on RHS of TypeCheck.");
+    }
+
+    // If this check might be skipped on an
+    // unchecked entry-point, we need to signal that the call-site must be
+    // checked.
+    if (!canSkip) {
+      canAlwaysSkip = false;
+      if (isTestedOnlyOnCheckedEntryPoint) {
+        callHandler.typeCheckTriggered();
+      }
+      if (kPrintTrace) {
+        tracePrint("TypeCheck of $argType against $checkType failed.");
       }
     }
+
+    argType = argType.intersection(staticType, typeHierarchy);
+
     return argType;
   }
 }
@@ -501,19 +546,23 @@ class Summary {
 
     for (int i = 0; i < positionalArgCount; i++) {
       final Parameter param = _statements[i] as Parameter;
-      if (param.staticType != null) {
-        final argType = args[i].specialize(typeHierarchy);
-        param._observeArgumentType(argType, typeHierarchy);
-        // TODO(sjindel/tfa): Perform narrowing inside 'TypeCheck'.
-        types[i] = argType.intersection(param.staticType, typeHierarchy);
+      if (args[i] is RuntimeType) {
+        types[i] = args[i];
+        continue;
+      }
+      final argType = args[i].specialize(typeHierarchy);
+      param._observeArgumentType(argType, typeHierarchy);
+      if (param.staticTypeForNarrowing != null) {
+        types[i] =
+            argType.intersection(param.staticTypeForNarrowing, typeHierarchy);
       } else {
+        // TODO(sjindel/tfa): Narrowing is performed inside a [TypeCheck] later.
         types[i] = args[i];
       }
     }
 
     for (int i = positionalArgCount; i < positionalParameterCount; i++) {
       final Parameter param = _statements[i] as Parameter;
-      assertx(param.staticType != null);
       final argType = param.defaultValue.specialize(typeHierarchy);
       param._observeArgumentType(argType, typeHierarchy);
       types[i] = argType;
@@ -529,7 +578,12 @@ class Summary {
             args[positionalArgCount + argIndex].specialize(typeHierarchy);
         argIndex++;
         param._observeArgumentType(argType, typeHierarchy);
-        types[i] = argType.intersection(param.staticType, typeHierarchy);
+        if (param.staticTypeForNarrowing != null) {
+          types[i] =
+              argType.intersection(param.staticTypeForNarrowing, typeHierarchy);
+        } else {
+          types[i] = argType;
+        }
       } else {
         assertx((argIndex == namedArgCount) ||
             (param.name.compareTo(argNames[argIndex]) < 0));
@@ -570,14 +624,15 @@ class Summary {
     return new Args<Type>(argTypes, names: argNames);
   }
 
-  List<VariableDeclaration> get staticCallSiteSkipCheckParams {
-    final vars = <VariableDeclaration>[];
-    for (final statement in _statements) {
-      if (statement is TypeCheck && statement.canSkipOnStaticCallSite) {
-        final decl = statement.parameter;
-        if (decl != null) vars.add(decl);
+  List<VariableDeclaration> get uncheckedParameters {
+    final params = List<VariableDeclaration>();
+    for (Statement statement in _statements) {
+      if (statement is TypeCheck &&
+          statement.canAlwaysSkip &&
+          statement.parameter != null) {
+        params.add(statement.parameter);
       }
     }
-    return vars;
+    return params;
   }
 }

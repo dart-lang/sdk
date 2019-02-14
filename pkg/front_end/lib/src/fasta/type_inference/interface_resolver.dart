@@ -33,7 +33,8 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/src/hierarchy_based_type_environment.dart'
+    show HierarchyBasedTypeEnvironment;
 
 import '../../base/instrumentation.dart'
     show
@@ -257,7 +258,6 @@ class ForwardingNode extends Procedure {
   /// they would not be checked in an inherited implementation, a forwarding
   /// stub is introduced as a place to put the checks.
   Procedure _computeCovarianceFixes(Procedure interfaceMember) {
-    assert(_interfaceResolver.strongMode);
     var substitution =
         _interfaceResolver._substitutionFor(interfaceMember, enclosingClass);
     // We always create a forwarding stub when we've inherited a member from an
@@ -546,9 +546,7 @@ class ForwardingNode extends Procedure {
   /// Creates a forwarding stub for this node if necessary, and propagates
   /// covariance information.
   Procedure _finalize() {
-    return _interfaceResolver.strongMode
-        ? _computeCovarianceFixes(resolve())
-        : resolve();
+    return _computeCovarianceFixes(resolve());
   }
 
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
@@ -678,14 +676,12 @@ class ForwardingNode extends Procedure {
 class InterfaceResolver {
   final TypeInferenceEngine _typeInferenceEngine;
 
-  final TypeEnvironment _typeEnvironment;
+  final HierarchyBasedTypeEnvironment _typeEnvironment;
 
   final Instrumentation _instrumentation;
 
-  final bool strongMode;
-
-  InterfaceResolver(this._typeInferenceEngine, this._typeEnvironment,
-      this._instrumentation, this.strongMode);
+  InterfaceResolver(
+      this._typeInferenceEngine, this._typeEnvironment, this._instrumentation);
 
   /// Indicates whether the "prepare" phase of type inference is complete.
   bool get isTypeInferencePrepared =>
@@ -839,7 +835,7 @@ class InterfaceResolver {
     // getter and a setter.  We will report both conflicts.
     Map<Name, List<Member>> staticMembers = {};
     for (var procedure in class_.procedures) {
-      if (procedure.isStatic) {
+      if (procedure.isStatic && !procedure.isFactory) {
         staticMembers.putIfAbsent(procedure.name, () => []).add(procedure);
       }
     }
@@ -924,9 +920,7 @@ class InterfaceResolver {
             return;
           }
         }
-        if (strongMode &&
-            member.enclosingClass == class_ &&
-            _requiresTypeInference(member)) {
+        if (member.enclosingClass == class_ && _requiresTypeInference(member)) {
           inferMethodType(library, class_, member, candidates, start + 1, end);
         }
         var forwardingNode = new ForwardingNode(
@@ -1067,7 +1061,7 @@ class InterfaceResolver {
       if (resolution is Procedure &&
           resolution.isSyntheticForwarder &&
           identical(resolution.enclosingClass, class_)) {
-        if (strongMode) class_.addMember(resolution);
+        class_.addMember(resolution);
         _instrumentation?.record(
             class_.location.file,
             class_.fileOffset,
@@ -1128,10 +1122,10 @@ class InterfaceResolver {
       Uri fileUri) {
     InferenceNode node;
     if (procedure.isAccessor && _requiresTypeInference(procedure)) {
-      if (strongMode && start < end) {
+      if (start < end) {
         node = new AccessorInferenceNode(
             this, procedure, candidates, start, end, library, fileUri);
-      } else if (strongMode && crossStart < crossEnd) {
+      } else if (crossStart < crossEnd) {
         node = new AccessorInferenceNode(this, procedure, candidates,
             crossStart, crossEnd, library, fileUri);
       } else if (procedure is SyntheticAccessor &&
@@ -1251,8 +1245,8 @@ class InterfaceResolver {
   /// Determines the appropriate substitution to translate type parameters
   /// mentioned in the given [candidate] to type parameters on [class_].
   Substitution _substitutionFor(Procedure candidate, Class class_) {
-    return Substitution.fromInterfaceType(_typeEnvironment.hierarchy
-        .getTypeAsInstanceOf(class_.thisType, candidate.enclosingClass));
+    return Substitution.fromInterfaceType(_typeEnvironment.getTypeAsInstanceOf(
+        class_.thisType, candidate.enclosingClass));
   }
 
   /// Executes [callback] once for each uniquely named member of [candidates].

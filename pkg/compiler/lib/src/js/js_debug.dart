@@ -52,9 +52,7 @@ class DebugPrinter extends BaseVisitor with Indentation, Tagging<Node> {
     openAndCloseNode(node, '${node.runtimeType}', {'value': node.value});
   }
 
-  /**
-   * Pretty-prints given node tree into string.
-   */
+  /// Pretty-prints given node tree into string.
   static String prettyPrint(Node node) {
     var p = new DebugPrinter();
     node.accept(p);

@@ -24,6 +24,8 @@ import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
@@ -103,16 +105,16 @@ class ProcessedOptions {
   ///
   /// A summary, also referred to as "outline" internally, is a [Component]
   /// where all method bodies are left out. In essence, it contains just API
-  /// signatures and constants. When strong-mode is enabled, the summary
-  /// already includes inferred types.
+  /// signatures and constants. The summary should include inferred top-level
+  /// types unless legacy mode is enabled.
   Component _sdkSummaryComponent;
 
   /// The summary for each uri in `options.inputSummaries`.
   ///
   /// A summary, also referred to as "outline" internally, is a [Component]
   /// where all method bodies are left out. In essence, it contains just API
-  /// signatures and constants. When strong-mode is enabled, the summary
-  /// already includes inferred types.
+  /// signatures and constants. The summaries should include inferred top-level
+  /// types unless legacy mode is enabled.
   List<Component> _inputSummariesComponents;
 
   /// Other components that are meant to be linked and compiled with the input
@@ -158,6 +160,8 @@ class ProcessedOptions {
   bool get verify => _raw.verify;
 
   bool get debugDump => _raw.debugDump;
+
+  bool get omitPlatform => _raw.omitPlatform;
 
   bool get setExitCodeOnProblem => _raw.setExitCodeOnProblem;
 
@@ -287,9 +291,17 @@ class ProcessedOptions {
   /// Whether to generate bytecode.
   bool get bytecode => _raw.bytecode;
 
+  /// Whether to write a file (e.g. a dill file) when reporting a crash.
+  bool get writeFileOnCrashReport => _raw.writeFileOnCrashReport;
+
   Target _target;
   Target get target => _target ??=
       _raw.target ?? new NoneTarget(new TargetFlags(legacyMode: legacyMode));
+
+  bool isExperimentEnabled(ExperimentalFlag flag) {
+    // TODO(askesc): Determine default flag value from specification file.
+    return _raw.experimentalFlags[flag] ?? false;
+  }
 
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".

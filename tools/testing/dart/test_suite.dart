@@ -128,9 +128,14 @@ abstract class TestSuite {
     _environmentOverrides = {
       'DART_CONFIGURATION': configuration.configurationDirectory,
     };
-    if (configuration.copyCoreDumps && Platform.isWindows) {
-      _environmentOverrides['DART_CRASHPAD_HANDLER'] =
-          new Path(buildDir + '/crashpad_handler.exe').toNativePath();
+    if (Platform.isWindows) {
+      _environmentOverrides['DART_SUPPRESS_WER'] = '1';
+      if (configuration.copyCoreDumps) {
+        _environmentOverrides['DART_CRASHPAD_HANDLER'] =
+            new Path(buildDir + '/crashpad_handler.exe')
+                .absolute
+                .toNativePath();
+      }
     }
   }
 
@@ -446,12 +451,13 @@ class VMTestSuite extends TestSuite {
   VMTestSuite(TestConfiguration configuration)
       : dartDir = Repository.dir.toNativePath(),
         super(configuration, "vm", ["runtime/tests/vm/vm.status"]) {
+    var binarySuffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
+
     // For running the tests we use the given '$runnerName' binary
-    targetRunnerPath = '$buildDir/run_vm_tests';
+    targetRunnerPath = '$buildDir/run_vm_tests$binarySuffix';
 
     // For listing the tests we use the '$runnerName.host' binary if it exists
     // and use '$runnerName' if it doesn't.
-    var binarySuffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
     var hostBinary = '$targetRunnerPath.host$binarySuffix';
     if (new File(hostBinary).existsSync()) {
       hostRunnerPath = hostBinary;
@@ -482,18 +488,25 @@ class VMTestSuite extends TestSuite {
   }
 
   void _addTest(ExpectationSet testExpectations, String testName) {
+    var fullName = 'cc/$testName';
+    var expectations = testExpectations.expectations(fullName);
+
     var args = configuration.standardOptions.toList();
     if (configuration.compilerConfiguration.previewDart2) {
+      final dfePath = new Path("$buildDir/gen/kernel-service.dart.snapshot")
+          .absolute
+          .toNativePath();
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
-      args.insert(0, '--dfe=$buildDir/gen/kernel-service.dart.snapshot');
+      args.insert(0, '--dfe=$dfePath');
+    }
+    if (expectations.contains(Expectation.crash)) {
+      args.insert(0, '--suppress-core-dump');
     }
 
     args.add(testName);
 
     var command = Command.process(
         'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
-    var fullName = 'cc/$testName';
-    var expectations = testExpectations.expectations(fullName);
     enqueueNewTestCase(fullName, [command], expectations);
   }
 
@@ -551,8 +564,7 @@ class StandardTestSuite extends TestSuite {
   final List<String> extraVmOptions;
   List<Uri> _dart2JsBootstrapDependencies;
   Set<String> _testListPossibleFilenames;
-
-  static final Uri co19SuiteLocation = Repository.uri.resolve("tests/co19_2/");
+  RegExp _selectorFilenameRegExp;
 
   StandardTestSuite(TestConfiguration configuration, String suiteName,
       Path suiteDirectory, List<String> statusFilePaths,
@@ -562,6 +574,7 @@ class StandardTestSuite extends TestSuite {
         suiteDir = Repository.dir.join(suiteDirectory),
         extraVmOptions = configuration.vmOptions,
         super(configuration, suiteName, statusFilePaths) {
+    // Initialize _dart2JsBootstrapDependencies
     if (!useSdk) {
       _dart2JsBootstrapDependencies = [];
     } else {
@@ -571,6 +584,8 @@ class StandardTestSuite extends TestSuite {
             .resolve('dart-sdk/bin/snapshots/dart2js.dart.snapshot')
       ];
     }
+
+    // Initialize _testListPossibleFilenames
     if (configuration.testList != null) {
       _testListPossibleFilenames = Set<String>();
       for (String s in configuration.testList) {
@@ -587,6 +602,18 @@ class StandardTestSuite extends TestSuite {
         }
       }
     }
+
+    // Initialize _selectorFilenameRegExp
+    String pattern = configuration.selectors[suiteName].pattern;
+    if (pattern.contains("/")) {
+      String lastPart = pattern.substring(pattern.lastIndexOf("/") + 1);
+      // If the selector is a multitest name ending in a number or 'none'
+      // we also accept test file names that don't contain that last part.
+      if (int.tryParse(lastPart) != null || lastPart == "none") {
+        pattern = pattern.substring(0, pattern.lastIndexOf("/"));
+      }
+    }
+    _selectorFilenameRegExp = new RegExp(pattern);
   }
 
   /**
@@ -709,26 +736,14 @@ class StandardTestSuite extends TestSuite {
     // The definitive check against configuration.testList is performed in
     // TestSuite.enqueueNewTestCase().
     if (_testListPossibleFilenames?.contains(filename) == false) return;
-    bool match = false;
-    for (var regex in configuration.selectors.values) {
-      String pattern = regex.pattern;
-      if (pattern.contains("/")) {
-        String lastPart = pattern.substring(pattern.lastIndexOf("/") + 1);
-        if (int.tryParse(lastPart) != null ||
-            lastPart.toLowerCase() == "none") {
-          pattern = pattern.substring(0, pattern.lastIndexOf("/"));
-        }
-      }
-      if (pattern != regex.pattern) {
-        regex = new RegExp(pattern);
-      }
-      if (regex.hasMatch(filename)) match = true;
-      if (match) break;
-    }
-    if (!match) return;
+    // Note: have to use Path instead of a filename for matching because
+    // on Windows we need to convert backward slashes to forward slashes.
+    // Our display test names (and filters) are given using forward slashes
+    // while filenames on Windows use backwards slashes.
+    final Path filePath = Path(filename);
+    if (!_selectorFilenameRegExp.hasMatch(filePath.toString())) return;
 
     if (!isTestFile(filename)) return;
-    Path filePath = new Path(filename);
 
     var optionsFromFile = readOptionsFromFile(new Uri.file(filename));
     CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);
@@ -802,12 +817,6 @@ class StandardTestSuite extends TestSuite {
     var commonArguments =
         commonArgumentsFromFile(info.filePath, info.optionsFromFile);
 
-    // TODO(floitsch): Hack. When running the 2.0 tests always start
-    // async functions synchronously.
-    if (suiteName.endsWith("_2")) {
-      commonArguments.insert(0, "--sync-async");
-    }
-
     var vmOptionsList = getVmOptions(info.optionsFromFile);
     assert(!vmOptionsList.isEmpty);
 
@@ -820,15 +829,16 @@ class StandardTestSuite extends TestSuite {
         allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
       }
 
-      var commands =
-          makeCommands(info, vmOptionsVariant, allVmOptions, commonArguments);
       var expectations = testExpectations.expectations(testName);
+      var isCrashExpected = expectations.contains(Expectation.crash);
+      var commands = makeCommands(info, vmOptionsVariant, allVmOptions,
+          commonArguments, isCrashExpected);
       enqueueNewTestCase(testName, commands, expectations, info);
     }
   }
 
   List<Command> makeCommands(TestInformation info, int vmOptionsVariant,
-      List<String> vmOptions, List<String> args) {
+      List<String> vmOptions, List<String> args, bool isCrashExpected) {
     var commands = <Command>[];
     var compilerConfiguration = configuration.compilerConfiguration;
     var sharedOptions = info.optionsFromFile['sharedOptions'] as List<String>;
@@ -883,14 +893,14 @@ class StandardTestSuite extends TestSuite {
             compilationArtifact);
 
     Map<String, String> environment = environmentOverrides;
-    Map<String, String> extraEnv = info.optionsFromFile['environment'];
+    var extraEnv = info.optionsFromFile['environment'] as Map<String, String>;
     if (extraEnv != null) {
       environment = new Map.from(environment)..addAll(extraEnv);
     }
 
     return commands
-      ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(
-          this, compilationArtifact, runtimeArguments, environment));
+      ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(this,
+          compilationArtifact, runtimeArguments, environment, isCrashExpected));
   }
 
   CreateTest makeTestCaseCreator(Map<String, dynamic> optionsFromFile) {
@@ -1020,27 +1030,6 @@ class StandardTestSuite extends TestSuite {
 
     var htmlPath = '$tempDir/test.html';
     new File(htmlPath).writeAsStringSync(content);
-
-    // TODO(floitsch): Hack. When running the 2.0 tests always start
-    // async functions synchronously.
-    if (suiteName.endsWith("_2") &&
-        configuration.compiler == Compiler.dart2js) {
-      if (optionsFromFile == null) {
-        optionsFromFile = const <String, dynamic>{
-          'sharedOptions': const ['--sync-async']
-        };
-      } else {
-        optionsFromFile = new Map<String, dynamic>.from(optionsFromFile);
-        var sharedOptions = optionsFromFile['sharedOptions'];
-        if (sharedOptions == null) {
-          sharedOptions = const <String>['--sync-async'];
-        } else {
-          sharedOptions = sharedOptions.toList();
-          sharedOptions.insert(0, "--sync-async");
-        }
-        optionsFromFile['sharedOptions'] = sharedOptions;
-      }
-    }
 
     // Construct the command(s) that compile all the inputs needed by the
     // browser test.
@@ -1258,8 +1247,6 @@ class StandardTestSuite extends TestSuite {
   Map<String, dynamic> readOptionsFromFile(Uri uri) {
     if (uri.path.endsWith('.dill')) {
       return optionsFromKernelFile();
-    } else if ("$uri".startsWith("$co19SuiteLocation")) {
-      return readOptionsFromCo19File(uri);
     }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
     RegExp environmentRegExp = new RegExp(r"// Environment=(.*)");
@@ -1403,9 +1390,11 @@ class StandardTestSuite extends TestSuite {
     //
     // Redo this code once we have a more precise test framework for detecting
     // and locating these errors.
-    var hasSyntaxError = contents.contains("/*@syntax-error=");
-    var hasCompileError =
-        hasSyntaxError || contents.contains("/*@compile-error=");
+    final hasSyntaxError = contents.contains("@syntax-error");
+    final hasCompileError =
+        hasSyntaxError || contents.contains("@compile-error");
+    final hasRuntimeError = contents.contains("@runtime-error");
+    final hasStaticWarning = contents.contains("@static-warning");
 
     return {
       "vmOptions": result,
@@ -1418,8 +1407,8 @@ class StandardTestSuite extends TestSuite {
       "packages": packages,
       "hasSyntaxError": hasSyntaxError,
       "hasCompileError": hasCompileError,
-      "hasRuntimeError": false,
-      "hasStaticWarning": false,
+      "hasRuntimeError": hasRuntimeError,
+      "hasStaticWarning": hasStaticWarning,
       "otherScripts": otherScripts,
       "otherResources": otherResources,
       "isMultitest": isMultitest,
@@ -1458,7 +1447,8 @@ class StandardTestSuite extends TestSuite {
       Compiler.dartkb,
       Compiler.dartkp,
       Compiler.precompiler,
-      Compiler.appJit
+      Compiler.appJit,
+      Compiler.appJitk,
     ];
 
     const runtimes = const [Runtime.none, Runtime.dartPrecompiled, Runtime.vm];
@@ -1467,50 +1457,6 @@ class StandardTestSuite extends TestSuite {
         runtimes.contains(configuration.runtime);
     if (!needsVmOptions) return [[]];
     return optionsFromFile['vmOptions'] as List<List<String>>;
-  }
-
-  /**
-   * Read options from a co19 test file.
-   *
-   * The reason this is different from [readOptionsFromFile] is that
-   * co19 is developed based on a contract which defines certain test
-   * tags. These tags may appear unused, but should not be removed
-   * without consulting with the co19 team.
-   *
-   * Also, [readOptionsFromFile] recognizes a number of additional
-   * tags that are not appropriate for use in general tests of
-   * conformance to the Dart language. Any Dart implementation must
-   * pass the co19 test suite as is, and not require extra flags,
-   * environment variables, configuration files, etc.
-   */
-  Map<String, dynamic> readOptionsFromCo19File(Uri uri) {
-    String contents = decodeUtf8(new File.fromUri(uri).readAsBytesSync());
-
-    bool hasSyntaxError = contents.contains("@syntax-error");
-    bool hasCompileError =
-        hasSyntaxError || contents.contains("@compile-error");
-    bool hasRuntimeError = contents.contains("@runtime-error");
-    bool hasStaticWarning = contents.contains("@static-warning");
-    bool isMultitest = multiTestRegExp.hasMatch(contents);
-
-    return {
-      "vmOptions": <List<String>>[[]],
-      "sharedOptions": <String>[],
-      "dart2jsOptions": <String>[],
-      "dartOptions": null,
-      "packageRoot": null,
-      "hasSyntaxError": hasSyntaxError,
-      "hasCompileError": hasCompileError,
-      "hasRuntimeError": hasRuntimeError,
-      "hasStaticWarning": hasStaticWarning,
-      "otherScripts": <String>[],
-      "otherResources": <String>[],
-      "isMultitest": isMultitest,
-      "isMultiHtmlTest": false,
-      "subtestNames": <String>[],
-      "isolateStubs": '',
-      "containsDomImport": false,
-    };
   }
 }
 

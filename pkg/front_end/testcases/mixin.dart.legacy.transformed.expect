@@ -1,0 +1,82 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class _B&Object&M1 extends core::Object implements self::M1 {
+  const synthetic constructor •() → self::_B&Object&M1
+    : super core::Object::•()
+    ;
+  method m() → dynamic
+    return core::print("M1");
+}
+abstract class _B&Object&M1&M2 extends self::_B&Object&M1 implements self::M2 {
+  const synthetic constructor •() → self::_B&Object&M1&M2
+    : super self::_B&Object&M1::•()
+    ;
+  method m() → dynamic
+    return core::print("M2");
+}
+class B extends self::_B&Object&M1&M2 {
+  constructor •(dynamic value) → self::B
+    : super self::_B&Object&M1&M2::•()
+    ;
+}
+abstract class M1 extends core::Object {
+  synthetic constructor •() → self::M1
+    : super core::Object::•()
+    ;
+  method m() → dynamic
+    return core::print("M1");
+}
+abstract class M2 extends core::Object {
+  synthetic constructor •() → self::M2
+    : super core::Object::•()
+    ;
+  method m() → dynamic
+    return core::print("M2");
+}
+abstract class _C&Object&M1 extends core::Object implements self::M1 {
+  const synthetic constructor •() → self::_C&Object&M1
+    : super core::Object::•()
+    ;
+  method m() → dynamic
+    return core::print("M1");
+}
+abstract class _C&Object&M1&M2 extends self::_C&Object&M1 implements self::M2 {
+  const synthetic constructor •() → self::_C&Object&M1&M2
+    : super self::_C&Object&M1::•()
+    ;
+  method m() → dynamic
+    return core::print("M2");
+}
+class C extends self::_C&Object&M1&M2 {
+  constructor •(dynamic value) → self::C
+    : super self::_C&Object&M1&M2::•()
+    ;
+}
+abstract class G1<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::G1<self::G1::T>
+    : super core::Object::•()
+    ;
+  method m() → dynamic
+    return core::print(self::G1::T);
+}
+abstract class _D&Object&G1<S extends core::Object = dynamic> extends core::Object implements self::G1<self::_D&Object&G1::S> {
+  const synthetic constructor •() → self::_D&Object&G1<self::_D&Object&G1::S>
+    : super core::Object::•()
+    ;
+  method m() → dynamic
+    return core::print(self::_D&Object&G1::S);
+}
+class D<S extends core::Object = dynamic> extends self::_D&Object&G1<self::D::S> {
+  synthetic constructor •() → self::D<self::D::S>
+    : super self::_D&Object&G1::•()
+    ;
+}
+static method main() → dynamic {
+  new self::B::•(null).m();
+  new self::C::•(null).m();
+  new self::D::•<dynamic>().m();
+  new self::D::•<core::int>().m();
+  new self::D::•<core::List<core::int>>().m();
+}

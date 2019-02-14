@@ -6,7 +6,7 @@ library fasta.parser.listener;
 
 import '../../scanner/token.dart' show Token;
 
-import '../fasta_codes.dart' show Message;
+import '../fasta_codes.dart' show Message, templateUnexpectedToken;
 
 import '../quote.dart' show UnescapeErrorListener;
 
@@ -17,6 +17,8 @@ import 'formal_parameter_kind.dart' show FormalParameterKind;
 import 'identifier_context.dart' show IdentifierContext;
 
 import 'member_kind.dart' show MemberKind;
+
+import 'util.dart' show optional;
 
 /// A parser event listener that does nothing except throw exceptions
 /// on parser errors.
@@ -249,8 +251,6 @@ class Listener implements UnescapeErrorListener {
     logEvent("Export");
   }
 
-  void beginExpressionStatement(Token token) {}
-
   /// Called by [Parser] after parsing an extraneous expression as error
   /// recovery. For a stack-based listener, the suggested action is to discard
   /// an expression from the stack.
@@ -258,7 +258,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("ExtraneousExpression");
   }
 
-  void endExpressionStatement(Token token) {
+  void handleExpressionStatement(Token token) {
     logEvent("ExpressionStatement");
   }
 
@@ -299,6 +299,24 @@ class Listener implements UnescapeErrorListener {
   void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
       int count, Token beginToken, Token endToken) {
     logEvent("Fields");
+  }
+
+  /// Marks that the grammar term `forInitializerStatement` has been parsed and
+  /// it was an empty statement.
+  void handleForInitializerEmptyStatement(Token token) {
+    logEvent("ForInitializerEmptyStatement");
+  }
+
+  /// Marks that the grammar term `forInitializerStatement` has been parsed and
+  /// it was an expression statement.
+  void handleForInitializerExpressionStatement(Token token) {
+    logEvent("ForInitializerExpressionStatement");
+  }
+
+  /// Marks that the grammar term `forInitializerStatement` has been parsed and
+  /// it was a `localVariableDeclaration`.
+  void handleForInitializerLocalVariableDeclaration(Token token) {
+    logEvent("ForInitializerLocalVariableDeclaration");
   }
 
   /// Marks the start of a for statement which is ended by either
@@ -660,9 +678,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("LibraryName");
   }
 
-  void beginLiteralMapEntry(Token token) {}
-
-  void endLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken) {
     logEvent("LiteralMapEntry");
   }
 
@@ -917,8 +933,20 @@ class Listener implements UnescapeErrorListener {
     logEvent("TryStatement");
   }
 
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     logEvent("Type");
+  }
+
+  // TODO(danrubel): Remove this once all listeners have been updated
+  // to properly handle nullable types
+  void reportErrorIfNullableType(Token questionMark) {
+    if (questionMark != null) {
+      assert(optional('?', questionMark));
+      handleRecoverableError(
+          templateUnexpectedToken.withArguments(questionMark),
+          questionMark,
+          questionMark);
+    }
   }
 
   void handleNoName(Token token) {
@@ -933,7 +961,7 @@ class Listener implements UnescapeErrorListener {
   /// - Type variables
   /// - Return type
   /// - Formal parameters
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     logEvent("FunctionType");
   }
 
@@ -1123,6 +1151,16 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralMap");
   }
 
+  void handleLiteralSet(
+      int count, Token beginToken, Token constKeyword, Token token) {
+    logEvent("LiteralSet");
+  }
+
+  void handleEmptyLiteralSetOrMap(
+      Token leftBrace, Token constKeyword, Token rightBrace) {
+    logEvent('EmptyLiteralSetOrMap');
+  }
+
   void handleLiteralNull(Token token) {
     logEvent("LiteralNull");
   }
@@ -1143,10 +1181,6 @@ class Listener implements UnescapeErrorListener {
 
   void handleNoArguments(Token token) {
     logEvent("NoArguments");
-  }
-
-  void handleNoExpression(Token token) {
-    logEvent("NoExpression");
   }
 
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {

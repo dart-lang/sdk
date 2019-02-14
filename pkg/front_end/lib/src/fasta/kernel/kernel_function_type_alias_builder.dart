@@ -34,6 +34,8 @@ import 'kernel_builder.dart'
         MetadataBuilder,
         TypeVariableBuilder;
 
+final InvalidType cyclicTypeAliasMarker = new InvalidType();
+
 class KernelFunctionTypeAliasBuilder
     extends FunctionTypeAliasBuilder<KernelFunctionTypeBuilder, DartType> {
   final Typedef target;
@@ -49,7 +51,11 @@ class KernelFunctionTypeAliasBuilder
       int charOffset,
       [Typedef target])
       : target = target ??
-            (new Typedef(name, null, fileUri: parent.target.fileUri)
+            (new Typedef(name, null,
+                typeParameters:
+                    KernelTypeVariableBuilder.kernelTypeParametersFromBuilders(
+                        typeVariables),
+                fileUri: parent.target.fileUri)
               ..fileOffset = charOffset),
         super(metadata, name, typeVariables, type, parent, charOffset);
 
@@ -86,27 +92,28 @@ class KernelFunctionTypeAliasBuilder
 
   DartType buildThisType(LibraryBuilder library) {
     if (thisType != null) {
-      if (const InvalidType() == thisType) {
+      if (identical(thisType, cyclicTypeAliasMarker)) {
         library.addProblem(templateCyclicTypedef.withArguments(name),
             charOffset, noLength, fileUri);
-        return const DynamicType();
+        return const InvalidType();
       }
       return thisType;
     }
-    thisType = const InvalidType();
-    FunctionType builtType = type?.build(library);
+    // It is a compile-time error for an alias (typedef) to refer to itself. We
+    // detect cycles by detecting recursive calls to this method using an
+    // instance of InvalidType that isn't identical to `const InvalidType()`.
+    thisType = cyclicTypeAliasMarker;
+    FunctionType builtType = type?.build(library, target.thisType);
     if (builtType != null) {
-      builtType.typedefReference = target.reference;
       if (typeVariables != null) {
         for (KernelTypeVariableBuilder tv in typeVariables) {
           // Follow bound in order to find all cycles
           tv.bound?.build(library);
-          target.typeParameters.add(tv.parameter..parent = target);
         }
       }
       return thisType = builtType;
     } else {
-      return thisType = const DynamicType();
+      return thisType = const InvalidType();
     }
   }
 
@@ -121,11 +128,7 @@ class KernelFunctionTypeAliasBuilder
     for (int i = 0; i < target.typeParameters.length; i++) {
       substitution[target.typeParameters[i]] = arguments[i];
     }
-    result = substitute(result, substitution);
-    if (library is KernelLibraryBuilder) {
-      library.typedefInstantiations[result] = arguments;
-    }
-    return result;
+    return substitute(result, substitution);
   }
 
   List<DartType> buildTypeArguments(
@@ -174,7 +177,7 @@ class KernelFunctionTypeAliasBuilder
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     var thisType = buildThisType(library);
-    if (thisType is DynamicType) return thisType;
+    if (thisType is InvalidType) return thisType;
     FunctionType result = thisType;
     if (target.typeParameters.isEmpty && arguments == null) return result;
     // Otherwise, substitute.

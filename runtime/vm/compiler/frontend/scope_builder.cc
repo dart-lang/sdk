@@ -95,15 +95,15 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     // captured receiver value. This ensure that AssertAssignable will correctly
     // load instantiator type arguments if they are needed.
     Class& klass = Class::Handle(Z, function.Owner());
-    Type& klass_type = H.GetCanonicalType(klass);
+    Type& klass_type = H.GetDeclarationType(klass);
     result_->this_variable =
         MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      Symbols::This(), klass_type);
-    result_->this_variable->set_index(VariableIndex(0));
     result_->this_variable->set_is_captured();
     enclosing_scope = new (Z) LocalScope(NULL, 0, 0);
     enclosing_scope->set_context_level(0);
     enclosing_scope->AddVariable(result_->this_variable);
+    enclosing_scope->AddContextVariable(result_->this_variable);
   } else if (function.IsLocalFunction()) {
     enclosing_scope = LocalScope::RestoreOuterScope(
         ContextScope::Handle(Z, function.context_scope()));
@@ -113,8 +113,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   scope_->set_end_token_pos(function.end_token_pos());
 
   // Add function type arguments variable before current context variable.
-  if (FLAG_reify_generic_functions &&
-      (function.IsGeneric() || function.HasGenericParent())) {
+  if ((function.IsGeneric() || function.HasGenericParent())) {
     LocalVariable* type_args_var = MakeVariable(
         TokenPosition::kNoSource, TokenPosition::kNoSource,
         Symbols::FunctionTypeArgumentsVar(), AbstractType::dynamic_type());
@@ -166,7 +165,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         // We use [is_static] instead of [IsStaticFunction] because the latter
         // returns `false` for constructors.
         Class& klass = Class::Handle(Z, function.Owner());
-        Type& klass_type = H.GetCanonicalType(klass);
+        Type& klass_type = H.GetDeclarationType(klass);
         LocalVariable* variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                          Symbols::This(), klass_type);
@@ -280,7 +279,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       intptr_t pos = 0;
       if (is_method) {
         Class& klass = Class::Handle(Z, function.Owner());
-        Type& klass_type = H.GetCanonicalType(klass);
+        Type& klass_type = H.GetDeclarationType(klass);
         LocalVariable* variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                          Symbols::This(), klass_type);
@@ -299,9 +298,10 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           FieldHelper field_helper(&helper_);
           field_helper.ReadUntilIncluding(FieldHelper::kFlags);
 
-          if (!field_helper.IsCovariant() &&
-              (!field_helper.IsGenericCovariantImpl() ||
-               (!attrs.has_non_this_uses && !attrs.has_tearoff_uses))) {
+          if (field_helper.IsCovariant()) {
+            result_->setter_value->set_is_explicit_covariant_parameter();
+          } else if (!field_helper.IsGenericCovariantImpl() ||
+                     (!attrs.has_non_this_uses && !attrs.has_tearoff_uses)) {
             result_->setter_value->set_type_check_mode(
                 LocalVariable::kTypeCheckedByCaller);
           }
@@ -321,7 +321,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         const Class& klass = Class::Handle(Z, function.Owner());
         result_->this_variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                         Symbols::This(), H.GetCanonicalType(klass));
+                         Symbols::This(), H.GetDeclarationType(klass));
         scope_->InsertParameterAt(0, result_->this_variable);
 
         // Create setter value variable.
@@ -340,7 +340,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         Class& klass = Class::Handle(Z, function.Owner());
         result_->this_variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                         Symbols::This(), H.GetCanonicalType(klass));
+                         Symbols::This(), H.GetDeclarationType(klass));
         scope_->InsertParameterAt(pos++, result_->this_variable);
 
         // Create all positional and named parameters.
@@ -356,7 +356,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       // instead of using the generic code for regular functions.
       // Therefore, it isn't necessary to mark it as captured here.
       Class& klass = Class::Handle(Z, function.Owner());
-      Type& klass_type = H.GetCanonicalType(klass);
+      Type& klass_type = H.GetDeclarationType(klass);
       LocalVariable* variable =
           MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                        Symbols::This(), klass_type);
@@ -787,6 +787,13 @@ void ScopeBuilder::VisitExpression() {
       }
       return;
     }
+    case kSetLiteral:
+    case kConstSetLiteral: {
+      // Set literals are currently desugared in the frontend and will not
+      // reach the VM. See http://dartbug.com/35124 for discussion.
+      UNREACHABLE();
+      return;
+    }
     case kMapLiteral:
     case kConstMapLiteral: {
       helper_.ReadPosition();                           // read position.
@@ -1210,7 +1217,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
 
 AbstractType& ScopeBuilder::BuildAndVisitVariableType() {
   const intptr_t offset = helper_.ReaderOffset();
-  AbstractType& type = T.BuildVariableType();
+  AbstractType& type = T.BuildType();
   helper_.SetOffset(offset);  // rewind
   VisitDartType();
   return type;
@@ -1292,7 +1299,7 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
   }
 
   if (!simple) {
-    helper_.SkipCanonicalNameReference();  // read typedef reference.
+    helper_.SkipOptionalDartType();  // read typedef reference.
   }
 
   VisitDartType();  // read return type.
@@ -1428,13 +1435,17 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
+  if (helper.IsCovariant()) {
+    variable->set_is_explicit_covariant_parameter();
+  }
   if (variable->name().raw() == Symbols::IteratorParameter().raw()) {
     variable->set_is_forced_stack();
   }
 
   const bool needs_covariant_check_in_method =
       helper.IsCovariant() ||
-      (helper.IsGenericCovariantImpl() && attrs.has_non_this_uses);
+      (helper.IsGenericCovariantImpl() &&
+       (attrs.has_non_this_uses || attrs.has_tearoff_uses));
 
   switch (type_check_mode) {
     case kTypeCheckAllParameters:
@@ -1462,6 +1473,13 @@ void ScopeBuilder::AddVariableDeclarationParameter(
       variable->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
       break;
   }
+
+  // TODO(sjindel): We can also skip these checks on dynamic invocations as
+  // well.
+  if (parameter_type.IsSkipCheck()) {
+    variable->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
+  }
+
   scope_->InsertParameterAt(pos, variable);
   result_->locals.Insert(helper_.data_program_offset_ + kernel_offset,
                          variable);

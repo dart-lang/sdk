@@ -76,7 +76,7 @@ class VmTarget extends Target {
     logger?.call("Transformed mixin applications");
 
     // TODO(kmillikin): Make this run on a per-method basis.
-    transformAsync.transformLibraries(coreTypes, libraries, flags.syncAsync);
+    transformAsync.transformLibraries(coreTypes, libraries);
     logger?.call("Transformed async methods");
 
     listFactorySpecializer.transformLibraries(libraries, coreTypes);
@@ -90,7 +90,7 @@ class VmTarget extends Target {
   void performTransformationsOnProcedure(
       CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
       {void logger(String msg)}) {
-    transformAsync.transformProcedure(coreTypes, procedure, flags.syncAsync);
+    transformAsync.transformProcedure(coreTypes, procedure);
     logger?.call("Transformed async functions");
   }
 

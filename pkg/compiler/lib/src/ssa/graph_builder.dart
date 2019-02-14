@@ -11,20 +11,19 @@ import '../diagnostics/diagnostic_listener.dart';
 import '../elements/entities.dart' show Entity, Local, MemberEntity;
 import '../elements/jumps.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_handler_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/inferred_data.dart';
-import '../js_backend/js_interop_analysis.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
-import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../world.dart' show JClosedWorld;
 import 'jump_handler.dart';
 import 'locals_handler.dart';
@@ -83,8 +82,6 @@ abstract class GraphBuilder {
   ConstantSystem get constantSystem => constants.constantSystem;
 
   RuntimeTypesEncoder get rtiEncoder => backend.rtiEncoder;
-
-  JsInteropAnalysis get jsInteropAnalysis => backend.jsInteropAnalysis;
 
   InferredData get inferredData => globalInferenceResults.inferredData;
 
@@ -284,8 +281,6 @@ abstract class GraphBuilder {
   /// concrete SSA builder reports an error.
   bool getFlagValue(String flagName) {
     switch (flagName) {
-      case 'IS_FULL_EMITTER':
-        return !options.useStartupEmitter;
       case 'MINIFIED':
         return options.enableMinification;
       case 'MUST_RETAIN_METADATA':

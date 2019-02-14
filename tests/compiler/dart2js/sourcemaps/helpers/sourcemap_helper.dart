@@ -64,6 +64,10 @@ class OutputProvider implements CompilerOutput {
   OutputSink createOutputSink(String name, String extension, OutputType type) {
     return createSourceFileSink(name, extension, type);
   }
+
+  @override
+  BinaryOutputSink createBinarySink(Uri uri) =>
+      throw new UnsupportedError("OutputProvider.createBinarySink");
 }
 
 class CloningOutputProvider extends OutputProvider {
@@ -78,6 +82,10 @@ class CloningOutputProvider extends OutputProvider {
     return new CloningOutputSink(
         [output, createSourceFileSink(name, extension, type)]);
   }
+
+  @override
+  BinaryOutputSink createBinarySink(Uri uri) =>
+      throw new UnsupportedError("CloningOutputProvider.createBinarySink");
 }
 
 abstract class SourceFileManager {
@@ -515,6 +523,7 @@ class CodePointComputer extends TraceListener {
   /// Called when [node] defines a step of the given [kind] at the given
   /// [offset] when the generated JavaScript code.
   void onStep(js.Node node, Offset offset, StepKind kind) {
+    if (kind == StepKind.ACCESS) return;
     register(kind, node);
   }
 

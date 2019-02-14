@@ -350,6 +350,7 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
       ErrorExit(kErrorExitCode, "%s\n", result.error);
     }
     WriteSnapshotFile(snapshot_filename, result.kernel, result.kernel_size);
+    free(result.kernel);
   }
 #else
   UNREACHABLE();

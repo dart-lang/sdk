@@ -48,12 +48,12 @@ final whitelistMessageCode = new Set<fastaCodes.Code>.from(<fastaCodes.Code>[
   fastaCodes.codeUndefinedMethod,
 ]);
 
-DiagnosticMessageHandler onDiagnosticMessageHandler(bool isStrong) {
+DiagnosticMessageHandler onDiagnosticMessageHandler({bool legacyMode: false}) {
   bool messageReported = false;
   return (DiagnosticMessage m) {
     if (m.severity == Severity.internalProblem ||
         m.severity == Severity.error) {
-      if (!isStrong ||
+      if (legacyMode ||
           !whitelistMessageCode.contains(getMessageCodeObject(m))) {
         printDiagnosticMessage(m, stderr.writeln);
         exitCode = 1;
@@ -65,34 +65,18 @@ DiagnosticMessageHandler onDiagnosticMessageHandler(bool isStrong) {
   };
 }
 
-/// Creates a [VmTarget] or [FlutterTarget] with strong-mode enabled or
+/// Creates a [VmTarget] or [FlutterTarget] with legacy mode enabled or
 /// disabled.
 // TODO(sigmund): delete as soon as the disableTypeInference flag and the
-// strongMode flag get merged, and we have a single way of specifying the
-// strong-mode flag to the FE.
-Target createTarget({bool isFlutter: false, bool strongMode: true}) {
-  var flags = new TargetFlags(legacyMode: !strongMode);
+// legacyMode flag get merged, and we have a single way of specifying the
+// legacy-mode flag to the FE.
+Target createTarget({bool isFlutter: false, bool legacyMode: false}) {
+  var flags = new TargetFlags(legacyMode: legacyMode);
   if (isFlutter) {
-    return strongMode
-        ? new FlutterTarget(flags)
-        : new LegacyFlutterTarget(flags);
+    return new FlutterTarget(flags);
   } else {
-    return strongMode ? new VmTarget(flags) : new LegacyVmTarget(flags);
+    return new VmTarget(flags);
   }
-}
-
-class LegacyVmTarget extends VmTarget {
-  LegacyVmTarget(TargetFlags flags) : super(flags);
-
-  @override
-  bool get disableTypeInference => true;
-}
-
-class LegacyFlutterTarget extends FlutterTarget {
-  LegacyFlutterTarget(TargetFlags flags) : super(flags);
-
-  @override
-  bool get disableTypeInference => true;
 }
 
 class TimingsCollector {
@@ -137,10 +121,16 @@ class TimingsCollector {
   void printTimings() {
     timings.forEach((String key, List<double> durations) {
       double total = 0.0;
-      for (double duration in durations.skip(3)) {
-        total += duration;
+      int length = durations.length;
+      if (length == 1) {
+        total += durations.single;
+      } else {
+        length -= 3;
+        for (double duration in durations.skip(3)) {
+          total += duration;
+        }
       }
-      print("$key took: ${total / (durations.length - 3)}ms");
+      print("$key took: ${total / length}ms");
     });
   }
 }

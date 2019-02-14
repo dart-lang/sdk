@@ -515,12 +515,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
   ProfilerDartStackWalker(Thread* thread,
                           Sample* sample,
                           SampleBuffer* sample_buffer,
-                          uword stack_lower,
-                          uword stack_upper,
                           uword pc,
                           uword fp,
-                          uword sp,
-                          bool exited_dart_code,
                           bool allocation_sample,
                           intptr_t skip_count = 0)
       : ProfilerStackWalker((thread->isolate() != NULL)
@@ -529,181 +525,167 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
                             sample,
                             sample_buffer,
                             skip_count),
+        thread_(thread),
         pc_(reinterpret_cast<uword*>(pc)),
-        fp_(reinterpret_cast<uword*>(fp)),
-        sp_(reinterpret_cast<uword*>(sp)),
-        stack_upper_(stack_upper),
-        stack_lower_(stack_lower),
-        has_exit_frame_(exited_dart_code) {
-    if (exited_dart_code) {
-// On Windows and Fuchsia the profiler does not run on the thread being
-// profiled.
-#if defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
-      const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
-          StackFrameIterator::kAllowCrossThreadIteration;
+        fp_(reinterpret_cast<uword*>(fp)) {}
+
+  bool IsInterpretedFrame(uword* fp) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return false;
 #else
-      const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
-          StackFrameIterator::kNoCrossThreadIteration;
+    Interpreter* interpreter = thread_->interpreter();
+    if (interpreter == nullptr) return false;
+    return interpreter->HasFrame(reinterpret_cast<uword>(fp));
 #endif
-      StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
-                                  cross_thread_policy);
-      pc_ = NULL;
-      fp_ = NULL;
-      sp_ = NULL;
-      if (!iterator.HasNextFrame()) {
-        return;
-      }
-      // Ensure we are able to get to the exit frame.
-      StackFrame* frame = iterator.NextFrame();
-      if (!frame->IsExitFrame()) {
-        return;
-      }
-      // Skip the exit frame.
-      if (!iterator.HasNextFrame()) {
-        return;
-      }
-      frame = iterator.NextFrame();
-      // Record frame details of the first frame from which we start walking.
-      pc_ = reinterpret_cast<uword*>(frame->pc());
-      fp_ = reinterpret_cast<uword*>(frame->fp());
-      sp_ = reinterpret_cast<uword*>(frame->sp());
-      is_interpreted_frame_ = frame->is_interpreted();
-    }
   }
 
   void walk() {
-    sample_->set_exit_frame_sample(has_exit_frame_);
-    if (!ValidFramePointer()) {
+    RELEASE_ASSERT(StubCode::HasBeenInitialized());
+    if (thread_->isolate()->IsDeoptimizing()) {
       sample_->set_ignore_sample(true);
       return;
     }
-    ASSERT(ValidFramePointer());
-    uword return_pc = InitialReturnAddress();
-    if (StubCode::InInvocationStub(return_pc, is_interpreted_frame_)) {
-      // Edge case- we have called out from the Invocation Stub but have not
-      // created the stack frame of the callee. Attempt to locate the exit
-      // frame before walking the stack.
-      if (!NextExit() || !ValidFramePointer()) {
-        // Nothing to sample.
-        sample_->set_ignore_sample(true);
-        return;
+
+    uword* exit_fp = reinterpret_cast<uword*>(thread_->top_exit_frame_info());
+    bool in_interpreted_frame;
+    bool has_exit_frame = exit_fp != 0;
+    if (has_exit_frame) {
+      if (IsInterpretedFrame(exit_fp)) {
+        // Exited from interpreter.
+        pc_ = 0;
+        fp_ = exit_fp;
+        in_interpreted_frame = true;
+        RELEASE_ASSERT(IsInterpretedFrame(fp_));
+      } else {
+        // Exited from compiled code.
+        pc_ = 0;
+        fp_ = exit_fp;
+        in_interpreted_frame = false;
+      }
+
+      // Skip exit frame.
+      pc_ = CallerPC(in_interpreted_frame);
+      fp_ = CallerFP(in_interpreted_frame);
+
+      // Can only move between interpreted and compiled frames after an exit
+      // frame.
+      RELEASE_ASSERT(IsInterpretedFrame(fp_) == in_interpreted_frame);
+    } else {
+      if (thread_->vm_tag() == VMTag::kDartCompiledTagId) {
+        // Running compiled code.
+        // Use the FP and PC from the thread interrupt or simulator; already set
+        // in the constructor.
+        in_interpreted_frame = false;
+      } else if (thread_->vm_tag() == VMTag::kDartInterpretedTagId) {
+        // Running interpreter.
+#if defined(DART_PRECOMPILED_RUNTIME)
+        UNREACHABLE();
+#else
+        pc_ = reinterpret_cast<uword*>(thread_->interpreter()->get_pc());
+        fp_ = reinterpret_cast<uword*>(thread_->interpreter()->get_fp());
+#endif
+        in_interpreted_frame = true;
+        RELEASE_ASSERT(IsInterpretedFrame(fp_));
+      } else {
+        // No Dart on the stack; caller shouldn't use this walker.
+        UNREACHABLE();
       }
     }
-    while (true) {
+
+    sample_->set_exit_frame_sample(has_exit_frame);
+
+    if (!has_exit_frame && !in_interpreted_frame &&
+        (CallerPC(in_interpreted_frame) == EntryMarker(in_interpreted_frame))) {
+      // During the prologue of a function, CallerPC will return the caller's
+      // caller. For most frames, the missing PC will be added during profile
+      // processing. However, during this stack walk, it can cause us to fail
+      // to identify the entry frame and lead the stack walk into the weeds.
+      // Do not continue the stalk walk since this might be a false positive
+      // from a Smi or unboxed value.
+      RELEASE_ASSERT(!has_exit_frame);
+      sample_->set_ignore_sample(true);
+      return;
+    }
+
+    for (;;) {
+      // Skip entry frame.
+      if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
+                                     in_interpreted_frame)) {
+        pc_ = 0;
+        fp_ = ExitLink(in_interpreted_frame);
+        if (fp_ == 0) {
+          break;  // End of Dart stack.
+        }
+        in_interpreted_frame = IsInterpretedFrame(fp_);
+
+        // Skip exit frame.
+        pc_ = CallerPC(in_interpreted_frame);
+        fp_ = CallerFP(in_interpreted_frame);
+
+        // At least one frame between exit and next entry frame.
+        RELEASE_ASSERT(!StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
+                                                   in_interpreted_frame));
+      }
+
       if (!Append(reinterpret_cast<uword>(pc_))) {
-        return;
+        break;  // Sample is full.
       }
-      if (!Next()) {
-        return;
-      }
+
+      pc_ = CallerPC(in_interpreted_frame);
+      fp_ = CallerFP(in_interpreted_frame);
+
+      // Can only move between interpreted and compiled frames after an exit
+      // frame.
+      RELEASE_ASSERT(IsInterpretedFrame(fp_) == in_interpreted_frame);
     }
   }
 
  private:
-  bool Next() {
-    if (!ValidFramePointer()) {
-      return false;
-    }
-    if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
-                                   is_interpreted_frame_)) {
-      // In invocation stub.
-      return NextExit();
-    }
-    // In regular Dart frame.
-    uword* new_pc = CallerPC();
-    // Check if we've moved into the invocation stub.
-    if (StubCode::InInvocationStub(reinterpret_cast<uword>(new_pc),
-                                   is_interpreted_frame_)) {
-      // New PC is inside invocation stub, skip.
-      return NextExit();
-    }
-    uword* new_fp = CallerFP();
-    if (!IsCalleeFrameOf(reinterpret_cast<uword>(new_fp),
-                         reinterpret_cast<uword>(fp_))) {
-      // FP didn't move to a caller (higher address on most architectures).
-      return false;
-    }
-    // Success, update fp and pc.
-    fp_ = new_fp;
-    pc_ = new_pc;
-    return true;
-  }
-
-  bool NextExit() {
-    if (!ValidFramePointer()) {
-      return false;
-    }
-    uword* new_fp = ExitLink();
-    if (new_fp == NULL) {
-      // No exit link.
-      return false;
-    }
-    if (new_fp <= fp_) {
-      // FP didn't move to a higher address.
-      return false;
-    }
-    if (!ValidFramePointer(new_fp)) {
-      return false;
-    }
-    // Success, update fp and pc.
-    fp_ = new_fp;
-    pc_ = CallerPC();
-    return true;
-  }
-
-  uword InitialReturnAddress() const {
-    ASSERT(sp_ != NULL);
-    // MSan/ASan are unaware of frames initialized by generated code.
-    MSAN_UNPOISON(sp_, kWordSize);
-    ASAN_UNPOISON(sp_, kWordSize);
-    return *(sp_);
-  }
-
-  uword* CallerPC() const {
+  uword* CallerPC(bool interp) const {
     ASSERT(fp_ != NULL);
-    uword* caller_pc_ptr = fp_ + kSavedCallerPcSlotFromFp;
+    uword* caller_pc_ptr =
+        fp_ + (interp ? kKBCSavedCallerPcSlotFromFp : kSavedCallerPcSlotFromFp);
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(caller_pc_ptr, kWordSize);
     ASAN_UNPOISON(caller_pc_ptr, kWordSize);
     return reinterpret_cast<uword*>(*caller_pc_ptr);
   }
 
-  uword* CallerFP() const {
+  uword* CallerFP(bool interp) const {
     ASSERT(fp_ != NULL);
-    uword* caller_fp_ptr = fp_ + kSavedCallerFpSlotFromFp;
+    uword* caller_fp_ptr =
+        fp_ + (interp ? kKBCSavedCallerFpSlotFromFp : kSavedCallerFpSlotFromFp);
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(caller_fp_ptr, kWordSize);
     ASAN_UNPOISON(caller_fp_ptr, kWordSize);
     return reinterpret_cast<uword*>(*caller_fp_ptr);
   }
 
-  uword* ExitLink() const {
+  uword* ExitLink(bool interp) const {
     ASSERT(fp_ != NULL);
-    uword* exit_link_ptr = fp_ + kExitLinkSlotFromEntryFp;
+    uword* exit_link_ptr =
+        fp_ + (interp ? kKBCExitLinkSlotFromEntryFp : kExitLinkSlotFromEntryFp);
     // MSan/ASan are unaware of frames initialized by generated code.
     MSAN_UNPOISON(exit_link_ptr, kWordSize);
     ASAN_UNPOISON(exit_link_ptr, kWordSize);
     return reinterpret_cast<uword*>(*exit_link_ptr);
   }
 
-  bool ValidFramePointer() const { return ValidFramePointer(fp_); }
-
-  bool ValidFramePointer(uword* fp) const {
-    if (fp == NULL) {
-      return false;
-    }
-    uword cursor = reinterpret_cast<uword>(fp);
-    cursor += sizeof(fp);
-    return (cursor >= stack_lower_) && (cursor < stack_upper_);
+  // Note because of stack guards, it is important that this marker lives
+  // above FP.
+  uword* EntryMarker(bool interp) const {
+    ASSERT(!interp);
+    ASSERT(fp_ != NULL);
+    uword* entry_marker_ptr = fp_ + kSavedCallerPcSlotFromFp + 1;
+    // MSan/ASan are unaware of frames initialized by generated code.
+    MSAN_UNPOISON(entry_marker_ptr, kWordSize);
+    ASAN_UNPOISON(entry_marker_ptr, kWordSize);
+    return reinterpret_cast<uword*>(*entry_marker_ptr);
   }
 
+  Thread* const thread_;
   uword* pc_;
   uword* fp_;
-  uword* sp_;
-  bool is_interpreted_frame_;
-  const uword stack_upper_;
-  const uword stack_lower_;
-  bool has_exit_frame_;
 };
 
 // If the VM is compiled without frame pointers (which is the default on
@@ -712,7 +694,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 //
 class ProfilerNativeStackWalker : public ProfilerStackWalker {
  public:
-  ProfilerNativeStackWalker(Dart_Port port_id,
+  ProfilerNativeStackWalker(ProfilerCounters* counters,
+                            Dart_Port port_id,
                             Sample* sample,
                             SampleBuffer* sample_buffer,
                             uword stack_lower,
@@ -727,6 +710,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
                             sample_buffer,
                             skip_count,
                             try_symbolize_dart_frames),
+        counters_(counters),
         stack_upper_(stack_upper),
         original_pc_(pc),
         original_fp_(fp),
@@ -746,10 +730,14 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
     if (gap >= kMaxStep) {
       // Gap between frame pointer and stack pointer is
       // too large.
+      AtomicOperations::IncrementInt64By(&counters_->incomplete_sample_fp_step,
+                                         1);
       return;
     }
 
     if (!ValidFramePointer(fp)) {
+      AtomicOperations::IncrementInt64By(
+          &counters_->incomplete_sample_fp_bounds, 1);
       return;
     }
 
@@ -768,17 +756,23 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
 
       if (fp <= previous_fp) {
         // Frame pointer did not move to a higher address.
+        AtomicOperations::IncrementInt64By(
+            &counters_->incomplete_sample_fp_step, 1);
         return;
       }
 
       gap = fp - previous_fp;
       if (gap >= kMaxStep) {
         // Frame pointer step is too large.
+        AtomicOperations::IncrementInt64By(
+            &counters_->incomplete_sample_fp_step, 1);
         return;
       }
 
       if (!ValidFramePointer(fp)) {
         // Frame pointer is outside of isolate stack boundary.
+        AtomicOperations::IncrementInt64By(
+            &counters_->incomplete_sample_fp_bounds, 1);
         return;
       }
 
@@ -788,6 +782,8 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
         // the pc is so large that adding one to it will cause an
         // overflow it is invalid and it will cause headaches later
         // while we are building the profile.  Discard it.
+        AtomicOperations::IncrementInt64By(&counters_->incomplete_sample_bad_pc,
+                                           1);
         return;
       }
 
@@ -825,6 +821,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
     return r;
   }
 
+  ProfilerCounters* const counters_;
   const uword stack_upper_;
   const uword original_pc_;
   const uword original_fp_;
@@ -1114,8 +1111,11 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
-  OS::PrintErr("Dumping native stack trace for thread %" Px "\n",
-               OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
+  Isolate* isolate = Isolate::Current();
+  const char* name = isolate == NULL ? NULL : isolate->name();
+  OS::PrintErr("thread=%" Pd ", isolate=%s(%p)\n",
+               OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name,
+               isolate);
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
     OS::PrintErr("Stack dump aborted because InitialRegisterCheck failed.\n");
@@ -1133,7 +1133,8 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   }
 
   ProfilerNativeStackWalker native_stack_walker(
-      ILLEGAL_PORT, NULL, NULL, stack_lower, stack_upper, pc, fp, sp,
+      &counters_, ILLEGAL_PORT, NULL, NULL, stack_lower, stack_upper, pc, fp,
+      sp,
       /*skip_count=*/0,
       /*try_symbolize_dart_frames=*/!for_crash);
   native_stack_walker.walk();
@@ -1181,13 +1182,12 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
 
   if (FLAG_profile_vm_allocation) {
     ProfilerNativeStackWalker native_stack_walker(
-        (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT, sample,
-        sample_buffer, stack_lower, stack_upper, pc, fp, sp);
+        &counters_, (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT,
+        sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp);
     native_stack_walker.walk();
   } else if (exited_dart_code) {
     ProfilerDartStackWalker dart_exit_stack_walker(
-        thread, sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp,
-        exited_dart_code, true);
+        thread, sample, sample_buffer, pc, fp, /* allocation_sample*/ true);
     dart_exit_stack_walker.walk();
   } else {
     // Fall back.
@@ -1244,8 +1244,8 @@ Sample* Profiler::SampleNativeAllocation(intptr_t skip_count,
   sample->set_native_allocation_size_bytes(allocation_size);
 
   ProfilerNativeStackWalker native_stack_walker(
-      ILLEGAL_PORT, sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp,
-      skip_count);
+      &counters_, ILLEGAL_PORT, sample, sample_buffer, stack_lower, stack_upper,
+      pc, fp, sp, skip_count);
 
   native_stack_walker.walk();
 
@@ -1383,12 +1383,11 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   ProfilerNativeStackWalker native_stack_walker(
-      (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT, sample,
-      sample_buffer, stack_lower, stack_upper, pc, fp, sp);
+      &counters_, (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT,
+      sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp);
   const bool exited_dart_code = thread->HasExitedDartCode();
-  ProfilerDartStackWalker dart_stack_walker(thread, sample, sample_buffer,
-                                            stack_lower, stack_upper, pc, fp,
-                                            sp, exited_dart_code, false);
+  ProfilerDartStackWalker dart_stack_walker(thread, sample, sample_buffer, pc,
+                                            fp, /* allocation_sample*/ false);
 
   // All memory access is done inside CollectSample.
   CollectSample(isolate, exited_dart_code, in_dart_code, sample,
@@ -1396,9 +1395,7 @@ void Profiler::SampleThread(Thread* thread,
                 &counters_);
 }
 
-CodeDescriptor::CodeDescriptor(const Code& code) : code_(code) {
-  ASSERT(!code_.IsNull());
-}
+CodeDescriptor::CodeDescriptor(const AbstractCode code) : code_(code) {}
 
 uword CodeDescriptor::Start() const {
   return code_.PayloadStart();
@@ -1425,15 +1422,10 @@ class CodeLookupTableBuilder : public ObjectVisitor {
   ~CodeLookupTableBuilder() {}
 
   void VisitObject(RawObject* raw_obj) {
-    uint32_t tags = raw_obj->ptr()->tags_;
-    if (RawObject::ClassIdTag::decode(tags) == kCodeCid) {
-      RawCode* raw_code = reinterpret_cast<RawCode*>(raw_obj);
-      const Code& code = Code::Handle(raw_code);
-      ASSERT(!code.IsNull());
-      const Instructions& instructions =
-          Instructions::Handle(code.instructions());
-      ASSERT(!instructions.IsNull());
-      table_->Add(code);
+    if (raw_obj->IsCode()) {
+      table_->Add(Code::Handle(Code::RawCast(raw_obj)));
+    } else if (raw_obj->IsBytecode()) {
+      table_->Add(Bytecode::Handle(Bytecode::RawCast(raw_obj)));
     }
   }
 
@@ -1482,9 +1474,10 @@ void CodeLookupTable::Build(Thread* thread) {
 #endif
 }
 
-void CodeLookupTable::Add(const Code& code) {
+void CodeLookupTable::Add(const Object& code) {
   ASSERT(!code.IsNull());
-  CodeDescriptor* cd = new CodeDescriptor(code);
+  ASSERT(code.IsCode() || code.IsBytecode());
+  CodeDescriptor* cd = new CodeDescriptor(AbstractCode(code.raw()));
   code_objects_.Add(cd);
 }
 
@@ -1659,7 +1652,12 @@ void ProcessedSample::CheckForMissingDartFrame(const CodeLookupTable& clt,
                                                uword pc_marker,
                                                uword* stack_buffer) {
   ASSERT(cd != NULL);
-  const Code& code = Code::Handle(cd->code());
+  if (cd->code().IsBytecode()) {
+    // Bytecode frame build is atomic from the profiler's perspective: no
+    // missing frame.
+    return;
+  }
+  const Code& code = Code::Handle(Code::RawCast(cd->code().raw()));
   ASSERT(!code.IsNull());
   // Some stubs (and intrinsics) do not push a frame onto the stack leaving
   // the frame pointer in the caller.

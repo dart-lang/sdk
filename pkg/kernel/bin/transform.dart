@@ -12,13 +12,15 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/src/tool/batch_util.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/transformations/constants.dart' as constants;
+
+import 'package:kernel/transformations/constants.dart' as constants
+    show SimpleErrorReporter, transformComponent;
+
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
 import 'package:kernel/transformations/method_call.dart' as method_call;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
-// import 'package:kernel/verifier.dart';
 import 'package:kernel/transformations/coq.dart' as coq;
 import 'package:kernel/vm/constants_native_effects.dart';
 import 'package:kernel/src/tool/command_line_util.dart';
@@ -41,10 +43,7 @@ ArgParser parser = new ArgParser()
   ..addOption('transformation',
       abbr: 't',
       help: 'The transformation to apply.',
-      defaultsTo: 'continuation')
-  ..addFlag('sync-async',
-      help: 'Whether `async` functions start synchronously.',
-      defaultsTo: false);
+      defaultsTo: 'continuation');
 
 main(List<String> arguments) async {
   if (arguments.isNotEmpty && arguments[0] == '--batch') {
@@ -69,7 +68,6 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   var output = options['out'];
   var format = options['format'];
   var verbose = options['verbose'];
-  var syncAsync = options['sync-async'];
 
   if (output == null) {
     output = '${input.substring(0, input.lastIndexOf('.'))}.transformed.dill';
@@ -86,7 +84,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   final hierarchy = new ClassHierarchy(component);
   switch (options['transformation']) {
     case 'continuation':
-      component = cont.transformComponent(coreTypes, component, syncAsync);
+      component = cont.transformComponent(coreTypes, component);
       break;
     case 'resolve-mixins':
       mix.transformLibraries(
@@ -101,8 +99,9 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       final Map<String, String> defines = null;
       final VmConstantsBackend backend =
           new VmConstantsBackend(defines, coreTypes);
-      component =
-          constants.transformComponent(component, backend, legacyMode: true);
+      component = constants.transformComponent(
+          component, backend, const constants.SimpleErrorReporter(),
+          legacyMode: true);
       break;
     case 'treeshake':
       component = treeshaker.transformComponent(coreTypes, hierarchy, component,

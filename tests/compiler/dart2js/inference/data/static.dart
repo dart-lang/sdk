@@ -21,9 +21,18 @@ main() {
 
   invokeStaticFieldUninitialized();
   invokeStaticFieldTearOff();
+  invokeStaticTypedFieldTearOff();
   invokeStaticFieldTearOffParameters();
 
   invokeStaticGetterTearOff();
+  invokeStaticTypedGetterTearOff();
+
+  invokeStaticGenericMethod1();
+  invokeStaticGenericMethod2();
+  invokeStaticGenericGetter1();
+  invokeStaticGenericGetter2();
+  invokeStaticGenericField1();
+  invokeStaticGenericField2();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -187,6 +196,19 @@ dynamic _field2 = _method1;
 invokeStaticFieldTearOff() => _field2();
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Call a top level field initialized to a tear-off of a top level method.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _method5:Value([exact=JSString], value: "")*/
+String _method5() => '';
+
+/*element: _field5:[null|subclass=Closure]*/
+String Function() _field5 = _method5;
+
+/*element: invokeStaticTypedFieldTearOff:[null|exact=JSString]*/
+invokeStaticTypedFieldTearOff() => _field5();
+
+////////////////////////////////////////////////////////////////////////////////
 /// Call a top level field initialized to a tear-off of a top level method
 /// taking one argument.
 ////////////////////////////////////////////////////////////////////////////////
@@ -212,3 +234,61 @@ get _getter1 => _method3;
 
 /*element: invokeStaticGetterTearOff:[null|subclass=Object]*/
 invokeStaticGetterTearOff() => _getter1();
+
+////////////////////////////////////////////////////////////////////////////////
+/// Call a typed top level getter returning a tear-off of a top level method.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _method6:[exact=JSUInt31]*/
+int _method6() => 0;
+
+/*element: _field7:[null|subclass=Closure]*/
+int Function() _field7 = _method6;
+
+/*element: _getter3:[null|subclass=Closure]*/
+int Function() get _getter3 => _field7;
+
+/*element: invokeStaticTypedGetterTearOff:[null|subclass=JSInt]*/
+invokeStaticTypedGetterTearOff() => _getter3();
+
+////////////////////////////////////////////////////////////////////////////////
+/// Calls to a generic static method whose return type depend upon the type
+/// arguments.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _method4:Union([exact=JSString], [exact=JSUInt31])*/
+T _method4<T>(T /*Union([exact=JSString], [exact=JSUInt31])*/ t) => t;
+
+/*element: invokeStaticGenericMethod1:[exact=JSUInt31]*/
+invokeStaticGenericMethod1() => _method4(0);
+
+/*element: invokeStaticGenericMethod2:[exact=JSString]*/
+invokeStaticGenericMethod2() => _method4('');
+
+////////////////////////////////////////////////////////////////////////////////
+/// Calls to a generic static method whose return type depend upon the type
+/// arguments.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _getter2:[subclass=Closure]*/
+T Function<T>(T) get _getter2 => _method4;
+
+/*element: invokeStaticGenericGetter1:[null|subclass=JSInt]*/
+invokeStaticGenericGetter1() => _getter2(0);
+
+/*element: invokeStaticGenericGetter2:[null|exact=JSString]*/
+invokeStaticGenericGetter2() => _getter2('');
+
+////////////////////////////////////////////////////////////////////////////////
+/// Calls to a generic static method whose return type depend upon the type
+/// arguments.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _field4:[null|subclass=Closure]*/
+T Function<T>(T) _field4 = _method4;
+
+/*element: invokeStaticGenericField1:[null|subclass=JSInt]*/
+invokeStaticGenericField1() => _field4(0);
+
+/*element: invokeStaticGenericField2:[null|exact=JSString]*/
+invokeStaticGenericField2() => _field4('');

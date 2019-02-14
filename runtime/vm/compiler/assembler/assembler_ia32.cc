@@ -1909,6 +1909,48 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
 }
 
+// Destroys the value register.
+void Assembler::StoreIntoArray(Register object,
+                               Register slot,
+                               Register value,
+                               CanBeSmi can_be_smi) {
+  ASSERT(object != value);
+  movl(Address(slot, 0), value);
+
+  Label done;
+  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
+  // A store buffer update is required.
+  if (value != kWriteBarrierObjectReg) {
+    pushl(kWriteBarrierObjectReg);  // Preserve kWriteBarrierObjectReg.
+  }
+  if (value != kWriteBarrierSlotReg && slot != kWriteBarrierSlotReg) {
+    pushl(kWriteBarrierSlotReg);  // Preserve kWriteBarrierSlotReg.
+  }
+  if (object != kWriteBarrierObjectReg && slot != kWriteBarrierSlotReg) {
+    if (slot == kWriteBarrierObjectReg && object == kWriteBarrierSlotReg) {
+      xchgl(slot, object);
+    } else if (slot == kWriteBarrierObjectReg) {
+      movl(kWriteBarrierSlotReg, slot);
+      movl(kWriteBarrierObjectReg, object);
+    } else {
+      movl(kWriteBarrierObjectReg, object);
+      movl(kWriteBarrierSlotReg, slot);
+    }
+  } else if (object != kWriteBarrierObjectReg) {
+    movl(kWriteBarrierObjectReg, object);
+  } else if (slot != kWriteBarrierSlotReg) {
+    movl(kWriteBarrierSlotReg, slot);
+  }
+  call(Address(THR, Thread::array_write_barrier_entry_point_offset()));
+  if (value != kWriteBarrierSlotReg && slot != kWriteBarrierSlotReg) {
+    popl(kWriteBarrierSlotReg);  // Restore kWriteBarrierSlotReg.
+  }
+  if (value != kWriteBarrierObjectReg) {
+    popl(kWriteBarrierObjectReg);  // Restore kWriteBarrierObjectReg.
+  }
+  Bind(&done);
+}
+
 void Assembler::UnverifiedStoreOldObject(const Address& dest,
                                          const Object& value) {
   ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
@@ -2090,8 +2132,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   entry.Call(this, argument_count);
 }
 
-void Assembler::Call(const StubEntry& stub_entry, bool movable_target) {
-  const Code& target = Code::ZoneHandle(stub_entry.code());
+void Assembler::Call(const Code& target, bool movable_target) {
   LoadObject(CODE_REG, target, movable_target);
   call(FieldAddress(CODE_REG, Code::entry_point_offset()));
 }
@@ -2100,13 +2141,13 @@ void Assembler::CallToRuntime() {
   call(Address(THR, Thread::call_to_runtime_entry_point_offset()));
 }
 
-void Assembler::Jmp(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
+void Assembler::Jmp(const Code& target) {
+  const ExternalLabel label(target.EntryPoint());
   jmp(&label);
 }
 
-void Assembler::J(Condition condition, const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
+void Assembler::J(Condition condition, const Code& target) {
+  const ExternalLabel label(target.EntryPoint());
   j(condition, &label);
 }
 
@@ -2326,8 +2367,8 @@ void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
     pushl(EAX);  // Preserve EAX.
     movl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
-    Call(*StubCode::PrintStopMessage_entry());  // Passing message in EAX.
-    popl(EAX);                                  // Restore EAX.
+    Call(StubCode::PrintStopMessage());  // Passing message in EAX.
+    popl(EAX);                           // Restore EAX.
   }
   // Emit the int3 instruction.
   int3();  // Execution can be resumed with the 'cont' command in gdb.

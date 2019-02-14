@@ -21,9 +21,17 @@ import 'package:kernel/error_formatter.dart' show ErrorFormatter;
 
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 
-import 'package:kernel/naive_type_checker.dart' show StrongModeTypeChecker;
+import 'package:kernel/naive_type_checker.dart' show NaiveTypeChecker;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer;
+
+import 'package:kernel/text/text_serialization_verifier.dart'
+    show
+        TextDeserializationFailure,
+        TextRoundTripFailure,
+        TextSerializationFailure,
+        TextSerializationVerificationFailure,
+        TextSerializationVerifier;
 
 import 'package:testing/testing.dart'
     show ChainContext, Result, StdioProcess, Step;
@@ -39,6 +47,9 @@ import '../kernel/verifier.dart' show verifyComponent;
 
 import '../messages.dart' show LocatedMessage;
 
+import '../fasta_codes.dart'
+    show templateInternalProblemUnhandled, templateUnspecified;
+
 class Print extends Step<Component, Component, ChainContext> {
   const Print();
 
@@ -46,13 +57,17 @@ class Print extends Step<Component, Component, ChainContext> {
 
   Future<Result<Component>> run(Component component, _) async {
     StringBuffer sb = new StringBuffer();
-    for (Library library in component.libraries) {
-      Printer printer = new Printer(sb);
-      if (library.importUri.scheme != "dart" &&
-          library.importUri.scheme != "package") {
-        printer.writeLibraryFile(library);
+    await CompilerContext.runWithDefaultOptions((compilerContext) async {
+      compilerContext.uriToSource.addAll(component.uriToSource);
+
+      for (Library library in component.libraries) {
+        Printer printer = new Printer(sb);
+        if (library.importUri.scheme != "dart" &&
+            library.importUri.scheme != "package") {
+          printer.writeLibraryFile(library);
+        }
       }
-    }
+    });
     print("$sb");
     return pass(component);
   }
@@ -76,7 +91,9 @@ class Verify extends Step<Component, Component, ChainContext> {
             }
             messages.writeAll(message.plainTextFormatted, "\n");
           });
-    return await CompilerContext.runWithOptions(options, (_) async {
+    return await CompilerContext.runWithOptions(options,
+        (compilerContext) async {
+      compilerContext.uriToSource.addAll(component.uriToSource);
       List<LocatedMessage> verificationErrors = verifyComponent(component,
           isOutline: !fullCompile, skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);
@@ -99,7 +116,7 @@ class TypeCheck extends Step<Component, Component, ChainContext> {
       Component component, ChainContext context) async {
     var errorFormatter = new ErrorFormatter();
     var checker =
-        new StrongModeTypeChecker(errorFormatter, component, ignoreSdk: true);
+        new NaiveTypeChecker(errorFormatter, component, ignoreSdk: true);
     checker.checkComponent(component);
     if (errorFormatter.numberOfFailures == 0) {
       return pass(component);
@@ -128,9 +145,10 @@ class MatchExpectation extends Step<Component, Component, ChainContext> {
 
   Future<Result<Component>> run(Component component, dynamic context) async {
     StringBuffer messages = context.componentToDiagnostics[component];
+    Uri uri = component.uriToSource.keys
+        .firstWhere((uri) => uri != null && uri.scheme == "file");
     Library library = component.libraries
         .firstWhere((Library library) => library.importUri.scheme != "dart");
-    Uri uri = library.importUri;
     Uri base = uri.resolve(".");
     Uri dartBase = Uri.base;
     StringBuffer buffer = new StringBuffer();
@@ -164,7 +182,11 @@ class MatchExpectation extends Step<Component, Component, ChainContext> {
       if (expected.trim() != actual.trim()) {
         if (!updateExpectations) {
           String diff = await runDiff(expectedFile.uri, actual);
-          return fail(null, "$uri doesn't match ${expectedFile.uri}\n$diff");
+          return new Result<Component>(
+              component,
+              context.expectationSet["ExpectationFileMismatch"],
+              "$uri doesn't match ${expectedFile.uri}\n$diff",
+              null);
         }
       } else {
         return pass(component);
@@ -176,10 +198,84 @@ class MatchExpectation extends Step<Component, Component, ChainContext> {
       });
       return pass(component);
     } else {
-      return fail(component, """
+      return new Result<Component>(
+          component,
+          context.expectationSet["ExpectationFileMissing"],
+          """
 Please create file ${expectedFile.path} with this content:
-$actual""");
+$actual""",
+          null);
     }
+  }
+}
+
+class KernelTextSerialization extends Step<Component, Component, ChainContext> {
+  const KernelTextSerialization();
+
+  String get name => "kernel text serialization";
+
+  Future<Result<Component>> run(
+      Component component, ChainContext context) async {
+    StringBuffer messages = new StringBuffer();
+    ProcessedOptions options = new ProcessedOptions(
+        options: new CompilerOptions()
+          ..onDiagnostic = (DiagnosticMessage message) {
+            if (messages.isNotEmpty) {
+              messages.write("\n");
+            }
+            messages.writeAll(message.plainTextFormatted, "\n");
+          });
+    return await CompilerContext.runWithOptions(options,
+        (compilerContext) async {
+      compilerContext.uriToSource.addAll(component.uriToSource);
+      TextSerializationVerifier verifier = new TextSerializationVerifier();
+      for (Library library in component.libraries) {
+        if (library.importUri.scheme != "dart" &&
+            library.importUri.scheme != "package") {
+          library.accept(verifier);
+        }
+      }
+      for (TextSerializationVerificationFailure failure in verifier.failures) {
+        LocatedMessage message;
+        if (failure is TextSerializationFailure) {
+          message = templateUnspecified
+              .withArguments(
+                  "Failed to serialize a node: ${failure.message.isNotEmpty}")
+              .withLocation(failure.uri, failure.offset, 1);
+        } else if (failure is TextDeserializationFailure) {
+          message = templateUnspecified
+              .withArguments(
+                  "Failed to deserialize a node: ${failure.message.isNotEmpty}")
+              .withLocation(failure.uri, failure.offset, 1);
+        } else if (failure is TextRoundTripFailure) {
+          String formattedInitial =
+              failure.initial.isNotEmpty ? failure.initial : "<empty>";
+          String formattedSerialized =
+              failure.serialized.isNotEmpty ? failure.serialized : "<empty>";
+          message = templateUnspecified
+              .withArguments(
+                  "Round trip failure: initial doesn't match serialized.\n"
+                  "  Initial    : $formattedInitial\n"
+                  "  Serialized : $formattedSerialized")
+              .withLocation(failure.uri, failure.offset, 1);
+        } else {
+          message = templateInternalProblemUnhandled
+              .withArguments(
+                  "${failure.runtimeType}", "KernelTextSerialization.run")
+              .withLocation(failure.uri, failure.offset, 1);
+        }
+        options.report(message, message.code.severity);
+      }
+
+      if (verifier.failures.isNotEmpty) {
+        return new Result<Component>(
+            null,
+            context.expectationSet["TextSerializationFailure"],
+            "$messages",
+            null);
+      }
+      return pass(component);
+    });
   }
 }
 

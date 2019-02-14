@@ -36,16 +36,6 @@ namespace dart {
 // The ThreadInterrupter has a single monitor (monitor_). This monitor is used
 // to synchronize startup, shutdown, and waking up from a deep sleep.
 //
-// A thread can only register and unregister itself. Each thread has a heap
-// allocated ThreadState. A thread's ThreadState is lazily allocated the first
-// time the thread is registered. A pointer to a thread's ThreadState is stored
-// in the list of threads registered to receive interrupts (threads_) and in
-// thread local storage. When a thread's ThreadState is being modified, the
-// thread local storage pointer is temporarily set to NULL while the
-// modification is occurring. After the ThreadState has been updated, the
-// thread local storage pointer is set again. This has an important side
-// effect: if the thread is interrupted by a signal handler during a ThreadState
-// update the signal handler will immediately return.
 
 DEFINE_FLAG(bool, trace_thread_interrupter, false, "Trace thread interrupter");
 

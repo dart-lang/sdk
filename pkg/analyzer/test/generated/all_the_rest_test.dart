@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -23,7 +23,7 @@ import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
+import 'package:analyzer/src/generated/sdk_io.dart'; // ignore: deprecated_member_use
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -37,6 +37,7 @@ import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../util/element_type_matchers.dart';
 import 'parser_test.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
@@ -50,6 +51,7 @@ main() {
     defineReflectiveTests(ElementLocatorTest);
     defineReflectiveTests(EnumMemberBuilderTest);
     defineReflectiveTests(ErrorReporterTest);
+    defineReflectiveTests(ErrorReporterTest2);
     defineReflectiveTests(ErrorSeverityTest);
     defineReflectiveTests(ExitDetectorTest);
     defineReflectiveTests(ExitDetectorTest2);
@@ -150,16 +152,14 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
 
   void test_restoreAbsolute_library() {
     _SourceMock source = new _SourceMock();
-    Uri fileUri = resourceProvider.pathContext.toUri(coreCorePath);
-    source.uri = fileUri;
+    source.uri = toUri('/sdk/lib/core/core.dart');
     Uri dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core');
   }
 
   void test_restoreAbsolute_part() {
     _SourceMock source = new _SourceMock();
-    Uri fileUri = resourceProvider.pathContext.toUri(coreIntPath);
-    source.uri = fileUri;
+    source.uri = toUri('/sdk/lib/core/int.dart');
     Uri dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core/int.dart');
   }
@@ -189,22 +189,19 @@ void main() {
   x += 1;
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_BinaryExpression() async {
     AstNode id = await _findNodeIn("+", "var x = 3 + 4;");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_ClassDeclaration() async {
     AstNode id = await _findNodeIn("class", "class A { }");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ClassElement, ClassElement, element);
+    expect(element, isClassElement);
   }
 
   test_locate_CompilationUnit() async {
@@ -220,26 +217,23 @@ class A {
   A.bar() {}
 }''');
     ConstructorDeclaration declaration =
-        id.getAncestor((node) => node is ConstructorDeclaration);
+        id.thisOrAncestorOfType<ConstructorDeclaration>();
     Element element = ElementLocator.locate(declaration);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ConstructorElement, ConstructorElement, element);
+    expect(element, isConstructorElement);
   }
 
   test_locate_ExportDirective() async {
     AstNode id = await _findNodeIn("export", "export 'dart:core';");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ExportElement, ExportElement, element);
+    expect(element, isExportElement);
   }
 
   test_locate_FunctionDeclaration() async {
     AstNode id = await _findNodeIn("f", "int f() => 3;");
     FunctionDeclaration declaration =
-        id.getAncestor((node) => node is FunctionDeclaration);
+        id.thisOrAncestorOfType<FunctionDeclaration>();
     Element element = ElementLocator.locate(declaration);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is FunctionElement, FunctionElement, element);
+    expect(element, isFunctionElement);
   }
 
   test_locate_Identifier_annotationClass_namedConstructor_forSimpleFormalParameter() async {
@@ -250,8 +244,7 @@ class Class {
 void main(@Class.name() parameter) {
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ClassElement, ClassElement, element);
+    expect(element, isClassElement);
   }
 
   test_locate_Identifier_annotationClass_unnamedConstructor_forSimpleFormalParameter() async {
@@ -262,15 +255,13 @@ class Class {
 void main(@Class() parameter) {
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ConstructorElement, ConstructorElement, element);
+    expect(element, isConstructorElement);
   }
 
   test_locate_Identifier_className() async {
     AstNode id = await _findNodeIn("A", "class A { }");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ClassElement, ClassElement, element);
+    expect(element, isClassElement);
   }
 
   test_locate_Identifier_constructor_named() async {
@@ -279,8 +270,7 @@ class A {
   A.bar() {}
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ConstructorElement, ConstructorElement, element);
+    expect(element, isConstructorElement);
   }
 
   test_locate_Identifier_constructor_unnamed() async {
@@ -289,22 +279,19 @@ class A {
   A() {}
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ConstructorElement, ConstructorElement, element);
+    expect(element, isConstructorElement);
   }
 
   test_locate_Identifier_fieldName() async {
     AstNode id = await _findNodeIn("x", "class A { var x; }");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is FieldElement, FieldElement, element);
+    expect(element, isFieldElement);
   }
 
   test_locate_Identifier_libraryDirective() async {
     AstNode id = await _findNodeIn("foo", "library foo.bar;");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is LibraryElement, LibraryElement, element);
+    expect(element, isLibraryElement);
   }
 
   test_locate_Identifier_propertyAccess() async {
@@ -313,15 +300,13 @@ void main() {
  int x = 'foo'.length;
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccessorElement,
-        PropertyAccessorElement, element);
+    expect(element, isPropertyAccessorElement);
   }
 
   test_locate_ImportDirective() async {
     AstNode id = await _findNodeIn("import", "import 'dart:core';");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ImportElement, ImportElement, element);
+    expect(element, isImportElement);
   }
 
   test_locate_IndexExpression() async {
@@ -331,8 +316,7 @@ void main() {
   var y = x[0];
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_InstanceCreationExpression() async {
@@ -342,8 +326,7 @@ void main() {
  new A();
 }''');
     Element element = ElementLocator.locate(node);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ConstructorElement, ConstructorElement, element);
+    expect(element, isConstructorElement);
   }
 
   test_locate_InstanceCreationExpression_type_prefixedIdentifier() async {
@@ -387,8 +370,7 @@ void main() {
   test_locate_LibraryDirective() async {
     AstNode id = await _findNodeIn("library", "library foo;");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is LibraryElement, LibraryElement, element);
+    expect(element, isLibraryElement);
   }
 
   test_locate_MethodDeclaration() async {
@@ -397,10 +379,9 @@ class A {
   void m() {}
 }''');
     MethodDeclaration declaration =
-        id.getAncestor((node) => node is MethodDeclaration);
+        id.thisOrAncestorOfType<MethodDeclaration>();
     Element element = ElementLocator.locate(declaration);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_MethodInvocation_method() async {
@@ -412,8 +393,7 @@ void main() {
  var f = new A().bar();
 }''');
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_MethodInvocation_topLevel() async {
@@ -425,11 +405,9 @@ void main() {
     CompilationUnit cu = await _resolveContents(code);
     int offset = code.indexOf('foo(0)');
     AstNode node = new NodeLocator(offset).searchWithin(cu);
-    MethodInvocation invocation =
-        node.getAncestor((n) => n is MethodInvocation);
+    MethodInvocation invocation = node.thisOrAncestorOfType<MethodInvocation>();
     Element element = ElementLocator.locate(invocation);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is FunctionElement, FunctionElement, element);
+    expect(element, isFunctionElement);
   }
 
   test_locate_PartOfDirective() async {
@@ -444,15 +422,13 @@ part of my.lib;
         analysisContext.resolveCompilationUnit2(unitSource, librarySource);
     PartOfDirective partOf = unit.directives.first;
     Element element = ElementLocator.locate(partOf);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is LibraryElement, LibraryElement, element);
+    expect(element, isLibraryElement);
   }
 
   test_locate_PostfixExpression() async {
     AstNode id = await _findNodeIn("++", "int addOne(int x) => x++;");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_PrefixedIdentifier() async {
@@ -460,25 +436,22 @@ part of my.lib;
 import 'dart:core' as core;
 core.int value;''');
     PrefixedIdentifier identifier =
-        id.getAncestor((node) => node is PrefixedIdentifier);
+        id.thisOrAncestorOfType<PrefixedIdentifier>();
     Element element = ElementLocator.locate(identifier);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ClassElement, ClassElement, element);
+    expect(element, isClassElement);
   }
 
   test_locate_PrefixExpression() async {
     AstNode id = await _findNodeIn("++", "int addOne(int x) => ++x;");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
+    expect(element, isMethodElement);
   }
 
   test_locate_StringLiteral_exportUri() async {
     addNamedSource("/foo.dart", "library foo;");
     AstNode id = await _findNodeIn("'foo.dart'", "export 'foo.dart';");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is LibraryElement, LibraryElement, element);
+    expect(element, isLibraryElement);
   }
 
   test_locate_StringLiteral_expression() async {
@@ -492,8 +465,7 @@ core.int value;''');
     AstNode id = await _findNodeIn(
         "'foo.dart'", "import 'foo.dart'; class B extends A {}");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is LibraryElement, LibraryElement, element);
+    expect(element, isLibraryElement);
   }
 
   test_locate_StringLiteral_partUri() async {
@@ -501,17 +473,15 @@ core.int value;''');
     AstNode id =
         await _findNodeIn("'foo.dart'", "library app; part 'foo.dart';");
     Element element = ElementLocator.locate(id);
-    EngineTestCase.assertInstanceOf((obj) => obj is CompilationUnitElement,
-        CompilationUnitElement, element);
+    expect(element, isCompilationUnitElement);
   }
 
   test_locate_VariableDeclaration() async {
     AstNode id = await _findNodeIn("x", "var x = 'abc';");
     VariableDeclaration declaration =
-        id.getAncestor((node) => node is VariableDeclaration);
+        id.thisOrAncestorOfType<VariableDeclaration>();
     Element element = ElementLocator.locate(declaration);
-    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
-        TopLevelVariableElement, element);
+    expect(element, isTopLevelVariableElement);
   }
 
   /**
@@ -669,11 +639,8 @@ class EnumMemberBuilderTest extends EngineTestCase {
 @reflectiveTest
 class ErrorReporterTest extends EngineTestCase {
   /**
-   * Create a type with the given name in a compilation unit with the given name.
-   *
-   * @param fileName the name of the compilation unit containing the class
-   * @param typeName the name of the type to be created
-   * @return the type that was created
+   * Return a newly created interface type with the given [typeName] in a
+   * compilation unit with the given [fileName].
    */
   InterfaceType createType(String fileName, String typeName) {
     CompilationUnitElementImpl unit = ElementFactory.compilationUnit(fileName);
@@ -748,7 +715,7 @@ zap: baz
         AstTestFactory.identifier3("x"),
         [firstType, secondType]);
     AnalysisError error = listener.errors[0];
-    expect(error.message.indexOf("(") < 0, isTrue);
+    expect(error.message.contains("("), isFalse);
   }
 
   test_reportTypeErrorForNode_sameName() async {
@@ -763,7 +730,69 @@ zap: baz
         AstTestFactory.identifier3("x"),
         [firstType, secondType]);
     AnalysisError error = listener.errors[0];
-    expect(error.message.indexOf("(") >= 0, isTrue);
+    expect(error.message.contains("("), isTrue);
+  }
+}
+
+@reflectiveTest
+class ErrorReporterTest2 extends ResolverTestCase {
+  test_reportTypeErrorForNode_sameName_functionType() async {
+    addNamedSource('/a.dart', '''
+class A {}
+''');
+    addNamedSource('/b.dart', '''
+class A {}
+''');
+    CompilationUnit unit = await resolveSource('''
+import 'a.dart' as a;
+import 'b.dart' as b;
+
+a.A Function() fa;
+b.A Function() fb;
+''');
+
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ErrorReporter reporter =
+        new ErrorReporter(listener, unit.declaredElement.source);
+    TopLevelVariableDeclaration fa = unit.declarations[0];
+    TopLevelVariableDeclaration fb = unit.declarations[1];
+    reporter.reportTypeErrorForNode(
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        AstTestFactory.identifier3('x'),
+        [fa.variables.type.type, fb.variables.type.type]);
+    AnalysisError error = listener.errors[0];
+    expect(error.message.contains('a.dart'), isTrue);
+    expect(error.message.contains('b.dart'), isTrue);
+  }
+
+  test_reportTypeErrorForNode_sameName_nested() async {
+    addNamedSource('/a.dart', '''
+class A {}
+''');
+    addNamedSource('/b.dart', '''
+class A {}
+''');
+    CompilationUnit unit = await resolveSource('''
+import 'a.dart' as a;
+import 'b.dart' as b;
+
+B<a.A> ba;
+B<b.A> bb;
+class B<T> {}
+''');
+
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ErrorReporter reporter =
+        new ErrorReporter(listener, unit.declaredElement.source);
+    TopLevelVariableDeclaration fa = unit.declarations[0];
+    TopLevelVariableDeclaration fb = unit.declarations[1];
+    reporter.reportTypeErrorForNode(
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        AstTestFactory.identifier3('x'),
+        [fa.variables.type.type, fb.variables.type.type]);
+    AnalysisError error = listener.errors[0];
+    expect(error.message.contains('a.dart'), isTrue);
+    expect(error.message.contains('b.dart'), isTrue);
   }
 }
 
@@ -2053,31 +2082,27 @@ class UriKindTest {
   }
 }
 
-class _SimpleDartSdkTest extends Object with ResourceProviderMixin {
-  String coreCorePath;
-  String coreIntPath;
+class _SimpleDartSdkTest with ResourceProviderMixin {
   DartSdk sdk;
 
   void setUp() {
-    Folder sdkFolder =
-        resourceProvider.newFolder(resourceProvider.convertPath('/sdk'));
-    resourceProvider.newFile(
-        resourceProvider.convertPath(
-            '/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart'),
-        '''
+    newFile('/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
+        content: '''
 const Map<String, LibraryInfo> libraries = const {
   "core": const LibraryInfo("core/core.dart")
 };
 ''');
-    coreCorePath = resourceProvider.convertPath('/sdk/lib/core/core.dart');
-    resourceProvider.newFile(coreCorePath, '''
+
+    newFile('/sdk/lib/core/core.dart', content: '''
 library dart.core;
 part 'int.dart';
 ''');
-    coreIntPath = resourceProvider.convertPath('/sdk/lib/core/int.dart');
-    resourceProvider.newFile(coreIntPath, '''
+
+    newFile('/sdk/lib/core/int.dart', content: '''
 part of dart.core;
 ''');
+
+    Folder sdkFolder = newFolder('/sdk');
     sdk = new FolderBasedDartSdk(resourceProvider, sdkFolder);
   }
 }

@@ -21,7 +21,6 @@ namespace dart {
 
 // Forward declarations.
 class RuntimeEntry;
-class StubEntry;
 class RegisterSet;
 
 // Instruction encoding bits.
@@ -336,16 +335,12 @@ class FieldAddress : public Address {
   }
 };
 
-class Assembler : public ValueObject {
+class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches = false)
-      : buffer_(),
-        object_pool_wrapper_(object_pool_wrapper),
-        prologue_offset_(-1),
-        has_single_entry_point_(true),
+      : AssemblerBase(object_pool_wrapper),
         use_far_branches_(use_far_branches),
-        comments_(),
         constant_pool_allowed_(false) {}
 
   ~Assembler() {}
@@ -364,25 +359,6 @@ class Assembler : public ValueObject {
   }
 
   // Misc. functionality
-  intptr_t CodeSize() const { return buffer_.Size(); }
-  intptr_t prologue_offset() const { return prologue_offset_; }
-  bool has_single_entry_point() const { return has_single_entry_point_; }
-
-  // Count the fixups that produce a pointer offset, without processing
-  // the fixups.  On ARM there are no pointers in code.
-  intptr_t CountPointerOffsets() const { return 0; }
-
-  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
-    ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
-    return buffer_.pointer_offsets();
-  }
-
-  ObjectPoolWrapper& object_pool_wrapper() { return *object_pool_wrapper_; }
-
-  RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_->MakeObjectPool();
-  }
-
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
   }
@@ -393,23 +369,11 @@ class Assembler : public ValueObject {
   void set_use_far_branches(bool b) { use_far_branches_ = b; }
 #endif  // TESTING || DEBUG
 
-  void FinalizeInstructions(const MemoryRegion& region) {
-    buffer_.FinalizeInstructions(region);
-  }
-
   // Debugging and bringup support.
   void Breakpoint() { bkpt(0); }
-  void Stop(const char* message);
-  void Unimplemented(const char* message);
-  void Untested(const char* message);
-  void Unreachable(const char* message);
+  void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  static bool EmittingComments();
-
-  const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);
 
@@ -691,7 +655,7 @@ class Assembler : public ValueObject {
   void bx(Register rm, Condition cond = AL);
   void blx(Register rm, Condition cond = AL);
 
-  void Branch(const StubEntry& stub_entry,
+  void Branch(const Code& code,
               ObjectPool::Patchability patchable = ObjectPool::kNotPatchable,
               Register pp = PP,
               Condition cond = AL);
@@ -699,20 +663,14 @@ class Assembler : public ValueObject {
   void Branch(const Address& address, Condition cond = AL);
 
   void BranchLink(
-      const StubEntry& stub_entry,
-      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
-  void BranchLink(const Code& code,
-                  ObjectPool::Patchability patchable,
-                  Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+      const Code& code,
+      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
   void BranchLinkToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers);
 
   // Branch and link to an entry address. Call sequence can be patched.
-  void BranchLinkPatchable(
-      const StubEntry& stub_entry,
-      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
-
   void BranchLinkPatchable(
       const Code& code,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
@@ -720,7 +678,7 @@ class Assembler : public ValueObject {
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
   void BranchLinkWithEquivalence(
-      const StubEntry& stub_entry,
+      const Code& code,
       const Object& equivalence,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
@@ -818,6 +776,11 @@ class Assembler : public ValueObject {
                        Register value,       // Value we are storing.
                        CanBeSmi can_value_be_smi = kValueCanBeSmi,
                        bool lr_reserved = false);
+  void StoreIntoArray(Register object,
+                      Register slot,
+                      Register value,
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                      bool lr_reserved = false);
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
@@ -1132,6 +1095,19 @@ class Assembler : public ValueObject {
                         Register temp1,
                         Register temp2);
 
+  // This emits an PC-relative call of the form "blr <offset>".  The offset
+  // is not yet known and needs therefore relocation to the right place before
+  // the code can be used.
+  //
+  // The neccessary information for the "linker" (i.e. the relocation
+  // information) is stored in [RawCode::static_calls_target_table_]: an entry
+  // of the form
+  //
+  //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
+  //
+  // will be used during relocation to fix the offset.
+  void GenerateUnRelocatedPcRelativeCall();
+
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
 
@@ -1160,10 +1136,6 @@ class Assembler : public ValueObject {
   static int32_t DecodeBranchOffset(int32_t inst);
 
  private:
-  AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPoolWrapper* object_pool_wrapper_;
-  int32_t prologue_offset_;
-  bool has_single_entry_point_;
   bool use_far_branches_;
 
   // If you are thinking of using one or both of these instructions directly,
@@ -1175,23 +1147,6 @@ class Assembler : public ValueObject {
   void BindARMv7(Label* label);
 
   void BranchLink(const ExternalLabel* label);
-
-  class CodeComment : public ZoneAllocated {
-   public:
-    CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) {}
-
-    intptr_t pc_offset() const { return pc_offset_; }
-    const String& comment() const { return comment_; }
-
-   private:
-    intptr_t pc_offset_;
-    const String& comment_;
-
-    DISALLOW_COPY_AND_ASSIGN(CodeComment);
-  };
-
-  GrowableArray<CodeComment*> comments_;
 
   bool constant_pool_allowed_;
 

@@ -43,8 +43,6 @@ extern const uint8_t* core_isolate_snapshot_instructions;
     BenchmarkIsolateScope __isolate__(benchmark);                              \
     Thread* __thread__ = Thread::Current();                                    \
     ASSERT(__thread__->isolate() == benchmark->isolate());                     \
-    StackZone __zone__(__thread__);                                            \
-    HandleScope __hs__(__thread__);                                            \
     Dart_BenchmarkHelper##name(benchmark, __thread__);                         \
     MallocHooks::set_stack_trace_collection_enabled(                           \
         __stack_trace_collection_enabled__);                                   \

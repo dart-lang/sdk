@@ -9,6 +9,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 const kEntryPointPragmaName = "vm:entry-point";
 const kExactResultTypePragmaName = "vm:exact-result-type";
+const kNonNullableResultType = "vm:non-nullable-result-type";
 
 abstract class ParsedPragma {}
 
@@ -27,6 +28,10 @@ class ParsedResultTypeByTypePragma extends ParsedPragma {
 class ParsedResultTypeByPathPragma extends ParsedPragma {
   final String path;
   ParsedResultTypeByPathPragma(this.path);
+}
+
+class ParsedNonNullableResultType extends ParsedPragma {
+  ParsedNonNullableResultType();
 }
 
 abstract class PragmaAnnotationParser {
@@ -91,6 +96,8 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
         }
         throw "ERROR: Unsupported option to '$kExactResultTypePragmaName' "
             "pragma: $options";
+      case kNonNullableResultType:
+        return new ParsedNonNullableResultType();
       default:
         return null;
     }

@@ -107,8 +107,10 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (!superType.IsNull()) {
     jsobj.AddProperty("superType", superType);
   }
-  const Type& mix = Type::Handle(mixin());
-  if (!mix.IsNull()) {
+  const Array& interface_array = Array::Handle(interfaces());
+  if (is_transformed_mixin_application()) {
+    Type& mix = Type::Handle();
+    mix ^= interface_array.At(interface_array.Length() - 1);
     jsobj.AddProperty("mixin", mix);
   }
   jsobj.AddProperty("library", Object::Handle(library()));
@@ -118,7 +120,6 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   {
     JSONArray interfaces_array(&jsobj, "interfaces");
-    const Array& interface_array = Array::Handle(interfaces());
     Type& interface_type = Type::Handle();
     if (!interface_array.IsNull()) {
       for (intptr_t i = 0; i < interface_array.Length(); ++i) {
@@ -171,10 +172,6 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
       stats->PrintToJSONObject(*this, &allocation_stats);
     }
   }
-}
-
-void UnresolvedClass::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
 }
 
 void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
@@ -312,6 +309,12 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (!code.IsNull()) {
     jsobj.AddProperty("code", code);
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Bytecode& bytecode = Bytecode::Handle(this->bytecode());
+  if (!bytecode.IsNull()) {
+    jsobj.AddProperty("_bytecode", bytecode);
+  }
+#endif  // !DART_PRECOMPILED_RUNTIME
   Array& ics = Array::Handle(ic_data_array());
   if (!ics.IsNull()) {
     jsobj.AddProperty("_icDataArray", ics);
@@ -483,9 +486,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
     Class& klass = Class::Handle();
     while (class_iter.HasNext()) {
       klass = class_iter.GetNextClass();
-      if (!klass.IsMixinApplication()) {
-        jsarr.AddValue(klass);
-      }
+      jsarr.AddValue(klass);
     }
   }
   {
@@ -788,6 +789,8 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
 }
 
 void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  // N.B. This is polymorphic with Bytecode.
+
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Code", ref);
   jsobj.AddFixedServiceId("code/%" Px64 "-%" Px "", compile_timestamp(),
@@ -851,6 +854,47 @@ void Code::set_await_token_positions(const Array& await_token_positions) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   StorePointer(&raw_ptr()->await_token_positions_, await_token_positions.raw());
 #endif
+}
+
+void Bytecode::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  // N.B. This is polymorphic with Code.
+
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Code", ref);
+  int64_t compile_timestamp = 0;
+  jsobj.AddFixedServiceId("code/%" Px64 "-%" Px "", compile_timestamp,
+                          PayloadStart());
+  const char* qualified_name = QualifiedName();
+  const char* vm_name = Name();
+  AddNameProperties(&jsobj, qualified_name, vm_name);
+
+  jsobj.AddProperty("kind", "Dart");
+  jsobj.AddProperty("_optimized", false);
+  jsobj.AddProperty("_intrinsic", false);
+  jsobj.AddProperty("_native", false);
+  if (ref) {
+    return;
+  }
+  const Function& fun = Function::Handle(function());
+  jsobj.AddProperty("function", fun);
+  jsobj.AddPropertyF("_startAddress", "%" Px "", PayloadStart());
+  jsobj.AddPropertyF("_endAddress", "%" Px "", PayloadStart() + Size());
+  jsobj.AddProperty("_alive", true);
+  const ObjectPool& obj_pool = ObjectPool::Handle(object_pool());
+  jsobj.AddProperty("_objectPool", obj_pool);
+  {
+    JSONArray jsarr(&jsobj, "_disassembly");
+    DisassembleToJSONStream formatter(jsarr);
+    Disassemble(&formatter);
+  }
+  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
+  if (!descriptors.IsNull()) {
+    JSONObject desc(&jsobj, "_descriptors");
+    descriptors.PrintToJSONObject(&desc, false);
+  }
+
+  { JSONArray inlined_functions(&jsobj, "_inlinedFunctions"); }
+  { JSONArray inline_intervals(&jsobj, "_inlinedIntervals"); }
 }
 
 void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
@@ -1057,18 +1101,14 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Type");
-  if (HasResolvedTypeClass()) {
-    const Class& type_cls = Class::Handle(type_class());
-    if (type_cls.CanonicalType() == raw()) {
-      intptr_t cid = type_cls.id();
-      jsobj.AddFixedServiceId("classes/%" Pd "/types/%d", cid, 0);
-    } else {
-      jsobj.AddServiceId(*this);
-    }
-    jsobj.AddProperty("typeClass", type_cls);
+  const Class& type_cls = Class::Handle(type_class());
+  if (type_cls.DeclarationType() == raw()) {
+    intptr_t cid = type_cls.id();
+    jsobj.AddFixedServiceId("classes/%" Pd "/types/%d", cid, 0);
   } else {
     jsobj.AddServiceId(*this);
   }
+  jsobj.AddProperty("typeClass", type_cls);
   const String& user_name = String::Handle(UserVisibleName());
   const String& vm_name = String::Handle(Name());
   AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
@@ -1111,25 +1151,6 @@ void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("parameterIndex", index());
   const AbstractType& upper_bound = AbstractType::Handle(bound());
   jsobj.AddProperty("bound", upper_bound);
-}
-
-void BoundedType::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "BoundedType");
-  jsobj.AddServiceId(*this);
-  const String& user_name = String::Handle(UserVisibleName());
-  const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
-  if (ref) {
-    return;
-  }
-  jsobj.AddProperty("targetType", AbstractType::Handle(type()));
-  jsobj.AddProperty("bound", AbstractType::Handle(bound()));
-}
-
-void MixinAppType::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  UNREACHABLE();
 }
 
 void Number::PrintJSONImpl(JSONStream* stream, bool ref) const {

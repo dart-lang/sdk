@@ -240,7 +240,7 @@ testStaticGenericMethod() {
 }
 
 /*strong.element: testInstanceGenericMethod:
- dynamic=[GenericClass.genericMethod<bool>(1)],
+ dynamic=[exact:GenericClass.genericMethod<bool>(1)],
  static=[
   GenericClass.generative(0),
   assertIsSubtype,

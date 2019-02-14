@@ -22,7 +22,7 @@ abstract class DartOccurrencesRequest implements OccurrencesRequest {
    * The analysis result for the file for which the occurrences information is
    * being requested.
    */
-  ResolveResult get result;
+  ResolvedUnitResult get result;
 }
 
 /**

@@ -4,14 +4,24 @@
 
 // part of "internal_patch.dart";
 
+@pragma("vm:entry-point")
 class ClassID {
+  @pragma("vm:entry-point")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   static int getID(Object value) native "ClassID_getID";
 
+  @pragma("vm:entry-point")
   static final int cidArray = 0;
+  @pragma("vm:entry-point")
   static final int cidExternalOneByteString = 0;
+  @pragma("vm:entry-point")
   static final int cidGrowableObjectArray = 0;
+  @pragma("vm:entry-point")
   static final int cidImmutableArray = 0;
+  @pragma("vm:entry-point")
   static final int cidOneByteString = 0;
+  @pragma("vm:entry-point")
   static final int cidTwoByteString = 0;
+  @pragma("vm:entry-point")
+  static final int cidUint8ArrayView = 0;
 }

@@ -246,30 +246,6 @@ String _resolveScriptUri(String scriptName) {
   return scriptUri.toString();
 }
 
-// Embedder Entrypoint (gen_snapshot):
-// Resolve relative paths relative to working directory.
-@pragma("vm:entry-point")
-String _resolveInWorkingDirectory(String fileName) {
-  if (!_setupCompleted) {
-    _setupHooks();
-  }
-  if (_workingDirectory == null) {
-    throw 'No current working directory set.';
-  }
-  var name = _sanitizeWindowsPath(fileName);
-
-  var uri = Uri.parse(name);
-  if (uri.scheme != '') {
-    throw 'Schemes are not supported when resolving filenames.';
-  }
-  uri = _workingDirectory.resolveUri(uri);
-
-  if (_traceLoading) {
-    _log('Resolved in working directory: $fileName -> $uri');
-  }
-  return uri.toString();
-}
-
 // Only used by vm/cc unit tests.
 Uri _resolvePackageUri(Uri uri) {
   assert(_packageRoot != null);
@@ -302,22 +278,6 @@ String _filePathFromUri(String userUri) {
       }
       throw 'Not a known scheme: $uri';
   }
-}
-
-// Embedder Entrypoint.
-@pragma("vm:entry-point")
-_libraryFilePath(String libraryUri) {
-  if (!_setupCompleted) {
-    _setupHooks();
-  }
-  int index = libraryUri.lastIndexOf('/');
-  var path;
-  if (index == -1) {
-    path = './';
-  } else {
-    path = libraryUri.substring(0, index + 1);
-  }
-  return _filePathFromUri(path);
 }
 
 // Register callbacks and hooks with the rest of the core libraries.

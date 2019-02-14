@@ -63,6 +63,7 @@ class GCMarker {
   Isolate* const isolate_;
   Heap* const heap_;
   MarkingStack marking_stack_;
+  MarkingStack deferred_marking_stack_;
   MarkingVisitorBase<true>** visitors_;
 
   Mutex stats_mutex_;

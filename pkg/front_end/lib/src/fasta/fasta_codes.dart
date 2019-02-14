@@ -7,11 +7,11 @@ library fasta.codes;
 import 'package:kernel/ast.dart'
     show Constant, DartType, demangleMixinApplicationName;
 
-import 'package:kernel/text/ast_to_text.dart' show NameSystem, Printer;
-
 import '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
 
 import '../scanner/token.dart' show Token;
+
+import 'kernel/type_labeler.dart';
 
 import 'severity.dart' show Severity;
 
@@ -194,3 +194,14 @@ String relativizeUri(Uri uri) {
 }
 
 typedef SummaryTemplate = Message Function(int, int, num, num, num);
+
+String itemizeNames(List<String> names) {
+  StringBuffer buffer = new StringBuffer();
+  for (int i = 0; i < names.length - 1; i++) {
+    buffer.write(" - ");
+    buffer.writeln(names[i]);
+  }
+  buffer.write(" - ");
+  buffer.write(names.last);
+  return "$buffer";
+}

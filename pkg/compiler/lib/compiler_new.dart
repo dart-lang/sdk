@@ -15,7 +15,7 @@ import 'compiler.dart' show Diagnostic;
 import 'src/apiimpl.dart';
 import 'src/options.dart' show CompilerOptions;
 
-export 'compiler.dart' show Diagnostic, PackagesDiscoveryProvider;
+export 'compiler.dart' show Diagnostic;
 
 // Unless explicitly allowed, passing `null` for any argument to the
 // methods of library will result in an Error being thrown.
@@ -72,9 +72,11 @@ enum OutputType {
   /// A source map for a JavaScript output.
   sourceMap,
 
-  /// Additional information requested by the user, such dump info or a deferred
-  /// map.
-  info,
+  /// Dump info output.
+  dumpInfo,
+
+  /// Deferred map output.
+  deferredMap,
 
   /// Implementation specific output used for debugging the compiler.
   debug,
@@ -84,6 +86,15 @@ enum OutputType {
 abstract class OutputSink {
   /// Adds [text] to the sink.
   void add(String text);
+
+  /// Closes the sink.
+  void close();
+}
+
+/// Sink interface used for generating binary data from the compiler.
+abstract class BinaryOutputSink {
+  /// Writes indices [start] to [end] of [buffer] to the sink.
+  void write(List<int> buffer, [int start = 0, int end]);
 
   /// Closes the sink.
   void close();
@@ -101,6 +112,10 @@ abstract class CompilerOutput {
   // TODO(johnniwinther): Replace [name] and [extension] with something like
   // [id] and [uri].
   OutputSink createOutputSink(String name, String extension, OutputType type);
+
+  /// Returns an [BinaryOutputSink] that will serve as compiler output for the
+  /// given URI.
+  BinaryOutputSink createBinarySink(Uri uri);
 }
 
 /// Interface for receiving diagnostic message from the compiler. That is,
@@ -175,6 +190,6 @@ Future<CompilationResult> compile(
     return new CompilationResult(compiler,
         isSuccess: success,
         kernelInitializedCompilerState:
-            compiler.libraryLoader.initializedCompilerState);
+            compiler.kernelLoader.initializedCompilerState);
   });
 }

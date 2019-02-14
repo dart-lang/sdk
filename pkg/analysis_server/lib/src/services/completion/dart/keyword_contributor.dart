@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -329,7 +329,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   @override
   visitFormalParameterList(FormalParameterList node) {
     AstNode constructorDeclaration =
-        node.getAncestor((p) => p is ConstructorDeclaration);
+        node.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructorDeclaration != null) {
       _addSuggestions([Keyword.THIS]);
     }
@@ -746,21 +746,21 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   bool _inAsyncMethodOrFunction(AstNode node) {
-    FunctionBody body = node.getAncestor((n) => n is FunctionBody);
+    FunctionBody body = node.thisOrAncestorOfType<FunctionBody>();
     return body != null && body.isAsynchronous && body.star == null;
   }
 
   bool _inAsyncStarOrSyncStarMethodOrFunction(AstNode node) {
-    FunctionBody body = node.getAncestor((n) => n is FunctionBody);
+    FunctionBody body = node.thisOrAncestorOfType<FunctionBody>();
     return body != null && body.keyword != null && body.star != null;
   }
 
   bool _inCatchClause(Block node) =>
-      node.getAncestor((p) => p is CatchClause) != null;
+      node.thisOrAncestorOfType<CatchClause>() != null;
 
   bool _inClassMemberBody(AstNode node) {
     while (true) {
-      AstNode body = node.getAncestor((n) => n is FunctionBody);
+      AstNode body = node.thisOrAncestorOfType<FunctionBody>();
       if (body == null) {
         return false;
       }
@@ -773,23 +773,24 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   bool _inDoLoop(AstNode node) =>
-      node.getAncestor((p) => p is DoStatement) != null;
+      node.thisOrAncestorOfType<DoStatement>() != null;
 
   bool _inForLoop(AstNode node) =>
-      node.getAncestor((p) => p is ForStatement || p is ForEachStatement) !=
+      node.thisOrAncestorMatching(
+          (p) => p is ForStatement || p is ForEachStatement) !=
       null;
 
   bool _inLoop(AstNode node) =>
       _inDoLoop(node) || _inForLoop(node) || _inWhileLoop(node);
 
   bool _inSwitch(AstNode node) =>
-      node.getAncestor((p) => p is SwitchStatement) != null;
+      node.thisOrAncestorOfType<SwitchStatement>() != null;
 
   bool _inWhileLoop(AstNode node) =>
-      node.getAncestor((p) => p is WhileStatement) != null;
+      node.thisOrAncestorOfType<WhileStatement>() != null;
 
   bool _isEntityAfterIfWithoutElse(AstNode node) {
-    Block block = node?.getAncestor((n) => n is Block);
+    Block block = node?.thisOrAncestorOfType<Block>();
     if (block == null) {
       return false;
     }

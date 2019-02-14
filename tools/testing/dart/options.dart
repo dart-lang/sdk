@@ -191,6 +191,8 @@ currently.''',
     new _Option.bool(
         'use_blobs', 'Use mmap instead of shared libraries for precompilation.',
         hide: true),
+    new _Option.bool('keep_generated_files', 'Keep any generated files.',
+        abbr: 'k'),
     new _Option.int('timeout', 'Timeout in seconds.', abbr: 't'),
     new _Option(
         'progress',
@@ -223,6 +225,14 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     new _Option.bool('list_status_files',
         'List status files for test-suites. Do not run any test suites.',
         hide: true),
+    new _Option.bool(
+        'clean_exit', 'Exit 0 if tests ran and results were output.',
+        hide: true),
+    new _Option.bool(
+        'silent_failures',
+        "Don't complain about failing tests. This is useful when in "
+        "combination with --write-results.",
+        hide: true),
     new _Option.bool('report_in_json',
         'When listing with --list, output result summary in JSON.',
         hide: true),
@@ -243,24 +253,18 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     new _Option.bool('noBatch', 'Do not run tests in batch mode.', hide: true),
     new _Option.bool('dart2js_batch', 'Run dart2js tests in batch mode.',
         hide: true),
-    new _Option.bool(
-        'append_logs', 'Do not delete old logs but rather append to them.',
-        hide: true),
     new _Option.bool('write_debug_log',
         'Don\'t write debug messages to stdout but rather to a logfile.',
-        hide: true),
-    new _Option.bool('write_test_outcome_log',
-        'Write test outcomes to a "${TestUtils.testOutcomeFileName}" file.',
-        hide: true),
-    new _Option.bool(
-        'write_result_log',
-        'Write test results to a "${TestUtils.resultLogFileName}" json file '
-        'located at the debug_output_directory.',
         hide: true),
     new _Option.bool(
         'write_results',
         'Write results to a "${TestUtils.resultsFileName}" json file '
         'located at the debug_output_directory.',
+        hide: true),
+    new _Option.bool(
+        'write_logs',
+        'Include the stdout and stderr of tests that don\'t match expectations '
+        'in the "${TestUtils.logsFileName}" file',
         hide: true),
     new _Option.bool(
         'reset_browser_configuration',
@@ -330,16 +334,16 @@ compiler.''',
   /// For printing out reproducing command lines, we don't want to add these
   /// options.
   static final _blacklistedOptions = [
-    'append_logs',
     'build_directory',
-    'debug_output_directory',
     'chrome',
+    'clean_exit',
     'copy_coredumps',
     'dart',
-    'flutter',
+    'debug_output_directory',
     'drt',
     'exclude_suite',
     'firefox',
+    'flutter',
     'local_ip',
     'output_directory',
     'progress',
@@ -347,14 +351,23 @@ compiler.''',
     'safari',
     'shard',
     'shards',
+    'silent_failures',
     'step_name',
     'tasks',
     'time',
     'verbose',
     'write_debug_log',
-    'write_test_outcome_log',
-    'write_result_log',
+    'write_logs',
     'write_results',
+  ].toSet();
+
+  /// The set of objects which the named configuration should imply.
+  static final _namedConfigurationOptions = [
+    'system',
+    'arch',
+    'mode',
+    'compiler',
+    'runtime',
   ].toSet();
 
   /// Parses a list of strings as test options.
@@ -473,6 +486,18 @@ compiler.''',
       }
     }
 
+    // If a named configuration was specified ensure no other options, which are
+    // implied by the named configuration, were specified.
+    if (configuration['named_configuration'] is String) {
+      for (final optionName in _namedConfigurationOptions) {
+        if (configuration.containsKey(optionName)) {
+          final namedConfig = configuration['named_configuration'];
+          _fail("The named configuration '$namedConfig' implies "
+              "'$optionName'. Try removing '$optionName'.");
+        }
+      }
+    }
+
     // Apply default values for unspecified options.
     for (var option in _options) {
       if (!configuration.containsKey(option.name)) {
@@ -489,20 +514,18 @@ compiler.''',
     return _createConfigurations(configuration);
   }
 
-  /// Prints [message] and exits with a non-zero exit code.
-  void _fail(String message) {
-    print(message);
-    exit(1);
-  }
-
   /// Given a set of parsed option values, returns the list of command line
   /// arguments that would reproduce that configuration.
-  List<String> _reproducingCommand(Map<String, dynamic> data) {
+  List<String> _reproducingCommand(
+      Map<String, dynamic> data, bool usingNamedConfiguration) {
     var arguments = <String>[];
 
     for (var option in _options) {
       var name = option.name;
-      if (!data.containsKey(name) || _blacklistedOptions.contains(name)) {
+      if (!data.containsKey(name) ||
+          _blacklistedOptions.contains(name) ||
+          (usingNamedConfiguration &&
+              _namedConfigurationOptions.contains(name))) {
         continue;
       }
 
@@ -634,7 +657,7 @@ compiler.''',
         // Expand compilers.
         for (var compiler in compilers) {
           // Expand modes.
-          String modes = data["mode"] ?? compiler.defaultMode.name;
+          String modes = (data["mode"] as String) ?? compiler.defaultMode.name;
           if (modes == "all") modes = "debug,release,product";
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);
@@ -668,7 +691,6 @@ compiler.''',
                 progress: Progress.find(data["progress"] as String),
                 selectors: selectors,
                 testList: data["test_list_contents"] as List<String>,
-                appendLogs: data["append_logs"] as bool,
                 repeat: data["repeat"] as int,
                 batch: !(data["noBatch"] as bool),
                 batchDart2JS: data["dart2js_batch"] as bool,
@@ -676,16 +698,18 @@ compiler.''',
                 isVerbose: data["verbose"] as bool,
                 listTests: data["list"] as bool,
                 listStatusFiles: data["list_status_files"] as bool,
+                cleanExit: data["clean_exit"] as bool,
+                silentFailures: data["silent_failures"] as bool,
                 printTiming: data["time"] as bool,
                 printReport: data["report"] as bool,
                 reportInJson: data["report_in_json"] as bool,
                 resetBrowser: data["reset_browser_configuration"] as bool,
                 skipCompilation: data["skip_compilation"] as bool,
-                useKernelBytecode: compiler == Compiler.dartkb,
+                useKernelBytecode:
+                    innerConfiguration.compiler == Compiler.dartkb,
                 writeDebugLog: data["write_debug_log"] as bool,
-                writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
-                writeResultLog: data["write_result_log"] as bool,
                 writeResults: data["write_results"] as bool,
+                writeLogs: data["write_logs"] as bool,
                 drtPath: data["drt"] as String,
                 chromePath: data["chrome"] as String,
                 safariPath: data["safari"] as String,
@@ -693,6 +717,7 @@ compiler.''',
                 dartPath: data["dart"] as String,
                 dartPrecompiledPath: data["dart_precompiled"] as String,
                 flutterPath: data["flutter"] as String,
+                keepGeneratedFiles: data["keep_generated_files"] as bool,
                 taskCount: data["tasks"] as int,
                 shardCount: data["shards"] as int,
                 shard: data["shard"] as int,
@@ -707,7 +732,8 @@ compiler.''',
                 packageRoot: data["package_root"] as String,
                 suiteDirectory: data["suite_dir"] as String,
                 outputDirectory: data["output_directory"] as String,
-                reproducingArguments: _reproducingCommand(data),
+                reproducingArguments:
+                    _reproducingCommand(data, namedConfiguration != null),
                 fastTestsOnly: data["fast_tests"] as bool,
                 printPassingStdout: data["print_passing_stdout"] as bool);
 
@@ -872,7 +898,24 @@ Options:''');
 
 Configuration getNamedConfiguration(String template) {
   if (template == null) return null;
-  TestMatrix testMatrix = TestMatrix.fromPath("tools/bots/test_matrix.json");
-  return testMatrix.configurations
+  final testMatrixFile = "tools/bots/test_matrix.json";
+  TestMatrix testMatrix = TestMatrix.fromPath(testMatrixFile);
+  final configuration = testMatrix.configurations
       .singleWhere((c) => c.name == template, orElse: () => null);
+  if (configuration == null) {
+    final names = testMatrix.configurations
+        .map((configuration) => configuration.name)
+        .toList();
+    names.sort();
+    _fail('The named configuration "$template" does not exist. The following '
+        'configurations are available:\n  * ${names.join('\n  * ')}');
+  }
+
+  return configuration;
+}
+
+/// Prints [message] and exits with a non-zero exit code.
+void _fail(String message) {
+  print(message);
+  exit(1);
 }

@@ -20,7 +20,7 @@ abstract class DartEntryRequest implements EntryRequest {
   /**
    * The analysis result for the file in which the entries are being requested.
    */
-  ResolveResult get result;
+  ResolvedUnitResult get result;
 }
 
 /**

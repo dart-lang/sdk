@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -472,30 +471,15 @@ class InstanceCreationExpressionImplTest extends ResolverTestCase {
 
   bool get enableNewAnalysisDriver => true;
 
-  void assertCanBeConst(String snippet, bool expectedResult) {
-    int index = testSource.indexOf(snippet);
-    expect(index >= 0, isTrue);
-    NodeLocator visitor = new NodeLocator(index);
-    AstNodeImpl node = visitor.searchWithin(testUnit);
-    node = node.getAncestor((node) => node is InstanceCreationExpressionImpl);
-    expect(node, isNotNull);
-    expect((node as InstanceCreationExpressionImpl).canBeConst(),
-        expectedResult ? isTrue : isFalse);
-  }
-
   void assertIsConst(String snippet, bool expectedResult) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
     NodeLocator visitor = new NodeLocator(index);
     AstNodeImpl node = visitor.searchWithin(testUnit);
-    node = node.getAncestor((node) => node is InstanceCreationExpressionImpl);
+    node = node.thisOrAncestorOfType<InstanceCreationExpressionImpl>();
     expect(node, isNotNull);
     expect((node as InstanceCreationExpressionImpl).isConst,
         expectedResult ? isTrue : isFalse);
-  }
-
-  void enablePreviewDart2() {
-    resetWith(options: new AnalysisOptionsImpl()..previewDart2 = true);
   }
 
   Future<void> resolve(String source) async {
@@ -503,71 +487,8 @@ class InstanceCreationExpressionImplTest extends ResolverTestCase {
     testUnit = await resolveSource2('/test.dart', source);
   }
 
-  void test_canBeConst_false_argument_invocation() async {
-    enablePreviewDart2();
-    await resolve('''
-class A {}
-class B {
-  const B(A a);
-}
-A f() => A();
-B g() => B(f());
-''');
-    assertCanBeConst("B(f", false);
-  }
-
-  void test_canBeConst_false_argument_invocationInList() async {
-    enablePreviewDart2();
-    await resolve('''
-class A {}
-class B {
-  const B(a);
-}
-A f() => A();
-B g() => B([f()]);
-''');
-    assertCanBeConst("B([", false);
-  }
-
-  void test_canBeConst_false_argument_nonConstConstructor() async {
-    enablePreviewDart2();
-    await resolve('''
-class A {}
-class B {
-  const B(A a);
-}
-B f() => B(A());
-''');
-    assertCanBeConst("B(A(", false);
-  }
-
-  void test_canBeConst_false_nonConstConstructor() async {
-    enablePreviewDart2();
-    await resolve('''
-class A {}
-A f() => A();
-''');
-    assertCanBeConst("A(", false);
-  }
-
-  @failingTest
-  void test_canBeConst_true_argument_constConstructor() async {
-    enablePreviewDart2();
-    await resolve('''
-class A {
-  const A();
-}
-class B {
-  const B(A a);
-}
-B f() => B(A());
-''');
-    assertCanBeConst("B(A(", true);
-  }
-
   void
       test_isConst_notInContext_constructor_const_constParam_identifier() async {
-    enablePreviewDart2();
     await resolve('''
 var v = C(C.a);
 class C {
@@ -580,7 +501,6 @@ class C {
   }
 
   void test_isConst_notInContext_constructor_const_constParam_named() async {
-    enablePreviewDart2();
     await resolve('''
 var v = C(c: C());
 class C {
@@ -592,7 +512,6 @@ class C {
 
   void
       test_isConst_notInContext_constructor_const_constParam_named_parens() async {
-    enablePreviewDart2();
     await resolve('''
 var v = C(c: (C()));
 class C {
@@ -603,7 +522,6 @@ class C {
   }
 
   void test_isConst_notInContext_constructor_const_constParam_parens() async {
-    enablePreviewDart2();
     await resolve('''
 var v = C( (C.c()) );
 class C {
@@ -615,7 +533,6 @@ class C {
   }
 
   void test_isConst_notInContext_constructor_const_generic_named() async {
-    enablePreviewDart2();
     await resolve('''
 f() => <Object>[C<int>.n()];
 class C<E> {
@@ -627,7 +544,6 @@ class C<E> {
 
   void
       test_isConst_notInContext_constructor_const_generic_named_prefixed() async {
-    enablePreviewDart2();
     addNamedSource('/c.dart', '''
 class C<E> {
   const C.n();
@@ -641,7 +557,6 @@ f() => <Object>[p.C<int>.n()];
   }
 
   void test_isConst_notInContext_constructor_const_generic_unnamed() async {
-    enablePreviewDart2();
     await resolve('''
 f() => <Object>[C<int>()];
 class C<E> {
@@ -653,7 +568,6 @@ class C<E> {
 
   void
       test_isConst_notInContext_constructor_const_generic_unnamed_prefixed() async {
-    enablePreviewDart2();
     addNamedSource('/c.dart', '''
 class C<E> {
   const C();
@@ -668,7 +582,6 @@ f() => <Object>[p.C<int>()];
 
   void
       test_isConst_notInContext_constructor_const_nonConstParam_constructor() async {
-    enablePreviewDart2();
     await resolve('''
 f() {
   return A(B());
@@ -687,7 +600,6 @@ class B {
 
   void
       test_isConst_notInContext_constructor_const_nonConstParam_variable() async {
-    enablePreviewDart2();
     await resolve('''
 f(int i) => <Object>[C(i)];
 class C {
@@ -699,7 +611,6 @@ class C {
   }
 
   void test_isConst_notInContext_constructor_const_nonGeneric_named() async {
-    enablePreviewDart2();
     await resolve('''
 f() => <Object>[C.n()];
 class C<E> {
@@ -711,7 +622,6 @@ class C<E> {
 
   void
       test_isConst_notInContext_constructor_const_nonGeneric_named_prefixed() async {
-    enablePreviewDart2();
     addNamedSource('/c.dart', '''
 class C {
   const C.n();
@@ -725,7 +635,6 @@ f() => <Object>[p.C.n()];
   }
 
   void test_isConst_notInContext_constructor_const_nonGeneric_unnamed() async {
-    enablePreviewDart2();
     await resolve('''
 f() => <Object>[C()];
 class C {
@@ -737,7 +646,6 @@ class C {
 
   void
       test_isConst_notInContext_constructor_const_nonGeneric_unnamed_prefixed() async {
-    enablePreviewDart2();
     addNamedSource('/c.dart', '''
 class C {
   const C();
@@ -751,7 +659,6 @@ f() => <Object>[p.C()];
   }
 
   void test_isConst_notInContext_constructor_nonConst() async {
-    enablePreviewDart2();
     await resolve('''
 f() => <Object>[C()];
 class C {

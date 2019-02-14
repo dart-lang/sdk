@@ -417,12 +417,18 @@ RawString* Symbols::FromUTF8(Thread* thread,
   Zone* zone = thread->zone();
   if (type == Utf8::kLatin1) {
     uint8_t* characters = zone->Alloc<uint8_t>(len);
-    Utf8::DecodeToLatin1(utf8_array, array_len, characters, len);
+    if (!Utf8::DecodeToLatin1(utf8_array, array_len, characters, len)) {
+      Utf8::ReportInvalidByte(utf8_array, array_len, len);
+      return String::null();
+    }
     return FromLatin1(thread, characters, len);
   }
   ASSERT((type == Utf8::kBMP) || (type == Utf8::kSupplementary));
   uint16_t* characters = zone->Alloc<uint16_t>(len);
-  Utf8::DecodeToUTF16(utf8_array, array_len, characters, len);
+  if (!Utf8::DecodeToUTF16(utf8_array, array_len, characters, len)) {
+    Utf8::ReportInvalidByte(utf8_array, array_len, len);
+    return String::null();
+  }
   return FromUTF16(thread, characters, len);
 }
 
@@ -684,6 +690,13 @@ void Symbols::DumpStats(Isolate* isolate) {
   OS::PrintErr("Isolate: Symbol table capacity : %" Pd "\n", capacity);
   // TODO(koda): Consider recording growth and collision stats in HashTable,
   // in DEBUG mode.
+}
+
+void Symbols::DumpTable(Isolate* isolate) {
+  OS::PrintErr("symbols:\n");
+  SymbolTable table(isolate->object_store()->symbol_table());
+  table.Dump();
+  table.Release();
 }
 
 intptr_t Symbols::LookupPredefinedSymbol(RawObject* obj) {

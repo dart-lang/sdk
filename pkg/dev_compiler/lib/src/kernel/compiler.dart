@@ -32,7 +32,7 @@ import 'property_model.dart';
 import 'type_table.dart';
 
 class ProgramCompiler extends Object
-    with SharedCompiler<Library>
+    with SharedCompiler<Library, Class>
     implements
         StatementVisitor<JS.Statement>,
         ExpressionVisitor<JS.Expression>,
@@ -58,7 +58,7 @@ class ProgramCompiler extends Object
   final _imports = Map<Library, JS.TemporaryId>();
 
   /// The variable for the current catch clause
-  VariableDeclaration _catchParameter;
+  VariableDeclaration _rethrowParameter;
 
   /// In an async* function, this represents the stream controller parameter.
   JS.TemporaryId _asyncStarController;
@@ -115,6 +115,8 @@ class ProgramCompiler extends Object
   final CoreTypes coreTypes;
 
   final TypeEnvironment types;
+
+  final ClassHierarchy hierarchy;
 
   /// Information about virtual and overridden fields/getters/setters in the
   /// class we're currently compiling, or `null` if we aren't compiling a class.
@@ -183,6 +185,7 @@ class ProgramCompiler extends Object
   final Class privateSymbolClass;
   final Class linkedHashMapImplClass;
   final Class identityHashMapImplClass;
+  final Class linkedHashSetClass;
   final Class linkedHashSetImplClass;
   final Class identityHashSetImplClass;
   final Class syncIterableClass;
@@ -198,12 +201,12 @@ class ProgramCompiler extends Object
   factory ProgramCompiler(Component component, ClassHierarchy hierarchy,
       SharedCompilerOptions options, Map<String, String> declaredVariables) {
     var coreTypes = CoreTypes(component);
-    var types = TypeSchemaEnvironment(coreTypes, hierarchy, true);
+    var types = TypeSchemaEnvironment(coreTypes, hierarchy);
     var constants = DevCompilerConstants(types, declaredVariables);
     var nativeTypes = NativeTypeSet(coreTypes, constants);
-    var jsTypeRep = JSTypeRep(types);
+    var jsTypeRep = JSTypeRep(types, hierarchy);
     return ProgramCompiler._(coreTypes, coreTypes.index, nativeTypes, constants,
-        types, jsTypeRep, NullableInference(jsTypeRep), options);
+        types, hierarchy, jsTypeRep, NullableInference(jsTypeRep), options);
   }
 
   ProgramCompiler._(
@@ -212,6 +215,7 @@ class ProgramCompiler extends Object
       this._extensionTypes,
       this._constants,
       this.types,
+      this.hierarchy,
       this._typeRep,
       this._nullableInference,
       this.options)
@@ -222,29 +226,27 @@ class ProgramCompiler extends Object
         linkedHashMapImplClass = sdk.getClass('dart:_js_helper', 'LinkedMap'),
         identityHashMapImplClass =
             sdk.getClass('dart:_js_helper', 'IdentityMap'),
+        linkedHashSetClass = sdk.getClass('dart:collection', 'LinkedHashSet'),
         linkedHashSetImplClass = sdk.getClass('dart:collection', '_HashSet'),
         identityHashSetImplClass =
             sdk.getClass('dart:collection', '_IdentityHashSet'),
         syncIterableClass = sdk.getClass('dart:_js_helper', 'SyncIterable'),
         asyncStarImplClass = sdk.getClass('dart:async', '_AsyncStarImpl');
 
-  ClassHierarchy get hierarchy => types.hierarchy;
-
   Uri get currentLibraryUri => _currentLibrary.importUri;
 
   bool get emitMetadata => options.emitMetadata;
 
   JS.Program emitModule(Component component, List<Component> summaries,
-      Map<Uri, String> summaryModules) {
+      List<Uri> summaryUris, Map<Uri, String> moduleImportForSummary) {
     if (moduleItems.isNotEmpty) {
       throw StateError('Can only call emitModule once.');
     }
     _component = component;
 
-    var moduleImports = summaryModules.values.toList();
     for (var i = 0; i < summaries.length; i++) {
       var summary = summaries[i];
-      var moduleImport = moduleImports[i];
+      var moduleImport = moduleImportForSummary[summaryUris[i]];
       for (var l in summary.libraries) {
         assert(!_importToSummary.containsKey(l));
         _importToSummary[l] = summary;
@@ -749,7 +751,7 @@ class ProgramCompiler extends Object
         .map((m) => hierarchy.getClassAsInstanceOf(c, m).asInterfaceType)
         .toList();
 
-    var hasUnnamedSuper = _hasUnnamedConstructor(superclass);
+    var hasUnnamedSuper = _hasUnnamedInheritedConstructor(superclass);
 
     void emitMixinConstructors(JS.Expression className, InterfaceType mixin) {
       JS.Statement mixinCtor;
@@ -774,7 +776,7 @@ class ProgramCompiler extends Object
           ctorBody.add(_emitSuperConstructorCall(className, name, jsParams));
         }
         body.add(_addConstructorToClass(
-            className, name, JS.Fun(jsParams, JS.Block(ctorBody))));
+            c, className, name, JS.Fun(jsParams, JS.Block(ctorBody))));
       }
     }
 
@@ -878,7 +880,7 @@ class ProgramCompiler extends Object
     }
 
     addConstructor(String name, JS.Expression jsCtor) {
-      body.add(_addConstructorToClass(className, name, jsCtor));
+      body.add(_addConstructorToClass(c, className, name, jsCtor));
     }
 
     var fields = c.fields;
@@ -1142,6 +1144,7 @@ class ProgramCompiler extends Object
       for (var f in fields) {
         assert(f.isConst);
         body.add(defineValueOnClass(
+                c,
                 classRef,
                 _emitStaticMemberName(f.name.name),
                 _visitInitializer(f.initializer, f.annotations))
@@ -1370,12 +1373,12 @@ class ProgramCompiler extends Object
       return (member as Field).type;
     }
     FunctionType result;
-    if (!f.positionalParameters.any(isCovariant) &&
-        !f.namedParameters.any(isCovariant)) {
+    if (!f.positionalParameters.any(isCovariantParameter) &&
+        !f.namedParameters.any(isCovariantParameter)) {
       result = f.functionType;
     } else {
       reifyParameter(VariableDeclaration p) =>
-          isCovariant(p) ? coreTypes.objectClass.thisType : p.type;
+          isCovariantParameter(p) ? coreTypes.objectClass.thisType : p.type;
       reifyNamedParameter(VariableDeclaration p) =>
           NamedType(p.name, reifyParameter(p));
 
@@ -1508,18 +1511,21 @@ class ProgramCompiler extends Object
         [className, _constructorName(name), args ?? []]);
   }
 
-  bool _hasUnnamedSuperConstructor(Class c) {
+  bool _hasUnnamedInheritedConstructor(Class c) {
     if (c == null) return false;
-    return _hasUnnamedConstructor(c.superclass) ||
-        _hasUnnamedConstructor(c.mixedInClass);
+    return _hasUnnamedConstructor(c) || _hasUnnamedSuperConstructor(c);
+  }
+
+  bool _hasUnnamedSuperConstructor(Class c) {
+    return _hasUnnamedConstructor(c.mixedInClass) ||
+        _hasUnnamedInheritedConstructor(c.superclass);
   }
 
   bool _hasUnnamedConstructor(Class c) {
     if (c == null || c == coreTypes.objectClass) return false;
     var ctor = unnamedConstructor(c);
     if (ctor != null && !ctor.isSynthetic) return true;
-    if (c.fields.any((f) => !f.isStatic)) return true;
-    return _hasUnnamedSuperConstructor(c);
+    return c.fields.any((f) => !f.isStatic);
   }
 
   /// Initialize fields. They follow the sequence:
@@ -1596,14 +1602,34 @@ class ProgramCompiler extends Object
   /// then we need to emit a special hidden default constructor for use by
   /// mixins.
   bool _usesMixinNew(Class mixin) {
-    return mixin.superclass?.superclass == null &&
-        mixin.constructors.every((c) => c.isExternal);
+    // TODO(jmesserly): mixin declarations don't get implicit constructor nodes,
+    // even if they have fields, so we need to ensure they're getting generated.
+    return mixin.isMixinDeclaration && _hasUnnamedConstructor(mixin) ||
+        mixin.superclass?.superclass == null &&
+            mixin.constructors.every((c) => c.isExternal);
   }
 
   JS.Statement _addConstructorToClass(
-      JS.Expression className, String name, JS.Expression jsCtor) {
-    jsCtor = defineValueOnClass(className, _constructorName(name), jsCtor);
+      Class c, JS.Expression className, String name, JS.Expression jsCtor) {
+    jsCtor = defineValueOnClass(c, className, _constructorName(name), jsCtor);
     return js.statement('#.prototype = #.prototype;', [jsCtor, className]);
+  }
+
+  @override
+  bool superclassHasStatic(Class c, String memberName) {
+    // Note: because we're only considering statics, we can ignore mixins.
+    // We're only trying to find conflicts due to JS inheriting statics.
+    var name = Name(memberName, c.enclosingLibrary);
+    while (true) {
+      c = c.superclass;
+      if (c == null) return false;
+      for (var m in c.members) {
+        if (m.name == name &&
+            (m is Procedure && m.isStatic || m is Field && m.isStatic)) {
+          return true;
+        }
+      }
+    }
   }
 
   List<JS.Method> _emitClassMethods(Class c) {
@@ -1772,9 +1798,10 @@ class ProgramCompiler extends Object
 
     var name = _declareMemberName(member);
     if (member.isSetter) {
-      if (superMember is Field && superMember.isGenericCovariantImpl ||
+      if (superMember is Field && isCovariantField(superMember) ||
           superMember is Procedure &&
-              isCovariant(superMember.function.positionalParameters[0])) {
+              isCovariantParameter(
+                  superMember.function.positionalParameters[0])) {
         return const [];
       }
       var setterType = substituteType(superMember.setterType);
@@ -1807,8 +1834,8 @@ class ProgramCompiler extends Object
       var jsParam = JS.Identifier(param.name);
       jsParams.add(jsParam);
 
-      if (isCovariant(param) &&
-          !isCovariant(superMember.function.positionalParameters[i])) {
+      if (isCovariantParameter(param) &&
+          !isCovariantParameter(superMember.function.positionalParameters[i])) {
         var check = _emitCast(jsParam, superMethodType.positionalParameters[i]);
         if (i >= function.requiredParameterCount) {
           body.add(js.statement('if (# !== void 0) #;', [jsParam, check]));
@@ -1819,8 +1846,8 @@ class ProgramCompiler extends Object
     }
     var namedParameters = function.namedParameters;
     for (var param in namedParameters) {
-      if (isCovariant(param) &&
-          !isCovariant(superMember.function.namedParameters
+      if (isCovariantParameter(param) &&
+          !isCovariantParameter(superMember.function.namedParameters
               .firstWhere((n) => n.name == param.name))) {
         var name = _propertyName(param.name);
         var paramType = superMethodType.namedParameters
@@ -1874,7 +1901,7 @@ class ProgramCompiler extends Object
     var args = field.isFinal ? [JS.Super(), name] : [JS.This(), virtualField];
 
     JS.Expression value = JS.Identifier('value');
-    if (!field.isFinal && field.isGenericCovariantImpl) {
+    if (!field.isFinal && isCovariantField(field)) {
       value = _emitCast(value, field.type);
     }
     args.add(value);
@@ -2884,7 +2911,7 @@ class ProgramCompiler extends Object
     _emitCovarianceBoundsCheck(f.typeParameters, body);
 
     initParameter(VariableDeclaration p, JS.Identifier jsParam) {
-      if (isCovariant(p)) {
+      if (isCovariantParameter(p)) {
         var castExpr = _emitCast(jsParam, p.type);
         if (!identical(castExpr, jsParam)) body.add(castExpr.toStatement());
       }
@@ -3088,10 +3115,16 @@ class ProgramCompiler extends Object
     if (offset == -1) return null;
     var fileUri = _currentUri;
     if (fileUri == null) return null;
-    var loc = _component.getLocation(fileUri, offset);
-    if (loc == null) return null;
-    return SourceLocation(offset,
-        sourceUrl: fileUri, line: loc.line - 1, column: loc.column - 1);
+    try {
+      var loc = _component.getLocation(fileUri, offset);
+      if (loc == null) return null;
+      return SourceLocation(offset,
+          sourceUrl: fileUri, line: loc.line - 1, column: loc.column - 1);
+    } on StateError catch (_) {
+      // TODO(jmesserly): figure out why this is throwing. Perhaps the file URI
+      // and offset are mismatched and don't correspond to the same source?
+      return null;
+    }
   }
 
   /// Adds a hover comment for Dart node using JS expression [expr], where
@@ -3478,65 +3511,76 @@ class ProgramCompiler extends Object
   JS.Catch _visitCatch(List<Catch> clauses) {
     if (clauses.isEmpty) return null;
 
-    var savedCatch = _catchParameter;
+    var caughtError = VariableDeclaration('#e');
+    var savedRethrow = _rethrowParameter;
+    _rethrowParameter = caughtError;
 
-    if (clauses.length == 1 && clauses.single.exception != null) {
-      // Special case for a single catch.
-      _catchParameter = clauses.single.exception;
-    } else {
-      _catchParameter = VariableDeclaration('#e');
-    }
+    // If we have more than one catch clause, always create a temporary so we
+    // don't shadow any names.
+    var exceptionParameter =
+        (clauses.length == 1 ? clauses[0].exception : null) ??
+            VariableDeclaration('#ex');
 
-    JS.Statement catchBody =
-        js.statement('throw #;', _emitVariableRef(_catchParameter));
+    var stackTraceParameter =
+        (clauses.length == 1 ? clauses[0].stackTrace : null) ??
+            (clauses.any((c) => c.stackTrace != null)
+                ? VariableDeclaration('#st')
+                : null);
+
+    JS.Statement catchBody = JS.Throw(_emitVariableRef(caughtError));
     for (var clause in clauses.reversed) {
-      catchBody = _catchClauseGuard(clause, catchBody);
+      catchBody = _catchClauseGuard(
+          clause, catchBody, exceptionParameter, stackTraceParameter);
     }
-
-    var catchVarDecl = _emitVariableRef(_catchParameter);
-    _catchParameter = savedCatch;
-    return JS.Catch(catchVarDecl, catchBody.toBlock());
+    var catchStatements = [
+      js.statement('let # = #.getThrown(#)', [
+        _emitVariableDef(exceptionParameter),
+        runtimeModule,
+        _emitVariableRef(caughtError)
+      ]),
+    ];
+    if (stackTraceParameter != null) {
+      catchStatements.add(js.statement('let # = #.stackTrace(#)', [
+        _emitVariableDef(stackTraceParameter),
+        runtimeModule,
+        _emitVariableRef(caughtError)
+      ]));
+    }
+    catchStatements.add(catchBody);
+    _rethrowParameter = savedRethrow;
+    return JS.Catch(_emitVariableDef(caughtError), JS.Block(catchStatements));
   }
 
-  JS.Statement _catchClauseGuard(Catch node, JS.Statement otherwise) {
+  JS.Statement _catchClauseGuard(
+      Catch node,
+      JS.Statement otherwise,
+      VariableDeclaration exceptionParameter,
+      VariableDeclaration stackTraceParameter) {
     var body = <JS.Statement>[];
-
-    var savedCatch = _catchParameter;
     var vars = HashSet<String>();
-    if (node.exception != null) {
-      var name = node.exception;
-      if (name == _catchParameter) {
-        vars.add(name.name);
-      } else if (name != null) {
-        vars.add(name.name);
-        body.add(js.statement('let # = #;',
-            [_emitVariableDef(name), _emitVariableRef(_catchParameter)]));
-        _catchParameter = name;
-      }
-      var stackTrace = node.stackTrace;
-      if (stackTrace != null) {
-        vars.add(stackTrace.name);
-        body.add(js.statement('let # = #.stackTrace(#);', [
-          _emitVariableDef(stackTrace),
-          runtimeModule,
-          _emitVariableRef(name)
-        ]));
+
+    void declareVariable(
+        VariableDeclaration variable, VariableDeclaration value) {
+      if (variable == null) return;
+      vars.add(variable.name);
+      if (variable.name != value.name) {
+        body.add(js.statement('let # = #',
+            [_emitVariableDef(variable), _emitVariableRef(value)]));
       }
     }
 
+    declareVariable(node.exception, exceptionParameter);
+    declareVariable(node.stackTrace, stackTraceParameter);
+
     body.add(_visitStatement(node.body).toScopedBlock(vars));
-    _catchParameter = savedCatch;
     var then = JS.Block(body);
 
+    // Discard following clauses, if any, as they are unreachable.
     if (types.isTop(node.guard)) return then;
 
-    // TODO(jmesserly): this is inconsistent with [visitIsExpression], which
-    // has special case for typeof.
-    return JS.If(
-        js.call('#.is(#)',
-            [_emitType(node.guard), _emitVariableRef(_catchParameter)]),
-        then,
-        otherwise)
+    var condition =
+        _emitIsExpression(VariableGet(exceptionParameter), node.guard);
+    return JS.If(condition, then, otherwise)
       ..sourceInformation = _nodeStart(node);
   }
 
@@ -4706,20 +4750,19 @@ class ProgramCompiler extends Object
 
   @override
   visitIsExpression(IsExpression node) {
+    return _emitIsExpression(node.operand, node.type);
+  }
+
+  JS.Expression _emitIsExpression(Expression operand, DartType type) {
     // Generate `is` as `dart.is` or `typeof` depending on the RHS type.
-    JS.Expression result;
-    var type = node.type;
-    var lhs = _visitExpression(node.operand);
+    var lhs = _visitExpression(operand);
     var typeofName = _typeRep.typeFor(type).primitiveTypeOf;
     // Inline primitives other than int (which requires a Math.floor check).
-    if (typeofName != null && type != coreTypes.intClass.rawType) {
-      result = js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
+    if (typeofName != null && type != types.intType) {
+      return js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     } else {
-      // Always go through a runtime helper, because implicit interfaces.
-      var castType = _emitType(type);
-      result = js.call('#.is(#)', [castType, lhs]);
+      return js.call('#.is(#)', [_emitType(type), lhs]);
     }
-    return result;
   }
 
   @override
@@ -4834,7 +4877,7 @@ class ProgramCompiler extends Object
 
   @override
   visitRethrow(Rethrow node) {
-    return runtimeCall('rethrow(#)', _emitVariableRef(_catchParameter));
+    return runtimeCall('rethrow(#)', _emitVariableRef(_rethrowParameter));
   }
 
   @override
@@ -4849,6 +4892,23 @@ class ProgramCompiler extends Object
     }
     return _cacheConst(() =>
         _emitConstList(elementType, _visitExpressionList(node.expressions)));
+  }
+
+  @override
+  visitSetLiteral(SetLiteral node) {
+    if (!node.isConst) {
+      var setType = visitInterfaceType(
+          InterfaceType(linkedHashSetClass, [node.typeArgument]));
+      if (node.expressions.isEmpty) {
+        return js.call('#.new()', [setType]);
+      }
+      return js.call(
+          '#.from([#])', [setType, _visitExpressionList(node.expressions)]);
+    }
+    return _cacheConst(() => runtimeCall('constSet(#, [#])', [
+          _emitType(node.typeArgument),
+          _visitExpressionList(node.expressions)
+        ]));
   }
 
   JS.Expression _emitConstList(
@@ -5059,6 +5119,14 @@ class ProgramCompiler extends Object
   visitTypeLiteralConstant(node) => defaultConstant(node);
   @override
   visitPartialInstantiationConstant(node) => defaultConstant(node);
+  @override
+  visitEnvironmentBoolConstant(node) => defaultConstant(node);
+  @override
+  visitEnvironmentIntConstant(node) => defaultConstant(node);
+  @override
+  visitEnvironmentStringConstant(node) => defaultConstant(node);
+  @override
+  visitUnevaluatedConstant(node) => defaultConstant(node);
 }
 
 bool isSdkInternalRuntime(Library l) =>

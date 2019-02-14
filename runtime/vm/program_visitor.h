@@ -30,6 +30,7 @@ class ProgramVisitor : public AllStatic {
   static void Dedup();
 
  private:
+  static void BindStaticCalls();
   static void ShareMegamorphicBuckets();
   static void DedupStackMaps();
   static void DedupPcDescriptors();
@@ -40,6 +41,7 @@ class ProgramVisitor : public AllStatic {
   static void DedupCodeSourceMaps();
   static void DedupLists();
   static void DedupInstructions();
+  static void DedupInstructionsWithSameMetadata();
 };
 
 }  // namespace dart

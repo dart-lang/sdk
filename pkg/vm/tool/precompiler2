@@ -13,7 +13,6 @@
 # passed to Fasta.
 
 set -e
-set -x
 
 OPTIONS=()
 GEN_KERNEL_OPTIONS=()

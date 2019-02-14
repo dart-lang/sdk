@@ -6,17 +6,15 @@ library ssa.tracer;
 
 import '../../compiler_new.dart' show OutputSink;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
+import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/namer.dart' show Namer;
-import '../types/abstract_value_domain.dart';
 import '../tracer.dart';
 import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 
-/**
- * Outputs SSA code in a format readable by Hydra IR.
- * Tracing is disabled by default, see ../tracer.dart for how
- * to enable it.
- */
+/// Outputs SSA code in a format readable by Hydra IR.
+/// Tracing is disabled by default, see ../tracer.dart for how
+/// to enable it.
 class HTracer extends HGraphVisitor with TracerUtil {
   final JClosedWorld closedWorld;
   final Namer namer;
@@ -126,31 +124,43 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String temporaryId(HInstruction instruction) {
     String prefix;
-    if (instruction.isNull(_abstractValueDomain)) {
+    if (instruction.isNull(_abstractValueDomain).isDefinitelyTrue) {
       prefix = 'u';
-    } else if (instruction.isConflicting(_abstractValueDomain)) {
+    } else if (instruction
+        .isConflicting(_abstractValueDomain)
+        .isDefinitelyTrue) {
       prefix = 'c';
-    } else if (instruction.isExtendableArray(_abstractValueDomain)) {
+    } else if (instruction
+        .isExtendableArray(_abstractValueDomain)
+        .isDefinitelyTrue) {
       prefix = 'e';
-    } else if (instruction.isFixedArray(_abstractValueDomain)) {
+    } else if (instruction
+        .isFixedArray(_abstractValueDomain)
+        .isDefinitelyTrue) {
       prefix = 'f';
-    } else if (instruction.isMutableArray(_abstractValueDomain)) {
+    } else if (instruction
+        .isMutableArray(_abstractValueDomain)
+        .isDefinitelyTrue) {
       prefix = 'm';
-    } else if (instruction.isArray(_abstractValueDomain)) {
+    } else if (instruction.isArray(_abstractValueDomain).isDefinitelyTrue) {
       prefix = 'a';
-    } else if (instruction.isString(_abstractValueDomain)) {
+    } else if (instruction.isString(_abstractValueDomain).isDefinitelyTrue) {
       prefix = 's';
-    } else if (instruction.isIndexablePrimitive(_abstractValueDomain)) {
+    } else if (instruction
+        .isIndexablePrimitive(_abstractValueDomain)
+        .isDefinitelyTrue) {
       prefix = 'r';
-    } else if (instruction.isBoolean(_abstractValueDomain)) {
+    } else if (instruction.isBoolean(_abstractValueDomain).isDefinitelyTrue) {
       prefix = 'b';
-    } else if (instruction.isInteger(_abstractValueDomain)) {
+    } else if (instruction.isInteger(_abstractValueDomain).isDefinitelyTrue) {
       prefix = 'i';
-    } else if (instruction.isDouble(_abstractValueDomain)) {
+    } else if (instruction.isDouble(_abstractValueDomain).isDefinitelyTrue) {
       prefix = 'd';
-    } else if (instruction.isNumber(_abstractValueDomain)) {
+    } else if (instruction.isNumber(_abstractValueDomain).isDefinitelyTrue) {
       prefix = 'n';
-    } else if (_abstractValueDomain.containsAll(instruction.instructionType)) {
+    } else if (_abstractValueDomain
+        .containsAll(instruction.instructionType)
+        .isPotentiallyTrue) {
       prefix = 'v';
     } else {
       prefix = 'U';

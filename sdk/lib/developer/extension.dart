@@ -21,9 +21,7 @@ class ServiceExtensionResponse {
       : _result = result,
         _errorCode = null,
         _errorDetail = null {
-    if (_result is! String) {
-      throw new ArgumentError.value(_result, "result", "Must be a String");
-    }
+    ArgumentError.checkNotNull(_result, "result");
   }
 
   /// Creates an error response to a service protocol extension RPC.
@@ -37,10 +35,7 @@ class ServiceExtensionResponse {
         _errorCode = errorCode,
         _errorDetail = errorDetail {
     _validateErrorCode(_errorCode);
-    if (_errorDetail is! String) {
-      throw new ArgumentError.value(
-          _errorDetail, "errorDetail", "Must be a String");
-    }
+    ArgumentError.checkNotNull(_errorDetail, "errorDetail");
   }
 
   /// Invalid method parameter(s) error code.
@@ -80,12 +75,8 @@ class ServiceExtensionResponse {
   }
 
   static _validateErrorCode(int errorCode) {
-    if (errorCode is! int) {
-      throw new ArgumentError.value(errorCode, "errorCode", "Must be an int");
-    }
-    if (errorCode == invalidParams) {
-      return;
-    }
+    ArgumentError.checkNotNull(errorCode, "errorCode");
+    if (errorCode == invalidParams) return;
     if ((errorCode >= extensionErrorMin) && (errorCode <= extensionErrorMax)) {
       return;
     }
@@ -134,31 +125,22 @@ typedef Future<ServiceExtensionResponse> ServiceExtensionHandler(
 /// Because service extensions are isolate specific, clients using extensions
 /// must always include an 'isolateId' parameter with each RPC.
 void registerExtension(String method, ServiceExtensionHandler handler) {
-  if (method is! String) {
-    throw new ArgumentError.value(method, 'method', 'Must be a String');
-  }
+  ArgumentError.checkNotNull(method, 'method');
   if (!method.startsWith('ext.')) {
     throw new ArgumentError.value(method, 'method', 'Must begin with ext.');
   }
   if (_lookupExtension(method) != null) {
     throw new ArgumentError('Extension already registered: $method');
   }
-  if (handler is! ServiceExtensionHandler) {
-    throw new ArgumentError.value(
-        handler, 'handler', 'Must be a ServiceExtensionHandler');
-  }
+  ArgumentError.checkNotNull(handler, 'handler');
   _registerExtension(method, handler);
 }
 
 /// Post an event of [eventKind] with payload of [eventData] to the `Extension`
 /// event stream.
 void postEvent(String eventKind, Map eventData) {
-  if (eventKind is! String) {
-    throw new ArgumentError.value(eventKind, 'eventKind', 'Must be a String');
-  }
-  if (eventData is! Map) {
-    throw new ArgumentError.value(eventData, 'eventData', 'Must be a Map');
-  }
+  ArgumentError.checkNotNull(eventKind, 'eventKind');
+  ArgumentError.checkNotNull(eventData, 'eventData');
   String eventDataAsString = json.encode(eventData);
   _postEvent(eventKind, eventDataAsString);
 }

@@ -12,6 +12,7 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_impact.dart';
+import 'package:compiler/src/util/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -20,7 +21,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const ImpactDataComputer(),
-        args: args, testFrontend: true);
+        args: args, testOmit: false, testFrontend: true);
   });
 }
 
@@ -32,12 +33,12 @@ class Tags {
   static const String runtimeTypeUse = 'runtimeType';
 }
 
-class ImpactDataComputer extends DataComputer {
+class ImpactDataComputer extends DataComputer<Features> {
   const ImpactDataComputer();
 
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
     KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
     WorldImpact impact = compiler.impactCache[member];
@@ -71,7 +72,11 @@ class ImpactDataComputer extends DataComputer {
       }
     }
     Id id = computeEntityId(node);
-    actualMap[id] = new ActualData(new IdValue(id, features.getText()),
-        computeSourceSpanFromTreeNode(node), member);
+    actualMap[id] = new ActualData<Features>(
+        id, features, computeSourceSpanFromTreeNode(node), member);
   }
+
+  @override
+  DataInterpreter<Features> get dataValidator =>
+      const FeaturesDataInterpreter();
 }

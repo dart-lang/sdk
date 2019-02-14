@@ -21,7 +21,6 @@ namespace dart {
 
 // Forward declarations.
 class RuntimeEntry;
-class StubEntry;
 class RegisterSet;
 
 class Immediate : public ValueObject {
@@ -423,7 +422,7 @@ class Operand : public ValueObject {
   friend class Assembler;
 };
 
-class Assembler : public ValueObject {
+class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches = false);
@@ -458,49 +457,17 @@ class Assembler : public ValueObject {
     cmp(value, Operand(TMP));
   }
 
-  // Misc. functionality
-  intptr_t CodeSize() const { return buffer_.Size(); }
-  intptr_t prologue_offset() const { return prologue_offset_; }
-  bool has_single_entry_point() const { return has_single_entry_point_; }
-
-  // Count the fixups that produce a pointer offset, without processing
-  // the fixups.  On ARM64 there are no pointers in code.
-  intptr_t CountPointerOffsets() const { return 0; }
-
-  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
-    ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
-    return buffer_.pointer_offsets();
-  }
-
-  ObjectPoolWrapper& object_pool_wrapper() { return *object_pool_wrapper_; }
-
-  RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_->MakeObjectPool();
-  }
-
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
   }
 
   void set_use_far_branches(bool b) { use_far_branches_ = b; }
 
-  void FinalizeInstructions(const MemoryRegion& region) {
-    buffer_.FinalizeInstructions(region);
-  }
-
   // Debugging and bringup support.
   void Breakpoint() { brk(0); }
-  void Stop(const char* message);
-  void Unimplemented(const char* message);
-  void Untested(const char* message);
-  void Unreachable(const char* message);
+  void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  static bool EmittingComments();
-
-  const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);
 
@@ -1382,24 +1349,25 @@ class Assembler : public ValueObject {
 
   void BranchIfSmi(Register reg, Label* label) { tbz(label, reg, kSmiTag); }
 
-  void Branch(const StubEntry& stub_entry,
+  void Branch(const Code& code,
               Register pp,
               ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
-  void BranchPatchable(const StubEntry& stub_entry);
+  void BranchPatchable(const Code& code);
 
   void BranchLink(
-      const StubEntry& stub_entry,
+      const Code& code,
       ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
 
-  void BranchLinkPatchable(const StubEntry& stub_entry);
+  void BranchLinkPatchable(const Code& code) {
+    BranchLink(code, ObjectPool::kPatchable);
+  }
   void BranchLinkToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
-  void BranchLinkWithEquivalence(const StubEntry& stub_entry,
-                                 const Object& equivalence);
+  void BranchLinkWithEquivalence(const Code& code, const Object& equivalence);
 
   void AddImmediate(Register dest, int64_t imm) {
     AddImmediate(dest, dest, imm);
@@ -1477,6 +1445,12 @@ class Assembler : public ValueObject {
                        Register value,
                        CanBeSmi can_value_be_smi = kValueCanBeSmi,
                        bool lr_reserved = false);
+  void StoreIntoArray(Register object,
+                      Register slot,
+                      Register value,
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                      bool lr_reserved = false);
+
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
@@ -1593,6 +1567,19 @@ class Assembler : public ValueObject {
                         Register temp1,
                         Register temp2);
 
+  // This emits an PC-relative call of the form "bl <offset>".  The offset
+  // is not yet known and needs therefore relocation to the right place before
+  // the code can be used.
+  //
+  // The neccessary information for the "linker" (i.e. the relocation
+  // information) is stored in [RawCode::static_calls_target_table_]: an entry
+  // of the form
+  //
+  //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
+  //
+  // will be used during relocation to fix the offset.
+  void GenerateUnRelocatedPcRelativeCall();
+
   Address ElementAddressForIntIndex(bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
@@ -1624,29 +1611,19 @@ class Assembler : public ValueObject {
                       Register tmp,
                       OperandSize sz);
 
+  static int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
+    const int32_t imm32 = static_cast<int32_t>(imm);
+    const int32_t off = (((imm32 >> 2) << kImm26Shift) & kImm26Mask);
+    return (instr & ~kImm26Mask) | off;
+  }
+
+  static int64_t DecodeImm26BranchOffset(int32_t instr) {
+    const int32_t off = (((instr & kImm26Mask) >> kImm26Shift) << 6) >> 4;
+    return static_cast<int64_t>(off);
+  }
+
  private:
-  AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPoolWrapper* object_pool_wrapper_;
-  int32_t prologue_offset_;
-  bool has_single_entry_point_;
   bool use_far_branches_;
-
-  class CodeComment : public ZoneAllocated {
-   public:
-    CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) {}
-
-    intptr_t pc_offset() const { return pc_offset_; }
-    const String& comment() const { return comment_; }
-
-   private:
-    intptr_t pc_offset_;
-    const String& comment_;
-
-    DISALLOW_COPY_AND_ASSIGN(CodeComment);
-  };
-
-  GrowableArray<CodeComment*> comments_;
 
   bool constant_pool_allowed_;
 
@@ -1847,17 +1824,6 @@ class Assembler : public ValueObject {
   int32_t EncodeImm14BranchCondition(Condition cond, int32_t instr) {
     ASSERT(IsTestAndBranch(instr));
     return (instr & ~B24) | (cond == EQ ? B24 : 0);  // tbz : tbnz
-  }
-
-  int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
-    const int32_t imm32 = static_cast<int32_t>(imm);
-    const int32_t off = (((imm32 >> 2) << kImm26Shift) & kImm26Mask);
-    return (instr & ~kImm26Mask) | off;
-  }
-
-  int64_t DecodeImm26BranchOffset(int32_t instr) {
-    const int32_t off = (((instr & kImm26Mask) >> kImm26Shift) << 6) >> 4;
-    return static_cast<int64_t>(off);
   }
 
   void EmitCompareAndBranchOp(CompareAndBranchOp op,

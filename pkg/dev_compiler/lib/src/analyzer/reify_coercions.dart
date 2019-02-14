@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart' as analyzer;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/ast/visitor.dart' show GeneralizingAstVisitor;
 import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:analyzer/src/dart/ast/ast.dart' show FunctionBodyImpl;
-import 'package:analyzer/src/dart/ast/utilities.dart' show NodeReplacer;
+import 'package:analyzer/src/dart/ast/utilities.dart'
+    show AstCloner, NodeReplacer;
 import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
 import 'package:analyzer/src/generated/parser.dart' show ResolutionCopier;
 import 'package:analyzer/src/task/strong/ast_properties.dart' as ast_properties;
@@ -17,7 +18,7 @@ import 'element_helpers.dart' show isInlineJS;
 
 // This class implements a pass which modifies (in place) the ast replacing
 // abstract coercion nodes with their dart implementations.
-class CoercionReifier extends analyzer.GeneralizingAstVisitor<void> {
+class CoercionReifier extends GeneralizingAstVisitor<void> {
   final cloner = _TreeCloner();
 
   CoercionReifier._();
@@ -123,7 +124,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<void> {
   }
 }
 
-class _TreeCloner extends analyzer.AstCloner {
+class _TreeCloner extends AstCloner {
   void _cloneProperties(AstNode clone, AstNode node) {
     if (clone is Expression && node is Expression) {
       ast_properties.setImplicitCast(

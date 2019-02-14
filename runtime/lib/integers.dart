@@ -4,15 +4,15 @@
 
 // part of "core_patch.dart";
 
-// This marker interface represents 64-bit integers in the compiler for type
-// propagation and range analysis.  It is implemented by _Smi and _Mint.
-abstract class _int64 implements int {}
-
 abstract class _IntegerImplementation implements int {
+  @pragma("vm:non-nullable-result-type")
   num operator +(num other) => other._addFromInteger(this);
+  @pragma("vm:non-nullable-result-type")
   num operator -(num other) => other._subFromInteger(this);
+  @pragma("vm:non-nullable-result-type")
   num operator *(num other) => other._mulFromInteger(this);
 
+  @pragma("vm:non-nullable-result-type")
   int operator ~/(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
@@ -24,6 +24,7 @@ abstract class _IntegerImplementation implements int {
     return this.toDouble() / other.toDouble();
   }
 
+  @pragma("vm:non-nullable-result-type")
   num operator %(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
@@ -31,34 +32,51 @@ abstract class _IntegerImplementation implements int {
     return other._moduloFromInteger(this);
   }
 
+  @pragma("vm:non-nullable-result-type")
   int operator -() {
     return 0 - this;
   }
 
+  @pragma("vm:non-nullable-result-type")
   int operator &(int other) => other._bitAndFromInteger(this);
+  @pragma("vm:non-nullable-result-type")
   int operator |(int other) => other._bitOrFromInteger(this);
+  @pragma("vm:non-nullable-result-type")
   int operator ^(int other) => other._bitXorFromInteger(this);
 
   num remainder(num other) {
     return other._remainderFromInteger(this);
   }
 
+  @pragma("vm:non-nullable-result-type")
   int _bitAndFromSmi(_Smi other) native "Integer_bitAndFromInteger";
+  @pragma("vm:non-nullable-result-type")
   int _bitAndFromInteger(int other) native "Integer_bitAndFromInteger";
+  @pragma("vm:non-nullable-result-type")
   int _bitOrFromInteger(int other) native "Integer_bitOrFromInteger";
+  @pragma("vm:non-nullable-result-type")
   int _bitXorFromInteger(int other) native "Integer_bitXorFromInteger";
+  @pragma("vm:non-nullable-result-type")
   int _shrFromInteger(int other) native "Integer_shrFromInteger";
+  @pragma("vm:non-nullable-result-type")
   int _shlFromInteger(int other) native "Integer_shlFromInteger";
+  @pragma("vm:non-nullable-result-type")
   int _addFromInteger(int other) native "Integer_addFromInteger";
+  @pragma("vm:non-nullable-result-type")
   int _subFromInteger(int other) native "Integer_subFromInteger";
+  @pragma("vm:non-nullable-result-type")
   int _mulFromInteger(int other) native "Integer_mulFromInteger";
+  @pragma("vm:non-nullable-result-type")
   int _truncDivFromInteger(int other) native "Integer_truncDivFromInteger";
+  @pragma("vm:non-nullable-result-type")
   int _moduloFromInteger(int other) native "Integer_moduloFromInteger";
   int _remainderFromInteger(int other) {
     return other - (other ~/ this) * this;
   }
 
+  @pragma("vm:non-nullable-result-type")
   int operator >>(int other) => other._shrFromInteger(this);
+  @pragma("vm:non-nullable-result-type")
   int operator <<(int other) => other._shlFromInteger(this);
 
   @pragma("vm:exact-result-type", bool)
@@ -460,7 +478,7 @@ abstract class _IntegerImplementation implements int {
 }
 
 @pragma("vm:entry-point")
-class _Smi extends _IntegerImplementation implements _int64 {
+class _Smi extends _IntegerImplementation {
   factory _Smi._uninstantiable() {
     throw new UnsupportedError("_Smi can only be allocated by the VM");
   }
@@ -662,13 +680,15 @@ class _Smi extends _IntegerImplementation implements _int64 {
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
 @pragma("vm:entry-point")
-class _Mint extends _IntegerImplementation implements _int64 {
+class _Mint extends _IntegerImplementation {
   factory _Mint._uninstantiable() {
     throw new UnsupportedError("_Mint can only be allocated by the VM");
   }
   int get hashCode => this;
   int get _identityHashCode => this;
+  @pragma("vm:non-nullable-result-type")
   int operator ~() native "Mint_bitNegate";
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get bitLength native "Mint_bitLength";
 
   int _bitAndFromSmi(_Smi other) => _bitAndFromInteger(other);

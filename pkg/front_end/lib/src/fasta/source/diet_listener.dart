@@ -148,7 +148,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken) {
+  void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
     discard(1);
   }
@@ -223,7 +223,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
+  void endFunctionType(Token functionToken, Token questionMark) {
     debugEvent("FunctionType");
     discard(1);
   }
@@ -590,9 +590,8 @@ class DietListener extends StackListener {
     // Note: we set thisType regardless of whether we are building a static
     // member, since that provides better error recovery.
     InterfaceType thisType = currentClass?.target?.thisType;
-    var typeInferrer = library.disableTypeInference
-        ? typeInferenceEngine.createDisabledTypeInferrer()
-        : typeInferenceEngine.createLocalTypeInferrer(uri, thisType, library);
+    var typeInferrer =
+        typeInferenceEngine?.createLocalTypeInferrer(uri, thisType, library);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.inferred
         : ConstantContext.none;
@@ -895,16 +894,19 @@ class DietListener extends StackListener {
       Declaration nearestDeclaration;
       int minDistance = -1;
       do {
-        // [distance] will always be non-negative as we ensure [token] is
-        // always at the beginning of the declaration. The minimum distance
-        // will often be larger than 0, for example, in a class declaration
-        // where [token] will point to `abstract` or `class`, but the
-        // declaration's offset points to the name of the class.
-        int distance = declaration.charOffset - offset;
-        if (distance >= 0) {
-          if (minDistance == -1 || distance < minDistance) {
-            minDistance = distance;
-            nearestDeclaration = declaration;
+        // Only look at declarations from this file (part).
+        if (uri == declaration.fileUri) {
+          // [distance] will always be non-negative as we ensure [token] is
+          // always at the beginning of the declaration. The minimum distance
+          // will often be larger than 0, for example, in a class declaration
+          // where [token] will point to `abstract` or `class`, but the
+          // declaration's offset points to the name of the class.
+          int distance = declaration.charOffset - offset;
+          if (distance >= 0) {
+            if (minDistance == -1 || distance < minDistance) {
+              minDistance = distance;
+              nearestDeclaration = declaration;
+            }
           }
         }
         declaration = declaration.next;

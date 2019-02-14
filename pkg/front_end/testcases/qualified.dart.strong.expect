@@ -53,7 +53,7 @@ abstract class _WithMixin&Supertype&Mixin = lib::Supertype with lib::Mixin {
 }
 class WithMixin extends self::_WithMixin&Supertype&Mixin {
   synthetic constructor •() → self::WithMixin
-    : super lib::Supertype::•()
+    : super self::_WithMixin&Supertype&Mixin::•()
     ;
 }
 class IllegalSupertype extends core::Object {

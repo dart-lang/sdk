@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -83,7 +83,7 @@ class TypeMemberContributor extends DartCompletionContributor {
       // Determine the name of the containing method because
       // the most likely completion is a super expression with same name
       MethodDeclaration containingMethod =
-          expression.getAncestor((p) => p is MethodDeclaration);
+          expression.thisOrAncestorOfType<MethodDeclaration>();
       if (containingMethod != null) {
         SimpleIdentifier id = containingMethod.name;
         if (id != null) {
@@ -166,6 +166,17 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     if (declaration.name.name == targetName) {
       TypeAnnotation typeName = declaration.returnType;
+      if (typeName != null) {
+        typeFound = typeName.type;
+      }
+      finished();
+    }
+  }
+
+  @override
+  void declaredGenericTypeAlias(GenericTypeAlias declaration) {
+    if (declaration.name.name == targetName) {
+      TypeAnnotation typeName = declaration.functionType.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }

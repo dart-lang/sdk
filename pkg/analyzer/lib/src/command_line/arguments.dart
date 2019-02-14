@@ -15,7 +15,6 @@ import 'package:path/path.dart';
 const String analysisOptionsFileOption = 'options';
 const String bazelAnalysisOptionsPath =
     'package:dart.analysis_options/default.yaml';
-const String declarationCastsFlag = 'declaration-casts';
 const String defineVariableOption = 'D';
 const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
 @deprecated
@@ -46,13 +45,6 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
   if (args.wasParsed(implicitCastsFlag)) {
     options.implicitCasts = args[implicitCastsFlag];
     verbose('$implicitCastsFlag = ${options.implicitCasts}');
-  }
-  if (args.wasParsed(declarationCastsFlag)) {
-    options.declarationCasts = args[declarationCastsFlag];
-    verbose('$declarationCastsFlag = ${options.declarationCasts}');
-  } else if (args.wasParsed(implicitCastsFlag)) {
-    options.declarationCasts = args[implicitCastsFlag];
-    verbose('$declarationCastsFlag = ${options.declarationCasts}');
   }
   if (args.wasParsed(noImplicitDynamicFlag)) {
     options.implicitDynamic = !args[noImplicitDynamicFlag];
@@ -162,10 +154,10 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       defaultsTo: true,
       hide: true,
       negatable: true);
-  parser.addFlag(declarationCastsFlag,
+  parser.addFlag('declaration-casts',
       negatable: true,
       help: 'Disable declaration casts in strong mode (https://goo.gl/cTLz40)\n'
-          'This option is deprecated and will be removed in a future release.',
+          'This option is now ignored and will be removed in a future release.',
       hide: ddc && hide);
   parser.addFlag(implicitCastsFlag,
       negatable: true,

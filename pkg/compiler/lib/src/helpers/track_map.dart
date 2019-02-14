@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * The track map is a simple wrapper around a map that keeps track
- * of the 'final' size of maps grouped by description. It allows
- * determining the distribution of sizes for a specific allocation
- * site and it can be used like this:
- *
- *    Map<String, int> map = new TrackMap<String, int>("my-map");
- *
- * After finishing the compilaton, the histogram of track map sizes
- * is printed but only when running in verbose mode.
- */
+/// The track map is a simple wrapper around a map that keeps track
+/// of the 'final' size of maps grouped by description. It allows
+/// determining the distribution of sizes for a specific allocation
+/// site and it can be used like this:
+///
+///    Map<String, int> map = new TrackMap<String, int>("my-map");
+///
+/// After finishing the compilaton, the histogram of track map sizes
+/// is printed but only when running in verbose mode.
 class TrackMap<K, V> implements Map<K, V> {
   final Map<K, V> _map;
   final List _counts;

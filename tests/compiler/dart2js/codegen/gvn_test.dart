@@ -108,24 +108,22 @@ main() {
 main() {
   runTests() async {
     await compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      RegExp regexp = new RegExp(r"1 \+ [a-z]+");
+      RegExp regexp = RegExp(r"1 \+ [a-z]+");
       checkNumberOfMatches(regexp.allMatches(generated).iterator, 1);
     });
     await compile(TEST_TWO, entry: 'foo', check: (String generated) {
-      checkNumberOfMatches(
-          new RegExp("length").allMatches(generated).iterator, 1);
+      checkNumberOfMatches(RegExp("length").allMatches(generated).iterator, 1);
     });
     await compile(TEST_THREE, entry: 'foo', check: (String generated) {
-      checkNumberOfMatches(
-          new RegExp("number").allMatches(generated).iterator, 1);
+      checkNumberOfMatches(RegExp("number").allMatches(generated).iterator, 1);
     });
     await compile(TEST_FOUR, entry: 'foo', check: (String generated) {
-      checkNumberOfMatches(new RegExp("shr").allMatches(generated).iterator, 1);
+      checkNumberOfMatches(RegExp("shr").allMatches(generated).iterator, 1);
     });
 
     await compileAll(TEST_FIVE).then((generated) {
       checkNumberOfMatches(
-          new RegExp("get\\\$foo").allMatches(generated).iterator, 1);
+          RegExp(r"get\$foo\(").allMatches(generated).iterator, 1);
     });
     await compileAll(TEST_SIX).then((generated) {
       Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));

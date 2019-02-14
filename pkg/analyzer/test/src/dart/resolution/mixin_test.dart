@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -24,7 +23,7 @@ main() {
 class MixinDriverResolutionTest extends DriverResolutionTest
     with MixinResolutionMixin {}
 
-abstract class MixinResolutionMixin implements ResolutionTest {
+mixin MixinResolutionMixin implements ResolutionTest {
   test_accessor_getter() async {
     addTestFile(r'''
 mixin M {
@@ -1005,6 +1004,54 @@ abstract class X extends A with M {}
     ]);
   }
 
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_hasNSM() async {
+    addTestFile(r'''
+abstract class A {
+  void foo();
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+class C implements A {
+  noSuchMethod(_) {}
+}
+
+class X extends C with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_hasNSM2() async {
+    addTestFile(r'''
+abstract class A {
+  void foo();
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+/// Class `B` has noSuchMethod forwarder for `foo`.
+class B implements A {
+  noSuchMethod(_) {}
+}
+
+/// Class `C` is abstract, but it inherits noSuchMethod forwarders from `B`.
+abstract class C extends B {}
+
+class X extends C with M {}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
   test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_inPreviousMixin() async {
     addTestFile(r'''
 abstract class A {
@@ -1128,6 +1175,30 @@ class A<T> {}
 mixin M on A<int> {}
 
 class X = A<double> with M;
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+    ]);
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_noMemberErrors() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+class C {
+  noSuchMethod(_) {}
+}
+
+class X = C with M;
 ''');
     await resolveTestFile();
     assertTestErrors([
@@ -1267,6 +1338,24 @@ main() {
     var creation = findNode.instanceCreation('M.named();');
     var m = findElement.mixin('M');
     assertInstanceCreation(creation, m, 'M', constructorName: 'named');
+  }
+
+  test_error_mixinInstantiate_undefined() async {
+    addTestFile(r'''
+mixin M {}
+
+main() {
+  new M.named();
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_INSTANTIATE,
+    ]);
+
+    var creation = findNode.instanceCreation('M.named();');
+    var m = findElement.mixin('M');
+    assertElement(creation.constructorName.type.name, m);
   }
 
   test_error_onClause_deferredClass() async {

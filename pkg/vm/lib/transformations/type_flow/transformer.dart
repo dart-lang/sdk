@@ -16,6 +16,7 @@ import 'package:kernel/type_environment.dart';
 
 import 'analysis.dart';
 import 'calls.dart';
+import 'summary.dart';
 import 'summary_collector.dart';
 import 'types.dart';
 import 'utils.dart';
@@ -39,13 +40,14 @@ Component transformComponent(
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
-  final types = new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
+  final types = new TypeEnvironment(coreTypes, hierarchy);
   final libraryIndex = new LibraryIndex.all(component);
   final genericInterfacesInfo = new GenericInterfacesInfoImpl(hierarchy);
 
   if (kDumpAllSummaries) {
     Statistics.reset();
-    new CreateAllSummariesVisitor(target, types, genericInterfacesInfo)
+    new CreateAllSummariesVisitor(
+            target, types, hierarchy, genericInterfacesInfo)
         .visitComponent(component);
     Statistics.print("All summaries statistics");
   }
@@ -72,7 +74,7 @@ Component transformComponent(
 
   new TreeShaker(component, typeFlowAnalysis).transformComponent(component);
 
-  new TFADevirtualization(component, typeFlowAnalysis)
+  new TFADevirtualization(component, typeFlowAnalysis, hierarchy)
       .visitComponent(component);
 
   new AnnotateKernel(component, typeFlowAnalysis).visitComponent(component);
@@ -91,9 +93,9 @@ Component transformComponent(
 class TFADevirtualization extends Devirtualization {
   final TypeFlowAnalysis _typeFlowAnalysis;
 
-  TFADevirtualization(Component component, this._typeFlowAnalysis)
-      : super(_typeFlowAnalysis.environment.coreTypes, component,
-            _typeFlowAnalysis.environment.hierarchy);
+  TFADevirtualization(
+      Component component, this._typeFlowAnalysis, ClassHierarchy hierarchy)
+      : super(_typeFlowAnalysis.environment.coreTypes, component, hierarchy);
 
   @override
   DirectCallMetadata getDirectCall(TreeNode node, Member interfaceTarget,
@@ -158,7 +160,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
           .toList();
     }
 
-    if ((concreteClass != null) || !nullable || isInt) {
+    if ((concreteClass != null) || !nullable || isInt || skipCheck) {
       return new InferredType(concreteClass, nullable, isInt,
           exactTypeArguments: typeArgs, skipCheck: skipCheck);
     }
@@ -167,7 +169,6 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   }
 
   void _setInferredType(TreeNode node, Type type, {bool skipCheck: false}) {
-    assertx(skipCheck == false || node is VariableDeclaration || node is Field);
     final inferredType = _convertType(type, skipCheck: skipCheck);
     if (inferredType != null) {
       _inferredTypeMetadata.mapping[node] = inferredType;
@@ -182,8 +183,20 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
     final callSite = _typeFlowAnalysis.callSite(node);
     if (callSite != null) {
       if (callSite.isReachable) {
+        bool markSkipCheck = !callSite.useCheckedEntry &&
+            (node is MethodInvocation || node is PropertySet);
         if (callSite.isResultUsed) {
-          _setInferredType(node, callSite.resultType);
+          _setInferredType(node, callSite.resultType, skipCheck: markSkipCheck);
+        } else if (markSkipCheck) {
+          // If the call is not marked as 'isResultUsed', the 'resultType' will
+          // not be observed (i.e., it will always be EmptyType). This is the
+          // case even if the result acutally might be used but is not used by
+          // the summary, e.g. if the result is an argument to a closure call.
+          // Therefore, we need to pass in 'NullableType(AnyType)' as the
+          // inferred result type here (since we don't know what it actually
+          // is).
+          _setInferredType(node, NullableType(const AnyType()),
+              skipCheck: true);
         }
       } else {
         _setUnreachable(node);
@@ -194,14 +207,12 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   void _annotateMember(Member member) {
     if (_typeFlowAnalysis.isMemberUsed(member)) {
       if (member is Field) {
-        _setInferredType(member, _typeFlowAnalysis.fieldType(member),
-            skipCheck: _typeFlowAnalysis.fieldStaticCallSiteSkipCheck(member));
+        _setInferredType(member, _typeFlowAnalysis.fieldType(member));
       } else {
         Args<Type> argTypes = _typeFlowAnalysis.argumentTypes(member);
+        final uncheckedParameters =
+            _typeFlowAnalysis.uncheckedParameters(member);
         assertx(argTypes != null);
-
-        final skipCheckParams = new Set<VariableDeclaration>.from(
-            _typeFlowAnalysis.staticCallSiteSkipCheckParams(member));
 
         final int firstParamIndex =
             numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
@@ -213,7 +224,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         for (int i = 0; i < positionalParams.length; i++) {
           _setInferredType(
               positionalParams[i], argTypes.values[firstParamIndex + i],
-              skipCheck: skipCheckParams.contains(positionalParams[i]));
+              skipCheck: uncheckedParameters.contains(positionalParams[i]));
         }
 
         // TODO(dartbug.com/32292): make sure parameters are sorted in kernel
@@ -224,7 +235,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
           assertx(param != null);
           _setInferredType(param,
               argTypes.values[firstParamIndex + positionalParams.length + i],
-              skipCheck: skipCheckParams.contains(param));
+              skipCheck: uncheckedParameters.contains(param));
         }
 
         // TODO(alexmarkov): figure out how to pass receiver type.
@@ -356,6 +367,8 @@ class TreeShaker {
   bool isClassAllocated(Class c) => typeFlowAnalysis.isClassAllocated(c);
   bool isMemberUsed(Member m) => _usedMembers.contains(m);
   bool isMemberBodyReachable(Member m) => typeFlowAnalysis.isMemberUsed(m);
+  bool isFieldInitializerReachable(Field f) =>
+      typeFlowAnalysis.isFieldInitializerUsed(f);
   bool isMemberReferencedFromNativeCode(Member m) =>
       typeFlowAnalysis.nativeCodeOracle.isMemberReferencedFromNativeCode(m);
   bool isTypedefUsed(Typedef t) => _usedTypedefs.contains(t);
@@ -452,6 +465,7 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor<Null> {
   @override
   visitTypedefType(TypedefType node) {
     shaker.addUsedTypedef(node.typedefNode);
+    node.visitChildren(this);
   }
 
   @override
@@ -478,6 +492,7 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor<Null> {
 /// transforms unreachable calls into 'throw' expressions.
 class _TreeShakerPass1 extends Transformer {
   final TreeShaker shaker;
+  Procedure _unsafeCast;
 
   _TreeShakerPass1(this.shaker);
 
@@ -579,6 +594,30 @@ class _TreeShakerPass1 extends Transformer {
       }
       shaker.addUsedMember(node);
       node.transformChildren(this);
+    } else if (shaker.isMemberReferencedFromNativeCode(node)) {
+      // Preserve members referenced from native code to satisfy lookups, even
+      // if they are not reachable. An instance member could be added via
+      // native code entry point but still unreachable if no instances of
+      // its enclosing class are allocated.
+      shaker.addUsedMember(node);
+    }
+    return node;
+  }
+
+  @override
+  TreeNode visitField(Field node) {
+    if (shaker.isMemberBodyReachable(node)) {
+      if (kPrintTrace) {
+        tracePrint("Visiting $node");
+      }
+      shaker.addUsedMember(node);
+      if (node.initializer != null) {
+        if (shaker.isFieldInitializerReachable(node)) {
+          node.transformChildren(this);
+        } else {
+          node.initializer = _makeUnreachableCall([]);
+        }
+      }
     } else if (shaker.isMemberReferencedFromNativeCode(node)) {
       // Preserve members referenced from native code to satisfy lookups, even
       // if they are not reachable. An instance member could be added via
@@ -806,6 +845,24 @@ class _TreeShakerPass1 extends Transformer {
   @override
   TreeNode visitAssertInitializer(AssertInitializer node) {
     return _visitAssertNode(node);
+  }
+
+  @override
+  TreeNode visitAsExpression(AsExpression node) {
+    node.transformChildren(this);
+    TypeCheck check = shaker.typeFlowAnalysis.explicitCast(node);
+    if (check != null && check.canAlwaysSkip) {
+      return StaticInvocation(
+          unsafeCast, Arguments([node.operand], types: [node.type]));
+    }
+    return node;
+  }
+
+  Procedure get unsafeCast {
+    _unsafeCast ??= shaker.typeFlowAnalysis.environment.coreTypes.index
+        .getTopLevelMember('dart:_internal', 'unsafeCast');
+    assertx(_unsafeCast != null);
+    return _unsafeCast;
   }
 }
 

@@ -79,13 +79,21 @@ class ProgramLookup {
       return getLibraryData(function.library).getMethod(function);
     }
   }
+
+  Field getField(FieldEntity field) {
+    if (field.enclosingClass != null) {
+      return getClassData(field.enclosingClass).getField(field);
+    } else {
+      return getLibraryData(field.library).getField(field);
+    }
+  }
 }
 
 class LibraryData {
   final Library library;
-  Map<ClassEntity, ClassData> _classMap = <ClassEntity, ClassData>{};
-  Map<FunctionEntity, StaticMethod> _methodMap =
-      <FunctionEntity, StaticMethod>{};
+  Map<ClassEntity, ClassData> _classMap = {};
+  Map<FunctionEntity, StaticMethod> _methodMap = {};
+  Map<FieldEntity, Field> _fieldMap = {};
 
   LibraryData(this.library) {
     for (Class cls in library.classes) {
@@ -104,6 +112,18 @@ class LibraryData {
         _methodMap[method.element] = method;
       }
     }
+    for (Field field in library.staticFieldsForReflection) {
+      ClassEntity enclosingClass = field.element?.enclosingClass;
+      if (enclosingClass != null) {
+        ClassData data =
+            _classMap.putIfAbsent(enclosingClass, () => new ClassData(null));
+        assert(!data._fieldMap.containsKey(field.element));
+        data._fieldMap[field.element] = field;
+      } else if (field.element != null) {
+        assert(!_fieldMap.containsKey(field.element));
+        _fieldMap[field.element] = field;
+      }
+    }
   }
 
   ClassData getClassData(ClassEntity element) {
@@ -113,11 +133,17 @@ class LibraryData {
   StaticMethod getMethod(FunctionEntity function) {
     return _methodMap[function];
   }
+
+  Field getField(FieldEntity field) {
+    return _fieldMap[field];
+  }
 }
 
 class ClassData {
   final Class cls;
-  Map<FunctionEntity, Method> _methodMap = <FunctionEntity, Method>{};
+  Map<FunctionEntity, Method> _methodMap = {};
+  Map<FieldEntity, Field> _fieldMap = {};
+  Map<FieldEntity, StubMethod> _checkedSetterMap = {};
 
   ClassData(this.cls) {
     if (cls != null) {
@@ -125,11 +151,27 @@ class ClassData {
         assert(!_methodMap.containsKey(method.element));
         _methodMap[method.element] = method;
       }
+      for (Field field in cls.fields) {
+        assert(!_fieldMap.containsKey(field.element));
+        _fieldMap[field.element] = field;
+      }
+      for (StubMethod checkedSetter in cls.checkedSetters) {
+        assert(!_checkedSetterMap.containsKey(checkedSetter.element));
+        _checkedSetterMap[checkedSetter.element] = checkedSetter;
+      }
     }
   }
 
   Method getMethod(FunctionEntity function) {
     return _methodMap[function];
+  }
+
+  Field getField(FieldEntity field) {
+    return _fieldMap[field];
+  }
+
+  StubMethod getCheckedSetter(FieldEntity field) {
+    return _checkedSetterMap[field];
   }
 }
 

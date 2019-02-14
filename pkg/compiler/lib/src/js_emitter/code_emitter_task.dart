@@ -15,9 +15,8 @@ import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
 import '../js_backend/inferred_data.dart';
-import '../universe/world_builder.dart' show CodegenWorldBuilder;
+import '../universe/codegen_world_builder.dart';
 import '../world.dart' show JClosedWorld;
-import 'full_emitter/emitter.dart' as full_js_emitter;
 import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
 
@@ -27,12 +26,10 @@ import 'native_emitter.dart' show NativeEmitter;
 import 'type_test_registry.dart' show TypeTestRegistry;
 import 'sorter.dart';
 
-/**
- * Generates the code for all used classes in the program. Static fields (even
- * in classes) are ignored, since they can be treated as non-class elements.
- *
- * The code for the containing (used) methods must exist in the `universe`.
- */
+/// Generates the code for all used classes in the program. Static fields (even
+/// in classes) are ignored, since they can be treated as non-class elements.
+///
+/// The code for the containing (used) methods must exist in the `universe`.
 class CodeEmitterTask extends CompilerTask {
   TypeTestRegistry typeTestRegistry;
   NativeEmitter _nativeEmitter;
@@ -50,14 +47,10 @@ class CodeEmitterTask extends CompilerTask {
   /// Contains a list of all classes that are emitted.
   Set<ClassEntity> neededClasses;
 
-  CodeEmitterTask(
-      Compiler compiler, bool generateSourceMap, bool useStartupEmitter)
+  CodeEmitterTask(Compiler compiler, bool generateSourceMap)
       : compiler = compiler,
-        _emitterFactory = useStartupEmitter
-            ? new startup_js_emitter.EmitterFactory(
-                generateSourceMap: generateSourceMap)
-            : new full_js_emitter.EmitterFactory(
-                generateSourceMap: generateSourceMap),
+        _emitterFactory = startup_js_emitter.EmitterFactory(
+            generateSourceMap: generateSourceMap),
         super(compiler.measurer);
 
   NativeEmitter get nativeEmitter {
@@ -179,7 +172,6 @@ class CodeEmitterTask extends CompilerTask {
           compiler.reporter,
           closedWorld.elementEnvironment,
           closedWorld.commonElements,
-          compiler.deferredLoadTask,
           closedWorld.outputUnitData,
           compiler.codegenWorldBuilder,
           backend.nativeCodegenEnqueuer,
@@ -191,7 +183,6 @@ class CodeEmitterTask extends CompilerTask {
           backend.superMemberData,
           typeTestRegistry.rtiChecks,
           backend.rtiEncoder,
-          backend.jsInteropAnalysis,
           backend.oneShotInterceptorData,
           backend.customElementsCodegenAnalysis,
           backend.generatedCode,

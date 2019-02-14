@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -37,16 +37,16 @@ class AnalysisStatus {
  * after completion and will not complete until [notify] is called next time.
  */
 class Monitor {
-  Completer<Null> _completer = new Completer<Null>();
+  Completer<void> _completer = new Completer<void>();
 
   /**
    * Return a [Future] that completes when [notify] is called at least once.
    */
-  Future<Null> get signal async {
+  Future<void> get signal async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     await _completer.future;
-    _completer = new Completer<Null>();
+    _completer = new Completer<void>();
   }
 
   /**
@@ -78,7 +78,7 @@ class StatusSupport {
    * If non-null, a completer which should be completed on the next transition
    * to idle.
    */
-  Completer<Null> _idleCompleter;
+  Completer<void> _idleCompleter;
 
   /**
    * Return the last status sent to the [stream].
@@ -98,7 +98,7 @@ class StatusSupport {
    * as a call to [transitionToAnalyzing], but it has no effect on the [stream].
    */
   void preTransitionToAnalyzing() {
-    _idleCompleter ??= new Completer<Null>();
+    _idleCompleter ??= new Completer<void>();
   }
 
   /**
@@ -130,7 +130,7 @@ class StatusSupport {
    * If the status is currently idle, the returned future will be signaled
    * immediately.
    */
-  Future<Null> waitForIdle() {
-    return _idleCompleter?.future ?? new Future.value();
+  Future<void> waitForIdle() {
+    return _idleCompleter?.future ?? new Future<void>.value();
   }
 }

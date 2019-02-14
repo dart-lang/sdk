@@ -39,7 +39,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 typedef void (*NativeFunctionWrapper)(Dart_NativeArguments args,
                                       Dart_NativeFunction func);
 
-#ifndef PRODUCT
+#ifdef DEBUG
 #define TRACE_NATIVE_CALL(format, name)                                        \
   if (FLAG_trace_natives) {                                                    \
     THR_Print("Calling native: " format "\n", name);                           \
@@ -61,7 +61,7 @@ typedef void (*NativeFunctionWrapper)(Dart_NativeArguments args,
 #define SET_NATIVE_RETVAL(arguments, value) arguments->SetReturnUnsafe(value);
 #endif
 
-#define DEFINE_NATIVE_ENTRY(name, argument_count)                              \
+#define DEFINE_NATIVE_ENTRY(name, type_argument_count, argument_count)         \
   static RawObject* DN_Helper##name(Isolate* isolate, Thread* thread,          \
                                     Zone* zone, NativeArguments* arguments);   \
   void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments args) {                \
@@ -71,6 +71,8 @@ typedef void (*NativeFunctionWrapper)(Dart_NativeArguments args,
     /* Tell MemorySanitizer 'arguments' is initialized by generated code. */   \
     MSAN_UNPOISON(arguments, sizeof(*arguments));                              \
     ASSERT(arguments->NativeArgCount() == argument_count);                     \
+    /* Note: a longer type arguments vector may be passed */                   \
+    ASSERT(arguments->NativeTypeArgCount() >= type_argument_count);            \
     TRACE_NATIVE_CALL("%s", "" #name);                                         \
     {                                                                          \
       Thread* thread = arguments->thread();                                    \

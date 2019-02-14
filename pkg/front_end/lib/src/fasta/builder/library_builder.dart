@@ -27,6 +27,7 @@ import 'builder.dart'
         ClassBuilder,
         Declaration,
         ModifierBuilder,
+        NameIterator,
         PrefixBuilder,
         Scope,
         ScopeBuilder,
@@ -53,6 +54,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
         exportScopeBuilder = new ScopeBuilder(exportScope),
         super(null, -1, fileUri);
 
+  bool get legacyMode => false;
+
   bool get isSynthetic => false;
 
   @override
@@ -71,9 +74,15 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   @override
   R get target;
 
-  bool get disableTypeInference => true;
-
   Uri get uri;
+
+  Iterator<Declaration> get iterator {
+    return LibraryLocalDeclarationIterator(this);
+  }
+
+  NameIterator get nameIterator {
+    return new LibraryLocalDeclarationNameIterator(this);
+  }
 
   Declaration addBuilder(String name, Declaration declaration, int charOffset);
 
@@ -174,7 +183,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
     }
     throw internalProblem(
         templateInternalProblemConstructorNotFound.withArguments(
-            "$className::$constructorName", uri),
+            "$className.$constructorName", uri),
         -1,
         null);
   }
@@ -198,14 +207,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   void addSyntheticDeclarationOfDynamic();
 
-  void forEach(void f(String name, Declaration declaration)) {
-    scope.forEach((String name, Declaration declaration) {
-      if (declaration.parent == this) {
-        f(name, declaration);
-      }
-    });
-  }
-
   /// Don't use for scope lookup. Only use when an element is known to exist
   /// (and not a setter).
   Declaration operator [](String name) {
@@ -227,4 +228,40 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   }
 
   void recordAccess(int charOffset, int length, Uri fileUri) {}
+}
+
+class LibraryLocalDeclarationIterator implements Iterator<Declaration> {
+  final LibraryBuilder library;
+  final Iterator<Declaration> iterator;
+
+  LibraryLocalDeclarationIterator(this.library)
+      : iterator = library.scope.iterator;
+
+  Declaration get current => iterator.current;
+
+  bool moveNext() {
+    while (iterator.moveNext()) {
+      if (current.parent == library) return true;
+    }
+    return false;
+  }
+}
+
+class LibraryLocalDeclarationNameIterator implements NameIterator {
+  final LibraryBuilder library;
+  final NameIterator iterator;
+
+  LibraryLocalDeclarationNameIterator(this.library)
+      : iterator = library.scope.nameIterator;
+
+  Declaration get current => iterator.current;
+
+  String get name => iterator.name;
+
+  bool moveNext() {
+    while (iterator.moveNext()) {
+      if (current.parent == library) return true;
+    }
+    return false;
+  }
 }

@@ -13,7 +13,7 @@ class A<T> {
 
   @NoInline()
   f() {
-    return /*checks=[],functionType,instance*/ (int t) {};
+    return /*checks=[$signature],instance*/ (int t) {};
   }
 }
 

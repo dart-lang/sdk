@@ -11,7 +11,8 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/inferred_data.dart';
 import 'package:compiler/src/js_model/element_map.dart';
-import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:compiler/src/js_model/js_world.dart';
+import 'package:compiler/src/util/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -21,7 +22,7 @@ main(List<String> args) {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('inference_data'));
     await checkTests(dataDir, const InferenceDataComputer(),
-        args: args, options: [stopAfterTypeInference]);
+        args: args, testOmit: false, options: [stopAfterTypeInference]);
   });
 }
 
@@ -31,15 +32,15 @@ class Tags {
   static const String cannotThrow = 'no-throw';
 }
 
-class InferenceDataComputer extends DataComputer {
+class InferenceDataComputer extends DataComputer<String> {
   const InferenceDataComputer();
 
   /// Compute side effects data for [member] from kernel based inference.
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
@@ -48,15 +49,21 @@ class InferenceDataComputer extends DataComputer {
             compiler.globalInference.resultsForTesting.inferredData)
         .run(definition.node);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
 /// AST visitor for computing side effects data for a member.
-class InferredDataIrComputer extends IrDataExtractor {
+class InferredDataIrComputer extends IrDataExtractor<String> {
   final JsClosedWorld closedWorld;
   final InferredData inferredData;
 
-  InferredDataIrComputer(DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap, this.closedWorld, this.inferredData)
+  InferredDataIrComputer(
+      DiagnosticReporter reporter,
+      Map<Id, ActualData<String>> actualMap,
+      this.closedWorld,
+      this.inferredData)
       : super(reporter, actualMap);
 
   JsToElementMap get _elementMap => closedWorld.elementMap;

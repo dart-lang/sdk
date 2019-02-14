@@ -16,7 +16,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   }
 
   @override
-  void defaultStatement(Statement node, DartType _) {
+  void defaultStatement(Statement node, _) {
     unhandled("${node.runtimeType}", "InferenceVistor", node.fileOffset,
         inferrer.helper.uri);
   }
@@ -80,20 +80,15 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   @override
   void visitBoolLiteral(BoolLiteral node, DartType typeContext) {}
 
-  void visitBreakJudgment(BreakJudgment node) {
-    // No inference needs to be done.
-  }
-
-  void visitContinueJudgment(ContinueJudgment node) {
+  @override
+  void visitBreakStatement(BreakStatement node, _) {
     // No inference needs to be done.
   }
 
   void visitCascadeJudgment(CascadeJudgment node, DartType typeContext) {
     node.inferredType =
         inferrer.inferExpression(node.targetJudgment, typeContext, true);
-    if (inferrer.strongMode) {
-      node.variable.type = getInferredType(node, inferrer);
-    }
+    node.variable.type = getInferredType(node, inferrer);
     for (var judgment in node.cascadeJudgments) {
       inferrer.inferExpression(
           judgment, const UnknownType(), !inferrer.isTopLevel,
@@ -120,9 +115,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(getInferredType(then, inferrer),
             getInferredType(otherwise, inferrer));
-    if (inferrer.strongMode) {
-      node.staticType = inferredType;
-    }
+    node.staticType = inferredType;
   }
 
   @override
@@ -195,7 +188,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
   void visitDoJudgment(DoJudgment node) {
     var conditionJudgment = node.conditionJudgment;
-    inferrer.inferStatement(node.bodyJudgment);
+    inferrer.inferStatement(node.body);
     var boolType = inferrer.coreTypes.boolClass.rawType;
     inferrer.inferExpression(conditionJudgment, boolType, !inferrer.isTopLevel);
     inferrer.ensureAssignable(
@@ -247,46 +240,60 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         node.field.type, initializerType, node.value, node.fileOffset);
   }
 
-  void visitForInJudgment(ForInJudgment node) {
-    var iterableClass = node.isAsync
-        ? inferrer.coreTypes.streamClass
-        : inferrer.coreTypes.iterableClass;
-    DartType context;
+  void handleForInStatementDeclaringVariable(ForInStatement node) {
+    DartType elementType;
     bool typeNeeded = false;
     bool typeChecksNeeded = !inferrer.isTopLevel;
-    VariableDeclarationJudgment variable;
-    var syntheticAssignment = node._syntheticAssignment;
-    DartType syntheticWriteType;
-    if (node._declaresVariable) {
-      variable = node.variableJudgment;
-      if (inferrer.strongMode && variable._implicitlyTyped) {
-        typeNeeded = true;
-        context = const UnknownType();
-      } else {
-        context = variable.type;
-      }
-    } else if (syntheticAssignment is ComplexAssignmentJudgment) {
-      syntheticWriteType =
-          context = syntheticAssignment._getWriteType(inferrer);
+    final VariableDeclaration variable = node.variable;
+    if (VariableDeclarationJudgment.isImplicitlyTyped(variable)) {
+      typeNeeded = true;
+      elementType = const UnknownType();
     } else {
-      context = const UnknownType();
+      elementType = variable.type;
     }
-    context = inferrer.wrapType(context, iterableClass);
 
-    var iterableJudgment = node.iterableJudgment;
-    inferrer.inferExpression(
-        iterableJudgment, context, typeNeeded || typeChecksNeeded);
-    var inferredExpressionType = inferrer
-        .resolveTypeParameter(getInferredType(iterableJudgment, inferrer));
+    DartType inferredType =
+        inferForInIterable(node, elementType, typeNeeded || typeChecksNeeded);
+    if (typeNeeded) {
+      inferrer.instrumentation?.record(inferrer.uri, variable.fileOffset,
+          'type', new InstrumentationValueForType(inferredType));
+      variable.type = inferredType;
+    }
+
+    inferrer.inferStatement(node.body);
+
+    VariableDeclaration tempVar =
+        new VariableDeclaration(null, type: inferredType, isFinal: true);
+    VariableGet variableGet = new VariableGet(tempVar)
+      ..fileOffset = variable.fileOffset;
+    Expression implicitDowncast = inferrer.ensureAssignable(
+        variable.type, inferredType, variableGet, node.fileOffset,
+        template: templateForInLoopElementTypeNotAssignable);
+    if (implicitDowncast != null) {
+      node.variable = tempVar..parent = node;
+      variable.initializer = implicitDowncast..parent = variable;
+      node.body = combineStatements(variable, node.body)..parent = node;
+    }
+  }
+
+  DartType inferForInIterable(
+      ForInStatement node, DartType elementType, bool typeNeeded) {
+    Class iterableClass = node.isAsync
+        ? inferrer.coreTypes.streamClass
+        : inferrer.coreTypes.iterableClass;
+    DartType context = inferrer.wrapType(elementType, iterableClass);
+    Expression iterable = node.iterable;
+    inferrer.inferExpression(iterable, context, typeNeeded);
+    DartType inferredExpressionType =
+        inferrer.resolveTypeParameter(getInferredType(iterable, inferrer));
     inferrer.ensureAssignable(
         inferrer.wrapType(const DynamicType(), iterableClass),
         inferredExpressionType,
         node.iterable,
         node.iterable.fileOffset,
         template: templateForInLoopTypeNotIterable);
-
     DartType inferredType;
-    if (typeNeeded || typeChecksNeeded) {
+    if (typeNeeded) {
       inferredType = const DynamicType();
       if (inferredExpressionType is InterfaceType) {
         InterfaceType supertype = inferrer.classHierarchy
@@ -295,67 +302,87 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           inferredType = supertype.typeArguments[0];
         }
       }
-      if (typeNeeded) {
-        inferrer.instrumentation?.record(inferrer.uri, variable.fileOffset,
-            'type', new InstrumentationValueForType(inferredType));
-        variable.type = inferredType;
+    }
+    return inferredType;
+  }
+
+  void handleForInStatementWithoutVariable(ForInStatement node) {
+    DartType elementType;
+    bool typeChecksNeeded = !inferrer.isTopLevel;
+    DartType syntheticWriteType;
+    Expression syntheticAssignment;
+    Block block = node.body;
+    ExpressionStatement statement = block.statements[0];
+    SyntheticExpressionJudgment judgment = statement.expression;
+    Expression rhs;
+    syntheticAssignment = judgment.desugared;
+    if (syntheticAssignment is VariableSet) {
+      syntheticWriteType = elementType = syntheticAssignment.variable.type;
+      rhs = syntheticAssignment.value;
+    } else if (syntheticAssignment is PropertySet ||
+        syntheticAssignment is SuperPropertySet) {
+      DartType receiverType = inferrer.thisType;
+      Object writeMember =
+          inferrer.findPropertySetMember(receiverType, syntheticAssignment);
+      syntheticWriteType =
+          elementType = inferrer.getSetterType(writeMember, receiverType);
+      if (syntheticAssignment is PropertySet) {
+        rhs = syntheticAssignment.value;
+      } else if (syntheticAssignment is SuperPropertySet) {
+        rhs = syntheticAssignment.value;
       }
-      if (!node._declaresVariable) {
-        node.variable.type = inferredType;
-      }
+    } else if (syntheticAssignment is StaticSet) {
+      syntheticWriteType = elementType = syntheticAssignment.target.setterType;
+      rhs = syntheticAssignment.value;
+    } else if (syntheticAssignment is InvalidExpression) {
+      elementType = const UnknownType();
+    } else {
+      unhandled(
+          "${syntheticAssignment.runtimeType}",
+          "handleForInStatementWithoutVariable",
+          syntheticAssignment.fileOffset,
+          inferrer.helper.uri);
     }
 
-    inferrer.inferStatement(node.bodyJudgment);
-    if (syntheticAssignment != null) {
-      var syntheticStatement = new ExpressionStatement(syntheticAssignment);
-      node.body = combineStatements(syntheticStatement, node.body)
-        ..parent = node;
+    DartType inferredType =
+        inferForInIterable(node, elementType, typeChecksNeeded);
+    if (typeChecksNeeded) {
+      node.variable.type = inferredType;
     }
-    if (node._declaresVariable) {
-      inferrer.inferMetadataKeepingHelper(variable.annotations);
-      var tempVar =
-          new VariableDeclaration(null, type: inferredType, isFinal: true);
-      var variableGet = new VariableGet(tempVar)
-        ..fileOffset = node.variable.fileOffset;
-      var implicitDowncast = inferrer.ensureAssignable(
-          variable.type, inferredType, variableGet, node.fileOffset,
-          template: templateForInLoopElementTypeNotAssignable);
-      if (implicitDowncast != null) {
-        node.variable = tempVar..parent = node;
-        variable.initializer = implicitDowncast..parent = variable;
-        node.body = combineStatements(variable, node.body)..parent = node;
-      }
-    } else if (syntheticAssignment is SyntheticExpressionJudgment) {
-      if (syntheticAssignment is ComplexAssignmentJudgment) {
-        inferrer.ensureAssignable(
-            greatestClosure(inferrer.coreTypes, syntheticWriteType),
-            node.variable.type,
-            syntheticAssignment.rhs,
-            syntheticAssignment.rhs.fileOffset,
-            template: templateForInLoopElementTypeNotAssignable,
-            isVoidAllowed: true);
-        if (syntheticAssignment is PropertyAssignmentJudgment) {
-          syntheticAssignment._handleWriteContravariance(
-              inferrer, inferrer.thisType);
-        }
-      }
-      syntheticAssignment._replaceWithDesugared();
+
+    inferrer.inferStatement(node.body);
+
+    if (syntheticWriteType != null) {
+      inferrer.ensureAssignable(
+          greatestClosure(inferrer.coreTypes, syntheticWriteType),
+          node.variable.type,
+          rhs,
+          rhs.fileOffset,
+          template: templateForInLoopElementTypeNotAssignable,
+          isVoidAllowed: true);
+    }
+  }
+
+  @override
+  void visitForInStatement(ForInStatement node, _) {
+    if (node.variable.name == null) {
+      handleForInStatementWithoutVariable(node);
+    } else {
+      handleForInStatementDeclaringVariable(node);
     }
   }
 
   void visitForJudgment(ForJudgment node) {
-    var initializers = node.initializers;
     var conditionJudgment = node.conditionJudgment;
-    if (initializers != null) {
-      for (var initializer in initializers) {
-        node.variables
-            .add(new VariableDeclaration.forValue(initializer)..parent = node);
-        inferrer.inferExpression(
-            initializer, const UnknownType(), !inferrer.isTopLevel,
-            isVoidAllowed: true);
-      }
-    } else {
-      for (var variable in node.variableJudgments) {
+    for (VariableDeclaration variable in node.variables) {
+      if (variable.name == null) {
+        Expression initializer = variable.initializer;
+        if (initializer != null) {
+          variable.type = inferrer.inferExpression(
+              initializer, const UnknownType(), true,
+              isVoidAllowed: true);
+        }
+      } else {
         inferrer.inferStatement(variable);
       }
     }
@@ -374,7 +401,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           update, const UnknownType(), !inferrer.isTopLevel,
           isVoidAllowed: true);
     }
-    inferrer.inferStatement(node.bodyJudgment);
+    inferrer.inferStatement(node.body);
   }
 
   ExpressionInferenceResult visitFunctionNodeJudgment(
@@ -388,9 +415,8 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
   void visitFunctionDeclarationJudgment(FunctionDeclarationJudgment node) {
     inferrer.inferMetadataKeepingHelper(node.variable.annotations);
-    DartType returnContext = node._hasImplicitReturnType
-        ? (inferrer.strongMode ? null : const DynamicType())
-        : node.function.returnType;
+    DartType returnContext =
+        node._hasImplicitReturnType ? null : node.function.returnType;
     var inferenceResult = visitFunctionNodeJudgment(
         node.functionJudgment, null, returnContext, node.fileOffset);
     node.variable.type = inferenceResult.type;
@@ -425,9 +451,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     // - Infer e0 in context K to get T0
     inferrer.inferExpression(leftJudgment, typeContext, true);
     var lhsType = getInferredType(leftJudgment, inferrer);
-    if (inferrer.strongMode) {
-      node.variable.type = lhsType;
-    }
+    node.variable.type = lhsType;
     // - Let J = T0 if K is `?` else K.
     // - Infer e1 in context J to get T1
     if (typeContext is UnknownType) {
@@ -443,9 +467,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     // - Then the inferred type is T.
     node.inferredType =
         inferrer.typeSchemaEnvironment.getStandardUpperBound(lhsType, rhsType);
-    if (inferrer.strongMode) {
-      node.body.staticType = getInferredType(node, inferrer);
-    }
+    node.body.staticType = getInferredType(node, inferrer);
     return null;
   }
 
@@ -459,9 +481,9 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         getInferredType(conditionJudgment, inferrer),
         node.condition,
         node.condition.fileOffset);
-    inferrer.inferStatement(node.thenJudgment);
-    if (node.otherwiseJudgment != null) {
-      inferrer.inferStatement(node.otherwiseJudgment);
+    inferrer.inferStatement(node.then);
+    if (node.otherwise != null) {
+      inferrer.inferStatement(node.otherwise);
     }
   }
 
@@ -574,12 +596,11 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
     int intValue = node.asInt64();
     if (intValue == null) {
-      Expression replacement = inferrer.helper
-          .buildProblem(
+      Expression replacement = inferrer.helper.desugarSyntheticExpression(
+          inferrer.helper.buildProblem(
               templateIntegerLiteralIsOutOfRange.withArguments(node.literal),
               node.fileOffset,
-              node.literal.length)
-          .desugared;
+              node.literal.length));
       node.parent.replaceChild(node, replacement);
       node.inferredType = const BottomType();
       return null;
@@ -612,8 +633,9 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         node.operand, const UnknownType(), !inferrer.isTopLevel);
   }
 
-  void visitLabeledStatementJudgment(LabeledStatementJudgment node) {
-    inferrer.inferStatement(node.judgment);
+  @override
+  void visitLabeledStatement(LabeledStatement node, _) {
+    inferrer.inferStatement(node.body);
   }
 
   void visitListLiteralJudgment(
@@ -624,8 +646,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     DartType inferredTypeArgument;
     List<DartType> formalTypes;
     List<DartType> actualTypes;
-    bool inferenceNeeded =
-        node._declaredTypeArgument == null && inferrer.strongMode;
+    bool inferenceNeeded = node.typeArgument is ImplicitTypeArgument;
     bool typeChecksNeeded = !inferrer.isTopLevel;
     if (inferenceNeeded || typeChecksNeeded) {
       formalTypes = [];
@@ -638,11 +659,11 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           isConst: node.isConst);
       inferredTypeArgument = inferredTypes[0];
     } else {
-      inferredTypeArgument = node._declaredTypeArgument ?? const DynamicType();
+      inferredTypeArgument = node.typeArgument;
     }
     if (inferenceNeeded || typeChecksNeeded) {
-      for (int i = 0; i < node.judgments.length; ++i) {
-        Expression judgment = node.judgments[i];
+      for (int i = 0; i < node.expressions.length; ++i) {
+        Expression judgment = node.expressions[i];
         inferrer.inferExpression(
             judgment, inferredTypeArgument, inferenceNeeded || typeChecksNeeded,
             isVoidAllowed: true);
@@ -669,16 +690,15 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       node.typeArgument = inferredTypeArgument;
     }
     if (typeChecksNeeded) {
-      for (int i = 0; i < node.judgments.length; i++) {
+      for (int i = 0; i < node.expressions.length; i++) {
         inferrer.ensureAssignable(node.typeArgument, actualTypes[i],
-            node.judgments[i], node.judgments[i].fileOffset,
+            node.expressions[i], node.expressions[i].fileOffset,
             isVoidAllowed: node.typeArgument is VoidType);
       }
     }
     node.inferredType = new InterfaceType(listClass, [inferredTypeArgument]);
     KernelLibraryBuilder inferrerLibrary = inferrer.library;
-    if (node._declaredTypeArgument == null &&
-        inferrerLibrary is KernelLibraryBuilder) {
+    if (inferenceNeeded && inferrerLibrary is KernelLibraryBuilder) {
       inferrerLibrary.checkBoundsInListLiteral(
           node, inferrer.typeSchemaEnvironment,
           inferred: true);
@@ -700,21 +720,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
-  void visitMapEntryJudgment(MapEntryJudgment node, DartType keyTypeContext,
-      DartType valueTypeContext) {
-    Expression keyJudgment = node.keyJudgment;
-    inferrer.inferExpression(keyJudgment, keyTypeContext, true,
-        isVoidAllowed: true);
-    node.inferredKeyType = getInferredType(keyJudgment, inferrer);
-
-    Expression valueJudgment = node.valueJudgment;
-    inferrer.inferExpression(valueJudgment, valueTypeContext, true,
-        isVoidAllowed: true);
-    node.inferredValueType = getInferredType(valueJudgment, inferrer);
-
-    return null;
-  }
-
   void visitMapLiteralJudgment(MapLiteralJudgment node, DartType typeContext) {
     var mapClass = inferrer.coreTypes.mapClass;
     var mapType = mapClass.thisType;
@@ -723,9 +728,33 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     DartType inferredValueType;
     List<DartType> formalTypes;
     List<DartType> actualTypes;
-    assert(
-        (node._declaredKeyType == null) == (node._declaredValueType == null));
-    bool inferenceNeeded = node._declaredKeyType == null && inferrer.strongMode;
+    assert((node.keyType is ImplicitTypeArgument) ==
+        (node.valueType is ImplicitTypeArgument));
+    bool inferenceNeeded = node.keyType is ImplicitTypeArgument;
+    KernelLibraryBuilder library = inferrer.library;
+    if (library != null &&
+        library.loader.target.enableSetLiterals &&
+        inferenceNeeded &&
+        node.entries.isEmpty) {
+      // Ambiguous set/map literal
+      DartType context =
+          inferrer.typeSchemaEnvironment.unfutureType(typeContext);
+      if (context is InterfaceType) {
+        if (inferrer.classHierarchy.isSubtypeOf(
+                context.classNode, inferrer.coreTypes.iterableClass) &&
+            !inferrer.classHierarchy
+                .isSubtypeOf(context.classNode, inferrer.coreTypes.mapClass)) {
+          // Set literal
+          SetLiteralJudgment setLiteral = new SetLiteralJudgment([],
+              typeArgument: const ImplicitTypeArgument(), isConst: node.isConst)
+            ..fileOffset = node.fileOffset;
+          node.parent.replaceChild(node, setLiteral);
+          visitSetLiteralJudgment(setLiteral, typeContext);
+          node.inferredType = setLiteral.inferredType;
+          return;
+        }
+      }
+    }
     bool typeChecksNeeded = !inferrer.isTopLevel;
     if (inferenceNeeded || typeChecksNeeded) {
       formalTypes = [];
@@ -739,22 +768,28 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
     } else {
-      inferredKeyType = node._declaredKeyType ?? const DynamicType();
-      inferredValueType = node._declaredValueType ?? const DynamicType();
+      inferredKeyType = node.keyType;
+      inferredValueType = node.valueType;
     }
-    List<Expression> cachedKeyJudgments =
-        node.judgments.map((j) => (j as MapEntryJudgment).keyJudgment).toList();
-    List<Expression> cachedValueJudgments = node.judgments
-        .map((j) => (j as MapEntryJudgment).valueJudgment)
-        .toList();
+    List<Expression> cachedKeys = new List(node.entries.length);
+    List<Expression> cachedValues = new List(node.entries.length);
+    for (int i = 0; i < node.entries.length; i++) {
+      cachedKeys[i] = node.entries[i].key;
+      cachedValues[i] = node.entries[i].value;
+    }
     if (inferenceNeeded || typeChecksNeeded) {
-      for (MapEntryJudgment judgment in node.judgments) {
-        visitMapEntryJudgment(judgment, inferredKeyType, inferredValueType);
+      for (MapEntry entry in node.entries) {
+        Expression key = entry.key;
+        inferrer.inferExpression(key, inferredKeyType, true,
+            isVoidAllowed: true);
+        actualTypes.add(getInferredType(key, inferrer));
+        Expression value = entry.value;
+        inferrer.inferExpression(value, inferredValueType, true,
+            isVoidAllowed: true);
+        actualTypes.add(getInferredType(value, inferrer));
         if (inferenceNeeded) {
           formalTypes.addAll(mapType.typeArguments);
         }
-        actualTypes.add(judgment.inferredKeyType);
-        actualTypes.add(judgment.inferredValueType);
       }
     }
     if (inferenceNeeded) {
@@ -777,13 +812,13 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
       node.valueType = inferredValueType;
     }
     if (typeChecksNeeded) {
-      for (int i = 0; i < node.judgments.length; ++i) {
-        Expression keyJudgment = cachedKeyJudgments[i];
+      for (int i = 0; i < node.entries.length; ++i) {
+        Expression keyJudgment = cachedKeys[i];
         inferrer.ensureAssignable(node.keyType, actualTypes[2 * i], keyJudgment,
             keyJudgment.fileOffset,
             isVoidAllowed: node.keyType is VoidType);
 
-        Expression valueJudgment = cachedValueJudgments[i];
+        Expression valueJudgment = cachedValues[i];
         inferrer.ensureAssignable(node.valueType, actualTypes[2 * i + 1],
             valueJudgment, valueJudgment.fileOffset,
             isVoidAllowed: node.valueType is VoidType);
@@ -794,13 +829,11 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     KernelLibraryBuilder inferrerLibrary = inferrer.library;
     // Either both [_declaredKeyType] and [_declaredValueType] are omitted or
     // none of them, so we may just check one.
-    if (node._declaredKeyType == null &&
-        inferrerLibrary is KernelLibraryBuilder) {
+    if (inferenceNeeded && inferrerLibrary is KernelLibraryBuilder) {
       inferrerLibrary.checkBoundsInMapLiteral(
           node, inferrer.typeSchemaEnvironment,
           inferred: true);
     }
-    return null;
   }
 
   void visitMethodInvocationJudgment(
@@ -850,13 +883,12 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
           }
           int intValue = receiver.asInt64(negated: true);
           if (intValue == null) {
-            Expression error = inferrer.helper
-                .buildProblem(
+            Expression error = inferrer.helper.desugarSyntheticExpression(
+                inferrer.helper.buildProblem(
                     templateIntegerLiteralIsOutOfRange
                         .withArguments(receiver.literal),
                     receiver.fileOffset,
-                    receiver.literal.length)
-                .desugared;
+                    receiver.literal.length));
             node.parent.replaceChild(node, error);
             node.inferredType = const BottomType();
             return null;
@@ -887,7 +919,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     Expression initializer = node.variableJudgment.initializer;
     inferrer.inferExpression(initializer, typeContext, true);
     node.inferredType = getInferredType(initializer, inferrer);
-    if (inferrer.strongMode) node.variable.type = node.inferredType;
+    node.variable.type = node.inferredType;
     return null;
   }
 
@@ -907,9 +939,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         receiverVariable: node.variable,
         desugaredInvocation: node._desugaredInvocation);
     node.inferredType = inferenceResult.type;
-    if (inferrer.strongMode) {
-      node.body.staticType = node.inferredType;
-    }
+    node.body.staticType = node.inferredType;
     return null;
   }
 
@@ -918,9 +948,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     inferrer.inferPropertyGet(
         node, node.receiverJudgment, node.fileOffset, typeContext,
         receiverVariable: node.variable, desugaredGet: node._desugaredGet);
-    if (inferrer.strongMode) {
-      node.body.staticType = node.inferredType;
-    }
+    node.body.staticType = node.inferredType;
     return null;
   }
 
@@ -969,8 +997,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     // doing compound assignment?
     var writeContext = inferrer.getSetterType(writeMember, receiverType);
     node._inferRhs(inferrer, readType, writeContext);
-    if (inferrer.strongMode)
-      node.nullAwareGuard?.staticType = node.inferredType;
+    node.nullAwareGuard?.staticType = node.inferredType;
     node._replaceWithDesugared();
     return null;
   }
@@ -1021,6 +1048,78 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     }
     closureContext.handleReturn(inferrer, node, inferredType,
         !identical(node.returnKeywordLexeme, "return"));
+  }
+
+  void visitSetLiteralJudgment(SetLiteralJudgment node, DartType typeContext) {
+    var setClass = inferrer.coreTypes.setClass;
+    var setType = setClass.thisType;
+    List<DartType> inferredTypes;
+    DartType inferredTypeArgument;
+    List<DartType> formalTypes;
+    List<DartType> actualTypes;
+    bool inferenceNeeded = node.typeArgument is ImplicitTypeArgument;
+    bool typeChecksNeeded = !inferrer.isTopLevel;
+    if (inferenceNeeded || typeChecksNeeded) {
+      formalTypes = [];
+      actualTypes = [];
+    }
+    if (inferenceNeeded) {
+      inferredTypes = [const UnknownType()];
+      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(setType,
+          setClass.typeParameters, null, null, typeContext, inferredTypes,
+          isConst: node.isConst);
+      inferredTypeArgument = inferredTypes[0];
+    } else {
+      inferredTypeArgument = node.typeArgument;
+    }
+    if (inferenceNeeded || typeChecksNeeded) {
+      for (int i = 0; i < node.expressions.length; ++i) {
+        Expression judgment = node.expressions[i];
+        inferrer.inferExpression(
+            judgment, inferredTypeArgument, inferenceNeeded || typeChecksNeeded,
+            isVoidAllowed: true);
+        if (inferenceNeeded) {
+          formalTypes.add(setType.typeArguments[0]);
+        }
+        actualTypes.add(getInferredType(judgment, inferrer));
+      }
+    }
+    if (inferenceNeeded) {
+      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
+          setType,
+          setClass.typeParameters,
+          formalTypes,
+          actualTypes,
+          typeContext,
+          inferredTypes);
+      inferredTypeArgument = inferredTypes[0];
+      inferrer.instrumentation?.record(
+          inferrer.uri,
+          node.fileOffset,
+          'typeArgs',
+          new InstrumentationValueForTypeArgs([inferredTypeArgument]));
+      node.typeArgument = inferredTypeArgument;
+    }
+    if (typeChecksNeeded) {
+      for (int i = 0; i < node.expressions.length; i++) {
+        inferrer.ensureAssignable(node.typeArgument, actualTypes[i],
+            node.expressions[i], node.expressions[i].fileOffset,
+            isVoidAllowed: node.typeArgument is VoidType);
+      }
+    }
+    node.inferredType = new InterfaceType(setClass, [inferredTypeArgument]);
+    KernelLibraryBuilder inferrerLibrary = inferrer.library;
+    if (inferenceNeeded && inferrerLibrary is KernelLibraryBuilder) {
+      inferrerLibrary.checkBoundsInSetLiteral(
+          node, inferrer.typeSchemaEnvironment,
+          inferred: true);
+    }
+
+    KernelLibraryBuilder library = inferrer.library;
+    if (library != null &&
+        !library.loader.target.backendTarget.supportsSetLiterals) {
+      inferrer.helper.transformSetLiterals = true;
+    }
   }
 
   void visitStaticAssignmentJudgment(
@@ -1153,7 +1252,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
               ]);
         }
       }
-      inferrer.inferStatement(switchCase.bodyJudgment);
+      inferrer.inferStatement(switchCase.body);
     }
   }
 
@@ -1212,11 +1311,11 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   }
 
   void visitCatchJudgment(CatchJudgment node) {
-    inferrer.inferStatement(node.bodyJudgment);
+    inferrer.inferStatement(node.body);
   }
 
   void visitTryCatchJudgment(TryCatchJudgment node) {
-    inferrer.inferStatement(node.bodyJudgment);
+    inferrer.inferStatement(node.body);
     for (var catch_ in node.catchJudgments) {
       visitCatchJudgment(catch_);
     }
@@ -1224,13 +1323,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
 
   void visitTryFinallyJudgment(TryFinallyJudgment node) {
     inferrer.inferStatement(node.body);
-    if (node.catchJudgments != null) {
-      for (var catch_ in node.catchJudgments) {
-        visitCatchJudgment(catch_);
-      }
-      node.body = new TryCatch(node.body, node.catches)..parent = node;
-    }
-    inferrer.inferStatement(node.finalizerJudgment);
+    inferrer.inferStatement(node.finalizer);
   }
 
   void visitTypeLiteralJudgment(
@@ -1260,30 +1353,6 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
   }
 
   void visitVariableDeclarationJudgment(VariableDeclarationJudgment node) {
-    if (node.annotationJudgments.isNotEmpty) {
-      if (node.infersAnnotations) {
-        inferrer.inferMetadataKeepingHelper(node.annotationJudgments);
-      }
-
-      // After the inference was done on the annotations, we may clone them for
-      // this instance of VariableDeclaration in order to avoid having the same
-      // annotation node for two VariableDeclaration nodes in a situation like
-      // the following:
-      //
-      //     class Foo { const Foo(List<String> list); }
-      //
-      //     @Foo(const [])
-      //     var x, y;
-      CloneVisitor cloner = new CloneVisitor();
-      for (int i = 0; i < node.annotations.length; ++i) {
-        kernel.Expression annotation = node.annotations[i];
-        if (annotation.parent != node) {
-          node.annotations[i] = cloner.clone(annotation);
-          node.annotations[i].parent = node;
-        }
-      }
-    }
-
     var initializerJudgment = node.initializerJudgment;
     var declaredType = node._implicitlyTyped ? const UnknownType() : node.type;
     DartType inferredType;
@@ -1297,7 +1366,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
     } else {
       inferredType = const DynamicType();
     }
-    if (inferrer.strongMode && node._implicitlyTyped) {
+    if (node._implicitlyTyped) {
       inferrer.instrumentation?.record(inferrer.uri, node.fileOffset, 'type',
           new InstrumentationValueForType(inferredType));
       node.type = inferredType;
@@ -1370,7 +1439,7 @@ class InferenceVistor extends BodyVisitor1<void, DartType> {
         getInferredType(conditionJudgment, inferrer),
         node.condition,
         node.condition.fileOffset);
-    inferrer.inferStatement(node.bodyJudgment);
+    inferrer.inferStatement(node.body);
   }
 
   void visitYieldJudgment(YieldJudgment node) {

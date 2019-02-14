@@ -2,7 +2,11 @@
 
 **Owner**: eernst@
 
-**Status**: Under discussion.
+**Status**: Background material, normative text is now in dartLangSpec.tex.
+Note that the rules have changed, which means that
+**this document cannot be used as a reference**, it can only be
+used to get an overview of the ideas; please refer to the language
+specification for all technical details.
 
 **Version**: 0.3 (2018-04-24)
 

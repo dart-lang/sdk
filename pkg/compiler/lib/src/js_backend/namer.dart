@@ -26,8 +26,8 @@ import '../js/js.dart' as jsAst;
 import '../js_model/closure.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector, SelectorKind;
-import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'backend.dart';
@@ -40,103 +40,101 @@ part 'frequency_namer.dart';
 part 'minify_namer.dart';
 part 'namer_names.dart';
 
-/**
- * Assigns JavaScript identifiers to Dart variables, class-names and members.
- *
- * Names are generated through three stages:
- *
- * 1. Original names and proposed names
- * 2. Disambiguated names (also known as "mangled names")
- * 3. Annotated names
- *
- * Original names are names taken directly from the input.
- *
- * Proposed names are either original names or synthesized names for input
- * elements that do not have original names.
- *
- * Disambiguated names are derived from the above, but are mangled to ensure
- * uniqueness within some namespace (e.g. as fields on the same JS object).
- * In [MinifyNamer], disambiguated names are also minified.
- *
- * Annotated names are names generated from a disambiguated name. Annotated
- * names must be computable at runtime by prefixing/suffixing constant strings
- * onto the disambiguated name.
- *
- * For example, some entity called `x` might be associated with these names:
- *
- *     Original name: `x`
- *
- *     Disambiguated name: `x1` (if something else was called `x`)
- *
- *     Annotated names: `x1`     (field name)
- *                      `get$x1` (getter name)
- *                      `set$x1` (setter name)
- *
- * The [Namer] can choose the disambiguated names, and to some degree the
- * prefix/suffix constants used to construct annotated names. It cannot choose
- * annotated names with total freedom, for example, it cannot choose that the
- * getter for `x1` should be called `getX` -- the annotated names are always
- * built by concatenation.
- *
- * Disambiguated names must be chosen such that none of the annotated names can
- * clash with each other. This may happen even if the disambiguated names are
- * distinct, for example, suppose a field `x` and `get$x` exists in the input:
- *
- *     Original names: `x` and `get$x`
- *
- *     Disambiguated names: `x` and `get$x` (the two names a different)
- *
- *     Annotated names: `x` (field for `x`)
- *                      `get$x` (getter for `x`)
- *                      `get$x` (field for `get$x`)
- *                      `get$get$x` (getter for `get$x`)
- *
- * The getter for `x` clashes with the field name for `get$x`, so the
- * disambiguated names are invalid.
- *
- * Additionally, disambiguated names must be chosen such that all annotated
- * names are valid JavaScript identifiers and do not coincide with a native
- * JavaScript property such as `__proto__`.
- *
- * The following annotated names are generated for instance members, where
- * <NAME> denotes the disambiguated name.
- *
- * 0. The disambiguated name can itself be seen as an annotated name.
- *
- * 1. Multiple annotated names exist for the `call` method, encoding arity and
- *    named parameters with the pattern:
- *
- *       call$<N>$namedParam1...$namedParam<M>
- *
- *    where <N> is the number of parameters (required and optional) and <M> is
- *    the number of named parameters, and namedParam<n> are the names of the
- *    named parameters in alphabetical order.
- *
- *    Note that the same convention is used for the *proposed name* of other
- *    methods. Thus, for ordinary methods, the suffix becomes embedded in the
- *    disambiguated name (and can be minified), whereas for the 'call' method,
- *    the suffix is an annotation that must be computable at runtime
- *    (and thus cannot be minified).
- *
- *    Note that the ordering of named parameters is not encapsulated in the
- *    [Namer], and is hardcoded into other components, such as [Element] and
- *    [Selector].
- *
- * 2. The getter/setter for a field:
- *
- *        get$<NAME>
- *        set$<NAME>
- *
- *    (The [getterPrefix] and [setterPrefix] are different in [MinifyNamer]).
- *
- * 3. The `is` and operator uses the following names:
- *
- *        $is<NAME>
- *        $as<NAME>
- *
- * For local variables, the [Namer] only provides *proposed names*. These names
- * must be disambiguated elsewhere.
- */
+/// Assigns JavaScript identifiers to Dart variables, class-names and members.
+///
+/// Names are generated through three stages:
+///
+/// 1. Original names and proposed names
+/// 2. Disambiguated names (also known as "mangled names")
+/// 3. Annotated names
+///
+/// Original names are names taken directly from the input.
+///
+/// Proposed names are either original names or synthesized names for input
+/// elements that do not have original names.
+///
+/// Disambiguated names are derived from the above, but are mangled to ensure
+/// uniqueness within some namespace (e.g. as fields on the same JS object).
+/// In [MinifyNamer], disambiguated names are also minified.
+///
+/// Annotated names are names generated from a disambiguated name. Annotated
+/// names must be computable at runtime by prefixing/suffixing constant strings
+/// onto the disambiguated name.
+///
+/// For example, some entity called `x` might be associated with these names:
+///
+///     Original name: `x`
+///
+///     Disambiguated name: `x1` (if something else was called `x`)
+///
+///     Annotated names: `x1`     (field name)
+///                      `get$x1` (getter name)
+///                      `set$x1` (setter name)
+///
+/// The [Namer] can choose the disambiguated names, and to some degree the
+/// prefix/suffix constants used to construct annotated names. It cannot choose
+/// annotated names with total freedom, for example, it cannot choose that the
+/// getter for `x1` should be called `getX` -- the annotated names are always
+/// built by concatenation.
+///
+/// Disambiguated names must be chosen such that none of the annotated names can
+/// clash with each other. This may happen even if the disambiguated names are
+/// distinct, for example, suppose a field `x` and `get$x` exists in the input:
+///
+///     Original names: `x` and `get$x`
+///
+///     Disambiguated names: `x` and `get$x` (the two names a different)
+///
+///     Annotated names: `x` (field for `x`)
+///                      `get$x` (getter for `x`)
+///                      `get$x` (field for `get$x`)
+///                      `get$get$x` (getter for `get$x`)
+///
+/// The getter for `x` clashes with the field name for `get$x`, so the
+/// disambiguated names are invalid.
+///
+/// Additionally, disambiguated names must be chosen such that all annotated
+/// names are valid JavaScript identifiers and do not coincide with a native
+/// JavaScript property such as `__proto__`.
+///
+/// The following annotated names are generated for instance members, where
+/// <NAME> denotes the disambiguated name.
+///
+/// 0. The disambiguated name can itself be seen as an annotated name.
+///
+/// 1. Multiple annotated names exist for the `call` method, encoding arity and
+///    named parameters with the pattern:
+///
+///       call$<N>$namedParam1...$namedParam<M>
+///
+///    where <N> is the number of parameters (required and optional) and <M> is
+///    the number of named parameters, and namedParam<n> are the names of the
+///    named parameters in alphabetical order.
+///
+///    Note that the same convention is used for the *proposed name* of other
+///    methods. Thus, for ordinary methods, the suffix becomes embedded in the
+///    disambiguated name (and can be minified), whereas for the 'call' method,
+///    the suffix is an annotation that must be computable at runtime
+///    (and thus cannot be minified).
+///
+///    Note that the ordering of named parameters is not encapsulated in the
+///    [Namer], and is hardcoded into other components, such as [Element] and
+///    [Selector].
+///
+/// 2. The getter/setter for a field:
+///
+///        get$<NAME>
+///        set$<NAME>
+///
+///    (The [getterPrefix] and [setterPrefix] are different in [MinifyNamer]).
+///
+/// 3. The `is` and operator uses the following names:
+///
+///        $is<NAME>
+///        $as<NAME>
+///
+/// For local variables, the [Namer] only provides *proposed names*. These names
+/// must be disambiguated elsewhere.
 class Namer {
   static const List<String> javaScriptKeywords = const <String>[
     // ES5 7.6.1.1 Keywords.
@@ -447,8 +445,6 @@ class Namer {
   final String superPrefix = r'super$';
   final String metadataField = '@';
   final String callPrefix = 'call';
-  // Note: We can't shorten 'call*' in the minified namers because the catch-all
-  // formula `name + "*"` is used by mirrors.
   String get callCatchAllName => r'call*';
   final String callNameField = r'$callName';
   final String stubNameField = r'$stubName';
@@ -475,7 +471,6 @@ class Namer {
   jsAst.Name _literalAsyncPrefix;
   jsAst.Name _literalGetterPrefix;
   jsAst.Name _literalSetterPrefix;
-  jsAst.Name _literalLazyGetterPrefix;
 
   jsAst.Name _staticsPropertyName;
 
@@ -518,22 +513,34 @@ class Namer {
   /// Although global names are distributed across a number of global objects,
   /// (see [globalObjectFor]), we currently use a single namespace for all these
   /// names.
-  final NamingScope globalScope = new NamingScope();
-  final Map<Entity, jsAst.Name> userGlobals = new HashMap<Entity, jsAst.Name>();
-  final Map<String, jsAst.Name> internalGlobals =
-      new HashMap<String, jsAst.Name>();
+  final NamingScope globalScope = NamingScope();
+  final Map<Entity, jsAst.Name> userGlobals = {};
+  // [userGlobalsSecondName] is used when an entity has a second name, e.g. a
+  // lazily initialized static variable has a location and a getter.
+  final Map<Entity, jsAst.Name> userGlobalsSecondName = {};
+  final Map<String, jsAst.Name> internalGlobals = {};
+
+  _registerName(
+      Map<String, String> map, jsAst.Name jsName, String originalName) {
+    // Non-finalized names are not present in the output program
+    if (jsName is TokenName && !jsName.isFinalized) return;
+    map[jsName.name] = originalName;
+    var getterName = userGetters[jsName];
+    if (getterName != null) map[getterName.name] = originalName;
+    var setterName = userSetters[jsName];
+    if (setterName != null) map[setterName.name] = originalName;
+  }
 
   Map<String, String> createMinifiedGlobalNameMap() {
     var map = <String, String>{};
     userGlobals.forEach((entity, jsName) {
-      // Non-finalized names are not present in the output program
-      if (jsName is TokenName && !jsName.isFinalized) return;
-      map[jsName.name] = entity.name;
+      _registerName(map, jsName, entity.name);
+    });
+    userGlobalsSecondName.forEach((entity, jsName) {
+      _registerName(map, jsName, entity.name);
     });
     internalGlobals.forEach((name, jsName) {
-      // Non-finalized names are not present in the output program
-      if (jsName is TokenName && !jsName.isFinalized) return;
-      map[jsName.name] = name;
+      _registerName(map, jsName, name);
     });
     return map;
   }
@@ -541,36 +548,27 @@ class Namer {
   /// Used disambiguated names in the instance namespace, issued by
   /// [_disambiguateMember], [_disambiguateInternalMember],
   /// [_disambiguateOperator], and [reservePublicMemberName].
-  final NamingScope instanceScope = new NamingScope();
-  final Map<String, jsAst.Name> userInstanceMembers =
-      new HashMap<String, jsAst.Name>();
-  final Map<String, String> userInstanceMembersOriginalName =
-      new HashMap<String, String>();
-  final Map<MemberEntity, jsAst.Name> internalInstanceMembers =
-      new HashMap<MemberEntity, jsAst.Name>();
-  final Map<String, jsAst.Name> userInstanceOperators =
-      new HashMap<String, jsAst.Name>();
+  final NamingScope instanceScope = NamingScope();
+  final Map<String, jsAst.Name> userInstanceMembers = HashMap();
+  final Map<String, String> userInstanceMembersOriginalName = HashMap();
+  final Map<MemberEntity, jsAst.Name> internalInstanceMembers = HashMap();
+  final Map<String, jsAst.Name> userInstanceOperators = HashMap();
+  final Map<jsAst.Name, jsAst.Name> userGetters = HashMap();
+  final Map<jsAst.Name, jsAst.Name> userSetters = HashMap();
 
   Map<String, String> createMinifiedInstanceNameMap() {
     var map = <String, String>{};
     internalInstanceMembers.forEach((entity, jsName) {
-      // Non-finalized names are not present in the output program
-      if (jsName is TokenName && !jsName.isFinalized) return;
-      map[jsName.name] = entity.name;
+      _registerName(map, jsName, entity.name);
     });
     userInstanceMembers.forEach((name, jsName) {
-      // Non-finalized names are not present in the output program
-      if (jsName is TokenName && !jsName.isFinalized) return;
-      var originalName = userInstanceMembersOriginalName[name];
-      map[jsName.name] = originalName ?? name;
+      _registerName(map, jsName, userInstanceMembersOriginalName[name] ?? name);
     });
 
     // TODO(sigmund): reverse the operator names back to the original Dart
     // names.
     userInstanceOperators.forEach((name, jsName) {
-      // Non-finalized names are not present in the output program
-      if (jsName is TokenName && !jsName.isFinalized) return;
-      map[jsName.name] = name;
+      _registerName(map, jsName, name);
     });
     return map;
   }
@@ -579,39 +577,29 @@ class Namer {
   final NamingScope constantScope = new NamingScope();
 
   /// Used to store scopes for instances of [PrivatelyNamedJsEntity]
-  final Map<Entity, NamingScope> _privateNamingScopes =
-      new Map<Entity, NamingScope>();
+  final Map<Entity, NamingScope> _privateNamingScopes = {};
 
-  final Map<String, int> popularNameCounters = <String, int>{};
+  final Map<String, int> popularNameCounters = {};
 
-  final Map<LibraryEntity, String> libraryLongNames =
-      new HashMap<LibraryEntity, String>();
+  final Map<LibraryEntity, String> libraryLongNames = HashMap();
 
-  final Map<ConstantValue, jsAst.Name> constantNames =
-      new HashMap<ConstantValue, jsAst.Name>();
-  final Map<ConstantValue, String> constantLongNames =
-      <ConstantValue, String>{};
+  final Map<ConstantValue, jsAst.Name> constantNames = HashMap();
+  final Map<ConstantValue, String> constantLongNames = {};
   ConstantCanonicalHasher _constantHasher;
 
   /// Maps private names to a library that may use that name without prefixing
   /// itself. Used for building proposed names.
-  final Map<String, LibraryEntity> shortPrivateNameOwners =
-      <String, LibraryEntity>{};
-
-  final Map<String, String> suggestedGlobalNames = <String, String>{};
-  final Map<String, String> suggestedInstanceNames = <String, String>{};
+  final Map<String, LibraryEntity> shortPrivateNameOwners = {};
 
   /// Used to store unique keys for library names. Keys are not used as names,
   /// nor are they visible in the output. The only serve as an internal
   /// key into maps.
-  final Map<LibraryEntity, String> _libraryKeys =
-      new HashMap<LibraryEntity, String>();
+  final Map<LibraryEntity, String> _libraryKeys = HashMap();
 
   Namer(this._closedWorld, this._codegenWorldBuilder) {
     _literalAsyncPrefix = new StringBackedName(asyncPrefix);
     _literalGetterPrefix = new StringBackedName(getterPrefix);
     _literalSetterPrefix = new StringBackedName(setterPrefix);
-    _literalLazyGetterPrefix = new StringBackedName(lazyGetterPrefix);
   }
 
   ElementEnvironment get elementEnvironment => _closedWorld.elementEnvironment;
@@ -626,10 +614,8 @@ class Namer {
   String get isolatePropertiesName => r'$isolateProperties';
   jsAst.Name get noSuchMethodName => invocationName(Selectors.noSuchMethod_);
 
-  /**
-   * Some closures must contain their name. The name is stored in
-   * [STATIC_CLOSURE_NAME_NAME].
-   */
+  /// Some closures must contain their name. The name is stored in
+  /// [STATIC_CLOSURE_NAME_NAME].
   String get STATIC_CLOSURE_NAME_NAME => r'$name';
   String get closureInvocationSelectorName => Identifiers.call;
   bool get shouldMinify => false;
@@ -773,17 +759,15 @@ class Namer {
     return 'c\$${target.nestingLevel}';
   }
 
-  /**
-   * If the [originalName] is not private returns [originalName]. Otherwise
-   * mangles the [originalName] so that each library has its own distinguished
-   * version of the name.
-   *
-   * Although the name is not guaranteed to be unique within any namespace,
-   * clashes are very unlikely in practice. Therefore, it can be used in cases
-   * where uniqueness is nice but not a strict requirement.
-   *
-   * The resulting name is a *proposed name* and is never minified.
-   */
+  /// If the [originalName] is not private returns [originalName]. Otherwise
+  /// mangles the [originalName] so that each library has its own distinguished
+  /// version of the name.
+  ///
+  /// Although the name is not guaranteed to be unique within any namespace,
+  /// clashes are very unlikely in practice. Therefore, it can be used in cases
+  /// where uniqueness is nice but not a strict requirement.
+  ///
+  /// The resulting name is a *proposed name* and is never minified.
   String privateName(Name originalName) {
     String text = originalName.text;
 
@@ -943,26 +927,20 @@ class Namer {
         CURRENT_ELEMENT_SPANNABLE, 'Unexpected special selector: $selector');
   }
 
-  /**
-   * Returns the internal name used for an invocation mirror of this selector.
-   */
+  /// Returns the internal name used for an invocation mirror of this selector.
   jsAst.Name invocationMirrorInternalName(Selector selector) =>
       invocationName(selector);
 
-  /**
-   * Returns the disambiguated name for the given field, used for constructing
-   * the getter and setter names.
-   */
+  /// Returns the disambiguated name for the given field, used for constructing
+  /// the getter and setter names.
   jsAst.Name fieldAccessorName(FieldEntity element) {
     return element.isInstanceMember
         ? _disambiguateMember(element.memberName)
         : _disambiguateGlobalMember(element);
   }
 
-  /**
-   * Returns name of the JavaScript property used to store a static or instance
-   * field.
-   */
+  /// Returns name of the JavaScript property used to store a static or instance
+  /// field.
   jsAst.Name fieldPropertyName(FieldEntity element) {
     return element.isInstanceMember
         ? instanceFieldPropertyName(element)
@@ -993,9 +971,7 @@ class Namer {
   jsAst.Name globalPropertyNameForType(Entity element) =>
       _disambiguateGlobalType(element);
 
-  /**
-   * Returns the JavaScript property name used to store an instance field.
-   */
+  /// Returns the JavaScript property name used to store an instance field.
   jsAst.Name instanceFieldPropertyName(FieldEntity element) {
     ClassEntity enclosingClass = element.enclosingClass;
 
@@ -1077,14 +1053,16 @@ class Namer {
   jsAst.Name deriveSetterName(jsAst.Name disambiguatedName) {
     // We dynamically create setters from the field-name. The setter name must
     // therefore be derived from the instance field-name.
-    return new SetterName(_literalSetterPrefix, disambiguatedName);
+    return userSetters[disambiguatedName] ??=
+        new SetterName(_literalSetterPrefix, disambiguatedName);
   }
 
   /// Annotated name for the setter of any member with [disambiguatedName].
   jsAst.Name deriveGetterName(jsAst.Name disambiguatedName) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
-    return new GetterName(_literalGetterPrefix, disambiguatedName);
+    return userGetters[disambiguatedName] ??=
+        new GetterName(_literalGetterPrefix, disambiguatedName);
   }
 
   /// Annotated name for the getter of [element].
@@ -1145,25 +1123,26 @@ class Namer {
   }
 
   jsAst.Name _disambiguateGlobalMember(MemberEntity element) {
-    return _disambiguateGlobal<MemberEntity>(element, _proposeNameForMember);
+    return _disambiguateGlobal<MemberEntity>(
+        element, _proposeNameForMember, userGlobals);
   }
 
   jsAst.Name _disambiguateGlobalType(Entity element) {
-    return _disambiguateGlobal(element, _proposeNameForType);
+    return _disambiguateGlobal(element, _proposeNameForType, userGlobals);
   }
 
   /// Returns the disambiguated name for a top-level or static element.
   ///
   /// The resulting name is unique within the global-member namespace.
-  jsAst.Name _disambiguateGlobal<T extends Entity>(
-      T element, String proposeName(T element)) {
+  jsAst.Name _disambiguateGlobal<T extends Entity>(T element,
+      String proposeName(T element), Map<Entity, jsAst.Name> globals) {
     // TODO(asgerf): We can reuse more short names if we disambiguate with
     // a separate namespace for each of the global holder objects.
-    jsAst.Name newName = userGlobals[element];
+    jsAst.Name newName = globals[element];
     if (newName == null) {
       String proposedName = proposeName(element);
       newName = getFreshName(globalScope, proposedName);
-      userGlobals[element] = newName;
+      globals[element] = newName;
     }
     return _newReference(newName);
   }
@@ -1402,6 +1381,10 @@ class Namer {
     return element.name.replaceAll('+', '_');
   }
 
+  String _proposeNameForLazyStaticGetter(MemberEntity element) {
+    return r'$get$' + _proposeNameForMember(element);
+  }
+
   String _proposeNameForConstructor(ConstructorEntity element) {
     String className = element.enclosingClass.name;
     if (element.isGenerativeConstructor) {
@@ -1413,10 +1396,8 @@ class Namer {
     }
   }
 
-  /**
-   * Returns a proposed name for the given [LibraryElement].
-   * The returned id is guaranteed to be a valid JavaScript identifier.
-   */
+  /// Returns a proposed name for the given [LibraryElement].
+  /// The returned id is guaranteed to be a valid JavaScript identifier.
   // TODO(sra): Pre-process libraries to assign [libraryLongNames] in a way that
   // is independent of the order of calls to namer.
   String _proposeNameForLibrary(LibraryEntity library) {
@@ -1643,16 +1624,11 @@ class Namer {
     return userGlobalObjects[library.name.hashCode % userGlobalObjects.length];
   }
 
-  jsAst.Name deriveLazyInitializerName(jsAst.Name name) {
-    // These are not real dart getters, so do not use GetterName;
-    return new CompoundName([_literalLazyGetterPrefix, name]);
-  }
-
   jsAst.Name lazyInitializerName(FieldEntity element) {
     assert(element.isTopLevel || element.isStatic);
-    jsAst.Name name = _disambiguateGlobalMember(element);
-    // These are not real dart getters, so do not use GetterName;
-    return deriveLazyInitializerName(name);
+    jsAst.Name name = _disambiguateGlobal<MemberEntity>(
+        element, _proposeNameForLazyStaticGetter, userGlobalsSecondName);
+    return name;
   }
 
   jsAst.Name staticClosureName(FunctionEntity element) {
@@ -1707,8 +1683,7 @@ class Namer {
   // parts with the fast-startup emitter.
   String get typesOffsetName => r'typesOffset';
 
-  Map<FunctionType, jsAst.Name> functionTypeNameMap =
-      new HashMap<FunctionType, jsAst.Name>();
+  Map<FunctionType, jsAst.Name> functionTypeNameMap = HashMap();
 
   FunctionTypeNamer _functionTypeNamer;
 
@@ -1846,21 +1821,19 @@ class Namer {
   }
 }
 
-/**
- * Generator of names for [ConstantValue] values.
- *
- * The names are stable under perturbations of the source.  The name is either a
- * short sequence of words, if this can be found from the constant, or a type
- * followed by a hash tag.
- *
- *     List_imX                // A List, with hash tag.
- *     C_Sentinel              // const Sentinel(),  "C_" added to avoid clash
- *                             //   with class name.
- *     JSInt_methods           // an interceptor.
- *     Duration_16000          // const Duration(milliseconds: 16)
- *     EventKeyProvider_keyup  // const EventKeyProvider('keyup')
- *
- */
+/// Generator of names for [ConstantValue] values.
+///
+/// The names are stable under perturbations of the source.  The name is either
+/// a short sequence of words, if this can be found from the constant, or a type
+/// followed by a hash tag.
+///
+///     List_imX                // A List, with hash tag.
+///     C_Sentinel              // const Sentinel(),  "C_" added to avoid clash
+///                             //   with class name.
+///     JSInt_methods           // an interceptor.
+///     Duration_16000          // const Duration(milliseconds: 16)
+///     EventKeyProvider_keyup  // const EventKeyProvider('keyup')
+///
 class ConstantNamingVisitor implements ConstantValueVisitor {
   static final RegExp IDENTIFIER = new RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
   static const MAX_FRAGMENTS = 5;
@@ -2087,31 +2060,24 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
-  void visitDeferred(DeferredConstantValue constant, [_]) {
-    addRoot('Deferred');
-  }
-
-  @override
   void visitDeferredGlobal(DeferredGlobalConstantValue constant, [_]) {
     addRoot('Deferred');
   }
 }
 
-/**
- * Generates canonical hash values for [ConstantValue]s.
- *
- * Unfortunately, [Constant.hashCode] is not stable under minor perturbations,
- * so it can't be used for generating names.  This hasher keeps consistency
- * between runs by basing hash values of the names of elements, rather than
- * their hashCodes.
- */
+/// Generates canonical hash values for [ConstantValue]s.
+///
+/// Unfortunately, [Constant.hashCode] is not stable under minor perturbations,
+/// so it can't be used for generating names.  This hasher keeps consistency
+/// between runs by basing hash values of the names of elements, rather than
+/// their hashCodes.
 class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   static const _MASK = 0x1fffffff;
   static const _UINT32_LIMIT = 4 * 1024 * 1024 * 1024;
 
   final RuntimeTypesEncoder rtiEncoder;
   final CodegenWorldBuilder codegenWorldBuilder;
-  final Map<ConstantValue, int> hashes = new Map<ConstantValue, int>();
+  final Map<ConstantValue, int> hashes = {};
 
   ConstantCanonicalHasher(this.rtiEncoder, this.codegenWorldBuilder);
 
@@ -2218,14 +2184,6 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   }
 
   @override
-  int visitDeferred(DeferredConstantValue constant, [_]) {
-    // TODO(sra): Investigate that the use of hashCode here is probably a source
-    // of instability.
-    int hash = constant.import.hashCode;
-    return _combine(hash, _visit(constant.referenced));
-  }
-
-  @override
   int visitDeferredGlobal(DeferredGlobalConstantValue constant, [_]) {
     int hash = constant.unit.hashCode;
     return _combine(hash, _visit(constant.referenced));
@@ -2282,12 +2240,10 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
     }
   }
 
-  /**
-   * [_combine] and [_finish] are parts of the [Jenkins hash function][1],
-   * modified by using masking to keep values in SMI range.
-   *
-   * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
-   */
+  /// [_combine] and [_finish] are parts of the [Jenkins hash function][1],
+  /// modified by using masking to keep values in SMI range.
+  ///
+  /// [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
   static int _combine(int hash, int value) {
     hash = _MASK & (hash + value);
     hash = _MASK & (hash + (((_MASK >> 10) & hash) << 10));
@@ -2374,8 +2330,8 @@ class NamingScope {
   ///
   /// This is currently used in [MinifyNamer] to assign very short minified
   /// names to things that tend to be used very often.
-  final Map<String, String> _suggestedNames = new Map<String, String>();
-  final Set<String> _usedNames = new Set<String>();
+  final Map<String, String> _suggestedNames = {};
+  final Set<String> _usedNames = Set();
 
   bool isUsed(String name) => _usedNames.contains(name);
   bool isUnused(String name) => !_usedNames.contains(name);

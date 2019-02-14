@@ -23,7 +23,7 @@ class DartFixesRequestImpl implements DartFixesRequest {
   final List<AnalysisError> errorsToFix;
 
   @override
-  final ResolveResult result;
+  final ResolvedUnitResult result;
 
   /**
    * Initialize a newly create request with the given data.

@@ -260,7 +260,7 @@ testIsCheck19(/*[null|subclass=Object]*/ a) {
   return 42;
 }
 
-/*element: testIsCheck20:Union([exact=JSString], [exact=JSUInt31])*/
+/*element: testIsCheck20:[exact=JSUInt31]*/
 testIsCheck20() {
   var c = topLevelGetter();
   if (c != null && c is! bool && c is! int) {
@@ -272,7 +272,7 @@ testIsCheck20() {
   }
 }
 
-/*element: testIsCheck21:[null|subclass=Object]*/
+/*element: testIsCheck21:Union([subclass=JSArray], [subclass=JSInt])*/
 testIsCheck21(/*[null|subclass=Object]*/ a) {
   if (a is int || a is List) {
     return a;
@@ -281,7 +281,7 @@ testIsCheck21(/*[null|subclass=Object]*/ a) {
   }
 }
 
-/*element: testIsCheck22:[null|subclass=Object]*/
+/*element: testIsCheck22:Union([subclass=JSArray], [subclass=JSInt])*/
 testIsCheck22(/*[null|subclass=Object]*/ a) {
   return (a is int || a is List) ? a : 42;
 }
@@ -594,7 +594,7 @@ testSpecialization2() {
   // Make [a] a captured variable. This should disable receiver
   // specialization on [a].
   (
-      /*strong.[null|exact=JSString]*/
+      /*[null|exact=JSString]*/
       () => a.toString())();
   a - 42;
   return a;
@@ -674,7 +674,7 @@ class A {
   /*element: A.generative:[exact=A]*/
   A.generative();
 
-  /*strong.element: A.==:[exact=JSBool]*/
+  /*element: A.==:[exact=JSBool]*/
   operator ==(/*Union([exact=JSString], [exact=JSUInt31])*/ other) =>
       42 as dynamic;
 

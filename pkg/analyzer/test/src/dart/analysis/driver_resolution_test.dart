@@ -1,17 +1,19 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:test/test.dart';
@@ -25,6 +27,7 @@ import 'base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDriverResolutionTest);
+    defineReflectiveTests(DriverResolutionWithExperimentsTest);
   });
 }
 
@@ -41,7 +44,7 @@ final isVoidType = new TypeMatcher<VoidTypeImpl>();
  */
 @reflectiveTest
 class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
-  AnalysisResult result;
+  ResolvedUnitResult result;
   FindNode findNode;
   FindElement findElement;
 
@@ -376,7 +379,7 @@ const a = 1;
   }
 
   test_annotation_onDirective_part() async {
-    provider.newFile(_p('/test/lib/a.dart'), r'''
+    newFile('/test/lib/a.dart', content: r'''
 part of 'test.dart';
 ''');
     addTestFile(r'''
@@ -399,8 +402,7 @@ const a = 1;
   }
 
   test_annotation_onDirective_partOf() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 part 'test.dart';
 ''');
     addTestFile(r'''
@@ -409,7 +411,6 @@ part of 'a.dart';
 
 const a = 1;
 ''');
-    driver.addFile(a);
     await resolveTestFile();
 
     var directive = findNode.partOf('a.dart');
@@ -522,8 +523,7 @@ class C {
   }
 
   test_annotation_prefixed_classField() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   static const a = 1;
 }
@@ -563,8 +563,7 @@ main() {}
   }
 
   test_annotation_prefixed_constructor() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   const A(int a, {int b});
 }
@@ -605,8 +604,7 @@ main() {}
   }
 
   test_annotation_prefixed_constructor_named() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   const A.named(int a, {int b});
 }
@@ -649,8 +647,7 @@ main() {}
   }
 
   test_annotation_prefixed_topLevelVariable() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 const topAnnotation = 1;
 ''');
     addTestFile(r'''
@@ -1538,8 +1535,7 @@ class B<U> {
 
   @failingTest
   test_deferredImport_loadLibrary_invocation() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, '');
+    newFile('/test/lib/a.dart');
     addTestFile(r'''
 import 'a.dart' deferred as a;
 main() {
@@ -1564,8 +1560,7 @@ main() {
 
   @failingTest
   test_deferredImport_loadLibrary_invocation_argument() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, '');
+    newFile('/test/lib/a.dart');
     addTestFile(r'''
 import 'a.dart' deferred as a;
 var b = 1;
@@ -1599,8 +1594,7 @@ main() {
   }
 
   test_deferredImport_loadLibrary_tearOff() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, '');
+    newFile('/test/lib/a.dart');
     addTestFile(r'''
 import 'a.dart' deferred as a;
 main() {
@@ -1623,8 +1617,7 @@ main() {
   }
 
   test_deferredImport_variable() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, 'var v = 0;');
+    newFile('/test/lib/a.dart', content: 'var v = 0;');
     addTestFile(r'''
 import 'a.dart' deferred as a;
 main() async {
@@ -1664,8 +1657,7 @@ main() async {
   }
 
   test_directive_export() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class MyClass {}
 int myVar;
 int get myGetter => 0;
@@ -1713,8 +1705,7 @@ export 'a.dart' show MyClass, myVar, myGetter, mySetter, Unresolved;
   }
 
   test_directive_import_hide() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class MyClass {}
 int myVar;
 int get myGetter => 0;
@@ -1762,8 +1753,7 @@ import 'a.dart' hide MyClass, myVar, myGetter, mySetter, Unresolved;
   }
 
   test_directive_import_show() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class MyClass {}
 int myVar;
 int get myGetter => 0;
@@ -2325,8 +2315,7 @@ var b = new C.named(2);
   }
 
   test_instanceCreation_prefixed() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 class C<T> {
   C(T p);
   C.named(T p);
@@ -3567,7 +3556,6 @@ main() {
     assertType(aRef, 'int');
   }
 
-  @failingTest
   test_invalid_methodInvocation_simpleIdentifier() async {
     addTestFile(r'''
 int foo = 0;
@@ -3720,8 +3708,7 @@ main() {
 
   @failingTest
   test_invalid_nonTypeAsType_topLevelFunction_prefixed() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 int T() => 0;
 ''');
     addTestFile(r'''
@@ -3789,8 +3776,7 @@ main() {
 
   @failingTest
   test_invalid_nonTypeAsType_topLevelVariable_prefixed() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, r'''
+    newFile('/test/lib/a.dart', content: r'''
 int T;
 ''');
     addTestFile(r'''
@@ -4095,12 +4081,12 @@ void main() {
 
     VariableDeclarationStatement vStatement = mainStatements[1];
     VariableDeclaration vDeclaration = vStatement.variables.variables[0];
-    expect(vDeclaration.declaredElement.type, same(doubleType));
+    expect(vDeclaration.declaredElement.type, doubleType);
 
     MethodInvocation fInvocation = vDeclaration.initializer;
     expect(fInvocation.methodName.staticElement, same(fElement));
     expect(fInvocation.methodName.staticType.toString(), fTypeString);
-    expect(fInvocation.staticType, same(doubleType));
+    expect(fInvocation.staticType, doubleType);
     expect(fInvocation.staticInvokeType.toString(), fTypeString);
   }
 
@@ -4421,12 +4407,12 @@ void main() {
     {
       VariableDeclarationStatement statement = mainStatements[1];
       VariableDeclaration declaration = statement.variables.variables[0];
-      expect(declaration.declaredElement.type, same(doubleType));
+      expect(declaration.declaredElement.type, doubleType);
 
       MethodInvocation invocation = declaration.initializer;
       expect(invocation.methodName.staticElement, same(fElement));
       expect(invocation.methodName.staticType.toString(), fTypeString);
-      expect(invocation.staticType, same(doubleType));
+      expect(invocation.staticType, doubleType);
       expect(invocation.staticInvokeType.toString(), fTypeString);
 
       List<Expression> arguments = invocation.argumentList.arguments;
@@ -5388,8 +5374,8 @@ main(double computation(int p)) {
     expect(target.staticType.toString(), '(int) → double');
 
     SimpleIdentifier methodName = invocation.methodName;
-    expect(methodName.staticElement, same(parameter));
-    expect(methodName.staticType, parameter.type);
+    expect(methodName.staticElement, isNull);
+    expect(methodName.staticType, dynamicType);
   }
 
   test_methodInvocation_instanceMethod_forwardingStub() async {
@@ -5787,7 +5773,7 @@ double f(int a, String b) {}
 
     expect(invocation.methodName.staticElement, same(fElement));
     expect(invocation.methodName.staticType.toString(), fTypeString);
-    expect(invocation.staticType, same(doubleType));
+    expect(invocation.staticType, doubleType);
     expect(invocation.staticInvokeType.toString(), fTypeString);
 
     _assertArgumentToParameter(arguments[0], fElement.parameters[0]);
@@ -5899,7 +5885,7 @@ const b = C.named(); // ref
 
   @failingTest
   test_optionalConst_prefixed() async {
-    provider.newFile(_p('/test/lib/a.dart'), r'''
+    newFile('/test/lib/a.dart', content: r'''
 class C {
   const C();
   const C.named();
@@ -6426,8 +6412,7 @@ main(double computation(int p)) {
   }
 
   test_prefixedIdentifier_importPrefix_className() async {
-    var libPath = _p('/test/lib/lib.dart');
-    provider.newFile(libPath, '''
+    newFile('/test/lib/lib.dart', content: '''
 class MyClass {}
 typedef void MyFunctionTypeAlias();
 int myTopVariable;
@@ -6883,21 +6868,20 @@ class B extends A {
       SimpleIdentifier identifier = statement.expression;
 
       expect(identifier.staticElement, same(getterElement));
-      expect(identifier.staticType, same(typeProvider.intType));
+      expect(identifier.staticType, typeProvider.intType);
     }
 
     // super.getter;
     {
       ExpressionStatement statement = testStatements[3];
       PropertyAccess propertyAccess = statement.expression;
-      expect(propertyAccess.staticType, same(typeProvider.intType));
+      expect(propertyAccess.staticType, typeProvider.intType);
 
       SuperExpression target = propertyAccess.target;
       expect(target.staticType, bNode.declaredElement.type); // raw
 
       expect(propertyAccess.propertyName.staticElement, same(getterElement));
-      expect(
-          propertyAccess.propertyName.staticType, same(typeProvider.intType));
+      expect(propertyAccess.propertyName.staticType, typeProvider.intType);
     }
 
     // setter = 3;
@@ -6907,7 +6891,7 @@ class B extends A {
 
       SimpleIdentifier identifier = assignment.leftHandSide;
       expect(identifier.staticElement, same(setterElement));
-      expect(identifier.staticType, same(typeProvider.intType));
+      expect(identifier.staticType, typeProvider.intType);
     }
 
     // this.setter = 4;
@@ -6921,8 +6905,7 @@ class B extends A {
       expect(target.staticType, bNode.declaredElement.type); // raw
 
       expect(propertyAccess.propertyName.staticElement, same(setterElement));
-      expect(
-          propertyAccess.propertyName.staticType, same(typeProvider.intType));
+      expect(propertyAccess.propertyName.staticType, typeProvider.intType);
     }
 
     // super + 5;
@@ -7526,7 +7509,7 @@ class C<T> {
       TypeName typeName = bDeclaration.fields.type;
       SimpleIdentifier typeIdentifier = typeName.name;
       expect(typeIdentifier.staticElement, same(tElement));
-      expect(typeIdentifier.staticType, same(tElement.type));
+      expect(typeIdentifier.staticType, tElement.type);
 
       VariableDeclaration bNode = bDeclaration.fields.variables[0];
       expect(bNode.declaredElement, same(bElement));
@@ -8019,12 +8002,9 @@ main() {
   }
 
   test_typeAnnotation_prefixed() async {
-    var a = _p('/test/lib/a.dart');
-    var b = _p('/test/lib/b.dart');
-    var c = _p('/test/lib/c.dart');
-    provider.newFile(a, 'class A {}');
-    provider.newFile(b, "export 'a.dart';");
-    provider.newFile(c, "export 'a.dart';");
+    newFile('/test/lib/a.dart', content: 'class A {}');
+    newFile('/test/lib/b.dart', content: "export 'a.dart';");
+    newFile('/test/lib/c.dart', content: "export 'a.dart';");
     addTestFile(r'''
 import 'b.dart' as b;
 import 'c.dart' as c;
@@ -8737,69 +8717,6 @@ main() {
     expect(identifier.staticType, isDynamicType);
   }
 
-  test_unresolved_static_call() async {
-    addTestFile('''
-class C {
-  static f() => C.g();
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-
-    var g = findNode.simple('g()');
-    assertElementNull(g);
-    assertTypeDynamic(g);
-    var invocation = g.parent as MethodInvocation;
-    assertTypeDynamic(invocation);
-    expect(invocation.staticInvokeType, isDynamicType);
-  }
-
-  test_unresolved_static_call_arguments() async {
-    addTestFile('''
-int x;
-class C {
-  static f() => C.g(x);
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-
-    var x = findNode.simple('x)');
-    assertElement(x, findElement.topGet('x'));
-    assertType(x, 'int');
-  }
-
-  test_unresolved_static_call_same_name_as_type_param() async {
-    addTestFile('''
-class C<T> {
-  static f() => C.T();
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-
-    var t = findNode.simple('T()');
-    assertElementNull(t);
-    assertTypeDynamic(t);
-    var invocation = t.parent as MethodInvocation;
-    assertTypeDynamic(invocation);
-    expect(invocation.staticInvokeType, isDynamicType);
-  }
-
-  test_unresolved_static_call_type_arguments() async {
-    addTestFile('''
-class C {
-  static f() => C.g<int>();
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-
-    var intRef = findNode.simple('int>');
-    assertElement(intRef, intType.element);
-    assertType(intRef, 'int');
-  }
-
   /// Assert that the [argument] is associated with the [expected]. If the
   /// [argument] is a [NamedExpression], the name must be resolved to the
   /// parameter.
@@ -8897,7 +8814,7 @@ class C {
 
     TypeName typeName = node.type;
     if (typeName != null) {
-      expect(typeName.type, same(type));
+      expect(typeName.type, type);
       expect(typeName.name.staticElement, same(type.element));
     }
   }
@@ -8910,7 +8827,7 @@ class C {
     expect(identifier.staticType, type);
   }
 
-  List<Statement> _getMainStatements(AnalysisResult result) {
+  List<Statement> _getMainStatements(ResolvedUnitResult result) {
     for (var declaration in result.unit.declarations) {
       if (declaration is FunctionDeclaration &&
           declaration.name.name == 'main') {
@@ -8922,7 +8839,7 @@ class C {
   }
 
   TopLevelVariableElement _getTopLevelVariable(
-      AnalysisResult result, String name) {
+      ResolvedUnitResult result, String name) {
     for (var variable in result.unit.declaredElement.topLevelVariables) {
       if (variable.name == name) {
         return variable;
@@ -8931,8 +8848,49 @@ class C {
     fail('Not found $name');
   }
 
-  /**
-   * Return the [provider] specific path for the given Posix [path].
-   */
-  String _p(String path) => provider.convertPath(path);
+//  String _p(String path) => convertPath(path);
+}
+
+/**
+ * Resolution tests that are run with all of the experiments enabled.
+ */
+@reflectiveTest
+class DriverResolutionWithExperimentsTest extends BaseAnalysisDriverTest {
+  AnalysisOptionsImpl createAnalysisOptions() => super.createAnalysisOptions()
+    ..enabledExperiments = _computeActiveExperimentNames();
+
+  test_binaryExpression_gtGtGt() async {
+    addTestFile('''
+class A {
+  A operator >>>(int amount) => this;
+}
+f(A a) {
+  a >>> 3;
+}
+''');
+    var result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    MethodDeclaration declaration =
+        (unit.declarations[0] as ClassDeclaration).members[0];
+    ExecutableElement operatorElement = declaration.declaredElement;
+    expect(operatorElement.name, '>>>');
+    ExpressionStatement statement =
+        ((unit.declarations[1] as FunctionDeclaration).functionExpression.body
+                as BlockFunctionBody)
+            .block
+            .statements[0];
+    BinaryExpression binary = statement.expression;
+    expect(binary.operator.type, TokenType.GT_GT_GT);
+    expect(binary.staticElement, operatorElement);
+  }
+
+  List<String> _computeActiveExperimentNames() {
+    var result = <String>[];
+    for (var feature in ExperimentStatus.knownFeatures.values) {
+      if (!feature.isExpired) {
+        result.add(feature.enableString);
+      }
+    }
+    return result;
+  }
 }

@@ -36,13 +36,14 @@ Future main(List<String> args) async {
     outputPath = path.join(genDir, 'kernel', 'ddc_sdk.dill');
   }
 
+  var librarySpecPath = parserOptions['libraries'] as String;
+
   var target = DevCompilerTarget();
   var options = CompilerOptions()
     ..compileSdk = true
     // TODO(sigmund): remove this unnecessary option when possible.
     ..sdkRoot = Uri.base
-    ..librariesSpecificationUri =
-        Uri.base.resolveUri(Uri.file(parserOptions['libraries']))
+    ..librariesSpecificationUri = Uri.base.resolveUri(Uri.file(librarySpecPath))
     ..target = target;
 
   var inputs = target.extraRequiredLibraries.map(Uri.parse).toList();
@@ -51,12 +52,14 @@ Future main(List<String> args) async {
   var outputDir = path.dirname(outputPath);
   await Directory(outputDir).create(recursive: true);
   await writeComponentToBinary(component, outputPath);
+  File(librarySpecPath).copySync(
+      path.join(path.dirname(outputDir), path.basename(librarySpecPath)));
 
   var jsModule = ProgramCompiler(
       component,
       target.hierarchy,
       SharedCompilerOptions(moduleName: 'dart_sdk'),
-      {}).emitModule(component, [], {});
+      {}).emitModule(component, [], [], {});
   var moduleFormats = {
     'amd': ModuleFormat.amd,
     'common': ModuleFormat.common,

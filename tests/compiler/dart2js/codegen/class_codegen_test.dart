@@ -66,14 +66,14 @@ main() {
 
 twoClasses() async {
   String generated = await compileAll(TEST_ONE);
-  Expect.isTrue(generated.contains(new RegExp('A: {[ \n]*"\\^": "Object;"')));
-  Expect.isTrue(generated.contains(new RegExp('B: {[ \n]*"\\^": "Object;"')));
+  Expect.isTrue(generated.contains('A: function A()'));
+  Expect.isTrue(generated.contains('B: function B()'));
 }
 
 subClass() async {
   checkOutput(String generated) {
-    Expect.isTrue(generated.contains(new RegExp('A: {[ \n]*"\\^": "Object;"')));
-    Expect.isTrue(generated.contains(new RegExp('B: {[ \n]*"\\^": "A;"')));
+    Expect.isTrue(generated.contains(RegExp(r'_inherit\(.\.A, .\.Object\)')));
+    Expect.isTrue(generated.contains(RegExp(r'_inherit\(.\.B, .\.A\)')));
   }
 
   checkOutput(await compileAll(TEST_TWO));
@@ -82,12 +82,15 @@ subClass() async {
 
 fieldTest() async {
   String generated = await compileAll(TEST_FOUR);
-  Expect.isTrue(generated
-      .contains(new RegExp('B: {[ \n]*"\\^": "A;y,z,x",[ \n]*static:')));
+  Expect.isTrue(generated.contains(RegExp(r'B: function B\(t0, t1, t2\) {'
+      r'\s*this.y = t0;'
+      r'\s*this.z = t1;'
+      r'\s*this.x = t2;')));
 }
 
 constructor1() async {
   String generated = await compileAll(TEST_FIVE);
+  print('--------------------\n$generated\n');
   Expect.isTrue(generated.contains(new RegExp(r"new [$A-Z]+\.A\(a\);")));
 }
 

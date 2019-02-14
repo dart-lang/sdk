@@ -130,6 +130,14 @@ abstract class DartObject {
   Map<DartObject, DartObject> toMapValue();
 
   /**
+   * Return a set corresponding to the value of the object being represented,
+   * or `null` if
+   * * this object is not of type 'Set', or
+   * * the value of the object being represented is `null`.
+   */
+  Set<DartObject> toSetValue();
+
+  /**
    * Return a string corresponding to the value of the object being represented,
    * or `null` if
    * * this object is not of type 'String',

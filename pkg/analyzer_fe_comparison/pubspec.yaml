@@ -1,5 +1,5 @@
 name: analyzer_fe_comparison
-version: 1.0.0
+publish_to: none
 author: Dart Team <misc@dartlang.org>
 description: Tool for comparing the behavior of the analyzer and the front end.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer_fe_comparison

@@ -10,9 +10,14 @@
 // This test is deliberately CPU-light and so it can make a lot of
 // progress before the concurrent sweepers are done sweeping the heap.
 // In that time there is no freelist and so the issue does not arise.
-// VMOptions=--no_concurrent_sweep
-// VMOptions=--use_compactor_evacuating
-// VMOptions=--use_compactor_sliding
+// VMOptions=--no_concurrent_mark --no_concurrent_sweep
+// VMOptions=--no_concurrent_mark --concurrent_sweep
+// VMOptions=--no_concurrent_mark --use_compactor
+// VMOptions=--no_concurrent_mark --use_compactor --force_evacuation
+// VMOptions=--concurrent_mark --no_concurrent_sweep
+// VMOptions=--concurrent_mark --concurrent_sweep
+// VMOptions=--concurrent_mark --use_compactor
+// VMOptions=--concurrent_mark --use_compactor --force_evacuation
 
 main() {
   final List<List> arrays = [];

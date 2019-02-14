@@ -40,6 +40,7 @@ class _Double implements double {
     return _trunc_div(other.toDouble());
   }
 
+  @pragma("vm:non-nullable-result-type")
   int _trunc_div(double other) native "Double_trunc_div";
 
   @pragma("vm:exact-result-type", _Double)
@@ -71,7 +72,9 @@ class _Double implements double {
     return (other is num) && _equal(other.toDouble());
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool _equal(double other) native "Double_equal";
+  @pragma("vm:exact-result-type", bool)
   bool _equalToInteger(int other) native "Double_equalToInteger";
 
   @pragma("vm:exact-result-type", bool)
@@ -84,6 +87,7 @@ class _Double implements double {
     return _greaterThan(other.toDouble());
   }
 
+  @pragma("vm:exact-result-type", bool)
   bool _greaterThan(double other) native "Double_greaterThan";
 
   @pragma("vm:exact-result-type", bool)
@@ -175,6 +179,7 @@ class _Double implements double {
     return this;
   }
 
+  @pragma("vm:non-nullable-result-type")
   int toInt() native "Double_toInt";
 
   double toDouble() {

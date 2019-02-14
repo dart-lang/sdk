@@ -413,7 +413,7 @@ class SourceContainer_ChangeSetTest_test_toString implements SourceContainer {
  * Instances of the class `StaticTypeVerifier` verify that all of the nodes in an AST
  * structure that should have a static type associated with them do have a static type.
  */
-class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
+class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   /**
    * A list containing all of the AST Expression nodes that were not resolved.
    */
@@ -479,19 +479,19 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object visitBreakStatement(BreakStatement node) => null;
+  void visitBreakStatement(BreakStatement node) {}
 
   @override
-  Object visitCommentReference(CommentReference node) => null;
+  void visitCommentReference(CommentReference node) {}
 
   @override
-  Object visitContinueStatement(ContinueStatement node) => null;
+  void visitContinueStatement(ContinueStatement node) {}
 
   @override
-  Object visitExportDirective(ExportDirective node) => null;
+  void visitExportDirective(ExportDirective node) {}
 
   @override
-  Object visitExpression(Expression node) {
+  void visitExpression(Expression node) {
     node.visitChildren(this);
     DartType staticType = node.staticType;
     if (staticType == null) {
@@ -499,66 +499,65 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
     } else {
       _resolvedExpressionCount++;
     }
-    return null;
   }
 
   @override
-  Object visitImportDirective(ImportDirective node) => null;
+  void visitImportDirective(ImportDirective node) {}
 
   @override
-  Object visitLabel(Label node) => null;
+  void visitLabel(Label node) {}
 
   @override
-  Object visitLibraryIdentifier(LibraryIdentifier node) => null;
+  void visitLibraryIdentifier(LibraryIdentifier node) {}
 
   @override
-  Object visitPrefixedIdentifier(PrefixedIdentifier node) {
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
     // In cases where we have a prefixed identifier where the prefix is dynamic,
     // we don't want to assert that the node will have a type.
     if (node.staticType == null &&
         resolutionMap.staticTypeForExpression(node.prefix).isDynamic) {
-      return null;
+      return;
     }
-    return super.visitPrefixedIdentifier(node);
+    super.visitPrefixedIdentifier(node);
   }
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     // In cases where identifiers are being used for something other than an
     // expressions, then they can be ignored.
     AstNode parent = node.parent;
     if (parent is MethodInvocation && identical(node, parent.methodName)) {
-      return null;
+      return;
     } else if (parent is RedirectingConstructorInvocation &&
         identical(node, parent.constructorName)) {
-      return null;
+      return;
     } else if (parent is SuperConstructorInvocation &&
         identical(node, parent.constructorName)) {
-      return null;
+      return;
     } else if (parent is ConstructorName && identical(node, parent.name)) {
-      return null;
+      return;
     } else if (parent is ConstructorFieldInitializer &&
         identical(node, parent.fieldName)) {
-      return null;
+      return;
     } else if (node.staticElement is PrefixElement) {
       // Prefixes don't have a type.
-      return null;
+      return;
     }
-    return super.visitSimpleIdentifier(node);
+    super.visitSimpleIdentifier(node);
   }
 
   @override
-  Object visitTypeAnnotation(TypeAnnotation node) {
+  void visitTypeAnnotation(TypeAnnotation node) {
     if (node.type == null) {
       _unresolvedTypes.add(node);
     } else {
       _resolvedTypeCount++;
     }
-    return super.visitTypeAnnotation(node);
+    super.visitTypeAnnotation(node);
   }
 
   @override
-  Object visitTypeName(TypeName node) {
+  void visitTypeName(TypeName node) {
     // Note: do not visit children from this node, the child SimpleIdentifier in
     // TypeName (i.e. "String") does not have a static type defined.
     // TODO(brianwilkerson) Not visiting the children means that we won't catch
@@ -568,7 +567,6 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
     } else {
       _resolvedTypeCount++;
     }
-    return null;
   }
 
   String _getFileName(AstNode node) {
@@ -856,77 +854,6 @@ main() {
     }
   }
 
-  test_functionExpression_asInvocationArgument() async {
-    if (previewDart2) {
-      return;
-    }
-    String code = r'''
-class MyMap<K, V> {
-  forEach(f(K key, V value)) {}
-}
-f(MyMap<int, String> m) {
-  m.forEach((k, v) {
-    k;
-    v;
-  });
-}''';
-    Source source = addSource(code);
-    CompilationUnit unit = await _computeResolvedUnit(source);
-    // k
-    SimpleIdentifier kIdentifier = EngineTestCase.findNode(
-        unit, code, "k;", (node) => node is SimpleIdentifier);
-    expect(kIdentifier.staticType, typeProvider.dynamicType);
-    // v
-    SimpleIdentifier vIdentifier = EngineTestCase.findNode(
-        unit, code, "v;", (node) => node is SimpleIdentifier);
-    expect(vIdentifier.staticType, typeProvider.dynamicType);
-  }
-
-  test_functionExpression_asInvocationArgument_functionExpressionInvocation() async {
-    if (previewDart2) {
-      return;
-    }
-    String code = r'''
-main() {
-  (f(String value)) {} ((v) {
-    v;
-  });
-}''';
-    Source source = addSource(code);
-    CompilationUnit unit = await _computeResolvedUnit(source);
-    // v
-    FormalParameter vParameter = EngineTestCase.findNode(
-        unit, code, "v)", (node) => node is FormalParameter);
-    expect(vParameter.identifier.staticType, typeProvider.dynamicType);
-    SimpleIdentifier vIdentifier = EngineTestCase.findNode(
-        unit, code, "v;", (node) => node is SimpleIdentifier);
-    expect(vIdentifier.staticType, typeProvider.dynamicType);
-  }
-
-  test_functionExpression_asInvocationArgument_keepIfLessSpecific() async {
-    if (previewDart2) {
-      return;
-    }
-    String code = r'''
-class MyList {
-  forEach(f(Object value)) {}
-}
-f(MyList list) {
-  list.forEach((int v) {
-    v;
-  });
-}''';
-    Source source = addSource(code);
-    CompilationUnit unit = await _computeResolvedUnit(source);
-    // v
-    FormalParameter vParameter = EngineTestCase.findNode(
-        unit, code, "v)", (node) => node is SimpleFormalParameter);
-    expect(vParameter.identifier.staticType, typeProvider.intType);
-    SimpleIdentifier vIdentifier = EngineTestCase.findNode(
-        unit, code, "v;", (node) => node is SimpleIdentifier);
-    expect(vIdentifier.staticType, typeProvider.intType);
-  }
-
   test_functionExpression_asInvocationArgument_notSubtypeOfStaticType() async {
     String code = r'''
 class A {
@@ -944,50 +871,6 @@ x() {
         unit, code, "() => 0)", (node) => node is FunctionExpression);
     expect((functionExpression.staticType as FunctionType).parameters.length,
         same(0));
-  }
-
-  test_functionExpression_asInvocationArgument_replaceIfMoreSpecific() async {
-    if (previewDart2) {
-      return;
-    }
-    String code = r'''
-class MyList<E> {
-  forEach(f(E value)) {}
-}
-f(MyList<String> list) {
-  list.forEach((Object v) {
-    v;
-  });
-}''';
-    Source source = addSource(code);
-    CompilationUnit unit = await _computeResolvedUnit(source);
-    // v
-    FormalParameter vParameter = EngineTestCase.findNode(
-        unit, code, "v)", (node) => node is SimpleFormalParameter);
-    expect(vParameter.identifier.staticType, typeProvider.objectType);
-  }
-
-  test_initializer() async {
-    if (previewDart2) {
-      return;
-    }
-    Source source = addSource(r'''
-f() {
-  var v = 0;
-  return v;
-}''');
-    CompilationUnit unit = await _computeResolvedUnit(source);
-    FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body =
-        function.functionExpression.body as BlockFunctionBody;
-    NodeList<Statement> statements = body.block.statements;
-    // Type of 'v' in declaration.
-    {
-      VariableDeclarationStatement statement =
-          statements[0] as VariableDeclarationStatement;
-      SimpleIdentifier variableName = statement.variables.variables[0].name;
-      expect(variableName.staticType, typeProvider.dynamicType);
-    }
   }
 
   test_initializer_hasStaticType() async {
@@ -1168,23 +1051,6 @@ main() {
     expect(getter.staticType, typeProvider.dynamicType);
   }
 
-  test_objectAccessInference_enabled_for_cascades() async {
-    if (previewDart2) {
-      return;
-    }
-    String name = 'hashCode';
-    String code = '''
-main() {
-  dynamic obj;
-  obj..$name..$name; // marker
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    PropertyAccess access =
-        findMarkedIdentifier(code, unit, "; // marker").parent;
-    expect(access.staticType, typeProvider.dynamicType);
-    expect(access.realTarget.staticType, typeProvider.dynamicType);
-  }
-
   test_objectMethodInference_disabled_for_library_prefix() async {
     String name = 'toString';
     addNamedSource('/helper.dart', '''
@@ -1221,38 +1087,6 @@ main() {
     MethodInvocation methodInvoke = methodName.parent;
     expect(methodName.staticType, typeProvider.dynamicType);
     expect(methodInvoke.staticType, typeProvider.dynamicType);
-  }
-
-  test_objectMethodInference_enabled_for_cascades() async {
-    if (previewDart2) {
-      return;
-    }
-    String name = 'toString';
-    String code = '''
-main() {
-  dynamic obj;
-  obj..$name()..$name(); // marker
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    SimpleIdentifier methodName =
-        findMarkedIdentifier(code, unit, "(); // marker");
-    MethodInvocation methodInvoke = methodName.parent;
-
-    expect(methodInvoke.staticType, typeProvider.dynamicType);
-    expect(methodInvoke.realTarget.staticType, typeProvider.dynamicType);
-  }
-
-  test_propagatedReturnType_localFunction() async {
-    if (previewDart2) {
-      return;
-    }
-    String code = r'''
-main() {
-  f() => 42;
-  var v = f();
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.dynamicType);
   }
 
   /**
@@ -1293,6 +1127,7 @@ class TypeProviderImplTest extends EngineTestCase {
         _classElement("Iterable", objectType, ["T"]).type;
     InterfaceType listType = _classElement("List", objectType, ["E"]).type;
     InterfaceType mapType = _classElement("Map", objectType, ["K", "V"]).type;
+    InterfaceType setType = _classElement("Set", objectType, ["E"]).type;
     InterfaceType stackTraceType = _classElement("StackTrace", objectType).type;
     InterfaceType streamType = _classElement("Stream", objectType, ["T"]).type;
     InterfaceType stringType = _classElement("String", objectType).type;
@@ -1307,24 +1142,28 @@ class TypeProviderImplTest extends EngineTestCase {
       iterableType.element,
       listType.element,
       mapType.element,
+      setType.element,
       objectType.element,
       stackTraceType.element,
       stringType.element,
       symbolType.element,
       typeType.element
     ];
+    coreUnit.source = new TestSource('dart:core');
+    coreUnit.librarySource = coreUnit.source;
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     asyncUnit.types = <ClassElement>[
       futureType.element,
       futureOrType.element,
       streamType.element
     ];
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    asyncUnit.source = new TestSource('dart:async');
+    asyncUnit.librarySource = asyncUnit.source;
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        context, AstTestFactory.libraryIdentifier2(["dart.core"]));
+        null, null, AstTestFactory.libraryIdentifier2(["dart.core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        context, AstTestFactory.libraryIdentifier2(["dart.async"]));
+        null, null, AstTestFactory.libraryIdentifier2(["dart.async"]));
     asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // Create a type provider and ensure that it can return the expected types.
@@ -1425,7 +1264,7 @@ class TypeResolverVisitorTest extends ParserTestCase
         resourceProvider: resourceProvider);
     Source librarySource = new FileSource(getFile("/lib.dart"));
     LibraryElementImpl element = new LibraryElementImpl.forNode(
-        context, AstTestFactory.libraryIdentifier2(["lib"]));
+        context, null, AstTestFactory.libraryIdentifier2(["lib"]));
     element.definingCompilationUnit = new CompilationUnitElementImpl();
     _typeProvider = new TestTypeProvider();
     libraryScope = new LibraryScope(element);
@@ -1462,7 +1301,7 @@ A V = new A();
       InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
       var source = getFile('/test.dart').createSource();
-      var libraryElement = new LibraryElementImpl.forNode(context, null)
+      var libraryElement = new LibraryElementImpl.forNode(context, null, null)
         ..definingCompilationUnit = unitElement;
       var libraryScope = new LibraryScope(libraryElement);
       var visitor = new TypeResolverVisitor(
@@ -1893,13 +1732,13 @@ A v = new A();
         null, "A", null, extendsClause, withClause, implementsClause);
     declaration.name.staticElement = elementA;
     _resolveNode(declaration, [elementA, elementB, elementC, elementD]);
-    expect(elementA.supertype, same(elementB.type));
+    expect(elementA.supertype, elementB.type);
     List<InterfaceType> mixins = elementA.mixins;
     expect(mixins, hasLength(1));
-    expect(mixins[0], same(elementC.type));
+    expect(mixins[0], elementC.type);
     List<InterfaceType> interfaces = elementA.interfaces;
     expect(interfaces, hasLength(1));
-    expect(interfaces[0], same(elementD.type));
+    expect(interfaces[0], elementD.type);
     _listener.assertNoErrors();
   }
 
@@ -1920,7 +1759,7 @@ A v = new A();
         null, "B", null, extendsClause, null, null);
     declaration.name.staticElement = elementB;
     _resolveNode(declaration, [elementA, elementB]);
-    expect(elementB.supertype, same(elementA.type));
+    expect(elementB.supertype, elementA.type);
     _listener.assertNoErrors();
   }
 
@@ -1946,7 +1785,7 @@ A v = new A();
     pElement.type = pType;
 
     _resolveFormalParameter(pNode, [intType.element]);
-    expect(pType.returnType, same(intType));
+    expect(pType.returnType, intType);
     expect(pType.parameters, hasLength(1));
     _listener.assertNoErrors();
   }
@@ -1969,7 +1808,7 @@ A v = new A();
         AstTestFactory.fieldFormalParameter(null, intTypeName, parameterName);
     node.identifier.staticElement =
         ElementFactory.requiredParameter(parameterName);
-    expect(_resolveFormalParameter(node, [intType.element]), same(intType));
+    expect(_resolveFormalParameter(node, [intType.element]), intType);
     _listener.assertNoErrors();
   }
 
@@ -2178,7 +2017,7 @@ A v = new A();
     SimpleIdentifier identifier = node.identifier;
     ParameterElementImpl element = new ParameterElementImpl.forNode(identifier);
     node.declaredElement = identifier.staticElement = element;
-    expect(_resolveFormalParameter(node, [intElement]), same(intType));
+    expect(_resolveFormalParameter(node, [intElement]), intType);
     _listener.assertNoErrors();
   }
 
@@ -2187,7 +2026,7 @@ A v = new A();
     TypeName typeName = AstTestFactory.typeName(classA);
     typeName.type = null;
     _resolveNode(typeName, [classA]);
-    expect(typeName.type, same(classA.type));
+    expect(typeName.type, classA.type);
     _listener.assertNoErrors();
   }
 
@@ -2212,7 +2051,7 @@ A v = new A();
     expect(resultType.element, same(classA));
     List<DartType> resultArguments = resultType.typeArguments;
     expect(resultArguments, hasLength(1));
-    expect(resultArguments[0], same(classB.type));
+    expect(resultArguments[0], classB.type);
     _listener.assertNoErrors();
   }
 
@@ -2268,11 +2107,11 @@ A v = new A();
     _resolveNode(node, definedElements);
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
-      expect(exceptionParameter.staticType, same(exceptionType));
+      expect(exceptionParameter.staticType, exceptionType);
     }
     SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
     if (stackTraceParameter != null) {
-      expect(stackTraceParameter.staticType, same(stackTraceType));
+      expect(stackTraceParameter.staticType, stackTraceType);
     }
   }
 
@@ -2332,7 +2171,7 @@ A v = new A();
       InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
       var source = getFile('/test.dart').createSource();
-      var libraryElement = new LibraryElementImpl.forNode(context, null)
+      var libraryElement = new LibraryElementImpl.forNode(context, null, null)
         ..definingCompilationUnit = unitElement;
       libraryScope = new LibraryScope(libraryElement);
       visitor = new TypeResolverVisitor(

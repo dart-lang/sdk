@@ -168,15 +168,40 @@ def _CheckValidHostsInDEPS(input_api, output_api):
         'DEPS file must have only dependencies from allowed hosts.',
         long_text=error.output)]
 
+def _CheckLayering(input_api, output_api):
+  """Run VM layering check.
+
+  This check validates that sources from one layer do not reference sources
+  from another layer accidentally.
+  """
+  # Run only if .cc or .h file was modified.
+  def is_cpp_file(path):
+    return path.endswith('.cc') or path.endswith('.h')
+  if all(not is_cpp_file(f.LocalPath()) for f in input_api.AffectedFiles()):
+    return []
+
+  local_root = input_api.change.RepositoryRoot()
+  layering_check = imp.load_source('layering_check',
+      os.path.join(local_root, 'runtime', 'tools', 'layering_check.py'))
+  errors = layering_check.DoCheck(local_root)
+  if errors:
+    return [output_api.PresubmitError(
+        'Layering check violation for C++ sources.',
+        long_text='\n'.join(errors))]
+  else:
+    return []
+
 
 def CheckChangeOnCommit(input_api, output_api):
   return (_CheckValidHostsInDEPS(input_api, output_api) +
           _CheckBuildStatus(input_api, output_api) +
           _CheckDartFormat(input_api, output_api) +
-          _CheckStatusFiles(input_api, output_api))
+          _CheckStatusFiles(input_api, output_api) +
+          _CheckLayering(input_api, output_api))
 
 
 def CheckChangeOnUpload(input_api, output_api):
   return (_CheckValidHostsInDEPS(input_api, output_api) +
           _CheckDartFormat(input_api, output_api) +
-          _CheckStatusFiles(input_api, output_api))
+          _CheckStatusFiles(input_api, output_api) +
+          _CheckLayering(input_api, output_api))

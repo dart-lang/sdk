@@ -139,4 +139,52 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void> {
     registerNode(node);
     super.visitStaticInvocation(node);
   }
+
+  @override
+  void visitLabeledStatement(ir.LabeledStatement node) {
+    registerNode(node);
+    super.visitLabeledStatement(node);
+  }
+
+  @override
+  void visitSwitchCase(ir.SwitchCase node) {
+    registerNode(node);
+    super.visitSwitchCase(node);
+  }
+
+  @override
+  void visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
+    registerNode(node);
+    super.visitContinueSwitchStatement(node);
+  }
+
+  @override
+  void visitConstructorInvocation(ir.ConstructorInvocation node) {
+    registerNode(node);
+    super.visitConstructorInvocation(node);
+  }
+
+  @override
+  void visitVariableGet(ir.VariableGet node) {
+    registerNode(node);
+    super.visitVariableGet(node);
+  }
+
+  @override
+  void visitInstantiation(ir.Instantiation node) {
+    registerNode(node);
+    super.visitInstantiation(node);
+  }
+
+  @override
+  void visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
+    registerNode(node);
+    super.visitSuperMethodInvocation(node);
+  }
+
+  @override
+  void visitSuperPropertyGet(ir.SuperPropertyGet node) {
+    registerNode(node);
+    super.visitSuperPropertyGet(node);
+  }
 }

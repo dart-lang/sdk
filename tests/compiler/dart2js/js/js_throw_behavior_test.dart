@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import 'package:compiler/src/native/native.dart';
+import 'package:compiler/src/native/behavior.dart';
+import 'package:compiler/src/native/js.dart';
 import 'package:compiler/src/js/js.dart' as js;
 
 void test(String source, NativeThrowBehavior expectedThrowBehavior) {

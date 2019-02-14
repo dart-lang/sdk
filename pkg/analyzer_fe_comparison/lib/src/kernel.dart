@@ -64,7 +64,7 @@ ComparisonNode _diagnosticMessageToNode(DiagnosticMessage message) {
 
 CompilerOptions _makeCompilerOptions(Uri packagesFileUri, Uri platformUri,
     DiagnosticMessageHandler onDiagnostic) {
-  var targetFlags = TargetFlags(syncAsync: true);
+  var targetFlags = TargetFlags();
   var target = NoneTarget(targetFlags);
   var fileSystem = StandardFileSystem.instance;
 

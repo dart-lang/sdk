@@ -1,0 +1,6 @@
+pkg/front_end/testcases/runtime_checks_new/contravariant_combiner.dart:22:44: Context: Write to b@535
+  b /*@checkReturn=B<num, (num) -> void>*/ += 1;
+                                           ^^
+pkg/front_end/testcases/runtime_checks_new/contravariant_combiner.dart:23:52: Context: Write to b@535
+  var x = b /*@checkReturn=B<num, (num) -> void>*/ += 2;
+                                                   ^^

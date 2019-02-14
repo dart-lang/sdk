@@ -11,7 +11,7 @@
 #define RUNTIME_VM_GROWABLE_ARRAY_H_
 
 #include "platform/growable_array.h"
-#include "vm/thread.h"
+#include "vm/thread_state.h"
 #include "vm/zone.h"
 
 namespace dart {
@@ -25,10 +25,10 @@ class GrowableArray : public BaseGrowableArray<T, ValueObject, Zone> {
   explicit GrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ValueObject, Zone>(
             initial_capacity,
-            ASSERT_NOTNULL(Thread::Current()->zone())) {}
+            ASSERT_NOTNULL(ThreadState::Current()->zone())) {}
   GrowableArray()
       : BaseGrowableArray<T, ValueObject, Zone>(
-            ASSERT_NOTNULL(Thread::Current()->zone())) {}
+            ASSERT_NOTNULL(ThreadState::Current()->zone())) {}
 };
 
 template <typename T>
@@ -40,10 +40,10 @@ class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated, Zone> {
   explicit ZoneGrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ZoneAllocated, Zone>(
             initial_capacity,
-            ASSERT_NOTNULL(Thread::Current()->zone())) {}
+            ASSERT_NOTNULL(ThreadState::Current()->zone())) {}
   ZoneGrowableArray()
       : BaseGrowableArray<T, ZoneAllocated, Zone>(
-            ASSERT_NOTNULL(Thread::Current()->zone())) {}
+            ASSERT_NOTNULL(ThreadState::Current()->zone())) {}
 };
 
 // T must be a Handle type.

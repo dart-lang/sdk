@@ -10,7 +10,7 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, write_protect_code, false, "Write protect jitted code");
+DEFINE_FLAG(bool, write_protect_code, true, "Write protect jitted code");
 
 WritableInstructionsScope::WritableInstructionsScope(uword address,
                                                      intptr_t size)
@@ -28,7 +28,7 @@ WritableInstructionsScope::~WritableInstructionsScope() {
   }
 }
 
-bool MatchesPattern(uword end, int16_t* pattern, intptr_t size) {
+bool MatchesPattern(uword end, const int16_t* pattern, intptr_t size) {
   // When breaking within generated code in GDB, it may overwrite individual
   // instructions with trap instructions, which can cause this test to fail.
   //

@@ -9,9 +9,7 @@ class _Directory extends FileSystemEntity implements Directory {
   Uint8List _rawPath;
 
   _Directory(String path) {
-    if (path is! String) {
-      throw new ArgumentError('${Error.safeToString(path)} is not a String');
-    }
+    ArgumentError.checkNotNull(path, 'path');
     _path = path;
     _rawPath = FileSystemEntity._toUtf8Array(_path);
   }
@@ -145,7 +143,7 @@ class _Directory extends FileSystemEntity implements Directory {
       new Directory(_systemTemp(_Namespace._namespace));
 
   Future<Directory> createTemp([String prefix]) {
-    if (prefix == null) prefix = '';
+    prefix ??= '';
     if (path == '') {
       throw new ArgumentError("Directory.createTemp called with an empty path. "
           "To use the system temp directory, use Directory.systemTemp");
@@ -169,7 +167,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Directory createTempSync([String prefix]) {
-    if (prefix == null) prefix = '';
+    prefix ??= '';
     if (path == '') {
       throw new ArgumentError("Directory.createTemp called with an empty path. "
           "To use the system temp directory, use Directory.systemTemp");
@@ -192,8 +190,9 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Future<Directory> _delete({bool recursive: false}) {
-    return _File._dispatchWithNamespace(_IOService.directoryDelete,
-        [null, _rawPath, recursive]).then((response) {
+    return _File._dispatchWithNamespace(
+            _IOService.directoryDelete, [null, _rawPath, recursive])
+        .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Deletion failed");
       }
@@ -252,8 +251,8 @@ class _Directory extends FileSystemEntity implements Directory {
         result,
         // FIXME(bkonyi): here we're using `path` directly, which might cause issues
         // if it is not UTF-8 encoded.
-        FileSystemEntity
-            ._toUtf8Array(FileSystemEntity._ensureTrailingPathSeparators(path)),
+        FileSystemEntity._toUtf8Array(
+            FileSystemEntity._ensureTrailingPathSeparators(path)),
         recursive,
         followLinks);
     return result;
@@ -369,8 +368,8 @@ class _AsyncDirectoryLister {
       return;
     }
     nextRunning = true;
-    _IOService
-        ._dispatch(_IOService.directoryListNext, [pointer]).then((result) {
+    _IOService._dispatch(_IOService.directoryListNext, [pointer])
+        .then((result) {
       nextRunning = false;
       if (result is List) {
         next();
@@ -420,8 +419,8 @@ class _AsyncDirectoryLister {
     if (pointer == null) {
       _cleanup();
     } else {
-      _IOService._dispatch(
-          _IOService.directoryListStop, [pointer]).whenComplete(_cleanup);
+      _IOService._dispatch(_IOService.directoryListStop, [pointer])
+          .whenComplete(_cleanup);
     }
   }
 

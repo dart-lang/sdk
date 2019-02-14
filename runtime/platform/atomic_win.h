@@ -141,6 +141,24 @@ inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
 #endif
 }
 
+template <typename T>
+inline T AtomicOperations::LoadAcquire(T* ptr) {
+#if (defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32))
+  return *ptr;
+#else
+#error Unsupported host architecture.
+#endif
+}
+
+template <typename T>
+inline void AtomicOperations::StoreRelease(T* ptr, T value) {
+#if (defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32))
+  *ptr = value;
+#else
+#error Unsupported host architecture.
+#endif
+}
+
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_ATOMIC_WIN_H_

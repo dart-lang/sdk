@@ -35,7 +35,6 @@ namespace dart {
 namespace bin {
 
 const char* DartUtils::original_working_directory = NULL;
-CommandLineOptions* DartUtils::url_mapping = NULL;
 const char* const DartUtils::kDartScheme = "dart:";
 const char* const DartUtils::kDartExtensionScheme = "dart-ext:";
 const char* const DartUtils::kAsyncLibURL = "dart:async";
@@ -67,23 +66,6 @@ static bool IsWindowsHost() {
 #else   // defined(HOST_OS_WINDOWS)
   return false;
 #endif  // defined(HOST_OS_WINDOWS)
-}
-
-const char* DartUtils::MapLibraryUrl(const char* url_string) {
-  ASSERT(url_mapping != NULL);
-  // We need to check if the passed in url is found in the url_mapping array,
-  // in that case use the mapped entry.
-  intptr_t len = strlen(url_string);
-  for (intptr_t idx = 0; idx < url_mapping->count(); idx++) {
-    const char* url_name = url_mapping->GetArgument(idx);
-    if (!strncmp(url_string, url_name, len) && (url_name[len] == ',')) {
-      const char* url_mapped_name = url_name + len + 1;
-      if (strlen(url_mapped_name) != 0) {
-        return url_mapped_name;  // Found a mapping for this URL.
-      }
-    }
-  }
-  return NULL;  // Did not find a mapping for this URL.
 }
 
 int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {
@@ -392,23 +374,6 @@ Dart_Handle DartUtils::SetWorkingDirectory() {
   Dart_Handle directory = NewString(original_working_directory);
   return SingleArgDart_Invoke(LookupBuiltinLib(), "_setWorkingDirectory",
                               directory);
-}
-
-Dart_Handle DartUtils::ResolveUriInWorkingDirectory(Dart_Handle script_uri) {
-  const int kNumArgs = 1;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = script_uri;
-  return Dart_Invoke(DartUtils::LookupBuiltinLib(),
-                     NewString("_resolveInWorkingDirectory"), kNumArgs,
-                     dart_args);
-}
-
-Dart_Handle DartUtils::LibraryFilePath(Dart_Handle library_uri) {
-  const int kNumArgs = 1;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = library_uri;
-  return Dart_Invoke(DartUtils::LookupBuiltinLib(),
-                     NewString("_libraryFilePath"), kNumArgs, dart_args);
 }
 
 Dart_Handle DartUtils::ResolveScript(Dart_Handle url) {
@@ -783,19 +748,13 @@ Dart_Handle DartUtils::NewInternalError(const char* message) {
 }
 
 bool DartUtils::SetOriginalWorkingDirectory() {
-  original_working_directory = Directory::CurrentNoScope();
-  return original_working_directory != NULL;
-}
-
-Dart_Handle DartUtils::GetCanonicalizableWorkingDirectory() {
-  const char* str = DartUtils::original_working_directory;
-  intptr_t len = strlen(str);
-  if ((str[len] == '/') || (IsWindowsHost() && str[len] == '\\')) {
-    return Dart_NewStringFromCString(str);
+  // If we happen to re-initialize the Dart VM multiple times, make sure to free
+  // the old string (allocated by getcwd()) before setting a new one.
+  if (original_working_directory != nullptr) {
+    free(const_cast<char*>(original_working_directory));
   }
-  char* new_str = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 2));
-  snprintf(new_str, (len + 2), "%s%s", str, File::PathSeparator());
-  return Dart_NewStringFromCString(new_str);
+  original_working_directory = Directory::CurrentNoScope();
+  return original_working_directory != nullptr;
 }
 
 void DartUtils::SetEnvironment(dart::SimpleHashMap* environment) {

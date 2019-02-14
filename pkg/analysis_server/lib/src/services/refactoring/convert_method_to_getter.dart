@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,8 +12,8 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -23,13 +23,13 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     implements ConvertMethodToGetterRefactoring {
   final SearchEngine searchEngine;
-  final AstProvider astProvider;
+  final AnalysisSessionHelper sessionHelper;
   final ExecutableElement element;
 
   SourceChange change;
 
-  ConvertMethodToGetterRefactoringImpl(
-      this.searchEngine, this.astProvider, this.element);
+  ConvertMethodToGetterRefactoringImpl(this.searchEngine, this.element)
+      : sessionHelper = AnalysisSessionHelper(element.session);
 
   @override
   String get refactoringName => 'Convert Method To Getter';
@@ -100,8 +100,8 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     // prepare parameters
     FormalParameterList parameters;
     {
-      AstNode name = await astProvider.getParsedNameForElement(element);
-      AstNode declaration = name?.parent;
+      var result = await sessionHelper.getElementDeclaration(element);
+      var declaration = result.node;
       if (declaration is MethodDeclaration) {
         parameters = declaration.parameters;
       } else if (declaration is FunctionDeclaration) {
@@ -133,11 +133,11 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       // prepare invocation
       MethodInvocation invocation;
       {
-        CompilationUnit refUnit =
-            await astProvider.getParsedUnitForElement(refElement);
-        AstNode refNode =
-            new NodeLocator(refRange.offset).searchWithin(refUnit);
-        invocation = refNode.getAncestor((node) => node is MethodInvocation);
+        var resolvedUnit =
+            await sessionHelper.getResolvedUnitByElement(refElement);
+        var refUnit = resolvedUnit.unit;
+        var refNode = new NodeLocator(refRange.offset).searchWithin(refUnit);
+        invocation = refNode.thisOrAncestorOfType<MethodInvocation>();
       }
       // we need invocation
       if (invocation != null) {

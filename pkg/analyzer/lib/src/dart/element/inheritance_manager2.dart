@@ -30,16 +30,16 @@ class Conflict {
 
 /// Manages knowledge about interface types and their members.
 class InheritanceManager2 {
+  static final _noSuchMethodName = Name(null, 'noSuchMethod');
+
   final TypeSystem _typeSystem;
 
   /// Cached instance interfaces for [InterfaceType].
   final Map<InterfaceType, Interface> _interfaces = {};
 
-  /// Cached implemented members for [InterfaceType].
-  final Map<InterfaceType, Map<Name, FunctionType>> _implemented = {};
-
-  /// Cached member implemented in the mixin.
-  final Map<InterfaceType, Map<Name, FunctionType>> _mixinMembers = {};
+  /// The set of classes that are currently being processed, used to detect
+  /// self-referencing cycles.
+  final Set<ClassElement> _processingClasses = new Set<ClassElement>();
 
   InheritanceManager2(this._typeSystem);
 
@@ -53,64 +53,87 @@ class InheritanceManager2 {
   /// members, not necessary accessible in all libraries.
   Interface getInterface(InterfaceType type) {
     if (type == null) {
-      return const Interface._(const {}, const {}, const [{}], const []);
+      return Interface._empty;
     }
 
     var result = _interfaces[type];
     if (result != null) {
       return result;
     }
+    _interfaces[type] = Interface._empty;
 
-    _interfaces[type] = const Interface._(
-      const {},
-      const {},
-      const [{}],
-      const [],
-    );
-    Map<Name, FunctionType> map = {};
-    List<Map<Name, FunctionType>> superImplemented = [];
-    List<Conflict> conflicts = null;
-
-    // If a class declaration has a member declaration, the signature of that
-    // member declaration becomes the signature in the interface.
-    _addTypeMembers(map, type);
+    var classElement = type.element;
+    if (!_processingClasses.add(classElement)) {
+      return Interface._empty;
+    }
 
     Map<Name, List<FunctionType>> namedCandidates = {};
+    List<Map<Name, FunctionType>> superImplemented = [];
+    Map<Name, FunctionType> declared;
+    Interface superInterface;
+    Map<Name, FunctionType> implemented;
+    Map<Name, FunctionType> implementedForMixing;
+    try {
+      // If a class declaration has a member declaration, the signature of that
+      // member declaration becomes the signature in the interface.
+      declared = _getTypeMembers(type);
 
-    for (var interface in type.interfaces) {
-      _addCandidates(namedCandidates, interface);
-    }
-
-    if (type.element.isMixin) {
-      for (var constraint in type.superclassConstraints) {
-        _addCandidates(namedCandidates, constraint);
+      for (var interface in type.interfaces) {
+        var interfaceObj = getInterface(interface);
+        _addCandidates(namedCandidates, interfaceObj);
       }
 
-      // `mixin M on S1, S2 {}` can call using `super` any instance member
-      // from its superclass constraints, whether it is abstract or concrete.
-      Map<Name, FunctionType> mixinSuperClass = {};
-      _findMostSpecificFromNamedCandidates(mixinSuperClass, namedCandidates);
-      superImplemented.add(mixinSuperClass);
+      if (classElement.isMixin) {
+        for (var constraint in type.superclassConstraints) {
+          var interfaceObj = getInterface(constraint);
+          _addCandidates(namedCandidates, interfaceObj);
+        }
+
+        implemented = {};
+
+        // `mixin M on S1, S2 {}` can call using `super` any instance member
+        // from its superclass constraints, whether it is abstract or concrete.
+        Map<Name, FunctionType> mixinSuperClass = {};
+        _findMostSpecificFromNamedCandidates(mixinSuperClass, namedCandidates);
+        superImplemented.add(mixinSuperClass);
+      } else {
+        if (type.superclass != null) {
+          superInterface = getInterface(type.superclass);
+          _addCandidates(namedCandidates, superInterface);
+
+          implemented = superInterface.implemented;
+          superImplemented.add(implemented);
+        } else {
+          implemented = {};
+        }
+
+        implementedForMixing = {};
+        for (var mixin in type.mixins) {
+          var interfaceObj = getInterface(mixin);
+          _addCandidates(namedCandidates, interfaceObj);
+
+          implemented = <Name, FunctionType>{}
+            ..addAll(implemented)
+            ..addAll(interfaceObj.implementedForMixing);
+          superImplemented.add(implemented);
+          implementedForMixing.addAll(interfaceObj.implementedForMixing);
+        }
+      }
+    } finally {
+      _processingClasses.remove(classElement);
+    }
+
+    var thisImplemented = <Name, FunctionType>{};
+    _addImplemented(thisImplemented, type);
+
+    if (classElement.isMixin) {
+      implementedForMixing = thisImplemented;
     } else {
-      Map<Name, FunctionType> implemented;
-
-      if (type.superclass != null) {
-        _addCandidates(namedCandidates, type.superclass);
-
-        implemented = _getImplemented(type.superclass);
-        superImplemented.add(implemented);
-      }
-
-      for (var mixin in type.mixins) {
-        _addCandidates(namedCandidates, mixin);
-
-        var implementedInMixin = _getImplemented(mixin);
-        implemented = <Name, FunctionType>{}
-          ..addAll(implemented)
-          ..addAll(implementedInMixin);
-        superImplemented.add(implemented);
-      }
+      implementedForMixing.addAll(thisImplemented);
     }
+
+    implemented = <Name, FunctionType>{}..addAll(implemented);
+    _addImplemented(implemented, type);
 
     // If a class declaration does not have a member declaration with a
     // particular name, but some super-interfaces do have a member with that
@@ -118,10 +141,37 @@ class InheritanceManager2 {
     // super-interfaces that is a valid override of all the other
     // super-interface signatures with the same name. That "most specific"
     // signature becomes the signature of the class's interface.
-    conflicts = _findMostSpecificFromNamedCandidates(map, namedCandidates);
+    Map<Name, FunctionType> map = new Map.of(declared);
+    List<Conflict> conflicts = _findMostSpecificFromNamedCandidates(
+      map,
+      namedCandidates,
+    );
+
+    var noSuchMethodForwarders = Set<Name>();
+    if (classElement.isAbstract) {
+      if (superInterface != null) {
+        noSuchMethodForwarders = superInterface.noSuchMethodForwarders;
+      }
+    } else {
+      var noSuchMethod = implemented[_noSuchMethodName]?.element;
+      if (noSuchMethod != null && !_isDeclaredInObject(noSuchMethod)) {
+        var superForwarders = superInterface?.noSuchMethodForwarders;
+        for (var name in map.keys) {
+          if (!implemented.containsKey(name) ||
+              superForwarders != null && superForwarders.contains(name)) {
+            implemented[name] = map[name];
+            noSuchMethodForwarders.add(name);
+          }
+        }
+      }
+    }
 
     var interface = new Interface._(
       map,
+      declared,
+      implemented,
+      noSuchMethodForwarders,
+      implementedForMixing,
       namedCandidates,
       superImplemented,
       conflicts ?? const [],
@@ -148,17 +198,18 @@ class InheritanceManager2 {
     int forMixinIndex: -1,
     bool forSuper: false,
   }) {
+    var interface = getInterface(type);
     if (forSuper) {
-      var superImplemented = getInterface(type)._superImplemented;
+      var superImplemented = interface._superImplemented;
       if (forMixinIndex >= 0) {
         return superImplemented[forMixinIndex][name];
       }
       return superImplemented.last[name];
     }
     if (concrete) {
-      return _getImplemented(type)[name];
+      return interface.implemented[name];
     }
-    return getInterface(type).map[name];
+    return interface.map[name];
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member
@@ -181,26 +232,31 @@ class InheritanceManager2 {
   }
 
   void _addCandidates(
-      Map<Name, List<FunctionType>> namedCandidates, InterfaceType type) {
-    var map = getInterface(type).map;
+      Map<Name, List<FunctionType>> namedCandidates, Interface interface) {
+    var map = interface.map;
     for (var name in map.keys) {
       var candidate = map[name];
       _addCandidate(namedCandidates, name, candidate);
     }
   }
 
-  void _addTypeMembers(Map<Name, FunctionType> map, InterfaceType type) {
+  void _addImplemented(
+      Map<Name, FunctionType> implemented, InterfaceType type) {
     var libraryUri = type.element.librarySource.uri;
 
-    void addTypeMember(ExecutableElement member) {
-      if (!member.isStatic) {
+    void addMember(ExecutableElement member) {
+      if (!member.isAbstract && !member.isStatic) {
         var name = new Name(libraryUri, member.name);
-        map[name] = member.type;
+        implemented[name] = member.type;
       }
     }
 
-    type.methods.forEach(addTypeMember);
-    type.accessors.forEach(addTypeMember);
+    void addMembers(InterfaceType type) {
+      type.methods.forEach(addMember);
+      type.accessors.forEach(addMember);
+    }
+
+    addMembers(type);
   }
 
   /// Check that all [candidates] for the given [name] have the same kind, all
@@ -305,88 +361,67 @@ class InheritanceManager2 {
     return conflicts;
   }
 
-  Map<Name, FunctionType> _getImplemented(InterfaceType type) {
-    var implemented = _implemented[type];
-    if (implemented != null) {
-      return implemented;
-    }
-
-    _implemented[type] = const {};
-    implemented = <Name, FunctionType>{};
-
+  Map<Name, FunctionType> _getTypeMembers(InterfaceType type) {
+    var declared = <Name, FunctionType>{};
     var libraryUri = type.element.librarySource.uri;
 
-    void addMember(ExecutableElement member) {
-      if (!member.isAbstract && !member.isStatic) {
-        var name = new Name(libraryUri, member.name);
-        implemented[name] = member.type;
+    var methods = type.methods;
+    for (var i = 0; i < methods.length; i++) {
+      var method = methods[i];
+      if (!method.isStatic) {
+        var name = new Name(libraryUri, method.name);
+        declared[name] = method.type;
       }
     }
 
-    void addMembers(InterfaceType type) {
-      type.methods.forEach(addMember);
-      type.accessors.forEach(addMember);
+    var accessors = type.accessors;
+    for (var i = 0; i < accessors.length; i++) {
+      var accessor = accessors[i];
+      if (!accessor.isStatic) {
+        var name = new Name(libraryUri, accessor.name);
+        declared[name] = accessor.type;
+      }
     }
 
-    if (type.superclass != null) {
-      var superImplemented = _getImplemented(type.superclass);
-      implemented.addAll(superImplemented);
-    }
-
-    // Mixins override the nominal superclass and previous mixins.
-    for (var mixin in type.mixins) {
-      var superImplemented = _getImplementedInMixin(mixin);
-      implemented.addAll(superImplemented);
-    }
-
-    // This type overrides everything from its actual superclass.
-    addMembers(type);
-
-    _implemented[type] = implemented;
-    return implemented;
+    return declared;
   }
 
-  /// TODO(scheglov) This repeats a lot of code from [_getImplemented].
-  Map<Name, FunctionType> _getImplementedInMixin(InterfaceType type) {
-    var implemented = _mixinMembers[type];
-    if (implemented != null) {
-      return implemented;
-    }
-
-    _mixinMembers[type] = const {};
-    implemented = <Name, FunctionType>{};
-
-    var libraryUri = type.element.librarySource.uri;
-
-    void addMember(ExecutableElement member) {
-      if (!member.isAbstract && !member.isStatic) {
-        var name = new Name(libraryUri, member.name);
-        implemented[name] = member.type;
-      }
-    }
-
-    void addMembers(InterfaceType type) {
-      type.methods.forEach(addMember);
-      type.accessors.forEach(addMember);
-    }
-
-    for (var mixin in type.mixins) {
-      var superImplemented = _getImplementedInMixin(mixin);
-      implemented.addAll(superImplemented);
-    }
-
-    // This type overrides everything from its actual superclass.
-    addMembers(type);
-
-    _mixinMembers[type] = implemented;
-    return implemented;
+  static bool _isDeclaredInObject(ExecutableElement element) {
+    var enclosing = element.enclosingElement;
+    return enclosing is ClassElement &&
+        enclosing.supertype == null &&
+        !enclosing.isMixin;
   }
 }
 
 /// The instance interface of an [InterfaceType].
 class Interface {
+  static final _empty = Interface._(
+    const {},
+    const {},
+    const {},
+    Set<Name>(),
+    const {},
+    const {},
+    const [{}],
+    const [],
+  );
+
   /// The map of names to their signature in the interface.
   final Map<Name, FunctionType> map;
+
+  /// The map of declared names to their signatures.
+  final Map<Name, FunctionType> declared;
+
+  /// The map of names to their concrete implementations.
+  final Map<Name, FunctionType> implemented;
+
+  /// The set of names that are `noSuchMethod` forwarders in [implemented].
+  final Set<Name> noSuchMethodForwarders;
+
+  /// The map of names to their concrete implementations that can be mixed
+  /// when this type is used as a mixin.
+  final Map<Name, FunctionType> implementedForMixing;
 
   /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
@@ -403,8 +438,12 @@ class Interface {
   /// members of the class.
   final List<Conflict> conflicts;
 
-  const Interface._(
+  Interface._(
     this.map,
+    this.declared,
+    this.implemented,
+    this.noSuchMethodForwarders,
+    this.implementedForMixing,
     this._overridden,
     this._superImplemented,
     this.conflicts,

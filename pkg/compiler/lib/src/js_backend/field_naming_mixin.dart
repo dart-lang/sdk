@@ -33,13 +33,11 @@ abstract class _MinifiedFieldNamer implements Namer {
   }
 }
 
-/**
- * Encapsulates the global state of field naming.
- *
- * The field naming registry allocates names to be used along a path in the
- * inheritance hierarchy of fields, starting with the object class. The actual
- * hierarchy is encoded using instances of [_FieldNamingScope].
- */
+/// Encapsulates the global state of field naming.
+///
+/// The field naming registry allocates names to be used along a path in the
+/// inheritance hierarchy of fields, starting with the object class. The actual
+/// hierarchy is encoded using instances of [_FieldNamingScope].
 class _FieldNamingRegistry {
   final Namer namer;
 
@@ -82,18 +80,16 @@ class _FieldNamingRegistry {
   }
 }
 
-/**
- * A [_FieldNamingScope] encodes a node in the inheritance tree of the current
- * class hierarchy. The root node typically is the node corresponding to the
- * `Object` class. It is used to assign a unique name to each field of a class.
- * Unique here means unique wrt. all fields along the path back to the root.
- * This is achieved at construction time via the [_fieldNameCounter] field that
- * counts the number of fields on the path to the root node that have been
- * encountered so far.
- *
- * Obviously, this only works if no fields are added to a parent node after its
- * children have added their first field.
- */
+/// A [_FieldNamingScope] encodes a node in the inheritance tree of the current
+/// class hierarchy. The root node typically is the node corresponding to the
+/// `Object` class. It is used to assign a unique name to each field of a class.
+/// Unique here means unique wrt. all fields along the path back to the root.
+/// This is achieved at construction time via the [_fieldNameCounter] field that
+/// counts the number of fields on the path to the root node that have been
+/// encountered so far.
+///
+/// Obviously, this only works if no fields are added to a parent node after its
+/// children have added their first field.
 class _FieldNamingScope {
   final _FieldNamingScope superScope;
   final Entity container;
@@ -160,9 +156,7 @@ class _FieldNamingScope {
     _fieldNameCounter = superScope.inheritanceBasedFieldNameCounter;
   }
 
-  /**
-   * Checks whether [name] is already used in the current scope chain.
-   */
+  /// Checks whether [name] is already used in the current scope chain.
   _isNameUnused(jsAst.Name name) {
     return !names.values.contains(name) &&
         ((superScope == null) || superScope._isNameUnused(name));
@@ -187,15 +181,13 @@ class _FieldNamingScope {
   bool containsField(Entity field) => names.containsKey(field);
 }
 
-/**
- * Field names for mixins have two constraints: They need to be unique in the
- * hierarchy of each application of a mixin and they need to be the same for
- * all applications of a mixin. To achieve this, we use global naming for
- * mixins from the same name pool as fields and add a `$` at the end to ensure
- * they do not collide with normal field names. The `$` sign is typically used
- * as a separator between method names and argument counts and does not appear
- * in generated names themselves.
- */
+/// Field names for mixins have two constraints: They need to be unique in the
+/// hierarchy of each application of a mixin and they need to be the same for
+/// all applications of a mixin. To achieve this, we use global naming for
+/// mixins from the same name pool as fields and add a `$` at the end to ensure
+/// they do not collide with normal field names. The `$` sign is typically used
+/// as a separator between method names and argument counts and does not appear
+/// in generated names themselves.
 class _MixinFieldNamingScope extends _FieldNamingScope {
   int get _localFieldNameCounter => registry.globalCount;
   void set _localFieldNameCounter(int val) {
@@ -218,12 +210,10 @@ class _MixinFieldNamingScope extends _FieldNamingScope {
   }
 }
 
-/**
- * [BoxFieldElement] fields work differently in that they do not belong to an
- * actual class but an anonymous box associated to a [Local]. As there is no
- * inheritance chain, we do not need to compute fields a priori but can assign
- * names on the fly.
- */
+/// [BoxFieldElement] fields work differently in that they do not belong to an
+/// actual class but an anonymous box associated to a [Local]. As there is no
+/// inheritance chain, we do not need to compute fields a priori but can assign
+/// names on the fly.
 class _BoxFieldNamingScope extends _FieldNamingScope {
   _BoxFieldNamingScope(Local box, _FieldNamingRegistry registry)
       : super.rootScope(box, registry);

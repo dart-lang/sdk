@@ -9,7 +9,8 @@ import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart' show Uris;
 import '../common/tasks.dart' show CompilerTask;
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../common_elements.dart'
+    show CommonElements, ElementEnvironment, JElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
@@ -18,6 +19,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import '../frontend_strategy.dart';
+import '../inferrer/types.dart';
 import '../io/source_information.dart'
     show SourceInformation, SourceInformationStrategy;
 import '../js/js.dart' as jsAst;
@@ -26,14 +28,14 @@ import '../js_model/elements.dart';
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js_emitter/sorter.dart' show Sorter;
-import '../library_loader.dart' show LoadedLibraries;
-import '../native/native.dart' as native;
+import '../kernel/dart2js_target.dart';
+import '../native/enqueue.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
-import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/class_hierarchy.dart'
     show ClassHierarchyBuilder, ClassQueries;
+import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show StaticUse;
 import '../universe/world_builder.dart';
@@ -53,7 +55,6 @@ import 'enqueuer.dart';
 import 'impact_transformer.dart';
 import 'inferred_data.dart';
 import 'interceptor_data.dart';
-import 'js_interop_analysis.dart' show JsInteropAnalysis;
 import 'namer.dart';
 import 'native_data.dart';
 import 'no_such_method_registry.dart';
@@ -312,19 +313,9 @@ class JavaScriptBackend {
 
   CodeEmitterTask emitter;
 
-  /**
-   * The generated code as a js AST for compiled methods.
-   */
+  /// The generated code as a js AST for compiled methods.
   final Map<MemberEntity, jsAst.Expression> generatedCode =
       <MemberEntity, jsAst.Expression>{};
-
-  /// If [true], the compiler will emit code that logs whenever a method is
-  /// called. When TRACE_METHOD is 'console' this will be logged
-  /// directly in the JavaScript console. When TRACE_METHOD is 'post' the
-  /// information will be sent to a server via a POST request.
-  static const String TRACE_METHOD = const String.fromEnvironment('traceCalls');
-  static const bool TRACE_CALLS =
-      TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
 
   Namer _namer;
 
@@ -334,9 +325,7 @@ class JavaScriptBackend {
     return _namer;
   }
 
-  /**
-   * Set of classes whose `operator ==` methods handle `null` themselves.
-   */
+  /// Set of classes whose `operator ==` methods handle `null` themselves.
   final Set<ClassEntity> specialOperatorEqClasses = new Set<ClassEntity>();
 
   List<CompilerTask> get tasks {
@@ -364,9 +353,6 @@ class JavaScriptBackend {
 
   KAllocatorAnalysis _allocatorResolutionAnalysis;
 
-  /// Codegen support for typed JavaScript interop.
-  JsInteropAnalysis jsInteropAnalysis;
-
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
@@ -391,14 +377,13 @@ class JavaScriptBackend {
 
   final SuperMemberData superMemberData = new SuperMemberData();
 
-  native.NativeResolutionEnqueuer _nativeResolutionEnqueuer;
-  native.NativeCodegenEnqueuer _nativeCodegenEnqueuer;
+  NativeResolutionEnqueuer _nativeResolutionEnqueuer;
+  NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
   Tracer tracer;
 
   JavaScriptBackend(this.compiler,
       {bool generateSourceMap: true,
-      bool useStartupEmitter: false,
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false})
       : this.sourceInformationStrategy =
@@ -408,10 +393,7 @@ class JavaScriptBackend {
     _backendUsageBuilder =
         new BackendUsageBuilderImpl(compiler.frontendStrategy);
     _checkedModeHelpers = new CheckedModeHelpers();
-    emitter =
-        new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
-    jsInteropAnalysis = new JsInteropAnalysis(this);
-
+    emitter = new CodeEmitterTask(compiler, generateSourceMap);
     noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
     functionCompiler = new SsaFunctionCompiler(
@@ -552,9 +534,8 @@ class JavaScriptBackend {
     NativeBasicData nativeBasicData = compiler.frontendStrategy.nativeBasicData;
     RuntimeTypesNeedBuilder rtiNeedBuilder =
         compiler.frontendStrategy.createRuntimeTypesNeedBuilder();
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, commonElements);
-    _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(
+    BackendImpacts impacts = new BackendImpacts(commonElements);
+    _nativeResolutionEnqueuer = new NativeResolutionEnqueuer(
         compiler.options,
         elementEnvironment,
         commonElements,
@@ -586,6 +567,8 @@ class JavaScriptBackend {
     InterceptorDataBuilder interceptorDataBuilder =
         new InterceptorDataBuilderImpl(
             nativeBasicData, elementEnvironment, commonElements);
+    AnnotationsDataBuilder annotationsDataBuilder =
+        new AnnotationsDataBuilder();
     return new ResolutionEnqueuer(
         task,
         compiler.options,
@@ -612,12 +595,14 @@ class JavaScriptBackend {
             _allocatorResolutionAnalysis,
             _nativeResolutionEnqueuer,
             noSuchMethodRegistry,
+            annotationsDataBuilder,
             const StrongModeWorldStrategy(),
             classHierarchyBuilder,
             classQueries),
         compiler.frontendStrategy.createResolutionWorkItemBuilder(
             nativeBasicData,
             _nativeDataBuilder,
+            annotationsDataBuilder,
             impactTransformer,
             compiler.impactCache));
   }
@@ -630,14 +615,13 @@ class JavaScriptBackend {
       GlobalTypeInferenceResults globalInferenceResults) {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, commonElements);
+    BackendImpacts impacts = new BackendImpacts(commonElements);
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
         constantSystem,
         commonElements,
         elementEnvironment,
         closedWorld.nativeData);
-    _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
+    _nativeCodegenEnqueuer = new NativeCodegenEnqueuer(
         compiler.options,
         elementEnvironment,
         commonElements,
@@ -707,16 +691,14 @@ class JavaScriptBackend {
     return worldImpact;
   }
 
-  native.NativeResolutionEnqueuer get nativeResolutionEnqueuerForTesting =>
+  NativeResolutionEnqueuer get nativeResolutionEnqueuerForTesting =>
       _nativeResolutionEnqueuer;
 
-  native.NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
+  NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
-  /**
-   * Unit test hook that returns code of an element as a String.
-   *
-   * Invariant: [element] must be a declaration element.
-   */
+  /// Unit test hook that returns code of an element as a String.
+  ///
+  /// Invariant: [element] must be a declaration element.
   String getGeneratedCode(MemberEntity element) {
     return jsAst.prettyPrint(generatedCode[element],
         enableMinification: compiler.options.enableMinification);
@@ -729,10 +711,8 @@ class JavaScriptBackend {
     return programSize;
   }
 
-  /**
-   * Returns [:true:] if the checking of [type] is performed directly on the
-   * object and not on an interceptor.
-   */
+  /// Returns [:true:] if the checking of [type] is performed directly on the
+  /// object and not on an interceptor.
   bool hasDirectCheckFor(CommonElements commonElements, DartType type) {
     if (!type.isInterfaceType) return false;
     InterfaceType interfaceType = type;
@@ -754,25 +734,13 @@ class JavaScriptBackend {
   void setAnnotations(LibraryEntity library) {
     AnnotationProcessor processor =
         compiler.frontendStrategy.annotationProcesser;
-    if (native.maybeEnableNative(library.canonicalUri)) {
+    if (maybeEnableNative(library.canonicalUri)) {
       processor.extractNativeAnnotations(library);
     }
     processor.extractJsInteropAnnotations(library);
     Uri uri = library.canonicalUri;
     if (uri == Uris.dart_html) {
       htmlLibraryIsLoaded = true;
-    }
-  }
-
-  /// This method is called when all new libraries loaded through
-  /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
-  /// have been computed.
-  void onLibrariesLoaded(
-      CommonElements commonElements, LoadedLibraries loadedLibraries) {
-    if (loadedLibraries.containsLibrary(Uris.dart_core)) {
-      assert(loadedLibraries.containsLibrary(Uris.dart_core));
-      assert(loadedLibraries.containsLibrary(Uris.dart__interceptors));
-      assert(loadedLibraries.containsLibrary(Uris.dart__js_helper));
     }
   }
 
@@ -794,8 +762,7 @@ class JavaScriptBackend {
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, closedWorld.commonElements);
+    BackendImpacts impacts = new BackendImpacts(closedWorld.commonElements);
     if (compiler.options.disableRtiOptimization) {
       _rtiSubstitutions = new TrivialRuntimeTypesSubstitutions(closedWorld);
       _rtiChecksBuilder =
@@ -833,7 +800,7 @@ class JavaScriptBackend {
 
   jsAst.Expression rewriteAsync(
       CommonElements commonElements,
-      ElementEnvironment elementEnvironment,
+      JElementEnvironment elementEnvironment,
       CodegenRegistry registry,
       FunctionEntity element,
       jsAst.Expression code,
@@ -909,20 +876,14 @@ class JavaScriptBackend {
 
   AsyncRewriter _makeAsyncRewriter(
       CommonElements commonElements,
-      ElementEnvironment elementEnvironment,
+      JElementEnvironment elementEnvironment,
       CodegenRegistry registry,
       FunctionEntity element,
       jsAst.Expression code,
       DartType elementType,
       jsAst.Name name) {
-    bool startAsyncSynchronously = compiler.options.startAsyncSynchronously;
-
-    var startFunction = startAsyncSynchronously
-        ? commonElements.asyncHelperStartSync
-        : commonElements.asyncHelperStart;
-    var completerFactory = startAsyncSynchronously
-        ? commonElements.asyncAwaitCompleterFactory
-        : commonElements.syncCompleterFactory;
+    var startFunction = commonElements.asyncHelperStartSync;
+    var completerFactory = commonElements.asyncAwaitCompleterFactory;
 
     List<jsAst.Expression> itemTypeExpression = _fetchItemType(elementType);
 

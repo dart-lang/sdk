@@ -36,7 +36,6 @@ bool InitOnce(char** error) {
                                   err.message());
     return false;
   }
-  bin::Thread::InitOnce();
   bin::TimerUtils::InitOnce();
   bin::EventHandler::Start();
   return true;

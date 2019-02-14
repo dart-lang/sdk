@@ -649,6 +649,15 @@ class _WebSocketPerMessageDeflate {
       result = result.sublist(0, result.length - 4);
     }
 
+    // RFC 7692 7.2.3.6. "Generating an Empty Fragment" says that if the
+    // compression library doesn't generate any data when the bufer is empty,
+    // then an empty uncompressed deflate block is used for this purpose. The
+    // 0x00 block has the BFINAL header bit set to 0 and the BTYPE header set to
+    // 00 along with 5 bits of padding. This block decodes to zero bytes.
+    if (result.length == 0) {
+      return [0x00];
+    }
+
     return result;
   }
 }
@@ -732,12 +741,13 @@ class _WebSocketOutgoingTransformer
 
   void addFrame(int opcode, List<int> data) {
     createFrame(
-        opcode,
-        data,
-        webSocket._serverSide,
-        _deflateHelper != null &&
-            (opcode == _WebSocketOpcode.TEXT ||
-                opcode == _WebSocketOpcode.BINARY)).forEach((e) {
+            opcode,
+            data,
+            webSocket._serverSide,
+            _deflateHelper != null &&
+                (opcode == _WebSocketOpcode.TEXT ||
+                    opcode == _WebSocketOpcode.BINARY))
+        .forEach((e) {
       _eventSink.add(e);
     });
   }
@@ -1204,9 +1214,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   }
 
   void addUtf8Text(List<int> bytes) {
-    if (bytes is! List<int>) {
-      throw new ArgumentError.value(bytes, "bytes", "Is not a list of bytes");
-    }
+    ArgumentError.checkNotNull(bytes, "bytes");
     _sink.add(new _EncodedString(bytes));
   }
 

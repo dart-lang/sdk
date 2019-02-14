@@ -13,7 +13,7 @@ import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
 import '../../common_elements.dart' show JCommonElements, JElementEnvironment;
 import '../../deferred_load.dart'
-    show DeferredLoadTask, OutputUnit, OutputUnitData;
+    show deferredPartFileName, OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
 import '../../elements/types.dart';
 import '../../io/source_information.dart';
@@ -26,7 +26,6 @@ import '../../js_backend/constant_handler_javascript.dart'
 import '../../js_backend/custom_elements_analysis.dart';
 import '../../js_backend/inferred_data.dart';
 import '../../js_backend/interceptor_data.dart';
-import '../../js_backend/js_interop_analysis.dart';
 import '../../js_backend/namer.dart' show Namer, StringBackedName;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart'
@@ -34,9 +33,9 @@ import '../../js_backend/runtime_types.dart'
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
+import '../../universe/codegen_world_builder.dart';
 import '../../universe/selector.dart' show Selector;
-import '../../universe/world_builder.dart'
-    show CodegenWorldBuilder, SelectorConstraints;
+import '../../universe/world_builder.dart' show SelectorConstraints;
 import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart'
     show
@@ -63,7 +62,6 @@ class ProgramBuilder {
   final DiagnosticReporter _reporter;
   final JElementEnvironment _elementEnvironment;
   final JCommonElements _commonElements;
-  final DeferredLoadTask _deferredLoadTask;
   final OutputUnitData _outputUnitData;
   final CodegenWorldBuilder _worldBuilder;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
@@ -75,7 +73,6 @@ class ProgramBuilder {
   final SuperMemberData _superMemberData;
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
-  final JsInteropAnalysis _jsInteropAnalysis;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
   final Map<MemberEntity, js.Expression> _generatedCode;
@@ -109,7 +106,6 @@ class ProgramBuilder {
       this._reporter,
       this._elementEnvironment,
       this._commonElements,
-      this._deferredLoadTask,
       this._outputUnitData,
       this._worldBuilder,
       this._nativeCodegenEnqueuer,
@@ -121,7 +117,6 @@ class ProgramBuilder {
       this._superMemberData,
       this._rtiChecks,
       this._rtiEncoder,
-      this._jsInteropAnalysis,
       this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
       this._generatedCode,
@@ -338,7 +333,7 @@ class ProgramBuilder {
   /// Builds a map from loadId to outputs-to-load.
   Map<String, List<Fragment>> _buildLoadMap() {
     Map<String, List<Fragment>> loadMap = <String, List<Fragment>>{};
-    _deferredLoadTask.hunksToLoad
+    _closedWorld.outputUnitData.hunksToLoad
         .forEach((String loadId, List<OutputUnit> outputUnits) {
       loadMap[loadId] = outputUnits
           .map((OutputUnit unit) => _outputs[unit])
@@ -383,8 +378,7 @@ class ProgramBuilder {
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {
     DeferredFragment result = new DeferredFragment(
         librariesMap.outputUnit,
-        _deferredLoadTask.deferredPartFileName(librariesMap.name,
-            addExtension: false),
+        deferredPartFileName(_options, librariesMap.name, addExtension: false),
         librariesMap.name,
         _buildLibraries(librariesMap),
         _buildStaticNonFinalFields(librariesMap),
@@ -427,8 +421,8 @@ class ProgramBuilder {
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(
-        element, name, _registerStaticStateHolder(), code, isFinal, isLazy);
+    return new StaticField(element, name, null, _registerStaticStateHolder(),
+        code, isFinal, isLazy);
   }
 
   List<StaticField> _buildStaticLazilyInitializedFields(
@@ -453,14 +447,15 @@ class ProgramBuilder {
     if (code == null) return null;
 
     js.Name name = _namer.globalPropertyNameForMember(element);
+    js.Name getterName = _namer.lazyInitializerName(element);
     bool isFinal = !element.isAssignable;
     bool isLazy = true;
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(
-        element, name, _registerStaticStateHolder(), code, isFinal, isLazy);
+    return new StaticField(element, name, getterName,
+        _registerStaticStateHolder(), code, isFinal, isLazy);
   }
 
   List<Library> _buildLibraries(LibrariesMap librariesMap) {
@@ -646,8 +641,7 @@ class ProgramBuilder {
         _task,
         _namer,
         _rtiChecks,
-        _rtiEncoder,
-        _jsInteropAnalysis);
+        _rtiEncoder);
 
     void visitInstanceMember(MemberEntity member) {
       if (!member.isAbstract && !member.isField) {
@@ -890,7 +884,7 @@ class ProgramBuilder {
         isClosureCallMethod = true;
       } else {
         // Careful with operators.
-        canTearOff = _worldBuilder.hasInvokedGetter(element, _closedWorld);
+        canTearOff = _worldBuilder.hasInvokedGetter(element);
         assert(canTearOff ||
             !_worldBuilder.methodsNeedingSuperGetter.contains(element));
         tearOffName = _namer.getterForElement(element);
@@ -919,17 +913,14 @@ class ProgramBuilder {
       functionType = _generateFunctionType(memberType, outputUnit);
     }
 
-    int requiredParameterCount;
+    FunctionEntity method = element;
+    ParameterStructure parameterStructure = method.parameterStructure;
+    int requiredParameterCount = parameterStructure.requiredParameters;
     var /* List | Map */ optionalParameterDefaultValues;
     int applyIndex = 0;
     if (canBeApplied) {
-      // TODO(redemption): Handle function entities.
-      FunctionEntity method = element;
-      ParameterStructure parameterStructure = method.parameterStructure;
-      requiredParameterCount = parameterStructure.requiredParameters;
       optionalParameterDefaultValues = _computeParameterDefaultValues(method);
-
-      if (element.parameterStructure.typeParameters > 0) {
+      if (parameterStructure.typeParameters > 0) {
         applyIndex = 1;
       }
     }
@@ -1076,15 +1067,13 @@ class ProgramBuilder {
         }
       }
 
-      // TODO(sra): Generalize for constants other than null.
-      bool nullInitializerInAllocator = false;
+      ConstantValue initializerInAllocator = null;
       if (_allocatorAnalysis.isInitializedInAllocator(field)) {
-        assert(_allocatorAnalysis.initializerValue(field).isNull);
-        nullInitializerInAllocator = true;
+        initializerInAllocator = _allocatorAnalysis.initializerValue(field);
       }
 
       fields.add(new Field(field, name, accessorName, getterFlags, setterFlags,
-          needsCheckedSetter, nullInitializerInAllocator));
+          needsCheckedSetter, initializerInAllocator));
     }
 
     FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,
@@ -1148,14 +1137,12 @@ class ProgramBuilder {
       functionType = _generateFunctionType(type, outputUnit);
     }
 
-    int requiredParameterCount;
+    FunctionEntity method = element;
+    ParameterStructure parameterStructure = method.parameterStructure;
+    int requiredParameterCount = parameterStructure.requiredParameters;
     var /* List | Map */ optionalParameterDefaultValues;
     int applyIndex = 0;
     if (canBeApplied) {
-      // TODO(redemption): Support entities;
-      FunctionEntity method = element;
-      ParameterStructure parameterStructure = method.parameterStructure;
-      requiredParameterCount = parameterStructure.requiredParameters;
       optionalParameterDefaultValues = _computeParameterDefaultValues(method);
       if (parameterStructure.typeParameters > 0) {
         applyIndex = 1;

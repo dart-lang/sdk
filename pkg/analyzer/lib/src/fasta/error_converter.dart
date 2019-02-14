@@ -1,10 +1,12 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token;
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:front_end/src/fasta/messages.dart' show Code, Message;
 
 /// An error reporter that knows how to convert a Fasta error into an analyzer
@@ -44,10 +46,6 @@ class FastaErrorReporter {
             offset,
             length,
             [lexeme()]);
-        return;
-      case "CATCH_SYNTAX":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CATCH_SYNTAX, offset, length);
         return;
       case "CONCRETE_CLASS_WITH_ABSTRACT_MEMBER":
         errorReporter?.reportErrorForOffset(
@@ -99,19 +97,11 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_TYPE_NAME, offset, length);
         return;
-      case "EXTERNAL_CONSTRUCTOR_WITH_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, offset, length);
-        return;
       case "FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
             offset,
             length);
-        return;
-      case "FINAL_AND_VAR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.FINAL_AND_VAR, offset, length);
         return;
       case "FINAL_NOT_INITIALIZED":
         String name = arguments['name'];
@@ -137,10 +127,6 @@ class FastaErrorReporter {
       case "ILLEGAL_CHARACTER":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
-        return;
-      case "INITIALIZED_VARIABLE_IN_FOR_EACH":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, offset, length);
         return;
       case "INVALID_ASSIGNMENT":
         var type1 = arguments['type'];
@@ -214,10 +200,6 @@ class FastaErrorReporter {
       case "INVALID_SUPER_INVOCATION":
         errorReporter?.reportErrorForOffset(
             StrongModeCode.INVALID_SUPER_INVOCATION, offset, length);
-        return;
-      case "MISSING_CATCH_OR_FINALLY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_CATCH_OR_FINALLY, offset, length);
         return;
       case "MISSING_CLASS_BODY":
         errorReporter?.reportErrorForOffset(
@@ -296,10 +278,6 @@ class FastaErrorReporter {
             // involved in this error... either async* or sync*
             ['async*']);
         return;
-      case "STACK_OVERFLOW":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.STACK_OVERFLOW, offset, length);
-        return;
       case "SUPER_IN_REDIRECTING_CONSTRUCTOR":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
@@ -341,10 +319,6 @@ class FastaErrorReporter {
       case "UNTERMINATED_STRING_LITERAL":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.UNTERMINATED_STRING_LITERAL, offset, length);
-        return;
-      case "VAR_AND_TYPE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.VAR_AND_TYPE, offset, length);
         return;
       case "WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER":
         errorReporter?.reportErrorForOffset(

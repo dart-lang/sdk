@@ -37,10 +37,9 @@ class DebugLogger {
   /**
    * If [path] was null, the DebugLogger will write messages to stdout.
    */
-  static void init(Path path, {bool append: false}) {
+  static void init(Path path) {
     if (path != null) {
-      var mode = append ? FileMode.append : FileMode.write;
-      _sink = new File(path.toNativePath()).openWrite(mode: mode);
+      _sink = new File(path.toNativePath()).openWrite(mode: FileMode.append);
     }
   }
 
@@ -462,28 +461,17 @@ class TestUtils {
 
   static final debugLogFilePath = new Path(".debug.log");
 
-  /// If a flaky test failed, information about it (test name, stdin, stdout)
-  /// is written to this file.
-  ///
-  /// This is useful for debugging flaky tests. When running on a buildbot, the
-  /// file can be made visible in the waterfall UI.
-  static const flakyFileName = ".flaky.log";
-
-  /// If test.py was invoked with '--write-test-outcome-log it will write
-  /// test outcomes to this file.
-  static const testOutcomeFileName = ".test-outcome.log";
-
-  /// If test.py was invoked with '--write-result-log it will write
-  /// test outcomes to this file in the '--output-directory'.
-  static const resultLogFileName = "result.log";
-
-  /// If test.py was invoked with '--write-results it will write
+  /// If test.py was invoked with '--write-results' it will write
   /// test outcomes to this file in the '--output-directory'.
   static const resultsFileName = "results.json";
 
-  /// If test.py was invoked with '--write-results it will write
+  /// If test.py was invoked with '--write-results' it will write
   /// data about this run of test.py to this file in the '--output-directory'.
   static const resultsInstanceFileName = "run.json";
+
+  /// If test.py was invoked with '--write-results' and '--write-logs", save
+  /// the stdout and stderr to this file in the '--output-directory'.
+  static const logsFileName = "logs.json";
 
   static void ensureExists(String filename, TestConfiguration configuration) {
     if (!configuration.listTests && !existsCache.doesFileExist(filename)) {

@@ -7,7 +7,10 @@ import("configs.gni")
 import("runtime_args.gni")
 
 config("dart_public_config") {
-  include_dirs = [ "." ]
+  include_dirs = [
+    ".",
+    "include",
+  ]
 }
 
 # Adds PRODUCT define if Flutter has specified "release" for dart_runtime_mode
@@ -133,7 +136,7 @@ config("dart_config") {
     defines += [ "NDEBUG" ]
   }
 
-  include_dirs = []
+  include_dirs = [ "include" ]
   if (dart_use_tcmalloc) {
     defines += [ "DART_USE_TCMALLOC" ]
     include_dirs += [ "../third_party/tcmalloc/gperftools/src" ]
@@ -187,6 +190,11 @@ config("dart_config") {
     }
     if (defined(is_tsan) && is_tsan) {
       ldflags += [ "-fsanitize=thread" ]
+    }
+
+    if (is_fuchsia) {
+      # safe-stack does not work with the interpreter.
+      cflags += [ "-fno-sanitize=safe-stack" ]
     }
   }
 }

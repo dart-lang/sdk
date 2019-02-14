@@ -21,7 +21,7 @@ class Class1 {
       {/*[exact=JSUInt31]*/ a, /*Value([exact=JSString], value: "")*/ b});
 }
 
-/*strong.element: anonymousClass:[null|subclass=JavaScriptObject]*/
+/*element: anonymousClass:[null|subclass=JavaScriptObject]*/
 anonymousClass() => new Class1(a: 1, b: '');
 
 @JS()

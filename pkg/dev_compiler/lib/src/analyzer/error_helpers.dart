@@ -2,38 +2,87 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart'
-    show
-        AnalysisError,
-        ErrorSeverity,
-        ErrorType,
-        StrongModeCode,
-        StaticTypeWarningCode;
+import 'dart:collection';
+
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptions;
 import 'package:path/path.dart' as path;
 
-/// Sorts and formats errors, returning the error messages.
-List<String> formatErrors(AnalysisContext context, List<AnalysisError> errors) {
-  sortErrors(context, errors);
-  var result = <String>[];
-  for (var e in errors) {
-    var m = formatError(context, e);
-    if (m != null) result.add(m);
-  }
-  return result;
-}
+class ErrorCollector {
+  final bool _replCompile;
+  final AnalysisOptions _options;
+  SplayTreeMap<AnalysisError, String> _errors;
 
-// TODO(jmesserly): this code was taken from analyzer_cli.
-// It really should be in some common place so we can share it.
-// TODO(jmesserly): this shouldn't depend on `context` but we need it to compute
-// `errorSeverity` due to some APIs that need fixing.
-void sortErrors(AnalysisContext context, List<AnalysisError> errors) {
-  errors.sort((AnalysisError error1, AnalysisError error2) {
+  ErrorCollector(this._options, this._replCompile) {
+    _errors = SplayTreeMap<AnalysisError, String>(_compareErrors);
+  }
+
+  bool get hasFatalErrors => _errors.keys.any(_isFatalError);
+
+  Iterable<String> get formattedErrors => _errors.values;
+
+  void add(LineInfo lineInfo, AnalysisError error) {
+    if (_shouldIgnoreError(error)) return;
+
+    // Skip hints, some like TODOs are not useful.
+    if (_errorSeverity(error).ordinal <= ErrorSeverity.INFO.ordinal) return;
+
+    _errors[error] = _formatError(lineInfo, error);
+  }
+
+  void addAll(LineInfo lineInfo, Iterable<AnalysisError> errors) {
+    for (var e in errors) add(lineInfo, e);
+  }
+
+  ErrorSeverity _errorSeverity(AnalysisError error) {
+    var errorCode = error.errorCode;
+    if (errorCode == StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK ||
+        errorCode == StrongModeCode.TOP_LEVEL_INSTANCE_GETTER ||
+        errorCode == StrongModeCode.TOP_LEVEL_INSTANCE_METHOD) {
+      // These are normally hints, but they should be errors when running DDC, so
+      // that users won't be surprised by behavioral differences between DDC and
+      // dart2js.
+      return ErrorSeverity.ERROR;
+    }
+
+    // TODO(jmesserly): remove support for customizing error levels via
+    // analysis_options from DDC. (it won't work with --kernel).
+    return ErrorProcessor.getProcessor(_options, error)?.severity ??
+        errorCode.errorSeverity;
+  }
+
+  String _formatError(LineInfo lineInfo, AnalysisError error) {
+    var location = lineInfo.getLocation(error.offset);
+
+    // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
+    return (StringBuffer()
+          ..write('[${_errorSeverity(error).displayName}] ')
+          ..write(error.message)
+          ..write(' (${path.prettyUri(error.source.uri)}')
+          ..write(
+              ', line ${location.lineNumber}, col ${location.columnNumber})'))
+        .toString();
+  }
+
+  bool _shouldIgnoreError(AnalysisError error) {
+    var uri = error.source.uri;
+    if (uri.scheme != 'dart') return false;
+    var sdkLib = uri.pathSegments[0];
+    if (sdkLib == 'html' || sdkLib == 'svg' || sdkLib == '_interceptors') {
+      var c = error.errorCode;
+      return c == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
+          c == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
+          c == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS;
+    }
+    return false;
+  }
+
+  int _compareErrors(AnalysisError error1, AnalysisError error2) {
     // severity
-    var severity1 = errorSeverity(context, error1);
-    var severity2 = errorSeverity(context, error2);
-    int compare = severity2.compareTo(severity1);
+    int compare = _errorSeverity(error2).compareTo(_errorSeverity(error1));
     if (compare != 0) return compare;
 
     // path
@@ -47,64 +96,22 @@ void sortErrors(AnalysisContext context, List<AnalysisError> errors) {
 
     // compare message, in worst case.
     return error1.message.compareTo(error2.message);
-  });
-}
-
-// TODO(jmesserly): this was from analyzer_cli, we should factor it differently.
-String formatError(AnalysisContext context, AnalysisError error) {
-  var severity = errorSeverity(context, error);
-  // Skip hints, some like TODOs are not useful.
-  if (severity.ordinal <= ErrorSeverity.INFO.ordinal) return null;
-
-  var lineInfo = context.computeLineInfo(error.source);
-  var location = lineInfo.getLocation(error.offset);
-
-  // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
-  return (StringBuffer()
-        ..write('[${severity.displayName}] ')
-        ..write(error.message)
-        ..write(' (${path.prettyUri(error.source.uri)}')
-        ..write(', line ${location.lineNumber}, col ${location.columnNumber})'))
-      .toString();
-}
-
-ErrorSeverity errorSeverity(AnalysisContext context, AnalysisError error) {
-  var errorCode = error.errorCode;
-  if (errorCode == StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK ||
-      errorCode == StrongModeCode.TOP_LEVEL_INSTANCE_GETTER ||
-      errorCode == StrongModeCode.TOP_LEVEL_INSTANCE_METHOD) {
-    // These are normally hints, but they should be errors when running DDC, so
-    // that users won't be surprised by behavioral differences between DDC and
-    // dart2js.
-    return ErrorSeverity.ERROR;
   }
 
-  // TODO(jmesserly): this Analyzer API totally bonkers, but it's what
-  // analyzer_cli and server use.
-  //
-  // Among the issues with ErrorProcessor.getProcessor:
-  // * it needs to be called per-error, so it's a performance trap.
-  // * it can return null
-  // * using AnalysisError directly is now suspect, it's a correctness trap
-  // * it requires an AnalysisContext
-  return ErrorProcessor.getProcessor(context.analysisOptions, error)
-          ?.severity ??
-      errorCode.errorSeverity;
-}
+  bool _isFatalError(AnalysisError e) {
+    if (_errorSeverity(e) != ErrorSeverity.ERROR) return false;
 
-bool isFatalError(AnalysisContext context, AnalysisError e, bool replCompile) {
-  if (errorSeverity(context, e) != ErrorSeverity.ERROR) return false;
-
-  // These errors are not fatal in the REPL compile mode as we
-  // allow access to private members across library boundaries
-  // and those accesses will show up as undefined members unless
-  // additional analyzer changes are made to support them.
-  // TODO(jacobr): consider checking that the identifier name
-  // referenced by the error is private.
-  return !replCompile ||
-      (e.errorCode != StaticTypeWarningCode.UNDEFINED_GETTER &&
-          e.errorCode != StaticTypeWarningCode.UNDEFINED_SETTER &&
-          e.errorCode != StaticTypeWarningCode.UNDEFINED_METHOD);
+    // These errors are not fatal in the REPL compile mode as we
+    // allow access to private members across library boundaries
+    // and those accesses will show up as undefined members unless
+    // additional analyzer changes are made to support them.
+    // TODO(jacobr): consider checking that the identifier name
+    // referenced by the error is private.
+    return !_replCompile ||
+        (e.errorCode != StaticTypeWarningCode.UNDEFINED_GETTER &&
+            e.errorCode != StaticTypeWarningCode.UNDEFINED_SETTER &&
+            e.errorCode != StaticTypeWarningCode.UNDEFINED_METHOD);
+  }
 }
 
 const invalidImportDartMirrors = StrongModeCode(

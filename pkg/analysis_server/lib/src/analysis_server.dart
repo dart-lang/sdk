@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,11 +9,13 @@ import 'dart:io' as io;
 import 'dart:math' show max;
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart'
+    show PROTOCOL_VERSION;
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_logger.dart';
+import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
@@ -40,36 +42,29 @@ import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
-import 'package:analysis_server/src/services/correction/namespace.dart';
-import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
-import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
-    show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
-import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
-import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:telemetry/crash_reporting.dart';
@@ -78,185 +73,77 @@ import 'package:watcher/watcher.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
 
-/**
- * Instances of the class [AnalysisServer] implement a server that listens on a
- * [CommunicationChannel] for analysis requests and process them.
- */
-class AnalysisServer {
-  /**
-   * The version of the analysis server. The value should be replaced
-   * automatically during the build.
-   */
-  static final String VERSION = '1.21.1';
-
-  /**
-   * The options of this server instance.
-   */
-  AnalysisServerOptions options;
-
-  /**
-   * The channel from which requests are received and to which responses should
-   * be sent.
-   */
+/// Instances of the class [AnalysisServer] implement a server that listens on a
+/// [CommunicationChannel] for analysis requests and process them.
+class AnalysisServer extends AbstractAnalysisServer {
+  /// The channel from which requests are received and to which responses should
+  /// be sent.
   final ServerCommunicationChannel channel;
 
-  /**
-   * The object used to manage sending a subset of notifications to the client.
-   * The subset of notifications are those to which plugins may contribute.
-   * This field is `null` when the new plugin support is disabled.
-   */
-  final NotificationManager notificationManager;
+  /// The object used to manage sending a subset of notifications to the client.
+  /// The subset of notifications are those to which plugins may contribute.
+  /// This field is `null` when the new plugin support is disabled.
+  NotificationManager notificationManager;
 
-  /**
-   * The object used to manage the execution of plugins.
-   */
+  /// The object used to manage the execution of plugins.
   PluginManager pluginManager;
 
-  /**
-   * The [ResourceProvider] using which paths are converted into [Resource]s.
-   */
-  final ResourceProvider resourceProvider;
-
-  /**
-   * The [SearchEngine] for this server, may be `null` if indexing is disabled.
-   */
+  /// The [SearchEngine] for this server, may be `null` if indexing is disabled.
   SearchEngine searchEngine;
 
-  /**
-   * A list of the globs used to determine which files should be analyzed. The
-   * list is lazily created and should be accessed using [analyzedFilesGlobs].
-   */
-  List<Glob> _analyzedFilesGlobs = null;
-
-  /**
-   * The [ContextManager] that handles the mapping from analysis roots to
-   * context directories.
-   */
-  ContextManager contextManager;
-
-  /**
-   * A flag indicating whether the server is running.  When false, contexts
-   * will no longer be added to [contextWorkQueue], and [performOperation] will
-   * discard any tasks it finds on [contextWorkQueue].
-   */
-  bool running;
-
-  /**
-   * A flag indicating the value of the 'analyzing' parameter sent in the last
-   * status message to the client.
-   */
+  /// A flag indicating the value of the 'analyzing' parameter sent in the last
+  /// status message to the client.
   bool statusAnalyzing = false;
 
-  /**
-   * A list of the request handlers used to handle the requests sent to this
-   * server.
-   */
+  /// A list of the request handlers used to handle the requests sent to this
+  /// server.
   List<RequestHandler> handlers;
 
-  /**
-   * The object used to manage the SDK's known to this server.
-   */
+  /// The object used to manage the SDK's known to this server.
   final DartSdkManager sdkManager;
 
-  /**
-   * The instrumentation service that is to be used by this analysis server.
-   */
+  /// The instrumentation service that is to be used by this analysis server.
   final InstrumentationService instrumentationService;
 
-  /**
-   * A set of the [ServerService]s to send notifications for.
-   */
+  /// A set of the [ServerService]s to send notifications for.
   Set<ServerService> serverServices = new HashSet<ServerService>();
 
-  /**
-   * A set of the [GeneralAnalysisService]s to send notifications for.
-   */
+  /// A set of the [GeneralAnalysisService]s to send notifications for.
   Set<GeneralAnalysisService> generalAnalysisServices =
       new HashSet<GeneralAnalysisService>();
 
-  /**
-   * A table mapping [AnalysisService]s to the file paths for which these
-   * notifications should be sent.
-   */
+  /// A table mapping [AnalysisService]s to the file paths for which these
+  /// notifications should be sent.
   Map<AnalysisService, Set<String>> analysisServices =
       new HashMap<AnalysisService, Set<String>>();
 
-  /**
-   * A table mapping [FlutterService]s to the file paths for which these
-   * notifications should be sent.
-   */
+  /// A table mapping [FlutterService]s to the file paths for which these
+  /// notifications should be sent.
   Map<FlutterService, Set<String>> flutterServices = {};
 
-  /**
-   * Performance information before initial analysis is complete.
-   */
-  final ServerPerformance performanceDuringStartup = new ServerPerformance();
-
-  /**
-   * Performance information after initial analysis is complete
-   * or `null` if the initial analysis is not yet complete
-   */
-  ServerPerformance performanceAfterStartup;
-
-  /**
-   * A [RecentBuffer] of the most recent exceptions encountered by the analysis
-   * server.
-   */
-  final RecentBuffer<ServerException> exceptions = new RecentBuffer(10);
-
-  /**
-   * The class into which performance information is currently being recorded.
-   * During startup, this will be the same as [performanceDuringStartup]
-   * and after startup is complete, this switches to [performanceAfterStartup].
-   */
-  ServerPerformance _performance;
-
-  /**
-   * The [Completer] that completes when analysis is complete.
-   */
+  /// The [Completer] that completes when analysis is complete.
   Completer _onAnalysisCompleteCompleter;
 
-  /**
-   * The controller that is notified when analysis is started.
-   */
+  /// The controller that is notified when analysis is started.
   StreamController<bool> _onAnalysisStartedController;
 
-  /**
-   * The content overlay for all analysis drivers.
-   */
-  final nd.FileContentOverlay fileContentOverlay = new nd.FileContentOverlay();
-
-  /**
-   * The current state of overlays from the client.  This is used as the
-   * content cache for all contexts.
-   */
-  final ContentCache overlayState = new ContentCache();
-
-  /**
-   * If the "analysis.analyzedFiles" notification is currently being subscribed
-   * to (see [generalAnalysisServices]), and at least one such notification has
-   * been sent since the subscription was enabled, the set of analyzed files
-   * that was delivered in the most recently sent notification.  Otherwise
-   * `null`.
-   */
+  /// If the "analysis.analyzedFiles" notification is currently being subscribed
+  /// to (see [generalAnalysisServices]), and at least one such notification has
+  /// been sent since the subscription was enabled, the set of analyzed files
+  /// that was delivered in the most recently sent notification.  Otherwise
+  /// `null`.
   Set<String> prevAnalyzedFiles;
 
-  /**
-   * The default options used to create new analysis contexts. This object is
-   * also referenced by the ContextManager.
-   */
+  /// The default options used to create new analysis contexts. This object is
+  /// also referenced by the ContextManager.
   final AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
 
-  /**
-   * The file resolver provider used to override the way file URI's are
-   * resolved in some contexts.
-   */
+  /// The file resolver provider used to override the way file URI's are
+  /// resolved in some contexts.
   ResolverProvider fileResolverProvider;
 
-  /**
-   * The package resolver provider used to override the way package URI's are
-   * resolved in some contexts.
-   */
+  /// The package resolver provider used to override the way package URI's are
+  /// resolved in some contexts.
   ResolverProvider packageResolverProvider;
 
   PerformanceLog _analysisPerformanceLogger;
@@ -264,48 +151,36 @@ class AnalysisServer {
   ByteStore byteStore;
   nd.AnalysisDriverScheduler analysisDriverScheduler;
 
-  /**
-   * The controller for [onAnalysisSetChanged].
-   */
+  /// The controller for [onAnalysisSetChanged].
   final StreamController _onAnalysisSetChangedController =
       new StreamController.broadcast(sync: true);
 
-  /**
-   * The set of the files that are currently priority.
-   */
-  final Set<String> priorityFiles = new Set<String>();
-
-  /**
-   * The DiagnosticServer for this AnalysisServer. If available, it can be used
-   * to start an http diagnostics server or return the port for an existing
-   * server.
-   */
+  /// The DiagnosticServer for this AnalysisServer. If available, it can be used
+  /// to start an http diagnostics server or return the port for an existing
+  /// server.
   final DiagnosticServer diagnosticServer;
 
   final DetachableFileSystemManager detachableFileSystemManager;
 
-  /**
-   * Initialize a newly created server to receive requests from and send
-   * responses to the given [channel].
-   *
-   * If [rethrowExceptions] is true, then any exceptions thrown by analysis are
-   * propagated up the call stack.  The default is true to allow analysis
-   * exceptions to show up in unit tests, but it should be set to false when
-   * running a full analysis server.
-   */
+  /// Initialize a newly created server to receive requests from and send
+  /// responses to the given [channel].
+  ///
+  /// If [rethrowExceptions] is true, then any exceptions thrown by analysis are
+  /// propagated up the call stack.  The default is true to allow analysis
+  /// exceptions to show up in unit tests, but it should be set to false when
+  /// running a full analysis server.
   AnalysisServer(
     this.channel,
-    this.resourceProvider,
-    this.options,
+    ResourceProvider baseResourceProvider,
+    AnalysisServerOptions options,
     this.sdkManager,
     this.instrumentationService, {
     this.diagnosticServer,
     ResolverProvider fileResolverProvider: null,
     ResolverProvider packageResolverProvider: null,
     this.detachableFileSystemManager: null,
-  }) : notificationManager =
-            new NotificationManager(channel, resourceProvider) {
-    _performance = performanceDuringStartup;
+  }) : super(options, baseResourceProvider) {
+    notificationManager = new NotificationManager(channel, resourceProvider);
 
     pluginManager = new PluginManager(
         resourceProvider,
@@ -332,7 +207,7 @@ class AnalysisServer {
       }
       _analysisPerformanceLogger = new PerformanceLog(sink);
     }
-    byteStore = _createByteStore();
+    byteStore = createByteStore(resourceProvider);
     analysisDriverScheduler = new nd.AnalysisDriverScheduler(
         _analysisPerformanceLogger,
         driverWatcher: pluginWatcher);
@@ -341,7 +216,6 @@ class AnalysisServer {
 
     contextManager = new ContextManagerImpl(
         resourceProvider,
-        fileContentOverlay,
         sdkManager,
         packageResolverProvider,
         analyzedFilesGlobs,
@@ -354,15 +228,15 @@ class AnalysisServer {
     contextManager.callbacks = contextManagerCallbacks;
     AnalysisEngine.instance.logger = new AnalysisLogger(this);
     _onAnalysisStartedController = new StreamController.broadcast();
-    running = true;
     onAnalysisStarted.first.then((_) {
       onAnalysisComplete.then((_) {
         performanceAfterStartup = new ServerPerformance();
-        _performance = performanceAfterStartup;
+        performance = performanceAfterStartup;
       });
     });
     searchEngine = new SearchEngineImpl(driverMap.values);
-    Notification notification = new ServerConnectedParams(VERSION, io.pid,
+    Notification notification = new ServerConnectedParams(
+            PROTOCOL_VERSION, io.pid,
             sessionId: instrumentationService.sessionId)
         .toNotification();
     channel.sendNotification(notification);
@@ -381,47 +255,10 @@ class AnalysisServer {
     ];
   }
 
-  /**
-   * The analytics instance; note, this object can be `null`.
-   */
+  /// The analytics instance; note, this object can be `null`.
   telemetry.Analytics get analytics => options.analytics;
 
-  /**
-   * Return a list of the globs used to determine which files should be analyzed.
-   */
-  List<Glob> get analyzedFilesGlobs {
-    if (_analyzedFilesGlobs == null) {
-      _analyzedFilesGlobs = <Glob>[];
-      List<String> patterns = <String>[
-        '**/*.${AnalysisEngine.SUFFIX_DART}',
-        '**/*.${AnalysisEngine.SUFFIX_HTML}',
-        '**/*.${AnalysisEngine.SUFFIX_HTM}',
-        '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}',
-        '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
-        '**/${AnalysisEngine.PUBSPEC_YAML_FILE}'
-      ];
-      for (String pattern in patterns) {
-        try {
-          _analyzedFilesGlobs
-              .add(new Glob(resourceProvider.pathContext.separator, pattern));
-        } catch (exception, stackTrace) {
-          AnalysisEngine.instance.logger.logError(
-              'Invalid glob pattern: "$pattern"',
-              new CaughtException(exception, stackTrace));
-        }
-      }
-    }
-    return _analyzedFilesGlobs;
-  }
-
-  /**
-   * A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
-   */
-  Map<Folder, nd.AnalysisDriver> get driverMap => contextManager.driverMap;
-
-  /**
-   * The [Future] that completes when analysis is complete.
-   */
+  /// The [Future] that completes when analysis is complete.
   Future get onAnalysisComplete {
     if (isAnalysisComplete()) {
       return new Future.value();
@@ -432,50 +269,27 @@ class AnalysisServer {
     return _onAnalysisCompleteCompleter.future;
   }
 
-  /**
-   * The stream that is notified when the analysis set is changed - this might
-   * be a change to a file, external via a watch event, or internal via
-   * overlay. This means that the resolved world might have changed.
-   *
-   * The type of produced elements is not specified and should not be used.
-   */
+  /// The stream that is notified when the analysis set is changed - this might
+  /// be a change to a file, external via a watch event, or internal via
+  /// overlay. This means that the resolved world might have changed.
+  ///
+  /// The type of produced elements is not specified and should not be used.
   Stream get onAnalysisSetChanged => _onAnalysisSetChangedController.stream;
 
-  /**
-   * The stream that is notified with `true` when analysis is started.
-   */
+  /// The stream that is notified with `true` when analysis is started.
   Stream<bool> get onAnalysisStarted {
     return _onAnalysisStartedController.stream;
   }
 
-  /**
-   * Return the total time the server's been alive.
-   */
-  Duration get uptime {
-    DateTime start = new DateTime.fromMillisecondsSinceEpoch(
-        performanceDuringStartup.startTime);
-    return new DateTime.now().difference(start);
-  }
+  /// The socket from which requests are being read has been closed.
+  void done() {}
 
-  /**
-   * The socket from which requests are being read has been closed.
-   */
-  void done() {
-    running = false;
-  }
+  /// There was an error related to the socket from which requests are being
+  /// read.
+  void error(argument) {}
 
-  /**
-   * There was an error related to the socket from which requests are being
-   * read.
-   */
-  void error(argument) {
-    running = false;
-  }
-
-  /**
-   * Return one of the SDKs that has been created, or `null` if no SDKs have
-   * been created yet.
-   */
+  /// Return one of the SDKs that has been created, or `null` if no SDKs have
+  /// been created yet.
   DartSdk findSdk() {
     DartSdk sdk = sdkManager.anySdk;
     if (sdk != null) {
@@ -485,64 +299,9 @@ class AnalysisServer {
     return null;
   }
 
-  /**
-   * Return an analysis driver to which the file with the given [path] is
-   * added if one exists, otherwise a driver in which the file was analyzed if
-   * one exists, otherwise the first driver, otherwise `null`.
-   */
-  nd.AnalysisDriver getAnalysisDriver(String path) {
-    List<nd.AnalysisDriver> drivers = driverMap.values.toList();
-    if (drivers.isNotEmpty) {
-      // Sort the drivers so that more deeply nested contexts will be checked
-      // before enclosing contexts.
-      drivers.sort((first, second) =>
-          second.contextRoot.root.length - first.contextRoot.root.length);
-      nd.AnalysisDriver driver = drivers.firstWhere(
-          (driver) => driver.contextRoot.containsFile(path),
-          orElse: () => null);
-      driver ??= drivers.firstWhere(
-          (driver) => driver.knownFiles.contains(path),
-          orElse: () => null);
-      driver ??= drivers.first;
-      return driver;
-    }
-    return null;
-  }
-
-  /**
-   * Return the analysis result for the file with the given [path]. The file is
-   * analyzed in one of the analysis drivers to which the file was added,
-   * otherwise in the first driver, otherwise `null` is returned.
-   */
-  Future<nd.AnalysisResult> getAnalysisResult(String path,
-      {bool sendCachedToStream: false}) {
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return null;
-    }
-
-    nd.AnalysisDriver driver = getAnalysisDriver(path);
-    if (driver == null) {
-      return new Future.value();
-    }
-
-    return driver
-        .getResult(path, sendCachedToStream: sendCachedToStream)
-        .catchError((_) => null);
-  }
-
-  /**
-   * Return the [AstProvider] for the given [path].
-   */
-  AstProvider getAstProvider(String path) {
-    nd.AnalysisDriver analysisDriver = getAnalysisDriver(path);
-    return new AstProviderForDriver(analysisDriver);
-  }
-
-  /**
-   * Return the cached analysis result for the file with the given [path].
-   * If there is no cached result, return `null`.
-   */
-  nd.AnalysisResult getCachedAnalysisResult(String path) {
+  /// Return the cached analysis result for the file with the given [path].
+  /// If there is no cached result, return `null`.
+  ResolvedUnitResult getCachedResolvedUnit(String path) {
     if (!AnalysisEngine.isDartFileName(path)) {
       return null;
     }
@@ -551,92 +310,9 @@ class AnalysisServer {
     return driver?.getCachedResult(path);
   }
 
-  /**
-   * Return a [Future] that completes with the [Element] at the given
-   * [offset] of the given [file], or with `null` if there is no node at the
-   * [offset] or the node does not have an element.
-   */
-  Future<Element> getElementAtOffset(String file, int offset) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    if (!priorityFiles.contains(file)) {
-      var driver = getAnalysisDriver(file);
-      if (driver == null) {
-        return null;
-      }
-
-      var unitElementResult = await driver.getUnitElement(file);
-      if (unitElementResult == null) {
-        return null;
-      }
-
-      var element = findElementByNameOffset(unitElementResult.element, offset);
-      if (element != null) {
-        return element;
-      }
-    }
-
-    AstNode node = await getNodeAtOffset(file, offset);
-    return getElementOfNode(node);
-  }
-
-  /**
-   * Return the [Element] of the given [node], or `null` if [node] is `null` or
-   * does not have an element.
-   */
-  Element getElementOfNode(AstNode node) {
-    if (node == null) {
-      return null;
-    }
-    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is StringLiteral && node.parent is UriBasedDirective) {
-      return null;
-    }
-    Element element = ElementLocator.locate(node);
-    if (node is SimpleIdentifier && element is PrefixElement) {
-      element = getImportElement(node);
-    }
-    return element;
-  }
-
-  /**
-   * Return a [Future] that completes with the resolved [AstNode] at the
-   * given [offset] of the given [file], or with `null` if there is no node as
-   * the [offset].
-   */
-  Future<AstNode> getNodeAtOffset(String file, int offset) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    nd.AnalysisResult result = await getAnalysisResult(file);
-    CompilationUnit unit = result?.unit;
-    if (unit != null) {
-      return new NodeLocator(offset).searchWithin(unit);
-    }
-    return null;
-  }
-
-  /**
-   * Return a [Future] that completes with the resolved [CompilationUnit] for
-   * the Dart file with the given [path], or with `null` if the file is not a
-   * Dart file or cannot be resolved.
-   */
-  Future<CompilationUnit> getResolvedCompilationUnit(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    nd.AnalysisResult result = await getAnalysisResult(path);
-    return result?.unit;
-  }
-
-  /**
-   * Handle a [request] that was read from the communication channel.
-   */
+  /// Handle a [request] that was read from the communication channel.
   void handleRequest(Request request) {
-    _performance.logRequest(request);
+    performance.logRequestTiming(request.clientRequestTime);
     runZoned(() {
       ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() {
         int count = handlers.length;
@@ -675,50 +351,38 @@ class AnalysisServer {
     });
   }
 
-  /**
-   * Return `true` if analysis is complete.
-   */
+  /// Return `true` if analysis is complete.
   bool isAnalysisComplete() {
     return !analysisDriverScheduler.isAnalyzing;
   }
 
-  /**
-   * Return `true` if the given path is a valid `FilePath`.
-   *
-   * This means that it is absolute and normalized.
-   */
+  /// Return `true` if the given path is a valid `FilePath`.
+  ///
+  /// This means that it is absolute and normalized.
   bool isValidFilePath(String path) {
     return resourceProvider.pathContext.isAbsolute(path) &&
         resourceProvider.pathContext.normalize(path) == path;
   }
 
-  /**
-   * Trigger reanalysis of all files in the given list of analysis [roots], or
-   * everything if the analysis roots is `null`.
-   */
-  void reanalyze(List<Resource> roots) {
-    // Instruct the contextDirectoryManager to rebuild all contexts from
-    // scratch.
-    contextManager.refresh(roots);
+  /// Read all files, resolve all URIs, and perform required analysis in
+  /// all current analysis drivers.
+  void reanalyze() {
+    for (var driver in driverMap.values) {
+      driver.resetUriResolution();
+    }
   }
 
-  /**
-   * Send the given [notification] to the client.
-   */
+  /// Send the given [notification] to the client.
   void sendNotification(Notification notification) {
     channel.sendNotification(notification);
   }
 
-  /**
-   * Send the given [response] to the client.
-   */
+  /// Send the given [response] to the client.
   void sendResponse(Response response) {
     channel.sendResponse(response);
   }
 
-  /**
-   * Sends a `server.error` notification.
-   */
+  /// Sends a `server.error` notification.
   void sendServerErrorNotification(
     String message,
     dynamic exception,
@@ -764,10 +428,8 @@ class AnalysisServer {
     ));
   }
 
-  /**
-   * Send status notification to the client. The state of analysis is given by
-   * the [status] information.
-   */
+  /// Send status notification to the client. The state of analysis is given by
+  /// the [status] information.
   void sendStatusNotificationNew(nd.AnalysisStatus status) {
     if (status.isAnalyzing) {
       _onAnalysisStartedController.add(true);
@@ -798,18 +460,16 @@ class AnalysisServer {
         new ServerStatusParams(analysis: analysis).toNotification());
   }
 
-  /**
-   * Implementation for `analysis.setAnalysisRoots`.
-   *
-   * TODO(scheglov) implement complete projects/contexts semantics.
-   *
-   * The current implementation is intentionally simplified and expected
-   * that only folders are given each given folder corresponds to the exactly
-   * one context.
-   *
-   * So, we can start working in parallel on adding services and improving
-   * projects/contexts support.
-   */
+  /// Implementation for `analysis.setAnalysisRoots`.
+  ///
+  /// TODO(scheglov) implement complete projects/contexts semantics.
+  ///
+  /// The current implementation is intentionally simplified and expected
+  /// that only folders are given each given folder corresponds to the exactly
+  /// one context.
+  ///
+  /// So, we can start working in parallel on adding services and improving
+  /// projects/contexts support.
   void setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths, Map<String, String> packageRoots) {
     if (notificationManager != null) {
@@ -823,9 +483,7 @@ class AnalysisServer {
     }
   }
 
-  /**
-   * Implementation for `analysis.setSubscriptions`.
-   */
+  /// Implementation for `analysis.setSubscriptions`.
   void setAnalysisSubscriptions(
       Map<AnalysisService, Set<String>> subscriptions) {
     if (notificationManager != null) {
@@ -839,14 +497,12 @@ class AnalysisServer {
       // the fully resolved unit, and processed with sending analysis
       // notifications as it happens after content changes.
       if (AnalysisEngine.isDartFileName(file)) {
-        getAnalysisResult(file, sendCachedToStream: true);
+        getResolvedUnit(file, sendCachedToStream: true);
       }
     }
   }
 
-  /**
-   * Implementation for `flutter.setSubscriptions`.
-   */
+  /// Implementation for `flutter.setSubscriptions`.
   void setFlutterSubscriptions(Map<FlutterService, Set<String>> subscriptions) {
     this.flutterServices = subscriptions;
     Set<String> allNewFiles =
@@ -856,14 +512,12 @@ class AnalysisServer {
       // the fully resolved unit, and processed with sending analysis
       // notifications as it happens after content changes.
       if (AnalysisEngine.isDartFileName(file)) {
-        getAnalysisResult(file, sendCachedToStream: true);
+        getResolvedUnit(file, sendCachedToStream: true);
       }
     }
   }
 
-  /**
-   * Implementation for `analysis.setGeneralSubscriptions`.
-   */
+  /// Implementation for `analysis.setGeneralSubscriptions`.
   void setGeneralAnalysisSubscriptions(
       List<GeneralAnalysisService> subscriptions) {
     Set<GeneralAnalysisService> newServices = subscriptions.toSet();
@@ -880,9 +534,7 @@ class AnalysisServer {
     generalAnalysisServices = newServices;
   }
 
-  /**
-   * Set the priority files to the given [files].
-   */
+  /// Set the priority files to the given [files].
   void setPriorityFiles(String requestId, List<String> files) {
     priorityFiles.clear();
     priorityFiles.addAll(files);
@@ -892,17 +544,13 @@ class AnalysisServer {
     });
   }
 
-  /**
-   * Returns `true` if errors should be reported for [file] with the given
-   * absolute path.
-   */
+  /// Returns `true` if errors should be reported for [file] with the given
+  /// absolute path.
   bool shouldSendErrorsNotificationFor(String file) {
     return contextManager.isInAnalysisRoot(file);
   }
 
   Future<void> shutdown() {
-    running = false;
-
     if (options.analytics != null) {
       options.analytics
           .waitForLastPing(timeout: new Duration(milliseconds: 200))
@@ -925,14 +573,19 @@ class AnalysisServer {
     return new Future.value();
   }
 
-  /**
-   * Implementation for `analysis.updateContent`.
-   */
+  /// Implementation for `analysis.updateContent`.
   void updateContent(String id, Map<String, dynamic> changes) {
     _onAnalysisSetChangedController.add(null);
     changes.forEach((file, change) {
+      // Prepare the old overlay contents.
+      String oldContents;
+      try {
+        if (resourceProvider.hasOverlay(file)) {
+          oldContents = resourceProvider.getFile(file).readAsStringSync();
+        }
+      } catch (_) {}
+
       // Prepare the new contents.
-      String oldContents = fileContentOverlay[file];
       String newContents;
       if (change is AddContentOverlay) {
         newContents = change.content;
@@ -958,7 +611,12 @@ class AnalysisServer {
         throw new AnalysisException('Illegal change type');
       }
 
-      fileContentOverlay[file] = newContents;
+      if (newContents != null) {
+        resourceProvider.setOverlay(file,
+            content: newContents, modificationStamp: 0);
+      } else {
+        resourceProvider.removeOverlay(file);
+      }
 
       driverMap.values.forEach((driver) {
         driver.changeFile(file);
@@ -972,10 +630,8 @@ class AnalysisServer {
     });
   }
 
-  /**
-   * Use the given updaters to update the values of the options in every
-   * existing analysis context.
-   */
+  /// Use the given updaters to update the values of the options in every
+  /// existing analysis context.
   void updateOptions(List<OptionUpdater> optionUpdaters) {
     // TODO(scheglov) implement for the new analysis driver
 //    //
@@ -999,36 +655,15 @@ class AnalysisServer {
 //    });
   }
 
-  /**
-   * If the state location can be accessed, return the file byte store,
-   * otherwise return the memory byte store.
-   */
-  ByteStore _createByteStore() {
-    const int M = 1024 * 1024 /*1 MiB*/;
-    const int G = 1024 * 1024 * 1024 /*1 GiB*/;
-
-    const int memoryCacheSize = 128 * M;
-
-    if (resourceProvider is PhysicalResourceProvider) {
-      Folder stateLocation =
-          resourceProvider.getStateLocation('.analysis-driver');
-      if (stateLocation != null) {
-        return new MemoryCachingByteStore(
-            new EvictingFileByteStore(stateLocation.path, G), memoryCacheSize);
-      }
-    }
-
-    return new MemoryCachingByteStore(new NullByteStore(), memoryCacheSize);
-  }
-
-  /**
-   * Return the path to the location of the byte store on disk, or `null` if
-   * there is no on-disk byte store.
-   */
+  /// Return the path to the location of the byte store on disk, or `null` if
+  /// there is no on-disk byte store.
   String _getByteStorePath() {
-    if (resourceProvider is PhysicalResourceProvider) {
-      Folder stateLocation =
-          resourceProvider.getStateLocation('.analysis-driver');
+    ResourceProvider provider = resourceProvider;
+    if (provider is OverlayResourceProvider) {
+      provider = (provider as OverlayResourceProvider).baseProvider;
+    }
+    if (provider is PhysicalResourceProvider) {
+      Folder stateLocation = provider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
         return stateLocation.path;
       }
@@ -1036,10 +671,8 @@ class AnalysisServer {
     return null;
   }
 
-  /**
-   * Returns `true` if there is a subscription for the given [service] and
-   * [file].
-   */
+  /// Returns `true` if there is a subscription for the given [service] and
+  /// [file].
   bool _hasAnalysisServiceSubscription(AnalysisService service, String file) {
     return analysisServices[service]?.contains(file) ?? false;
   }
@@ -1058,9 +691,7 @@ class AnalysisServer {
   }
 }
 
-/**
- * Various IDE options.
- */
+/// Various IDE options.
 class AnalysisServerOptions {
   bool useAnalysisHighlight2 = false;
 
@@ -1070,48 +701,37 @@ class AnalysisServerOptions {
   String clientId;
   String clientVersion;
 
-  /**
-   * Base path where to cache data.
-   */
+  /// Base path where to cache data.
   String cacheFolder;
 
-  /**
-   * The analytics instance; note, this object can be `null`, and should be
-   * accessed via a null-aware operator.
-   */
+  /// The analytics instance; note, this object can be `null`, and should be
+  /// accessed via a null-aware operator.
   telemetry.Analytics analytics;
 
-  /**
-   * The crash report sender instance; note, this object can be `null`, and
-   * should be accessed via a null-aware operator.
-   */
+  /// The crash report sender instance; note, this object can be `null`, and
+  /// should be accessed via a null-aware operator.
   CrashReportSender crashReportSender;
 
-  /**
-   * Whether to enable parsing via the Fasta parser.
-   */
+  /// Whether to use the Language Server Protocol.
+  bool useLanguageServerProtocol = false;
+
+  /// Whether to enable parsing via the Fasta parser.
   bool useFastaParser = true;
 
-  /**
-   * User Experience, Experiment #1. This experiment changes the notion of
-   * what analysis roots are and priority files: the analysis root is set to be
-   * the priority files' containing directory.
-   */
+  /// User Experience, Experiment #1. This experiment changes the notion of
+  /// what analysis roots are and priority files: the analysis root is set to be
+  /// the priority files' containing directory.
   bool enableUXExperiment1 = false;
 
-  /**
-   * User Experience, Experiment #2. This experiment introduces the notion of an
-   * intermittent file system.
-   */
+  /// User Experience, Experiment #2. This experiment introduces the notion of
+  /// an intermittent file system.
   bool enableUXExperiment2 = false;
 }
 
 class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   final AnalysisServer analysisServer;
 
-  /**
-   * The [ResourceProvider] by which paths are converted into [Resource]s.
-   */
+  /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider resourceProvider;
 
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
@@ -1135,7 +755,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
               NotificationManager.serverId,
               path,
               server.doAnalysisError_listFromEngine(
-                  result.driver.analysisOptions,
+                  result.session.analysisContext.analysisOptions,
                   result.lineInfo,
                   result.errors));
         } else {
@@ -1235,8 +855,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         if (analysisServer._hasFlutterServiceSubscription(
             FlutterService.OUTLINE, path)) {
           _runDelayed(() {
-            sendFlutterNotificationOutline(
-                analysisServer, path, result.content, result.lineInfo, unit);
+            sendFlutterNotificationOutline(analysisServer, path, result.content,
+                result.lineInfo, unit, result.typeProvider);
           });
         }
         // TODO(scheglov) Implement notifications for AnalysisService.IMPLEMENTED.
@@ -1306,15 +926,15 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builderOptions.defaultOptions = options;
     builderOptions.defaultPackageFilePath = defaultPackageFilePath;
     builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
-    ContextBuilder builder = new ContextBuilder(resourceProvider,
-        analysisServer.sdkManager, analysisServer.overlayState,
+    ContextBuilder builder = new ContextBuilder(
+        resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
     builder.fileResolverProvider = analysisServer.fileResolverProvider;
     builder.packageResolverProvider = analysisServer.packageResolverProvider;
     builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
     builder.performanceLog = analysisServer._analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;
-    builder.fileContentOverlay = analysisServer.fileContentOverlay;
+    builder.enableIndex = true;
     return builder;
   }
 
@@ -1350,7 +970,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   server.AnalysisNavigationParams _computeNavigationParams(
       String path, CompilationUnit unit) {
     NavigationCollectorImpl collector = new NavigationCollectorImpl();
-    computeDartNavigation(collector, unit, null, null);
+    computeDartNavigation(resourceProvider, collector, unit, null, null);
     collector.createRegions();
     return new server.AnalysisNavigationParams(
         path, collector.regions, collector.targets, collector.files);
@@ -1385,29 +1005,25 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         libraryName: libraryName);
   }
 
-  /**
-   * Run [f] in a new [Future].
-   *
-   * This method is used to delay sending notifications. If there is a more
-   * important consumer of an analysis results, specifically a code completion
-   * computer, we want it to run before spending time of sending notifications.
-   *
-   * TODO(scheglov) Consider replacing this with full priority based scheduler.
-   *
-   * TODO(scheglov) Alternatively, if code completion work in a way that does
-   * not produce (at first) fully resolved unit, but only part of it - a single
-   * method, or a top-level declaration, we would not have this problem - the
-   * completion computer would be the only consumer of the partial analysis
-   * result.
-   */
+  /// Run [f] in a new [Future].
+  ///
+  /// This method is used to delay sending notifications. If there is a more
+  /// important consumer of an analysis results, specifically a code completion
+  /// computer, we want it to run before spending time of sending notifications.
+  ///
+  /// TODO(scheglov) Consider replacing this with full priority based scheduler.
+  ///
+  /// TODO(scheglov) Alternatively, if code completion work in a way that does
+  /// not produce (at first) fully resolved unit, but only part of it - a single
+  /// method, or a top-level declaration, we would not have this problem - the
+  /// completion computer would be the only consumer of the partial analysis
+  /// result.
   void _runDelayed(f()) {
     new Future(f);
   }
 }
 
-/**
- * Used to record server exceptions.
- */
+/// Used to record server exceptions.
 class ServerException {
   final String message;
   final dynamic exception;
@@ -1420,45 +1036,35 @@ class ServerException {
   String toString() => message;
 }
 
-/**
- * A class used by [AnalysisServer] to record performance information
- * such as request latency.
- */
+/// A class used by [AnalysisServer] to record performance information
+/// such as request latency.
 class ServerPerformance {
-  /**
-   * The creation time and the time when performance information
-   * started to be recorded here.
-   */
+  /// The creation time and the time when performance information
+  /// started to be recorded here.
   final int startTime = new DateTime.now().millisecondsSinceEpoch;
 
-  /**
-   * The number of requests.
-   */
+  /// The number of requests.
   int requestCount = 0;
 
-  /**
-   * The total latency (milliseconds) for all recorded requests.
-   */
+  /// The number of requests that recorded latency information.
+  int latencyCount = 0;
+
+  /// The total latency (milliseconds) for all recorded requests.
   int requestLatency = 0;
 
-  /**
-   * The maximum latency (milliseconds) for all recorded requests.
-   */
+  /// The maximum latency (milliseconds) for all recorded requests.
   int maxLatency = 0;
 
-  /**
-   * The number of requests with latency > 150 milliseconds.
-   */
+  /// The number of requests with latency > 150 milliseconds.
   int slowRequestCount = 0;
 
-  /**
-   * Log performance information about the given request.
-   */
-  void logRequest(Request request) {
+  /// Log timing information for a request.
+  void logRequestTiming(int clientRequestTime) {
     ++requestCount;
-    if (request.clientRequestTime != null) {
+    if (clientRequestTime != null) {
       int latency =
-          new DateTime.now().millisecondsSinceEpoch - request.clientRequestTime;
+          new DateTime.now().millisecondsSinceEpoch - clientRequestTime;
+      ++latencyCount;
       requestLatency += latency;
       maxLatency = max(maxLatency, latency);
       if (latency > 150) {
@@ -1468,34 +1074,22 @@ class ServerPerformance {
   }
 }
 
-/**
- * Container with global [AnalysisServer] performance statistics.
- */
+/// Container with global [AnalysisServer] performance statistics.
 class ServerPerformanceStatistics {
-  /**
-   * The [PerformanceTag] for `package:analysis_server`.
-   */
+  /// The [PerformanceTag] for `package:analysis_server`.
   static final PerformanceTag server = new PerformanceTag('server');
 
-  /**
-   * The [PerformanceTag] for time spent between calls to
-   * AnalysisServer.performOperation when the server is idle.
-   */
+  /// The [PerformanceTag] for time spent between calls to
+  /// AnalysisServer.performOperation when the server is idle.
   static final PerformanceTag idle = new PerformanceTag('idle');
 
-  /**
-   * The [PerformanceTag] for time spent in
-   * PerformAnalysisOperation._sendNotices.
-   */
+  /// The [PerformanceTag] for time spent in
+  /// PerformAnalysisOperation._sendNotices.
   static final PerformanceTag notices = server.createChild('notices');
 
-  /**
-   * The [PerformanceTag] for time spent in server communication channels.
-   */
+  /// The [PerformanceTag] for time spent in server communication channels.
   static final PerformanceTag serverChannel = server.createChild('channel');
 
-  /**
-   * The [PerformanceTag] for time spent in server request handlers.
-   */
+  /// The [PerformanceTag] for time spent in server request handlers.
   static final PerformanceTag serverRequests = server.createChild('requests');
 }

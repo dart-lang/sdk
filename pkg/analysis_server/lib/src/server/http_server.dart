@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -35,7 +35,7 @@ class HttpAnalysisServer {
    * An object that can handle either a WebSocket connection or a connection
    * to the client over stdio.
    */
-  SocketServer socketServer;
+  AbstractSocketServer socketServer;
 
   /**
    * An object that can handle GET requests.

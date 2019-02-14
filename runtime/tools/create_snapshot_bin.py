@@ -54,11 +54,6 @@ def BuildOptions():
   result.add_option("--packages",
       action="store", type="string",
       help="package config file used to reasolve package: imports.")
-  result.add_option("--url_mapping",
-      default=[],
-      action="append",
-      help=("mapping from url to file name, used when generating snapshots " +
-            "E.g.: --url_mapping=fileUri,/path/to/file.dart"))
   result.add_option("-v", "--verbose",
       help='Verbose output.',
       default=False, action="store_true")
@@ -142,11 +137,6 @@ def Main():
   if options.isolate_instructions_output_bin != None:
     script_args.append(''.join([ "--isolate_snapshot_instructions=",
                                  options.isolate_instructions_output_bin ]))
-
-  # Next setup all url mapping options specified.
-  for url_arg in options.url_mapping:
-    url_mapping_argument = ''.join(["--url_mapping=", url_arg ])
-    script_args.append(url_mapping_argument)
 
   # Finally append the script name if one is specified.
   if options.script:

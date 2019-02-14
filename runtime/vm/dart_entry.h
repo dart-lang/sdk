@@ -86,7 +86,6 @@ class ArgumentsDescriptor : public ValueObject {
   enum {
     kTypeArgsLenIndex,
     kCountIndex,
-
     kPositionalCountIndex,
     kFirstNamedEntryIndex,
   };

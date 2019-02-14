@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,10 +10,15 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart'
@@ -28,7 +33,7 @@ import 'package:analyzer/src/task/strong/checker.dart'
  * * Every node representing an expression should be resolved to the Type of the expression.
  * </ol>
  */
-class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
+class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /**
    * The resolver driving the resolution and type analysis.
    */
@@ -48,6 +53,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The type representing the type 'dynamic'.
    */
   DartType _dynamicType;
+
+  /**
+   * The status of the active experiments of the current context.
+   */
+  ExperimentStatus _experimentStatus;
 
   /**
    * The type representing the class containing the nodes being analyzed,
@@ -70,6 +80,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
     _promoteManager = _resolver.promoteManager;
+    _experimentStatus = (_resolver.definingLibrary.context.analysisOptions
+            as AnalysisOptionsImpl)
+        .experimentStatus;
   }
 
   /**
@@ -94,7 +107,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       FormalParameterList node, DartType functionType) {
     bool inferred = false;
     if (node != null && functionType is FunctionType) {
-      var ts = _typeSystem as StrongTypeSystemImpl;
+      var ts = _typeSystem as Dart2TypeSystem;
       void inferType(ParameterElementImpl p, DartType inferredType) {
         // Check that there is no declared type, and that we have not already
         // inferred a type in some fashion.
@@ -139,7 +152,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   DartType inferListType(ListLiteral node, {bool downwards: false}) {
     DartType contextType = InferenceContext.getContext(node);
 
-    var ts = _typeSystem as StrongTypeSystemImpl;
+    var ts = _typeSystem as Dart2TypeSystem;
     List<DartType> elementTypes;
     List<ParameterElement> parameters;
 
@@ -171,6 +184,34 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
 
   ParameterizedType inferMapType(MapLiteral node, {bool downwards: false}) {
     DartType contextType = InferenceContext.getContext(node);
+    if (contextType != null && _experimentStatus.set_literals) {
+      DartType unwrap(DartType type) {
+        if (type is InterfaceType &&
+            type.isDartAsyncFutureOr &&
+            type.typeArguments.length == 1) {
+          return unwrap(type.typeArguments[0]);
+        }
+        return type;
+      }
+
+      DartType unwrappedContextType = unwrap(contextType);
+      if (node.typeArguments == null &&
+          node.entries.isEmpty &&
+          _typeSystem.isAssignableTo(
+              _typeProvider.iterableObjectType, unwrappedContextType) &&
+          !_typeSystem.isAssignableTo(
+              _typeProvider.mapObjectObjectType, unwrappedContextType)) {
+        // The node is really an empty set literal with no type arguments.
+        // Rewrite the AST and infer the type of the set as appropriate.
+        SetLiteral setLiteral = new AstFactoryImpl().setLiteral(
+            node.constKeyword, null, node.leftBracket, null, node.rightBracket);
+        InferenceContext.setType(setLiteral, contextType);
+        NodeReplacer.replace(node, setLiteral);
+        DartType type = inferSetType(setLiteral, downwards: downwards);
+        setLiteral.staticType = type;
+        return type;
+      }
+    }
     List<DartType> elementTypes;
     List<ParameterElement> parameters;
     if (downwards) {
@@ -197,9 +238,42 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
 
     // Use both downwards and upwards information to infer the type.
-    var ts = _typeSystem as StrongTypeSystemImpl;
+    var ts = _typeSystem as Dart2TypeSystem;
     ParameterizedType inferred = ts.inferGenericFunctionOrType(
         _typeProvider.mapType, parameters, elementTypes, contextType,
+        downwards: downwards,
+        errorReporter: _resolver.errorReporter,
+        errorNode: node);
+    return inferred;
+  }
+
+  DartType inferSetType(SetLiteral node, {bool downwards: false}) {
+    DartType contextType = InferenceContext.getContext(node);
+
+    var ts = _typeSystem as Dart2TypeSystem;
+    List<DartType> elementTypes;
+    List<ParameterElement> parameters;
+
+    if (downwards) {
+      if (contextType == null) {
+        return null;
+      }
+
+      elementTypes = [];
+      parameters = [];
+    } else {
+      // Also use upwards information to infer the type.
+      elementTypes = node.elements
+          .map((e) => e.staticType)
+          .where((t) => t != null)
+          .toList();
+      var setTypeParam = _typeProvider.setType.typeParameters[0].type;
+      var syntheticParamElement = new ParameterElementImpl.synthetic(
+          'element', setTypeParam, ParameterKind.POSITIONAL);
+      parameters = new List.filled(elementTypes.length, syntheticParamElement);
+    }
+    DartType inferred = ts.inferGenericFunctionOrType<InterfaceType>(
+        _typeProvider.setType, parameters, elementTypes, contextType,
         downwards: downwards,
         errorReporter: _resolver.errorReporter,
         errorNode: node);
@@ -211,9 +285,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * `String`.</blockquote>
    */
   @override
-  Object visitAdjacentStrings(AdjacentStrings node) {
+  void visitAdjacentStrings(AdjacentStrings node) {
     _recordStaticType(node, _typeProvider.stringType);
-    return null;
   }
 
   /**
@@ -225,9 +298,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The static type of a cast expression <i>e as T</i> is <i>T</i>.</blockquote>
    */
   @override
-  Object visitAsExpression(AsExpression node) {
+  void visitAsExpression(AsExpression node) {
     _recordStaticType(node, _getType(node.type));
-    return null;
   }
 
   /**
@@ -270,7 +342,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * <i>e<sub>3</sub></i>.</blockquote>
    */
   @override
-  Object visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     TokenType operator = node.operator.type;
     if (operator == TokenType.EQ) {
       Expression rightHandSide = node.rightHandSide;
@@ -281,7 +353,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       // bound of the static types of the LHS and RHS.
       _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide,
           read: true);
-      return null;
+      return;
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
       _recordStaticType(node, _typeProvider.boolType);
@@ -295,7 +367,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           staticType);
       _recordStaticType(node, staticType);
     }
-    return null;
   }
 
   /**
@@ -305,7 +376,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    *   the static type of e.
    */
   @override
-  Object visitAwaitExpression(AwaitExpression node) {
+  void visitAwaitExpression(AwaitExpression node) {
     // Await the Future. This results in whatever type is (ultimately) returned.
     DartType awaitType(DartType awaitedType) {
       if (awaitedType == null) {
@@ -314,11 +385,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       if (awaitedType.isDartAsyncFutureOr) {
         return awaitType((awaitedType as InterfaceType).typeArguments[0]);
       }
-      return awaitedType.flattenFutures(_typeSystem);
+      return _typeSystem.flatten(awaitedType);
     }
 
     _recordStaticType(node, awaitType(_getStaticType(node.expression)));
-    return null;
   }
 
   /**
@@ -359,14 +429,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * <i>super.op(e<sub>2</sub>)</i>.</blockquote>
    */
   @override
-  Object visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     if (node.operator.type == TokenType.QUESTION_QUESTION) {
       // Evaluation of an if-null expression e of the form e1 ?? e2 is
       // equivalent to the evaluation of the expression
       // ((x) => x == null ? e2 : x)(e1).  The static type of e is the least
       // upper bound of the static type of e1 and the static type of e2.
       _analyzeLeastUpperBound(node, node.leftOperand, node.rightOperand);
-      return null;
+      return;
     }
     DartType staticType = node.staticInvokeType?.returnType ?? _dynamicType;
     staticType = _typeSystem.refineBinaryExpressionType(
@@ -375,7 +445,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         node.rightOperand.staticType,
         staticType);
     _recordStaticType(node, staticType);
-    return null;
   }
 
   /**
@@ -383,9 +452,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * bool.</blockquote>
    */
   @override
-  Object visitBooleanLiteral(BooleanLiteral node) {
+  void visitBooleanLiteral(BooleanLiteral node) {
     _recordStaticType(node, _typeProvider.boolType);
-    return null;
   }
 
   /**
@@ -394,9 +462,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * t;}(e)</i>.</blockquote>
    */
   @override
-  Object visitCascadeExpression(CascadeExpression node) {
+  void visitCascadeExpression(CascadeExpression node) {
     _recordStaticType(node, _getStaticType(node.target));
-    return null;
   }
 
   /**
@@ -409,16 +476,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * and the static type of <i>e<sub>3</sub></i>.</blockquote>
    */
   @override
-  Object visitConditionalExpression(ConditionalExpression node) {
+  void visitConditionalExpression(ConditionalExpression node) {
     _analyzeLeastUpperBound(node, node.thenExpression, node.elseExpression);
-    return null;
   }
 
   @override
-  Object visitDeclaredIdentifier(DeclaredIdentifier node) {
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
     super.visitDeclaredIdentifier(node);
     _inferForEachLoopVariableType(node);
-    return null;
   }
 
   /**
@@ -426,13 +491,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * double.</blockquote>
    */
   @override
-  Object visitDoubleLiteral(DoubleLiteral node) {
+  void visitDoubleLiteral(DoubleLiteral node) {
     _recordStaticType(node, _typeProvider.doubleType);
-    return null;
   }
 
   @override
-  Object visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionExpression function = node.functionExpression;
     ExecutableElementImpl functionElement =
         node.declaredElement as ExecutableElementImpl;
@@ -441,13 +505,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       // we only need to handle local functions.
       if (node.returnType == null) {
         _inferLocalFunctionReturnType(node.functionExpression);
-        return null;
+        return;
       }
       functionElement.returnType =
           _computeStaticReturnTypeOfFunctionDeclaration(node);
     }
     _recordStaticType(function, functionElement.type);
-    return null;
   }
 
   /**
@@ -481,14 +544,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * specified as dynamic.</blockquote>
    */
   @override
-  Object visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is FunctionDeclaration) {
       // The function type will be resolved and set when we visit the parent
       // node.
-      return null;
+      return;
     }
     _inferLocalFunctionReturnType(node);
-    return null;
   }
 
   /**
@@ -504,11 +566,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * static type of <i>i</i> is the declared return type of <i>F</i>.</blockquote>
    */
   @override
-  Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _inferGenericInvocationExpression(node);
     DartType staticType = _computeInvokeReturnType(node.staticInvokeType);
     _recordStaticType(node, staticType);
-    return null;
   }
 
   /**
@@ -517,7 +578,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * <i>[]</i> on <i>e<sub>1</sub></i> with argument <i>e<sub>2</sub></i>.</blockquote>
    */
   @override
-  Object visitIndexExpression(IndexExpression node) {
+  void visitIndexExpression(IndexExpression node) {
     if (node.inSetterContext()) {
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeArgumentType(staticMethodElement);
@@ -527,7 +588,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       DartType staticType = _computeStaticReturnType(staticMethodElement);
       _recordStaticType(node, staticType);
     }
-    return null;
   }
 
   /**
@@ -540,11 +600,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * form <i>const T(a<sub>1</sub>, &hellip;, a<sub>n</sub>)</i> is <i>T</i>. </blockquote>
    */
   @override
-  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _inferInstanceCreationExpression(node);
-
     _recordStaticType(node, node.constructorName.type.type);
-    return null;
   }
 
   /**
@@ -565,7 +623,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * </blockquote>
    */
   @override
-  Object visitIntegerLiteral(IntegerLiteral node) {
+  void visitIntegerLiteral(IntegerLiteral node) {
     // Check the parent context for negated integer literals.
     var context = InferenceContext.getContext(
         (node as IntegerLiteralImpl).immediatelyNegated ? node.parent : node);
@@ -576,7 +634,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       _recordStaticType(node, _typeProvider.doubleType);
     }
-    return null;
   }
 
   /**
@@ -586,9 +643,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The static type of an is-expression is `bool`.</blockquote>
    */
   @override
-  Object visitIsExpression(IsExpression node) {
+  void visitIsExpression(IsExpression node) {
     _recordStaticType(node, _typeProvider.boolType);
-    return null;
   }
 
   /**
@@ -600,7 +656,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * .</blockquote>
    */
   @override
-  Object visitListLiteral(ListLiteral node) {
+  void visitListLiteral(ListLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
 
     // If we have explicit arguments, use them
@@ -615,7 +671,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
       _recordStaticType(
           node, _typeProvider.listType.instantiate(<DartType>[staticType]));
-      return null;
+      return;
     }
 
     DartType listDynamicType =
@@ -631,12 +687,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       // everything was successful?
       _resolver.inferenceContext.recordInference(node, inferred);
       _recordStaticType(node, inferred);
-      return null;
+      return;
     }
 
     // If we have no type arguments and couldn't infer any, use dynamic.
     _recordStaticType(node, listDynamicType);
-    return null;
   }
 
   /**
@@ -652,11 +707,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * <i>String</i>.</blockquote>
    */
   @override
-  Object visitMapLiteral(MapLiteral node) {
+  void visitMapLiteral(MapLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
-
-    DartType mapDynamicType = _typeProvider.mapType
-        .instantiate(<DartType>[_dynamicType, _dynamicType]);
 
     // If we have type arguments, use them
     if (typeArguments != null) {
@@ -677,8 +729,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           node,
           _typeProvider.mapType
               .instantiate(<DartType>[staticKeyType, staticValueType]));
-      return null;
+      return;
     }
+
+    DartType mapDynamicType = _typeProvider.mapType
+        .instantiate(<DartType>[_dynamicType, _dynamicType]);
 
     // If we have no explicit type arguments, try to infer type arguments.
     ParameterizedType inferred = inferMapType(node);
@@ -690,12 +745,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       // everything was successful?
       _resolver.inferenceContext.recordInference(node, inferred);
       _recordStaticType(node, inferred);
-      return null;
+      return;
     }
 
     // If no type arguments and no inference, use dynamic
     _recordStaticType(node, mapDynamicType);
-    return null;
   }
 
   /**
@@ -735,7 +789,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * <i>F</i>.</blockquote>
    */
   @override
-  Object visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     _inferGenericInvocationExpression(node);
     // Record static return type of the static element.
     bool inferredStaticType = _inferMethodInvocationObject(node) ||
@@ -746,14 +800,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           _computeInvokeReturnType(node.staticInvokeType);
       _recordStaticType(node, staticStaticType);
     }
-    return null;
   }
 
   @override
-  Object visitNamedExpression(NamedExpression node) {
+  void visitNamedExpression(NamedExpression node) {
     Expression expression = node.expression;
     _recordStaticType(node, _getStaticType(expression));
-    return null;
   }
 
   /**
@@ -761,16 +813,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * </blockquote>
    */
   @override
-  Object visitNullLiteral(NullLiteral node) {
+  void visitNullLiteral(NullLiteral node) {
     _recordStaticType(node, _typeProvider.nullType);
-    return null;
   }
 
   @override
-  Object visitParenthesizedExpression(ParenthesizedExpression node) {
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
     Expression expression = node.expression;
     _recordStaticType(node, _getStaticType(expression));
-    return null;
   }
 
   /**
@@ -800,25 +850,25 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * = r - 1; return r}(e1, e2)</i></blockquote>
    */
   @override
-  Object visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixExpression(PostfixExpression node) {
     Expression operand = node.operand;
     DartType staticType = _getStaticType(operand, read: true);
-    TokenType operator = node.operator.type;
-    if (operator == TokenType.MINUS_MINUS || operator == TokenType.PLUS_PLUS) {
-      DartType intType = _typeProvider.intType;
-      if (identical(staticType, intType)) {
-        staticType = intType;
-      }
+
+    // No need to check for `intVar++`, the result is `int`.
+    if (!staticType.isDartCoreInt) {
+      var operatorElement = node.staticElement;
+      var operatorReturnType = _computeStaticReturnType(operatorElement);
+      _checkForInvalidAssignmentIncDec(node, operand, operatorReturnType);
     }
+
     _recordStaticType(node, staticType);
-    return null;
   }
 
   /**
    * See [visitSimpleIdentifier].
    */
   @override
-  Object visitPrefixedIdentifier(PrefixedIdentifier node) {
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefixedIdentifier = node.identifier;
     Element staticElement = prefixedIdentifier.staticElement;
     DartType staticType = _dynamicType;
@@ -850,7 +900,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       _recordStaticType(prefixedIdentifier, staticType);
       _recordStaticType(node, staticType);
     }
-    return null;
   }
 
   /**
@@ -859,7 +908,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * form <i>op super</i> is equivalent to the method invocation <i>super.op()<i>.</blockquote>
    */
   @override
-  Object visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixExpression(PrefixExpression node) {
     TokenType operator = node.operator.type;
     if (operator == TokenType.BANG) {
       _recordStaticType(node, _typeProvider.boolType);
@@ -869,14 +918,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       DartType staticType = _computeStaticReturnType(staticMethodElement);
       if (operator == TokenType.MINUS_MINUS ||
           operator == TokenType.PLUS_PLUS) {
-        DartType intType = _typeProvider.intType;
-        if (identical(_getStaticType(node.operand, read: true), intType)) {
-          staticType = intType;
+        Expression operand = node.operand;
+        var operandReadType = _getStaticType(operand, read: true);
+        if (operandReadType.isDartCoreInt) {
+          staticType = _typeProvider.intType;
+        } else {
+          _checkForInvalidAssignmentIncDec(node, operand, staticType);
         }
       }
       _recordStaticType(node, staticType);
     }
-    return null;
   }
 
   /**
@@ -921,7 +972,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * The static type of <i>i</i> is the declared return type of <i>m</i>.</blockquote>
    */
   @override
-  Object visitPropertyAccess(PropertyAccess node) {
+  void visitPropertyAccess(PropertyAccess node) {
     SimpleIdentifier propertyName = node.propertyName;
     Element staticElement = propertyName.staticElement;
     DartType staticType = _dynamicType;
@@ -937,7 +988,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       _recordStaticType(propertyName, staticType);
       _recordStaticType(node, staticType);
     }
-    return null;
   }
 
   /**
@@ -945,9 +995,47 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * bottom.</blockquote>
    */
   @override
-  Object visitRethrowExpression(RethrowExpression node) {
+  void visitRethrowExpression(RethrowExpression node) {
     _recordStaticType(node, _typeProvider.bottomType);
-    return null;
+  }
+
+  @override
+  void visitSetLiteral(SetLiteral node) {
+    TypeArgumentList typeArguments = node.typeArguments;
+
+    // If we have type arguments, use them
+    if (typeArguments != null) {
+      DartType elementType = _dynamicType;
+      NodeList<TypeAnnotation> arguments = typeArguments.arguments;
+      if (arguments != null && arguments.length == 1) {
+        DartType type = _getType(arguments[0]);
+        if (type != null) {
+          elementType = type;
+        }
+      }
+      _recordStaticType(
+          node, _typeProvider.setType.instantiate(<DartType>[elementType]));
+      return;
+    }
+
+    DartType setDynamicType =
+        _typeProvider.setType.instantiate(<DartType>[_dynamicType]);
+
+    // If we have no explicit type arguments, try to infer type arguments.
+    ParameterizedType inferred = inferSetType(node);
+
+    if (inferred != setDynamicType) {
+      // TODO(jmesserly): this results in an "inferred" message even when we
+      // in fact had an error above, because it will still attempt to return
+      // a type. Perhaps we should record inference from TypeSystem if
+      // everything was successful?
+      _resolver.inferenceContext.recordInference(node, inferred);
+      _recordStaticType(node, inferred);
+      return;
+    }
+
+    // If no type arguments and no inference, use dynamic
+    _recordStaticType(node, setDynamicType);
   }
 
   /**
@@ -989,7 +1077,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * </blockquote>
    */
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
     DartType staticType = _dynamicType;
     if (element is ClassElement) {
@@ -1019,7 +1107,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       var parent = node.parent;
       if (parent is PrefixedIdentifier && parent.prefix == node ||
           parent is MethodInvocation && parent.target == node) {
-        return null;
+        return;
       }
       staticType = _typeProvider.dynamicType;
     } else if (element is DynamicElementImpl) {
@@ -1029,7 +1117,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     staticType = _inferGenericInstantiationFromContext(node, staticType);
     _recordStaticType(node, staticType);
-    return null;
   }
 
   /**
@@ -1037,9 +1124,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * `String`.</blockquote>
    */
   @override
-  Object visitSimpleStringLiteral(SimpleStringLiteral node) {
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
     _recordStaticType(node, _typeProvider.stringType);
-    return null;
   }
 
   /**
@@ -1047,13 +1133,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * `String`.</blockquote>
    */
   @override
-  Object visitStringInterpolation(StringInterpolation node) {
+  void visitStringInterpolation(StringInterpolation node) {
     _recordStaticType(node, _typeProvider.stringType);
-    return null;
   }
 
   @override
-  Object visitSuperExpression(SuperExpression node) {
+  void visitSuperExpression(SuperExpression node) {
     if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
@@ -1061,13 +1146,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       _recordStaticType(node, thisType);
     }
-    return null;
   }
 
   @override
-  Object visitSymbolLiteral(SymbolLiteral node) {
+  void visitSymbolLiteral(SymbolLiteral node) {
     _recordStaticType(node, _typeProvider.symbolType);
-    return null;
   }
 
   /**
@@ -1075,7 +1158,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * interface of the immediately enclosing class.</blockquote>
    */
   @override
-  Object visitThisExpression(ThisExpression node) {
+  void visitThisExpression(ThisExpression node) {
     if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
@@ -1083,7 +1166,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       _recordStaticType(node, thisType);
     }
-    return null;
   }
 
   /**
@@ -1091,13 +1173,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * bottom.</blockquote>
    */
   @override
-  Object visitThrowExpression(ThrowExpression node) {
+  void visitThrowExpression(ThrowExpression node) {
     _recordStaticType(node, _typeProvider.bottomType);
-    return null;
   }
 
   @override
-  Object visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     Expression initializer = node.initializer;
     _inferLocalVariableType(node, initializer);
     if (initializer != null) {
@@ -1108,7 +1189,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         _resolver.overrideVariable(element, rightType, true);
       }
     }
-    return null;
   }
 
   /**
@@ -1134,6 +1214,20 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
             _dynamicType;
 
     _recordStaticType(node, staticType);
+  }
+
+  /// Check that the result [type] of a prefix or postfix `++` or `--`
+  /// expression is assignable to the write type of the [operand].
+  void _checkForInvalidAssignmentIncDec(
+      AstNode node, Expression operand, DartType type) {
+    var operandWriteType = _getStaticType(operand);
+    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
+      _resolver.errorReporter.reportTypeErrorForNode(
+        StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        node,
+        [type, operandWriteType],
+      );
+    }
   }
 
   /**
@@ -1185,7 +1279,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         type = (type as InterfaceType).typeArguments[0];
       }
       return _typeProvider.futureType
-          .instantiate(<DartType>[type.flattenFutures(_typeSystem)]);
+          .instantiate(<DartType>[_typeSystem.flatten(type)]);
     } else {
       return type;
     }
@@ -1432,7 +1526,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     var context = InferenceContext.getContext(node);
     if (context is FunctionType &&
         type is FunctionType &&
-        ts is StrongTypeSystemImpl) {
+        ts is Dart2TypeSystem) {
       return ts.inferFunctionTypeInstantiation(context, type,
           errorReporter: _resolver.errorReporter, errorNode: node);
     }
@@ -1481,7 +1575,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (typeArguments == null &&
         fnType is FunctionType &&
         fnType.typeFormals.isNotEmpty &&
-        ts is StrongTypeSystemImpl) {
+        ts is Dart2TypeSystem) {
       // Get the parameters that correspond to the uninstantiated generic.
       List<ParameterElement> rawParameters =
           ResolverVisitor.resolveArgumentsToParameters(

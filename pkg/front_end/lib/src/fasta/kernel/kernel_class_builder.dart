@@ -32,14 +32,16 @@ import 'package:kernel/ast.dart'
         Arguments,
         VariableDeclaration;
 
-import 'package:kernel/ast.dart'
-    show FunctionType, NamedType, TypeParameterType;
+import 'package:kernel/ast.dart' show FunctionType, TypeParameterType;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/clone.dart' show CloneWithoutBody;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/src/bounds_checks.dart'
+    show TypeArgumentIssue, findTypeArgumentIssues, getGenericTypeName;
 
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
@@ -61,14 +63,14 @@ import '../fasta_codes.dart'
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength,
-        templateFactoryRedirecteeHasTooFewPositionalParameters,
-        templateFactoryRedirecteeInvalidReturnType,
+        templateDuplicatedDeclarationUse,
         templateGenericFunctionTypeInferredAsActualTypeArgument,
         templateIllegalMixinDueToConstructors,
         templateIllegalMixinDueToConstructorsCause,
         templateImplementsRepeated,
         templateImplementsSuperClass,
         templateImplicitMixinOverrideContext,
+        templateIncompatibleRedirecteeFunctionType,
         templateIncorrectTypeArgument,
         templateIncorrectTypeArgumentInSupertype,
         templateIncorrectTypeArgumentInSupertypeInferred,
@@ -86,16 +88,14 @@ import '../fasta_codes.dart'
         templateOverrideTypeMismatchReturnType,
         templateOverrideTypeVariablesMismatch,
         templateRedirectingFactoryIncompatibleTypeArgument,
-        templateRedirectingFactoryInvalidNamedParameterType,
-        templateRedirectingFactoryInvalidPositionalParameterType,
-        templateRedirectingFactoryMissingNamedParameter,
-        templateRedirectingFactoryProvidesTooFewRequiredParameters,
         templateRedirectionTargetNotFound,
         templateTypeArgumentMismatch;
 
 import '../names.dart' show noSuchMethodName;
 
 import '../problems.dart' show unexpected, unhandled, unimplemented;
+
+import '../scope.dart' show AmbiguousBuilder;
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
@@ -288,17 +288,15 @@ abstract class KernelClassBuilder
       Supertype supertype, TypeEnvironment typeEnvironment) {
     KernelLibraryBuilder library = this.library;
 
-    List<Object> boundViolations = typeEnvironment.findBoundViolations(
+    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         new InterfaceType(supertype.classNode, supertype.typeArguments),
-        allowSuperBounded: false,
-        typedefInstantiations: library.typedefInstantiations);
-    if (boundViolations != null) {
-      for (int i = 0; i < boundViolations.length; i += 3) {
-        DartType argument = boundViolations[i];
-        TypeParameter variable = boundViolations[i + 1];
-        DartType enclosingType = boundViolations[i + 2];
-
+        typeEnvironment,
+        allowSuperBounded: false);
+    if (issues != null) {
+      for (TypeArgumentIssue issue in issues) {
         Message message;
+        DartType argument = issue.argument;
+        TypeParameter typeParameter = issue.typeParameter;
         bool inferred = library.inferredTypes.contains(argument);
         if (argument is FunctionType && argument.typeParameters.length > 0) {
           if (inferred) {
@@ -307,25 +305,29 @@ abstract class KernelClassBuilder
           } else {
             message = messageGenericFunctionTypeUsedAsActualTypeArgument;
           }
-          variable = null;
+          typeParameter = null;
         } else {
           if (inferred) {
             message =
                 templateIncorrectTypeArgumentInSupertypeInferred.withArguments(
                     argument,
-                    typeEnvironment.getGenericTypeName(enclosingType),
+                    typeParameter.bound,
+                    typeParameter.name,
+                    getGenericTypeName(issue.enclosingType),
                     supertype.classNode.name,
                     name);
           } else {
             message = templateIncorrectTypeArgumentInSupertype.withArguments(
                 argument,
-                typeEnvironment.getGenericTypeName(enclosingType),
+                typeParameter.bound,
+                typeParameter.name,
+                getGenericTypeName(issue.enclosingType),
                 supertype.classNode.name,
                 name);
           }
         }
 
-        library.reportBoundViolation(message, charOffset, variable);
+        library.reportTypeArgumentIssue(message, charOffset, typeParameter);
       }
     }
   }
@@ -335,15 +337,13 @@ abstract class KernelClassBuilder
 
     // Check in bounds of own type variables.
     for (TypeParameter parameter in cls.typeParameters) {
-      List<Object> violations = typeEnvironment.findBoundViolations(
-          parameter.bound,
-          allowSuperBounded: false,
-          typedefInstantiations: library.typedefInstantiations);
-      if (violations != null) {
-        for (int i = 0; i < violations.length; i += 3) {
-          DartType argument = violations[i];
-          TypeParameter variable = violations[i + 1];
-          DartType enclosingType = violations[i + 2];
+      List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+          parameter.bound, typeEnvironment,
+          allowSuperBounded: false);
+      if (issues != null) {
+        for (TypeArgumentIssue issue in issues) {
+          DartType argument = issue.argument;
+          TypeParameter typeParameter = issue.typeParameter;
           if (library.inferredTypes.contains(argument)) {
             // Inference in type expressions in the supertypes boils down to
             // instantiate-to-bound which shouldn't produce anything that breaks
@@ -356,13 +356,17 @@ abstract class KernelClassBuilder
           Message message;
           if (argument is FunctionType && argument.typeParameters.length > 0) {
             message = messageGenericFunctionTypeUsedAsActualTypeArgument;
-            variable = null;
+            typeParameter = null;
           } else {
             message = templateIncorrectTypeArgument.withArguments(
-                argument, typeEnvironment.getGenericTypeName(enclosingType));
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                getGenericTypeName(issue.enclosingType));
           }
 
-          library.reportBoundViolation(message, parameter.fileOffset, variable);
+          library.reportTypeArgumentIssue(
+              message, parameter.fileOffset, typeParameter);
         }
       }
     }
@@ -409,58 +413,79 @@ abstract class KernelClassBuilder
       List<String> names = constructors.keys.toList();
       for (String name in names) {
         Declaration declaration = constructors[name];
-        if (declaration.parent != this) {
-          unexpected(
-              "$fileUri", "${declaration.parent.fileUri}", charOffset, fileUri);
-        }
-        if (declaration is KernelRedirectingFactoryBuilder) {
-          // Compute the immediate redirection target, not the effective.
-          ConstructorReferenceBuilder redirectionTarget =
-              declaration.redirectionTarget;
-          if (redirectionTarget != null) {
-            Declaration targetBuilder = redirectionTarget.target;
-            addRedirectingConstructor(declaration, library);
-            if (targetBuilder is ProcedureBuilder) {
-              List<DartType> typeArguments = declaration.typeArguments;
-              if (typeArguments == null) {
-                // TODO(32049) If type arguments aren't specified, they should
-                // be inferred.  Currently, the inference is not performed.
-                // The code below is a workaround.
-                typeArguments = new List<DartType>.filled(
-                    targetBuilder.target.enclosingClass.typeParameters.length,
-                    const DynamicType(),
-                    growable: true);
+        do {
+          if (declaration.parent != this) {
+            unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
+                fileUri);
+          }
+          if (declaration is KernelRedirectingFactoryBuilder) {
+            // Compute the immediate redirection target, not the effective.
+            ConstructorReferenceBuilder redirectionTarget =
+                declaration.redirectionTarget;
+            if (redirectionTarget != null) {
+              Declaration targetBuilder = redirectionTarget.target;
+              if (declaration.next == null) {
+                // Only the first one (that is, the last on in the linked list)
+                // is actually in the kernel tree. This call creates a StaticGet
+                // to [declaration.target] in a field `_redirecting#` which is
+                // only legal to do to things in the kernel tree.
+                addRedirectingConstructor(declaration, library);
               }
-              declaration.setRedirectingFactoryBody(
-                  targetBuilder.target, typeArguments);
-            } else if (targetBuilder is DillMemberBuilder) {
-              List<DartType> typeArguments = declaration.typeArguments;
-              if (typeArguments == null) {
-                // TODO(32049) If type arguments aren't specified, they should
-                // be inferred.  Currently, the inference is not performed.
-                // The code below is a workaround.
-                typeArguments = new List<DartType>.filled(
-                    targetBuilder.target.enclosingClass.typeParameters.length,
-                    const DynamicType(),
-                    growable: true);
-              }
-              declaration.setRedirectingFactoryBody(
-                  targetBuilder.member, typeArguments);
-            } else {
-              Message message = templateRedirectionTargetNotFound
-                  .withArguments(redirectionTarget.fullNameForErrors);
-              if (declaration.isConst) {
-                addProblem(message, declaration.charOffset, noLength);
+              if (targetBuilder is ProcedureBuilder) {
+                List<DartType> typeArguments = declaration.typeArguments;
+                if (typeArguments == null) {
+                  // TODO(32049) If type arguments aren't specified, they should
+                  // be inferred.  Currently, the inference is not performed.
+                  // The code below is a workaround.
+                  typeArguments = new List<DartType>.filled(
+                      targetBuilder.target.enclosingClass.typeParameters.length,
+                      const DynamicType(),
+                      growable: true);
+                }
+                declaration.setRedirectingFactoryBody(
+                    targetBuilder.target, typeArguments);
+              } else if (targetBuilder is DillMemberBuilder) {
+                List<DartType> typeArguments = declaration.typeArguments;
+                if (typeArguments == null) {
+                  // TODO(32049) If type arguments aren't specified, they should
+                  // be inferred.  Currently, the inference is not performed.
+                  // The code below is a workaround.
+                  typeArguments = new List<DartType>.filled(
+                      targetBuilder.target.enclosingClass.typeParameters.length,
+                      const DynamicType(),
+                      growable: true);
+                }
+                declaration.setRedirectingFactoryBody(
+                    targetBuilder.member, typeArguments);
+              } else if (targetBuilder is AmbiguousBuilder) {
+                Message message = templateDuplicatedDeclarationUse
+                    .withArguments(redirectionTarget.fullNameForErrors);
+                if (declaration.isConst) {
+                  addProblem(message, declaration.charOffset, noLength);
+                } else {
+                  addProblem(message, declaration.charOffset, noLength);
+                }
+                // CoreTypes aren't computed yet, and this is the outline
+                // phase. So we can't and shouldn't create a method body.
+                declaration.body = new RedirectingFactoryBody.unresolved(
+                    redirectionTarget.fullNameForErrors);
               } else {
-                addProblem(message, declaration.charOffset, noLength);
+                Message message = templateRedirectionTargetNotFound
+                    .withArguments(redirectionTarget.fullNameForErrors);
+                if (declaration.isConst) {
+                  addProblem(message, declaration.charOffset, noLength);
+                } else {
+                  addProblem(message, declaration.charOffset, noLength);
+                }
+                // CoreTypes aren't computed yet, and this is the outline
+                // phase. So we can't and shouldn't create a method body.
+                declaration.body = new RedirectingFactoryBody.unresolved(
+                    redirectionTarget.fullNameForErrors);
               }
-              // CoreTypes aren't computed yet, and this is the outline
-              // phase. So we can't and shouldn't create a method body.
-              declaration.body = new RedirectingFactoryBody.unresolved(
-                  redirectionTarget.fullNameForErrors);
             }
           }
-        }
+          declaration = declaration.next;
+        } while (declaration != null);
       }
     }
     return count;
@@ -615,9 +640,9 @@ abstract class KernelClassBuilder
           isInterfaceCheck: true);
     }
 
-    bool hasNoSuchMethod =
-        hierarchy.getDispatchTarget(cls, noSuchMethodName).enclosingClass !=
-            coreTypes.objectClass;
+    Member noSuchMethod = hierarchy.getDispatchTarget(cls, noSuchMethodName);
+    bool hasNoSuchMethod = noSuchMethod != null &&
+        noSuchMethod.enclosingClass != coreTypes.objectClass;
 
     void findMissingImplementations({bool setters}) {
       List<Member> dispatchTargets =
@@ -676,11 +701,11 @@ abstract class KernelClassBuilder
     findMissingImplementations(setters: true);
 
     if (context?.isNotEmpty ?? false) {
-      String memberString =
-          context.map((message) => "'${message.arguments["name"]}'").join(", ");
+      List<String> memberNames = new List<String>.from(
+          context.map((message) => "'${message.arguments["name"]}'"));
       library.addProblem(
           templateMissingImplementationNotAbstract.withArguments(
-              cls.name, memberString),
+              cls.name, memberNames),
           cls.fileOffset,
           cls.name.length,
           cls.fileUri,
@@ -928,9 +953,9 @@ abstract class KernelClassBuilder
         interfaceFunction?.typeParameters?.length) {
       library.addProblem(
           templateOverrideTypeVariablesMismatch.withArguments(
-              "${declaredMember.enclosingClass.name}::"
+              "${declaredMember.enclosingClass.name}."
               "${declaredMember.name.name}",
-              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.enclosingClass.name}."
               "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
@@ -965,9 +990,9 @@ abstract class KernelClassBuilder
           if (declaredBound != substitution.substituteType(interfaceBound)) {
             library.addProblem(
                 templateOverrideTypeVariablesMismatch.withArguments(
-                    "${declaredMember.enclosingClass.name}::"
+                    "${declaredMember.enclosingClass.name}."
                     "${declaredMember.name.name}",
-                    "${interfaceMember.enclosingClass.name}::"
+                    "${interfaceMember.enclosingClass.name}."
                     "${interfaceMember.name.name}"),
                 declaredMember.fileOffset,
                 noLength,
@@ -1030,10 +1055,8 @@ abstract class KernelClassBuilder
       // a type which is a subtype of the parameter it overrides.
     } else {
       // Report an error.
-      // TODO(ahe): The double-colon notation shouldn't be used in error
-      // messages.
       String declaredMemberName =
-          '${declaredMember.enclosingClass.name}::${declaredMember.name.name}';
+          '${declaredMember.enclosingClass.name}.${declaredMember.name.name}';
       Message message;
       int fileOffset;
       if (declaredParameter == null) {
@@ -1101,9 +1124,9 @@ abstract class KernelClassBuilder
         interfaceFunction.positionalParameters.length) {
       library.addProblem(
           templateOverrideFewerPositionalArguments.withArguments(
-              "${declaredMember.enclosingClass.name}::"
+              "${declaredMember.enclosingClass.name}."
               "${declaredMember.name.name}",
-              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.enclosingClass.name}."
               "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
@@ -1120,9 +1143,9 @@ abstract class KernelClassBuilder
         declaredFunction.requiredParameterCount) {
       library.addProblem(
           templateOverrideMoreRequiredArguments.withArguments(
-              "${declaredMember.enclosingClass.name}::"
+              "${declaredMember.enclosingClass.name}."
               "${declaredMember.name.name}",
-              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.enclosingClass.name}."
               "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
@@ -1162,9 +1185,9 @@ abstract class KernelClassBuilder
         interfaceFunction.namedParameters.length) {
       library.addProblem(
           templateOverrideFewerNamedArguments.withArguments(
-              "${declaredMember.enclosingClass.name}::"
+              "${declaredMember.enclosingClass.name}."
               "${declaredMember.name.name}",
-              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.enclosingClass.name}."
               "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
@@ -1199,10 +1222,10 @@ abstract class KernelClassBuilder
         if (!declaredNamedParameters.moveNext()) {
           library.addProblem(
               templateOverrideMismatchNamedParameter.withArguments(
-                  "${declaredMember.enclosingClass.name}::"
+                  "${declaredMember.enclosingClass.name}."
                   "${declaredMember.name.name}",
                   interfaceNamedParameters.current.name,
-                  "${interfaceMember.enclosingClass.name}::"
+                  "${interfaceMember.enclosingClass.name}."
                   "${interfaceMember.name.name}"),
               declaredMember.fileOffset,
               noLength,
@@ -1481,6 +1504,12 @@ abstract class KernelClassBuilder
       //   class B implements A {}
       //
       target = targetBuilder.member.function;
+    } else if (redirectionTarget.target is AmbiguousBuilder) {
+      // Multiple definitions with the same name: An error has already been
+      // issued.
+      // TODO(http://dartbug.com/35294): Unfortunate error; see also
+      // https://dart-review.googlesource.com/c/sdk/+/85390/.
+      return null;
     } else {
       unhandled("${redirectionTarget.target}", "computeRedirecteeType",
           charOffset, fileUri);
@@ -1569,144 +1598,14 @@ abstract class KernelClassBuilder
     // happened during [_computeRedirecteeType].
     if (redirecteeType == null) return;
 
-    // Check whether [redirecteeType] <: [factoryType]. In the following let
-    //     [factoryType    = (S_1, ..., S_i, {S_(i+1), ..., S_n}) -> S']
-    //     [redirecteeType = (T_1, ..., T_j, {T_(j+1), ..., T_m}) -> T'].
-
-    // Ensure that any extra parameters that [redirecteeType] might have are
-    // optional.
-    if (redirecteeType.requiredParameterCount >
-        factoryType.requiredParameterCount) {
+    // Check whether [redirecteeType] <: [factoryType].
+    if (!typeEnvironment.isSubtypeOf(redirecteeType, factoryType)) {
       addProblem(
-          templateRedirectingFactoryProvidesTooFewRequiredParameters
-              .withArguments(
-                  factory.fullNameForErrors,
-                  factoryType.requiredParameterCount,
-                  computeRedirecteeName(factory.redirectionTarget),
-                  redirecteeType.requiredParameterCount),
-          factory.charOffset,
-          noLength);
-      return;
-    }
-    if (redirecteeType.positionalParameters.length <
-        factoryType.positionalParameters.length) {
-      String targetName = computeRedirecteeName(factory.redirectionTarget);
-      addProblem(
-          templateFactoryRedirecteeHasTooFewPositionalParameters.withArguments(
-              targetName, redirecteeType.positionalParameters.length),
+          templateIncompatibleRedirecteeFunctionType.withArguments(
+              redirecteeType, factoryType),
           factory.redirectionTarget.charOffset,
           noLength);
-      return;
     }
-
-    // For each 0 < k < i check S_k <: T_k.
-    for (int i = 0; i < factoryType.positionalParameters.length; ++i) {
-      var factoryParameterType = factoryType.positionalParameters[i];
-      var redirecteeParameterType = redirecteeType.positionalParameters[i];
-      if (!typeEnvironment.isSubtypeOf(
-          factoryParameterType, redirecteeParameterType)) {
-        final factoryParameter =
-            factory.target.function.positionalParameters[i];
-        addProblem(
-            templateRedirectingFactoryInvalidPositionalParameterType
-                .withArguments(factoryParameter.name, factoryParameterType,
-                    redirecteeParameterType),
-            factoryParameter.fileOffset,
-            factoryParameter.name.length);
-        return;
-      }
-    }
-
-    // For each i < k < n check that the named parameter S_k has a corresponding
-    // named parameter T_l in [redirecteeType] for some j < l < m.
-    int factoryTypeNameIndex = 0; // k.
-    int redirecteeTypeNameIndex = 0; // l.
-
-    // The following code makes use of the invariant that [namedParameters] are
-    // already sorted (i.e. it's a monotonic sequence) to determine in a linear
-    // pass whether [factory.namedParameters] is a subset of
-    // [redirectee.namedParameters]. In the comments below the symbol <= stands
-    // for the usual lexicographic relation on strings.
-    while (factoryTypeNameIndex < factoryType.namedParameters.length) {
-      // If we have gone beyond the bound of redirectee's named parameters, then
-      // signal a missing named parameter error.
-      if (redirecteeTypeNameIndex == redirecteeType.namedParameters.length) {
-        reportRedirectingFactoryMissingNamedParameter(
-            factory, factoryType.namedParameters[factoryTypeNameIndex]);
-        break;
-      }
-
-      int result = redirecteeType.namedParameters[redirecteeTypeNameIndex].name
-          .compareTo(factoryType.namedParameters[factoryTypeNameIndex].name);
-      if (result < 0) {
-        // T_l.name <= S_k.name.
-        redirecteeTypeNameIndex++;
-      } else if (result == 0) {
-        // S_k.name <= T_l.name.
-        NamedType factoryParameterType =
-            factoryType.namedParameters[factoryTypeNameIndex];
-        NamedType redirecteeParameterType =
-            redirecteeType.namedParameters[redirecteeTypeNameIndex];
-        // Check S_k <: T_l.
-        if (!typeEnvironment.isSubtypeOf(
-            factoryParameterType.type, redirecteeParameterType.type)) {
-          var factoryFormal =
-              factory.target.function.namedParameters[redirecteeTypeNameIndex];
-          addProblem(
-              templateRedirectingFactoryInvalidNamedParameterType.withArguments(
-                  factoryParameterType.name,
-                  factoryParameterType.type,
-                  redirecteeParameterType.type),
-              factoryFormal.fileOffset,
-              factoryFormal.name.length);
-          return;
-        }
-        redirecteeTypeNameIndex++;
-        factoryTypeNameIndex++;
-      } else {
-        // S_k.name <= T_l.name. By appealing to the monotinicity of
-        // [namedParameters] and the transivity of <= it follows that for any
-        // l', such that l < l', it must be the case that S_k <= T_l'. Thus the
-        // named parameter is missing from the redirectee's parameter list.
-        reportRedirectingFactoryMissingNamedParameter(
-            factory, factoryType.namedParameters[factoryTypeNameIndex]);
-
-        // Continue with the next factory named parameter.
-        factoryTypeNameIndex++;
-      }
-    }
-
-    // Report any unprocessed factory named parameters as missing.
-    if (factoryTypeNameIndex < factoryType.namedParameters.length) {
-      for (int i = factoryTypeNameIndex;
-          i < factoryType.namedParameters.length;
-          i++) {
-        reportRedirectingFactoryMissingNamedParameter(
-            factory, factoryType.namedParameters[factoryTypeNameIndex]);
-      }
-    }
-
-    // Check that T' <: S'.
-    if (!typeEnvironment.isSubtypeOf(
-        redirecteeType.returnType, factoryType.returnType)) {
-      String targetName = computeRedirecteeName(factory.redirectionTarget);
-      addProblem(
-          templateFactoryRedirecteeInvalidReturnType.withArguments(
-              redirecteeType.returnType, targetName, factoryType.returnType),
-          factory.redirectionTarget.charOffset,
-          noLength);
-      return;
-    }
-  }
-
-  void reportRedirectingFactoryMissingNamedParameter(
-      KernelRedirectingFactoryBuilder factory, NamedType missingParameter) {
-    addProblem(
-        templateRedirectingFactoryMissingNamedParameter.withArguments(
-            computeRedirecteeName(factory.redirectionTarget),
-            missingParameter.name),
-        factory.redirectionTarget.charOffset,
-        noLength);
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
@@ -1714,9 +1613,12 @@ abstract class KernelClassBuilder
     Iterable<String> names = constructors.keys;
     for (String name in names) {
       Declaration constructor = constructors[name];
-      if (constructor is KernelRedirectingFactoryBuilder) {
-        checkRedirectingFactory(constructor, typeEnvironment);
-      }
+      do {
+        if (constructor is KernelRedirectingFactoryBuilder) {
+          checkRedirectingFactory(constructor, typeEnvironment);
+        }
+        constructor = constructor.next;
+      } while (constructor != null);
     }
   }
 

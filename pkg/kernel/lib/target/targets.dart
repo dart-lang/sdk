@@ -14,15 +14,12 @@ class TargetFlags {
   final bool legacyMode;
   final bool treeShake;
 
-  /// Whether `async` functions start synchronously.
-  final bool syncAsync;
   final List<ProgramRoot> programRoots;
   final Uri kernelRuntime;
 
   TargetFlags(
       {this.legacyMode: false,
       this.treeShake: false,
-      this.syncAsync: false,
       this.programRoots: const <ProgramRoot>[],
       this.kernelRuntime});
 }
@@ -60,13 +57,6 @@ abstract class Target {
   Map<String, List<String>> get requiredSdkClasses => CoreTypes.requiredClasses;
 
   bool get legacyMode;
-
-  /// A derived class may change this to `true` to disable type inference and
-  /// type promotion phases of analysis.
-  ///
-  /// This is intended for profiling, to ensure that type inference and type
-  /// promotion do not slow down compilation too much.
-  bool get disableTypeInference => false;
 
   /// A derived class may change this to `true` to enable forwarders to
   /// user-defined `noSuchMethod` that are generated for each abstract member
@@ -157,6 +147,12 @@ abstract class Target {
   /// integers are represented as doubles
   /// `Math.pow(2, 53) = Math.pow(2, 53) + 1`.
   bool get errorOnUnexactWebIntLiterals => false;
+
+  /// Whether set literals are natively supported by this target. If set
+  /// literals are not supported by the target, they will be desugared into
+  /// explicit `Set` creation (for non-const set literals) or wrapped map
+  /// literals (for const set literals).
+  bool get supportsSetLiterals => false;
 
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].

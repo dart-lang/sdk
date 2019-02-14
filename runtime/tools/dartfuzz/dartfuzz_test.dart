@@ -13,7 +13,7 @@ import 'dartfuzz.dart';
 
 const debug = false;
 const sigkill = 9;
-const timeout = 30; // in seconds
+const timeout = 60; // in seconds
 
 // Exit code of running a test.
 enum ResultCode { success, timeout, error }
@@ -38,7 +38,7 @@ TestResult runCommand(List<String> cmd, Map<String, String> env) {
   if (res.exitCode == -sigkill) {
     return new TestResult(ResultCode.timeout, res.stdout);
   } else if (res.exitCode != 0) {
-    return new TestResult(ResultCode.error, res.stdout);
+    return new TestResult(ResultCode.error, res.stderr);
   }
   return new TestResult(ResultCode.success, res.stdout);
 }
@@ -49,15 +49,40 @@ abstract class TestRunner {
   String description;
 
   // Factory.
-  static TestRunner getTestRunner(
-      String mode, String top, String tmp, Map<String, String> env) {
+  static TestRunner getTestRunner(String mode, String top, String tmp,
+      Map<String, String> env, Random rand) {
+    String tag = getTag(mode);
+    if (mode.startsWith('jit-stress'))
+      switch (rand.nextInt(6)) {
+        case 0:
+          return new TestRunnerJIT('JIT-NOFIELDGUARDS', tag, top, tmp, env,
+              ['--use_field_guards=false']);
+        case 1:
+          return new TestRunnerJIT(
+              'JIT-NOINTRINSIFY', tag, top, tmp, env, ['--intrinsify=false']);
+        case 2:
+          return new TestRunnerJIT('JIT-COMPACTEVERY', tag, top, tmp, env,
+              ['--gc_every=1000', '--use_compactor=true']);
+        case 3:
+          return new TestRunnerJIT('JIT-MARKSWEEPEVERY', tag, top, tmp, env,
+              ['--gc_every=1000', '--use_compactor=false']);
+        case 4:
+          return new TestRunnerJIT('JIT-DEPOPTEVERY', tag, top, tmp, env,
+              ['--deoptimize_every=100']);
+        case 5:
+          return new TestRunnerJIT('JIT-STACKTRACEEVERY', tag, top, tmp, env,
+              ['--stacktrace_every=100']);
+        case 6:
+          // Crashes (https://github.com/dart-lang/sdk/issues/35196):
+          return new TestRunnerJIT('JIT-OPTCOUNTER', tag, top, tmp, env,
+              ['--optimization_counter_threshold=1']);
+      }
     if (mode.startsWith('jit'))
-      return new TestRunnerJIT(getTag(mode), top, tmp, env);
-    if (mode.startsWith('aot'))
-      return new TestRunnerAOT(getTag(mode), top, tmp, env);
+      return new TestRunnerJIT('JIT', tag, top, tmp, env, []);
+    if (mode.startsWith('aot')) return new TestRunnerAOT(tag, top, tmp, env);
     if (mode.startsWith('kbc'))
-      return new TestRunnerKBC(mode, getTag(mode), top, tmp, env);
-    if (mode.startsWith('js')) return new TestRunnerJS(top, tmp, env);
+      return new TestRunnerKBC(mode, tag, top, tmp, env);
+    if (mode.startsWith('js')) return new TestRunnerJS(tag, top, tmp, env);
     throw ('unknown runner in mode: $mode');
   }
 
@@ -81,21 +106,24 @@ abstract class TestRunner {
 
 /// Concrete test runner of Dart JIT.
 class TestRunnerJIT implements TestRunner {
-  TestRunnerJIT(String tag, String top, String tmp, Map<String, String> e) {
-    description = 'JIT-${tag}';
+  TestRunnerJIT(String prefix, String tag, String top, String tmp,
+      Map<String, String> e, List<String> extra_flags) {
+    description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
     fileName = '$tmp/fuzz.dart';
     env = e;
+    cmd = [dart, "--deterministic"] + extra_flags + [fileName];
   }
 
   TestResult run() {
-    return runCommand([dart, fileName], env);
+    return runCommand(cmd, env);
   }
 
   String description;
   String dart;
   String fileName;
   Map<String, String> env;
+  List<String> cmd;
 }
 
 /// Concrete test runner of Dart AOT.
@@ -167,15 +195,15 @@ class TestRunnerKBC implements TestRunner {
   String dill;
   String dart;
   String fileName;
-  List<String> cmd;
   Map<String, String> env;
+  List<String> cmd;
 }
 
 /// Concrete test runner of Dart2JS.
 class TestRunnerJS implements TestRunner {
-  TestRunnerJS(String top, String tmp, Map<String, String> e) {
-    description = 'Dart2JS';
-    dart2js = '$top/out/ReleaseX64/dart-sdk/bin/dart2js';
+  TestRunnerJS(String tag, String top, String tmp, Map<String, String> e) {
+    description = 'Dart2JS-$tag';
+    dart2js = '$top/sdk/bin/dart2js';
     fileName = '$tmp/fuzz.dart';
     js = '$tmp/out.js';
     env = e;
@@ -198,8 +226,8 @@ class TestRunnerJS implements TestRunner {
 
 /// Class to run fuzz testing.
 class DartFuzzTest {
-  DartFuzzTest(this.env, this.repeat, this.trueDivergence, this.showStats,
-      this.top, this.mode1, this.mode2);
+  DartFuzzTest(this.env, this.repeat, this.time, this.trueDivergence,
+      this.showStats, this.top, this.mode1, this.mode2);
 
   int run() {
     setup();
@@ -216,8 +244,10 @@ class DartFuzzTest {
       runTest();
       if (showStats) {
         showStatistics();
-      } else if ((i & 31) == 31) {
-        print('\n${isolate}: busy @${numTests}....');
+      }
+      // Timeout?
+      if (timeIsUp()) {
+        break;
       }
     }
 
@@ -233,16 +263,37 @@ class DartFuzzTest {
     rand = new Random();
     tmpDir = Directory.systemTemp.createTempSync('dart_fuzz');
     fileName = '${tmpDir.path}/fuzz.dart';
-    runner1 = TestRunner.getTestRunner(mode1, top, tmpDir.path, env);
-    runner2 = TestRunner.getTestRunner(mode2, top, tmpDir.path, env);
+    runner1 = TestRunner.getTestRunner(mode1, top, tmpDir.path, env, rand);
+    runner2 = TestRunner.getTestRunner(mode2, top, tmpDir.path, env, rand);
     isolate = 'Isolate (${tmpDir.path}) '
         '${runner1.description} - ${runner2.description}';
+
+    start_time = new DateTime.now().millisecondsSinceEpoch;
+    current_time = start_time;
+    report_time = start_time;
+    end_time = start_time + max(0, time - timeout) * 1000;
 
     numTests = 0;
     numSuccess = 0;
     numNotRun = 0;
     numTimeOut = 0;
     numDivergences = 0;
+  }
+
+  bool timeIsUp() {
+    if (time > 0) {
+      current_time = new DateTime.now().millisecondsSinceEpoch;
+      if (current_time > end_time) {
+        return true;
+      }
+      // Report every 10 minutes.
+      if ((current_time - report_time) > (10 * 60 * 1000)) {
+        print(
+            '\n${isolate}: busy @${numTests} ${current_time - start_time} seconds....');
+        report_time = current_time;
+      }
+    }
+    return false;
   }
 
   void cleanup() {
@@ -307,14 +358,27 @@ class DartFuzzTest {
     numDivergences++;
     print(
         '\n${isolate}: !DIVERGENCE! $version:$seed (output=${outputDivergence})');
-    if (showStats && outputDivergence) {
-      print('out1:\n${result1.output}\nout2:\n${result2.output}\n');
+    if (outputDivergence) {
+      // Only report the actual output divergence details when requested,
+      // since this output may be lengthy and should be reproducable anyway.
+      if (showStats) {
+        print('\nout1:\n${result1.output}\nout2:\n${result2.output}\n');
+      }
+    } else {
+      // For any other divergence, always report what went wrong.
+      if (result1.code != ResultCode.success) {
+        print('\nfail1:\n${result1.output}\n');
+      }
+      if (result2.code != ResultCode.success) {
+        print('\nfail2:\n${result2.output}\n');
+      }
     }
   }
 
   // Context.
   final Map<String, String> env;
   final int repeat;
+  final int time;
   final bool trueDivergence;
   final bool showStats;
   final String top;
@@ -330,6 +394,12 @@ class DartFuzzTest {
   String isolate;
   int seed;
 
+  // Timing
+  int start_time;
+  int current_time;
+  int report_time;
+  int end_time;
+
   // Stats.
   int numTests;
   int numSuccess;
@@ -340,8 +410,8 @@ class DartFuzzTest {
 
 /// Class to start fuzz testing session.
 class DartFuzzTestSession {
-  DartFuzzTestSession(this.isolates, this.repeat, this.trueDivergence,
-      this.showStats, String tp, this.mode1, this.mode2)
+  DartFuzzTestSession(this.isolates, this.repeat, this.time,
+      this.trueDivergence, this.showStats, String tp, this.mode1, this.mode2)
       : top = getTop(tp) {}
 
   start() async {
@@ -349,6 +419,11 @@ class DartFuzzTestSession {
     print('Fuzz Version    : ${version}');
     print('Isolates        : ${isolates}');
     print('Tests           : ${repeat}');
+    if (time > 0) {
+      print('Time            : ${time} seconds');
+    } else {
+      print('Time            : unlimited');
+    }
     print('True Divergence : ${trueDivergence}');
     print('Show Stats      : ${showStats}');
     print('Dart Dev        : ${top}');
@@ -379,8 +454,15 @@ class DartFuzzTestSession {
     try {
       final m1 = getMode(session.mode1, null);
       final m2 = getMode(session.mode2, m1);
-      final fuzz = new DartFuzzTest(Platform.environment, session.repeat,
-          session.trueDivergence, session.showStats, session.top, m1, m2);
+      final fuzz = new DartFuzzTest(
+          Platform.environment,
+          session.repeat,
+          session.time,
+          session.trueDivergence,
+          session.showStats,
+          session.top,
+          m1,
+          m2);
       divergences = fuzz.run();
     } catch (e) {
       print('Isolate: $e');
@@ -404,10 +486,9 @@ class DartFuzzTestSession {
     // Random when not set.
     if (mode == null || mode == '') {
       // Pick a mode at random (cluster), different from other.
-      const cluster_modes = 20;
       Random rand = new Random();
       do {
-        mode = modes[rand.nextInt(cluster_modes)];
+        mode = clusterModes[rand.nextInt(clusterModes.length)];
       } while (mode == other);
     }
     // Verify mode.
@@ -420,6 +501,7 @@ class DartFuzzTestSession {
   // Context.
   final int isolates;
   final int repeat;
+  final int time;
   final bool trueDivergence;
   final bool showStats;
   final String top;
@@ -429,9 +511,8 @@ class DartFuzzTestSession {
   // Passes each port to isolate.
   SendPort port;
 
-  // Supported modes.
-  static const List<String> modes = [
-    // Cluster options:
+  // Modes used on cluster runs.
+  static const List<String> clusterModes = [
     'jit-debug-ia32',
     'jit-debug-x64',
     'jit-debug-arm32',
@@ -444,6 +525,18 @@ class DartFuzzTestSession {
     'jit-arm64',
     'jit-dbc',
     'jit-dbc64',
+    'jit-stress-debug-ia32',
+    'jit-stress-debug-x64',
+    'jit-stress-debug-arm32',
+    'jit-stress-debug-arm64',
+    'jit-stress-debug-dbc',
+    'jit-stress-debug-dbc64',
+    'jit-stress-ia32',
+    'jit-stress-x64',
+    'jit-stress-arm32',
+    'jit-stress-arm64',
+    'jit-stress-dbc',
+    'jit-stress-dbc64',
     'aot-debug-x64',
     'aot-x64',
     'kbc-int-debug-x64',
@@ -452,12 +545,21 @@ class DartFuzzTestSession {
     'kbc-int-x64',
     'kbc-cmp-x64',
     'kbc-mix-x64',
-    // Times out often:
-    'aot-arm64',
-    'aot-debug-arm64',
-    // Too many divergences (due to arithmetic):
-    'js'
   ];
+
+  // Modes not used on cluster runs because they have outstanding issues.
+  static const List<String> nonClusterModes = [
+    // Times out often:
+    'aot-debug-arm32',
+    'aot-debug-arm64',
+    'aot-arm32',
+    'aot-arm64',
+    // Too many divergences (due to arithmetic):
+    'js-x64',
+  ];
+
+  // All modes.
+  static List<String> modes = clusterModes + nonClusterModes;
 }
 
 /// Main driver for a fuzz testing session.
@@ -466,6 +568,7 @@ main(List<String> arguments) {
   final parser = new ArgParser()
     ..addOption('isolates', help: 'number of isolates to use', defaultsTo: '1')
     ..addOption('repeat', help: 'number of tests to run', defaultsTo: '1000')
+    ..addOption('time', help: 'time limit in seconds', defaultsTo: '0')
     ..addFlag('true-divergence',
         negatable: true, help: 'only report true divergences', defaultsTo: true)
     ..addFlag('show-stats',
@@ -476,7 +579,9 @@ main(List<String> arguments) {
     // Undocumented options for cluster runs.
     ..addOption('shards',
         help: 'number of shards used in cluster run', defaultsTo: '1')
-    ..addOption('shard', help: 'shard id in cluster run', defaultsTo: '1');
+    ..addOption('shard', help: 'shard id in cluster run', defaultsTo: '1')
+    ..addOption('output_directory',
+        help: 'path to output (ignored)', defaultsTo: null);
 
   // Starts fuzz testing session.
   try {
@@ -489,6 +594,7 @@ main(List<String> arguments) {
     new DartFuzzTestSession(
             int.parse(results['isolates']),
             int.parse(results['repeat']),
+            int.parse(results['time']),
             results['true-divergence'],
             results['show-stats'],
             results['dart-top'],

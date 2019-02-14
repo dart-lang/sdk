@@ -228,8 +228,7 @@ String _findSdkPath() {
     path.dirname(executableDir),
     path.join(executableDir, 'dart-sdk')
   ]) {
-    if (new File(path.join(candidate, 'lib', 'dart_server.platform'))
-        .existsSync()) {
+    if (new File(path.join(candidate, 'lib', 'libraries.json')).existsSync()) {
       return candidate;
     }
   }

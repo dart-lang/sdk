@@ -25,23 +25,6 @@ main() {
         expectedExceptions: [
           EXCEPTION
         ]);
-    test(
-        'Throw in package discovery',
-        await run(packagesDiscoveryProvider: (_) {
-          throw EXCEPTION;
-        }),
-        expectedLines: [
-          'Uncaught exception in package discovery: $EXCEPTION',
-          null /* Stack trace*/
-        ],
-        expectedExceptions: [
-          EXCEPTION
-        ]);
-    test(
-        'new Future.error in package discovery',
-        await run(
-            packagesDiscoveryProvider: (_) => new Future.error(EXCEPTION)),
-        expectedExceptions: [EXCEPTION]);
 
     var cantReadFile =
         templateCantReadFile.withArguments(entryPoint, EXCEPTION);
@@ -82,16 +65,14 @@ void test(String title, RunResult result,
 
 Future<RunResult> run(
     {Map<String, String> memorySourceFiles: const {'main.dart': 'main() {}'},
-    CompilerDiagnostics diagnostics,
-    PackagesDiscoveryProvider packagesDiscoveryProvider}) async {
+    CompilerDiagnostics diagnostics}) async {
   RunResult result = new RunResult();
   await runZoned(() async {
     try {
       await runCompiler(
           entryPoint: entryPoint,
           memorySourceFiles: memorySourceFiles,
-          diagnosticHandler: diagnostics,
-          packagesDiscoveryProvider: packagesDiscoveryProvider);
+          diagnosticHandler: diagnostics);
     } catch (e) {
       result.exceptions.add(e);
     }

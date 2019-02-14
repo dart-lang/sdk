@@ -5,7 +5,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/universe/call_structure.dart';
-import 'package:compiler/src/universe/world_builder.dart';
+import 'package:compiler/src/universe/codegen_world_builder.dart';
 import 'package:expect/expect.dart';
 
 import '../helpers/memory_compiler.dart';

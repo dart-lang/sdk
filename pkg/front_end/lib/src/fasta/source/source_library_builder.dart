@@ -23,6 +23,7 @@ import '../builder/builder.dart'
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
+        NameIterator,
         PrefixBuilder,
         ProcedureBuilder,
         QualifiedName,
@@ -72,7 +73,7 @@ import '../import.dart' show Import;
 
 import '../configuration.dart' show Configuration;
 
-import '../problems.dart' show unhandled;
+import '../problems.dart' show unexpected, unhandled;
 
 import 'source_loader.dart' show SourceLoader;
 
@@ -102,12 +103,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   final List<List> implementationBuilders = <List<List>>[];
 
-  /// Indicates whether type inference (and type promotion) should be disabled
-  /// for this library.
-  @override
-  final bool disableTypeInference;
-
   final List<Object> accessors = <Object>[];
+
+  final bool legacyMode;
 
   String documentationComment;
 
@@ -137,8 +135,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   SourceLibraryBuilder.fromScopes(
       this.loader, this.fileUri, this.libraryDeclaration, this.importScope)
-      : disableTypeInference = loader.target.disableTypeInference,
-        currentDeclaration = libraryDeclaration,
+      : currentDeclaration = libraryDeclaration,
+        legacyMode = loader.target.legacyMode,
         super(
             fileUri, libraryDeclaration.toScope(importScope), new Scope.top());
 
@@ -350,6 +348,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     partOfName = name;
     if (uri != null) {
       partOfUri = resolve(this.uri, uri, uriOffset);
+      Uri newFileUri = resolve(fileUri, uri, uriOffset);
+      LibraryBuilder library = loader.read(partOfUri, uriOffset,
+          fileUri: newFileUri, accessor: this);
+      if (loader.first == this) {
+        // This is a part, and it was the first input. Let the loader know
+        // about that.
+        loader.first = library;
+      }
     }
   }
 
@@ -383,6 +389,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       T type,
       String name,
       int charOffset,
+      int charEndOffset,
       Token initializerTokenForInference,
       bool hasInitializer);
 
@@ -391,15 +398,24 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     for (FieldInfo info in fieldInfos) {
       String name = info.name;
       int charOffset = info.charOffset;
+      int charEndOffset = info.charEndOffset;
       bool hasInitializer = info.initializerTokenForInference != null;
       Token initializerTokenForInference =
-          type == null ? info.initializerTokenForInference : null;
+          type != null || legacyMode ? null : info.initializerTokenForInference;
       if (initializerTokenForInference != null) {
         Token beforeLast = info.beforeLast;
         beforeLast.setNext(new Token.eof(beforeLast.next.offset));
       }
-      addField(documentationComment, metadata, modifiers, type, name,
-          charOffset, initializerTokenForInference, hasInitializer);
+      addField(
+          documentationComment,
+          metadata,
+          modifiers,
+          type,
+          name,
+          charOffset,
+          charEndOffset,
+          initializerTokenForInference,
+          hasInitializer);
     }
   }
 
@@ -507,9 +523,16 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             ? currentDeclaration.setters
             : currentDeclaration.members);
     Declaration existing = members[name];
+    if (declaration.next != null && declaration.next != existing) {
+      unexpected(
+          "${declaration.next.fileUri}@${declaration.next.charOffset}",
+          "${existing?.fileUri}@${existing?.charOffset}",
+          declaration.charOffset,
+          declaration.fileUri);
+    }
     declaration.next = existing;
     if (declaration is PrefixBuilder && existing is PrefixBuilder) {
-      assert(existing.next == null);
+      assert(existing.next is! PrefixBuilder);
       Declaration deferred;
       Declaration other;
       if (declaration.deferred) {
@@ -544,7 +567,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         }
       }
       addProblem(templateDuplicatedDeclaration.withArguments(fullName),
-          charOffset, fullName.length, fileUri,
+          charOffset, fullName.length, declaration.fileUri,
           context: <LocatedMessage>[
             templateDuplicatedDeclarationCause
                 .withArguments(fullName)
@@ -579,12 +602,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   R build(LibraryBuilder coreLibrary) {
     assert(implementationBuilders.isEmpty);
     canAddImplementationBuilders = true;
-    forEach((String name, Declaration declaration) {
-      do {
-        buildBuilder(declaration, coreLibrary);
-        declaration = declaration.next;
-      } while (declaration != null);
-    });
+    Iterator<Declaration> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      buildBuilder(iterator.current, coreLibrary);
+    }
     for (List list in implementationBuilders) {
       String name = list[0];
       Declaration declaration = list[1];
@@ -661,7 +682,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
                     this.fileUri, -1, noLength)
               ]);
         } else {
-          usedParts.add(part.uri);
+          if (isPatch) {
+            usedParts.add(part.fileUri);
+          } else {
+            usedParts.add(part.uri);
+          }
           includePart(part, usedParts);
         }
       } else {
@@ -712,15 +737,47 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       }
     }
     part.validatePart(this, usedParts);
-    part.forEach((String name, Declaration declaration) {
+    NameIterator partDeclarations = part.nameIterator;
+    while (partDeclarations.moveNext()) {
+      String name = partDeclarations.name;
+      Declaration declaration = partDeclarations.current;
+
       if (declaration.next != null) {
-        // TODO(ahe): This shouldn't be necessary as setters have been added to
-        // their own scope.
-        assert(declaration.next.next == null);
-        addBuilder(name, declaration.next, declaration.next.charOffset);
+        List<Declaration> duplicated = <Declaration>[];
+        while (declaration.next != null) {
+          duplicated.add(declaration);
+          partDeclarations.moveNext();
+          declaration = partDeclarations.current;
+        }
+        duplicated.add(declaration);
+        // Handle duplicated declarations in the part.
+        //
+        // Duplicated declarations are handled by creating a linked list using
+        // the `next` field. This is preferred over making all scope entries be
+        // a `List<Declaration>`.
+        //
+        // We maintain the linked list so that the last entry is easy to
+        // recognize (it's `next` field is null). This means that it is
+        // reversed with respect to source code order. Since kernel doesn't
+        // allow duplicated declarations, we ensure that we only add the first
+        // declaration to the kernel tree.
+        //
+        // Since the duplicated declarations are stored in reverse order, we
+        // iterate over them in reverse order as this is simpler and normally
+        // not a problem. However, in this case we need to call [addBuilder] in
+        // source order as it would otherwise create cycles.
+        //
+        // We also need to be careful preserving the order of the links. The
+        // part library still keeps these declarations in its scope so that
+        // DietListener can find them.
+        for (int i = duplicated.length; i > 0; i--) {
+          Declaration declaration = duplicated[i - 1];
+          addBuilder(name, declaration, declaration.charOffset);
+        }
+      } else {
+        addBuilder(name, declaration, declaration.charOffset);
       }
-      addBuilder(name, declaration, declaration.charOffset);
-    });
+    }
     types.addAll(part.types);
     constructorReferences.addAll(part.constructorReferences);
     part.partOfLibrary = this;
@@ -729,7 +786,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void buildInitialScopes() {
-    forEach(addToExportScope);
+    NameIterator iterator = nameIterator;
+    while (iterator.moveNext()) {
+      addToExportScope(iterator.name, iterator.current);
+    }
   }
 
   void addImportsToScope() {
@@ -777,7 +837,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     int typeCount = types.length;
     for (UnresolvedType<T> t in types) {
       t.resolveIn(scope, this);
-      if (loader.target.strongMode) {
+      if (!loader.target.legacyMode) {
         t.checkType();
       } else {
         t.normalizeType();
@@ -790,9 +850,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   @override
   int resolveConstructors(_) {
     int count = 0;
-    forEach((String name, Declaration member) {
-      count += member.resolveConstructors(this);
-    });
+    Iterator<Declaration> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      count += iterator.current.resolveConstructors(this);
+    }
     return count;
   }
 
@@ -811,9 +872,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   @override
   void instrumentTopLevelInference(Instrumentation instrumentation) {
-    forEach((String name, Declaration member) {
-      member.instrumentTopLevelInference(instrumentation);
-    });
+    Iterator<Declaration> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      iterator.current.instrumentTopLevelInference(instrumentation);
+    }
   }
 
   @override
@@ -844,6 +906,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void checkBoundsInOutline(covariant typeEnvironment);
+
+  int finalizeInitializingFormals();
 }
 
 /// Unlike [Scope], this scope is used during construction of builders to
@@ -947,7 +1011,8 @@ class FieldInfo {
   final int charOffset;
   final Token initializerTokenForInference;
   final Token beforeLast;
+  final int charEndOffset;
 
   const FieldInfo(this.name, this.charOffset, this.initializerTokenForInference,
-      this.beforeLast);
+      this.beforeLast, this.charEndOffset);
 }

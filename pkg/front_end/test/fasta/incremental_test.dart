@@ -15,6 +15,8 @@ import "package:kernel/ast.dart" show Component;
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
+import "package:testing/src/log.dart" show splitLines;
+
 import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
@@ -158,8 +160,10 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
           return fail(test, "Compile-time error expected, but none reported");
         }
       } else if (errors.isNotEmpty) {
-        return fail(
-            test, "Unexpected compile-time errors:\n  ${errors.join('\n  ')}");
+        String indentedErrors =
+            splitLines(errors.map((e) => e.ansiFormatted.join("\n")).join("\n"))
+                .join("  ");
+        return fail(test, "Unexpected compile-time errors:\n  $indentedErrors");
       } else if (component.libraries.length < 1) {
         return fail(test, "The compiler detected no changes");
       }

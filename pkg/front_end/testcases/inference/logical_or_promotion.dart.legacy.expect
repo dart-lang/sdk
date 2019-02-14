@@ -1,0 +1,28 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  field self::A a = null;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method f(core::Object o) → void {
+    if(o is self::A || o is self::B) {
+      if(o is self::A) {
+        this.{self::C::a} = o;
+      }
+    }
+  }
+}
+static method main() → dynamic {}

@@ -227,7 +227,7 @@ class Stdout extends _StdSink implements IOSink {
    */
   int get terminalColumns => _terminalColumns(_fd);
 
-  /*
+  /**
    * Get the number of lines of the terminal.
    *
    * If no terminal is attached to stdout, a [StdoutException] is thrown. See
@@ -268,9 +268,7 @@ class Stdout extends _StdSink implements IOSink {
    * Get a non-blocking `IOSink`.
    */
   IOSink get nonBlocking {
-    if (_nonBlocking == null) {
-      _nonBlocking = new IOSink(new _FileStreamConsumer.fromStdio(_fd));
-    }
+    _nonBlocking ??= new IOSink(new _FileStreamConsumer.fromStdio(_fd));
     return _nonBlocking;
   }
 }
@@ -405,9 +403,7 @@ void _setStdioFDs(int stdin, int stdout, int stderr) {
 
 /// The standard input stream of data read by this program.
 Stdin get stdin {
-  if (_stdin == null) {
-    _stdin = _StdIOUtils._getStdioInputStream(_stdinFD);
-  }
+  _stdin ??= _StdIOUtils._getStdioInputStream(_stdinFD);
   return _stdin;
 }
 
@@ -417,9 +413,7 @@ Stdin get stdin {
 /// result in an unhandled asynchronous error unless there is an error handler
 /// on `done`.
 Stdout get stdout {
-  if (_stdout == null) {
-    _stdout = _StdIOUtils._getStdioOutputStream(_stdoutFD);
-  }
+  _stdout ??= _StdIOUtils._getStdioOutputStream(_stdoutFD);
   return _stdout;
 }
 
@@ -429,9 +423,7 @@ Stdout get stdout {
 /// result in an unhandled asynchronous error unless there is an error handler
 /// on `done`.
 Stdout get stderr {
-  if (_stderr == null) {
-    _stderr = _StdIOUtils._getStdioOutputStream(_stderrFD);
-  }
+  _stderr ??= _StdIOUtils._getStdioOutputStream(_stderrFD);
   return _stderr;
 }
 

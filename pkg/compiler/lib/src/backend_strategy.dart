@@ -9,12 +9,13 @@ import 'common/tasks.dart';
 import 'deferred_load.dart' show OutputUnitData;
 import 'enqueue.dart';
 import 'elements/entities.dart';
+import 'inferrer/types.dart';
 import 'io/source_information.dart';
 import 'js_backend/inferred_data.dart';
 import 'js_backend/js_backend.dart';
 import 'js_backend/native_data.dart';
 import 'ssa/ssa.dart';
-import 'types/types.dart';
+import 'universe/codegen_world_builder.dart';
 import 'universe/world_builder.dart';
 import 'world.dart';
 

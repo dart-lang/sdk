@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method m(dynamic x) → dynamic
+    return this.{self::C::call}(x);
+  method call(dynamic x) → dynamic
+    return 42;
+}
+static method main() → dynamic {
+  core::print(new self::C::•().{self::C::m}(42));
+}

@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.11
+# Dart VM Service Protocol 3.13
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.11_ of the Dart VM Service Protocol. This
+This document describes of _version 3.13_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -31,6 +31,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [evaluateInFrame](#evaluateinframe)
   - [getFlagList](#getflaglist)
   - [getIsolate](#getisolate)
+  - [getScripts](#getscripts)
   - [getObject](#getobject)
   - [getSourceReport](#getsourcereport)
   - [getStack](#getstack)
@@ -82,6 +83,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Sentinel](#sentinel)
   - [SentinelKind](#sentinelkind)
   - [Script](#script)
+  - [ScriptList](#scriptlist)
   - [SourceLocation](#sourcelocation)
   - [SourceReport](#sourcereport)
   - [SourceReportCoverage](#sourcereportcoverage)
@@ -148,7 +150,7 @@ a parameter:
   "jsonrpc": "2.0",
   "method": "streamListen",
   "params": {
-    "streamId": "GC",
+    "streamId": "GC"
   },
   "id": "2"
 }
@@ -595,6 +597,17 @@ _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Isolate](#isolate).
 
+### getScripts
+
+```
+ScriptList getScripts(string isolateId)
+```
+
+The _getScripts_ RPC is used to retrieve a _ScriptList_ containing all
+scripts for an isolate based on the isolate's _isolateId_.
+
+See [ScriptList](#scriptlist).
+
 ### getObject
 
 ```
@@ -888,7 +901,7 @@ Success streamListen(string streamId)
 The _streamListen_ RPC subscribes to a stream in the VM. Once
 subscribed, the client will begin receiving events from the stream.
 
-If the client is not subscribed to the stream, the _103_ (Stream already
+If the client is already subscribed to the stream, the _103_ (Stream already
 subscribed) error code is returned.
 
 The _streamId_ parameter may have the following published values:
@@ -1975,7 +1988,7 @@ enum InstanceKind {
   // Vector instance kinds.
   Float32x4,
   Float64x2,
-  Int32x4
+  Int32x4,
 
   // An instance of the built-in VM TypedData implementations. User-defined
   // TypedDatas will be PlainInstance.
@@ -2404,6 +2417,14 @@ tokenPos | line | column
 101 | 1 | 8
 102 | 2 | 7
 
+### ScriptList
+
+```
+class ScriptList extends Response {
+  @Script[] scripts;
+}
+```
+
 ### SourceLocation
 
 ```
@@ -2709,5 +2730,7 @@ version | comments
 3.9 | Changed numbers for errors related to service extensions.
 3.10 | Add 'invoke'.
 3.11 | Rename 'invoke' parameter 'receiverId' to 'targetId.
+3.12 | Add 'getScripts' RPC and `ScriptList` object.
+3.13 | Class 'mixin' field now properly set for kernel transformed mixin applications.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

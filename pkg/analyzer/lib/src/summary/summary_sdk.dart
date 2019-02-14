@@ -128,13 +128,16 @@ class SummaryTypeProvider extends TypeProviderBase {
   InterfaceType _futureType;
   InterfaceType _intType;
   InterfaceType _iterableDynamicType;
+  InterfaceType _iterableObjectType;
   InterfaceType _iterableType;
   InterfaceType _listType;
   InterfaceType _mapType;
+  InterfaceType _mapObjectObjectType;
   DartObjectImpl _nullObject;
   InterfaceType _nullType;
   InterfaceType _numType;
   InterfaceType _objectType;
+  InterfaceType _setType;
   InterfaceType _stackTraceType;
   InterfaceType _streamDynamicType;
   InterfaceType _streamType;
@@ -233,6 +236,13 @@ class SummaryTypeProvider extends TypeProviderBase {
   }
 
   @override
+  InterfaceType get iterableObjectType {
+    assert(_coreLibrary != null);
+    _iterableObjectType ??= iterableType.instantiate(<DartType>[objectType]);
+    return _iterableObjectType;
+  }
+
+  @override
   InterfaceType get iterableType {
     assert(_coreLibrary != null);
     _iterableType ??= _getType(_coreLibrary, "Iterable");
@@ -244,6 +254,13 @@ class SummaryTypeProvider extends TypeProviderBase {
     assert(_coreLibrary != null);
     _listType ??= _getType(_coreLibrary, "List");
     return _listType;
+  }
+
+  @override
+  InterfaceType get mapObjectObjectType {
+    assert(_coreLibrary != null);
+    return _mapObjectObjectType ??=
+        mapType.instantiate(<DartType>[objectType, objectType]);
   }
 
   @override
@@ -280,6 +297,12 @@ class SummaryTypeProvider extends TypeProviderBase {
     assert(_coreLibrary != null);
     _objectType ??= _getType(_coreLibrary, "Object");
     return _objectType;
+  }
+
+  @override
+  InterfaceType get setType {
+    assert(_coreLibrary != null);
+    return _setType ??= _getType(_coreLibrary, "Set");
   }
 
   @override

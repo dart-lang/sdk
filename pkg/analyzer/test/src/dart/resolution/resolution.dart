@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -29,7 +30,7 @@ final isUndefinedType = new TypeMatcher<UndefinedTypeImpl>();
 final isVoidType = new TypeMatcher<VoidTypeImpl>();
 
 /// Base for resolution tests.
-abstract class ResolutionTest implements ResourceProviderMixin {
+mixin ResolutionTest implements ResourceProviderMixin {
   TestAnalysisResult result;
   FindNode findNode;
   FindElement findElement;
@@ -57,8 +58,21 @@ abstract class ResolutionTest implements ResourceProviderMixin {
   TypeProvider get typeProvider =>
       result.unit.declaredElement.context.typeProvider;
 
+  /// Whether `DartType.toString()` with nullability should be asked.
+  bool get typeToStringWithNullability => false;
+
   void addTestFile(String content) {
     newFile('/test/lib/test.dart', content: content);
+  }
+
+  /// Assert that the given [identifier] is a reference to a class, in the
+  /// form that is not a separate expression, e.g. in a static method
+  /// invocation like `C.staticMethod()`, or a type annotation `C c = null`.
+  void assertClassRef(
+      SimpleIdentifier identifier, ClassElement expectedElement) {
+    assertElement(identifier, expectedElement);
+    // TODO(scheglov) Enforce this.
+//    assertTypeNull(identifier);
   }
 
   void assertConstructorElement(
@@ -116,7 +130,9 @@ abstract class ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertElementTypeString(DartType type, String expected) {
-    expect(type.toString(), expected);
+    TypeImpl typeImpl = type;
+    expect(typeImpl.toString(withNullability: typeToStringWithNullability),
+        expected);
   }
 
   void assertElementTypeStrings(List<DartType> types, List<String> expected) {
@@ -166,6 +182,11 @@ abstract class ResolutionTest implements ResourceProviderMixin {
 
     var type = setter.parameters[0].type.toString();
     assertType(ref, type);
+  }
+
+  void assertImportPrefix(SimpleIdentifier identifier, PrefixElement element) {
+    assertElement(identifier, element);
+    assertTypeNull(identifier);
   }
 
   void assertInstanceCreation(InstanceCreationExpression creation,
@@ -232,8 +253,66 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     expect(actual.baseElement, same(expectedBase));
   }
 
+  void assertMethodInvocation(MethodInvocation invocation,
+      Element expectedElement, String expectedInvokeType,
+      {String expectedMethodNameType,
+      String expectedNameType,
+      String expectedType}) {
+    MethodInvocationImpl invocationImpl = invocation;
+
+    // TODO(scheglov) Check for Member.
+    var element = invocation.methodName.staticElement;
+    if (element is Member) {
+      element = (element as Member).baseElement;
+      expect(element, same(expectedElement));
+    } else {
+      assertElement(invocation.methodName, expectedElement);
+    }
+
+    // TODO(scheglov) Should we enforce this?
+//    if (expectedNameType == null) {
+//      if (expectedElement is ExecutableElement) {
+//        expectedNameType = expectedElement.type.displayName;
+//      } else if (expectedElement is VariableElement) {
+//        expectedNameType = expectedElement.type.displayName;
+//      }
+//    }
+//    assertType(invocation.methodName, expectedNameType);
+
+    assertInvokeType(invocation, expectedInvokeType);
+
+    expectedType ??= _extractReturnType(expectedInvokeType);
+    assertType(invocation, expectedType);
+
+    expectedMethodNameType ??= expectedInvokeType;
+    assertElementTypeString(
+        invocationImpl.methodNameType, expectedMethodNameType);
+  }
+
+  void assertNamedParameterRef(String search, String name) {
+    var ref = findNode.simple(search);
+    assertElement(ref, findElement.parameter(name));
+    assertTypeNull(ref);
+  }
+
   void assertNoTestErrors() {
     assertTestErrors(const <ErrorCode>[]);
+  }
+
+  void assertPropertyAccess(
+    PropertyAccess access,
+    Element expectedElement,
+    String expectedType,
+  ) {
+    assertElement(access.propertyName, expectedElement);
+    assertType(access, expectedType);
+  }
+
+  void assertSuperExpression(SuperExpression superExpression) {
+    // TODO(scheglov) I think `super` does not have type itself.
+    // It is just a signal to look for implemented method in the supertype.
+    // With mixins there isn't a type anyway.
+//    assertTypeNull(superExpression);
   }
 
   void assertTestErrors(List<ErrorCode> expected) {
@@ -246,7 +325,7 @@ abstract class ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertType(AstNode node, String expected) {
-    DartType actual;
+    TypeImpl actual;
     if (node is Expression) {
       actual = node.staticType;
     } else if (node is GenericFunctionType) {
@@ -256,7 +335,8 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }
-    expect(actual?.toString(), expected);
+    expect(actual?.toString(withNullability: typeToStringWithNullability),
+        expected);
   }
 
   void assertTypeDynamic(Expression expression) {
@@ -331,6 +411,12 @@ abstract class ResolutionTest implements ResourceProviderMixin {
       return element.actualElement;
     }
     return element;
+  }
+
+  static String _extractReturnType(String invokeType) {
+    int arrowIndex = invokeType.indexOf('→');
+    expect(arrowIndex, isNonNegative);
+    return invokeType.substring(arrowIndex + 1).trim();
   }
 }
 

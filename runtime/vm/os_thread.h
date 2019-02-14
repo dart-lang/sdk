@@ -35,7 +35,7 @@ namespace dart {
 // Forward declarations.
 class Log;
 class Mutex;
-class Thread;
+class ThreadState;
 class TimelineEventBlock;
 
 class BaseThread {
@@ -48,6 +48,7 @@ class BaseThread {
 
   bool is_os_thread_;
 
+  friend class ThreadState;
   friend class Thread;
   friend class OSThread;
 
@@ -100,9 +101,7 @@ class OSThread : public BaseThread {
 
   uword stack_base() const { return stack_base_; }
   uword stack_limit() const { return stack_limit_; }
-  uword stack_limit_with_headroom() const {
-    return stack_limit_ + kStackSizeBuffer;
-  }
+  uword overflow_stack_limit() const { return stack_limit_ + kStackSizeBuffer; }
 
   bool HasStackHeadroom(intptr_t headroom = kStackSizeBuffer) {
     return GetCurrentStackPointer() > (stack_limit_ + headroom);
@@ -142,7 +141,7 @@ class OSThread : public BaseThread {
       if (thread->is_os_thread()) {
         os_thread = reinterpret_cast<OSThread*>(thread);
       } else {
-        Thread* vm_thread = reinterpret_cast<Thread*>(thread);
+        ThreadState* vm_thread = reinterpret_cast<ThreadState*>(thread);
         os_thread = GetOSThreadFromThread(vm_thread);
       }
     }
@@ -161,7 +160,7 @@ class OSThread : public BaseThread {
   static void SetCurrent(OSThread* current) { SetCurrentTLS(current); }
 
 #if defined(HAS_C11_THREAD_LOCAL)
-  static Thread* CurrentVMThread() { return current_vm_thread_; }
+  static ThreadState* CurrentVMThread() { return current_vm_thread_; }
 #endif
 
   // TODO(5411455): Use flag to override default value and Validate the
@@ -211,7 +210,7 @@ class OSThread : public BaseThread {
   static void DisableOSThreadCreation();
   static void EnableOSThreadCreation();
 
-  static const intptr_t kStackSizeBuffer = (4 * KB * kWordSize);
+  static const intptr_t kStackSizeBuffer = (16 * KB * kWordSize);
 
   static const ThreadId kInvalidThreadId;
   static const ThreadJoinId kInvalidThreadJoinId;
@@ -227,14 +226,14 @@ class OSThread : public BaseThread {
   // in the windows thread interrupter which is used for profiling.
   // We could eliminate this requirement if the windows thread interrupter
   // is implemented differently.
-  Thread* thread() const { return thread_; }
-  void set_thread(Thread* value) { thread_ = value; }
+  ThreadState* thread() const { return thread_; }
+  void set_thread(ThreadState* value) { thread_ = value; }
 
   static void Cleanup();
 #ifndef PRODUCT
   static ThreadId GetCurrentThreadTraceId();
 #endif  // PRODUCT
-  static OSThread* GetOSThreadFromThread(Thread* thread);
+  static OSThread* GetOSThreadFromThread(ThreadState* thread);
   static void AddThreadToListLocked(OSThread* thread);
   static void RemoveThreadFromList(OSThread* thread);
   static OSThread* CreateAndSetUnknownThread();
@@ -262,7 +261,7 @@ class OSThread : public BaseThread {
   Log* log_;
   uword stack_base_;
   uword stack_limit_;
-  Thread* thread_;
+  ThreadState* thread_;
 
   // thread_list_lock_ cannot have a static lifetime because the order in which
   // destructors run is undefined. At the moment this lock cannot be deleted
@@ -274,7 +273,7 @@ class OSThread : public BaseThread {
   static bool creation_enabled_;
 
 #if defined(HAS_C11_THREAD_LOCAL)
-  static thread_local Thread* current_vm_thread_;
+  static thread_local ThreadState* current_vm_thread_;
 #endif
 
   friend class Isolate;  // to access set_thread(Thread*).

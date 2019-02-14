@@ -22,7 +22,7 @@ main() {
 class OptionalConstDriverResolutionTest extends DriverResolutionTest
     with OptionalConstMixin {}
 
-abstract class OptionalConstMixin implements ResolutionTest {
+mixin OptionalConstMixin implements ResolutionTest {
   Map<String, LibraryElement> libraries = {};
 
   LibraryElement get libraryA => libraries['package:test/a.dart'];

@@ -5,19 +5,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <memory>
 
 #include "include/bin/dart_io_api.h"
 #include "include/dart_api.h"
 #include "include/dart_embedder_api.h"
 #include "include/dart_tools_api.h"
 
-#if defined(DART_USE_CRASHPAD)
-#include "crashpad/client/crashpad_client.h"
-#include "crashpad/client/crashpad_info.h"
-#endif
-
 #include "bin/builtin.h"
 #include "bin/console.h"
+#include "bin/crashpad.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/directory.h"
@@ -25,6 +22,7 @@
 #include "bin/eventhandler.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
+#include "bin/gzip.h"
 #include "bin/isolate_data.h"
 #include "bin/loader.h"
 #include "bin/log.h"
@@ -39,7 +37,6 @@
 #include "platform/growable_array.h"
 #include "platform/hashmap.h"
 #include "platform/text_buffer.h"
-#include "bin/gzip.h"
 
 #include "vm/flags.h"
 
@@ -217,7 +214,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #if !defined(DART_PRECOMPILED_RUNTIME)
   IsolateData* isolate_data =
       reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
-  const uint8_t* kernel_buffer = isolate_data->kernel_buffer();
+  const uint8_t* kernel_buffer = isolate_data->kernel_buffer().get();
   intptr_t kernel_buffer_size = isolate_data->kernel_buffer_size();
 #endif
 
@@ -278,9 +275,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
       Dart_ShutdownIsolate();
       return NULL;
     }
-    isolate_data->set_kernel_buffer(application_kernel_buffer,
-                                    application_kernel_buffer_size,
-                                    true /*take ownership*/);
+    isolate_data->SetKernelBufferNewlyOwned(application_kernel_buffer,
+                                            application_kernel_buffer_size);
     kernel_buffer = application_kernel_buffer;
     kernel_buffer_size = application_kernel_buffer_size;
   }
@@ -437,9 +433,9 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
     dfe.LoadKernelService(&kernel_service_buffer, &kernel_service_buffer_size);
     ASSERT(kernel_service_buffer != NULL);
     isolate_data = new IsolateData(uri, package_root, packages_config, NULL);
-    isolate_data->set_kernel_buffer(const_cast<uint8_t*>(kernel_service_buffer),
-                                    kernel_service_buffer_size,
-                                    false /* take_ownership */);
+    isolate_data->SetKernelBufferUnowned(
+        const_cast<uint8_t*>(kernel_service_buffer),
+        kernel_service_buffer_size);
     isolate = Dart_CreateIsolateFromKernel(
         DART_KERNEL_ISOLATE_NAME, main, kernel_service_buffer,
         kernel_service_buffer_size, flags, isolate_data, error);
@@ -531,11 +527,13 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
                                                 const char* package_root,
                                                 const char* packages_config,
                                                 Dart_IsolateFlags* flags,
+                                                void* callback_data,
                                                 char** error,
                                                 int* exit_code) {
   int64_t start = Dart_TimelineGetMicros();
   ASSERT(script_uri != NULL);
   uint8_t* kernel_buffer = NULL;
+  std::shared_ptr<uint8_t> parent_kernel_buffer;
   intptr_t kernel_buffer_size = 0;
   AppSnapshot* app_snapshot = NULL;
 
@@ -569,7 +567,16 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
           &isolate_snapshot_data, &isolate_snapshot_instructions);
     }
   }
-  if (!isolate_run_app_snapshot) {
+
+  if (flags->copy_parent_code && callback_data) {
+    IsolateData* parent_isolate_data =
+        reinterpret_cast<IsolateData*>(callback_data);
+    parent_kernel_buffer = parent_isolate_data->kernel_buffer();
+    kernel_buffer = parent_kernel_buffer.get();
+    kernel_buffer_size = parent_isolate_data->kernel_buffer_size();
+  }
+
+  if (kernel_buffer == NULL && !isolate_run_app_snapshot) {
     dfe.ReadScript(script_uri, &kernel_buffer, &kernel_buffer_size);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -577,8 +584,13 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   IsolateData* isolate_data =
       new IsolateData(script_uri, package_root, packages_config, app_snapshot);
   if (kernel_buffer != NULL) {
-    isolate_data->set_kernel_buffer(kernel_buffer, kernel_buffer_size,
-                                    true /*take ownership*/);
+    if (parent_kernel_buffer) {
+      isolate_data->SetKernelBufferAlreadyOwned(std::move(parent_kernel_buffer),
+                                                kernel_buffer_size);
+    } else {
+      isolate_data->SetKernelBufferNewlyOwned(kernel_buffer,
+                                              kernel_buffer_size);
+    }
   }
   if (is_main_isolate && (Options::depfile() != NULL)) {
     isolate_data->set_dependencies(new MallocGrowableArray<char*>());
@@ -644,7 +656,7 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           const char* package_root,
                                           const char* package_config,
                                           Dart_IsolateFlags* flags,
-                                          void* data,
+                                          void* callback_data,
                                           char** error) {
   // The VM should never call the isolate helper with a NULL flags.
   ASSERT(flags != NULL);
@@ -671,8 +683,8 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   }
   bool is_main_isolate = false;
   return CreateIsolateAndSetupHelper(is_main_isolate, script_uri, main,
-                                     package_root, package_config, flags, error,
-                                     &exit_code);
+                                     package_root, package_config, flags,
+                                     callback_data, error, &exit_code);
 }
 
 char* BuildIsolateName(const char* script_name, const char* func_name) {
@@ -806,7 +818,8 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
 
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(
       is_main_isolate, script_name, "main", Options::package_root(),
-      Options::packages_file(), &flags, &error, &exit_code);
+      Options::packages_file(), &flags, NULL /* callback_data */, &error,
+      &exit_code);
 
   if (isolate == NULL) {
     delete[] isolate_name;
@@ -866,11 +879,11 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       LoadBytecode();
     }
 
-    if (Options::load_compilation_trace_filename() != NULL) {
+    if (Options::load_type_feedback_filename() != NULL) {
       uint8_t* buffer = NULL;
       intptr_t size = 0;
-      ReadFile(Options::load_compilation_trace_filename(), &buffer, &size);
-      result = Dart_LoadCompilationTrace(buffer, size);
+      ReadFile(Options::load_type_feedback_filename(), &buffer, &size);
+      result = Dart_LoadTypeFeedback(buffer, size);
       CHECK_RESULT(result);
     }
 
@@ -909,12 +922,12 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     }
     CHECK_RESULT(result);
 
-    if (Options::save_compilation_trace_filename() != NULL) {
+    if (Options::save_type_feedback_filename() != NULL) {
       uint8_t* buffer = NULL;
       intptr_t size = 0;
-      result = Dart_SaveCompilationTrace(&buffer, &size);
+      result = Dart_SaveTypeFeedback(&buffer, &size);
       CHECK_RESULT(result);
-      WriteFile(Options::save_compilation_trace_filename(), buffer, size);
+      WriteFile(Options::save_type_feedback_filename(), buffer, size);
     }
   }
 
@@ -951,45 +964,6 @@ Dart_Handle GetVMServiceAssetsArchiveCallback() {
 #else   // !defined(NO_OBSERVATORY)
 static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback = NULL;
 #endif  // !defined(NO_OBSERVATORY)
-
-#if defined(DART_USE_CRASHPAD)
-#if !defined(HOST_OS_WINDOWS)
-#error "Currently we only support Crashpad on Windows"
-#endif
-
-static void ConfigureCrashpadClient(crashpad::CrashpadClient* client) {
-  // DART_CRASHPAD_HANDLER and DART_CRASHPAD_CRASHES_DIR are set by the
-  // testing framework.
-  wchar_t* handler = _wgetenv(L"DART_CRASHPAD_HANDLER");
-  wchar_t* crashes_dir = _wgetenv(L"DART_CRASHPAD_CRASHES_DIR");
-  if (handler == nullptr || crashes_dir == nullptr) {
-    return;
-  }
-
-  // Crashpad uses STL so we use it here too even though in general we
-  // avoid it.
-  const base::FilePath handler_path{std::wstring(handler)};
-  const base::FilePath crashes_dir_path{std::wstring(crashes_dir)};
-  const std::string url("");
-  std::map<std::string, std::string> annotations;
-  char* test_name = getenv("DART_TEST_NAME");
-  if (test_name != nullptr) {
-    annotations["dart_test_name"] = test_name;
-  }
-
-  std::vector<std::string> arguments;
-  if (!client->StartHandler(handler_path, crashes_dir_path, crashes_dir_path,
-                            url, annotations, arguments,
-                            /*restartable=*/true,
-                            /*asynchronous_start=*/false)) {
-    Log::PrintErr("Failed to start the crash handler!\n");
-    Platform::Exit(kErrorExitCode);
-  }
-  crashpad::CrashpadInfo::GetCrashpadInfo()
-      ->set_gather_indirectly_referenced_memory(crashpad::TriState::kEnabled,
-                                                /*limit=*/500 * MB);
-}
-#endif  // DART_USE_CRASHPAD
 
 void main(int argc, char** argv) {
   char* script_name;
@@ -1054,10 +1028,11 @@ void main(int argc, char** argv) {
   }
   DartUtils::SetEnvironment(Options::environment());
 
-#if defined(DART_USE_CRASHPAD)
-  crashpad::CrashpadClient crashpad_client;
-  ConfigureCrashpadClient(&crashpad_client);
-#endif
+  if (Options::suppress_core_dump()) {
+    Platform::SetCoreDumpResourceLimit(0);
+  } else {
+    InitializeCrashpadClient();
+  }
 
   Loader::InitOnce();
 

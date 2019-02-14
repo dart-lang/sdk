@@ -21,7 +21,9 @@ class ComponentLookup {
         _libraryMap[library.importUri] = new _LibraryData(library);
       }
     }
-    return _libraryMap[canonicalUri];
+    _LibraryData data = _libraryMap[canonicalUri];
+    assert(data != null, "No library found for $canonicalUri.");
+    return data;
   }
 }
 
@@ -35,8 +37,14 @@ String _computeMemberName(ir.Member member) {
     return null;
   }
   String name = member.name.name;
-  if (member is ir.Procedure && member.kind == ir.ProcedureKind.Setter) {
-    name += "=";
+  if (member is ir.Constructor) {
+    name = '.$name';
+  } else if (member is ir.Procedure) {
+    if (member.kind == ir.ProcedureKind.Factory) {
+      name = '.$name';
+    } else if (member.kind == ir.ProcedureKind.Setter) {
+      name += "=";
+    }
   }
   return name;
 }
@@ -48,6 +56,9 @@ class _LibraryData {
 
   /// Cache of [_ClassData] for classes in this library.
   Map<String, _ClassData> _classes;
+
+  /// Cache of [ir.Typedef] nodes for typedefs in this library.
+  Map<String, ir.Typedef> _typedefs;
 
   /// Cache of [_MemberData] for members in this library.
   Map<String, _MemberData> _members;
@@ -65,6 +76,20 @@ class _LibraryData {
       }
     }
     return _classes[name];
+  }
+
+  ir.Typedef lookupTypedef(String name) {
+    if (_typedefs == null) {
+      _typedefs = {};
+      for (ir.Typedef typedef in node.typedefs) {
+        assert(
+            !_typedefs.containsKey(typedef.name),
+            "Duplicate typedef '${typedef.name}' in $_typedefs "
+            "trying to add $typedef.");
+        _typedefs[typedef.name] = typedef;
+      }
+    }
+    return _typedefs[name];
   }
 
   /// Returns the [_MemberData] for the member uniquely identified by [name] in

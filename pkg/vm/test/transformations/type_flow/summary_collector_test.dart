@@ -23,15 +23,16 @@ class PrintSummaries extends RecursiveVisitor<Null> {
   final SummaryCollector _summaryCollector;
   final StringBuffer _buf = new StringBuffer();
 
-  PrintSummaries(
-      Target target, TypeEnvironment environment, CoreTypes coreTypes)
+  PrintSummaries(Target target, TypeEnvironment environment,
+      CoreTypes coreTypes, ClassHierarchy hierarchy)
       : _summaryCollector = new SummaryCollector(
             target,
             environment,
+            hierarchy,
             new EmptyEntryPointsListener(),
             new NativeCodeOracle(
                 null, new ExpressionPragmaAnnotationParser(coreTypes)),
-            new GenericInterfacesInfoImpl(environment.hierarchy));
+            new GenericInterfacesInfoImpl(hierarchy));
 
   String print(TreeNode node) {
     visitLibrary(node);
@@ -54,11 +55,12 @@ runTestCase(Uri source) async {
   final Library library = component.mainMethod.enclosingLibrary;
   final CoreTypes coreTypes = new CoreTypes(component);
 
-  final typeEnvironment =
-      new TypeEnvironment(coreTypes, new ClassHierarchy(component));
+  final ClassHierarchy hierarchy = new ClassHierarchy(component);
+  final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
 
   final actual =
-      new PrintSummaries(target, typeEnvironment, coreTypes).print(library);
+      new PrintSummaries(target, typeEnvironment, coreTypes, hierarchy)
+          .print(library);
 
   compareResultWithExpectationsFile(source, actual);
 }

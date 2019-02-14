@@ -22,7 +22,7 @@ abstract class DartHighlightsRequest implements HighlightsRequest {
    * The analysis result for the file for which the highlight regions are being
    * requested.
    */
-  ResolveResult get result;
+  ResolvedUnitResult get result;
 }
 
 /**

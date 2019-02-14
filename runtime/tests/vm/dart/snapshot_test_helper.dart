@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as p;
@@ -49,6 +50,21 @@ Future<Result> runDartBinary(String prefix, List<String> arguments) async {
   final processResult = await Process.run(binary, actualArguments);
   final result = new Result(
       '[$prefix] ${binary} ${actualArguments.join(' ')}', processResult);
+
+  if (processResult.stdout.isNotEmpty) {
+    print('''
+
+Command stdout:
+${processResult.stdout}''');
+  }
+
+  if (processResult.stderr.isNotEmpty) {
+    print('''
+
+Command stderr:
+${processResult.stderr}''');
+  }
+
   if (result.processResult.exitCode != 0) {
     reportError(result,
         '[$prefix] Process finished with non-zero exit code ${result.processResult.exitCode}');
@@ -63,8 +79,14 @@ Future<Null> checkDeterministicSnapshot(
   final snapshot2Path = p.join(temp.path, 'snapshot2');
 
   try {
+    print("Version ${Platform.version}");
+
     final generate1Result = await runDartBinary('GENERATE SNAPSHOT 1', [
       '--deterministic',
+      '--trace_class_finalization',
+      '--trace_type_finalization',
+      '--trace_compiler',
+      '--verbose_gc',
       '--snapshot=$snapshot1Path',
       '--snapshot-kind=$snapshotKind',
       Platform.script.toFilePath(),
@@ -74,6 +96,10 @@ Future<Null> checkDeterministicSnapshot(
 
     final generate2Result = await runDartBinary('GENERATE SNAPSHOT 2', [
       '--deterministic',
+      '--trace_class_finalization',
+      '--trace_type_finalization',
+      '--trace_compiler',
+      '--verbose_gc',
       '--snapshot=$snapshot2Path',
       '--snapshot-kind=$snapshotKind',
       Platform.script.toFilePath(),
@@ -84,12 +110,13 @@ Future<Null> checkDeterministicSnapshot(
     var snapshot1Bytes = await new File(snapshot1Path).readAsBytes();
     var snapshot2Bytes = await new File(snapshot2Path).readAsBytes();
 
-    Expect.equals(snapshot1Bytes.length, snapshot2Bytes.length);
-    for (var i = 0; i < snapshot1Bytes.length; i++) {
+    var minLength = min(snapshot1Bytes.length, snapshot2Bytes.length);
+    for (var i = 0; i < minLength; i++) {
       if (snapshot1Bytes[i] != snapshot2Bytes[i]) {
-        Expect.fail("Snapshots are not bitwise equal!");
+        Expect.fail("Snapshots differ at byte $i");
       }
     }
+    Expect.equals(snapshot1Bytes.length, snapshot2Bytes.length);
   } finally {
     await temp.delete(recursive: true);
   }

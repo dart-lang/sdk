@@ -13,14 +13,10 @@
     "Dynamic invocation of '-'.": 4,
     "Dynamic invocation of '>>'.": 2,
     "Dynamic invocation of '&'.": 3,
-    "Dynamic invocation of '<'.": 6,
-    "Dynamic invocation of '>'.": 4,
+    "Dynamic invocation of '<'.": 3,
+    "Dynamic invocation of '>'.": 2,
     "Dynamic invocation of '+'.": 1,
-    "Dynamic access of '_js_helper::_self'.": 1,
-    "Dynamic access of '_js_helper::_target'.": 1,
-    "Dynamic access of '_js_helper::_receiver'.": 1,
-    "Dynamic access of 'length'.": 2,
-    "Dynamic invocation of '>='.": 1
+    "Dynamic access of 'length'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/string_helper.dart": {
     "Dynamic invocation of '<'.": 1,
@@ -68,12 +64,6 @@
     "Dynamic invocation of 'call'.": 4,
     "Dynamic invocation of 'then'.": 1
   },
-  "org-dartlang-sdk:///sdk/lib/async/future.dart": {
-    "Dynamic invocation of 'call'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/async/stream.dart": {
-    "Dynamic invocation of 'dart.async::_addError'.": 1
-  },
   "org-dartlang-sdk:///sdk/lib/async/async_error.dart": {
     "Dynamic invocation of 'call'.": 1
   },
@@ -90,25 +80,14 @@
     "Dynamic access of 'dart.collection::_element'.": 1,
     "Dynamic access of 'dart.collection::_first'.": 1
   },
-  "org-dartlang-sdk:///sdk/lib/collection/iterable.dart": {
-    "Dynamic access of 'length'.": 2,
-    "Dynamic invocation of '+'.": 2
-  },
   "org-dartlang-sdk:///sdk/lib/html/dart2js/html_dart2js.dart": {
     "Dynamic access of 'style'.": 1,
-    "Dynamic access of 'left'.": 3,
-    "Dynamic access of 'top'.": 3,
-    "Dynamic access of 'width'.": 2,
-    "Dynamic access of 'height'.": 2,
     "Dynamic invocation of 'remove'.": 2,
     "Dynamic update to 'dart.dom.html::_innerHtml'.": 1,
     "Dynamic access of 'firstChild'.": 2,
     "Dynamic invocation of 'append'.": 1,
     "Dynamic access of 'tagName'.": 2,
     "Dynamic invocation of 'round'.": 20,
-    "Dynamic invocation of 'toList'.": 1,
-    "Dynamic access of 'right'.": 1,
-    "Dynamic access of 'bottom'.": 1,
     "Dynamic invocation of 'call'.": 1,
     "Dynamic invocation of 'dart.dom.html::_initKeyboardEvent'.": 1,
     "Dynamic access of 'attributes'.": 1,
@@ -176,11 +155,9 @@
     "Dynamic update to 'dart.io::_owner'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/io/secure_socket.dart": {
-    "Dynamic invocation of 'dart.io::_detachRaw'.": 2,
     "Dynamic invocation of '[]'.": 10,
-    "Dynamic access of 'dart.io::_socket'.": 1,
+    "Dynamic invocation of 'dart.io::_detachRaw'.": 2,
     "Dynamic access of 'closedReadEventSent'.": 1,
-    "Dynamic access of 'host'.": 1,
     "Dynamic update to 'dart.io::_owner'.": 1,
     "Dynamic access of 'length'.": 1,
     "Dynamic invocation of '~/'.": 1,
@@ -190,8 +167,7 @@
   "org-dartlang-sdk:///sdk/lib/io/stdio.dart": {
     "Dynamic invocation of 'writeFromSync'.": 1,
     "Dynamic invocation of 'cancel'.": 1,
-    "Dynamic invocation of 'closeSync'.": 1,
-    "Dynamic access of 'dart.io::_stream'.": 1
+    "Dynamic invocation of 'closeSync'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/io/common.dart": {
     "Dynamic invocation of '[]'.": 3
@@ -208,8 +184,8 @@
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/core_patch.dart": {
     "Dynamic access of 'dart.core::_digits'.": 2,
     "Dynamic invocation of '<'.": 2,
-    "Dynamic invocation of '+'.": 2,
     "Dynamic invocation of '[]'.": 19,
+    "Dynamic invocation of '+'.": 2,
     "Dynamic invocation of 'dart.core::_absSubSetSign'.": 3,
     "Dynamic invocation of 'dart.core::_absAndNotSetSign'.": 2,
     "Dynamic invocation of 'dart.core::_absAddSetSign'.": 2,
@@ -219,71 +195,20 @@
     "Dynamic invocation of '-'.": 1,
     "Dynamic invocation of '>='.": 1
   },
-  "org-dartlang-sdk:///sdk/lib/core/date_time.dart": {
-    "Dynamic access of 'dart.core::_value'.": 1,
-    "Dynamic access of 'isUtc'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/core/duration.dart": {
-    "Dynamic access of 'dart.core::_duration'.": 1
-  },
   "org-dartlang-sdk:///sdk/lib/core/errors.dart": {
-    "Dynamic access of 'length'.": 2,
-    "Dynamic invocation of '<'.": 2,
-    "Dynamic invocation of '~'.": 1,
-    "Dynamic invocation of '^'.": 1,
-    "Dynamic invocation of '&'.": 1,
-    "Dynamic invocation of '|'.": 1,
-    "Dynamic invocation of '>>'.": 1,
-    "Dynamic invocation of '<<'.": 1,
-    "Dynamic invocation of '+'.": 1,
-    "Dynamic invocation of 'unary-'.": 1,
-    "Dynamic invocation of '-'.": 1,
-    "Dynamic invocation of '*'.": 1,
-    "Dynamic invocation of '/'.": 1,
-    "Dynamic invocation of '~/'.": 1,
-    "Dynamic invocation of '>'.": 1,
-    "Dynamic invocation of '>='.": 1,
-    "Dynamic invocation of '<='.": 1,
-    "Dynamic invocation of '%'.": 1,
-    "Dynamic invocation of 'length'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/core/exceptions.dart": {
-    "Dynamic access of 'length'.": 3,
-    "Dynamic invocation of 'codeUnitAt'.": 2,
-    "Dynamic invocation of 'substring'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/core/uri.dart": {
-    "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of 'startsWith'.": 1,
-    "Dynamic invocation of 'add'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/math/point.dart": {
-    "Dynamic access of 'x'.": 1,
-    "Dynamic access of 'y'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/math/rectangle.dart": {
-    "Dynamic access of 'left'.": 1,
-    "Dynamic access of 'top'.": 1,
-    "Dynamic access of 'right'.": 1,
-    "Dynamic access of 'bottom'.": 1
+    "Dynamic access of 'length'.": 2
   },
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/convert_patch.dart": {
     "Dynamic invocation of 'clear'.": 1
   },
-  "org-dartlang-sdk:///sdk/lib/convert/encoding.dart": {
-    "Dynamic invocation of 'write'.": 1
-  },
   "org-dartlang-sdk:///sdk/lib/convert/json.dart": {
     "Dynamic invocation of 'toJson'.": 1
-  },
-  "org-dartlang-sdk:///sdk/lib/isolate/isolate.dart": {
-    "Dynamic invocation of '[]'.": 2
   },
   "org-dartlang-sdk:///sdk/lib/_http/crypto.dart": {
     "Dynamic invocation of '+'.": 2,
     "Dynamic invocation of '&'.": 3,
-    "Dynamic invocation of '-'.": 2,
-    "Dynamic invocation of 'unary-'.": 1
+    "Dynamic invocation of 'unary-'.": 1,
+    "Dynamic invocation of '-'.": 2
   },
   "org-dartlang-sdk:///sdk/lib/_http/http_date.dart": {
     "Dynamic access of 'length'.": 3,
@@ -292,15 +217,13 @@
     "Dynamic invocation of '[]'.": 7
   },
   "org-dartlang-sdk:///sdk/lib/_http/http_headers.dart": {
-    "Dynamic invocation of 'toLowerCase'.": 1,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic invocation of 'codeUnitAt'.": 1
+    "Dynamic invocation of 'toLowerCase'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/_http/http_impl.dart": {
     "Dynamic access of 'message'.": 3,
-    "Dynamic invocation of 'split'.": 1,
     "Dynamic invocation of 'trim'.": 1,
     "Dynamic invocation of 'toLowerCase'.": 1,
+    "Dynamic invocation of 'split'.": 1,
     "Dynamic invocation of 'call'.": 1,
     "Dynamic invocation of 'destroy'.": 2,
     "Dynamic invocation of 'setOption'.": 1,

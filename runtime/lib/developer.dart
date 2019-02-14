@@ -35,9 +35,7 @@ void log(String message,
   if (message is! String) {
     throw new ArgumentError.value(message, "message", "Must be a String");
   }
-  if (time == null) {
-    time = new DateTime.now();
-  }
+  time ??= new DateTime.now();
   if (time is! DateTime) {
     throw new ArgumentError.value(time, "time", "Must be a DateTime");
   }

@@ -224,9 +224,6 @@ abstract class Future<T> {
       var result = computation();
       if (result is Future<T>) {
         return result;
-      } else if (result is Future) {
-        // TODO(lrn): Remove this case for Dart 2.0.
-        return new _Future<T>.immediate(result);
       } else {
         return new _Future<T>.value(result);
       }
@@ -312,10 +309,14 @@ abstract class Future<T> {
   factory Future.delayed(Duration duration, [FutureOr<T> computation()]) {
     _Future<T> result = new _Future<T>();
     new Timer(duration, () {
-      try {
-        result._complete(computation?.call());
-      } catch (e, s) {
-        _completeWithErrorCallback(result, e, s);
+      if (computation == null) {
+        result._complete(null);
+      } else {
+        try {
+          result._complete(computation());
+        } catch (e, s) {
+          _completeWithErrorCallback(result, e, s);
+        }
       }
     });
     return result;
@@ -361,7 +362,7 @@ abstract class Future<T> {
     // Handle an error from any of the futures.
     // TODO(jmesserly): use `void` return type once it can be inferred for the
     // `then` call below.
-    handleError(theError, theStackTrace) {
+    handleError(theError, StackTrace theStackTrace) {
       remaining--;
       if (values != null) {
         if (cleanUp != null) {
@@ -457,7 +458,7 @@ abstract class Future<T> {
     var onValue = (T value) {
       if (!completer.isCompleted) completer.complete(value);
     };
-    var onError = (error, stack) {
+    var onError = (error, StackTrace stack) {
       if (!completer.isCompleted) completer.completeError(error, stack);
     };
     for (var future in futures) {
@@ -521,7 +522,7 @@ abstract class Future<T> {
    */
   static Future doWhile(FutureOr<bool> action()) {
     _Future doneSignal = new _Future();
-    var nextIteration;
+    void Function(bool) nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
     // context of all the previous iterations' callbacks.
     // This avoids, e.g., deeply nested stack traces from the stack trace
@@ -906,7 +907,7 @@ abstract class Completer<T> {
 
 // Helper function completing a _Future with error, but checking the zone
 // for error replacement first.
-void _completeWithErrorCallback(_Future result, error, stackTrace) {
+void _completeWithErrorCallback(_Future result, error, StackTrace stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = _nonNullError(replacement.error);
@@ -916,7 +917,8 @@ void _completeWithErrorCallback(_Future result, error, stackTrace) {
 }
 
 // Like [_completeWithErrorCallback] but completes asynchronously.
-void _asyncCompleteWithErrorCallback(_Future result, error, stackTrace) {
+void _asyncCompleteWithErrorCallback(
+    _Future result, error, StackTrace stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = _nonNullError(replacement.error);

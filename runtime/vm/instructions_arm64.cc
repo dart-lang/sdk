@@ -260,8 +260,7 @@ uword InstructionPattern::DecodeLoadDoubleWordFromPool(uword end,
   Instr* ldr_instr = Instr::At(start);
 
   // Last instruction is always an ldp into two 64-bit X registers.
-  RELEASE_ASSERT(ldr_instr->IsLoadStoreRegPairOp() &&
-                 (ldr_instr->Bit(22) == 1));
+  ASSERT(ldr_instr->IsLoadStoreRegPairOp() && (ldr_instr->Bit(22) == 1));
 
   // Grab the destination register from the ldp instruction.
   *reg1 = ldr_instr->RtField();
@@ -276,30 +275,30 @@ uword InstructionPattern::DecodeLoadDoubleWordFromPool(uword end,
     pool_offset = base_offset;
   } else {
     // Case 2 & 3.
-    RELEASE_ASSERT(base_reg == TMP);
+    ASSERT(base_reg == TMP);
 
     pool_offset = base_offset;
 
     start -= Instr::kInstrSize;
     Instr* add_instr = Instr::At(start);
-    RELEASE_ASSERT(add_instr->IsAddSubImmOp());
-    RELEASE_ASSERT(add_instr->RdField() == TMP);
+    ASSERT(add_instr->IsAddSubImmOp());
+    ASSERT(add_instr->RdField() == TMP);
 
     const auto shift = add_instr->Imm12ShiftField();
-    RELEASE_ASSERT(shift == 0 || shift == 1);
+    ASSERT(shift == 0 || shift == 1);
     pool_offset += (add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
 
     if (add_instr->RnField() == TMP) {
       start -= Instr::kInstrSize;
       Instr* prev_add_instr = Instr::At(start);
-      RELEASE_ASSERT(prev_add_instr->IsAddSubImmOp());
-      RELEASE_ASSERT(prev_add_instr->RnField() == PP);
+      ASSERT(prev_add_instr->IsAddSubImmOp());
+      ASSERT(prev_add_instr->RnField() == PP);
 
       const auto shift = prev_add_instr->Imm12ShiftField();
-      RELEASE_ASSERT(shift == 0 || shift == 1);
+      ASSERT(shift == 0 || shift == 1);
       pool_offset += (prev_add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
     } else {
-      RELEASE_ASSERT(add_instr->RnField() == PP);
+      ASSERT(add_instr->RnField() == PP);
     }
   }
   *index = ObjectPool::IndexFromOffset(pool_offset - kHeapObjectTag);
@@ -318,9 +317,11 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       ASSERT(Utils::IsAligned(offset, 8));
       intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
       const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-      if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
-        *obj = pool.ObjectAt(index);
-        return true;
+      if (!pool.IsNull()) {
+        if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
+          *obj = pool.ObjectAt(index);
+          return true;
+        }
       }
     } else if (instr->RnField() == THR) {
       return Thread::ObjectAtOffset(offset, obj);
@@ -371,10 +372,22 @@ void CallPattern::SetTargetCode(const Code& target) const {
   // No need to flush the instruction cache, since the code is not modified.
 }
 
-SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
+SwitchableCallPatternBase::SwitchableCallPatternBase(const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       data_pool_index_(-1),
-      target_pool_index_(-1) {
+      target_pool_index_(-1) {}
+
+RawObject* SwitchableCallPatternBase::data() const {
+  return object_pool_.ObjectAt(data_pool_index_);
+}
+
+void SwitchableCallPatternBase::SetData(const Object& data) const {
+  ASSERT(!Object::Handle(object_pool_.ObjectAt(data_pool_index_)).IsCode());
+  object_pool_.SetObjectAt(data_pool_index_, data);
+}
+
+SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
+    : SwitchableCallPatternBase(code) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blr ip0.
   ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f0200);
@@ -383,29 +396,56 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   intptr_t pool_index;
   InstructionPattern::DecodeLoadDoubleWordFromPool(
       pc - 2 * Instr::kInstrSize, &ic_data_reg, &code_reg, &pool_index);
-  RELEASE_ASSERT(ic_data_reg == R5);
-  RELEASE_ASSERT(code_reg == CODE_REG);
+  ASSERT(ic_data_reg == R5);
+  ASSERT(code_reg == CODE_REG);
 
   data_pool_index_ = pool_index;
   target_pool_index_ = pool_index + 1;
-}
-
-RawObject* SwitchableCallPattern::data() const {
-  return object_pool_.ObjectAt(data_pool_index_);
 }
 
 RawCode* SwitchableCallPattern::target() const {
   return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_pool_index_));
 }
 
-void SwitchableCallPattern::SetData(const Object& data) const {
-  ASSERT(!Object::Handle(object_pool_.ObjectAt(data_pool_index_)).IsCode());
-  object_pool_.SetObjectAt(data_pool_index_, data);
-}
-
 void SwitchableCallPattern::SetTarget(const Code& target) const {
   ASSERT(Object::Handle(object_pool_.ObjectAt(target_pool_index_)).IsCode());
   object_pool_.SetObjectAt(target_pool_index_, target);
+}
+
+BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
+    : SwitchableCallPatternBase(code) {
+  ASSERT(code.ContainsInstructionAt(pc));
+  // Last instruction: blr ip0.
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f0200);
+
+  Register ic_data_reg, code_reg;
+  intptr_t pool_index;
+  InstructionPattern::DecodeLoadDoubleWordFromPool(
+      pc - Instr::kInstrSize, &ic_data_reg, &code_reg, &pool_index);
+  ASSERT(ic_data_reg == R5);
+  ASSERT(code_reg == TMP);
+
+  data_pool_index_ = pool_index;
+  target_pool_index_ = pool_index + 1;
+}
+
+RawCode* BareSwitchableCallPattern::target() const {
+  const uword pc = object_pool_.RawValueAt(target_pool_index_);
+  auto rct = Isolate::Current()->reverse_pc_lookup_cache();
+  if (rct->Contains(pc)) {
+    return rct->Lookup(pc);
+  }
+  rct = Dart::vm_isolate()->reverse_pc_lookup_cache();
+  if (rct->Contains(pc)) {
+    return rct->Lookup(pc);
+  }
+  UNREACHABLE();
+}
+
+void BareSwitchableCallPattern::SetTarget(const Code& target) const {
+  ASSERT(object_pool_.TypeAt(target_pool_index_) == ObjectPool::kImmediate);
+  object_pool_.SetRawValueAt(target_pool_index_,
+                             target.MonomorphicEntryPoint());
 }
 
 ReturnPattern::ReturnPattern(uword pc) : pc_(pc) {}
@@ -415,6 +455,20 @@ bool ReturnPattern::IsValid() const {
   const Register crn = ConcreteRegister(LR);
   const int32_t instruction = RET | (static_cast<int32_t>(crn) << kRnShift);
   return bx_lr->InstructionBits() == instruction;
+}
+
+bool PcRelativeCallPattern::IsValid() const {
+  // bl <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t branch_link = 0x25;
+  return (word >> 26) == branch_link;
+}
+
+bool PcRelativeJumpPattern::IsValid() const {
+  // b <offset>
+  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
+  const uint32_t branch_nolink = 0x5;
+  return (word >> 26) == branch_nolink;
 }
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {

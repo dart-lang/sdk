@@ -1,0 +1,3 @@
+pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_loop_with_inference.dart:9:61: Context: Write to i@296
+  for (var /*@type=int*/ i = 0; i /*@target=num::<*/ < 10; i++) {
+                                                            ^^

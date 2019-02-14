@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -87,14 +87,12 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_libraryPrefix_deferred_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    var libFile = '${testFile.substring(0, testFile.length - 5)}A.dart';
-    addSource(libFile, '''
+    addSource('/home/test/lib/a.dart', '''
         library testA;
         import "dart:async" deferred as bar;
-        part "${convertAbsolutePathToUri(testFile)}";''');
+        part "test.dart";''');
     addTestSource('part of testA; foo() {bar.^}');
     // Assume that libraries containing has been computed for part files
-    await computeLibrariesContaining();
     await computeSuggestions();
     assertSuggestClass('Future');
     assertSuggestFunction('loadLibrary', 'Future<dynamic>');
@@ -102,14 +100,13 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
   }
 
   test_libraryPrefix_with_exports() async {
-    addSource('/libA.dart', 'library libA; class A { }');
-    addSource('/libB.dart', '''
+    addSource('/home/test/lib/a.dart', 'library libA; class A { }');
+    addSource('/home/test/lib/b.dart', '''
         library libB;
-        export "${convertAbsolutePathToUri("/libA.dart")}";
+        export "a.dart";
         class B { }
         @deprecated class B1 { }''');
-    addTestSource(
-        'import "${convertAbsolutePathToUri("/libB.dart")}" as foo; main() {foo.^} class C { }');
+    addTestSource('import "b.dart" as foo; main() {foo.^} class C { }');
     await computeSuggestions();
     assertSuggestClass('B');
     assertSuggestClass('B1', relevance: DART_RELEVANCE_LOW, isDeprecated: true);
@@ -119,13 +116,13 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_PrefixedIdentifier_library() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri("/testB.dart")}" as b;
+        import "b.dart" as b;
         var T2;
         class A { }
         main() {b.^}''');
@@ -143,11 +140,11 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
   }
 
   test_PrefixedIdentifier_library_export_withShow() async {
-    addSource('/a.dart', r'''
+    addSource('/home/test/lib/a.dart', r'''
 class A {}
 class B {}
 ''');
-    addSource('/b.dart', r'''
+    addSource('/home/test/lib/b.dart', r'''
 export 'a.dart' show A;
 ''');
     addTestSource(r'''
@@ -162,7 +159,7 @@ main() {
   }
 
   test_PrefixedIdentifier_library_import_withShow() async {
-    addSource('/a.dart', r'''
+    addSource('/home/test/lib/a.dart', r'''
 class A {}
 class B {}
 ''');
@@ -179,23 +176,21 @@ main() {
 
   test_PrefixedIdentifier_library_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    var libFile = '${testFile.substring(0, testFile.length - 5)}A.dart';
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
-    addSource(libFile, '''
+    addSource('/home/test/lib/a.dart', '''
         library testA;
-        import "${convertAbsolutePathToUri("/testB.dart")}" as b;
-        part "${convertAbsolutePathToUri(testFile)}";
+        import "b.dart" as b;
+        part "test.dart";
         var T2;
         class A { }''');
     addTestSource('''
         part of testA;
         main() {b.^}''');
     // Assume that libraries containing has been computed for part files
-    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -211,13 +206,13 @@ main() {
 
   test_PrefixedIdentifier_library_typesOnly() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri("/testB.dart")}" as b;
+        import "b.dart" as b;
         var T2;
         class A { }
         foo(b.^ f) {}''');
@@ -236,13 +231,13 @@ main() {
 
   test_PrefixedIdentifier_library_typesOnly2() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
     addTestSource('''
-        import "${convertAbsolutePathToUri("/testB.dart")}" as b;
+        import "b.dart" as b;
         var T2;
         class A { }
         foo(b.^) {}''');
@@ -261,13 +256,13 @@ main() {
 
   test_PrefixedIdentifier_parameter() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
         lib B;
         class _W {M y; var _z;}
         class X extends _W {}
         class M{}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri("/testB.dart")}";
+        import "b.dart";
         foo(X x) {x.^}''');
     await computeSuggestions();
     assertNoSuggestions();
@@ -275,11 +270,11 @@ main() {
 
   test_PrefixedIdentifier_prefix() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
         class A {static int bar = 10;}
         _B() {}''');
     addTestSource('''
-        import "${convertAbsolutePathToUri("/testA.dart")}";
+        import "a.dart";
         class X {foo(){A^.bar}}''');
     await computeSuggestions();
     assertNoSuggestions();

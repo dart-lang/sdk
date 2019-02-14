@@ -1,0 +1,9 @@
+pkg/front_end/testcases/inference/for_loop_initializer_expression.dart:10:10: Context: Write to x@282
+  for (x = 0; x /*@target=num::<*/ < 10; x++) {
+         ^
+pkg/front_end/testcases/inference/for_loop_initializer_expression.dart:10:43: Context: Write to x@282
+  for (x = 0; x /*@target=num::<*/ < 10; x++) {
+                                          ^^
+pkg/front_end/testcases/inference/for_loop_initializer_expression.dart:11:11: Context: Possible promotion of x@282
+    if (x is int) {
+          ^^

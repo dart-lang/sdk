@@ -1,0 +1,3 @@
+pkg/front_end/testcases/inference/generic_functions_return_typedef.dart:15:12: Context: Write to takesInt@458
+  takesInt = y;
+           ^

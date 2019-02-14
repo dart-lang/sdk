@@ -21,15 +21,11 @@ namespace dart {
 
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
+DECLARE_FLAG(bool, precompiled_mode);
 
 Assembler::Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches)
-    : buffer_(),
-      object_pool_wrapper_(object_pool_wrapper),
-      prologue_offset_(-1),
-      has_single_entry_point_(true),
-      comments_(),
-      constant_pool_allowed_(false) {
+    : AssemblerBase(object_pool_wrapper), constant_pool_allowed_(false) {
   // Far branching mode is only needed and implemented for ARM.
   ASSERT(!use_far_branches);
 }
@@ -63,10 +59,8 @@ void Assembler::call(const ExternalLabel* label) {
   call(TMP);
 }
 
-void Assembler::CallPatchable(const StubEntry& stub_entry,
-                              Code::EntryKind entry_kind) {
+void Assembler::CallPatchable(const Code& target, Code::EntryKind entry_kind) {
   ASSERT(constant_pool_allowed());
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const intptr_t idx =
       object_pool_wrapper().AddObject(target, ObjectPool::kPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
@@ -74,20 +68,18 @@ void Assembler::CallPatchable(const StubEntry& stub_entry,
   call(FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
 }
 
-void Assembler::CallWithEquivalence(const StubEntry& stub_entry,
+void Assembler::CallWithEquivalence(const Code& target,
                                     const Object& equivalence,
                                     Code::EntryKind entry_kind) {
   ASSERT(constant_pool_allowed());
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const intptr_t idx = object_pool_wrapper().FindObject(target, equivalence);
   const int32_t offset = ObjectPool::element_offset(idx);
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
   call(FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
 }
 
-void Assembler::Call(const StubEntry& stub_entry) {
+void Assembler::Call(const Code& target) {
   ASSERT(constant_pool_allowed());
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const intptr_t idx =
       object_pool_wrapper().FindObject(target, ObjectPool::kNotPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
@@ -883,13 +875,11 @@ void Assembler::j(Condition condition, Label* label, bool near) {
   }
 }
 
-void Assembler::J(Condition condition,
-                  const StubEntry& stub_entry,
-                  Register pp) {
+void Assembler::J(Condition condition, const Code& target, Register pp) {
   Label no_jump;
   // Negate condition.
   j(static_cast<Condition>(condition ^ 1), &no_jump, kNearJump);
-  Jmp(stub_entry, pp);
+  Jmp(target, pp);
   Bind(&no_jump);
 }
 
@@ -926,9 +916,8 @@ void Assembler::jmp(const ExternalLabel* label) {
   jmp(TMP);
 }
 
-void Assembler::JmpPatchable(const StubEntry& stub_entry, Register pp) {
+void Assembler::JmpPatchable(const Code& target, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const intptr_t idx =
       object_pool_wrapper().AddObject(target, ObjectPool::kPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
@@ -937,9 +926,8 @@ void Assembler::JmpPatchable(const StubEntry& stub_entry, Register pp) {
   jmp(TMP);
 }
 
-void Assembler::Jmp(const StubEntry& stub_entry, Register pp) {
+void Assembler::Jmp(const Code& target, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
-  const Code& target = Code::ZoneHandle(stub_entry.code());
   const intptr_t idx =
       object_pool_wrapper().FindObject(target, ObjectPool::kNotPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
@@ -1266,8 +1254,6 @@ void Assembler::StoreIntoObject(Register object,
                                 CanBeSmi can_be_smi) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
-
-#if defined(CONCURRENT_MARKING)
   ASSERT(object != TMP);
   ASSERT(value != TMP);
 
@@ -1313,14 +1299,47 @@ void Assembler::StoreIntoObject(Register object,
     popq(kWriteBarrierValueReg);
   }
   Bind(&done);
-#else
-  movq(dest, value);
+}
+
+void Assembler::StoreIntoArray(Register object,
+                               Register slot,
+                               Register value,
+                               CanBeSmi can_be_smi) {
+  ASSERT(object != TMP);
+  ASSERT(value != TMP);
+  ASSERT(slot != TMP);
+
+  movq(Address(slot, 0), value);
+
+  // In parallel, test whether
+  //  - object is old and not remembered and value is new, or
+  //  - object is old and value is old and not marked and concurrent marking is
+  //    in progress
+  // If so, call the WriteBarrier stub, which will either add object to the
+  // store buffer (case 1) or add value to the marking stack (case 2).
+  // Compare RawObject::StorePointer.
   Label done;
-  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
-  // A store buffer update is required.
-  call(Address(THR, Thread::write_barrier_wrappers_offset(object)));
+  if (can_be_smi == kValueCanBeSmi) {
+    testq(value, Immediate(kSmiTagMask));
+    j(ZERO, &done, kNearJump);
+  }
+  movb(TMP, FieldAddress(object, Object::tags_offset()));
+  shrl(TMP, Immediate(RawObject::kBarrierOverlapShift));
+  andl(TMP, Address(THR, Thread::write_barrier_mask_offset()));
+  testb(FieldAddress(value, Object::tags_offset()), TMP);
+  j(ZERO, &done, kNearJump);
+
+  if ((object != kWriteBarrierObjectReg) || (value != kWriteBarrierValueReg) ||
+      (slot != kWriteBarrierSlotReg)) {
+    // Spill and shuffle unimplemented. Currently StoreIntoArray is only used
+    // from StoreIndexInstr, which gets these exact registers from the register
+    // allocator.
+    UNIMPLEMENTED();
+  }
+
+  call(Address(THR, Thread::array_write_barrier_entry_point_offset()));
+
   Bind(&done);
-#endif
 }
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
@@ -1369,20 +1388,14 @@ void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {
   addq(dest, inc_imm);
 }
 
-void Assembler::Stop(const char* message, bool fixed_length_encoding) {
+void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
     int64_t message_address = reinterpret_cast<int64_t>(message);
     pushq(TMP);  // Preserve TMP register.
     pushq(RDI);  // Preserve RDI register.
-    if (fixed_length_encoding) {
-      AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-      EmitRegisterREX(RDI, REX_W);
-      EmitUint8(0xB8 | (RDI & 7));
-      EmitInt64(message_address);
-    } else {
-      LoadImmediate(RDI, Immediate(message_address));
-    }
-    call(&StubCode::PrintStopMessage_entry()->label());
+    LoadImmediate(RDI, Immediate(message_address));
+    ExternalLabel label(StubCode::PrintStopMessage().EntryPoint());
+    call(&label);
     popq(RDI);  // Restore RDI register.
     popq(TMP);  // Restore TMP register.
   }
@@ -1519,7 +1532,9 @@ void Assembler::LeaveCallRuntimeFrame() {
   const intptr_t kPushedRegistersSize =
       kPushedCpuRegistersCount * kWordSize +
       kPushedXmmRegistersCount * kFpuRegisterSize +
-      2 * kWordSize;  // PP, pc marker from EnterStubFrame
+      (compiler_frame_layout.dart_fixed_frame_size - 2) *
+          kWordSize;  // From EnterStubFrame (excluding PC / FP)
+
   leaq(RSP, Address(RBP, -kPushedRegistersSize));
 
   // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
@@ -1556,12 +1571,14 @@ void Assembler::LoadPoolPointer(Register pp) {
 void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   ASSERT(!constant_pool_allowed());
   EnterFrame(0);
-  pushq(CODE_REG);
-  pushq(PP);
-  if (new_pp == kNoRegister) {
-    LoadPoolPointer(PP);
-  } else {
-    movq(PP, new_pp);
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    pushq(CODE_REG);
+    pushq(PP);
+    if (new_pp == kNoRegister) {
+      LoadPoolPointer(PP);
+    } else {
+      movq(PP, new_pp);
+    }
   }
   set_constant_pool_allowed(true);
   if (frame_size != 0) {
@@ -1571,11 +1588,13 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
 
 void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   // Restore caller's PP register that was pushed in EnterDartFrame.
-  if (restore_pp == kRestoreCallerPP) {
-    movq(PP, Address(RBP, (compiler_frame_layout.saved_caller_pp_from_fp *
-                           kWordSize)));
-    set_constant_pool_allowed(false);
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    if (restore_pp == kRestoreCallerPP) {
+      movq(PP, Address(RBP, (compiler_frame_layout.saved_caller_pp_from_fp *
+                             kWordSize)));
+    }
   }
+  set_constant_pool_allowed(false);
   LeaveFrame();
 }
 
@@ -1639,8 +1658,8 @@ void Assembler::LeaveStubFrame() {
 // RDI receiver, RBX guarded cid as Smi.
 // Preserve R10 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntry() {
-  ASSERT(has_single_entry_point_);
   has_single_entry_point_ = false;
+  intptr_t start = CodeSize();
   Label immediate, have_cid, miss;
   Bind(&miss);
   jmp(Address(THR, Thread::monomorphic_miss_entry_offset()));
@@ -1649,11 +1668,18 @@ void Assembler::MonomorphicCheckedEntry() {
   movq(TMP, Immediate(kSmiCid));
   jmp(&have_cid, kNearJump);
 
+  // Ensure the monomorphic entry is 2-byte aligned (so GC can see them if we
+  // store them in ICData / MegamorphicCache arrays)
+  nop(1);
+
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
+  ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
+
   SmiUntag(RBX);
   testq(RDI, Immediate(kSmiTagMask));
   j(ZERO, &immediate, kNearJump);
+  nop(1);
 
   LoadClassId(TMP, RDI);
 
@@ -1662,8 +1688,8 @@ void Assembler::MonomorphicCheckedEntry() {
   j(NOT_EQUAL, &miss, Assembler::kNearJump);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
-  ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffset);
+  ASSERT(((CodeSize() - start) & kSmiTagMask) == kSmiTag);
 }
 
 #ifndef PRODUCT
@@ -1801,6 +1827,12 @@ void Assembler::TryAllocateArray(intptr_t cid,
   } else {
     jmp(failure);
   }
+}
+
+void Assembler::GenerateUnRelocatedPcRelativeCall() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  buffer_.Emit<uint8_t>(0xe8);
+  buffer_.Emit<int32_t>(0x68686868);
 }
 
 void Assembler::Align(int alignment, intptr_t offset) {

@@ -11,9 +11,7 @@
 // hash listing file name as the third argument. From docs/language a
 // typical usage would be as follows:
 //
-//   dart
-//     --package-root=<build dir>/packages \
-//     ../../tools/addlatexhash.dart dartLangSpec.tex out.tex hash.txt
+// dart ../../tools/addlatexhash.dart dartLangSpec.tex out.tex hash.txt
 //
 // This will produce a normalized variant out.tex of the language
 // specification with hash values filled in, and a listing hash.txt of
@@ -207,7 +205,7 @@ findEvents(lines, analyzer) {
 /// of its own, given the part of the RegExp that recognizes the
 /// command name, [cmdNameRE]
 lineCommandRE(cmdNameRE) =>
-    new RegExp(r"^\s*\\" + cmdNameRE + r"\s*\{.*\}\s*$");
+    new RegExp(r"^\s*\\" + cmdNameRE + r"\s*\{.*\}%?\s*$");
 
 final hashLabelStartRE = new RegExp(r"^\s*\\LMLabel\s*\{");
 final hashLabelEndRE = new RegExp(r"\}\s*$");

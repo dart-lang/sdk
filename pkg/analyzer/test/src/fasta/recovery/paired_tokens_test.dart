@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,6 +22,66 @@ main() {
  */
 @reflectiveTest
 class AngleBracketsTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_typeArguments_inner_last() {
+    testRecovery('''
+List<List<int>
+''', [ScannerErrorCode.EXPECTED_TOKEN], '''
+List<List<int>> _s_;
+''');
+  }
+
+  void test_typeArguments_inner_last2() {
+    testRecovery('''
+List<List<int> f;
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+List<List<int>> f;
+''');
+  }
+
+  @failingTest
+  void test_typeArguments_inner_notLast() {
+    testRecovery('''
+Map<List<int, List<String>>
+''', [ScannerErrorCode.EXPECTED_TOKEN], '''
+Map<List<int>, List<String>> _s_;
+''');
+  }
+
+  void test_typeArguments_inner_notLast2() {
+    // TODO(danrubel): Investigate better recovery.
+    testRecovery('''
+Map<List<int, List<String>> f;
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+Map<List<int, List<String>>> f;
+''');
+  }
+
+  void test_typeArguments_missing_comma() {
+    testRecovery('''
+List<int double> f;
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+List<int, double> f;
+''');
+  }
+
+  @failingTest
+  void test_typeArguments_outer_last() {
+    testRecovery('''
+List<int
+''', [ScannerErrorCode.EXPECTED_TOKEN], '''
+List<int> _s_;
+''');
+  }
+
+  void test_typeArguments_outer_last2() {
+    testRecovery('''
+List<int f;
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+List<int> f;
+''');
+  }
+
   void test_typeParameters_extraGt() {
     testRecovery('''
 f<T>>() => null;
@@ -73,66 +133,6 @@ f<T>() => null;
 f<T extends List<int>>=() => null;
 ''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
 f<T extends List<int>>() => null;
-''');
-  }
-
-  @failingTest
-  void test_typeArguments_inner_last() {
-    testRecovery('''
-List<List<int>
-''', [ScannerErrorCode.EXPECTED_TOKEN], '''
-List<List<int>> _s_;
-''');
-  }
-
-  void test_typeArguments_inner_last2() {
-    testRecovery('''
-List<List<int> f;
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
-List<List<int>> f;
-''');
-  }
-
-  @failingTest
-  void test_typeArguments_inner_notLast() {
-    testRecovery('''
-Map<List<int, List<String>>
-''', [ScannerErrorCode.EXPECTED_TOKEN], '''
-Map<List<int>, List<String>> _s_;
-''');
-  }
-
-  void test_typeArguments_inner_notLast2() {
-    // TODO(danrubel): Investigate better recovery.
-    testRecovery('''
-Map<List<int, List<String>> f;
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
-Map<List<int, List<String>>> f;
-''');
-  }
-
-  @failingTest
-  void test_typeArguments_outer_last() {
-    testRecovery('''
-List<int
-''', [ScannerErrorCode.EXPECTED_TOKEN], '''
-List<int> _s_;
-''');
-  }
-
-  void test_typeArguments_outer_last2() {
-    testRecovery('''
-List<int f;
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
-List<int> f;
-''');
-  }
-
-  void test_typeArguments_missing_comma() {
-    testRecovery('''
-List<int double> f;
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
-List<int, double> f;
 ''');
   }
 

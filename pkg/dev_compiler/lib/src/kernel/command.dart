@@ -10,7 +10,7 @@ import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
-import 'package:kernel/kernel.dart';
+import 'package:kernel/kernel.dart' hide MapEntry;
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:path/path.dart' as path;
@@ -49,7 +49,7 @@ any other information that may help us track it down. Thanks!
 $error
 $stackTrace
 ''');
-    rethrow;
+    return CompilerResult(70);
   }
 }
 
@@ -80,7 +80,9 @@ Future<CompilerResult> _compile(List<String> args,
     ..addMultiOption('multi-root',
         help: 'The directories to search when encountering uris with the '
             'specified multi-root scheme.',
-        defaultsTo: [Uri.base.path]);
+        defaultsTo: [Uri.base.path])
+    ..addOption('dart-sdk',
+        help: '(unsupported with --kernel) path to the Dart SDK.', hide: true);
   SharedCompilerOptions.addArguments(argParser);
 
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
@@ -125,8 +127,30 @@ Future<CompilerResult> _compile(List<String> args,
   var summaryModules = Map.fromIterables(
       summaryPaths.map(sourcePathToUri), options.summaryModules.values);
   var useAnalyzer = summaryPaths.any((s) => !s.endsWith('.dill'));
-  var sdkSummaryPath = argResults['dart-sdk-summary'] as String ??
-      (useAnalyzer ? defaultAnalyzerSdkSummaryPath : defaultSdkSummaryPath);
+  var sdkSummaryPath = argResults['dart-sdk-summary'] as String;
+  String librarySpecPath;
+  if (sdkSummaryPath == null) {
+    sdkSummaryPath =
+        useAnalyzer ? defaultAnalyzerSdkSummaryPath : defaultSdkSummaryPath;
+    librarySpecPath = defaultLibrarySpecPath;
+  } else {
+    // TODO(jmesserly): the `isSupported` bit should be included in the SDK
+    // summary, but front_end requires a separate file, so we have to work
+    // around that, while avoiding yet another command line option.
+    //
+    // Right now we search two locations: one level above the SDK summary
+    // (this works for the build and SDK layouts) or next to the SDK summary
+    // (if the user is doing something custom).
+    //
+    // Another option: we could make an in-memory file with the relevant info.
+    librarySpecPath =
+        path.join(path.dirname(path.dirname(sdkSummaryPath)), "libraries.json");
+    if (!File(librarySpecPath).existsSync()) {
+      librarySpecPath =
+          path.join(path.dirname(sdkSummaryPath), "libraries.json");
+    }
+  }
+
   useAnalyzer = useAnalyzer || !sdkSummaryPath.endsWith('.dill');
 
   /// The .packages file path provided by the user.
@@ -153,14 +177,26 @@ Future<CompilerResult> _compile(List<String> args,
     fe.printDiagnosticMessage(message, print);
   }
 
+  var experiments = <fe.ExperimentalFlag, bool>{};
+  for (var name in options.experiments.keys) {
+    var flag = fe.parseExperimentalFlag(name);
+    if (flag != null) {
+      experiments[flag] = options.experiments[name];
+    } else {
+      stderr.writeln("Unknown experiment flag '$name'.");
+    }
+  }
+
   var oldCompilerState = compilerState;
   compilerState = await fe.initializeCompiler(
       oldCompilerState,
       sourcePathToUri(sdkSummaryPath),
       sourcePathToUri(packageFile),
+      sourcePathToUri(librarySpecPath),
       summaryModules.keys.toList(),
       DevCompilerTarget(),
-      fileSystem: fileSystem);
+      fileSystem: fileSystem,
+      experiments: experiments);
 
   var output = argResults['out'] as String;
   // TODO(jmesserly): is there a cleaner way to do this?
@@ -217,8 +253,9 @@ Future<CompilerResult> _compile(List<String> args,
   var target = compilerState.options.target as DevCompilerTarget;
   var compiler =
       ProgramCompiler(component, target.hierarchy, options, declaredVariables);
-  var jsModule =
-      compiler.emitModule(component, result.inputSummaries, summaryModules);
+
+  var jsModule = compiler.emitModule(component, result.inputSummaries,
+      compilerState.options.inputSummaries, summaryModules);
 
   // TODO(jmesserly): support for multiple output formats?
   //
@@ -330,6 +367,8 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
 /// The default path of the kernel summary for the Dart SDK.
 final defaultSdkSummaryPath =
     path.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
+
+final defaultLibrarySpecPath = path.join(getSdkPath(), 'lib', 'libraries.json');
 
 final defaultAnalyzerSdkSummaryPath =
     path.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.sum');

@@ -17,6 +17,9 @@ main(List<String> args) async {
   parser.addFlag('help', help: 'Show the program usage.', negatable: false);
   parser.addOption('input', abbr: 'i', help: "Input flakiness file.");
   parser.addOption('output', abbr: 'o', help: "Output flakiness file.");
+  parser.addOption('build-id', help: "Logdog ID of this buildbot run");
+  parser.addOption('commit', help: "Commit hash of this buildbot run");
+
   final options = parser.parse(args);
   if (options["help"]) {
     print("""
@@ -38,15 +41,44 @@ ${parser.usage}""");
   // Incrementally update the flakiness data with each observed result.
   for (final path in parameters) {
     final results = await loadResults(path);
-    for (final result in results) {
-      final String name = result["name"];
-      final Map<String, dynamic> testData =
-          data.putIfAbsent(name, () => <String, dynamic>{});
+    for (final resultObject in results) {
+      final String configuration = resultObject["configuration"];
+      final String name = resultObject["name"];
+      final String result = resultObject["result"];
+      final key = "$configuration:$name";
+      newMap() => <String, dynamic>{};
+      final Map<String, dynamic> testData = data.putIfAbsent(key, newMap);
+      testData["configuration"] = configuration;
       testData["name"] = name;
       final outcomes = testData.putIfAbsent("outcomes", () => []);
-      if (!outcomes.contains(result["result"])) {
-        outcomes.add(result["result"]);
-        outcomes..sort();
+      final time = DateTime.now().toIso8601String();
+      if (!outcomes.contains(result)) {
+        outcomes
+          ..add(result)
+          ..sort();
+        testData["last_new_result_seen"] = time;
+      }
+      if (testData["current"] == result) {
+        testData["current_counter"]++;
+      } else {
+        testData["current"] = result;
+        testData["current_counter"] = 1;
+      }
+      final occurrences = testData.putIfAbsent("occurrences", newMap);
+      occurrences.putIfAbsent(result, () => 0);
+      occurrences[result]++;
+      final firstSeen = testData.putIfAbsent("first_seen", newMap);
+      firstSeen.putIfAbsent(result, () => time);
+      final lastSeen = testData.putIfAbsent("last_seen", newMap);
+      lastSeen[result] = time;
+
+      if (options["build-id"] != null) {
+        final buildIds = testData.putIfAbsent("build_ids", newMap);
+        buildIds[result] = options["build-id"];
+      }
+      if (options["commit"] != null) {
+        final commits = testData.putIfAbsent("commits", newMap);
+        commits[result] = options["commit"];
       }
     }
   }
@@ -56,10 +88,16 @@ ${parser.usage}""");
   final sink = options["output"] != null
       ? new File(options["output"]).openWrite()
       : stdout;
-  final names = new List<String>.from(data.keys)..sort();
-  for (final name in names) {
-    final testData = data[name];
+  final keys = new List<String>.from(data.keys)..sort();
+  for (final key in keys) {
+    final testData = data[key];
     if (testData["outcomes"].length < 2) continue;
+    // Forgive tests that have become deterministic again. If they flake less
+    // than once in a 100 (p<1%), then if they flake again, the probability of
+    // them getting past 5 runs of deflaking is 1%^5 = 0.00000001%.
+    if (100 <= testData["current_counter"]) {
+      continue;
+    }
     sink.writeln(jsonEncode(testData));
   }
 }

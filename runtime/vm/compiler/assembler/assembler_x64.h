@@ -20,7 +20,6 @@ namespace dart {
 
 // Forward declarations.
 class RuntimeEntry;
-class StubEntry;
 
 class Immediate : public ValueObject {
  public:
@@ -275,7 +274,7 @@ class FieldAddress : public Address {
   }
 };
 
-class Assembler : public ValueObject {
+class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
                      bool use_far_branches = false);
@@ -628,7 +627,7 @@ class Assembler : public ValueObject {
   void jmp(const Address& address) { EmitUnaryL(address, 0xFF, 4); }
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);
-  void jmp(const StubEntry& stub_entry);
+  void jmp(const Code& code);
 
   // Issue memory to memory move through a TMP register.
   // TODO(koda): Assert that these are not used for heap objects.
@@ -689,12 +688,12 @@ class Assembler : public ValueObject {
   void LoadFunctionFromCalleePool(Register dst,
                                   const Function& function,
                                   Register new_pp);
-  void JmpPatchable(const StubEntry& stub_entry, Register pp);
-  void Jmp(const StubEntry& stub_entry, Register pp = PP);
-  void J(Condition condition, const StubEntry& stub_entry, Register pp);
-  void CallPatchable(const StubEntry& stub_entry,
+  void JmpPatchable(const Code& code, Register pp);
+  void Jmp(const Code& code, Register pp = PP);
+  void J(Condition condition, const Code& code, Register pp);
+  void CallPatchable(const Code& code,
                      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
-  void Call(const StubEntry& stub_entry);
+  void Call(const Code& stub_entry);
   void CallToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers);
@@ -702,7 +701,7 @@ class Assembler : public ValueObject {
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
   void CallWithEquivalence(
-      const StubEntry& stub_entry,
+      const Code& code,
       const Object& equivalence,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
@@ -726,6 +725,10 @@ class Assembler : public ValueObject {
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
                        CanBeSmi can_be_smi = kValueCanBeSmi);
+  void StoreIntoArray(Register object,  // Object we are storing into.
+                      Register slot,    // Where we are storing into.
+                      Register value,   // Value we are storing.
+                      CanBeSmi can_be_smi = kValueCanBeSmi);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
@@ -818,36 +821,6 @@ class Assembler : public ValueObject {
     cmpq(value, address);
   }
 
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  static bool EmittingComments();
-
-  const Code::Comments& GetCodeComments() const;
-
-  // Address of code at offset.
-  uword CodeAddress(intptr_t offset) { return buffer_.Address(offset); }
-
-  intptr_t CodeSize() const { return buffer_.Size(); }
-  intptr_t prologue_offset() const { return prologue_offset_; }
-  bool has_single_entry_point() const { return has_single_entry_point_; }
-
-  // Count the fixups that produce a pointer offset, without processing
-  // the fixups.
-  intptr_t CountPointerOffsets() const { return buffer_.CountPointerOffsets(); }
-
-  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
-    return buffer_.pointer_offsets();
-  }
-
-  ObjectPoolWrapper& object_pool_wrapper() { return *object_pool_wrapper_; }
-
-  RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_->MakeObjectPool();
-  }
-
-  void FinalizeInstructions(const MemoryRegion& region) {
-    buffer_.FinalizeInstructions(region);
-  }
-
   void RestoreCodePointer();
   void LoadPoolPointer(Register pp = PP);
 
@@ -927,12 +900,22 @@ class Assembler : public ValueObject {
                         Register end_address,
                         Register temp);
 
+  // This emits an PC-relative call of the form "callq *[rip+<offset>]".  The
+  // offset is not yet known and needs therefore relocation to the right place
+  // before the code can be used.
+  //
+  // The neccessary information for the "linker" (i.e. the relocation
+  // information) is stored in [RawCode::static_calls_target_table_]: an entry
+  // of the form
+  //
+  //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
+  //
+  // will be used during relocation to fix the offset.
+  void GenerateUnRelocatedPcRelativeCall();
+
   // Debugging and bringup support.
   void Breakpoint() { int3(); }
-  void Stop(const char* message, bool fixed_length_encoding = false);
-  void Unimplemented(const char* message);
-  void Untested(const char* message);
-  void Unreachable(const char* message);
+  void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
@@ -961,29 +944,6 @@ class Assembler : public ValueObject {
   static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
  private:
-  AssemblerBuffer buffer_;
-
-  ObjectPoolWrapper* object_pool_wrapper_;
-
-  intptr_t prologue_offset_;
-  bool has_single_entry_point_;
-
-  class CodeComment : public ZoneAllocated {
-   public:
-    CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) {}
-
-    intptr_t pc_offset() const { return pc_offset_; }
-    const String& comment() const { return comment_; }
-
-   private:
-    intptr_t pc_offset_;
-    const String& comment_;
-
-    DISALLOW_COPY_AND_ASSIGN(CodeComment);
-  };
-
-  GrowableArray<CodeComment*> comments_;
   bool constant_pool_allowed_;
 
   intptr_t FindImmediate(int64_t imm);

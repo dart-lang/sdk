@@ -18,7 +18,6 @@ import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import 'allocator_analysis.dart';
-import 'backend.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
@@ -429,7 +428,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(impactBuilder, _impacts.getRuntimeTypeArgument);
     }
 
-    if (JavaScriptBackend.TRACE_CALLS) {
+    if (_options.experimentCallInstrumentation) {
       _registerBackendImpact(impactBuilder, _impacts.traceHelper);
     }
     _registerBackendImpact(impactBuilder, _impacts.assertUnreachable);

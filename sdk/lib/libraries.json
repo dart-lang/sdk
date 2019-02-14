@@ -342,6 +342,7 @@
       },
       "isolate": {
         "patches": "../../pkg/dev_compiler/tool/input_sdk/patch/isolate_patch.dart",
+        "supported": false,
         "uri": "isolate/isolate.dart"
       },
       "web_gl": {

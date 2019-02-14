@@ -1,0 +1,9 @@
+pkg/front_end/testcases/function_type_is_check.dart:8:9: Context: Possible promotion of f@272
+  if (f is void Function(Object, StackTrace)) return 1;
+        ^^
+pkg/front_end/testcases/function_type_is_check.dart:9:9: Context: Possible promotion of f@272
+  if (f is void Function(Object)) return 10;
+        ^^
+pkg/front_end/testcases/function_type_is_check.dart:10:9: Context: Possible promotion of f@272
+  if (f is void Function()) return 100;
+        ^^

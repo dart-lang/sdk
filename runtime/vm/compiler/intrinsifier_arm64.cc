@@ -57,29 +57,6 @@ void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->mov(ARGS_DESC_REG, CALLEE_SAVED_TEMP2);
 }
 
-// Intrinsify only for Smi index.
-void Intrinsifier::ObjectArraySetIndexedUnchecked(Assembler* assembler,
-                                                  Label* normal_ir_body) {
-  __ ldr(R1, Address(SP, 1 * kWordSize));  // Index.
-  __ BranchIfNotSmi(R1, normal_ir_body);
-  __ ldr(R0, Address(SP, 2 * kWordSize));  // Array.
-
-  // Range check.
-  __ ldr(R3, FieldAddress(R0, Array::length_offset()));  // Array length.
-  __ cmp(R1, Operand(R3));
-  // Runtime throws exception.
-  __ b(normal_ir_body, CS);
-
-  // Note that R1 is Smi, i.e, times 2.
-  ASSERT(kSmiTagShift == 1);
-  __ ldr(R2, Address(SP, 0 * kWordSize));  // Value.
-  __ add(R1, R0, Operand(R1, LSL, 2));     // R1 is Smi.
-  __ StoreIntoObject(R0, FieldAddress(R1, Array::data_offset()), R2);
-  // Caller is responsible for preserving the value if necessary.
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+1), data (+0).
 void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
@@ -110,39 +87,6 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler,
   __ str(R1, FieldAddress(R0, GrowableObjectArray::length_offset()));
   __ ret();  // Returns the newly allocated object in R0.
 
-  __ Bind(normal_ir_body);
-}
-
-// Add an element to growable array if it doesn't need to grow, otherwise
-// call into regular code.
-// On stack: growable array (+1), value (+0).
-void Intrinsifier::GrowableArray_add(Assembler* assembler,
-                                     Label* normal_ir_body) {
-  // In checked mode we need to type-check the incoming argument.
-  if (Isolate::Current()->argument_type_checks()) {
-    return;
-  }
-  // R0: Array.
-  __ ldr(R0, Address(SP, 1 * kWordSize));
-  // R1: length.
-  __ ldr(R1, FieldAddress(R0, GrowableObjectArray::length_offset()));
-  // R2: data.
-  __ ldr(R2, FieldAddress(R0, GrowableObjectArray::data_offset()));
-  // R3: capacity.
-  __ ldr(R3, FieldAddress(R2, Array::length_offset()));
-  // Compare length with capacity.
-  __ cmp(R1, Operand(R3));
-  __ b(normal_ir_body, EQ);  // Must grow data.
-  const int64_t value_one = reinterpret_cast<int64_t>(Smi::New(1));
-  // len = len + 1;
-  __ add(R3, R1, Operand(value_one));
-  __ str(R3, FieldAddress(R0, GrowableObjectArray::length_offset()));
-  __ ldr(R0, Address(SP, 0 * kWordSize));  // Value.
-  ASSERT(kSmiTagShift == 1);
-  __ add(R1, R2, Operand(R1, LSL, 2));
-  __ StoreIntoObject(R2, FieldAddress(R1, Array::data_offset()), R0);
-  __ LoadObject(R0, Object::null_object());
-  __ ret();
   __ Bind(normal_ir_body);
 }
 
@@ -1685,7 +1629,7 @@ static void JumpIfNotString(Assembler* assembler,
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
                                      Label* normal_ir_body) {
-  Label use_canonical_type, not_double, not_integer;
+  Label use_declaration_type, not_double, not_integer;
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ LoadClassIdMayBeSmi(R1, R0);
 
@@ -1693,7 +1637,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ b(normal_ir_body, EQ);  // Instance is a closure.
 
   __ CompareImmediate(R1, kNumPredefinedCids);
-  __ b(&use_canonical_type, HI);
+  __ b(&use_declaration_type, HI);
 
   __ CompareImmediate(R1, kDoubleCid);
   __ b(&not_double, NE);
@@ -1711,19 +1655,19 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ ret();
 
   __ Bind(&not_integer);
-  JumpIfNotString(assembler, R1, R0, &use_canonical_type);
+  JumpIfNotString(assembler, R1, R0, &use_declaration_type);
   __ LoadIsolate(R0);
   __ LoadFromOffset(R0, R0, Isolate::object_store_offset());
   __ LoadFromOffset(R0, R0, ObjectStore::string_type_offset());
   __ ret();
 
-  __ Bind(&use_canonical_type);
+  __ Bind(&use_declaration_type);
   __ LoadClassById(R2, R1);  // Overwrites R1.
   __ ldr(R3, FieldAddress(R2, Class::num_type_arguments_offset()), kHalfword);
   __ CompareImmediate(R3, 0);
   __ b(normal_ir_body, NE);
 
-  __ ldr(R0, FieldAddress(R2, Class::canonical_type_offset()));
+  __ ldr(R0, FieldAddress(R2, Class::declaration_type_offset()));
   __ CompareObject(R0, Object::null_object());
   __ b(normal_ir_body, EQ);
   __ ret();

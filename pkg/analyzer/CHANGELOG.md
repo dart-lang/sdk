@@ -1,3 +1,79 @@
+## 0.34.2
+* Removed support for the `@checked` annotation.  Please use the `covariant`
+  keyword instead.
+
+## 0.34.1
+* Added logic to report a hint if a deprecated lint is specified in the user's
+  analysis_options.yaml file, or if a lint is specified twice.
+* Added a note to the `UriResolver` documentation alerting clients of an
+  upcoming breaking change.
+* Improved parser recovery.
+* Speculative work on fine-grained dependency tracking (not yet enabled).
+* Initial support for new language features set_literals and
+  constant_update_2018.
+* Early speculative work on non-nullable types.
+* Added AnalysisDriver.resetUriResolution().
+* Deprecated TypeSystem.isStrong.
+* Added WorkspacePackage classes, for determining whether two files are in the
+  "same package."
+* Added a public API for the TypeSystem class.
+* Bug fixes: #33946, #35151, #35223, #35241, #35438.
+
+## 0.34.0
+* Support for `declarations-casts` has been removed and the `implicit-casts`
+  option now has the combined semantics of both options. This means that users
+  that disable `implicit-casts` might now see errors that were not previously
+  being reported.
+* Minor changes to the AnalysisSession and AnalysisDriver APIs to make it easier
+  for clients to transition away from using the task model.
+* Minor changes to the linter API to make it easier for lint rules to define
+  their own lint codes.
+* Add a version of getAncestor that matches by type without a closure.
+* Add an AST structure for set literals.
+* Bug fixes: #35162, #35230, #34733, #34741, #33553, #35090, #32815, #34387,
+  #34495, #35043, #33553, #34906, #34489.
+
+## 0.33.6+1
+* Added a note to the `UriResolver` documentation alerting clients of an
+  upcoming breaking change.
+
+## 0.33.6
+* Deprecated `AstNode.getAncestor` and introduced
+  `AstNode.thisOrAncestorMatching` as its replacement.
+
+## 0.33.5
+* Add AnalysisSession.getResolvedLibrary()/ByElement() APIs.
+
+## 0.33.4
+* Add a hint when either Future or Stream are imported from dart:core in a package that is expected to work with an SDK before 2.1 where they were required to be imported from dart:async.
+* Add a new "deprecated" maturity for lints
+* Don't report DEPRECATED_MEMBER_USE for deprecated mixins, top-level variables, and class fields.
+* Various bug fixes.
+
+## 0.33.3+2
+* Update SDK requirement to 2.1.0-dev.5.0.  From now on, the analyzer may import
+  Future from dart:core. (#35158)
+
+## 0.33.3+1
+* Fix missing import of dart:async. (#35158)
+
+## 0.33.3
+* Backport Parsed/ResolvedLibraryResultImpl and ElementDeclarationResult.
+
+## 0.33.2
+* Protect against self-referencing classes in InheritanceManager2. (#34333)
+* Introduce API so that the linter can be migrated away from Element.context.
+
+## 0.33.1
+* Fix circular typedef stack overflow. (#33599)
+* Check that the implemented member is a valid override of the member from
+  the super constraint. (#34693)
+* Begin replacing InheritanceManager with InheritanceManager2 and
+  deprecate older members.
+* Performance fixups with Analysis Driver.
+* Verify the superconstraint signature invoked by a mixin. (#34896)
+* In_matchInterfaceSubtypeOf, account for mixins having null. (#34907)
+
 ## 0.33.0
 * Support handling 'class C with M', with extends missing.
 * Report ABSTRACT_SUPER_MEMBER_REFERENCE as an error.

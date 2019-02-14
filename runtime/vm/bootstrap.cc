@@ -48,7 +48,7 @@ static void Finish(Thread* thread) {
   ObjectStore* object_store = thread->isolate()->object_store();
   Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone, object_store->closure_class());
-  Compiler::CompileClass(cls);
+  ClassFinalizer::LoadClassMembers(cls);
 
 #if defined(DEBUG)
   // Verify that closure field offsets are identical in Dart and C++.
@@ -71,7 +71,7 @@ static void Finish(Thread* thread) {
 
   // Eagerly compile Bool class, bool constants are used from within compiler.
   cls = object_store->bool_class();
-  Compiler::CompileClass(cls);
+  ClassFinalizer::LoadClassMembers(cls);
 }
 
 static RawError* BootstrapFromKernel(Thread* thread,

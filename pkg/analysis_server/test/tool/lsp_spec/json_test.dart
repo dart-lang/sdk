@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,23 +18,21 @@ main() {
     });
 
     test('returns correct output for union types', () {
-      final message =
-          new RequestMessage(new Either2.t1(1), "test", null, "test");
+      final message = new RequestMessage(
+          new Either2<num, String>.t1(1), Method.shutdown, null, "test");
       String output = json.encode(message.toJson());
-      expect(output, equals('{"id":1,"method":"test","jsonrpc":"test"}'));
+      expect(output, equals('{"id":1,"method":"shutdown","jsonrpc":"test"}'));
     });
 
     test('returns correct output for union types containing interface types',
         () {
-      final params = new Either2<String, WorkspaceClientCapabilities>.t2(
-          new WorkspaceClientCapabilities(
-        true,
-        null,
-        null,
-        null,
-      ));
+      final params = new Either2<String, TextDocumentItem>.t2(
+          new TextDocumentItem('!uri', '!language', 1, '!text'));
       String output = json.encode(params);
-      expect(output, equals('{"applyEdit":true}'));
+      expect(
+          output,
+          equals(
+              '{"uri":"!uri","languageId":"!language","version":1,"text":"!text"}'));
     });
 
     test('returns correct output for types with lists', () {
@@ -45,7 +43,7 @@ main() {
       final codeAction = new Diagnostic(
         range,
         DiagnosticSeverity.Error,
-        new Either2.t2('test_err'),
+        'test_err',
         '/tmp/source.dart',
         'err!!',
         [new DiagnosticRelatedInformation(location, 'message')],
@@ -91,55 +89,133 @@ main() {
           .replaceAll(new RegExp('[ \n]'), '');
       expect(output, equals(expected));
     });
+
+    test('ResponseMessage does not include an error with a result', () {
+      final id = new Either2<num, String>.t1(1);
+      final result = 'my result';
+      final resp = new ResponseMessage(id, result, null, jsonRpcVersion);
+      final jsonMap = resp.toJson();
+      expect(jsonMap, contains('result'));
+      expect(jsonMap, isNot(contains('error')));
+    });
+
+    test('ResponseMessage can include a null result', () {
+      final id = new Either2<num, String>.t1(1);
+      final resp = new ResponseMessage(id, null, null, jsonRpcVersion);
+      final jsonMap = resp.toJson();
+      expect(jsonMap, contains('result'));
+      expect(jsonMap, isNot(contains('error')));
+    });
+
+    test('ResponseMessage does not include a result for an error', () {
+      final id = new Either2<num, String>.t1(1);
+      final error =
+          new ResponseError<String>(ErrorCodes.ParseError, 'Error', null);
+      final resp = new ResponseMessage(id, null, error, jsonRpcVersion);
+      final jsonMap = resp.toJson();
+      expect(jsonMap, contains('error'));
+      expect(jsonMap, isNot(contains('result')));
+    });
+
+    test('ResponseMessage throws if both result and error are non-null', () {
+      final id = new Either2<num, String>.t1(1);
+      final result = 'my result';
+      final error =
+          new ResponseError<String>(ErrorCodes.ParseError, 'Error', null);
+      final resp = new ResponseMessage(id, result, error, jsonRpcVersion);
+      expect(resp.toJson, throwsA(new TypeMatcher<String>()));
+    });
   });
 
   group('fromJson', () {
     test('parses JSON for types with unions (left side)', () {
-      final input = '{"id":1,"method":"test","jsonrpc":"test"}';
-      final message = new RequestMessage.fromJson(jsonDecode(input));
+      final input = '{"id":1,"method":"shutdown","jsonrpc":"test"}';
+      final message = RequestMessage.fromJson(jsonDecode(input));
       expect(message.id, equals(new Either2<num, String>.t1(1)));
       expect(message.id.valueEquals(1), isTrue);
       expect(message.jsonrpc, "test");
-      expect(message.method, "test");
+      expect(message.method, Method.shutdown);
     });
 
     test('parses JSON for types with unions (right side)', () {
-      final input = '{"id":"one","method":"test","jsonrpc":"test"}';
-      final message = new RequestMessage.fromJson(jsonDecode(input));
+      final input = '{"id":"one","method":"shutdown","jsonrpc":"test"}';
+      final message = RequestMessage.fromJson(jsonDecode(input));
       expect(message.id, equals(new Either2<num, String>.t2("one")));
       expect(message.id.valueEquals("one"), isTrue);
       expect(message.jsonrpc, "test");
-      expect(message.method, "test");
+      expect(message.method, Method.shutdown);
+    });
+
+    test('parses JSON with nulls for unions that allow null', () {
+      final input = '{"id":null,"jsonrpc":"test"}';
+      final message = ResponseMessage.fromJson(jsonDecode(input));
+      expect(message.id, isNull);
+    });
+
+    test('parses JSON with nulls for unions that allow null', () {
+      final input = '{"method":"test","jsonrpc":"test"}';
+      final message = NotificationMessage.fromJson(jsonDecode(input));
+      expect(message.params, isNull);
+    });
+
+    test('deserialises subtypes into the correct class', () {
+      // Create some JSON that includes a VersionedTextDocumentIdenfitier but
+      // where the class definition only references a TextDocumentIdemntifier.
+      final input = jsonEncode(new TextDocumentPositionParams(
+        new VersionedTextDocumentIdentifier(111, 'file:///foo/bar.dart'),
+        new Position(1, 1),
+      ).toJson());
+      final params = TextDocumentPositionParams.fromJson(jsonDecode(input));
+      expect(params.textDocument,
+          const TypeMatcher<VersionedTextDocumentIdentifier>());
     });
   });
 
-  test('objects with lists and enums can round-trip through to json and back',
-      () {
-    final obj = new ClientCapabilities(
-        new WorkspaceClientCapabilities(
-            true,
-            false,
-            [ResourceOperationKind.Create, ResourceOperationKind.Delete],
-            FailureHandlingKind.Undo),
-        new TextDocumentClientCapabilities(true, false, true, false),
-        null);
+  test('objects with lists can round-trip through to json and back', () {
+    final obj = new InitializeParams(1, '!root', null, null,
+        new ClientCapabilities(null, null, null), '!trace', [
+      new WorkspaceFolder('!uri1', '!name1'),
+      new WorkspaceFolder('!uri2', '!name2'),
+    ]);
     final String json = jsonEncode(obj);
-    final restoredObj = new ClientCapabilities.fromJson(jsonDecode(json));
+    final restoredObj = InitializeParams.fromJson(jsonDecode(json));
 
-    expect(restoredObj.workspace.applyEdit, equals(obj.workspace.applyEdit));
-    expect(restoredObj.workspace.documentChanges,
-        equals(obj.workspace.documentChanges));
-    expect(restoredObj.workspace.resourceOperations,
-        equals(obj.workspace.resourceOperations));
-    expect(restoredObj.workspace.failureHandling,
-        equals(obj.workspace.failureHandling));
-    expect(restoredObj.textDocument.didSave, equals(obj.textDocument.didSave));
-    expect(restoredObj.textDocument.dynamicRegistration,
-        equals(obj.textDocument.dynamicRegistration));
     expect(
-        restoredObj.textDocument.willSave, equals(obj.textDocument.willSave));
-    expect(restoredObj.textDocument.willSaveWaitUntil,
-        equals(obj.textDocument.willSaveWaitUntil));
-    expect(restoredObj.experimental, equals(obj.experimental));
+        restoredObj.workspaceFolders, hasLength(obj.workspaceFolders.length));
+    for (var i = 0; i < obj.workspaceFolders.length; i++) {
+      expect(restoredObj.workspaceFolders[i].name,
+          equals(obj.workspaceFolders[i].name));
+      expect(restoredObj.workspaceFolders[i].uri,
+          equals(obj.workspaceFolders[i].uri));
+    }
+  });
+
+  test('objects with enums can round-trip through to json and back', () {
+    final obj = new FoldingRange(1, 2, 3, 4, FoldingRangeKind.Comment);
+    final String json = jsonEncode(obj);
+    final restoredObj = FoldingRange.fromJson(jsonDecode(json));
+
+    expect(restoredObj.startLine, equals(obj.startLine));
+    expect(restoredObj.startCharacter, equals(obj.startCharacter));
+    expect(restoredObj.endLine, equals(obj.endLine));
+    expect(restoredObj.endCharacter, equals(obj.endCharacter));
+    expect(restoredObj.kind, equals(obj.kind));
+  });
+
+  test('objects with maps can round-trip through to json and back', () {
+    final start = new Position(1, 1);
+    final end = new Position(2, 2);
+    final range = new Range(start, end);
+    final obj = new WorkspaceEdit(<String, List<TextEdit>>{
+      'fileA': [new TextEdit(range, 'text A')],
+      'fileB': [new TextEdit(range, 'text B')]
+    }, null);
+    final String json = jsonEncode(obj);
+    final restoredObj = WorkspaceEdit.fromJson(jsonDecode(json));
+
+    expect(restoredObj.documentChanges, equals(obj.documentChanges));
+    expect(restoredObj.changes, equals(obj.changes));
+    expect(restoredObj.changes.keys, equals(obj.changes.keys));
+    expect(restoredObj.changes.values, equals(obj.changes.values));
   });
 }

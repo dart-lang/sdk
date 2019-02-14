@@ -548,10 +548,10 @@ class Server {
         return;
       }
       outOfTestExpect(message, isMap);
-      Map messageAsMap = message;
+      Map messageAsMap = message as Map;
       if (messageAsMap.containsKey('id')) {
         outOfTestExpect(messageAsMap['id'], isString);
-        String id = message['id'];
+        String id = message['id'] as String;
         Completer completer = _pendingCommands[id];
         if (completer == null) {
           fail('Unexpected response from server: id=$id');

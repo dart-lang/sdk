@@ -256,7 +256,6 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
 
   void operator []=(K key, V value) {
     final int size = _index.length;
-    final int sizeMask = size - 1;
     final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     final int d = _findValueOrInsertPoint(key, fullHash, hashPattern, size);
@@ -270,8 +269,6 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
 
   V putIfAbsent(K key, V ifAbsent()) {
     final int size = _index.length;
-    final int sizeMask = size - 1;
-    final int maxEntries = size >> 1;
     final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     final int d = _findValueOrInsertPoint(key, fullHash, hashPattern, size);
@@ -436,7 +433,8 @@ class _CompactIterator<E> implements Iterator<E> {
   final int _checkSum;
   E current;
 
-  _CompactIterator(table, this._data, this._len, this._offset, this._step)
+  _CompactIterator(
+      _HashBase table, this._data, this._len, this._offset, this._step)
       : _table = table,
         _checkSum = table._checkSum;
 
@@ -448,7 +446,7 @@ class _CompactIterator<E> implements Iterator<E> {
       _offset += _step;
     } while (_offset < _len && _HashBase._isDeleted(_data, _data[_offset]));
     if (_offset < _len) {
-      current = _data[_offset];
+      current = internal.unsafeCast<E>(_data[_offset]);
       return true;
     } else {
       current = null;

@@ -137,10 +137,11 @@ namespace dart {
 //    Check for a passed-in type argument vector of length A and
 //    store it at FP[D].
 //
-//  - CheckStack
+//  - CheckStack A
 //
 //    Compare SP against isolate stack limit and call StackOverflow handler if
-//    necessary.
+//    necessary. Should be used in prologue (A = 0), or at the beginning of
+//    a loop with depth A.
 //
 //  - Allocate D
 //
@@ -154,13 +155,18 @@ namespace dart {
 //
 //    Allocate array of length SP[0] with type arguments SP[-1].
 //
-//  - AllocateContext D
+//  - AllocateContext A, D
 //
-//    Allocate Context object assuming for D context variables.
+//    Allocate Context object holding D context variables.
+//    A is a static ID of the context. Static ID of a context may be used to
+//    disambiguate accesses to different context objects.
+//    Context objects with the same ID should have the same number of
+//    context variables.
 //
-//  - CloneContext
+//  - CloneContext A, D
 //
-//    Clone context stored in TOS.
+//    Clone Context object SP[0] holding D context variables.
+//    A is a static ID of the context. Cloned context has the same ID.
 //
 //  - LoadContextParent
 //
@@ -170,13 +176,15 @@ namespace dart {
 //
 //    Store context SP[0] into `parent` field of context SP[-1].
 //
-//  - LoadContextVar D
+//  - LoadContextVar A, D
 //
 //    Load value from context SP[0] at index D.
+//    A is a static ID of the context.
 //
-//  - StoreContextVar D
+//  - StoreContextVar A, D
 //
 //    Store value SP[0] into context SP[-1] at index D.
+//    A is a static ID of the context.
 //
 //  - PushConstant D
 //
@@ -263,7 +271,16 @@ namespace dart {
 //    SP[-(1+ArgC)], ..., SP[-1] and argument descriptor PP[D], which
 //    indicates whether the first argument is a type argument vector.
 //
-//  - InstanceCall ArgC, D
+//  - InterfaceCall ArgC, D
+//
+//    Lookup and invoke method using ICData in PP[D]
+//    with arguments SP[-(1+ArgC)], ..., SP[-1].
+//    Method has to be declared (explicitly or implicitly) in an interface
+//    implemented by a receiver, and passed arguments are valid for the
+//    interface method declaration.
+//    The ICData indicates whether the first argument is a type argument vector.
+//
+//  - DynamicCall ArgC, D
 //
 //    Lookup and invoke method using ICData in PP[D]
 //    with arguments SP[-(1+ArgC)], ..., SP[-1].
@@ -329,10 +346,10 @@ namespace dart {
 //    Throw (Rethrow if A != 0) exception. Exception object and stack object
 //    are taken from TOS.
 //
-//  - MoveSpecial rA, D
+//  - MoveSpecial A, rX
 //
-//    Copy special values from inside interpreter to FP[rA]. Currently only
-//    used to pass exception object (D = 0) and stack trace object (D = 1) to
+//    Copy value from special variable to FP[rX]. Currently only
+//    used to pass exception object (A = 0) and stack trace object (A = 1) to
 //    catch handler.
 //
 //  - SetFrame A
@@ -396,13 +413,13 @@ namespace dart {
   V(EntryOptional,                     A_B_C, num, num, num)                   \
   V(LoadConstant,                        A_D, reg, lit, ___)                   \
   V(Frame,                                 D, num, ___, ___)                   \
-  V(CheckFunctionTypeArgs,               A_D, num, num, ___)                   \
-  V(CheckStack,                            0, ___, ___, ___)                   \
+  V(CheckFunctionTypeArgs,               A_D, num, reg, ___)                   \
+  V(CheckStack,                            A, num, ___, ___)                   \
   V(Allocate,                              D, lit, ___, ___)                   \
   V(AllocateT,                             0, ___, ___, ___)                   \
   V(CreateArrayTOS,                        0, ___, ___, ___)                   \
   V(AllocateContext,                       D, num, ___, ___)                   \
-  V(CloneContext,                          0, ___, ___, ___)                   \
+  V(CloneContext,                          D, num, ___, ___)                   \
   V(LoadContextParent,                     0, ___, ___, ___)                   \
   V(StoreContextParent,                    0, ___, ___, ___)                   \
   V(LoadContextVar,                        D, num, ___, ___)                   \
@@ -431,7 +448,8 @@ namespace dart {
   V(JumpIfNull,                            T, tgt, ___, ___)                   \
   V(JumpIfNotNull,                         T, tgt, ___, ___)                   \
   V(IndirectStaticCall,                  A_D, num, num, ___)                   \
-  V(InstanceCall,                        A_D, num, num, ___)                   \
+  V(InterfaceCall,                       A_D, num, num, ___)                   \
+  V(DynamicCall,                         A_D, num, num, ___)                   \
   V(NativeCall,                            D, lit, ___, ___)                   \
   V(ReturnTOS,                             0, ___, ___, ___)                   \
   V(AssertAssignable,                    A_D, num, lit, ___)                   \
@@ -441,7 +459,7 @@ namespace dart {
   V(InstantiateType,                       D, lit, ___, ___)                   \
   V(InstantiateTypeArgumentsTOS,         A_D, num, lit, ___)                   \
   V(Throw,                                 A, num, ___, ___)                   \
-  V(MoveSpecial,                         A_D, reg, num, ___)                   \
+  V(MoveSpecial,                         A_X, num, xeg, ___)                   \
   V(SetFrame,                              A, num, ___, num)                   \
   V(BooleanNegateTOS,                      0, ___, ___, ___)                   \
   V(EqualsNull,                            0, ___, ___, ___)                   \
@@ -587,7 +605,8 @@ class KernelBytecode {
   DART_FORCE_INLINE static bool IsCallOpcode(KBCInstr instr) {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kIndirectStaticCall:
-      case KernelBytecode::kInstanceCall:
+      case KernelBytecode::kInterfaceCall:
+      case KernelBytecode::kDynamicCall:
         return true;
 
       default:

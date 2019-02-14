@@ -5,6 +5,8 @@
 
 [ $compiler == dart2js ]
 arithmetic_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+async_star/async_star_await_for_test: RuntimeError
+async_star/async_star_cancel_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 bit_operations_test: RuntimeError, OK # non JS number semantics
 bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
@@ -18,8 +20,6 @@ call_method_must_not_be_field_test/03: RuntimeError # Issue 32155
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
 config_import_corelib_test: CompileTimeError # we need a special platform.dill file for categories=all. Once we fix that, all dart:* are supported when using '--categories=all' so this will become a RuntimeError, OK.
 config_import_test: RuntimeError # Test flag is not passed to the compiler.
-const_constructor_mixin3_test: CompileTimeError # Issue 33644.
-const_constructor_mixin_test: CompileTimeError # Issue 33644.
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
 deopt_inlined_function_lazy_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
@@ -46,6 +46,7 @@ int64_literal_test/17: RuntimeError, OK # Error if web int literal cannot be rep
 int64_literal_test/19: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int64_literal_test/none: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 issue23244_test: RuntimeError # Isolates - enum canonicalization - Issue 23244
+library_env_test/has_io_support: RuntimeError, OK # dart2js doesn't support io when compiling on --categories=Client
 library_env_test/has_mirror_support: RuntimeError, OK
 library_env_test/has_no_html_support: RuntimeError, OK
 list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
@@ -59,6 +60,7 @@ partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/07: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/08: Pass # for the wrong reason.
 private_method_tearoff_test: RuntimeError
+type_constants_test/none: RuntimeError # Issue 35052
 vm/*: SkipByDesign # Tests for the VM.
 
 [ $compiler != dart2js ]
@@ -77,6 +79,8 @@ stacktrace_test: RuntimeError
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $runtime == d8 ]
+conditional_import_string_test: SkipByDesign # No XHR in d8
+conditional_import_test: SkipByDesign # No XHR in d8
 implicit_creation/implicit_new_constructor_generic_test: Pass
 
 [ $compiler == dart2js && $runtime == d8 && !$checked ]
@@ -114,12 +118,6 @@ stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && $system == windows ]
 string_literals_test: Pass, RuntimeError # Failures on dart2js-win7-chrome-4-4-be and dart2js-win7-ie11ff-4-4-be
-
-[ $compiler == dart2js && $browser ]
-library_env_test/has_io_support: RuntimeError, OK # dart2js doesn't support io when compiling on --categories=Client
-
-[ $compiler == dart2js && !$browser ]
-library_env_test/has_no_io_support: RuntimeError, OK # dart2js supports io when using '--categories=all'.
 
 [ $compiler == dart2js && $checked ]
 covariant_subtyping_test: CompileTimeError
@@ -398,7 +396,6 @@ config_import_corelib_test: CompileTimeError
 covariant_subtyping_test: RuntimeError
 issue23244_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 library_env_test/has_no_html_support: RuntimeError
-library_env_test/has_no_io_support: RuntimeError
 map_literal3_test/03: MissingCompileTimeError
 partial_tearoff_instantiation_test/05: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/06: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
@@ -591,8 +588,6 @@ stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
 stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
-string_split_test: CompileTimeError
-string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 super_call4_test/01: MissingCompileTimeError
 super_test: RuntimeError

@@ -53,8 +53,8 @@ testStoredInInstance() {
 testStoredInMapOfList() {
   var res;
   /*[null|subclass=Object]*/ closure(/*[null|subclass=Object]*/ a) => res = a;
-  dynamic a = [closure];
-  dynamic b = {'foo': 1};
+  dynamic a = <dynamic>[closure];
+  dynamic b = <dynamic, dynamic>{'foo': 1};
 
   b
       /*update: Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union([exact=JSUInt31], [null|exact=JSExtendableArray]), map: {foo: [exact=JSUInt31], bar: Container([null|exact=JSExtendableArray], element: [null|subclass=Object], length: null)})*/
@@ -73,8 +73,8 @@ testStoredInMapOfList() {
 testStoredInListOfList() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
-  dynamic a = [closure];
-  dynamic b = [0, 1, 2];
+  dynamic a = <dynamic>[closure];
+  dynamic b = <dynamic>[0, 1, 2];
 
   b
       /*update: Container([exact=JSExtendableArray], element: Union([exact=JSExtendableArray], [exact=JSUInt31]), length: 3)*/
@@ -92,8 +92,8 @@ testStoredInListOfList() {
 testStoredInListOfListUsingInsert() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
-  dynamic a = [closure];
-  dynamic b = [0, 1, 2];
+  dynamic a = <dynamic>[closure];
+  dynamic b = <dynamic>[0, 1, 2];
 
   b
       .
@@ -111,8 +111,8 @@ testStoredInListOfListUsingInsert() {
 testStoredInListOfListUsingAdd() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
-  dynamic a = [closure];
-  dynamic b = [0, 1, 2];
+  dynamic a = <dynamic>[closure];
+  dynamic b = <dynamic>[0, 1, 2];
 
   b
       .

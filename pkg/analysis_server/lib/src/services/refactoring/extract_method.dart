@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -23,8 +23,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -74,8 +74,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       'execution flows exit. Semantics may not be preserved.';
 
   final SearchEngine searchEngine;
-  final AstProvider astProvider;
-  final ResolveResult resolveResult;
+  final ResolvedUnitResult resolveResult;
   final int selectionOffset;
   final int selectionLength;
   SourceRange selectionRange;
@@ -119,11 +118,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   List<_Occurrence> _occurrences = [];
   bool _staticContext = false;
 
-  ExtractMethodRefactoringImpl(this.searchEngine, this.astProvider,
-      this.resolveResult, this.selectionOffset, this.selectionLength) {
+  ExtractMethodRefactoringImpl(this.searchEngine, this.resolveResult,
+      this.selectionOffset, this.selectionLength) {
     selectionRange = new SourceRange(selectionOffset, selectionLength);
-    utils =
-        new CorrectionUtils(resolveResult.unit, buffer: resolveResult.content);
+    utils = new CorrectionUtils(resolveResult);
   }
 
   @override
@@ -138,8 +136,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   String get refactoringName {
     AstNode node =
         new NodeLocator(selectionOffset).searchWithin(resolveResult.unit);
-    if (node != null &&
-        node.getAncestor((node) => node is ClassDeclaration) != null) {
+    if (node != null && node.thisOrAncestorOfType<ClassDeclaration>() != null) {
       return 'Extract Method';
     }
     return 'Extract Function';
@@ -394,8 +391,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       }
     }
     // done
-    addLibraryImports(resolveResult.session.resourceProvider.pathContext,
-        change, resolveResult.libraryElement, librariesToImport);
+    await addLibraryImports(resolveResult.session, change,
+        resolveResult.libraryElement, librariesToImport);
     return change;
   }
 
@@ -454,8 +451,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // method of class
     if (parent is ClassDeclaration) {
       ClassElement classElement = parent.declaredElement;
-      return validateCreateMethod(
-          searchEngine, astProvider, classElement, name);
+      return validateCreateMethod(searchEngine,
+          AnalysisSessionHelper(resolveResult.session), classElement, name);
     }
     // OK
     return new Future<RefactoringStatus>.value(result);
@@ -477,23 +474,20 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       }
     }
 
-    _ExtractMethodAnalyzer selectionAnalyzer =
-        new _ExtractMethodAnalyzer(resolveResult.unit, selectionRange);
-    resolveResult.unit.accept(selectionAnalyzer);
+    var analyzer = new _ExtractMethodAnalyzer(resolveResult, selectionRange);
+    analyzer.analyze();
     // May be a fatal error.
     {
-      if (selectionAnalyzer.status.hasFatalError) {
-        return selectionAnalyzer.status;
+      if (analyzer.status.hasFatalError) {
+        return analyzer.status;
       }
     }
 
-    List<AstNode> selectedNodes = selectionAnalyzer.selectedNodes;
+    List<AstNode> selectedNodes = analyzer.selectedNodes;
 
     // If no selected nodes, extract the smallest covering expression.
     if (selectedNodes.isEmpty) {
-      for (var node = selectionAnalyzer.coveringNode;
-          node != null;
-          node = node.parent) {
+      for (var node = analyzer.coveringNode; node != null; node = node.parent) {
         if (node is Statement) {
           break;
         }
@@ -586,7 +580,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // Check for the parameter list of a FunctionExpression.
     {
       FunctionExpression function =
-          node?.getAncestor((n) => n is FunctionExpression);
+          node?.thisOrAncestorOfType<FunctionExpression>();
       if (function != null &&
           function.parameters != null &&
           range.node(function.parameters).contains(offset)) {
@@ -655,7 +649,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // change indentation
     if (_selectionFunctionExpression != null) {
       AstNode baseNode =
-          _selectionFunctionExpression.getAncestor((node) => node is Statement);
+          _selectionFunctionExpression.thisOrAncestorOfType<Statement>();
       if (baseNode != null) {
         String baseIndent = utils.getNodePrefix(baseNode);
         String targetIndent = utils.getNodePrefix(_parentMember);
@@ -826,9 +820,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
    * Checks if it is OK to extract the node with the given [SourceRange].
    */
   bool _isExtractable(SourceRange range) {
-    _ExtractMethodAnalyzer analyzer =
-        new _ExtractMethodAnalyzer(resolveResult.unit, range);
-    utils.unit.accept(analyzer);
+    var analyzer = new _ExtractMethodAnalyzer(resolveResult, range);
+    analyzer.analyze();
     return analyzer.status.isOK;
   }
 
@@ -929,8 +922,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
  * [SelectionAnalyzer] for [ExtractMethodRefactoringImpl].
  */
 class _ExtractMethodAnalyzer extends StatementAnalyzer {
-  _ExtractMethodAnalyzer(CompilationUnit unit, SourceRange selection)
-      : super(unit, selection);
+  _ExtractMethodAnalyzer(
+      ResolvedUnitResult resolveResult, SourceRange selection)
+      : super(resolveResult, selection);
 
   @override
   void handleNextSelectedNode(AstNode node) {
@@ -1120,7 +1114,7 @@ class _HasReturnStatementVisitor extends RecursiveAstVisitor {
   }
 }
 
-class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
+class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
   final ExtractMethodRefactoringImpl ref;
   final _SourcePattern selectionPattern;
   final Map<String, String> patternToSelectionName;
@@ -1131,50 +1125,50 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
       this.ref, this.selectionPattern, this.patternToSelectionName);
 
   @override
-  Object visitBlock(Block node) {
+  void visitBlock(Block node) {
     if (ref._selectionStatements != null) {
       _visitStatements(node.statements);
     }
-    return super.visitBlock(node);
+    super.visitBlock(node);
   }
 
   @override
-  Object visitConstructorInitializer(ConstructorInitializer node) {
+  void visitConstructorInitializer(ConstructorInitializer node) {
     forceStatic = true;
     try {
-      return super.visitConstructorInitializer(node);
+      super.visitConstructorInitializer(node);
     } finally {
       forceStatic = false;
     }
   }
 
   @override
-  Object visitExpression(Expression node) {
+  void visitExpression(Expression node) {
     if (ref._selectionFunctionExpression != null ||
         ref._selectionExpression != null &&
             node.runtimeType == ref._selectionExpression.runtimeType) {
       SourceRange nodeRange = range.node(node);
       _tryToFindOccurrence(nodeRange);
     }
-    return super.visitExpression(node);
+    super.visitExpression(node);
   }
 
   @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     forceStatic = node.isStatic;
     try {
-      return super.visitMethodDeclaration(node);
+      super.visitMethodDeclaration(node);
     } finally {
       forceStatic = false;
     }
   }
 
   @override
-  Object visitSwitchMember(SwitchMember node) {
+  void visitSwitchMember(SwitchMember node) {
     if (ref._selectionStatements != null) {
       _visitStatements(node.statements);
     }
-    return super.visitSwitchMember(node);
+    super.visitSwitchMember(node);
   }
 
   /**

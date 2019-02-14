@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of world_builder;
+import '../common.dart';
+import '../elements/entities.dart';
+import '../js_model/elements.dart' show JSignatureMethod;
+import '../util/enumset.dart';
 
 abstract class AbstractUsage<T> {
   final EnumSet<T> _pendingUse = new EnumSet<T>();
@@ -31,27 +34,27 @@ abstract class AbstractUsage<T> {
 }
 
 /// Registry for the observed use of a member [entity] in the open world.
-abstract class _MemberUsage extends AbstractUsage<MemberUse> {
+abstract class MemberUsage extends AbstractUsage<MemberUse> {
   final MemberEntity entity;
 
-  _MemberUsage.internal(this.entity);
+  MemberUsage.internal(this.entity);
 
-  factory _MemberUsage(MemberEntity member, {bool isNative: false}) {
+  factory MemberUsage(MemberEntity member, {bool isNative: false}) {
     if (member.isField) {
       if (member.isAssignable) {
-        return new _FieldUsage(member, isNative: isNative);
+        return new FieldUsage(member, isNative: isNative);
       } else {
-        return new _FinalFieldUsage(member, isNative: isNative);
+        return new FinalFieldUsage(member, isNative: isNative);
       }
     } else if (member.isGetter) {
-      return new _GetterUsage(member);
+      return new GetterUsage(member);
     } else if (member.isSetter) {
-      return new _SetterUsage(member);
+      return new SetterUsage(member);
     } else if (member.isConstructor) {
-      return new _ConstructorUsage(member);
+      return new ConstructorUsage(member);
     } else {
       assert(member.isFunction, failedAt(member, "Unexpected member: $member"));
-      return new _FunctionUsage(member);
+      return new FunctionUsage(member);
     }
   }
 
@@ -106,18 +109,18 @@ abstract class _MemberUsage extends AbstractUsage<MemberUse> {
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    if (other is! _MemberUsage) return false;
+    if (other is! MemberUsage) return false;
     return entity == other.entity;
   }
 
   String toString() => '$entity:${appliedUse.iterable(MemberUse.values)}';
 }
 
-class _FieldUsage extends _MemberUsage {
+class FieldUsage extends MemberUsage {
   bool hasRead = false;
   bool hasWrite = false;
 
-  _FieldUsage(FieldEntity field, {bool isNative: false})
+  FieldUsage(FieldEntity field, {bool isNative: false})
       : super.internal(field) {
     if (!isNative) {
       // All field initializers must be resolved as they could
@@ -164,10 +167,10 @@ class _FieldUsage extends _MemberUsage {
   }
 }
 
-class _FinalFieldUsage extends _MemberUsage {
+class FinalFieldUsage extends MemberUsage {
   bool hasRead = false;
 
-  _FinalFieldUsage(FieldEntity field, {bool isNative: false})
+  FinalFieldUsage(FieldEntity field, {bool isNative: false})
       : super.internal(field) {
     if (!isNative) {
       // All field initializers must be resolved as they could
@@ -199,11 +202,11 @@ class _FinalFieldUsage extends _MemberUsage {
   EnumSet<MemberUse> fullyUse() => read();
 }
 
-class _FunctionUsage extends _MemberUsage {
+class FunctionUsage extends MemberUsage {
   bool hasInvoke = false;
   bool hasRead = false;
 
-  _FunctionUsage(FunctionEntity function) : super.internal(function) {
+  FunctionUsage(FunctionEntity function) : super.internal(function) {
     if (function is JSignatureMethod) {
       // We mark signature methods as "always used" to prevent them from being
       // optimized away.
@@ -253,10 +256,10 @@ class _FunctionUsage extends _MemberUsage {
   bool get fullyUsed => hasInvoke && hasRead;
 }
 
-class _GetterUsage extends _MemberUsage {
+class GetterUsage extends MemberUsage {
   bool hasRead = false;
 
-  _GetterUsage(FunctionEntity getter) : super.internal(getter);
+  GetterUsage(FunctionEntity getter) : super.internal(getter);
 
   @override
   bool get fullyUsed => hasRead;
@@ -277,10 +280,10 @@ class _GetterUsage extends _MemberUsage {
   EnumSet<MemberUse> fullyUse() => read();
 }
 
-class _SetterUsage extends _MemberUsage {
+class SetterUsage extends MemberUsage {
   bool hasWrite = false;
 
-  _SetterUsage(FunctionEntity setter) : super.internal(setter);
+  SetterUsage(FunctionEntity setter) : super.internal(setter);
 
   @override
   bool get fullyUsed => hasWrite;
@@ -298,11 +301,10 @@ class _SetterUsage extends _MemberUsage {
   EnumSet<MemberUse> fullyUse() => write();
 }
 
-class _ConstructorUsage extends _MemberUsage {
+class ConstructorUsage extends MemberUsage {
   bool hasInvoke = false;
 
-  _ConstructorUsage(ConstructorEntity constructor)
-      : super.internal(constructor);
+  ConstructorUsage(ConstructorEntity constructor) : super.internal(constructor);
 
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
 
@@ -345,13 +347,13 @@ typedef void MemberUsedCallback(MemberEntity member, EnumSet<MemberUse> useSet);
 
 /// Registry for the observed use of a class [entity] in the open world.
 // TODO(johnniwinther): Merge this with [InstantiationInfo].
-class _ClassUsage extends AbstractUsage<ClassUse> {
+class ClassUsage extends AbstractUsage<ClassUse> {
   bool isInstantiated = false;
   bool isImplemented = false;
 
   final ClassEntity cls;
 
-  _ClassUsage(this.cls);
+  ClassUsage(this.cls);
 
   EnumSet<ClassUse> instantiate() {
     if (isInstantiated) {
@@ -390,15 +392,15 @@ class ClassUses {
 
 typedef void ClassUsedCallback(ClassEntity cls, EnumSet<ClassUse> useSet);
 
-// TODO(johnniwinther): Merge this with [_MemberUsage].
-abstract class _StaticMemberUsage extends AbstractUsage<MemberUse>
-    implements _MemberUsage {
+// TODO(johnniwinther): Merge this with [MemberUsage].
+abstract class StaticMemberUsage extends AbstractUsage<MemberUse>
+    implements MemberUsage {
   final MemberEntity entity;
 
   bool hasNormalUse = false;
   bool get hasClosurization => false;
 
-  _StaticMemberUsage.internal(this.entity);
+  StaticMemberUsage.internal(this.entity);
 
   EnumSet<MemberUse> normalUse() {
     if (hasNormalUse) {
@@ -426,8 +428,8 @@ abstract class _StaticMemberUsage extends AbstractUsage<MemberUse>
   String toString() => '$entity:${appliedUse.iterable(MemberUse.values)}';
 }
 
-class _GeneralStaticMemberUsage extends _StaticMemberUsage {
-  _GeneralStaticMemberUsage(MemberEntity entity) : super.internal(entity);
+class GeneralStaticMemberUsage extends StaticMemberUsage {
+  GeneralStaticMemberUsage(MemberEntity entity) : super.internal(entity);
 
   EnumSet<MemberUse> tearOff() => normalUse();
 
@@ -444,10 +446,10 @@ class _GeneralStaticMemberUsage extends _StaticMemberUsage {
   bool get hasRead => hasNormalUse;
 }
 
-class _StaticFunctionUsage extends _StaticMemberUsage {
+class StaticFunctionUsage extends StaticMemberUsage {
   bool hasClosurization = false;
 
-  _StaticFunctionUsage(MemberEntity entity) : super.internal(entity);
+  StaticFunctionUsage(MemberEntity entity) : super.internal(entity);
 
   EnumSet<MemberUse> tearOff() {
     if (hasClosurization) {

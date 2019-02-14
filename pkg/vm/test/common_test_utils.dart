@@ -54,7 +54,9 @@ String kernelLibraryToString(Library library) {
   final StringBuffer buffer = new StringBuffer();
   new Printer(buffer, showExternal: false, showMetadata: true)
       .writeLibraryFile(library);
-  return buffer.toString();
+  return buffer
+      .toString()
+      .replaceAll(library.importUri.toString(), library.name);
 }
 
 class DevNullSink<T> extends Sink<T> {

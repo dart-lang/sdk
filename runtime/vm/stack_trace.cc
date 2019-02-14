@@ -17,7 +17,6 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
-  Code& code = Code::Handle(zone);
   Function& function = Function::Handle(zone);
   const bool async_function_is_null = async_function.IsNull();
   while (frame != NULL) {
@@ -25,8 +24,7 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
       if (skip_frames > 0) {
         skip_frames--;
       } else {
-        code = frame->LookupDartCode();
-        function = code.function();
+        function = frame->LookupDartFunction();
         frame_count++;
         if (!async_function_is_null &&
             (async_function.raw() == function.parent_function())) {
@@ -54,6 +52,7 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Function& function = Function::Handle(zone);
   Code& code = Code::Handle(zone);
+  Bytecode& bytecode = Bytecode::Handle(zone);
   Smi& offset = Smi::Handle(zone);
   intptr_t collected_frames_count = 0;
   while ((frame != NULL) && (collected_frames_count < count)) {
@@ -61,10 +60,17 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
       if (skip_frames > 0) {
         skip_frames--;
       } else {
-        code = frame->LookupDartCode();
-        function = code.function();
-        offset = Smi::New(frame->pc() - code.PayloadStart());
-        code_array.SetAt(array_offset, code);
+        if (frame->is_interpreted()) {
+          bytecode = frame->LookupDartBytecode();
+          function = bytecode.function();
+          offset = Smi::New(frame->pc() - bytecode.PayloadStart());
+          code_array.SetAt(array_offset, bytecode);
+        } else {
+          code = frame->LookupDartCode();
+          function = code.function();
+          offset = Smi::New(frame->pc() - code.PayloadStart());
+          code_array.SetAt(array_offset, code);
+        }
         pc_offset_array.SetAt(array_offset, offset);
         array_offset++;
         collected_frames_count++;
@@ -98,10 +104,14 @@ intptr_t StackTraceUtils::ExtractAsyncStackTraceInfo(
   ASSERT(!async_pc_offset_array->IsNull());
   // We start with the asynchronous gap marker.
   ASSERT(async_code_array->At(0) != Code::null());
-  ASSERT(async_code_array->At(0) ==
-         StubCode::AsynchronousGapMarker_entry()->code());
-  const Code& code = Code::Handle(Code::RawCast(async_code_array->At(1)));
-  *async_function = code.function();
+  ASSERT(async_code_array->At(0) == StubCode::AsynchronousGapMarker().raw());
+  const Object& code_object = Object::Handle(async_code_array->At(1));
+  if (code_object.IsCode()) {
+    *async_function = Code::Cast(code_object).function();
+  } else {
+    ASSERT(code_object.IsBytecode());
+    *async_function = Bytecode::Cast(code_object).function();
+  }
   ASSERT(!async_function->IsNull());
   ASSERT(async_function->IsAsyncFunction() ||
          async_function->IsAsyncGenerator());

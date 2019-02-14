@@ -4,24 +4,22 @@
 
 part of dart2js.js_emitter.program_builder;
 
-/**
- * [member] is a field (instance, static, or top level).
- *
- * [name] is the field name that the [Namer] has picked for this field's
- * storage, that is, the JavaScript property name.
- *
- * [accessorName] is the name of the accessor. For instance fields this is
- * mostly the same as [name] except when [member] is shadowing a field in its
- * superclass.  For other fields, they are rarely the same.
- *
- * [needsGetter] and [needsSetter] represent if a getter or a setter
- * respectively is needed.  There are many factors in this, for example, if the
- * accessor can be inlined.
- *
- * [needsCheckedSetter] indicates that a checked getter is needed, and in this
- * case, [needsSetter] is always false. [needsCheckedSetter] is only true when
- * type assertions are enabled (checked mode).
- */
+/// [member] is a field (instance, static, or top level).
+///
+/// [name] is the field name that the [Namer] has picked for this field's
+/// storage, that is, the JavaScript property name.
+///
+/// [accessorName] is the name of the accessor. For instance fields this is
+/// mostly the same as [name] except when [member] is shadowing a field in its
+/// superclass.  For other fields, they are rarely the same.
+///
+/// [needsGetter] and [needsSetter] represent if a getter or a setter
+/// respectively is needed.  There are many factors in this, for example, if the
+/// accessor can be inlined.
+///
+/// [needsCheckedSetter] indicates that a checked getter is needed, and in this
+/// case, [needsSetter] is always false. [needsCheckedSetter] is only true when
+/// type assertions are enabled (checked mode).
 typedef void AcceptField(FieldEntity member, js.Name name, js.Name accessorName,
     bool needsGetter, bool needsSetter, bool needsCheckedSetter);
 
@@ -43,22 +41,20 @@ class FieldVisitor {
       this._namer,
       this._closedWorld);
 
-  /**
-   * Invokes [f] for each of the fields of [element].
-   *
-   * [element] must be a [ClassEntity] or a [LibraryEntity].
-   *
-   * If [element] is a [ClassEntity], the static fields of the class are
-   * visited if [visitStatics] is true and the instance fields are visited if
-   * [visitStatics] is false.
-   *
-   * If [element] is a [LibraryEntity], [visitStatics] must be true.
-   *
-   * When visiting the instance fields of a class, the fields of its superclass
-   * are also visited if the class is instantiated.
-   *
-   * Invariant: [element] must be a declaration element.
-   */
+  /// Invokes [f] for each of the fields of [element].
+  ///
+  /// [element] must be a [ClassEntity] or a [LibraryEntity].
+  ///
+  /// If [element] is a [ClassEntity], the static fields of the class are
+  /// visited if [visitStatics] is true and the instance fields are visited if
+  /// [visitStatics] is false.
+  ///
+  /// If [element] is a [LibraryEntity], [visitStatics] must be true.
+  ///
+  /// When visiting the instance fields of a class, the fields of its superclass
+  /// are also visited if the class is instantiated.
+  ///
+  /// Invariant: [element] must be a declaration element.
   void visitFields(AcceptField f,
       {bool visitStatics: false, LibraryEntity library, ClassEntity cls}) {
     bool isNativeClass = false;
@@ -146,7 +142,7 @@ class FieldVisitor {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     return field.enclosingClass != null &&
-        _codegenWorldBuilder.hasInvokedGetter(field, _closedWorld);
+        _codegenWorldBuilder.hasInvokedGetter(field);
   }
 
   bool fieldNeedsSetter(FieldEntity field) {
@@ -154,7 +150,7 @@ class FieldVisitor {
     if (fieldAccessNeverThrows(field)) return false;
     if (!field.isAssignable) return false;
     return field.enclosingClass != null &&
-        _codegenWorldBuilder.hasInvokedSetter(field, _closedWorld);
+        _codegenWorldBuilder.hasInvokedSetter(field);
   }
 
   static bool fieldAccessNeverThrows(FieldEntity field) {

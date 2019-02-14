@@ -12,7 +12,7 @@
 /// function's name differently.
 ///
 /// For information on installing and importing this library, see the
-/// [meta package on pub.dartlang.org] (http://pub.dartlang.org/packages/meta).
+/// [meta package on pub.dartlang.org] (https://pub.dartlang.org/packages/meta).
 /// For examples of using annotations, see
 /// [Metadata](https://www.dartlang.org/docs/dart-up-and-running/ch02.html#metadata)
 /// in the language tour.
@@ -188,21 +188,25 @@ const _Protected protected = const _Protected();
 ///   corresponding to a named parameter that has this annotation.
 const Required required = const Required();
 
-/// Annotation marking a class or mixin as not allowed as a super-type.
+/// Annotation marking a class as not allowed as a super-type.
 ///
-/// Classes in the same package as the marked class or mixin may extend,
-/// implement or mix-in the annotated class or mixin.
+/// Classes in the same package as the marked class may extend, implement or
+/// mix-in the annotated class.
 ///
-/// Given a class or mixin `C`, which is annotated with this, and a class or
-/// mixin `D`, which extends, implements, or mixes in `C`, then tools, such as
-/// the analyzer, may emit warnings if:
+/// Tools, such as the analyzer, can provide feedback if
 ///
-/// * `C` and `D` are declared in different packages, or
-/// * `C` and `D` are declared in the same package, and `D` is not also
-///   annotated with this.
+/// * the annotation is associated with anything other than a class,
+/// * the annotation is associated with a class `C`, and there is a class or
+///   mixin `D`, which extends, implements, mixes in, or constrains to `C`, and
+///   `C` and `D` are declared in different packages.
 const _Sealed sealed = const _Sealed();
 
 /// Used to annotate a field that is allowed to be overridden in Strong Mode.
+///
+/// Deprecated: Most of strong mode is now the default in 2.0, but the notion of
+/// virtual fields was dropped, so this annotation no longer has any meaning.
+/// Uses of the annotation should be removed.
+@deprecated
 const _Virtual virtual = const _Virtual();
 
 /// Used to annotate an instance member that was made public so that it could be
@@ -302,6 +306,7 @@ class _Sealed {
   const _Sealed();
 }
 
+@deprecated
 class _Virtual {
   const _Virtual();
 }

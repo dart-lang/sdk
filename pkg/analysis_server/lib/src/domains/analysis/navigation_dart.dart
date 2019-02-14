@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,17 +8,22 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 
-NavigationCollector computeDartNavigation(NavigationCollector collector,
-    CompilationUnit unit, int offset, int length) {
+NavigationCollector computeDartNavigation(
+    ResourceProvider resourceProvider,
+    NavigationCollector collector,
+    CompilationUnit unit,
+    int offset,
+    int length) {
   _DartNavigationCollector dartCollector =
       new _DartNavigationCollector(collector);
   _DartNavigationComputerVisitor visitor =
-      new _DartNavigationComputerVisitor(dartCollector);
+      new _DartNavigationComputerVisitor(resourceProvider, dartCollector);
   if (offset == null || length == null) {
     unit.accept(visitor);
   } else {
@@ -87,9 +92,10 @@ class _DartNavigationCollector {
 }
 
 class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
+  final ResourceProvider resourceProvider;
   final _DartNavigationCollector computer;
 
-  _DartNavigationComputerVisitor(this.computer);
+  _DartNavigationComputerVisitor(this.resourceProvider, this.computer);
 
   @override
   visitAnnotation(Annotation node) {
@@ -352,7 +358,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   void _addUriDirectiveRegion(UriBasedDirective node, Element element) {
     if (element != null) {
       Source source = element.source;
-      if (element.context.exists(source)) {
+      if (resourceProvider.getResource(source.fullName).exists) {
         computer._addRegionForNode(node.uri, element);
       }
     }

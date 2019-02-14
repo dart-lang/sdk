@@ -6,12 +6,12 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
-import '../common/tasks.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart' show Name;
 import '../elements/types.dart';
+import '../ir/closure.dart';
 import '../ir/element_map.dart';
 import '../ir/util.dart';
 import '../js_model/element_map.dart';
@@ -22,49 +22,8 @@ import '../serialization/serialization.dart';
 import '../ssa/type_builder.dart';
 import '../universe/selector.dart';
 import 'elements.dart';
-import 'closure_visitors.dart';
+import 'js_world_builder.dart' show JsClosedWorldBuilder;
 import 'locals.dart';
-import 'js_strategy.dart' show JsClosedWorldBuilder;
-
-class KernelClosureAnalysis {
-  /// Inspect members and mark if those members capture any state that needs to
-  /// be marked as free variables.
-  static ScopeModel computeScopeModel(MemberEntity entity, ir.Member node) {
-    if (entity.isAbstract) return null;
-    if (entity.isField && !entity.isInstanceMember) {
-      ir.Field field = node;
-      // Skip top-level/static fields without an initializer.
-      if (field.initializer == null) return null;
-    }
-
-    bool hasThisLocal = false;
-    if (entity.isInstanceMember) {
-      hasThisLocal = true;
-    } else if (entity.isConstructor) {
-      ConstructorEntity constructor = entity;
-      hasThisLocal = !constructor.isFactoryConstructor;
-    }
-    ScopeModel model = new ScopeModel();
-    CapturedScopeBuilder translator =
-        new CapturedScopeBuilder(model, hasThisLocal: hasThisLocal);
-    if (entity.isField) {
-      if (node is ir.Field && node.initializer != null) {
-        node.accept(translator);
-      } else {
-        assert(entity.isInstanceMember);
-        model.scopeInfo = new KernelScopeInfo(true);
-      }
-    } else {
-      assert(node is ir.Procedure || node is ir.Constructor);
-      node.accept(translator);
-    }
-    return model;
-  }
-}
-
-class KernelClosureConversionTask extends ClosureConversionTask {
-  KernelClosureConversionTask(Measurer measurer) : super(measurer);
-}
 
 class ClosureDataImpl implements ClosureData {
   /// Tag used for identifying serialized [ClosureData] objects in a
@@ -332,10 +291,10 @@ class ClosureDataBuilder {
 
   ClosureData createClosureEntities(
       JsClosedWorldBuilder closedWorldBuilder,
-      Map<MemberEntity, ScopeModel> closureModels,
+      Map<MemberEntity, ClosureScopeModel> closureModels,
       ClosureRtiNeed rtiNeed,
       List<FunctionEntity> callMethods) {
-    closureModels.forEach((MemberEntity member, ScopeModel model) {
+    closureModels.forEach((MemberEntity member, ClosureScopeModel model) {
       KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
       Map<Local, JRecordField> allBoxedVariables =
           _elementMap.makeRecordContainer(model.scopeInfo, member, localsMap);
@@ -445,242 +404,6 @@ class ClosureDataBuilder {
   }
 }
 
-enum VariableUseKind {
-  /// An explicit variable use.
-  ///
-  /// For type variable this is an explicit as-cast, an is-test or a type
-  /// literal.
-  explicit,
-
-  /// A type variable used in the type of a local variable.
-  localType,
-
-  /// A type variable used in an implicit cast.
-  implicitCast,
-
-  /// A type variable passed as the type argument of a list literal.
-  listLiteral,
-
-  /// A type variable passed as the type argument of a map literal.
-  mapLiteral,
-
-  /// A type variable passed as a type argument to a constructor.
-  constructorTypeArgument,
-
-  /// A type variable passed as a type argument to a static method.
-  staticTypeArgument,
-
-  /// A type variable passed as a type argument to an instance method.
-  instanceTypeArgument,
-
-  /// A type variable passed as a type argument to a local function.
-  localTypeArgument,
-
-  /// A type variable in a parameter type of a member.
-  memberParameter,
-
-  /// A type variable in a parameter type of a local function.
-  localParameter,
-
-  /// A type variable used in a return type of a member.
-  memberReturnType,
-
-  /// A type variable used in a return type of a local function.
-  localReturnType,
-
-  /// A type variable in a field type.
-  fieldType,
-
-  /// A type argument of an generic instantiation.
-  instantiationTypeArgument,
-}
-
-class VariableUse {
-  final VariableUseKind kind;
-  final ir.Member member;
-  final ir.TreeNode /*ir.FunctionDeclaration|ir.FunctionExpression*/
-      localFunction;
-  final ir.MethodInvocation invocation;
-  final ir.Instantiation instantiation;
-
-  const VariableUse._simple(this.kind)
-      : this.member = null,
-        this.localFunction = null,
-        this.invocation = null,
-        this.instantiation = null;
-
-  VariableUse.memberParameter(this.member)
-      : this.kind = VariableUseKind.memberParameter,
-        this.localFunction = null,
-        this.invocation = null,
-        this.instantiation = null;
-
-  VariableUse.localParameter(this.localFunction)
-      : this.kind = VariableUseKind.localParameter,
-        this.member = null,
-        this.invocation = null,
-        this.instantiation = null {
-    assert(localFunction is ir.FunctionDeclaration ||
-        localFunction is ir.FunctionExpression);
-  }
-
-  VariableUse.memberReturnType(this.member)
-      : this.kind = VariableUseKind.memberReturnType,
-        this.localFunction = null,
-        this.invocation = null,
-        this.instantiation = null;
-
-  VariableUse.localReturnType(this.localFunction)
-      : this.kind = VariableUseKind.localReturnType,
-        this.member = null,
-        this.invocation = null,
-        this.instantiation = null {
-    assert(localFunction is ir.FunctionDeclaration ||
-        localFunction is ir.FunctionExpression);
-  }
-
-  VariableUse.constructorTypeArgument(this.member)
-      : this.kind = VariableUseKind.constructorTypeArgument,
-        this.localFunction = null,
-        this.invocation = null,
-        this.instantiation = null;
-
-  VariableUse.staticTypeArgument(this.member)
-      : this.kind = VariableUseKind.staticTypeArgument,
-        this.localFunction = null,
-        this.invocation = null,
-        this.instantiation = null;
-
-  VariableUse.instanceTypeArgument(this.invocation)
-      : this.kind = VariableUseKind.instanceTypeArgument,
-        this.member = null,
-        this.localFunction = null,
-        this.instantiation = null;
-
-  VariableUse.localTypeArgument(this.localFunction, this.invocation)
-      : this.kind = VariableUseKind.localTypeArgument,
-        this.member = null,
-        this.instantiation = null {
-    assert(localFunction is ir.FunctionDeclaration ||
-        localFunction is ir.FunctionExpression);
-  }
-
-  VariableUse.instantiationTypeArgument(this.instantiation)
-      : this.kind = VariableUseKind.instantiationTypeArgument,
-        this.member = null,
-        this.localFunction = null,
-        this.invocation = null;
-
-  static const VariableUse explicit =
-      const VariableUse._simple(VariableUseKind.explicit);
-
-  static const VariableUse localType =
-      const VariableUse._simple(VariableUseKind.localType);
-
-  static const VariableUse implicitCast =
-      const VariableUse._simple(VariableUseKind.implicitCast);
-
-  static const VariableUse listLiteral =
-      const VariableUse._simple(VariableUseKind.listLiteral);
-
-  static const VariableUse mapLiteral =
-      const VariableUse._simple(VariableUseKind.mapLiteral);
-
-  static const VariableUse fieldType =
-      const VariableUse._simple(VariableUseKind.fieldType);
-
-  int get hashCode =>
-      kind.hashCode * 11 +
-      member.hashCode * 13 +
-      localFunction.hashCode * 17 +
-      invocation.hashCode * 19 +
-      instantiation.hashCode * 23;
-
-  bool operator ==(other) {
-    if (identical(this, other)) return true;
-    if (other is! VariableUse) return false;
-    return kind == other.kind &&
-        member == other.member &&
-        localFunction == other.localFunction &&
-        invocation == other.invocation &&
-        instantiation == other.instantiation;
-  }
-
-  String toString() => 'VariableUse(kind=$kind,member=$member,'
-      'localFunction=$localFunction,invocation=$invocation,'
-      'instantiation=$instantiation)';
-}
-
-class KernelScopeInfo {
-  final Set<ir.VariableDeclaration> localsUsedInTryOrSync;
-  final bool hasThisLocal;
-  final Set<ir.VariableDeclaration> boxedVariables;
-  // If boxedVariables is empty, this will be null, because no variables will
-  // need to be boxed.
-  final NodeBox capturedVariablesAccessor;
-
-  /// The set of variables that were defined in another scope, but are used in
-  /// this scope. The items in this set are either of type VariableDeclaration
-  /// or TypeParameterTypeWithContext.
-  Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
-      freeVariables = new Set<ir.Node>();
-
-  /// A set of type parameters that are defined in another scope and are only
-  /// used if runtime type information is checked. If runtime type information
-  /// needs to be retained, all of these type variables will be added ot the
-  /// freeVariables set. Whether these variables are actually used as
-  /// freeVariables will be set by the time this structure is converted to a
-  /// JsScopeInfo, so JsScopeInfo does not need to use them.
-  Map<TypeVariableTypeWithContext, Set<VariableUse>> freeVariablesForRti =
-      <TypeVariableTypeWithContext, Set<VariableUse>>{};
-
-  /// If true, `this` is used as a free variable, in this scope. It is stored
-  /// separately from [freeVariables] because there is no single
-  /// `VariableDeclaration` node that represents `this`.
-  bool thisUsedAsFreeVariable = false;
-
-  /// If true, `this` is used as a free variable, in this scope if we are also
-  /// performing runtime type checks. It is stored
-  /// separately from [thisUsedAsFreeVariable] because we don't know at this
-  /// stage if we will be needing type checks for this scope.
-  Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti = new Set<VariableUse>();
-
-  KernelScopeInfo(this.hasThisLocal)
-      : localsUsedInTryOrSync = new Set<ir.VariableDeclaration>(),
-        boxedVariables = new Set<ir.VariableDeclaration>(),
-        capturedVariablesAccessor = null;
-
-  KernelScopeInfo.from(this.hasThisLocal, KernelScopeInfo info)
-      : localsUsedInTryOrSync = info.localsUsedInTryOrSync,
-        boxedVariables = info.boxedVariables,
-        capturedVariablesAccessor = null;
-
-  KernelScopeInfo.withBoxedVariables(
-      this.boxedVariables,
-      this.capturedVariablesAccessor,
-      this.localsUsedInTryOrSync,
-      this.freeVariables,
-      this.freeVariablesForRti,
-      this.thisUsedAsFreeVariable,
-      this.thisUsedAsFreeVariableIfNeedsRti,
-      this.hasThisLocal);
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('KernelScopeInfo(this=$hasThisLocal,');
-    sb.write('freeVriables=$freeVariables,');
-    sb.write('localsUsedInTryOrSync={${localsUsedInTryOrSync.join(', ')}}');
-    String comma = '';
-    sb.write('freeVariablesForRti={');
-    freeVariablesForRti.forEach((key, value) {
-      sb.write('$comma$key:$value');
-      comma = ',';
-    });
-    sb.write('})');
-    return sb.toString();
-  }
-}
-
 /// Helper method to get or create a Local variable out of a variable
 /// declaration or type parameter.
 Local _getLocal(
@@ -744,7 +467,7 @@ class JsScopeInfo extends ScopeInfo {
     return sb.toString();
   }
 
-  bool isBoxed(Local variable) => boxedVariables.containsKey(variable);
+  bool isBoxedVariable(Local variable) => boxedVariables.containsKey(variable);
 
   factory JsScopeInfo.readFromDataSource(DataSource source) {
     source.begin(tag);
@@ -768,47 +491,6 @@ class JsScopeInfo extends ScopeInfo {
     sink.writeLocals(freeVariables);
     sink.end(tag);
   }
-}
-
-class KernelCapturedScope extends KernelScopeInfo {
-  KernelCapturedScope(
-      Set<ir.VariableDeclaration> boxedVariables,
-      NodeBox capturedVariablesAccessor,
-      Set<ir.VariableDeclaration> localsUsedInTryOrSync,
-      Set<ir.Node /* VariableDeclaration | TypeVariableTypeWithContext */ >
-          freeVariables,
-      Map<TypeVariableTypeWithContext, Set<VariableUse>> freeVariablesForRti,
-      bool thisUsedAsFreeVariable,
-      Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti,
-      bool hasThisLocal)
-      : super.withBoxedVariables(
-            boxedVariables,
-            capturedVariablesAccessor,
-            localsUsedInTryOrSync,
-            freeVariables,
-            freeVariablesForRti,
-            thisUsedAsFreeVariable,
-            thisUsedAsFreeVariableIfNeedsRti,
-            hasThisLocal);
-
-  // Loops through the free variables of an existing KernelCapturedScope and
-  // creates a new KernelCapturedScope that only captures type variables.
-  KernelCapturedScope.forSignature(KernelCapturedScope scope)
-      : this(
-            _empty,
-            null,
-            _empty,
-            scope.freeVariables.where(
-                (ir.Node variable) => variable is TypeVariableTypeWithContext),
-            scope.freeVariablesForRti,
-            scope.thisUsedAsFreeVariable,
-            scope.thisUsedAsFreeVariableIfNeedsRti,
-            scope.hasThisLocal);
-
-  // Silly hack because we don't have const sets.
-  static final Set<ir.VariableDeclaration> _empty = new Set();
-
-  bool get requiresContextBox => boxedVariables.isNotEmpty;
 }
 
 class JsCapturedScope extends JsScopeInfo implements CapturedScope {
@@ -862,33 +544,6 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
     sink.writeLocalOrNull(context);
     sink.end(tag);
   }
-}
-
-class KernelCapturedLoopScope extends KernelCapturedScope {
-  final List<ir.VariableDeclaration> boxedLoopVariables;
-
-  KernelCapturedLoopScope(
-      Set<ir.VariableDeclaration> boxedVariables,
-      NodeBox capturedVariablesAccessor,
-      this.boxedLoopVariables,
-      Set<ir.VariableDeclaration> localsUsedInTryOrSync,
-      Set<ir.Node /* VariableDeclaration | TypeVariableTypeWithContext */ >
-          freeVariables,
-      Map<TypeVariableTypeWithContext, Set<VariableUse>> freeVariablesForRti,
-      bool thisUsedAsFreeVariable,
-      Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti,
-      bool hasThisLocal)
-      : super(
-            boxedVariables,
-            capturedVariablesAccessor,
-            localsUsedInTryOrSync,
-            freeVariables,
-            freeVariablesForRti,
-            thisUsedAsFreeVariable,
-            thisUsedAsFreeVariableIfNeedsRti,
-            hasThisLocal);
-
-  bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
 }
 
 class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
@@ -1045,29 +700,12 @@ class KernelClosureClassInfo extends JsScopeInfo
 
   FieldEntity get thisFieldEntity => localToFieldMap[thisLocal];
 
-  @override
-  void forEachBoxedVariable(f(Local local, JField field)) {
-    boxedVariables.forEach(f);
-  }
-
   void forEachFreeVariable(f(Local variable, JField field)) {
     localToFieldMap.forEach(f);
     boxedVariables.forEach(f);
   }
 
-  bool isVariableBoxed(Local variable) =>
-      boxedVariables.keys.contains(variable);
-
   bool get isClosure => true;
-}
-
-/// A local variable to disambiguate between a variable that has been captured
-/// from one scope to another. This is the ir.Node version that corresponds to
-/// [BoxLocal].
-class NodeBox {
-  final String name;
-  final ir.TreeNode executableContext;
-  NodeBox(this.name, this.executableContext);
 }
 
 class JClosureClass extends JClass {
@@ -1382,6 +1020,11 @@ abstract class ClosureMemberData implements JMemberData {
 
   ClosureMemberData(this.definition, this.memberThisType);
 
+  Map<ir.Expression, ir.DartType> get staticTypes {
+    // The cached types are stored in the data for enclosing member.
+    throw new UnsupportedError("ClosureMemberData.staticTypes");
+  }
+
   @override
   InterfaceType getMemberThisType(JsToElementMap elementMap) {
     return memberThisType;
@@ -1613,101 +1256,6 @@ class RecordContainerDefinition implements ClassDefinition {
 
   String toString() =>
       'RecordContainerDefinition(kind:$kind,location:$location)';
-}
-
-/// Collection of scope data collected for a single member.
-class ScopeModel {
-  /// Collection [ScopeInfo] data for the member.
-  KernelScopeInfo scopeInfo;
-
-  /// Collected [CapturedScope] data for nodes.
-  Map<ir.Node, KernelCapturedScope> capturedScopesMap =
-      <ir.Node, KernelCapturedScope>{};
-
-  /// Collected [ScopeInfo] data for nodes.
-  Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
-      <ir.TreeNode, KernelScopeInfo>{};
-
-  String toString() {
-    return '$scopeInfo\n$capturedScopesMap\n$closuresToGenerate';
-  }
-}
-
-enum TypeVariableKind { cls, method, local, function }
-
-/// A fake ir.Node that holds the TypeParameterType as well as the context in
-/// which it occurs.
-class TypeVariableTypeWithContext implements ir.Node {
-  final ir.Node context;
-  final ir.TypeParameterType type;
-  final TypeVariableKind kind;
-  final ir.TreeNode typeDeclaration;
-
-  /// [context] can be either an ir.Member or a ir.FunctionDeclaration or
-  /// ir.FunctionExpression.
-  factory TypeVariableTypeWithContext(
-      ir.TypeParameterType type, ir.TreeNode context) {
-    TypeVariableKind kind;
-    ir.TreeNode typeDeclaration = type.parameter.parent;
-    if (typeDeclaration == null) {
-      // We have a function type variable, like `T` in `void Function<T>(int)`.
-      kind = TypeVariableKind.function;
-    } else if (typeDeclaration is ir.Class) {
-      // We have a class type variable, like `T` in `class Class<T> { ... }`.
-      kind = TypeVariableKind.cls;
-    } else if (typeDeclaration.parent is ir.Member) {
-      ir.Member member = typeDeclaration.parent;
-      if (member is ir.Constructor ||
-          (member is ir.Procedure && member.isFactory)) {
-        // We have a synthesized generic method type variable for a class type
-        // variable.
-        // TODO(johnniwinther): Handle constructor/factory type variables as
-        // method type variables.
-        kind = TypeVariableKind.cls;
-        typeDeclaration = member.enclosingClass;
-      } else {
-        // We have a generic method type variable, like `T` in
-        // `m<T>() { ... }`.
-        kind = TypeVariableKind.method;
-        typeDeclaration = typeDeclaration.parent;
-        context = typeDeclaration;
-      }
-    } else {
-      // We have a generic local function type variable, like `T` in
-      // `m() { local<T>() { ... } ... }`.
-      assert(
-          typeDeclaration.parent is ir.FunctionExpression ||
-              typeDeclaration.parent is ir.FunctionDeclaration,
-          "Unexpected type declaration: $typeDeclaration");
-      kind = TypeVariableKind.local;
-      typeDeclaration = typeDeclaration.parent;
-      context = typeDeclaration;
-    }
-    return new TypeVariableTypeWithContext.internal(
-        type, context, kind, typeDeclaration);
-  }
-
-  TypeVariableTypeWithContext.internal(
-      this.type, this.context, this.kind, this.typeDeclaration);
-
-  accept(ir.Visitor v) {
-    throw new UnsupportedError('TypeVariableTypeWithContext.accept');
-  }
-
-  visitChildren(ir.Visitor v) {
-    throw new UnsupportedError('TypeVariableTypeWithContext.visitChildren');
-  }
-
-  int get hashCode => type.hashCode;
-
-  bool operator ==(other) {
-    if (other is! TypeVariableTypeWithContext) return false;
-    return type == other.type && context == other.context;
-  }
-
-  String toString() =>
-      'TypeVariableTypeWithContext(type=$type,context=$context,'
-      'kind=$kind,typeDeclaration=$typeDeclaration)';
 }
 
 abstract class ClosureRtiNeed {

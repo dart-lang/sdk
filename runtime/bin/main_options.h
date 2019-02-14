@@ -24,8 +24,8 @@ namespace bin {
   V(depfile, depfile)                                                          \
   V(depfile_output_filename, depfile_output_filename)                          \
   V(shared_blobs, shared_blobs_filename)                                       \
-  V(save_compilation_trace, save_compilation_trace_filename)                   \
-  V(load_compilation_trace, load_compilation_trace_filename)                   \
+  V(save_type_feedback, save_type_feedback_filename)                           \
+  V(load_type_feedback, load_type_feedback_filename)                           \
   V(root_certs_file, root_certs_file)                                          \
   V(root_certs_cache, root_certs_cache)                                        \
   V(namespace, namespc)
@@ -41,7 +41,8 @@ namespace bin {
   V(short_socket_read, short_socket_read)                                      \
   V(short_socket_write, short_socket_write)                                    \
   V(disable_exit, exit_disabled)                                               \
-  V(preview_dart_2, nop_option)
+  V(preview_dart_2, nop_option)                                                \
+  V(suppress_core_dump, suppress_core_dump)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \

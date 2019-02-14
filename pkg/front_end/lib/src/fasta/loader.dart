@@ -33,8 +33,6 @@ import 'target_implementation.dart' show TargetImplementation;
 
 import 'ticker.dart' show Ticker;
 
-import 'type_inference/type_inference_engine.dart' show TypeInferenceEngine;
-
 const String untranslatableUriScheme = "org-dartlang-untranslatable-uri";
 
 abstract class Loader<L> {
@@ -77,8 +75,6 @@ abstract class Loader<L> {
   Ticker get ticker => target.ticker;
 
   Template<SummaryTemplate> get outlineSummaryTemplate;
-
-  TypeInferenceEngine get typeInferenceEngine => null;
 
   bool get isSourceLoader => false;
 
@@ -157,6 +153,7 @@ abstract class Loader<L> {
     } else {
       builder.recordAccess(charOffset, noLength, accessor.fileUri);
       if (!accessor.isPatch &&
+          !accessor.isPart &&
           !target.backendTarget
               .allowPlatformPrivateLibraryAccess(accessor.uri, uri)) {
         accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,

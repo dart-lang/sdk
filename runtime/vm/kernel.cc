@@ -473,11 +473,7 @@ RawObject* EvaluateMetadata(const Field& metadata_field,
                                                is_annotations_offset);
 
   } else {
-    Thread* thread = Thread::Current();
-    Error& error = Error::Handle();
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
+    return Thread::Current()->StealStickyError();
   }
 }
 
@@ -584,17 +580,11 @@ RawObject* BuildParameterDescriptor(const Function& function) {
 
     return builder.BuildParameterDescriptor(function.kernel_offset());
   } else {
-    Thread* thread = Thread::Current();
-    Error& error = Error::Handle();
-    error = thread->sticky_error();
-    thread->clear_sticky_error();
-    return error.raw();
+    return Thread::Current()->StealStickyError();
   }
 }
 
 bool NeedsDynamicInvocationForwarder(const Function& function) {
-  ASSERT(FLAG_strong);
-
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 

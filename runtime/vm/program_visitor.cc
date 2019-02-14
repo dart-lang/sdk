@@ -4,6 +4,7 @@
 
 #include "vm/program_visitor.h"
 
+#include "vm/code_patcher.h"
 #include "vm/deopt_instructions.h"
 #include "vm/hash_map.h"
 #include "vm/object.h"
@@ -114,6 +115,66 @@ void ProgramVisitor::VisitFunctions(FunctionVisitor* visitor) {
   }
 }
 
+void ProgramVisitor::BindStaticCalls() {
+#if !defined(TARGET_ARCH_DBC)
+  if (FLAG_precompiled_mode) {
+    return;
+  }
+
+  class BindJITStaticCallsVisitor : public FunctionVisitor {
+   public:
+    explicit BindJITStaticCallsVisitor(Zone* zone)
+        : code_(Code::Handle(zone)),
+          table_(Array::Handle(zone)),
+          kind_and_offset_(Smi::Handle(zone)),
+          target_(Object::Handle(zone)),
+          target_code_(Code::Handle(zone)) {}
+
+    void Visit(const Function& function) {
+      if (!function.HasCode()) {
+        return;
+      }
+      code_ = function.CurrentCode();
+      table_ = code_.static_calls_target_table();
+      StaticCallsTable static_calls(table_);
+      for (const auto& view : static_calls) {
+        kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
+        Code::CallKind kind = Code::KindField::decode(kind_and_offset_.Value());
+        if (kind != Code::kCallViaCode) {
+          continue;
+        }
+        int32_t pc_offset = Code::OffsetField::decode(kind_and_offset_.Value());
+        target_ = view.Get<Code::kSCallTableFunctionTarget>();
+        if (target_.IsNull()) {
+          target_ = view.Get<Code::kSCallTableCodeTarget>();
+          ASSERT(!Code::Cast(target_).IsFunctionCode());
+          // Allocation stub or AllocateContext or AllocateArray or ...
+        } else {
+          const Function& target_func = Function::Cast(target_);
+          if (target_func.HasCode()) {
+            target_code_ = target_func.CurrentCode();
+          } else {
+            target_code_ = StubCode::CallStaticFunction().raw();
+          }
+          uword pc = pc_offset + code_.PayloadStart();
+          CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
+        }
+      }
+    }
+
+   private:
+    Code& code_;
+    Array& table_;
+    Smi& kind_and_offset_;
+    Object& target_;
+    Code& target_code_;
+  };
+
+  BindJITStaticCallsVisitor visitor(Thread::Current()->zone());
+  ProgramVisitor::VisitFunctions(&visitor);
+#endif  // !defined(TARGET_ARCH_DBC)
+}
+
 void ProgramVisitor::ShareMegamorphicBuckets() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -129,8 +190,7 @@ void ProgramVisitor::ShareMegamorphicBuckets() {
       zone, Array::New(MegamorphicCache::kEntryLength * capacity, Heap::kOld));
   const Function& handler =
       Function::Handle(zone, MegamorphicCacheTable::miss_handler(isolate));
-  MegamorphicCache::SetEntry(buckets, 0, MegamorphicCache::smi_illegal_cid(),
-                             handler);
+  MegamorphicCache::SetEntry(buckets, 0, Object::smi_illegal_cid(), handler);
 
   for (intptr_t i = 0; i < table.Length(); i++) {
     cache ^= table.At(i);
@@ -636,6 +696,12 @@ void ProgramVisitor::DedupLists() {
   ProgramVisitor::VisitFunctions(&visitor);
 }
 
+// Traits for comparing two [Instructions] objects for equality, which is
+// implemented as bit-wise equality.
+//
+// This considers two instruction objects to be equal even if they have
+// different static call targets.  Since the static call targets are called via
+// the object pool this is ok.
 class InstructionsKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -655,6 +721,52 @@ class InstructionsKeyValueTrait {
 };
 
 typedef DirectChainedHashMap<InstructionsKeyValueTrait> InstructionsSet;
+
+// Traits for comparing two [Code] objects for equality.
+//
+// It considers two [Code] objects to be equal if
+//
+//   * their [RawInstruction]s are bit-wise equal
+//   * their [RawPcDescriptor]s are the same
+//   * their [RawStackMaps]s are the same
+//   * their static call targets are the same
+#if defined(DART_PRECOMPILER)
+class CodeKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Code* Key;
+  typedef const Code* Value;
+  typedef const Code* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) { return key->Size(); }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    if (pair->raw() == key->raw()) return true;
+
+    // Notice we assume that these entries have already been de-duped, so we
+    // can use pointer equality.
+    if (pair->static_calls_target_table() != key->static_calls_target_table()) {
+      return false;
+    }
+    if (pair->pc_descriptors() == key->pc_descriptors()) {
+      return false;
+    }
+    if (pair->stackmaps() == key->stackmaps()) {
+      return false;
+    }
+    if (pair->catch_entry_moves_maps() == key->catch_entry_moves_maps()) {
+      return false;
+    }
+    return Instructions::Equals(pair->instructions(), key->instructions());
+  }
+};
+
+typedef DirectChainedHashMap<CodeKeyValueTrait> CodeSet;
+#endif  // defined(DART_PRECOMPILER)
 
 void ProgramVisitor::DedupInstructions() {
   class DedupInstructionsVisitor : public FunctionVisitor,
@@ -712,13 +824,65 @@ void ProgramVisitor::DedupInstructions() {
   ProgramVisitor::VisitFunctions(&visitor);
 }
 
+void ProgramVisitor::DedupInstructionsWithSameMetadata() {
+#if defined(DART_PRECOMPILER)
+  class DedupInstructionsWithSameMetadataVisitor : public FunctionVisitor,
+                                                   public ObjectVisitor {
+   public:
+    explicit DedupInstructionsWithSameMetadataVisitor(Zone* zone)
+        : zone_(zone),
+          canonical_set_(),
+          code_(Code::Handle(zone)),
+          owner_(Object::Handle(zone)),
+          instructions_(Instructions::Handle(zone)) {}
+
+    void VisitObject(RawObject* obj) {
+      if (obj->IsCode()) {
+        canonical_set_.Insert(&Code::ZoneHandle(zone_, Code::RawCast(obj)));
+      }
+    }
+
+    void Visit(const Function& function) {
+      if (!function.HasCode()) {
+        return;
+      }
+      code_ = function.CurrentCode();
+      instructions_ = DedupOneInstructions(code_);
+      code_.SetActiveInstructions(instructions_);
+      code_.set_instructions(instructions_);
+      function.SetInstructions(code_);  // Update cached entry point.
+    }
+
+    RawInstructions* DedupOneInstructions(const Code& code) {
+      const Code* canonical = canonical_set_.LookupValue(&code);
+      if (canonical == NULL) {
+        canonical_set_.Insert(&Code::ZoneHandle(zone_, code.raw()));
+        return code.instructions();
+      } else {
+        owner_ = code.owner();
+        return canonical->instructions();
+      }
+    }
+
+   private:
+    Zone* zone_;
+    CodeSet canonical_set_;
+    Code& code_;
+    Object& owner_;
+    Instructions& instructions_;
+  };
+
+  DedupInstructionsWithSameMetadataVisitor visitor(Thread::Current()->zone());
+  ProgramVisitor::VisitFunctions(&visitor);
+#endif  // defined(DART_PRECOMPILER)
+}
+
 void ProgramVisitor::Dedup() {
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   HANDLESCOPE(thread);
 
-  // TODO(rmacnak): Bind static calls whose target has been compiled. Forward
-  // references to disabled code.
+  BindStaticCalls();
   ShareMegamorphicBuckets();
   DedupStackMaps();
   DedupPcDescriptors();
@@ -731,7 +895,11 @@ void ProgramVisitor::Dedup() {
 
 #if defined(PRODUCT)
   // Reduces binary size but obfuscates profiler results.
-  DedupInstructions();
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    DedupInstructionsWithSameMetadata();
+  } else {
+    DedupInstructions();
+  }
 #endif
 }
 

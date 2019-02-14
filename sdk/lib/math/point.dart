@@ -23,10 +23,10 @@ class Point<T extends num> {
    * `other` is a `Point` with
    * [x] equal to `other.x` and [y] equal to `other.y`.
    */
-  bool operator ==(other) {
-    if (other is! Point) return false;
-    return x == other.x && y == other.y;
-  }
+  bool operator ==(dynamic other) =>
+      // Cannot change parameter type to `Object` in case some class
+      // inherits the type and uses their argument dynamically.
+      other is Point && x == other.x && y == other.y;
 
   int get hashCode => _JenkinsSmiHash.hash2(x.hashCode, y.hashCode);
 

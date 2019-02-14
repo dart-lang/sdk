@@ -18,6 +18,7 @@ import "package:async_helper/async_helper.dart";
 // within +/- 2 <= seconds.
 
 const SECONDS = 4;
+const SLACK = 60;
 
 List<String> packageOptions() {
   if (Platform.packageRoot != null) {
@@ -57,9 +58,9 @@ void runServerProcess() {
       // NOTE: There is a slight chance this will cause flakiness, but there is
       // no other good way of testing correctness of timing-dependent code
       // form the outside.
-      if (seconds < SECONDS || (SECONDS + 30) < seconds) {
+      if (seconds < SECONDS || (SECONDS + SLACK) < seconds) {
         throw "Child did exit within $seconds seconds, but expected it to take "
-            "roughly $SECONDS seconds.";
+            "roughly between $SECONDS and ${SECONDS + SLACK} seconds.";
       }
 
       asyncEnd();

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -26,6 +25,17 @@ void main() {
 
 @reflectiveTest
 class CompletionTargetTest {
+  /// Parse a dangling expression (no parent node). The angular plugin, for
+  /// instance, does this.
+  Expression parseDanglingDart(String code) {
+    final reader = new CharSequenceReader(code);
+    final scanner = new Scanner(null, reader, null);
+    final source = new StringSource(code, 'test.dart');
+    final listener = new _ErrorCollector();
+
+    return new Parser(source, listener).parseExpression(scanner.tokenize());
+  }
+
   test_danglingExpressionCompletionIsValid() {
     // Test that users can parse dangling expressions of dart and autocomplete
     // them without crash/with the correct offset information.
@@ -37,17 +47,6 @@ class CompletionTargetTest {
     final replacementRange = completionTarget.computeReplacementRange(1);
     expect(replacementRange.offset, 0);
     expect(replacementRange.length, 'identifier'.length);
-  }
-
-  /// Parse a dangling expression (no parent node). The angular plugin, for
-  /// instance, does this.
-  Expression parseDanglingDart(String code) {
-    final reader = new CharSequenceReader(code);
-    final scanner = new Scanner(null, reader, null);
-    final source = new StringSource(code, 'test.dart');
-    final listener = new _ErrorCollector();
-
-    return new Parser(source, listener).parseExpression(scanner.tokenize());
   }
 
   Expression wrapForCompliance(Expression expression) {
@@ -68,10 +67,6 @@ class _ErrorCollector extends AnalysisErrorListener {
   final _errors = <AnalysisError>[];
 
   _ErrorCollector();
-
-  /// The group of errors collected.
-  AnalyzerErrorGroup get group =>
-      new AnalyzerErrorGroup.fromAnalysisErrors(_errors);
 
   /// Whether any errors where collected.
   bool get hasErrors => !_errors.isEmpty;

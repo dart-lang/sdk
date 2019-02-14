@@ -72,7 +72,7 @@ class OSError {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("OS Error");
-    if (!message.isEmpty) {
+    if (message.isNotEmpty) {
       sb..write(": ")..write(message);
       if (errorCode != noErrorCode) {
         sb..write(", errno = ")..write(errorCode.toString());
@@ -105,9 +105,7 @@ _BufferAndStart _ensureFastAndSerializableByteData(
   int j = start;
   for (int i = 0; i < length; i++) {
     int value = buffer[j];
-    if (value is! int) {
-      throw new ArgumentError("List element is not an integer at index $j");
-    }
+    if (value == null) throw ArgumentError("List element is null at index $j");
     newBuffer[i] = value;
     j++;
   }

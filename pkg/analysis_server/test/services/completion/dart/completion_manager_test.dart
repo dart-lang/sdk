@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -30,7 +30,7 @@ class CompletionManagerTest extends DartCompletionContributorTest {
   }
 
   test_resolveDirectives() async {
-    addSource('/libA.dart', '''
+    addSource('/home/test/lib/a.dart', '''
 library libA;
 /// My class.
 /// Short description.
@@ -38,16 +38,16 @@ library libA;
 /// Longer description.
 class A {}
 ''');
-    addSource('/libB.dart', '''
+    addSource('/home/test/lib/b.dart', '''
 library libB;
-import "/libA.dart" as foo;
-part '${convertAbsolutePathToUri(testFile)}';
+import "a.dart" as foo;
+part 'test.dart';
 ''');
     addTestSource('part of libB; main() {^}');
 
     // Build the request
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        await driver.getResult(testFile),
+        await session.getResolvedUnit(testFile),
         completionOffset,
         new CompletionPerformance());
     Completer<DartCompletionRequest> requestCompleter =
@@ -83,6 +83,6 @@ part '${convertAbsolutePathToUri(testFile)}';
 
     // Assert that the new imports each have an export namespace
     assertImportedLib('dart:core');
-    assertImportedLib('libA.dart');
+    assertImportedLib('a.dart');
   }
 }

@@ -48,29 +48,27 @@ class FieldInitializerInferenceNode extends InferenceNode {
 
   @override
   void resolveInternal() {
-    if (_typeInferenceEngine.strongMode) {
-      var typeInferrer = _typeInferenceEngine.getFieldTypeInferrer(field);
-      // Note: in the event that there is erroneous code, it's possible for
-      // typeInferrer to be null.  If this happens, just skip type inference for
-      // this field.
-      if (typeInferrer != null) {
-        var inferredType = typeInferrer
-            .inferDeclarationType(typeInferrer.inferFieldTopLevel(field));
-        if (isCircular) {
-          // Report the appropriate error.
-          _library.addProblem(
-              templateCantInferTypeDueToCircularity
-                  .withArguments(field.name.name),
-              field.fileOffset,
-              noLength,
-              field.fileUri);
-          inferredType = const DynamicType();
-        }
-        field.setInferredType(
-            _typeInferenceEngine, typeInferrer.uri, inferredType);
-        // TODO(paulberry): if type != null, then check that the type of the
-        // initializer is assignable to it.
+    var typeInferrer = _typeInferenceEngine.getFieldTypeInferrer(field);
+    // Note: in the event that there is erroneous code, it's possible for
+    // typeInferrer to be null.  If this happens, just skip type inference for
+    // this field.
+    if (typeInferrer != null) {
+      var inferredType = typeInferrer
+          .inferDeclarationType(typeInferrer.inferFieldTopLevel(field));
+      if (isCircular) {
+        // Report the appropriate error.
+        _library.addProblem(
+            templateCantInferTypeDueToCircularity
+                .withArguments(field.name.name),
+            field.fileOffset,
+            noLength,
+            field.fileUri);
+        inferredType = const DynamicType();
       }
+      field.setInferredType(
+          _typeInferenceEngine, typeInferrer.uri, inferredType);
+      // TODO(paulberry): if type != null, then check that the type of the
+      // initializer is assignable to it.
     }
     // TODO(paulberry): the following is a hack so that outlines don't contain
     // initializers.  But it means that we rebuild the initializers when doing
@@ -227,13 +225,7 @@ abstract class TypeInferenceEngine {
 
   final Instrumentation instrumentation;
 
-  final bool strongMode;
-
-  TypeInferenceEngine(this.instrumentation, this.strongMode);
-
-  /// Creates a disabled type inferrer (intended for debugging and profiling
-  /// only).
-  TypeInferrer createDisabledTypeInferrer();
+  TypeInferenceEngine(this.instrumentation);
 
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
@@ -300,7 +292,7 @@ abstract class TypeInferenceEngine {
     this.coreTypes = coreTypes;
     this.classHierarchy = hierarchy;
     this.typeSchemaEnvironment =
-        new TypeSchemaEnvironment(coreTypes, hierarchy, strongMode);
+        new TypeSchemaEnvironment(coreTypes, hierarchy);
   }
 
   /// Records that the given static [field] will need top level type inference.

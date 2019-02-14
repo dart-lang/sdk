@@ -18,12 +18,12 @@ import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load.dart' show OutputUnit;
 import 'elements/entities.dart';
+import 'inferrer/abstract_value_domain.dart';
+import 'inferrer/types.dart'
+    show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
-import 'types/abstract_value_domain.dart';
-import 'types/types.dart'
-    show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
-import 'universe/world_builder.dart' show CodegenWorldBuilder;
+import 'universe/codegen_world_builder.dart';
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 import 'world.dart' show JClosedWorld;
@@ -32,6 +32,7 @@ class ElementInfoCollector {
   final Compiler compiler;
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
+  final DumpInfoTask dumpInfoTask;
 
   JElementEnvironment get environment => closedWorld.elementEnvironment;
   CodegenWorldBuilder get codegenWorldBuilder => compiler.codegenWorldBuilder;
@@ -41,13 +42,13 @@ class ElementInfoCollector {
   final Map<ConstantValue, Info> _constantToInfo = <ConstantValue, Info>{};
   final Map<OutputUnit, OutputUnitInfo> _outputToInfo = {};
 
-  ElementInfoCollector(
-      this.compiler, this.closedWorld, this._globalInferenceResults);
+  ElementInfoCollector(this.compiler, this.dumpInfoTask, this.closedWorld,
+      this._globalInferenceResults);
 
   void run() {
-    compiler.dumpInfoTask._constantToNode.forEach((constant, node) {
+    dumpInfoTask._constantToNode.forEach((constant, node) {
       // TODO(sigmund): add dependencies on other constants
-      var size = compiler.dumpInfoTask._nodeToSize[node];
+      var size = dumpInfoTask._nodeData[node].length;
       var code = jsAst.prettyPrint(node,
           enableMinification: compiler.options.enableMinification);
       var info = new ConstantInfo(
@@ -64,8 +65,8 @@ class ElementInfoCollector {
   /// output size. Either because it is a function being emitted or inlined,
   /// or because it is an entity that holds dependencies to other entities.
   bool shouldKeep(Entity entity) {
-    return compiler.dumpInfoTask.impacts.containsKey(entity) ||
-        compiler.dumpInfoTask.inlineCount.containsKey(entity);
+    return dumpInfoTask.impacts.containsKey(entity) ||
+        dumpInfoTask.inlineCount.containsKey(entity);
   }
 
   LibraryInfo visitLibrary(LibraryEntity lib) {
@@ -73,7 +74,7 @@ class ElementInfoCollector {
     if (libname.isEmpty) {
       libname = '<unnamed>';
     }
-    int size = compiler.dumpInfoTask.sizeOf(lib);
+    int size = dumpInfoTask.sizeOf(lib);
     LibraryInfo info = new LibraryInfo(libname, lib.canonicalUri, null, size);
     _entityToInfo[lib] = info;
 
@@ -113,23 +114,17 @@ class ElementInfoCollector {
       _globalInferenceResults.resultOfParameter(e);
 
   FieldInfo visitField(FieldEntity field, {ClassEntity containingClass}) {
-    var isInInstantiatedClass = false;
-    if (containingClass != null) {
-      isInInstantiatedClass =
-          closedWorld.classHierarchy.isInstantiated(containingClass);
-    }
-    if (!isInInstantiatedClass && !_hasBeenResolved(field)) {
-      return null;
-    }
     AbstractValue inferredType = _resultOfMember(field).type;
     // If a field has an empty inferred type it is never used.
     if (inferredType == null ||
-        closedWorld.abstractValueDomain.isEmpty(inferredType)) {
+        closedWorld.abstractValueDomain
+            .isEmpty(inferredType)
+            .isDefinitelyTrue) {
       return null;
     }
 
-    int size = compiler.dumpInfoTask.sizeOf(field);
-    String code = compiler.dumpInfoTask.codeOf(field);
+    int size = dumpInfoTask.sizeOf(field);
+    String code = dumpInfoTask.codeOf(field);
 
     // TODO(het): Why doesn't `size` account for the code size already?
     if (code != null) size += code.length;
@@ -147,7 +142,7 @@ class ElementInfoCollector {
           codegenWorldBuilder.getConstantFieldInitializer(field)];
     }
 
-    if (JavaScriptBackend.TRACE_METHOD == 'post') {
+    if (compiler.options.experimentCallInstrumentation) {
       // We use field.hashCode because it is globally unique and it is
       // available while we are doing codegen.
       info.coverageId = '${field.hashCode}';
@@ -160,12 +155,6 @@ class ElementInfoCollector {
     return info;
   }
 
-  bool _hasBeenResolved(MemberEntity entity) {
-    return compiler.globalInference.typesInferrerInternal.inferrer.types
-        .memberTypeInformations
-        .containsKey(entity);
-  }
-
   ClassInfo visitClass(ClassEntity clazz) {
     // Omit class if it is not needed.
     ClassInfo classInfo = new ClassInfo(
@@ -174,7 +163,7 @@ class ElementInfoCollector {
         outputUnit: _unitInfoForClass(clazz));
     _entityToInfo[clazz] = classInfo;
 
-    int size = compiler.dumpInfoTask.sizeOf(clazz);
+    int size = dumpInfoTask.sizeOf(clazz);
     environment.forEachLocalClassMember(clazz, (member) {
       if (member.isFunction || member.isGetter || member.isSetter) {
         FunctionInfo functionInfo = visitFunction(member);
@@ -225,7 +214,7 @@ class ElementInfoCollector {
     ClosureInfo closureInfo = new ClosureInfo(
         name: element.name,
         outputUnit: _unitInfoForClass(element),
-        size: compiler.dumpInfoTask.sizeOf(element));
+        size: dumpInfoTask.sizeOf(element));
     _entityToInfo[element] = closureInfo;
 
     FunctionEntity callMethod = closedWorld.elementEnvironment
@@ -241,7 +230,7 @@ class ElementInfoCollector {
   }
 
   FunctionInfo visitFunction(FunctionEntity function) {
-    int size = compiler.dumpInfoTask.sizeOf(function);
+    int size = dumpInfoTask.sizeOf(function);
     // TODO(sigmund): consider adding a small info to represent unreachable
     // code here.
     if (size == 0 && !shouldKeep(function)) return null;
@@ -272,7 +261,7 @@ class ElementInfoCollector {
           : false,
       isExternal: function.isExternal,
     );
-    String code = compiler.dumpInfoTask.codeOf(function);
+    String code = dumpInfoTask.codeOf(function);
 
     List<ParameterInfo> parameters = <ParameterInfo>[];
     List<String> inferredParameterTypes = <String>[];
@@ -292,7 +281,7 @@ class ElementInfoCollector {
     String sideEffects =
         '${_globalInferenceResults.inferredData.getSideEffectsOfElement(function)}';
 
-    int inlinedCount = compiler.dumpInfoTask.inlineCount[function];
+    int inlinedCount = dumpInfoTask.inlineCount[function];
     if (inlinedCount == null) inlinedCount = 0;
 
     FunctionInfo info = new FunctionInfo(
@@ -312,7 +301,7 @@ class ElementInfoCollector {
     int closureSize = _addClosureInfo(info, function);
     size += closureSize;
 
-    if (JavaScriptBackend.TRACE_METHOD == 'post') {
+    if (compiler.options.experimentCallInstrumentation) {
       // We use function.hashCode because it is globally unique and it is
       // available while we are doing codegen.
       info.coverageId = '${function.hashCode}';
@@ -353,7 +342,8 @@ class ElementInfoCollector {
       assert(outputUnit.name != null || outputUnit.isMainOutput);
       OutputUnitInfo info = new OutputUnitInfo(
           outputUnit.name, backend.emitter.emitter.generatedSize(outputUnit));
-      info.imports.addAll(compiler.deferredLoadTask.getImportNames(outputUnit));
+      info.imports
+          .addAll(closedWorld.outputUnitData.getImportNames(outputUnit));
       result.outputUnits.add(info);
       return info;
     });
@@ -411,20 +401,16 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   /// The size of the generated output.
   int _programSize;
 
-  // A set of javascript AST nodes that we care about the size of.
-  // This set is automatically populated when registerEntityAst()
-  // is called.
-  final Set<jsAst.Node> _tracking = new Set<jsAst.Node>();
+  /// Data associated with javascript AST nodes. The map only contains keys for
+  /// nodes that we care about.  Keys are automatically added when
+  /// [registerEntityAst] is called.
+  final Map<jsAst.Node, _CodeData> _nodeData = <jsAst.Node, _CodeData>{};
 
   // A mapping from Dart Entities to Javascript AST Nodes.
   final Map<Entity, List<jsAst.Node>> _entityToNodes =
       <Entity, List<jsAst.Node>>{};
   final Map<ConstantValue, jsAst.Node> _constantToNode =
       <ConstantValue, jsAst.Node>{};
-
-  // A mapping from Javascript AST Nodes to the size of their
-  // pretty-printed contents.
-  final Map<jsAst.Node, int> _nodeToSize = <jsAst.Node, int>{};
 
   final Map<Entity, int> inlineCount = <Entity, int>{};
 
@@ -481,24 +467,15 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     return selections;
   }
 
-  // Returns true if we care about tracking the size of
-  // this node.
-  bool isTracking(jsAst.Node code) {
-    if (compiler.options.dumpInfo) {
-      return _tracking.contains(code);
-    } else {
-      return false;
-    }
-  }
-
   /// Registers that a javascript AST node [code] was produced by the dart
   /// Entity [entity].
-  void registerEntityAst(Entity entity, jsAst.Node code) {
+  void registerEntityAst(Entity entity, jsAst.Node code,
+      {LibraryEntity library}) {
     if (compiler.options.dumpInfo) {
       _entityToNodes
           .putIfAbsent(entity, () => new List<jsAst.Node>())
           .add(code);
-      _tracking.add(code);
+      _nodeData[code] ??= _CodeData();
     }
   }
 
@@ -507,17 +484,34 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       assert(_constantToNode[constant] == null ||
           _constantToNode[constant] == code);
       _constantToNode[constant] = code;
-      _tracking.add(code);
+      _nodeData[code] ??= _CodeData();
     }
   }
 
-  /// Records the size of a dart AST node after it has been pretty-printed into
-  /// the output buffer.
-  void recordAstSize(jsAst.Node node, int size) {
-    if (isTracking(node)) {
-      //TODO: should I be incrementing here instead?
-      _nodeToSize[node] = size;
+  // TODO(sigmund): delete the stack once we stop emitting the source text.
+  List<_CodeData> _stack = [];
+  void enterNode(jsAst.Node node, int start) {
+    var data = _nodeData[node];
+    if (data != null) {
+      _stack.add(data);
+      data.start = start;
     }
+  }
+
+  void emit(String string) {
+    // Note: historically we emitted the full body of classes and methods, so
+    // instance methods ended up emitted twice.  Once we use a different
+    // encoding of dump info, we also plan to remove this duplication.
+    _stack.forEach((f) => f.text.write(string));
+  }
+
+  void exitNode(jsAst.Node node, int start, int end, int closing) {
+    var data = _nodeData[node];
+    if (data == null) return;
+    var last = _stack.removeLast();
+    assert(data == last);
+    assert(data.start == start);
+    data.end = end;
   }
 
   /// Returns the size of the source code that was generated for an entity.
@@ -530,7 +524,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
   }
 
-  int sizeOfNode(jsAst.Node node) => _nodeToSize[node] ?? 0;
+  int sizeOfNode(jsAst.Node node) => _nodeData[node].length ?? 0;
 
   String codeOf(Entity entity) {
     List<jsAst.Node> code = _entityToNodes[entity];
@@ -538,8 +532,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     // Concatenate rendered ASTs.
     StringBuffer sb = new StringBuffer();
     for (jsAst.Node ast in code) {
-      sb.writeln(jsAst.prettyPrint(ast,
-          enableMinification: compiler.options.enableMinification));
+      sb.writeln(_nodeData[ast].text);
     }
     return sb.toString();
   }
@@ -548,16 +541,17 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       GlobalTypeInferenceResults globalInferenceResults) {
     measure(() {
       infoCollector = new ElementInfoCollector(
-          compiler, closedWorld, globalInferenceResults)
+          compiler, this, closedWorld, globalInferenceResults)
         ..run();
       StringBuffer jsonBuffer = new StringBuffer();
       dumpInfoJson(jsonBuffer, closedWorld);
       compiler.outputProvider.createOutputSink(
           compiler.options.outputUri.pathSegments.last,
           'info.json',
-          OutputType.info)
+          OutputType.dumpInfo)
         ..add(jsonBuffer.toString())
         ..close();
+      BasicInfo.resetIds();
     });
   }
 
@@ -613,7 +607,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       }
     }
 
-    result.deferredFiles = compiler.deferredLoadTask.computeDeferredMap();
+    result.deferredFiles = closedWorld.outputUnitData
+        .computeDeferredMap(compiler.options, closedWorld.elementEnvironment);
     stopwatch.stop();
 
     result.program = new ProgramInfo(
@@ -623,7 +618,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         dart2jsVersion:
             compiler.options.hasBuildId ? compiler.options.buildId : null,
         compilationMoment: new DateTime.now(),
-        compilationDuration: compiler.measurer.wallClock.elapsed,
+        compilationDuration: compiler.measurer.elapsedWallClock,
         toJsonDuration:
             new Duration(milliseconds: stopwatch.elapsedMilliseconds),
         dumpInfoDuration: new Duration(milliseconds: this.timing),
@@ -642,4 +637,16 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
           "https://dart-lang.github.io/dump-info-visualizer"
     });
   }
+}
+
+/// Helper class to store what dump-info will show for a piece of code.
+///
+/// Currently we print out the actual text, in the future, we will only emit
+/// start and end offsets.
+class _CodeData {
+  int start;
+  int end;
+  StringBuffer text = new StringBuffer();
+
+  int get length => end - start;
 }

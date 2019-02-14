@@ -26,6 +26,8 @@ typedef ImportPrefixGenerator = String Function(Uri);
 abstract class DartChangeBuilder implements ChangeBuilder {
   /**
    * Initialize a newly created change builder.
+   *
+   * TODO(scheglov) Replace this constructor with using workspace.
    */
   factory DartChangeBuilder(AnalysisSession session) = DartChangeBuilderImpl;
 

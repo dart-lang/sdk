@@ -101,6 +101,14 @@ class SourceFactoryImpl implements SourceFactory {
   }
 
   @override
+  void clearCache() {
+    _absoluteUriToSourceCache.clear();
+    for (var resolver in resolvers) {
+      resolver.clearCache();
+    }
+  }
+
+  @override
   SourceFactory clone() {
     SourceFactory factory =
         new SourceFactory(resolvers, _packages, _resourceProvider);

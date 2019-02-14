@@ -11,7 +11,7 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/type_graph_inferrer.dart';
 import 'package:compiler/src/js_model/element_map.dart';
-import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:compiler/src/js_model/js_world.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -25,12 +25,12 @@ main(List<String> args) {
   });
 }
 
-class CallersDataComputer extends DataComputer {
+class CallersDataComputer extends DataComputer<String> {
   const CallersDataComputer();
 
   @override
-  void computeMemberData(
-      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+  void computeMemberData(Compiler compiler, MemberEntity member,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
@@ -43,16 +43,23 @@ class CallersDataComputer extends DataComputer {
             closedWorld.closureDataLookup)
         .run(definition.node);
   }
+
+  @override
+  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
 /// AST visitor for computing side effects data for a member.
-class CallersIrComputer extends IrDataExtractor {
+class CallersIrComputer extends IrDataExtractor<String> {
   final TypeGraphInferrer inferrer;
   final JsToElementMap _elementMap;
   final ClosureData _closureDataLookup;
 
-  CallersIrComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
-      this._elementMap, this.inferrer, this._closureDataLookup)
+  CallersIrComputer(
+      DiagnosticReporter reporter,
+      Map<Id, ActualData<String>> actualMap,
+      this._elementMap,
+      this.inferrer,
+      this._closureDataLookup)
       : super(reporter, actualMap);
 
   String getMemberValue(MemberEntity member) {

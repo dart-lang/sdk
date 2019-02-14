@@ -21,7 +21,7 @@ import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
  * Plugin developers should extend this function and primarily
  * overload `computeSuggestions` (if needed).
  */
-class InheritedReferenceContributor extends Object
+class InheritedReferenceContributor
     with ElementSuggestionBuilder
     implements CompletionContributor {
   @override

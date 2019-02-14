@@ -1,8 +1,31 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
+
+/**
+ * The implementation of [DartAssistContext].
+ */
+class DartAssistContextImpl implements DartAssistContext {
+  @override
+  final ChangeWorkspace workspace;
+
+  @override
+  final ResolvedUnitResult resolveResult;
+
+  @override
+  final int selectionOffset;
+
+  @override
+  final int selectionLength;
+
+  DartAssistContextImpl(this.workspace, this.resolveResult,
+      this.selectionOffset, this.selectionLength);
+}
 
 /**
  * An enumeration of possible assist kinds.
@@ -28,10 +51,10 @@ class DartAssistKind {
       'dart.assist.convert.bodyToBlock', 30, "Convert to block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
       'dart.assist.convert.bodyToExpression', 30, "Convert to expression body");
-  static const CONVERT_INTO_FOR_INDEX = const AssistKind(
-      'dart.assist.convert.forEachToForIndex', 30, "Convert to for-index loop");
   static const CONVERT_INTO_FINAL_FIELD = const AssistKind(
       'dart.assist.convert.getterToFinalField', 30, "Convert to final field");
+  static const CONVERT_INTO_FOR_INDEX = const AssistKind(
+      'dart.assist.convert.forEachToForIndex', 30, "Convert to for-index loop");
   static const CONVERT_INTO_GENERIC_FUNCTION_SYNTAX = const AssistKind(
       'dart.assist.convert.toGenericFunctionSyntax',
       30,
@@ -96,6 +119,8 @@ class DartAssistKind {
       const AssistKind('dart.assist.flutter.wrap.padding', 30, "Add padding");
   static const FLUTTER_WRAP_ROW =
       const AssistKind('dart.assist.flutter.wrap.row', 30, "Wrap with Row");
+  static const FLUTTER_WRAP_STREAM_BUILDER = const AssistKind(
+      'dart.assist.flutter.wrap.streamBuilder', 30, "Wrap with StreamBuilder");
   static const IMPORT_ADD_SHOW = const AssistKind(
       'dart.assist.addShowCombinator', 30, "Add explicit 'show' combinator");
   static const INTRODUCE_LOCAL_CAST_TYPE = const AssistKind(

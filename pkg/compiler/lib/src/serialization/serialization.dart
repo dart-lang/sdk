@@ -6,12 +6,15 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/binary/ast_from_binary.dart' as ir;
+import 'package:kernel/binary/ast_to_binary.dart' as ir;
 import '../closure.dart';
 import '../constants/values.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/types.dart';
+import '../ir/static_type_base.dart';
 import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 
@@ -28,6 +31,11 @@ part 'object_source.dart';
 
 /// Interface for serialization.
 abstract class DataSink {
+  /// The amount of data written to this data sink.
+  ///
+  /// The units is based on the underlying data structure for this data sink.
+  int get length;
+
   /// Flushes any pending data and closes this data sink.
   ///
   /// The data sink can no longer be written to after closing.
@@ -44,6 +52,10 @@ abstract class DataSink {
   /// This is used for debugging to verify that sections are correctly aligned
   /// between serialization and deserialization.
   void end(String tag);
+
+  /// Writes a reference to [value] to this data sink. If [value] has not yet
+  /// been serialized, [f] is called to serialize the value itself.
+  void writeCached<E>(E value, void f(E value));
 
   /// Writes the potentially `null` [value] to this data sink. If [value] is
   /// non-null [f] is called to write the non-null value to the data sink.
@@ -112,6 +124,9 @@ abstract class DataSink {
   /// Writes a reference to the kernel class node [value] to this data sink.
   void writeClassNode(ir.Class value);
 
+  /// Writes a reference to the kernel typedef node [value] to this data sink.
+  void writeTypedefNode(ir.Typedef value);
+
   /// Writes a reference to the kernel member node [value] to this data sink.
   void writeMemberNode(ir.Member value);
 
@@ -171,6 +186,10 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readDartTypes].
   void writeDartTypes(Iterable<DartType> values, {bool allowNull: false});
+
+  /// Writes the kernel type node [value] to this data sink. If [allowNull] is
+  /// `true`, [value] is allowed to be `null`.
+  void writeDartTypeNode(ir.DartType value, {bool allowNull: false});
 
   /// Writes the source span [value] to this data sink.
   void writeSourceSpan(SourceSpan value);
@@ -264,7 +283,7 @@ abstract class DataSink {
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readLocals].
-  void writeLocals(Iterable<Local> locals, {bool allowNull: false});
+  void writeLocals(Iterable<Local> values, {bool allowNull: false});
 
   /// Writes the [map] from references to locals to [V] values to this data
   /// sink, calling [f] to write each value to the data sink. If [allowNull] is
@@ -278,6 +297,13 @@ abstract class DataSink {
   /// Writes the constant [value] to this data sink.
   void writeConstant(ConstantValue value);
 
+  /// Writes constant [values] to this data sink. If [allowNull] is `true`,
+  /// [values] is allowed to be `null`.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSource.readConstants].
+  void writeConstants(Iterable<ConstantValue> values, {bool allowNull: false});
+
   /// Writes the [map] from constant values to [V] values to this data sink,
   /// calling [f] to write each value to the data sink. If [allowNull] is
   /// `true`, [map] is allowed to be `null`.
@@ -285,6 +311,25 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readConstantMap].
   void writeConstantMap<V>(Map<ConstantValue, V> map, void f(V value),
+      {bool allowNull: false});
+
+  /// Writes the import [value] to this data sink.
+  void writeImport(ImportEntity value);
+
+  /// Writes import [values] to this data sink. If [allowNull] is `true`,
+  /// [values] is allowed to be `null`.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSource.readImports].
+  void writeImports(Iterable<ImportEntity> values, {bool allowNull: false});
+
+  /// Writes the [map] from imports to [V] values to this data sink,
+  /// calling [f] to write each value to the data sink. If [allowNull] is
+  /// `true`, [map] is allowed to be `null`.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSource.readImportMap].
+  void writeImportMap<V>(Map<ImportEntity, V> map, void f(V value),
       {bool allowNull: false});
 }
 
@@ -313,6 +358,10 @@ abstract class DataSource {
   /// Registers a [LocalLookup] object with this data source to support
   /// deserialization of references to locals.
   void registerLocalLookup(LocalLookup localLookup);
+
+  /// Reads a reference to an [E] value from this data source. If the value has
+  /// not yet been deserialized, [f] is called to deserialize the value itself.
+  E readCached<E>(E f());
 
   /// Reads a potentially `null` [E] value from this data source, calling [f] to
   /// read the non-null value from the data source.
@@ -385,6 +434,9 @@ abstract class DataSource {
   /// Reads a reference to a kernel class node from this data source.
   ir.Class readClassNode();
 
+  /// Reads a reference to a kernel class node from this data source.
+  ir.Typedef readTypedefNode();
+
   /// Reads a reference to a kernel member node from this data source.
   ir.Member readMemberNode();
 
@@ -440,6 +492,10 @@ abstract class DataSource {
   /// This is a convenience method to be used together with
   /// [DataSink.writeDartTypes].
   List<DartType> readDartTypes({bool emptyAsNull: false});
+
+  /// Reads a kernel type node from this data source. If [allowNull], the
+  /// returned type is allowed to be `null`.
+  ir.DartType readDartTypeNode({bool allowNull: false});
 
   /// Reads a source span from this data source.
   SourceSpan readSourceSpan();
@@ -526,6 +582,13 @@ abstract class DataSource {
   /// Reads a constant value from this data source.
   ConstantValue readConstant();
 
+  /// Reads a list of constant values from this data source. If [emptyAsNull] is
+  /// `true`, `null` is returned instead of an empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSink.writeConstants].
+  List<E> readConstants<E extends ConstantValue>({bool emptyAsNull: false});
+
   /// Reads a map from constant values to [V] values from this data source,
   /// calling [f] to read each value from the data source. If [emptyAsNull] is
   /// `true`, `null` is returned instead of an empty map.
@@ -534,6 +597,24 @@ abstract class DataSource {
   /// [DataSink.writeConstantMap].
   Map<K, V> readConstantMap<K extends ConstantValue, V>(V f(),
       {bool emptyAsNull: false});
+
+  /// Reads a import from this data source.
+  ImportEntity readImport();
+
+  /// Reads a list of imports from this data source. If [emptyAsNull] is
+  /// `true`, `null` is returned instead of an empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSink.writeImports].
+  List<ImportEntity> readImports({bool emptyAsNull: false});
+
+  /// Reads a map from imports to [V] values from this data source,
+  /// calling [f] to read each value from the data source. If [emptyAsNull] is
+  /// `true`, `null` is returned instead of an empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSink.writeImportMap].
+  Map<ImportEntity, V> readImportMap<V>(V f(), {bool emptyAsNull: false});
 }
 
 /// Interface used for looking up entities by index during deserialization.

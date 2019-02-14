@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -29,7 +29,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     Element element = findElement('MyClass');
     // check
     Location location = newLocation_fromElement(element);
-    expect(location.file, convertPath('/project/test.dart'));
+    expect(location.file, testFile);
     expect(location.offset, 6);
     expect(location.length, 7);
     expect(location.startLine, 1);
@@ -52,7 +52,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
         sourceRange);
     // check
     Location location = newLocation_fromMatch(match);
-    expect(location.file, convertPath('/project/test.dart'));
+    expect(location.file, testFile);
     expect(location.offset, sourceRange.offset);
     expect(location.length, sourceRange.length);
   }
@@ -65,7 +65,7 @@ main() {
     AstNode node = findNodeAtString('main');
     // check
     Location location = newLocation_fromNode(node);
-    expect(location.file, convertPath('/project/test.dart'));
+    expect(location.file, testFile);
     expect(location.offset, node.offset);
     expect(location.length, node.length);
   }
@@ -75,7 +75,7 @@ main() {
     SourceRange sourceRange = new SourceRange(10, 20);
     // check
     Location location = newLocation_fromUnit(testUnit, sourceRange);
-    expect(location.file, convertPath('/project/test.dart'));
+    expect(location.file, testFile);
     expect(location.offset, sourceRange.offset);
     expect(location.length, sourceRange.length);
   }

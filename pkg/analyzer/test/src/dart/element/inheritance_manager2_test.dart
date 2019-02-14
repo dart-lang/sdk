@@ -115,7 +115,7 @@ class X extends A implements I {
     );
   }
 
-  void test_getMember_() async {
+  test_getMember() async {
     addTestFile('''
 abstract class I1 {
   void f(int i);
@@ -136,7 +136,196 @@ abstract class C implements I1, I2 {}
     assertElementTypeString(memberType, '(Object) → void');
   }
 
-  test_preferLatest_mixin() async {
+  test_getMember_concrete() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getConcrete('A', 'foo'),
+      same(findElement.method('foo', of: 'A')),
+    );
+  }
+
+  test_getMember_concrete_abstract() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+''');
+    await resolveTestFile();
+
+    expect(_getConcrete('A', 'foo'), isNull);
+  }
+
+  test_getMember_concrete_fromMixedClass() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class X with A {}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getConcrete('X', 'foo'),
+      same(findElement.method('foo', of: 'A')),
+    );
+  }
+
+  test_getMember_concrete_fromMixedClass2() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class B = Object with A;
+
+class X with B {}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getConcrete('X', 'foo'),
+      same(findElement.method('foo', of: 'A')),
+    );
+  }
+
+  test_getMember_concrete_fromMixedClass_skipObject() async {
+    addTestFile('''
+class A {
+  String toString() => 'A';
+}
+
+class B {}
+
+class X extends A with B {}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getConcrete('X', 'toString'),
+      same(findElement.method('toString', of: 'A')),
+    );
+  }
+
+  test_getMember_concrete_fromMixin() async {
+    addTestFile('''
+mixin M {
+  void foo() {}
+}
+
+class X with M {}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getConcrete('X', 'foo'),
+      same(findElement.method('foo', of: 'M')),
+    );
+  }
+
+  test_getMember_concrete_fromSuper() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class B extends A {}
+
+abstract class C extends B {}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getConcrete('B', 'foo'),
+      same(findElement.method('foo', of: 'A')),
+    );
+
+    expect(
+      _getConcrete('C', 'foo'),
+      same(findElement.method('foo', of: 'A')),
+    );
+  }
+
+  test_getMember_concrete_missing() async {
+    addTestFile('''
+abstract class A {}
+''');
+    await resolveTestFile();
+
+    expect(_getConcrete('A', 'foo'), isNull);
+  }
+
+  test_getMember_concrete_noSuchMethod() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class B implements A {
+  noSuchMethod(_) {}
+}
+
+abstract class C extends B {}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getConcrete('B', 'foo'),
+      same(findElement.method('foo', of: 'A')),
+    );
+
+    expect(
+      _getConcrete('C', 'foo'),
+      same(findElement.method('foo', of: 'A')),
+    );
+  }
+
+  test_getMember_concrete_noSuchMethod_mixin() async {
+    addTestFile('''
+class A {
+  void foo();
+
+  noSuchMethod(_) {}
+}
+
+abstract class B extends Object with A {}
+''');
+    await resolveTestFile();
+
+    // noSuchMethod forwarders are not mixed-in.
+    // https://github.com/dart-lang/sdk/issues/33553#issuecomment-424638320
+    expect(_getConcrete('B', 'foo'), isNull);
+  }
+
+  test_getMember_concrete_noSuchMethod_moreSpecificSignature() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class B implements A {
+  noSuchMethod(_) {}
+}
+
+class C extends B {
+  void foo([a]);
+}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getConcrete('C', 'foo'),
+      same(findElement.method('foo', of: 'C')),
+    );
+  }
+
+  test_getMember_preferLatest_mixin() async {
     addTestFile('''
 class A {
   void foo() {}
@@ -165,7 +354,7 @@ class X extends A with M1, M2 implements I {}
     expect(member.element, findElement.method('foo', of: 'M2'));
   }
 
-  test_preferLatest_superclass() async {
+  test_getMember_preferLatest_superclass() async {
     addTestFile('''
 class A {
   void foo() {}
@@ -190,7 +379,7 @@ class X extends B implements I {}
     expect(member.element, findElement.method('foo', of: 'B'));
   }
 
-  test_preferLatest_this() async {
+  test_getMember_preferLatest_this() async {
     addTestFile('''
 class A {
   void foo() {}
@@ -213,8 +402,103 @@ class X extends A implements I {
     expect(member.element, findElement.method('foo', of: 'X'));
   }
 
+  test_getMember_super_abstract() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+
+class B extends A {
+  noSuchMethod(_) {}
+}
+''');
+    await resolveTestFile();
+
+    expect(_getSuper('B', 'foo'), isNull);
+  }
+
+  test_getMember_super_fromMixin() async {
+    addTestFile('''
+mixin M {
+  void foo() {}
+}
+
+class X extends Object with M {
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getSuper('X', 'foo'),
+      same(findElement.method('foo', of: 'M')),
+    );
+  }
+
+  test_getMember_super_fromSuper() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getSuper('B', 'foo'),
+      same(findElement.method('foo', of: 'A')),
+    );
+  }
+
+  test_getMember_super_missing() async {
+    addTestFile('''
+class A {}
+
+class B extends A {}
+''');
+    await resolveTestFile();
+
+    expect(_getSuper('B', 'foo'), isNull);
+  }
+
+  test_getMember_super_noSuchMember() async {
+    addTestFile('''
+class A {
+  void foo();
+  noSuchMethod(_) {}
+}
+
+class B extends A {
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+
+    expect(
+      _getSuper('B', 'foo'),
+      same(findElement.method('foo', of: 'A')),
+    );
+  }
+
+  ExecutableElement _getConcrete(String className, String name) {
+    var type = findElement.class_(className).type;
+    return manager
+        .getMember(type, new Name(null, name), concrete: true)
+        ?.element;
+  }
+
   ExecutableElement _getInherited(String className, String name) {
     var type = findElement.class_(className).type;
     return manager.getInherited(type, new Name(null, name)).element;
+  }
+
+  ExecutableElement _getSuper(String className, String name) {
+    var type = findElement.class_(className).type;
+    return manager
+        .getMember(type, new Name(null, name), forSuper: true)
+        ?.element;
   }
 }

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -21,12 +22,11 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
-import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:path/path.dart' show posix;
 import 'package:test/test.dart';
 
-import '../context/mock_sdk.dart';
 import 'resynthesize_common.dart';
 
 /// Convert the given Posix style file [path] to the corresponding absolute URI.
@@ -35,13 +35,19 @@ String absUri(String path) {
   return posix.toUri(absolutePath).toString();
 }
 
-CompilationUnit _parseText(String text) {
+CompilationUnit _parseText(
+  String text, {
+  ExperimentStatus experimentStatus,
+}) {
+  experimentStatus ??= ExperimentStatus();
   CharSequenceReader reader = new CharSequenceReader(text);
   Scanner scanner =
       new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
   Token token = scanner.tokenize();
-  Parser parser = new Parser(
-      NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER);
+  Parser parser =
+      new Parser(NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
+        ..enableSetLiterals = experimentStatus.set_literals
+        ..enableNonNullable = experimentStatus.non_nullable;
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
   return unit;
@@ -88,8 +94,8 @@ void _validateLinkedLibrary(LinkedLibrary linkedLibrary) {
 /// The tests themselves can then be provided via mixin, allowing summaries to
 /// be tested in a variety of ways.
 abstract class ResynthesizeTestStrategy {
-  //Future<LibraryElementImpl> checkLibrary(String text,
-  //    {bool allowErrors: false, bool dumpSummaries: false});
+  /// The set of [ExperimentStatus] enabled in this test.
+  ExperimentStatus experimentStatus;
 
   void set allowMissingFiles(bool value);
 
@@ -121,6 +127,9 @@ abstract class ResynthesizeTestStrategy {
 /// generation using the old two-phase API.
 class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
     implements ResynthesizeTestStrategy {
+  @override
+  ExperimentStatus experimentStatus = ExperimentStatus();
+
   final Set<Source> serializedSources = new Set<Source>();
 
   final Map<String, UnlinkedUnitBuilder> uriToUnit =
@@ -203,7 +212,10 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
         }
         return null;
       }
-      CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
+
+      String contents = context.getContents(source).data;
+      CompilationUnit unit = _parseText(contents);
+
       UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
       bundleAssembler.addUnlinkedUnit(source, unlinkedUnit);
       return unlinkedUnit;
@@ -257,7 +269,9 @@ class SerializedMockSdk {
     try {
       Map<String, UnlinkedUnit> uriToUnlinkedUnit = <String, UnlinkedUnit>{};
       Map<String, LinkedLibrary> uriToLinkedLibrary = <String, LinkedLibrary>{};
-      PackageBundle bundle = new MockSdk().getLinkedBundle();
+      var resourceProvider = new MemoryResourceProvider();
+      PackageBundle bundle =
+          new MockSdk(resourceProvider: resourceProvider).getLinkedBundle();
       for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
         String uri = bundle.unlinkedUnitUris[i];
         uriToUnlinkedUnit[uri] = bundle.unlinkedUnits[i];
@@ -280,6 +294,9 @@ class SerializedMockSdk {
 /// The tests themselves can then be provided via mixin, allowing summaries to
 /// be tested in a variety of ways.
 abstract class SummaryBaseTestStrategy {
+  /// The set of [ExperimentStatus] enabled in this test.
+  ExperimentStatus experimentStatus;
+
   /// Add the given package bundle as a dependency so that it may be referenced
   /// by the files under test.
   void addBundle(String path, PackageBundle bundle);
@@ -497,6 +514,9 @@ abstract class _SummaryBaseTestStrategyTwoPhase
   _FilesToLink<UnlinkedUnitBuilder> _filesToLink =
       new _FilesToLink<UnlinkedUnitBuilder>();
 
+  @override
+  ExperimentStatus experimentStatus = ExperimentStatus();
+
   _LinkerInputs _linkerInputs;
 
   bool get _allowMissingFiles;
@@ -532,7 +552,8 @@ abstract class _SummaryBaseTestStrategyTwoPhase
   }
 
   UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text) =>
-      serializeAstUnlinked(_parseText(text));
+      serializeAstUnlinked(
+          _parseText(text, experimentStatus: experimentStatus));
 
   _LinkerInputs _createLinkerInputs(String text,
       {String path: '/test.dart', String uri}) {
@@ -558,7 +579,7 @@ abstract class _SummaryBaseTestStrategyTwoPhase
 /// generation using the old two-phase API.
 ///
 /// Not intended to be used directly; instead use a derived class that either
-/// exercises the full summary algorithmm or just pre-linking.
+/// exercises the full summary algorithm or just pre-linking.
 abstract class _SummaryBlackBoxTestStrategyTwoPhase
     extends _SummaryBaseTestStrategyTwoPhase
     implements SummaryBlackBoxTestStrategy {

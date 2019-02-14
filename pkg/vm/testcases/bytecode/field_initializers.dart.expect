@@ -9,9 +9,9 @@ class A extends core::Object {
   field core::int foo4;
   field core::int foo5 = 43;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-6]
   PushInt              42
   StoreFieldTOS        CP#0
@@ -31,24 +31,24 @@ Bytecode (version: stable) {
   PushNull
   ReturnTOS
 }
-Nullable fields: [#lib::A::foo1, #lib::A::foo2]
+Nullable fields: [#lib::A::foo1 (field), #lib::A::foo2 (field)]}
 ConstantPool {
-  [0] = InstanceField #lib::A::foo3
+  [0] = InstanceField #lib::A::foo3 (field)
   [1] = Reserved
-  [2] = InstanceField #lib::A::foo5
+  [2] = InstanceField #lib::A::foo5 (field)
   [3] = Reserved
-  [4] = InstanceField #lib::A::foo4
+  [4] = InstanceField #lib::A::foo4 (field)
   [5] = Reserved
   [6] = ArgDesc num-args 1, num-type-args 0, names []
-  [7] = StaticICData target 'dart.core::Object::', arg-desc CP#6
+  [7] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#6
 }
 ]  constructor •(core::int foo4) → self::A
     : self::A::foo1 = null, self::A::foo4 = foo4, self::A::foo5 = 44, super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-7]
   PushInt              42
   StoreFieldTOS        CP#0
@@ -70,24 +70,24 @@ Bytecode (version: stable) {
   PushNull
   ReturnTOS
 }
-Nullable fields: [#lib::A::foo2, #lib::A::foo4]
+Nullable fields: [#lib::A::foo2 (field), #lib::A::foo4 (field)]}
 ConstantPool {
-  [0] = InstanceField #lib::A::foo3
+  [0] = InstanceField #lib::A::foo3 (field)
   [1] = Reserved
-  [2] = InstanceField #lib::A::foo5
+  [2] = InstanceField #lib::A::foo5 (field)
   [3] = Reserved
-  [4] = InstanceField #lib::A::foo1
+  [4] = InstanceField #lib::A::foo1 (field)
   [5] = Reserved
   [6] = ArgDesc num-args 1, num-type-args 0, names []
-  [7] = StaticICData target 'dart.core::Object::', arg-desc CP#6
+  [7] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#6
 }
 ]  constructor constr2(core::int x, core::int y) → self::A
     : self::A::foo4 = null, self::A::foo1 = x, self::A::foo5 = y.{core::num::+}(1), super core::Object::•()
     ;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushInt              45
   PushConstant         CP#1
@@ -98,15 +98,15 @@ Bytecode (version: stable) {
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = StaticICData target '#lib::A::', arg-desc CP#0
+  [1] = StaticICData target '#lib::A::'' (constructor)', arg-desc CP#0
 }
 ]  constructor redirecting1() → self::A
     : this self::A::•(45)
     ;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-8]
   Push                 FP[-7]
   Push                 FP[-6]
@@ -120,7 +120,7 @@ Bytecode (version: stable) {
 }
 ConstantPool {
   [0] = ArgDesc num-args 3, num-type-args 0, names []
-  [1] = StaticICData target '#lib::A::constr2', arg-desc CP#0
+  [1] = StaticICData target '#lib::A::constr2 (constructor)', arg-desc CP#0
 }
 ]  constructor redirecting2(core::int a, core::int b, core::int c) → self::A
     : this self::A::constr2(a, b.{core::num::*}(c))
@@ -131,9 +131,9 @@ class B extends self::A {
   static field core::int foo7 = 47;
   static const field core::int foo8 = 48;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-5]
   PushInt              46
   StoreFieldTOS        CP#0
@@ -146,18 +146,18 @@ Bytecode (version: stable) {
   ReturnTOS
 }
 ConstantPool {
-  [0] = InstanceField #lib::B::foo6
+  [0] = InstanceField #lib::B::foo6 (field)
   [1] = Reserved
   [2] = ArgDesc num-args 2, num-type-args 0, names []
-  [3] = StaticICData target '#lib::A::', arg-desc CP#2
+  [3] = StaticICData target '#lib::A::'' (constructor)', arg-desc CP#2
 }
 ]  constructor •() → self::B
     : super self::A::•(49)
     ;
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   Push                 FP[-7]
   PushInt              46
   StoreFieldTOS        CP#0
@@ -175,19 +175,19 @@ Bytecode (version: stable) {
   ReturnTOS
 }
 ConstantPool {
-  [0] = InstanceField #lib::B::foo6
+  [0] = InstanceField #lib::B::foo6 (field)
   [1] = Reserved
   [2] = ArgDesc num-args 4, num-type-args 0, names []
-  [3] = StaticICData target '#lib::A::redirecting2', arg-desc CP#2
+  [3] = StaticICData target '#lib::A::redirecting2 (constructor)', arg-desc CP#2
 }
 ]  constructor c2(core::int i, core::int j) → self::B
     : self::B::foo6 = 50, super self::A::redirecting2(i, j, 51)
     ;
 }
 [@vm.bytecode=
-Bytecode (version: stable) {
+Bytecode {
   Entry                0
-  CheckStack
+  CheckStack           0
   PushNull
   ReturnTOS
 }

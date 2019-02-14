@@ -1,6 +1,7 @@
 // Unhandled errors:
 //
-// pkg/front_end/testcases/instantiate_to_bound/inference_super_bounded_rejected.dart:11:13: Error: Inferred type argument 'dart.core::Comparable<dynamic>' violates the corresponding type variable bound of 'B::'.
+// pkg/front_end/testcases/instantiate_to_bound/inference_super_bounded_rejected.dart:11:13: Error: Inferred type argument 'Comparable<dynamic>' doesn't conform to the bound 'Comparable<T>' of the type variable 'T' on 'B'.
+//  - 'Comparable' is from 'dart:core'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 // var y = new B();
 //             ^

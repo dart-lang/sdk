@@ -21,7 +21,7 @@ main() {
 class ImportPrefixDriverResolutionTest extends DriverResolutionTest
     with ImportPrefixResolutionMixin {}
 
-abstract class ImportPrefixResolutionMixin implements ResolutionTest {
+mixin ImportPrefixResolutionMixin implements ResolutionTest {
   test_asExpression_expressionStatement() async {
     addTestFile(r'''
 import 'dart:async' as p;

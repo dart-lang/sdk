@@ -37,9 +37,6 @@ class TokenStreamRewriter {
   // }
   //
 
-  /// Initialize a newly created re-writer.
-  TokenStreamRewriter();
-
   /// Insert a synthetic open and close parenthesis and return the new synthetic
   /// open parenthesis. If [insertIdentifier] is true, then a synthetic
   /// identifier is included between the open and close parenthesis.
@@ -136,6 +133,73 @@ class TokenStreamRewriter {
     }
     if (previous != null) {
       current.previous = previous;
+    }
+    return current;
+  }
+}
+
+/// Provides the capability of adding tokens that lead into a token stream
+/// without modifying the original token stream and not setting the any token's
+/// `previous` field.
+class TokenStreamGhostWriter implements TokenStreamRewriter {
+  @override
+  Token insertParens(Token token, bool includeIdentifier) {
+    Token next = token.next;
+    int offset = next.charOffset;
+    BeginToken leftParen =
+        next = new SyntheticBeginToken(TokenType.OPEN_PAREN, offset);
+    if (includeIdentifier) {
+      Token identifier =
+          new SyntheticStringToken(TokenType.IDENTIFIER, '', offset, 0);
+      next.next = identifier;
+      next = identifier;
+    }
+    Token rightParen = new SyntheticToken(TokenType.CLOSE_PAREN, offset);
+    next.next = rightParen;
+    rightParen.next = token.next;
+
+    return leftParen;
+  }
+
+  /// Insert a synthetic identifier after [token] and return the new identifier.
+  Token insertSyntheticIdentifier(Token token) {
+    return insertToken(
+        token,
+        new SyntheticStringToken(
+            TokenType.IDENTIFIER, '', token.next.charOffset, 0));
+  }
+
+  @override
+  Token insertToken(Token token, Token newToken) {
+    newToken.next = token.next;
+    return newToken;
+  }
+
+  @override
+  Token moveSynthetic(Token token, Token endGroup) {
+    Token newEndGroup =
+        new SyntheticToken(endGroup.type, token.next.charOffset);
+    newEndGroup.next = token.next;
+    return newEndGroup;
+  }
+
+  @override
+  Token replaceTokenFollowing(Token previousToken, Token replacementToken) {
+    Token replacedToken = previousToken.next;
+
+    (replacementToken as SimpleToken).precedingComments =
+        replacedToken.precedingComments;
+
+    _lastTokenInChain(replacementToken).next = replacedToken.next;
+    return replacementToken;
+  }
+
+  /// Given the [firstToken] in a chain of tokens to be inserted, return the
+  /// last token in the chain.
+  Token _lastTokenInChain(Token firstToken) {
+    Token current = firstToken;
+    while (current.next != null && current.next.type != TokenType.EOF) {
+      current = current.next;
     }
     return current;
   }

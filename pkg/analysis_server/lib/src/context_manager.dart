@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15,7 +15,6 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -417,11 +416,6 @@ class ContextManagerImpl implements ContextManager {
   final ResourceProvider resourceProvider;
 
   /**
-   * The file content overlay.
-   */
-  final FileContentOverlay fileContentOverlay;
-
-  /**
    * The manager used to access the SDK that should be associated with a
    * particular context.
    */
@@ -499,7 +493,6 @@ class ContextManagerImpl implements ContextManager {
 
   ContextManagerImpl(
       this.resourceProvider,
-      this.fileContentOverlay,
       this.sdkManager,
       this.packageResolverProvider,
       this.analyzedFilesGlobs,
@@ -899,8 +892,7 @@ class ContextManagerImpl implements ContextManager {
         convertedErrors ?? <protocol.AnalysisError>[]);
   }
 
-  void _checkForAnalysisOptionsUpdate(
-      String path, ContextInfo info, ChangeType changeType) {
+  void _checkForAnalysisOptionsUpdate(String path, ContextInfo info) {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
       AnalysisDriver driver = info.analysisDriver;
       if (driver == null) {
@@ -909,39 +901,29 @@ class ContextManagerImpl implements ContextManager {
         // yet created a driver for that context.
         return;
       }
-      String contextRoot = info.folder.path;
-      ContextBuilder builder =
-          callbacks.createContextBuilder(info.folder, defaultContextOptions);
-      AnalysisOptions options = builder.getAnalysisOptions(contextRoot,
-          contextRoot: driver.contextRoot);
-      SourceFactory factory = builder.createSourceFactory(contextRoot, options);
-      driver.configure(analysisOptions: options, sourceFactory: factory);
       // TODO(brianwilkerson) Set exclusion patterns.
       _analyzeAnalysisOptionsFile(driver, path);
+      _updateAnalysisOptions(info);
     }
   }
 
-  void _checkForPackagespecUpdate(
-      String path, ContextInfo info, Folder folder) {
+  void _checkForPackagespecUpdate(String path, ContextInfo info) {
     // Check to see if this is the .packages file for this context and if so,
     // update the context's source factory.
     if (pathContext.basename(path) == PACKAGE_SPEC_NAME) {
-      String contextRoot = info.folder.path;
-      ContextBuilder builder =
-          callbacks.createContextBuilder(info.folder, defaultContextOptions);
       AnalysisDriver driver = info.analysisDriver;
-      if (driver != null) {
-        AnalysisOptions options = builder.getAnalysisOptions(contextRoot,
-            contextRoot: driver.contextRoot);
-        SourceFactory factory =
-            builder.createSourceFactory(contextRoot, options);
-        driver.configure(analysisOptions: options, sourceFactory: factory);
+      if (driver == null) {
+        // I suspect that this happens as a result of a race condition: server
+        // has determined that the file (at [path]) is in a context, but hasn't
+        // yet created a driver for that context.
+        return;
       }
+
+      _updateAnalysisOptions(info);
     }
   }
 
-  void _checkForPubspecUpdate(
-      String path, ContextInfo info, ChangeType changeType) {
+  void _checkForPubspecUpdate(String path, ContextInfo info) {
     if (_isPubspec(path)) {
       AnalysisDriver driver = info.analysisDriver;
       if (driver == null) {
@@ -951,6 +933,7 @@ class ContextManagerImpl implements ContextManager {
         return;
       }
       _analyzePubspecFile(driver, path);
+      _updateAnalysisOptions(info);
     }
   }
 
@@ -1424,9 +1407,9 @@ class ContextManagerImpl implements ContextManager {
           }
         }
     }
-    _checkForPackagespecUpdate(path, info, info.folder);
-    _checkForAnalysisOptionsUpdate(path, info, type);
-    _checkForPubspecUpdate(path, info, type);
+    _checkForPackagespecUpdate(path, info);
+    _checkForAnalysisOptionsUpdate(path, info);
+    _checkForPubspecUpdate(path, info);
   }
 
   /**
@@ -1507,8 +1490,7 @@ class ContextManagerImpl implements ContextManager {
    * the contents cannot be read.
    */
   String _readFile(String path) {
-    return fileContentOverlay[path] ??
-        resourceProvider.getFile(path).readAsStringSync();
+    return resourceProvider.getFile(path).readAsStringSync();
   }
 
   Packages _readPackagespec(File specFile) {
@@ -1553,6 +1535,17 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     return false;
+  }
+
+  void _updateAnalysisOptions(ContextInfo info) {
+    AnalysisDriver driver = info.analysisDriver;
+    String contextRoot = info.folder.path;
+    ContextBuilder builder =
+        callbacks.createContextBuilder(info.folder, defaultContextOptions);
+    AnalysisOptions options = builder.getAnalysisOptions(contextRoot,
+        contextRoot: driver.contextRoot);
+    SourceFactory factory = builder.createSourceFactory(contextRoot, options);
+    driver.configure(analysisOptions: options, sourceFactory: factory);
   }
 
   void _updateContextPackageUriResolver(Folder contextFolder) {

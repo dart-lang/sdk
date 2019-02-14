@@ -64,7 +64,7 @@ class AllocationSinking : public ZoneAllocated {
 
   void CreateMaterializationAt(Instruction* exit,
                                Definition* alloc,
-                               const ZoneGrowableArray<const Object*>& fields);
+                               const ZoneGrowableArray<const Slot*>& fields);
 
   void EliminateAllocation(Definition* alloc);
 

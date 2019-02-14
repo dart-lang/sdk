@@ -54,6 +54,25 @@ class MNA3<U, V, W> extends S<U, V, W> with M<V>, N<W> {
   }
 }
 
+abstract class Base {
+  static String log = '';
+  Base() {
+    log += 'Base()\n';
+  }
+}
+
+mixin Foo on Base {
+  var x = Base.log += 'Foo.x\n';
+}
+
+mixin Bar on Base {
+  var y = Base.log += 'Bar.y\n';
+}
+
+class Derived extends Base with Foo, Bar {
+  String get log => Base.log;
+}
+
 main() {
   Expect.equals(
       "S<int,String,bool>.foo\n"
@@ -77,4 +96,9 @@ main() {
       "N<bool>.foo\n"
       "MNA3<int, String, bool>.foo\n",
       MNA3<int, String, bool>().foo());
+  Expect.equals(
+      "Bar.y\n"
+      "Foo.x\n"
+      "Base()\n",
+      Derived().log);
 }

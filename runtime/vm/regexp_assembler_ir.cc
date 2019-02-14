@@ -11,6 +11,7 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
+#include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/regexp.h"
 #include "vm/resolver.h"
@@ -321,6 +322,9 @@ RawArray* IRRegExpMacroAssembler::Execute(const RegExp& regexp,
 
   const Object& retval =
       Object::Handle(zone, DartEntry::InvokeFunction(fun, args));
+  if (retval.IsUnwindError()) {
+    Exceptions::PropagateError(Error::Cast(retval));
+  }
   if (retval.IsError()) {
     const Error& error = Error::Cast(retval);
     OS::PrintErr("%s\n", error.ToErrorCString());
@@ -385,9 +389,14 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
       regexp_class.LookupStaticFieldAllowPrivate(Symbols::_wordCharacterMap()));
   ASSERT(!word_character_field.IsNull());
 
+  DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsSetJump());
   if (word_character_field.IsUninitialized()) {
     ASSERT(!Compiler::IsBackgroundCompilation());
-    word_character_field.EvaluateInitializer();
+    const Error& error =
+        Error::Handle(Z, word_character_field.EvaluateInitializer());
+    if (!error.IsNull()) {
+      Report::LongJump(error);
+    }
   }
   ASSERT(!word_character_field.IsUninitialized());
 

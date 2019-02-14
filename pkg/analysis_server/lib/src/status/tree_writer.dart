@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,7 +13,7 @@ import 'package:analyzer/src/generated/source.dart';
  * Utility methods that can be mixed in to classes that produce an HTML
  * representation of a tree structure.
  */
-abstract class TreeWriter {
+mixin TreeWriter {
   /**
    * The buffer on which the HTML is to be written.
    */

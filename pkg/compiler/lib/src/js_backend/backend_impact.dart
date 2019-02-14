@@ -8,7 +8,6 @@ import '../common/names.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/types.dart' show InterfaceType;
 import '../elements/entities.dart';
-import '../options.dart' show CompilerOptions;
 import '../universe/selector.dart';
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
@@ -89,10 +88,9 @@ class BackendImpact {
 
 /// The JavaScript backend dependencies for various features.
 class BackendImpacts {
-  final CompilerOptions _options;
   final CommonElements _commonElements;
 
-  BackendImpacts(this._options, this._commonElements);
+  BackendImpacts(this._commonElements);
 
   BackendImpact _getRuntimeTypeArgument;
 
@@ -128,21 +126,14 @@ class BackendImpacts {
 
   BackendImpact _asyncBody;
 
-  BackendImpact get asyncBody => _asyncBody ??= () {
-        var staticUses = [
-          _commonElements.asyncHelperAwait,
-          _commonElements.asyncHelperReturn,
-          _commonElements.asyncHelperRethrow,
-          _commonElements.streamIteratorConstructor,
-          _commonElements.wrapBody
-        ];
-        if (_options.startAsyncSynchronously) {
-          staticUses.add(_commonElements.asyncHelperStartSync);
-        } else {
-          staticUses.add(_commonElements.asyncHelperStart);
-        }
-        return new BackendImpact(staticUses: staticUses);
-      }();
+  BackendImpact get asyncBody => _asyncBody ??= new BackendImpact(staticUses: [
+        _commonElements.asyncHelperAwait,
+        _commonElements.asyncHelperReturn,
+        _commonElements.asyncHelperRethrow,
+        _commonElements.streamIteratorConstructor,
+        _commonElements.wrapBody,
+        _commonElements.asyncHelperStartSync
+      ]);
 
   BackendImpact _syncStarBody;
 
@@ -460,14 +451,6 @@ class BackendImpacts {
 
   BackendImpact get typeCheck {
     return _typeCheck ??= new BackendImpact(otherImpacts: [boolValues]);
-  }
-
-  BackendImpact _malformedTypeCheck;
-
-  BackendImpact get malformedTypeCheck {
-    return _malformedTypeCheck ??= new BackendImpact(staticUses: [
-      _commonElements.throwTypeError,
-    ]);
   }
 
   BackendImpact _genericTypeCheck;

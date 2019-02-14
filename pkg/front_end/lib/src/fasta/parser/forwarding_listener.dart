@@ -136,11 +136,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginExpressionStatement(Token token) {
-    listener?.beginExpressionStatement(token);
-  }
-
-  @override
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {
     listener?.beginFactoryMethod(lastConsumed, externalToken, constToken);
@@ -251,11 +246,6 @@ class ForwardingListener implements Listener {
   @override
   void beginLibraryName(Token token) {
     listener?.beginLibraryName(token);
-  }
-
-  @override
-  void beginLiteralMapEntry(Token token) {
-    listener?.beginLiteralMapEntry(token);
   }
 
   @override
@@ -551,11 +541,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endExpressionStatement(Token token) {
-    listener?.endExpressionStatement(token);
-  }
-
-  @override
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     listener?.endFactoryMethod(beginToken, factoryKeyword, endToken);
@@ -630,8 +615,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFunctionType(Token functionToken) {
-    listener?.endFunctionType(functionToken);
+  void endFunctionType(Token functionToken, Token questionMark) {
+    listener?.endFunctionType(functionToken, questionMark);
   }
 
   @override
@@ -686,8 +671,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endLiteralMapEntry(Token colon, Token endToken) {
-    listener?.endLiteralMapEntry(colon, endToken);
+  void handleLiteralMapEntry(Token colon, Token endToken) {
+    listener?.handleLiteralMapEntry(colon, endToken);
   }
 
   @override
@@ -996,8 +981,19 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleEmptyLiteralSetOrMap(
+      Token leftBrace, Token constKeyword, Token rightBrace) {
+    listener?.handleEmptyLiteralSetOrMap(leftBrace, constKeyword, rightBrace);
+  }
+
+  @override
   void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     listener?.handleExpressionFunctionBody(arrowToken, endToken);
+  }
+
+  @override
+  void handleExpressionStatement(Token token) {
+    listener?.handleExpressionStatement(token);
   }
 
   @override
@@ -1128,6 +1124,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleLiteralSet(
+      int count, Token beginToken, Token constKeyword, Token token) {
+    listener?.handleLiteralSet(count, beginToken, constKeyword, token);
+  }
+
+  @override
   void handleMixinHeader(Token mixinKeyword) {
     listener?.handleMixinHeader(mixinKeyword);
   }
@@ -1183,8 +1185,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleNoExpression(Token token) {
-    listener?.handleNoExpression(token);
+  void handleForInitializerEmptyStatement(Token token) {
+    listener?.handleForInitializerEmptyStatement(token);
+  }
+
+  @override
+  void handleForInitializerExpressionStatement(Token token) {
+    listener?.handleForInitializerExpressionStatement(token);
+  }
+
+  @override
+  void handleForInitializerLocalVariableDeclaration(Token token) {
+    listener?.handleForInitializerLocalVariableDeclaration(token);
   }
 
   @override
@@ -1332,8 +1344,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleType(Token beginToken) {
-    listener?.handleType(beginToken);
+  void handleType(Token beginToken, Token questionMark) {
+    listener?.handleType(beginToken, questionMark);
   }
 
   @override
@@ -1379,6 +1391,11 @@ class ForwardingListener implements Listener {
   @override
   void logEvent(String name) {
     listener?.logEvent(name);
+  }
+
+  @override
+  void reportErrorIfNullableType(Token questionMark) {
+    listener?.reportErrorIfNullableType(questionMark);
   }
 
   @override

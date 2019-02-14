@@ -262,9 +262,7 @@ RawObject* SnapshotReader::ReadObject() {
     return result.raw();
   } else {
     // An error occurred while reading, return the error object.
-    const Error& err = Error::Handle(thread()->sticky_error());
-    thread()->clear_sticky_error();
-    return err.raw();
+    return Thread::Current()->StealStickyError();
   }
 }
 
@@ -1079,7 +1077,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
 
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
-  if (cid == kCodeCid) {
+  if ((cid == kCodeCid) || (cid == kBytecodeCid)) {
     WriteVMIsolateObject(kNullObject);
     return true;
   }
@@ -1434,7 +1432,12 @@ intptr_t SnapshotWriter::FindVmSnapshotObject(RawObject* rawobj) {
 
 void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
                                     const char* msg) {
-  thread()->clear_sticky_error();
+  {
+    NoSafepointScope no_safepoint;
+    RawError* error = thread()->StealStickyError();
+    ASSERT(error == Object::snapshot_writer_error().raw());
+  }
+
   if (msg != NULL) {
     const String& msg_obj = String::Handle(String::New(msg));
     const Array& args = Array::Handle(Array::New(1));
@@ -1504,12 +1507,18 @@ Message* MessageWriter::WriteMessage(const Object& obj,
 
   // Setup for long jump in case there is an exception while writing
   // the message.
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    NoSafepointScope no_safepoint;
-    WriteObject(obj.raw());
-  } else {
-    FreeBuffer();
+  bool has_exception = false;
+  {
+    LongJumpScope jump;
+    if (setjmp(*jump.Set()) == 0) {
+      NoSafepointScope no_safepoint;
+      WriteObject(obj.raw());
+    } else {
+      FreeBuffer();
+      has_exception = true;
+    }
+  }
+  if (has_exception) {
     ThrowException(exception_type(), exception_msg());
   }
 

@@ -15,9 +15,9 @@ import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/runtime_types.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
-import '../universe/world_builder.dart'
-    show CodegenWorldBuilder, SelectorConstraints;
+import '../universe/world_builder.dart' show SelectorConstraints;
 import '../world.dart' show JClosedWorld;
 
 import 'model.dart';
@@ -378,7 +378,8 @@ class ParameterStubGenerator {
     for (Selector selector in liveSelectors.keys) {
       if (renamedCallSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;
-      if (!liveSelectors[selector].applies(member, selector, _closedWorld)) {
+      if (!liveSelectors[selector]
+          .canHit(member, selector.memberName, _closedWorld)) {
         continue;
       }
 

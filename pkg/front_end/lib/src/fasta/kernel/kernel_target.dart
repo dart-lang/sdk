@@ -41,6 +41,11 @@ import 'package:kernel/clone.dart' show CloneVisitor;
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
+
+import 'package:kernel/transformations/constants.dart' as constants
+    show SimpleErrorReporter, transformLibraries;
+
 import '../../api_prototype/file_system.dart' show FileSystem;
 
 import '../compiler_context.dart' show CompilerContext;
@@ -64,7 +69,7 @@ import '../messages.dart'
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 
-import '../problems.dart' show unhandled;
+import '../problems.dart' show unhandled, unimplemented;
 
 import '../severity.dart' show Severity;
 
@@ -92,6 +97,8 @@ import 'kernel_builder.dart'
         NamedTypeBuilder,
         TypeBuilder,
         TypeDeclarationBuilder;
+
+import 'kernel_constants.dart' show KernelConstantsBackend;
 
 import 'metadata_collector.dart' show MetadataCollector;
 
@@ -123,9 +130,7 @@ class KernelTarget extends TargetImplementation {
 
   final TypeBuilder bottomType = new KernelNamedTypeBuilder("Null", null);
 
-  bool get strongMode => !backendTarget.legacyMode;
-
-  bool get disableTypeInference => backendTarget.disableTypeInference;
+  bool get legacyMode => backendTarget.legacyMode;
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
@@ -133,9 +138,9 @@ class KernelTarget extends TargetImplementation {
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
       UriTranslator uriTranslator,
-      {Map<Uri, Source> uriToSource, MetadataCollector metadataCollector})
+      {MetadataCollector metadataCollector})
       : dillTarget = dillTarget,
-        uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
+        uriToSource = CompilerContext.current.uriToSource,
         metadataCollector = metadataCollector,
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     loader = createLoader();
@@ -197,47 +202,18 @@ class KernelTarget extends TargetImplementation {
     return new KernelLibraryBuilder(uri, fileUri, loader, origin);
   }
 
-  void forEachDirectSupertype(ClassBuilder cls, void f(NamedTypeBuilder type)) {
-    TypeBuilder supertype = cls.supertype;
-    if (supertype is NamedTypeBuilder) {
-      f(supertype);
-    } else if (supertype != null) {
-      unhandled("${supertype.runtimeType}", "forEachDirectSupertype",
-          cls.charOffset, cls.fileUri);
-    }
-    if (cls.interfaces != null) {
-      for (NamedTypeBuilder t in cls.interfaces) {
-        f(t);
-      }
-    }
-    if (cls.library.loader == loader &&
-        // TODO(ahe): Implement DillClassBuilder.mixedInType and remove the
-        // above check.
-        cls.mixedInType != null) {
-      f(cls.mixedInType);
-    }
-  }
-
-  void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set) {
-    if (cls == null) return;
-    forEachDirectSupertype(cls, (NamedTypeBuilder type) {
-      Declaration declaration = type.declaration;
-      if (declaration is ClassBuilder) {
-        set.add(declaration);
-      }
-    });
-  }
-
   /// Returns classes defined in libraries in [loader].
   List<SourceClassBuilder> collectMyClasses() {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == loader) {
-        library.forEach((String name, Declaration member) {
+        Iterator<Declaration> iterator = library.iterator;
+        while (iterator.moveNext()) {
+          Declaration member = iterator.current;
           if (member is SourceClassBuilder && !member.isPatch) {
             result.add(member);
           }
-        });
+        }
       }
     });
     return result;
@@ -268,16 +244,18 @@ class KernelTarget extends TargetImplementation {
       bottomType.bind(loader.coreLibrary["Null"]);
       loader.resolveTypes();
       loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
-      List<SourceClassBuilder> myClasses = collectMyClasses();
-      loader.checkSemantics(myClasses);
+      List<SourceClassBuilder> myClasses =
+          loader.checkSemantics(objectClassBuilder);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
       loader.buildComponent();
+      loader.finalizeInitializingFormals();
       installDefaultSupertypes();
       installSyntheticConstructors(myClasses);
       loader.resolveConstructors();
       component =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       computeCoreTypes();
+      loader.buildClassHierarchy(myClasses, objectClassBuilder);
       loader.computeHierarchy();
       loader.performTopLevelInference(myClasses);
       loader.checkSupertypes(myClasses);
@@ -350,7 +328,6 @@ class KernelTarget extends TargetImplementation {
     }
 
     this.uriToSource.forEach(copySource);
-    dillTarget.loader.uriToSource.forEach(copySource);
 
     Component component = CompilerContext.current.options.target
         .configureComponent(new Component(
@@ -386,24 +363,23 @@ class KernelTarget extends TargetImplementation {
     Class objectClass = this.objectClass;
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == loader) {
-        library.forEach((String name, Declaration declaration) {
-          while (declaration != null) {
-            if (declaration is SourceClassBuilder) {
-              Class cls = declaration.target;
-              if (cls != objectClass) {
-                cls.supertype ??= objectClass.asRawSupertype;
-                declaration.supertype ??=
-                    new KernelNamedTypeBuilder("Object", null)
-                      ..bind(objectClassBuilder);
-              }
-              if (declaration.isMixinApplication) {
-                cls.mixedInType = declaration.mixedInType.buildMixedInType(
-                    library, declaration.charOffset, declaration.fileUri);
-              }
+        Iterator<Declaration> iterator = library.iterator;
+        while (iterator.moveNext()) {
+          Declaration declaration = iterator.current;
+          if (declaration is SourceClassBuilder) {
+            Class cls = declaration.target;
+            if (cls != objectClass) {
+              cls.supertype ??= objectClass.asRawSupertype;
+              declaration.supertype ??=
+                  new KernelNamedTypeBuilder("Object", null)
+                    ..bind(objectClassBuilder);
             }
-            declaration = declaration.next;
+            if (declaration.isMixinApplication) {
+              cls.mixedInType = declaration.mixedInType.buildMixedInType(
+                  library, declaration.charOffset, declaration.fileUri);
+            }
           }
-        });
+        }
       }
     });
     ticker.logMs("Installed Object as implicit superclass");
@@ -412,8 +388,8 @@ class KernelTarget extends TargetImplementation {
   void installSyntheticConstructors(List<SourceClassBuilder> builders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
-      if (builder.target != objectClass) {
-        if (builder.isPatch) continue;
+      if (builder.target != objectClass && !builder.isPatch) {
+        if (builder.isPatch || builder.isMixinDeclaration) continue;
         if (builder.isMixinApplication) {
           installForwardingConstructors(builder);
         } else {
@@ -533,7 +509,8 @@ class KernelTarget extends TargetImplementation {
     return new Constructor(function,
         name: constructor.name,
         initializers: <Initializer>[initializer],
-        isSynthetic: true);
+        isSynthetic: true,
+        isConst: constructor.isConst && mixin.fields.isEmpty);
   }
 
   void finishClonedParameters() {
@@ -727,7 +704,8 @@ class KernelTarget extends TargetImplementation {
     for (Field field in uninitializedFields) {
       if (initializedFields == null || !initializedFields.contains(field)) {
         field.initializer = new NullLiteral()..parent = field;
-        if (field.isFinal && cls.constructors.isNotEmpty) {
+        if (field.isFinal &&
+            (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
           builder.library.addProblem(
               templateFinalFieldNotInitialized.withArguments(field.name.name),
               field.fileOffset,
@@ -770,12 +748,26 @@ class KernelTarget extends TargetImplementation {
   /// Run all transformations that are needed when building a bundle of
   /// libraries for the first time.
   void runBuildTransformations() {
+    if (loader.target.enableConstantUpdate2018) {
+      constants.transformLibraries(
+          loader.libraries,
+          new KernelConstantsBackend(),
+          loader.coreTypes,
+          new TypeEnvironment(loader.coreTypes, loader.hierarchy,
+              legacyMode: false),
+          const constants.SimpleErrorReporter());
+      ticker.logMs("Evaluated constants");
+    }
     backendTarget.performModularTransformationsOnLibraries(
         component, loader.coreTypes, loader.hierarchy, loader.libraries,
         logger: (String msg) => ticker.logMs(msg));
   }
 
   void runProcedureTransformations(Procedure procedure) {
+    if (loader.target.enableConstantUpdate2018) {
+      unimplemented('constant evaluation during expression evaluation',
+          procedure.fileOffset, procedure.fileUri);
+    }
     backendTarget.performTransformationsOnProcedure(
         loader.coreTypes, loader.hierarchy, procedure,
         logger: (String msg) => ticker.logMs(msg));
@@ -806,10 +798,10 @@ class KernelTarget extends TargetImplementation {
         } else {
           // If there's more than one patch file, it's interpreted as a part of
           // the patch library.
-          KernelLibraryBuilder part =
-              library.loader.read(patch, -1, fileUri: patch, accessor: first);
+          KernelLibraryBuilder part = library.loader.read(patch, -1,
+              origin: library, fileUri: patch, accessor: library);
           first.parts.add(part);
-          part.addPartOf(null, null, "${first.uri}", -1);
+          part.partOfUri = first.uri;
         }
       }
     }
@@ -821,14 +813,13 @@ class KernelTarget extends TargetImplementation {
 /// arguments.
 Constructor defaultSuperConstructor(Class cls) {
   Class superclass = cls.superclass;
-  while (superclass != null && superclass.isMixinApplication) {
-    superclass = superclass.superclass;
-  }
-  for (Constructor constructor in superclass.constructors) {
-    if (constructor.name.name.isEmpty) {
-      return constructor.function.requiredParameterCount == 0
-          ? constructor
-          : null;
+  if (superclass != null) {
+    for (Constructor constructor in superclass.constructors) {
+      if (constructor.name.name.isEmpty) {
+        return constructor.function.requiredParameterCount == 0
+            ? constructor
+            : null;
+      }
     }
   }
   return null;

@@ -444,24 +444,24 @@ class FlowGraphCompiler : public ValueObject {
                            LocationSummary* locs);
 
   void GenerateCall(TokenPosition token_pos,
-                    const StubEntry& stub_entry,
+                    const Code& stub,
                     RawPcDescriptors::Kind kind,
                     LocationSummary* locs);
 
   void GenerateCallWithDeopt(TokenPosition token_pos,
                              intptr_t deopt_id,
-                             const StubEntry& stub_entry,
+                             const Code& stub,
                              RawPcDescriptors::Kind kind,
                              LocationSummary* locs);
 
   void GeneratePatchableCall(TokenPosition token_pos,
-                             const StubEntry& stub_entry,
+                             const Code& stub,
                              RawPcDescriptors::Kind kind,
                              LocationSummary* locs);
 
   void GenerateDartCall(intptr_t deopt_id,
                         TokenPosition token_pos,
-                        const StubEntry& stub_entry,
+                        const Code& stub,
                         RawPcDescriptors::Kind kind,
                         LocationSummary* locs,
                         Code::EntryKind entry_kind = Code::EntryKind::kNormal);
@@ -469,7 +469,6 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateStaticDartCall(
       intptr_t deopt_id,
       TokenPosition token_pos,
-      const StubEntry& stub_entry,
       RawPcDescriptors::Kind kind,
       LocationSummary* locs,
       const Function& target,
@@ -529,14 +528,14 @@ class FlowGraphCompiler : public ValueObject {
                                      bool fall_through_if_inside = false);
 
   void EmitOptimizedInstanceCall(
-      const StubEntry& stub_entry,
+      const Code& stub,
       const ICData& ic_data,
       intptr_t deopt_id,
       TokenPosition token_pos,
       LocationSummary* locs,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
-  void EmitInstanceCall(const StubEntry& stub_entry,
+  void EmitInstanceCall(const Code& stub,
                         const ICData& ic_data,
                         intptr_t deopt_id,
                         TokenPosition token_pos,
@@ -561,10 +560,12 @@ class FlowGraphCompiler : public ValueObject {
                                    intptr_t try_index,
                                    intptr_t slow_path_argument_count = 0);
 
-  void EmitSwitchableInstanceCall(const ICData& ic_data,
-                                  intptr_t deopt_id,
-                                  TokenPosition token_pos,
-                                  LocationSummary* locs);
+  void EmitSwitchableInstanceCall(
+      const ICData& ic_data,
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      LocationSummary* locs,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitTestAndCall(const CallTargets& targets,
                        const String& function_name,
@@ -772,7 +773,11 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitFrameEntry();
 
-  void AddStaticCallTarget(const Function& function);
+  void AddPcRelativeCallTarget(const Function& function,
+                               Code::EntryKind entry_kind);
+  void AddPcRelativeCallStubTarget(const Code& stub_code);
+  void AddStaticCallTarget(const Function& function,
+                           Code::EntryKind entry_kind);
 
   void GenerateDeferredCode();
 
@@ -923,15 +928,24 @@ class FlowGraphCompiler : public ValueObject {
   // This struct contains either function or code, the other one being NULL.
   class StaticCallsStruct : public ZoneAllocated {
    public:
+    Code::CallKind call_kind;
+    Code::CallEntryPoint entry_point;
     const intptr_t offset;
     const Function* function;  // Can be NULL.
     const Code* code;          // Can be NULL.
-    StaticCallsStruct(intptr_t offset_arg,
+    StaticCallsStruct(Code::CallKind call_kind,
+                      Code::CallEntryPoint entry_point,
+                      intptr_t offset_arg,
                       const Function* function_arg,
                       const Code* code_arg)
-        : offset(offset_arg), function(function_arg), code(code_arg) {
+        : call_kind(call_kind),
+          entry_point(entry_point),
+          offset(offset_arg),
+          function(function_arg),
+          code(code_arg) {
       ASSERT((function == NULL) || function->IsZoneHandle());
-      ASSERT((code == NULL) || code->IsZoneHandle());
+      ASSERT((code == NULL) || code->IsZoneHandle() ||
+             code->IsReadOnlyHandle());
     }
 
    private:

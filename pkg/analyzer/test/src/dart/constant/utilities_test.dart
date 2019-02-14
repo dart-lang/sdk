@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -191,7 +192,7 @@ class ConstantFinderTest {
 
   ConstructorElement _setupConstructorDeclaration(String name, bool isConst) {
     Keyword constKeyword = isConst ? Keyword.CONST : null;
-    ConstructorDeclaration constructorDeclaration =
+    ConstructorDeclarationImpl constructorDeclaration =
         AstTestFactory.constructorDeclaration2(
             constKeyword,
             null,
@@ -203,7 +204,7 @@ class ConstantFinderTest {
     ClassElement classElement = ElementFactory.classElement2(name);
     ConstructorElement element =
         ElementFactory.constructorElement(classElement, name, isConst);
-    constructorDeclaration.element = element;
+    constructorDeclaration.declaredElement = element;
     _node = constructorDeclaration;
     return element;
   }
@@ -234,7 +235,7 @@ class ConstantFinderTest {
     classElement.fields = <FieldElement>[fieldElement];
     classDeclaration.name.staticElement = classElement;
     if (hasConstConstructor) {
-      ConstructorDeclaration constructorDeclaration =
+      ConstructorDeclarationImpl constructorDeclaration =
           AstTestFactory.constructorDeclaration2(
               Keyword.CONST,
               null,
@@ -246,7 +247,7 @@ class ConstantFinderTest {
       classDeclaration.members.add(constructorDeclaration);
       ConstructorElement constructorElement =
           ElementFactory.constructorElement(classElement, '', true);
-      constructorDeclaration.element = constructorElement;
+      constructorDeclaration.declaredElement = constructorElement;
       classElement.constructors = <ConstructorElement>[constructorElement];
     } else {
       classElement.constructors = const <ConstructorElement>[];

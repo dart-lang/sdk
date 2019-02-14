@@ -66,6 +66,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     FileEditBuilderImpl builder = await createFileEditBuilder(path);
+    if (builder == null) {
+      return;
+    }
+
     buildFileEdit(builder);
     if (builder.hasEdits) {
       _change.addFileEdit(builder.fileEdit);

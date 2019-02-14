@@ -75,7 +75,7 @@ dom.Element makeElement(
 /**
  * Mixin class for generating HTML.
  */
-class HtmlGenerator {
+mixin HtmlGenerator {
   List<dom.Node> _html;
 
   /**

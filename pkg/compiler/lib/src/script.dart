@@ -9,18 +9,14 @@ import 'io/source_file.dart';
 class Script {
   final SourceFile file;
 
-  /**
-   * The readable URI from which this script was loaded.
-   *
-   * See [LibraryLoader] for terminology on URIs.
-   */
+  /// The readable URI from which this script was loaded.
+  ///
+  /// See [LibraryLoader] for terminology on URIs.
   final Uri readableUri;
 
-  /**
-   * The resource URI from which this script was loaded.
-   *
-   * See [LibraryLoader] for terminology on URIs.
-   */
+  /// The resource URI from which this script was loaded.
+  ///
+  /// See [LibraryLoader] for terminology on URIs.
   final Uri resourceUri;
 
   /// This script was synthesized.

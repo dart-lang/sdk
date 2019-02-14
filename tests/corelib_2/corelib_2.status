@@ -1,7 +1,6 @@
 # Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-maps_test: Skip # Maps class no longer exists
 
 [ $compiler == app_jitk ]
 symbol_operator_test/03: RuntimeError
@@ -115,9 +114,6 @@ string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 [ $fasta ]
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 
 [ !$strong ]
 cast_test: SkipByDesign # Uses generic method parameters.
@@ -131,6 +127,9 @@ integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
+
+[ $builder_tag == obfuscated && $compiler == dartkp ]
+nsm_invocation_test: RuntimeError # Issue 35066
 
 [ $builder_tag == obfuscated && $runtime == dart_precompiled ]
 apply_generic_function_test: SkipByDesign # Function.apply with named args
@@ -282,6 +281,11 @@ string_static_test: MissingCompileTimeError
 [ $compiler != dartk && $runtime == vm && $checked ]
 apply_test/01: RuntimeError
 
+[ $compiler != dartkb && $compiler != dartkp && $fasta ]
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
+
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
@@ -404,19 +408,14 @@ symbol_test/01: MissingCompileTimeError
 [ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # Deprecating all Dart1 modes of execution
 
-# Sections for dartk and dartkp.
-#
-# Note: these sections are normalized so we can update them with automated
-# tools. Please add any new status lines affecting those two compilers in the
-# existing sections, if possible keep the alphabetic ordering. If we are missing
-# a section you need, please reach out to sigmund@ to see the best way to add
-# them.
-# ===== Skip dartk and darkp in !$strong mode ====
 [ !$strong && ($compiler == dartk || $compiler == dartkb || $compiler == dartkp) ]
 *: SkipByDesign
 
 [ !$strong && ($runtime == dart_precompiled || $runtime == vm) ]
 list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
+
+[ ($arch == simdbc || $arch == simdbc64) && ($hot_reload || $hot_reload_rollback) ]
+uri_parse_test: SkipSlow
 
 [ $arch == simarm || $arch == simarm64 || $arch == simdbc64 ]
 bigint_parse_radix_test: Skip # Issue 31659
@@ -566,7 +565,9 @@ uri_parse_test: Pass, Slow
 uri_test: Pass, Slow
 
 [ $compiler == dartkb || $compiler == dartkp ]
-bigint_test: Pass, Timeout # --no_intrinsify
+bigint_parse_radix_test: Pass, Slow # --no_intrinsify
+bigint_test/03: SkipSlow # --no_intrinsify
+bigint_test/15: SkipSlow # --no_intrinsify
 
 [ $compiler == precompiler || $runtime == vm && !$checked && !$strong ]
 int_parse_radix_test/badTypes: RuntimeError # wrong exception returned

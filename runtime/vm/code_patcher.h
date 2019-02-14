@@ -108,16 +108,16 @@ class CodePatcher : public AllStatic {
 // [0..255] values in [pattern] have to match, negative values are skipped.
 //
 // Example pattern: `[0x3d, 0x8b, -1, -1]`.
-bool MatchesPattern(uword end, int16_t* pattern, intptr_t size);
+bool MatchesPattern(uword end, const int16_t* pattern, intptr_t size);
 
 class KBCPatcher : public AllStatic {
  public:
   static NativeFunctionWrapper GetNativeCallAt(uword return_address,
-                                               const Code& bytecode,
+                                               const Bytecode& bytecode,
                                                NativeFunction* function);
 
   static void PatchNativeCallAt(uword return_address,
-                                const Code& bytecode,
+                                const Bytecode& bytecode,
                                 NativeFunction function,
                                 NativeFunctionWrapper trampoline);
 };

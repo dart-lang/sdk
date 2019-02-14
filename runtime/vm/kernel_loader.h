@@ -164,11 +164,17 @@ class KernelLoader : public ValueObject {
 
   // Finds all libraries that have been modified in this incremental
   // version of the kernel program file.
+  //
+  // When [force_reload] is false and if [p_num_classes], [p_num_procedures] are
+  // not nullptr, then they are populated with number of classes and top-level
+  // procedures in [program].
   static void FindModifiedLibraries(Program* program,
                                     Isolate* isolate,
                                     BitVector* modified_libs,
                                     bool force_reload,
-                                    bool* is_empty_kernel);
+                                    bool* is_empty_program,
+                                    intptr_t* p_num_classes,
+                                    intptr_t* p_num_procedures);
 
   RawLibrary* LoadLibrary(intptr_t index);
 
@@ -242,7 +248,9 @@ class KernelLoader : public ValueObject {
   static void index_programs(kernel::Reader* reader,
                              GrowableArray<intptr_t>* subprogram_file_starts);
   void walk_incremental_kernel(BitVector* modified_libs,
-                               bool* is_empty_program);
+                               bool* is_empty_program,
+                               intptr_t* p_num_classes,
+                               intptr_t* p_num_procedures);
 
   void LoadPreliminaryClass(ClassHelper* class_helper,
                             intptr_t type_parameter_count);
@@ -255,7 +263,7 @@ class KernelLoader : public ValueObject {
   void LoadClass(const Library& library,
                  const Class& toplevel_class,
                  intptr_t class_end,
-                 Class* klass);
+                 Class* out_class);
 
   void FinishClassLoading(const Class& klass,
                           const Library& library,

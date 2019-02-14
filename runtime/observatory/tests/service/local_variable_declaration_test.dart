@@ -47,7 +47,11 @@ var tests = <IsolateTest>[
       final int declarationTokenPos = variable['declarationTokenPos'];
       final String name = variable['name'];
       final String token = script.getToken(declarationTokenPos);
-      expect(name, token);
+      // When running from an appjit snapshot, sources aren't available so the returned token will
+      // be null.
+      if (token != null) {
+        expect(name, token);
+      }
     }
   },
   resumeIsolate,
@@ -69,7 +73,11 @@ var tests = <IsolateTest>[
       final int declarationTokenPos = variable['declarationTokenPos'];
       final String name = variable['name'];
       final String token = script.getToken(declarationTokenPos);
-      expect(name, token);
+      // When running from an appjit snapshot, sources aren't available so the returned token will
+      // be null.
+      if (token != null) {
+        expect(name, token);
+      }
     }
   },
   resumeIsolate,
@@ -92,7 +100,11 @@ var tests = <IsolateTest>[
       final int declarationTokenPos = variable['declarationTokenPos'];
       final String name = variable['name'];
       final String token = script.getToken(declarationTokenPos);
-      expect(name, token);
+      // When running from an appjit snapshot, sources aren't available so the returned token will
+      // be null.
+      if (token != null) {
+        expect(name, token);
+      }
     }
   }
 ];

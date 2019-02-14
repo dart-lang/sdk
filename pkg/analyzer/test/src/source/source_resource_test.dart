@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,11 +10,10 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../context/mock_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -23,7 +22,7 @@ main() {
 }
 
 @reflectiveTest
-class FileSourceTest extends Object with ResourceProviderMixin {
+class FileSourceTest with ResourceProviderMixin {
   void test_equals_false_differentFiles() {
     File file1 = getFile("/does/not/exist1.dart");
     File file2 = getFile("/does/not/exist2.dart");

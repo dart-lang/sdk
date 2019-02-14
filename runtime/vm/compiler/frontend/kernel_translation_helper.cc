@@ -100,6 +100,7 @@ void TranslationHelper::SetCanonicalNames(const TypedData& canonical_names) {
 void TranslationHelper::SetMetadataPayloads(
     const ExternalTypedData& metadata_payloads) {
   ASSERT(metadata_payloads_.IsNull());
+  ASSERT(Utils::IsAligned(metadata_payloads.DataAddr(0), kWordSize));
   metadata_payloads_ = metadata_payloads.raw();
 }
 
@@ -110,7 +111,8 @@ void TranslationHelper::SetMetadataMappings(
 }
 
 void TranslationHelper::SetConstants(const Array& constants) {
-  ASSERT(constants_.IsNull());
+  ASSERT(constants_.IsNull() ||
+         (constants.IsNull() || constants.Length() == 0));
   constants_ = constants.raw();
 }
 
@@ -567,13 +569,9 @@ RawFunction* TranslationHelper::LookupStaticMethodByKernelProcedure(
     Function& function = Function::ZoneHandle(
         Z, klass.LookupFunctionAllowPrivate(procedure_name));
     ASSERT(!function.IsNull());
-
-    // TODO(27590): We can probably get rid of this after no longer using
-    // core libraries from the source.
-    if (function.IsRedirectingFactory()) {
-      ClassFinalizer::ResolveRedirectingFactory(klass, function);
-      function = function.RedirectionTarget();
-    }
+    // Redirecting factory must be resolved.
+    ASSERT(!function.IsRedirectingFactory() ||
+           function.RedirectionTarget() != Function::null());
     return function.raw();
   }
 }
@@ -644,20 +642,17 @@ RawFunction* TranslationHelper::LookupDynamicFunction(const Class& klass,
   return Function::null();
 }
 
-Type& TranslationHelper::GetCanonicalType(const Class& klass) {
+Type& TranslationHelper::GetDeclarationType(const Class& klass) {
   ASSERT(!klass.IsNull());
   // Note that if cls is _Closure, the returned type will be _Closure,
   // and not the signature type.
-  Type& type = Type::ZoneHandle(Z, klass.CanonicalType());
-  if (!type.IsNull()) {
-    return type;
-  }
-  type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
-                   klass.token_pos());
+  Type& type = Type::ZoneHandle(Z);
   if (klass.is_type_finalized()) {
-    type ^= ClassFinalizer::FinalizeType(klass, type);
-    // Note that the receiver type may now be a malbounded type.
-    klass.SetCanonicalType(type);
+    type = klass.DeclarationType();
+  } else {
+    // Note that the type argument vector is not yet extended.
+    type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
+                     klass.token_pos());
   }
   return type;
 }
@@ -1029,20 +1024,17 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
     }
       /* Falls through */
     case kForwardingStubSuperTarget:
-      if (helper_->ReadTag() == kSomething) {
-        forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
-      }
+      forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
       if (++next_read_ == field) return;
       /* Falls through */
     case kForwardingStubInterfaceTarget:
-      if (helper_->ReadTag() == kSomething) {
-        helper_->ReadCanonicalNameReference();
-      }
+      helper_->ReadCanonicalNameReference();
       if (++next_read_ == field) return;
       /* Falls through */
     case kFunction:
-      if (helper_->ReadTag() == kSomething)
+      if (helper_->ReadTag() == kSomething) {
         helper_->SkipFunctionNode();  // read function node.
+      }
       if (++next_read_ == field) return;
       /* Falls through */
     case kEnd:
@@ -1566,6 +1558,12 @@ intptr_t MetadataHelper::GetNextMetadataPayloadOffset(intptr_t node_offset) {
   }
 }
 
+intptr_t MetadataHelper::GetComponentMetadataPayloadOffset() {
+  const intptr_t kComponentNodeOffset = 0;
+  return GetNextMetadataPayloadOffset(kComponentNodeOffset -
+                                      helper_->data_program_offset_);
+}
+
 DirectCallMetadataHelper::DirectCallMetadataHelper(KernelReaderHelper* helper)
     : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
 
@@ -1937,6 +1935,10 @@ void KernelReaderHelper::SkipDartType() {
     case kSimpleFunctionType:
       SkipFunctionType(true);
       return;
+    case kTypedefType:
+      ReadUInt();             // read index for canonical name.
+      SkipListOfDartTypes();  // read list of types.
+      return;
     case kTypeParameterType:
       ReadUInt();              // read index for parameter.
       SkipOptionalDartType();  // read bound bound.
@@ -1984,7 +1986,7 @@ void KernelReaderHelper::SkipFunctionType(bool simple) {
   }
 
   if (!simple) {
-    SkipCanonicalNameReference();  // read typedef reference.
+    SkipOptionalDartType();  // read typedef type.
   }
 
   SkipDartType();  // read return type.
@@ -2218,6 +2220,12 @@ void KernelReaderHelper::SkipExpression() {
       ReadPosition();           // read position.
       SkipDartType();           // read type.
       SkipListOfExpressions();  // read list of expressions.
+      return;
+    case kSetLiteral:
+    case kConstSetLiteral:
+      // Set literals are currently desugared in the frontend and will not
+      // reach the VM. See http://dartbug.com/35124 for discussion.
+      UNREACHABLE();
       return;
     case kMapLiteral:
     case kConstMapLiteral: {
@@ -2700,35 +2708,10 @@ AbstractType& TypeTranslator::BuildTypeWithoutFinalization() {
   return AbstractType::ZoneHandle(Z, result_.raw());
 }
 
-AbstractType& TypeTranslator::BuildVariableType() {
-  AbstractType& abstract_type = BuildType();
-
-  // We return a new `ZoneHandle` here on purpose: The intermediate language
-  // instructions do not make a copy of the handle, so we do it.
-  AbstractType& type = Type::ZoneHandle(Z);
-
-  if (abstract_type.IsMalformed()) {
-    type = AbstractType::dynamic_type().raw();
-  } else {
-    type = result_.raw();
-  }
-
-  return type;
-}
-
-void TypeTranslator::BuildTypeInternal(bool invalid_as_dynamic) {
+void TypeTranslator::BuildTypeInternal() {
   Tag tag = helper_->ReadTag();
   switch (tag) {
     case kInvalidType:
-      if (invalid_as_dynamic) {
-        result_ = Object::dynamic_type().raw();
-      } else {
-        result_ = ClassFinalizer::NewFinalizedMalformedType(
-            Error::Handle(Z),  // No previous error.
-            Script::Handle(Z, Script::null()), TokenPosition::kNoSource,
-            "[InvalidType] in Kernel IR.");
-      }
-      break;
     case kDynamicType:
       result_ = Object::dynamic_type().raw();
       break;
@@ -2737,7 +2720,7 @@ void TypeTranslator::BuildTypeInternal(bool invalid_as_dynamic) {
       break;
     case kBottomType:
       result_ =
-          Class::Handle(Z, I->object_store()->null_class()).CanonicalType();
+          Class::Handle(Z, I->object_store()->null_class()).DeclarationType();
       break;
     case kInterfaceType:
       BuildInterfaceType(false);
@@ -2769,10 +2752,18 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       helper_->ReadCanonicalNameReference();  // read klass_name.
 
   const Class& klass = Class::Handle(Z, H.LookupClassByKernelClass(klass_name));
+  ASSERT(!klass.IsNull());
   if (simple) {
-    // Fast path for non-generic types: retrieve or populate the class's only
-    // canonical type.
-    result_ = H.GetCanonicalType(klass).raw();
+    if (finalize_ || klass.is_type_finalized()) {
+      // Fast path for non-generic types: retrieve or populate the class's only
+      // canonical type, which is its declaration type.
+      result_ = klass.DeclarationType();
+    } else {
+      // Note that the type argument vector is not yet extended.
+      result_ =
+          Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
+                    klass.token_pos());
+    }
     return;
   }
 
@@ -2840,9 +2831,6 @@ void TypeTranslator::BuildFunctionType(bool simple) {
   ++pos;
   for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
     BuildTypeInternal();  // read ith positional parameter.
-    if (result_.IsMalformed()) {
-      result_ = AbstractType::dynamic_type().raw();
-    }
     parameter_types.SetAt(pos, result_);
     parameter_names.SetAt(pos, H.DartSymbolPlain("noname"));
   }
@@ -2859,22 +2847,16 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
-      if (result_.IsMalformed()) {
-        result_ = AbstractType::dynamic_type().raw();
-      }
       parameter_types.SetAt(pos, result_);
       parameter_names.SetAt(pos, name);
     }
   }
 
   if (!simple) {
-    helper_->SkipCanonicalNameReference();  // read typedef reference.
+    helper_->SkipOptionalDartType();  // read typedef type.
   }
 
   BuildTypeInternal();  // read return type.
-  if (result_.IsMalformed()) {
-    result_ = AbstractType::dynamic_type().raw();
-  }
   signature_function.set_result_type(result_);
 
   finalize_ = finalize;
@@ -2939,16 +2921,12 @@ void TypeTranslator::BuildTypeParameterType() {
             : 0;
     if (procedure_type_parameter_count > 0) {
       if (procedure_type_parameter_count > parameter_index) {
-        if (FLAG_reify_generic_functions) {
-          result_ ^=
-              TypeArguments::Handle(Z, active_class_->member->type_parameters())
-                  .TypeAt(parameter_index);
-          if (finalize_) {
-            result_ =
-                ClassFinalizer::FinalizeType(*active_class_->klass, result_);
-          }
-        } else {
-          result_ ^= Type::DynamicType();
+        result_ ^=
+            TypeArguments::Handle(Z, active_class_->member->type_parameters())
+                .TypeAt(parameter_index);
+        if (finalize_) {
+          result_ =
+              ClassFinalizer::FinalizeType(*active_class_->klass, result_);
         }
         return;
       }
@@ -2958,12 +2936,7 @@ void TypeTranslator::BuildTypeParameterType() {
 
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
-      if (FLAG_reify_generic_functions) {
-        result_ ^=
-            active_class_->local_type_parameters->TypeAt(parameter_index);
-      } else {
-        result_ ^= Type::DynamicType();
-      }
+      result_ ^= active_class_->local_type_parameters->TypeAt(parameter_index);
       if (finalize_) {
         result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
       }
@@ -2999,7 +2972,7 @@ const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {
   if (!only_dynamic) {
     type_arguments = TypeArguments::New(length);
     for (intptr_t i = 0; i < length; ++i) {
-      BuildTypeInternal(true);  // read ith type.
+      BuildTypeInternal();  // read ith type.
       type_arguments.SetTypeAt(i, result_);
     }
 
@@ -3099,9 +3072,6 @@ void TypeTranslator::LoadAndSetupTypeParameters(
       parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
     } else {
       AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
-      if (bound.IsMalformedOrMalbounded()) {
-        bound = I->object_store()->object_type();
-      }
       parameter.set_bound(bound);
     }
 
@@ -3114,15 +3084,12 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
   ASSERT(!klass.IsTypedefClass());
   // Note that if klass is _Closure, the returned type will be _Closure,
   // and not the signature type.
-  Type& type = Type::ZoneHandle(Z, klass.CanonicalType());
-  if (!type.IsNull()) {
-    return type;
-  }
-  type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
-                   klass.token_pos());
-  if (klass.is_type_finalized()) {
-    type ^= ClassFinalizer::FinalizeType(klass, type);
-    klass.SetCanonicalType(type);
+  Type& type = Type::ZoneHandle(Z);
+  if (finalize_ || klass.is_type_finalized()) {
+    type = klass.DeclarationType();
+  } else {
+    type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
+                     klass.token_pos());
   }
   return type;
 }
@@ -3176,7 +3143,7 @@ void TypeTranslator::SetupFunctionParameters(
   intptr_t pos = 0;
   if (is_method) {
     ASSERT(!klass.IsNull());
-    function.SetParameterTypeAt(pos, H.GetCanonicalType(klass));
+    function.SetParameterTypeAt(pos, H.GetDeclarationType(klass));
     function.SetParameterNameAt(pos, Symbols::This());
     pos++;
   } else if (is_closure) {
@@ -3200,8 +3167,7 @@ void TypeTranslator::SetupFunctionParameters(
       helper_->SkipExpression();  // read (actual) initializer.
     }
 
-    function.SetParameterTypeAt(
-        pos, type.IsMalformed() ? Type::dynamic_type() : type);
+    function.SetParameterTypeAt(pos, type);
     function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
   }
 
@@ -3218,8 +3184,7 @@ void TypeTranslator::SetupFunctionParameters(
       helper_->SkipExpression();  // read (actual) initializer.
     }
 
-    function.SetParameterTypeAt(
-        pos, type.IsMalformed() ? Type::dynamic_type() : type);
+    function.SetParameterTypeAt(pos, type);
     function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
   }
 
@@ -3229,8 +3194,7 @@ void TypeTranslator::SetupFunctionParameters(
   if (!function.IsGenerativeConstructor()) {
     const AbstractType& return_type =
         BuildTypeWithoutFinalization();  // read return type.
-    function.set_result_type(return_type.IsMalformed() ? Type::dynamic_type()
-                                                       : return_type);
+    function.set_result_type(return_type);
     function_node_helper->SetJustRead(FunctionNodeHelper::kReturnType);
   }
 }

@@ -18,16 +18,16 @@ import 'package:analyzer_plugin/utilities/outline/outline.dart';
  * request based on the assumption that the driver being created is an
  * [AnalysisDriver].
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin] that also uses
- * [OutlineMixin] as a mix-in.
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin] that also uses [OutlineMixin] as a
+ * mix-in.
  */
-abstract class DartOutlineMixin implements OutlineMixin {
+mixin DartOutlineMixin implements OutlineMixin {
   @override
   Future<OutlineRequest> getOutlineRequest(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolveResult result = await getResolveResult(path);
+    ResolvedUnitResult result = await getResolvedUnitResult(path);
     return new DartOutlineRequestImpl(resourceProvider, result);
   }
 }
@@ -36,10 +36,10 @@ abstract class DartOutlineMixin implements OutlineMixin {
  * A mixin that can be used when creating a subclass of [ServerPlugin] to
  * provide most of the implementation for producing outline notifications.
  *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin].
+ * Clients may not implement this mixin, but are allowed to use it as a mix-in
+ * when creating a subclass of [ServerPlugin].
  */
-abstract class OutlineMixin implements ServerPlugin {
+mixin OutlineMixin implements ServerPlugin {
   /**
    * Return a list containing the outline contributors that should be used to
    * create outline information for the file with the given [path].

@@ -5,7 +5,7 @@
 #ifndef RUNTIME_INCLUDE_DART_TOOLS_API_H_
 #define RUNTIME_INCLUDE_DART_TOOLS_API_H_
 
-#include "include/dart_api.h"
+#include "dart_api.h"
 
 /** \mainpage Dart Tools Embedding API Reference
  *
@@ -220,6 +220,25 @@ typedef void (*Dart_ServiceStreamCancelCallback)(const char* stream_id);
 DART_EXPORT char* Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamListenCallback listen_callback,
     Dart_ServiceStreamCancelCallback cancel_callback);
+
+/**
+ * A callback invoked when the VM service receives an event.
+ */
+typedef void (*Dart_NativeStreamConsumer)(const uint8_t* event_json,
+                                          intptr_t event_json_length);
+
+/**
+ * Sets the native VM service stream callbacks for a particular stream.
+ * Note: The function may be called on multiple threads concurrently.
+ *
+ * \param consumer A function pointer to an event handler callback function.
+ *   A NULL value removes the existing listen callback function if any.
+ *
+ * \param stream_id The ID of the stream on which to set the callback.
+ */
+DART_EXPORT void Dart_SetNativeServiceStreamCallback(
+    Dart_NativeStreamConsumer consumer,
+    const char* stream_id);
 
 /**
  * Sends a data event to clients of the VM Service.

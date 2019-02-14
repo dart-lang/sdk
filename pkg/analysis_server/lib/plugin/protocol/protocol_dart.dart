@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -62,6 +62,9 @@ ElementKind convertElementKind(engine.ElementKind kind) {
     return ElementKind.FUNCTION;
   }
   if (kind == engine.ElementKind.FUNCTION_TYPE_ALIAS) {
+    return ElementKind.FUNCTION_TYPE_ALIAS;
+  }
+  if (kind == engine.ElementKind.GENERIC_FUNCTION_TYPE) {
     return ElementKind.FUNCTION_TYPE_ALIAS;
   }
   if (kind == engine.ElementKind.GETTER) {

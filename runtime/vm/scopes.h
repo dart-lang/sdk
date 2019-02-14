@@ -88,6 +88,7 @@ class LocalVariable : public ZoneAllocated {
         is_invisible_(false),
         is_captured_parameter_(false),
         is_forced_stack_(false),
+        is_explicit_covariant_parameter_(false),
         type_check_mode_(kDoTypeCheck),
         index_() {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
@@ -120,6 +121,13 @@ class LocalVariable : public ZoneAllocated {
   // TODO(27590) remove the hardcoded blacklist from CaptureLocalVariables
   bool is_forced_stack() const { return is_forced_stack_; }
   void set_is_forced_stack() { is_forced_stack_ = true; }
+
+  bool is_explicit_covariant_parameter() const {
+    return is_explicit_covariant_parameter_;
+  }
+  void set_is_explicit_covariant_parameter() {
+    is_explicit_covariant_parameter_ = true;
+  }
 
   enum TypeCheckMode {
     kDoTypeCheck,
@@ -197,6 +205,7 @@ class LocalVariable : public ZoneAllocated {
   bool is_invisible_;
   bool is_captured_parameter_;
   bool is_forced_stack_;
+  bool is_explicit_covariant_parameter_;
   TypeCheckMode type_check_mode_;
   VariableIndex index_;
 
@@ -303,13 +312,24 @@ class LocalScope : public ZoneAllocated {
   TokenPosition end_token_pos() const { return end_token_pos_; }
   void set_end_token_pos(TokenPosition value) { end_token_pos_ = value; }
 
+  // Return the list of variables allocated in the context and belonging to this
+  // scope and to its children at the same loop level.
+  const GrowableArray<LocalVariable*>& context_variables() const {
+    return context_variables_;
+  }
+
   // The number of variables allocated in the context and belonging to this
   // scope and to its children at the same loop level.
-  int num_context_variables() const { return num_context_variables_; }
+  int num_context_variables() const { return context_variables().length(); }
 
   // Add a variable to the scope. Returns false if a variable with the
   // same name is already present.
   bool AddVariable(LocalVariable* variable);
+
+  // Add a variable to the scope as a context allocated variable and assigns
+  // it an index within the context. Does not check if the scope already
+  // contains this variable or a variable with the same name.
+  void AddContextVariable(LocalVariable* var);
 
   // Insert a formal parameter variable to the scope at the given position,
   // possibly in front of aliases already added with AddVariable.
@@ -437,11 +457,13 @@ class LocalScope : public ZoneAllocated {
   int function_level_;         // Reflects the nesting level of local functions.
   int loop_level_;             // Reflects the loop nesting level.
   int context_level_;          // Reflects the level of the runtime context.
-  int num_context_variables_;  // Only set if this scope is a context owner.
   TokenPosition begin_token_pos_;  // Token index of beginning of scope.
   TokenPosition end_token_pos_;    // Token index of end of scope.
   GrowableArray<LocalVariable*> variables_;
   GrowableArray<SourceLabel*> labels_;
+
+  // List of variables allocated into the context which is owned by this scope.
+  GrowableArray<LocalVariable*> context_variables_;
 
   // List of names referenced in this scope and its children that
   // are not resolved to local variables.
