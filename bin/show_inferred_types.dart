@@ -5,13 +5,12 @@
 /// Simple script that shows the inferred types of a function.
 library compiler.tool.show_inferred_types;
 
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/src/util.dart';
+import 'package:dart2js_info/src/io.dart';
 
-main(args) {
+main(args) async {
   if (args.length < 2) {
     var scriptName = Platform.script.pathSegments.last;
     print('usage: dart $scriptName <info.json> <function-name-regex> [-l]');
@@ -21,8 +20,7 @@ main(args) {
 
   var showLongName = args.length > 2 && args[2] == '-l';
 
-  var json = jsonDecode(new File(args[0]).readAsStringSync());
-  var info = new AllInfoJsonCodec().decode(json);
+  var info = await infoFromFile(args[0]);
   var nameRegExp = new RegExp(args[1]);
   matches(e) => nameRegExp.hasMatch(longName(e));
 
