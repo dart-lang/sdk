@@ -383,6 +383,7 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
     thread->DeferredMarkingStackRelease();
   }
   thread->StoreBufferRelease();
+  thread->heap()->AbandonRemainingTLAB(thread);
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   const bool kIsNotMutatorThread = false;
