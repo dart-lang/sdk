@@ -276,12 +276,6 @@ class Driver implements ServerStarter {
   static const String TRAIN_USING = "train-using";
 
   /**
-   * User Experience, Experiment #2. This experiment introduces the notion of an
-   * intermittent file system.
-   */
-  static const String UX_EXPERIMENT_2 = "ux-experiment-2";
-
-  /**
    * The instrumentation server that is to be used by the analysis server.
    */
   InstrumentationServer instrumentationServer;
@@ -326,7 +320,6 @@ class Driver implements ServerStarter {
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
-    analysisServerOptions.enableUXExperiment2 = results[UX_EXPERIMENT_2];
 
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
     if (results.wasParsed(TRAIN_USING)) {
@@ -691,11 +684,6 @@ class Driver implements ServerStarter {
     parser.addOption(TRAIN_USING,
         help: "Pass in a directory to analyze for purposes of training an "
             "analysis server snapshot.");
-    parser.addFlag(UX_EXPERIMENT_2,
-        help: "User Experience, Experiment #2, "
-            "this experiment introduces the notion of an intermittent file "
-            "system.",
-        hide: true);
 
     return parser;
   }

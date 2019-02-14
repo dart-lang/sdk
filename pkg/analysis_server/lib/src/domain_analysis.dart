@@ -380,8 +380,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     Map<String, String> packageRoots =
         params.packageRoots ?? <String, String>{};
 
-    if (server.options.enableUXExperiment2 &&
-        server.detachableFileSystemManager != null) {
+    if (server.detachableFileSystemManager != null) {
       server.detachableFileSystemManager.setAnalysisRoots(
           request.id, includedPathList, excludedPathList, packageRoots);
     } else {

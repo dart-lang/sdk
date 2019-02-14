@@ -605,9 +605,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       });
     }
 
-    if (options.enableUXExperiment2) {
-      detachableFileSystemManager?.dispose();
-    }
+    detachableFileSystemManager?.dispose();
 
     // Defer closing the channel and shutting down the instrumentation server so
     // that the shutdown response can be sent and logged.
@@ -777,10 +775,6 @@ class AnalysisServerOptions {
 
   /// Whether to enable parsing via the Fasta parser.
   bool useFastaParser = true;
-
-  /// User Experience, Experiment #2. This experiment introduces the notion of
-  /// an intermittent file system.
-  bool enableUXExperiment2 = false;
 }
 
 class ServerContextManagerCallbacks extends ContextManagerCallbacks {

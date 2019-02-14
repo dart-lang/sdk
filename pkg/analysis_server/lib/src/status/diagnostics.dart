@@ -1319,7 +1319,6 @@ class StatusPage extends DiagnosticPageWithNav {
   Future generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    DiagnosticsSite diagnosticsSite = site;
 
     buf.writeln('<div class="columns">');
 
@@ -1328,11 +1327,6 @@ class StatusPage extends DiagnosticPageWithNav {
     buf.writeln(writeOption('Server type', server.runtimeType));
     buf.writeln(writeOption('Instrumentation enabled',
         AnalysisEngine.instance.instrumentationService.isActive));
-    bool uxExp2 =
-        diagnosticsSite.socketServer.analysisServerOptions.enableUXExperiment2;
-    if (uxExp2) {
-      buf.writeln(writeOption('ux Experiment 2', uxExp2));
-    }
     buf.writeln(writeOption('Server process ID', pid));
     buf.writeln('</div>');
 
