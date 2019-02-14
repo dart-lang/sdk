@@ -18,26 +18,6 @@
 
 bool isDartPrecompiledRuntime = true;
 
-Dart_Handle GetCurrentLibrary() {
-  Dart_Handle libraries = Dart_GetLoadedLibraries();
-  CHECK(libraries);
-  intptr_t length = 0;
-  CHECK(Dart_ListLength(libraries, &length));
-  for (intptr_t i = 0; i < length; ++i) {
-    Dart_Handle library = Dart_ListGetAt(libraries, i);
-    CHECK(library);
-    Dart_Handle url = Dart_LibraryUrl(library);
-    CHECK(url);
-    const char* url_str;
-    CHECK(Dart_StringToCString(url, &url_str));
-    if (strstr(url_str, "entrypoints_verification_test")) {
-      return library;
-    }
-  }
-  fprintf(stderr, "Could not find current library!");
-  abort();
-}
-
 // Some invalid accesses are allowed in AOT since we don't retain @pragma
 // annotations. Therefore we skip the negative tests in AOT.
 #define FAIL(name, result)                                                     \
@@ -101,7 +81,7 @@ void TestFields(Dart_Handle target) {
 }
 
 void RunTests(Dart_NativeArguments arguments) {
-  Dart_Handle lib = GetCurrentLibrary();
+  Dart_Handle lib = Dart_RootLibrary();
 
   //////// Test allocation and constructor invocation.
 

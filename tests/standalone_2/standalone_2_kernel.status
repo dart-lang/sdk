@@ -225,5 +225,5 @@ io/socket_many_connections_test: Skip # Timeout
 io/web_socket_compression_test: Skip # Timeout
 io/web_socket_test: Skip # Timeout
 
-[ $hot_reload || $hot_reload_rollback || $compiler != dartk && $compiler != dartkb && $compiler != dartkp || $compiler == dartkp && $system == windows ]
-io/entrypoints_verification_test: Skip # Cannot run in precompiled Windows because the DLL is linked against dart.exe instead of dart_precompiled_runtime.exe.
+[ $compiler != dartk && $compiler != dartkb && $compiler != dartkp || $compiler == dartkp && $system == windows ]
+entrypoints_verification_test: SkipByDesign # Requires VM to run. Cannot run in precompiled Windows because the DLL is linked against dart.exe instead of dart_precompiled_runtime.exe.
