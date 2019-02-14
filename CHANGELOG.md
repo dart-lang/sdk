@@ -20,6 +20,9 @@
   serialization/deserialization implementation. This will eventually be used by
   default by dart2js.
 
+* Added backwards compatibility to the JSON codec, to make transition to new
+  tools more gradual.
+
 ## 0.5.17
 
 * Make `live_code_size_analysis` print library URIs and not library names.

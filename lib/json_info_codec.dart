@@ -329,8 +329,13 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
 
 class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     implements InfoVisitor<Map> {
+  /// Whether to generate json compatible with format 5.1
+  final bool isBackwardCompatible;
   final Map<Info, Id> ids = new HashMap<Info, Id>();
   final Set<String> usedIds = new Set<String>();
+  final Set<int> usedOldIds = new Set<int>();
+
+  AllInfoToJsonConverter({this.isBackwardCompatible: false});
 
   Id idFor(Info info) {
     var serializedId = ids[info];
@@ -344,25 +349,42 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
         "$info");
 
     String id;
+    int oldId;
     if (info is ConstantInfo) {
       // No name and no parent, so `longName` isn't helpful
       assert(info.name == null);
       assert(info.parent == null);
       assert(info.code != null);
       // Instead, use the content of the code.
-      id = info.code.first.text ?? "_";
+      if (isBackwardCompatible) {
+        oldId = info.code.first.text.hashCode;
+      } else {
+        id = info.code.first.text ?? "_";
+      }
     } else {
       id = longName(info, useLibraryUri: true, forId: true);
-      if (info is FieldInfo || info is FunctionInfo || info is ClosureInfo) {
-        id = "${id}_${info.size}";
+      if (isBackwardCompatible) {
+        oldId = id.hashCode;
+      } else {
+        if (info is FieldInfo || info is FunctionInfo || info is ClosureInfo) {
+          id = "${id}_${info.size}";
+        }
       }
     }
-    int suffix = 0;
+
     String candidateId;
-    do {
-      candidateId = id + (suffix == 0 ? '' : '.$suffix');
-      suffix++;
-    } while (!usedIds.add(candidateId));
+    if (isBackwardCompatible) {
+      while (!usedOldIds.add(oldId)) {
+        oldId++;
+      }
+      candidateId = '$oldId';
+    } else {
+      int suffix = 0;
+      do {
+        candidateId = id + (suffix == 0 ? '' : '.$suffix');
+        suffix++;
+      } while (!usedIds.add(candidateId));
+    }
     serializedId = new Id(info.kind, candidateId);
     return ids[info] = serializedId;
   }
@@ -432,9 +454,9 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       'holding': jsonHolding,
       'dependencies': jsonDependencies,
       'outputUnits': info.outputUnits.map((u) => u.accept(this)).toList(),
-      'dump_version': info.version,
+      'dump_version': isBackwardCompatible ? 5 : info.version,
       'deferredFiles': info.deferredFiles,
-      'dump_minor_version': info.minorVersion,
+      'dump_minor_version': isBackwardCompatible ? 1 : info.minorVersion,
       'program': info.program.accept(this)
     };
   }
@@ -564,7 +586,10 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   visitOutput(OutputUnitInfo info) =>
       _visitBasicInfo(info)..['imports'] = info.imports;
 
-  List<Object> _serializeCode(List<CodeSpan> code) {
+  Object _serializeCode(List<CodeSpan> code) {
+    if (isBackwardCompatible) {
+      return code.map((c) => c.text).join('\n');
+    }
     return code
         .map<Object>((c) => {
               'start': c.start,
@@ -576,8 +601,12 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 }
 
 class AllInfoJsonCodec extends Codec<AllInfo, Map> {
-  final Converter<AllInfo, Map> encoder = new AllInfoToJsonConverter();
+  final Converter<AllInfo, Map> encoder;
   final Converter<Map, AllInfo> decoder = new JsonToAllInfoConverter();
+
+  AllInfoJsonCodec({bool isBackwardCompatible: false})
+      : encoder = new AllInfoToJsonConverter(
+            isBackwardCompatible: isBackwardCompatible);
 }
 
 class Id {
