@@ -237,21 +237,21 @@ class ClassInfo extends BasicInfo {
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitClass(this);
 }
 
-/// Details about generated code spans.
+/// A code span of generated code. A [CodeSpan] object is associated with a
+/// single [BasicInfo]. The offsets in the span corresponds to offsets on the
+/// file of [BasicInfo.outputUnit].
 class CodeSpan {
-  /// File where the code was generated.
-  OutputUnitInfo outputUnit;
-
   /// Start offset in the generated file.
   int start;
 
   /// end offset in the generated file.
   int end;
 
-  /// The actual code.
+  /// The actual code (optional, blank when using a compact representation of
+  /// the encoding).
   String text;
 
-  CodeSpan({this.outputUnit, this.start, this.end, this.text});
+  CodeSpan({this.start, this.end, this.text});
 }
 
 /// Information about a constant value.

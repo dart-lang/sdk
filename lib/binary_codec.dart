@@ -128,7 +128,6 @@ class BinaryPrinter implements InfoVisitor<void> {
   }
 
   _visitCodeSpan(CodeSpan code) {
-    _writeOutputOrNull(code.outputUnit);
     sink.writeIntOrNull(code.start);
     sink.writeIntOrNull(code.end);
     sink.writeStringOrNull(code.text);
@@ -372,7 +371,6 @@ class BinaryReader {
 
   CodeSpan _readCodeSpan() {
     return new CodeSpan()
-      ..outputUnit = _readOutputOrNull()
       ..start = source.readIntOrNull()
       ..end = source.readIntOrNull()
       ..text = source.readStringOrNull();

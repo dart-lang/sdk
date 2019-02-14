@@ -310,16 +310,13 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   List<CodeSpan> parseCode(dynamic json) {
     // backwards compatibility with format 5.1:
     if (json is String) {
-      return [
-        new CodeSpan(outputUnit: null, start: null, end: null, text: json)
-      ];
+      return [new CodeSpan(start: null, end: null, text: json)];
     }
 
     if (json is List) {
       return json.map((dynamic value) {
         Map<String, dynamic> jsonCode = value;
         return new CodeSpan(
-            outputUnit: parseId(jsonCode['outputUnit']),
             start: jsonCode['start'],
             end: jsonCode['end'],
             text: jsonCode['text']);
@@ -570,9 +567,6 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   List<Object> _serializeCode(List<CodeSpan> code) {
     return code
         .map<Object>((c) => {
-              'outputUnit': c.outputUnit != null
-                  ? idFor(c.outputUnit).serializedId
-                  : null,
               'start': c.start,
               'end': c.end,
               'text': c.text,
