@@ -46,6 +46,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   final Map<Field, Procedure> replacedGetters;
   final Map<Field, Procedure> replacedSetters;
 
+  bool isFfiLibrary;
+
   _FfiUseSiteTransformer(
       ClassHierarchy hierarchy,
       CoreTypes coreTypes,
@@ -53,6 +55,12 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       this.replacedGetters,
       this.replacedSetters)
       : super(hierarchy, coreTypes, diagnosticReporter) {}
+
+  @override
+  TreeNode visitLibrary(Library node) {
+    isFfiLibrary = node == ffiLibrary;
+    return super.visitLibrary(node);
+  }
 
   @override
   visitClass(Class node) {
@@ -124,7 +132,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
       } else if (target == asFunctionMethod) {
-        if (node.enclosingLibrary == ffiLibrary) {
+        if (isFfiLibrary) {
           // Library code of dart:ffi uses asFunction to implement
           // lookupFunction. Since we treat lookupFunction as well, this call
           // can be generic and still support AOT.
