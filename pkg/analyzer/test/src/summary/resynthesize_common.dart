@@ -11,27 +11,25 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart' show Namespace;
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../../util/element_type_matchers.dart';
-import '../abstract_single_unit.dart';
 import 'element_text.dart';
 import 'test_strategies.dart';
 
@@ -40,7 +38,14 @@ import 'test_strategies.dart';
  *
  * The return type separator: →
  */
-abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
+abstract class AbstractResynthesizeTest with ResourceProviderMixin {
+  DeclaredVariables declaredVariables = new DeclaredVariables();
+  AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
+  SourceFactory sourceFactory;
+  MockSdk sdk;
+
+  String testFile;
+  Source testSource;
   Set<Source> otherLibrarySources = new Set<Source>();
 
   /**
@@ -49,69 +54,63 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
    */
   bool allowMissingFiles = false;
 
+  AbstractResynthesizeTest() {
+    sdk = new MockSdk(resourceProvider: resourceProvider);
+
+    sourceFactory = SourceFactory(
+      [
+        DartUriResolver(sdk),
+        ResourceUriResolver(resourceProvider),
+      ],
+      null,
+      resourceProvider,
+    );
+
+    testFile = convertPath('/test.dart');
+  }
+
   void addLibrary(String uri) {
-    otherLibrarySources.add(context.sourceFactory.forUri(uri));
+    var source = sourceFactory.forUri(uri);
+    otherLibrarySources.add(source);
   }
 
   Source addLibrarySource(String filePath, String contents) {
-    Source source = addSource(filePath, contents);
+    var source = addSource(filePath, contents);
     otherLibrarySources.add(source);
     return source;
   }
 
-  void assertNoErrors(Source source) {
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    for (AnalysisError error in context.computeErrors(source)) {
-      expect(error.source, source);
-      ErrorCode errorCode = error.errorCode;
-      if (errorCode == HintCode.UNUSED_ELEMENT ||
-          errorCode == HintCode.UNUSED_FIELD) {
-        continue;
-      }
-      if (errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
-          errorCode == HintCode.UNUSED_CATCH_STACK ||
-          errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
-        continue;
-      }
-      errorListener.onError(error);
-    }
-    errorListener.assertNoErrors();
+  Source addSource(String path, String contents) {
+    var file = newFile(path, content: contents);
+    var source = file.createSource();
+    return source;
+  }
+
+  Source addTestSource(String code, [Uri uri]) {
+    testSource = addSource(testFile, code);
+    return testSource;
   }
 
   /**
    * Verify that the [resynthesizer] didn't do any unnecessary work when
-   * resynthesizing [library].
+   * resynthesizing the library with the [expectedLibraryUri].
    */
-  void checkMinimalResynthesisWork(
-      TestSummaryResynthesizer resynthesizer, LibraryElement library) {
+  void checkMinimalResynthesisWork(TestSummaryResynthesizer resynthesizer,
+      Uri expectedLibraryUri, List<Uri> expectedUnitUriList) {
     // Check that no other summaries needed to be resynthesized to resynthesize
     // the library element.
     expect(resynthesizer.resynthesisCount, 3);
     // Check that the only linked summary consulted was that for [uri].
     expect(resynthesizer.linkedSummariesRequested, hasLength(1));
     expect(resynthesizer.linkedSummariesRequested.first,
-        library.source.uri.toString());
+        expectedLibraryUri.toString());
     // Check that the only unlinked summaries consulted were those for the
     // library in question.
-    Set<String> expectedCompilationUnitUris = library.units
-        .map((CompilationUnitElement unit) => unit.source.uri.toString())
-        .toSet();
+    var expectedUnitUriStrSet =
+        expectedUnitUriList.map((uri) => uri.toString()).toSet();
     for (String requestedUri in resynthesizer.unlinkedSummariesRequested) {
-      expect(expectedCompilationUnitUris, contains(requestedUri));
+      expect(expectedUnitUriStrSet, contains(requestedUri));
     }
-  }
-
-  DartSdk createDartSdk() => new MockSdk(resourceProvider: resourceProvider);
-
-  /**
-   * Create the analysis options that should be used for this test.
-   */
-  AnalysisOptionsImpl createOptions() => new AnalysisOptionsImpl();
-
-  @override
-  void setUp() {
-    super.setUp();
-    prepareAnalysisContext(createOptions());
   }
 }
 
@@ -4237,7 +4236,7 @@ export 'a.dart';
   }
 
   test_export_configurations_useDefault() async {
-    context.declaredVariables =
+    declaredVariables =
         new DeclaredVariables.fromMap({'dart.library.io': 'false'});
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
@@ -4254,7 +4253,7 @@ export 'foo.dart';
   }
 
   test_export_configurations_useFirst() async {
-    context.declaredVariables = new DeclaredVariables.fromMap(
+    declaredVariables = new DeclaredVariables.fromMap(
         {'dart.library.io': 'true', 'dart.library.html': 'true'});
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
@@ -4271,7 +4270,7 @@ export 'foo_io.dart';
   }
 
   test_export_configurations_useSecond() async {
-    context.declaredVariables = new DeclaredVariables.fromMap(
+    declaredVariables = new DeclaredVariables.fromMap(
         {'dart.library.io': 'false', 'dart.library.html': 'true'});
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
@@ -4372,7 +4371,7 @@ export 'a.dart';
   }
 
   test_exportImport_configurations_useDefault() async {
-    context.declaredVariables =
+    declaredVariables =
         new DeclaredVariables.fromMap({'dart.library.io': 'false'});
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
@@ -4396,7 +4395,7 @@ class B extends A {
   }
 
   test_exportImport_configurations_useFirst() async {
-    context.declaredVariables = new DeclaredVariables.fromMap(
+    declaredVariables = new DeclaredVariables.fromMap(
         {'dart.library.io': 'true', 'dart.library.html': 'true'});
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
@@ -4949,86 +4948,73 @@ int Function(int a, String b) v;
 ''');
   }
 
+  test_getElement_class() async {
+    var resynthesized = _validateGetElement(
+      'class C { m() {} }',
+      ['C'],
+    );
+    expect(resynthesized, isClassElement);
+  }
+
   test_getElement_constructor_named() async {
-    String text = 'class C { C.named(); }';
-    Source source = addLibrarySource('/test.dart', text);
-    ConstructorElement original = context
-        .computeLibraryElement(source)
-        .getType('C')
-        .getNamedConstructor('named');
-    expect(original, isNotNull);
-    ConstructorElement resynthesized = _validateGetElement(text, original);
-    compareConstructorElements(resynthesized, original, 'C.constructor named');
+    var resynthesized = _validateGetElement(
+      'class C { C.named(); }',
+      ['C', 'named'],
+    );
+    expect(resynthesized, isConstructorElement);
   }
 
   test_getElement_constructor_unnamed() async {
-    String text = 'class C { C(); }';
-    Source source = addLibrarySource('/test.dart', text);
-    ConstructorElement original =
-        context.computeLibraryElement(source).getType('C').unnamedConstructor;
-    expect(original, isNotNull);
-    ConstructorElement resynthesized = _validateGetElement(text, original);
-    compareConstructorElements(resynthesized, original, 'C.constructor');
+    var resynthesized = _validateGetElement(
+      'class C { C(); }',
+      ['C', ''],
+    );
+    expect(resynthesized, isConstructorElement);
   }
 
   test_getElement_field() async {
-    String text = 'class C { var f; }';
-    Source source = addLibrarySource('/test.dart', text);
-    FieldElement original =
-        context.computeLibraryElement(source).getType('C').getField('f');
-    expect(original, isNotNull);
-    FieldElement resynthesized = _validateGetElement(text, original);
-    compareFieldElements(resynthesized, original, 'C.field f');
+    var resynthesized = _validateGetElement(
+      'class C { var f; }',
+      ['C', 'f'],
+    );
+    expect(resynthesized, isFieldElement);
   }
 
   test_getElement_getter() async {
-    String text = 'class C { get f => null; }';
-    Source source = addLibrarySource('/test.dart', text);
-    PropertyAccessorElement original =
-        context.computeLibraryElement(source).getType('C').getGetter('f');
-    expect(original, isNotNull);
-    PropertyAccessorElement resynthesized = _validateGetElement(text, original);
-    comparePropertyAccessorElements(resynthesized, original, 'C.getter f');
+    var resynthesized = _validateGetElement(
+      'class C { get f => null; }',
+      ['C', 'f?'],
+    );
+    expect(resynthesized, isPropertyAccessorElement);
   }
 
   test_getElement_method() async {
-    String text = 'class C { f() {} }';
-    Source source = addLibrarySource('/test.dart', text);
-    MethodElement original =
-        context.computeLibraryElement(source).getType('C').getMethod('f');
-    expect(original, isNotNull);
-    MethodElement resynthesized = _validateGetElement(text, original);
-    compareMethodElements(resynthesized, original, 'C.method f');
+    var resynthesized = _validateGetElement(
+      'class C { m() {} }',
+      ['C', 'm'],
+    );
+    expect(resynthesized, isMethodElement);
   }
 
   test_getElement_operator() async {
-    String text = 'class C { operator+(x) => null; }';
-    Source source = addLibrarySource('/test.dart', text);
-    MethodElement original =
-        context.computeLibraryElement(source).getType('C').getMethod('+');
-    expect(original, isNotNull);
-    MethodElement resynthesized = _validateGetElement(text, original);
-    compareMethodElements(resynthesized, original, 'C.operator+');
+    var resynthesized = _validateGetElement(
+      'class C { operator+(x) => null; }',
+      ['C', '+'],
+    );
+    expect(resynthesized, isMethodElement);
   }
 
   test_getElement_setter() async {
-    String text = 'class C { void set f(value) {} }';
-    Source source = addLibrarySource('/test.dart', text);
-    PropertyAccessorElement original =
-        context.computeLibraryElement(source).getType('C').getSetter('f');
-    expect(original, isNotNull);
-    PropertyAccessorElement resynthesized = _validateGetElement(text, original);
-    comparePropertyAccessorElements(resynthesized, original, 'C.setter f');
+    var resynthesized = _validateGetElement(
+      'class C { void set f(value) {} }',
+      ['C', 'f='],
+    );
+    expect(resynthesized, isPropertyAccessorElement);
   }
 
   test_getElement_unit() async {
-    String text = 'class C { f() {} }';
-    Source source = addLibrarySource('/test.dart', text);
-    CompilationUnitElement original =
-        context.computeLibraryElement(source).definingCompilationUnit;
-    expect(original, isNotNull);
-    CompilationUnitElement resynthesized = _validateGetElement(text, original);
-    compareCompilationUnitElements(resynthesized, original);
+    var resynthesized = _validateGetElement('class C {}', []);
+    expect(resynthesized, isCompilationUnitElement);
   }
 
   test_getter_documented() async {
@@ -5106,8 +5092,9 @@ int get x {}
   }
 
   test_import_configurations_useDefault() async {
-    context.declaredVariables =
-        new DeclaredVariables.fromMap({'dart.library.io': 'false'});
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'false',
+    });
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -5128,8 +5115,10 @@ class B extends A {
   }
 
   test_import_configurations_useFirst() async {
-    context.declaredVariables = new DeclaredVariables.fromMap(
-        {'dart.library.io': 'true', 'dart.library.html': 'true'});
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'true',
+      'dart.library.html': 'true',
+    });
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -8770,15 +8759,22 @@ int j;
   }
 
   /**
-   * Encode the library containing [original] into a summary and then use
-   * [TestSummaryResynthesizer.getElement] to retrieve just the original
-   * element from the resynthesized summary.
+   * Encode the library [text] into a summary and then use
+   * [TestSummaryResynthesizer.getElement] to retrieve just the element with
+   * the specified [names] from the resynthesized summary.
    */
-  Element _validateGetElement(String text, Element original) {
-    SummaryResynthesizer resynthesizer = encodeLibrary(original.library.source);
-    ElementLocationImpl location = original.location;
+  Element _validateGetElement(String text, List<String> names) {
+    Source source = addTestSource(text);
+    SummaryResynthesizer resynthesizer = encodeLibrary(source);
+
+    var locationComponents = [
+      source.uri.toString(),
+      source.uri.toString(),
+    ]..addAll(names);
+    var location = ElementLocationImpl.con3(locationComponents);
+
     Element result = resynthesizer.getElement(location);
-    checkMinimalResynthesisWork(resynthesizer, original.library);
+    checkMinimalResynthesisWork(resynthesizer, source.uri, [source.uri]);
     // Check that no other summaries needed to be resynthesized to resynthesize
     // the library element.
     expect(resynthesizer.resynthesisCount, 3);
@@ -8821,18 +8817,7 @@ mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
   Future<LibraryElementImpl> checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) async {
     Source source = addTestSource(text);
-    LibraryElementImpl resynthesized = _encodeDecodeLibraryElement(source);
-    LibraryElementImpl original = context.computeLibraryElement(source);
-    if (!allowErrors) {
-      List<AnalysisError> errors = context.computeErrors(source);
-      if (errors.where((e) => e.message.startsWith('unused')).isNotEmpty) {
-        fail('Analysis errors: $errors');
-      }
-    }
-    if (shouldCompareLibraryElements) {
-      checkLibraryElements(original, resynthesized);
-    }
-    return resynthesized;
+    return _encodeDecodeLibraryElement(source);
   }
 
   void checkLibraryElements(
@@ -10053,12 +10038,13 @@ class TestSummaryResynthesizer extends SummaryResynthesizer {
    */
   final Set<String> linkedSummariesRequested = new Set<String>();
 
-  TestSummaryResynthesizer(AnalysisContext context, this.unlinkedSummaries,
+  TestSummaryResynthesizer(AnalysisContextImpl context, this.unlinkedSummaries,
       this.linkedSummaries, this.allowMissingFiles)
       : super(context, null, context.sourceFactory, true) {
     // Clear after resynthesizing TypeProvider in super().
     unlinkedSummariesRequested.clear();
     linkedSummariesRequested.clear();
+    context.typeProvider = typeProvider;
   }
 
   @override

@@ -8,7 +8,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/summary/expr_builder.dart';
@@ -28,8 +27,6 @@ main() {
   });
 }
 
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
 @reflectiveTest
 class ExprBuilderTest extends ResynthesizeTestStrategyTwoPhase
     with ExprBuilderTestCases, ExprBuilderTestHelpers {}
@@ -488,7 +485,6 @@ class C {
 
   @failingTest
   void test_pushLocalFunctionReference_nested() {
-    prepareAnalysisContext(new AnalysisOptionsImpl());
     var expr =
         checkSimpleExpression('(x) => (y) => x + y') as FunctionExpression;
     var outerFunctionElement = expr.declaredElement;
@@ -511,7 +507,6 @@ class C {
 
   @failingTest
   void test_pushLocalFunctionReference_paramReference() {
-    prepareAnalysisContext(new AnalysisOptionsImpl());
     var expr = checkSimpleExpression('(x, y) => x + y') as FunctionExpression;
     var localFunctionElement = expr.declaredElement;
     var xElement = localFunctionElement.parameters[0];
