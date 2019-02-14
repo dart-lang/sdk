@@ -222,8 +222,6 @@ io/non_utf8_link_test: Pass, Timeout
 io/pipe_server_test: Skip # Timeout
 io/socket_close_test: Skip # Timeout
 io/socket_many_connections_test: Skip # Timeout
-io/test_extension_fail_test: RuntimeError
-io/test_extension_test: RuntimeError
 io/web_socket_compression_test: Skip # Timeout
 io/web_socket_test: Skip # Timeout
 

@@ -13,7 +13,7 @@ class RandomArray {
   static SendPort _port;
 
   Future<List<int>> randomArray(int seed, int length) {
-    var completer = new Completer();
+    var completer = new Completer<List<int>>();
     var replyPort = new RawReceivePort();
     var args = new List(3);
     args[0] = seed;

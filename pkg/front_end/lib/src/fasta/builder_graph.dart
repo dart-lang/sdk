@@ -32,9 +32,12 @@ class BuilderGraph implements Graph<Uri> {
     }
     if (library is SourceLibraryBuilder) {
       for (Import import in library.imports) {
-        Uri uri = import.imported.uri;
-        if (builders.containsKey(uri)) {
-          yield uri;
+        // 'imported' can be null for fake imports, such as dart-ext:.
+        if (import.imported != null) {
+          Uri uri = import.imported.uri;
+          if (builders.containsKey(uri)) {
+            yield uri;
+          }
         }
       }
       for (Export export in library.exports) {
