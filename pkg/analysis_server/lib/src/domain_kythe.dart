@@ -15,7 +15,7 @@ import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/services/kythe/kythe_visitors.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -66,7 +66,7 @@ class KytheDomainHandler extends AbstractRequestHandler {
             server.resourceProvider,
             entries,
             file,
-            new InheritanceManager2(typeSystem),
+            new InheritanceManager3(typeSystem),
             result.content));
         allResults.add(new KytheGetKytheEntriesResult(entries, files));
       }

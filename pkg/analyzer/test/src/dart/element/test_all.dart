@@ -7,6 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'element_test.dart' as element;
 import 'function_type_test.dart' as function_type;
 import 'inheritance_manager2_test.dart' as inheritance_manager2;
+import 'inheritance_manager3_test.dart' as inheritance_manager3;
 
 /// Utility for manually running all tests.
 main() {
@@ -14,5 +15,6 @@ main() {
     element.main();
     function_type.main();
     inheritance_manager2.main();
+    inheritance_manager3.main();
   }, name: 'element');
 }

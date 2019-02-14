@@ -208,13 +208,13 @@ abstract class DartEditBuilder implements EditBuilder {
 
   /**
    * Append a placeholder for an override of the specified inherited
-   * [signature]. If provided, write a string value suitable for display
+   * [element]. If provided, write a string value suitable for display
    * (e.g., in a completion popup) in the given [displayTextBuffer].
    * If [invokeSuper] is `true`, then the corresponding `super.name()` will be
    * added in the body.
    */
   void writeOverride(
-    FunctionType signature, {
+    ExecutableElement element, {
     StringBuffer displayTextBuffer,
     bool invokeSuper: false,
   });

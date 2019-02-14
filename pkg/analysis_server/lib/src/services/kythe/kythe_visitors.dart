@@ -13,7 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -94,7 +94,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
   final ResourceProvider resourceProvider;
   final List<KytheEntry> entries;
   final String corpus;
-  final InheritanceManager2 _inheritanceManager;
+  final InheritanceManager3 _inheritanceManager;
   final String _contents;
 
   String _enclosingFilePath = '';
@@ -695,18 +695,18 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
           returnNode: node.returnType);
 
       // override edges
-      var overriddenSignatures = _inheritanceManager.getOverridden(
+      var overriddenList = _inheritanceManager.getOverridden(
         _enclosingClassElement.type,
         new Name(
           _enclosingClassElement.library.source.uri,
           node.declaredElement.name,
         ),
       );
-      for (FunctionType signature in overriddenSignatures) {
+      for (ExecutableElement overridden in overriddenList) {
         addEdge(
           methodVName,
           schema.OVERRIDES_EDGE,
-          _vNameFromElement(signature.element, schema.FUNCTION_KIND),
+          _vNameFromElement(overridden, schema.FUNCTION_KIND),
         );
       }
 

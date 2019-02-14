@@ -23,7 +23,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/patch.dart';
@@ -2861,7 +2861,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
     // Dart best practices.
-    var inheritanceManager2 = new InheritanceManager2(context.typeSystem);
+    var inheritanceManager3 = new InheritanceManager3(context.typeSystem);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
 
@@ -2871,7 +2871,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
         resourceProvider: resourceProvider,
         analysisOptions: context.analysisOptions));
     unit.accept(new OverrideVerifier(
-      inheritanceManager2,
+      inheritanceManager3,
       libraryElement,
       errorReporter,
     ));
@@ -3162,7 +3162,7 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     //
     // Infer instance members.
     //
-    var inheritance = new InheritanceManager2(context.typeSystem);
+    var inheritance = new InheritanceManager3(context.typeSystem);
     InstanceMemberInferrer inferrer =
         new InstanceMemberInferrer(typeProvider, inheritance);
     inferrer.inferCompilationUnit(unit.declaredElement);
@@ -3411,7 +3411,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
 
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
-    var inheritance = new InheritanceManager2(context.typeSystem);
+    var inheritance = new InheritanceManager3(context.typeSystem);
 
     // If we're not in a dependency cycle, and we have no type annotation,
     // re-resolve the right hand side and do inference.
@@ -4030,7 +4030,7 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     CompilationUnitElement unitElement = unit.declaredElement;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
-    var inheritance = new InheritanceManager2(context.typeSystem);
+    var inheritance = new InheritanceManager3(context.typeSystem);
     //
     // Resolve references and record outputs.
     //
@@ -4567,7 +4567,7 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
     LibraryElement libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
-    var inheritance = new InheritanceManager2(context.typeSystem);
+    var inheritance = new InheritanceManager3(context.typeSystem);
 
     CompilationUnitElement unitElement = unit.declaredElement;
     //
@@ -5011,7 +5011,7 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
     LibraryElement libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
-    var inheritance = new InheritanceManager2(context.typeSystem);
+    var inheritance = new InheritanceManager3(context.typeSystem);
     //
     // Resolve everything.
     //
@@ -5576,7 +5576,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     // Compute inheritance and override errors.
     //
     var typeSystem = libraryElement.context.typeSystem;
-    var inheritanceManager = new InheritanceManager2(typeSystem);
+    var inheritanceManager = new InheritanceManager3(typeSystem);
     var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
         typeSystem, inheritanceManager, errorReporter);
     inheritanceOverrideVerifier.verifyUnit(unit);
