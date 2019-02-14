@@ -17,22 +17,13 @@ import "package:kernel/type_environment.dart" show TypeEnvironment;
 import "kernel_type_parser.dart"
     show KernelEnvironment, KernelFromParsedType, parseLibrary;
 
+import "mock_sdk.dart" show mockSdk;
+
 import "shared_type_tests.dart" show SubtypeTest;
 
 import "type_parser.dart" as type_parser show parse, parseTypeVariables;
 
 const String testSdk = """
-class Object;
-class Comparable<T>;
-class num implements Comparable<num>;
-class int extends num;
-class double extends num;
-class Iterable<T>;
-class List<T> extends Iterable<T>;
-class Future<T>;
-class FutureOr<T>;
-class Null;
-class Function;
 typedef Typedef<T> <S>(T) -> S;
 typedef VoidFunction () -> void;
 class DefaultTypes<S, T extends Object, U extends List<S>, V extends List<T>, W extends Comparable<W>, X extends (W) -> void, Y extends () -> W>;
@@ -72,12 +63,17 @@ class Null extends self::Object {
 }
 class Function extends self::Object {
 }
+class String extends self::Object {
+}
+class bool extends self::Object {
+}
 class DefaultTypes<S extends self::Object = dynamic, T extends self::Object = self::Object, U extends self::List<self::DefaultTypes::S> = self::List<dynamic>, V extends self::List<self::DefaultTypes::T> = self::List<self::Object>, W extends self::Comparable<self::DefaultTypes::W> = self::Comparable<dynamic>, X extends (self::DefaultTypes::W) → void = (<BottomType>) → void, Y extends () → self::DefaultTypes::W = () → self::Comparable<dynamic>> extends self::Object {
 }
 """;
 
 Component parseSdk(Uri uri, KernelEnvironment environment) {
-  Library library = parseLibrary(uri, testSdk, environment: environment);
+  Library library =
+      parseLibrary(uri, mockSdk + testSdk, environment: environment);
   StringBuffer sb = new StringBuffer();
   Printer printer = new Printer(sb);
   printer.writeLibraryFile(library);
