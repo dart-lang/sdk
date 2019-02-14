@@ -1181,6 +1181,7 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
   static const kRedirectingCtor = 6;
   static const kFactoryCtor = 7;
   static const kExternal = 8;
+  static const kSynthetic = 9;
 
   // These offsets much be kept in sync with those in mirrors.h.
   bool get isAbstract => 0 != (_kindFlags & (1 << kAbstract));
@@ -1194,6 +1195,7 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
       0 != (_kindFlags & (1 << kRedirectingCtor));
   bool get isFactoryConstructor => 0 != (_kindFlags & (1 << kFactoryCtor));
   bool get isExternal => 0 != (_kindFlags & (1 << kExternal));
+  bool get isSynthetic => 0 != (_kindFlags & (1 << kSynthetic));
 
   static const _operators = const [
     "%", "&", "*", "+", "-", "/", "<", "<<", //
@@ -1216,7 +1218,6 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
       _n(simpleName).startsWith('_') || _n(constructorName).startsWith('_');
 
   bool get isTopLevel => owner is LibraryMirror;
-  bool get isSynthetic => false;
 
   TypeMirror _returnType;
   TypeMirror get returnType {
