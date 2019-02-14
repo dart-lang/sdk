@@ -263,6 +263,8 @@ class SyntacticScopeNamesCollector extends RecursiveAstVisitor<void> {
   void _addFormalParameter(FormalParameter parameter) {
     if (parameter is DefaultFormalParameter) {
       _addFormalParameter(parameter.parameter);
+    } else if (parameter is FieldFormalParameter) {
+      _addName(parameter.identifier);
     } else if (parameter is FunctionTypedFormalParameter) {
       _addName(parameter.identifier);
       var parameters = parameter.parameters;
