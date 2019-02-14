@@ -1,16 +1,103 @@
-## 2.1.1-dev.XX.0
-(Add new changes here, and they will be copied to the change section for the
-  next dev version)
+## 2.2.0-dev.1
 
 ### Language
 
-*   Sets now have a literal syntax like lists and maps do:
-    ```dart
-          var set = {1, 2, 3};
-    ```
-    Set literals are released on all platforms; the former `set-literals` experiment flag has been disabled.
+Sets now have a literal syntax like lists and maps do:
 
-### Core library changes
+```dart
+var set = {1, 2, 3};
+```
+
+Using curly braces makes empty sets ambiguous with maps:
+
+```dart
+var collection = {}; // Empty set or map?
+```
+
+To avoid breaking existing code, an ambiguous literal is treated as a map.
+To create an empty set, you can rely on either a surrounding context type
+or an explicit type argument:
+
+```dart
+// Variable type forces this to be a set:
+Set<int> set = {};
+
+// A single type argument means this must be a set:
+var set2 = <int>{};
+```
+
+Set literals are released on all platforms. The `set-literals` experiment flag
+has been disabled.
+
+### Tools
+
+#### Analyzer
+
+*   The `DEPRECATED_MEMBER_USE` hint was split into two hints:
+
+    *   `DEPRECATED_MEMBER_USE` reports on usage of `@deprecated` members
+        declared in a different package.
+    *   `DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE` reports on usage of
+        `@deprecated` members declared in the same package.
+
+#### Linter
+
+Upgraded the linter to `0.1.82` which adds the following improvements:
+
+*   Added `provide_deprecation_message`, and
+    `use_full_hex_values_for_flutter_colors`, `prefer_null_aware_operators`.
+*   Fixed `prefer_const_declarations` set literal false-positives.
+*   Updated `prefer_collection_literals` to support set literals.
+*   Updated `unnecessary_parenthesis` play nicer with cascades.
+*   Removed deprecated lints from the "all options" sample.
+*   Stopped registering "default lints".
+*   Fixed `hash_and_equals` to respect `hashCode` fields.
+
+### Other libraries
+
+#### `package:kernel`
+
+*   **Breaking change:** The `klass` getter on the `InstanceConstant` class in
+    the Kernel AST API has been renamed to `classNode` for consistency.
+
+*   **Breaking change:** Updated `Link` implementation to utilize true symbolic
+    links instead of junctions on Windows. Existing junctions will continue to
+    work with the new `Link` implementation, but all new links will create
+    symbolic links.
+
+    To create a symbolic link, Dart must be run with administrative privileges
+    or Developer Mode must be enabled, otherwise a `FileSystemException` will be
+    raised with errno set to `ERROR_PRIVILEGE_NOT_HELD` (Issue [33966]).
+
+[33966]: https://github.com/dart-lang/sdk/issues/33966
+
+## 2.1.1 - 2019-02-18
+
+This is a minor version release. Again, the team's focus was mostly on improving
+performance and stability after the large changes in Dart 2.0.0. In particular,
+dart2js now always uses the "fast startup" emitter and the old emitter has been
+removed.
+
+There are a couple of very minor **breaking changes:**
+
+*   In `dart:io`, adding to a closed `IOSink` now throws a `StateError`.
+
+*   On the Dart VM, a soundness hole when using `dart:mirrors` to reflectively
+    invoke a method in an incorrect way that violates its static types has
+    been fixed (Issue [35611][]).
+
+### Language
+
+This release has no language changes.
+
+### Core library
+
+#### `dart:core`
+
+*   Made `DateTime.parse()` also recognize `,` as a valid decimal separator
+    when parsing from a string (Issue [35576][]).
+
+[35576]: https://github.com/dart-lang/sdk/issues/35576
 
 #### `dart:html`
 
@@ -19,10 +106,10 @@
 *   Improved dart2js compilation of `element.attributes.remove(name)` to
     generate `element.removeAttribute(name)`, so that there is no performance
     reason to migrate to the above methods.
-*   Fixed a number of `dart:html` P1 bugs:
+*   Fixed a number of `dart:html` bugs:
 
     *   Fixed HTML API's with callback typedef to correctly convert Dart
-        function to JS function (Issue [35484]).
+        functions to JS functions (Issue [35484]).
     *   HttpStatus constants exposed in `dart:html` (Issue [34318]).
     *   Expose DomName `ondblclick` and `dblclickEvent` for Angular analyzer.
     *   Fixed `removeAll` on `classes`; `elements` parameter should be
@@ -41,113 +128,16 @@
 
 #### `dart:io`
 
+*   **Breaking Change:** Adding to a closed `IOSink` now throws a `StateError`.
 *   Added ability to get and set low level socket options.
-* **Breaking Change:** Adding to a closed `IOSink` now throws a `StateError`.
 
 [29554]: https://github.com/dart-lang/sdk/issues/29554
-
-### Other library changes
-
-#### `package:kernel`
-
-*   **Breaking change:** The `klass` getter on the `InstanceConstant` class in
-    the Kernel AST API has been renamed to `classNode` for consistency.
-
-*   **Breaking change:** Updated `Link` implementation to utilize true symbolic
-    links instead of junctions on Windows. Existing junctions will continue to
-    work with the new `Link` implementation, but all new links will create
-    symbolic links.
-    
-    To create a symbolic link, Dart must be run with
-    administrative privileges or Developer Mode must be enabled, otherwise a
-    `FileSystemException` will be raised with errno set to
-    `ERROR_PRIVILEGE_NOT_HELD` (Issue [33966]).
-
-[33966]: https://github.com/dart-lang/sdk/issues/33966
-
-### Dart VM
-
-### Tool Changes
-
-#### Analyzer
-
-*   The `DEPRECATED_MEMBER_USE` hint was split into two hints:
-
-    *   `DEPRECATED_MEMBER_USE` reports on usage of `@deprecated` members
-        declared in a different package.
-    *   `DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE` reports on usage of
-        `@deprecated` members declared in the same package.
-
-### Linter
-
-The linter was bumped to `0.1.82` which introduces the following linter improvements to the SDK:
-
-* fixed `prefer_const_declarations` Set literal false-positives
-* updates to `prefer_collection_literals` to support Set literals
-* new lint: `provide_deprecation_message`
-* `unnecessary_parenthesis` updated to play nicer with cascades
-* new lint: `use_full_hex_values_for_flutter_colors`
-* new lint: `prefer_null_aware_operators`
-* miscellaneous documentation fixes
-* removed deprecated lints from the "all options" sample
-* stopped registering "default lints"
-* `hash_and_equals` fixed to respect `hashCode` fields
-
-
-#### Other Tools
-
-## 2.1.1-dev.3.2
-
-* Cherry-pick 9d25cc93e850d4717cdc9e1c4bd3623e09c16d47 to dev
-
-## 2.1.1-dev.3.1
-
-* Cherry-pick 46080dd886a622c5520895d49c97506ecedb1df8 to dev
-* Cherry-pick fc62cf037343248c5ace87629d8eb1063f9f2428 to dev
-* Cherry-pick 770ab5275ac34af62d7c39da8eac8c56fdc48edb to dev
-* Cherry-pick 957e194735bda4fcf06cdcc68fa80f3290b17d79 to dev
-
-## 2.1.1-dev.3.0
-
-* Cherry-pick 3cb16d20e7810a2a378bb897d939f67c0b380d88 to dev
-
-## 2.1.1-dev.2.0
-
-### Core library changes
-
-#### `dart:core`
-
-*   Made `DateTime.parse()` also recognize `,` as a valid decimal separator
-    when parsing from a string. (Issue [35576][])
-
-[35576]: https://github.com/dart-lang/sdk/issues/35576
-
-### Tool Changes
-
-#### Analyzer
-
-*   New hints added:
-
-    *   `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR` and
-        `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW` when a `@literal`
-        const constructor is called in a non-const context (or with `new`).
-
-#### dart2js
-
-* `--fast-startup` is forced on.  The flag is silently ignored and will be
-  deprecated and then removed at a later date.
-
-  The alternative 'full emitter' is no longer available. The generated code for
-  `--fast-startup` is optimized to load faster, even though it can be slightly
-  larger.
-
-## 2.1.1-dev.1.0
 
 ### Dart VM
 
 In previous releases it was possible to violate static types using
-`dart:mirrors` but this bug is fixed now. Meaning that the code below would run
-without any TypeErrors and print "impossible" output.
+`dart:mirrors`. This code would run without any TypeErrors and print
+"impossible" output:
 
 ```dart
 import 'dart:mirrors';
@@ -166,11 +156,89 @@ void main() {
 }
 ```
 
-Only code that already violates static typing will break.
+This bug is fixed now. Only code that already violates static typing will break.
+See Issue [35611][] for more details.
 
-See Issue [#35611](https://github.com/dart-lang/sdk/issues/35611) for more details.
+[35611]: https://github.com/dart-lang/sdk/issues/35611
 
-### Tool Changes
+### Dart for the Web
+
+#### dart2js
+
+*   The old "full emitter" back-end is removed and dart2js always uses the "fast
+    startup" back-end. The generated fast startup code is optimized to load
+    faster, even though it can be slightly larger. The `--fast-startup` and
+    `--no-fast-startup` are allowed but ignored. They will be removed in a
+    future version.
+
+*   We fixed a bug in how deferred constructor calls were incorrectly not marked
+    as deferred. The old behavior didn't cause breakages, but was imprecise and
+    pushed more code to the main output unit.
+
+*   A new deferred split algorithm implementation was added.
+
+    This implementation fixes a soundness bug and addresses performance issues
+    of the previous implementation, because of that it can have a visible impact
+    on apps. In particular:
+
+    *   We fixed a performance issue which was introduced when we migrated to
+        the common front-end. On large apps, the fix can cut 2/3 of the time
+        spent on this task.
+
+    *   We fixed a bug in how inferred types were categorized (Issue [35311][]).
+        The old behavior was unsound and could produce broken programs. The fix
+        may cause more code to be pulled into the main output unit.
+
+        This shows up frequently when returning deferred values from closures
+        since the closure's inferred return type is the deferred type. For
+        example, if you have:
+
+        ```dart
+        () async {
+          await deferred_prefix.loadLibrary();
+          return new deferred_prefix.Foo();
+        }
+        ```
+
+        The closure's return type is `Future<Foo>`. The old implementation
+        defers `Foo`, and incorrectly makes the return type `Future<dynamic>`.
+        This may break in places where the correct type is expected.
+
+        The new implementation will not defer `Foo`, and will place it in the
+        main output unit. If your intent is to defer it, then you need to ensure
+        the return type is not inferred to be `Foo`. For example, you can do so
+        by changing the code to a named closure with a declared type, or by
+        ensuring that the return expression has the type you want, like:
+
+        ```dart
+        () async {
+          await deferred_prefix.loadLibrary();
+          return new deferred_prefix.Foo() as dynamic;
+        }
+        ```
+
+        Because the new implementation might require you to inspect and fix your
+        app, we exposed two temporary flags:
+
+    *   The `--report-invalid-deferred-types` causes dart2js to run both the
+        old and new algorithms and report any cases where an invalid type was
+        detected.
+
+    *   The `--new-deferred-split` flag enables this new algorithm.
+
+*   The `--categories=*` flag is being replaced. `--categories=all` was only
+    used for testing and it is no longer supported. `--categories=Server`
+    continues to work at this time but it is deprecated, please use
+    `--server-mode` instead.
+
+*   The `--library-root` flag was replaced by `--libraries-spec`. This flag is
+    rarely used by developers invoking dart2js directly. It's important for
+    integrating dart2js with build systems. See `--help` for more details on the
+    new flag.
+
+[35311]: https://github.com/dart-lang/sdk/issues/35311
+
+### Tools
 
 #### Analyzer
 
@@ -181,135 +249,39 @@ See Issue [#35611](https://github.com/dart-lang/sdk/issues/35611) for more detai
 
 *   New hints added:
 
-    *   `INVALID_LITERAL_ANNOTATION` when something other than a const
+    *   `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR` and
+        `NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW` inform you when a
+        `@literal` const constructor is called in a non-const context (or with
+        `new`).
+    *   `INVALID_LITERAL_ANNOTATION` reports when something other than a const
         constructor is annotated with `@literal`.
-    *   `SUBTYPE_OF_SEALED_CLASS` when any class or mixin subclasses (extends,
-        implements, mixes in, or constrains to) a `@sealed` class, and the two
-        are declared in different packages.
-    *   `MIXIN_ON_SEALED_CLASS` when a `@sealed` class is used as a superclass
-        constraint of a mixin.
-
-#### dart2js
-
-* We fixed a bug in how deferred constructor calls were incorrectly not
-  marked as deferred. The old behavior didn't cause breakages, but was imprecise
-  and pushed more code to the main output unit.
-
-* A new deferred split algorithm implementation was added.
-
-  This implementation fixes a soundness bug and addresses performance issues of
-  the previous implementation, because of that it can have a visible impact
-  on apps. In particular,
-
-    * We fixed a performance issue which was introduced when we migrated to the
-      Common front-end. On large apps, the fix can cut down 2/3 of the time
-      spent on this task.
-
-    * We fixed a bug in how inferred types were miscategorized (Issue [35311]). The old
-      behavior was unsound and could produce broken programs. The fix may cause
-      more code to be pulled into the main output unit.
-
-      This shows up frequently when returning deferred values from closures
-      since the closure's inferred return type is the deferred type.
-      For example, if you have:
-
-      ```dart
-      () async {
-        await deferred_prefix.loadLibrary();
-        return new deferred_prefix.Foo();
-      }
-      ```
-
-      The closure's return type is `Future<Foo>`. The old implementation defers
-      `Foo`, and incorrectly makes the return type `Future<dynamic>`. This may
-      break in places where the correct type is expected.
-
-      The new implementation will not defer `Foo`, and will place it in the main
-      output unit. If your intent is to defer it, then you need to ensure the
-      return type is not inferred to be `Foo`. For example, you can do so by
-      changing the code to a named closure with a declared type, or by ensuring
-      that the return expression has the type you want, like:
-
-      ```dart
-      () async {
-        await deferred_prefix.loadLibrary();
-        return new deferred_prefix.Foo() as dynamic;
-      }
-      ```
-
-  Because the new implementation might require you to inspect and fix
-  your app, we exposed two temporary flags:
-
-    * `--report-invalid-deferred-types`: when provided, we will run both the
-      old and new algorithm and report where the issue was detected.
-
-    * `--new-deferred-split`: enables the new algorithm.
-
-[35311]: https://github.com/dart-lang/sdk/issues/35311
+    *   `SUBTYPE_OF_SEALED_CLASS` reports when any class or mixin subclasses
+        (extends, implements, mixes in, or constrains to) a `@sealed` class, and
+        the two are declared in different packages.
+    *   `MIXIN_ON_SEALED_CLASS` reports when a `@sealed` class is used as a
+        superclass constraint of a mixin.
 
 #### dartdoc
 
-* dartdoc default styles now work much better on mobile.  Simple browsing
-  and searching of API docs now work in many cases.
+Default styles now work much better on mobile. Simple browsing and searching of
+API docs now work in many cases.
 
-#### Linter
+Upgraded the linter to `0.1.78` which adds the following improvements:
 
-The linter was bumped to `0.1.78` which introduces the following linter fixes to the SDK:
-
-* fixed `type_annotate_public_apis` false positives on local functions
-* fixed `avoid_shadowing_type_parameters` to report shadowed type parameters in generic typedefs
-* fixed `use_setters_to_change_properties` to not wrongly lint overriding methods
-* fixed `cascade_invocations` to not lint awaited targets
-* fixed `prefer_conditional_assignment` false positives
-* fixed `join_return_with_assignment` false positives
-* fixed `cascade_invocations` false positives
-* miscellaneous documentation improvements
-* updated `invariant_booleans` status to experimental
-
-and adds:
-
-* a new `prefer_final_in_for_each` lint rule to flag loop variables that could be declared final
-
-## 2.1.1-dev.0.1
-
-* Cherry-pick 4914fe57ea9e034b948ef3ab5a4e7e511991f845 to dev
-* Cherry-pick 5a8ec419829337b60d705cabe0b3b1ab5d0d0883 to dev
-
-## 2.1.1-dev.0.0
-
-* Cherry-pick f8a680e5116493f8795c148a52dbecf8a84e4536 to dev
-* Cherry-pick b1c963c84b20e715bc5c1f7d443168071c2b971d to dev
-
-## 2.2.0-dev.1.1
-
-### Tool Changes
-
-#### Linter
-
-The linter was bumped to `0.1.73` which introduces the following new lints to the SDK:
-
-* `unnecessary_await_in_return`
-* `use_function_type_syntax_for_parameters`
-* `avoid_returning_null_for_future`
-* `avoid_shadowing_type_parameters`
-
-In addition, `prefer_bool_in_asserts` has been deprecated as its semantics are
-redundant with Dart 2 checks.
-
-## 2.2.0-dev.0.0
-
-### Dart for the Web
-
-#### dart2js
-
-* The `--categories=*` flag is being replaced. `--categories=all` was only used
-  for testing and it is no longer supported. `--categories=Server` continues to
-  work at this time but it is deprecated, please use `--server-mode` instead.
-
-* The `--library-root` flag was replaced by `--libraries-spec`. This flag is
-  rarely used by developers invoking dart2js directly. It's important for
-  integrating dart2js with build systems. See `--help` for more details on the
-  new flag.
+*   Added `prefer_final_in_for_each`, `unnecessary_await_in_return`,
+    `use_function_type_syntax_for_parameters`,
+    `avoid_returning_null_for_future`, and `avoid_shadowing_type_parameters`.
+*   Updated `invariant_booleans` status to experimental.
+*   Fixed `type_annotate_public_apis` false positives on local functions.
+*   Fixed `avoid_shadowing_type_parameters` to report shadowed type parameters
+    in generic typedefs.
+*   Fixed `use_setters_to_change_properties` to not wrongly lint overriding
+    methods.
+*   Fixed `cascade_invocations` to not lint awaited targets.
+*   Fixed `prefer_conditional_assignment` false positives.
+*   Fixed `join_return_with_assignment` false positives.
+*   Fixed `cascade_invocations` false positives.
+*   Deprecated `prefer_bool_in_asserts` as it is redundant in Dart 2.
 
 ## 2.1.0 - 2018-11-15
 
