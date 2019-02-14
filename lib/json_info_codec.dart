@@ -92,6 +92,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   OutputUnitInfo parseOutputUnit(Map json) {
     OutputUnitInfo result = parseId(json['id']);
     result
+      ..filename = json['filename']
       ..name = json['name']
       ..size = json['size'];
     result.imports
@@ -252,6 +253,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
           (json['parameters'] as List).map((p) => parseParameter(p)).toList()
       ..code = parseCode(json['code'])
       ..sideEffects = json['sideEffects']
+      ..inlinedCount = json['inlinedCount']
       ..modifiers =
           parseModifiers(new Map<String, bool>.from(json['modifiers']))
       ..closures = (json['children'] as List)
@@ -583,8 +585,9 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
   visitTypedef(TypedefInfo info) => _visitBasicInfo(info)..['type'] = info.type;
 
-  visitOutput(OutputUnitInfo info) =>
-      _visitBasicInfo(info)..['imports'] = info.imports;
+  visitOutput(OutputUnitInfo info) => _visitBasicInfo(info)
+    ..['filename'] = info.filename
+    ..['imports'] = info.imports;
 
   Object _serializeCode(List<CodeSpan> code) {
     if (isBackwardCompatible) {

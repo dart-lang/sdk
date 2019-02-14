@@ -206,6 +206,7 @@ class BinaryPrinter implements InfoVisitor<void> {
   void visitOutput(OutputUnitInfo output) {
     sink.writeCached(output, (OutputUnitInfo info) {
       _visitBasicInfo(info);
+      sink.writeStringOrNull(info.filename);
       sink.writeList(info.imports, sink.writeString);
     });
   }
@@ -445,6 +446,7 @@ class BinaryReader {
   OutputUnitInfo readOutput() => source.readCached<OutputUnitInfo>(() {
         OutputUnitInfo info = new OutputUnitInfo.internal();
         _readBasicInfo(info);
+        info.filename = source.readStringOrNull();
         info.imports = source.readList(source.readString);
         return info;
       });
