@@ -2606,7 +2606,10 @@ class Function : public Object {
   }
 
   DART_WARN_UNUSED_RESULT
-  RawError* VerifyEntryPoint() const;
+  RawError* VerifyCallEntryPoint() const;
+
+  DART_WARN_UNUSED_RESULT
+  RawError* VerifyClosurizedEntryPoint() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawFunction));
@@ -2970,7 +2973,13 @@ class RedirectionData : public Object {
   friend class HeapProfiler;
 };
 
-enum class EntryPointPragma { kAlways, kNever, kGetterOnly, kSetterOnly };
+enum class EntryPointPragma {
+  kAlways,
+  kNever,
+  kGetterOnly,
+  kSetterOnly,
+  kCallOnly
+};
 
 class FfiTrampolineData : public Object {
  public:
@@ -9414,7 +9423,7 @@ EntryPointPragma FindEntryPointPragma(Isolate* I,
                                       Object* reusable_object_handle);
 
 DART_WARN_UNUSED_RESULT
-RawError* EntryPointClosurizationError(const String& getter_name);
+RawError* EntryPointFieldInvocationError(const String& getter_name);
 
 }  // namespace dart
 

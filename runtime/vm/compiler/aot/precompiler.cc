@@ -987,6 +987,7 @@ void Precompiler::AddAnnotatedRoots() {
   auto& cls = Class::Handle(Z);
   auto& members = Array::Handle(Z);
   auto& function = Function::Handle(Z);
+  auto& function2 = Function::Handle(Z);
   auto& field = Field::Handle(Z);
   auto& metadata = Array::Handle(Z);
   auto& reusable_object_handle = Object::Handle(Z);
@@ -1051,13 +1052,23 @@ void Precompiler::AddAnnotatedRoots() {
         if (function.has_pragma()) {
           metadata ^= lib.GetMetadata(function);
           if (metadata.IsNull()) continue;
-          if (FindEntryPointPragma(isolate(), metadata, &reusable_field_handle,
-                                   &reusable_object_handle) !=
-              EntryPointPragma::kAlways) {
-            continue;
+          auto type =
+              FindEntryPointPragma(isolate(), metadata, &reusable_field_handle,
+                                   &reusable_object_handle);
+
+          if (type == EntryPointPragma::kAlways ||
+              type == EntryPointPragma::kCallOnly) {
+            AddFunction(function);
           }
 
-          AddFunction(function);
+          if ((type == EntryPointPragma::kAlways ||
+               type == EntryPointPragma::kGetterOnly) &&
+              function.kind() != RawFunction::kConstructor &&
+              !function.IsSetterFunction()) {
+            function2 = function.ImplicitClosureFunction();
+            AddFunction(function2);
+          }
+
           if (function.IsGenerativeConstructor()) {
             AddInstantiatedClass(cls);
           }

@@ -907,7 +907,8 @@ class RawFunction : public RawObject {
   RawArray* parameter_types_;
   RawArray* parameter_names_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
-  RawObject* data_;  // Additional data specific to the function kind.
+  RawObject* data_;  // Additional data specific to the function kind. See
+                     // Function::set_data() for details.
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:

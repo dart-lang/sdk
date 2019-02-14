@@ -37,10 +37,22 @@ class D {
   @pragma("vm:entry-point")
   void fn1() {}
 
+  @pragma("vm:entry-point", "get")
+  void fn1_get() {}
+
+  @pragma("vm:entry-point", "call")
+  void fn1_call() {}
+
   static void fn2() {}
 
   @pragma("vm:entry-point")
   static void fn3() {}
+
+  @pragma("vm:entry-point", "call")
+  static void fn3_call() {}
+
+  @pragma("vm:entry-point", "get")
+  static void fn3_get() {}
 
   void Function() fld0;
 
@@ -58,6 +70,12 @@ void fn0() {}
 
 @pragma("vm:entry-point")
 void fn1() {}
+
+@pragma("vm:entry-point", "get")
+void fn1_get() {}
+
+@pragma("vm:entry-point", "call")
+void fn1_call() {}
 
 class E extends D {
   E.ctor();

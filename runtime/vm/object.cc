@@ -3294,7 +3294,7 @@ RawObject* Class::InvokeGetter(const String& getter_name,
         Function::Handle(zone, LookupStaticFunction(internal_getter_name));
 
     if (field.IsNull() && !getter.IsNull() && check_is_entrypoint) {
-      CHECK_ERROR(getter.VerifyEntryPoint());
+      CHECK_ERROR(getter.VerifyCallEntryPoint());
     }
 
     if (getter.IsNull() || (respect_reflectable && !getter.is_reflectable())) {
@@ -3302,7 +3302,7 @@ RawObject* Class::InvokeGetter(const String& getter_name,
         getter = LookupStaticFunction(getter_name);
         if (!getter.IsNull()) {
           if (check_is_entrypoint) {
-            CHECK_ERROR(EntryPointClosurizationError(getter_name));
+            CHECK_ERROR(getter.VerifyClosurizedEntryPoint());
           }
           if (getter.SafeToClosurize()) {
             // Looking for a getter but found a regular method: closurize it.
@@ -3360,7 +3360,7 @@ RawObject* Class::InvokeSetter(const String& setter_name,
     const Function& setter =
         Function::Handle(zone, LookupStaticFunction(internal_setter_name));
     if (!setter.IsNull() && check_is_entrypoint) {
-      CHECK_ERROR(setter.VerifyEntryPoint());
+      CHECK_ERROR(setter.VerifyCallEntryPoint());
     }
     const int kNumArgs = 1;
     const Array& args = Array::Handle(zone, Array::New(kNumArgs));
@@ -3422,7 +3422,7 @@ RawObject* Class::Invoke(const String& function_name,
       Function::Handle(zone, LookupStaticFunction(function_name));
 
   if (!function.IsNull() && check_is_entrypoint) {
-    CHECK_ERROR(function.VerifyEntryPoint());
+    CHECK_ERROR(function.VerifyCallEntryPoint());
   }
 
   if (function.IsNull()) {
@@ -3432,7 +3432,7 @@ RawObject* Class::Invoke(const String& function_name,
                            check_is_entrypoint));
     if (getter_result.raw() != Object::sentinel().raw()) {
       if (check_is_entrypoint) {
-        CHECK_ERROR(EntryPointClosurizationError(function_name));
+        CHECK_ERROR(EntryPointFieldInvocationError(function_name));
       }
       // Make room for the closure (receiver) in the argument list.
       const intptr_t num_args = args.Length();
@@ -10612,7 +10612,35 @@ RawNamespace* Library::ImportAt(intptr_t index) const {
 }
 
 void Library::DropDependenciesAndCaches() const {
-  StorePointer(&raw_ptr()->imports_, Object::empty_array().raw());
+  // We need to preserve the "dart-ext:" imports because they are used by
+  // Loader::ReloadNativeExtensions().
+  intptr_t native_import_count = 0;
+  Array& imports = Array::Handle(raw_ptr()->imports_);
+  Namespace& ns = Namespace::Handle();
+  Library& lib = Library::Handle();
+  String& url = String::Handle();
+  for (int i = 0; i < imports.Length(); ++i) {
+    ns = Namespace::RawCast(imports.At(i));
+    if (ns.IsNull()) continue;
+    lib = ns.library();
+    url = lib.url();
+    if (url.StartsWith(Symbols::DartExtensionScheme())) {
+      native_import_count++;
+    }
+  }
+  Array& new_imports =
+      Array::Handle(Array::New(native_import_count, Heap::kOld));
+  for (int i = 0, j = 0; i < imports.Length(); ++i) {
+    ns = Namespace::RawCast(imports.At(i));
+    if (ns.IsNull()) continue;
+    lib = ns.library();
+    url = lib.url();
+    if (url.StartsWith(Symbols::DartExtensionScheme())) {
+      new_imports.SetAt(j++, ns);
+    }
+  }
+
+  StorePointer(&raw_ptr()->imports_, new_imports.raw());
   StorePointer(&raw_ptr()->exports_, Object::empty_array().raw());
   StoreNonPointer(&raw_ptr()->num_imports_, 0);
   StorePointer(&raw_ptr()->resolved_names_, Array::null());
@@ -10831,7 +10859,7 @@ RawObject* Library::InvokeGetter(const String& getter_name,
     if (obj.IsFunction()) {
       getter = Function::Cast(obj).raw();
       if (check_is_entrypoint) {
-        CHECK_ERROR(getter.VerifyEntryPoint());
+        CHECK_ERROR(getter.VerifyCallEntryPoint());
       }
     } else {
       obj = LookupLocalOrReExportObject(getter_name);
@@ -10841,7 +10869,7 @@ RawObject* Library::InvokeGetter(const String& getter_name,
       if (obj.IsFunction() && check_is_entrypoint) {
         if (!getter_name.Equals(String::Handle(String::New("main"))) ||
             raw() != Isolate::Current()->object_store()->root_library()) {
-          CHECK_ERROR(EntryPointClosurizationError(getter_name));
+          CHECK_ERROR(Function::Cast(obj).VerifyClosurizedEntryPoint());
         }
       }
       if (obj.IsFunction() && Function::Cast(obj).SafeToClosurize()) {
@@ -10912,7 +10940,7 @@ RawObject* Library::InvokeSetter(const String& setter_name,
   }
 
   if (!setter.IsNull() && check_is_entrypoint) {
-    CHECK_ERROR(setter.VerifyEntryPoint());
+    CHECK_ERROR(setter.VerifyCallEntryPoint());
   }
 
   const int kNumArgs = 1;
@@ -10950,7 +10978,7 @@ RawObject* Library::Invoke(const String& function_name,
   }
 
   if (!function.IsNull() && check_is_entrypoint) {
-    CHECK_ERROR(function.VerifyEntryPoint());
+    CHECK_ERROR(function.VerifyCallEntryPoint());
   }
 
   if (function.IsNull()) {
@@ -10959,7 +10987,7 @@ RawObject* Library::Invoke(const String& function_name,
         function_name, false, respect_reflectable, check_is_entrypoint));
     if (getter_result.raw() != Object::sentinel().raw()) {
       if (check_is_entrypoint) {
-        CHECK_ERROR(EntryPointClosurizationError(function_name));
+        CHECK_ERROR(EntryPointFieldInvocationError(function_name));
       }
       // Make room for the closure (receiver) in arguments.
       intptr_t numArgs = args.Length();
@@ -15682,7 +15710,7 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
   Function& function = Function::Handle(
       zone, Resolver::ResolveDynamicAnyArgs(zone, klass, internal_getter_name));
 
-  if (check_is_entrypoint) {
+  if (!function.IsNull() && check_is_entrypoint) {
     // The getter must correspond to either an entry-point field or a getter
     // method explicitly marked.
     Field& field = Field::Handle(zone);
@@ -15691,8 +15719,8 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
     }
     if (!field.IsNull()) {
       CHECK_ERROR(field.VerifyEntryPoint(EntryPointPragma::kGetterOnly));
-    } else if (!function.IsNull()) {
-      CHECK_ERROR(function.VerifyEntryPoint());
+    } else {
+      CHECK_ERROR(function.VerifyCallEntryPoint());
     }
   }
 
@@ -15701,7 +15729,7 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
     function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
 
     if (!function.IsNull() && check_is_entrypoint) {
-      CHECK_ERROR(EntryPointClosurizationError(getter_name));
+      CHECK_ERROR(function.VerifyClosurizedEntryPoint());
     }
 
     if (!function.IsNull() && function.SafeToClosurize()) {
@@ -15750,7 +15778,7 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
     if (!field.IsNull()) {
       CHECK_ERROR(field.VerifyEntryPoint(EntryPointPragma::kSetterOnly));
     } else if (!setter.IsNull()) {
-      CHECK_ERROR(setter.VerifyEntryPoint());
+      CHECK_ERROR(setter.VerifyCallEntryPoint());
     }
   }
 
@@ -15778,7 +15806,7 @@ RawObject* Instance::Invoke(const String& function_name,
       zone, Resolver::ResolveDynamicAnyArgs(zone, klass, function_name));
 
   if (!function.IsNull() && check_is_entrypoint) {
-    CHECK_ERROR(function.VerifyEntryPoint());
+    CHECK_ERROR(function.VerifyCallEntryPoint());
   }
 
   // TODO(regis): Support invocation of generic functions with type arguments.
@@ -15798,7 +15826,7 @@ RawObject* Instance::Invoke(const String& function_name,
     function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
     if (!function.IsNull()) {
       if (check_is_entrypoint) {
-        CHECK_ERROR(EntryPointClosurizationError(function_name));
+        CHECK_ERROR(EntryPointFieldInvocationError(function_name));
       }
       ASSERT(function.kind() != RawFunction::kMethodExtractor);
       // Invoke the getter.
@@ -21681,15 +21709,19 @@ EntryPointPragma FindEntryPointPragma(Isolate* I,
     if (pragma->raw() == Symbols::Set().raw()) {
       return EntryPointPragma::kSetterOnly;
     }
+    if (pragma->raw() == Symbols::Call().raw()) {
+      return EntryPointPragma::kCallOnly;
+    }
   }
   return EntryPointPragma::kNever;
 }
 
 DART_WARN_UNUSED_RESULT
-RawError* VerifyEntryPoint(const Library& lib,
-                           const Object& member,
-                           const Object& annotated,
-                           EntryPointPragma kind) {
+RawError* VerifyEntryPoint(
+    const Library& lib,
+    const Object& member,
+    const Object& annotated,
+    std::initializer_list<EntryPointPragma> allowed_kinds) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // Annotations are discarded in the AOT snapshot, so we can't determine
   // precisely if this member was marked as an entry-point. Instead, we use
@@ -21713,13 +21745,23 @@ RawError* VerifyEntryPoint(const Library& lib,
   EntryPointPragma pragma =
       FindEntryPointPragma(Isolate::Current(), Array::Cast(metadata),
                            &Field::Handle(), &Object::Handle());
-  const bool is_marked_entrypoint =
-      pragma == kind || pragma == EntryPointPragma::kAlways;
+  bool is_marked_entrypoint = pragma == EntryPointPragma::kAlways;
+  if (!is_marked_entrypoint) {
+    for (const auto allowed_kind : allowed_kinds) {
+      if (pragma == allowed_kind) {
+        is_marked_entrypoint = true;
+        break;
+      }
+    }
+  }
 #endif
   if (!is_marked_entrypoint) {
     const char* member_cstring =
         member.IsFunction()
-            ? Function::Cast(member).ToLibNamePrefixedQualifiedCString()
+            ? OS::SCreate(
+                  Thread::Current()->zone(), "%s (kind %s)",
+                  Function::Cast(member).ToLibNamePrefixedQualifiedCString(),
+                  Function::KindToCString(Function::Cast(member).kind()))
             : member.ToCString();
     char const* error = OS::SCreate(
         Thread::Current()->zone(),
@@ -21735,12 +21777,12 @@ RawError* VerifyEntryPoint(const Library& lib,
 }
 
 DART_WARN_UNUSED_RESULT
-RawError* EntryPointClosurizationError(const String& getter_name) {
+RawError* EntryPointFieldInvocationError(const String& getter_name) {
   if (!FLAG_verify_entry_points) return Error::null();
 
   char const* error = OS::SCreate(
       Thread::Current()->zone(),
-      "ERROR: Entry-points do not allow closurizing methods "
+      "ERROR: Entry-points do not allow invoking fields "
       "(failure to resolve '%s')\n"
       "ERROR: See "
       "https://github.com/dart-lang/sdk/blob/master/runtime/docs/compiler/"
@@ -21750,35 +21792,52 @@ RawError* EntryPointClosurizationError(const String& getter_name) {
   return ApiError::New(String::Handle(String::New(error)));
 }
 
-RawError* Function::VerifyEntryPoint() const {
+RawError* Function::VerifyCallEntryPoint() const {
   if (!FLAG_verify_entry_points) return Error::null();
 
   const Class& cls = Class::Handle(Owner());
   const Library& lib = Library::Handle(cls.library());
   switch (kind()) {
     case RawFunction::kRegularFunction:
-    case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor:
       return dart::VerifyEntryPoint(lib, *this, *this,
-                                    EntryPointPragma::kAlways);
+                                    {EntryPointPragma::kCallOnly});
       break;
-    case RawFunction::kImplicitGetter: {
-      const Field& accessed = Field::Handle(accessor_field());
-      return dart::VerifyEntryPoint(lib, *this, accessed,
-                                    EntryPointPragma::kGetterOnly);
+    case RawFunction::kGetterFunction:
+      return dart::VerifyEntryPoint(
+          lib, *this, *this,
+          {EntryPointPragma::kCallOnly, EntryPointPragma::kGetterOnly});
       break;
-    }
-    case RawFunction::kImplicitSetter: {
-      const Field& accessed = Field::Handle(accessor_field());
-      return dart::VerifyEntryPoint(lib, *this, accessed,
-                                    EntryPointPragma::kSetterOnly);
+    case RawFunction::kImplicitGetter:
+      return dart::VerifyEntryPoint(lib, *this, Field::Handle(accessor_field()),
+                                    {EntryPointPragma::kGetterOnly});
       break;
-    }
+    case RawFunction::kImplicitSetter:
+      return dart::VerifyEntryPoint(lib, *this, Field::Handle(accessor_field()),
+                                    {EntryPointPragma::kSetterOnly});
+    case RawFunction::kMethodExtractor:
+      return Function::Handle(extracted_method_closure())
+          .VerifyClosurizedEntryPoint();
+      break;
     default:
-      return dart::VerifyEntryPoint(lib, *this, Object::Handle(),
-                                    EntryPointPragma::kAlways);
+      return dart::VerifyEntryPoint(lib, *this, Object::Handle(), {});
       break;
+  }
+}
+
+RawError* Function::VerifyClosurizedEntryPoint() const {
+  if (!FLAG_verify_entry_points) return Error::null();
+
+  const Class& cls = Class::Handle(Owner());
+  const Library& lib = Library::Handle(cls.library());
+  switch (kind()) {
+    case RawFunction::kRegularFunction:
+    case RawFunction::kImplicitClosureFunction:
+      return dart::VerifyEntryPoint(lib, *this, *this,
+                                    {EntryPointPragma::kGetterOnly});
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -21786,14 +21845,14 @@ RawError* Field::VerifyEntryPoint(EntryPointPragma pragma) const {
   if (!FLAG_verify_entry_points) return Error::null();
   const Class& cls = Class::Handle(Owner());
   const Library& lib = Library::Handle(cls.library());
-  return dart::VerifyEntryPoint(lib, *this, *this, pragma);
+  return dart::VerifyEntryPoint(lib, *this, *this, {pragma});
 }
 
 RawError* Class::VerifyEntryPoint() const {
   if (!FLAG_verify_entry_points) return Error::null();
   const Library& lib = Library::Handle(library());
   if (!lib.IsNull()) {
-    return dart::VerifyEntryPoint(lib, *this, *this, EntryPointPragma::kAlways);
+    return dart::VerifyEntryPoint(lib, *this, *this, {});
   } else {
     return Error::null();
   }

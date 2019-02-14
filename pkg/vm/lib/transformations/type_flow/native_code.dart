@@ -58,7 +58,7 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     if (!klass.isAbstract) {
       var type = _annotationsDefineRoot(klass.annotations);
       if (type != null) {
-        if (type != PragmaEntryPointType.Always) {
+        if (type != PragmaEntryPointType.Default) {
           throw "Error: pragma entry-point definition on a class must evaluate "
               "to null, true or false. See entry_points_pragma.md.";
         }
@@ -73,17 +73,39 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
   visitProcedure(Procedure proc) {
     var type = _annotationsDefineRoot(proc.annotations);
     if (type != null) {
-      if (type != PragmaEntryPointType.Always) {
-        throw "Error: pragma entry-point definition on a procedure (including"
-            "getters and setters) must evaluate to null, true or false. "
-            "See entry_points_pragma.md.";
+      void addSelector(CallKind ck) {
+        entryPoints.addRawCall(proc.isInstanceMember
+            ? new InterfaceSelector(proc, callKind: ck)
+            : new DirectSelector(proc, callKind: ck));
       }
-      var callKind = proc.isGetter
+
+      final defaultCallKind = proc.isGetter
           ? CallKind.PropertyGet
           : (proc.isSetter ? CallKind.PropertySet : CallKind.Method);
-      entryPoints.addRawCall(proc.isInstanceMember
-          ? new InterfaceSelector(proc, callKind: callKind)
-          : new DirectSelector(proc, callKind: callKind));
+
+      switch (type) {
+        case PragmaEntryPointType.CallOnly:
+          addSelector(defaultCallKind);
+          break;
+        case PragmaEntryPointType.SetterOnly:
+          if (!proc.isSetter) {
+            throw "Error: cannot generate a setter for a method or getter ($proc).";
+          }
+          addSelector(CallKind.PropertySet);
+          break;
+        case PragmaEntryPointType.GetterOnly:
+          if (proc.isSetter) {
+            throw "Error: cannot closurize a setter ($proc).";
+          }
+          addSelector(CallKind.PropertyGet);
+          break;
+        case PragmaEntryPointType.Default:
+          addSelector(defaultCallKind);
+          if (!proc.isSetter && !proc.isGetter) {
+            addSelector(CallKind.PropertyGet);
+          }
+      }
+
       nativeCodeOracle.setMemberReferencedFromNativeCode(proc);
     }
   }
@@ -92,9 +114,10 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
   visitConstructor(Constructor ctor) {
     var type = _annotationsDefineRoot(ctor.annotations);
     if (type != null) {
-      if (type != PragmaEntryPointType.Always) {
-        throw "Error: pragma entry-point definition on a constructor must "
-            "evaluate to null, true or false. See entry_points_pragma.md.";
+      if (type != PragmaEntryPointType.Default &&
+          type != PragmaEntryPointType.CallOnly) {
+        throw "Error: pragma entry-point definition on a constructor ($ctor) must"
+            "evaluate to null, true, false or 'call'. See entry_points_pragma.md.";
       }
       entryPoints
           .addRawCall(new DirectSelector(ctor, callKind: CallKind.Method));
@@ -125,12 +148,15 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         }
         addSelector(CallKind.PropertySet);
         break;
-      case PragmaEntryPointType.Always:
+      case PragmaEntryPointType.Default:
         addSelector(CallKind.PropertyGet);
         if (!field.isFinal) {
           addSelector(CallKind.PropertySet);
         }
         break;
+      case PragmaEntryPointType.CallOnly:
+        throw "Error: can't generate invocation dispatcher for field $field"
+            "through @pragma('vm:entry-point')";
     }
 
     nativeCodeOracle.setMemberReferencedFromNativeCode(field);

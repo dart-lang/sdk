@@ -572,7 +572,9 @@ void KernelLoader::LoadNativeExtensionLibraries(
   Instance& constant = Instance::Handle(Z);
   String& uri_path = String::Handle(Z);
   Library& library = Library::Handle(Z);
+#if !defined(DART_PRECOMPILER)
   Object& result = Object::Handle(Z);
+#endif
 
   for (intptr_t i = 0; i < length; ++i) {
     library ^= potential_extension_libraries_.At(i);
@@ -603,6 +605,7 @@ void KernelLoader::LoadNativeExtensionLibraries(
 
       if (uri_path.IsNull()) continue;
 
+#if !defined(DART_PRECOMPILER)
       if (!I->HasTagHandler()) {
         H.ReportError("no library handler registered.");
       }
@@ -614,6 +617,7 @@ void KernelLoader::LoadNativeExtensionLibraries(
       if (result.IsError()) {
         H.ReportError(Error::Cast(result), "library handler failed");
       }
+#endif
 
       // Create a dummy library and add it as an import to the current library.
       // This allows later to discover and reload this native extension, e.g.

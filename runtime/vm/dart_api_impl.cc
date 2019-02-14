@@ -3749,7 +3749,7 @@ static RawObject* ResolveConstructor(const char* current_func,
         current_func, constr_name.ToCString(), error_message.ToCString()));
     return ApiError::New(message);
   }
-  RawError* error = constructor.VerifyEntryPoint();
+  RawError* error = constructor.VerifyCallEntryPoint();
   if (error != Error::null()) return error;
   return constructor.raw();
 }
@@ -4043,7 +4043,7 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
   if (!constructor.IsNull() && constructor.IsGenerativeConstructor() &&
       constructor.AreValidArgumentCounts(
           kTypeArgsLen, number_of_arguments + extra_args, 0, NULL)) {
-    CHECK_ERROR_HANDLE(constructor.VerifyEntryPoint());
+    CHECK_ERROR_HANDLE(constructor.VerifyCallEntryPoint());
     // Create the argument list.
     // Constructors get the uninitialized object.
     if (!type_arguments.IsNull()) {

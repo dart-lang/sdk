@@ -368,6 +368,7 @@ class ObjectPointerVisitor;
   V(Index, "index")                                                            \
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \
+  V(DartExtensionScheme, "dart-ext:")                                          \
   V(DartInternalPackage, "package:dart_internal/")                             \
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
   V(DartNativeWrappersLibName, "nativewrappers")                               \
