@@ -240,8 +240,11 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(_currentFunctionType == null);
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);
-    node.functionExpression.body.accept(this);
-    _currentFunctionType = null;
+    try {
+      node.functionExpression.body.accept(this);
+    } finally {
+      _currentFunctionType = null;
+    }
     return null;
   }
 
@@ -265,16 +268,22 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     if (trueGuard != null) {
       _guards.add(trueGuard);
     }
-    node.thenStatement.accept(this);
-    if (trueGuard != null) {
-      _guards.removeLast();
+    try {
+      node.thenStatement.accept(this);
+    } finally {
+      if (trueGuard != null) {
+        _guards.removeLast();
+      }
     }
     if (falseGuard != null) {
       _guards.add(falseGuard);
     }
-    node.elseStatement?.accept(this);
-    if (falseGuard != null) {
-      _guards.removeLast();
+    try {
+      node.elseStatement?.accept(this);
+    } finally {
+      if (falseGuard != null) {
+        _guards.removeLast();
+      }
     }
     return null;
   }
@@ -290,8 +299,11 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(_currentFunctionType == null);
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);
-    node.body.accept(this);
-    _currentFunctionType = null;
+    try {
+      node.body.accept(this);
+    } finally {
+      _currentFunctionType = null;
+    }
     return null;
   }
 
@@ -407,23 +419,26 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       Expression expression) {
     if (sourceType.nullable != null) {
       _guards.add(sourceType.nullable);
-      CheckExpression checkNotNull;
-      if (expression != null) {
-        checkNotNull = CheckExpression(expression);
-        _variables.recordExpressionChecks(
-            expression, ExpressionChecks(_source, checkNotNull));
-      }
-      // nullable_src => nullable_dst | check_expr
-      _recordFact(ConstraintVariable.or(
-          _constraints, destinationType.nullable, checkNotNull));
-      if (checkNotNull != null) {
-        // nullable_src & nonNullIntent_dst => check_expr
-        var nonNullIntent = destinationType.nonNullIntent;
-        if (nonNullIntent != null) {
-          _recordConstraint(nonNullIntent, checkNotNull);
+      try {
+        CheckExpression checkNotNull;
+        if (expression != null) {
+          checkNotNull = CheckExpression(expression);
+          _variables.recordExpressionChecks(
+              expression, ExpressionChecks(_source, checkNotNull));
         }
+        // nullable_src => nullable_dst | check_expr
+        _recordFact(ConstraintVariable.or(
+            _constraints, destinationType.nullable, checkNotNull));
+        if (checkNotNull != null) {
+          // nullable_src & nonNullIntent_dst => check_expr
+          var nonNullIntent = destinationType.nonNullIntent;
+          if (nonNullIntent != null) {
+            _recordConstraint(nonNullIntent, checkNotNull);
+          }
+        }
+      } finally {
+        _guards.removeLast();
       }
-      _guards.removeLast();
     }
     // TODO(paulberry): it's a cheat to pass in expression=null for the
     // recursive checks.  Really we want to unify all the checks in a single
@@ -508,8 +523,11 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   void _recordConstraint(
       ConstraintVariable condition, ConstraintVariable consequence) {
     _guards.add(condition);
-    _recordFact(consequence);
-    _guards.removeLast();
+    try {
+      _recordFact(consequence);
+    } finally {
+      _guards.removeLast();
+    }
   }
 
   /// Records a constraint having [consequence] as its right hand side.  Any

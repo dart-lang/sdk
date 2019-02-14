@@ -172,8 +172,11 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
         namedParameters: {},
         namedParameterOptionalVariables: {});
     _currentFunctionType = functionType;
-    parameters.accept(this);
-    _currentFunctionType = previousFunctionType;
+    try {
+      parameters.accept(this);
+    } finally {
+      _currentFunctionType = previousFunctionType;
+    }
     _variables.recordDecoratedElementType(declaredElement, functionType);
   }
 }
