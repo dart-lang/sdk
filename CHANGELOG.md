@@ -73,7 +73,7 @@ Upgraded the linter to `0.1.82` which adds the following improvements:
 
 ## 2.1.1 - 2019-02-18
 
-This is a minor version release. Again, the team's focus was mostly on improving
+This is a patch version release. Again, the team's focus was mostly on improving
 performance and stability after the large changes in Dart 2.0.0. In particular,
 dart2js now always uses the "fast startup" emitter and the old emitter has been
 removed.
