@@ -240,6 +240,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(_currentFunctionType == null);
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);
+    _inConditionalControlFlow = false;
     try {
       node.functionExpression.body.accept(this);
     } finally {
@@ -299,6 +300,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(_currentFunctionType == null);
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);
+    _inConditionalControlFlow = false;
     try {
       node.body.accept(this);
     } finally {

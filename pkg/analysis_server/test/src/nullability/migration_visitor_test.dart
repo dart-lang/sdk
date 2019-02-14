@@ -355,6 +355,22 @@ void f([int i]) {}
     assertConstraint([], decoratedTypeAnnotation('int').nullable);
   }
 
+  test_functionDeclaration_resets_unconditional_control_flow() async {
+    await analyze('''
+void f(bool b, int i, int j) {
+  assert(i != null);
+  if (b) return;
+  assert(j != null);
+}
+void g(int k) {
+  assert(k != null);
+}
+''');
+    assertConstraint([], decoratedTypeAnnotation('int i').nonNullIntent);
+    assertNoConstraints(decoratedTypeAnnotation('int j').nonNullIntent);
+    assertConstraint([], decoratedTypeAnnotation('int k').nonNullIntent);
+  }
+
   test_functionInvocation_parameter_fromLocalParameter() async {
     await analyze('''
 void f(int/*1*/ i) {}
@@ -545,6 +561,24 @@ int f() {
 }
 ''');
     assertNoConstraints(decoratedTypeAnnotation('int').nullable);
+  }
+
+  test_methodDeclaration_resets_unconditional_control_flow() async {
+    await analyze('''
+class C {
+  void f(bool b, int i, int j) {
+    assert(i != null);
+    if (b) return;
+    assert(j != null);
+  }
+  void g(int k) {
+    assert(k != null);
+  }
+}
+''');
+    assertConstraint([], decoratedTypeAnnotation('int i').nonNullIntent);
+    assertNoConstraints(decoratedTypeAnnotation('int j').nonNullIntent);
+    assertConstraint([], decoratedTypeAnnotation('int k').nonNullIntent);
   }
 
   test_methodInvocation_parameter_contravariant() async {
