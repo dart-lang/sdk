@@ -551,6 +551,9 @@ Future<Uri> asFileUri(FileSystem fileSystem, Uri uri) async {
 /// Convert URI to a package URI if it is inside one of the packages.
 Future<Uri> convertToPackageUri(
     FileSystem fileSystem, Uri uri, Uri packagesUri) async {
+  if (uri.scheme == 'package') {
+    return uri;
+  }
   // Convert virtual URI to a real file URI.
   String uriString = (await asFileUri(fileSystem, uri)).toString();
   List<String> packages;
@@ -719,3 +722,6 @@ Future<void> writeDepfile(FileSystem fileSystem, Component component,
   file.write('\n');
   await file.close();
 }
+
+// Used by kernel_front_end_test.dart
+main() {}
