@@ -39,6 +39,7 @@ io/platform_resolved_executable_test/03: RuntimeError
 io/platform_resolved_executable_test/04: RuntimeError
 
 [ $compiler == dartkp ]
+io/arguments_test: Fail # Test harness passes runtime arguments to the compiler
 io/test_runner_test: SkipByDesign # Is not relevant for AOT.
 
 [ $fasta ]
