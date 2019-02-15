@@ -50,6 +50,9 @@ package/scenarios/invalid/invalid_utf8_test: CompileTimeError
 package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
 package/scenarios/invalid/same_package_twice_test: CompileTimeError
 
+[ $arch == arm && $compiler == dartkp && $mode == release && $system == android ]
+entrypoints_verification_test: Skip # https://github.com/dart-lang/sdk/issues/35957
+
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 io/file_lock_test: SkipSlow # Timeout
 
