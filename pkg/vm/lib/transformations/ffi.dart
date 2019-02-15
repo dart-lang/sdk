@@ -10,6 +10,7 @@ library vm.transformations.ffi;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
+import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
@@ -77,6 +78,7 @@ const List<int> nativeTypeSizes = [
 /// _FfiUseSiteTransformer and _FfiDefinitionTransformer.
 class FfiTransformer extends Transformer {
   final TypeEnvironment env;
+  final LibraryIndex index;
   final ClassHierarchy hierarchy;
   final DiagnosticReporter diagnosticReporter;
 
@@ -99,25 +101,28 @@ class FfiTransformer extends Transformer {
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
 
-  FfiTransformer(this.hierarchy, CoreTypes coreTypes, this.diagnosticReporter)
+  FfiTransformer(
+      this.index, CoreTypes coreTypes, this.hierarchy, this.diagnosticReporter)
       : env = new TypeEnvironment(coreTypes, hierarchy),
         intClass = coreTypes.intClass,
         doubleClass = coreTypes.doubleClass,
-        ffiLibrary = coreTypes.ffiLibrary,
-        nativeFunctionClass = coreTypes.ffiNativeFunctionClass,
-        pointerClass = coreTypes.ffiPointerClass,
-        castMethod = coreTypes.ffiPointerCastProcedure,
-        loadMethod = coreTypes.ffiPointerLoadProcedure,
-        storeMethod = coreTypes.ffiPointerStoreProcedure,
-        offsetByMethod = coreTypes.ffiPointerOffsetByProcedure,
-        asFunctionMethod = coreTypes.ffiPointerAsFunctionProcedure,
-        lookupFunctionMethod =
-            coreTypes.ffiDynamicLibraryLookupFunctionProcedure,
-        fromFunctionMethod = coreTypes.ffiFromFunctionProcedure,
-        structField = coreTypes.ffiStructField,
         pragmaConstructor = coreTypes.pragmaConstructor,
-        nativeTypesClasses =
-            nativeTypeClassNames.map(coreTypes.ffiNativeTypeClass).toList() {}
+        ffiLibrary = index.getLibrary('dart:ffi'),
+        nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
+        pointerClass = index.getClass('dart:ffi', 'Pointer'),
+        castMethod = index.getMember('dart:ffi', 'Pointer', 'cast'),
+        loadMethod = index.getMember('dart:ffi', 'Pointer', 'load'),
+        storeMethod = index.getMember('dart:ffi', 'Pointer', 'store'),
+        offsetByMethod = index.getMember('dart:ffi', 'Pointer', 'offsetBy'),
+        asFunctionMethod = index.getMember('dart:ffi', 'Pointer', 'asFunction'),
+        lookupFunctionMethod =
+            index.getMember('dart:ffi', 'DynamicLibrary', 'lookupFunction'),
+        fromFunctionMethod =
+            index.getTopLevelMember('dart:ffi', 'fromFunction'),
+        structField = index.getTopLevelMember('dart:ffi', 'struct'),
+        nativeTypesClasses = nativeTypeClassNames
+            .map((name) => index.getClass('dart:ffi', name))
+            .toList() {}
 
   /// Computes the Dart type corresponding to a ffi.[NativeType], returns null
   /// if it is not a valid NativeType.

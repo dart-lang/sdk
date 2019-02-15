@@ -90,9 +90,9 @@ class VmTarget extends Target {
 
     transformFfi.ReplacedMembers replacedFields =
         transformFfiDefinitions.transformLibraries(
-            coreTypes, hierarchy, libraries, diagnosticReporter);
-    transformFfiUseSites.transformLibraries(
-        coreTypes, hierarchy, libraries, diagnosticReporter, replacedFields);
+            component, coreTypes, hierarchy, libraries, diagnosticReporter);
+    transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
+        libraries, diagnosticReporter, replacedFields);
     logger?.call("Transformed ffi annotations");
 
     // TODO(kmillikin): Make this run on a per-method basis.

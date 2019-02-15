@@ -558,7 +558,6 @@ class KernelTarget extends TargetImplementation {
       "dart:_internal",
       "dart:async",
       "dart:core",
-      "dart:ffi",
       "dart:mirrors"
     ]) {
       Uri uri = Uri.parse(platformLibrary);
@@ -574,8 +573,8 @@ class KernelTarget extends TargetImplementation {
             break;
           }
         }
-        if (!found && uri.path != "mirrors" && uri.path != "ffi") {
-          // dart:mirrors and dart:ffi are optional.
+        if (!found && uri.path != "mirrors") {
+          // dart:mirrors is optional.
           throw "Can't find $uri";
         }
       } else {
