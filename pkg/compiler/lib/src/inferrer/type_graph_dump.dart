@@ -335,6 +335,10 @@ class _GraphGenerator extends TypeInformationVisitor {
     addNode(info, 'ElementInContainer');
   }
 
+  void visitElementInSetTypeInformation(ElementInSetTypeInformation info) {
+    addNode(info, 'ElementInSet');
+  }
+
   void visitKeyInMapTypeInformation(KeyInMapTypeInformation info) {
     addNode(info, 'KeyInMap');
   }
@@ -345,6 +349,10 @@ class _GraphGenerator extends TypeInformationVisitor {
 
   void visitListTypeInformation(ListTypeInformation info) {
     addNode(info, 'List');
+  }
+
+  void visitSetTypeInformation(SetTypeInformation info) {
+    addNode(info, 'Set');
   }
 
   void visitMapTypeInformation(MapTypeInformation info) {

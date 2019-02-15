@@ -1580,6 +1580,65 @@ class ElementInContainerTypeInformation extends InferredTypeInformation {
   }
 }
 
+/// A [SetTypeInformation] is a [TypeInformation] created for sets.
+class SetTypeInformation extends TypeInformation with TracedTypeInformation {
+  final ElementInSetTypeInformation elementType;
+
+  final AbstractValue originalType;
+
+  SetTypeInformation(
+      MemberTypeInformation context, this.originalType, this.elementType)
+      : super(originalType, context) {
+    elementType.addUser(this);
+  }
+
+  String toString() => 'Set type $type';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitSetTypeInformation(this);
+  }
+
+  AbstractValue computeType(InferrerEngine inferrer) {
+    AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
+    AbstractValue mask = type;
+    if (!abstractValueDomain.isSet(type) ||
+        abstractValueDomain.getSetElementType(type) != elementType.type) {
+      return abstractValueDomain.createSetValue(
+          abstractValueDomain.getGeneralization(originalType),
+          abstractValueDomain.getAllocationNode(originalType),
+          abstractValueDomain.getAllocationElement(originalType),
+          elementType.type);
+    }
+    return mask;
+  }
+
+  AbstractValue safeType(InferrerEngine inferrer) => originalType;
+
+  bool hasStableType(InferrerEngine inferrer) {
+    return elementType.isStable && super.hasStableType(inferrer);
+  }
+
+  void cleanup() {
+    super.cleanup();
+    elementType.cleanup();
+    _flowsInto = null;
+  }
+}
+
+/// An [ElementInSetTypeInformation] holds the common type of the elements in a
+/// [SetTypeInformation].
+class ElementInSetTypeInformation extends InferredTypeInformation {
+  ElementInSetTypeInformation(AbstractValueDomain abstractValueDomain,
+      MemberTypeInformation context, elementType)
+      : super(abstractValueDomain, context, elementType);
+
+  String toString() => 'Element in set $type';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitElementInSetTypeInformation(this);
+  }
+}
+
 /// A [MapTypeInformation] is a [TypeInformation] created
 /// for maps.
 class MapTypeInformation extends TypeInformation with TracedTypeInformation {
@@ -1920,9 +1979,11 @@ abstract class TypeInformationVisitor<T> {
   T visitPhiElementTypeInformation(PhiElementTypeInformation info);
   T visitElementInContainerTypeInformation(
       ElementInContainerTypeInformation info);
+  T visitElementInSetTypeInformation(ElementInSetTypeInformation info);
   T visitKeyInMapTypeInformation(KeyInMapTypeInformation info);
   T visitValueInMapTypeInformation(ValueInMapTypeInformation info);
   T visitListTypeInformation(ListTypeInformation info);
+  T visitSetTypeInformation(SetTypeInformation info);
   T visitMapTypeInformation(MapTypeInformation info);
   T visitConcreteTypeInformation(ConcreteTypeInformation info);
   T visitStringLiteralTypeInformation(StringLiteralTypeInformation info);

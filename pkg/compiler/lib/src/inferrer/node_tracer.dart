@@ -81,17 +81,23 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   TracerVisitor(this.tracedType, this.inferrer);
 
-  // Work list that gets populated with [TypeInformation] that could
-  // contain the container.
+  /// Work list that gets populated with [TypeInformation] that could
+  /// contain the container.
   final List<TypeInformation> workList = <TypeInformation>[];
 
-  // Work list of lists to analyze after analyzing the users of a
-  // [TypeInformation]. We know the [tracedType] has been stored in these
-  // lists and we must check how it escapes from these lists.
+  /// Work list of lists to analyze after analyzing the users of a
+  /// [TypeInformation]. We know the [tracedType] has been stored in these
+  /// lists and we must check how it escapes from these lists.
   final List<ListTypeInformation> listsToAnalyze = <ListTypeInformation>[];
-  // Work list of maps to analyze after analyzing the users of a
-  // [TypeInformation]. We know the [tracedType] has been stored in these
-  // maps and we must check how it escapes from these maps.
+
+  /// Work list of sets to analyze after analyzing the users of a
+  /// [TypeInformation]. We know the [tracedType] has been stored in these sets
+  /// and we must check how it escapes from these sets.
+  final List<SetTypeInformation> setsToAnalyze = <SetTypeInformation>[];
+
+  /// Work list of maps to analyze after analyzing the users of a
+  /// [TypeInformation]. We know the [tracedType] has been stored in these
+  /// maps and we must check how it escapes from these maps.
   final List<MapTypeInformation> mapsToAnalyze = <MapTypeInformation>[];
 
   final Setlet<TypeInformation> flowsInto = new Setlet<TypeInformation>();
@@ -175,6 +181,10 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     addNewEscapeInformation(info);
   }
 
+  void visitElementInSetTypeInformation(ElementInSetTypeInformation info) {
+    addNewEscapeInformation(info);
+  }
+
   void visitKeyInMapTypeInformation(KeyInMapTypeInformation info) {
     // We do not track the use of keys from a map, so we have to bail.
     bailout('Used as key in Map');
@@ -186,6 +196,10 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   void visitListTypeInformation(ListTypeInformation info) {
     listsToAnalyze.add(info);
+  }
+
+  void visitSetTypeInformation(SetTypeInformation info) {
+    setsToAnalyze.add(info);
   }
 
   void visitMapTypeInformation(MapTypeInformation info) {
