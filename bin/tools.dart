@@ -16,6 +16,7 @@ import 'function_size_analysis.dart';
 import 'library_size_split.dart';
 import 'live_code_size_analysis.dart';
 import 'show_inferred_types.dart';
+import 'text_print.dart';
 
 /// Entrypoint to run all dart2js_info tools.
 void main(args) {
@@ -32,6 +33,7 @@ void main(args) {
     ..addCommand(new FunctionSizeCommand())
     ..addCommand(new LibrarySizeCommand())
     ..addCommand(new LiveCodeAnalysisCommand())
-    ..addCommand(new ShowInferredTypesCommand());
+    ..addCommand(new ShowInferredTypesCommand())
+    ..addCommand(new ShowCommand());
   commandRunner.run(args);
 }

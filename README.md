@@ -133,6 +133,8 @@ The following tools are a available today:
     be JSON, backward-compatible JSON, binary, or protobuf schema (as defined in
     `info.proto`).
 
+  * [`show`][show]: a tool that dumps info files in a readable text format.
+
 Next we describe in detail how to use each of these tools.
 
 ### Code deps tool
@@ -514,3 +516,4 @@ bugs at the [issue tracker][tracker].
 [function_size]: https://github.com/dart-lang/dart2js_info/blob/master/bin/function_size_analysis.dart
 [AllInfo]: http://dart-lang.github.io/dart2js_info/doc/api/dart2js_info.info/AllInfo-class.html
 [convert]: https://github.com/dart-lang/dart2js_info/blob/master/bin/convert.dart
+[show]: https://github.com/dart-lang/dart2js_info/blob/master/bin/text_print.dart

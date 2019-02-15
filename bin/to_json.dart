@@ -11,6 +11,7 @@ import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/src/io.dart';
 
+import 'inject_text.dart';
 import 'usage_exception.dart';
 
 /// Converts a dump-info file emitted by dart2js in binary format to JSON.
@@ -50,17 +51,7 @@ class ToJsonCommand extends Command<void> with PrintUsageException {
     AllInfo info = await infoFromFile(filename);
 
     if (isBackwardCompatible || argResults['inject-text']) {
-      // Fill the text of each code span. The binary form produced by dart2js
-      // produces code spans, but excludes the orignal text
-      info.functions.forEach((f) {
-        f.code.forEach((span) => _fillSpan(span, f.outputUnit));
-      });
-      info.fields.forEach((f) {
-        f.code.forEach((span) => _fillSpan(span, f.outputUnit));
-      });
-      info.constants.forEach((c) {
-        c.code.forEach((span) => _fillSpan(span, c.outputUnit));
-      });
+      injectText(info);
     }
 
     var json = new AllInfoJsonCodec(isBackwardCompatible: isBackwardCompatible)
@@ -68,19 +59,5 @@ class ToJsonCommand extends Command<void> with PrintUsageException {
     String outputFilename = argResults['out'] ?? '$filename.json';
     new File(outputFilename)
         .writeAsStringSync(const JsonEncoder.withIndent("  ").convert(json));
-  }
-}
-
-Map<String, String> _cache = {};
-
-_getContents(OutputUnitInfo unit) => _cache.putIfAbsent(unit.filename, () {
-      var uri = Uri.base.resolve(unit.filename);
-      return new File.fromUri(uri).readAsStringSync();
-    });
-
-_fillSpan(CodeSpan span, OutputUnitInfo unit) {
-  if (span.text == null && span.start != null && span.end != 0) {
-    var contents = _getContents(unit);
-    span.text = contents.substring(span.start, span.end);
   }
 }

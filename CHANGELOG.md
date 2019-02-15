@@ -26,6 +26,8 @@ This release contains several **breaking changes**:
 * Added backwards compatibility flag to the JSON codec, to make transition to
   new tools more gradual.
 
+* Added a tool to dump info files in a readable text form.
+
 * Consolidated all binary tools under a single command. Now you can access all
   tools as follows:
   ```
