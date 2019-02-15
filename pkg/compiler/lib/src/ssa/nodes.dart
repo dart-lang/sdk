@@ -1327,6 +1327,7 @@ class DominatedUses {
 
   bool get isEmpty => _instructions.isEmpty;
   bool get isNotEmpty => !isEmpty;
+  int get length => _instructions.length;
 
   /// Changes all the uses in the set to [newInstruction].
   void replaceWith(HInstruction newInstruction) {
@@ -1349,6 +1350,8 @@ class DominatedUses {
   bool get isSingleton => _instructions.length == 1;
 
   HInstruction get single => _instructions.single;
+
+  Iterable<HInstruction> get instructions => _instructions;
 
   void _addUse(HInstruction user, int inputIndex) {
     _instructions.add(user);
@@ -1921,7 +1924,9 @@ class HFieldSet extends HFieldAccess {
   HInstruction get value => inputs[1];
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
 
-  bool isJsStatement() => true;
+  // HFieldSet is an expression if it has a user.
+  bool isJsStatement() => usedBy.isEmpty;
+
   String toString() => "FieldSet(element=$element,type=$instructionType)";
 }
 

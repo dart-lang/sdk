@@ -20,6 +20,8 @@ class SsaInstructionSelection extends HBaseVisitor {
   final CompilerOptions _options;
   HGraph graph;
 
+  Set<HFieldSet> _processedFieldSetters = Set();
+
   SsaInstructionSelection(
       this._options, this._closedWorld, this._interceptorData);
 
@@ -195,6 +197,81 @@ class SsaInstructionSelection extends HBaseVisitor {
   }
 
   HInstruction visitFieldSet(HFieldSet setter) {
+    void tryChainAssignment() {
+      // Try to use result of field assignment
+      //
+      //     t1 = v;  x.f = t1;  ... t1 ...  -->  t1 = x.f = v;  ... t1 ...
+      //
+
+      // We grow the chain ahead of the block-scan, so we may have already
+      // processed the chain.
+      if (_processedFieldSetters.contains(setter)) return;
+      _processedFieldSetters.add(setter);
+
+      final value = setter.value;
+
+      // Single use is this setter so there will be no other uses to chain.
+      if (value.usedBy.length <= 1) return;
+
+      HFieldSet chain = setter;
+      setter.instructionType = value.instructionType;
+      for (HInstruction current = setter.next;;) {
+        if (current is HFieldSet) {
+          HFieldSet nextSetter = current;
+          if (nextSetter.value == value && nextSetter.receiver != value) {
+            _processedFieldSetters.add(nextSetter);
+            nextSetter.changeUse(value, chain);
+            nextSetter.instructionType = value.instructionType;
+            chain = nextSetter;
+            current = nextSetter.next;
+            continue;
+          }
+        } else if (current is HReturn) {
+          if (current.inputs.single == value) {
+            current.changeUse(value, chain);
+            return;
+          }
+        }
+        break;
+      }
+
+      if (value.usedBy.length <= 1) return; // [setter] is only remaining use.
+
+      // Chain to other places.
+      var uses = DominatedUses.of(value, chain, excludeDominator: true);
+
+      if (uses.isEmpty) return;
+
+      if (uses.isSingleton) {
+        var use = uses.single;
+        if (use is HPhi) {
+          // Filter out back-edges - that causes problems for variable
+          // assignment.
+          // TODO(sra): Better analysis to permit phis that are part of a
+          // forwards-only tree.
+          if (use.block.id < chain.block.id) return;
+          if (use.usedBy.any((node) => node is HPhi)) return;
+          use.changeUse(value, chain);
+          return;
+        }
+      }
+
+      if (value is HConstant) return;
+      if (value.nonCheck() is HParameterValue) return;
+
+      // TODO(sra): Consider chaining to other places.
+      //
+      // 1. If there are many remaining uses, all of them dominated by [chain],
+      //    we should replace them with [chain] and let that value get the
+      //    variable name.
+      //
+      // 2. Chains with one remaining potential use have the potential to
+      //    generate huge expression containing many assignments. This will be
+      //    smaller but nearly impossible to read. What interior positions
+      //    should we chain into?
+      return;
+    }
+
     // Pattern match
     //     t1 = x.f; t2 = t1 + 1; x.f = t2; use(t2)   -->  ++x.f
     //     t1 = x.f; t2 = t1 op y; x.f = t2; use(t2)  -->  x.f op= y
@@ -219,6 +296,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     }
 
     HInstruction noMatchingRead() {
+      tryChainAssignment();
       // If we have other HFieldSet optimizations, they go here.
       return null;
     }

@@ -235,7 +235,7 @@ main() {
 
 main() {
   runTests() async {
-    test(String code, String expected) async {
+    test(String code, Pattern expected) async {
       String generated = await compile(code,
           disableInlining: false, disableTypeInference: false);
       Expect.isTrue(
@@ -250,7 +250,7 @@ main() {
     await test(TEST_4, 'return t1 + t1');
     await test(TEST_5, 'return 84');
     await test(TEST_6, 'return 84');
-    await test(TEST_7, 'return 32');
+    await test(TEST_7, RegExp('return( .* =)? 32'));
     await test(TEST_8, 'return a.a');
     await test(TEST_9, 'return a.a');
     await test(TEST_10, 'return 2');

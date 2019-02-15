@@ -521,11 +521,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         if (current.isControlFlow()) {
           return TYPE_STATEMENT;
         }
-        // HFieldSet generates code on the form x.y = ..., which isn't
-        // valid in a declaration, but it also always have no uses, so
-        // it's caught by that test too.
-        assert(current is! HFieldSet || current.usedBy.isEmpty);
-        if (current.usedBy.isEmpty) {
+        // HFieldSet generates code on the form "x.y = ...", which isn't valid
+        // in a declaration.
+        if (current.usedBy.isEmpty || current is HFieldSet) {
           result = TYPE_EXPRESSION;
         }
         current = current.next;
