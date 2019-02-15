@@ -761,6 +761,21 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
+  AbstractValue createSetValue(AbstractValue forwardTo, Object allocationNode,
+      MemberEntity allocationElement, AbstractValue elementType) {
+    return new SetTypeMask(
+        forwardTo, allocationNode, allocationElement, elementType);
+  }
+
+  @override
+  AbstractValue getSetElementType(AbstractValue value) {
+    if (value is SetTypeMask) {
+      return value.elementType ?? dynamicType;
+    }
+    return dynamicType;
+  }
+
+  @override
   bool isSpecializationOf(
       AbstractValue specialization, AbstractValue generalization) {
     return specialization is ForwardingTypeMask &&

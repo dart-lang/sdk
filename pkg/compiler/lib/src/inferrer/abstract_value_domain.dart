@@ -388,6 +388,21 @@ abstract class AbstractValueDomain {
   /// Returns `true` if [value] represents a set value at runtime.
   bool isSet(covariant AbstractValue value);
 
+  /// Creates a set value specialization of [originalValue] with the inferred
+  /// [elementType] runtime value.
+  ///
+  /// The [allocationNode] is used to identify this particular set allocation.
+  /// The [allocationElement] is used only for debugging.
+  AbstractValue createSetValue(
+      AbstractValue originalValue,
+      Object allocationNode,
+      MemberEntity allocationElement,
+      AbstractValue elementType);
+
+  /// Returns the element type of [value] if it represents a set value at
+  /// runtime. Returns [dynamicType] otherwise.
+  AbstractValue getSetElementType(AbstractValue value);
+
   /// Returns `true` if [value] represents a map value at runtime.
   bool isMap(covariant AbstractValue value);
 

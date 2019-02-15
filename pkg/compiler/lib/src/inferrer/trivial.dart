@@ -146,6 +146,19 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   bool isMap(AbstractValue value) => false;
 
   @override
+  AbstractValue getSetElementType(AbstractValue value) {
+    throw new UnsupportedError("TrivialAbstractValueDomain.getSetElementType");
+  }
+
+  @override
+  AbstractValue createSetValue(
+          AbstractValue originalValue,
+          Object allocationNode,
+          MemberEntity allocationElement,
+          AbstractValue elementType) =>
+      const TrivialAbstractValue();
+
+  @override
   bool isSet(AbstractValue value) => false;
 
   @override
