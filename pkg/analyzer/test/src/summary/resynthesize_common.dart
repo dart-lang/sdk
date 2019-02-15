@@ -6,22 +6,12 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
-import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart' show Namespace;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -1921,7 +1911,6 @@ class C {
   }
 
   test_const_invalid_field_const() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 class C {
   static const f = 1 + foo();
@@ -1938,7 +1927,6 @@ int foo() {}
   }
 
   test_const_invalid_field_final() async {
-    variablesWithNotConstInitializers.add('f');
     var library = await checkLibrary(r'''
 class C {
   final f = 1 + foo();
@@ -1963,7 +1951,6 @@ const int x = 0;
   }
 
   test_const_invalid_topLevel() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const v = 1 + foo();
 int foo() => 42;
@@ -2174,7 +2161,6 @@ const C V = const
   }
 
   test_const_invokeConstructor_named_unresolved() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 class C {}
 const V = const C.named();
@@ -2189,7 +2175,6 @@ const dynamic V = const
   }
 
   test_const_invokeConstructor_named_unresolved2() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const V = const C.named();
 ''', allowErrors: true);
@@ -2201,7 +2186,6 @@ const dynamic V = const
   }
 
   test_const_invokeConstructor_named_unresolved3() async {
-    shouldCompareLibraryElements = false;
     addLibrarySource('/a.dart', r'''
 class C {
 }
@@ -2220,7 +2204,6 @@ const dynamic V = const
   }
 
   test_const_invokeConstructor_named_unresolved4() async {
-    shouldCompareLibraryElements = false;
     addLibrarySource('/a.dart', '');
     var library = await checkLibrary(r'''
 import 'a.dart' as p;
@@ -2236,7 +2219,6 @@ const dynamic V = const
   }
 
   test_const_invokeConstructor_named_unresolved5() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const V = const p.C.named();
 ''', allowErrors: true);
@@ -2249,7 +2231,6 @@ const dynamic V = const
   }
 
   test_const_invokeConstructor_named_unresolved6() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 class C<T> {}
 const V = const C.named();
@@ -2314,7 +2295,6 @@ const C V = const
   }
 
   test_const_invokeConstructor_unnamed_unresolved() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const V = const C();
 ''', allowErrors: true);
@@ -2325,7 +2305,6 @@ const dynamic V = const
   }
 
   test_const_invokeConstructor_unnamed_unresolved2() async {
-    shouldCompareLibraryElements = false;
     addLibrarySource('/a.dart', '');
     var library = await checkLibrary(r'''
 import 'a.dart' as p;
@@ -2340,7 +2319,6 @@ const dynamic V = const
   }
 
   test_const_invokeConstructor_unnamed_unresolved3() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const V = const p.C();
 ''', allowErrors: true);
@@ -2908,7 +2886,6 @@ class C<T> {
   }
 
   test_const_reference_unresolved_prefix0() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const V = foo;
 ''', allowErrors: true);
@@ -2919,7 +2896,6 @@ const dynamic V =
   }
 
   test_const_reference_unresolved_prefix1() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 class C {}
 const V = C.foo;
@@ -2934,7 +2910,6 @@ const dynamic V =
   }
 
   test_const_reference_unresolved_prefix2() async {
-    shouldCompareLibraryElements = false;
     addLibrarySource('/foo.dart', '''
 class C {}
 ''');
@@ -3080,7 +3055,6 @@ const int vComplement = ~1;
   }
 
   test_const_topLevel_super() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const vSuper = super;
 ''');
@@ -3090,7 +3064,6 @@ const dynamic vSuper = super;
   }
 
   test_const_topLevel_this() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const vThis = this;
 ''');
@@ -3100,7 +3073,6 @@ const dynamic vThis = this;
   }
 
   test_const_topLevel_throw() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 const c = throw 42;
 ''');
@@ -3166,7 +3138,6 @@ const List<C> v = const <
   }
 
   test_const_topLevel_typedList_typedefArgument() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 typedef int F(String id);
 const v = const <F>[];
@@ -3355,7 +3326,6 @@ class C {
   }
 
   test_constructor_initializers_field_notConst() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary('''
 class C {
   final x;
@@ -4429,7 +4399,6 @@ export 'b.dart';
   }
 
   test_expr_invalid_typeParameter_asPrefix() async {
-    variablesWithNotConstInitializers.add('f');
     var library = await checkLibrary('''
 class C<T> {
   final f = T.k;
@@ -4885,7 +4854,6 @@ class C<T, U> {
   }
 
   test_genericFunction_asFunctionReturnType() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 int Function(int a, String b) f() => null;
 ''');
@@ -4895,7 +4863,6 @@ int Function(int a, String b) f() => null;
   }
 
   test_genericFunction_asFunctionTypedParameterReturnType() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 void f(int Function(int a, String b) p(num c)) => null;
 ''');
@@ -4905,7 +4872,6 @@ void f((num) → (int, String) → int p) {}
   }
 
   test_genericFunction_asGenericFunctionReturnType() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 typedef F = void Function(String a) Function(int b);
 ''');
@@ -4915,7 +4881,6 @@ typedef F = (String) → void Function(int b);
   }
 
   test_genericFunction_asMethodReturnType() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 class C {
   int Function(int a, String b) m() => null;
@@ -4929,7 +4894,6 @@ class C {
   }
 
   test_genericFunction_asParameterType() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 void f(int Function(int a, String b) p) => null;
 ''');
@@ -4939,7 +4903,6 @@ void f((int, String) → int p) {}
   }
 
   test_genericFunction_asTopLevelVariableType() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 int Function(int a, String b) v;
 ''');
@@ -5185,7 +5148,6 @@ Future<dynamic> f;
 
   test_import_invalidUri_metadata() async {
     allowMissingFiles = true;
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary('''
 @foo
 import '';
@@ -5679,7 +5641,6 @@ class B extends A {
   }
 
   test_inferredType_implicitCreation() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 class A {
   A();
@@ -5699,7 +5660,6 @@ A a2;
   }
 
   test_inferredType_implicitCreation_prefixed() async {
-    shouldCompareLibraryElements = false;
     addLibrarySource('/foo.dart', '''
 class A {
   A();
@@ -5721,7 +5681,6 @@ A a2;
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
     // AnalysisContext does not set the enclosing element for the synthetic
     // FunctionElement created for the [f, g] type argument.
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary('''
 int f(int x(String y)) => null;
 String g(int x(String y)) => null;
@@ -5928,7 +5887,6 @@ C<num> c;
   }
 
   test_invalid_annotation_prefixed_constructor() async {
-    shouldCompareLibraryElements = false;
     addLibrarySource('/a.dart', r'''
 class C {
   const C.named();
@@ -5951,7 +5909,6 @@ class D {
   }
 
   test_invalid_annotation_unprefixed_constructor() async {
-    shouldCompareLibraryElements = false;
     addLibrarySource('/a.dart', r'''
 class C {
   const C.named();
@@ -5988,8 +5945,6 @@ class C {
   }
 
   test_invalid_nameConflict_imported() async {
-    shouldCompareLibraryElements = false;
-    namesThatCannotBeResolved.add('V');
     addLibrarySource('/a.dart', 'V() {}');
     addLibrarySource('/b.dart', 'V() {}');
     var library = await checkLibrary('''
@@ -6006,8 +5961,6 @@ dynamic foo([dynamic p =
   }
 
   test_invalid_nameConflict_imported_exported() async {
-    shouldCompareLibraryElements = false;
-    namesThatCannotBeResolved.add('V');
     addLibrarySource('/a.dart', 'V() {}');
     addLibrarySource('/b.dart', 'V() {}');
     addLibrarySource('/c.dart', r'''
@@ -6026,8 +5979,6 @@ dynamic foo([dynamic p =
   }
 
   test_invalid_nameConflict_local() async {
-    shouldCompareLibraryElements = false;
-    namesThatCannotBeResolved.add('V');
     var library = await checkLibrary('''
 foo([p = V]) {}
 V() {}
@@ -6071,7 +6022,6 @@ class C {
 
   test_invalidUri_part_emptyUri() async {
     allowMissingFiles = true;
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 part '';
 class B extends A {}
@@ -6088,7 +6038,6 @@ unit: null
 
   test_invalidUris() async {
     allowMissingFiles = true;
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 import ':[invaliduri]';
 import ':[invaliduri]:foo.dart';
@@ -6714,7 +6663,6 @@ const dynamic a =
   }
 
   test_metadata_invalid_classDeclaration() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary('f(_) {} @f(42) class C {}');
     checkElementText(library, r'''
 @
@@ -7037,7 +6985,6 @@ mixin M on Object {
   }
 
   test_nameConflict_exportedAndLocal() async {
-    namesThatCannotBeResolved.add('V');
     addLibrarySource('/a.dart', 'class C {}');
     addLibrarySource('/c.dart', '''
 export 'a.dart';
@@ -7054,7 +7001,6 @@ C v;
   }
 
   test_nameConflict_exportedAndLocal_exported() async {
-    namesThatCannotBeResolved.add('V');
     addLibrarySource('/a.dart', 'class C {}');
     addLibrarySource('/c.dart', '''
 export 'a.dart';
@@ -7072,7 +7018,6 @@ C v;
   }
 
   test_nameConflict_exportedAndParted() async {
-    namesThatCannotBeResolved.add('V');
     addLibrarySource('/a.dart', 'class C {}');
     addLibrarySource('/b.dart', '''
 part of lib;
@@ -7427,7 +7372,6 @@ unit: b.dart
 
   test_parts_invalidUri() async {
     allowMissingFiles = true;
-    shouldCompareLibraryElements = false;
     addSource('/foo/bar.dart', 'part of my.lib;');
     var library = await checkLibrary('library my.lib; part "foo/";');
     checkElementText(library, r'''
@@ -7441,7 +7385,6 @@ unit: foo
 
   test_parts_invalidUri_nullStringValue() async {
     allowMissingFiles = true;
-    shouldCompareLibraryElements = false;
     addSource('/foo/bar.dart', 'part of my.lib;');
     var library = await checkLibrary(r'''
 library my.lib;
@@ -8138,7 +8081,6 @@ typedef F<T> = int Function<S>(List<S> list, <A>(A) → num , T );
   }
 
   test_typedef_generic_asFieldType() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(r'''
 typedef Foo<S> = S Function<T>(T x);
 class A {
@@ -8248,7 +8190,6 @@ class D {
   }
 
   test_typedef_type_parameters_bound_recursive() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary('typedef void F<T extends F>();');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
@@ -8257,7 +8198,6 @@ notSimplyBounded typedef F<T extends () → void> = void Function();
   }
 
   test_typedef_type_parameters_bound_recursive2() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary('typedef void F<T extends List<F>>();');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
@@ -8318,7 +8258,6 @@ class C {
   }
 
   test_unresolved_annotation_instanceCreation_argument_this() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary('''
 class A {
   const A(_);
@@ -8339,7 +8278,6 @@ class C {
   }
 
   test_unresolved_annotation_namedConstructorCall_noClass() async {
-    shouldCompareLibraryElements = false;
     var library =
         await checkLibrary('@foo.bar() class C {}', allowErrors: true);
     checkElementText(library, r'''
@@ -8352,7 +8290,6 @@ class C {
   }
 
   test_unresolved_annotation_namedConstructorCall_noConstructor() async {
-    shouldCompareLibraryElements = false;
     var library =
         await checkLibrary('@String.foo() class C {}', allowErrors: true);
     checkElementText(library, r'''
@@ -8365,7 +8302,6 @@ class C {
   }
 
   test_unresolved_annotation_prefixedIdentifier_badPrefix() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary('@foo.bar class C {}', allowErrors: true);
     checkElementText(library, r'''
 @
@@ -8377,7 +8313,6 @@ class C {
   }
 
   test_unresolved_annotation_prefixedIdentifier_noDeclaration() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(
         'import "dart:async" as foo; @foo.bar class C {}',
         allowErrors: true);
@@ -8392,7 +8327,6 @@ class C {
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix() async {
-    shouldCompareLibraryElements = false;
     var library =
         await checkLibrary('@foo.bar.baz() class C {}', allowErrors: true);
     checkElementText(library, r'''
@@ -8406,7 +8340,6 @@ class C {
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noClass() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(
         'import "dart:async" as foo; @foo.bar.baz() class C {}',
         allowErrors: true);
@@ -8422,7 +8355,6 @@ class C {
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(
         'import "dart:async" as foo; @foo.Future.bar() class C {}',
         allowErrors: true);
@@ -8438,7 +8370,6 @@ class C {
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix() async {
-    shouldCompareLibraryElements = false;
     var library =
         await checkLibrary('@foo.bar() class C {}', allowErrors: true);
     checkElementText(library, r'''
@@ -8451,7 +8382,6 @@ class C {
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary(
         'import "dart:async" as foo; @foo.bar() class C {}',
         allowErrors: true);
@@ -8466,7 +8396,6 @@ class C {
   }
 
   test_unresolved_annotation_simpleIdentifier() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary('@foo class C {}', allowErrors: true);
     checkElementText(library, r'''
 @
@@ -8477,7 +8406,6 @@ class C {
   }
 
   test_unresolved_annotation_unnamedConstructorCall_noClass() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary('@foo() class C {}', allowErrors: true);
     checkElementText(library, r'''
 @
@@ -8519,7 +8447,6 @@ unit: foo.dart
   }
 
   test_unused_type_parameter() async {
-    shouldCompareLibraryElements = false;
     var library = await checkLibrary('''
 class C<T> {
   void f() {}
@@ -8786,1265 +8713,11 @@ int j;
 /// Mixin containing helper methods for testing summary resynthesis.  Intended
 /// to be applied to a class implementing [ResynthesizeTestStrategy].
 mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
-  /**
-   * Names of variables which have initializers that are not valid constants,
-   * so they are not resynthesized.
-   */
-  final variablesWithNotConstInitializers = Set<String>();
-
-  /**
-   * Tests may set this to `false` to indicate that resynthesized elements
-   * should not be compare with elements created using AnalysisContext.
-   */
-  bool shouldCompareLibraryElements = true;
-
-  /**
-   * Names that cannot be resolved, e.g. because of duplicate declaration.
-   */
-  final namesThatCannotBeResolved = Set<String>();
-
-  /**
-   * Verify that the given prefix is safe to elide from a resynthesized AST.
-   */
-  void checkElidablePrefix(SimpleIdentifier prefix) {
-    if (prefix.staticElement is! PrefixElement &&
-        prefix.staticElement is! ClassElement) {
-      fail('Prefix of type ${prefix.staticElement.runtimeType}'
-          ' should not have been elided');
-    }
-  }
-
   Future<LibraryElementImpl> checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) async {
     Source source = addTestSource(text);
-    return _encodeDecodeLibraryElement(source);
-  }
-
-  void checkLibraryElements(
-      LibraryElementImpl original, LibraryElementImpl resynthesized) {
-    compareElements(resynthesized, original, '(library)');
-    expect(resynthesized.displayName, original.displayName);
-    expect(original.enclosingElement, isNull);
-    expect(resynthesized.enclosingElement, isNull);
-    expect(resynthesized.hasExtUri, original.hasExtUri);
-    compareCompilationUnitElements(resynthesized.definingCompilationUnit,
-        original.definingCompilationUnit);
-    expect(resynthesized.parts.length, original.parts.length, reason: 'parts');
-    for (int i = 0; i < resynthesized.parts.length; i++) {
-      compareCompilationUnitElements(resynthesized.parts[i], original.parts[i]);
-    }
-    expect(resynthesized.imports.length, original.imports.length,
-        reason: 'imports');
-    for (int i = 0; i < resynthesized.imports.length; i++) {
-      ImportElement originalImport = original.imports[i];
-      compareImportElements(
-          resynthesized.imports[i], originalImport, originalImport.toString());
-    }
-    expect(resynthesized.exports.length, original.exports.length,
-        reason: 'exports');
-    for (int i = 0; i < resynthesized.exports.length; i++) {
-      ExportElement originalExport = original.exports[i];
-      compareExportElements(
-          resynthesized.exports[i], originalExport, originalExport.toString());
-    }
-    expect(resynthesized.nameLength, original.nameLength);
-    compareNamespaces(resynthesized.publicNamespace, original.publicNamespace,
-        '(public namespace)');
-    compareNamespaces(resynthesized.exportNamespace, original.exportNamespace,
-        '(export namespace)');
-    if (original.entryPoint == null) {
-      expect(resynthesized.entryPoint, isNull);
-    } else {
-      expect(resynthesized.entryPoint, isNotNull);
-      compareFunctionElements(
-          resynthesized.entryPoint, original.entryPoint, '(entry point)');
-    }
-    // The libraries `dart:core` and `dart:async` cannot create their
-    // `loadLibrary` functions until after both are created.
-    if (original.name != 'dart.core' && original.name != 'dart.async') {
-      compareExecutableElements(
-          resynthesized.loadLibraryFunction as ExecutableElementImpl,
-          original.loadLibraryFunction as ExecutableElementImpl,
-          '(loadLibraryFunction)');
-    }
-    expect(resynthesized.libraryCycle.toSet(), original.libraryCycle.toSet());
-  }
-
-  void checkPossibleLocalElements(Element resynthesized, Element original) {
-    if (original is! LocalElement && resynthesized is! LocalElement) {
-      return;
-    }
-    if (original is LocalElement && resynthesized is LocalElement) {
-      expect(resynthesized.visibleRange, original.visibleRange);
-    } else {
-      fail('Incompatible local elements '
-          '${resynthesized.runtimeType} vs. ${original.runtimeType}');
-    }
-  }
-
-  void checkPossibleMember(
-      Element resynthesized, Element original, String desc) {
-    Element resynthesizedNonHandle = resynthesized is ElementHandle
-        ? resynthesized.actualElement
-        : resynthesized;
-    if (original is Member) {
-      expect(resynthesizedNonHandle, new TypeMatcher<Member>(), reason: desc);
-      if (resynthesizedNonHandle is Member) {
-        List<DartType> resynthesizedTypeArguments =
-            resynthesizedNonHandle.definingType.typeArguments;
-        List<DartType> originalTypeArguments =
-            original.definingType.typeArguments;
-        expect(
-            resynthesizedTypeArguments, hasLength(originalTypeArguments.length),
-            reason: desc);
-        for (int i = 0; i < originalTypeArguments.length; i++) {
-          compareTypeImpls(resynthesizedTypeArguments[i],
-              originalTypeArguments[i], '$desc type argument $i');
-        }
-      }
-    } else {
-      expect(
-          resynthesizedNonHandle, isNot(new TypeMatcher<ConstructorMember>()),
-          reason: desc);
-    }
-  }
-
-  void compareClassElements(ClassElement r, ClassElement o, String desc) {
-    compareElements(r, o, desc);
-    expect(r.fields.length, o.fields.length, reason: '$desc fields.length');
-    for (int i = 0; i < r.fields.length; i++) {
-      String name = o.fields[i].name;
-      compareFieldElements(r.fields[i], o.fields[i], '$desc.field $name');
-    }
-    compareTypes(r.supertype, o.supertype, '$desc supertype');
-    expect(r.interfaces.length, o.interfaces.length,
-        reason: '$desc interfaces.length');
-    for (int i = 0; i < r.interfaces.length; i++) {
-      compareTypes(r.interfaces[i], o.interfaces[i],
-          '$desc interface ${o.interfaces[i].name}');
-    }
-    expect(r.mixins.length, o.mixins.length, reason: '$desc mixins.length');
-    for (int i = 0; i < r.mixins.length; i++) {
-      compareTypes(r.mixins[i], o.mixins[i], '$desc mixin ${o.mixins[i].name}');
-    }
-    expect(r.typeParameters.length, o.typeParameters.length,
-        reason: '$desc typeParameters.length');
-    for (int i = 0; i < r.typeParameters.length; i++) {
-      compareTypeParameterElements(r.typeParameters[i], o.typeParameters[i],
-          '$desc type parameter ${o.typeParameters[i].name}');
-    }
-    expect(r.constructors.length, o.constructors.length,
-        reason: '$desc constructors.length');
-    for (int i = 0; i < r.constructors.length; i++) {
-      compareConstructorElements(r.constructors[i], o.constructors[i],
-          '$desc constructor ${o.constructors[i].name}');
-    }
-    expect(r.accessors.length, o.accessors.length,
-        reason: '$desc accessors.length');
-    List<PropertyAccessorElement> rAccessors = _getSortedPropertyAccessors(r);
-    List<PropertyAccessorElement> oAccessors = _getSortedPropertyAccessors(o);
-    for (int i = 0; i < r.accessors.length; i++) {
-      comparePropertyAccessorElements(
-          rAccessors[i], oAccessors[i], '$desc accessor ${oAccessors[i].name}');
-    }
-    expect(r.methods.length, o.methods.length, reason: '$desc methods.length');
-    for (int i = 0; i < r.methods.length; i++) {
-      compareMethodElements(
-          r.methods[i], o.methods[i], '$desc.${o.methods[i].name}');
-    }
-    compareTypes(r.type, o.type, desc);
-    if (r is ClassElementImpl && o is ClassElementImpl) {
-      expect(r.hasBeenInferred, o.hasBeenInferred, reason: desc);
-    }
-  }
-
-  void compareCompilationUnitElements(CompilationUnitElementImpl resynthesized,
-      CompilationUnitElementImpl original) {
-    String desc = 'Compilation unit ${original.source.uri}';
-    expect(resynthesized.source, original.source);
-    expect(resynthesized.librarySource, original.librarySource);
-    compareLineInfo(resynthesized.lineInfo, original.lineInfo);
-
-    expect(resynthesized.types.length, original.types.length,
-        reason: '$desc.types.length');
-    for (int i = 0; i < resynthesized.types.length; i++) {
-      compareClassElements(
-          resynthesized.types[i], original.types[i], original.types[i].name);
-    }
-
-    // TODO(scheglov) Uncomment once the tasks based implementation is ready.
-//    expect(resynthesized.mixins.length, original.mixins.length,
-//        reason: '$desc.mixins.length');
-//    for (int i = 0; i < resynthesized.mixins.length; i++) {
-//      compareClassElements(
-//          resynthesized.mixins[i], original.mixins[i], original.mixins[i].name);
-//    }
-
-    expect(resynthesized.topLevelVariables.length,
-        original.topLevelVariables.length,
-        reason: '$desc.topLevelVariables.length');
-    for (int i = 0; i < resynthesized.topLevelVariables.length; i++) {
-      String name = resynthesized.topLevelVariables[i].name;
-      compareTopLevelVariableElements(
-          resynthesized.topLevelVariables[i],
-          original.topLevelVariables
-              .singleWhere((TopLevelVariableElement e) => e.name == name),
-          '$desc.topLevelVariables[$name]');
-    }
-    expect(resynthesized.functions.length, original.functions.length,
-        reason: '$desc.functions.length');
-    for (int i = 0; i < resynthesized.functions.length; i++) {
-      compareFunctionElements(resynthesized.functions[i], original.functions[i],
-          '$desc.functions[$i] /* ${original.functions[i].name} */');
-    }
-    expect(resynthesized.functionTypeAliases.length,
-        original.functionTypeAliases.length,
-        reason: '$desc.functionTypeAliases.length');
-    for (int i = 0; i < resynthesized.functionTypeAliases.length; i++) {
-      compareFunctionTypeAliasElements(
-          resynthesized.functionTypeAliases[i],
-          original.functionTypeAliases[i],
-          original.functionTypeAliases[i].name);
-    }
-    expect(resynthesized.enums.length, original.enums.length,
-        reason: '$desc.enums.length');
-    for (int i = 0; i < resynthesized.enums.length; i++) {
-      compareClassElements(
-          resynthesized.enums[i], original.enums[i], original.enums[i].name);
-    }
-    expect(resynthesized.accessors.length, original.accessors.length,
-        reason: '$desc.accessors.length');
-    for (int i = 0; i < resynthesized.accessors.length; i++) {
-      String name = resynthesized.accessors[i].name;
-      if (original.accessors[i].isGetter) {
-        comparePropertyAccessorElements(
-            resynthesized.accessors[i],
-            original.accessors
-                .singleWhere((PropertyAccessorElement e) => e.name == name),
-            '$desc.accessors[$i] /* getter $name */');
-      } else {
-        comparePropertyAccessorElements(
-            resynthesized.accessors[i],
-            original.accessors
-                .singleWhere((PropertyAccessorElement e) => e.name == name),
-            '$desc.accessors[$i] /* setter $name */');
-      }
-    }
-    // Note: no need to test CompilationUnitElementImpl._offsetToElementMap
-    // since it is built on demand when needed (see
-    // CompilationUnitElementImpl.getElementAt])
-  }
-
-  void compareConstAstLists(
-      List<Object> rItems, List<Object> oItems, String desc) {
-    if (rItems == null && oItems == null) {
-      return;
-    }
-    expect(rItems != null && oItems != null, isTrue);
-    expect(rItems, hasLength(oItems.length));
-    for (int i = 0; i < oItems.length; i++) {
-      Object rItem = rItems[i];
-      Object oItem = oItems[i];
-      if (rItem is Expression && oItem is Expression) {
-        compareConstAsts(rItem, oItem, desc);
-      } else if (rItem is TypeName && oItem is TypeName) {
-        compareConstAsts(rItem.name, oItem.name, desc);
-      } else if (rItem is InterpolationString && oItem is InterpolationString) {
-        expect(rItem.value, oItem.value);
-      } else if (rItem is InterpolationExpression &&
-          oItem is InterpolationExpression) {
-        compareConstAsts(rItem.expression, oItem.expression, desc);
-      } else if (rItem is MapLiteralEntry && oItem is MapLiteralEntry) {
-        compareConstAsts(rItem.key, oItem.key, desc);
-        compareConstAsts(rItem.value, oItem.value, desc);
-      } else if (oItem is ConstructorFieldInitializer &&
-          rItem is ConstructorFieldInitializer) {
-        compareConstAsts(rItem.fieldName, oItem.fieldName, desc);
-        if (variablesWithNotConstInitializers.contains(rItem.fieldName.name)) {
-          expect(rItem.expression, isNull, reason: desc);
-        } else {
-          compareConstAsts(rItem.expression, oItem.expression, desc);
-        }
-      } else if (oItem is AssertInitializer && rItem is AssertInitializer) {
-        compareConstAsts(rItem.condition, oItem.condition, '$desc condition');
-        compareConstAsts(rItem.message, oItem.message, '$desc message');
-      } else if (oItem is SuperConstructorInvocation &&
-          rItem is SuperConstructorInvocation) {
-        compareElements(rItem.staticElement, oItem.staticElement, desc);
-        compareConstAsts(rItem.constructorName, oItem.constructorName, desc);
-        compareConstAstLists(
-            rItem.argumentList.arguments, oItem.argumentList.arguments, desc);
-      } else if (oItem is RedirectingConstructorInvocation &&
-          rItem is RedirectingConstructorInvocation) {
-        compareElements(rItem.staticElement, oItem.staticElement, desc);
-        compareConstAsts(rItem.constructorName, oItem.constructorName, desc);
-        compareConstAstLists(
-            rItem.argumentList.arguments, oItem.argumentList.arguments, desc);
-      } else if (oItem is ForElement && rItem is ForElement) {
-        compareConstAsts(rItem.forLoopParts, oItem.forLoopParts, desc);
-        compareConstAsts(rItem.body, oItem.body, desc);
-      } else if (oItem is ForPartsWithDeclarations &&
-          rItem is ForPartsWithDeclarations) {
-        compareConstAsts(rItem.variables, oItem.variables, desc);
-        compareConstAsts(rItem.condition, oItem.condition, desc);
-        compareConstAstLists(rItem.updaters, oItem.updaters, desc);
-      } else if (oItem is ForPartsWithExpression &&
-          rItem is ForPartsWithExpression) {
-        compareConstAsts(rItem.initialization, oItem.initialization, desc);
-        compareConstAsts(rItem.condition, oItem.condition, desc);
-        compareConstAstLists(rItem.updaters, oItem.updaters, desc);
-      } else if (oItem is ForEachPartsWithDeclaration &&
-          rItem is ForEachPartsWithDeclaration) {
-        compareConstAsts(rItem.loopVariable, oItem.loopVariable, desc);
-        compareConstAsts(rItem.iterable, oItem.iterable, desc);
-      } else if (oItem is ForEachPartsWithIdentifier &&
-          rItem is ForEachPartsWithIdentifier) {
-        compareConstAsts(rItem.identifier, oItem.identifier, desc);
-        compareConstAsts(rItem.iterable, oItem.iterable, desc);
-      } else if (oItem is IfElement && rItem is IfElement) {
-        compareConstAsts(rItem.condition, oItem.condition, desc);
-        compareConstAsts(rItem.thenElement, oItem.thenElement, desc);
-        compareConstAsts(rItem.elseElement, oItem.elseElement, desc);
-      } else if (oItem is SpreadElement && rItem is SpreadElement) {
-        compareConstAsts(rItem.expression, oItem.expression, desc);
-      } else {
-        fail('$desc Incompatible item types: '
-            '${rItem.runtimeType} vs. ${oItem.runtimeType}');
-      }
-    }
-  }
-
-  void compareConstAsts(AstNode r, AstNode o, String desc) {
-    if (o == null) {
-      expect(r, isNull, reason: desc);
-    } else {
-      expect(r, isNotNull, reason: desc);
-      // ConstantAstCloner does not copy static types, and constant values
-      // computer does not use static types. So, we don't set them during
-      // resynthesis and should not check them here.
-      if (o is ParenthesizedExpression) {
-        // We don't resynthesize parenthesis, so just ignore it.
-        compareConstAsts(r, o.expression, desc);
-      } else if (o is SimpleIdentifier && r is SimpleIdentifier) {
-        expect(r.name, o.name, reason: desc);
-        if (namesThatCannotBeResolved.contains(r.name)) {
-          expect(r.staticElement, isNull);
-        } else {
-          compareElements(r.staticElement, o.staticElement, desc);
-        }
-      } else if (o is PrefixedIdentifier && r is SimpleIdentifier) {
-        // We don't resynthesize prefixed identifiers when the prefix refers to
-        // a PrefixElement or a ClassElement.  We use simple identifiers with
-        // correct elements.
-        if (o.prefix.staticElement is PrefixElement ||
-            o.prefix.staticElement is ClassElement) {
-          compareConstAsts(r, o.identifier, desc);
-        } else {
-          fail('Prefix of type ${o.prefix.staticElement.runtimeType} should not'
-              ' have been elided');
-        }
-      } else if (o is SimpleIdentifier && r is PrefixedIdentifier) {
-        // In 'class C {static const a = 0; static const b = a;}' the reference
-        // to 'a' in 'b' is serialized as a fully qualified 'C.a' reference.
-        if (r.prefix.staticElement is ClassElement) {
-          Element oElement = resolutionMap.staticElementForIdentifier(o);
-          compareElements(
-              r.prefix.staticElement, oElement?.enclosingElement, desc);
-          compareConstAsts(r.identifier, o, desc);
-        } else {
-          fail('Prefix of type ${r.prefix.staticElement.runtimeType} should not'
-              ' have been elided');
-        }
-      } else if (o is PropertyAccess &&
-          o.target is PrefixedIdentifier &&
-          r is PrefixedIdentifier) {
-        // We don't resynthesize prefixed identifiers when the prefix refers to
-        // a PrefixElement or a ClassElement.  Which means that if the original
-        // expression was e.g. `prefix.topLevelVariableName.length`, it will get
-        // resynthesized as `topLevelVariableName.length`
-        PrefixedIdentifier oTarget = o.target;
-        checkElidablePrefix(oTarget.prefix);
-        compareConstAsts(
-            r,
-            AstTestFactory.identifier(oTarget.identifier, o.propertyName),
-            desc);
-      } else if (o is PrefixedIdentifier && r is PrefixedIdentifier) {
-        compareConstAsts(r.prefix, o.prefix, desc);
-        compareConstAsts(r.identifier, o.identifier, desc);
-      } else if (o is PropertyAccess && r is PropertyAccess) {
-        compareConstAsts(r.target, o.target, desc);
-        String oName = o.propertyName.name;
-        String rName = r.propertyName.name;
-        expect(rName, oName, reason: desc);
-        if (oName == 'length') {
-          compareElements(
-              r.propertyName.staticElement, o.propertyName.staticElement, desc);
-        }
-      } else if (o is PropertyAccess &&
-          o.target is PrefixedIdentifier &&
-          r is SimpleIdentifier) {
-        // We don't resynthesize property access when it takes the form
-        // `prefixName.className.staticMember`.  We just resynthesize a
-        // SimpleIdentifier correctly resolved to the static member.
-        PrefixedIdentifier oTarget = o.target;
-        checkElidablePrefix(oTarget.prefix);
-        checkElidablePrefix(oTarget.identifier);
-        compareConstAsts(r, o.propertyName, desc);
-      } else if (o is SuperExpression && r is SuperExpression) {
-        // Nothing to compare.
-      } else if (o is ThisExpression && r is ThisExpression) {
-        // Nothing to compare.
-      } else if (o is NullLiteral) {
-        expect(r, new TypeMatcher<NullLiteral>(), reason: desc);
-      } else if (o is BooleanLiteral && r is BooleanLiteral) {
-        expect(r.value, o.value, reason: desc);
-      } else if (o is IntegerLiteral && r is IntegerLiteral) {
-        expect(r.value ?? 0, o.value ?? 0, reason: desc);
-      } else if (o is IntegerLiteral && r is PrefixExpression) {
-        expect(r.operator.type, TokenType.MINUS);
-        IntegerLiteral ri = r.operand;
-        expect(-ri.value, o.value, reason: desc);
-      } else if (o is DoubleLiteral && r is DoubleLiteral) {
-        if (r.value != null &&
-            r.value.isNaN &&
-            o.value != null &&
-            o.value.isNaN) {
-          // NaN is not comparable.
-        } else {
-          expect(r.value, o.value, reason: desc);
-        }
-      } else if (o is StringInterpolation && r is StringInterpolation) {
-        compareConstAstLists(r.elements, o.elements, desc);
-      } else if (o is StringLiteral && r is StringLiteral) {
-        // We don't keep all the tokens of AdjacentStrings.
-        // So, we can compare only their values.
-        expect(r.stringValue, o.stringValue, reason: desc);
-      } else if (o is SymbolLiteral && r is SymbolLiteral) {
-        // We don't keep all the tokens of symbol literals.
-        // So, we can compare only their values.
-        expect(r.components.map((t) => t.lexeme).join('.'),
-            o.components.map((t) => t.lexeme).join('.'),
-            reason: desc);
-      } else if (o is NamedExpression && r is NamedExpression) {
-        expect(r.name.label.name, o.name.label.name, reason: desc);
-        compareConstAsts(r.expression, o.expression, desc);
-      } else if (o is BinaryExpression && r is BinaryExpression) {
-        expect(r.operator.lexeme, o.operator.lexeme, reason: desc);
-        compareConstAsts(r.leftOperand, o.leftOperand, desc);
-        compareConstAsts(r.rightOperand, o.rightOperand, desc);
-      } else if (o is PrefixExpression && r is PrefixExpression) {
-        expect(r.operator.lexeme, o.operator.lexeme, reason: desc);
-        compareConstAsts(r.operand, o.operand, desc);
-      } else if (o is ConditionalExpression && r is ConditionalExpression) {
-        compareConstAsts(r.condition, o.condition, desc);
-        compareConstAsts(r.thenExpression, o.thenExpression, desc);
-        compareConstAsts(r.elseExpression, o.elseExpression, desc);
-      } else if (o is ListLiteral && r is ListLiteral) {
-        compareConstAstLists(
-            r.typeArguments?.arguments, o.typeArguments?.arguments, desc);
-        compareConstAstLists(r.elements2, o.elements2, desc);
-      } else if (o is MapLiteral && r is MapLiteral) {
-        compareConstAstLists(
-            r.typeArguments?.arguments, o.typeArguments?.arguments, desc);
-        compareConstAstLists(r.entries, o.entries, desc);
-      } else if (o is MethodInvocation && r is MethodInvocation) {
-        compareConstAsts(r.target, o.target, desc);
-        compareConstAsts(r.methodName, o.methodName, desc);
-        compareConstAstLists(
-            r.typeArguments?.arguments, o.typeArguments?.arguments, desc);
-        compareConstAstLists(
-            r.argumentList?.arguments, o.argumentList?.arguments, desc);
-      } else if (o is InstanceCreationExpression &&
-          r is InstanceCreationExpression) {
-        compareElements(r.staticElement, o.staticElement, desc);
-        ConstructorName oConstructor = o.constructorName;
-        ConstructorName rConstructor = r.constructorName;
-        expect(oConstructor, isNotNull, reason: desc);
-        expect(rConstructor, isNotNull, reason: desc);
-        // Note: just compare rConstructor.staticElement and
-        // oConstructor.staticElement as elements, because we just want to
-        // check that they're pointing to the correct elements; we don't want
-        // to check that their constructor initializers match, because that
-        // could lead to infinite regress.
-        compareElements(
-            rConstructor.staticElement, oConstructor.staticElement, desc);
-        TypeName oType = oConstructor.type;
-        TypeName rType = rConstructor.type;
-        expect(oType, isNotNull, reason: desc);
-        expect(rType, isNotNull, reason: desc);
-        compareConstAsts(rType.name, oType.name, desc);
-        compareConstAsts(rConstructor.name, oConstructor.name, desc);
-        // In strong mode type inference is performed, so that
-        // `C<int> v = new C();` is serialized as `C<int> v = new C<int>();`.
-        // So, if there are not type arguments originally, not need to check.
-        if (oType.typeArguments?.arguments?.isNotEmpty ?? false) {
-          compareConstAstLists(rType.typeArguments?.arguments,
-              oType.typeArguments?.arguments, desc);
-        }
-        compareConstAstLists(
-            r.argumentList.arguments, o.argumentList.arguments, desc);
-      } else if (o is AnnotationImpl && r is AnnotationImpl) {
-        expect(o.atSign.lexeme, r.atSign.lexeme, reason: desc);
-        Identifier rName = r.name;
-        Identifier oName = o.name;
-        if (oName is PrefixedIdentifier &&
-            rName is PrefixedIdentifier &&
-            o.constructorName != null &&
-            o.element != null &&
-            r.constructorName == null) {
-          // E.g. `@prefix.cls.ctor`.  This sometimes gets resynthesized as
-          // `@cls.ctor`, with `cls.ctor` represented as a PrefixedIdentifier.
-          compareConstAsts(rName.prefix, oName.identifier, desc);
-          expect(rName.period.lexeme, '.', reason: desc);
-          compareConstAsts(rName.identifier, o.constructorName, desc);
-          expect(r.period, isNull, reason: desc);
-          expect(r.constructorName, isNull, reason: desc);
-        } else {
-          compareConstAsts(r.name, o.name, desc);
-          expect(r.period?.lexeme, o.period?.lexeme, reason: desc);
-          compareConstAsts(r.constructorName, o.constructorName, desc);
-        }
-        compareConstAstLists(
-            r.arguments?.arguments, o.arguments?.arguments, desc);
-        compareElements(r.element, o.element, desc);
-        // elementAnnotation should be null; it is only used in the full AST.
-        expect(o.elementAnnotation, isNull);
-        expect(r.elementAnnotation, isNull);
-      } else {
-        fail('Not implemented for ${r.runtimeType} vs. ${o.runtimeType}');
-      }
-    }
-  }
-
-  void compareConstructorElements(ConstructorElement resynthesized,
-      ConstructorElement original, String desc) {
-    if (original == null && resynthesized == null) {
-      return;
-    }
-    compareExecutableElements(resynthesized, original, desc);
-    ConstructorElementImpl resynthesizedImpl =
-        getActualElement(resynthesized, desc);
-    ConstructorElementImpl originalImpl = getActualElement(original, desc);
-    if (original.isConst) {
-      compareConstAstLists(resynthesizedImpl.constantInitializers,
-          originalImpl.constantInitializers, desc);
-    }
-    if (original.redirectedConstructor == null) {
-      expect(resynthesized.redirectedConstructor, isNull, reason: desc);
-    } else {
-      compareConstructorElements(resynthesized.redirectedConstructor,
-          original.redirectedConstructor, '$desc redirectedConstructor');
-    }
-    checkPossibleMember(resynthesized, original, desc);
-    expect(resynthesized.nameEnd, original.nameEnd, reason: desc);
-    expect(resynthesized.periodOffset, original.periodOffset, reason: desc);
-    expect(resynthesizedImpl.isCycleFree, originalImpl.isCycleFree,
-        reason: desc);
-  }
-
-  void compareConstValues(
-      DartObject resynthesized, DartObject original, String desc) {
-    if (original == null) {
-      expect(resynthesized, isNull, reason: desc);
-    } else {
-      expect(resynthesized, isNotNull, reason: desc);
-      compareTypes(resynthesized.type, original.type, desc);
-      expect(resynthesized.hasKnownValue, original.hasKnownValue, reason: desc);
-      if (original.isNull) {
-        expect(resynthesized.isNull, isTrue, reason: desc);
-      } else if (original.toBoolValue() != null) {
-        expect(resynthesized.toBoolValue(), original.toBoolValue(),
-            reason: desc);
-      } else if (original.toIntValue() != null) {
-        expect(resynthesized.toIntValue(), original.toIntValue(), reason: desc);
-      } else if (original.toDoubleValue() != null) {
-        expect(resynthesized.toDoubleValue(), original.toDoubleValue(),
-            reason: desc);
-      } else if (original.toListValue() != null) {
-        List<DartObject> resynthesizedList = resynthesized.toListValue();
-        List<DartObject> originalList = original.toListValue();
-        expect(resynthesizedList, hasLength(originalList.length));
-        for (int i = 0; i < originalList.length; i++) {
-          compareConstValues(resynthesizedList[i], originalList[i], desc);
-        }
-      } else if (original.toMapValue() != null) {
-        Map<DartObject, DartObject> resynthesizedMap =
-            resynthesized.toMapValue();
-        Map<DartObject, DartObject> originalMap = original.toMapValue();
-        expect(resynthesizedMap, hasLength(originalMap.length));
-        List<DartObject> resynthesizedKeys = resynthesizedMap.keys.toList();
-        List<DartObject> originalKeys = originalMap.keys.toList();
-        for (int i = 0; i < originalKeys.length; i++) {
-          DartObject resynthesizedKey = resynthesizedKeys[i];
-          DartObject originalKey = originalKeys[i];
-          compareConstValues(resynthesizedKey, originalKey, desc);
-          DartObject resynthesizedValue = resynthesizedMap[resynthesizedKey];
-          DartObject originalValue = originalMap[originalKey];
-          compareConstValues(resynthesizedValue, originalValue, desc);
-        }
-      } else if (original.toStringValue() != null) {
-        expect(resynthesized.toStringValue(), original.toStringValue(),
-            reason: desc);
-      } else if (original.toSymbolValue() != null) {
-        expect(resynthesized.toSymbolValue(), original.toSymbolValue(),
-            reason: desc);
-      } else if (original.toTypeValue() != null) {
-        fail('Not implemented');
-      }
-    }
-  }
-
-  void compareElementAnnotations(ElementAnnotationImpl resynthesized,
-      ElementAnnotationImpl original, String desc) {
-    if (original.element == null) {
-      expect(resynthesized.element, isNull);
-    } else {
-      expect(resynthesized.element, isNotNull, reason: desc);
-      expect(resynthesized.element.kind, original.element.kind, reason: desc);
-      expect(resynthesized.element.location, original.element.location,
-          reason: desc);
-    }
-    expect(resynthesized.compilationUnit, isNotNull, reason: desc);
-    expect(resynthesized.compilationUnit.location,
-        original.compilationUnit.location,
-        reason: desc);
-    expect(resynthesized.annotationAst, isNotNull, reason: desc);
-    compareConstAsts(resynthesized.annotationAst, original.annotationAst, desc);
-  }
-
-  void compareElementLocations(
-      Element resynthesized, Element original, String desc) {
-    bool hasFunctionElementByValue(Element e) {
-      if (e == null) {
-        return false;
-      }
-      if (e is FunctionElementImpl_forLUB) {
-        return true;
-      }
-      return hasFunctionElementByValue(e.enclosingElement);
-    }
-
-    if (hasFunctionElementByValue(resynthesized)) {
-      // We resynthesize elements representing types of local functions
-      // without corresponding name offsets, so their locations don't have
-      // corresponding valid @offset components. Also, we don't put
-      // resynthesized local functions into initializers of variables.
-      return;
-    }
-    expect(resynthesized.location, original.location, reason: desc);
-  }
-
-  void compareElements(Element resynthesized, Element original, String desc) {
-    ElementImpl rImpl = getActualElement(resynthesized, desc);
-    ElementImpl oImpl = getActualElement(original, desc);
-    if (oImpl == null && rImpl == null) {
-      return;
-    }
-    if (oImpl is PrefixElement) {
-      // TODO(scheglov) prefixes cannot be resynthesized
-      return;
-    }
-    expect(original, isNotNull);
-    expect(resynthesized, isNotNull, reason: desc);
-    if (rImpl is DefaultParameterElementImpl && oImpl is ParameterElementImpl) {
-      // This is ok provided the resynthesized parameter element doesn't have
-      // any evaluation result.
-      expect(rImpl.evaluationResult, isNull);
-    } else {
-      Type rRuntimeType;
-      if (rImpl is ConstFieldElementImpl) {
-        rRuntimeType = ConstFieldElementImpl;
-      } else if (rImpl is FunctionElementImpl) {
-        rRuntimeType = FunctionElementImpl;
-      } else {
-        rRuntimeType = rImpl.runtimeType;
-      }
-      expect(rRuntimeType, oImpl.runtimeType);
-    }
-    expect(resynthesized.kind, original.kind);
-    compareElementLocations(resynthesized, original, desc);
-    expect(resynthesized.name, original.name);
-    expect(resynthesized.nameOffset, original.nameOffset,
-        reason: '$desc.nameOffset');
-    expect(rImpl.codeOffset, oImpl.codeOffset, reason: desc);
-    expect(rImpl.codeLength, oImpl.codeLength, reason: desc);
-    expect(resynthesized.documentationComment, original.documentationComment,
-        reason: desc);
-    compareMetadata(resynthesized.metadata, original.metadata, desc);
-
-    // Validate modifiers.
-    for (Modifier modifier in Modifier.values) {
-      bool got = _hasModifier(resynthesized, modifier);
-      bool want = _hasModifier(original, modifier);
-      expect(got, want,
-          reason: 'Mismatch in $desc.$modifier: got $got, want $want');
-    }
-
-    // Validate members.
-    if (oImpl is Member) {
-      expect(rImpl, new TypeMatcher<Member>(), reason: desc);
-    } else {
-      expect(rImpl, isNot(new TypeMatcher<Member>()), reason: desc);
-    }
-  }
-
-  void compareExecutableElements(
-      ExecutableElement resynthesized, ExecutableElement original, String desc,
-      {bool shallow: false}) {
-    compareElements(resynthesized, original, desc);
-    compareParameterElementLists(
-        resynthesized.parameters, original.parameters, desc);
-    if (!original.hasImplicitReturnType) {
-      compareTypes(
-          resynthesized.returnType, original.returnType, '$desc return type');
-    }
-    if (!shallow) {
-      compareTypes(resynthesized.type, original.type, desc);
-    }
-    expect(resynthesized.typeParameters.length, original.typeParameters.length);
-    for (int i = 0; i < resynthesized.typeParameters.length; i++) {
-      compareTypeParameterElements(
-          resynthesized.typeParameters[i],
-          original.typeParameters[i],
-          '$desc type parameter ${original.typeParameters[i].name}');
-    }
-  }
-
-  void compareExportElements(ExportElementImpl resynthesized,
-      ExportElementImpl original, String desc) {
-    expect(resynthesized.exportedLibrary.location,
-        original.exportedLibrary.location);
-    expect(resynthesized.combinators.length, original.combinators.length);
-    for (int i = 0; i < resynthesized.combinators.length; i++) {
-      compareNamespaceCombinators(
-          resynthesized.combinators[i], original.combinators[i]);
-    }
-  }
-
-  void compareFieldElements(
-      FieldElementImpl resynthesized, FieldElementImpl original, String desc) {
-    comparePropertyInducingElements(resynthesized, original, desc);
-  }
-
-  void compareFunctionElements(
-      FunctionElement resynthesized, FunctionElement original, String desc,
-      {bool shallow: false}) {
-    if (original == null && resynthesized == null) {
-      return;
-    }
-    expect(resynthesized, isNotNull, reason: desc);
-    compareExecutableElements(resynthesized, original, desc, shallow: shallow);
-    checkPossibleLocalElements(resynthesized, original);
-  }
-
-  void compareFunctionTypeAliasElements(FunctionTypeAliasElement resynthesized,
-      FunctionTypeAliasElement original, String desc) {
-    compareElements(resynthesized, original, desc);
-    ElementImpl rImpl = getActualElement(resynthesized, desc);
-    ElementImpl oImpl = getActualElement(original, desc);
-    if (rImpl is GenericTypeAliasElementImpl) {
-      if (oImpl is GenericTypeAliasElementImpl) {
-        compareGenericFunctionTypeElements(
-            rImpl.function, oImpl.function, '$desc.function');
-      } else {
-        fail(
-            'Resynthesized a GenericTypeAliasElementImpl, but expected a ${oImpl.runtimeType}');
-      }
-    } else {
-      fail('Resynthesized a ${rImpl.runtimeType}');
-    }
-    compareTypes(resynthesized.type, original.type, desc);
-    expect(resynthesized.typeParameters.length, original.typeParameters.length);
-    for (int i = 0; i < resynthesized.typeParameters.length; i++) {
-      compareTypeParameterElements(
-          resynthesized.typeParameters[i],
-          original.typeParameters[i],
-          '$desc.typeParameters[$i] /* ${original.typeParameters[i].name} */');
-    }
-  }
-
-  void compareGenericFunctionTypeElements(
-      GenericFunctionTypeElement resynthesized,
-      GenericFunctionTypeElement original,
-      String desc) {
-    if (resynthesized == null) {
-      if (original != null) {
-        fail('Failed to resynthesize generic function type');
-      }
-    } else if (original == null) {
-      fail('Resynthesizes a generic function type when none expected');
-    }
-    compareTypeParameterElementLists(resynthesized.typeParameters,
-        original.typeParameters, '$desc.typeParameters');
-    compareParameterElementLists(
-        resynthesized.parameters, original.parameters, '$desc.parameters');
-    compareTypes(
-        resynthesized.returnType, original.returnType, '$desc.returnType');
-  }
-
-  void compareImportElements(ImportElementImpl resynthesized,
-      ImportElementImpl original, String desc) {
-    expect(resynthesized.importedLibrary.location,
-        original.importedLibrary.location,
-        reason: '$desc importedLibrary location');
-    expect(resynthesized.prefixOffset, original.prefixOffset,
-        reason: '$desc prefixOffset');
-    if (original.prefix == null) {
-      expect(resynthesized.prefix, isNull, reason: '$desc prefix');
-    } else {
-      comparePrefixElements(
-          resynthesized.prefix, original.prefix, original.prefix.name);
-    }
-    expect(resynthesized.combinators.length, original.combinators.length,
-        reason: '$desc combinators');
-    for (int i = 0; i < resynthesized.combinators.length; i++) {
-      compareNamespaceCombinators(
-          resynthesized.combinators[i], original.combinators[i]);
-    }
-  }
-
-  void compareLabelElements(
-      LabelElementImpl resynthesized, LabelElementImpl original, String desc) {
-    expect(resynthesized.isOnSwitchMember, original.isOnSwitchMember,
-        reason: desc);
-    expect(resynthesized.isOnSwitchStatement, original.isOnSwitchStatement,
-        reason: desc);
-    compareElements(resynthesized, original, desc);
-  }
-
-  void compareLineInfo(LineInfo resynthesized, LineInfo original) {
-    expect(resynthesized.lineCount, original.lineCount);
-    expect(resynthesized.lineStarts, original.lineStarts);
-  }
-
-  void compareMetadata(List<ElementAnnotation> resynthesized,
-      List<ElementAnnotation> original, String desc) {
-    expect(resynthesized, hasLength(original.length), reason: desc);
-    for (int i = 0; i < original.length; i++) {
-      compareElementAnnotations(
-          resynthesized[i], original[i], '$desc annotation $i');
-    }
-  }
-
-  void compareMethodElements(MethodElementImpl resynthesized,
-      MethodElementImpl original, String desc) {
-    // TODO(paulberry): do we need to deal with
-    // MultiplyInheritedMethodElementImpl?
-    compareExecutableElements(resynthesized, original, desc);
-  }
-
-  void compareNamespaceCombinators(
-      NamespaceCombinator resynthesized, NamespaceCombinator original) {
-    if (original is ShowElementCombinatorImpl &&
-        resynthesized is ShowElementCombinatorImpl) {
-      expect(resynthesized.shownNames, original.shownNames,
-          reason: 'shownNames');
-      expect(resynthesized.offset, original.offset, reason: 'offset');
-      expect(resynthesized.end, original.end, reason: 'end');
-    } else if (original is HideElementCombinatorImpl &&
-        resynthesized is HideElementCombinatorImpl) {
-      expect(resynthesized.hiddenNames, original.hiddenNames,
-          reason: 'hiddenNames');
-    } else if (resynthesized.runtimeType != original.runtimeType) {
-      fail(
-          'Type mismatch: expected ${original.runtimeType}, got ${resynthesized.runtimeType}');
-    } else {
-      fail('Unimplemented comparison for ${original.runtimeType}');
-    }
-  }
-
-  void compareNamespaces(
-      Namespace resynthesized, Namespace original, String desc) {
-    Map<String, Element> resynthesizedMap = resynthesized.definedNames;
-    Map<String, Element> originalMap = original.definedNames;
-    expect(resynthesizedMap.keys.toSet(), originalMap.keys.toSet(),
-        reason: desc);
-    for (String key in originalMap.keys) {
-      Element resynthesizedElement = resynthesizedMap[key];
-      Element originalElement = originalMap[key];
-      compareElements(resynthesizedElement, originalElement, key);
-    }
-  }
-
-  void compareParameterElementLists(
-      List<ParameterElement> resynthesizedParameters,
-      List<ParameterElement> originalParameters,
-      String desc) {
-    expect(resynthesizedParameters.length, originalParameters.length);
-    for (int i = 0; i < resynthesizedParameters.length; i++) {
-      compareParameterElements(
-          resynthesizedParameters[i],
-          originalParameters[i],
-          '$desc.parameters[$i] /* ${originalParameters[i].name} */');
-    }
-  }
-
-  void compareParameterElements(
-      ParameterElement resynthesized, ParameterElement original, String desc) {
-    compareVariableElements(resynthesized, original, desc);
-    compareParameterElementLists(
-        resynthesized.parameters, original.parameters, desc);
-    // ignore: deprecated_member_use_from_same_package
-    expect(resynthesized.parameterKind, original.parameterKind, reason: desc);
-    expect(resynthesized.isInitializingFormal, original.isInitializingFormal,
-        reason: desc);
-    expect(resynthesized is FieldFormalParameterElementImpl,
-        original is FieldFormalParameterElementImpl);
-    if (resynthesized is FieldFormalParameterElementImpl &&
-        original is FieldFormalParameterElementImpl) {
-      if (original.field == null) {
-        expect(resynthesized.field, isNull, reason: '$desc field');
-      } else {
-        expect(resynthesized.field, isNotNull, reason: '$desc field');
-        compareFieldElements(
-            resynthesized.field, original.field, '$desc field');
-      }
-    }
-    expect(resynthesized.defaultValueCode, original.defaultValueCode,
-        reason: desc);
-    expect(resynthesized.isCovariant, original.isCovariant,
-        reason: '$desc isCovariant');
-    ParameterElementImpl resynthesizedActual =
-        getActualElement(resynthesized, desc);
-    ParameterElementImpl originalActual = getActualElement(original, desc);
-    expect(resynthesizedActual.isExplicitlyCovariant,
-        originalActual.isExplicitlyCovariant,
-        reason: desc);
-    compareFunctionElements(
-        resynthesizedActual.initializer, originalActual.initializer, desc);
-  }
-
-  void comparePrefixElements(PrefixElementImpl resynthesized,
-      PrefixElementImpl original, String desc) {
-    compareElements(resynthesized, original, desc);
-  }
-
-  void comparePropertyAccessorElements(
-      PropertyAccessorElementImpl resynthesized,
-      PropertyAccessorElementImpl original,
-      String desc) {
-    // TODO(paulberry): do I need to worry about
-    // MultiplyInheritedPropertyAccessorElementImpl?
-    compareExecutableElements(resynthesized, original, desc);
-    expect(resynthesized.variable, isNotNull);
-    expect(resynthesized.variable.location, original.variable.location);
-  }
-
-  void comparePropertyInducingElements(
-      PropertyInducingElementImpl resynthesized,
-      PropertyInducingElementImpl original,
-      String desc) {
-    compareVariableElements(resynthesized, original, desc);
-    if (original.getter == null) {
-      expect(resynthesized.getter, isNull);
-    } else {
-      expect(resynthesized.getter, isNotNull);
-      expect(resynthesized.getter.location, original.getter.location);
-    }
-    if (original.setter == null) {
-      expect(resynthesized.setter, isNull);
-    } else {
-      expect(resynthesized.setter, isNotNull);
-      expect(resynthesized.setter.location, original.setter.location);
-    }
-  }
-
-  void compareTopLevelVariableElements(
-      TopLevelVariableElementImpl resynthesized,
-      TopLevelVariableElementImpl original,
-      String desc) {
-    comparePropertyInducingElements(resynthesized, original, desc);
-  }
-
-  void compareTypeImpls(
-      TypeImpl resynthesized, TypeImpl original, String desc) {
-    compareElementLocations(
-        resynthesized.element, original.element, '$desc.element.location');
-    expect(resynthesized.name, original.name, reason: '$desc.name');
-  }
-
-  void compareTypeParameterElementLists(
-      List<TypeParameterElement> resynthesized,
-      List<TypeParameterElement> original,
-      String desc) {
-    int length = original.length;
-    expect(resynthesized.length, length, reason: '$desc.length');
-    for (int i = 0; i < length; i++) {
-      compareTypeParameterElements(resynthesized[i], original[i], '$desc[$i]');
-    }
-  }
-
-  void compareTypeParameterElements(TypeParameterElement resynthesized,
-      TypeParameterElement original, String desc) {
-    compareElements(resynthesized, original, desc);
-    compareTypes(resynthesized.type, original.type, '$desc.type');
-    compareTypes(resynthesized.bound, original.bound, '$desc.bound');
-  }
-
-  void compareTypes(DartType resynthesized, DartType original, String desc) {
-    if (original == null) {
-      expect(resynthesized, isNull, reason: desc);
-    } else if (resynthesized is InterfaceTypeImpl &&
-        original is InterfaceTypeImpl) {
-      compareTypeImpls(resynthesized, original, desc);
-      expect(resynthesized.typeArguments.length, original.typeArguments.length,
-          reason: '$desc.typeArguments.length');
-      for (int i = 0; i < resynthesized.typeArguments.length; i++) {
-        compareTypes(resynthesized.typeArguments[i], original.typeArguments[i],
-            '$desc.typeArguments[$i] /* ${original.typeArguments[i].name} */');
-      }
-    } else if (resynthesized is TypeParameterTypeImpl &&
-        original is TypeParameterTypeImpl) {
-      compareTypeImpls(resynthesized, original, desc);
-    } else if (resynthesized is DynamicTypeImpl &&
-        original is DynamicTypeImpl) {
-      expect(resynthesized, same(original));
-    } else if (resynthesized is UndefinedTypeImpl &&
-        original is UndefinedTypeImpl) {
-      expect(resynthesized, same(original));
-    } else if (resynthesized is FunctionTypeImpl &&
-        original is FunctionTypeImpl) {
-      compareTypeImpls(resynthesized, original, desc);
-      expect(resynthesized.isInstantiated, original.isInstantiated,
-          reason: desc);
-      if (original.element.enclosingElement == null &&
-          original.element is FunctionElement) {
-        expect(resynthesized.element, isFunctionElement);
-        expect(resynthesized.element.enclosingElement, isNull, reason: desc);
-        compareFunctionElements(
-            resynthesized.element, original.element, '$desc.element',
-            shallow: true);
-        expect(resynthesized.element.type, same(resynthesized));
-      }
-      expect(resynthesized.typeArguments.length, original.typeArguments.length,
-          reason: '$desc.typeArguments.length');
-      for (int i = 0; i < resynthesized.typeArguments.length; i++) {
-        if (resynthesized.typeArguments[i].isDynamic &&
-            original.typeArguments[i] is TypeParameterType) {
-          // It's ok for type arguments to get converted to `dynamic` if they
-          // are not used.
-          expect(
-              isTypeParameterUsed(
-                  original.typeArguments[i], original.element.type),
-              isFalse);
-        } else {
-          compareTypes(
-              resynthesized.typeArguments[i],
-              original.typeArguments[i],
-              '$desc.typeArguments[$i] /* ${original.typeArguments[i].name} */');
-        }
-      }
-      if (original.typeParameters == null) {
-        expect(resynthesized.typeParameters, isNull, reason: desc);
-      } else {
-        expect(resynthesized.typeParameters, isNotNull, reason: desc);
-        expect(
-            resynthesized.typeParameters.length, original.typeParameters.length,
-            reason: desc);
-        for (int i = 0; i < resynthesized.typeParameters.length; i++) {
-          compareTypeParameterElements(resynthesized.typeParameters[i],
-              original.typeParameters[i], '$desc.typeParameters[$i]');
-        }
-      }
-      expect(resynthesized.typeFormals.length, original.typeFormals.length,
-          reason: desc);
-      for (int i = 0; i < resynthesized.typeFormals.length; i++) {
-        compareTypeParameterElements(resynthesized.typeFormals[i],
-            original.typeFormals[i], '$desc.typeFormals[$i]');
-      }
-    } else if (resynthesized is VoidTypeImpl && original is VoidTypeImpl) {
-      expect(resynthesized, same(original));
-    } else if (resynthesized is DynamicTypeImpl &&
-        original is UndefinedTypeImpl) {
-      // TODO(scheglov) In the strong mode constant variable like
-      //  `var V = new Unresolved()` gets `UndefinedTypeImpl`, and it gets
-      // `DynamicTypeImpl` in the spec mode.
-    } else if (resynthesized is BottomTypeImpl && original is BottomTypeImpl) {
-      expect(resynthesized, same(original));
-    } else if (resynthesized.runtimeType != original.runtimeType) {
-      fail('Type mismatch: expected $original,'
-          ' got $resynthesized ($desc)');
-    } else {
-      fail('Unimplemented comparison for ${original.runtimeType}');
-    }
-  }
-
-  void compareVariableElements(
-      VariableElement resynthesized, VariableElement original, String desc) {
-    compareElements(resynthesized, original, desc);
-    if ((resynthesized as VariableElementImpl).typeInferenceError == null) {
-      compareTypes(resynthesized.type, original.type, '$desc.type');
-    }
-    VariableElementImpl resynthesizedActual =
-        getActualElement(resynthesized, desc);
-    VariableElementImpl originalActual = getActualElement(original, desc);
-    compareFunctionElements(resynthesizedActual.initializer,
-        originalActual.initializer, '$desc.initializer');
-    if (originalActual is ConstVariableElement) {
-      Element oEnclosing = original.enclosingElement;
-      if (oEnclosing is ClassElement && oEnclosing.isEnum) {
-        compareConstValues(resynthesized.constantValue, original.constantValue,
-            '$desc.constantValue');
-      } else {
-        Expression initializer = resynthesizedActual.constantInitializer;
-        if (variablesWithNotConstInitializers.contains(resynthesized.name)) {
-          expect(initializer, isNull, reason: desc);
-        } else {
-          compareConstAsts(initializer, originalActual.constantInitializer,
-              '$desc.constantInitializer');
-        }
-      }
-    }
-    checkPossibleMember(resynthesized, original, desc);
-    checkPossibleLocalElements(resynthesized, original);
-  }
-
-  ElementImpl getActualElement(Element element, String desc) {
-    if (element == null) {
-      return null;
-    } else if (element is ElementImpl) {
-      return element;
-    } else if (element is ElementHandle) {
-      Element actualElement = element.actualElement;
-      // A handle should never point to a member, because if it did, then
-      // "is Member" checks on the handle would produce the wrong result.
-      expect(actualElement, isNot(new TypeMatcher<Member>()), reason: desc);
-      return getActualElement(actualElement, desc);
-    } else if (element is Member) {
-      return getActualElement(element.baseElement, desc);
-    } else {
-      fail('Unexpected type for resynthesized ($desc):'
-          ' ${element.runtimeType}');
-    }
-  }
-
-  /**
-   * Determine if [type] makes use of the given [typeParameter].
-   */
-  bool isTypeParameterUsed(TypeParameterType typeParameter, DartType type) {
-    if (type is FunctionType) {
-      return isTypeParameterUsed(typeParameter, type.returnType) ||
-          type.parameters.any((ParameterElement e) =>
-              isTypeParameterUsed(typeParameter, e.type));
-    } else if (type is InterfaceType) {
-      return type.typeArguments
-          .any((DartType t) => isTypeParameterUsed(typeParameter, t));
-    } else if (type is TypeParameterType) {
-      return type == typeParameter;
-    } else {
-      expect(type.isDynamic || type.isVoid, isTrue);
-      return false;
-    }
-  }
-
-  LibraryElementImpl _encodeDecodeLibraryElement(Source source) {
     SummaryResynthesizer resynthesizer = encodeLibrary(source);
     return resynthesizer.getLibraryElement(source.uri.toString());
-  }
-
-  List<PropertyAccessorElement> _getSortedPropertyAccessors(
-      ClassElement classElement) {
-    List<PropertyAccessorElement> accessors = classElement.accessors.toList();
-    accessors.sort((a, b) => a.displayName.compareTo(b.displayName));
-    return accessors;
-  }
-
-  bool _hasModifier(Element element, Modifier modifier) {
-    if (modifier == Modifier.ABSTRACT) {
-      if (element is ClassElement) {
-        return element.isAbstract;
-      }
-      if (element is ExecutableElement) {
-        return element.isAbstract;
-      }
-      return false;
-    } else if (modifier == Modifier.ASYNCHRONOUS) {
-      if (element is ExecutableElement) {
-        return element.isAsynchronous;
-      }
-      return false;
-    } else if (modifier == Modifier.CONST) {
-      if (element is VariableElement) {
-        return element.isConst;
-      }
-      return false;
-    } else if (modifier == Modifier.COVARIANT) {
-      if (element is ParameterElementImpl) {
-        return element.isExplicitlyCovariant;
-      }
-      return false;
-    } else if (modifier == Modifier.DEFERRED) {
-      if (element is ImportElement) {
-        return element.isDeferred;
-      }
-      return false;
-    } else if (modifier == Modifier.ENUM) {
-      if (element is ClassElement) {
-        return element.isEnum;
-      }
-      return false;
-    } else if (modifier == Modifier.EXTERNAL) {
-      if (element is ExecutableElement) {
-        return element.isExternal;
-      }
-      return false;
-    } else if (modifier == Modifier.FACTORY) {
-      if (element is ConstructorElement) {
-        return element.isFactory;
-      }
-      return false;
-    } else if (modifier == Modifier.FINAL) {
-      if (element is VariableElement) {
-        return element.isFinal;
-      }
-      return false;
-    } else if (modifier == Modifier.GENERATOR) {
-      if (element is ExecutableElement) {
-        return element.isGenerator;
-      }
-      return false;
-    } else if (modifier == Modifier.GETTER) {
-      if (element is PropertyAccessorElement) {
-        return element.isGetter;
-      }
-      return false;
-    } else if (modifier == Modifier.HAS_EXT_URI) {
-      if (element is LibraryElement) {
-        return element.hasExtUri;
-      }
-      return false;
-    } else if (modifier == Modifier.IMPLICIT_TYPE) {
-      if (element is ExecutableElement) {
-        return element.hasImplicitReturnType;
-      }
-      return false;
-    } else if (modifier == Modifier.MIXIN_APPLICATION) {
-      if (element is ClassElement) {
-        return element.isMixinApplication;
-      }
-      return false;
-    } else if (modifier == Modifier.REFERENCES_SUPER) {
-      if (element is ClassElement) {
-        return element.hasReferenceToSuper;
-      }
-      return false;
-    } else if (modifier == Modifier.SETTER) {
-      if (element is PropertyAccessorElement) {
-        return element.isSetter;
-      }
-      return false;
-    } else if (modifier == Modifier.STATIC) {
-      if (element is ExecutableElement) {
-        return element.isStatic;
-      } else if (element is FieldElement) {
-        return element.isStatic;
-      }
-      return false;
-    } else if (modifier == Modifier.SYNTHETIC) {
-      return element.isSynthetic;
-    }
-    throw new UnimplementedError(
-        'Modifier $modifier for ${element?.runtimeType}');
   }
 }
 
