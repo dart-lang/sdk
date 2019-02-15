@@ -99,6 +99,10 @@ abstract class AbstractValueDomain {
   /// runtime.
   AbstractValue get listType;
 
+  /// The [AbstractValue] that represents a non-null subtype of `Set` at
+  /// runtime.
+  AbstractValue get setType;
+
   /// The [AbstractValue] that represents a non-null subtype of `Map` at
   /// runtime.
   AbstractValue get mapType;
@@ -132,6 +136,10 @@ abstract class AbstractValueDomain {
   /// The [AbstractValue] that represents a non-null constant list literal at
   /// runtime.
   AbstractValue get constListType;
+
+  /// The [AbstractValue] that represents a non-null constant set literal at
+  /// runtime.
+  AbstractValue get constSetType;
 
   /// The [AbstractValue] that represents a non-null constant map literal at
   /// runtime.
@@ -376,6 +384,9 @@ abstract class AbstractValueDomain {
   /// at runtime. Returns `null` if the length is unknown or if [value] doesn't
   /// represent a container value at runtime.
   int getContainerLength(AbstractValue value);
+
+  /// Returns `true` if [value] represents a set value at runtime.
+  bool isSet(covariant AbstractValue value);
 
   /// Returns `true` if [value] represents a map value at runtime.
   bool isMap(covariant AbstractValue value);

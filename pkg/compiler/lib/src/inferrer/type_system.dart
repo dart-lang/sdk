@@ -205,6 +205,14 @@ class TypeSystem {
         getConcreteTypeFor(_abstractValueDomain.growableListType);
   }
 
+  TypeInformation setTypeCache;
+  TypeInformation get setType =>
+      setTypeCache ??= getConcreteTypeFor(_abstractValueDomain.setType);
+
+  TypeInformation constSetTypeCache;
+  TypeInformation get constSetType => constSetTypeCache ??=
+      getConcreteTypeFor(_abstractValueDomain.constSetType);
+
   TypeInformation mapTypeCache;
   TypeInformation get mapType {
     if (mapTypeCache != null) return mapTypeCache;

@@ -329,6 +329,9 @@ abstract class TypeMask implements AbstractValue {
   /// Returns `true` if this mask is a [ContainerTypeMask].
   bool get isContainer;
 
+  /// Returns `true` if this mask is a [SetTypeMask].
+  bool get isSet;
+
   /// Returns `true` if this mask is a [MapTypeMask].
   bool get isMap;
 

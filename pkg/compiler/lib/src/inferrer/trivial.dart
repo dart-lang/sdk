@@ -146,6 +146,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   bool isMap(AbstractValue value) => false;
 
   @override
+  bool isSet(AbstractValue value) => false;
+
+  @override
   int getContainerLength(AbstractValue value) => null;
 
   @override
@@ -356,6 +359,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractValue get constMapType => const TrivialAbstractValue();
 
   @override
+  AbstractValue get constSetType => const TrivialAbstractValue();
+
+  @override
   AbstractValue get constListType => const TrivialAbstractValue();
 
   @override
@@ -381,6 +387,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue get mapType => const TrivialAbstractValue();
+
+  @override
+  AbstractValue get setType => const TrivialAbstractValue();
 
   @override
   AbstractValue get listType => const TrivialAbstractValue();

@@ -57,6 +57,8 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask _constListType;
   TypeMask _fixedListType;
   TypeMask _growableListType;
+  TypeMask _setType;
+  TypeMask _constSetType;
   TypeMask _mapType;
   TypeMask _constMapType;
   TypeMask _stringType;
@@ -140,6 +142,14 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask get growableListType =>
       _growableListType ??= new TypeMask.nonNullExact(
           commonElements.jsExtendableArrayClass, _closedWorld);
+
+  @override
+  TypeMask get setType => _setType ??=
+      new TypeMask.nonNullSubtype(commonElements.setLiteralClass, _closedWorld);
+
+  @override
+  TypeMask get constSetType => _constSetType ??= new TypeMask.nonNullSubtype(
+      commonElements.constSetLiteralClass, _closedWorld);
 
   @override
   TypeMask get mapType => _mapType ??=
@@ -702,6 +712,11 @@ class CommonMasks implements AbstractValueDomain {
   @override
   bool isMap(TypeMask value) {
     return value.isMap;
+  }
+
+  @override
+  bool isSet(TypeMask value) {
+    return value.isSet;
   }
 
   @override
