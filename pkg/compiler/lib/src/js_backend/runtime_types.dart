@@ -1047,6 +1047,10 @@ class TypeVariableTests {
       _getClassNode(commonElements.jsArrayClass)
           .addDependency(_getClassNode(commonElements.listClass));
     }
+    if (commonElements.setLiteralClass != null) {
+      _getClassNode(commonElements.setLiteralClass)
+          .addDependency(_getClassNode(commonElements.setClass));
+    }
     if (commonElements.mapLiteralClass != null) {
       _getClassNode(commonElements.mapLiteralClass)
           .addDependency(_getClassNode(commonElements.mapClass));

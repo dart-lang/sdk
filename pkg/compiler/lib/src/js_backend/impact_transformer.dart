@@ -225,6 +225,15 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       }
     }
 
+    for (SetLiteralUse setLiteralUse in worldImpact.setLiterals) {
+      if (setLiteralUse.isConstant) {
+        registerImpact(_impacts.constantSetLiteral);
+      } else {
+        transformed
+            .registerTypeUse(new TypeUse.instantiation(setLiteralUse.type));
+      }
+    }
+
     for (ListLiteralUse listLiteralUse in worldImpact.listLiterals) {
       // TODO(johnniwinther): Use the [isConstant] and [isEmpty] property when
       // factory constructors are registered directly.

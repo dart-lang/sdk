@@ -328,12 +328,16 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(impactBuilder, _impacts.functionClass);
     } else if (cls == _commonElements.mapClass) {
       _registerBackendImpact(impactBuilder, _impacts.mapClass);
+    } else if (cls == _commonElements.setClass) {
+      _registerBackendImpact(impactBuilder, _impacts.setClass);
     } else if (cls == _commonElements.boundClosureClass) {
       _registerBackendImpact(impactBuilder, _impacts.boundClosureClass);
     } else if (_nativeData.isNativeOrExtendsNative(cls)) {
       _registerBackendImpact(impactBuilder, _impacts.nativeOrExtendsClass);
     } else if (cls == _commonElements.mapLiteralClass) {
       _registerBackendImpact(impactBuilder, _impacts.mapLiteralClass);
+    } else if (cls == _commonElements.setLiteralClass) {
+      _registerBackendImpact(impactBuilder, _impacts.setLiteralClass);
     }
     if (cls == _commonElements.closureClass) {
       _registerBackendImpact(impactBuilder, _impacts.closureClass);

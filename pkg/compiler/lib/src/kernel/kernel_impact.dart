@@ -231,7 +231,10 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerSetLiteral(ir.DartType elementType,
       {bool isConst, bool isEmpty}) {
-    // TODO(johnniwinther,fishythefish): Register set literals.
+    impactBuilder.registerSetLiteral(new SetLiteralUse(
+        commonElements.setType(elementMap.getDartType(elementType)),
+        isConstant: isConst,
+        isEmpty: isEmpty));
   }
 
   @override
