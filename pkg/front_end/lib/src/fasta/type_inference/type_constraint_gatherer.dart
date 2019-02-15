@@ -4,10 +4,13 @@
 
 import 'package:kernel/ast.dart'
     show
+        Class,
         DartType,
         DynamicType,
         FunctionType,
         InterfaceType,
+        Member,
+        Name,
         NamedType,
         Procedure,
         TypeParameter,
@@ -29,18 +32,38 @@ import 'type_schema_environment.dart';
 
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,
 /// based on an attempt to make one type schema a subtype of another.
-class TypeConstraintGatherer {
-  final TypeSchemaEnvironment environment;
-
+abstract class TypeConstraintGatherer {
   final _protoConstraints = <_ProtoConstraint>[];
 
   final List<TypeParameter> _parametersToConstrain;
 
   /// Creates a [TypeConstraintGatherer] which is prepared to gather type
   /// constraints for the given [typeParameters].
-  TypeConstraintGatherer(
-      this.environment, Iterable<TypeParameter> typeParameters)
+  TypeConstraintGatherer.subclassing(Iterable<TypeParameter> typeParameters)
       : _parametersToConstrain = typeParameters.toList();
+
+  factory TypeConstraintGatherer(TypeSchemaEnvironment environment,
+      Iterable<TypeParameter> typeParameters) {
+    return new TypeSchemaConstraintGatherer(environment, typeParameters);
+  }
+
+  Class get objectClass;
+
+  Class get functionClass;
+
+  Class get futureOrClass;
+
+  Class get nullClass;
+
+  void addUpperBound(TypeConstraint constraint, DartType upper);
+
+  void addLowerBound(TypeConstraint constraint, DartType lower);
+
+  Member getInterfaceMember(Class class_, Name name, {bool setter: false});
+
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass);
+
+  InterfaceType futureType(DartType type);
 
   /// Returns the set of type constraints that was gathered.
   Map<TypeParameter, TypeConstraint> computeConstraints() {
@@ -50,11 +73,9 @@ class TypeConstraintGatherer {
     }
     for (var protoConstraint in _protoConstraints) {
       if (protoConstraint.isUpper) {
-        environment.addUpperBound(
-            result[protoConstraint.parameter], protoConstraint.bound);
+        addUpperBound(result[protoConstraint.parameter], protoConstraint.bound);
       } else {
-        environment.addLowerBound(
-            result[protoConstraint.parameter], protoConstraint.bound);
+        addLowerBound(result[protoConstraint.parameter], protoConstraint.bound);
       }
     }
     return result;
@@ -181,7 +202,7 @@ class TypeConstraintGatherer {
     // above is irrelevant; we just need to find the matched superclass,
     // substitute, and then iterate through type variables.
     var matchingSupertypeOfSubtype =
-        environment.getTypeAsInstanceOf(subtype, supertype.classNode);
+        getTypeAsInstanceOf(subtype, supertype.classNode);
     if (matchingSupertypeOfSubtype == null) return false;
     for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
       if (!_isSubtypeMatch(matchingSupertypeOfSubtype.typeArguments[i],
@@ -197,8 +218,7 @@ class TypeConstraintGatherer {
     // it return `true` for both Null and bottom types?  Revisit this once
     // enough functionality is implemented that we can compare the behavior with
     // the old analyzer-based implementation.
-    return type is InterfaceType &&
-        identical(type.classNode, environment.coreTypes.nullClass);
+    return type is InterfaceType && identical(type.classNode, nullClass);
   }
 
   /// Attempts to match [subtype] as a subtype of [supertype], gathering any
@@ -245,10 +265,10 @@ class TypeConstraintGatherer {
 
     // Handle FutureOr<T> union type.
     if (subtype is InterfaceType &&
-        identical(subtype.classNode, environment.futureOrClass)) {
+        identical(subtype.classNode, futureOrClass)) {
       var subtypeArg = subtype.typeArguments[0];
       if (supertype is InterfaceType &&
-          identical(supertype.classNode, environment.futureOrClass)) {
+          identical(supertype.classNode, futureOrClass)) {
         // `FutureOr<P>` is a subtype match for `FutureOr<Q>` with respect to
         // `L` under constraints `C`:
         // - If `P` is a subtype match for `Q` with respect to `L` under
@@ -263,13 +283,13 @@ class TypeConstraintGatherer {
       //   constraints `C0`.
       // - And `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C1`.
-      var subtypeFuture = environment.futureType(subtypeArg);
+      var subtypeFuture = futureType(subtypeArg);
       return _isSubtypeMatch(subtypeFuture, supertype) &&
           _isSubtypeMatch(subtypeArg, supertype);
     }
 
     if (supertype is InterfaceType &&
-        identical(supertype.classNode, environment.futureOrClass)) {
+        identical(supertype.classNode, futureOrClass)) {
       // `P` is a subtype match for `FutureOr<Q>` with respect to `L` under
       // constraints `C`:
       // - If `P` is a subtype match for `Future<Q>` with respect to `L` under
@@ -279,7 +299,7 @@ class TypeConstraintGatherer {
       //   - And `P` is a subtype match for `Q` with respect to `L` under
       //     constraints `C`
       var supertypeArg = supertype.typeArguments[0];
-      var supertypeFuture = environment.futureType(supertypeArg);
+      var supertypeFuture = futureType(supertypeArg);
       return trySubtypeMatch(subtype, supertypeFuture) ||
           _isSubtypeMatch(subtype, supertypeArg);
     }
@@ -310,9 +330,8 @@ class TypeConstraintGatherer {
     }
     if (subtype is FunctionType) {
       if (supertype is InterfaceType) {
-        return identical(
-                supertype.classNode, environment.coreTypes.functionClass) ||
-            identical(supertype.classNode, environment.coreTypes.objectClass);
+        return identical(supertype.classNode, functionClass) ||
+            identical(supertype.classNode, objectClass);
       } else if (supertype is FunctionType) {
         return _isFunctionSubtypeMatch(subtype, supertype);
       }
@@ -323,8 +342,7 @@ class TypeConstraintGatherer {
     //   and `F` is a subtype match for a type `Q` with respect to `L` under
     //   constraints `C`.
     if (subtype is InterfaceType) {
-      var callMember =
-          environment.hierarchy.getInterfaceMember(subtype.classNode, callName);
+      var callMember = getInterfaceMember(subtype.classNode, callName);
       if (callMember is Procedure && !callMember.isGetter) {
         var callType = callMember.getterType;
         if (callType != null) {
@@ -346,8 +364,7 @@ class TypeConstraintGatherer {
   bool _isTop(DartType type) =>
       type is DynamicType ||
       type is VoidType ||
-      (type is InterfaceType &&
-          identical(type.classNode, environment.coreTypes.objectClass));
+      (type is InterfaceType && identical(type.classNode, objectClass));
 
   /// Given two lists of function type formal parameters, checks that their
   /// bounds are compatible.
@@ -382,6 +399,52 @@ class TypeConstraintGatherer {
   }
 }
 
+class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
+  final TypeSchemaEnvironment environment;
+
+  TypeSchemaConstraintGatherer(
+      this.environment, Iterable<TypeParameter> typeParameters)
+      : super.subclassing(typeParameters);
+
+  @override
+  Class get objectClass => environment.coreTypes.objectClass;
+
+  @override
+  Class get functionClass => environment.coreTypes.functionClass;
+
+  @override
+  Class get futureOrClass => environment.coreTypes.futureOrClass;
+
+  @override
+  Class get nullClass => environment.coreTypes.nullClass;
+
+  @override
+  void addUpperBound(TypeConstraint constraint, DartType upper) {
+    environment.addUpperBound(constraint, upper);
+  }
+
+  @override
+  void addLowerBound(TypeConstraint constraint, DartType lower) {
+    environment.addLowerBound(constraint, lower);
+  }
+
+  @override
+  Member getInterfaceMember(Class class_, Name name, {bool setter: false}) {
+    return environment.hierarchy
+        .getInterfaceMember(class_, name, setter: setter);
+  }
+
+  @override
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
+    return environment.getTypeAsInstanceOf(type, superclass);
+  }
+
+  @override
+  InterfaceType futureType(DartType type) {
+    return environment.futureType(type);
+  }
+}
+
 /// Tracks a single constraint on a single type variable.
 ///
 /// This is called "_ProtoConstraint" to distinguish from [TypeConstraint],
@@ -397,4 +460,10 @@ class _ProtoConstraint {
   _ProtoConstraint.lower(this.parameter, this.bound) : isUpper = false;
 
   _ProtoConstraint.upper(this.parameter, this.bound) : isUpper = true;
+
+  String toString() {
+    return isUpper
+        ? "${parameter.name} <: $bound"
+        : "$bound <: ${parameter.name}";
+  }
 }

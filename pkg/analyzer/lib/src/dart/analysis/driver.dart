@@ -94,7 +94,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 77;
+  static const int DATA_VERSION = 78;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -344,6 +344,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   LibraryContext _libraryContext;
 
   /**
+   * This function is invoked when the current session is about to be discarded.
+   * The argument represents the path of the resource causing the session
+   * to be discarded or `null` if there are multiple or this is unknown.
+   */
+  void Function(String) onCurrentSessionAboutToBeDiscarded;
+
+  /**
    * Create a new instance of [AnalysisDriver].
    *
    * The given [SourceFactory] is cloned to ensure that it does not contain a
@@ -364,7 +371,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
         _externalSummaries = externalSummaries {
-    _createNewSession();
+    _createNewSession(null);
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = new AnalysisDriverTestView(this);
     _createFileTracker();
@@ -1329,7 +1336,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   void resetUriResolution() {
     _fsState.resetUriResolution();
     _fileTracker.scheduleAllAddedFiles();
-    _changeHook();
+    _changeHook(null);
   }
 
   /**
@@ -1345,8 +1352,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * Handles a notification from the [FileTracker] that there has been a change
    * of state.
    */
-  void _changeHook() {
-    _createNewSession();
+  void _changeHook(String path) {
+    _createNewSession(path);
     _libraryContext = null;
     _priorityResults.clear();
     _scheduler.notify(this);
@@ -1622,7 +1629,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * Create a new analysis session, so invalidating the current one.
    */
-  void _createNewSession() {
+  void _createNewSession(String path) {
+    if (onCurrentSessionAboutToBeDiscarded != null) {
+      onCurrentSessionAboutToBeDiscarded(path);
+    }
     _currentSession = new AnalysisSessionImpl(this);
   }
 

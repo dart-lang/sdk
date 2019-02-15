@@ -467,6 +467,7 @@ class Printer extends Visitor<Null> {
     if (showMetadata) {
       inner.writeMetadata(component);
     }
+    writeComponentProblems(component);
     for (var library in component.libraries) {
       if (library.isExternal) {
         if (!showExternal) {

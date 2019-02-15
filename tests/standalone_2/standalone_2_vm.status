@@ -6,6 +6,9 @@
 link_natives_lazily_test: SkipByDesign # Not supported.
 no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 
+[ $builder_tag == asan ]
+ffi/data_not_asan_test: Skip # this test tries to allocate too much memory on purpose
+
 [ $compiler == app_jit ]
 full_coverage_test: Skip # Platform.executable
 io/code_collection_test: Skip # Platform.executable
@@ -22,7 +25,18 @@ io/test_extension_test: Skip # Platform.executable
 io/test_runner_test: RuntimeError # Issue 33168
 regress_26031_test: Skip # Platform.resolvedExecutable
 
+[ $compiler == app_jitk ]
+ffi/dynamic_library_test: Skip # https://github.com/dart-lang/sdk/issues/35934
+ffi/function_callbacks_test: Skip # https://github.com/dart-lang/sdk/issues/35934
+ffi/function_structs_test: Skip # https://github.com/dart-lang/sdk/issues/35934
+ffi/function_test: Skip # https://github.com/dart-lang/sdk/issues/35934
+
+[ $runtime == dart_precompiled ]
+ffi: RuntimeError # https://github.com/dart-lang/sdk/issues/35765
+ffi/static_checks_test: Skip # https://github.com/dart-lang/sdk/issues/35765
+
 [ $runtime == vm ]
+ffi/enable_ffi_test: Fail # test designed to fail: --enable-ffi=false with import dart:ffi
 io/test_runner_test: Skip # Spawns a process which runs in Dart2 mode.
 
 [ $system == android ]
@@ -67,17 +81,20 @@ verbose_gc_to_bmu_test: Skip
 [ $arch == arm && $mode == release && $runtime == dart_precompiled && $system == android ]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426
 
-[ $arch == ia32 && $builder_tag == asan && $mode == release && $runtime == vm && $system == linux ]
-io/socket_close_test: Pass, Timeout # Issue 28502: timeout.
-
 [ $arch == simdbc64 && $mode == debug && $checked ]
 io/web_socket_test: Pass, RuntimeError # Issue 26814.
 
 [ $arch == x64 && $compiler == dartkb && $runtime == vm && $system == linux ]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 35192
 
+[ $arch == x64 && $mode == debug && $system == linux && $hot_reload ]
+ffi/subtype_test: Skip # https://github.com/dart-lang/sdk/issues/35933
+
 [ $compiler != dart2analyzer && $system == windows ]
 io/platform_resolved_executable_test/06: RuntimeError # Issue 23641
+
+[ $compiler == dartkb && $mode == debug ]
+ffi/subtype_test: Skip # https://github.com/dart-lang/sdk/issues/35935
 
 [ $mode == release && $runtime == vm && $system == linux && ($arch == simdbc64 || $arch == x64) ]
 io/http_bind_test: Pass, Timeout # Issue 35192
@@ -88,10 +105,12 @@ io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 
 [ $mode == release && $runtime == vm && $system == windows ]
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
-io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
 
 [ $runtime == dart_precompiled && $system == linux && ($arch == simarm || $arch == simarm64 || $arch == x64) ]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 35192
+
+[ $runtime != dart_precompiled && $runtime != vm ]
+ffi: SkipByDesign # ffi is only supported on vm
 
 [ $runtime == vm && !$checked && !$strong ]
 io/file_constructor_test: RuntimeError
@@ -115,3 +134,6 @@ io/skipping_dart2js_compilations_test: Skip # Spawns process in Dart2 mode.
 full_coverage_test: Skip # TODO(vegorov) SIMDBC interpreter doesn't support coverage yet.
 link_natives_lazily_test: SkipByDesign # SIMDBC interpreter doesn't support lazy linking of natives.
 no_lazy_dispatchers_test: SkipByDesign # SIMDBC interpreter doesn't support --no_lazy_dispatchers
+
+[ $arch != x64 || $system != linux && $system != macos ]
+ffi: Skip # ffi not yet supported on other systems than linux/macos 64

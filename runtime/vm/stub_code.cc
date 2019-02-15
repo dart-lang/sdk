@@ -47,8 +47,9 @@ void StubCode::Cleanup() {
 
 #define STUB_CODE_GENERATE(name)                                               \
   entries_[k##name##Index] = Code::ReadOnlyHandle();                           \
-  *entries_[k##name##Index] = Generate("_stub_" #name, &object_pool_builder,   \
-                                       StubCode::Generate##name##Stub);
+  *entries_[k##name##Index] =                                                  \
+      Generate("_stub_" #name, &object_pool_builder,                           \
+               compiler::StubCodeCompiler::Generate##name##Stub);
 
 #define STUB_CODE_SET_OBJECT_POOL(name)                                        \
   entries_[k##name##Index]->set_object_pool(object_pool.raw());
@@ -181,7 +182,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 
     Assembler assembler(wrapper);
     const char* name = cls.ToCString();
-    StubCode::GenerateAllocationStubForClass(&assembler, cls);
+    compiler::StubCodeCompiler::GenerateAllocationStubForClass(&assembler, cls);
 
     if (thread->IsMutatorThread()) {
       stub ^= Code::FinalizeCode(name, nullptr, &assembler, pool_attachment,
@@ -243,9 +244,20 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
 RawCode* StubCode::GetBuildMethodExtractorStub(ObjectPoolBuilder* pool) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  auto thread = Thread::Current();
+  auto Z = thread->zone();
+  auto object_store = thread->isolate()->object_store();
+
+  const auto& closure_class =
+      Class::ZoneHandle(Z, object_store->closure_class());
+  const auto& closure_allocation_stub =
+      Code::ZoneHandle(Z, StubCode::GetAllocationStubForClass(closure_class));
+  const auto& context_allocation_stub = StubCode::AllocateContext();
+
   ObjectPoolBuilder object_pool_builder;
   Assembler assembler(pool != nullptr ? pool : &object_pool_builder);
-  StubCode::GenerateBuildMethodExtractorStub(&assembler);
+  compiler::StubCodeCompiler::GenerateBuildMethodExtractorStub(
+      &assembler, closure_allocation_stub, context_allocation_stub);
 
   const char* name = "BuildMethodExtractor";
   const Code& stub = Code::Handle(Code::FinalizeCode(

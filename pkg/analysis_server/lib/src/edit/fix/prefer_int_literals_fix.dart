@@ -3,18 +3,28 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
-import 'package:analysis_server/src/edit/edit_dartfix.dart';
+import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
+import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
+import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/registry.dart';
 
-class PreferIntLiteralsFix extends LinterFix {
+class PreferIntLiteralsFix extends FixLintTask {
+  static void task(DartFixRegistrar registrar, DartFixListener listener) {
+    registrar.registerLintTask(
+      Registry.ruleRegistry['prefer_int_literals'],
+      new PreferIntLiteralsFix(listener),
+    );
+  }
+
   final literalsToConvert = <DoubleLiteral>[];
 
-  PreferIntLiteralsFix(EditDartFix dartFix) : super(dartFix);
+  PreferIntLiteralsFix(DartFixListener listener) : super(listener);
 
   @override
   Future<void> applyLocalFixes(ResolvedUnitResult result) async {
@@ -22,7 +32,7 @@ class PreferIntLiteralsFix extends LinterFix {
       DoubleLiteral literal = literalsToConvert.removeLast();
       AssistProcessor processor = new AssistProcessor(
         new DartAssistContextImpl(
-          DartChangeWorkspace(dartFix.server.currentSessions),
+          DartChangeWorkspace(listener.server.currentSessions),
           result,
           literal.offset,
           0,
@@ -31,10 +41,10 @@ class PreferIntLiteralsFix extends LinterFix {
       List<Assist> assists =
           await processor.computeAssist(DartAssistKind.CONVERT_TO_INT_LITERAL);
       final location =
-          dartFix.locationFor(result, literal.offset, literal.length);
+          listener.locationFor(result, literal.offset, literal.length);
       if (assists.isNotEmpty) {
         for (Assist assist in assists) {
-          dartFix.addSourceChange(
+          listener.addSourceChange(
               'Replace a double literal with an int literal',
               location,
               assist.change);
@@ -42,7 +52,7 @@ class PreferIntLiteralsFix extends LinterFix {
       } else {
         // TODO(danrubel): If assists is empty, then determine why
         // assist could not be performed and report that in the description.
-        dartFix.addRecommendation(
+        listener.addRecommendation(
             'Could not replace a double literal with an int literal', location);
       }
     }
@@ -57,8 +67,7 @@ class PreferIntLiteralsFix extends LinterFix {
   @override
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
       [List<Object> arguments]) {
-    String filePath = source.fullName;
-    if (filePath != null && dartFix.isIncluded(filePath)) {
+    if (source.fullName != null) {
       literalsToConvert.add(node);
     }
   }

@@ -43,7 +43,7 @@ void Object::AddCommonObjectProperties(JSONObject* jsobj,
   }
   if (!ref) {
     if (raw()->IsHeapObject()) {
-      jsobj->AddProperty("size", raw()->Size());
+      jsobj->AddProperty("size", raw()->HeapSize());
     } else {
       jsobj->AddProperty("size", (intptr_t)0);
     }
@@ -346,6 +346,10 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
+void FfiTrampolineData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
@@ -758,7 +762,7 @@ void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("_argumentsDescriptor",
                     Object::Handle(arguments_descriptor()));
-  jsobj.AddProperty("_entries", Object::Handle(ic_data()));
+  jsobj.AddProperty("_entries", Object::Handle(entries()));
 }
 
 void ICData::PrintToJSONArray(const JSONArray& jsarray,
@@ -1414,6 +1418,20 @@ void ExternalTypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
                                 DataAddr(offset * ElementSizeInBytes())),
                             count * ElementSizeInBytes());
   }
+}
+
+void Pointer::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  // TODO(dacoharkes): what is the JSONStream used for?
+  // should it fail because it's not supported?
+  // or should it print something reasonable as default?
+  Instance::PrintJSONImpl(stream, ref);
+}
+
+void DynamicLibrary::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  // TODO(dacoharkes): what is the JSONStream used for?
+  // should it fail because it's not supported?
+  // or should it print something reasonable as default?
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 void Capability::PrintJSONImpl(JSONStream* stream, bool ref) const {

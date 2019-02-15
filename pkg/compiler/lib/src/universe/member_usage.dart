@@ -67,6 +67,9 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
     }
   }
 
+  /// `true` if [entity] has been initialized.
+  bool get hasInit => true;
+
   /// `true` if [entity] has been read as a value. For a field this is a normal
   /// read access, for a function this is a closurization.
   bool get hasRead => false;
@@ -149,41 +152,61 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
 }
 
 class FieldUsage extends MemberUsage {
+  bool hasInit = false;
   bool hasRead = false;
   bool hasWrite = false;
 
   FieldUsage(FieldEntity field, {bool isNative: false})
       : super.internal(field) {
+    // TODO(johnniwinther): Track native fields through member usage.
     if (!isNative) {
-      // All field initializers must be resolved as they could
-      // have an observable side-effect (and cannot be tree-shaken
-      // away).
-      fullyUse();
+      init();
     }
   }
 
   @override
-  bool get fullyUsed => hasRead && hasWrite;
+  bool get hasPendingNormalUse => !fullyUsed;
 
   @override
-  EnumSet<MemberUse> init() => read();
+  bool get fullyUsed => hasInit && hasRead && hasWrite;
+
+  @override
+  EnumSet<MemberUse> init() {
+    if (hasInit) {
+      return MemberUses.NONE;
+    }
+    hasInit = true;
+    EnumSet<MemberUse> result = _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+    if (!fullyUsed) {
+      result = result.union(MemberUses.PARTIAL_USE_ONLY);
+    }
+    return result;
+  }
 
   @override
   EnumSet<MemberUse> read() {
-    if (fullyUsed) {
+    if (hasRead) {
       return MemberUses.NONE;
     }
     hasRead = true;
-    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+    EnumSet<MemberUse> result = _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+    if (!fullyUsed) {
+      result = result.union(MemberUses.PARTIAL_USE_ONLY);
+    }
+    return result;
   }
 
   @override
   EnumSet<MemberUse> write() {
-    if (fullyUsed) {
+    if (hasWrite) {
       return MemberUses.NONE;
     }
     hasWrite = true;
-    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+    EnumSet<MemberUse> result = _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+    if (!fullyUsed) {
+      result = result.union(MemberUses.PARTIAL_USE_ONLY);
+    }
+    return result;
   }
 
   @override
@@ -194,29 +217,43 @@ class FieldUsage extends MemberUsage {
     if (fullyUsed) {
       return MemberUses.NONE;
     }
-    hasRead = hasWrite = true;
+    hasInit = hasRead = hasWrite = true;
     return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
   }
+
+  String toString() => 'FieldUsage($entity,hasInit=$hasInit,hasRead=$hasRead,'
+      'hasWrite=$hasWrite,pendingUse=${_pendingUse.iterable(MemberUse.values)}';
 }
 
 class FinalFieldUsage extends MemberUsage {
+  bool hasInit = false;
   bool hasRead = false;
 
   FinalFieldUsage(FieldEntity field, {bool isNative: false})
       : super.internal(field) {
     if (!isNative) {
-      // All field initializers must be resolved as they could
-      // have an observable side-effect (and cannot be tree-shaken
-      // away).
-      read();
+      init();
     }
   }
 
   @override
-  bool get fullyUsed => hasRead;
+  bool get hasPendingNormalUse => !fullyUsed;
 
   @override
-  EnumSet<MemberUse> init() => read();
+  bool get fullyUsed => hasInit && hasRead;
+
+  @override
+  EnumSet<MemberUse> init() {
+    if (hasInit) {
+      return MemberUses.NONE;
+    }
+    hasInit = true;
+    EnumSet<MemberUse> result = _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+    if (!fullyUsed) {
+      result = result.union(MemberUses.PARTIAL_USE_ONLY);
+    }
+    return result;
+  }
 
   @override
   EnumSet<MemberUse> read() {
@@ -224,14 +261,27 @@ class FinalFieldUsage extends MemberUsage {
       return MemberUses.NONE;
     }
     hasRead = true;
-    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+    EnumSet<MemberUse> result = _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+    if (!fullyUsed) {
+      result = result.union(MemberUses.PARTIAL_USE_ONLY);
+    }
+    return result;
   }
 
   @override
   EnumSet<MemberUse> invoke(CallStructure callStructure) => read();
 
   @override
-  EnumSet<MemberUse> fullyUse() => read();
+  EnumSet<MemberUse> fullyUse() {
+    if (fullyUsed) {
+      return MemberUses.NONE;
+    }
+    hasInit = hasRead = true;
+    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+  }
+
+  String toString() => 'FinalFieldUsage($entity,hasInit=$hasInit,'
+      'hasRead=$hasRead,pendingUse=${_pendingUse.iterable(MemberUse.values)}';
 }
 
 class FunctionUsage extends MemberUsage {
@@ -519,7 +569,7 @@ enum MemberUse {
   ///
   /// This is used to check that no partial use is missed by the enqueuer, as
   /// asserted through the `Enqueuery.checkEnqueuerConsistency` method.
-  PARTIAL_USE
+  PARTIAL_USE,
 }
 
 /// Common [EnumSet]s used for [MemberUse].
@@ -636,6 +686,9 @@ class GeneralStaticMemberUsage extends StaticMemberUsage {
   EnumSet<MemberUse> tearOff() => normalUse();
 
   @override
+  bool get hasInit => true;
+
+  @override
   bool get fullyUsed => hasNormalUse;
 
   @override
@@ -660,6 +713,9 @@ class StaticFunctionUsage extends StaticMemberUsage {
   StaticFunctionUsage(FunctionEntity entity) : super.internal(entity);
 
   FunctionEntity get entity => super.entity;
+
+  @override
+  bool get hasInit => true;
 
   EnumSet<MemberUse> tearOff() {
     if (hasClosurization) {

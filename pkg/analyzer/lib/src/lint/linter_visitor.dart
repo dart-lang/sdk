@@ -109,18 +109,6 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitCollectionForElement(CollectionForElement node) {
-    _runSubscriptions(node, registry._forCollectionForElement);
-    super.visitCollectionForElement(node);
-  }
-
-  @override
-  void visitCollectionIfElement(CollectionIfElement node) {
-    _runSubscriptions(node, registry._forCollectionIfElement);
-    super.visitCollectionIfElement(node);
-  }
-
-  @override
   void visitComment(Comment node) {
     _runSubscriptions(node, registry._forComment);
     super.visitComment(node);
@@ -283,6 +271,12 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitForElement(ForElement node) {
+    _runSubscriptions(node, registry._forForElement);
+    super.visitForElement(node);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     _runSubscriptions(node, registry._forFormalParameterList);
     super.visitFormalParameterList(node);
@@ -364,6 +358,12 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   void visitHideCombinator(HideCombinator node) {
     _runSubscriptions(node, registry._forHideCombinator);
     super.visitHideCombinator(node);
+  }
+
+  @override
+  void visitIfElement(IfElement node) {
+    _runSubscriptions(node, registry._forIfElement);
+    super.visitIfElement(node);
   }
 
   @override
@@ -454,18 +454,6 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   void visitListLiteral2(ListLiteral2 node) {
     _runSubscriptions(node, registry._forListLiteral2);
     super.visitListLiteral2(node);
-  }
-
-  @override
-  void visitMapForElement(MapForElement node) {
-    _runSubscriptions(node, registry._forMapForElement);
-    super.visitMapForElement(node);
-  }
-
-  @override
-  void visitMapIfElement(MapIfElement node) {
-    _runSubscriptions(node, registry._forMapIfElement);
-    super.visitMapIfElement(node);
   }
 
   @override
@@ -779,8 +767,6 @@ class NodeLintRegistry {
   final List<_Subscription<CatchClause>> _forCatchClause = [];
   final List<_Subscription<ClassDeclaration>> _forClassDeclaration = [];
   final List<_Subscription<ClassTypeAlias>> _forClassTypeAlias = [];
-  final List<_Subscription<CollectionForElement>> _forCollectionForElement = [];
-  final List<_Subscription<CollectionIfElement>> _forCollectionIfElement = [];
   final List<_Subscription<Comment>> _forComment = [];
   final List<_Subscription<CommentReference>> _forCommentReference = [];
   final List<_Subscription<CompilationUnit>> _forCompilationUnit = [];
@@ -816,6 +802,7 @@ class NodeLintRegistry {
   final List<_Subscription<ForEachPartsWithIdentifier>>
       _forForEachPartsWithIdentifier = [];
   final List<_Subscription<ForEachStatement>> _forForEachStatement = [];
+  final List<_Subscription<ForElement>> _forForElement = [];
   final List<_Subscription<FormalParameterList>> _forFormalParameterList = [];
   final List<_Subscription<ForPartsWithDeclarations>>
       _forForPartsWithDeclarations = [];
@@ -835,6 +822,7 @@ class NodeLintRegistry {
   final List<_Subscription<GenericFunctionType>> _forGenericFunctionType = [];
   final List<_Subscription<GenericTypeAlias>> _forGenericTypeAlias = [];
   final List<_Subscription<HideCombinator>> _forHideCombinator = [];
+  final List<_Subscription<IfElement>> _forIfElement = [];
   final List<_Subscription<IfStatement>> _forIfStatement = [];
   final List<_Subscription<ImplementsClause>> _forImplementsClause = [];
   final List<_Subscription<ImportDirective>> _forImportDirective = [];
@@ -852,8 +840,6 @@ class NodeLintRegistry {
   final List<_Subscription<LibraryIdentifier>> _forLibraryIdentifier = [];
   final List<_Subscription<ListLiteral>> _forListLiteral = [];
   final List<_Subscription<ListLiteral2>> _forListLiteral2 = [];
-  final List<_Subscription<MapForElement>> _forMapForElement = [];
-  final List<_Subscription<MapIfElement>> _forMapIfElement = [];
   final List<_Subscription<MapLiteral>> _forMapLiteral = [];
   final List<_Subscription<MapLiteral2>> _forMapLiteral2 = [];
   final List<_Subscription<MapLiteralEntry>> _forMapLiteralEntry = [];
@@ -978,16 +964,6 @@ class NodeLintRegistry {
 
   void addClassTypeAlias(LintRule linter, AstVisitor visitor) {
     _forClassTypeAlias
-        .add(new _Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addCollectionForElement(LintRule linter, AstVisitor visitor) {
-    _forCollectionForElement
-        .add(new _Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addCollectionIfElement(LintRule linter, AstVisitor visitor) {
-    _forCollectionIfElement
         .add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
@@ -1123,6 +1099,10 @@ class NodeLintRegistry {
         .add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addForElement(LintRule linter, AstVisitor visitor) {
+    _forForElement.add(new _Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addFormalParameterList(LintRule linter, AstVisitor visitor) {
     _forFormalParameterList
         .add(new _Subscription(linter, visitor, _getTimer(linter)));
@@ -1190,6 +1170,10 @@ class NodeLintRegistry {
   void addHideCombinator(LintRule linter, AstVisitor visitor) {
     _forHideCombinator
         .add(new _Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addIfElement(LintRule linter, AstVisitor visitor) {
+    _forIfElement.add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addIfStatement(LintRule linter, AstVisitor visitor) {
@@ -1260,15 +1244,6 @@ class NodeLintRegistry {
 
   void addListLiteral2(LintRule linter, AstVisitor visitor) {
     _forListLiteral2.add(new _Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addMapForElement(LintRule linter, AstVisitor visitor) {
-    _forMapForElement
-        .add(new _Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addMapIfElement(LintRule linter, AstVisitor visitor) {
-    _forMapIfElement.add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addMapLiteral(LintRule linter, AstVisitor visitor) {

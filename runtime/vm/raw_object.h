@@ -344,6 +344,11 @@ class RawObject {
   CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
 #undef DEFINE_IS_CID
 
+#define DEFINE_IS_CID(clazz)                                                   \
+  bool IsFfi##clazz() const { return ((GetClassId() == kFfi##clazz##Cid)); }
+  CLASS_LIST_FFI(DEFINE_IS_CID)
+#undef DEFINE_IS_CID
+
   bool IsStringInstance() const { return IsStringClassId(GetClassId()); }
   bool IsRawNull() const { return GetClassId() == kNullCid; }
   bool IsDartInstance() const {
@@ -363,17 +368,18 @@ class RawObject {
     return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
   }
 
-  intptr_t Size() const {
+  intptr_t HeapSize() const {
+    ASSERT(IsHeapObject());
     uint32_t tags = ptr()->tags_;
     intptr_t result = SizeTag::decode(tags);
     if (result != 0) {
 #if defined(DEBUG)
       // TODO(22501) Array::MakeFixedLength has a race with this code: we might
       // have loaded tags field and then MakeFixedLength could have updated it
-      // leading to inconsistency between SizeFromClass() and
+      // leading to inconsistency between HeapSizeFromClass() and
       // SizeTag::decode(tags). We are working around it by reloading tags_ and
       // recomputing size from tags.
-      const intptr_t size_from_class = SizeFromClass();
+      const intptr_t size_from_class = HeapSizeFromClass();
       if ((result > size_from_class) && (GetClassId() == kArrayCid) &&
           (ptr()->tags_ != tags)) {
         result = SizeTag::decode(ptr()->tags_);
@@ -382,13 +388,13 @@ class RawObject {
 #endif
       return result;
     }
-    result = SizeFromClass();
+    result = HeapSizeFromClass();
     ASSERT(result > SizeTag::kMaxSizeTag);
     return result;
   }
 
   bool Contains(uword addr) const {
-    intptr_t this_size = Size();
+    intptr_t this_size = HeapSize();
     uword this_addr = RawObject::ToAddr(this);
     return (addr >= this_addr) && (addr < (this_addr + this_size));
   }
@@ -407,7 +413,7 @@ class RawObject {
     }
 
     // Calculate the first and last raw object pointer fields.
-    intptr_t instance_size = Size();
+    intptr_t instance_size = HeapSize();
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(RawObject);
     uword to = obj_addr + instance_size - kWordSize;
@@ -428,7 +434,7 @@ class RawObject {
     }
 
     // Calculate the first and last raw object pointer fields.
-    intptr_t instance_size = Size();
+    intptr_t instance_size = HeapSize();
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(RawObject);
     uword to = obj_addr + instance_size - kWordSize;
@@ -470,6 +476,15 @@ class RawObject {
   static bool IsTypedDataClassId(intptr_t index);
   static bool IsTypedDataViewClassId(intptr_t index);
   static bool IsExternalTypedDataClassId(intptr_t index);
+  static bool IsFfiNativeTypeTypeClassId(intptr_t index);
+  static bool IsFfiPointerClassId(intptr_t index);
+  static bool IsFfiTypeClassId(intptr_t index);
+  static bool IsFfiTypeIntClassId(intptr_t index);
+  static bool IsFfiTypeDoubleClassId(intptr_t index);
+  static bool IsFfiTypeVoidClassId(intptr_t index);
+  static bool IsFfiTypeNativeFunctionClassId(intptr_t index);
+  static bool IsFfiDynamicLibraryClassId(intptr_t index);
+  static bool IsFfiClassId(intptr_t index);
   static bool IsInternalVMdefinedClassId(intptr_t index);
   static bool IsVariableSizeClassId(intptr_t index);
   static bool IsImplicitFieldClassId(intptr_t index);
@@ -493,7 +508,7 @@ class RawObject {
   intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
                                    intptr_t class_id);
 
-  intptr_t SizeFromClass() const;
+  intptr_t HeapSizeFromClass() const;
 
   intptr_t GetClassId() const {
     uint32_t tags = ptr()->tags_;
@@ -663,7 +678,9 @@ class RawObject {
   friend class CidRewriteVisitor;
   friend class Closure;
   friend class Code;
+  friend class Pointer;
   friend class Double;
+  friend class DynamicLibrary;
   friend class ForwardPointersVisitor;  // StorePointer
   friend class FreeListElement;
   friend class Function;
@@ -854,6 +871,7 @@ class RawFunction : public RawObject {
     kDynamicInvocationForwarder,  // represents forwarder which performs type
                                   // checks for arguments of a dynamic
                                   // invocation.
+    kFfiTrampoline,
   };
 
   enum AsyncModifier {
@@ -1001,6 +1019,15 @@ class RawRedirectionData : public RawObject {
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
+class RawFfiTrampolineData : public RawObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData);
+
+  VISIT_FROM(RawObject*, signature_type_);
+  RawType* signature_type_;
+  VISIT_TO(RawObject*, signature_type_);
+};
+
 class RawField : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Field);
 
@@ -1013,15 +1040,13 @@ class RawField : public RawObject {
     RawInstance* static_value_;  // Value for static fields.
     RawSmi* offset_;             // Offset in words for instance fields.
   } value_;
-  union {
-    // When precompiling we need to save the static initializer function here
-    // so that code for it can be generated.
-    RawFunction* precompiled_;  // Static initializer function - precompiling.
-    // When generating script snapshots after running the application it is
-    // necessary to save the initial value of static fields so that we can
-    // restore the value back to the original initial value.
-    RawInstance* saved_value_;  // Saved initial value - static fields.
-  } initializer_;
+  RawFunction* initializer_;  // Static initializer function.
+  // When generating APPJIT snapshots after running the application it is
+  // necessary to save the initial value of static fields so that we can
+  // restore the value back to the original initial value.
+  NOT_IN_PRECOMPILED(
+      RawInstance*
+          saved_initial_value_);  // Saved initial value - static fields.
   RawSmi* guarded_list_length_;
   RawArray* dependent_code_;
   RawObject** to_snapshot(Snapshot::Kind kind) {
@@ -1161,7 +1186,6 @@ class RawLibrary : public RawObject {
   classid_t index_;       // Library id number.
   uint16_t num_imports_;  // Number of entries in imports_.
   int8_t load_state_;     // Of type LibraryState.
-  bool corelib_imported_;
   bool is_dart_scheme_;
   bool debuggable_;          // True if debugger can stop in library.
   bool is_in_fullsnapshot_;  // True if library is in a full snapshot.
@@ -1314,16 +1338,19 @@ class RawCode : public RawObject {
 class RawBytecode : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Bytecode);
 
+  uword instructions_;
+  intptr_t instructions_size_;
+
   VISIT_FROM(RawObject*, object_pool_);
   RawObjectPool* object_pool_;
-  RawExternalTypedData* instructions_;
   RawFunction* function_;
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   VISIT_TO(RawObject*, pc_descriptors_);
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
-  intptr_t source_positions_binary_offset_;
+  int32_t instructions_binary_offset_;
+  int32_t source_positions_binary_offset_;
 
   static bool ContainsPC(RawObject* raw_obj, uword pc);
 
@@ -1673,8 +1700,8 @@ class RawUnlinkedCall : public RawObject {
 class RawICData : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
 
-  VISIT_FROM(RawObject*, ic_data_);
-  RawArray* ic_data_;          // Contains class-ids, target and count.
+  VISIT_FROM(RawObject*, entries_);
+  RawArray* entries_;          // Contains class-ids, target and count.
   RawString* target_name_;     // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
   // Static type of the receiver. If it is set then we are performing
@@ -1833,7 +1860,7 @@ class RawTypeArguments : public RawInstance {
 };
 
 class RawAbstractType : public RawInstance {
- protected:
+ public:
   enum TypeState {
     kAllocated,                // Initial state.
     kBeingFinalized,           // In the process of being finalized.
@@ -1841,6 +1868,7 @@ class RawAbstractType : public RawInstance {
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
 
+ protected:
   uword type_test_stub_entry_point_;  // Accessed from generated code.
   RawCode* type_test_stub_;  // Must be the last field, since subclasses use it
                              // in their VISIT_FROM.
@@ -2211,6 +2239,24 @@ class RawExternalTypedData : public RawInstance {
   friend class RawBytecode;
 };
 
+class RawPointer : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
+  VISIT_FROM(RawCompressed, type_arguments_)
+  RawTypeArguments* type_arguments_;
+  VISIT_TO(RawCompressed, type_arguments_)
+  uint8_t* c_memory_address_;
+
+  friend class Pointer;
+};
+
+class RawDynamicLibrary : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(DynamicLibrary);
+  VISIT_NOTHING();
+  void* handle_;
+
+  friend class DynamicLibrary;
+};
+
 // VM implementations of the basic types in the isolate.
 class RawCapability : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Capability);
@@ -2479,6 +2525,56 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
       (kByteBufferCid == kExternalTypedDataInt8ArrayCid + 14));
   return (index >= kExternalTypedDataInt8ArrayCid &&
           index <= kExternalTypedDataFloat64x2ArrayCid);
+}
+
+inline bool RawObject::IsFfiNativeTypeTypeClassId(intptr_t index) {
+  return index == kFfiNativeTypeCid;
+}
+
+inline bool RawObject::IsFfiTypeClassId(intptr_t index) {
+  // Make sure this is updated when new Ffi types are added.
+  COMPILE_ASSERT(kFfiNativeFunctionCid == kFfiPointerCid + 1 &&
+                 kFfiInt8Cid == kFfiPointerCid + 2 &&
+                 kFfiInt16Cid == kFfiPointerCid + 3 &&
+                 kFfiInt32Cid == kFfiPointerCid + 4 &&
+                 kFfiInt64Cid == kFfiPointerCid + 5 &&
+                 kFfiUint8Cid == kFfiPointerCid + 6 &&
+                 kFfiUint16Cid == kFfiPointerCid + 7 &&
+                 kFfiUint32Cid == kFfiPointerCid + 8 &&
+                 kFfiUint64Cid == kFfiPointerCid + 9 &&
+                 kFfiIntPtrCid == kFfiPointerCid + 10 &&
+                 kFfiFloatCid == kFfiPointerCid + 11 &&
+                 kFfiDoubleCid == kFfiPointerCid + 12 &&
+                 kFfiVoidCid == kFfiPointerCid + 13);
+  return (index >= kFfiPointerCid && index <= kFfiVoidCid);
+}
+
+inline bool RawObject::IsFfiTypeIntClassId(intptr_t index) {
+  return (index >= kFfiInt8Cid && index <= kFfiIntPtrCid);
+}
+
+inline bool RawObject::IsFfiTypeDoubleClassId(intptr_t index) {
+  return (index >= kFfiFloatCid && index <= kFfiDoubleCid);
+}
+
+inline bool RawObject::IsFfiPointerClassId(intptr_t index) {
+  return index == kFfiPointerCid;
+}
+
+inline bool RawObject::IsFfiTypeVoidClassId(intptr_t index) {
+  return index == kFfiVoidCid;
+}
+
+inline bool RawObject::IsFfiTypeNativeFunctionClassId(intptr_t index) {
+  return index == kFfiNativeFunctionCid;
+}
+
+inline bool RawObject::IsFfiClassId(intptr_t index) {
+  return (index >= kFfiPointerCid && index <= kFfiVoidCid);
+}
+
+inline bool RawObject::IsFfiDynamicLibraryClassId(intptr_t index) {
+  return index == kFfiDynamicLibraryCid;
 }
 
 inline bool RawObject::IsInternalVMdefinedClassId(intptr_t index) {

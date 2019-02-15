@@ -11,12 +11,20 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
+import 'package:kernel/transformations/constants.dart' show ConstantsBackend;
 import 'package:kernel/transformations/continuation.dart' as transformAsync
     show transformLibraries, transformProcedure;
+import 'package:kernel/vm/constants_native_effects.dart'
+    show VmConstantsBackend;
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 import '../transformations/list_factory_specializer.dart'
     as listFactorySpecializer;
+import '../transformations/ffi.dart' as transformFfi show ReplacedMembers;
+import '../transformations/ffi_definitions.dart' as transformFfiDefinitions
+    show transformLibraries;
+import '../transformations/ffi_use_sites.dart' as transformFfiUseSites
+    show transformLibraries;
 
 /// Specializes the kernel IR to the Dart VM.
 class VmTarget extends Target {
@@ -49,6 +57,7 @@ class VmTarget extends Target {
         'dart:collection',
         'dart:convert',
         'dart:developer',
+        'dart:ffi',
         'dart:_internal',
         'dart:isolate',
         'dart:math',
@@ -78,6 +87,13 @@ class VmTarget extends Target {
     transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries,
         doSuperResolution: false /* resolution is done in Dart VM */);
     logger?.call("Transformed mixin applications");
+
+    transformFfi.ReplacedMembers replacedFields =
+        transformFfiDefinitions.transformLibraries(
+            coreTypes, hierarchy, libraries, diagnosticReporter);
+    transformFfiUseSites.transformLibraries(
+        coreTypes, hierarchy, libraries, diagnosticReporter, replacedFields);
+    logger?.call("Transformed ffi annotations");
 
     // TODO(kmillikin): Make this run on a per-method basis.
     transformAsync.transformLibraries(coreTypes, libraries);
@@ -349,4 +365,8 @@ class VmTarget extends Target {
     return _oneByteString ??=
         coreTypes.index.getClass('dart:core', '_OneByteString');
   }
+
+  @override
+  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
+      new VmConstantsBackend(coreTypes);
 }

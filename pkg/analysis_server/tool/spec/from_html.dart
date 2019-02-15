@@ -7,7 +7,7 @@
  */
 import 'dart:io';
 
-import 'package:analyzer/src/codegen/html.dart';
+import 'package:analysis_tool/html.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' as parser;
 import 'package:path/path.dart';
@@ -131,8 +131,8 @@ class ApiReader {
     });
     for (String expectedAttribute in requiredAttributes) {
       if (!attributesFound.contains(expectedAttribute)) {
-        throw new Exception('$context: ${element
-            .localName} must contain attribute $expectedAttribute');
+        throw new Exception(
+            '$context: ${element.localName} must contain attribute $expectedAttribute');
       }
     }
   }

@@ -20,6 +20,14 @@
 
 namespace dart {
 
+void DartNativeThrowTypeArgumentCountException(int num_type_args,
+                                               int num_type_args_expected) {
+  const String& error = String::Handle(String::NewFormatted(
+      "Wrong number of type arguments (%i), expected %i type arguments",
+      num_type_args, num_type_args_expected));
+  Exceptions::ThrowArgumentError(error);
+}
+
 void DartNativeThrowArgumentException(const Instance& instance) {
   const Array& __args__ = Array::Handle(Array::New(1));
   __args__.SetAt(0, instance);

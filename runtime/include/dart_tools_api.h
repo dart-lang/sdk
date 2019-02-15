@@ -344,58 +344,6 @@ DART_EXPORT int64_t Dart_TimelineGetMicros();
 DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask);
 
 typedef enum {
-  /** Indicates a new stream is being output */
-  Dart_StreamConsumer_kStart = 0,
-  /** Data for the current stream */
-  Dart_StreamConsumer_kData = 1,
-  /** Indicates stream is finished */
-  Dart_StreamConsumer_kFinish = 2,
-} Dart_StreamConsumer_State;
-
-/**
- * A stream consumer callback function.
- *
- * This function will be called repeatedly until there is no more data in a
- * stream and there are no more streams.
- *
- * \param state Indicates a new stream, data, or a finished stream.
- * \param stream_name A name for this stream. Not guaranteed to be meaningful.
- * \param buffer A pointer to the stream data.
- * \param buffer_length The number of bytes at buffer that should be consumed.
- * \param stream_callback_data The pointer passed in when requesting the stream.
- *
- * At the start of each stream state will be DART_STREAM_CONSUMER_STATE_START
- * and buffer will be NULL.
- *
- * For each chunk of data the state will be DART_STREAM_CONSUMER_STATE_DATA
- * and buffer will not be NULL.
- *
- * At the end of each stream state will be DART_STREAM_CONSUMER_STATE_FINISH
- * and buffer will be NULL.
- */
-typedef void (*Dart_StreamConsumer)(Dart_StreamConsumer_State state,
-                                    const char* stream_name,
-                                    const uint8_t* buffer,
-                                    intptr_t buffer_length,
-                                    void* stream_callback_data);
-
-/**
- * Get the timeline for entire VM (including all isolates).
- *
- * NOTE: The timeline retrieved from this API call may not include the most
- * recent events.
- *
- * \param consumer A Dart_StreamConsumer.
- * \param user_data User data passed into consumer.
- *
- * NOTE: The trace-event format is documented here: https://goo.gl/hDZw5M
- *
- * \return True if a stream was output.
- */
-DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
-                                             void* user_data);
-
-typedef enum {
   Dart_Timeline_Event_Begin,          // Phase = 'B'.
   Dart_Timeline_Event_End,            // Phase = 'E'.
   Dart_Timeline_Event_Instant,        // Phase = 'i'.
@@ -435,31 +383,6 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
  * \param name The name of the thread.
  */
 DART_EXPORT void Dart_SetThreadName(const char* name);
-
-/**
- * Called by the VM to let the embedder know when to start recording into the
- * timeline. Can be called from any thread.
- */
-typedef void (*Dart_EmbedderTimelineStartRecording)();
-
-/**
- * Called by the VM to let the embedder know when to stop recording into the
- * timeline. Can be called from any thread.
- */
-typedef void (*Dart_EmbedderTimelineStopRecording)();
-
-/**
- * Sets the embedder timeline callbacks. These callbacks are used by the VM
- * to notify the embedder of timeline recording state changes.
- *
- * \param start_recording See Dart_EmbedderTimelineStartRecording.
- * \param stop_recording See Dart_EmbedderTimelineStopRecording.
- *
- * NOTE: To avoid races, this should be called before Dart_Initialize.
- */
-DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
-    Dart_EmbedderTimelineStartRecording start_recording,
-    Dart_EmbedderTimelineStopRecording stop_recording);
 
 /*
  * =======

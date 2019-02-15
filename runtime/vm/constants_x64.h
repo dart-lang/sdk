@@ -5,6 +5,9 @@
 #ifndef RUNTIME_VM_CONSTANTS_X64_H_
 #define RUNTIME_VM_CONSTANTS_X64_H_
 
+#include "platform/assert.h"
+#include "platform/globals.h"
+
 namespace dart {
 
 enum Register {
@@ -149,6 +152,20 @@ class CallingConventions {
   static const Register kArg2Reg = RDX;
   static const Register kArg3Reg = R8;
   static const Register kArg4Reg = R9;
+  static const Register ArgumentRegisters[];
+  static const intptr_t kArgumentRegisters =
+      R(kArg1Reg) | R(kArg2Reg) | R(kArg3Reg) | R(kArg4Reg);
+  static const intptr_t kNumArgRegs = 4;
+
+  static const XmmRegister XmmArgumentRegisters[];
+  static const intptr_t kXmmArgumentRegisters =
+      R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3);
+  static const intptr_t kNumXmmArgRegs = 4;
+
+  // can ArgumentRegisters[i] and XmmArgumentRegisters[i] both be used at the
+  // same time? (Windows no, rest yes)
+  static const bool kArgumentIntRegXorXmmReg = true;
+
   static const intptr_t kShadowSpaceBytes = 4 * kWordSize;
 
   static const intptr_t kVolatileCpuRegisters =
@@ -164,6 +181,8 @@ class CallingConventions {
       R(XMM6) | R(XMM7) | R(XMM8) | R(XMM9) | R(XMM10) | R(XMM11) | R(XMM12) |
       R(XMM13) | R(XMM14) | R(XMM15);
 
+  static const XmmRegister xmmFirstNonParameterReg = XMM4;
+
   // Windows x64 ABI specifies that small objects are passed in registers.
   // Otherwise they are passed by reference.
   static const size_t kRegisterTransferLimit = 16;
@@ -177,6 +196,22 @@ class CallingConventions {
   static const Register kArg4Reg = RCX;
   static const Register kArg5Reg = R8;
   static const Register kArg6Reg = R9;
+  static const Register ArgumentRegisters[];
+  static const intptr_t kArgumentRegisters = R(kArg1Reg) | R(kArg2Reg) |
+                                             R(kArg3Reg) | R(kArg4Reg) |
+                                             R(kArg5Reg) | R(kArg6Reg);
+  static const intptr_t kNumArgRegs = 6;
+
+  static const XmmRegister XmmArgumentRegisters[];
+  static const intptr_t kXmmArgumentRegisters = R(XMM0) | R(XMM1) | R(XMM2) |
+                                                R(XMM3) | R(XMM4) | R(XMM5) |
+                                                R(XMM6) | R(XMM7);
+  static const intptr_t kNumXmmArgRegs = 8;
+
+  // can ArgumentRegisters[i] and XmmArgumentRegisters[i] both be used at the
+  // same time? (Windows no, rest yes)
+  static const bool kArgumentIntRegXorXmmReg = false;
+
   static const intptr_t kShadowSpaceBytes = 0;
 
   static const intptr_t kVolatileCpuRegisters = R(RAX) | R(RCX) | R(RDX) |
@@ -192,6 +227,8 @@ class CallingConventions {
       R(RBX) | R(R12) | R(R13) | R(R14) | R(R15);
 
   static const intptr_t kCalleeSaveXmmRegisters = 0;
+
+  static const XmmRegister xmmFirstNonParameterReg = XMM8;
 };
 #endif
 

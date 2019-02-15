@@ -13,9 +13,14 @@ import 'bytecode_serialization.dart'
         BufferedReader,
         BytecodeObject,
         BytecodeSizeStatistics,
+        NamedEntryStatistics,
+        doubleToIntBits,
+        intBitsToDouble,
         ObjectReader,
         ObjectWriter,
         StringWriter;
+import 'generics.dart'
+    show getInstantiatorTypeArguments, isRecursiveAfterFlattening;
 
 /*
 
@@ -142,6 +147,88 @@ type Name extends ObjectContents {
   PackedString string;
 }
 
+// Type arguments vector.
+type TypeArguments extends ObjectContents {
+  kind = 10;
+  List<PackedObject> args;
+}
+
+type FinalizedGenericType extends ObjectContents {
+  kind = 11;
+  PackedObject class;
+  PackedObject typeArgs;
+}
+
+abstract type ConstObject extends ObjectContents {
+  kind = 12;
+  flags = constantTag (4 bits)
+}
+
+type ConstInstance extends ConstObject {
+  kind = 12
+  constantTag (flags) = 1
+  PackedObject type;
+  List<Pair<PackedObject, PackedObject>> fieldValues;
+}
+
+type ConstInt extends ConstValue {
+  kind = 12
+  constantTag (flags) = 2
+  SLEB128 value;
+}
+
+type ConstDouble extends ConstValue {
+  kind = 12
+  constantTag (flags) = 3
+  // double bits are converted to int
+  SLEB128 value;
+}
+
+type ConstList extends ConstObject {
+  kind = 12
+  constantTag (flags) = 4
+  PackedObject elemType;
+  List<PackedObject> entries;
+}
+
+type ConstTearOff extends ConstObject {
+  kind = 12
+  constantTag (flags) = 5
+  PackedObject target;
+}
+
+type ConstBool extends ConstValue {
+  kind = 12
+  constantTag = 6
+  Byte isTrue;
+}
+
+type ConstSymbol extends ConstObject {
+  kind = 12
+  constantTag (flags) = 7
+  PackedObject name;
+}
+
+type ConstTearOffInstantiation extends ConstObject {
+  kind = 12
+  constantTag (flags) = 8
+  PackedObject tearOff;
+  PackedObject typeArguments;
+}
+
+type ArgDesc extends ObjectContents {
+  kind = 13;
+  flags = (hasNamedArgs, hasTypeArgs)
+
+  UInt numArguments
+
+  if hasTypeArgs
+    UInt numTypeArguments
+
+  if hasNamedArgs
+    List<PackedObject> argNames;
+}
+
 */
 
 enum ObjectKind {
@@ -155,6 +242,22 @@ enum ObjectKind {
   kGenericType,
   kFunctionType,
   kName,
+  kTypeArguments,
+  kFinalizedGenericType,
+  kConstObject,
+  kArgDesc,
+}
+
+enum ConstTag {
+  kInvalid,
+  kInstance,
+  kInt,
+  kDouble,
+  kList,
+  kTearOff,
+  kBool,
+  kSymbol,
+  kTearOffInstantiation,
 }
 
 String objectKindToString(ObjectKind kind) =>
@@ -173,7 +276,8 @@ abstract class ObjectHandle extends BytecodeObject {
   static const int flagBit0 = 1 << 5;
   static const int flagBit1 = 1 << 6;
   static const int flagBit2 = 1 << 7;
-  static const int flagsMask = flagBit0 | flagBit1 | flagBit2;
+  static const int flagBit3 = 1 << 8;
+  static const int flagsMask = flagBit0 | flagBit1 | flagBit2 | flagBit3;
 
   static int _makeReference(int index) => (index << indexShift) | referenceBit;
 
@@ -232,6 +336,14 @@ abstract class ObjectHandle extends BytecodeObject {
         return new _FunctionTypeHandle._empty();
       case ObjectKind.kName:
         return new _NameHandle._empty();
+      case ObjectKind.kTypeArguments:
+        return new _TypeArgumentsHandle._empty();
+      case ObjectKind.kFinalizedGenericType:
+        return new _FinalizedGenericTypeHandle._empty();
+      case ObjectKind.kConstObject:
+        return new _ConstObjectHandle._empty();
+      case ObjectKind.kArgDesc:
+        return new _ArgDescHandle._empty();
     }
     throw 'Unexpected object kind $kind';
   }
@@ -355,7 +467,7 @@ class _ClassHandle extends ObjectHandle {
 
   @override
   String toString() =>
-      name.name == topLevelClassName ? '$library' : '$library::$name';
+      name.name == topLevelClassName ? '$library' : '$library::${name.name}';
 }
 
 class _MemberHandle extends ObjectHandle {
@@ -417,7 +529,7 @@ class _MemberHandle extends ObjectHandle {
 
   @override
   String toString() =>
-      '$parent::$name' +
+      '$parent::${name.name}' +
       (flags & flagIsField != 0 ? ' (field)' : '') +
       (flags & flagIsConstructor != 0 ? ' (constructor)' : '');
 }
@@ -639,7 +751,7 @@ class NameAndType {
       this.type == other.type;
 
   @override
-  String toString() => '$type $name';
+  String toString() => '$type ${name.name}';
 }
 
 class _FunctionTypeHandle extends _TypeHandle {
@@ -846,7 +958,408 @@ class _NameHandle extends ObjectHandle {
       this.library == other.library;
 
   @override
-  String toString() => name.isEmpty ? "''" : name;
+  String toString() => "'$name'";
+}
+
+class _TypeArgumentsHandle extends ObjectHandle {
+  List<_TypeHandle> args;
+
+  _TypeArgumentsHandle._empty();
+
+  _TypeArgumentsHandle(this.args);
+
+  @override
+  ObjectKind get kind => ObjectKind.kTypeArguments;
+
+  @override
+  void writeContents(BufferedWriter writer) {
+    writer.writePackedList(args);
+  }
+
+  @override
+  void readContents(BufferedReader reader) {
+    args = reader.readPackedList<_TypeHandle>();
+  }
+
+  @override
+  void accountUsesForObjectCopies(int numCopies) {
+    args.forEach((t) {
+      t._useCount += numCopies;
+    });
+  }
+
+  @override
+  int get hashCode => listHashCode(args);
+
+  @override
+  bool operator ==(other) =>
+      other is _TypeArgumentsHandle && listEquals(this.args, other.args);
+
+  @override
+  String toString() => '< ${args.join(', ')} >';
+}
+
+class _FinalizedGenericTypeHandle extends _TypeHandle {
+  _ClassHandle class_;
+  _TypeArgumentsHandle typeArgs;
+
+  _FinalizedGenericTypeHandle._empty();
+
+  _FinalizedGenericTypeHandle(this.class_, this.typeArgs);
+
+  @override
+  ObjectKind get kind => ObjectKind.kFinalizedGenericType;
+
+  @override
+  void writeContents(BufferedWriter writer) {
+    writer.writePackedObject(class_);
+    writer.writePackedObject(typeArgs);
+  }
+
+  @override
+  void readContents(BufferedReader reader) {
+    class_ = reader.readPackedObject();
+    typeArgs = reader.readPackedObject();
+  }
+
+  @override
+  void accountUsesForObjectCopies(int numCopies) {
+    class_._useCount += numCopies;
+    if (typeArgs != null) {
+      typeArgs._useCount += numCopies;
+    }
+  }
+
+  @override
+  int get hashCode => _combineHashes(class_.hashCode, typeArgs.hashCode);
+
+  @override
+  bool operator ==(other) =>
+      other is _FinalizedGenericTypeHandle &&
+      this.class_ == other.class_ &&
+      this.typeArgs == other.typeArgs;
+
+  @override
+  String toString() => '$class_ $typeArgs';
+}
+
+class _ConstObjectHandle extends ObjectHandle {
+  ConstTag tag;
+  dynamic value;
+  ObjectHandle type;
+
+  _ConstObjectHandle._empty();
+
+  _ConstObjectHandle(this.tag, this.value, [this.type]);
+
+  @override
+  ObjectKind get kind => ObjectKind.kConstObject;
+
+  @override
+  int get flags => tag.index * ObjectHandle.flagBit0;
+
+  @override
+  set flags(int value) {
+    tag = ConstTag.values[value ~/ ObjectHandle.flagBit0];
+    assert(tag != ConstTag.kInvalid);
+  }
+
+  bool get isCacheable => (tag != ConstTag.kInt) && (tag != ConstTag.kBool);
+
+  @override
+  void writeContents(BufferedWriter writer) {
+    switch (tag) {
+      case ConstTag.kInt:
+        writer.writeSLEB128(value as int);
+        break;
+      case ConstTag.kDouble:
+        writer.writeSLEB128(doubleToIntBits(value as double));
+        break;
+      case ConstTag.kBool:
+        writer.writeByte((value as bool) ? 1 : 0);
+        break;
+      case ConstTag.kInstance:
+        {
+          final fieldValues = value as Map<ObjectHandle, ObjectHandle>;
+          writer.writePackedObject(type);
+          writer.writePackedUInt30(fieldValues.length);
+          fieldValues.forEach((ObjectHandle field, ObjectHandle value) {
+            writer.writePackedObject(field);
+            writer.writePackedObject(value);
+          });
+        }
+        break;
+      case ConstTag.kList:
+        {
+          final elems = value as List<ObjectHandle>;
+          writer.writePackedObject(type);
+          writer.writePackedList(elems);
+        }
+        break;
+      case ConstTag.kTearOff:
+        {
+          final target = value as ObjectHandle;
+          writer.writePackedObject(target);
+        }
+        break;
+      case ConstTag.kSymbol:
+        {
+          final name = value as ObjectHandle;
+          writer.writePackedObject(name);
+        }
+        break;
+      case ConstTag.kTearOffInstantiation:
+        {
+          final tearOff = value as ObjectHandle;
+          writer.writePackedObject(tearOff);
+          writer.writePackedObject(type as _TypeArgumentsHandle);
+        }
+        break;
+      default:
+        throw 'Unexpected constant tag: $tag';
+    }
+  }
+
+  @override
+  void readContents(BufferedReader reader) {
+    switch (tag) {
+      case ConstTag.kInt:
+        value = reader.readSLEB128();
+        break;
+      case ConstTag.kDouble:
+        value = intBitsToDouble(reader.readSLEB128());
+        break;
+      case ConstTag.kBool:
+        value = reader.readByte() != 0;
+        break;
+      case ConstTag.kInstance:
+        type = reader.readPackedObject();
+        value = Map<ObjectHandle, ObjectHandle>.fromEntries(
+            new List<MapEntry<ObjectHandle, ObjectHandle>>.generate(
+                reader.readPackedUInt30(),
+                (_) => new MapEntry<ObjectHandle, ObjectHandle>(
+                    reader.readPackedObject(), reader.readPackedObject())));
+        break;
+      case ConstTag.kList:
+        type = reader.readPackedObject();
+        value = reader.readPackedList<ObjectHandle>();
+        break;
+      case ConstTag.kTearOff:
+        value = reader.readPackedObject();
+        break;
+      case ConstTag.kSymbol:
+        value = reader.readPackedObject();
+        break;
+      case ConstTag.kTearOffInstantiation:
+        value = reader.readPackedObject();
+        type = reader.readPackedObject();
+        break;
+      default:
+        throw 'Unexpected constant tag: $tag';
+    }
+  }
+
+  @override
+  void accountUsesForObjectCopies(int numCopies) {
+    switch (tag) {
+      case ConstTag.kInt:
+      case ConstTag.kDouble:
+      case ConstTag.kBool:
+        break;
+      case ConstTag.kInstance:
+        {
+          type._useCount += numCopies;
+          final fieldValues = value as Map<ObjectHandle, ObjectHandle>;
+          fieldValues.forEach((ObjectHandle field, ObjectHandle value) {
+            field._useCount += numCopies;
+            value?._useCount += numCopies;
+          });
+        }
+        break;
+      case ConstTag.kList:
+        {
+          final elems = value as List<ObjectHandle>;
+          for (var elem in elems) {
+            elem?._useCount += numCopies;
+          }
+          type._useCount += numCopies;
+        }
+        break;
+      case ConstTag.kTearOff:
+        {
+          final target = value as ObjectHandle;
+          target._useCount += numCopies;
+        }
+        break;
+      case ConstTag.kSymbol:
+        {
+          final name = value as ObjectHandle;
+          name._useCount += numCopies;
+        }
+        break;
+      case ConstTag.kTearOffInstantiation:
+        {
+          final tearOff = value as ObjectHandle;
+          tearOff._useCount += numCopies;
+          if (type != null) {
+            type._useCount += numCopies;
+          }
+        }
+        break;
+      default:
+        throw 'Unexpected constant tag: $tag';
+    }
+  }
+
+  @override
+  int get hashCode {
+    switch (tag) {
+      case ConstTag.kInt:
+      case ConstTag.kDouble:
+      case ConstTag.kBool:
+      case ConstTag.kTearOff:
+      case ConstTag.kSymbol:
+        return value.hashCode;
+      case ConstTag.kInstance:
+        {
+          final fieldValues = value as Map<ObjectHandle, ObjectHandle>;
+          return _combineHashes(type.hashCode, mapHashCode(fieldValues));
+        }
+        break;
+      case ConstTag.kList:
+        {
+          final elems = value as List<ObjectHandle>;
+          return _combineHashes(type.hashCode, listHashCode(elems));
+        }
+        break;
+      case ConstTag.kTearOffInstantiation:
+        return _combineHashes(value.hashCode, type.hashCode);
+      default:
+        throw 'Unexpected constant tag: $tag';
+    }
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is _ConstObjectHandle && this.tag == other.tag) {
+      switch (tag) {
+        case ConstTag.kInt:
+        case ConstTag.kBool:
+        case ConstTag.kTearOff:
+        case ConstTag.kSymbol:
+          return this.value == other.value;
+        case ConstTag.kDouble:
+          return this.value.compareTo(other.value) == 0;
+        case ConstTag.kInstance:
+          return this.type == other.type && mapEquals(this.value, other.value);
+        case ConstTag.kList:
+          return this.type == other.type && listEquals(this.value, other.value);
+        case ConstTag.kTearOffInstantiation:
+          return this.type == other.type && this.value == other.value;
+        default:
+          throw 'Unexpected constant tag: $tag';
+      }
+    }
+    return false;
+  }
+
+  @override
+  String toString() {
+    switch (tag) {
+      case ConstTag.kInt:
+      case ConstTag.kDouble:
+      case ConstTag.kBool:
+      case ConstTag.kSymbol:
+        return 'const $value';
+      case ConstTag.kInstance:
+        return 'const $type $value';
+      case ConstTag.kList:
+        return 'const <$type> $value';
+      case ConstTag.kTearOff:
+        return 'const tear-off $value';
+      case ConstTag.kTearOffInstantiation:
+        return 'const $type $value';
+      default:
+        throw 'Unexpected constant tag: $tag';
+    }
+  }
+}
+
+class _ArgDescHandle extends _TypeHandle {
+  static const int flagHasNamedArgs = ObjectHandle.flagBit0;
+  static const int flagHasTypeArgs = ObjectHandle.flagBit1;
+
+  int _flags = 0;
+  int numArguments;
+  int numTypeArguments;
+  List<_NameHandle> argNames;
+
+  _ArgDescHandle._empty();
+
+  _ArgDescHandle(this.numArguments, this.numTypeArguments, this.argNames) {
+    if (argNames.isNotEmpty) {
+      _flags |= flagHasNamedArgs;
+    }
+    if (numTypeArguments > 0) {
+      _flags |= flagHasTypeArgs;
+    }
+  }
+
+  @override
+  ObjectKind get kind => ObjectKind.kArgDesc;
+
+  @override
+  int get flags => _flags;
+
+  @override
+  set flags(int value) {
+    _flags = value;
+  }
+
+  @override
+  void writeContents(BufferedWriter writer) {
+    writer.writePackedUInt30(numArguments);
+    if ((_flags & flagHasTypeArgs) != 0) {
+      writer.writePackedUInt30(numTypeArguments);
+    }
+    if ((_flags & flagHasNamedArgs) != 0) {
+      writer.writePackedList(argNames);
+    }
+  }
+
+  @override
+  void readContents(BufferedReader reader) {
+    numArguments = reader.readPackedUInt30();
+    numTypeArguments =
+        ((_flags & flagHasTypeArgs) != 0) ? reader.readPackedUInt30() : 0;
+    argNames = ((_flags & flagHasNamedArgs) != 0)
+        ? reader.readPackedList<_NameHandle>()
+        : null;
+  }
+
+  @override
+  void accountUsesForObjectCopies(int numCopies) {
+    if (argNames != null) {
+      for (var name in argNames) {
+        name._useCount += numCopies;
+      }
+    }
+  }
+
+  @override
+  int get hashCode => _combineHashes(
+      numArguments, _combineHashes(numTypeArguments, listHashCode(argNames)));
+
+  @override
+  bool operator ==(other) =>
+      other is _ArgDescHandle &&
+      this.numArguments == other.numArguments &&
+      this.numTypeArguments == other.numTypeArguments &&
+      listEquals(this.argNames, other.argNames);
+
+  @override
+  String toString() =>
+      'ArgDesc num-args $numArguments, num-type-args $numTypeArguments, names $argNames';
 }
 
 class ObjectTable implements ObjectWriter, ObjectReader {
@@ -946,6 +1459,40 @@ class ObjectTable implements ObjectWriter, ObjectReader {
         new _MemberHandle(classHandle, nameHandle, isField, isConstructor));
   }
 
+  ObjectHandle getTypeArgumentsHandle(List<DartType> typeArgs) {
+    if (typeArgs == null) {
+      return null;
+    }
+    final List<_TypeHandle> handles =
+        typeArgs.map((t) => getHandle(t) as _TypeHandle).toList();
+    return getOrAddObject(new _TypeArgumentsHandle(handles));
+  }
+
+  ObjectHandle getArgDescHandle(int numArguments,
+      [int numTypeArguments = 0, List<String> argNames = const <String>[]]) {
+    return getOrAddObject(new _ArgDescHandle(
+        numArguments,
+        numTypeArguments,
+        argNames
+            .map<_NameHandle>((name) => getNameHandle(null, name))
+            .toList()));
+  }
+
+  ObjectHandle getArgDescHandleByArguments(Arguments args,
+      {bool hasReceiver: false, bool isFactory: false}) {
+    return getArgDescHandle(
+        args.positional.length +
+            args.named.length +
+            (hasReceiver ? 1 : 0) +
+            // VM expects that type arguments vector passed to a factory
+            // constructor is counted in numArguments, and not counted in
+            // numTypeArgs.
+            // TODO(alexmarkov): Clean this up.
+            (isFactory ? 1 : 0),
+        isFactory ? 0 : args.types.length,
+        new List<String>.from(args.named.map((ne) => ne.name)));
+  }
+
   void declareClosure(
       FunctionNode function, Member enclosingMember, int closureIndex) {
     final handle = getOrAddObject(
@@ -1024,6 +1571,12 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     assert(writer.objectWriter == this);
     assert(_indexTable != null);
     final start = writer.offset;
+    if (BytecodeSizeStatistics.objectTableStats.isEmpty) {
+      for (var kind in ObjectKind.values) {
+        BytecodeSizeStatistics.objectTableStats
+            .add(new NamedEntryStatistics(objectKindToString(kind)));
+      }
+    }
 
     BufferedWriter contentsWriter = new BufferedWriter.fromWriter(writer);
     List<int> offsets = new List<int>(_indexTable.length);
@@ -1031,6 +1584,11 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     for (int i = 0; i < _indexTable.length; ++i) {
       offsets[i] = contentsWriter.offset;
       _indexTable[i]._write(contentsWriter);
+
+      final entryStat =
+          BytecodeSizeStatistics.objectTableStats[_indexTable[i].kind.index];
+      entryStat.size += (contentsWriter.offset - offsets[i]);
+      ++entryStat.count;
     }
 
     writer.writePackedUInt30(_indexTable.length);
@@ -1047,7 +1605,9 @@ class ObjectTable implements ObjectWriter, ObjectReader {
         obj.indexStrings(writer.stringWriter);
       }
     }
+
     BytecodeSizeStatistics.objectTableSize += (writer.offset - start);
+    BytecodeSizeStatistics.objectTableEntriesCount += _indexTable.length;
   }
 
   ObjectTable.read(BufferedReader reader) {
@@ -1122,11 +1682,41 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
     if (node.typeArguments.isEmpty) {
       return objectTable.getOrAddObject(new _SimpleTypeHandle(classHandle));
     }
-    final List<_TypeHandle> typeArgs = node.typeArguments
-        .map((t) => objectTable.getHandle(t) as _TypeHandle)
-        .toList();
-    return objectTable
-        .getOrAddObject(new _GenericTypeHandle(classHandle, typeArgs));
+    // In order to save loading time, generic types are written out in
+    // finalized form, if possible.
+    //
+    // Object table serialization/deserialization cannot handle cycles between
+    // objects. Non-finalized types are not recursive, but finalization of
+    // generic types includes flattening of type arguments and types could
+    // become recursive. Consider the following example:
+    //
+    //  class Base<T> {}
+    //  class Foo<T> extends Base<Foo<T>> {}
+    //
+    //  Foo<int> is not recursive, but finalized type is recursive:
+    //  Foo<int>* = Foo [ Base [ Foo<int>* ], int ]
+    //
+    // Recursive types are very rare, so object table includes such types in
+    // non-finalized form.
+    //
+    // VM handles recursive types by introducing placeholder
+    // TypeRef objects. Also, VM ensures that recursive types are contractive
+    // (e.g. their fully finalized representation should be finite).
+    //
+    if (!isRecursiveAfterFlattening(node)) {
+      List<DartType> instantiatorArgs =
+          getInstantiatorTypeArguments(node.classNode, node.typeArguments);
+      ObjectHandle typeArgsHandle =
+          objectTable.getTypeArgumentsHandle(instantiatorArgs);
+      return objectTable.getOrAddObject(
+          new _FinalizedGenericTypeHandle(classHandle, typeArgsHandle));
+    } else {
+      final List<_TypeHandle> typeArgs = node.typeArguments
+          .map((t) => objectTable.getHandle(t) as _TypeHandle)
+          .toList();
+      return objectTable
+          .getOrAddObject(new _GenericTypeHandle(classHandle, typeArgs));
+    }
   }
 
   @override
@@ -1211,6 +1801,68 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
   @override
   ObjectHandle visitTypedefType(TypedefType node) =>
       objectTable.getHandle(node.unalias);
+
+  @override
+  ObjectHandle visitNullConstant(NullConstant node) => null;
+
+  @override
+  ObjectHandle visitBoolConstant(BoolConstant node) => objectTable
+      .getOrAddObject(new _ConstObjectHandle(ConstTag.kBool, node.value));
+
+  @override
+  ObjectHandle visitIntConstant(IntConstant node) => objectTable
+      .getOrAddObject(new _ConstObjectHandle(ConstTag.kInt, node.value));
+
+  @override
+  ObjectHandle visitDoubleConstant(DoubleConstant node) => objectTable
+      .getOrAddObject(new _ConstObjectHandle(ConstTag.kDouble, node.value));
+
+  @override
+  ObjectHandle visitStringConstant(StringConstant node) =>
+      objectTable.getNameHandle(null, node.value);
+
+  @override
+  ObjectHandle visitSymbolConstant(SymbolConstant node) =>
+      objectTable.getOrAddObject(new _ConstObjectHandle(
+          ConstTag.kSymbol,
+          objectTable.getNameHandle(
+              node.libraryReference?.asLibrary, node.name)));
+
+  @override
+  ObjectHandle visitListConstant(ListConstant node) =>
+      objectTable.getOrAddObject(new _ConstObjectHandle(
+          ConstTag.kList,
+          new List<ObjectHandle>.from(
+              node.entries.map((Constant c) => objectTable.getHandle(c))),
+          objectTable.getHandle(node.typeArgument)));
+
+  @override
+  ObjectHandle visitInstanceConstant(InstanceConstant node) =>
+      objectTable.getOrAddObject(new _ConstObjectHandle(
+          ConstTag.kInstance,
+          node.fieldValues.map<ObjectHandle, ObjectHandle>(
+              (Reference fieldRef, Constant value) => new MapEntry(
+                  objectTable.getHandle(fieldRef.asField),
+                  objectTable.getHandle(value))),
+          objectTable.getHandle(
+              new InterfaceType(node.classNode, node.typeArguments))));
+
+  @override
+  ObjectHandle visitTearOffConstant(TearOffConstant node) =>
+      objectTable.getOrAddObject(new _ConstObjectHandle(
+          ConstTag.kTearOff, objectTable.getHandle(node.procedure)));
+
+  @override
+  ObjectHandle visitTypeLiteralConstant(TypeLiteralConstant node) =>
+      objectTable.getHandle(node.type);
+
+  @override
+  ObjectHandle visitPartialInstantiationConstant(
+          PartialInstantiationConstant node) =>
+      objectTable.getOrAddObject(new _ConstObjectHandle(
+          ConstTag.kTearOffInstantiation,
+          objectTable.getHandle(node.tearOffConstant),
+          objectTable.getTypeArgumentsHandle(node.types)));
 }
 
 int _combineHashes(int hash1, int hash2) =>

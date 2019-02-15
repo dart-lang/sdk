@@ -6422,10 +6422,10 @@ class CodeGenerator extends Object
   visitWithClause(node) => _unreachable(node);
 
   @override
-  visitCollectionForElement(CollectionForElement node) => _unreachable(node);
+  visitForElement(ForElement node) => _unreachable(node);
 
   @override
-  visitCollectionIfElement(CollectionIfElement node) => _unreachable(node);
+  visitIfElement(IfElement node) => _unreachable(node);
 
   @override
   visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
@@ -6440,12 +6440,6 @@ class CodeGenerator extends Object
 
   @override
   visitListLiteral2(ListLiteral2 node) => _unreachable(node);
-
-  @override
-  visitMapForElement(MapForElement node) => _unreachable(node);
-
-  @override
-  visitMapIfElement(MapIfElement node) => _unreachable(node);
 
   @override
   visitMapLiteral2(MapLiteral2 node) => _unreachable(node);

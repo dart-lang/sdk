@@ -31,6 +31,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/element_type_matchers.dart';
 import '../../../utils.dart';
 import 'base.dart';
 
@@ -1116,7 +1117,7 @@ var a = new A();
         await createAnalysisDriver().test.getSummaryStore(a);
 
     // There are at least a.dart and dart:core libraries.
-    String aUri = toUri(a).toString();
+    String aUri = toUriStr(a);
     expect(summaryStore.unlinkedMap.keys, contains(aUri));
     expect(summaryStore.linkedMap.keys, contains(aUri));
     expect(summaryStore.unlinkedMap.keys, contains('dart:core'));
@@ -1158,8 +1159,8 @@ var b = new _B();
     SummaryDataStore summaryStore =
         await createAnalysisDriver().test.getSummaryStore(a);
 
-    String aUri = toUri(a).toString();
-    String bUri = toUri(b).toString();
+    String aUri = toUriStr(a);
+    String bUri = toUriStr(b);
     // There are unlinked units for a.dart and b.dart files.
     expect(summaryStore.hasUnlinkedUnit(aUri), isTrue);
     expect(summaryStore.hasUnlinkedUnit(bUri), isTrue);
@@ -1867,7 +1868,7 @@ class C {}
     ClassDeclaration c = result.unit.declarations[1] as ClassDeclaration;
     Annotation a = c.metadata[0];
     expect(a.name.name, 'fff');
-    expect(a.name.staticElement, new TypeMatcher<FunctionElement>());
+    expect(a.name.staticElement, isFunctionElement);
   }
 
   test_getResult_invalidUri() async {
@@ -2076,7 +2077,7 @@ var VC = new A<double>();
       ResolvedUnitResult result = await driver.getResult(c);
       expect(
         _getImportSource(result.unit, 0).uri,
-        toUri(convertPath('/test/lib/a.dart')),
+        toUri('/test/lib/a.dart'),
       );
       expect(_getTopLevelVarType(result.unit, 'VC'), 'A<double>');
     }
@@ -2425,6 +2426,32 @@ var b = new B();
     ResolvedUnitResult result = await driver.getResult(a);
     expect(result.errors, isEmpty);
     expect(_getTopLevelVarType(result.unit, 'b'), 'B');
+  }
+
+  test_importOfNonLibrary_part_afterLibrary() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+    var c = convertPath('/test/lib/c.dart');
+
+    newFile(a, content: '''
+library my.lib;
+
+part 'b.dart';
+''');
+    newFile(b, content: '''
+part of my.lib;
+
+class A {}
+''');
+    newFile(c, content: '''
+import 'b.dart';
+''');
+
+    // This ensures that `a.dart` linked library is cached.
+    await driver.getResult(a);
+
+    // Should not fail because of considering `b.dart` part as `a.dart` library.
+    await driver.getResult(c);
   }
 
   test_instantiateToBounds_invalid() async {

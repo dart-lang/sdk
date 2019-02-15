@@ -313,6 +313,36 @@ abstract class DataSourceMixin implements DataSource {
     }
     return map;
   }
+
+  @override
+  List<ir.DartType> readDartTypeNodes({bool emptyAsNull: false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<ir.DartType> list = new List<ir.DartType>(count);
+    for (int i = 0; i < count; i++) {
+      list[i] = readDartTypeNode();
+    }
+    return list;
+  }
+
+  @override
+  ir.Name readName() {
+    String text = readString();
+    ir.Library library = readValueOrNull(readLibraryNode);
+    return new ir.Name(text, library);
+  }
+
+  @override
+  ir.LibraryDependency readLibraryDependencyNode() {
+    ir.Library library = readLibraryNode();
+    int index = readInt();
+    return library.dependencies[index];
+  }
+
+  @override
+  ir.LibraryDependency readLibraryDependencyNodeOrNull() {
+    return readValueOrNull(readLibraryDependencyNode);
+  }
 }
 
 /// Mixin that implements all convenience methods of [DataSink].
@@ -642,5 +672,37 @@ abstract class DataSinkMixin implements DataSink {
         f(value);
       });
     }
+  }
+
+  @override
+  void writeDartTypeNodes(Iterable<ir.DartType> values,
+      {bool allowNull: false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (ir.DartType value in values) {
+        writeDartTypeNode(value);
+      }
+    }
+  }
+
+  @override
+  void writeName(ir.Name value) {
+    writeString(value.name);
+    writeValueOrNull(value.library, writeLibraryNode);
+  }
+
+  @override
+  void writeLibraryDependencyNode(ir.LibraryDependency value) {
+    ir.Library library = value.parent;
+    writeLibraryNode(library);
+    writeInt(library.dependencies.indexOf(value));
+  }
+
+  @override
+  void writeLibraryDependencyNodeOrNull(ir.LibraryDependency value) {
+    writeValueOrNull(value, writeLibraryDependencyNode);
   }
 }

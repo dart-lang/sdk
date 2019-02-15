@@ -41,23 +41,6 @@ class ArgListContributorTest extends DartCompletionContributorTest {
     expect(suggestion.selectionLength, selectionLength);
   }
 
-  void assertSuggestArgumentList(
-      List<String> paramNames, List<String> paramTypes) {
-    // DEPRECATED... argument lists are no longer suggested.
-    // See https://github.com/dart-lang/sdk/issues/25197
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
-
-    // CompletionSuggestionKind csKind = CompletionSuggestionKind.ARGUMENT_LIST;
-    // CompletionSuggestion cs = getSuggest(csKind: csKind);
-    // if (cs == null) {
-    //   failedCompletion('expected completion $csKind', suggestions);
-    // }
-    // assertSuggestArgumentList_params(
-    //     paramNames, paramTypes, cs.parameterNames, cs.parameterTypes);
-    // expect(cs.relevance, DART_RELEVANCE_HIGH);
-    // assertNoOtherSuggestions([cs]);
-  }
-
   void assertSuggestArgumentList_params(
       List<String> expectedNames,
       List<String> expectedTypes,
@@ -531,54 +514,6 @@ foo({String children}) {}
     assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_function_1() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      expect(String arg) { }
-      void baz() { }''');
-    addTestSource('''
-      import 'a.dart'
-      class B { }
-      String bar() => true;
-      void main() {expect(^)}''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg'], ['String']);
-  }
-
-  test_ArgumentList_imported_function_2() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      expect(String arg1, int arg2) { }
-      void baz() { }''');
-    addTestSource('''
-      import 'a.dart'
-      class B { }
-      String bar() => true;
-      void main() {expect(^)}''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg1', 'arg2'], ['String', 'int']);
-  }
-
-  test_ArgumentList_imported_function_3() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      expect(String arg1, int arg2, {bool arg3}) { }
-      void baz() { }''');
-    addTestSource('''
-      import 'a.dart'
-      class B { }
-      String bar() => true;
-      void main() {expect(^)}''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg1', 'arg2'], ['String', 'int']);
-  }
-
   test_ArgumentList_imported_function_3a() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource('/home/test/lib/a.dart', '''
@@ -901,39 +836,6 @@ main() { new A(^);}''');
         requiredParamIndices: [1]);
   }
 
-  test_ArgumentList_local_function_1() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('''
-      expect(arg) { }
-      class B { }
-      String bar() => true;
-      void main() {expect(^)}''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg'], ['dynamic']);
-  }
-
-  test_ArgumentList_local_function_2() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('''
-      expect(arg1, int arg2) { }
-      class B { }
-      String bar() => true;
-      void main() {expect(^)}''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg1', 'arg2'], ['dynamic', 'int']);
-  }
-
-  test_ArgumentList_local_function_3() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('''
-      expect(arg1, int arg2) { }
-      class B { }
-      String bar() => true;
-      void main() {expect(^)}''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg1', 'arg2'], ['dynamic', 'int']);
-  }
-
   test_ArgumentList_local_function_3a() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
@@ -1031,21 +933,5 @@ main() { f("16", radix: ^);}''');
       String bar() => true;''');
     await computeSuggestions();
     assertNoSuggestions();
-  }
-
-  test_ArgumentList_local_method_2() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      void baz() { }''');
-    addTestSource('''
-      import 'a.dart'
-      class B {
-        expect(arg, int blat) { }
-        void foo() {expect(^)}}
-      String bar() => true;''');
-    await computeSuggestions();
-    assertSuggestArgumentList(['arg', 'blat'], ['dynamic', 'int']);
   }
 }

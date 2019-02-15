@@ -123,6 +123,19 @@ class CompletionTarget {
   final int argIndex;
 
   /**
+   * If the target is an argument in an [ArgumentList], then this is the
+   * invoked [ExecutableElement], otherwise this is `null`.
+   */
+  ExecutableElement _executableElement;
+
+  /**
+   * If the target is an argument in an [ArgumentList], then this is the
+   * corresponding [ParameterElement] in the invoked [ExecutableElement],
+   * otherwise this is `null`.
+   */
+  ParameterElement _parameterElement;
+
+  /**
    * Compute the appropriate [CompletionTarget] for the given [offset] within
    * the [compilationUnit].
    *
@@ -250,6 +263,38 @@ class CompletionTarget {
             _computeDroppedToken(containingNode, entity, offset);
 
   /**
+   * If the target is an argument in an argument list, and the invocation is
+   * resolved, return the invoked [ExecutableElement].
+   */
+  ExecutableElement get executableElement {
+    if (_executableElement == null) {
+      var argumentList = containingNode;
+      if (argumentList is NamedExpression) {
+        argumentList = argumentList.parent;
+      }
+      if (argumentList is! ArgumentList) {
+        return null;
+      }
+
+      var invocation = argumentList.parent;
+
+      Element executable;
+      if (invocation is Annotation) {
+        executable = invocation.element;
+      } else if (invocation is InstanceCreationExpression) {
+        executable = invocation.constructorName.staticElement;
+      } else if (invocation is MethodInvocation) {
+        executable = invocation.methodName.staticElement;
+      }
+
+      if (executable is ExecutableElement) {
+        _executableElement = executable;
+      }
+    }
+    return _executableElement;
+  }
+
+  /**
    * Return `true` if the [containingNode] is a cascade
    * and the completion insertion is not between the two dots.
    * For example, `..d^` and `..^d` are considered a cascade
@@ -264,6 +309,21 @@ class CompletionTarget {
       return node.isCascaded && offset > node.operator.offset + 1;
     }
     return false;
+  }
+
+  /**
+   * If the target is an argument in an argument list, and the invocation is
+   * resolved, return the corresponding [ParameterElement].
+   */
+  ParameterElement get parameterElement {
+    if (_parameterElement == null) {
+      var executable = executableElement;
+      if (executable != null) {
+        _parameterElement = _getParameterElement(
+            executable.parameters, containingNode, argIndex);
+      }
+    }
+    return _parameterElement;
   }
 
   /**
@@ -328,63 +388,9 @@ class CompletionTarget {
   /**
    * Return `true` if the target is a functional argument in an argument list.
    * The target [AstNode] hierarchy *must* be resolved for this to work.
-   * See [maybeFunctionalArgument].
    */
   bool isFunctionalArgument() {
-    if (!maybeFunctionalArgument()) {
-      return false;
-    }
-    AstNode parent = containingNode.parent;
-    if (parent is ArgumentList) {
-      parent = parent.parent;
-    }
-    if (parent is InstanceCreationExpression) {
-      DartType instType = parent.staticType;
-      if (instType != null) {
-        Element intTypeElem = instType.element;
-        if (intTypeElem is ClassElement) {
-          SimpleIdentifier constructorName = parent.constructorName.name;
-          ConstructorElement constructor = constructorName != null
-              ? intTypeElem.getNamedConstructor(constructorName.name)
-              : intTypeElem.unnamedConstructor;
-          return constructor != null &&
-              _isFunctionalParameter(
-                  constructor.parameters, argIndex, containingNode);
-        }
-      }
-    } else if (parent is MethodInvocation) {
-      SimpleIdentifier methodName = parent.methodName;
-      if (methodName != null) {
-        Element methodElem = methodName.staticElement;
-        if (methodElem is MethodElement) {
-          return _isFunctionalParameter(
-              methodElem.parameters, argIndex, containingNode);
-        } else if (methodElem is FunctionElement) {
-          return _isFunctionalParameter(
-              methodElem.parameters, argIndex, containingNode);
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Return `true` if the target maybe a functional argument in an argument list.
-   * This is used in determining whether the target [AstNode] hierarchy
-   * needs to be resolved so that [isFunctionalArgument] will work.
-   */
-  bool maybeFunctionalArgument() {
-    if (argIndex != null) {
-      if (containingNode is ArgumentList) {
-        return true;
-      }
-      if (containingNode is NamedExpression) {
-        if (containingNode.parent is ArgumentList) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return parameterElement?.type is FunctionType;
   }
 
   static int _computeArgIndex(AstNode containingNode, Object entity) {
@@ -501,6 +507,32 @@ class CompletionTarget {
   }
 
   /**
+   * Return the [ParameterElement] that corresponds to the given [argumentNode]
+   * at the given [argumentIndex].
+   */
+  static ParameterElement _getParameterElement(
+    List<ParameterElement> parameters,
+    AstNode argumentNode,
+    int argumentIndex,
+  ) {
+    if (argumentNode is NamedExpression) {
+      var name = argumentNode.name?.label?.name;
+      for (var parameter in parameters) {
+        if (parameter.name == name) {
+          return parameter;
+        }
+      }
+      return null;
+    }
+
+    if (argumentIndex < parameters.length) {
+      return parameters[argumentIndex];
+    }
+
+    return null;
+  }
+
+  /**
    * Determine whether [node] could possibly be the [entity] for a
    * [CompletionTarget] associated with the given [offset].
    */
@@ -553,28 +585,5 @@ class CompletionTarget {
     } else {
       return false;
     }
-  }
-
-  /**
-   * Return `true` if the parameter is a functional parameter.
-   */
-  static bool _isFunctionalParameter(List<ParameterElement> parameters,
-      int paramIndex, AstNode containingNode) {
-    DartType paramType;
-    if (paramIndex < parameters.length) {
-      ParameterElement param = parameters[paramIndex];
-      if (param.isNamed) {
-        if (containingNode is NamedExpression) {
-          String name = containingNode.name?.label?.name;
-          param = parameters.firstWhere(
-              (ParameterElement param) => param.isNamed && param.name == name,
-              orElse: () => null);
-          paramType = param?.type;
-        }
-      } else {
-        paramType = param.type;
-      }
-    }
-    return paramType is FunctionType || paramType is FunctionTypeAlias;
   }
 }

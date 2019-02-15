@@ -393,7 +393,7 @@ abstract class AbstractDataSource extends DataSourceMixin
 
   @override
   int readInt() {
-    _checkDataKind(DataKind.int);
+    _checkDataKind(DataKind.uint30);
     return _readIntInternal();
   }
 
@@ -409,6 +409,29 @@ abstract class AbstractDataSource extends DataSourceMixin
     return _readConstant();
   }
 
+  double readDoubleValue() {
+    _checkDataKind(DataKind.double);
+    return _readDoubleValue();
+  }
+
+  double _readDoubleValue() {
+    ByteData data = new ByteData(8);
+    data.setUint16(0, readInt());
+    data.setUint16(2, readInt());
+    data.setUint16(4, readInt());
+    data.setUint16(6, readInt());
+    return data.getFloat64(0);
+  }
+
+  int readIntegerValue() {
+    _checkDataKind(DataKind.int);
+    return _readBigInt().toInt();
+  }
+
+  BigInt _readBigInt() {
+    return BigInt.parse(readString());
+  }
+
   ConstantValue _readConstant() {
     ConstantValueKind kind = _readEnumInternal(ConstantValueKind.values);
     switch (kind) {
@@ -416,15 +439,10 @@ abstract class AbstractDataSource extends DataSourceMixin
         bool value = readBool();
         return new BoolConstantValue(value);
       case ConstantValueKind.INT:
-        BigInt value = BigInt.parse(readString());
+        BigInt value = _readBigInt();
         return new IntConstantValue(value);
       case ConstantValueKind.DOUBLE:
-        ByteData data = new ByteData(8);
-        data.setUint16(0, readInt());
-        data.setUint16(2, readInt());
-        data.setUint16(4, readInt());
-        data.setUint16(6, readInt());
-        double value = data.getFloat64(0);
+        double value = _readDoubleValue();
         return new DoubleConstantValue(value);
       case ConstantValueKind.STRING:
         String value = readString();

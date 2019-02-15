@@ -111,7 +111,7 @@ B:
 C:
   superclasses:
     Object
-      -> A<S>
+      -> A<U>
         -> B<U>
   interfaces:
   classMembers:

@@ -271,6 +271,11 @@ class BytecodeAssembler {
     emitWord(_encodeAD(Opcode.kIndirectStaticCall, ra, rd));
   }
 
+  void emitDirectCall(int ra, int rd) {
+    emitSourcePosition();
+    emitWord(_encodeAD(Opcode.kDirectCall, ra, rd));
+  }
+
   void emitInterfaceCall(int ra, int rd) {
     emitSourcePosition();
     emitWord(_encodeAD(Opcode.kInterfaceCall, ra, rd));

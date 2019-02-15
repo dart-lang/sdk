@@ -8,11 +8,10 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #if defined(DEBUG)
 
-namespace dart {
+#include "vm/compiler/backend/flow_graph.h"
+#include "vm/compiler/backend/il.h"
 
-// Forward.
-class FlowGraph;
-class BlockEntryInstr;
+namespace dart {
 
 // Class responsible for performing sanity checks on the flow graph.
 // The intended use is running the checks after each compiler pass
@@ -25,18 +24,35 @@ class BlockEntryInstr;
 // the passes or, worse, unwritten assumptions once agreed upon but
 // so easily forgotten. Since the graph checker runs only in debug
 // mode, it is acceptable to perform slightly elaborate tests.
-class FlowGraphChecker {
+class FlowGraphChecker : public FlowGraphVisitor {
  public:
-  explicit FlowGraphChecker(FlowGraph* flow_graph);
+  // Constructs graph checker. The checker uses some custom-made
+  // visitation to perform additional checks, and uses the
+  // FlowGraphVisitor structure for anything else.
+  explicit FlowGraphChecker(FlowGraph* flow_graph)
+      : FlowGraphVisitor(flow_graph->preorder()),
+        flow_graph_(flow_graph),
+        current_block_(nullptr) {}
 
   // Performs a sanity check on the flow graph.
   void Check();
 
  private:
-  void CheckBasicBlocks();
-  void CheckInstructions(BlockEntryInstr* block);
+  // Custom-made visitors.
+  void VisitBlocks() override;
+  void VisitInstructions(BlockEntryInstr* block);
+  void VisitInstruction(Instruction* instruction);
+  void VisitDefinition(Definition* def);
+
+  // Instruction visitors.
+  void VisitConstant(ConstantInstr* constant) override;
+  void VisitPhi(PhiInstr* phi) override;
+  void VisitGoto(GotoInstr* jmp) override;
+  void VisitIndirectGoto(IndirectGotoInstr* jmp) override;
+  void VisitBranch(BranchInstr* branch) override;
 
   FlowGraph* const flow_graph_;
+  BlockEntryInstr* current_block_;
 };
 
 }  // namespace dart

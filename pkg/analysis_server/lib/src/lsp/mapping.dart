@@ -15,6 +15,8 @@ import 'package:analysis_server/src/protocol_server.dart' as server
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
+import 'package:analyzer/src/dart/analysis/search.dart' as server
+    show DeclarationKind;
 import 'package:analyzer/src/generated/source.dart' as server;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' as server;
 
@@ -45,6 +47,48 @@ lsp.WorkspaceEdit createWorkspaceEdit(
               server.getLineInfo(e.file),
               e.edits))
           .toList());
+}
+
+lsp.SymbolKind declarationKindToSymbolKind(
+  HashSet<lsp.SymbolKind> clientSupportedSymbolKinds,
+  server.DeclarationKind kind,
+) {
+  bool isSupported(lsp.SymbolKind kind) =>
+      clientSupportedSymbolKinds.contains(kind);
+
+  List<lsp.SymbolKind> getKindPreferences() {
+    switch (kind) {
+      case server.DeclarationKind.CLASS:
+      case server.DeclarationKind.CLASS_TYPE_ALIAS:
+        return const [lsp.SymbolKind.Class];
+      case server.DeclarationKind.CONSTRUCTOR:
+        return const [lsp.SymbolKind.Constructor];
+      case server.DeclarationKind.ENUM:
+      case server.DeclarationKind.ENUM_CONSTANT:
+        return const [lsp.SymbolKind.Enum];
+      case server.DeclarationKind.FIELD:
+        return const [lsp.SymbolKind.Field];
+      case server.DeclarationKind.FUNCTION:
+        return const [lsp.SymbolKind.Function];
+      case server.DeclarationKind.FUNCTION_TYPE_ALIAS:
+        return const [lsp.SymbolKind.Class];
+      case server.DeclarationKind.GETTER:
+        return const [lsp.SymbolKind.Property];
+      case server.DeclarationKind.METHOD:
+        return const [lsp.SymbolKind.Method];
+      case server.DeclarationKind.MIXIN:
+        return const [lsp.SymbolKind.Class];
+      case server.DeclarationKind.SETTER:
+        return const [lsp.SymbolKind.Property];
+      case server.DeclarationKind.VARIABLE:
+        return const [lsp.SymbolKind.Variable];
+      default:
+        assert(false, 'Unexpected declaration kind $kind');
+        return null;
+    }
+  }
+
+  return getKindPreferences().firstWhere(isSupported, orElse: () => null);
 }
 
 lsp.CompletionItemKind elementKindToCompletionItemKind(

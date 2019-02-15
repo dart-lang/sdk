@@ -71,12 +71,12 @@ M1:
     Object.==
   classSetters:
 
-M0<int> with M1:
+M0<int> with M1<int>:
   superclasses:
     Object
-      -> I<T>
+      -> I<int>
         -> M0<int>
-  interfaces: M1
+  interfaces: M1<int>
   classMembers:
     Object.toString
     Object.runtimeType
@@ -105,10 +105,10 @@ M0<int> with M1:
 A:
   superclasses:
     Object
-      -> I<T>
+      -> I<int>
         -> M0<int>
           -> _A&M0&M1
-  interfaces: M1
+  interfaces: M1<int>
   classMembers:
     Object.toString
     Object.runtimeType

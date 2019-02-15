@@ -1482,7 +1482,7 @@ class KernelUnlinkedGenerator extends KernelGenerator with UnlinkedGenerator {
         super(helper, token);
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext}) {
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
     return new PropertySet(receiver, name, value)
       ..fileOffset = offsetForToken(token);
   }

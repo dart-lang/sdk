@@ -46,10 +46,15 @@ class Driver {
     if (!await startServer(options)) {
       context.exit(15);
     }
-
     try {
-      final progress = await setupAnalysis(options);
-      result = await requestFixes(options, progress);
+      if (checkSupported(options)) {
+        if (options.listFixes) {
+          await showListOfFixes();
+        } else {
+          final progress = await setupAnalysis(options);
+          result = await requestFixes(options, progress);
+        }
+      }
     } finally {
       await server.stop();
     }
@@ -78,6 +83,39 @@ class Driver {
     return handler.serverConnected(timeLimit: const Duration(seconds: 15));
   }
 
+  /// Check if the specified options is supported by the version of analysis
+  /// server being run and return `true` if they are.
+  /// Display an error message and return `false` if not.
+  bool checkSupported(Options options) {
+    if (handler.serverProtocolVersion.compareTo(new Version(1, 22, 2)) >= 0) {
+      return true;
+    }
+    if (options.excludeFixes.isNotEmpty) {
+      unsupportedOption(excludeOption);
+      return false;
+    }
+    if (options.includeFixes.isNotEmpty) {
+      unsupportedOption(includeOption);
+      return false;
+    }
+    if (options.listFixes) {
+      unsupportedOption(listOption);
+      return false;
+    }
+    if (options.requiredFixes) {
+      unsupportedOption(requiredOption);
+      return false;
+    }
+    return true;
+  }
+
+  void unsupportedOption(String option) {
+    final version = handler.serverProtocolVersion.toString();
+    logger.stderr('''
+The --$option option is not supported by analysis server version $version.
+Please upgrade to a newer version of the Dart SDK to use this option.''');
+  }
+
   Future<Progress> setupAnalysis(Options options) async {
     final progress = logger.progress('${ansi.emphasized('Calculating fixes')}');
     logger.trace('');
@@ -97,8 +135,19 @@ class Driver {
       Options options, Progress progress) async {
     logger.trace('Requesting fixes');
     Future isAnalysisComplete = handler.analysisComplete();
-    Map<String, dynamic> json = await server.send(
-        EDIT_REQUEST_DARTFIX, new EditDartfixParams(options.targets).toJson());
+
+    final params = new EditDartfixParams(options.targets);
+    if (options.excludeFixes.isNotEmpty) {
+      params.excludedFixes = options.excludeFixes;
+    }
+    if (options.includeFixes.isNotEmpty) {
+      params.includedFixes = options.includeFixes;
+    }
+    if (options.requiredFixes) {
+      params.includeRequiredFixes = true;
+    }
+    Map<String, dynamic> json =
+        await server.send(EDIT_REQUEST_DARTFIX, params.toJson());
 
     // TODO(danrubel): This is imprecise signal for determining when all
     // analysis error notifications have been received. Consider adding a new
@@ -184,6 +233,39 @@ class Driver {
     }
     return filePath;
   }
+
+  showListOfFixes() async {
+    final progress =
+        logger.progress('${ansi.emphasized('Getting list of fixes')}');
+    logger.trace('');
+    Map<String, dynamic> json = await server.send(
+        EDIT_REQUEST_GET_DARTFIX_INFO, new EditGetDartfixInfoParams().toJson());
+
+    progress.finish(showTiming: true);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    final result = EditGetDartfixInfoResult.fromJson(decoder, 'result', json);
+
+    final fixes = new List<DartFix>.from(result.fixes)
+      ..sort((f1, f2) => f1.name.compareTo(f2.name));
+
+    for (DartFix fix in fixes) {
+      String line = fix.name;
+      if (fix.isRequired == true) {
+        line = '$line (required)';
+      }
+      logger.stdout('');
+      logger.stdout(line);
+      if (fix.description != null) {
+        for (String line in indentAndWrapDescription(fix.description)) {
+          logger.stdout(line);
+        }
+      }
+    }
+    return result;
+  }
+
+  List<String> indentAndWrapDescription(String description) =>
+      description.split('\n').map((line) => '    $line').toList();
 }
 
 class _Listener with ServerListener, BadMessageListener {
@@ -205,10 +287,17 @@ class _Handler
   final Driver driver;
   final Logger logger;
   final Server server;
+  Version serverProtocolVersion;
 
   _Handler(this.driver)
       : logger = driver.logger,
         server = driver.server;
+
+  @override
+  bool checkServerProtocolVersion(Version version) {
+    serverProtocolVersion = version;
+    return super.checkServerProtocolVersion(version);
+  }
 
   @override
   void onFailedToConnect() {

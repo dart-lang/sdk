@@ -25,6 +25,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_rename.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_signature_help.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_text_document_changes.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_workspace_symbols.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
@@ -68,6 +69,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(new RenameHandler(server));
     registerHandler(new FoldingHandler(server));
     registerHandler(new DiagnosticServerHandler(server));
+    registerHandler(new WorkspaceSymbolHandler(server));
   }
 }
 

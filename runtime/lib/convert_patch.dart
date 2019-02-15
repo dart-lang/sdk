@@ -261,7 +261,7 @@ class _NumberBuffer {
   // TODO(lrn): See if parsing of numbers can be abstracted to something
   // not only working on strings, but also on char-code lists, without lossing
   // performance.
-  int parseInt() => int.parse(getString());
+  num parseNum() => num.parse(getString());
   double parseDouble() => double.parse(getString());
 }
 
@@ -598,13 +598,17 @@ abstract class _ChunkedJsonParser<T> {
   String getString(int start, int end, int bits);
 
   /**
-   * Parse a slice of the current chunk as an integer.
+   * Parse a slice of the current chunk as a number.
+   *
+   * Since integers have a maximal value, and we don't track the value
+   * in the buffer, a sequence of digits can be either an int or a double.
+   * The `num.parse` function does the right thing.
    *
    * The format is expected to be correct.
    */
-  int parseInt(int start, int end) {
-    const int asciiBits = 0x7f; // Integer literals are ASCII only.
-    return int.parse(getString(start, end, asciiBits));
+  num parseNum(int start, int end) {
+    const int asciiBits = 0x7f; // Number literals are ASCII only.
+    return num.parse(getString(start, end, asciiBits));
   }
 
   /**
@@ -917,7 +921,6 @@ abstract class _ChunkedJsonParser<T> {
         default:
           if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
           state |= VALUE_READ_BITS;
-          if (char == null) print("$chunk - $position");
           position = parseNumber(char, position);
           break;
       }
@@ -1214,7 +1217,8 @@ abstract class _ChunkedJsonParser<T> {
       addNumberChunk(buffer, start, end, 0);
     }
     if (state == NUM_DIGIT) {
-      listener.handleNumber(buffer.parseInt());
+      num value = buffer.parseNum();
+      listener.handleNumber(value);
     } else if (state == NUM_DOT_DIGIT || state == NUM_E_DIGIT) {
       listener.handleNumber(buffer.parseDouble());
     } else {
@@ -1230,9 +1234,11 @@ abstract class _ChunkedJsonParser<T> {
     int start = position;
     int length = chunkEnd;
     // Collects an int value while parsing. Used for both an integer literal,
-    // an the exponent part of a double literal.
+    // and the exponent part of a double literal.
+    // Stored as negative to ensure we can represent -2^63.
     int intValue = 0;
     double doubleValue = 0.0; // Collect double value while parsing.
+    // 1 if there is no leading -, -1 if there is.
     int sign = 1;
     bool isDouble = false;
     // Break this block when the end of the number literal is reached.
@@ -1261,8 +1267,22 @@ abstract class _ChunkedJsonParser<T> {
       // If starting with zero, next character must not be digit.
       if (digit <= 9) fail(position);
     } else {
+      int digitCount = 0;
       do {
-        intValue = 10 * intValue + digit;
+        if (digitCount >= 18) {
+          // Check for overflow.
+          // Is 1 if digit is 8 or 9 and sign == 0, or digit is 9 and sign < 0;
+          int highDigit = digit >> 3;
+          if (sign < 0) highDigit &= digit;
+          if (digitCount == 19 || intValue - highDigit < -922337203685477580) {
+            isDouble = true;
+            // Big value that we know is not trusted to be exact later,
+            // forcing reparsing using `double.parse`.
+            doubleValue = 9223372036854775808.0;
+          }
+        }
+        intValue = 10 * intValue - digit;
+        digitCount++;
         position++;
         if (position == length) return beginChunkNumber(NUM_DIGIT, start);
         char = getChar(position);
@@ -1270,8 +1290,10 @@ abstract class _ChunkedJsonParser<T> {
       } while (digit <= 9);
     }
     if (char == DECIMALPOINT) {
-      isDouble = true;
-      doubleValue = intValue.toDouble();
+      if (!isDouble) {
+        isDouble = true;
+        doubleValue = (intValue == 0) ? 0.0 : -intValue.toDouble();
+      }
       intValue = 0;
       position++;
       if (position == length) return beginChunkNumber(NUM_DOT, start);
@@ -1289,16 +1311,16 @@ abstract class _ChunkedJsonParser<T> {
     }
     if ((char | 0x20) == CHAR_e) {
       if (!isDouble) {
-        doubleValue = intValue.toDouble();
-        intValue = 0;
         isDouble = true;
+        doubleValue = (intValue == 0) ? 0.0 : -intValue.toDouble();
+        intValue = 0;
       }
       position++;
       if (position == length) return beginChunkNumber(NUM_E, start);
       char = getChar(position);
       int expSign = 1;
       int exponent = 0;
-      if (char == PLUS || char == MINUS) {
+      if (((char + 1) | 2) == 0x2e /*+ or -*/) {
         expSign = 0x2C - char; // -1 for MINUS, +1 for PLUS
         position++;
         if (position == length) return beginChunkNumber(NUM_E_SIGN, start);
@@ -1308,20 +1330,33 @@ abstract class _ChunkedJsonParser<T> {
       if (digit > 9) {
         fail(position, "Missing expected digit");
       }
+      bool exponentOverflow = false;
       do {
         exponent = 10 * exponent + digit;
+        if (exponent > 400) exponentOverflow = true;
         position++;
         if (position == length) return beginChunkNumber(NUM_E_DIGIT, start);
         char = getChar(position);
         digit = char ^ CHAR_0;
       } while (digit <= 9);
+      if (exponentOverflow) {
+        if (doubleValue == 0.0 || expSign < 0) {
+          listener.handleNumber(sign < 0 ? -0.0 : 0.0);
+        } else {
+          listener.handleNumber(
+              sign < 0 ? double.negativeInfinity : double.infinity);
+        }
+        return position;
+      }
       intValue += expSign * exponent;
     }
     if (!isDouble) {
-      listener.handleNumber(sign * intValue);
+      int bitFlag = -(sign + 1) >> 1; // 0 if sign == -1, -1 if sign == 1
+      // Negate if bitFlag is -1 by doing ~intValue + 1
+      listener.handleNumber((intValue ^ bitFlag) - bitFlag);
       return position;
     }
-    // Double values at or above this value (2 ** 53) may have lost precission.
+    // Double values at or above this value (2 ** 53) may have lost precision.
     // Only trust results that are below this value.
     const double maxExactDouble = 9007199254740992.0;
     if (doubleValue < maxExactDouble) {

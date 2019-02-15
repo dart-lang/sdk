@@ -80,6 +80,7 @@ class JsClosedWorld implements JClosedWorld {
   final GlobalLocalsMap globalLocalsMap;
   final ClosureData closureDataLookup;
   final OutputUnitData outputUnitData;
+  final Set<FieldEntity> elidedFields;
   Sorter _sorter;
 
   JsClosedWorld(
@@ -102,7 +103,8 @@ class JsClosedWorld implements JClosedWorld {
       this.annotationsData,
       this.globalLocalsMap,
       this.closureDataLookup,
-      this.outputUnitData) {
+      this.outputUnitData,
+      this.elidedFields) {
     _abstractValueDomain = abstractValueStrategy.createDomain(this);
   }
 
@@ -156,6 +158,8 @@ class JsClosedWorld implements JClosedWorld {
     OutputUnitData outputUnitData =
         new OutputUnitData.readFromDataSource(source);
 
+    Set<FieldEntity> elidedFields = source.readMembers<FieldEntity>().toSet();
+
     source.end(tag);
 
     return new JsClosedWorld(
@@ -178,7 +182,8 @@ class JsClosedWorld implements JClosedWorld {
         annotationsData,
         globalLocalsMap,
         closureData,
-        outputUnitData);
+        outputUnitData,
+        elidedFields);
   }
 
   /// Serializes this [JsClosedWorld] to [sink].
@@ -206,6 +211,7 @@ class JsClosedWorld implements JClosedWorld {
     annotationsData.writeToDataSink(sink);
     closureDataLookup.writeToDataSink(sink);
     outputUnitData.writeToDataSink(sink);
+    sink.writeMembers(elidedFields);
     sink.end(tag);
   }
 

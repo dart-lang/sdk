@@ -33,6 +33,11 @@ class CoreTypes {
     'dart:async': [
       'Future',
       'Stream',
+    ],
+    'dart:ffi': [
+      'DynamicLibrary',
+      'Pointer',
+      'Struct',
     ]
   };
 
@@ -93,9 +98,96 @@ class CoreTypes {
   Class _pragmaClass;
   Field _pragmaName;
   Field _pragmaOptions;
+  Constructor _pragmaConstructor;
+
+  Library _ffiLibrary;
+  Class _ffiPointerClass;
+  Procedure _ffiPointerLoadProcedure;
+  Procedure _ffiPointerStoreProcedure;
+  Procedure _ffiPointerCastProcedure;
+  Procedure _ffiPointerOffsetByProcedure;
+  Procedure _ffiPointerAsFunctionProcedure;
+  Field _ffiStructField;
+  Class _ffiDynamicLibraryClass;
+  Procedure _ffiDynamicLibraryLookupFunctionProcedure;
+  Procedure _ffiAllocateProcedure;
+  Procedure _ffiSizeOfProcedure;
+  Procedure _ffiFromFunctionProcedure;
+  Class _ffiNativeFunctionClass;
 
   CoreTypes(Component component)
       : index = new LibraryIndex.coreLibraries(component);
+
+  Library get ffiLibrary {
+    return _ffiLibrary ??= index.getLibrary('dart:ffi');
+  }
+
+  Class get ffiPointerClass {
+    return _ffiPointerClass ??= index.getClass('dart:ffi', 'Pointer');
+  }
+
+  Procedure get ffiPointerLoadProcedure {
+    return _ffiPointerLoadProcedure ??=
+        index.getMember('dart:ffi', 'Pointer', 'load');
+  }
+
+  Procedure get ffiPointerStoreProcedure {
+    return _ffiPointerStoreProcedure ??=
+        index.getMember('dart:ffi', 'Pointer', 'store');
+  }
+
+  Procedure get ffiPointerCastProcedure {
+    return _ffiPointerCastProcedure ??=
+        index.getMember('dart:ffi', 'Pointer', 'cast');
+  }
+
+  Procedure get ffiPointerOffsetByProcedure {
+    return _ffiPointerOffsetByProcedure ??=
+        index.getMember('dart:ffi', 'Pointer', 'offsetBy');
+  }
+
+  Procedure get ffiPointerAsFunctionProcedure {
+    return _ffiPointerAsFunctionProcedure ??=
+        index.getMember('dart:ffi', 'Pointer', 'asFunction');
+  }
+
+  Field get ffiStructField {
+    return _ffiStructField ??= index.getTopLevelMember('dart:ffi', 'struct');
+  }
+
+  Class get ffiDynamicLibraryClass {
+    return _ffiDynamicLibraryClass ??=
+        index.getClass('dart:ffi', 'DynamicLibrary');
+  }
+
+  Procedure get ffiDynamicLibraryLookupFunctionProcedure {
+    return _ffiDynamicLibraryLookupFunctionProcedure ??=
+        index.getMember('dart:ffi', 'DynamicLibrary', 'lookupFunction');
+  }
+
+  Procedure get ffiAllocateProcedure {
+    return _ffiAllocateProcedure ??=
+        index.getTopLevelMember('dart:ffi', 'allocate');
+  }
+
+  Procedure get ffiSizeOfProcedure {
+    return _ffiSizeOfProcedure ??=
+        index.getTopLevelMember('dart:ffi', 'sizeOf');
+  }
+
+  Procedure get ffiFromFunctionProcedure {
+    return _ffiFromFunctionProcedure ??=
+        index.getTopLevelMember('dart:ffi', 'fromFunction');
+  }
+
+  Class get ffiNativeFunctionClass {
+    return _ffiNativeFunctionClass ??=
+        index.getClass('dart:ffi', 'NativeFunction');
+  }
+
+  Class ffiNativeTypeClass(String name) {
+    return index.getClass('dart:ffi', name);
+  }
 
   Procedure get asyncErrorWrapperHelperProcedure {
     return _asyncErrorWrapperHelperProcedure ??=
@@ -310,6 +402,10 @@ class CoreTypes {
 
   Field get pragmaOptions {
     return _pragmaOptions ??= index.getMember('dart:core', 'pragma', 'options');
+  }
+
+  Constructor get pragmaConstructor {
+    return _pragmaConstructor ??= index.getMember('dart:core', 'pragma', '_');
   }
 
   Class get stackTraceClass {

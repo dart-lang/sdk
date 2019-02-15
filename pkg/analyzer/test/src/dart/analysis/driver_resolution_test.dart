@@ -16,12 +16,12 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../utils.dart';
-import '../resolution/find_element.dart';
-import '../resolution/find_node.dart';
 import 'base.dart';
 
 main() {
@@ -5209,23 +5209,6 @@ void main() {
     }
   }
 
-  test_mapLiteral_1() async {
-    addTestFile(r'''
-main() {
-  var v = <int>{};
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-
-    var literal = findNode.mapLiteral('<int>{}');
-    assertType(literal, 'Map<dynamic, dynamic>');
-
-    var intRef = findNode.simple('int>{}');
-    assertElement(intRef, intElement);
-    assertType(intRef, 'int');
-  }
-
   test_mapLiteral_3() async {
     addTestFile(r'''
 main() {
@@ -6730,6 +6713,24 @@ class C<T> {
     var tReferenceType = tReference.staticType as TypeParameterType;
     expect(tReferenceType.element, same(tElement));
     assertElement(tReference, tElement);
+  }
+
+  test_setLiteral() async {
+    addTestFile(r'''
+main() {
+  var v = <int>{};
+  print(v);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isEmpty);
+
+    var literal = findNode.setLiteral('<int>{}');
+    assertType(literal, 'Set<int>');
+
+    var intRef = findNode.simple('int>{}');
+    assertElement(intRef, intElement);
+    assertType(intRef, 'int');
   }
 
   test_stringInterpolation() async {

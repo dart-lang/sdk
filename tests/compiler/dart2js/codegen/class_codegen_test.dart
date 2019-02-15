@@ -40,11 +40,14 @@ main() {
 const String TEST_FOUR = r"""
 var g = 0;
 class A {
+  @pragma('dart2js:noElision')
   var x = g++;
 }
 
 class B extends A {
+  @pragma('dart2js:noElision')
   var y = g++;
+  @pragma('dart2js:noElision')
   var z = g++;
 }
 
@@ -55,6 +58,7 @@ main() {
 
 const String TEST_FIVE = r"""
 class A {
+  @pragma('dart2js:noElision')
   var a;
   A(a) : this.a = a {}
 }
@@ -90,8 +94,8 @@ fieldTest() async {
 
 constructor1() async {
   String generated = await compileAll(TEST_FIVE);
-  print('--------------------\n$generated\n');
-  Expect.isTrue(generated.contains(new RegExp(r"new [$A-Z]+\.A\(a\);")));
+  Expect.isTrue(generated.contains(new RegExp(r"new [$A-Z]+\.A\(a\);")),
+      '--------------------\n$generated\n');
 }
 
 main() {

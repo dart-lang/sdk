@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
-const _debug = true;
+const _debug = false;
 const _updateExample = false;
 
 main() {
@@ -22,15 +22,6 @@ main() {
     exampleFile = findFile('pkg/dartfix/example/example.dart');
     exampleFixedFile = findFile('pkg/dartfix/example/example-fixed.dart');
     exampleDir = exampleFile.parent;
-  });
-
-  test('client version', () {
-    // The edit.dartfix protocol is experimental and will continue to evolve
-    // an so dartfix will only work with this specific version of the
-    // analysis_server_client package.
-    // If the protocol changes, then a new version of both the
-    // analysis_server_client and dartfix packages must be published.
-    expect(clientVersion, clientVersionInDartfixPubspec);
   });
 
   test('fix example', () async {
@@ -96,47 +87,6 @@ main() {
     }
     expect(stdout1, stdout2);
   });
-}
-
-String get clientVersion =>
-    findValue(findFile('pkg/analysis_server_client/pubspec.yaml'), 'version');
-
-String get clientVersionInDartfixPubspec =>
-    findValue(findFile('pkg/dartfix/pubspec.yaml'), 'analysis_server_client');
-
-File findFile(String relPath) {
-  Directory dir = Directory.current;
-  while (true) {
-    final file = new File.fromUri(dir.uri.resolve(relPath));
-    if (file.existsSync()) {
-      return file;
-    }
-    final parent = dir.parent;
-    if (parent.path == dir.path) {
-      fail('Failed to find $relPath');
-    }
-    dir = parent;
-  }
-}
-
-String findValue(File pubspec, String key) {
-  List<String> lines = pubspec.readAsLinesSync();
-  for (String line in lines) {
-    if (line.trim().startsWith('$key:')) {
-      return line.split(':')[1].trim();
-    }
-  }
-  fail('Failed to find $key in ${pubspec.path}');
-}
-
-void expectHasSuggestion(
-    List<DartFixSuggestion> suggestions, String expectedText) {
-  for (DartFixSuggestion suggestion in suggestions) {
-    if (suggestion.description.contains(expectedText)) {
-      return;
-    }
-  }
-  fail('Failed to find suggestion containing: $expectedText');
 }
 
 String replaceLeadingComment(String source) {

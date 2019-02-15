@@ -390,6 +390,23 @@ public interface AnalysisServer {
   public void analytics_sendTiming(String event, int millis);
 
   /**
+   * {@code completion.getSuggestionDetails}
+   *
+   * Clients must make this request when the user has selected a completion suggestion from an
+   * AvailableSuggestionSet. Analysis server will respond with the text to insert as well as any
+   * SourceChange that needs to be applied in case the completion requires an additional import to be
+   * added. It is an error if the id is no longer valid, for instance if the library has been removed
+   * after the completion suggestion is accepted.
+   *
+   * @param file The path of the file into which this completion is being inserted.
+   * @param id The identifier of the AvailableSuggestionSet containing the selected label.
+   * @param label The label from the AvailableSuggestionSet with the `id` for which insertion
+   *         information is requested.
+   * @param offset The offset in the file where the completion will be inserted.
+   */
+  public void completion_getSuggestionDetails(String file, int id, String label, int offset, GetSuggestionDetailsConsumer consumer);
+
+  /**
    * {@code completion.getSuggestions}
    *
    * Request that completion suggestions for the given offset in the given file be returned.
@@ -398,6 +415,35 @@ public interface AnalysisServer {
    * @param offset The offset within the file at which suggestions are to be made.
    */
   public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer);
+
+  /**
+   * {@code completion.registerLibraryPaths}
+   *
+   * The client can make this request to express interest in certain libraries to receive completion
+   * suggestions from based on the client path. If this request is received before the client has
+   * used 'completion.setSubscriptions' to subscribe to the AVAILABLE_SUGGESTION_SETS service, then
+   * an error of type NOT_SUBSCRIBED_TO_AVAILABLE_SUGGESTION_SETS will be generated. All previous
+   * paths are replaced by the given set of paths.
+   *
+   * @param paths A list of objects each containing a path and the additional libraries from which
+   *         the client is interested in receiving completion suggestions. If one configured path is
+   *         beneath another, the descendent will override the ancestors' configured libraries of
+   *         interest.
+   */
+  public void completion_registerLibraryPaths(List<LibraryPathSet> paths);
+
+  /**
+   * {@code completion.setSubscriptions}
+   *
+   * Subscribe for completion services. All previous subscriptions are replaced by the given set of
+   * services.
+   *
+   * It is an error if any of the elements in the list are not valid services. If there is an error,
+   * then the current subscriptions will remain unchanged.
+   *
+   * @param subscriptions A list of the services being subscribed to.
+   */
+  public void completion_setSubscriptions(List<String> subscriptions);
 
   /**
    * {@code diagnostic.getDiagnostics}
@@ -422,14 +468,27 @@ public interface AnalysisServer {
    * those sources. These edits may include changes to sources outside the set of specified sources
    * if a change in a specified source requires it.
    *
+   * If includedFixes is specified, then those fixes will be applied. If includeRequiredFixes is
+   * specified, then "required" fixes will be applied in addition to whatever fixes are specified in
+   * includedFixes if any. If neither includedFixes nor includeRequiredFixes is specified, then all
+   * fixes will be applied. If excludedFixes is specified, then those fixes will not be applied
+   * regardless of whether they are "required" or specified in includedFixes.
+   *
    * @param included A list of the files and directories for which edits should be suggested. If a
    *         request is made with a path that is invalid, e.g. is not absolute and normalized, an
    *         error of type INVALID_FILE_PATH_FORMAT will be generated. If a request is made for a
    *         file which does not exist, or which is not currently subject to analysis (e.g. because
    *         it is not associated with any analysis root specified to analysis.setAnalysisRoots), an
    *         error of type FILE_NOT_ANALYZED will be generated.
+   * @param includedFixes A list of names indicating which fixes should be applied. If a name is
+   *         specified that does not match the name of a known fix, an error of type UNKNOWN_FIX will
+   *         be generated.
+   * @param includeRequiredFixes A flag indicating that "required" fixes should be applied.
+   * @param excludedFixes A list of names indicating which fixes should not be applied. If a name is
+   *         specified that does not match the name of a known fix, an error of type UNKNOWN_FIX will
+   *         be generated.
    */
-  public void edit_dartfix(List<String> included, DartfixConsumer consumer);
+  public void edit_dartfix(List<String> included, List<String> includedFixes, boolean includeRequiredFixes, List<String> excludedFixes, DartfixConsumer consumer);
 
   /**
    * {@code edit.format}
@@ -476,6 +535,14 @@ public interface AnalysisServer {
    * @param length The length of the code on which the refactoring would be based.
    */
   public void edit_getAvailableRefactorings(String file, int offset, int length, GetAvailableRefactoringsConsumer consumer);
+
+  /**
+   * {@code edit.getDartfixInfo}
+   *
+   * Request information about edit.dartfix such as the list of known fixes that can be specified in
+   * an edit.dartfix request.
+   */
+  public void edit_getDartfixInfo(GetDartfixInfoConsumer consumer);
 
   /**
    * {@code edit.getFixes}

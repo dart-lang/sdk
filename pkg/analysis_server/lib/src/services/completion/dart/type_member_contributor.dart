@@ -423,6 +423,7 @@ class _SuggestionBuilder {
       if (nextType.superclass != null) {
         typesToVisit.add(nextType.superclass);
       }
+      typesToVisit.addAll(nextType.superclassConstraints);
       typesToVisit.addAll(nextType.mixins);
     }
     return result;

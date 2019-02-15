@@ -10,7 +10,6 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -52,8 +51,7 @@ part 'test.dart';
         new CompletionPerformance());
     Completer<DartCompletionRequest> requestCompleter =
         new Completer<DartCompletionRequest>();
-    DartCompletionRequestImpl.from(baseRequest,
-            resultDescriptor: RESOLVED_UNIT1)
+    DartCompletionRequestImpl.from(baseRequest)
         .then((DartCompletionRequest request) {
       requestCompleter.complete(request);
     });

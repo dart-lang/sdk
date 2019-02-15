@@ -101,8 +101,7 @@ import 'kernel_builder.dart'
         TypeBuilder,
         TypeDeclarationBuilder;
 
-import 'kernel_constants.dart'
-    show KernelConstantErrorReporter, KernelConstantsBackend;
+import 'kernel_constants.dart' show KernelConstantErrorReporter;
 
 import 'metadata_collector.dart' show MetadataCollector;
 
@@ -120,7 +119,7 @@ class KernelTarget extends TargetImplementation {
   /// The [MetadataCollector] to write metadata to.
   final MetadataCollector metadataCollector;
 
-  SourceLoader<Library> loader;
+  SourceLoader loader;
 
   Component component;
 
@@ -148,16 +147,18 @@ class KernelTarget extends TargetImplementation {
 
   void set builderHierarchy(ClassHierarchyBuilder o) {}
 
-  SourceLoader<Library> createLoader() =>
-      new SourceLoader<Library>(fileSystem, includeComments, this);
+  SourceLoader createLoader() =>
+      new SourceLoader(fileSystem, includeComments, this);
 
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode) {
     uriToSource[uri] = new Source(lineStarts, sourceCode);
   }
 
-  void setEntryPoints(List<Uri> entryPoints) {
+  /// Return list of same size as input with possibly translated uris.
+  List<Uri> setEntryPoints(List<Uri> entryPoints) {
     Map<String, Uri> packagesMap;
+    List<Uri> result = new List<Uri>();
     for (Uri entryPoint in entryPoints) {
       String scheme = entryPoint.scheme;
       Uri fileUri;
@@ -188,8 +189,10 @@ class KernelTarget extends TargetImplementation {
             }
           }
       }
+      result.add(entryPoint);
       loader.read(entryPoint, -1, accessor: loader.first, fileUri: fileUri);
     }
+    return result;
   }
 
   @override
@@ -555,6 +558,7 @@ class KernelTarget extends TargetImplementation {
       "dart:_internal",
       "dart:async",
       "dart:core",
+      "dart:ffi",
       "dart:mirrors"
     ]) {
       Uri uri = Uri.parse(platformLibrary);
@@ -570,8 +574,8 @@ class KernelTarget extends TargetImplementation {
             break;
           }
         }
-        if (!found && uri.path != "mirrors") {
-          // dart:mirrors is optional.
+        if (!found && uri.path != "mirrors" && uri.path != "ffi") {
+          // dart:mirrors and dart:ffi are optional.
           throw "Can't find $uri";
         }
       } else {
@@ -752,8 +756,8 @@ class KernelTarget extends TargetImplementation {
           legacyMode: false);
       constants.transformLibraries(
           loader.libraries,
-          new KernelConstantsBackend(),
-          loader.coreTypes,
+          loader.target.backendTarget.constantsBackend(loader.coreTypes),
+          CompilerContext.current.options.environmentDefines,
           environment,
           new KernelConstantErrorReporter(loader, environment));
       ticker.logMs("Evaluated constants");

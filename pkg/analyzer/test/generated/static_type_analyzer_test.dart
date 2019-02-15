@@ -1540,7 +1540,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     _visitor = new ResolverVisitor(
         inheritance, definingLibrary, source, _typeProvider, _listener,
         nameScope: new LibraryScope(definingLibrary));
-    _visitor.overrideManager.enterScope();
     return _visitor.typeAnalyzer;
   }
 

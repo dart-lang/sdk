@@ -4,6 +4,7 @@
 
 import "package:kernel/ast.dart"
     show
+        BottomType,
         Class,
         DartType,
         DynamicType,
@@ -17,8 +18,11 @@ import "package:kernel/ast.dart"
         TypeParameter,
         TypeParameterType,
         Typedef,
+        TypedefType,
         VoidType,
         setParents;
+
+import "package:kernel/src/bounds_checks.dart" show calculateBounds;
 
 import "type_parser.dart" as type_parser show parse;
 
@@ -44,6 +48,8 @@ Library parseLibrary(Uri uri, String text,
     Node node = environment.kernelFromParsedType(type);
     if (node is Class) {
       library.addClass(node);
+    } else if (node is Typedef) {
+      library.addTypedef(node);
     } else {
       throw "Unsupported: $node";
     }
@@ -93,7 +99,21 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
 
   DartType visitInterfaceType(
       ParsedInterfaceType node, KernelEnvironment environment) {
-    TreeNode declaration = environment[node.name];
+    String name = node.name;
+    if (name == "dynamic") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
+      return new DynamicType();
+    } else if (name == "void") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
+      return new VoidType();
+    } else if (name == "bottom") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
+      return new BottomType();
+    }
+    TreeNode declaration = environment[name];
     List<ParsedType> arguments = node.arguments;
     List<DartType> kernelArguments =
         new List<DartType>.filled(arguments.length, null);
@@ -102,12 +122,23 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
           arguments[i].accept<Node, KernelEnvironment>(this, environment);
     }
     if (declaration is Class) {
+      List<TypeParameter> typeVariables = declaration.typeParameters;
+      if (kernelArguments.isEmpty && typeVariables.isNotEmpty) {
+        kernelArguments = new List<DartType>.filled(typeVariables.length, null);
+        for (int i = 0; i < typeVariables.length; i++) {
+          kernelArguments[i] = typeVariables[i].defaultType;
+        }
+      } else if (kernelArguments.length != typeVariables.length) {
+        throw "Expected ${typeVariables.length} type arguments: $node";
+      }
       return new InterfaceType(declaration, kernelArguments);
     } else if (declaration is TypeParameter) {
       if (arguments.isNotEmpty) {
         throw "Type variable can't have arguments (${node.name})";
       }
       return new TypeParameterType(declaration);
+    } else if (declaration is Typedef) {
+      return new TypedefType(declaration, kernelArguments);
     } else {
       throw "Unhandled ${declaration.runtimeType}";
     }
@@ -143,7 +174,26 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
   }
 
   Typedef visitTypedef(ParsedTypedef node, KernelEnvironment environment) {
-    throw "not implemented: $node";
+    String name = node.name;
+    Typedef def = environment[name] =
+        new Typedef(name, null, fileUri: environment.fileUri);
+    ParameterEnvironment parameterEnvironment =
+        computeTypeParameterEnvironment(node.typeVariables, environment);
+    def.typeParameters.addAll(parameterEnvironment.parameters);
+    DartType type;
+    {
+      KernelEnvironment environment = parameterEnvironment.environment;
+      type = node.type.accept<Node, KernelEnvironment>(this, environment);
+      if (type is FunctionType) {
+        FunctionType f = type;
+        type = new FunctionType(f.positionalParameters, f.returnType,
+            namedParameters: f.namedParameters,
+            typeParameters: f.typeParameters,
+            requiredParameterCount: f.requiredParameterCount,
+            typedefType: def.thisType);
+      }
+    }
+    return def..type = type;
   }
 
   FunctionType visitFunctionType(
@@ -173,6 +223,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
         }
       }
     }
+    namedParameters.sort();
     return new FunctionType(positionalParameters, returnType,
         namedParameters: namedParameters,
         requiredParameterCount: node.arguments.required.length,
@@ -211,21 +262,28 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
     }
     KernelEnvironment nestedEnvironment =
         environment.extend(typeParametersByName);
+    Class objectClass = environment.objectClass;
     for (int i = 0; i < typeVariables.length; i++) {
       ParsedType bound = typeVariables[i].bound;
       TypeParameter typeParameter = typeParameters[i];
       if (bound == null) {
         typeParameter
-          ..bound = environment.objectClass.rawType
+          ..bound = objectClass.rawType
           ..defaultType = const DynamicType();
       } else {
         DartType type =
             bound.accept<Node, KernelEnvironment>(this, nestedEnvironment);
         typeParameter
           ..bound = type
-          ..defaultType = type; // TODO(ahe): Is this correct?
-
+          // The default type will be overridden below, but we need to set it
+          // so [calculateBounds] can destinquish between explicit and implicit
+          // bounds.
+          ..defaultType = type;
       }
+    }
+    List<DartType> defaultTypes = calculateBounds(typeParameters, objectClass);
+    for (int i = 0; i < typeParameters.length; i++) {
+      typeParameters[i].defaultType = defaultTypes[i];
     }
     return new ParameterEnvironment(typeParameters, nestedEnvironment);
   }

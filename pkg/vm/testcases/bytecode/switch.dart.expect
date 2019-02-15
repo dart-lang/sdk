@@ -12,15 +12,15 @@ Bytecode {
   PopLocal             r1
   Push                 r1
   PushInt              1
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L1
   Push                 r1
   PushInt              2
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L2
   Push                 r1
   PushInt              3
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L3
   Jump                 L4
 L1:
@@ -40,9 +40,8 @@ L4:
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = InterfaceCall target-name '==', arg-desc CP#0
-  [2] = Reserved
+  [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = Reserved
 }
 ]static method foo1(core::int x) → core::int {
   core::int y;
@@ -79,27 +78,27 @@ Bytecode {
   PopLocal             r1
   Push                 r1
   PushInt              1
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L1
   Push                 r1
   PushInt              2
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L1
   Push                 r1
   PushInt              3
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L1
   Push                 r1
   PushInt              4
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L2
   Push                 r1
   PushInt              5
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L2
   Push                 r1
   PushInt              6
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L2
   Jump                 L3
 L1:
@@ -118,9 +117,8 @@ L4:
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = InterfaceCall target-name '==', arg-desc CP#0
-  [2] = Reserved
+  [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = Reserved
 }
 ]static method foo2(core::int x) → core::int {
   core::int y;
@@ -160,27 +158,27 @@ Bytecode {
   PopLocal             r1
   Push                 r1
   PushInt              1
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L1
   Push                 r1
   PushInt              2
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L1
   Push                 r1
   PushInt              3
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L1
   Push                 r1
   PushInt              4
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L2
   Push                 r1
   PushInt              5
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L2
   Push                 r1
   PushInt              6
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   JumpIfTrue           L2
   Jump                 L3
 L1:
@@ -199,9 +197,8 @@ L3:
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = InterfaceCall target-name '==', arg-desc CP#0
-  [2] = Reserved
+  [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = Reserved
 }
 ]static method foo3(core::int x) → core::int {
   core::int y;

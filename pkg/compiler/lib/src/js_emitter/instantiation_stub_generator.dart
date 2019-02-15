@@ -139,7 +139,8 @@ class InstantiationStubGenerator {
     // 2. Find the function field access path.
     FieldEntity functionField;
     _codegenWorldBuilder.forEachInstanceField(instantiationClass,
-        (ClassEntity enclosing, FieldEntity field) {
+        (ClassEntity enclosing, FieldEntity field, {bool isElided}) {
+      if (isElided) return;
       if (field.name == '_genericClosure') functionField = field;
     });
     assert(functionField != null,

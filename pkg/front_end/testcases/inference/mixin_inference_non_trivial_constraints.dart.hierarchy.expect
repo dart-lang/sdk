@@ -74,7 +74,7 @@ M1:
 M2:
   superclasses:
     Object
-      -> I<List<T>>
+      -> I<List<Map<T, T>>>
         -> M1<Map<T, T>>
   interfaces:
   classMembers:
@@ -90,13 +90,13 @@ M2:
     Object.==
   classSetters:
 
-M2<int> with M0:
+M2<int> with M0<Map<int, int>>:
   superclasses:
     Object
-      -> I<List<T>>
-        -> M1<Map<T, T>>
+      -> I<List<Map<int, int>>>
+        -> M1<Map<int, int>>
           -> M2<int>
-  interfaces: M0
+  interfaces: M0<Map<int, int>>
   classMembers:
     Object.toString
     Object.runtimeType
@@ -125,11 +125,11 @@ M2<int> with M0:
 A:
   superclasses:
     Object
-      -> I<List<T>>
-        -> M1<Map<T, T>>
+      -> I<List<Map<int, int>>>
+        -> M1<Map<int, int>>
           -> M2<int>
             -> _A&M2&M0
-  interfaces: M0
+  interfaces: M0<Map<int, int>>
   classMembers:
     Object.toString
     Object.runtimeType

@@ -103,6 +103,9 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_background_compilation = false;
     FLAG_collect_code = false;
     FLAG_enable_mirrors = false;
+    // TODO(dacoharkes): Ffi support in AOT
+    // https://github.com/dart-lang/sdk/issues/35765
+    FLAG_enable_ffi = false;
     FLAG_fields_may_be_reset = true;
     FLAG_interpret_irregexp = true;
     FLAG_lazy_dispatchers = false;
@@ -700,6 +703,19 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           }
         }
       }
+      if (!result->IsNull()) {
+#if !defined(PRODUCT)
+        if (!function.HasOptimizedCode()) {
+          isolate()->debugger()->NotifyCompilation(function);
+        }
+#endif
+        if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
+          Disassembler::DisassembleCode(function, *result, optimized());
+        } else if (FLAG_disassemble_optimized && optimized() &&
+                   FlowGraphPrinter::ShouldPrint(function)) {
+          Disassembler::DisassembleCode(function, *result, true);
+        }
+      }
       // Exit the loop and the function with the correct result value.
       done = true;
     } else {
@@ -872,17 +888,6 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                 Code::Handle(function.CurrentCode()).PayloadStart(),
                 Code::Handle(function.CurrentCode()).Size(),
                 per_compile_timer.TotalElapsedTime());
-    }
-
-#if !defined(PRODUCT)
-    isolate->debugger()->NotifyCompilation(function);
-#endif
-
-    if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
-      Disassembler::DisassembleCode(function, result, optimized);
-    } else if (FLAG_disassemble_optimized && optimized &&
-               FlowGraphPrinter::ShouldPrint(function)) {
-      Disassembler::DisassembleCode(function, result, true);
     }
 
     return result.raw();
@@ -1193,9 +1198,10 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
     ASSERT(thread->IsMutatorThread());
     NoOOBMessageScope no_msg_scope(thread);
     NoReloadScope no_reload_scope(thread->isolate(), thread);
-    // Under lazy compilation initializer has not yet been created, so create
-    // it now, but don't bother remembering it because it won't be used again.
-    ASSERT(!field.HasPrecompiledInitializer());
+    if (field.HasInitializer()) {
+      const Function& initializer = Function::Handle(field.Initializer());
+      return DartEntry::InvokeFunction(initializer, Object::empty_array());
+    }
     {
 #if defined(SUPPORT_TIMELINE)
       VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
@@ -1698,9 +1704,8 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 }
 
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
-  ASSERT(field.HasPrecompiledInitializer());
-  const Function& initializer =
-      Function::Handle(field.PrecompiledInitializer());
+  ASSERT(field.HasInitializer());
+  const Function& initializer = Function::Handle(field.Initializer());
   return DartEntry::InvokeFunction(initializer, Object::empty_array());
 }
 

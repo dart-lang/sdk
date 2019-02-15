@@ -701,26 +701,24 @@ class EnumListParameter : public MethodParameter {
             return -1;
           }
           bool valid_enum = false;
+          const char* id_start = cp;
+          while (IsEnumChar(*cp)) {
+            cp++;
+          }
+          if (cp == id_start) {
+            // Empty identifier, something like this [,].
+            return -1;
+          }
+          intptr_t id_len = cp - id_start;
           if (enums_ != NULL) {
             for (intptr_t i = 0; enums_[i] != NULL; i++) {
               intptr_t len = strlen(enums_[i]);
-              if (strncmp(cp, enums_[i], len) == 0) {
+              if (len == id_len && strncmp(id_start, enums_[i], len) == 0) {
                 element_count++;
                 valid_enum = true;
-                cp += len;
                 element_allowed = false;  // we need a comma first.
                 break;
               }
-            }
-          } else {
-            // Allow any identifiers
-            const char* id_start = cp;
-            while (IsEnumChar(*cp)) {
-              cp++;
-            }
-            if (cp == id_start) {
-              // Empty identifier, something like this [,].
-              return -1;
             }
           }
           if (!valid_enum) {
@@ -4110,7 +4108,7 @@ class ContainsAddressVisitor : public FindObjectVisitor {
       return false;
     }
     uword obj_begin = RawObject::ToAddr(obj);
-    uword obj_end = obj_begin + obj->Size();
+    uword obj_end = obj_begin + obj->HeapSize();
     return obj_begin <= addr_ && addr_ < obj_end;
   }
 
@@ -4753,6 +4751,13 @@ static bool GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
     DEFINE_ADD_VALUE_F_CID(ExternalTypedData##clazz)                           \
   }
   CLASS_LIST_TYPED_DATA(DEFINE_ADD_MAP_KEY)
+#undef DEFINE_ADD_MAP_KEY
+#define DEFINE_ADD_MAP_KEY(clazz)                                              \
+  {                                                                            \
+    JSONArray internals(&map, #clazz);                                         \
+    DEFINE_ADD_VALUE_F_CID(Ffi##clazz)                                         \
+  }
+  CLASS_LIST_FFI(DEFINE_ADD_MAP_KEY)
 #undef DEFINE_ADD_MAP_KEY
 #undef DEFINE_ADD_VALUE_F_CID
 #undef DEFINE_ADD_VALUE_F

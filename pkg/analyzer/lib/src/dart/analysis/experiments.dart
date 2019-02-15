@@ -70,30 +70,30 @@ class ExperimentStatus {
         IsEnabledByDefault.constant_update_2018,
         IsExpired.constant_update_2018,
         'Q4 2018 Constant Update'),
-    EnableString.set_literals: const ExperimentalFeature(
-        1,
-        EnableString.set_literals,
-        IsEnabledByDefault.set_literals,
-        IsExpired.set_literals,
-        'Set Literals'),
     EnableString.non_nullable: const ExperimentalFeature(
-        2,
+        1,
         EnableString.non_nullable,
         IsEnabledByDefault.non_nullable,
         IsExpired.non_nullable,
         'Non Nullable'),
     EnableString.control_flow_collections: const ExperimentalFeature(
-        3,
+        2,
         EnableString.control_flow_collections,
         IsEnabledByDefault.control_flow_collections,
         IsExpired.control_flow_collections,
         'Control Flow Collections'),
     EnableString.spread_collections: const ExperimentalFeature(
-        4,
+        3,
         EnableString.spread_collections,
         IsEnabledByDefault.spread_collections,
         IsExpired.spread_collections,
         'Spread Collections'),
+    EnableString.set_literals: const ExperimentalFeature(
+        null,
+        EnableString.set_literals,
+        IsEnabledByDefault.set_literals,
+        IsExpired.set_literals,
+        'Set Literals'),
     EnableString.bogus_disabled: const ExperimentalFeature(
         null,
         EnableString.bogus_disabled,
@@ -120,7 +120,6 @@ class ExperimentStatus {
       bool spread_collections})
       : _enableFlags = <bool>[
           constant_update_2018 ?? IsEnabledByDefault.constant_update_2018,
-          set_literals ?? IsEnabledByDefault.set_literals,
           non_nullable ?? IsEnabledByDefault.non_nullable,
           control_flow_collections ??
               IsEnabledByDefault.control_flow_collections,
@@ -147,16 +146,16 @@ class ExperimentStatus {
   bool get constant_update_2018 => _enableFlags[0];
 
   /// Current state for the flag "control_flow_collections"
-  bool get control_flow_collections => _enableFlags[3];
+  bool get control_flow_collections => _enableFlags[2];
 
   /// Current state for the flag "non-nullable"
-  bool get non_nullable => _enableFlags[2];
+  bool get non_nullable => _enableFlags[1];
 
   /// Current state for the flag "set-literals"
-  bool get set_literals => _enableFlags[1];
+  bool get set_literals => true;
 
   /// Current state for the flag "spread_collections"
-  bool get spread_collections => _enableFlags[4];
+  bool get spread_collections => _enableFlags[3];
 
   /// Queries whether the given [feature] is enabled or disabled.
   bool isEnabled(ExperimentalFeature feature) => feature.isExpired
@@ -181,7 +180,7 @@ class IsEnabledByDefault {
   static const bool non_nullable = false;
 
   /// Default state of the experiment "set-literals"
-  static const bool set_literals = false;
+  static const bool set_literals = true;
 
   /// Default state of the experiment "spread-collections"
   static const bool spread_collections = false;
@@ -207,7 +206,7 @@ class IsExpired {
   static const bool non_nullable = false;
 
   /// Expiration status of the experiment "set-literals"
-  static const bool set_literals = false;
+  static const bool set_literals = true;
 
   /// Expiration status of the experiment "spread-collections"
   static const bool spread_collections = false;

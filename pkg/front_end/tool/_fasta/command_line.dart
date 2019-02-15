@@ -379,7 +379,8 @@ ProcessedOptions analyzeCommandLine(
           ..verbose = verbose
           ..verify = verify
           ..bytecode = bytecode
-          ..experimentalFlags = experimentalFlags,
+          ..experimentalFlags = experimentalFlags
+          ..environmentDefines = parsedArguments.defines,
         inputs: <Uri>[Uri.parse(arguments[0])],
         output: resolveInputUri(arguments[3]));
   } else if (arguments.isEmpty) {
@@ -413,7 +414,8 @@ ProcessedOptions analyzeCommandLine(
     ..omitPlatform = omitPlatform
     ..verbose = verbose
     ..verify = verify
-    ..experimentalFlags = experimentalFlags;
+    ..experimentalFlags = experimentalFlags
+    ..environmentDefines = parsedArguments.defines;
 
   // TODO(ahe): What about chase dependencies?
 

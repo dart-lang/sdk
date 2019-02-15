@@ -23,6 +23,7 @@ class DartRunnerTarget extends VmTarget {
         'dart:collection',
         'dart:convert',
         'dart:developer',
+        'dart:ffi',
         'dart:_internal',
         'dart:isolate',
         'dart:math',

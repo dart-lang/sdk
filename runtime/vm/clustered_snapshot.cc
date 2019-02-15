@@ -876,16 +876,16 @@ class FieldSerializationCluster : public SerializationCluster {
         s->Push(field->ptr()->value_.static_value_);
       } else {
         // Otherwise, for static fields we write out the initial static value.
-        s->Push(field->ptr()->initializer_.saved_value_);
+        s->Push(field->ptr()->saved_initial_value_);
       }
     } else {
       s->Push(field->ptr()->value_.offset_);
     }
-    // Write out the initializer function or saved initial value.
-    if (kind == Snapshot::kFullAOT) {
-      s->Push(field->ptr()->initializer_.precompiled_);
-    } else {
-      s->Push(field->ptr()->initializer_.saved_value_);
+    // Write out the initializer function
+    s->Push(field->ptr()->initializer_);
+    if (kind != Snapshot::kFullAOT) {
+      // Write out the saved initial value
+      s->Push(field->ptr()->saved_initial_value_);
     }
     if (kind != Snapshot::kFullAOT) {
       // Write out the guarded list length.
@@ -927,16 +927,15 @@ class FieldSerializationCluster : public SerializationCluster {
           WriteField(field, value_.static_value_);
         } else {
           // Otherwise, for static fields we write out the initial static value.
-          WriteField(field, initializer_.saved_value_);
+          WriteField(field, saved_initial_value_);
         }
       } else {
         WriteField(field, value_.offset_);
       }
       // Write out the initializer function or saved initial value.
-      if (kind == Snapshot::kFullAOT) {
-        WriteField(field, initializer_.precompiled_);
-      } else {
-        WriteField(field, initializer_.saved_value_);
+      WriteField(field, initializer_);
+      if (kind != Snapshot::kFullAOT) {
+        WriteField(field, saved_initial_value_);
       }
       if (kind != Snapshot::kFullAOT) {
         // Write out the guarded list length.
@@ -1051,7 +1050,7 @@ class ScriptSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawScript* script = objects_[i];
-      AutoTraceObject(script);
+      AutoTraceObjectName(script, script->ptr()->url_);
       WriteFromTo(script);
       s->Write<int32_t>(script->ptr()->line_offset_);
       s->Write<int32_t>(script->ptr()->col_offset_);
@@ -1128,7 +1127,6 @@ class LibrarySerializationCluster : public SerializationCluster {
       s->Write<int32_t>(lib->ptr()->index_);
       s->Write<uint16_t>(lib->ptr()->num_imports_);
       s->Write<int8_t>(lib->ptr()->load_state_);
-      s->Write<bool>(lib->ptr()->corelib_imported_);
       s->Write<bool>(lib->ptr()->is_dart_scheme_);
       s->Write<bool>(lib->ptr()->debuggable_);
       if (s->kind() != Snapshot::kFullAOT) {
@@ -1170,7 +1168,6 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       lib->ptr()->index_ = d->Read<int32_t>();
       lib->ptr()->num_imports_ = d->Read<uint16_t>();
       lib->ptr()->load_state_ = d->Read<int8_t>();
-      lib->ptr()->corelib_imported_ = d->Read<bool>();
       lib->ptr()->is_dart_scheme_ = d->Read<bool>();
       lib->ptr()->debuggable_ = d->Read<bool>();
       lib->ptr()->is_in_fullsnapshot_ = true;
@@ -1576,7 +1573,9 @@ class BytecodeSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawBytecode* bytecode = objects_[i];
+      s->Write<int32_t>(bytecode->ptr()->instructions_size_);
       WriteFromTo(bytecode);
+      s->Write<int32_t>(bytecode->ptr()->instructions_binary_offset_);
       s->Write<int32_t>(bytecode->ptr()->source_positions_binary_offset_);
     }
   }
@@ -1608,8 +1607,23 @@ class BytecodeDeserializationCluster : public DeserializationCluster {
       RawBytecode* bytecode = reinterpret_cast<RawBytecode*>(d->Ref(id));
       Deserializer::InitializeHeader(bytecode, kBytecodeCid,
                                      Bytecode::InstanceSize(), is_vm_object);
+      bytecode->ptr()->instructions_ = 0;
+      bytecode->ptr()->instructions_size_ = d->Read<int32_t>();
       ReadFromTo(bytecode);
+      bytecode->ptr()->instructions_binary_offset_ = d->Read<int32_t>();
       bytecode->ptr()->source_positions_binary_offset_ = d->Read<int32_t>();
+    }
+  }
+
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+    Bytecode& bytecode = Bytecode::Handle(zone);
+    ExternalTypedData& binary = ExternalTypedData::Handle(zone);
+
+    for (intptr_t i = start_index_; i < stop_index_; i++) {
+      bytecode ^= refs.At(i);
+      binary = bytecode.GetBinary(zone);
+      bytecode.set_instructions(reinterpret_cast<uword>(
+          binary.DataAddr(bytecode.instructions_binary_offset())));
     }
   }
 };
@@ -2147,7 +2161,7 @@ class UnlinkedCallSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawUnlinkedCall* unlinked = objects_[i];
-      AutoTraceObject(unlinked);
+      AutoTraceObjectName(unlinked, unlinked->ptr()->target_name_);
       WriteFromTo(unlinked);
     }
   }
@@ -2214,7 +2228,7 @@ class ICDataSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawICData* ic = objects_[i];
-      AutoTraceObject(ic);
+      AutoTraceObjectName(ic, ic->ptr()->target_name_);
       WriteFromTo(ic);
       if (kind != Snapshot::kFullAOT) {
         NOT_IN_PRECOMPILED(s->Write<int32_t>(ic->ptr()->deopt_id_));
@@ -2284,7 +2298,7 @@ class MegamorphicCacheSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawMegamorphicCache* cache = objects_[i];
-      AutoTraceObject(cache);
+      AutoTraceObjectName(cache, cache->ptr()->target_name_);
       WriteFromTo(cache);
       s->Write<int32_t>(cache->ptr()->filled_entry_count_);
     }
@@ -3142,7 +3156,7 @@ class ClosureDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class MintSerializationCluster : public SerializationCluster {
  public:
-  MintSerializationCluster() : SerializationCluster("Mint") {}
+  MintSerializationCluster() : SerializationCluster("int") {}
   ~MintSerializationCluster() {}
 
   void Trace(Serializer* s, RawObject* object) {
@@ -3230,7 +3244,7 @@ class MintDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class DoubleSerializationCluster : public SerializationCluster {
  public:
-  DoubleSerializationCluster() : SerializationCluster("Double") {}
+  DoubleSerializationCluster() : SerializationCluster("double") {}
   ~DoubleSerializationCluster() {}
 
   void Trace(Serializer* s, RawObject* object) {
@@ -4659,9 +4673,10 @@ void Serializer::AddVMIsolateBaseObjects() {
   // These objects are always allocated by Object::InitOnce, so they are not
   // written into the snapshot.
 
-  AddBaseObject(Object::null(), "Null", "<null>");
-  AddBaseObject(Object::sentinel().raw(), "Sentinel");
-  AddBaseObject(Object::transition_sentinel().raw(), "Sentinel");
+  AddBaseObject(Object::null(), "Null", "null");
+  AddBaseObject(Object::sentinel().raw(), "Null", "sentinel");
+  AddBaseObject(Object::transition_sentinel().raw(), "Null",
+                "transition_sentinel");
   AddBaseObject(Object::empty_array().raw(), "Array", "<empty_array>");
   AddBaseObject(Object::zero_array().raw(), "Array", "<zero_array>");
   AddBaseObject(Object::dynamic_type().raw(), "Type", "<dynamic type>");
@@ -4687,8 +4702,8 @@ void Serializer::AddVMIsolateBaseObjects() {
                   "ArgumentsDescriptor", "<cached arguments descriptor>");
   }
   for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
-    AddBaseObject(ICData::cached_icdata_arrays_[i], "ICData",
-                  "<cached icdata>");
+    AddBaseObject(ICData::cached_icdata_arrays_[i], "Array",
+                  "<empty icdata entries>");
   }
 
   ClassTable* table = isolate()->class_table();
@@ -5249,7 +5264,7 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   }
 
   thread()->isolate()->class_table()->CopySizesFromClassObjects();
-  heap_->old_space()->EvaluateSnapshotLoad();
+  heap_->old_space()->EvaluateAfterLoading();
 
 #if defined(DEBUG)
   Isolate* isolate = thread()->isolate();

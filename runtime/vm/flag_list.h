@@ -92,6 +92,7 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Compile expressions with the Kernel front-end.")                          \
   P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
+  P(enable_ffi, bool, true, "Disable to make importing dart:ffi an error.")    \
   P(fields_may_be_reset, bool, false,                                          \
     "Don't optimize away static field initialization")                         \
   C(force_clone_compiler_objects, false, false, bool, false,                   \
@@ -126,6 +127,8 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Initial size of new gen semi space in MB")                                \
   P(optimization_counter_threshold, int, 30000,                                \
     "Function's usage-counter value before it is optimized, -1 means never")   \
+  P(optimization_level, int, 2,                                                \
+    "Optimization level: 1 (favor size), 2 (default), 3 (favor speed)")        \
   P(old_gen_heap_size, int, kDefaultMaxOldGenHeapSize,                         \
     "Max size of old gen heap size in MB, or 0 for unlimited,"                 \
     "e.g: --old_gen_heap_size=1024 allows up to 1024MB old gen heap")          \

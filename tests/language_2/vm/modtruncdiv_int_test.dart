@@ -92,6 +92,12 @@ doModConstants() {
   Expect.equals(0, mod(minInt64, 1 << 63));
 }
 
+doModVarConstant() {
+  for (int i = -10; i < 10; i++) {
+    Expect.equals(i & maxInt64, mod(i, minInt64));
+  }
+}
+
 doTruncDivConstants() {
   Expect.equals(0, truncdiv(0, 1));
   Expect.equals(0, truncdiv(0, -1));
@@ -175,6 +181,7 @@ main() {
     // Constants.
 
     doModConstants();
+    doModVarConstant();
     doTruncDivConstants();
 
     // Variable ranges.

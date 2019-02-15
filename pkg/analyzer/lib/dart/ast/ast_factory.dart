@@ -185,31 +185,6 @@ abstract class AstFactory {
       Token semicolon);
 
   /**
-   * Returns a newly created for element that can be part of a list or set
-   * literal.
-   */
-  CollectionForElement collectionForElement(
-      {Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      ForLoopParts forLoopParts,
-      Token rightParenthesis,
-      CollectionElement body});
-
-  /**
-   * Returns a newly created if element that can be part of a list or set
-   * literal.
-   */
-  CollectionIfElement collectionIfElement(
-      {Token ifKeyword,
-      Token leftParenthesis,
-      Expression condition,
-      Token rightParenthesis,
-      CollectionElement thenElement,
-      Token elseKeyword,
-      CollectionElement elseElement});
-
-  /**
    * Returns a newly created reference to a Dart element. The [newKeyword]
    * can be `null` if the reference is not to a constructor.
    */
@@ -543,6 +518,18 @@ abstract class AstFactory {
       Statement body);
 
   /**
+   * Returns a newly created for element that can be part of a list, map or set
+   * literal.
+   */
+  ForElement forElement(
+      {Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopParts forLoopParts,
+      Token rightParenthesis,
+      CollectionElement body});
+
+  /**
    * Returns a newly created parameter list. The list of [parameters] can be
    * `null` if there are no parameters. The [leftDelimiter] and [rightDelimiter]
    * can be `null` if there are no optional parameters.
@@ -720,6 +707,19 @@ abstract class AstFactory {
       Token keyword, List<SimpleIdentifier> hiddenNames);
 
   /**
+   * Returns a newly created if element that can be part of a list, map or set
+   * literal.
+   */
+  IfElement ifElement(
+      {Token ifKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token rightParenthesis,
+      CollectionElement thenElement,
+      Token elseKeyword,
+      CollectionElement elseElement});
+
+  /**
    * Returns a newly created if statement. The [elseKeyword] and
    * [elseStatement] can be `null` if there is no else clause.
    */
@@ -844,29 +844,6 @@ abstract class AstFactory {
       Token rightBracket});
 
   /**
-   * Returns a newly created for element that can be part of a map literal.
-   */
-  MapForElement mapForElement(
-      {Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      ForLoopParts forLoopParts,
-      Token rightParenthesis,
-      MapElement body});
-
-  /**
-   * Returns a newly created if element that can be part of a map literal.
-   */
-  MapIfElement mapIfElement(
-      {Token ifKeyword,
-      Token leftParenthesis,
-      Expression condition,
-      Token rightParenthesis,
-      MapElement thenElement,
-      Token elseKeyword,
-      MapElement elseElement});
-
-  /**
    * Returns a newly created map literal. The [constKeyword] can be `null` if
    * the literal is not a constant. The [typeArguments] can be `null` if no type
    * arguments were declared. The [entries] can be `null` if the map is empty.
@@ -881,7 +858,7 @@ abstract class AstFactory {
       {Token constKeyword,
       TypeArgumentList typeArguments,
       Token leftBracket,
-      List<MapElement> entries,
+      List<CollectionElement> entries,
       Token rightBracket});
 
   /**

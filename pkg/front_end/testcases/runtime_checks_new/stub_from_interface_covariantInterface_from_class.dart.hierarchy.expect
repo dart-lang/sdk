@@ -102,7 +102,7 @@ C:
   superclasses:
     Object
       -> B<F<T>>
-  interfaces: A<F<T>>, I<F<T>>
+  interfaces: A<F<F<T>>>, I<F<T>>
   classMembers:
     B.f
     Object.toString

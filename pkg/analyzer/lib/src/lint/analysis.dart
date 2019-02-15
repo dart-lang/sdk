@@ -10,6 +10,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show File, Folder, ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -27,6 +28,7 @@ import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
@@ -34,6 +36,9 @@ import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as p;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
+import 'package:yaml/yaml.dart';
+
+AnalysisOptionsProvider _optionsProvider = new AnalysisOptionsProvider();
 
 Source createSource(Uri sourceUri) {
   return PhysicalResourceProvider.INSTANCE
@@ -49,6 +54,12 @@ void printAndFail(String message, {int exitCode: 15}) {
 
 AnalysisOptions _buildAnalyzerOptions(LinterOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+  if (options.analysisOptions != null) {
+    YamlMap map =
+        _optionsProvider.getOptionsFromString(options.analysisOptions);
+    applyToAnalysisOptions(analysisOptions, map);
+  }
+
   analysisOptions.hint = false;
   analysisOptions.lint = options.enableLints;
   analysisOptions.generateSdkErrors = options.showSdkWarnings;

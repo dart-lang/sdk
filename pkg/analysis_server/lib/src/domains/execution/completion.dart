@@ -15,21 +15,19 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
 class RuntimeCompletionComputer {
-  final ResourceProvider resourceProvider;
-  final FileContentOverlay fileContentOverlay;
+  final OverlayResourceProvider resourceProvider;
   final AnalysisDriver analysisDriver;
 
   final String code;
   final int offset;
 
-  final String contextFile;
+  final String contextPath;
   final int contextOffset;
 
   final List<RuntimeCompletionVariable> variables;
@@ -37,11 +35,10 @@ class RuntimeCompletionComputer {
 
   RuntimeCompletionComputer(
       this.resourceProvider,
-      this.fileContentOverlay,
       this.analysisDriver,
       this.code,
       this.offset,
-      this.contextFile,
+      this.contextPath,
       this.contextOffset,
       this.variables,
       this.expressions);
@@ -49,7 +46,7 @@ class RuntimeCompletionComputer {
   Future<RuntimeCompletionResult> compute() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var contextResult = await analysisDriver.getResult(contextFile);
+    var contextResult = await analysisDriver.getResult(contextPath);
     var session = contextResult.session;
 
     const codeMarker = '__code_\_';
@@ -57,7 +54,7 @@ class RuntimeCompletionComputer {
     // Insert the code being completed at the context offset.
     var changeBuilder = new DartChangeBuilder(session);
     int nextImportPrefixIndex = 0;
-    await changeBuilder.addFileEdit(contextFile, (builder) {
+    await changeBuilder.addFileEdit(contextPath, (builder) {
       builder.addInsertion(contextOffset, (builder) {
         builder.writeln('{');
 
@@ -83,15 +80,9 @@ class RuntimeCompletionComputer {
     // Update the context file content to include the code being completed.
     // Then resolve it, and restore the file to its initial state.
     ResolvedUnitResult targetResult;
-    String contentFileOverlay = fileContentOverlay[contextFile];
-    try {
-      fileContentOverlay[contextFile] = targetCode;
-      analysisDriver.changeFile(contextFile);
-      targetResult = await analysisDriver.getResult(contextFile);
-    } finally {
-      fileContentOverlay[contextFile] = contentFileOverlay;
-      analysisDriver.changeFile(contextFile);
-    }
+    await _withContextFileContent(targetCode, () async {
+      targetResult = await analysisDriver.getResult(contextPath);
+    });
 
     CompletionContributor contributor = new DartCompletionManager();
     CompletionRequestImpl request = new CompletionRequestImpl(
@@ -107,6 +98,44 @@ class RuntimeCompletionComputer {
     // TODO(scheglov) Add support for expressions.
     var expressions = <RuntimeCompletionExpression>[];
     return new RuntimeCompletionResult(expressions, suggestions);
+  }
+
+  Future<void> _withContextFileContent(
+      String newContent, Future<void> Function() f) async {
+    if (resourceProvider.hasOverlay(contextPath)) {
+      var contextFile = resourceProvider.getFile(contextPath);
+      var prevOverlayContent = contextFile.readAsStringSync();
+      var prevOverlayStamp = contextFile.modificationStamp;
+      try {
+        resourceProvider.setOverlay(
+          contextPath,
+          content: newContent,
+          modificationStamp: 0,
+        );
+        analysisDriver.changeFile(contextPath);
+        await f();
+      } finally {
+        resourceProvider.setOverlay(
+          contextPath,
+          content: prevOverlayContent,
+          modificationStamp: prevOverlayStamp,
+        );
+        analysisDriver.changeFile(contextPath);
+      }
+    } else {
+      try {
+        resourceProvider.setOverlay(
+          contextPath,
+          content: newContent,
+          modificationStamp: 0,
+        );
+        analysisDriver.changeFile(contextPath);
+        await f();
+      } finally {
+        resourceProvider.removeOverlay(contextPath);
+        analysisDriver.changeFile(contextPath);
+      }
+    }
   }
 }
 

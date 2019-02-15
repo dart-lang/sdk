@@ -8,15 +8,14 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  synthetic constructor •() → self::Base1
     : super core::Object::•()
@@ -60,15 +59,14 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target '#lib::Base1::'' (constructor)', arg-desc CP#0
+  [0] = DirectCall '#lib::Base1:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  synthetic constructor •() → self::A
     : super self::Base1::•()
@@ -81,15 +79,14 @@ Bytecode {
   Push                 FP[-6]
   PushConstant         CP#1
   PushInt              2
-  PushConstant         CP#3
-  IndirectStaticCall   4, CP#2
+  DirectCall           4, CP#2
   ReturnTOS
 }
 ConstantPool {
-  [0] = TypeArgs [dart:core::String]
-  [1] = String 'a1'
-  [2] = ArgDesc num-args 3, num-type-args 1, names []
-  [3] = StaticICData target '#lib::Base1::foo', arg-desc CP#2
+  [0] = ObjectRef < dart:core::String >
+  [1] = ObjectRef 'a1'
+  [2] = DirectCall '#lib::Base1::foo', ArgDesc num-args 3, num-type-args 1, names []
+  [3] = Reserved
 }
 ]  method testSuperCall(core::int x) → dynamic
     return super.{self::Base1::foo}<core::String>("a1", 2);
@@ -98,13 +95,12 @@ Bytecode {
   Entry                1
   CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target '#lib::Base1::get:foo', arg-desc CP#0
+  [0] = DirectCall '#lib::Base1::get:foo', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  method testSuperTearOff() → dynamic
     return super.{self::Base1::foo};
@@ -113,13 +109,12 @@ Bytecode {
   Entry                1
   CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target '#lib::Base1::get:bar', arg-desc CP#0
+  [0] = DirectCall '#lib::Base1::get:bar', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  method testSuperGet() → dynamic
     return super.{self::Base1::bar};
@@ -129,18 +124,17 @@ Bytecode {
   CheckStack           0
   PushConstant         CP#0
   Push                 FP[-5]
-  PushConstant         CP#2
-  IndirectStaticCall   1, CP#1
+  DirectCall           1, CP#1
   PushConstant         CP#3
   DynamicCall          3, CP#5
   ReturnTOS
 }
 ConstantPool {
-  [0] = TypeArgs [dart:core::int]
-  [1] = ArgDesc num-args 1, num-type-args 0, names []
-  [2] = StaticICData target '#lib::Base1::get:bar', arg-desc CP#1
-  [3] = String 'param'
-  [4] = ArgDesc num-args 2, num-type-args 1, names []
+  [0] = ObjectRef < dart:core::int >
+  [1] = DirectCall '#lib::Base1::get:bar', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = ObjectRef 'param'
+  [4] = ObjectRef ArgDesc num-args 2, num-type-args 1, names []
   [5] = ICData dynamic target-name 'call', arg-desc CP#4
 }
 ]  method testSuperCallViaGetter() → dynamic
@@ -151,15 +145,14 @@ Bytecode {
   CheckStack           0
   Push                 FP[-5]
   PushInt              3
-  PushConstant         CP#1
-  IndirectStaticCall   2, CP#0
+  DirectCall           2, CP#0
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = StaticICData target '#lib::Base1::set:bazz', arg-desc CP#0
+  [0] = DirectCall '#lib::Base1::set:bazz', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  method testSuperSet() → dynamic {
     super.{self::Base1::bazz} = 3;
@@ -171,15 +164,14 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  synthetic constructor •() → self::Base2
     : super core::Object::•()
@@ -194,15 +186,14 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target '#lib::Base2::'' (constructor)', arg-desc CP#0
+  [0] = DirectCall '#lib::Base2:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  synthetic constructor •() → self::B
     : super self::Base2::•()
@@ -239,23 +230,21 @@ Bytecode {
   PushInt              5
   StoreIndexedTOS
   PushTrue
-  PushConstant         CP#7
-  IndirectStaticCall   4, CP#6
-  PushConstant         CP#9
-  IndirectStaticCall   2, CP#8
+  DirectCall           4, CP#6
+  DirectCall           2, CP#8
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 4, num-type-args 1, names []
-  [1] = String 'foo'
-  [2] = TypeArgs [dynamic]
-  [3] = TypeArgs [dart:core::double]
-  [4] = String 'a1'
-  [5] = Double 3.14
-  [6] = ArgDesc num-args 4, num-type-args 0, names []
-  [7] = StaticICData target 'dart:core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#6
-  [8] = ArgDesc num-args 2, num-type-args 0, names []
-  [9] = StaticICData target 'dart:core::Object::noSuchMethod', arg-desc CP#8
+  [0] = ObjectRef ArgDesc num-args 4, num-type-args 1, names []
+  [1] = ObjectRef 'foo'
+  [2] = ObjectRef < dynamic >
+  [3] = ObjectRef < dart:core::double >
+  [4] = ObjectRef 'a1'
+  [5] = ObjectRef const 3.14
+  [6] = DirectCall 'dart:core::_InvocationMirror::_allocateInvocationMirror', ArgDesc num-args 4, num-type-args 0, names []
+  [7] = Reserved
+  [8] = DirectCall 'dart:core::Object::noSuchMethod', ArgDesc num-args 2, num-type-args 0, names []
+  [9] = Reserved
 }
 ]  method testSuperCall(core::int x) → dynamic
     return super.{self::Base2::foo}<core::double>("a1", 3.14, 5);
@@ -275,20 +264,18 @@ Bytecode {
   Push                 FP[-5]
   StoreIndexedTOS
   PushTrue
-  PushConstant         CP#4
-  IndirectStaticCall   4, CP#3
-  PushConstant         CP#6
-  IndirectStaticCall   2, CP#5
+  DirectCall           4, CP#3
+  DirectCall           2, CP#5
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = String 'foo'
-  [2] = TypeArgs [dynamic]
-  [3] = ArgDesc num-args 4, num-type-args 0, names []
-  [4] = StaticICData target 'dart:core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#3
-  [5] = ArgDesc num-args 2, num-type-args 0, names []
-  [6] = StaticICData target 'dart:core::Object::noSuchMethod', arg-desc CP#5
+  [0] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [1] = ObjectRef 'foo'
+  [2] = ObjectRef < dynamic >
+  [3] = DirectCall 'dart:core::_InvocationMirror::_allocateInvocationMirror', ArgDesc num-args 4, num-type-args 0, names []
+  [4] = Reserved
+  [5] = DirectCall 'dart:core::Object::noSuchMethod', ArgDesc num-args 2, num-type-args 0, names []
+  [6] = Reserved
 }
 ]  method testSuperTearOff() → dynamic
     return super.{self::Base2::foo};
@@ -308,20 +295,18 @@ Bytecode {
   Push                 FP[-5]
   StoreIndexedTOS
   PushTrue
-  PushConstant         CP#4
-  IndirectStaticCall   4, CP#3
-  PushConstant         CP#6
-  IndirectStaticCall   2, CP#5
+  DirectCall           4, CP#3
+  DirectCall           2, CP#5
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = String 'bar'
-  [2] = TypeArgs [dynamic]
-  [3] = ArgDesc num-args 4, num-type-args 0, names []
-  [4] = StaticICData target 'dart:core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#3
-  [5] = ArgDesc num-args 2, num-type-args 0, names []
-  [6] = StaticICData target 'dart:core::Object::noSuchMethod', arg-desc CP#5
+  [0] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [1] = ObjectRef 'bar'
+  [2] = ObjectRef < dynamic >
+  [3] = DirectCall 'dart:core::_InvocationMirror::_allocateInvocationMirror', ArgDesc num-args 4, num-type-args 0, names []
+  [4] = Reserved
+  [5] = DirectCall 'dart:core::Object::noSuchMethod', ArgDesc num-args 2, num-type-args 0, names []
+  [6] = Reserved
 }
 ]  method testSuperGet() → dynamic
     return super.{self::Base2::bar};
@@ -342,25 +327,23 @@ Bytecode {
   Push                 FP[-5]
   StoreIndexedTOS
   PushTrue
-  PushConstant         CP#5
-  IndirectStaticCall   4, CP#4
-  PushConstant         CP#7
-  IndirectStaticCall   2, CP#6
+  DirectCall           4, CP#4
+  DirectCall           2, CP#6
   PushConstant         CP#8
   DynamicCall          3, CP#10
   ReturnTOS
 }
 ConstantPool {
-  [0] = TypeArgs [dart:core::int]
-  [1] = ArgDesc num-args 1, num-type-args 0, names []
-  [2] = String 'bar'
-  [3] = TypeArgs [dynamic]
-  [4] = ArgDesc num-args 4, num-type-args 0, names []
-  [5] = StaticICData target 'dart:core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#4
-  [6] = ArgDesc num-args 2, num-type-args 0, names []
-  [7] = StaticICData target 'dart:core::Object::noSuchMethod', arg-desc CP#6
-  [8] = String 'param'
-  [9] = ArgDesc num-args 2, num-type-args 1, names []
+  [0] = ObjectRef < dart:core::int >
+  [1] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [2] = ObjectRef 'bar'
+  [3] = ObjectRef < dynamic >
+  [4] = DirectCall 'dart:core::_InvocationMirror::_allocateInvocationMirror', ArgDesc num-args 4, num-type-args 0, names []
+  [5] = Reserved
+  [6] = DirectCall 'dart:core::Object::noSuchMethod', ArgDesc num-args 2, num-type-args 0, names []
+  [7] = Reserved
+  [8] = ObjectRef 'param'
+  [9] = ObjectRef ArgDesc num-args 2, num-type-args 1, names []
   [10] = ICData dynamic target-name 'call', arg-desc CP#9
 }
 ]  method testSuperCallViaGetter() → dynamic
@@ -385,21 +368,20 @@ Bytecode {
   PushInt              3
   StoreIndexedTOS
   PushTrue
-  PushConstant         CP#4
-  IndirectStaticCall   4, CP#3
-  PushConstant         CP#5
-  IndirectStaticCall   2, CP#0
+  DirectCall           4, CP#3
+  DirectCall           2, CP#5
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = String 'bazz'
-  [2] = TypeArgs [dynamic]
-  [3] = ArgDesc num-args 4, num-type-args 0, names []
-  [4] = StaticICData target 'dart:core::_InvocationMirror::_allocateInvocationMirror', arg-desc CP#3
-  [5] = StaticICData target 'dart:core::Object::noSuchMethod', arg-desc CP#0
+  [0] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+  [1] = ObjectRef 'bazz'
+  [2] = ObjectRef < dynamic >
+  [3] = DirectCall 'dart:core::_InvocationMirror::_allocateInvocationMirror', ArgDesc num-args 4, num-type-args 0, names []
+  [4] = Reserved
+  [5] = DirectCall 'dart:core::Object::noSuchMethod', ArgDesc num-args 2, num-type-args 0, names []
+  [6] = Reserved
 }
 ]  method testSuperSet() → dynamic {
     super.{self::Base2::bazz} = 3;

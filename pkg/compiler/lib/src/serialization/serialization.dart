@@ -75,7 +75,7 @@ abstract class DataSink {
   /// Writes the boolean [value] to this data sink.
   void writeBool(bool value);
 
-  /// Writes the non-negative integer [value] to this data sink.
+  /// Writes the non-negative 30 bit integer [value] to this data sink.
   void writeInt(int value);
 
   /// Writes the potentially `null` non-negative [value] to this data sink.
@@ -137,6 +137,16 @@ abstract class DataSink {
   /// [DataSource.readMemberNodes].
   void writeMemberNodes(Iterable<ir.Member> values, {bool allowNull: false});
 
+  /// Writes a kernel name node to this data sink.
+  void writeName(ir.Name value);
+
+  /// Writes a kernel library dependency node [value] to this data sink.
+  void writeLibraryDependencyNode(ir.LibraryDependency value);
+
+  /// Writes a potentially `null` kernel library dependency node [value] to
+  /// this data sink.
+  void writeLibraryDependencyNodeOrNull(ir.LibraryDependency value);
+
   /// Writes a reference to the kernel tree node [value] to this data sink.
   void writeTreeNode(ir.TreeNode value);
 
@@ -190,6 +200,14 @@ abstract class DataSink {
   /// Writes the kernel type node [value] to this data sink. If [allowNull] is
   /// `true`, [value] is allowed to be `null`.
   void writeDartTypeNode(ir.DartType value, {bool allowNull: false});
+
+  /// Writes the kernel type node [values] to this data sink. If [allowNull] is
+  /// `true`, [values] is allowed to be `null`.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSource.readDartTypeNodes].
+  void writeDartTypeNodes(Iterable<ir.DartType> values,
+      {bool allowNull: false});
 
   /// Writes the source span [value] to this data sink.
   void writeSourceSpan(SourceSpan value);
@@ -313,6 +331,15 @@ abstract class DataSink {
   void writeConstantMap<V>(Map<ConstantValue, V> map, void f(V value),
       {bool allowNull: false});
 
+  /// Writes a double value to this data sink.
+  void writeDoubleValue(double value);
+
+  /// Writes an integer of arbitrary value to this data sink.
+  ///
+  /// This is should only when the value is not known to be a non-negative
+  /// 30 bit integer. Otherwise [writeInt] should be used.
+  void writeIntegerValue(int value);
+
   /// Writes the import [value] to this data sink.
   void writeImport(ImportEntity value);
 
@@ -380,7 +407,7 @@ abstract class DataSource {
   /// Reads a boolean value from this data source.
   bool readBool();
 
-  /// Reads a non-negative integer value from this data source.
+  /// Reads a non-negative 30 bit integer value from this data source.
   int readInt();
 
   /// Reads a potentially `null` non-negative integer value from this data
@@ -448,6 +475,16 @@ abstract class DataSource {
   List<ir.Member> readMemberNodes<E extends ir.Member>(
       {bool emptyAsNull: false});
 
+  /// Reads a kernel name node from this data source.
+  ir.Name readName();
+
+  /// Reads a kernel library dependency node from this data source.
+  ir.LibraryDependency readLibraryDependencyNode();
+
+  /// Reads a potentially `null` kernel library dependency node from this data
+  /// source.
+  ir.LibraryDependency readLibraryDependencyNodeOrNull();
+
   /// Reads a reference to a kernel tree node from this data source.
   ir.TreeNode readTreeNode();
 
@@ -496,6 +533,13 @@ abstract class DataSource {
   /// Reads a kernel type node from this data source. If [allowNull], the
   /// returned type is allowed to be `null`.
   ir.DartType readDartTypeNode({bool allowNull: false});
+
+  /// Reads a list of kernel type nodes from this data source. If [emptyAsNull]
+  /// is `true`, `null` is returned instead of an empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSink.writeDartTypeNodes].
+  List<ir.DartType> readDartTypeNodes({bool emptyAsNull: false});
 
   /// Reads a source span from this data source.
   SourceSpan readSourceSpan();
@@ -581,6 +625,15 @@ abstract class DataSource {
 
   /// Reads a constant value from this data source.
   ConstantValue readConstant();
+
+  /// Reads a double value from this data source.
+  double readDoubleValue();
+
+  /// Reads an integer of arbitrary value from this data source.
+  ///
+  /// This is should only when the value is not known to be a non-negative
+  /// 30 bit integer. Otherwise [readInt] should be used.
+  int readIntegerValue();
 
   /// Reads a list of constant values from this data source. If [emptyAsNull] is
   /// `true`, `null` is returned instead of an empty list.

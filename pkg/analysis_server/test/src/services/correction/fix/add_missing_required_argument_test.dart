@@ -325,6 +325,7 @@ main() {
   test(abc: null);
 }
 ''');
+    assertLinkedGroup(change.linkedEditGroups[0], ['null);']);
   }
 
   test_single_normal() async {

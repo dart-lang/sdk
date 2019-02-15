@@ -96,7 +96,6 @@ for_in_without_declaration: TextSerializationFailure
 function_in_field: TextSerializationFailure # Was: Pass
 functions: TextSerializationFailure # Was: Pass
 function_type_assignments: TextSerializationFailure # Was: Pass
-function_type_default_value: TextSerializationFailure # Was: Pass
 function_type_is_check: TextSerializationFailure # Was: Pass
 function_type_recovery: TextSerializationFailure # Was: Pass
 future_or_test: TextSerializationFailure # Was: Pass
@@ -665,7 +664,9 @@ invalid_assignment: TextSerializationFailure # Was: Pass
 invalid_cast: TextSerializationFailure # Was: Pass
 invalid_type: TypeCheckError
 invocations: TextSerializationFailure # Was: RuntimeError
+issue34515: TextSerializationFailure
 issue34899: TypeCheckError
+issue35875: TextSerializationFailure
 literals: TextSerializationFailure # Was: Pass
 local_generic_function: TextSerializationFailure # Was: Pass
 magic_const: TextSerializationFailure # Was: Pass
@@ -785,7 +786,6 @@ rasta/issue_000042: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000043: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000044: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000046: TextSerializationFailure # Was: RuntimeError
-rasta/issue_000047: TextSerializationFailure # Was: Pass
 rasta/issue_000048: TextSerializationFailure # Was: Pass
 rasta/issue_000052: TextSerializationFailure # Was: Pass
 rasta/issue_000053: TextSerializationFailure # Was: Pass
@@ -837,7 +837,6 @@ regress/issue_29940: TextSerializationFailure # Was: Pass
 regress/issue_29941: TextSerializationFailure # Was: Pass
 regress/issue_29942: TextSerializationFailure # Was: Pass
 regress/issue_29944: TextSerializationFailure # Was: Pass
-regress/issue_29975: TextSerializationFailure # Was: Pass
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29978: TextSerializationFailure # Was: Pass
 regress/issue_29979: TextSerializationFailure # Was: Pass
@@ -971,6 +970,7 @@ top_level_accessors_part: TextSerializationFailure # Was: Pass
 top_level_accessors: TextSerializationFailure # Was: Pass
 top_level_library_method: TextSerializationFailure # Was: Pass
 typedef: TextSerializationFailure # Was: Pass
+type_of_null: TextSerializationFailure
 type_variable_as_super: TextSerializationFailure # Was: RuntimeError
 type_variable_prefix: TextSerializationFailure # Was: RuntimeError
 type_variable_uses: TextSerializationFailure # Was: Pass

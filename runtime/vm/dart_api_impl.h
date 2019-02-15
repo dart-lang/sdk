@@ -294,6 +294,25 @@ class Api : AllStatic {
 
   static RawString* GetEnvironmentValue(Thread* thread, const String& name);
 
+  static bool ffiEnabled() {
+    // dart:ffi is not implemented for the following configurations
+#if !defined(TARGET_ARCH_X64)
+    // https://github.com/dart-lang/sdk/issues/35774
+    return false;
+#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
+    // https://github.com/dart-lang/sdk/issues/35760 Arm32 && Android
+    // https://github.com/dart-lang/sdk/issues/35771 Windows
+    // https://github.com/dart-lang/sdk/issues/35772 Arm64
+    // https://github.com/dart-lang/sdk/issues/35773 DBC
+    return false;
+#else
+    // dart:ffi is also not implemented for precompiled in which case
+    // FLAG_enable_ffi is set to false by --precompilation.
+    // Once dart:ffi is supported on all targets, only users will set this flag
+    return FLAG_enable_ffi;
+#endif
+  }
+
  private:
   static Dart_Handle InitNewHandle(Thread* thread, RawObject* raw);
 

@@ -112,6 +112,15 @@ class SimpleExpressionConverter {
   DISALLOW_COPY_AND_ASSIGN(SimpleExpressionConverter);
 };
 
+RawArray* KernelLoader::MakeFieldsArray() {
+  const intptr_t len = fields_.length();
+  const Array& res = Array::Handle(zone_, Array::New(len, Heap::kOld));
+  for (intptr_t i = 0; i < len; i++) {
+    res.SetAt(i, *fields_[i]);
+  }
+  return res.raw();
+}
+
 RawArray* KernelLoader::MakeFunctionsArray() {
   const intptr_t len = functions_.length();
   const Array& res = Array::Handle(zone_, Array::New(len, Heap::kOld));
@@ -185,7 +194,7 @@ KernelLoader::KernelLoader(Program* program)
               0),
       type_translator_(&helper_, &active_class_, /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_),
-      bytecode_metadata_helper_(&helper_, &type_translator_, &active_class_),
+      bytecode_metadata_helper_(&helper_, &active_class_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
@@ -370,7 +379,7 @@ KernelLoader::KernelLoader(const Script& script,
       helper_(zone_, &translation_helper_, script, kernel_data, 0),
       type_translator_(&helper_, &active_class_, /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_),
-      bytecode_metadata_helper_(&helper_, &type_translator_, &active_class_),
+      bytecode_metadata_helper_(&helper_, &active_class_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
@@ -891,7 +900,6 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
 
   LibraryIndex library_index(library_kernel_data_);
   intptr_t class_count = library_index.class_count();
-  intptr_t procedure_count = library_index.procedure_count();
 
   library_helper.ReadUntilIncluding(LibraryHelper::kName);
   library.SetName(H.DartSymbolObfuscate(library_helper.name_index_));
@@ -960,13 +968,47 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
       classes.Add(klass, Heap::kOld);
     }
   }
-  helper_.SetOffset(next_class_offset);
+
+  if (loading_native_wrappers_library_ || !register_class) {
+    FinishTopLevelClassLoading(toplevel_class, library, library_index);
+  }
+
+  if (FLAG_enable_mirrors && annotation_count > 0) {
+    ASSERT(annotations_kernel_offset > 0);
+    library.AddLibraryMetadata(toplevel_class, TokenPosition::kNoSource,
+                               annotations_kernel_offset);
+  }
+
+  if (register_class) {
+    classes.Add(toplevel_class, Heap::kOld);
+  }
+  if (!library.Loaded()) library.SetLoaded();
+
+  return library.raw();
+}
+
+void KernelLoader::FinishTopLevelClassLoading(
+    const Class& toplevel_class,
+    const Library& library,
+    const LibraryIndex& library_index) {
+  if (toplevel_class.is_loaded()) {
+    return;
+  }
+
+  TIMELINE_DURATION(Thread::Current(), Isolate, "FinishTopLevelClassLoading");
+
+  // Offsets within library index are whole program offsets and not
+  // relative to the library.
+  const intptr_t correction = correction_offset_ - library_kernel_offset_;
+  helper_.SetOffset(library_index.ClassOffset(library_index.class_count()) +
+                    correction);
 
   fields_.Clear();
   functions_.Clear();
   ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
+
   // Load toplevel fields.
-  intptr_t field_count = helper_.ReadListLength();  // read list length.
+  const intptr_t field_count = helper_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < field_count; ++i) {
     intptr_t field_offset = helper_.ReaderOffset() - correction_offset_;
     ActiveMemberScope active_member_scope(&active_class_, NULL);
@@ -993,7 +1035,7 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
     // In the VM all const fields are implicitly final whereas in Kernel they
     // are not final because they are not explicitly declared that way.
     const bool is_final = field_helper.IsConst() || field_helper.IsFinal();
-    Field& field = Field::Handle(
+    const Field& field = Field::Handle(
         Z,
         Field::NewTopLevel(name, is_final, field_helper.IsConst(), script_class,
                            field_helper.position_, field_helper.end_position_));
@@ -1017,31 +1059,45 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
       library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
     }
     fields_.Add(&field);
-    library.AddObject(field, name);
   }
-  toplevel_class.AddFields(fields_);
+
+  ASSERT(!toplevel_class.is_loaded());
 
   // Load toplevel procedures.
-  intptr_t next_procedure_offset = library_index.ProcedureOffset(0);
+  intptr_t next_procedure_offset =
+      library_index.ProcedureOffset(0) + correction;
+  const intptr_t procedure_count = library_index.procedure_count();
   for (intptr_t i = 0; i < procedure_count; ++i) {
     helper_.SetOffset(next_procedure_offset);
-    next_procedure_offset = library_index.ProcedureOffset(i + 1);
+    next_procedure_offset = library_index.ProcedureOffset(i + 1) + correction;
     LoadProcedure(library, toplevel_class, false, next_procedure_offset);
+    // LoadProcedure calls Library::GetMetadata which invokes Dart code
+    // which may recursively trigger class finalization and
+    // FinishTopLevelClassLoading.
+    // In such case, return immediately and avoid overwriting already finalized
+    // functions with freshly loaded and not yet finalized.
+    if (toplevel_class.is_loaded()) {
+      return;
+    }
   }
 
-  if (FLAG_enable_mirrors && annotation_count > 0) {
-    ASSERT(annotations_kernel_offset > 0);
-    library.AddLibraryMetadata(toplevel_class, TokenPosition::kNoSource,
-                               annotations_kernel_offset);
-  }
-
+  toplevel_class.SetFields(Array::Handle(MakeFieldsArray()));
   toplevel_class.SetFunctions(Array::Handle(MakeFunctionsArray()));
-  if (register_class) {
-    classes.Add(toplevel_class, Heap::kOld);
-  }
-  if (!library.Loaded()) library.SetLoaded();
 
-  return library.raw();
+  String& name = String::Handle(Z);
+  for (intptr_t i = 0, n = fields_.length(); i < n; ++i) {
+    const Field* field = fields_.At(i);
+    name = field->name();
+    library.AddObject(*field, name);
+  }
+  for (intptr_t i = 0, n = functions_.length(); i < n; ++i) {
+    const Function* function = functions_.At(i);
+    name = function->name();
+    library.AddObject(*function, name);
+  }
+
+  ASSERT(!toplevel_class.is_loaded());
+  toplevel_class.set_is_loaded(true);
 }
 
 void KernelLoader::LoadLibraryImportsAndExports(Library* library,
@@ -1108,6 +1164,10 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
     if (!FLAG_enable_mirrors &&
         target_library.url() == Symbols::DartMirrors().raw()) {
       H.ReportError("import of dart:mirrors with --enable-mirrors=false");
+    }
+    if (!Api::ffiEnabled() &&
+        target_library.url() == Symbols::DartFfi().raw()) {
+      H.ReportError("import of dart:ffi with --enable-ffi=false");
     }
     String& prefix = H.DartSymbolPlain(dependency_helper.name_index_);
     ns = Namespace::New(target_library, show_names, hide_names);
@@ -1338,6 +1398,10 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                                       intptr_t class_offset,
                                       const ClassIndex& class_index,
                                       ClassHelper* class_helper) {
+  if (klass.is_loaded()) {
+    return;
+  }
+
   TIMELINE_DURATION(Thread::Current(), Isolate, "FinishClassLoading");
 
   fields_.Clear();
@@ -1425,7 +1489,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
           TokenPosition::kNoSource, TokenPosition::kNoSource);
       fields_.Add(&deleted_enum_sentinel);
     }
-    klass.AddFields(fields_);
+    klass.SetFields(Array::Handle(Z, MakeFieldsArray()));
   }
 
   class_helper->ReadUntilExcluding(ClassHelper::kConstructors);
@@ -1500,6 +1564,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     }
   }
 
+  ASSERT(!klass.is_loaded());
+
   // Everything up til the procedures are skipped implicitly, and class_helper
   // is no longer used.
 
@@ -1513,13 +1579,23 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     helper_.SetOffset(next_procedure_offset);
     next_procedure_offset = class_index.ProcedureOffset(i + 1) + correction;
     LoadProcedure(library, klass, true, next_procedure_offset);
+    // LoadProcedure calls Library::GetMetadata which invokes Dart code
+    // which may recursively trigger class finalization and FinishClassLoading.
+    // In such case, return immediately and avoid overwriting already finalized
+    // functions with freshly loaded and not yet finalized.
+    if (klass.is_loaded()) {
+      return;
+    }
   }
 
   klass.SetFunctions(Array::Handle(MakeFunctionsArray()));
+
+  ASSERT(!klass.is_loaded());
+  klass.set_is_loaded(true);
 }
 
 void KernelLoader::FinishLoading(const Class& klass) {
-  ASSERT(klass.kernel_offset() > 0);
+  ASSERT(klass.IsTopLevel() || (klass.kernel_offset() > 0));
 
   Zone* zone = Thread::Current()->zone();
   const Script& script = Script::Handle(zone, klass.script());
@@ -1531,10 +1607,17 @@ void KernelLoader::FinishLoading(const Class& klass) {
   const intptr_t library_kernel_offset = library.kernel_offset();
   ASSERT(library_kernel_offset > 0);
 
-  const intptr_t class_offset = klass.kernel_offset();
   KernelLoader kernel_loader(script, library_kernel_data,
                              library_kernel_offset);
   LibraryIndex library_index(library_kernel_data);
+
+  if (klass.IsTopLevel()) {
+    ASSERT(klass.raw() == toplevel_class.raw());
+    kernel_loader.FinishTopLevelClassLoading(klass, library, library_index);
+    return;
+  }
+
+  const intptr_t class_offset = klass.kernel_offset();
   ClassIndex class_index(
       library_kernel_data, class_offset,
       // Class offsets in library index are whole program offsets.
@@ -1764,14 +1847,6 @@ void KernelLoader::LoadProcedure(const Library& library,
   // Everything else is skipped implicitly, and procedure_helper and
   // function_node_helper are no longer used.
   helper_.SetOffset(procedure_end);
-
-  if (!in_class) {
-    library.AddObject(function, name);
-    ASSERT(!Object::Handle(
-                Z, library.LookupObjectAllowPrivate(
-                       H.DartProcedureName(procedure_helper.canonical_name_)))
-                .IsNull());
-  }
 
   if (annotation_count > 0) {
     library.AddFunctionMetadata(function, TokenPosition::kNoSource,
@@ -2098,6 +2173,9 @@ RawFunction::Kind KernelLoader::GetFunctionType(
 RawFunction* CreateFieldInitializerFunction(Thread* thread,
                                             Zone* zone,
                                             const Field& field) {
+  if (field.Initializer() != Function::null()) {
+    return field.Initializer();
+  }
   String& init_name = String::Handle(zone, field.name());
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
 
@@ -2130,9 +2208,11 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
                           initializer_owner, TokenPosition::kNoSource));
   initializer_fun.set_kernel_offset(field.kernel_offset());
   initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
-  initializer_fun.set_is_debuggable(false);
   initializer_fun.set_is_reflectable(false);
   initializer_fun.set_is_inlinable(false);
+  initializer_fun.set_token_pos(field.token_pos());
+  initializer_fun.set_end_token_pos(field.end_token_pos());
+  field.SetInitializer(initializer_fun);
   return initializer_fun.raw();
 }
 

@@ -5,7 +5,8 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../constants/values.dart';
-import '../js_model/elements.dart' show JsToFrontendMap, JField;
+import '../js_model/elements.dart' show JField;
+import '../js_model/js_world_builder.dart';
 import '../kernel/element_map.dart';
 import '../kernel/kernel_strategy.dart';
 import '../kernel/kelements.dart' show KClass, KField;
@@ -77,6 +78,9 @@ class KAllocatorAnalysis implements AllocatorAnalysis {
       _fixedInitializers[_elementMap.getField(fieldNode)] = value;
     });
   }
+
+  ConstantValue getFixedInitializerForTesting(KField field) =>
+      _fixedInitializers[field];
 }
 
 class JAllocatorAnalysis implements AllocatorAnalysis {

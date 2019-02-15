@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: field1a:read*/
+/*element: field1a:init,read*/
 var field1a;
 
-/*element: field1b:write*/
+/*element: field1b:init,write*/
 var field1b;
 
-/*element: field1c:read,write*/
+/*element: field1c:init,read,write*/
 var field1c;
 
 /*element: field2a:read*/
@@ -27,15 +27,14 @@ get field2c => 42;
 /*element: field2c=:write*/
 set field2c(_) {}
 
-/*element: Class.:invoke*/
 class Class {
-  /*element: Class.field1a:read*/
+  /*element: Class.field1a:init,read*/
   var field1a;
 
-  /*element: Class.field1b:write*/
+  /*element: Class.field1b:init,write*/
   var field1b;
 
-  /*element: Class.field1c:read,write*/
+  /*element: Class.field1c:init,read,write*/
   var field1c;
 
   /*element: Class.field2a:read*/
@@ -53,6 +52,15 @@ class Class {
 
   /*element: Class.field2c=:write*/
   set field2c(_) {}
+
+  /*element: Class.field3a:init*/
+  var field3a = 0;
+
+  /*element: Class.field3b:init*/
+  var field3b;
+
+  /*element: Class.:invoke=(0)*/
+  Class([this.field3b]);
 
   /*element: Class.test:invoke*/
   test() {

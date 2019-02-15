@@ -19,17 +19,19 @@ main() {
       .toList();
   Expect.equals(1, scripts.length);
   Expect.equals('', scripts.first.nonce ?? '');
+  Expect.equals('', scripts.first.getAttribute('nonce') ?? '');
   scripts.first.nonce = "an-example-nonce-string";
 
   lib.loadLibrary().then((_) {
     print(lib.foo());
     var scripts = document
         .querySelectorAll<ScriptElement>('script')
-        .where((s) => s.src.contains("generated_compilations"))
+        .where((s) => s.src.contains(".part.js"))
         .toList();
-    Expect.equals(2, scripts.length);
+    Expect.equals(1, scripts.length);
     for (var script in scripts) {
       Expect.equals("an-example-nonce-string", script.nonce);
+      Expect.equals("an-example-nonce-string", script.getAttribute('nonce'));
     }
     asyncEnd();
   });

@@ -22,23 +22,34 @@ import "shared_type_tests.dart" show SubtypeTest;
 import "type_parser.dart" as type_parser show parse, parseTypeVariables;
 
 const String testSdk = """
-  class Object;
-  class Comparable<T>;
-  class num implements Comparable<num>;
-  class int extends num;
-  class double extends num;
-  class Iterable<T>;
-  class List<T> extends Iterable<T>;
-  class Future<T>;
-  class FutureOr<T>;
-  class Null;
-  class Function;
+class Object;
+class Comparable<T>;
+class num implements Comparable<num>;
+class int extends num;
+class double extends num;
+class Iterable<T>;
+class List<T> extends Iterable<T>;
+class Future<T>;
+class FutureOr<T>;
+class Null;
+class Function;
+typedef Typedef<T> <S>(T) -> S;
+typedef VoidFunction () -> void;
+class DefaultTypes<S, T extends Object, U extends List<S>, V extends List<T>, W extends Comparable<W>, X extends (W) -> void, Y extends () -> W>;
+typedef TestDefaultTypes () -> DefaultTypes;
+typedef Id<T> T;
+typedef TestSorting ({int c, int b, int a}) -> void;
 """;
 
 const String expectedSdk = """
 library core;
 import self as self;
 
+typedef Typedef<T extends self::Object = dynamic> = <S extends self::Object = dynamic>(T) → S;
+typedef VoidFunction = () → void;
+typedef TestDefaultTypes = () → self::DefaultTypes<dynamic, self::Object, self::List<dynamic>, self::List<self::Object>, self::Comparable<dynamic>, (<BottomType>) → void, () → self::Comparable<dynamic>>;
+typedef Id<T extends self::Object = dynamic> = T;
+typedef TestSorting = ({a: self::int, b: self::int, c: self::int}) → void;
 class Object {
 }
 class Comparable<T extends self::Object = dynamic> extends self::Object {
@@ -61,17 +72,23 @@ class Null extends self::Object {
 }
 class Function extends self::Object {
 }
+class DefaultTypes<S extends self::Object = dynamic, T extends self::Object = self::Object, U extends self::List<self::DefaultTypes::S> = self::List<dynamic>, V extends self::List<self::DefaultTypes::T> = self::List<self::Object>, W extends self::Comparable<self::DefaultTypes::W> = self::Comparable<dynamic>, X extends (self::DefaultTypes::W) → void = (<BottomType>) → void, Y extends () → self::DefaultTypes::W = () → self::Comparable<dynamic>> extends self::Object {
+}
 """;
 
-main() {
-  Uri uri = Uri.parse("dart:core");
-  KernelEnvironment environment = new KernelEnvironment(uri, uri);
+Component parseSdk(Uri uri, KernelEnvironment environment) {
   Library library = parseLibrary(uri, testSdk, environment: environment);
   StringBuffer sb = new StringBuffer();
   Printer printer = new Printer(sb);
   printer.writeLibraryFile(library);
   Expect.stringEquals(expectedSdk, "$sb");
-  Component component = new Component(libraries: <Library>[library]);
+  return new Component(libraries: <Library>[library]);
+}
+
+main() {
+  Uri uri = Uri.parse("dart:core");
+  KernelEnvironment environment = new KernelEnvironment(uri, uri);
+  Component component = parseSdk(uri, environment);
   ClassHierarchy hierarchy = new ClassHierarchy(component);
   CoreTypes coreTypes = new CoreTypes(component);
   new KernelSubtypeTest(coreTypes, hierarchy, environment).run();
@@ -90,8 +107,8 @@ class KernelSubtypeTest extends SubtypeTest<DartType, KernelEnvironment> {
     return environment.kernelFromParsedType(type_parser.parse(text).single);
   }
 
-  bool isSubtypeImpl(DartType subtype, DartType supertype, bool legacyMode) {
-    return new TypeEnvironment(coreTypes, hierarchy, legacyMode: legacyMode)
+  bool isSubtypeImpl(DartType subtype, DartType supertype) {
+    return new TypeEnvironment(coreTypes, hierarchy)
         .isSubtypeOf(subtype, supertype);
   }
 

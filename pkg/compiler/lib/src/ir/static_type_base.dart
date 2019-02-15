@@ -129,6 +129,11 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
   }
 
   @override
+  ir.DartType visitSetLiteral(ir.SetLiteral node) {
+    return typeEnvironment.literalSetType(node.typeArgument);
+  }
+
+  @override
   ir.DartType visitMapLiteral(ir.MapLiteral node) {
     return typeEnvironment.literalMapType(node.keyType, node.valueType);
   }

@@ -14,13 +14,13 @@ L2:
   CheckStack           1
   Push                 r1
   Push                 FP[-5]
-  InterfaceCall        1, CP#1
+  InterfaceCall        1, CP#0
   CompareIntLt
   JumpIfFalse          L1
   Push                 r0
   Push                 FP[-5]
   Push                 r1
-  InterfaceCall        2, CP#4
+  InterfaceCall        2, CP#2
   AddInt
   PopLocal             r0
   Push                 r1
@@ -34,12 +34,10 @@ L1:
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = InterfaceCall get target-name 'get:length', arg-desc CP#0
-  [2] = Reserved
-  [3] = ArgDesc num-args 2, num-type-args 0, names []
-  [4] = InterfaceCall target-name '[]', arg-desc CP#3
-  [5] = Reserved
+  [0] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
 }
 ]static method test_for(core::List<core::int> list) → core::int {
   core::int sum = 0;
@@ -64,7 +62,7 @@ L3:
   JumpIfFalse          L1
   Push                 r1
   Push                 FP[-5]
-  InterfaceCall        1, CP#1
+  InterfaceCall        1, CP#0
   CompareIntGe
   JumpIfFalse          L2
   Jump                 L1
@@ -72,7 +70,7 @@ L2:
   Push                 r0
   Push                 FP[-5]
   Push                 r1
-  InterfaceCall        2, CP#4
+  InterfaceCall        2, CP#2
   AddInt
   PopLocal             r0
   Push                 r1
@@ -86,12 +84,10 @@ L1:
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = InterfaceCall get target-name 'get:length', arg-desc CP#0
-  [2] = Reserved
-  [3] = ArgDesc num-args 2, num-type-args 0, names []
-  [4] = InterfaceCall target-name '[]', arg-desc CP#3
-  [5] = Reserved
+  [0] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
 }
 ]static method test_for_break(core::List<core::int> list) → core::int {
   core::int sum = 0;
@@ -117,7 +113,7 @@ L4:
   CheckStack           1
   Push                 r1
   Push                 FP[-5]
-  InterfaceCall        1, CP#1
+  InterfaceCall        1, CP#0
   CompareIntLt
   JumpIfFalse          L1
   Push                 r1
@@ -129,7 +125,7 @@ L2:
   Push                 r0
   Push                 FP[-5]
   Push                 r1
-  InterfaceCall        2, CP#4
+  InterfaceCall        2, CP#2
   AddInt
   PopLocal             r0
 L3:
@@ -144,12 +140,10 @@ L1:
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = InterfaceCall get target-name 'get:length', arg-desc CP#0
-  [2] = Reserved
-  [3] = ArgDesc num-args 2, num-type-args 0, names []
-  [4] = InterfaceCall target-name '[]', arg-desc CP#3
-  [5] = Reserved
+  [0] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
 }
 ]static method test_for_continue(core::List<core::int> list) → core::int {
   core::int sum = 0;
@@ -175,7 +169,7 @@ L2:
   CheckStack           1
   Push                 r1
   Push                 FP[-5]
-  InterfaceCall        1, CP#1
+  InterfaceCall        1, CP#0
   CompareIntLt
   JumpIfFalse          L1
   Push                 r0
@@ -188,7 +182,7 @@ L2:
   StoreLocal           r1
   PopLocal             r3
   Push                 r2
-  InterfaceCall        2, CP#4
+  InterfaceCall        2, CP#2
   AddInt
   PopLocal             r0
   Jump                 L2
@@ -197,12 +191,10 @@ L1:
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = InterfaceCall get target-name 'get:length', arg-desc CP#0
-  [2] = Reserved
-  [3] = ArgDesc num-args 2, num-type-args 0, names []
-  [4] = InterfaceCall target-name '[]', arg-desc CP#3
-  [5] = Reserved
+  [0] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
 }
 ]static method test_while(core::List<core::int> list) → core::int {
   core::int sum = 0;
@@ -225,7 +217,7 @@ L1:
   Push                 r0
   Push                 FP[-5]
   Push                 r1
-  InterfaceCall        2, CP#1
+  InterfaceCall        2, CP#0
   AddInt
   PopLocal             r0
   Push                 r1
@@ -234,19 +226,17 @@ L1:
   PopLocal             r1
   Push                 r1
   Push                 FP[-5]
-  InterfaceCall        1, CP#4
+  InterfaceCall        1, CP#2
   CompareIntLt
   JumpIfTrue           L1
   Push                 r0
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 2, num-type-args 0, names []
-  [1] = InterfaceCall target-name '[]', arg-desc CP#0
-  [2] = Reserved
-  [3] = ArgDesc num-args 1, num-type-args 0, names []
-  [4] = InterfaceCall get target-name 'get:length', arg-desc CP#3
-  [5] = Reserved
+  [0] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
 }
 ]static method test_do_while(core::List<core::int> list) → core::int {
   core::int sum = 0;
@@ -265,15 +255,15 @@ Bytecode {
   PushInt              0
   PopLocal             r0
   Push                 FP[-5]
-  InterfaceCall        1, CP#1
+  InterfaceCall        1, CP#0
   PopLocal             r1
 L2:
   CheckStack           1
   Push                 r1
-  InterfaceCall        1, CP#3
+  InterfaceCall        1, CP#2
   JumpIfFalse          L1
   Push                 r1
-  InterfaceCall        1, CP#5
+  InterfaceCall        1, CP#4
   PopLocal             r2
   Push                 r0
   Push                 r2
@@ -285,13 +275,12 @@ L1:
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = InterfaceCall get target-name 'get:iterator', arg-desc CP#0
-  [2] = Reserved
-  [3] = InterfaceCall target-name 'moveNext', arg-desc CP#0
-  [4] = Reserved
-  [5] = InterfaceCall get target-name 'get:current', arg-desc CP#0
-  [6] = Reserved
+  [0] = InterfaceCall 'dart:core::Iterable::get:iterator', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::Iterator::moveNext', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = InterfaceCall 'dart:core::Iterator::get:current', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
 }
 ]static method test_for_in(core::List<core::int> list) → core::int {
   core::int sum = 0;
@@ -309,15 +298,15 @@ Bytecode {
   PushInt              42
   PopLocal             r1
   Push                 FP[-5]
-  InterfaceCall        1, CP#1
+  InterfaceCall        1, CP#0
   PopLocal             r2
 L2:
   CheckStack           1
   Push                 r2
-  InterfaceCall        1, CP#3
+  InterfaceCall        1, CP#2
   JumpIfFalse          L1
   Push                 r2
-  InterfaceCall        1, CP#5
+  InterfaceCall        1, CP#4
   PopLocal             r3
   Push                 r3
   PopLocal             r1
@@ -331,13 +320,12 @@ L1:
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = InterfaceCall get target-name 'get:iterator', arg-desc CP#0
-  [2] = Reserved
-  [3] = InterfaceCall target-name 'moveNext', arg-desc CP#0
-  [4] = Reserved
-  [5] = InterfaceCall get target-name 'get:current', arg-desc CP#0
-  [6] = Reserved
+  [0] = InterfaceCall 'dart:core::Iterable::get:iterator', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::Iterator::moveNext', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = InterfaceCall 'dart:core::Iterator::get:current', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
 }
 ]static method test_for_in_with_outer_var(core::List<core::int> list) → core::int {
   core::int sum = 0;

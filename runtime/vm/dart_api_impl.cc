@@ -1503,7 +1503,7 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   }
 #endif  // #if defined(DEBUG)
 
-  Symbols::Compact(I);
+  Symbols::Compact();
 
   FullSnapshotWriter writer(Snapshot::kFull, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
@@ -4774,6 +4774,10 @@ RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
       return Symbols::False().raw();
     }
 
+    if (!Api::ffiEnabled() && name.Equals(Symbols::DartLibraryFfi())) {
+      return Symbols::False().raw();
+    }
+
     if (name.Equals(Symbols::DartVMProduct())) {
 #ifdef PRODUCT
       return Symbols::True().raw();
@@ -5248,6 +5252,11 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   Isolate* I = T->isolate();
   CHECK_CALLBACK_STATE(T);
 
+  // The kernel loader is about to allocate a bunch of new libraries, classes,
+  // and functions into old space. Force growth, and use of the bump allocator
+  // instead of freelists.
+  BumpAllocateScope bump_allocate_scope(T);
+
   I->DoneLoading();
 
   // TODO(hausner): move the remaining code below (finalization and
@@ -5269,6 +5278,8 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   // newly loaded code and trigger one of these breakpoints.
   I->debugger()->NotifyDoneLoading();
 #endif
+
+  I->heap()->old_space()->EvaluateAfterLoading();
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_mirrors) {
@@ -5502,107 +5513,43 @@ DART_EXPORT int64_t Dart_TimelineGetMicros() {
   return OS::GetCurrentMonotonicMicros();
 }
 
-#if defined(PRODUCT)
 DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
     const char* name,
     Dart_ServiceRequestCallback callback,
     void* user_data) {
-  return;
-}
-
-DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
-    const char* name,
-    Dart_ServiceRequestCallback callback,
-    void* user_data) {
-  return;
-}
-
-DART_EXPORT void Dart_SetEmbedderInformationCallback(
-    Dart_EmbedderInformationCallback callback) {
-  return;
-}
-
-DART_EXPORT char* Dart_SetServiceStreamCallbacks(
-    Dart_ServiceStreamListenCallback listen_callback,
-    Dart_ServiceStreamCancelCallback cancel_callback) {
-  return NULL;
-}
-
-DART_EXPORT void Dart_SetNativeServiceStreamCallback(
-    Dart_NativeStreamConsumer consumer,
-    const char* stream_id) {
-  return;
-}
-
-DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
-                                                  const char* event_kind,
-                                                  const uint8_t* bytes,
-                                                  intptr_t bytes_length) {
-  return Api::Success();
-}
-
-DART_EXPORT char* Dart_SetFileModifiedCallback(
-    Dart_FileModifiedCallback file_mod_callback) {
-  return NULL;
-}
-
-DART_EXPORT bool Dart_IsReloading() {
-  return false;
-}
-
-DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
-  return;
-}
-
-DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
-    Dart_EmbedderTimelineStartRecording start_recording,
-    Dart_EmbedderTimelineStopRecording stop_recording) {
-  return;
-}
-
-DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
-                                             void* user_data) {
-  return false;
-}
-
-DART_EXPORT void Dart_TimelineEvent(const char* label,
-                                    int64_t timestamp0,
-                                    int64_t timestamp1_or_async_id,
-                                    Dart_Timeline_Event_Type type,
-                                    intptr_t argument_count,
-                                    const char** argument_names,
-                                    const char** argument_values) {
-  return;
-}
-#else  // defined(PRODUCT)
-DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
-    const char* name,
-    Dart_ServiceRequestCallback callback,
-    void* user_data) {
+#if !defined(PRODUCT)
   if (FLAG_support_service) {
     Service::RegisterIsolateEmbedderCallback(name, callback, user_data);
   }
+#endif
 }
 
 DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     const char* name,
     Dart_ServiceRequestCallback callback,
     void* user_data) {
+#if !defined(PRODUCT)
   if (FLAG_support_service) {
     Service::RegisterRootEmbedderCallback(name, callback, user_data);
   }
+#endif
 }
 
 DART_EXPORT void Dart_SetEmbedderInformationCallback(
     Dart_EmbedderInformationCallback callback) {
+#if !defined(PRODUCT)
   if (FLAG_support_service) {
     Service::SetEmbedderInformationCallback(callback);
   }
+#endif
 }
 
 DART_EXPORT char* Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamListenCallback listen_callback,
     Dart_ServiceStreamCancelCallback cancel_callback) {
+#if defined(PRODUCT)
+  return NULL;
+#else
   if (!FLAG_support_service) {
     return NULL;
   }
@@ -5636,18 +5583,22 @@ DART_EXPORT char* Dart_SetServiceStreamCallbacks(
   }
   Service::SetEmbedderStreamCallbacks(listen_callback, cancel_callback);
   return NULL;
+#endif
 }
 
 DART_EXPORT void Dart_SetNativeServiceStreamCallback(
     Dart_NativeStreamConsumer consumer,
     const char* stream_id) {
+#if !defined(PRODUCT)
   Service::SetNativeServiceStreamCallback(consumer, stream_id);
+#endif
 }
 
 DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
                                                   const char* event_kind,
                                                   const uint8_t* bytes,
                                                   intptr_t bytes_length) {
+#if !defined(PRODUCT)
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   if (stream_id == NULL) {
@@ -5664,11 +5615,13 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
                          CURRENT_FUNC);
   }
   Service::SendEmbedderEvent(I, stream_id, event_kind, bytes, bytes_length);
+#endif
   return Api::Success();
 }
 
 DART_EXPORT char* Dart_SetFileModifiedCallback(
     Dart_FileModifiedCallback file_modified_callback) {
+#if !defined(PRODUCT)
   if (!FLAG_support_service) {
     return NULL;
   }
@@ -5689,14 +5642,19 @@ DART_EXPORT char* Dart_SetFileModifiedCallback(
   }
   IsolateReloadContext::SetFileModifiedCallback(file_modified_callback);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(PRODUCT)
   return NULL;
 }
 
 DART_EXPORT bool Dart_IsReloading() {
+#if defined(PRODUCT)
+  return false;
+#else
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
   return isolate->IsReloading();
+#endif
 }
 
 DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
@@ -5721,121 +5679,6 @@ DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
   Timeline::SetStreamGCEnabled(gc_enabled);
   Timeline::SetStreamIsolateEnabled(isolate_enabled);
   Timeline::SetStreamVMEnabled(vm_enabled);
-#endif
-}
-
-static void StartStreamToConsumer(Dart_StreamConsumer consumer,
-                                  void* user_data,
-                                  const char* stream_name) {
-  // Start stream.
-  consumer(Dart_StreamConsumer_kStart, stream_name, NULL, 0, user_data);
-}
-
-static void FinishStreamToConsumer(Dart_StreamConsumer consumer,
-                                   void* user_data,
-                                   const char* stream_name) {
-  // Finish stream.
-  consumer(Dart_StreamConsumer_kFinish, stream_name, NULL, 0, user_data);
-}
-
-static void DataStreamToConsumer(Dart_StreamConsumer consumer,
-                                 void* user_data,
-                                 const char* output,
-                                 intptr_t output_length,
-                                 const char* stream_name) {
-  if (output == NULL) {
-    return;
-  }
-  const intptr_t kDataSize = 64 * KB;
-  intptr_t cursor = 0;
-  intptr_t remaining = output_length;
-  while (remaining >= kDataSize) {
-    consumer(Dart_StreamConsumer_kData, stream_name,
-             reinterpret_cast<const uint8_t*>(&output[cursor]), kDataSize,
-             user_data);
-    cursor += kDataSize;
-    remaining -= kDataSize;
-  }
-  if (remaining > 0) {
-    ASSERT(remaining < kDataSize);
-    consumer(Dart_StreamConsumer_kData, stream_name,
-             reinterpret_cast<const uint8_t*>(&output[cursor]), remaining,
-             user_data);
-    cursor += remaining;
-    remaining -= remaining;
-  }
-  ASSERT(cursor == output_length);
-  ASSERT(remaining == 0);
-}
-
-static bool StreamTraceEvents(Dart_StreamConsumer consumer,
-                              void* user_data,
-                              JSONStream* js) {
-  ASSERT(js != NULL);
-  // Steal output from JSONStream.
-  char* output = NULL;
-  intptr_t output_length = 0;
-  js->Steal(&output, &output_length);
-  if (output_length < 3) {
-    // Empty JSON array.
-    free(output);
-    return false;
-  }
-  // We want to send the JSON array without the leading '[' or trailing ']'
-  // characters.
-  ASSERT(output[0] == '[');
-  ASSERT(output[output_length - 1] == ']');
-  // Replace the ']' with the null character.
-  output[output_length - 1] = '\0';
-  char* start = &output[1];
-  // We are skipping the '['.
-  output_length -= 1;
-
-  DataStreamToConsumer(consumer, user_data, start, output_length, "timeline");
-
-  // We stole the JSONStream's output buffer, free it.
-  free(output);
-
-  return true;
-}
-
-DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
-    Dart_EmbedderTimelineStartRecording start_recording,
-    Dart_EmbedderTimelineStopRecording stop_recording) {
-#if defined(SUPPORT_TIMELINE)
-  Timeline::set_start_recording_cb(start_recording);
-  Timeline::set_stop_recording_cb(stop_recording);
-#endif
-}
-
-DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
-                                             void* user_data) {
-#if defined(PRODUCT)
-  return false;
-#else
-  // To support various embedders, it must be possible to call this function
-  // from a thread for which we have not entered an Isolate and set up a Thread
-  // TLS object. Therefore, a Zone may not be available, a StackZone cannot be
-  // created, and no ZoneAllocated objects can be allocated.
-  if (consumer == NULL) {
-    return false;
-  }
-  TimelineEventRecorder* timeline_recorder = Timeline::recorder();
-  if (timeline_recorder == NULL) {
-    // Nothing has been recorded.
-    return false;
-  }
-  Timeline::ReclaimCachedBlocksFromThreads();
-  bool success = false;
-  JSONStream js;
-  TimelineEventFilter filter;
-  timeline_recorder->PrintTraceEvent(&js, &filter);
-  StartStreamToConsumer(consumer, user_data, "timeline");
-  if (StreamTraceEvents(consumer, user_data, &js)) {
-    success = true;
-  }
-  FinishStreamToConsumer(consumer, user_data, "timeline");
-  return success;
 #endif
 }
 
@@ -5905,7 +5748,6 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   event->Complete();
 #endif
 }
-#endif  // defined(PRODUCT)
 
 DART_EXPORT void Dart_SetThreadName(const char* name) {
   OSThread* thread = OSThread::Current();
@@ -6255,7 +6097,7 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
   DropRegExpMatchCode(Z);
 
   ProgramVisitor::Dedup();
-  Symbols::Compact(I);
+  Symbols::Compact();
 
   TIMELINE_DURATION(T, Isolate, "WriteCoreJITSnapshot");
   BlobImageWriter vm_image_writer(T, vm_snapshot_instructions_buffer,
@@ -6317,7 +6159,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
     DropCodeWithoutReusableInstructions(reused_instructions);
   }
   ProgramVisitor::Dedup();
-  Symbols::Compact(I);
+  Symbols::Compact();
 
   if (FLAG_dump_tables) {
     Symbols::DumpTable(I);

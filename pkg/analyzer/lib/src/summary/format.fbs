@@ -14,11 +14,17 @@ enum AvailableDeclarationKind : byte {
 
   ENUM,
 
+  ENUM_CONSTANT,
+
   FUNCTION,
 
   FUNCTION_TYPE_ALIAS,
 
+  GETTER,
+
   MIXIN,
+
+  SETTER,
 
   VARIABLE
 }
@@ -864,26 +870,72 @@ table AnalysisDriverUnlinkedUnit {
 
 /// Information about a single declaration.
 table AvailableDeclaration {
-  /// The kind of the declaration.
-  kind:AvailableDeclarationKind (id: 1);
+  docComplete:string (id: 0);
 
-  /// The name of the declaration.
-  name:string (id: 0);
+  docSummary:string (id: 1);
+
+  fieldMask:uint (id: 2);
+
+  /// The kind of the declaration.
+  kind:AvailableDeclarationKind (id: 3);
+
+  isAbstract:bool (id: 4);
+
+  isConst:bool (id: 5);
+
+  isDeprecated:bool (id: 6);
+
+  isFinal:bool (id: 7);
+
+  /// The first part of the declaration name, usually the only one, for example
+  /// the name of a class like `MyClass`, or a function like `myFunction`.
+  name:string (id: 8);
+
+  /// The second, optional, part of the declaration name.  For example enum
+  /// constants all have the same [name], but their own [name2].
+  name2:string (id: 9);
+
+  locationOffset:uint (id: 10);
+
+  locationStartColumn:uint (id: 11);
+
+  locationStartLine:uint (id: 12);
+
+  parameterNames:[string] (id: 13);
+
+  parameters:string (id: 14);
+
+  parameterTypes:[string] (id: 15);
+
+  requiredParameterCount:uint (id: 16);
+
+  /// The partial list of relevance tags.  Not every declaration has one (for
+  /// example, function do not currently), and not every declaration has to
+  /// store one (for classes it can be computed when we know the library that
+  /// includes this file).
+  relevanceTags:[string] (id: 17);
+
+  returnType:string (id: 18);
+
+  typeParameters:string (id: 19);
 }
 
 /// Information about an available, even if not yet imported file.
 table AvailableFile {
   /// Declarations of the file.
-  declarations:[AvailableDeclaration] (id: 3);
+  declarations:[AvailableDeclaration] (id: 0);
 
   /// Exports directives of the file.
   exports:[AvailableFileExport] (id: 1);
 
   /// Is `true` if this file is a library.
-  isLibrary:bool (id: 0);
+  isLibrary:bool (id: 2);
+
+  /// Is `true` if this file is a library, and it is deprecated.
+  isLibraryDeprecated:bool (id: 3);
 
   /// URIs of `part` directives.
-  parts:[string] (id: 2);
+  parts:[string] (id: 4);
 }
 
 /// Information about an export directive.

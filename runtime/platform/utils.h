@@ -6,6 +6,7 @@
 #define RUNTIME_PLATFORM_UTILS_H_
 
 #include <limits>
+#include <type_traits>
 
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -338,21 +339,24 @@ class Utils {
   }
 
   // Decode integer in SLEB128 format from |data| and update |byte_index|.
-  static intptr_t DecodeSLEB128(const uint8_t* data,
-                                const intptr_t data_length,
-                                intptr_t* byte_index) {
+  template <typename ValueType>
+  static ValueType DecodeSLEB128(const uint8_t* data,
+                                 const intptr_t data_length,
+                                 intptr_t* byte_index) {
     ASSERT(*byte_index < data_length);
     uword shift = 0;
-    intptr_t value = 0;
+    ValueType value = 0;
     uint8_t part = 0;
     do {
       part = data[(*byte_index)++];
-      value |= static_cast<intptr_t>(part & 0x7f) << shift;
+      value |= static_cast<ValueType>(part & 0x7f) << shift;
       shift += 7;
     } while ((part & 0x80) != 0);
 
-    if ((shift < (sizeof(value) * 8)) && ((part & 0x40) != 0)) {
-      value |= static_cast<intptr_t>(kUwordMax << shift);
+    if ((shift < (sizeof(ValueType) * CHAR_BIT)) && ((part & 0x40) != 0)) {
+      using Unsigned = typename std::make_unsigned<ValueType>::type;
+      const Unsigned kMax = std::numeric_limits<Unsigned>::max();
+      value |= static_cast<ValueType>(kMax << shift);
     }
     return value;
   }

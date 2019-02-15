@@ -33,6 +33,7 @@ main(List<String> args) {
 }
 
 class Tags {
+  static const String init = 'init';
   static const String read = 'read';
   static const String write = 'write';
   static const String invoke = 'invoke';
@@ -60,6 +61,9 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
     MemberUsage memberUsage =
         resolutionWorldBuilder.memberUsageForTesting[member];
     if (memberUsage != null) {
+      if (member.isField && memberUsage.hasInit) {
+        features.add(Tags.init);
+      }
       if (memberUsage.hasRead) {
         features.add(Tags.read);
       }

@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.22.1';
+const String PROTOCOL_VERSION = '1.23.0';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -110,8 +110,21 @@ const String ANALYTICS_REQUEST_SEND_TIMING = 'analytics.sendTiming';
 const String ANALYTICS_REQUEST_SEND_TIMING_EVENT = 'event';
 const String ANALYTICS_REQUEST_SEND_TIMING_MILLIS = 'millis';
 const String ANALYTICS_RESPONSE_IS_ENABLED_ENABLED = 'enabled';
+const String COMPLETION_NOTIFICATION_AVAILABLE_SUGGESTIONS =
+    'completion.availableSuggestions';
+const String COMPLETION_NOTIFICATION_AVAILABLE_SUGGESTIONS_CHANGED_LIBRARIES =
+    'changedLibraries';
+const String COMPLETION_NOTIFICATION_AVAILABLE_SUGGESTIONS_REMOVED_LIBRARIES =
+    'removedLibraries';
 const String COMPLETION_NOTIFICATION_RESULTS = 'completion.results';
 const String COMPLETION_NOTIFICATION_RESULTS_ID = 'id';
+const String COMPLETION_NOTIFICATION_RESULTS_INCLUDED_SUGGESTION_KINDS =
+    'includedSuggestionKinds';
+const String
+    COMPLETION_NOTIFICATION_RESULTS_INCLUDED_SUGGESTION_RELEVANCE_TAGS =
+    'includedSuggestionRelevanceTags';
+const String COMPLETION_NOTIFICATION_RESULTS_INCLUDED_SUGGESTION_SETS =
+    'includedSuggestionSets';
 const String COMPLETION_NOTIFICATION_RESULTS_IS_LAST = 'isLast';
 const String COMPLETION_NOTIFICATION_RESULTS_REPLACEMENT_LENGTH =
     'replacementLength';
@@ -121,13 +134,33 @@ const String COMPLETION_NOTIFICATION_RESULTS_RESULTS = 'results';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS = 'completion.getSuggestions';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS_FILE = 'file';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS_OFFSET = 'offset';
+const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS =
+    'completion.getSuggestionDetails';
+const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_FILE = 'file';
+const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_ID = 'id';
+const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_LABEL = 'label';
+const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_OFFSET = 'offset';
+const String COMPLETION_REQUEST_REGISTER_LIBRARY_PATHS =
+    'completion.registerLibraryPaths';
+const String COMPLETION_REQUEST_REGISTER_LIBRARY_PATHS_PATHS = 'paths';
+const String COMPLETION_REQUEST_SET_SUBSCRIPTIONS =
+    'completion.setSubscriptions';
+const String COMPLETION_REQUEST_SET_SUBSCRIPTIONS_SUBSCRIPTIONS =
+    'subscriptions';
 const String COMPLETION_RESPONSE_GET_SUGGESTIONS_ID = 'id';
+const String COMPLETION_RESPONSE_GET_SUGGESTION_DETAILS_CHANGE = 'change';
+const String COMPLETION_RESPONSE_GET_SUGGESTION_DETAILS_COMPLETION =
+    'completion';
 const String DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS = 'diagnostic.getDiagnostics';
 const String DIAGNOSTIC_REQUEST_GET_SERVER_PORT = 'diagnostic.getServerPort';
 const String DIAGNOSTIC_RESPONSE_GET_DIAGNOSTICS_CONTEXTS = 'contexts';
 const String DIAGNOSTIC_RESPONSE_GET_SERVER_PORT_PORT = 'port';
 const String EDIT_REQUEST_DARTFIX = 'edit.dartfix';
+const String EDIT_REQUEST_DARTFIX_EXCLUDED_FIXES = 'excludedFixes';
 const String EDIT_REQUEST_DARTFIX_INCLUDED = 'included';
+const String EDIT_REQUEST_DARTFIX_INCLUDED_FIXES = 'includedFixes';
+const String EDIT_REQUEST_DARTFIX_INCLUDE_REQUIRED_FIXES =
+    'includeRequiredFixes';
 const String EDIT_REQUEST_FORMAT = 'edit.format';
 const String EDIT_REQUEST_FORMAT_FILE = 'file';
 const String EDIT_REQUEST_FORMAT_LINE_LENGTH = 'lineLength';
@@ -142,6 +175,7 @@ const String EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS =
 const String EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS_FILE = 'file';
 const String EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS_LENGTH = 'length';
 const String EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS_OFFSET = 'offset';
+const String EDIT_REQUEST_GET_DARTFIX_INFO = 'edit.getDartfixInfo';
 const String EDIT_REQUEST_GET_FIXES = 'edit.getFixes';
 const String EDIT_REQUEST_GET_FIXES_FILE = 'file';
 const String EDIT_REQUEST_GET_FIXES_OFFSET = 'offset';
@@ -183,6 +217,7 @@ const String EDIT_RESPONSE_FORMAT_SELECTION_LENGTH = 'selectionLength';
 const String EDIT_RESPONSE_FORMAT_SELECTION_OFFSET = 'selectionOffset';
 const String EDIT_RESPONSE_GET_ASSISTS_ASSISTS = 'assists';
 const String EDIT_RESPONSE_GET_AVAILABLE_REFACTORINGS_KINDS = 'kinds';
+const String EDIT_RESPONSE_GET_DARTFIX_INFO_FIXES = 'fixes';
 const String EDIT_RESPONSE_GET_FIXES_FIXES = 'fixes';
 const String EDIT_RESPONSE_GET_POSTFIX_COMPLETION_CHANGE = 'change';
 const String EDIT_RESPONSE_GET_REFACTORING_CHANGE = 'change';

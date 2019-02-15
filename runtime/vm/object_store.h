@@ -22,6 +22,7 @@ class ObjectPointerVisitor;
   M(Collection, collection)                                                    \
   M(Convert, convert)                                                          \
   M(Developer, developer)                                                      \
+  M(Ffi, ffi)                                                                  \
   M(Internal, _internal)                                                       \
   M(Isolate, isolate)                                                          \
   M(Math, math)                                                                \
@@ -89,6 +90,7 @@ class ObjectPointerVisitor;
   RW(Library, collection_library)                                              \
   RW(Library, convert_library)                                                 \
   RW(Library, developer_library)                                               \
+  RW(Library, ffi_library)                                                     \
   RW(Library, _internal_library)                                               \
   RW(Library, isolate_library)                                                 \
   RW(Library, math_library)                                                    \
@@ -111,7 +113,6 @@ class ObjectPointerVisitor;
   RW(UnhandledException, preallocated_unhandled_exception)                     \
   RW(StackTrace, preallocated_stack_trace)                                     \
   RW(Function, lookup_port_handler)                                            \
-  RW(TypedData, empty_uint32_array)                                            \
   RW(Function, handle_message_function)                                        \
   RW(Function, growable_list_factory)                                          \
   RW(Function, simple_instance_of_function)                                    \
@@ -138,6 +139,8 @@ class ObjectPointerVisitor;
   RW(Array, code_order_table)                                                  \
   RW(Array, obfuscation_map)                                                   \
   RW(GrowableObjectArray, changed_in_last_reload)                              \
+  RW(Class, ffi_pointer_class)                                                 \
+  RW(Class, ffi_native_type_class)                                             \
 // Please remember the last entry must be referred in the 'to' function below.
 
 // The object store is a per isolate instance which stores references to
@@ -230,7 +233,7 @@ class ObjectStore {
                           DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&changed_in_last_reload_);
+    return reinterpret_cast<RawObject**>(&ffi_pointer_class_);
   }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {

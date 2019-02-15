@@ -252,7 +252,7 @@ class A {
 
   test_import_uri_with_trailing() {
     final filePath = '/project/bin/testA.dart';
-    final incompleteImportText = convertAbsolutePathToUri('/project/bin/t');
+    final incompleteImportText = toUriStr('/project/bin/t');
     newFile(filePath, content: 'library libA;');
     addTestFile('''
     import "$incompleteImportText^.dart";
@@ -261,8 +261,7 @@ class A {
       expect(replacementOffset,
           equals(completionOffset - incompleteImportText.length));
       expect(replacementLength, equals(5 + incompleteImportText.length));
-      assertHasResult(
-          CompletionSuggestionKind.IMPORT, convertAbsolutePathToUri(filePath));
+      assertHasResult(CompletionSuggestionKind.IMPORT, toUriStr(filePath));
       assertNoResult('test');
     });
   }
@@ -510,7 +509,7 @@ class A {
   foo(bar) => 0;''');
     addTestFile('''
   library libA;
-  part "${convertAbsolutePathToUri('/testA.dart')}";
+  part "${toUriStr('/testA.dart')}";
   import "dart:math";
   /// The [^]
   main(aaa, bbb) {}

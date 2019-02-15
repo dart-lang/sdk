@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
+import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/glob.dart';
@@ -74,6 +75,9 @@ abstract class AbstractAnalysisServer {
 
   /// The [ResourceProvider] using which paths are converted into [Resource]s.
   final OverlayResourceProvider resourceProvider;
+
+  /// The next modification stamp for a changed file in the [resourceProvider].
+  int overlayModificationStamp = 0;
 
   /// A list of the globs used to determine which files should be analyzed. The
   /// list is lazily created and should be accessed using [analyzedFilesGlobs].
@@ -228,6 +232,15 @@ abstract class AbstractAnalysisServer {
     return null;
   }
 
+  /// Return the unresolved unit for the file with the given [path].
+  ParsedUnitResult getParsedUnit(String path) {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return null;
+    }
+
+    return getAnalysisDriver(path)?.currentSession?.getParsedUnit(path);
+  }
+
   /// Return the resolved unit for the file with the given [path]. The file is
   /// analyzed in one of the analysis drivers to which the file was added,
   /// otherwise in the first driver, otherwise `null` is returned.
@@ -245,14 +258,5 @@ abstract class AbstractAnalysisServer {
     return driver
         .getResult(path, sendCachedToStream: sendCachedToStream)
         .catchError((_) => null);
-  }
-
-  /// Return the unresolved unit for the file with the given [path].
-  ParsedUnitResult getParsedUnit(String path) {
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return null;
-    }
-
-    return getAnalysisDriver(path)?.currentSession?.getParsedUnit(path);
   }
 }

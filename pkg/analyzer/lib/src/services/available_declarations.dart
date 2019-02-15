@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -20,19 +21,67 @@ import 'package:analyzer/src/summary/format.dart' as idl;
 import 'package:analyzer/src/summary/idl.dart' as idl;
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
+import 'package:analyzer/src/util/comment.dart';
 import 'package:convert/convert.dart';
+import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 /// A top-level public declaration.
 class Declaration {
-  final String name;
+  final String docComplete;
+  final String docSummary;
+  final bool isAbstract;
+  final bool isConst;
+  final bool isDeprecated;
+  final bool isFinal;
   final DeclarationKind kind;
+  final int locationOffset;
+  final String locationPath;
+  final int locationStartColumn;
+  final int locationStartLine;
+  final String name;
+  final String name2;
+  final String parameters;
+  final List<String> parameterNames;
+  final List<String> parameterTypes;
+  final int requiredParameterCount;
+  final String returnType;
+  final String typeParameters;
 
-  Declaration(this.name, this.kind);
+  List<String> _relevanceTags;
+
+  Declaration({
+    @required this.docComplete,
+    @required this.docSummary,
+    @required this.isAbstract,
+    @required this.isConst,
+    @required this.isDeprecated,
+    @required this.isFinal,
+    @required this.kind,
+    @required this.locationOffset,
+    @required this.locationPath,
+    @required this.locationStartColumn,
+    @required this.locationStartLine,
+    @required this.name,
+    @required this.name2,
+    @required this.parameters,
+    @required this.parameterNames,
+    @required this.parameterTypes,
+    @required List<String> relevanceTags,
+    @required this.requiredParameterCount,
+    @required this.returnType,
+    @required this.typeParameters,
+  }) : _relevanceTags = relevanceTags;
+
+  List<String> get relevanceTags => _relevanceTags;
 
   @override
   String toString() {
-    return '($name, $kind)';
+    if (name2 == null) {
+      return '($kind, $name)';
+    } else {
+      return '($kind, $name, $name2)';
+    }
   }
 }
 
@@ -41,9 +90,12 @@ enum DeclarationKind {
   CLASS,
   CLASS_TYPE_ALIAS,
   ENUM,
+  ENUM_CONSTANT,
   FUNCTION,
   FUNCTION_TYPE_ALIAS,
+  GETTER,
   MIXIN,
+  SETTER,
   VARIABLE
 }
 
@@ -123,7 +175,11 @@ class DeclarationsContext {
     }
 
     var contextLibraries = <Library>[];
-    _addLibrariesWithPaths(contextLibraries, contextPathList);
+    _addLibrariesWithPaths(
+      contextLibraries,
+      contextPathList,
+      excludingLibraryOfPath: path,
+    );
 
     return Libraries(sdkLibraries, dependencyLibraries, contextLibraries);
   }
@@ -167,8 +223,20 @@ class DeclarationsContext {
     }
   }
 
-  void _addLibrariesWithPaths(List<Library> libraries, List<String> pathList) {
+  void _addContextFile(String path) {
+    if (!_contextPathList.contains(path)) {
+      _contextPathList.add(path);
+    }
+  }
+
+  void _addLibrariesWithPaths(List<Library> libraries, List<String> pathList,
+      {String excludingLibraryOfPath}) {
+    var excludedFile = _tracker._pathToFile[excludingLibraryOfPath];
+    var excludedLibraryPath = (excludedFile?.library ?? excludedFile)?.path;
+
     for (var path in pathList) {
+      if (path == excludedLibraryPath) continue;
+
       var file = _tracker._pathToFile[path];
       if (file != null && file.isLibrary) {
         var library = _tracker._idToLibrary[file.id];
@@ -293,11 +361,13 @@ class DeclarationsContext {
     // ignore: deprecated_member_use_from_same_package
     var sdk = _analysisContext.currentSession.sourceFactory.dartSdk;
     for (var uriStr in sdk.uris) {
-      var uri = Uri.parse(uriStr);
-      var path = _resolveUri(uri);
-      if (path != null) {
-        _sdkLibraryPathList.add(path);
-        _tracker._addFile(this, path);
+      if (!uriStr.startsWith('dart:_')) {
+        var uri = Uri.parse(uriStr);
+        var path = _resolveUri(uri);
+        if (path != null) {
+          _sdkLibraryPathList.add(path);
+          _tracker._addFile(this, path);
+        }
       }
     }
   }
@@ -383,7 +453,23 @@ class DeclarationsTracker {
   /// be invoked to send updates to [changes] that reflect changes to the
   /// library of the file, and other libraries that export it.
   void changeFile(String path) {
+    if (!path.endsWith('.dart')) return;
+
     _changedPaths.add(path);
+  }
+
+  /// Discard all contexts and libraries, notify the [changes] stream that
+  /// these libraries are removed.
+  void discardContexts() {
+    var libraryIdList = _idToLibrary.keys.toList();
+    _changesController.add(LibraryChange._([], libraryIdList));
+
+    _contexts.clear();
+    _pathToFile.clear();
+    _uriToFile.clear();
+    _idToLibrary.clear();
+    _changedPaths.clear();
+    _scheduledFiles.clear();
   }
 
   /// Do a single piece of work.
@@ -404,6 +490,12 @@ class DeclarationsTracker {
 
       if (!file.isLibrary) return;
 
+      if (file.isSent) {
+        return;
+      } else {
+        file.isSent = true;
+      }
+
       if (file.exportedDeclarations == null) {
         new _LibraryWalker().walkLibrary(file);
         assert(file.exportedDeclarations != null);
@@ -413,6 +505,7 @@ class DeclarationsTracker {
         file.id,
         file.path,
         file.uri,
+        file.isLibraryDeprecated,
         file.exportedDeclarations,
       );
       _idToLibrary[file.id] = library;
@@ -422,13 +515,15 @@ class DeclarationsTracker {
     }
   }
 
-  /// The [analysisContext] is being disposed, it does not need declarations.
-  void removeContext(AnalysisContext analysisContext) {
-    _contexts.remove(analysisContext);
+  /// Return the context associated with the given [analysisContext], or `null`
+  /// if there is none.
+  DeclarationsContext getContext(AnalysisContext analysisContext) {
+    return _contexts[analysisContext];
+  }
 
-    _scheduledFiles.removeWhere((f) {
-      return f.context._analysisContext == analysisContext;
-    });
+  /// Return the library with the given [id], or `null` if there is none.
+  Library getLibrary(int id) {
+    return _idToLibrary[id];
   }
 
   void _addFile(DeclarationsContext context, String path) {
@@ -446,6 +541,28 @@ class DeclarationsTracker {
         assert(library.exportedDeclarations != null);
       }
     }
+  }
+
+  DeclarationsContext _findContextOfPath(String path) {
+    // Prefer the context in which the path is analyzed.
+    for (var context in _contexts.values) {
+      if (context._analysisContext.contextRoot.isAnalyzed(path)) {
+        context._addContextFile(path);
+        return context;
+      }
+    }
+
+    // The path must have the URI with one of the supported URI schemes.
+    for (var context in _contexts.values) {
+      var uri = context._restoreUri(path);
+      if (uri != null) {
+        if (uri.isScheme('dart') || uri.isScheme('package')) {
+          return context;
+        }
+      }
+    }
+
+    return null;
   }
 
   _File _getFileByPath(DeclarationsContext context, String path) {
@@ -488,14 +605,7 @@ class DeclarationsTracker {
   }
 
   void _performChangeFile(String path) {
-    DeclarationsContext containingContext;
-    for (var context in _contexts.values) {
-      var uri = context._restoreUri(path);
-      if (uri != null) {
-        containingContext = context;
-        break;
-      }
-    }
+    var containingContext = _findContextOfPath(path);
     if (containingContext == null) return;
 
     var file = _getFileByPath(containingContext, path);
@@ -517,16 +627,20 @@ class DeclarationsTracker {
 
     var changedLibraries = <Library>[];
     var removedLibraries = <int>[];
-    for (var library in invalidatedLibraries) {
-      if (library.exists) {
-        changedLibraries.add(Library._(
-          library.id,
-          library.path,
-          library.uri,
-          library.exportedDeclarations,
-        ));
+    for (var libraryFile in invalidatedLibraries) {
+      if (libraryFile.exists) {
+        var library = Library._(
+          libraryFile.id,
+          libraryFile.path,
+          libraryFile.uri,
+          libraryFile.isLibraryDeprecated,
+          libraryFile.exportedDeclarations,
+        );
+        _idToLibrary[library.id] = library;
+        changedLibraries.add(library);
       } else {
-        removedLibraries.add(library.id);
+        _idToLibrary.remove(libraryFile.id);
+        removedLibraries.add(libraryFile.id);
       }
     }
     _changesController.add(
@@ -554,14 +668,21 @@ class Library {
   /// The URI of the library.
   final Uri uri;
 
+  /// Is `true` if the library has `@deprecated` annotation, so it probably
+  /// deprecated.  But we don't actually resolve the annotation, so it might be
+  /// a false positive.
+  final bool isDeprecated;
+
   /// All public declaration that the library declares or (re)exports.
   final List<Declaration> declarations;
 
-  Library._(this.id, this.path, this.uri, this.declarations);
+  Library._(this.id, this.path, this.uri, this.isDeprecated, this.declarations);
+
+  String get uriStr => '$uri';
 
   @override
   String toString() {
-    return '(uri: $uri, path: $path)';
+    return '(id: $id, uri: $uri, path: $path)';
   }
 }
 
@@ -578,6 +699,188 @@ class LibraryChange {
   LibraryChange._(this.changed, this.removed);
 }
 
+class RelevanceTags {
+  static List<String> _forDeclaration(String uriStr, Declaration declaration) {
+    switch (declaration.kind) {
+      case DeclarationKind.CLASS:
+      case DeclarationKind.CLASS_TYPE_ALIAS:
+      case DeclarationKind.ENUM:
+      case DeclarationKind.MIXIN:
+      case DeclarationKind.FUNCTION_TYPE_ALIAS:
+        var name = declaration.name;
+        return <String>['$uriStr::$name'];
+      case DeclarationKind.ENUM_CONSTANT:
+        var name2 = declaration.name2;
+        return <String>['$uriStr::$name2'];
+      default:
+        return null;
+    }
+  }
+
+  static List<String> _forExpression(Expression expression) {
+    if (expression is BooleanLiteral) return const ['dart:core::bool'];
+    if (expression is DoubleLiteral) return const ['dart:core::double'];
+    if (expression is IntegerLiteral) return const ['dart:core::int'];
+    if (expression is StringLiteral) return const ['dart:core::String'];
+
+    if (expression is ListLiteral || expression is ListLiteral2) {
+      return const ['dart:core::List'];
+    }
+    if (expression is MapLiteral || expression is MapLiteral2) {
+      return const ['dart:core::Map'];
+    }
+    if (expression is SetLiteral || expression is SetLiteral2) {
+      return const ['dart:core::Set'];
+    }
+
+    return null;
+  }
+}
+
+class _DeclarationStorage {
+  static const fieldDocMask = 1 << 0;
+  static const fieldName2Mask = 1 << 1;
+  static const fieldParametersMask = 1 << 2;
+  static const fieldReturnTypeMask = 1 << 3;
+  static const fieldTypeParametersMask = 1 << 4;
+
+  static Declaration fromIdl(String path, idl.AvailableDeclaration d) {
+    var fieldMask = d.fieldMask;
+    var hasDoc = fieldMask & fieldDocMask != 0;
+    var hasName2 = fieldMask & fieldName2Mask != 0;
+    var hasParameters = fieldMask & fieldParametersMask != 0;
+    var hasReturnType = fieldMask & fieldReturnTypeMask != 0;
+    var hasTypeParameters = fieldMask & fieldTypeParametersMask != 0;
+
+    var kind = kindFromIdl(d.kind);
+
+    var relevanceTags = d.relevanceTags.toList();
+    if (relevanceTags.isEmpty) {
+      relevanceTags = null;
+    }
+
+    return Declaration(
+      docComplete: hasDoc ? d.docComplete : null,
+      docSummary: hasDoc ? d.docSummary : null,
+      isAbstract: d.isAbstract,
+      isConst: d.isConst,
+      isDeprecated: d.isDeprecated,
+      isFinal: d.isFinal,
+      kind: kind,
+      locationOffset: d.locationOffset,
+      locationPath: path,
+      locationStartColumn: d.locationStartColumn,
+      locationStartLine: d.locationStartLine,
+      name: d.name,
+      name2: hasName2 ? d.name2 : null,
+      parameters: hasParameters ? d.parameters : null,
+      parameterNames: hasParameters ? d.parameterNames : null,
+      parameterTypes: hasParameters ? d.parameterTypes.toList() : null,
+      relevanceTags: relevanceTags,
+      requiredParameterCount: hasParameters ? d.requiredParameterCount : null,
+      returnType: hasReturnType ? d.returnType : null,
+      typeParameters: hasTypeParameters ? d.typeParameters : null,
+    );
+  }
+
+  static DeclarationKind kindFromIdl(idl.AvailableDeclarationKind kind) {
+    switch (kind) {
+      case idl.AvailableDeclarationKind.CLASS:
+        return DeclarationKind.CLASS;
+      case idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS:
+        return DeclarationKind.CLASS_TYPE_ALIAS;
+      case idl.AvailableDeclarationKind.ENUM:
+        return DeclarationKind.ENUM;
+      case idl.AvailableDeclarationKind.ENUM_CONSTANT:
+        return DeclarationKind.ENUM_CONSTANT;
+      case idl.AvailableDeclarationKind.FUNCTION:
+        return DeclarationKind.FUNCTION;
+      case idl.AvailableDeclarationKind.FUNCTION_TYPE_ALIAS:
+        return DeclarationKind.FUNCTION_TYPE_ALIAS;
+      case idl.AvailableDeclarationKind.GETTER:
+        return DeclarationKind.GETTER;
+      case idl.AvailableDeclarationKind.MIXIN:
+        return DeclarationKind.MIXIN;
+      case idl.AvailableDeclarationKind.SETTER:
+        return DeclarationKind.SETTER;
+      case idl.AvailableDeclarationKind.VARIABLE:
+        return DeclarationKind.VARIABLE;
+      default:
+        throw StateError('Unknown kind: $kind');
+    }
+  }
+
+  static idl.AvailableDeclarationKind kindToIdl(DeclarationKind kind) {
+    switch (kind) {
+      case DeclarationKind.CLASS:
+        return idl.AvailableDeclarationKind.CLASS;
+      case DeclarationKind.CLASS_TYPE_ALIAS:
+        return idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS;
+      case DeclarationKind.ENUM:
+        return idl.AvailableDeclarationKind.ENUM;
+      case DeclarationKind.ENUM_CONSTANT:
+        return idl.AvailableDeclarationKind.ENUM_CONSTANT;
+      case DeclarationKind.FUNCTION:
+        return idl.AvailableDeclarationKind.FUNCTION;
+      case DeclarationKind.FUNCTION_TYPE_ALIAS:
+        return idl.AvailableDeclarationKind.FUNCTION_TYPE_ALIAS;
+      case DeclarationKind.GETTER:
+        return idl.AvailableDeclarationKind.GETTER;
+      case DeclarationKind.MIXIN:
+        return idl.AvailableDeclarationKind.MIXIN;
+      case DeclarationKind.SETTER:
+        return idl.AvailableDeclarationKind.SETTER;
+      case DeclarationKind.VARIABLE:
+        return idl.AvailableDeclarationKind.VARIABLE;
+      default:
+        throw StateError('Unknown kind: $kind');
+    }
+  }
+
+  static idl.AvailableDeclarationBuilder toIdl(Declaration d) {
+    var fieldMask = 0;
+    if (d.docComplete != null) {
+      fieldMask |= fieldDocMask;
+    }
+    if (d.name2 != null) {
+      fieldMask |= fieldName2Mask;
+    }
+    if (d.parameters != null) {
+      fieldMask |= fieldParametersMask;
+    }
+    if (d.returnType != null) {
+      fieldMask |= fieldReturnTypeMask;
+    }
+    if (d.typeParameters != null) {
+      fieldMask |= fieldTypeParametersMask;
+    }
+
+    var idlKind = kindToIdl(d.kind);
+    return idl.AvailableDeclarationBuilder(
+      docComplete: d.docComplete,
+      docSummary: d.docSummary,
+      fieldMask: fieldMask,
+      isAbstract: d.isAbstract,
+      isConst: d.isConst,
+      isDeprecated: d.isDeprecated,
+      isFinal: d.isFinal,
+      kind: idlKind,
+      locationOffset: d.locationOffset,
+      locationStartColumn: d.locationStartColumn,
+      locationStartLine: d.locationStartLine,
+      name: d.name,
+      name2: d.name2,
+      parameters: d.parameters,
+      parameterNames: d.parameterNames,
+      parameterTypes: d.parameterTypes,
+      relevanceTags: d.relevanceTags,
+      requiredParameterCount: d.requiredParameterCount,
+      returnType: d.returnType,
+      typeParameters: d.typeParameters,
+    );
+  }
+}
+
 class _Export {
   final Uri uri;
   final List<_ExportCombinator> combinators;
@@ -588,12 +891,13 @@ class _Export {
 
   Iterable<Declaration> filter(List<Declaration> declarations) {
     return declarations.where((d) {
+      var name = d.name2 ?? d.name;
       for (var combinator in combinators) {
         if (combinator.shows.isNotEmpty) {
-          if (!combinator.shows.contains(d.name)) return false;
+          if (!combinator.shows.contains(name)) return false;
         }
         if (combinator.hides.isNotEmpty) {
-          if (combinator.hides.contains(d.name)) return false;
+          if (combinator.hides.contains(name)) return false;
         }
       }
       return true;
@@ -610,7 +914,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 1;
+  static const int DATA_VERSION = 5;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -623,6 +927,7 @@ class _File {
 
   bool exists = false;
   bool isLibrary = false;
+  bool isLibraryDeprecated = false;
   List<_Export> exports = [];
   List<_Part> parts = [];
 
@@ -636,7 +941,12 @@ class _File {
   List<Declaration> libraryDeclarations = [];
   List<Declaration> exportedDeclarations;
 
+  /// If `true`, then this library has already been sent to the client.
+  bool isSent = false;
+
   _File(this.tracker, this.path, this.uri);
+
+  String get uriStr => uri.toString();
 
   void refresh(DeclarationsContext context) {
     var resource = tracker._resourceProvider.getFile(path);
@@ -718,6 +1028,7 @@ class _File {
       for (var part in parts) {
         libraryDeclarations.addAll(part.file.fileDeclarations);
       }
+      _computeRelevanceTagsForLibraryDeclarations();
     }
   }
 
@@ -728,16 +1039,8 @@ class _File {
     libraryDeclarations = null;
     exportedDeclarations = null;
 
-    void addDeclaration(Identifier name, DeclarationKind kind) {
-      if (!Identifier.isPrivateName(name.name)) {
-        fileDeclarations.add(Declaration(name.name, kind));
-      }
-    }
-
     for (var astDirective in unit.directives) {
-      if (astDirective is PartOfDirective) {
-        isLibrary = false;
-      } else if (astDirective is ExportDirective) {
+      if (astDirective is ExportDirective) {
         var uri = _uriFromAst(astDirective.uri);
         if (uri == null) continue;
 
@@ -757,32 +1060,188 @@ class _File {
         }
 
         exports.add(_Export(uri, combinators));
+      } else if (astDirective is LibraryDirective) {
+        isLibraryDeprecated = _hasDeprecatedAnnotation(astDirective);
       } else if (astDirective is PartDirective) {
         var uri = _uriFromAst(astDirective.uri);
         if (uri == null) continue;
 
         parts.add(_Part(uri));
+      } else if (astDirective is PartOfDirective) {
+        isLibrary = false;
+      }
+    }
+
+    var lineInfo = unit.lineInfo;
+
+    String docComplete = null;
+    String docSummary = null;
+
+    void setDartDoc(AnnotatedNode node) {
+      if (node.documentationComment != null) {
+        var rawText = getCommentNodeRawText(node.documentationComment);
+        docComplete = getDartDocPlainText(rawText);
+        docSummary = getDartDocSummary(docComplete);
+      } else {
+        docComplete = null;
+        docSummary = null;
+      }
+    }
+
+    void addDeclaration({
+      bool isAbstract = false,
+      bool isConst = false,
+      bool isDeprecated = false,
+      bool isFinal = false,
+      @required DeclarationKind kind,
+      @required Identifier name,
+      Identifier name2,
+      String parameters,
+      List<String> parameterNames,
+      List<String> parameterTypes,
+      List<String> relevanceTags,
+      int requiredParameterCount,
+      String returnType,
+      String typeParameters,
+    }) {
+      if (!Identifier.isPrivateName(name.name)) {
+        var locationOffset = name.offset;
+        var lineLocation = lineInfo.getLocation(locationOffset);
+        fileDeclarations.add(Declaration(
+          docComplete: docComplete,
+          docSummary: docSummary,
+          isAbstract: isAbstract,
+          isConst: isConst,
+          isDeprecated: isDeprecated,
+          isFinal: isFinal,
+          kind: kind,
+          locationOffset: locationOffset,
+          locationPath: path,
+          name: name.name,
+          name2: name2?.name,
+          locationStartColumn: lineLocation.columnNumber,
+          locationStartLine: lineLocation.lineNumber,
+          parameters: parameters,
+          parameterNames: parameterNames,
+          parameterTypes: parameterTypes,
+          relevanceTags: relevanceTags,
+          requiredParameterCount: requiredParameterCount,
+          returnType: returnType,
+          typeParameters: typeParameters,
+        ));
       }
     }
 
     for (var node in unit.declarations) {
+      setDartDoc(node);
+      var isDeprecated = _hasDeprecatedAnnotation(node);
+
       if (node is ClassDeclaration) {
-        addDeclaration(node.name, DeclarationKind.CLASS);
+        addDeclaration(
+          isAbstract: node.isAbstract,
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.CLASS,
+          name: node.name,
+        );
       } else if (node is ClassTypeAlias) {
-        addDeclaration(node.name, DeclarationKind.CLASS_TYPE_ALIAS);
+        addDeclaration(
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.CLASS_TYPE_ALIAS,
+          name: node.name,
+        );
       } else if (node is EnumDeclaration) {
-        addDeclaration(node.name, DeclarationKind.ENUM);
+        addDeclaration(
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.ENUM,
+          name: node.name,
+        );
+        for (var constant in node.constants) {
+          setDartDoc(constant);
+          var isDeprecated = _hasDeprecatedAnnotation(constant);
+          addDeclaration(
+            isDeprecated: isDeprecated,
+            kind: DeclarationKind.ENUM_CONSTANT,
+            name: constant.name,
+            name2: node.name,
+          );
+        }
       } else if (node is FunctionDeclaration) {
-        addDeclaration(node.name, DeclarationKind.FUNCTION);
+        var functionExpression = node.functionExpression;
+        var parameters = functionExpression.parameters;
+        if (node.isGetter) {
+          addDeclaration(
+            isDeprecated: isDeprecated,
+            kind: DeclarationKind.GETTER,
+            name: node.name,
+            returnType: _getTypeAnnotationString(node.returnType),
+          );
+        } else if (node.isSetter) {
+          addDeclaration(
+            isDeprecated: isDeprecated,
+            kind: DeclarationKind.SETTER,
+            name: node.name,
+            parameters: parameters.toSource(),
+            parameterNames: _getFormalParameterNames(parameters),
+            parameterTypes: _getFormalParameterTypes(parameters),
+            requiredParameterCount:
+                _getFormalParameterRequiredCount(parameters),
+          );
+        } else {
+          addDeclaration(
+            isDeprecated: isDeprecated,
+            kind: DeclarationKind.FUNCTION,
+            name: node.name,
+            parameters: parameters.toSource(),
+            parameterNames: _getFormalParameterNames(parameters),
+            parameterTypes: _getFormalParameterTypes(parameters),
+            requiredParameterCount:
+                _getFormalParameterRequiredCount(parameters),
+            returnType: _getTypeAnnotationString(node.returnType),
+            typeParameters: functionExpression.typeParameters?.toSource(),
+          );
+        }
       } else if (node is GenericTypeAlias) {
-        addDeclaration(node.name, DeclarationKind.FUNCTION_TYPE_ALIAS);
+        var functionType = node.functionType;
+        var parameters = functionType.parameters;
+        addDeclaration(
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.FUNCTION_TYPE_ALIAS,
+          name: node.name,
+          parameters: parameters.toSource(),
+          parameterNames: _getFormalParameterNames(parameters),
+          parameterTypes: _getFormalParameterTypes(parameters),
+          requiredParameterCount: _getFormalParameterRequiredCount(parameters),
+          returnType: _getTypeAnnotationString(functionType.returnType),
+          typeParameters: functionType.typeParameters?.toSource(),
+        );
       } else if (node is MixinDeclaration) {
-        addDeclaration(node.name, DeclarationKind.MIXIN);
+        addDeclaration(
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.MIXIN,
+          name: node.name,
+        );
       } else if (node is TopLevelVariableDeclaration) {
+        var isConst = node.variables.isConst;
+        var isFinal = node.variables.isFinal;
         for (var variable in node.variables.variables) {
-          addDeclaration(variable.name, DeclarationKind.VARIABLE);
+          addDeclaration(
+            isConst: isConst,
+            isDeprecated: isDeprecated,
+            isFinal: isFinal,
+            kind: DeclarationKind.VARIABLE,
+            name: variable.name,
+            relevanceTags: RelevanceTags._forExpression(variable.initializer),
+            returnType: _getTypeAnnotationString(node.variables.type),
+          );
         }
       }
+    }
+  }
+
+  void _computeRelevanceTagsForLibraryDeclarations() {
+    for (var declaration in libraryDeclarations) {
+      declaration._relevanceTags ??=
+          RelevanceTags._forDeclaration(uriStr, declaration);
     }
   }
 
@@ -795,6 +1254,7 @@ class _File {
   void _putFileDeclarationsToByteStore(String contentKey) {
     var builder = idl.AvailableFileBuilder(
       isLibrary: isLibrary,
+      isLibraryDeprecated: isLibraryDeprecated,
       exports: exports.map((e) {
         return idl.AvailableFileExportBuilder(
           uri: e.uri.toString(),
@@ -806,8 +1266,7 @@ class _File {
       }).toList(),
       parts: parts.map((p) => p.uri.toString()).toList(),
       declarations: fileDeclarations.map((d) {
-        var idlKind = _kindToIdl(d.kind);
-        return idl.AvailableDeclarationBuilder(kind: idlKind, name: d.name);
+        return _DeclarationStorage.toIdl(d);
       }).toList(),
     );
     var bytes = builder.toBuffer();
@@ -818,6 +1277,7 @@ class _File {
     var idlFile = idl.AvailableFile.fromBuffer(bytes);
 
     isLibrary = idlFile.isLibrary;
+    isLibraryDeprecated = idlFile.isLibraryDeprecated;
 
     exports = idlFile.exports.map((e) {
       return _Export(
@@ -834,51 +1294,66 @@ class _File {
     }).toList();
 
     fileDeclarations = idlFile.declarations.map((e) {
-      var kind = _kindFromIdl(e.kind);
-      return Declaration(e.name, kind);
+      return _DeclarationStorage.fromIdl(path, e);
     }).toList();
   }
 
-  static DeclarationKind _kindFromIdl(idl.AvailableDeclarationKind kind) {
-    switch (kind) {
-      case idl.AvailableDeclarationKind.CLASS:
-        return DeclarationKind.CLASS;
-      case idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS:
-        return DeclarationKind.CLASS_TYPE_ALIAS;
-      case idl.AvailableDeclarationKind.ENUM:
-        return DeclarationKind.ENUM;
-      case idl.AvailableDeclarationKind.FUNCTION:
-        return DeclarationKind.FUNCTION;
-      case idl.AvailableDeclarationKind.FUNCTION_TYPE_ALIAS:
-        return DeclarationKind.FUNCTION_TYPE_ALIAS;
-      case idl.AvailableDeclarationKind.MIXIN:
-        return DeclarationKind.MIXIN;
-      case idl.AvailableDeclarationKind.VARIABLE:
-        return DeclarationKind.VARIABLE;
-      default:
-        throw StateError('Unknown kind: $kind');
+  static List<String> _getFormalParameterNames(FormalParameterList parameters) {
+    if (parameters == null) return const <String>[];
+
+    var names = <String>[];
+    for (var parameter in parameters.parameters) {
+      var name = parameter.identifier?.name ?? '';
+      names.add(name);
     }
+    return names;
   }
 
-  static idl.AvailableDeclarationKind _kindToIdl(DeclarationKind kind) {
-    switch (kind) {
-      case DeclarationKind.CLASS:
-        return idl.AvailableDeclarationKind.CLASS;
-      case DeclarationKind.CLASS_TYPE_ALIAS:
-        return idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS;
-      case DeclarationKind.ENUM:
-        return idl.AvailableDeclarationKind.ENUM;
-      case DeclarationKind.FUNCTION:
-        return idl.AvailableDeclarationKind.FUNCTION;
-      case DeclarationKind.FUNCTION_TYPE_ALIAS:
-        return idl.AvailableDeclarationKind.FUNCTION_TYPE_ALIAS;
-      case DeclarationKind.MIXIN:
-        return idl.AvailableDeclarationKind.MIXIN;
-      case DeclarationKind.VARIABLE:
-        return idl.AvailableDeclarationKind.VARIABLE;
-      default:
-        throw StateError('Unknown kind: $kind');
+  static int _getFormalParameterRequiredCount(FormalParameterList parameters) {
+    if (parameters == null) return null;
+
+    return parameters.parameters
+        .takeWhile((parameter) => parameter.isRequired)
+        .length;
+  }
+
+  static String _getFormalParameterType(FormalParameter parameter) {
+    if (parameter is DefaultFormalParameter) {
+      DefaultFormalParameter defaultFormalParameter = parameter;
+      parameter = defaultFormalParameter.parameter;
     }
+    if (parameter is SimpleFormalParameter) {
+      return _getTypeAnnotationString(parameter.type);
+    }
+    return '';
+  }
+
+  static List<String> _getFormalParameterTypes(FormalParameterList parameters) {
+    if (parameters == null) return null;
+
+    var types = <String>[];
+    for (var parameter in parameters.parameters) {
+      var type = _getFormalParameterType(parameter);
+      types.add(type);
+    }
+    return types;
+  }
+
+  static String _getTypeAnnotationString(TypeAnnotation typeAnnotation) {
+    return typeAnnotation?.toSource() ?? '';
+  }
+
+  /// Return `true` if the [node] is probably deprecated.
+  static bool _hasDeprecatedAnnotation(AnnotatedNode node) {
+    for (var annotation in node.metadata) {
+      var name = annotation.name;
+      if (name is SimpleIdentifier) {
+        if (name.name == 'deprecated' || name.name == 'Deprecated') {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   static CompilationUnit _parse(String content) {
@@ -890,7 +1365,10 @@ class _File {
     var token = scanner.tokenize();
 
     var parser = new Parser(source, errorListener, useFasta: true);
-    return parser.parseCompilationUnit(token);
+    var unit = parser.parseCompilationUnit(token);
+    unit.lineInfo = LineInfo(scanner.lineStarts);
+
+    return unit;
   }
 
   static String _readContent(File resource) {
@@ -903,7 +1381,8 @@ class _File {
 
   static Uri _uriFromAst(StringLiteral astUri) {
     if (astUri is SimpleStringLiteral) {
-      var uriStr = astUri.value;
+      var uriStr = astUri.value.trim();
+      if (uriStr.isEmpty) return null;
       try {
         return Uri.parse(uriStr);
       } catch (_) {}
@@ -986,7 +1465,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   static Set<Declaration> _newDeclarationSet() {
     return HashSet<Declaration>(
       hashCode: (e) => e.name.hashCode,
-      equals: (a, b) => a.name == b.name,
+      equals: (a, b) => a.name == b.name && a.name2 == b.name2,
     );
   }
 }

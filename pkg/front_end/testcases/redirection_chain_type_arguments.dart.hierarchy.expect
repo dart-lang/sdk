@@ -60,7 +60,7 @@ B:
 C:
   superclasses:
     Object
-      -> A<U>
+      -> A<V>
         -> B<V, S>
   interfaces:
   classMembers:

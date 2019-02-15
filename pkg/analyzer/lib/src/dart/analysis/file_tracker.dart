@@ -10,8 +10,10 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 /**
  * Callback used by [FileTracker] to report to its client that files have been
  * added, changed, or removed, and therefore more analysis may be necessary.
+ * [path] is the path of the file that was added, changed, or removed,
+ * or `null` if multiple files were added, changed, or removed.
  */
-typedef void FileTrackerChangeHook();
+typedef void FileTrackerChangeHook(String path);
 
 /**
  * Maintains the file system state needed by the analysis driver, as well as
@@ -147,7 +149,7 @@ class FileTracker {
     _fsState.markFileForReading(path);
     addedFiles.add(path);
     _pendingFiles.add(path);
-    _changeHook();
+    _changeHook(path);
   }
 
   /**
@@ -156,7 +158,7 @@ class FileTracker {
   void addFiles(Iterable<String> paths) {
     addedFiles.addAll(paths);
     _pendingFiles.addAll(paths);
-    _changeHook();
+    _changeHook(null);
   }
 
   /**
@@ -168,7 +170,7 @@ class FileTracker {
       _pendingChangedFiles.add(path);
     }
     _fsState.markFileForReading(path);
-    _changeHook();
+    _changeHook(path);
   }
 
   /**
@@ -207,7 +209,7 @@ class FileTracker {
     // files seems extreme.
     _fsState.removeFile(path);
     _pendingFiles.addAll(addedFiles);
-    _changeHook();
+    _changeHook(path);
   }
 
   /**

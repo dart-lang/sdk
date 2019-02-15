@@ -23,6 +23,8 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../src/dart/resolution/driver_resolution.dart';
+import '../util/element_type_matchers.dart';
 import '../utils.dart';
 import 'analysis_context_factory.dart';
 import 'resolver_test_case.dart';
@@ -30,15 +32,11 @@ import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ElementResolverCodeTest);
+    defineReflectiveTests(AnnotationElementResolverTest);
     defineReflectiveTests(ElementResolverTest);
     defineReflectiveTests(PreviewDart2Test);
   });
 }
-
-const _isClassElement = const TypeMatcher<ClassElement>();
-
-const _isConstructorElement = const TypeMatcher<ConstructorElement>();
 
 /// Wrapper around the test package's `fail` function.
 ///
@@ -49,12 +47,10 @@ void _fail(String message) {
   fail(message);
 }
 
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
 @reflectiveTest
-class ElementResolverCodeTest extends ResolverTestCase {
-  test_annotation_class_namedConstructor() async {
-    addNamedSource('/a.dart', r'''
+class AnnotationElementResolverTest extends DriverResolutionTest {
+  test_class_namedConstructor() async {
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   const A.named();
 }
@@ -64,10 +60,10 @@ class A {
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new TypeMatcher<ClassElement>());
+      expect(name1.staticElement, isClassElement);
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'A');
       expect(name2, isNotNull);
-      expect(name2.staticElement, new TypeMatcher<ConstructorElement>());
+      expect(name2.staticElement, isConstructorElement);
       expect(
           resolutionMap.staticElementForIdentifier(name2).displayName, 'named');
       expect(name3, isNull);
@@ -83,8 +79,8 @@ class A {
     });
   }
 
-  test_annotation_class_prefixed_namedConstructor() async {
-    addNamedSource('/a.dart', r'''
+  test_class_prefixed_namedConstructor() async {
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   const A.named();
 }
@@ -94,13 +90,13 @@ class A {
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new TypeMatcher<PrefixElement>());
+      expect(name1.staticElement, isPrefixElement);
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'p');
       expect(name2, isNotNull);
-      expect(name2.staticElement, new TypeMatcher<ClassElement>());
+      expect(name2.staticElement, isClassElement);
       expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'A');
       expect(name3, isNotNull);
-      expect(name3.staticElement, new TypeMatcher<ConstructorElement>());
+      expect(name3.staticElement, isConstructorElement);
       expect(
           resolutionMap.staticElementForIdentifier(name3).displayName, 'named');
       if (annotationElement is ConstructorElement) {
@@ -115,8 +111,8 @@ class A {
     });
   }
 
-  test_annotation_class_prefixed_staticConstField() async {
-    addNamedSource('/a.dart', r'''
+  test_class_prefixed_staticConstField() async {
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   static const V = 0;
 }
@@ -126,13 +122,13 @@ class A {
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new TypeMatcher<PrefixElement>());
+      expect(name1.staticElement, isPrefixElement);
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'p');
       expect(name2, isNotNull);
-      expect(name2.staticElement, new TypeMatcher<ClassElement>());
+      expect(name2.staticElement, isClassElement);
       expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'A');
       expect(name3, isNotNull);
-      expect(name3.staticElement, new TypeMatcher<PropertyAccessorElement>());
+      expect(name3.staticElement, isPropertyAccessorElement);
       expect(resolutionMap.staticElementForIdentifier(name3).displayName, 'V');
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name3.staticElement));
@@ -145,8 +141,8 @@ class A {
     });
   }
 
-  test_annotation_class_prefixed_unnamedConstructor() async {
-    addNamedSource('/a.dart', r'''
+  test_class_prefixed_unnamedConstructor() async {
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   const A();
 }
@@ -156,10 +152,10 @@ class A {
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new TypeMatcher<PrefixElement>());
+      expect(name1.staticElement, isPrefixElement);
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'p');
       expect(name2, isNotNull);
-      expect(name2.staticElement, new TypeMatcher<ClassElement>());
+      expect(name2.staticElement, isClassElement);
       expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'A');
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
@@ -173,8 +169,8 @@ class A {
     });
   }
 
-  test_annotation_class_staticConstField() async {
-    addNamedSource('/a.dart', r'''
+  test_class_staticConstField() async {
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   static const V = 0;
 }
@@ -184,10 +180,10 @@ class A {
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new TypeMatcher<ClassElement>());
+      expect(name1.staticElement, isClassElement);
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'A');
       expect(name2, isNotNull);
-      expect(name2.staticElement, new TypeMatcher<PropertyAccessorElement>());
+      expect(name2.staticElement, isPropertyAccessorElement);
       expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'V');
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
@@ -201,8 +197,8 @@ class A {
     });
   }
 
-  test_annotation_class_unnamedConstructor() async {
-    addNamedSource('/a.dart', r'''
+  test_class_unnamedConstructor() async {
+    newFile('/test/lib/a.dart', content: r'''
 class A {
   const A();
 }
@@ -212,7 +208,7 @@ class A {
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new TypeMatcher<ClassElement>());
+      expect(name1.staticElement, isClassElement);
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'A');
       expect(name2, isNull);
       expect(name3, isNull);
@@ -227,8 +223,8 @@ class A {
     });
   }
 
-  test_annotation_topLevelVariable() async {
-    addNamedSource('/a.dart', r'''
+  test_topLevelVariable() async {
+    newFile('/test/lib/a.dart', content: r'''
 const V = 0;
 ''');
     await _validateAnnotation('', '@V', (SimpleIdentifier name1,
@@ -236,14 +232,13 @@ const V = 0;
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new TypeMatcher<PropertyAccessorElement>());
+      expect(name1.staticElement, isPropertyAccessorElement);
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'V');
       expect(name2, isNull);
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name1.staticElement));
-        expect(annotationElement.enclosingElement,
-            new TypeMatcher<CompilationUnitElement>());
+        expect(annotationElement.enclosingElement, isCompilationUnitElement);
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
@@ -252,8 +247,8 @@ const V = 0;
     });
   }
 
-  test_annotation_topLevelVariable_prefixed() async {
-    addNamedSource('/a.dart', r'''
+  test_topLevelVariable_prefixed() async {
+    newFile('/test/lib/a.dart', content: r'''
 const V = 0;
 ''');
     await _validateAnnotation('as p', '@p.V', (SimpleIdentifier name1,
@@ -261,16 +256,15 @@ const V = 0;
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new TypeMatcher<PrefixElement>());
+      expect(name1.staticElement, isPrefixElement);
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'p');
       expect(name2, isNotNull);
-      expect(name2.staticElement, new TypeMatcher<PropertyAccessorElement>());
+      expect(name2.staticElement, isPropertyAccessorElement);
       expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'V');
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name2.staticElement));
-        expect(annotationElement.enclosingElement,
-            new TypeMatcher<CompilationUnitElement>());
+        expect(annotationElement.enclosingElement, isCompilationUnitElement);
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
@@ -284,12 +278,14 @@ const V = 0;
       String annotationText,
       validator(SimpleIdentifier name1, SimpleIdentifier name2,
           SimpleIdentifier name3, Element annotationElement)) async {
-    CompilationUnit unit = await resolveSource('''
+    addTestFile('''
 import 'a.dart' $annotationPrefix;
 $annotationText
 class C {}
 ''');
-    var clazz = unit.declarations.single as ClassDeclaration;
+    await resolveTestFile();
+
+    var clazz = findNode.classDeclaration('C');
     Annotation annotation = clazz.metadata.single;
     Identifier name = annotation.name;
     Element annotationElement = annotation.element;
@@ -1289,13 +1285,13 @@ main() {
     ExpressionStatement statement = statements[0];
     InstanceCreationExpression creation = statement.expression;
 
-    expect(creation.staticElement, _isConstructorElement);
+    expect(creation.staticElement, isConstructorElement);
     expect(creation.staticType, isNotNull);
 
-    expect(creation.constructorName.staticElement, _isConstructorElement);
+    expect(creation.constructorName.staticElement, isConstructorElement);
 
     expect(creation.constructorName.type.type, isNotNull);
-    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+    expect(creation.constructorName.type.name.staticElement, isClassElement);
 
     expect(creation.constructorName.name, isNull);
   }
@@ -1323,13 +1319,13 @@ main() {
     InstanceCreationExpression creation = statement.expression;
     ConstructorElement constructor = creation.staticElement;
 
-    expect(constructor, _isConstructorElement);
+    expect(constructor, isConstructorElement);
     expect(creation.staticType, isNotNull);
 
     expect(creation.constructorName.staticElement, constructor);
 
     expect(creation.constructorName.type.type, isNotNull);
-    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+    expect(creation.constructorName.type.name.staticElement, isClassElement);
 
     expect(creation.constructorName.name, isNull);
 
@@ -1361,13 +1357,13 @@ main() {
     InstanceCreationExpression creation = statement.expression;
     ConstructorElement constructor = creation.staticElement;
 
-    expect(constructor, _isConstructorElement);
+    expect(constructor, isConstructorElement);
     expect(creation.staticType, isNotNull);
 
     expect(creation.constructorName.staticElement, constructor);
 
     expect(creation.constructorName.type.type, isNotNull);
-    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+    expect(creation.constructorName.type.name.staticElement, isClassElement);
 
     expect(creation.constructorName.name, isNull);
 
@@ -1397,13 +1393,13 @@ main() {
     InstanceCreationExpression creation = statement.expression;
     ConstructorElement constructor = creation.staticElement;
 
-    expect(constructor, _isConstructorElement);
+    expect(constructor, isConstructorElement);
     expect(creation.staticType, isNotNull);
 
     expect(creation.constructorName.staticElement, constructor);
 
     expect(creation.constructorName.type.type, isNotNull);
-    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+    expect(creation.constructorName.type.name.staticElement, isClassElement);
 
     expect(creation.constructorName.name.staticElement, constructor);
   }
@@ -1435,13 +1431,13 @@ main() {
     InstanceCreationExpression creation = statement.expression;
     ConstructorElement constructor = creation.staticElement;
 
-    expect(constructor, _isConstructorElement);
+    expect(constructor, isConstructorElement);
     expect(creation.staticType, isNotNull);
 
     expect(creation.constructorName.staticElement, constructor);
 
     expect(creation.constructorName.type.type, isNotNull);
-    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+    expect(creation.constructorName.type.name.staticElement, isClassElement);
 
     expect(creation.constructorName.name, isNull);
   }
@@ -1472,13 +1468,13 @@ main() {
     InstanceCreationExpression creation = statement.expression;
     ConstructorElement constructor = creation.staticElement;
 
-    expect(constructor, _isConstructorElement);
+    expect(constructor, isConstructorElement);
     expect(creation.staticType, isNotNull);
 
     expect(creation.constructorName.staticElement, constructor);
 
     expect(creation.constructorName.type.type, isNotNull);
-    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+    expect(creation.constructorName.type.name.staticElement, isClassElement);
 
     expect(creation.constructorName.name.staticElement, constructor);
 
@@ -1517,13 +1513,13 @@ main() {
     InstanceCreationExpression creation = statement.expression;
     ConstructorElement constructor = creation.staticElement;
 
-    expect(constructor, _isConstructorElement);
+    expect(constructor, isConstructorElement);
     expect(creation.staticType, isNotNull);
 
     expect(creation.constructorName.staticElement, constructor);
 
     expect(creation.constructorName.type.type, isNotNull);
-    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+    expect(creation.constructorName.type.name.staticElement, isClassElement);
 
     expect(creation.constructorName.name, isNull);
   }
@@ -1552,13 +1548,13 @@ main() {
     InstanceCreationExpression creation = statement.expression;
     ConstructorElement constructor = creation.staticElement;
 
-    expect(constructor, _isConstructorElement);
+    expect(constructor, isConstructorElement);
     expect(creation.staticType, isNotNull);
 
     expect(creation.constructorName.staticElement, constructor);
 
     expect(creation.constructorName.type.type, isNotNull);
-    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+    expect(creation.constructorName.type.name.staticElement, isClassElement);
 
     expect(creation.constructorName.name, isNull);
   }
@@ -1577,7 +1573,7 @@ main() {
     MethodInvocation invocation = statement.expression;
 
     SimpleIdentifier prefix = invocation.target;
-    expect(prefix.staticElement, new TypeMatcher<PrefixElement>());
+    expect(prefix.staticElement, isPrefixElement);
 
     expect(invocation.methodName.name, 'max');
   }

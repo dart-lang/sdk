@@ -32,7 +32,11 @@ class DartAssistContextImpl implements DartAssistContext {
  */
 class DartAssistKind {
   static const ADD_TYPE_ANNOTATION = const AssistKind(
-      'dart.assist.addTypeAnnotation', 30, "Add type annotation");
+      'dart.assist.addTypeAnnotation', 30, "Add type annotation",
+      associatedErrorCodes: <String>[
+        'always_specify_types',
+        'type_annotate_public_apis'
+      ]);
   static const ASSIGN_TO_LOCAL_VARIABLE = const AssistKind(
       'dart.assist.assignToVariable', 30, "Assign value to new local variable");
   static const CONVERT_CLASS_TO_MIXIN = const AssistKind(
@@ -44,15 +48,18 @@ class DartAssistKind {
   static const CONVERT_DOCUMENTATION_INTO_LINE = const AssistKind(
       'dart.assist.convert.lineComment',
       30,
-      "Convert to line documentation comment");
+      "Convert to line documentation comment",
+      associatedErrorCodes: <String>['slash_for_doc_comments']);
   static const CONVERT_INTO_ASYNC_BODY = const AssistKind(
       'dart.assist.convert.bodyToAsync', 30, "Convert to async function body");
   static const CONVERT_INTO_BLOCK_BODY = const AssistKind(
       'dart.assist.convert.bodyToBlock', 30, "Convert to block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
-      'dart.assist.convert.bodyToExpression', 30, "Convert to expression body");
+      'dart.assist.convert.bodyToExpression', 30, "Convert to expression body",
+      associatedErrorCodes: <String>['prefer_expression_function_bodies']);
   static const CONVERT_INTO_FINAL_FIELD = const AssistKind(
-      'dart.assist.convert.getterToFinalField', 30, "Convert to final field");
+      'dart.assist.convert.getterToFinalField', 30, "Convert to final field",
+      associatedErrorCodes: <String>['prefer_final_fields']);
   static const CONVERT_INTO_FOR_INDEX = const AssistKind(
       'dart.assist.convert.forEachToForIndex', 30, "Convert to for-index loop");
   static const CONVERT_INTO_GENERIC_FUNCTION_SYNTAX = const AssistKind(
@@ -64,7 +71,8 @@ class DartAssistKind {
   static const CONVERT_INTO_IS_NOT =
       const AssistKind('dart.assist.convert.isNot', 30, "Convert to is!");
   static const CONVERT_INTO_IS_NOT_EMPTY = const AssistKind(
-      'dart.assist.convert.isNotEmpty', 30, "Convert to 'isNotEmpty'");
+      'dart.assist.convert.isNotEmpty', 30, "Convert to 'isNotEmpty'",
+      associatedErrorCodes: <String>['prefer_is_not_empty']);
   static const CONVERT_PART_OF_TO_URI = const AssistKind(
       'dart.assist.convert.partOfToPartUri', 30, "Convert to use a URI");
   static const CONVERT_TO_DOUBLE_QUOTED_STRING = const AssistKind(
@@ -75,8 +83,19 @@ class DartAssistKind {
       'dart.assist.convert.toConstructorFieldParameter',
       30,
       "Convert to field formal parameter");
+  static const CONVERT_TO_IF_ELEMENT = const AssistKind(
+      'dart.assist.convertToIfElement', 30, "Convert to an 'if' element");
   static const CONVERT_TO_INT_LITERAL = const AssistKind(
-      'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal");
+      'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal",
+      associatedErrorCodes: <String>['prefer_int_literals']);
+  static const CONVERT_TO_LIST_LITERAL = const AssistKind(
+      'dart.assist.convert.toListLiteral', 30, "Convert to list literal",
+      // todo (brianwilkerson): unify w/ fix
+      associatedErrorCodes: <String>['prefer_collection_literals']);
+  static const CONVERT_TO_MAP_LITERAL = const AssistKind(
+      'dart.assist.convert.toMapLiteral', 30, "Convert to map literal",
+      // todo (brianwilkerson): unify w/ fix
+      associatedErrorCodes: <String>['prefer_collection_literals']);
   static const CONVERT_TO_MULTILINE_STRING = const AssistKind(
       'dart.assist.convert.toMultilineString',
       30,
@@ -85,10 +104,17 @@ class DartAssistKind {
       'dart.assist.convert.toConstructorNormalParameter',
       30,
       "Convert to normal parameter");
+  static const CONVERT_TO_SET_LITERAL = const AssistKind(
+      'dart.assist.convert.toSetLiteral', 30, "Convert to set literal",
+      // todo (brianwilkerson): unify w/ fix
+      associatedErrorCodes: <String>['prefer_collection_literals']);
   static const CONVERT_TO_SINGLE_QUOTED_STRING = const AssistKind(
       'dart.assist.convert.toSingleQuotedString',
       30,
-      "Convert to single quoted string");
+      "Convert to single quoted string",
+      associatedErrorCodes: <String>['prefer_single_quotes']);
+  static const CONVERT_TO_SPREAD = const AssistKind(
+      'dart.assist.convertToSpread', 30, "Convert to a spread");
   static const ENCAPSULATE_FIELD =
       const AssistKind('dart.assist.encapsulateField', 30, "Encapsulate field");
   static const EXCHANGE_OPERANDS =
@@ -144,7 +170,11 @@ class DartAssistKind {
   static const JOIN_VARIABLE_DECLARATION = const AssistKind(
       'dart.assist.joinVariableDeclaration', 30, "Join variable declaration");
   static const REMOVE_TYPE_ANNOTATION = const AssistKind(
-      'dart.assist.removeTypeAnnotation', 29, "Remove type annotation");
+      'dart.assist.removeTypeAnnotation', 29, "Remove type annotation",
+      associatedErrorCodes: <String>[
+        'avoid_return_types_on_setters',
+        'type_init_formals'
+      ]);
   static const REPLACE_CONDITIONAL_WITH_IF_ELSE = const AssistKind(
       'dart.assist.convert.conditionalToIfElse',
       30,

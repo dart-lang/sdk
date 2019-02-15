@@ -203,7 +203,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   void writeInt(int value) {
     assert(value != null);
     assert(value >= 0 && value >> 30 == 0);
-    _writeDataKind(DataKind.int);
+    _writeDataKind(DataKind.uint30);
     _writeIntInternal(value);
   }
 
@@ -338,6 +338,31 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _writeConstant(value);
   }
 
+  @override
+  void writeDoubleValue(double value) {
+    _writeDataKind(DataKind.double);
+    _writeDoubleValue(value);
+  }
+
+  void _writeDoubleValue(double value) {
+    ByteData data = new ByteData(8);
+    data.setFloat64(0, value);
+    writeInt(data.getUint16(0));
+    writeInt(data.getUint16(2));
+    writeInt(data.getUint16(4));
+    writeInt(data.getUint16(6));
+  }
+
+  @override
+  void writeIntegerValue(int value) {
+    _writeDataKind(DataKind.int);
+    _writeBigInt(new BigInt.from(value));
+  }
+
+  void _writeBigInt(BigInt value) {
+    writeString(value.toString());
+  }
+
   void _writeConstant(ConstantValue value) {
     _writeEnumInternal(value.kind);
     switch (value.kind) {
@@ -347,16 +372,11 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
         break;
       case ConstantValueKind.INT:
         IntConstantValue constant = value;
-        writeString(constant.intValue.toString());
+        _writeBigInt(constant.intValue);
         break;
       case ConstantValueKind.DOUBLE:
         DoubleConstantValue constant = value;
-        ByteData data = new ByteData(8);
-        data.setFloat64(0, constant.doubleValue);
-        writeInt(data.getUint16(0));
-        writeInt(data.getUint16(2));
-        writeInt(data.getUint16(4));
-        writeInt(data.getUint16(6));
+        _writeDoubleValue(constant.doubleValue);
         break;
       case ConstantValueKind.STRING:
         StringConstantValue constant = value;

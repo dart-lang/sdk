@@ -81,8 +81,8 @@ class ClassFunctionVisitor : public ClassVisitor {
     fields_ = cls.fields();
     for (intptr_t j = 0; j < fields_.Length(); j++) {
       field_ ^= fields_.At(j);
-      if (field_.is_static() && field_.HasPrecompiledInitializer()) {
-        function_ ^= field_.PrecompiledInitializer();
+      if (field_.is_static() && field_.HasInitializer()) {
+        function_ ^= field_.Initializer();
         visitor_->Visit(function_);
       }
     }
@@ -115,6 +115,7 @@ void ProgramVisitor::VisitFunctions(FunctionVisitor* visitor) {
   }
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void ProgramVisitor::BindStaticCalls() {
 #if !defined(TARGET_ARCH_DBC)
   if (FLAG_precompiled_mode) {
@@ -308,6 +309,7 @@ void ProgramVisitor::DedupPcDescriptors() {
     explicit DedupPcDescriptorsVisitor(Zone* zone)
         : zone_(zone),
           canonical_pc_descriptors_(),
+          bytecode_(Bytecode::Handle(zone)),
           code_(Code::Handle(zone)),
           pc_descriptor_(PcDescriptors::Handle(zone)) {}
 
@@ -317,6 +319,14 @@ void ProgramVisitor::DedupPcDescriptors() {
     }
 
     void Visit(const Function& function) {
+      bytecode_ = function.bytecode();
+      if (!bytecode_.IsNull()) {
+        pc_descriptor_ = bytecode_.pc_descriptors();
+        if (!pc_descriptor_.IsNull()) {
+          pc_descriptor_ = DedupPcDescriptor(pc_descriptor_);
+          bytecode_.set_pc_descriptors(pc_descriptor_);
+        }
+      }
       if (!function.HasCode()) {
         return;
       }
@@ -341,6 +351,7 @@ void ProgramVisitor::DedupPcDescriptors() {
    private:
     Zone* zone_;
     PcDescriptorsSet canonical_pc_descriptors_;
+    Bytecode& bytecode_;
     Code& code_;
     PcDescriptors& pc_descriptor_;
   };
@@ -380,7 +391,6 @@ class TypedDataKeyValueTrait {
 
 typedef DirectChainedHashMap<TypedDataKeyValueTrait> TypedDataSet;
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 void ProgramVisitor::DedupDeoptEntries() {
   class DedupDeoptEntriesVisitor : public FunctionVisitor {
    public:
@@ -437,7 +447,6 @@ void ProgramVisitor::DedupDeoptEntries() {
   DedupDeoptEntriesVisitor visitor(Thread::Current()->zone());
   ProgramVisitor::VisitFunctions(&visitor);
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DART_PRECOMPILER)
 void ProgramVisitor::DedupCatchEntryMovesMaps() {
@@ -876,8 +885,10 @@ void ProgramVisitor::DedupInstructionsWithSameMetadata() {
   ProgramVisitor::VisitFunctions(&visitor);
 #endif  // defined(DART_PRECOMPILER)
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void ProgramVisitor::Dedup() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   HANDLESCOPE(thread);
@@ -901,6 +912,7 @@ void ProgramVisitor::Dedup() {
     DedupInstructions();
   }
 #endif
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 }  // namespace dart

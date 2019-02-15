@@ -9,10 +9,13 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/js/js.dart' as js;
+import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/util/features.dart';
+import 'package:js_ast/js_ast.dart' as js;
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -26,7 +29,7 @@ main(List<String> args) {
   });
 }
 
-class ModelDataComputer extends DataComputer<String> {
+class ModelDataComputer extends DataComputer<Features> {
   const ModelDataComputer();
 
   /// Compute type inference data for [member] from kernel based inference.
@@ -34,7 +37,7 @@ class ModelDataComputer extends DataComputer<String> {
   /// Fills [actualMap] with the data.
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<String>> actualMap,
+      Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
@@ -45,24 +48,32 @@ class ModelDataComputer extends DataComputer<String> {
   }
 
   @override
-  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
+  DataInterpreter<Features> get dataValidator =>
+      const FeaturesDataInterpreter();
 }
 
 class Tags {
   static const String needsCheckedSetter = 'checked';
   static const String getterFlags = 'get';
   static const String setterFlags = 'set';
+  static const String parameterCount = 'params';
+  static const String call = 'calls';
+  static const String parameterStub = 'stubs';
+  static const String isEmitted = 'emitted';
+  static const String isElided = 'elided';
+  static const String assignment = 'assign';
+  static const String isLazy = 'lazy';
 }
 
 /// AST visitor for computing inference data for a member.
-class ModelIrComputer extends IrDataExtractor<String> {
+class ModelIrComputer extends IrDataExtractor<Features> {
   final JsToElementMap _elementMap;
   final ClosureData _closureDataLookup;
   final ProgramLookup _programLookup;
 
   ModelIrComputer(
       DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap,
+      Map<Id, ActualData<Features>> actualMap,
       this._elementMap,
       MemberEntity member,
       Compiler compiler,
@@ -70,13 +81,18 @@ class ModelIrComputer extends IrDataExtractor<String> {
       : _programLookup = new ProgramLookup(compiler),
         super(reporter, actualMap);
 
-  String getMemberValue(MemberEntity member) {
+  Features getMemberValue(MemberEntity member) {
     if (member is FieldEntity) {
       Field field = _programLookup.getField(member);
       if (field != null) {
         Features features = new Features();
         if (field.needsCheckedSetter) {
           features.add(Tags.needsCheckedSetter);
+        }
+        if (field.isElided) {
+          features.add(Tags.isElided);
+        } else {
+          features.add(Tags.isEmitted);
         }
         void registerFlags(String tag, int flags) {
           switch (flags) {
@@ -97,19 +113,91 @@ class ModelIrComputer extends IrDataExtractor<String> {
         registerFlags(Tags.getterFlags, field.getterFlags);
         registerFlags(Tags.setterFlags, field.setterFlags);
 
-        return features.getText();
+        return features;
+      }
+      StaticField staticField = _programLookup.getStaticField(member);
+      if (staticField != null) {
+        Features features = new Features();
+        features.add(Tags.isEmitted);
+        if (staticField.isLazy) {
+          features.add(Tags.isLazy);
+        }
+        return features;
+      }
+    } else if (member is FunctionEntity) {
+      Method method = _programLookup.getMethod(member);
+      if (method != null) {
+        Features features = new Features();
+        js.Expression code = method.code;
+        if (code is js.Fun) {
+          features[Tags.parameterCount] = '${code.params.length}';
+        }
+
+        void registerCalls(String tag, js.Node node, [String prefix = '']) {
+          forEachNode(node, onCall: (js.Call node) {
+            js.Node target = node.target;
+            if (target is js.PropertyAccess) {
+              js.Node selector = target.selector;
+              bool fixedNameCall = false;
+              String name;
+              if (selector is js.Name) {
+                name = selector.key;
+                fixedNameCall = selector is StringBackedName;
+              } else if (selector is js.LiteralString) {
+                /// Call to fixed backend name, so we include the argument
+                /// values to test encoding of optional parameters in native
+                /// methods.
+                name = selector.value.substring(1, selector.value.length - 1);
+                fixedNameCall = true;
+              }
+              if (name != null) {
+                if (fixedNameCall) {
+                  String arguments =
+                      node.arguments.map(js.nodeToString).join(',');
+                  features.addElement(tag, '${prefix}${name}(${arguments})');
+                } else {
+                  features.addElement(
+                      tag, '${prefix}${name}(${node.arguments.length})');
+                }
+              }
+            }
+          });
+        }
+
+        registerCalls(Tags.call, code);
+        if (method is DartMethod) {
+          for (ParameterStubMethod stub in method.parameterStubs) {
+            registerCalls(Tags.parameterStub, stub.code, '${stub.name.key}:');
+          }
+        }
+        forEachNode(code, onAssignment: (js.Assignment node) {
+          js.Expression leftHandSide = node.leftHandSide;
+          if (leftHandSide is js.PropertyAccess) {
+            js.Node selector = leftHandSide.selector;
+            String name;
+            if (selector is js.Name) {
+              name = selector.key;
+            } else if (selector is js.LiteralString) {
+              name = selector.value.substring(1, selector.value.length - 1);
+            }
+            if (name != null) {
+              features.addElement(Tags.assignment, '${name}');
+            }
+          }
+        });
+        return features;
       }
     }
     return null;
   }
 
   @override
-  String computeMemberValue(Id id, ir.Member node) {
+  Features computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  Features computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
       ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
       return getMemberValue(info.callMethod);

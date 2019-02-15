@@ -173,10 +173,13 @@ FastaUsageLong/analyzerCode: Fail
 FastaUsageLong/example: Fail
 FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
-FfiAnnotationMissing/analyzerCode : Fail
+FfiFieldAnnotation/analyzerCode: Fail
+FfiFieldInitializer/analyzerCode: Fail
+FfiNotStatic/analyzerCode: Fail
+FfiStructAnnotation/analyzerCode: Fail
 FfiTypeInvalid/analyzerCode: Fail
 FfiTypeMismatch/analyzerCode: Fail
-FfiTypeOpaque/analyzerCode: Fail
+FfiTypeUnsized/analyzerCode: Fail
 FieldInitializedOutsideDeclaringClass/script1: Fail
 FieldInitializerOutsideConstructor/script1: Fail
 FinalAndCovariant/script2: Fail
@@ -218,6 +221,7 @@ InvalidBreakTarget/example: Fail
 InvalidCastFunctionExpr/example: Fail
 InvalidCastLiteralList/example: Fail
 InvalidCastLiteralMap/example: Fail
+InvalidCastLiteralSet/example: Fail
 InvalidCastLocalFunction/example: Fail
 InvalidCastNewExpr/example: Fail
 InvalidCastStaticMethod/example: Fail
@@ -321,6 +325,7 @@ SdkSummaryNotFound/example: Fail
 SetLiteralTooManyTypeArguments/analyzerCode: Fail
 SetLiteralTooManyTypeArguments/example: Fail
 SetLiteralsNotSupported/analyzerCode: Fail
+SetLiteralsNotSupported/example: Fail
 SetOrMapLiteralTooManyTypeArguments/analyzerCode: Fail
 SetOrMapLiteralTooManyTypeArguments/example: Fail
 SetterNotFound/example: Fail

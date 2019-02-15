@@ -1032,6 +1032,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Library& library = Library::Handle(ref.GetLibraryReferent());
 
+  library.EnsureTopLevelClassIsFinalized();
+
   Instance& member_mirror = Instance::Handle();
   const GrowableObjectArray& member_mirrors =
       GrowableObjectArray::Handle(GrowableObjectArray::New());

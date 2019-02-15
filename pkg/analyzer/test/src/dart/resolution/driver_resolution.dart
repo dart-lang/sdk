@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -41,14 +42,8 @@ const alwaysThrows = const Object();
   }
 
   @override
-  Future<TestAnalysisResult> resolveFile(String path) async {
-    var result = await driver.getResult(path);
-    return new TestAnalysisResult(
-      path,
-      result.content,
-      result.unit,
-      result.errors,
-    );
+  Future<ResolvedUnitResult> resolveFile(String path) async {
+    return await driver.getResult(path);
   }
 
   void setUp() {

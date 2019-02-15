@@ -34,11 +34,16 @@ class RuntimeEntry : public BaseRuntimeEntry {
                intptr_t argument_count,
                bool is_leaf,
                bool is_float)
-      : name_(name),
+      :
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        compiler::RuntimeEntry(this, &CallInternal),
+#endif
+        name_(name),
         function_(function),
         argument_count_(argument_count),
         is_leaf_(is_leaf),
-        is_float_(is_float) {}
+        is_float_(is_float) {
+  }
 
   const char* name() const { return name_; }
   RuntimeFunction function() const { return function_; }
@@ -57,6 +62,11 @@ class RuntimeEntry : public BaseRuntimeEntry {
                                   intptr_t argc,
                                   RawObject** argv,
                                   Thread* thread);
+
+ protected:
+  NOT_IN_PRECOMPILED(static void CallInternal(const RuntimeEntry* runtime_entry,
+                                              compiler::Assembler* assembler,
+                                              intptr_t argument_count));
 
  private:
   const char* const name_;

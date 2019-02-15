@@ -918,8 +918,10 @@ class FragmentEmitter {
       statements.add(js.js.statement('allocations["$qualifiedName"] = true'));
     }
 
+    List<Field> emittedFields = cls.fields.where((f) => !f.isElided).toList();
+
     // If there are many references to `this`, cache it in a local.
-    if (cls.fields.length + (cls.hasRtiField ? 1 : 0) >= 4) {
+    if (emittedFields.length + (cls.hasRtiField ? 1 : 0) >= 4) {
       // Parameters are named t0, t1, etc, so '_' will not conflict. Forcing '_'
       // in minified mode works because no parameter or local also minifies to
       // '_' (the minifier doesn't know '_' is available).
@@ -945,7 +947,7 @@ class FragmentEmitter {
       }
     }
 
-    for (Field field in cls.fields) {
+    for (Field field in emittedFields) {
       ConstantValue constant = field.initializerInAllocator;
       if (constant != null) {
         if (constant == previousConstant && chainLength < maxChainLength) {
@@ -1096,17 +1098,22 @@ class FragmentEmitter {
     assert(field.needsUncheckedSetter);
 
     String template;
-    if (field.needsInterceptedSetterOnReceiver) {
-      template = "function(receiver, val) { return receiver[#] = val; }";
-    } else if (field.needsInterceptedSetterOnThis) {
-      template = "function(receiver, val) { return this[#] = val; }";
+    js.Expression code;
+    if (field.isElided) {
+      code = js.js("function() { }");
     } else {
-      assert(!field.needsInterceptedSetter);
-      template = "function(val) { return this[#] = val; }";
+      if (field.needsInterceptedSetterOnReceiver) {
+        template = "function(receiver, val) { return receiver[#] = val; }";
+      } else if (field.needsInterceptedSetterOnThis) {
+        template = "function(receiver, val) { return this[#] = val; }";
+      } else {
+        assert(!field.needsInterceptedSetter);
+        template = "function(val) { return this[#] = val; }";
+      }
+      js.Expression fieldName = js.quoteName(field.name);
+      code = js.js(template, fieldName);
     }
 
-    js.Expression fieldName = js.quoteName(field.name);
-    js.Expression code = js.js(template, fieldName);
     js.Name setterName = namer.deriveSetterName(field.accessorName);
     return new StubMethod(setterName, code);
   }

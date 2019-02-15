@@ -6,42 +6,21 @@ library fasta.dill_loader;
 
 import 'dart:async' show Future;
 
-import 'package:kernel/ast.dart'
-    show
-        BottomType,
-        Class,
-        Component,
-        DartType,
-        DartTypeVisitor,
-        DynamicType,
-        FunctionType,
-        InterfaceType,
-        InvalidType,
-        Library,
-        TypeParameter,
-        TypeParameterType,
-        TypedefType,
-        VoidType;
+import 'package:kernel/ast.dart' show Class, Component, DartType, Library;
 
 import '../fasta_codes.dart'
     show SummaryTemplate, Template, templateDillOutlineSummary;
 
 import '../kernel/kernel_builder.dart'
-    show
-        DynamicTypeBuilder,
-        KernelNamedTypeBuilder,
-        KernelTypeBuilder,
-        KernelTypeVariableBuilder,
-        LibraryBuilder,
-        VoidTypeBuilder;
+    show KernelClassBuilder, KernelTypeBuilder, LibraryBuilder;
+
+import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 
 import '../loader.dart' show Loader;
 
 import '../problems.dart' show unhandled;
 
 import '../target_implementation.dart' show TargetImplementation;
-
-import 'dill_class_builder.dart' show DillClassBuilder;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
@@ -99,71 +78,15 @@ class DillLoader extends Loader<Library> {
     });
   }
 
+  @override
+  KernelClassBuilder computeClassBuilderFromTargetClass(Class cls) {
+    Library kernelLibrary = cls.enclosingLibrary;
+    LibraryBuilder library = builders[kernelLibrary.importUri];
+    return library[cls.name];
+  }
+
+  @override
   KernelTypeBuilder computeTypeBuilder(DartType type) {
     return type.accept(new TypeBuilderComputer(this));
-  }
-}
-
-class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
-  final DillLoader loader;
-
-  const TypeBuilderComputer(this.loader);
-
-  KernelTypeBuilder defaultDartType(DartType node) {
-    throw "Unsupported";
-  }
-
-  KernelTypeBuilder visitInvalidType(InvalidType node) {
-    throw "Not implemented";
-  }
-
-  KernelTypeBuilder visitDynamicType(DynamicType node) {
-    return new KernelNamedTypeBuilder("dynamic", null)
-      ..bind(new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
-          const DynamicType(), loader.coreLibrary, -1));
-  }
-
-  KernelTypeBuilder visitVoidType(VoidType node) {
-    return new KernelNamedTypeBuilder("void", null)
-      ..bind(new VoidTypeBuilder<KernelTypeBuilder, VoidType>(
-          const VoidType(), loader.coreLibrary, -1));
-  }
-
-  KernelTypeBuilder visitBottomType(BottomType node) {
-    throw "Not implemented";
-  }
-
-  KernelTypeBuilder visitInterfaceType(InterfaceType node) {
-    Class kernelClass = node.classNode;
-    Library kernelLibrary = kernelClass.enclosingLibrary;
-    DillLibraryBuilder library = loader.builders[kernelLibrary.importUri];
-    String name = kernelClass.name;
-    DillClassBuilder cls = library[name];
-    List<KernelTypeBuilder> arguments;
-    List<DartType> kernelArguments = node.typeArguments;
-    if (kernelArguments.isNotEmpty) {
-      arguments = new List<KernelTypeBuilder>(kernelArguments.length);
-      for (int i = 0; i < kernelArguments.length; i++) {
-        arguments[i] = kernelArguments[i].accept(this);
-      }
-    }
-    return new KernelNamedTypeBuilder(name, arguments)..bind(cls);
-  }
-
-  KernelTypeBuilder visitFunctionType(FunctionType node) {
-    throw "Not implemented";
-  }
-
-  KernelTypeBuilder visitTypeParameterType(TypeParameterType node) {
-    TypeParameter parameter = node.parameter;
-    Class kernelClass = parameter.parent;
-    Library kernelLibrary = kernelClass.enclosingLibrary;
-    DillLibraryBuilder library = loader.builders[kernelLibrary.importUri];
-    return new KernelNamedTypeBuilder(parameter.name, null)
-      ..bind(new KernelTypeVariableBuilder.fromKernel(parameter, library));
-  }
-
-  KernelTypeBuilder visitTypedefType(TypedefType node) {
-    throw "Not implemented";
   }
 }

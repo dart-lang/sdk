@@ -16,6 +16,7 @@ import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../options.dart';
 import '../universe/class_hierarchy.dart';
+import '../universe/member_usage.dart';
 import '../universe/resolution_world_builder.dart';
 import '../world.dart';
 
@@ -46,7 +47,7 @@ class KClosedWorldImpl implements KClosedWorld {
 
   final Iterable<ClassEntity> liveNativeClasses;
 
-  final Iterable<MemberEntity> processedMembers;
+  final Map<MemberEntity, MemberUsage> liveMemberUsage;
 
   final ClassHierarchy classHierarchy;
 
@@ -70,7 +71,7 @@ class KClosedWorldImpl implements KClosedWorld {
       this.liveNativeClasses,
       this.liveInstanceMembers,
       this.assignedInstanceMembers,
-      this.processedMembers,
+      this.liveMemberUsage,
       this.mixinUses,
       this.typesImplementedBySubclasses,
       this.classHierarchy,
@@ -86,4 +87,7 @@ class KClosedWorldImpl implements KClosedWorld {
   bool isImplemented(ClassEntity cls) {
     return _implementedClasses.contains(cls);
   }
+
+  /// Needed for testing.
+  Iterable<MemberEntity> get processedMembers => liveMemberUsage.keys;
 }

@@ -9,11 +9,15 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InvalidAssignmentTest_Driver);
+    defineReflectiveTests(InvalidAssignmentTest);
   });
 }
 
-abstract class InvalidAssignmentTest extends ResolverTestCase {
+@reflectiveTest
+class InvalidAssignmentTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_instanceVariable() async {
     await assertErrorsInCode(r'''
 class A {
@@ -38,6 +42,24 @@ f(var y) {
 ''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
+  test_promotedTypeParameter_regress35306() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+class C extends D {}
+class D {}
+
+void f<X extends A, Y extends B>(X x) {
+  if (x is Y) {
+    A a = x;
+    B b = x;
+    X x2 = x;
+    Y y = x;
+  }
+}
+''');
+  }
+
   test_staticVariable() async {
     await assertErrorsInCode(r'''
 class A {
@@ -46,6 +68,21 @@ class A {
 f(var y) {
   if (y is String) {
     A.x = y;
+  }
+}
+''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  test_typeParameterRecursion_regress35306() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B extends A {}
+class C extends D {}
+class D {}
+
+void f<X extends A, Y extends B>(X x) {
+  if (x is Y) {
+    D d = x;
   }
 }
 ''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
@@ -68,10 +105,4 @@ main() {
 }
 ''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
-}
-
-@reflectiveTest
-class InvalidAssignmentTest_Driver extends InvalidAssignmentTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

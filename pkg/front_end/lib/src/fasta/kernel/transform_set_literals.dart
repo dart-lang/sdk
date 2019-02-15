@@ -55,8 +55,7 @@ class SetLiteralTransformer extends Transformer {
     return coreTypes.index.getMember('dart:core', 'Set', 'add');
   }
 
-  static Constructor _findUnmodifiableSetConstructor(
-      SourceLoader<Library> loader) {
+  static Constructor _findUnmodifiableSetConstructor(SourceLoader loader) {
     // We should not generally dig into libraries like this, and we should
     // avoid dependencies on libraries other than the ones indexed by
     // CoreTypes. This is a temporary solution until all backends have
@@ -77,7 +76,7 @@ class SetLiteralTransformer extends Transformer {
     return null;
   }
 
-  SetLiteralTransformer(SourceLoader<Library> loader)
+  SetLiteralTransformer(SourceLoader loader)
       : coreTypes = loader.coreTypes,
         nullType = new InterfaceType(loader.coreTypes.nullClass, []),
         setFactory = _findSetFactory(loader.coreTypes),

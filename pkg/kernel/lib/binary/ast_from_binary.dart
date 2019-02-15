@@ -785,7 +785,7 @@ class BinaryBuilder {
     _byteOffset = savedByteOffset;
 
     int flags = readByte();
-    bool isExternal = (flags & 0x1) != 0;
+    bool isExternal = (flags & Library.ExternalFlag) != 0;
     _isReadingLibraryImplementation = !isExternal;
     var canonicalName = readCanonicalNameReference();
     Reference reference = canonicalName.getReference();
@@ -805,7 +805,7 @@ class BinaryBuilder {
     List<String> problemsAsJson = readListOfStrings();
 
     if (shouldWriteData) {
-      library.isExternal = isExternal;
+      library.flags = flags;
       library.name = name;
       library.fileUri = fileUri;
       library.problemsAsJson = problemsAsJson;

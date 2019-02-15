@@ -8,6 +8,3 @@ analyzer:
   errors:
     # Allow having TODOs in the code
     todo: ignore
-
-    # Allow deprecated calls from within the same package
-    deprecated_member_use_from_same_package: ignore

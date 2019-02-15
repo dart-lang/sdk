@@ -384,9 +384,18 @@ class Field {
 
   final ConstantValue initializerInAllocator;
 
+  final bool isElided;
+
   // TODO(floitsch): support renamed fields.
-  Field(this.element, this.name, this.accessorName, this.getterFlags,
-      this.setterFlags, this.needsCheckedSetter, this.initializerInAllocator);
+  Field(
+      this.element,
+      this.name,
+      this.accessorName,
+      this.getterFlags,
+      this.setterFlags,
+      this.needsCheckedSetter,
+      this.initializerInAllocator,
+      this.isElided);
 
   bool get needsGetter => getterFlags != 0;
   bool get needsUncheckedSetter => setterFlags != 0;
@@ -545,8 +554,9 @@ class ParameterStubMethod extends StubMethod {
   /// If a stub's member can not be torn off, the [callName] is `null`.
   js.Name callName;
 
-  ParameterStubMethod(js.Name name, this.callName, js.Expression code)
-      : super(name, code);
+  ParameterStubMethod(js.Name name, this.callName, js.Expression code,
+      {MemberEntity element})
+      : super(name, code, element: element);
 
   String toString() {
     return 'ParameterStubMethod(name=${name.key}, callName=${callName?.key}'

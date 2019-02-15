@@ -4,7 +4,7 @@
 
 library fasta.codes;
 
-import 'dart:convert' show JsonEncoder;
+import 'dart:convert' show JsonEncoder, json;
 
 import 'package:kernel/ast.dart'
     show Constant, DartType, demangleMixinApplicationName;
@@ -185,10 +185,56 @@ class FormattedMessage implements DiagnosticMessage {
   }
 
   Map<String, Object> toJson() {
-    // The should be kept in sync with package:kernel/problems.md
+    // This should be kept in sync with package:kernel/problems.md
     return <String, Object>{
       "ansiFormatted": ansiFormatted.toList(),
       "plainTextFormatted": plainTextFormatted.toList(),
+      "severity": severity.index,
+      "uri": uri.toString(),
+    };
+  }
+
+  String toJsonString() {
+    JsonEncoder encoder = new JsonEncoder.withIndent("  ");
+    return encoder.convert(this);
+  }
+}
+
+class DiagnosticMessageFromJson implements DiagnosticMessage {
+  @override
+  final Iterable<String> ansiFormatted;
+
+  @override
+  final Iterable<String> plainTextFormatted;
+
+  @override
+  final Severity severity;
+
+  final Uri uri;
+
+  DiagnosticMessageFromJson(
+      this.ansiFormatted, this.plainTextFormatted, this.severity, this.uri);
+
+  factory DiagnosticMessageFromJson.fromJson(String jsonString) {
+    Map<String, Object> decoded = json.decode(jsonString);
+    List<String> ansiFormatted =
+        new List<String>.from(decoded["ansiFormatted"]);
+    List<String> plainTextFormatted =
+        new List<String>.from(decoded["plainTextFormatted"]);
+    Severity severity = Severity.values[decoded["severity"]];
+    Uri uri = Uri.parse(decoded["uri"]);
+
+    return new DiagnosticMessageFromJson(
+        ansiFormatted, plainTextFormatted, severity, uri);
+  }
+
+  Map<String, Object> toJson() {
+    // This should be kept in sync with package:kernel/problems.md
+    return <String, Object>{
+      "ansiFormatted": ansiFormatted.toList(),
+      "plainTextFormatted": plainTextFormatted.toList(),
+      "severity": severity.index,
+      "uri": uri.toString(),
     };
   }
 

@@ -53,10 +53,13 @@ export '../fasta/fasta_codes.dart'
         templateConstEvalNonConstantLiteral,
         templateConstEvalNonConstantVariableGet,
         templateConstEvalZeroDivisor,
-        templateFfiAnnotationMissing,
+        templateFfiFieldAnnotation,
+        templateFfiStructAnnotation,
+        templateFfiNotStatic,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch,
-        templateFfiTypeOpaque;
+        templateFfiTypeUnsized,
+        templateFfiFieldInitializer;
 
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 

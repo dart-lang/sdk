@@ -756,6 +756,16 @@ CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
   return info;
 }
 
+CompilerDeoptInfo* FlowGraphCompiler::AddSlowPathDeoptInfo(intptr_t deopt_id,
+                                                           Environment* env) {
+  ASSERT(deopt_id != DeoptId::kNone);
+  CompilerDeoptInfo* info =
+      new (zone()) CompilerDeoptInfo(deopt_id, ICData::kDeoptUnknown, 0, env);
+  info->set_pc_offset(assembler()->CodeSize());
+  deopt_infos_.Add(info);
+  return info;
+}
+
 // This function must be in sync with FlowGraphCompiler::SaveLiveRegisters
 // and FlowGraphCompiler::SlowPathEnvironmentFor.
 // See StackFrame::VisitObjectPointers for the details of how stack map is
@@ -1053,7 +1063,7 @@ void FlowGraphCompiler::FinalizeStackMaps(const Code& code) {
 
 void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
 #if defined(PRODUCT)
-  // No debugger: no var descriptors.
+// No debugger: no var descriptors.
 #else
   // TODO(alexmarkov): revise local vars descriptors when compiling bytecode
   if (code.is_optimized() || flow_graph().function().HasBytecode()) {
@@ -1210,7 +1220,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
   EnterIntrinsicMode();
 
   SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-  bool complete = Intrinsifier::Intrinsify(parsed_function(), this);
+  bool complete = compiler::Intrinsifier::Intrinsify(parsed_function(), this);
   SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
 
   ExitIntrinsicMode();
@@ -1418,8 +1428,7 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
 
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
-  instr->InitializeLocationSummary(zone(),
-                                   false);  // Not optimizing.
+  instr->InitializeLocationSummary(zone(), false);  // Not optimizing.
 
 // No need to allocate registers based on LocationSummary on DBC as in
 // unoptimized mode it's a stack based bytecode just like IR itself.
@@ -2302,7 +2311,11 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
       (compiler->CurrentTryIndex() != kInvalidTryIndex)) {
     Environment* env =
         compiler->SlowPathEnvironmentFor(instruction(), num_args_);
-    compiler->RecordCatchEntryMoves(env, try_index_);
+    if (FLAG_precompiled_mode) {
+      compiler->RecordCatchEntryMoves(env, try_index_);
+    } else if (env != nullptr) {
+      compiler->AddSlowPathDeoptInfo(deopt_id, env);
+    }
   }
   if (!use_shared_stub) {
     __ Breakpoint();

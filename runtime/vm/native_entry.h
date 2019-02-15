@@ -73,8 +73,21 @@ class String;
   static RawObject* DN_Helper##name(Isolate* isolate, Thread* thread,          \
                                     Zone* zone, NativeArguments* arguments)
 
-// Helper that throws an argument exception.
+// Helpers that throw an argument exception.
+void DartNativeThrowTypeArgumentCountException(int num_type_args,
+                                               int num_type_args_expected);
 void DartNativeThrowArgumentException(const Instance& instance);
+
+// Native should throw an exception if the wrong number of type arguments is
+// passed.
+#define NATIVE_TYPE_ARGUMENT_COUNT(expected)                                   \
+  int __num_type_arguments = arguments->NativeTypeArgCount();                  \
+  if (__num_type_arguments != expected) {                                      \
+    DartNativeThrowTypeArgumentCountException(__num_type_arguments, expected); \
+  }
+
+#define GET_NATIVE_TYPE_ARGUMENT(name, value)                                  \
+  AbstractType& name = AbstractType::Handle(value);
 
 // Natives should throw an exception if an illegal argument or null is passed.
 // type name = value.

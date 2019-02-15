@@ -1439,16 +1439,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    Expression initializer = node.initializer;
-    _inferLocalVariableType(node, initializer);
-    if (initializer != null) {
-      DartType rightType = initializer.staticType;
-      SimpleIdentifier name = node.name;
-      VariableElement element = name.staticElement as VariableElement;
-      if (element != null) {
-        _resolver.overrideVariable(element, rightType, true);
-      }
-    }
+    _inferLocalVariableType(node, node.initializer);
   }
 
   /**
@@ -1507,9 +1498,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   DartType _computeElementType(CollectionElement element) {
-    if (element is CollectionForElement) {
+    if (element is ForElement) {
       return _computeElementType(element.body);
-    } else if (element is CollectionIfElement) {
+    } else if (element is IfElement) {
       DartType thenType = _computeElementType(element.thenElement);
       if (element.elseElement == null) {
         return thenType;
@@ -1545,10 +1536,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return _dynamicType;
   }
 
-  DartType _computeKeyType(MapElement element) {
-    if (element is MapForElement) {
+  DartType _computeKeyType(CollectionElement element) {
+    if (element is ForElement) {
       return _computeKeyType(element.body);
-    } else if (element is MapIfElement) {
+    } else if (element is IfElement) {
       DartType thenType = _computeKeyType(element.thenElement);
       if (element.elseElement == null) {
         return thenType;
@@ -1635,10 +1626,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return returnType.type;
   }
 
-  DartType _computeValueType(MapElement element) {
-    if (element is MapForElement) {
+  DartType _computeValueType(CollectionElement element) {
+    if (element is ForElement) {
       return _computeValueType(element.body);
-    } else if (element is MapIfElement) {
+    } else if (element is IfElement) {
       DartType thenType = _computeValueType(element.thenElement);
       if (element.elseElement == null) {
         return thenType;

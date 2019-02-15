@@ -27,8 +27,8 @@ confuse(x) => x;
 
 class B {
   var f;
-  @NoInline()
   var b = 10;
+
   B(this.f);
 
   bar(x) => b;

@@ -17,6 +17,7 @@
       ".packages",
       "out/ReleaseIA32/dart-sdk/",
       "out/ReleaseX64/dart-sdk/",
+      "out/ReleaseX64/gen/utils/dartdevc/",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -41,9 +42,11 @@
       "third_party/observatory_pub_packages/packages/web_components/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
+      "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/dart-sdk/",
-      "xcodebuild/ReleaseX64/dart-sdk/"
+      "xcodebuild/ReleaseX64/dart-sdk/",
+      "xcodebuild/ReleaseX64/gen/utils/dartdevc/"
     ],
     "dart2js_hostasserts": [
       ".packages",
@@ -76,6 +79,7 @@
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
+      "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/dart",
       "xcodebuild/ReleaseIA32/dart2js_platform.dill",
@@ -764,6 +768,24 @@
           "arguments": ["dart2js_bot", "dartdevc_test"]
         },
         {
+          "name": "ddc co19_2 tests",
+          "arguments": [
+            "-ndartdevc-checked-${system}-release-chrome",
+            "co19_2"
+          ],
+          "shards": 6,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "ddk co19_2 tests",
+          "arguments": [
+            "-ndartdevk-checked-${system}-release-chrome",
+            "co19_2"
+          ],
+          "shards": 6,
+          "fileset": "dart2js"
+        },
+        {
           "name": "ddc tests",
           "arguments": [
             "-ndartdevc-checked-${system}-release-chrome",
@@ -1266,10 +1288,9 @@
         "analyzer-linux-release",
         "analyzer-mac-release",
         "analyzer-win-release",
-        "analyzer-linux-release-analyzer",
-        "analyzer-linux-release-analyzer-new",
-        "analyzer-mac-release-analyzer",
-        "analyzer-win-release-analyzer"
+        "analyzer-linux-release-analyzer-stable",
+        "analyzer-mac-release-analyzer-stable",
+        "analyzer-win-release-analyzer-stable"
       ],
       "meta": {
         "description": "This configuration is used by the analyzer builders."
@@ -1336,7 +1357,7 @@
     {
       "builders": [
         "analyzer-analysis-server-linux",
-        "analyzer-analysis-server-linux-analyzer"
+        "analyzer-analysis-server-linux-analyzer-stable"
       ],
       "meta": {
         "description": "Analyze analyzer related packages."
@@ -1609,7 +1630,7 @@
     {
       "builders": [
         "flutter-analyze",
-        "flutter-analyze-analyzer"
+        "flutter-analyze-analyzer-stable"
       ],
       "meta": {
         "description": "This configuration is used for analyzing flutter."

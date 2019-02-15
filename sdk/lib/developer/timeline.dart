@@ -8,7 +8,7 @@ const bool _hasTimeline =
     const bool.fromEnvironment("dart.developer.timeline", defaultValue: true);
 
 /// A typedef for the function argument to [Timeline.timeSync].
-typedef dynamic TimelineSyncFunction();
+typedef TimelineSyncFunction<T> = T Function();
 
 // TODO: This typedef is not used.
 typedef Future TimelineAsyncFunction();
@@ -154,7 +154,7 @@ class Timeline {
 
   /// A utility method to time a synchronous [function]. Internally calls
   /// [function] bracketed by calls to [startSync] and [finishSync].
-  static dynamic timeSync(String name, TimelineSyncFunction function,
+  static T timeSync<T>(String name, TimelineSyncFunction<T> function,
       {Map arguments, Flow flow}) {
     startSync(name, arguments: arguments, flow: flow);
     try {

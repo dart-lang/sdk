@@ -420,7 +420,7 @@ class ICDataTestTask : public ThreadPool::Task {
         for (intptr_t cnt = 0; cnt < 0x1000; cnt++) {
           for (intptr_t i = 0; i < len_; i++) {
             ic_data ^= ic_datas_.AtAcquire(i);
-            arr = ic_data.ic_data();
+            arr = ic_data.entries();
             intptr_t num_checks = arr.Length() / 3;
             if (num_checks < 0 || num_checks > 5) {
               OS::PrintErr("Failure: %" Pd " checks!\n", num_checks);

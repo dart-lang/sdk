@@ -2867,7 +2867,9 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
 
     unit.accept(new BestPracticesVerifier(
         errorReporter, typeProvider, libraryElement,
-        typeSystem: typeSystem, resourceProvider: resourceProvider));
+        typeSystem: typeSystem,
+        resourceProvider: resourceProvider,
+        analysisOptions: context.analysisOptions));
     unit.accept(new OverrideVerifier(
       inheritanceManager2,
       libraryElement,
@@ -3432,7 +3434,6 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
         visitor.prepareToResolveMembersInClass(
             resolutionContext.enclosingClassDeclaration);
       }
-      visitor.initForIncrementalResolution();
       initializer.accept(visitor);
       DartType newType = initializer.staticType;
       if (newType == null || newType.isBottom || newType.isDartCoreNull) {

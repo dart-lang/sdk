@@ -15,7 +15,7 @@
 import 'dart:io';
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/codegen/tools.dart';
+import 'package:analysis_tool/tools.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:front_end/src/testing/package_root.dart' as pkgRoot;
 import 'package:front_end/src/fasta/scanner.dart';

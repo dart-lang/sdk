@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:compiler/src/colors.dart' as colors;
 import 'package:compiler/src/common.dart';
+import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
@@ -147,13 +148,16 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
     {List<String> options: const <String>[],
     bool verbose: false,
     bool testFrontend: false,
+    bool printCode: false,
     bool forUserLibrariesOnly: true,
     bool skipUnprocessedMembers: false,
     bool skipFailedCompilations: false,
     Iterable<Id> globalIds: const <Id>[]}) async {
+  OutputCollector outputCollector = new OutputCollector();
   CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
+      outputProvider: outputCollector,
       options: options,
       beforeRun: (compiler) {
         compiler.stopAfterTypeInference =
@@ -162,6 +166,11 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
   if (!result.isSuccess) {
     if (skipFailedCompilations) return null;
     Expect.isTrue(result.isSuccess, "Unexpected compilation error.");
+  }
+  if (printCode) {
+    print('--code------------------------------------------------------------');
+    print(outputCollector.getOutput('', OutputType.js));
+    print('------------------------------------------------------------------');
   }
   Compiler compiler = result.compiler;
   dataComputer.onCompilation(compiler);
@@ -527,6 +536,7 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
   bool verbose = args.remove('-v');
   bool shouldContinue = args.remove('-c');
   bool testAfterFailures = args.remove('-a');
+  bool printCode = args.remove('-p');
   bool continued = false;
   bool hasFailures = false;
 
@@ -606,6 +616,7 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
           entryPoint, memorySourceFiles, dataComputer,
           options: options,
           verbose: verbose,
+          printCode: printCode,
           testFrontend: testFrontend,
           forUserLibrariesOnly: forUserLibrariesOnly,
           globalIds: annotations.globalData.keys);
@@ -699,9 +710,13 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
     } else {
       List<String> errorsFound = [];
       Features expectedFeatures = Features.fromText(expectedData);
+      Set<String> validatedFeatures = new Set<String>();
       expectedFeatures.forEach((String key, Object expectedValue) {
-        Object actualValue = actualFeatures[key] ?? '';
-        if (expectedValue == '') {
+        validatedFeatures.add(key);
+        Object actualValue = actualFeatures[key];
+        if (!actualFeatures.containsKey(key)) {
+          errorsFound.add('No data found for $key');
+        } else if (expectedValue == '') {
           if (actualValue != '') {
             errorsFound.add('Non-empty data found for $key');
           }
@@ -751,6 +766,15 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
         } else if (expectedValue != actualValue) {
           errorsFound.add(
               "Mismatch for $key: expected '$expectedValue', found '${actualValue}'");
+        }
+      });
+      actualFeatures.forEach((String key, Object value) {
+        if (!validatedFeatures.contains(key)) {
+          if (value == '') {
+            errorsFound.add("Extra data found '$key'");
+          } else {
+            errorsFound.add("Extra data found $key=$value");
+          }
         }
       });
       return errorsFound.isNotEmpty ? errorsFound.join('\n ') : null;

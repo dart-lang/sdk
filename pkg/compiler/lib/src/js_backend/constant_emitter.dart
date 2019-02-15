@@ -224,7 +224,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     // are in the same order as the members of the class element.
     int emittedArgumentCount = 0;
     _worldBuilder.forEachInstanceField(classElement,
-        (ClassEntity enclosing, FieldEntity field) {
+        (ClassEntity enclosing, FieldEntity field, {bool isElided}) {
+      if (isElided) return;
       if (field.name == JavaScriptMapConstant.LENGTH_NAME) {
         arguments
             .add(new jsAst.LiteralNumber('${constant.keyList.entries.length}'));
@@ -318,7 +319,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     jsAst.Expression constructor =
         _emitter.constructorAccess(constant.type.element);
     List<jsAst.Expression> fields = <jsAst.Expression>[];
-    _worldBuilder.forEachInstanceField(element, (_, FieldEntity field) {
+    _worldBuilder.forEachInstanceField(element, (_, FieldEntity field,
+        {bool isElided}) {
+      if (isElided) return;
       if (!_allocatorAnalysis.isInitializedInAllocator(field)) {
         fields.add(constantReferenceGenerator(constant.fields[field]));
       }

@@ -28,7 +28,7 @@ class PrecedenceInfoTest {
     }
 
     for (TokenType type in TokenType.all) {
-      assertLexeme(type.value);
+      assertLexeme(type.lexeme);
     }
     assertLexeme('1.0'); // DOUBLE
     assertLexeme('0xA'); // HEXADECIMAL

@@ -31,6 +31,7 @@ import 'js_backend/runtime_types.dart' show RuntimeTypesNeed;
 import 'js_model/locals.dart';
 import 'js_emitter/sorter.dart';
 import 'universe/class_hierarchy.dart';
+import 'universe/member_usage.dart';
 import 'universe/selector.dart' show Selector;
 
 /// Common superinterface for [OpenWorld] and [JClosedWorld].
@@ -201,6 +202,8 @@ abstract class JClosedWorld implements World {
   /// Returns the single [MemberEntity] that matches a call to [selector] on the
   /// [receiver]. If multiple targets exist, `null` is returned.
   MemberEntity locateSingleMember(Selector selector, AbstractValue receiver);
+
+  Iterable<FieldEntity> get elidedFields;
 }
 
 abstract class OpenWorld implements World {
@@ -249,7 +252,7 @@ abstract class KClosedWorld {
   Iterable<MemberEntity> get assignedInstanceMembers;
 
   Iterable<ClassEntity> get liveNativeClasses;
-  Iterable<MemberEntity> get processedMembers;
+  Map<MemberEntity, MemberUsage> get liveMemberUsage;
   RuntimeTypesNeed get rtiNeed;
   NoSuchMethodData get noSuchMethodData;
 

@@ -177,6 +177,7 @@ abstract class SubtypeTester {
     if (identical(subtype, supertype)) return true;
     if (subtype is BottomType) return true;
     if (subtype == nullType) {
+      // See rule 4 of the subtype rules from the Dart Language Specification.
       return supertype is! BottomType;
     }
     if (isTop(supertype)) return true;

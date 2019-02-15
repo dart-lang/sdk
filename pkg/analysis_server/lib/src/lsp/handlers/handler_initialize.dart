@@ -29,11 +29,11 @@ class InitializeMessageHandler
     }
     if (params.rootUri != null) {
       openWorkspacePaths.add(Uri.parse(params.rootUri).toFilePath());
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
     } else if (params.rootPath != null) {
       // This is deprecated according to LSP spec, but we still want to support
       // it in case older clients send us it.
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       openWorkspacePaths.add(params.rootPath);
     }
 
@@ -92,7 +92,7 @@ class InitializeMessageHandler
         true, // referencesProvider
         true, // documentHighlightProvider
         true, // documentSymbolProvider
-        null,
+        true, // workspaceSymbolProvider
         // "The `CodeActionOptions` return type is only valid if the client
         // signals code action literal support via the property
         // `textDocument.codeAction.codeActionLiteralSupport`."

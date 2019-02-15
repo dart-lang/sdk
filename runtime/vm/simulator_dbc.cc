@@ -847,7 +847,7 @@ DART_FORCE_INLINE void Simulator::InstanceCall1(Thread* thread,
 
   const intptr_t kCheckedArgs = 1;
   RawObject** args = call_base;
-  RawArray* cache = icdata->ptr()->ic_data_->ptr();
+  RawArray* cache = icdata->ptr()->entries_->ptr();
 
   const intptr_t type_args_len =
       SimulatorHelpers::ArgDescTypeArgsLen(icdata->ptr()->args_descriptor_);
@@ -891,7 +891,7 @@ DART_FORCE_INLINE void Simulator::InstanceCall2(Thread* thread,
 
   const intptr_t kCheckedArgs = 2;
   RawObject** args = call_base;
-  RawArray* cache = icdata->ptr()->ic_data_->ptr();
+  RawArray* cache = icdata->ptr()->entries_->ptr();
 
   const intptr_t type_args_len =
       SimulatorHelpers::ArgDescTypeArgsLen(icdata->ptr()->args_descriptor_);
@@ -1067,7 +1067,7 @@ DART_NOINLINE static bool InvokeNative(Thread* thread,
     ASSERT(SimulatorBytecode::IsCallOpcode(*pc));                              \
     const uint16_t kidx = SimulatorBytecode::DecodeD(*pc);                     \
     const RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));           \
-    RawObject** entries = icdata->ptr()->ic_data_->ptr()->data();              \
+    RawObject** entries = icdata->ptr()->entries_->ptr()->data();              \
     SimulatorHelpers::IncrementICUsageCount(entries, 0, 2);                    \
   } while (0);
 
@@ -1080,8 +1080,8 @@ DART_NOINLINE static bool InvokeNative(Thread* thread,
     const intptr_t lhs = reinterpret_cast<intptr_t>(SP[-1]);                   \
     const intptr_t rhs = reinterpret_cast<intptr_t>(SP[-0]);                   \
     ResultT* slot = reinterpret_cast<ResultT*>(SP - 1);                        \
-    if (LIKELY(!thread->isolate()->single_step()) &&                           \
-        LIKELY(AreBothSmis(lhs, rhs) && !Func(lhs, rhs, slot))) {              \
+    if (NOT_IN_PRODUCT(LIKELY(!thread->isolate()->single_step()) &&)           \
+            LIKELY(AreBothSmis(lhs, rhs) && !Func(lhs, rhs, slot))) {          \
       SMI_FASTPATH_ICDATA_INC;                                                 \
       /* Fast path succeeded. Skip the generic call that follows. */           \
       pc++;                                                                    \
@@ -1464,11 +1464,13 @@ SwitchDispatch:
 
   {
     BYTECODE(DebugStep, A);
+#ifndef PRODUCT
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);
     }
+#endif  // !PRODUCT
     DISPATCH();
   }
 
@@ -1652,12 +1654,14 @@ SwitchDispatch:
   {
     BYTECODE(IndirectStaticCall, A_D);
 
+#ifndef PRODUCT
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);
     }
+#endif  // !PRODUCT
 
     // Invoke target function.
     {
@@ -1665,7 +1669,7 @@ SwitchDispatch:
       // Look up the function in the ICData.
       RawObject* ic_data_obj = SP[0];
       RawICData* ic_data = RAW_CAST(ICData, ic_data_obj);
-      RawObject** data = ic_data->ptr()->ic_data_->ptr()->data();
+      RawObject** data = ic_data->ptr()->entries_->ptr()->data();
       SimulatorHelpers::IncrementICUsageCount(data, 0, 0);
       SP[0] = data[ICData::TargetIndexFor(ic_data->ptr()->state_bits_ & 0x3)];
       RawObject** call_base = SP - argc;
@@ -1690,12 +1694,14 @@ SwitchDispatch:
   {
     BYTECODE(InstanceCall1, A_D);
 
+#ifndef PRODUCT
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);
     }
+#endif  // !PRODUCT
 
     {
       const uint16_t argc = rA;
@@ -1716,11 +1722,14 @@ SwitchDispatch:
 
   {
     BYTECODE(InstanceCall2, A_D);
+
+#ifndef PRODUCT
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);
     }
+#endif  // !PRODUCT
 
     {
       const uint16_t argc = rA;
@@ -3330,11 +3339,14 @@ SwitchDispatch:
 
   {
     BYTECODE(IfEqStrictNumTOS, 0);
+
+#ifndef PRODUCT
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);
     }
+#endif  // !PRODUCT
 
     SP -= 2;
     if (!SimulatorHelpers::IsStrictEqualWithNumberCheck(SP[1], SP[2])) {
@@ -3345,11 +3357,14 @@ SwitchDispatch:
 
   {
     BYTECODE(IfNeStrictNumTOS, 0);
+
+#ifndef PRODUCT
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);
     }
+#endif  // !PRODUCT
 
     SP -= 2;
     if (SimulatorHelpers::IsStrictEqualWithNumberCheck(SP[1], SP[2])) {

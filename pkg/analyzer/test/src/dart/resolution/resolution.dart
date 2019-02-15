@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -14,12 +15,12 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
-import 'find_element.dart';
-import 'find_node.dart';
 
 final isBottomType = new TypeMatcher<BottomTypeImpl>();
 
@@ -31,7 +32,7 @@ final isVoidType = new TypeMatcher<VoidTypeImpl>();
 
 /// Base for resolution tests.
 mixin ResolutionTest implements ResourceProviderMixin {
-  TestAnalysisResult result;
+  ResolvedUnitResult result;
   FindNode findNode;
   FindElement findElement;
 
@@ -143,6 +144,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(element.enclosingElement, expectedEnclosing);
   }
 
+  bool get enableUnusedLocalVariable => false;
+
+  bool get enableUnusedElement => false;
+
   /**
    * Assert that the number of error codes in reported [errors] matches the
    * number of [expected] error codes. The order of errors is ignored.
@@ -152,16 +157,26 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var errorListener = new GatheringErrorListener();
     for (AnalysisError error in result.errors) {
       ErrorCode errorCode = error.errorCode;
-      if (errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
-          errorCode == HintCode.UNUSED_CATCH_STACK ||
-          errorCode == HintCode.UNUSED_ELEMENT ||
-          errorCode == HintCode.UNUSED_FIELD ||
-          errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
+      if (!enableUnusedElement &&
+          (errorCode == HintCode.UNUSED_ELEMENT ||
+              errorCode == HintCode.UNUSED_FIELD)) {
+        continue;
+      }
+      if (!enableUnusedLocalVariable &&
+          (errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
+              errorCode == HintCode.UNUSED_CATCH_STACK ||
+              errorCode == HintCode.UNUSED_LOCAL_VARIABLE)) {
         continue;
       }
       errorListener.onError(error);
     }
     errorListener.assertErrorsWithCodes(expected);
+  }
+
+  Future<void> assertErrorsInCode(String code, List<ErrorCode> errors) async {
+    addTestFile(code);
+    await resolveTestFile();
+    assertTestErrors(errors);
   }
 
   void assertHasTestErrors() {
@@ -295,6 +310,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertTypeNull(ref);
   }
 
+  Future<void> assertNoErrorsInCode(String code) async {
+    addTestFile(code);
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
   void assertNoTestErrors() {
     assertTestErrors(const <ErrorCode>[]);
   }
@@ -397,7 +418,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  Future<TestAnalysisResult> resolveFile(String path);
+  Future<ResolvedUnitResult> resolveFile(String path);
 
   Future<void> resolveTestFile() async {
     var path = convertPath('/test/lib/test.dart');
@@ -418,13 +439,4 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(arrowIndex, isNonNegative);
     return invokeType.substring(arrowIndex + 1).trim();
   }
-}
-
-class TestAnalysisResult {
-  final String path;
-  final String content;
-  final CompilationUnit unit;
-  final List<AnalysisError> errors;
-
-  TestAnalysisResult(this.path, this.content, this.unit, this.errors);
 }

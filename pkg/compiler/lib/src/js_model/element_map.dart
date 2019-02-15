@@ -524,3 +524,83 @@ ir.Node getFieldInitializer(JsToElementMap elementMap, FieldEntity field) {
   }
   return node.initializer;
 }
+
+void forEachOrderedParameterByFunctionNode(
+    ir.FunctionNode node,
+    ParameterStructure parameterStructure,
+    void f(ir.VariableDeclaration parameter, {bool isOptional, bool isElided}),
+    {bool useNativeOrdering: false}) {
+  for (int position = 0;
+      position < node.positionalParameters.length;
+      position++) {
+    ir.VariableDeclaration variable = node.positionalParameters[position];
+    f(variable,
+        isOptional: position >= parameterStructure.requiredParameters,
+        isElided: position >= parameterStructure.positionalParameters);
+  }
+
+  if (node.namedParameters.isEmpty) {
+    return;
+  }
+
+  List<ir.VariableDeclaration> namedParameters = node.namedParameters.toList();
+  if (useNativeOrdering) {
+    namedParameters.sort(nativeOrdering);
+  } else {
+    namedParameters.sort(namedOrdering);
+  }
+  for (ir.VariableDeclaration variable in namedParameters) {
+    f(variable,
+        isOptional: true,
+        isElided: !parameterStructure.namedParameters.contains(variable.name));
+  }
+}
+
+void forEachOrderedParameter(JsToElementMap elementMap, FunctionEntity function,
+    void f(ir.VariableDeclaration parameter, {bool isElided})) {
+  ParameterStructure parameterStructure = function.parameterStructure;
+
+  void handleParameter(ir.VariableDeclaration parameter,
+      {bool isOptional, bool isElided}) {
+    f(parameter, isElided: isElided);
+  }
+
+  MemberDefinition definition = elementMap.getMemberDefinition(function);
+  switch (definition.kind) {
+    case MemberKind.regular:
+      ir.Node node = definition.node;
+      if (node is ir.Procedure) {
+        forEachOrderedParameterByFunctionNode(
+            node.function, parameterStructure, handleParameter);
+        return;
+      }
+      break;
+    case MemberKind.constructor:
+    case MemberKind.constructorBody:
+      ir.Node node = definition.node;
+      if (node is ir.Procedure) {
+        forEachOrderedParameterByFunctionNode(
+            node.function, parameterStructure, handleParameter);
+        return;
+      } else if (node is ir.Constructor) {
+        forEachOrderedParameterByFunctionNode(
+            node.function, parameterStructure, handleParameter);
+        return;
+      }
+      break;
+    case MemberKind.closureCall:
+      ir.Node node = definition.node;
+      if (node is ir.FunctionDeclaration) {
+        forEachOrderedParameterByFunctionNode(
+            node.function, parameterStructure, handleParameter);
+        return;
+      } else if (node is ir.FunctionExpression) {
+        forEachOrderedParameterByFunctionNode(
+            node.function, parameterStructure, handleParameter);
+        return;
+      }
+      break;
+    default:
+  }
+  failedAt(function, "Unexpected function definition $definition.");
+}

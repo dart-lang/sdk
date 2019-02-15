@@ -48,19 +48,19 @@ where
     --dart-top        : sets DART_TOP explicitly through command line
     --mode1           : m1
     --mode2           : m2, and values one of
-        jit-[stress-][debug-]ia32  = Dart JIT (ia32)
-        jit-[stress-][debug-]x64   = Dart JIT (x64)
-        jit-[stress-][debug-]arm32 = Dart JIT (simarm)
-        jit-[stress-][debug-]arm64 = Dart JIT (simarm64)
-        jit-[stress-][debug-]dbc   = Dart JIT (simdbc)
-        jit-[stress-][debug-]dbc64 = Dart JIT (simdbc64)
-        aot-[debug-]x64            = Dart AOT (x64)
-        aot-[debug-]arm32          = Dart AOT (simarm)
-        aot-[debug-]arm64          = Dart AOT (simarm64)
-        kbc-int-[debug-]x64        = Dart KBC (interpreted bytecode)
-        kbc-mix-[debug-]x64        = Dart KBC (mixed-mode bytecode)
-        kbc-cmp-[debug-]x64        = Dart KBC (compiled bytecode)
-        js-x64                     = dart2js + Node.JS
+        jit-[debug-]ia32    = Dart JIT (ia32)
+        jit-[debug-]x64     = Dart JIT (x64)
+        jit-[debug-]arm32   = Dart JIT (simarm)
+        jit-[debug-]arm64   = Dart JIT (simarm64)
+        jit-[debug-]dbc     = Dart JIT (simdbc)
+        jit-[debug-]dbc64   = Dart JIT (simdbc64)
+        aot-[debug-]x64     = Dart AOT (x64)
+        aot-[debug-]arm32   = Dart AOT (simarm)
+        aot-[debug-]arm64   = Dart AOT (simarm64)
+        kbc-int-[debug-]x64 = Dart KBC (interpreted bytecode)
+        kbc-mix-[debug-]x64 = Dart KBC (mixed-mode bytecode)
+        kbc-cmp-[debug-]x64 = Dart KBC (compiled bytecode)
+        djs-x64             = dart2js + Node.JS
 
 If no modes are given, a random JIT and/or AOT combination is used.
 

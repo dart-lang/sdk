@@ -165,7 +165,7 @@ class Class1b {
 
 /*element: Class2.:invoke*/
 class Class2 {
-  /*element: Class2.c:read,write*/
+  /*element: Class2.c:init,read*/
   Class1a c;
 }
 

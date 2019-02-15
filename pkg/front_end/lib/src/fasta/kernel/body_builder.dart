@@ -2405,8 +2405,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         rightBrace);
     library.checkBoundsInSetLiteral(node, typeEnvironment);
     if (!library.loader.target.enableSetLiterals) {
-      node = wrapInProblem(node, fasta.messageSetLiteralsNotSupported,
-          lengthOfSpan(leftBrace, leftBrace.endGroup));
+      internalProblem(
+          fasta.messageSetLiteralsNotSupported, node.fileOffset, uri);
+      return;
     }
     push(node);
   }
@@ -3524,6 +3525,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         errorName ??= debugName(type.name, name);
       }
+    } else if (type is InvalidTypeBuilder<TypeBuilder, Object>) {
+      LocatedMessage message = type.message;
+      return evaluateArgumentsBefore(
+          arguments,
+          buildProblem(message.messageObject, nameToken.charOffset,
+              nameToken.lexeme.length));
     } else {
       errorName = debugName(getNodeName(type), name);
     }

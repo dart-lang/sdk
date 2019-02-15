@@ -42,9 +42,11 @@ uword RuntimeEntry::GetEntryPoint() const {
 //   SP : points to the arguments and return value array.
 //   R5 : address of the runtime function to call.
 //   R4 : number of arguments to the call.
-void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
-  if (is_leaf()) {
-    ASSERT(argument_count == this->argument_count());
+void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
+                                Assembler* assembler,
+                                intptr_t argument_count) {
+  if (runtime_entry->is_leaf()) {
+    ASSERT(argument_count == runtime_entry->argument_count());
     // Since we are entering C++ code, we must restore the C stack pointer from
     // the stack limit to an aligned value nearer to the top of the stack.
     // We cache the Dart stack pointer and the stack limit in callee-saved
@@ -60,7 +62,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     __ mov(R25, SP);
     __ ReserveAlignedFrameSpace(0);
     __ mov(CSP, SP);
-    __ ldr(TMP, Address(THR, Thread::OffsetFromThread(this)));
+    __ ldr(TMP, Address(THR, Thread::OffsetFromThread(runtime_entry)));
     __ str(TMP, Address(THR, Thread::vm_tag_offset()));
     __ blr(TMP);
     __ LoadImmediate(TMP, VMTag::kDartCompiledTagId);
@@ -72,7 +74,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
-    __ ldr(R5, Address(THR, Thread::OffsetFromThread(this)));
+    __ ldr(R5, Address(THR, Thread::OffsetFromThread(runtime_entry)));
     __ LoadImmediate(R4, argument_count);
     __ BranchLinkToRuntime();
   }

@@ -14,12 +14,13 @@ import 'kernel_helpers.dart';
 /// [evaluate] computes the value of a constant expression, if available.
 class DevCompilerConstants {
   final _ConstantVisitor _visitor;
-  final _ConstantEvaluator _evaluator;
+  final ConstantEvaluator _evaluator;
 
   DevCompilerConstants(
       TypeEnvironment types, Map<String, String> declaredVariables)
       : _visitor = _ConstantVisitor(types.coreTypes),
-        _evaluator = _ConstantEvaluator(types, declaredVariables);
+        _evaluator = ConstantEvaluator(DevCompilerConstantsBackend(),
+            declaredVariables, types, false, const _ErrorReporter());
 
   /// Determines if an expression is constant.
   bool isConstant(Expression e) => _visitor.isConstant(e);
@@ -36,7 +37,7 @@ class DevCompilerConstants {
 
     try {
       var result = cache ? _evaluator.evaluate(e) : e.accept(_evaluator);
-      return identical(result, _evaluator.unavailableConstant) ? null : result;
+      return result is UnevaluatedConstant ? null : result;
     } on _AbortCurrentEvaluation {
       // TODO(jmesserly): the try+catch is necessary because the front end is
       // not issuing sufficient errors, so the constant evaluation can fail.
@@ -167,147 +168,26 @@ class _ConstantVisitor extends ExpressionVisitor<bool> {
   }
 }
 
-/// The visitor that evaluates constants, building on Kernel's
-/// [ConstantEvaluator] class (used by the VM) and fixing some of its behavior
-/// to work better for DDC.
-//
-// TODO(jmesserly): make some changes in the base class to make it a better fit
-// for compilers like DDC?
-class _ConstantEvaluator extends ConstantEvaluator {
-  final Map<String, String> declaredVariables;
-
-  /// Used to denote an unavailable constant value from another module
-  ///
-  // TODO(jmesserly): this happens when we try to evaluate constant values from
-  // an external library, that was from an outline kernel file. The kernel file
-  // does not contain the initializer value of the constant.
-  final Constant unavailableConstant;
-
-  _ConstantEvaluator(TypeEnvironment types, this.declaredVariables,
-      {bool enableAsserts: false})
-      : unavailableConstant = InstanceConstant(null, [], {}),
-        super(_ConstantsBackend(types.coreTypes), types, types.coreTypes,
-            enableAsserts, const _ErrorReporter()) {
-    env = EvaluationEnvironment();
-  }
+/// Implement the class for compiler specific behavior.
+class DevCompilerConstantsBackend extends ConstantsBackend {
+  DevCompilerConstantsBackend();
 
   @override
-  visitVariableGet(node) {
-    // The base evaluator expects that variable declarations are visited during
-    // the transformation step, so it doesn't handle constant variables.
-    // Instead handle them here.
-    if (node.variable.isConst) {
-      return evaluate(node.variable.initializer);
-    }
-    // Fall back to the base evaluator for other cases (e.g. parameters of a
-    // constant constructor).
-    return super.visitVariableGet(node);
-  }
-
-  @override
-  visitStaticGet(StaticGet node) {
-    // Handle unavailable field constants. This happens if an external library
-    // only has its outline available.
-    var target = node.target;
-    if (target is Field &&
-        target.isConst &&
-        target.isInExternalLibrary &&
-        target.initializer == null) {
-      return unavailableConstant;
-    }
-    return super.visitStaticGet(node);
-  }
-
-  @override
-  visitConstructorInvocation(ConstructorInvocation node) {
-    // Handle unavailable constructor bodies.
-    // This happens if an external library only has its outline available.
-    var target = node.target;
-    if (target.isConst &&
-        target.isInExternalLibrary &&
-        target.function.body is EmptyStatement &&
-        target.initializers.isEmpty) {
-      return unavailableConstant;
-    }
-    return super.visitConstructorInvocation(node);
-  }
-
-  @override
-  visitStaticInvocation(node) {
-    // Handle int/bool/String.fromEnvironment constructors.
-    //
-    // (The VM handles this via its `native` calls and implements it in
-    // VmConstantsBackend.buildConstantForNative.)
-    var target = node.target;
-    if (isFromEnvironmentInvocation(coreTypes, node)) {
-      var firstArg = evaluatePositionalArguments(node.arguments)[0];
-      var defaultArg = evaluateNamedArguments(node.arguments)['defaultValue'];
-
-      var varName = (firstArg as StringConstant).value;
-      var value = declaredVariables[varName];
-      var targetClass = target.enclosingClass;
-
-      if (targetClass == coreTypes.stringClass) {
-        if (value != null) return canonicalize(StringConstant(value));
-        return defaultArg ?? nullConstant;
-      } else if (targetClass == coreTypes.intClass) {
-        var intValue = int.tryParse(value ?? '');
-        if (intValue != null) return canonicalize(IntConstant(intValue));
-        return defaultArg ?? nullConstant;
-      } else if (targetClass == coreTypes.boolClass) {
-        if (value == "true") return trueConstant;
-        if (value == "false") return falseConstant;
-        return defaultArg ?? falseConstant;
-      }
-    }
-    return super.visitStaticInvocation(node);
-  }
-
-  @override
-  evaluateBinaryNumericOperation(String op, num a, num b, TreeNode node) {
-    // Use doubles to match JS number semantics.
-    return super
-        .evaluateBinaryNumericOperation(op, a.toDouble(), b.toDouble(), node);
-  }
-
-  @override
-  canonicalize(Constant constant) {
+  Constant lowerConstant(Constant constant) {
     if (constant is DoubleConstant) {
       // Convert to an integer when possible (matching the runtime behavior
       // of `is int`).
       var d = constant.value;
       if (d.isFinite) {
         var i = d.toInt();
-        if (d == i.toDouble()) return super.canonicalize(IntConstant(i));
+        if (d == i.toDouble()) return IntConstant(i);
       }
     }
-    return super.canonicalize(constant);
-  }
-}
-
-/// Implement the class for compiler specific behavior.
-///
-/// This is mostly unused by DDC, because we don't use the global constant
-/// transformer.
-class _ConstantsBackend implements ConstantsBackend {
-  final CoreTypes coreTypes;
-  final Field symbolNameField;
-
-  _ConstantsBackend(this.coreTypes)
-      : symbolNameField = coreTypes.internalSymbolClass.fields
-            .firstWhere((f) => f.name.name == '_name');
-
-  @override
-  buildConstantForNative(nativeName, typeArguments, positionalArguments,
-      namedArguments, context, node, errorReporter, abortEvaluation) {
-    throw StateError('unreachable'); // DDC does not use VM native syntax
+    return constant;
   }
 
-  @override
-  lowerMapConstant(constant) => constant;
-
-  @override
-  lowerListConstant(constant) => constant;
+  // Use doubles to match JS number semantics.
+  num prepareNumericOperand(num operand) => operand.toDouble();
 }
 
 class _ErrorReporter extends SimpleErrorReporter {

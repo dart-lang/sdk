@@ -276,6 +276,17 @@ void InlineExitCollector::ReplaceCall(BlockEntryInstr* callee_entry) {
     call_->ReplaceUsesWith(caller_graph_->constant_null());
 
     // Update dominator tree.
+    for (intptr_t i = 0, n = callee_entry->dominated_blocks().length(); i < n;
+         i++) {
+      BlockEntryInstr* block = callee_entry->dominated_blocks()[i];
+      true_target->AddDominatedBlock(block);
+    }
+    for (intptr_t i = 0, n = call_block->dominated_blocks().length(); i < n;
+         i++) {
+      BlockEntryInstr* block = call_block->dominated_blocks()[i];
+      false_block->AddDominatedBlock(block);
+    }
+    call_block->ClearDominatedBlocks();
     call_block->AddDominatedBlock(true_target);
     call_block->AddDominatedBlock(false_block);
 

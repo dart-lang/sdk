@@ -246,6 +246,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
       dropAST: dropAST,
       showBytecodeSizeStat: showBytecodeSizeStat,
+      useFutureBytecodeFormat: useFutureBytecodeFormat,
     );
   }
 
@@ -397,8 +398,7 @@ Future _performConstantEvaluation(
     CoreTypes coreTypes,
     Map<String, String> environmentDefines,
     bool enableAsserts) async {
-  final vmConstants =
-      new vm_constants.VmConstantsBackend(environmentDefines, coreTypes);
+  final vmConstants = new vm_constants.VmConstantsBackend(coreTypes);
 
   await runWithFrontEndCompilerContext(source, compilerOptions, component, () {
     final hierarchy = new ClassHierarchy(component);
@@ -406,7 +406,7 @@ Future _performConstantEvaluation(
 
     // TFA will remove constants fields which are unused (and respects the
     // vm/embedder entrypoints).
-    constants.transformComponent(component, vmConstants,
+    constants.transformComponent(component, vmConstants, environmentDefines,
         new ForwardConstantEvaluationErrors(typeEnvironment),
         keepFields: true,
         evaluateAnnotations: true,

@@ -5,7 +5,7 @@
 library vm.bytecode.bytecode_serialization;
 
 import 'dart:io' show BytesBuilder;
-import 'dart:typed_data' show Uint8List, Uint16List;
+import 'dart:typed_data' show ByteData, Endian, Uint8List, Uint16List;
 
 abstract class StringWriter {
   int put(String string);
@@ -361,46 +361,66 @@ class StringTable implements StringWriter, StringReader {
   }
 }
 
-class ConstantPoolEntryStatistics {
+int doubleToIntBits(double value) {
+  final buf = new ByteData(8);
+  buf.setFloat64(0, value, Endian.little);
+  return buf.getInt64(0, Endian.little);
+}
+
+double intBitsToDouble(int bits) {
+  final buf = new ByteData(8);
+  buf.setInt64(0, bits, Endian.little);
+  return buf.getFloat64(0, Endian.little);
+}
+
+class NamedEntryStatistics {
   final String name;
   int size = 0;
   int count = 0;
 
-  ConstantPoolEntryStatistics(this.name);
+  NamedEntryStatistics(this.name);
+
+  String toString() => "${name.padRight(40)}:    ${size.toString().padLeft(10)}"
+      "  (count: ${count.toString().padLeft(8)})";
 }
 
 class BytecodeSizeStatistics {
   static int componentSize = 0;
   static int objectTableSize = 0;
+  static int objectTableEntriesCount = 0;
   static int stringTableSize = 0;
   static int membersSize = 0;
   static int constantPoolSize = 0;
   static int instructionsSize = 0;
-  static List<ConstantPoolEntryStatistics> constantPoolStats =
-      <ConstantPoolEntryStatistics>[];
+  static List<NamedEntryStatistics> constantPoolStats =
+      <NamedEntryStatistics>[];
+  static List<NamedEntryStatistics> objectTableStats = <NamedEntryStatistics>[];
 
   static void reset() {
     componentSize = 0;
     objectTableSize = 0;
+    objectTableEntriesCount = 0;
     stringTableSize = 0;
     membersSize = 0;
     constantPoolSize = 0;
     instructionsSize = 0;
-    constantPoolStats = <ConstantPoolEntryStatistics>[];
+    constantPoolStats = <NamedEntryStatistics>[];
+    objectTableStats = <NamedEntryStatistics>[];
   }
 
   static void dump() {
     print("Bytecode size statistics:");
     print("  Bytecode component:  $componentSize");
-    print("   - object table:     $objectTableSize");
+    print(
+        "   - object table:     $objectTableSize   (count: $objectTableEntriesCount)");
+    for (var entry in objectTableStats) {
+      print("       - $entry");
+    }
     print("   - string table:     $stringTableSize");
     print("  Bytecode members:    $membersSize");
     print("   - constant pool:    $constantPoolSize");
-    for (var cpStat in constantPoolStats) {
-      final name = cpStat.name.padRight(40);
-      final size = cpStat.size.toString().padLeft(10);
-      final count = cpStat.count.toString().padLeft(8);
-      print("       - $name:    $size  (count: $count)");
+    for (var entry in constantPoolStats) {
+      print("       - $entry");
     }
     print("   - instructions:     $instructionsSize");
   }

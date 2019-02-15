@@ -2059,125 +2059,6 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 abstract class CollectionElementImpl extends AstNodeImpl
     implements CollectionElement {}
 
-class CollectionForElementImpl extends CollectionElementImpl
-    with ForMixin
-    implements CollectionForElement {
-  /**
-   * The body of the loop.
-   */
-  CollectionElementImpl _body;
-
-  /**
-   * Initialize a newly created for element.
-   */
-  CollectionForElementImpl(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      ForLoopPartsImpl forLoopParts,
-      Token rightParenthesis,
-      CollectionElementImpl body) {
-    this.awaitKeyword = awaitKeyword;
-    this.forKeyword = forKeyword;
-    this.leftParenthesis = leftParenthesis;
-    _forLoopParts = _becomeParentOf(forLoopParts);
-    this.rightParenthesis = rightParenthesis;
-    _body = _becomeParentOf(body);
-  }
-
-  @override
-  CollectionElement get body => _body;
-
-  void set body(CollectionElement statement) {
-    _body = _becomeParentOf(statement as CollectionElementImpl);
-  }
-
-  @override
-  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
-    ..addAll(super.childEntities)
-    ..add(_body);
-
-  @override
-  Token get endToken => _body.endToken;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitCollectionForElement(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    _forLoopParts?.accept(visitor);
-    _body?.accept(visitor);
-  }
-}
-
-class CollectionIfElementImpl extends CollectionElementImpl
-    with IfMixin
-    implements CollectionIfElement {
-  /**
-   * The element to be executed if the condition is `true`.
-   */
-  CollectionElementImpl _thenElement;
-
-  /**
-   * The element to be executed if the condition is `false`, or `null` if there
-   * is no such element.
-   */
-  CollectionElementImpl _elseElement;
-
-  /**
-   * Initialize a newly created for element.
-   */
-  CollectionIfElementImpl(
-      Token ifKeyword,
-      Token leftParenthesis,
-      ExpressionImpl condition,
-      Token rightParenthesis,
-      CollectionElementImpl thenElement,
-      Token elseKeyword,
-      CollectionElementImpl elseElement) {
-    this.ifKeyword = ifKeyword;
-    this.leftParenthesis = leftParenthesis;
-    _condition = _becomeParentOf(condition);
-    this.rightParenthesis = rightParenthesis;
-    _thenElement = _becomeParentOf(thenElement);
-    this.elseKeyword = elseKeyword;
-    _elseElement = _becomeParentOf(elseElement);
-  }
-
-  @override
-  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
-    ..addAll(super.childEntities)
-    ..add(_thenElement)
-    ..add(_elseElement);
-
-  @override
-  CollectionElement get elseElement => _elseElement;
-
-  set elseElement(CollectionElement element) {
-    _elseElement = _becomeParentOf(element as CollectionElementImpl);
-  }
-
-  @override
-  Token get endToken => _elseElement?.endToken ?? _thenElement.endToken;
-
-  @override
-  CollectionElement get thenElement => _thenElement;
-
-  set thenElement(CollectionElement element) {
-    _thenElement = _becomeParentOf(element as CollectionElementImpl);
-  }
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitCollectionIfElement(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _thenElement?.accept(visitor);
-    _elseElement?.accept(visitor);
-  }
-}
-
 /**
  * A combinator associated with an import or export directive.
  *
@@ -4963,6 +4844,57 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
   }
 }
 
+class ForElementImpl extends CollectionElementImpl
+    with ForMixin
+    implements ForElement {
+  /**
+   * The body of the loop.
+   */
+  CollectionElementImpl _body;
+
+  /**
+   * Initialize a newly created for element.
+   */
+  ForElementImpl(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopPartsImpl forLoopParts,
+      Token rightParenthesis,
+      CollectionElementImpl body) {
+    this.awaitKeyword = awaitKeyword;
+    this.forKeyword = forKeyword;
+    this.leftParenthesis = leftParenthesis;
+    _forLoopParts = _becomeParentOf(forLoopParts);
+    this.rightParenthesis = rightParenthesis;
+    _body = _becomeParentOf(body);
+  }
+
+  @override
+  CollectionElement get body => _body;
+
+  void set body(CollectionElement statement) {
+    _body = _becomeParentOf(statement as CollectionElementImpl);
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..addAll(super.childEntities)
+    ..add(_body);
+
+  @override
+  Token get endToken => _body.endToken;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitForElement(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _forLoopParts?.accept(visitor);
+    _body?.accept(visitor);
+  }
+}
+
 abstract class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
 
 /**
@@ -6443,6 +6375,74 @@ abstract class IdentifierImpl extends ExpressionImpl implements Identifier {
 
   @override
   bool get isAssignable => true;
+}
+
+class IfElementImpl extends CollectionElementImpl
+    with IfMixin
+    implements IfElement {
+  /**
+   * The element to be executed if the condition is `true`.
+   */
+  CollectionElementImpl _thenElement;
+
+  /**
+   * The element to be executed if the condition is `false`, or `null` if there
+   * is no such element.
+   */
+  CollectionElementImpl _elseElement;
+
+  /**
+   * Initialize a newly created for element.
+   */
+  IfElementImpl(
+      Token ifKeyword,
+      Token leftParenthesis,
+      ExpressionImpl condition,
+      Token rightParenthesis,
+      CollectionElementImpl thenElement,
+      Token elseKeyword,
+      CollectionElementImpl elseElement) {
+    this.ifKeyword = ifKeyword;
+    this.leftParenthesis = leftParenthesis;
+    _condition = _becomeParentOf(condition);
+    this.rightParenthesis = rightParenthesis;
+    _thenElement = _becomeParentOf(thenElement);
+    this.elseKeyword = elseKeyword;
+    _elseElement = _becomeParentOf(elseElement);
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..addAll(super.childEntities)
+    ..add(_thenElement)
+    ..add(_elseElement);
+
+  @override
+  CollectionElement get elseElement => _elseElement;
+
+  set elseElement(CollectionElement element) {
+    _elseElement = _becomeParentOf(element as CollectionElementImpl);
+  }
+
+  @override
+  Token get endToken => _elseElement?.endToken ?? _thenElement.endToken;
+
+  @override
+  CollectionElement get thenElement => _thenElement;
+
+  set thenElement(CollectionElement element) {
+    _thenElement = _becomeParentOf(element as CollectionElementImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitIfElement(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _thenElement?.accept(visitor);
+    _elseElement?.accept(visitor);
+  }
 }
 
 mixin IfMixin on AstNodeImpl {
@@ -7985,127 +7985,6 @@ class LocalVariableInfo {
       new Set<VariableElement>();
 }
 
-abstract class MapElementImpl extends AstNodeImpl implements MapElement {}
-
-class MapForElementImpl extends MapElementImpl
-    with ForMixin
-    implements MapForElement {
-  /**
-   * The body of the loop.
-   */
-  MapElementImpl _body;
-
-  /**
-   * Initialize a newly created for element.
-   */
-  MapForElementImpl(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      ForLoopPartsImpl forLoopParts,
-      Token rightParenthesis,
-      MapElementImpl body) {
-    this.awaitKeyword = awaitKeyword;
-    this.forKeyword = forKeyword;
-    this.leftParenthesis = leftParenthesis;
-    _forLoopParts = _becomeParentOf(forLoopParts);
-    this.rightParenthesis = rightParenthesis;
-    _body = _becomeParentOf(body);
-  }
-
-  @override
-  MapElement get body => _body;
-
-  void set body(MapElement statement) {
-    _body = _becomeParentOf(statement as MapElementImpl);
-  }
-
-  @override
-  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
-    ..addAll(super.childEntities)
-    ..add(_body);
-
-  @override
-  Token get endToken => _body.endToken;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapForElement(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    _forLoopParts?.accept(visitor);
-    _body?.accept(visitor);
-  }
-}
-
-class MapIfElementImpl extends MapElementImpl
-    with IfMixin
-    implements MapIfElement {
-  /**
-   * The element to be executed if the condition is `true`.
-   */
-  MapElementImpl _thenElement;
-
-  /**
-   * The element to be executed if the condition is `false`, or `null` if there
-   * is no such element.
-   */
-  MapElementImpl _elseElement;
-
-  /**
-   * Initialize a newly created for element.
-   */
-  MapIfElementImpl(
-      Token ifKeyword,
-      Token leftParenthesis,
-      ExpressionImpl condition,
-      Token rightParenthesis,
-      MapElementImpl thenElement,
-      Token elseKeyword,
-      MapElementImpl elseElement) {
-    this.ifKeyword = ifKeyword;
-    this.leftParenthesis = leftParenthesis;
-    _condition = _becomeParentOf(condition);
-    this.rightParenthesis = rightParenthesis;
-    _thenElement = _becomeParentOf(thenElement);
-    this.elseKeyword = elseKeyword;
-    _elseElement = _becomeParentOf(elseElement);
-  }
-
-  @override
-  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
-    ..addAll(super.childEntities)
-    ..add(_thenElement)
-    ..add(_elseElement);
-
-  @override
-  MapElement get elseElement => _elseElement;
-
-  set elseElement(MapElement element) {
-    _elseElement = _becomeParentOf(element as MapElementImpl);
-  }
-
-  @override
-  Token get endToken => _elseElement?.endToken ?? _thenElement.endToken;
-
-  @override
-  MapElement get thenElement => _thenElement;
-
-  set thenElement(MapElement element) {
-    _thenElement = _becomeParentOf(element as MapElementImpl);
-  }
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapIfElement(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _thenElement?.accept(visitor);
-    _elseElement?.accept(visitor);
-  }
-}
-
 /**
  * A literal map.
  *
@@ -8124,7 +8003,7 @@ class MapLiteral2Impl extends TypedLiteralImpl implements MapLiteral2 {
   /**
    * The entries in the map.
    */
-  NodeList<MapElement> _entries;
+  NodeList<CollectionElement> _entries;
 
   @override
   Token rightBracket;
@@ -8135,9 +8014,9 @@ class MapLiteral2Impl extends TypedLiteralImpl implements MapLiteral2 {
    * arguments were declared. The [entries] can be `null` if the map is empty.
    */
   MapLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      this.leftBracket, List<MapElement> entries, this.rightBracket)
+      this.leftBracket, List<CollectionElement> entries, this.rightBracket)
       : super(constKeyword, typeArguments) {
-    _entries = new NodeListImpl<MapElement>(this, entries);
+    _entries = new NodeListImpl<CollectionElement>(this, entries);
   }
 
   @override
@@ -8163,7 +8042,7 @@ class MapLiteral2Impl extends TypedLiteralImpl implements MapLiteral2 {
   Token get endToken => rightBracket;
 
   @override
-  NodeList<MapElement> get entries => _entries;
+  NodeList<CollectionElement> get entries => _entries;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral2(this);
@@ -8181,7 +8060,8 @@ class MapLiteral2Impl extends TypedLiteralImpl implements MapLiteral2 {
  *    mapLiteralEntry ::=
  *        [Expression] ':' [Expression]
  */
-class MapLiteralEntryImpl extends MapElementImpl implements MapLiteralEntry {
+class MapLiteralEntryImpl extends CollectionElementImpl
+    implements MapLiteralEntry {
   /**
    * The expression computing the key with which the value will be associated.
    */
@@ -10868,7 +10748,7 @@ abstract class SingleStringLiteralImpl extends StringLiteralImpl
     implements SingleStringLiteral {}
 
 class SpreadElementImpl extends AstNodeImpl
-    implements CollectionElementImpl, MapElementImpl, SpreadElement {
+    implements CollectionElementImpl, SpreadElement {
   Token spreadOperator;
 
   ExpressionImpl _expression;

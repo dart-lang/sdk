@@ -883,7 +883,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitLibrary(Library node) {
     insideExternalLibrary = node.isExternal;
     libraryOffsets.add(getBufferOffset());
-    writeByte(insideExternalLibrary ? 1 : 0);
+    writeByte(node.flags);
     writeNonNullCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
     writeUriReference(node.fileUri);

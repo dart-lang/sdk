@@ -21,6 +21,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../support/abstract_context.dart';
+import 'dart/dart_change_builder_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -33,37 +34,9 @@ main() {
   });
 }
 
-mixin BuilderTestMixin implements AbstractContextTest {
-  SourceEdit getEdit(DartChangeBuilder builder) {
-    SourceChange sourceChange = builder.sourceChange;
-    expect(sourceChange, isNotNull);
-    List<SourceFileEdit> fileEdits = sourceChange.edits;
-    expect(fileEdits, hasLength(1));
-    SourceFileEdit fileEdit = fileEdits[0];
-    expect(fileEdit, isNotNull);
-    List<SourceEdit> edits = fileEdit.edits;
-    expect(edits, hasLength(1));
-    return edits[0];
-  }
-
-  List<SourceEdit> getEdits(DartChangeBuilder builder) {
-    SourceChange sourceChange = builder.sourceChange;
-    expect(sourceChange, isNotNull);
-    List<SourceFileEdit> fileEdits = sourceChange.edits;
-    expect(fileEdits, hasLength(1));
-    SourceFileEdit fileEdit = fileEdits[0];
-    expect(fileEdit, isNotNull);
-    return fileEdit.edits;
-  }
-
-  /// Return a newly created Dart change builder.
-  DartChangeBuilderImpl newBuilder() =>
-      new DartChangeBuilder(session) as DartChangeBuilderImpl;
-}
-
 @reflectiveTest
 class DartChangeBuilderImplTest extends AbstractContextTest
-    with BuilderTestMixin {
+    with DartChangeBuilderMixin {
   test_createFileEditBuilder() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'library test;');
@@ -78,7 +51,7 @@ class DartChangeBuilderImplTest extends AbstractContextTest
 
 @reflectiveTest
 class DartEditBuilderImplTest extends AbstractContextTest
-    with BuilderTestMixin {
+    with DartChangeBuilderMixin {
   test_writeClassDeclaration_interfaces() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {}');
@@ -1527,7 +1500,7 @@ class B {}
 
 @reflectiveTest
 class DartFileEditBuilderImplTest extends AbstractContextTest
-    with BuilderTestMixin {
+    with DartChangeBuilderMixin {
   TypeProvider get typeProvider {
     return new TestTypeProvider(null, driver);
   }
@@ -1629,7 +1602,8 @@ class C extends B {}
 }
 
 @reflectiveTest
-class ImportLibraryTest extends AbstractContextTest with BuilderTestMixin {
+class ImportLibraryTest extends AbstractContextTest
+    with DartChangeBuilderMixin {
   test_afterLibraryDirective_dart() async {
     await _assertImportLibrary(
       initialCode: '''
@@ -2059,7 +2033,8 @@ import 'aaa.dart';
 }
 
 @reflectiveTest
-class WriteOverrideTest extends AbstractContextTest with BuilderTestMixin {
+class WriteOverrideTest extends AbstractContextTest
+    with DartChangeBuilderMixin {
   test_getter_abstract() async {
     await _assertWriteOverride(
       content: '''

@@ -30,6 +30,8 @@ import '../environment.dart';
 import '../frontend_strategy.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
+import '../ir/impact.dart';
+import '../ir/impact_data.dart';
 import '../ir/static_type.dart';
 import '../ir/scope.dart';
 import '../ir/types.dart';
@@ -59,6 +61,11 @@ import 'kernel_impact.dart';
 
 part 'native_basic_data.dart';
 part 'no_such_method_resolver.dart';
+
+/// If `true` kernel impacts are computed as [ImpactData] directly on kernel
+/// and converted to the K model afterwards. This is a pre-step to modularizing
+/// the world impact computation.
+bool useImpactDataForTesting = false;
 
 /// Implementation of [KernelToElementMap] that only supports world
 /// impact computation.
@@ -760,32 +767,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         namedParameters, includeTypeParameters ? typeParameters : 0);
   }
 
-  Selector getSelector(ir.Expression node) {
-    // TODO(efortuna): This is screaming for a common interface between
-    // PropertyGet and SuperPropertyGet (and same for *Get). Talk to kernel
-    // folks.
-    if (node is ir.PropertyGet) {
-      return getGetterSelector(node.name);
-    }
-    if (node is ir.SuperPropertyGet) {
-      return getGetterSelector(node.name);
-    }
-    if (node is ir.PropertySet) {
-      return getSetterSelector(node.name);
-    }
-    if (node is ir.SuperPropertySet) {
-      return getSetterSelector(node.name);
-    }
-    if (node is ir.InvocationExpression) {
-      return getInvocationSelector(node.name, node.arguments);
-    }
-    throw failedAt(
-        CURRENT_ELEMENT_SPANNABLE,
-        "Can only get the selector for a property get or an invocation: "
-        "${node}");
-  }
-
-  Selector getInvocationSelector(ir.Name irName, ir.Arguments arguments) {
+  Selector getInvocationSelector(ir.Name irName, int positionalArguments,
+      List<String> namedArguments, int typeArguments) {
     Name name = getName(irName);
     SelectorKind kind;
     if (Selector.isOperatorName(name.text)) {
@@ -798,7 +781,10 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       kind = SelectorKind.CALL;
     }
 
-    CallStructure callStructure = getCallStructure(arguments);
+    CallStructure callStructure = new CallStructure(
+        positionalArguments + namedArguments.length,
+        namedArguments,
+        typeArguments);
     return new Selector(kind, name, callStructure);
   }
 
@@ -1339,15 +1325,34 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       Set<PragmaAnnotation> annotations) {
     KMemberData memberData = members.getData(member);
     ir.Member node = memberData.node;
-    KernelImpactBuilder builder = new KernelImpactBuilder(
-        this, member, reporter, options, variableScopeModel, annotations);
-    if (retainDataForTesting) {
-      typeMapsForTesting ??= {};
-      typeMapsForTesting[member] = builder.typeMapsForTesting = {};
+
+    if (useImpactDataForTesting) {
+      ImpactBuilder builder = new ImpactBuilder(
+          typeEnvironment, classHierarchy, variableScopeModel,
+          useAsserts: options.enableUserAssertions,
+          inferEffectivelyFinalVariableTypes:
+              !annotations.contains(PragmaAnnotation.disableFinal));
+      if (retainDataForTesting) {
+        typeMapsForTesting ??= {};
+        typeMapsForTesting[member] = builder.typeMapsForTesting = {};
+      }
+      node.accept(builder);
+      ImpactData impactData = builder.impactData;
+      memberData.staticTypes = builder.cachedStaticTypes;
+      KernelImpactConverter converter =
+          new KernelImpactConverter(this, member, reporter, options);
+      return converter.convert(impactData);
+    } else {
+      KernelImpactBuilder builder = new KernelImpactBuilder(
+          this, member, reporter, options, variableScopeModel, annotations);
+      if (retainDataForTesting) {
+        typeMapsForTesting ??= {};
+        typeMapsForTesting[member] = builder.typeMapsForTesting = {};
+      }
+      node.accept(builder);
+      memberData.staticTypes = builder.cachedStaticTypes;
+      return builder.impactBuilder;
     }
-    node.accept(builder);
-    memberData.staticTypes = builder.cachedStaticTypes;
-    return builder.impactBuilder;
   }
 
   ScopeModel computeScopeModel(KMember member) {

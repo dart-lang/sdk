@@ -8,6 +8,8 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/transformations/constants.dart' show ConstantsBackend;
+import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
 
 /// A kernel [Target] to configure the Dart Front End for dartdevc.
@@ -146,6 +148,10 @@ class DevCompilerTarget extends Target {
     // TODO(sigmund): implement;
     return InvalidExpression(null);
   }
+
+  @override
+  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
+      new DevCompilerConstantsBackend();
 }
 
 /// Analyzes a component to determine if any covariance checks in private

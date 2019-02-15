@@ -3348,28 +3348,101 @@ const MessageCode messageFastaUsageShort =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-    Message Function(
-        String
-            name)> templateFfiAnnotationMissing = const Template<
+    Message Function(String name)> templateFfiFieldAnnotation = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""Field '#name' is missing an annotation to declare its C++ type,dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
-    withArguments: _withArgumentsFfiAnnotationMissing);
+        r"""Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
+    withArguments: _withArgumentsFfiFieldAnnotation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeFfiAnnotationMissing =
+const Code<Message Function(String name)> codeFfiFieldAnnotation =
     const Code<Message Function(String name)>(
-  "FfiAnnotationMissing",
-  templateFfiAnnotationMissing,
+  "FfiFieldAnnotation",
+  templateFfiFieldAnnotation,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiAnnotationMissing(String name) {
+Message _withArgumentsFfiFieldAnnotation(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  return new Message(codeFfiAnnotationMissing,
+  return new Message(codeFfiFieldAnnotation,
       message:
-          """Field '${name}' is missing an annotation to declare its C++ type,dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
+          """Field '${name}' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(String name)> templateFfiFieldInitializer = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
+    withArguments: _withArgumentsFfiFieldInitializer);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiFieldInitializer =
+    const Code<Message Function(String name)>(
+  "FfiFieldInitializer",
+  templateFfiFieldInitializer,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiFieldInitializer(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiFieldInitializer,
+      message:
+          """Field '${name}' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(String name)> templateFfiNotStatic = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from c.""",
+    withArguments: _withArgumentsFfiNotStatic);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiNotStatic =
+    const Code<Message Function(String name)>(
+  "FfiNotStatic",
+  templateFfiNotStatic,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiNotStatic(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiNotStatic,
+      message:
+          """${name} expects a static function as parameter. dart:ffi only supports calling static Dart functions from c.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(String name)> templateFfiStructAnnotation = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Class '#name' is a dart:ffi Pointer but has no struct annotation. Only struct Pointers can have fields.""",
+    withArguments: _withArgumentsFfiStructAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiStructAnnotation =
+    const Code<Message Function(String name)>(
+  "FfiStructAnnotation",
+  templateFfiStructAnnotation,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiStructAnnotation(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiStructAnnotation,
+      message:
+          """Class '${name}' is a dart:ffi Pointer but has no struct annotation. Only struct Pointers can have fields.""",
       arguments: {'name': name});
 }
 
@@ -3378,7 +3451,7 @@ const Template<
     Message Function(DartType _type)> templateFfiTypeInvalid = const Template<
         Message Function(DartType _type)>(
     messageTemplate:
-        r"""Expected type '#type' to be a valid and instantiated subtype of '_NativeType'.""",
+        r"""Expected type '#type' to be a valid and instantiated subtype of 'NativeType'.""",
     withArguments: _withArgumentsFfiTypeInvalid);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3395,7 +3468,7 @@ Message _withArgumentsFfiTypeInvalid(DartType _type) {
   String type = typeParts.join();
   return new Message(codeFfiTypeInvalid,
       message:
-          """Expected type '${type}' to be a valid and instantiated subtype of '_NativeType'.""" +
+          """Expected type '${type}' to be a valid and instantiated subtype of 'NativeType'.""" +
               labeler.originMessages,
       arguments: {'type': _type});
 }
@@ -3442,29 +3515,29 @@ const Template<
     Message Function(
         String name,
         DartType
-            _type)> templateFfiTypeOpaque = const Template<
+            _type)> templateFfiTypeUnsized = const Template<
         Message Function(String name, DartType _type)>(
     messageTemplate:
-        r"""Method '#name' cannot be called on something of type '#type' as this type is opaque.""",
-    withArguments: _withArgumentsFfiTypeOpaque);
+        r"""Method '#name' cannot be called on something of type '#type' as this type is unsized.""",
+    withArguments: _withArgumentsFfiTypeUnsized);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type)> codeFfiTypeOpaque =
+const Code<Message Function(String name, DartType _type)> codeFfiTypeUnsized =
     const Code<Message Function(String name, DartType _type)>(
-  "FfiTypeOpaque",
-  templateFfiTypeOpaque,
+  "FfiTypeUnsized",
+  templateFfiTypeUnsized,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiTypeOpaque(String name, DartType _type) {
+Message _withArgumentsFfiTypeUnsized(String name, DartType _type) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
-  return new Message(codeFfiTypeOpaque,
+  return new Message(codeFfiTypeUnsized,
       message:
-          """Method '${name}' cannot be called on something of type '${type}' as this type is opaque.""" +
+          """Method '${name}' cannot be called on something of type '${type}' as this type is unsized.""" +
               labeler.originMessages,
       arguments: {'name': name, 'type': _type});
 }
@@ -4751,12 +4824,16 @@ const Template<
     Message Function(
         String string,
         String string2,
+        String string3,
         Uri
             uri_)> templateInitializeFromDillUnknownProblem = const Template<
-        Message Function(String string, String string2, Uri uri_)>(
+        Message Function(
+            String string, String string2, String string3, Uri uri_)>(
     messageTemplate:
         r"""Tried to initialize from a previous compilation (#string), but couldn't.
-Error message was '#string2'. This might be a bug.
+Error message was '#string2'.
+Stacktrace included '#string3'.
+This might be a bug.
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
 If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #uri in your error report, but be aware that this file includes your source code.
@@ -4764,61 +4841,77 @@ Either way, you should probably delete the file so it doesn't use unnecessary di
     withArguments: _withArgumentsInitializeFromDillUnknownProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string, String string2, Uri uri_)>
-    codeInitializeFromDillUnknownProblem =
-    const Code<Message Function(String string, String string2, Uri uri_)>(
+const Code<
+        Message Function(
+            String string, String string2, String string3, Uri uri_)>
+    codeInitializeFromDillUnknownProblem = const Code<
+            Message Function(
+                String string, String string2, String string3, Uri uri_)>(
         "InitializeFromDillUnknownProblem",
         templateInitializeFromDillUnknownProblem,
         severity: Severity.warning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializeFromDillUnknownProblem(
-    String string, String string2, Uri uri_) {
+    String string, String string2, String string3, Uri uri_) {
   if (string.isEmpty) throw 'No string provided';
   if (string2.isEmpty) throw 'No string provided';
+  if (string3.isEmpty) throw 'No string provided';
   String uri = relativizeUri(uri_);
   return new Message(codeInitializeFromDillUnknownProblem,
       message:
           """Tried to initialize from a previous compilation (${string}), but couldn't.
-Error message was '${string2}'. This might be a bug.
+Error message was '${string2}'.
+Stacktrace included '${string3}'.
+This might be a bug.
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
 If you are comfortable with it, it would improve the chances of fixing any bug if you included the file ${uri} in your error report, but be aware that this file includes your source code.
 Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
-      arguments: {'string': string, 'string2': string2, 'uri': uri_});
+      arguments: {
+        'string': string,
+        'string2': string2,
+        'string3': string3,
+        'uri': uri_
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, String string2)>
-    templateInitializeFromDillUnknownProblemNoDump =
-    const Template<Message Function(String string, String string2)>(
+const Template<Message Function(String string, String string2, String string3)>
+    templateInitializeFromDillUnknownProblemNoDump = const Template<
+            Message Function(String string, String string2, String string3)>(
         messageTemplate:
             r"""Tried to initialize from a previous compilation (#string), but couldn't.
-Error message was '#string2'. This might be a bug.
+Error message was '#string2'.
+Stacktrace included '#string3'.
+This might be a bug.
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
         withArguments: _withArgumentsInitializeFromDillUnknownProblemNoDump);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string, String string2)>
+const Code<Message Function(String string, String string2, String string3)>
     codeInitializeFromDillUnknownProblemNoDump =
-    const Code<Message Function(String string, String string2)>(
+    const Code<Message Function(String string, String string2, String string3)>(
         "InitializeFromDillUnknownProblemNoDump",
         templateInitializeFromDillUnknownProblemNoDump,
         severity: Severity.warning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializeFromDillUnknownProblemNoDump(
-    String string, String string2) {
+    String string, String string2, String string3) {
   if (string.isEmpty) throw 'No string provided';
   if (string2.isEmpty) throw 'No string provided';
+  if (string3.isEmpty) throw 'No string provided';
   return new Message(codeInitializeFromDillUnknownProblemNoDump,
       message:
           """Tried to initialize from a previous compilation (${string}), but couldn't.
-Error message was '${string2}'. This might be a bug.
+Error message was '${string2}'.
+Stacktrace included '${string3}'.
+This might be a bug.
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
-      arguments: {'string': string, 'string2': string2});
+      arguments: {'string': string, 'string2': string2, 'string3': string3});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5651,6 +5744,41 @@ Message _withArgumentsInvalidCastLiteralMap(DartType _type, DartType _type2) {
           """The map literal type '${type}' isn't of expected type '${type2}'.""" +
               labeler.originMessages,
       tip: """Change the type of the map literal or the context in which it is used.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateInvalidCastLiteralSet = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The set literal type '#type' isn't of expected type '#type2'.""",
+    tipTemplate:
+        r"""Change the type of the set literal or the context in which it is used.""",
+    withArguments: _withArgumentsInvalidCastLiteralSet);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeInvalidCastLiteralSet =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "InvalidCastLiteralSet", templateInvalidCastLiteralSet,
+        analyzerCodes: <String>["INVALID_CAST_LITERAL_SET"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidCastLiteralSet(DartType _type, DartType _type2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidCastLiteralSet,
+      message:
+          """The set literal type '${type}' isn't of expected type '${type2}'.""" +
+              labeler.originMessages,
+      tip: """Change the type of the set literal or the context in which it is used.""",
       arguments: {'type': _type, 'type2': _type2});
 }
 

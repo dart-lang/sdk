@@ -3983,7 +3983,10 @@ void h<T extends Clonable<T>>(T object) {
 
     SubClonable<T> s = object;
     takesSubClonable<T>(object);
-    h(object);
+    // Issue #35799: According to the language team, this should work, but both
+    // analyzer and CFE currently reject it, likely due to a strange
+    // representation of promoted type variables.
+    // h(object);
   }
 }
 ''');

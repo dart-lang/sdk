@@ -189,11 +189,11 @@ C:
     Mixin.x
     Mixin.z
 
-Super with Mixin:
+Super with Mixin<dynamic>:
   superclasses:
     Object
       -> Super
-  interfaces: Mixin
+  interfaces: Mixin<dynamic>
   classMembers:
     Mixin.y
     Super.f
@@ -254,7 +254,7 @@ D:
     Object
       -> Super
         -> _D&Super&Mixin
-  interfaces: Mixin
+  interfaces: Mixin<dynamic>
   classMembers:
     Mixin.y
     Super.f
@@ -374,7 +374,7 @@ D2:
   superclasses:
     Object
       -> Super
-  interfaces: Mixin
+  interfaces: Mixin<dynamic>
   classMembers:
     Mixin.y
     Super.f

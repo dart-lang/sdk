@@ -8,27 +8,6 @@ import 'dart:_runtime' as dart;
 import 'dart:async';
 import 'dart:_foreign_helper' show JS;
 
-/// Marks entering a JavaScript async operation to keep the worker alive.
-///
-/// To be called by library code before starting an async operation controlled
-/// by the JavaScript event handler.
-///
-/// Also call [leaveJsAsync] in all callback handlers marking the end of that
-/// async operation (also error handlers) so the worker can be released.
-///
-/// These functions only has to be called for code that can be run from a
-/// worker-isolate (so not for general dom operations).
-///
-// TODO(jmesserly): we could potentially use this to track when all async
-// operations have completed, for example, to run a bunch of test `main()`
-// methods in batch mode the same V8 process.
-enterJsAsync() {}
-
-/// Marks leaving a javascript async operation.
-///
-/// See [enterJsAsync].
-leaveJsAsync() {}
-
 /// Deprecated way of initializing `main()` in DDC, typically called from JS.
 @deprecated
 void startRootIsolate(main, args) {
@@ -62,12 +41,12 @@ class TimerImpl implements Timer {
     if (hasTimer()) {
       void internalCallback() {
         _handle = null;
-        leaveJsAsync();
+        dart.removeAsyncCallback();
         _tick = 1;
         callback();
       }
 
-      enterJsAsync();
+      dart.addAsyncCallback();
 
       _handle = JS(
           'int', '#.setTimeout(#, #)', global, internalCallback, milliseconds);
@@ -79,7 +58,7 @@ class TimerImpl implements Timer {
   TimerImpl.periodic(int milliseconds, void callback(Timer timer))
       : _once = false {
     if (hasTimer()) {
-      enterJsAsync();
+      dart.addAsyncCallback();
       int start = JS('int', 'Date.now()');
       _handle = JS('int', '#.setInterval(#, #)', global, () {
         int tick = this._tick + 1;
@@ -102,7 +81,7 @@ class TimerImpl implements Timer {
   void cancel() {
     if (hasTimer()) {
       if (_handle == null) return;
-      leaveJsAsync();
+      dart.removeAsyncCallback();
       if (_once) {
         JS('void', '#.clearTimeout(#)', global, _handle);
       } else {

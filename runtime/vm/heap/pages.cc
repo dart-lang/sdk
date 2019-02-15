@@ -113,7 +113,7 @@ void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
   while (obj_addr < end_addr) {
     RawObject* raw_obj = RawObject::FromAddr(obj_addr);
     visitor->VisitObject(raw_obj);
-    obj_addr += raw_obj->Size();
+    obj_addr += raw_obj->HeapSize();
   }
   ASSERT(obj_addr == end_addr);
 }
@@ -197,7 +197,7 @@ RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
   if (visitor->VisitRange(obj_addr, end_addr)) {
     while (obj_addr < end_addr) {
       RawObject* raw_obj = RawObject::FromAddr(obj_addr);
-      uword next_obj_addr = obj_addr + raw_obj->Size();
+      uword next_obj_addr = obj_addr + raw_obj->HeapSize();
       if (visitor->VisitRange(obj_addr, next_obj_addr) &&
           raw_obj->FindObject(visitor)) {
         return raw_obj;  // Found object, return it.
@@ -860,7 +860,7 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
  public:
   explicit HeapMapAsJSONVisitor(JSONArray* array) : array_(array) {}
   virtual void VisitObject(RawObject* obj) {
-    array_->AddValue(obj->Size() / kObjectAlignment);
+    array_->AddValue(obj->HeapSize() / kObjectAlignment);
     array_->AddValue(obj->GetClassId());
   }
 
@@ -1297,7 +1297,7 @@ uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
       return TryAllocateInFreshPage(size, HeapPage::kData, growth_policy,
                                     is_locked);
     }
-    intptr_t block_size = block->Size();
+    intptr_t block_size = block->HeapSize();
     if (remaining > 0) {
       if (is_locked) {
         freelist_[HeapPage::kData].FreeLocked(bump_top_, remaining);
@@ -1536,7 +1536,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   }
 }
 
-void PageSpaceController::EvaluateSnapshotLoad(SpaceUsage after) {
+void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
   // Number of pages we can allocate and still be within the desired growth
   // ratio.
   intptr_t growth_in_pages =
@@ -1559,7 +1559,7 @@ void PageSpaceController::EvaluateSnapshotLoad(SpaceUsage after) {
 
   if (FLAG_log_growth) {
     THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd
-              "kB, reason=snapshot\n",
+              "kB, reason=loaded\n",
               heap_->isolate()->name(), gc_threshold_in_words_ / KBInWords,
               idle_gc_threshold_in_words_ / KBInWords);
   }

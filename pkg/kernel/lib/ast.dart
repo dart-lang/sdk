@@ -155,6 +155,8 @@ abstract class TreeNode extends Node {
 
   Component get enclosingComponent => parent?.enclosingComponent;
 
+  Library get enclosingLibrary => parent?.enclosingLibrary;
+
   /// Returns the best known source location of the given AST node, or `null` if
   /// the node is orphaned.
   ///
@@ -278,6 +280,11 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   /// The URI of the source file this library was loaded from.
   Uri fileUri;
 
+  static const int ExternalFlag = 1 << 0;
+  static const int SyntheticFlag = 1 << 1;
+
+  int flags = 0;
+
   /// If true, the library is part of another build unit and its contents
   /// are only partially loaded.
   ///
@@ -287,7 +294,17 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   ///
   /// If the library is non-external, then its classes are at [ClassLevel.Body]
   /// and all members are loaded.
-  bool isExternal;
+  bool get isExternal => (flags & ExternalFlag) != 0;
+  void set isExternal(bool value) {
+    flags = value ? (flags | ExternalFlag) : (flags & ~ExternalFlag);
+  }
+
+  /// If true, the library is synthetic, for instance library that doesn't
+  /// represents an actual file and is created as the result of error recovery.
+  bool get isSynthetic => flags & SyntheticFlag != 0;
+  void set isSynthetic(bool value) {
+    flags = value ? (flags | SyntheticFlag) : (flags & ~SyntheticFlag);
+  }
 
   String name;
 
@@ -318,7 +335,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
 
   Library(this.importUri,
       {this.name,
-      this.isExternal: false,
+      bool isExternal: false,
       List<Expression> annotations,
       List<LibraryDependency> dependencies,
       List<LibraryPart> parts,
@@ -336,6 +353,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[],
         super(reference) {
+    this.isExternal = isExternal;
     setParents(this.dependencies, this);
     setParents(this.parts, this);
     setParents(this.typedefs, this);
@@ -450,6 +468,8 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
+
+  Library get enclosingLibraray => this;
 }
 
 /// An import or export declaration in a library.

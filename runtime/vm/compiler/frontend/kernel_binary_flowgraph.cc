@@ -2030,6 +2030,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       return flow_graph_builder_->BuildGraphOfInvokeFieldDispatcher(function);
     case RawFunction::kSignatureFunction:
     case RawFunction::kIrregexpFunction:
+    case RawFunction::kFfiTrampoline:
       break;
   }
   UNREACHABLE();

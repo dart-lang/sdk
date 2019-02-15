@@ -18,7 +18,7 @@ class Class<T> implements Supertype, GenericSupertype<T> {
     use(const <Unresolved>[]); //# 02: compile-time error
 
     use(const {});
-    use(const <Class>{}); //# 03: compile-time error
+    use(const <Class>{});
     use(const <String, Class>{});
     use(const <String, Class<int>>{});
     use(const <String, Class<Unresolved>>{}); //# 04: compile-time error

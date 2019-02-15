@@ -1,0 +1,12 @@
+diff --git a/analysis_options.yaml b/analysis_options.yaml
+index 0f3f70d3c..97e5a6453 100644
+--- a/analysis_options.yaml
++++ b/analysis_options.yaml
+@@ -120,7 +120,6 @@ linter:
+     # - parameter_assignments # we do this commonly
+     - prefer_adjacent_string_concatenation
+     - prefer_asserts_in_initializer_lists
+-    - prefer_collection_literals
+     - prefer_conditional_assignment
+     - prefer_const_constructors
+     - prefer_const_constructors_in_immutables

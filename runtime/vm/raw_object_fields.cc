@@ -56,6 +56,7 @@ namespace dart {
   F(Field, guarded_list_length_)                                               \
   F(Field, dependent_code_)                                                    \
   F(Field, type_test_cache_)                                                   \
+  F(Field, initializer_)                                                       \
   F(Script, url_)                                                              \
   F(Script, resolved_url_)                                                     \
   F(Script, compile_time_constants_)                                           \
@@ -113,7 +114,7 @@ namespace dart {
   F(SingleTargetCache, target_)                                                \
   F(UnlinkedCall, target_name_)                                                \
   F(UnlinkedCall, args_descriptor_)                                            \
-  F(ICData, ic_data_)                                                          \
+  F(ICData, entries_)                                                          \
   F(ICData, target_name_)                                                      \
   F(ICData, args_descriptor_)                                                  \
   F(ICData, owner_)                                                            \
@@ -138,11 +139,14 @@ namespace dart {
   F(TypeArguments, length_)                                                    \
   F(TypeArguments, hash_)                                                      \
   F(AbstractType, type_test_stub_)                                             \
+  F(Type, type_test_stub_)                                                     \
   F(Type, type_class_id_)                                                      \
   F(Type, arguments_)                                                          \
   F(Type, hash_)                                                               \
   F(Type, signature_)                                                          \
+  F(TypeRef, type_test_stub_)                                                  \
   F(TypeRef, type_)                                                            \
+  F(TypeParameter, type_test_stub_)                                            \
   F(TypeParameter, name_)                                                      \
   F(TypeParameter, hash_)                                                      \
   F(TypeParameter, bound_)                                                     \
@@ -182,7 +186,11 @@ namespace dart {
   F(WeakProperty, key_)                                                        \
   F(WeakProperty, value_)                                                      \
   F(MirrorReference, referent_)                                                \
-  F(UserTag, label_)
+  F(UserTag, label_)                                                           \
+  F(Pointer, type_arguments_)                                                  \
+  F(Pointer, c_memory_address_)                                                \
+  F(DynamicLibrary, handle_)                                                   \
+  F(FfiTrampolineData, signature_type_)
 
 OffsetsTable::OffsetsTable(Zone* zone) : cached_offsets_(zone) {
   for (intptr_t i = 0; offsets_table[i].class_id != -1; ++i) {

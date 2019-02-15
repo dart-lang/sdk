@@ -44,6 +44,9 @@ class AbstractBool {
   static AbstractBool trueOrFalse(bool value) => value ? True : False;
 
   static AbstractBool maybeOrFalse(bool value) => value ? Maybe : False;
+
+  String toString() =>
+      'AbstractBool.${_value == null ? 'Maybe' : (_value ? 'True' : 'False')}';
 }
 
 /// Strategy for the abstraction of runtime values used by the global type

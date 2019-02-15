@@ -33,6 +33,7 @@ const FrameLayout invalid_frame_layout = {
     /*.dart_fixed_frame_size = */ -1,
     /*.saved_caller_pp_from_fp = */ -1,
     /*.code_from_fp = */ -1,
+    /*.exit_link_slot_from_entry_fp = */ -1,
 };
 
 const FrameLayout default_frame_layout = {
@@ -43,6 +44,7 @@ const FrameLayout default_frame_layout = {
     /*.dart_fixed_frame_size = */ kDartFrameFixedSize,
     /*.saved_caller_pp_from_fp = */ kSavedCallerPpSlotFromFp,
     /*.code_from_fp = */ kPcMarkerSlotFromFp,
+    /*.exit_link_slot_from_entry_fp = */ kExitLinkSlotFromEntryFp,
 };
 const FrameLayout bare_instructions_frame_layout = {
     /*.first_object_from_pc =*/kFirstObjectSlotFromFp,  // No saved PP slot.
@@ -55,6 +57,7 @@ const FrameLayout bare_instructions_frame_layout = {
         2,                              // No saved CODE, PP slots.
     /*.saved_caller_pp_from_fp = */ 0,  // No saved PP slot.
     /*.code_from_fp = */ 0,             // No saved CODE
+    /*.exit_link_slot_from_entry_fp = */ kExitLinkSlotFromEntryFp,
 };
 
 namespace compiler {

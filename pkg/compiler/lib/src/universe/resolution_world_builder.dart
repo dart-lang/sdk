@@ -1068,6 +1068,22 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     BackendUsage backendUsage = _backendUsageBuilder.close();
     _closed = true;
 
+    Map<MemberEntity, MemberUsage> liveMemberUsage = {};
+    _memberUsage.forEach((MemberEntity member, MemberUsage memberUsage) {
+      if (memberUsage.hasUse) {
+        liveMemberUsage[member] = memberUsage;
+        assert(_processedMembers.contains(member),
+            "Member $member is used but not processed: $memberUsage.");
+      } else {
+        assert(!_processedMembers.contains(member),
+            "Member $member is processed but not used: $memberUsage.");
+      }
+    });
+    for (MemberEntity member in _processedMembers) {
+      assert(_memberUsage.containsKey(member),
+          "Member $member is processed but has not usage.");
+    }
+
     KClosedWorld closedWorld = new KClosedWorldImpl(_elementMap,
         options: _options,
         elementEnvironment: _elementEnvironment,
@@ -1084,11 +1100,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         liveNativeClasses: _nativeResolutionEnqueuer.liveNativeClasses,
         liveInstanceMembers: _liveInstanceMembers,
         assignedInstanceMembers: computeAssignedInstanceMembers(),
-        processedMembers: _processedMembers,
+        liveMemberUsage: liveMemberUsage,
         mixinUses: _classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchy: _classHierarchyBuilder.close(),
-        annotationsData: _annotationsDataBuilder);
+        annotationsData: _annotationsDataBuilder.close());
     if (retainDataForTesting) {
       _closedWorldCache = closedWorld;
     }

@@ -425,7 +425,7 @@ uword CompactorTask::PlanBlock(uword first_object,
   uword current = first_object;
   while (current < block_end) {
     RawObject* obj = RawObject::FromAddr(current);
-    intptr_t size = obj->Size();
+    intptr_t size = obj->HeapSize();
     if (obj->IsMarked()) {
       forwarding_block->RecordLive(current, size);
       ASSERT(static_cast<intptr_t>(forwarding_block->Lookup(current)) ==
@@ -455,7 +455,7 @@ uword CompactorTask::SlideBlock(uword first_object,
   uword old_addr = first_object;
   while (old_addr < block_end) {
     RawObject* old_obj = RawObject::FromAddr(old_addr);
-    intptr_t size = old_obj->Size();
+    intptr_t size = old_obj->HeapSize();
     if (old_obj->IsMarked()) {
       uword new_addr = forwarding_block->Lookup(old_addr);
       if (new_addr != free_current_) {

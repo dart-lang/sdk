@@ -474,6 +474,10 @@ class Assembler : public AssemblerBase {
   // for proper unwinding of Dart frames (use --generate_gdb_symbols and -O0).
   void movq(Register dst, Register src) { EmitQ(src, dst, 0x89); }
 
+  void movq(XmmRegister dst, Register src) {
+    EmitQ(dst, src, 0x6E, 0x0F, 0x66);
+  }
+
   void movd(XmmRegister dst, Register src) {
     EmitL(dst, src, 0x6E, 0x0F, 0x66);
   }

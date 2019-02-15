@@ -126,11 +126,10 @@ VirtualMemory::~VirtualMemory() {
   }
 }
 
-bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
+void VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
   const uword start = reinterpret_cast<uword>(address);
   unmap(zx_vmar_root_self(), start, start + size);
   LOG_INFO("zx_vmar_unmap(%p, %lx) success\n", address, size);
-  return true;
 }
 
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {

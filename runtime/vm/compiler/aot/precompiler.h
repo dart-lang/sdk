@@ -293,7 +293,6 @@ class Precompiler : public ValueObject {
   void TraceTypesFromRetainedClasses();
   void DropTypes();
   void DropTypeArguments();
-  void DropScriptData();
   void DropMetadata();
   void DropLibraryEntries();
   void DropClasses();

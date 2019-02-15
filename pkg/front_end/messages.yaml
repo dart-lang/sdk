@@ -1459,7 +1459,6 @@ SetOrMapLiteralTooManyTypeArguments:
 
 SetLiteralsNotSupported:
   template: "Set literals are not supported yet."
-  script: "var s = { 24 };"
 
 LoadLibraryTakesNoArguments:
   template: "'loadLibrary' takes no arguments."
@@ -2834,6 +2833,11 @@ InvalidCastLiteralMap:
   tip: "Change the type of the map literal or the context in which it is used."
   analyzerCode: INVALID_CAST_LITERAL_MAP
 
+InvalidCastLiteralSet:
+  template: "The set literal type '#type' isn't of expected type '#type2'."
+  tip: "Change the type of the set literal or the context in which it is used."
+  analyzerCode: INVALID_CAST_LITERAL_SET
+
 InvalidCastLocalFunction:
   template: "The local function has type '#type' that isn't of expected type '#type2'."
   tip: "Change the type of the function or the context in which it is used."
@@ -3006,7 +3010,9 @@ InitializeFromDillNotSelfContainedNoDump:
 InitializeFromDillUnknownProblem:
   template: |
     Tried to initialize from a previous compilation (#string), but couldn't.
-    Error message was '#string2'. This might be a bug.
+    Error message was '#string2'.
+    Stacktrace included '#string3'.
+    This might be a bug.
 
     The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
     If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #uri in your error report, but be aware that this file includes your source code.
@@ -3019,7 +3025,9 @@ InitializeFromDillUnknownProblem:
 InitializeFromDillUnknownProblemNoDump:
   template: |
     Tried to initialize from a previous compilation (#string), but couldn't.
-    Error message was '#string2'. This might be a bug.
+    Error message was '#string2'.
+    Stacktrace included '#string3'.
+    This might be a bug.
 
     The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
 
@@ -3426,15 +3434,30 @@ FfiTypeMismatch:
 
 FfiTypeInvalid:
   # Used by dart:ffi
-  template: "Expected type '#type' to be a valid and instantiated subtype of '_NativeType'."
+  template: "Expected type '#type' to be a valid and instantiated subtype of 'NativeType'."
   external: test/ffi_test.dart
 
-FfiTypeOpaque:
+FfiTypeUnsized:
   # Used by dart:ffi
-  template: "Method '#name' cannot be called on something of type '#type' as this type is opaque."
+  template: "Method '#name' cannot be called on something of type '#type' as this type is unsized."
   external: test/ffi_test.dart
 
-FfiAnnotationMissing:
+FfiFieldAnnotation:
   # Used by dart:ffi
-  template: "Field '#name' is missing an annotation to declare its C++ type,dart:ffi structs (Pointer<Void>) cannot have regular Dart fields."
+  template: "Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi structs (Pointer<Void>) cannot have regular Dart fields."
+  external: test/ffi_test.dart
+
+FfiNotStatic:
+  # Used by dart:ffi
+  template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from c."
+  external: test/ffi_test.dart
+
+FfiFieldInitializer:
+  # Used by dart:ffi
+  template: "Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution."
+  external: test/ffi_test.dart
+
+FfiStructAnnotation:
+  # Used by dart:ffi
+  template: "Class '#name' is a dart:ffi Pointer but has no struct annotation. Only struct Pointers can have fields."
   external: test/ffi_test.dart

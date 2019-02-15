@@ -105,6 +105,19 @@ class DillClassBuilder extends KernelClassBuilder {
     return computeTypeBuilder(library, cls.mixedInType);
   }
 
+  List<KernelTypeBuilder> get interfaces {
+    if (cls.implementedTypes.isEmpty) return null;
+    if (super.interfaces == null) {
+      List<KernelTypeBuilder> result =
+          new List<KernelTypeBuilder>(cls.implementedTypes.length);
+      for (int i = 0; i < result.length; i++) {
+        result[i] = computeTypeBuilder(library, cls.implementedTypes[i]);
+      }
+      super.interfaces = result;
+    }
+    return super.interfaces;
+  }
+
   void set mixedInType(KernelTypeBuilder mixin) {
     unimplemented("mixedInType=", -1, null);
   }

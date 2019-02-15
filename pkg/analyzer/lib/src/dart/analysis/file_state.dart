@@ -382,13 +382,6 @@ class FileState {
    * transitive closure of imported / exported files.
    */
   String get transitiveSignature {
-    if (isPart) {
-      var library = this.library;
-      if (library != null) {
-        return library.transitiveSignature;
-      }
-    }
-
     this.libraryCycle; // sets _transitiveSignature
     return _transitiveSignature;
   }

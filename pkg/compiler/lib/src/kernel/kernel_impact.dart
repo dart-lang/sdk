@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
 import '../common/names.dart';
+import '../common/resolution.dart';
 import '../common_elements.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
@@ -15,6 +17,7 @@ import '../ir/runtime_type_analysis.dart';
 import '../ir/scope.dart';
 import '../ir/static_type.dart';
 import '../ir/impact.dart';
+import '../ir/impact_data.dart';
 import '../ir/util.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
@@ -27,7 +30,9 @@ import '../universe/use.dart';
 import '../universe/world_builder.dart';
 import 'element_map.dart';
 
-class KernelImpactBuilder extends ImpactBuilder {
+/// Visitor that computes the world impact of a member.
+class KernelImpactBuilder extends ImpactBuilderBase
+    with KernelImpactRegistryMixin {
   final ResolutionWorldImpactBuilder impactBuilder;
   final KernelToElementMap elementMap;
   final DiagnosticReporter reporter;
@@ -50,6 +55,47 @@ class KernelImpactBuilder extends ImpactBuilder {
 
   bool get inferEffectivelyFinalVariableTypes =>
       !_annotations.contains(PragmaAnnotation.disableFinal);
+}
+
+/// Converts a [ImpactData] object based on kernel to the corresponding
+/// [ResolutionImpact] based on the K model.
+class KernelImpactConverter extends KernelImpactRegistryMixin {
+  final ResolutionWorldImpactBuilder impactBuilder;
+  final KernelToElementMap elementMap;
+  final DiagnosticReporter reporter;
+  final CompilerOptions _options;
+  final MemberEntity currentMember;
+
+  KernelImpactConverter(
+      this.elementMap, this.currentMember, this.reporter, this._options)
+      : this.impactBuilder =
+            new ResolutionWorldImpactBuilder('${currentMember}');
+
+  ir.TypeEnvironment get typeEnvironment => elementMap.typeEnvironment;
+
+  CommonElements get commonElements => elementMap.commonElements;
+
+  NativeBasicData get _nativeBasicData => elementMap.nativeBasicData;
+
+  /// Converts a [ImpactData] object based on kernel to the corresponding
+  /// [ResolutionImpact] based on the K model.
+  ResolutionImpact convert(ImpactData impactData) {
+    impactData.apply(this);
+    return impactBuilder;
+  }
+}
+
+/// [ImpactRegistry] that converts kernel based impact data to world impact
+/// object based on the K model.
+abstract class KernelImpactRegistryMixin implements ImpactRegistry {
+  CompilerOptions get _options;
+  DiagnosticReporter get reporter;
+  KernelToElementMap get elementMap;
+  MemberEntity get currentMember;
+  ResolutionWorldImpactBuilder get impactBuilder;
+  ir.TypeEnvironment get typeEnvironment;
+  CommonElements get commonElements;
+  NativeBasicData get _nativeBasicData;
 
   Object _computeReceiverConstraint(
       ir.DartType receiverType, ClassRelation relation) {
@@ -72,9 +118,9 @@ class KernelImpactBuilder extends ImpactBuilder {
     }
   }
 
-  List<DartType> _getTypeArguments(ir.Arguments arguments) {
-    if (arguments.types.isEmpty) return null;
-    return arguments.types.map(elementMap.getDartType).toList();
+  List<DartType> _getTypeArguments(List<ir.DartType> types) {
+    if (types.isEmpty) return null;
+    return types.map(elementMap.getDartType).toList();
   }
 
   @override
@@ -83,9 +129,7 @@ class KernelImpactBuilder extends ImpactBuilder {
   }
 
   @override
-  void handleField(ir.Field field) {
-    super.handleField(field);
-
+  void registerFieldNode(ir.Field field) {
     if (field.isInstanceMember &&
         elementMap.isNativeClass(field.enclosingClass)) {
       MemberEntity member = elementMap.getMember(field);
@@ -98,7 +142,7 @@ class KernelImpactBuilder extends ImpactBuilder {
   }
 
   @override
-  void handleConstructor(ir.Constructor constructor) {
+  void registerConstructorNode(ir.Constructor constructor) {
     MemberEntity member = elementMap.getMember(constructor);
     if (constructor.isExternal && !commonElements.isForeignHelper(member)) {
       bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
@@ -135,9 +179,7 @@ class KernelImpactBuilder extends ImpactBuilder {
   }
 
   @override
-  void handleProcedure(ir.Procedure procedure) {
-    super.handleProcedure(procedure);
-
+  void registerProcedureNode(ir.Procedure procedure) {
     MemberEntity member = elementMap.getMember(procedure);
     if (procedure.isExternal && !commonElements.isForeignHelper(member)) {
       bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
@@ -179,29 +221,43 @@ class KernelImpactBuilder extends ImpactBuilder {
 
   @override
   void registerListLiteral(ir.DartType elementType,
-      {bool isConstant, bool isEmpty}) {
+      {bool isConst, bool isEmpty}) {
     impactBuilder.registerListLiteral(new ListLiteralUse(
         commonElements.listType(elementMap.getDartType(elementType)),
-        isConstant: isConstant,
+        isConstant: isConst,
         isEmpty: isEmpty));
+  }
+
+  @override
+  void registerSetLiteral(ir.DartType elementType,
+      {bool isConst, bool isEmpty}) {
+    // TODO(johnniwinther,fishythefish): Register set literals.
   }
 
   @override
   void registerMapLiteral(ir.DartType keyType, ir.DartType valueType,
-      {bool isConstant, bool isEmpty}) {
+      {bool isConst, bool isEmpty}) {
     impactBuilder.registerMapLiteral(new MapLiteralUse(
         commonElements.mapType(
             elementMap.getDartType(keyType), elementMap.getDartType(valueType)),
-        isConstant: isConstant,
+        isConstant: isConst,
         isEmpty: isEmpty));
   }
 
   @override
-  void registerNew(ir.Member target, ir.InterfaceType type,
-      ir.Arguments arguments, ir.LibraryDependency import,
+  void registerNew(
+      ir.Member target,
+      ir.InterfaceType type,
+      int positionalArguments,
+      List<String> namedArguments,
+      List<ir.DartType> typeArguments,
+      ir.LibraryDependency import,
       {bool isConst}) {
     ConstructorEntity constructor = elementMap.getConstructor(target);
-    CallStructure callStructure = elementMap.getCallStructure(arguments);
+    CallStructure callStructure = new CallStructure(
+        positionalArguments + namedArguments.length,
+        namedArguments,
+        typeArguments.length);
     ImportEntity deferredImport = elementMap.getImport(import);
     impactBuilder.registerStaticUse(isConst
         ? new StaticUse.constConstructorInvoke(constructor, callStructure,
@@ -223,10 +279,14 @@ class KernelImpactBuilder extends ImpactBuilder {
       // We need to register the external constructor as live below, so don't
       // return here.
     }
+  }
 
-    if (isConst && commonElements.isSymbolConstructor(constructor)) {
+  void registerConstConstructorInvocationNode(ir.ConstructorInvocation node) {
+    assert(node.isConst);
+    ConstructorEntity constructor = elementMap.getConstructor(node.target);
+    if (commonElements.isSymbolConstructor(constructor)) {
       ConstantValue value =
-          elementMap.getConstantValue(arguments.positional.first);
+          elementMap.getConstantValue(node.arguments.positional.first);
       if (!value.isString) {
         // TODO(het): Get the actual span for the Symbol constructor argument
         reporter.reportErrorMessage(
@@ -242,7 +302,11 @@ class KernelImpactBuilder extends ImpactBuilder {
 
   @override
   void registerSuperInitializer(
-      ir.Constructor source, ir.Constructor target, ir.Arguments arguments) {
+      ir.Constructor source,
+      ir.Constructor target,
+      int positionalArguments,
+      List<String> namedArguments,
+      List<ir.DartType> typeArguments) {
     // TODO(johnniwinther): Maybe rewrite `node.target` to point to a
     // synthesized unnamed mixin constructor when needed. This would require us
     // to consider impact building a required pre-step for inference and
@@ -250,29 +314,36 @@ class KernelImpactBuilder extends ImpactBuilder {
     ConstructorEntity constructor =
         elementMap.getSuperConstructor(source, target);
     impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
-        constructor, elementMap.getCallStructure(arguments)));
+        constructor,
+        new CallStructure(positionalArguments + namedArguments.length,
+            namedArguments, typeArguments.length)));
   }
 
   @override
-  void registerStaticInvocation(ir.Procedure procedure, ir.Arguments arguments,
+  void registerStaticInvocation(
+      ir.Procedure procedure,
+      int positionalArguments,
+      List<String> namedArguments,
+      List<ir.DartType> typeArguments,
       ir.LibraryDependency import) {
     FunctionEntity target = elementMap.getMethod(procedure);
-    CallStructure callStructure = elementMap.getCallStructure(arguments);
-    List<DartType> typeArguments = _getTypeArguments(arguments);
+    CallStructure callStructure = new CallStructure(
+        positionalArguments + namedArguments.length,
+        namedArguments,
+        typeArguments.length);
+    List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
     if (commonElements.isExtractTypeArguments(target)) {
-      _handleExtractTypeArguments(target, typeArguments, callStructure);
+      _handleExtractTypeArguments(target, dartTypeArguments, callStructure);
       return;
     } else {
       ImportEntity deferredImport = elementMap.getImport(import);
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-          target, callStructure, typeArguments, deferredImport));
+          target, callStructure, dartTypeArguments, deferredImport));
     }
   }
 
-  void handleStaticInvocation(ir.StaticInvocation node,
-      ArgumentTypes argumentTypes, ir.DartType returnType) {
-    super.handleStaticInvocation(node, argumentTypes, returnType);
-
+  @override
+  void registerStaticInvocationNode(ir.StaticInvocation node) {
     switch (elementMap.getForeignKind(node)) {
       case ForeignKind.JS:
         impactBuilder
@@ -346,13 +417,17 @@ class KernelImpactBuilder extends ImpactBuilder {
   }
 
   @override
-  void registerSuperInvocation(ir.Name name, ir.Arguments arguments) {
+  void registerSuperInvocation(ir.Name name, int positionalArguments,
+      List<String> namedArguments, List<ir.DartType> typeArguments) {
     FunctionEntity method =
         elementMap.getSuperMember(currentMember, name, setter: false);
-    List<DartType> typeArguments = _getTypeArguments(arguments);
+    List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
     if (method != null) {
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
-          method, elementMap.getCallStructure(arguments), typeArguments));
+          method,
+          new CallStructure(positionalArguments + namedArguments.length,
+              namedArguments, typeArguments.length),
+          dartTypeArguments));
     } else {
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
           elementMap.getSuperNoSuchMethod(currentMember.enclosingClass),
@@ -399,50 +474,74 @@ class KernelImpactBuilder extends ImpactBuilder {
 
   @override
   void registerLocalFunctionInvocation(
-      ir.FunctionDeclaration localFunction, ir.Arguments arguments) {
-    CallStructure callStructure = elementMap.getCallStructure(arguments);
-    List<DartType> typeArguments = _getTypeArguments(arguments);
+      ir.FunctionDeclaration localFunction,
+      int positionalArguments,
+      List<String> namedArguments,
+      List<ir.DartType> typeArguments) {
+    CallStructure callStructure = new CallStructure(
+        positionalArguments + namedArguments.length,
+        namedArguments,
+        typeArguments.length);
+    List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
     // Invocation of a local function. No need for dynamic use, but
     // we need to track the type arguments.
     impactBuilder.registerStaticUse(new StaticUse.closureCall(
         elementMap.getLocalFunction(localFunction),
         callStructure,
-        typeArguments));
+        dartTypeArguments));
     // TODO(johnniwinther): Yet, alas, we need the dynamic use for now. Remove
     // this when kernel adds an `isFunctionCall` flag to
     // [ir.MethodInvocation].
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-        callStructure.callSelector, null, typeArguments));
+        callStructure.callSelector, null, dartTypeArguments));
   }
 
   @override
-  void registerDynamicInvocation(ir.DartType receiverType,
-      ClassRelation relation, ir.Name name, ir.Arguments arguments) {
-    Selector selector = elementMap.getInvocationSelector(name, arguments);
-    List<DartType> typeArguments = _getTypeArguments(arguments);
+  void registerDynamicInvocation(
+      ir.DartType receiverType,
+      ClassRelation relation,
+      ir.Name name,
+      int positionalArguments,
+      List<String> namedArguments,
+      List<ir.DartType> typeArguments) {
+    Selector selector = elementMap.getInvocationSelector(
+        name, positionalArguments, namedArguments, typeArguments.length);
+    List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(selector,
-        _computeReceiverConstraint(receiverType, relation), typeArguments));
+        _computeReceiverConstraint(receiverType, relation), dartTypeArguments));
   }
 
   @override
   void registerFunctionInvocation(
-      ir.DartType receiverType, ir.Arguments arguments) {
-    CallStructure callStructure = elementMap.getCallStructure(arguments);
-    List<DartType> typeArguments = _getTypeArguments(arguments);
+      ir.DartType receiverType,
+      int positionalArguments,
+      List<String> namedArguments,
+      List<ir.DartType> typeArguments) {
+    CallStructure callStructure = new CallStructure(
+        positionalArguments + namedArguments.length,
+        namedArguments,
+        typeArguments.length);
+    List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         callStructure.callSelector,
         _computeReceiverConstraint(receiverType, ClassRelation.subtype),
-        typeArguments));
+        dartTypeArguments));
   }
 
   @override
-  void registerInstanceInvocation(ir.DartType receiverType,
-      ClassRelation relation, ir.Member target, ir.Arguments arguments) {
-    List<DartType> typeArguments = _getTypeArguments(arguments);
+  void registerInstanceInvocation(
+      ir.DartType receiverType,
+      ClassRelation relation,
+      ir.Member target,
+      int positionalArguments,
+      List<String> namedArguments,
+      List<ir.DartType> typeArguments) {
+    List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-        elementMap.getInvocationSelector(target.name, arguments),
+        elementMap.getInvocationSelector(target.name, positionalArguments,
+            namedArguments, typeArguments.length),
         _computeReceiverConstraint(receiverType, relation),
-        typeArguments));
+        dartTypeArguments));
   }
 
   @override
@@ -481,7 +580,8 @@ class KernelImpactBuilder extends ImpactBuilder {
         const <DartType>[]));
   }
 
-  void handleRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
+  @override
+  void registerRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType) {
     DartType receiverDartType = elementMap.getDartType(receiverType);
     DartType argumentDartType =
@@ -562,7 +662,6 @@ class KernelImpactBuilder extends ImpactBuilder {
   }
 
   @override
-  @override
   void registerThrow() {
     impactBuilder.registerFeature(Feature.THROW_EXPRESSION);
   }
@@ -619,10 +718,15 @@ class KernelImpactBuilder extends ImpactBuilder {
 
   @override
   void registerRedirectingInitializer(
-      ir.Constructor constructor, ir.Arguments arguments) {
+      ir.Constructor constructor,
+      int positionalArguments,
+      List<String> namedArguments,
+      List<ir.DartType> typeArguments) {
     ConstructorEntity target = elementMap.getConstructor(constructor);
     impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
-        target, elementMap.getCallStructure(arguments)));
+        target,
+        new CallStructure(positionalArguments + namedArguments.length,
+            namedArguments, typeArguments.length)));
   }
 
   @override
@@ -633,7 +737,7 @@ class KernelImpactBuilder extends ImpactBuilder {
   }
 
   @override
-  void handleSwitchStatement(ir.SwitchStatement node) {
+  void registerSwitchStatementNode(ir.SwitchStatement node) {
     // TODO(32557): Remove this when issue 32557 is fixed.
     ir.TreeNode firstCase;
     DartType firstCaseType;

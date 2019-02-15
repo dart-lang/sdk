@@ -23,13 +23,12 @@ import 'dart:io' as io;
 import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
-import '../external_name.dart' show getExternalName;
 import '../kernel.dart';
 import '../type_algebra.dart';
 import '../type_environment.dart';
 
-Component transformComponent(
-    Component component, ConstantsBackend backend, ErrorReporter errorReporter,
+Component transformComponent(Component component, ConstantsBackend backend,
+    Map<String, String> environmentDefines, ErrorReporter errorReporter,
     {bool keepFields: false,
     bool legacyMode: false,
     bool enableAsserts: false,
@@ -42,8 +41,8 @@ Component transformComponent(
   final typeEnvironment =
       new TypeEnvironment(coreTypes, hierarchy, legacyMode: legacyMode);
 
-  transformLibraries(
-      component.libraries, backend, coreTypes, typeEnvironment, errorReporter,
+  transformLibraries(component.libraries, backend, environmentDefines,
+      typeEnvironment, errorReporter,
       keepFields: keepFields,
       enableAsserts: enableAsserts,
       evaluateAnnotations: evaluateAnnotations);
@@ -53,7 +52,7 @@ Component transformComponent(
 void transformLibraries(
     List<Library> libraries,
     ConstantsBackend backend,
-    CoreTypes coreTypes,
+    Map<String, String> environmentDefines,
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     {bool keepFields: false,
@@ -62,10 +61,10 @@ void transformLibraries(
     bool enableAsserts: false}) {
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
+      environmentDefines,
       keepFields,
       keepVariables,
       evaluateAnnotations,
-      coreTypes,
       typeEnvironment,
       enableAsserts,
       errorReporter);
@@ -76,7 +75,6 @@ void transformLibraries(
 
 class ConstantsTransformer extends Transformer {
   final ConstantEvaluator constantEvaluator;
-  final CoreTypes coreTypes;
   final TypeEnvironment typeEnvironment;
 
   /// Whether to preserve constant [Field]s.  All use-sites will be rewritten.
@@ -86,15 +84,15 @@ class ConstantsTransformer extends Transformer {
 
   ConstantsTransformer(
       ConstantsBackend backend,
+      Map<String, String> environmentDefines,
       this.keepFields,
       this.keepVariables,
       this.evaluateAnnotations,
-      this.coreTypes,
       this.typeEnvironment,
       bool enableAsserts,
       ErrorReporter errorReporter)
-      : constantEvaluator = new ConstantEvaluator(
-            backend, typeEnvironment, coreTypes, enableAsserts, errorReporter);
+      : constantEvaluator = new ConstantEvaluator(backend, environmentDefines,
+            typeEnvironment, enableAsserts, errorReporter);
 
   // Transform the library/class members:
 
@@ -377,6 +375,7 @@ class ConstantsTransformer extends Transformer {
 
 class ConstantEvaluator extends RecursiveVisitor {
   final ConstantsBackend backend;
+  Map<String, String> environmentDefines;
   final CoreTypes coreTypes;
   final TypeEnvironment typeEnvironment;
   final bool enableAsserts;
@@ -396,10 +395,12 @@ class ConstantEvaluator extends RecursiveVisitor {
   InstanceBuilder instanceBuilder;
   EvaluationEnvironment env;
 
-  ConstantEvaluator(this.backend, this.typeEnvironment, this.coreTypes,
+  ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
       this.enableAsserts, this.errorReporter)
-      : canonicalizationCache = <Constant, Constant>{},
-        nodeCache = <Node, Constant>{};
+      : coreTypes = typeEnvironment.coreTypes,
+        canonicalizationCache = <Constant, Constant>{},
+        nodeCache = <Node, Constant>{},
+        env = new EvaluationEnvironment();
 
   /// Evaluates [node] and possibly cache the evaluation result.
   Constant evaluate(Expression node) {
@@ -506,8 +507,7 @@ class ConstantEvaluator extends RecursiveVisitor {
       entries[i] = node.expressions[i].accept(this);
     }
     final DartType typeArgument = evaluateDartType(node, node.typeArgument);
-    final ListConstant listConstant = new ListConstant(typeArgument, entries);
-    return canonicalize(backend.lowerListConstant(listConstant));
+    return canonicalize(new ListConstant(typeArgument, entries));
   }
 
   visitMapLiteral(MapLiteral node) {
@@ -532,9 +532,7 @@ class ConstantEvaluator extends RecursiveVisitor {
     }
     final DartType keyType = evaluateDartType(node, node.keyType);
     final DartType valueType = evaluateDartType(node, node.valueType);
-    final MapConstant mapConstant =
-        new MapConstant(keyType, valueType, entries);
-    return canonicalize(backend.lowerMapConstant(mapConstant));
+    return canonicalize(new MapConstant(keyType, valueType, entries));
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -552,6 +550,14 @@ class ConstantEvaluator extends RecursiveVisitor {
     if (constructor.function.body != null &&
         constructor.function.body is! EmptyStatement) {
       throw 'Constructor "$node" has non-trivial body "${constructor.function.body.runtimeType}".';
+    }
+    if (constructor.isInExternalLibrary &&
+        constructor.initializers.isEmpty &&
+        constructor.enclosingClass.supertype != null) {
+      // The constructor is unavailable due to separate compilation.
+      return new UnevaluatedConstant(new ConstructorInvocation(
+          constructor, unevaluatedArguments(node.arguments),
+          isConst: true));
     }
     if (klass.isAbstract) {
       throw 'Constructor "$node" belongs to abstract class "${klass}".';
@@ -1108,6 +1114,10 @@ class ConstantEvaluator extends RecursiveVisitor {
       final Member target = node.target;
       if (target is Field) {
         if (target.isConst) {
+          if (target.isInExternalLibrary && target.initializer == null) {
+            // The variable is unavailable due to separate compilation.
+            return new UnevaluatedConstant(node);
+          }
           return runInsideContext(target, () {
             return _evaluateSubexpression(target.initializer);
           });
@@ -1151,26 +1161,63 @@ class ConstantEvaluator extends RecursiveVisitor {
 
   visitStaticInvocation(StaticInvocation node) {
     final Procedure target = node.target;
+    final Arguments arguments = node.arguments;
     if (target.kind == ProcedureKind.Factory) {
-      final String nativeName = getExternalName(target);
-      if (nativeName != null) {
-        final Constant constant = backend.buildConstantForNative(
-            nativeName,
-            evaluateTypeArguments(node, node.arguments),
-            evaluatePositionalArguments(node.arguments),
-            evaluateNamedArguments(node.arguments),
-            contextChain,
-            node,
-            errorReporter,
-            (String message) => throw new _AbortCurrentEvaluation(message));
-        assert(constant != null);
-        return canonicalize(constant);
+      if (target.isConst &&
+          target.name.name == "fromEnvironment" &&
+          target.enclosingLibrary == coreTypes.coreLibrary &&
+          arguments.positional.length == 1) {
+        if (environmentDefines != null) {
+          // Evaluate environment constant.
+          Constant name = arguments.positional[0].accept(this);
+          if (name is StringConstant) {
+            String value = environmentDefines[name.value];
+            Constant defaultValue = null;
+            for (int i = 0; i < arguments.named.length; i++) {
+              NamedExpression named = arguments.named[i];
+              if (named.name == "defaultValue") {
+                defaultValue = named.value.accept(this);
+                break;
+              }
+            }
+
+            if (target.enclosingClass == coreTypes.boolClass) {
+              Constant boolConstant = value == "true"
+                  ? trueConstant
+                  : value == "false"
+                      ? falseConstant
+                      : defaultValue is BoolConstant
+                          ? defaultValue.value ? trueConstant : falseConstant
+                          : defaultValue is NullConstant
+                              ? nullConstant
+                              : falseConstant;
+              return boolConstant;
+            } else if (target.enclosingClass == coreTypes.intClass) {
+              int intValue = value != null ? int.tryParse(value) : null;
+              intValue ??=
+                  defaultValue is IntConstant ? defaultValue.value : null;
+              if (intValue == null) return nullConstant;
+              return canonicalize(new IntConstant(intValue));
+            } else if (target.enclosingClass == coreTypes.stringClass) {
+              value ??=
+                  defaultValue is StringConstant ? defaultValue.value : null;
+              if (value == null) return nullConstant;
+              return canonicalize(new StringConstant(value));
+            }
+          }
+          // TODO(askesc): Give more meaningful error message if name is null.
+        } else {
+          // Leave environment constant unevaluated.
+          return new UnevaluatedConstant(new StaticInvocation(
+              target, unevaluatedArguments(arguments),
+              isConst: true));
+        }
       }
     } else if (target.name.name == 'identical') {
       // Ensure the "identical()" function comes from dart:core.
       final parent = target.parent;
       if (parent is Library && parent == coreTypes.coreLibrary) {
-        final positionalArguments = evaluatePositionalArguments(node.arguments);
+        final positionalArguments = evaluatePositionalArguments(arguments);
         final Constant left = positionalArguments[0];
         final Constant right = positionalArguments[1];
         // Since we canonicalize constants during the evaluation, we can use
@@ -1279,7 +1326,23 @@ class ConstantEvaluator extends RecursiveVisitor {
     return named;
   }
 
-  canonicalize(Constant constant) {
+  Arguments unevaluatedArguments(Arguments arguments) {
+    final positional = new List<Expression>(arguments.positional.length);
+    final named = new List<NamedExpression>(arguments.named.length);
+    for (int i = 0; i < arguments.positional.length; ++i) {
+      Constant constant = arguments.positional[i].accept(this);
+      positional[i] = constant.asExpression();
+    }
+    for (int i = 0; i < arguments.named.length; ++i) {
+      NamedExpression arg = arguments.named[i];
+      Constant constant = arg.value.accept(this);
+      named[i] = new NamedExpression(arg.name, constant.asExpression());
+    }
+    return new Arguments(positional, named: named, types: arguments.types);
+  }
+
+  Constant canonicalize(Constant constant) {
+    constant = backend.lowerConstant(constant);
     return canonicalizationCache.putIfAbsent(constant, () => constant);
   }
 
@@ -1303,7 +1366,10 @@ class ConstantEvaluator extends RecursiveVisitor {
     }
   }
 
-  evaluateBinaryNumericOperation(String op, num a, num b, TreeNode node) {
+  Constant evaluateBinaryNumericOperation(
+      String op, num a, num b, TreeNode node) {
+    a = backend.prepareNumericOperand(a);
+    b = backend.prepareNumericOperand(b);
     num result;
     switch (op) {
       case '+':
@@ -1425,18 +1491,16 @@ class EvaluationEnvironment {
   }
 }
 
-abstract class ConstantsBackend {
-  Constant buildConstantForNative(
-      String nativeName,
-      List<DartType> typeArguments,
-      List<Constant> positionalArguments,
-      Map<String, Constant> namedArguments,
-      List<TreeNode> context,
-      StaticInvocation node,
-      ErrorReporter errorReporter,
-      Constant abortEvaluation(String message));
-  Constant lowerListConstant(ListConstant constant);
-  Constant lowerMapConstant(MapConstant constant);
+// Backend specific constant evaluation behavior
+class ConstantsBackend {
+  /// Transformation of constants prior to canonicalization, e.g. to change the
+  /// representation of certain kinds of constants, or to implement specific
+  /// number semantics.
+  Constant lowerConstant(Constant constant) => constant;
+
+  /// Transformation of numeric operands prior to a binary operation,
+  /// e.g. to implement specific number semantics.
+  num prepareNumericOperand(num operand) => operand;
 }
 
 // Used as control-flow to abort the current evaluation.

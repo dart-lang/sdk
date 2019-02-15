@@ -5,11 +5,12 @@
 import 'package:analysis_server/protocol/protocol_generated.dart'
     show HoverInformation;
 import 'package:analysis_server/src/computer/computer_overrides.dart';
-import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/util/comment.dart';
 
 /**
  * A computer for the hover at the specified offset of a Dart [CompilationUnit].
@@ -118,7 +119,7 @@ class DartUnitHoverComputer {
     }
     // The documentation of the element itself.
     if (element.documentationComment != null) {
-      return removeDartDocDelimiters(element.documentationComment);
+      return getDartDocPlainText(element.documentationComment);
     }
     // Look for documentation comments of overridden members.
     OverriddenElements overridden = findOverriddenElements(element);
@@ -128,7 +129,7 @@ class DartUnitHoverComputer {
       String rawDoc = superElement.documentationComment;
       if (rawDoc != null) {
         Element interfaceClass = superElement.enclosingElement;
-        return removeDartDocDelimiters(rawDoc) +
+        return getDartDocPlainText(rawDoc) +
             '\n\nCopied from `${interfaceClass.displayName}`.';
       }
     }

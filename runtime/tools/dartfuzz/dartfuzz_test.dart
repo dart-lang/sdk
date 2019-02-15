@@ -51,38 +51,70 @@ abstract class TestRunner {
   // Factory.
   static TestRunner getTestRunner(String mode, String top, String tmp,
       Map<String, String> env, Random rand) {
+    String prefix = mode.substring(0, 3).toUpperCase();
     String tag = getTag(mode);
-    if (mode.startsWith('jit-stress'))
-      switch (rand.nextInt(6)) {
-        case 0:
-          return new TestRunnerJIT('JIT-NOFIELDGUARDS', tag, top, tmp, env,
-              ['--use_field_guards=false']);
-        case 1:
-          return new TestRunnerJIT(
-              'JIT-NOINTRINSIFY', tag, top, tmp, env, ['--intrinsify=false']);
-        case 2:
-          return new TestRunnerJIT('JIT-COMPACTEVERY', tag, top, tmp, env,
-              ['--gc_every=1000', '--use_compactor=true']);
-        case 3:
-          return new TestRunnerJIT('JIT-MARKSWEEPEVERY', tag, top, tmp, env,
-              ['--gc_every=1000', '--use_compactor=false']);
-        case 4:
-          return new TestRunnerJIT('JIT-DEPOPTEVERY', tag, top, tmp, env,
-              ['--deoptimize_every=100']);
-        case 5:
-          return new TestRunnerJIT('JIT-STACKTRACEEVERY', tag, top, tmp, env,
-              ['--stacktrace_every=100']);
-        case 6:
-          // Crashes (https://github.com/dart-lang/sdk/issues/35196):
-          return new TestRunnerJIT('JIT-OPTCOUNTER', tag, top, tmp, env,
-              ['--optimization_counter_threshold=1']);
+    // Prepare extra flags.
+    List<String> extraFlags = [];
+    if (mode.startsWith('kbc-int')) {
+      prefix += '-INT';
+      extraFlags += [
+        '--enable-interpreter',
+        '--compilation-counter-threshold=-1'
+      ];
+    } else if (mode.startsWith('kbc-mix')) {
+      prefix += '-MIX';
+      extraFlags += ['--enable-interpreter'];
+    } else if (mode.startsWith('kbc-cmp')) {
+      prefix += '-CMP';
+      extraFlags += ['--use-bytecode-compiler'];
+    }
+    // Every once in a while, stress test JIT.
+    if (mode.startsWith('jit') && rand.nextInt(4) == 0) {
+      final r = rand.nextInt(6);
+      if (r == 0) {
+        prefix += '-NOFIELDGUARDS';
+        extraFlags += ['--use_field_guards=false'];
+      } else if (r == 1) {
+        prefix += '-NOINTRINSIFY';
+        extraFlags += ['--intrinsify=false'];
+      } else if (r == 2) {
+        prefix += '-COMPACTEVERY';
+        extraFlags += ['--gc_every=1000', '--use_compactor=true'];
+      } else if (r == 3) {
+        prefix += '-MARKSWEEPEVERY';
+        extraFlags += ['--gc_every=1000', '--use_compactor=false'];
+      } else if (r == 4) {
+        prefix += '-DEPOPTEVERY';
+        extraFlags += ['--deoptimize_every=100'];
+      } else if (r == 5) {
+        prefix += '-STACKTRACEEVERY';
+        extraFlags += ['--stacktrace_every=100'];
+      } else if (r == 6) {
+        // Crashes (https://github.com/dart-lang/sdk/issues/35196):
+        prefix += '-OPTCOUNTER';
+        extraFlags += ['--optimization_counter_threshold=1'];
       }
-    if (mode.startsWith('jit'))
-      return new TestRunnerJIT('JIT', tag, top, tmp, env, []);
-    if (mode.startsWith('aot')) return new TestRunnerAOT(tag, top, tmp, env);
-    if (mode.startsWith('kbc'))
-      return new TestRunnerKBC(mode, tag, top, tmp, env);
-    if (mode.startsWith('js')) return new TestRunnerJS(tag, top, tmp, env);
+    }
+    // Every once in a while, disable VFP on arm32.
+    if (mode.contains('arm32') && rand.nextInt(4) == 0) {
+      prefix += '-noVFP';
+      extraFlags += ['--no-use-vfp'];
+    }
+    // Every once in a while, use -O3 compiler.
+    if (!mode.startsWith('djs') && rand.nextInt(4) == 0) {
+      prefix += '-O3';
+      extraFlags += ['--optimization_level=3'];
+    }
+    // Construct runner.
+    if (mode.startsWith('jit')) {
+      return new TestRunnerJIT(prefix, tag, top, tmp, env, extraFlags);
+    } else if (mode.startsWith('aot')) {
+      return new TestRunnerAOT(prefix, tag, top, tmp, env, extraFlags);
+    } else if (mode.startsWith('kbc')) {
+      return new TestRunnerKBC(prefix, tag, top, tmp, env, extraFlags);
+    } else if (mode.startsWith('djs')) {
+      return new TestRunnerDJS(prefix, tag, top, tmp, env);
+    }
     throw ('unknown runner in mode: $mode');
   }
 
@@ -106,13 +138,12 @@ abstract class TestRunner {
 
 /// Concrete test runner of Dart JIT.
 class TestRunnerJIT implements TestRunner {
-  TestRunnerJIT(String prefix, String tag, String top, String tmp,
-      Map<String, String> e, List<String> extra_flags) {
+  TestRunnerJIT(String prefix, String tag, String top, String tmp, this.env,
+      List<String> extraFlags) {
     description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
     fileName = '$tmp/fuzz.dart';
-    env = e;
-    cmd = [dart, "--deterministic"] + extra_flags + [fileName];
+    cmd = [dart, "--deterministic"] + extraFlags + [fileName];
   }
 
   TestResult run() {
@@ -128,14 +159,16 @@ class TestRunnerJIT implements TestRunner {
 
 /// Concrete test runner of Dart AOT.
 class TestRunnerAOT implements TestRunner {
-  TestRunnerAOT(String tag, String top, String tmp, Map<String, String> e) {
-    description = 'AOT-${tag}';
+  TestRunnerAOT(String prefix, String tag, String top, String tmp,
+      Map<String, String> e, List<String> extraFlags) {
+    description = '$prefix-$tag';
     precompiler = '$top/pkg/vm/tool/precompiler2';
     dart = '$top/pkg/vm/tool/dart_precompiled_runtime2';
     fileName = '$tmp/fuzz.dart';
     snapshot = '$tmp/snapshot';
     env = Map<String, String>.from(e);
     env['DART_CONFIGURATION'] = tag;
+    env['OPTIONS'] = extraFlags.join(' ');
   }
 
   TestResult run() {
@@ -156,28 +189,15 @@ class TestRunnerAOT implements TestRunner {
 
 /// Concrete test runner of bytecode.
 class TestRunnerKBC implements TestRunner {
-  TestRunnerKBC(
-      String mode, String tag, String top, String tmp, Map<String, String> e) {
+  TestRunnerKBC(String prefix, String tag, String top, String tmp, this.env,
+      List<String> extraFlags) {
+    description = '$prefix-$tag';
     generate = '$top/pkg/vm/tool/gen_kernel';
     platform = '--platform=$top/out/$tag/vm_platform_strong.dill';
     dill = '$tmp/out.dill';
     dart = '$top/out/$tag/dart';
     fileName = '$tmp/fuzz.dart';
-    env = e;
-    cmd = [dart];
-    if (mode.startsWith('kbc-int')) {
-      description = 'KBC-INT-${tag}';
-      cmd += ['--enable-interpreter', '--compilation-counter-threshold=-1'];
-    } else if (mode.startsWith('kbc-mix')) {
-      description = 'KBC-MIX-${tag}';
-      cmd += ['--enable-interpreter'];
-    } else if (mode.startsWith('kbc-cmp')) {
-      description = 'KBC-CMP-${tag}';
-      cmd += ['--use-bytecode-compiler'];
-    } else {
-      throw ('unknown KBC mode: $mode');
-    }
-    cmd += [dill];
+    cmd = [dart] + extraFlags + [dill];
   }
 
   TestResult run() {
@@ -200,13 +220,12 @@ class TestRunnerKBC implements TestRunner {
 }
 
 /// Concrete test runner of Dart2JS.
-class TestRunnerJS implements TestRunner {
-  TestRunnerJS(String tag, String top, String tmp, Map<String, String> e) {
-    description = 'Dart2JS-$tag';
+class TestRunnerDJS implements TestRunner {
+  TestRunnerDJS(String prefix, String tag, String top, String tmp, this.env) {
+    description = '$prefix-$tag';
     dart2js = '$top/sdk/bin/dart2js';
     fileName = '$tmp/fuzz.dart';
     js = '$tmp/out.js';
-    env = e;
   }
 
   TestResult run() {
@@ -525,18 +544,6 @@ class DartFuzzTestSession {
     'jit-arm64',
     'jit-dbc',
     'jit-dbc64',
-    'jit-stress-debug-ia32',
-    'jit-stress-debug-x64',
-    'jit-stress-debug-arm32',
-    'jit-stress-debug-arm64',
-    'jit-stress-debug-dbc',
-    'jit-stress-debug-dbc64',
-    'jit-stress-ia32',
-    'jit-stress-x64',
-    'jit-stress-arm32',
-    'jit-stress-arm64',
-    'jit-stress-dbc',
-    'jit-stress-dbc64',
     'aot-debug-x64',
     'aot-x64',
     'kbc-int-debug-x64',

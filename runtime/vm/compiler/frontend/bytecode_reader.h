@@ -22,7 +22,6 @@ class BytecodeMetadataHelper : public MetadataHelper {
   static const char* tag() { return "vm.bytecode"; }
 
   explicit BytecodeMetadataHelper(KernelReaderHelper* helper,
-                                  TypeTranslator* type_translator,
                                   ActiveClass* active_class);
 
   bool HasBytecode(intptr_t node_offset);
@@ -30,6 +29,23 @@ class BytecodeMetadataHelper : public MetadataHelper {
   void ReadMetadata(const Function& function);
 
   RawArray* ReadBytecodeComponent();
+
+ private:
+  ActiveClass* const active_class_;
+
+  DISALLOW_COPY_AND_ASSIGN(BytecodeMetadataHelper);
+};
+
+// Helper class for reading bytecode.
+class BytecodeReaderHelper : public ValueObject {
+ public:
+  explicit BytecodeReaderHelper(KernelReaderHelper* helper,
+                                ActiveClass* active_class,
+                                BytecodeComponentData* bytecode_component);
+
+  void ReadMemberBytecode(const Function& function, intptr_t md_offset);
+
+  RawArray* ReadBytecodeComponent(intptr_t md_offset);
 
  private:
   // These constants should match corresponding constants in class ObjectHandle
@@ -41,11 +57,12 @@ class BytecodeMetadataHelper : public MetadataHelper {
   static const int kFlagBit0 = 1 << 5;
   static const int kFlagBit1 = 1 << 6;
   static const int kFlagBit2 = 1 << 7;
-  static const int kFlagsMask = (kFlagBit0 | kFlagBit1 | kFlagBit2);
+  static const int kFlagBit3 = 1 << 8;
+  static const int kFlagsMask = (kFlagBit0 | kFlagBit1 | kFlagBit2 | kFlagBit3);
 
   class FunctionTypeScope : public ValueObject {
    public:
-    explicit FunctionTypeScope(BytecodeMetadataHelper* bytecode_reader)
+    explicit FunctionTypeScope(BytecodeReaderHelper* bytecode_reader)
         : bytecode_reader_(bytecode_reader),
           saved_type_parameters_(
               bytecode_reader->function_type_type_parameters_) {}
@@ -55,7 +72,7 @@ class BytecodeMetadataHelper : public MetadataHelper {
     }
 
    private:
-    BytecodeMetadataHelper* bytecode_reader_;
+    BytecodeReaderHelper* bytecode_reader_;
     TypeArguments* const saved_type_parameters_;
   };
 
@@ -78,16 +95,19 @@ class BytecodeMetadataHelper : public MetadataHelper {
 
   RawObject* ReadObject();
   RawObject* ReadObjectContents(uint32_t header);
+  RawObject* ReadConstObject(intptr_t tag);
   RawString* ReadString(bool is_canonical = true);
   RawTypeArguments* ReadTypeArguments(const Class& instantiator);
 
-  TypeTranslator& type_translator_;
+  KernelReaderHelper* const helper_;
+  TranslationHelper& translation_helper_;
   ActiveClass* const active_class_;
-  BytecodeComponentData* bytecode_component_;
+  Zone* const zone_;
+  BytecodeComponentData* const bytecode_component_;
   Array* closures_;
   TypeArguments* function_type_type_parameters_;
 
-  DISALLOW_COPY_AND_ASSIGN(BytecodeMetadataHelper);
+  DISALLOW_COPY_AND_ASSIGN(BytecodeReaderHelper);
 };
 
 class BytecodeComponentData : ValueObject {

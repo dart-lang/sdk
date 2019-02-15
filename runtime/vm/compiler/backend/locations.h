@@ -9,7 +9,6 @@
 #include "vm/bitfield.h"
 #include "vm/bitmap.h"
 #include "vm/compiler/assembler/assembler.h"
-#include "vm/log.h"
 
 namespace dart {
 
@@ -561,22 +560,7 @@ class RegisterSet : public ValueObject {
     }
   }
 
-  void DebugPrint() {
-    for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
-      Register r = static_cast<Register>(i);
-      if (ContainsRegister(r)) {
-        THR_Print("%s %s\n", Assembler::RegisterName(r),
-                  IsTagged(r) ? "tagged" : "untagged");
-      }
-    }
-
-    for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
-      FpuRegister r = static_cast<FpuRegister>(i);
-      if (ContainsFpuRegister(r)) {
-        THR_Print("%s\n", Assembler::FpuRegisterName(r));
-      }
-    }
-  }
+  void DebugPrint();
 
   void MarkUntagged(Location loc) {
     ASSERT(loc.IsRegister());

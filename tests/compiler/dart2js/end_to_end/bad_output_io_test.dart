@@ -44,7 +44,7 @@ class CollectingFormattingDiagnosticHandler
 
   final messages = [];
 
-  void info(var message, [kind]) {
+  void info(var message, [kind = Diagnostic.VERBOSE_INFO]) {
     messages.add([message, kind]);
   }
 

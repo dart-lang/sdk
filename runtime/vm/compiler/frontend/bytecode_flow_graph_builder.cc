@@ -701,6 +701,33 @@ void BytecodeFlowGraphBuilder::BuildIndirectStaticCall() {
   B->Push(call);
 }
 
+void BytecodeFlowGraphBuilder::BuildDirectCall() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
+  const Array& arg_desc_array =
+      Array::Cast(ConstantAt(DecodeOperandD(), 1).value());
+  const ArgumentsDescriptor arg_desc(arg_desc_array);
+  intptr_t argc = DecodeOperandA().value();
+
+  ArgumentArray arguments = GetArguments(argc);
+
+  // TODO(alexmarkov): pass ICData::kSuper for super calls
+  // (need to distinguish them in bytecode).
+  StaticCallInstr* call = new (Z) StaticCallInstr(
+      position_, target, arg_desc.TypeArgsLen(),
+      Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), arguments,
+      *ic_data_array_, B->GetNextDeoptId(), ICData::kStatic);
+
+  // TODO(alexmarkov): add type info
+  // SetResultTypeForStaticCall(call, target, argument_count, result_type);
+
+  code_ <<= call;
+  B->Push(call);
+}
+
 void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter

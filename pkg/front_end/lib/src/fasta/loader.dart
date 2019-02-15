@@ -8,7 +8,8 @@ import 'dart:async' show Future;
 
 import 'dart:collection' show Queue;
 
-import 'builder/builder.dart' show Declaration, LibraryBuilder;
+import 'builder/builder.dart'
+    show ClassBuilder, Declaration, LibraryBuilder, TypeBuilder;
 
 import 'crash.dart' show firstSourceUri;
 
@@ -303,4 +304,9 @@ fileUri: ${contextMessage.uri}
   void recordMessage(Severity severity, Message message, int charOffset,
       int length, Uri fileUri,
       {List<LocatedMessage> context}) {}
+
+  ClassBuilder<TypeBuilder, Object> computeClassBuilderFromTargetClass(
+      covariant Object cls);
+
+  TypeBuilder computeTypeBuilder(covariant Object type);
 }

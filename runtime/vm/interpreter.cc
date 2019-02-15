@@ -813,8 +813,7 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
   callee_fp[kKBCSavedCallerPcSlotFromFp] = reinterpret_cast<RawObject*>(*pc);
   callee_fp[kKBCSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(*FP);
   pp_ = bytecode->ptr()->object_pool_;
-  *pc =
-      reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_->ptr()->data_);
+  *pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
   pc_ = reinterpret_cast<uword>(*pc);  // For the profiler.
   *FP = callee_fp;
   fp_ = callee_fp;  // For the profiler.
@@ -909,7 +908,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall1(Thread* thread,
 
   const intptr_t kCheckedArgs = 1;
   RawObject** args = call_base;
-  RawArray* cache = icdata->ptr()->ic_data_->ptr();
+  RawArray* cache = icdata->ptr()->entries_->ptr();
 
   const intptr_t type_args_len =
       InterpreterHelpers::ArgDescTypeArgsLen(icdata->ptr()->args_descriptor_);
@@ -954,7 +953,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 
   const intptr_t kCheckedArgs = 2;
   RawObject** args = call_base;
-  RawArray* cache = icdata->ptr()->ic_data_->ptr();
+  RawArray* cache = icdata->ptr()->entries_->ptr();
 
   const intptr_t type_args_len =
       InterpreterHelpers::ArgDescTypeArgsLen(icdata->ptr()->args_descriptor_);
@@ -1388,8 +1387,7 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
-  pc =
-      reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_->ptr()->data_);
+  pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
   pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
   fp_ = FP;                           // For the profiler.
   pp_ = bytecode->ptr()->object_pool_;
@@ -1805,12 +1803,14 @@ SwitchDispatch:
   {
     BYTECODE(IndirectStaticCall, A_D);
 
+#ifndef PRODUCT
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);
     }
+#endif  // !PRODUCT
 
     // Invoke target function.
     {
@@ -1818,7 +1818,7 @@ SwitchDispatch:
       // Look up the function in the ICData.
       RawObject* ic_data_obj = SP[0];
       RawICData* ic_data = RAW_CAST(ICData, ic_data_obj);
-      RawObject** data = ic_data->ptr()->ic_data_->ptr()->data();
+      RawObject** data = ic_data->ptr()->entries_->ptr()->data();
       InterpreterHelpers::IncrementICUsageCount(data, 0, 0);
       SP[0] = data[ICData::TargetIndexFor(ic_data->ptr()->state_bits_ & 0x3)];
       RawObject** call_base = SP - argc;
@@ -1833,14 +1833,46 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(InterfaceCall, A_D);
+    BYTECODE(DirectCall, A_D);
 
+#ifndef PRODUCT
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);
     }
+#endif  // !PRODUCT
+
+    // Invoke target function.
+    {
+      const uint16_t argc = rA;
+      const uint16_t kidx = rD;
+
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
+      *++SP = LOAD_CONSTANT(kidx);
+      RawObject** call_base = SP - argc;
+      RawObject** call_top = SP;
+      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
+      if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(InterfaceCall, A_D);
+
+#ifndef PRODUCT
+    // Check if single stepping.
+    if (thread->isolate()->single_step()) {
+      Exit(thread, FP, SP + 1, pc);
+      NativeArguments args(thread, 0, NULL, NULL);
+      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
+    }
+#endif  // !PRODUCT
 
     {
       const uint16_t argc = rA;
@@ -1864,12 +1896,14 @@ SwitchDispatch:
   {
     BYTECODE(DynamicCall, A_D);
 
+#ifndef PRODUCT
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);
     }
+#endif  // !PRODUCT
 
     {
       const uint16_t argc = rA;

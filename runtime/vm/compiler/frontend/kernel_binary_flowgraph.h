@@ -39,7 +39,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                             &type_translator_,
                             active_class_,
                             flow_graph_builder),
-        bytecode_metadata_helper_(this, &type_translator_, active_class_),
+        bytecode_metadata_helper_(this, active_class_),
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),

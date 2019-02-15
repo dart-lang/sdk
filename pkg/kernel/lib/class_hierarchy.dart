@@ -34,6 +34,8 @@ abstract class ClassHierarchy {
   void set onAmbiguousSupertypes(
       HandleAmbiguousSupertypes onAmbiguousSupertypes);
 
+  void set mixinInferrer(MixinInferrer mixinInferrer);
+
   /// Given the [unordered] classes, return them in such order that classes
   /// occur after their superclasses.  If some superclasses are not in
   /// [unordered], they are not included.

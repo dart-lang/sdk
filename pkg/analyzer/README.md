@@ -64,6 +64,9 @@ linter:
     - camel_case_types
 ```
 
+For more information, see the docs for
+[customizing static analysis][custom_analysis].
+
 ## Who uses this library?
 
 Many tools embed this library, such as:
@@ -104,3 +107,4 @@ See the [LICENSE] file.
 [dartfmt]: https://github.com/dart-lang/dart_style
 [dartdoc]: https://github.com/dart-lang/dartdoc
 [analysis_sever]: https://github.com/dart-lang/sdk/tree/master/pkg/analysis_server
+[custom_analysis]: https://www.dartlang.org/guides/language/analysis-options

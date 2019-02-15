@@ -53,10 +53,10 @@ num_sign_test: CompileTimeError, OK # Error if web int literal cannot be represe
 error_stack_trace_test/static: MissingCompileTimeError
 
 [ $compiler == dartdevk ]
-bool_from_environment2_test/03: Crash
+bool_from_environment2_test/03: MissingCompileTimeError
 int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
-string_from_environment3_test/03: Crash
+string_from_environment3_test/03: MissingCompileTimeError
 
 [ $compiler == fasta ]
 bool_from_environment2_test/03: MissingCompileTimeError

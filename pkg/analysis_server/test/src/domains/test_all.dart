@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'execution/test_all.dart' as execution_test;
+import 'completion/test_all.dart' as completion;
+import 'execution/test_all.dart' as execution;
 
 main() {
   defineReflectiveSuite(() {
-    execution_test.main();
+    completion.main();
+    execution.main();
   });
 }

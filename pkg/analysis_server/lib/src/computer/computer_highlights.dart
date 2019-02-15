@@ -415,20 +415,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitCollectionForElement(CollectionForElement node) {
-    computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN);
-    computer._addRegion_token(node.forKeyword, HighlightRegionType.KEYWORD);
-    super.visitCollectionForElement(node);
-  }
-
-  @override
-  void visitCollectionIfElement(CollectionIfElement node) {
-    computer._addRegion_token(node.ifKeyword, HighlightRegionType.KEYWORD);
-    computer._addRegion_token(node.elseKeyword, HighlightRegionType.KEYWORD);
-    super.visitCollectionIfElement(node);
-  }
-
-  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
@@ -509,6 +495,13 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitForElement(ForElement node) {
+    computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.forKeyword, HighlightRegionType.KEYWORD);
+    super.visitForElement(node);
+  }
+
+  @override
   void visitForStatement(ForStatement node) {
     computer._addRegion_token(node.forKeyword, HighlightRegionType.KEYWORD);
     super.visitForStatement(node);
@@ -554,6 +547,13 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitHideCombinator(HideCombinator node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
     super.visitHideCombinator(node);
+  }
+
+  @override
+  void visitIfElement(IfElement node) {
+    computer._addRegion_token(node.ifKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.elseKeyword, HighlightRegionType.KEYWORD);
+    super.visitIfElement(node);
   }
 
   @override
@@ -619,20 +619,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_LIST);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
     super.visitListLiteral2(node);
-  }
-
-  @override
-  void visitMapForElement(MapForElement node) {
-    computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN);
-    computer._addRegion_token(node.forKeyword, HighlightRegionType.KEYWORD);
-    super.visitMapForElement(node);
-  }
-
-  @override
-  void visitMapIfElement(MapIfElement node) {
-    computer._addRegion_token(node.ifKeyword, HighlightRegionType.KEYWORD);
-    computer._addRegion_token(node.elseKeyword, HighlightRegionType.KEYWORD);
-    super.visitMapIfElement(node);
   }
 
   @override

@@ -6,11 +6,11 @@
 
 library vm.bytecode.dbc;
 
-/// Version of stable bytecode format, produced by default.
-/// Before bumping stable bytecode version format, make sure that
+/// Version of bytecode format, produced by default.
+/// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume next
 /// version of bytecode.
-const int stableBytecodeFormatVersion = 1;
+const int stableBytecodeFormatVersion = 2;
 
 /// Version of bleeding edge bytecode format.
 /// Produced by bytecode generator when --use-future-bytecode-format
@@ -123,6 +123,8 @@ enum Opcode {
   kCompareIntLt,
   kCompareIntGe,
   kCompareIntLe,
+
+  kDirectCall,
 }
 
 enum Encoding {
@@ -298,6 +300,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kCompareIntLe: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kDirectCall: const Format(
+      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
 };
 
 // Should match constant in runtime/vm/stack_frame_dbc.h.
@@ -318,6 +322,7 @@ bool isCall(Opcode opcode) {
     case Opcode.kInterfaceCall:
     case Opcode.kDynamicCall:
     case Opcode.kNativeCall:
+    case Opcode.kDirectCall:
       return true;
     default:
       return false;

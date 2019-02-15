@@ -8,11 +8,15 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UseOfVoidResultTest_Driver);
+    defineReflectiveTests(UseOfVoidResultTest);
   });
 }
 
-abstract class UseOfVoidResultTest extends ResolverTestCase {
+@reflectiveTest
+class UseOfVoidResultTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_implicitReturnValue() async {
     await assertNoErrorsInCode(r'''
 f() {}
@@ -32,10 +36,4 @@ g() {
 }
 ''');
   }
-}
-
-@reflectiveTest
-class UseOfVoidResultTest_Driver extends UseOfVoidResultTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

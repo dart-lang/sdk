@@ -8,7 +8,9 @@ import '../helpers/compiler_helper.dart';
 
 const String TEST_ONE = r"""
   class Token {
+    @pragma('dart2js:noElision')
     final name;
+    @pragma('dart2js:noElision')
     final value;
     const Token(this.name, [this.value]);
     use() { print(this); }

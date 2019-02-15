@@ -53,7 +53,7 @@ class ProgramLookup {
       for (Fragment fragment in program.fragments) {
         for (Library library in fragment.libraries) {
           assert(!libraryMap.containsKey(library.element));
-          libraryMap[library.element] = new LibraryData(library);
+          libraryMap[library.element] = new LibraryData(library, fragment);
         }
       }
     }
@@ -74,17 +74,25 @@ class ProgramLookup {
 
   Method getMethod(FunctionEntity function) {
     if (function.enclosingClass != null) {
-      return getClassData(function.enclosingClass).getMethod(function);
+      return getClassData(function.enclosingClass)?.getMethod(function);
     } else {
-      return getLibraryData(function.library).getMethod(function);
+      return getLibraryData(function.library)?.getMethod(function);
     }
   }
 
   Field getField(FieldEntity field) {
     if (field.enclosingClass != null) {
-      return getClassData(field.enclosingClass).getField(field);
+      return getClassData(field.enclosingClass)?.getField(field);
     } else {
-      return getLibraryData(field.library).getField(field);
+      return getLibraryData(field.library)?.getField(field);
+    }
+  }
+
+  StaticField getStaticField(FieldEntity field) {
+    if (field.enclosingClass != null) {
+      return getClassData(field.enclosingClass)?.getStaticField(field);
+    } else {
+      return getLibraryData(field.library)?.getStaticField(field);
     }
   }
 }
@@ -94,8 +102,9 @@ class LibraryData {
   Map<ClassEntity, ClassData> _classMap = {};
   Map<FunctionEntity, StaticMethod> _methodMap = {};
   Map<FieldEntity, Field> _fieldMap = {};
+  Map<FieldEntity, StaticField> _staticFieldMap = {};
 
-  LibraryData(this.library) {
+  LibraryData(this.library, Fragment fragment) {
     for (Class cls in library.classes) {
       assert(!_classMap.containsKey(cls.element));
       _classMap[cls.element] = new ClassData(cls);
@@ -112,7 +121,8 @@ class LibraryData {
         _methodMap[method.element] = method;
       }
     }
-    for (Field field in library.staticFieldsForReflection) {
+
+    void addField(Field field) {
       ClassEntity enclosingClass = field.element?.enclosingClass;
       if (enclosingClass != null) {
         ClassData data =
@@ -123,6 +133,30 @@ class LibraryData {
         assert(!_fieldMap.containsKey(field.element));
         _fieldMap[field.element] = field;
       }
+    }
+
+    for (Field field in library.staticFieldsForReflection) {
+      addField(field);
+    }
+
+    void addStaticField(StaticField field) {
+      ClassEntity enclosingClass = field.element?.enclosingClass;
+      if (enclosingClass != null) {
+        ClassData data =
+            _classMap.putIfAbsent(enclosingClass, () => new ClassData(null));
+        assert(!data._fieldMap.containsKey(field.element));
+        data._staticFieldMap[field.element] = field;
+      } else if (field.element != null) {
+        assert(!_fieldMap.containsKey(field.element));
+        _staticFieldMap[field.element] = field;
+      }
+    }
+
+    for (StaticField field in fragment.staticNonFinalFields) {
+      addStaticField(field);
+    }
+    for (StaticField field in fragment.staticLazilyInitializedFields) {
+      addStaticField(field);
     }
   }
 
@@ -137,12 +171,20 @@ class LibraryData {
   Field getField(FieldEntity field) {
     return _fieldMap[field];
   }
+
+  StaticField getStaticField(FieldEntity field) {
+    return _staticFieldMap[field];
+  }
+
+  String toString() => 'LibraryData(library=$library,_classMap=$_classMap,'
+      '_methodMap=$_methodMap,_fieldMap=$_fieldMap)';
 }
 
 class ClassData {
   final Class cls;
   Map<FunctionEntity, Method> _methodMap = {};
   Map<FieldEntity, Field> _fieldMap = {};
+  Map<FieldEntity, StaticField> _staticFieldMap = {};
   Map<FieldEntity, StubMethod> _checkedSetterMap = {};
 
   ClassData(this.cls) {
@@ -170,24 +212,35 @@ class ClassData {
     return _fieldMap[field];
   }
 
+  StaticField getStaticField(FieldEntity field) {
+    return _staticFieldMap[field];
+  }
+
   StubMethod getCheckedSetter(FieldEntity field) {
     return _checkedSetterMap[field];
   }
+
+  String toString() => 'ClassData(cls=$cls,'
+      '_methodMap=$_methodMap,_fieldMap=$_fieldMap)';
 }
 
 void forEachNode(js.Node root,
     {void Function(js.Call) onCall,
-    void Function(js.PropertyAccess) onPropertyAccess}) {
-  CallbackVisitor visitor =
-      new CallbackVisitor(onCall: onCall, onPropertyAccess: onPropertyAccess);
+    void Function(js.PropertyAccess) onPropertyAccess,
+    void Function(js.Assignment) onAssignment}) {
+  CallbackVisitor visitor = new CallbackVisitor(
+      onCall: onCall,
+      onPropertyAccess: onPropertyAccess,
+      onAssignment: onAssignment);
   root.accept(visitor);
 }
 
 class CallbackVisitor extends js.BaseVisitor {
   final void Function(js.Call) onCall;
   final void Function(js.PropertyAccess) onPropertyAccess;
+  final void Function(js.Assignment) onAssignment;
 
-  CallbackVisitor({this.onCall, this.onPropertyAccess});
+  CallbackVisitor({this.onCall, this.onPropertyAccess, this.onAssignment});
 
   @override
   visitCall(js.Call node) {
@@ -199,5 +252,11 @@ class CallbackVisitor extends js.BaseVisitor {
   visitAccess(js.PropertyAccess node) {
     if (onPropertyAccess != null) onPropertyAccess(node);
     super.visitAccess(node);
+  }
+
+  @override
+  visitAssignment(js.Assignment node) {
+    if (onAssignment != null) onAssignment(node);
+    return super.visitAssignment(node);
   }
 }

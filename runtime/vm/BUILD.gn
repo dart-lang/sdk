@@ -8,6 +8,7 @@ import("../../sdk/lib/collection/collection_sources.gni")
 import("../../sdk/lib/convert/convert_sources.gni")
 import("../../sdk/lib/core/core_sources.gni")
 import("../../sdk/lib/developer/developer_sources.gni")
+import("../../sdk/lib/ffi/ffi_sources.gni")
 import("../../sdk/lib/internal/internal_sources.gni")
 import("../../sdk/lib/isolate/isolate_sources.gni")
 import("../../sdk/lib/math/math_sources.gni")
@@ -16,13 +17,15 @@ import("../../sdk/lib/profiler/profiler_sources.gni")
 import("../../sdk/lib/typed_data/typed_data_sources.gni")
 import("../../sdk/lib/vmservice/vmservice_sources.gni")
 import("../../utils/compile_platform.gni")
-import("../bin/io_sources.gni")
 import("../bin/cli_sources.gni")
+import("../bin/io_sources.gni")
+import("../configs.gni")
 import("../lib/async_sources.gni")
 import("../lib/collection_sources.gni")
 import("../lib/convert_sources.gni")
 import("../lib/core_sources.gni")
 import("../lib/developer_sources.gni")
+import("../lib/ffi_sources.gni")
 import("../lib/internal_sources.gni")
 import("../lib/isolate_sources.gni")
 import("../lib/math_sources.gni")
@@ -30,7 +33,6 @@ import("../lib/mirrors_sources.gni")
 import("../lib/profiler_sources.gni")
 import("../lib/typed_data_sources.gni")
 import("../lib/vmservice_sources.gni")
-import("../configs.gni")
 import("../runtime_args.gni")
 import("compiler/compiler_sources.gni")
 import("heap/heap_sources.gni")
@@ -63,7 +65,7 @@ library_for_all_configs("libdart_vm") {
       # TODO(US-399): Remove time_service specific code when it is no longer
       # necessary.
       "//garnet/public/lib/component/cpp",
-      "//garnet/public/fidl/fuchsia.timezone",
+      "//sdk/fidl/fuchsia.timezone",
 
       # TODO(zra): When the platform-specific timeline code is moved out to
       # the embedder, this can go away.
@@ -84,12 +86,13 @@ library_for_all_configs("libdart_vm") {
 library_for_all_configs("libdart_lib") {
   target_type = "source_set"
   include_dirs = [ ".." ]
-  allsources = async_runtime_sources + collection_runtime_sources +
-               convert_runtime_sources + core_runtime_sources +
-               developer_runtime_sources + internal_runtime_sources +
-               isolate_runtime_sources + math_runtime_sources +
-               mirrors_runtime_sources + profiler_runtime_sources +
-               typed_data_runtime_sources + vmservice_runtime_sources
+  allsources =
+      async_runtime_sources + collection_runtime_sources +
+      convert_runtime_sources + core_runtime_sources +
+      developer_runtime_sources + internal_runtime_sources +
+      isolate_runtime_sources + math_runtime_sources + mirrors_runtime_sources +
+      profiler_runtime_sources + typed_data_runtime_sources +
+      vmservice_runtime_sources + ffi_runtime_sources
   sources = [ "bootstrap.cc" ] + rebase_path(allsources, ".", "../lib")
   snapshot_sources = []
   nosnapshot_sources = []

@@ -56,8 +56,6 @@ class Class4b implements Class4a {
   int field4;
 }
 
-// TODO(johnniwinther,sra): Maybe we should optimize cases like this to a direct
-// property access, because all targets are simple fields?
 @pragma('dart2js:noInline')
 method4(Class4a c) {
   return c.field4;

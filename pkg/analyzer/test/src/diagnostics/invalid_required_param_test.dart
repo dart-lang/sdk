@@ -10,11 +10,15 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InvalidRequiredParamTest_Driver);
+    defineReflectiveTests(InvalidRequiredParamTest);
   });
 }
 
-abstract class InvalidRequiredParamTest extends ResolverTestCase {
+@reflectiveTest
+class InvalidRequiredParamTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   @override
   void reset() {
     super.resetWith(packages: [
@@ -66,10 +70,4 @@ m5({@required a}) => null;
 m6({a, @required b}) => null;
 ''');
   }
-}
-
-@reflectiveTest
-class InvalidRequiredParamTest_Driver extends InvalidRequiredParamTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

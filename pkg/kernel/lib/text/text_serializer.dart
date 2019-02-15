@@ -838,6 +838,7 @@ class DartTypeTagger extends DartTypeVisitor<String>
   String visitDynamicType(DynamicType _) => "dynamic";
   String visitVoidType(VoidType _) => "void";
   String visitBottomType(BottomType _) => "bottom";
+  String visitFunctionType(FunctionType _) => "->";
 }
 
 TextSerializer<InvalidType> invalidTypeSerializer =
@@ -867,6 +868,23 @@ TextSerializer<BottomType> bottomTypeSerializer =
 void unwrapBottomType(BottomType type) {}
 
 BottomType wrapBottomType(void ignored) => const BottomType();
+
+// TODO(dmitryas):  Also handle typeParameters, nameParameters, and typedefType.
+TextSerializer<FunctionType> functionTypeSerializer = new Wrapped(
+    unwrapFunctionType,
+    wrapFunctionType,
+    Tuple3Serializer(new ListSerializer(dartTypeSerializer), const DartInt(),
+        dartTypeSerializer));
+
+Tuple3<List<DartType>, int, DartType> unwrapFunctionType(FunctionType type) {
+  return new Tuple3(
+      type.positionalParameters, type.requiredParameterCount, type.returnType);
+}
+
+FunctionType wrapFunctionType(Tuple3<List<DartType>, int, DartType> tuple) {
+  return new FunctionType(tuple.first, tuple.third,
+      requiredParameterCount: tuple.second);
+}
 
 Case<DartType> dartTypeSerializer =
     new Case.uninitialized(const DartTypeTagger());
@@ -967,11 +985,13 @@ void initializeSerializers() {
     "dynamic",
     "void",
     "bottom",
+    "->",
   ]);
   dartTypeSerializer.serializers.addAll([
     invalidTypeSerializer,
     dynamicTypeSerializer,
     voidTypeSerializer,
     bottomTypeSerializer,
+    functionTypeSerializer,
   ]);
 }

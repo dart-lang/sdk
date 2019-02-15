@@ -44,6 +44,10 @@ typedef void _ElementVisitorFunction(Element element);
 class AbstractContextTest with ResourceProviderMixin {
   AnalysisDriver _driver;
 
+  /// The file system specific `/home/test/analysis_options.yaml` path.
+  String get analysisOptionsPath =>
+      convertPath('/home/test/analysis_options.yaml');
+
   AnalysisDriver get driver => _driver;
 
   AnalysisSession get session => driver.currentSession;
@@ -79,6 +83,25 @@ class Required {
     driver.addFile(file.path);
     driver.changeFile(file.path);
     return source;
+  }
+
+  /// Create an analysis options file based on the given arguments.
+  void createAnalysisOptionsFile({List<String> experiments}) {
+    var buffer = new StringBuffer();
+    buffer.writeln('analyzer:');
+
+    if (experiments != null) {
+      buffer.writeln('  enable-experiment:');
+      for (var experiment in experiments) {
+        buffer.writeln('    - $experiment');
+      }
+    }
+
+    newFile(analysisOptionsPath, content: buffer.toString());
+
+    if (_driver != null) {
+      _createDriver();
+    }
   }
 
   Element findElementInUnit(CompilationUnit unit, String name,

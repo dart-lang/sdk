@@ -17,6 +17,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/parser.h"
+#include "vm/static_type_exactness_state.h"
 #include "vm/token_position.h"
 
 namespace dart {
@@ -43,6 +44,10 @@ class RangeAnalysis;
 class RangeBoundary;
 class UnboxIntegerInstr;
 class TypeUsageInfo;
+
+namespace compiler {
+class BlockBuilder;
+}
 
 class Value : public ZoneAllocated {
  public:
@@ -7833,7 +7838,7 @@ class Environment : public ZoneAllocated {
 
  private:
   friend class ShallowIterator;
-  friend class BlockBuilder;  // For Environment constructor.
+  friend class compiler::BlockBuilder;  // For Environment constructor.
 
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,

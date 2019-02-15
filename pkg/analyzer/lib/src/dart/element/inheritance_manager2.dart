@@ -43,10 +43,37 @@ class InheritanceManager2 {
 
   InheritanceManager2(this._typeSystem);
 
-  /// Return the member with the given [name] that the [type] inherits from the
-  /// mixins, superclasses, or interfaces; or `null` if no member is inherited.
+  /// Return the most specific signature of the member with the given [name]
+  /// that the [type] inherits from the mixins, superclasses, or interfaces;
+  /// or `null` if no member is inherited because the member is not declared
+  /// at all, or because there is no the most specific signature.
+  ///
+  /// This is equivalent to `getInheritedMap(type)[name]`.
   FunctionType getInherited(InterfaceType type, Name name) {
-    return getOverridden(type, name)?.last;
+    return getInheritedMap(type)[name];
+  }
+
+  /// Return signatures of all concrete members that the given [type] inherits
+  /// from the superclasses and mixins.
+  Map<Name, FunctionType> getInheritedConcreteMap(InterfaceType type) {
+    var interface = getInterface(type);
+    return interface._superImplemented.last;
+  }
+
+  /// Return the mapping from names to most specific signatures of members
+  /// inherited from the super-interfaces (superclasses, mixins, and
+  /// interfaces).  If there is no most specific signature for a name, the
+  /// corresponding name will not be included.
+  Map<Name, FunctionType> getInheritedMap(InterfaceType type) {
+    var interface = getInterface(type);
+    if (interface._inheritedMap == null) {
+      interface._inheritedMap = {};
+      _findMostSpecificFromNamedCandidates(
+        interface._inheritedMap,
+        interface._overridden,
+      );
+    }
+    return interface._inheritedMap;
   }
 
   /// Return the interface of the given [type].  It might include private
@@ -116,9 +143,9 @@ class InheritanceManager2 {
 
           implemented = <Name, FunctionType>{}
             ..addAll(implemented)
-            ..addAll(interfaceObj.implementedForMixing);
+            ..addAll(interfaceObj._implementedForMixing);
           superImplemented.add(implemented);
-          implementedForMixing.addAll(interfaceObj.implementedForMixing);
+          implementedForMixing.addAll(interfaceObj._implementedForMixing);
         }
       }
     } finally {
@@ -152,12 +179,12 @@ class InheritanceManager2 {
     var noSuchMethodForwarders = Set<Name>();
     if (classElement.isAbstract) {
       if (superInterface != null) {
-        noSuchMethodForwarders = superInterface.noSuchMethodForwarders;
+        noSuchMethodForwarders = superInterface._noSuchMethodForwarders;
       }
     } else {
       var noSuchMethod = implemented[_noSuchMethodName]?.element;
       if (noSuchMethod != null && !_isDeclaredInObject(noSuchMethod)) {
-        var superForwarders = superInterface?.noSuchMethodForwarders;
+        var superForwarders = superInterface?._noSuchMethodForwarders;
         for (var name in map.keys) {
           if (!implemented.containsKey(name) ||
               superForwarders != null && superForwarders.contains(name)) {
@@ -419,11 +446,11 @@ class Interface {
   final Map<Name, FunctionType> implemented;
 
   /// The set of names that are `noSuchMethod` forwarders in [implemented].
-  final Set<Name> noSuchMethodForwarders;
+  final Set<Name> _noSuchMethodForwarders;
 
   /// The map of names to their concrete implementations that can be mixed
   /// when this type is used as a mixin.
-  final Map<Name, FunctionType> implementedForMixing;
+  final Map<Name, FunctionType> _implementedForMixing;
 
   /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
@@ -440,12 +467,16 @@ class Interface {
   /// members of the class.
   final List<Conflict> conflicts;
 
+  /// The map of names to the most specific signatures from the mixins,
+  /// superclasses, or interfaces.
+  Map<Name, FunctionType> _inheritedMap;
+
   Interface._(
     this.map,
     this.declared,
     this.implemented,
-    this.noSuchMethodForwarders,
-    this.implementedForMixing,
+    this._noSuchMethodForwarders,
+    this._implementedForMixing,
     this._overridden,
     this._superImplemented,
     this.conflicts,

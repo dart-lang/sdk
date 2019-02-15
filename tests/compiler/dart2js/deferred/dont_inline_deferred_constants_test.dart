@@ -91,7 +91,7 @@ void main() {
 
 // Make sure that deferred constants are not inlined into the main hunk.
 const Map<String, String> MEMORY_SOURCE_FILES = const {
-  "main.dart": """
+  "main.dart": r"""
 import "dart:async";
 
 import 'lib1.dart' deferred as lib1;
@@ -102,6 +102,8 @@ const c = "string3";
 class C {
   final p;
   const C(this.p);
+
+  String toString() => 'C($p)';
 }
 
 foo() => print("main");

@@ -19,6 +19,7 @@ namespace dart {
   V(ClosureData)                                                               \
   V(SignatureData)                                                             \
   V(RedirectionData)                                                           \
+  V(FfiTrampolineData)                                                         \
   V(Field)                                                                     \
   V(Script)                                                                    \
   V(Library)                                                                   \
@@ -65,6 +66,8 @@ namespace dart {
   V(Float64x2)                                                                 \
   V(TypedData)                                                                 \
   V(ExternalTypedData)                                                         \
+  V(Pointer)                                                                   \
+  V(DynamicLibrary)                                                            \
   V(Capability)                                                                \
   V(ReceivePort)                                                               \
   V(SendPort)                                                                  \
@@ -101,6 +104,27 @@ namespace dart {
   V(Float32x4Array)                                                            \
   V(Int32x4Array)                                                              \
   V(Float64x2Array)
+
+#define CLASS_LIST_FFI_TYPE_MARKER(V)                                          \
+  V(Int8)                                                                      \
+  V(Int16)                                                                     \
+  V(Int32)                                                                     \
+  V(Int64)                                                                     \
+  V(Uint8)                                                                     \
+  V(Uint16)                                                                    \
+  V(Uint32)                                                                    \
+  V(Uint64)                                                                    \
+  V(IntPtr)                                                                    \
+  V(Float)                                                                     \
+  V(Double)                                                                    \
+  V(Void)
+
+#define CLASS_LIST_FFI(V)                                                      \
+  V(Pointer)                                                                   \
+  V(NativeFunction)                                                            \
+  CLASS_LIST_FFI_TYPE_MARKER(V)                                                \
+  V(NativeType)                                                                \
+  V(DynamicLibrary)
 
 #define DART_CLASS_LIST_TYPED_DATA(V)                                          \
   V(Int8)                                                                      \
@@ -150,6 +174,10 @@ enum ClassId {
 // List of Ids for predefined classes.
 #define DEFINE_OBJECT_KIND(clazz) k##clazz##Cid,
   CLASS_LIST(DEFINE_OBJECT_KIND)
+#undef DEFINE_OBJECT_KIND
+
+#define DEFINE_OBJECT_KIND(clazz) kFfi##clazz##Cid,
+      CLASS_LIST_FFI(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
 
 // clang-format off
