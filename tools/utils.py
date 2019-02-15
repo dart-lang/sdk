@@ -734,13 +734,13 @@ class ChangedWorkingDirectory(object):
 
 
 class UnexpectedCrash(object):
-  def __init__(self, test, pid, binary):
+  def __init__(self, test, pid, *binaries):
     self.test = test
     self.pid = pid
-    self.binary = binary
+    self.binaries = binaries
 
   def __str__(self):
-    return "Crash(%s: %s %s)" % (self.test, self.binary, self.pid)
+    return "Crash(%s: %s %s)" % (self.test, self.pid, ', '.join(self.binaries))
 
 
 class PosixCoreDumpEnabler(object):
@@ -854,7 +854,7 @@ class BaseCoreDumpArchiver(object):
     files = set()
     missing = []
     for crash in crashes:
-      files.add(crash.binary)
+      files.update(crash.binaries)
       core = self._find_coredump_file(crash)
       if core:
         files.add(core)
@@ -955,7 +955,7 @@ class BaseCoreDumpArchiver(object):
   def _find_unexpected_crashes(self):
     """Load coredumps file. Each line has the following format:
 
-        test-name,pid,binary-file
+        test-name,pid,binary-file1,binary-file2,...
     """
     try:
       with open(BaseCoreDumpArchiver._UNEXPECTED_CRASHES_FILE) as f:
