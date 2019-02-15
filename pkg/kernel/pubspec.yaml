@@ -16,6 +16,6 @@ dev_dependencies:
   front_end:
     path: ../front_end
   test:
-    path: ../third_party/pkg/test
+    path: ../../third_party/pkg/test
   testing:
     path: ../testing
