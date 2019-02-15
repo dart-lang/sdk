@@ -7,21 +7,35 @@ library compiler.tool.show_inferred_types;
 
 import 'dart:io';
 
+import 'package:args/command_runner.dart';
+
 import 'package:dart2js_info/src/util.dart';
 import 'package:dart2js_info/src/io.dart';
 
-main(args) async {
-  if (args.length < 2) {
-    var scriptName = Platform.script.pathSegments.last;
-    print('usage: dart $scriptName <info.json> <function-name-regex> [-l]');
-    print('  -l: print the long qualified name for a function.');
-    exit(1);
+import 'usage_exception.dart';
+
+class ShowInferredTypesCommand extends Command<void> with PrintUsageException {
+  final String name = "show_inferred";
+  final String description = "Show data inferred by dart2js global inference";
+
+  ShowInferredTypesCommand() {
+    argParser.addFlag('long-names',
+        abbr: 'l', negatable: false, help: 'Show long qualified names.');
   }
 
-  var showLongName = args.length > 2 && args[2] == '-l';
+  void run() async {
+    var args = argResults.rest;
+    if (args.length < 2) {
+      usageException(
+          'Missing arguments, expected: info.data <function-name-regex>');
+    }
+    _showInferredTypes(args[0], args[1], argResults['long-names']);
+  }
+}
 
-  var info = await infoFromFile(args[0]);
-  var nameRegExp = new RegExp(args[1]);
+_showInferredTypes(String infoFile, String pattern, bool showLongName) async {
+  var info = await infoFromFile(infoFile);
+  var nameRegExp = new RegExp(pattern);
   matches(e) => nameRegExp.hasMatch(longName(e));
 
   bool noResults = true;
@@ -49,7 +63,7 @@ main(args) async {
   showMethods();
   showFields();
   if (noResults) {
-    print('error: no function or field that matches ${args[1]} was found.');
+    print('error: no function or field that matches $pattern was found.');
     exit(1);
   }
 }

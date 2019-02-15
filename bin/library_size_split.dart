@@ -62,88 +62,107 @@ library dart2js_info.bin.library_size_split;
 import 'dart:io';
 import 'dart:math' show max;
 
+import 'package:args/command_runner.dart';
+
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
 import 'package:yaml/yaml.dart';
 
-main(args) async {
-  if (args.length < 1) {
-    print('usage: dart tool/library_size_split.dart '
-        'path-to-info.json [grouping.yaml]');
-    exit(1);
+import 'usage_exception.dart';
+
+/// Command presenting how much each library contributes to the total code.
+class LibrarySizeCommand extends Command<void> with PrintUsageException {
+  final String name = "library_size";
+  final String description = "See breakdown of code size by library.";
+
+  LibrarySizeCommand() {
+    argParser.addOption('grouping',
+        help: 'YAML file specifying how libraries should be grouped.');
   }
 
-  var info = await infoFromFile(args.first);
+  void run() async {
+    var args = argResults.rest;
+    if (args.length < 1) {
+      usageException('Missing argument: info.data');
+      print('usage: dart tool/library_size_split.dart '
+          'path-to-info.json [grouping.yaml]');
+      exit(1);
+    }
 
-  var groupingText =
-      args.length > 1 ? new File(args[1]).readAsStringSync() : defaultGrouping;
-  var groupingYaml = loadYaml(groupingText);
-  var groups = [];
-  for (var group in groupingYaml['groups']) {
-    groups.add(new _Group(
-        group['name'], new RegExp(group['regexp']), group['cluster'] ?? 0));
-  }
+    var info = await infoFromFile(args.first);
 
-  var sizes = {};
-  var allLibs = 0;
-  for (LibraryInfo lib in info.libraries) {
-    allLibs += lib.size;
-    groups.forEach((group) {
-      var match = group.matcher.firstMatch('${lib.uri}');
-      if (match != null) {
-        var name = group.name;
-        if (name == null && match.groupCount > 0) name = match.group(1);
-        if (name == null) name = match.group(0);
-        sizes.putIfAbsent(name, () => new _SizeEntry(name, group.cluster));
-        sizes[name].size += lib.size;
+    var groupingFile = argResults['grouping'];
+    var groupingText = groupingFile != null
+        ? new File(groupingFile).readAsStringSync()
+        : defaultGrouping;
+    var groupingYaml = loadYaml(groupingText);
+    var groups = [];
+    for (var group in groupingYaml['groups']) {
+      groups.add(new _Group(
+          group['name'], new RegExp(group['regexp']), group['cluster'] ?? 0));
+    }
+
+    var sizes = {};
+    var allLibs = 0;
+    for (LibraryInfo lib in info.libraries) {
+      allLibs += lib.size;
+      groups.forEach((group) {
+        var match = group.matcher.firstMatch('${lib.uri}');
+        if (match != null) {
+          var name = group.name;
+          if (name == null && match.groupCount > 0) name = match.group(1);
+          if (name == null) name = match.group(0);
+          sizes.putIfAbsent(name, () => new _SizeEntry(name, group.cluster));
+          sizes[name].size += lib.size;
+        }
+      });
+    }
+
+    var allConstants = 0;
+    for (var constant in info.constants) {
+      allConstants += constant.size;
+    }
+
+    var all = sizes.keys.toList();
+    all.sort((a, b) => sizes[a].compareTo(sizes[b]));
+    var realTotal = info.program.size;
+    var longest = 0;
+    var rows = <_Row>[];
+    _addRow(String label, int value) {
+      rows.add(new _Row(label, value));
+      longest = max(longest, label.length);
+    }
+
+    _printRow(_Row row) {
+      if (row is _Divider) {
+        print(' ' + ('-' * (longest + 18)));
+        return;
       }
-    });
-  }
 
-  var allConstants = 0;
-  for (var constant in info.constants) {
-    allConstants += constant.size;
-  }
-
-  var all = sizes.keys.toList();
-  all.sort((a, b) => sizes[a].compareTo(sizes[b]));
-  var realTotal = info.program.size;
-  var longest = 0;
-  var rows = <_Row>[];
-  _addRow(String label, int value) {
-    rows.add(new _Row(label, value));
-    longest = max(longest, label.length);
-  }
-
-  _printRow(_Row row) {
-    if (row is _Divider) {
-      print(' ' + ('-' * (longest + 18)));
-      return;
+      var percent = row.value == realTotal
+          ? '100'
+          : (row.value * 100 / realTotal).toStringAsFixed(2);
+      print(' ${_pad(row.label, longest + 1, right: true)}'
+          ' ${_pad(row.value, 8)} ${_pad(percent, 6)}%');
     }
 
-    var percent = row.value == realTotal
-        ? '100'
-        : (row.value * 100 / realTotal).toStringAsFixed(2);
-    print(' ${_pad(row.label, longest + 1, right: true)}'
-        ' ${_pad(row.value, 8)} ${_pad(percent, 6)}%');
-  }
-
-  var lastCluster = 0;
-  for (var name in all) {
-    var entry = sizes[name];
-    if (lastCluster < entry.cluster) {
-      rows.add(const _Divider());
-      lastCluster = entry.cluster;
+    var lastCluster = 0;
+    for (var name in all) {
+      var entry = sizes[name];
+      if (lastCluster < entry.cluster) {
+        rows.add(const _Divider());
+        lastCluster = entry.cluster;
+      }
+      var size = entry.size;
+      _addRow(name, size);
     }
-    var size = entry.size;
-    _addRow(name, size);
+    rows.add(const _Divider());
+    _addRow("All libraries (excludes preambles, statics & consts)", allLibs);
+    _addRow("Shared consts", allConstants);
+    _addRow("Total accounted", allLibs + allConstants);
+    _addRow("Program Size", realTotal);
+    rows.forEach(_printRow);
   }
-  rows.add(const _Divider());
-  _addRow("All libraries (excludes preambles, statics & consts)", allLibs);
-  _addRow("Shared consts", allConstants);
-  _addRow("Total accounted", allLibs + allConstants);
-  _addRow("Program Size", realTotal);
-  rows.forEach(_printRow);
 }
 
 /// A group defined in the configuration.

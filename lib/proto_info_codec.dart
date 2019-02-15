@@ -58,9 +58,12 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   AllInfoPB convert(AllInfo info) => _convertToAllInfoPB(info);
 
   DependencyInfoPB _convertToDependencyInfoPB(DependencyInfo info) {
-    return new DependencyInfoPB()
-      ..targetId = idFor(info.target)?.serializedId
-      ..mask = info.mask;
+    var result = new DependencyInfoPB()
+      ..targetId = idFor(info.target)?.serializedId;
+    if (info.mask != null) {
+      result.mask = info.mask;
+    }
+    return result;
   }
 
   static ParameterInfoPB _convertToParameterInfoPB(ParameterInfo info) {
@@ -222,10 +225,9 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   ProgramInfoPB _convertToProgramInfoPB(ProgramInfo info) {
-    return new ProgramInfoPB()
+    var result = new ProgramInfoPB()
       ..entrypointId = idFor(info.entrypoint).serializedId
       ..size = info.size
-      ..dart2jsVersion = info.dart2jsVersion
       ..compilationMoment =
           new Int64(info.compilationMoment.microsecondsSinceEpoch)
       ..compilationDuration = new Int64(info.compilationDuration.inMicroseconds)
@@ -237,6 +239,11 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
       ..isFunctionApplyUsed = info.isFunctionApplyUsed ?? false
       ..isMirrorsUsed = info.isMirrorsUsed ?? false
       ..minified = info.minified ?? false;
+
+    if (info.dart2jsVersion != null) {
+      result.dart2jsVersion = info.dart2jsVersion;
+    }
+    return result;
   }
 
   Iterable<AllInfoPB_AllInfosEntry> _convertToAllInfosEntries<T extends Info>(

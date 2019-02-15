@@ -3,15 +3,33 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// This tool reports how code is divided among deferred chunks.
-library dart2js_info.bin.deferred_library_size;
+library dart2js_info.bin.deferred_library_layout;
 
 import 'dart:io';
+
+import 'package:args/command_runner.dart';
 
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
 
-main(args) async {
-  AllInfo info = await infoFromFile(args.first);
+import 'usage_exception.dart';
+
+/// This tool reports how code is divided among deferred chunks.
+class DeferredLibraryLayout extends Command<void> with PrintUsageException {
+  final String name = "deferred_layout";
+  final String description = "Show how code is divided among deferred parts.";
+
+  void run() async {
+    var args = argResults.rest;
+    if (args.length < 1) {
+      usageException('Missing argument: info.data');
+    }
+    await _showLayout(args.first);
+  }
+}
+
+_showLayout(String file) async {
+  AllInfo info = await infoFromFile(file);
 
   Map<OutputUnitInfo, Map<LibraryInfo, List<BasicInfo>>> hunkMembers = {};
   Map<LibraryInfo, Set<OutputUnitInfo>> libToHunks = {};

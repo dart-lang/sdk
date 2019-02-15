@@ -1,10 +1,10 @@
 # Dart2js Info
 
-This package contains libraries and tools you can use to process `.info.json`
-files, which are produced when running dart2js with `--dump-info`.
+This package contains libraries and tools you can use to process info
+files produced when running dart2js with `--dump-info`.
 
-The `.info.json` files contain data about each element included in
-the output of your program. The data includes information such as:
+The info files contain data about each element included in the output of your
+program. The data includes information such as:
 
   * the size that each function adds to the `.dart.js` output,
   * dependencies between functions,
@@ -27,7 +27,7 @@ easier.
 
 Currently, most tools available here can be used to analyze code-size and
 attribution of code-size to different parts of your app. With time, we hope to
-add more data to the `.info.json` files, and include better tools to help
+add more data to the info files, and include better tools to help
 understand the results of type inference.
 
 This package is still in flux and we might make breaking changes at any time.
@@ -35,22 +35,53 @@ Our current goal is not to provide a stable API, we mainly want to expose the
 functionality and iterate on it.  We recommend that you pin a specific version
 of this package and update when needed.
 
+## Tools
+
+All tools are provided as commands of a single command-line interface. To
+install:
+```console
+pub global activate dart2js_info
+```
+
+To run a tool, then run:
+```console
+dart2js_info <command> [arguments]
+```
+
+There is a short help available on the tool, and more details are provided
+below.
+
+## Format
+
+There are several formats of info files. Dart2js today produces a JSON format,
+but very soon will switch to produce a binary format by default.
+
 ## Info API
 
+This package also exposes libraries to parse and represent the information from
+the info files. If there is data that is stored in the info files but not
+exposed by one of our tools, you may be able to use the info APIs to quickly put
+together your own tool.
+
 [AllInfo][AllInfo] exposes a Dart representation of all of the collected
-information. You can decode an `AllInfo` object from the JSON form produced by
-the `dart2js` `--dump-info` option using the `AllInfoJsonCodec`. For example:
+information. There are deserialization libraries in this package to decode any
+info file produced by the `dart2js` `--dump-info` option. See
+`lib/binary_serialization.dart` and `lib/json_info_codec.dart` to find the
+binary and JSON decoders respectively. For convenience,
+`package:dart2js_info/src/io.dart` also exposes a helper method that can choose,
+depending on the extension of the info file, whether to deserialize it using the
+binary or JSON decoder.  For example:
 
 ```dart
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart2js_info/info.dart';
+import 'package:dart2js_info/src/io.dart';
 
-main(args) {
+main(args) async {
   var infoPath = args[0];
-  var json = JSON.decode(new File(infoPath).readAsStringSync());
-  var info = new AllInfoJsonCodec().decode(json);
+  var info = await infoFromFile(infoPath);
   ...
 }
 ```
@@ -59,7 +90,7 @@ main(args) {
 
 The following tools are a available today:
 
-  * [`code_deps.dart`][code_deps]: simple tool that can answer queries about the
+  * [`code_deps`][code_deps]: simple tool that can answer queries about the
     dependency between functions and fields in your program. Currently it only
     supports the `some_path` query, which shows a dependency path from one
     function to another.
@@ -68,37 +99,39 @@ The following tools are a available today:
     program elements have been added, removed, or changed size. This also
     tells which elements are no longer deferred or have become deferred.
 
-  * [`library_size_split`][lib_split]: a tool that shows how much code was
+  * [`library_size`][library_size]: a tool that shows how much code was
     attributed to each library. This tool is configurable so it can group data
     in many ways (e.g. to tally together all libraries that belong to a package,
     or all libraries that match certain name pattern).
 
-  * [`deferred_library_check`][deferred_lib]: a tool that verifies that code
+  * [`deferred_check`][deferred_check]: a tool that verifies that code
     was split into deferred parts as expected. This tool takes a specification
     of the expected layout of code into deferred parts, and checks that the
     output from `dart2js` meets the specification.
 
-  * [`deferred_library_size`][deferred_size]: a tool that gives a breakdown of
+  * [`deferred_size`][deferred_size]: a tool that gives a breakdown of
     the sizes of the deferred parts of the program. This can show how much of
     your total code size can be loaded deferred.
 
-  * [`deferred_library_layout`][deferred_layout]: a tool that reports which
+  * [`deferred_layout`][deferred_layout]: a tool that reports which
     code is included on each output unit.
 
-  * [`function_size_analysis`][function_analysis]: a tool that shows how much
+  * [`function_size`][function_size]: a tool that shows how much
     code was attributed to each function. This tool also uses dependency
     information to compute dominance and reachability data. This information can
     sometimes help determine how much savings could come if the function was not
     included in the program.
 
-  * [`coverage_log_server`][coverage] and [`live_code_size_analysis`][live]:
+  * [`coverage_server`][coverage_server] and [`coverage_analysis`][coverage_analysis]:
     dart2js has an experimental feature to gather coverage data of your
     application. The `coverage_log_server` can record this data, and
-    `live_code_size_analysis` can correlate that with the `.info.json`, so you
+    `live_code_size_analysis` can correlate that with the info file, so you
     determine why code that is not used is being included in your app.
 
-  * [`info_json_to_proto`][info_json_to_proto]: a tool that converts `info.json`
-    files generated from dart2js to the protobuf schema defined in `info.proto`.
+  * [`convert`][convert]: a tool that converts info files from one format to
+    another. Accepted inputs are JSON or the internal binary form, outputs can
+    be JSON, backward-compatible JSON, binary, or protobuf schema (as defined in
+    `info.proto`).
 
 Next we describe in detail how to use each of these tools.
 
@@ -110,9 +143,9 @@ for how one function depends on another.
 
 Run this tool as follows:
 ```console
-# activate is only needed once to install the dart2js_info* executables
+# activate is only needed once to install the dart2js_info tool
 $ pub global activate dart2js_info
-$ dart2js_info_code_deps out.js.info.json some_path main foo
+$ dart2js_info code_deps some_path out.js.info.data main foo
 ```
 
 The arguments to the query are regular expressions that can be used to
@@ -134,7 +167,7 @@ as follows:
 
 ```console
 $ pub global activate dart2js_info # only needed once
-$ dart2js_info_diff old.js.info.json new.js.info.json [--summary]
+$ dart2js_info diff old.js.info.data new.js.info.data [--summary]
 ```
 
 The tool gives a breakdown of the difference between the two info files.
@@ -206,7 +239,7 @@ libraries. It can be run as follows:
 
 ```console
 $ pub global activate dart2js_info # only needed once
-$ dart2js_info_library_size_split out.js.info.json
+$ dart2js_info library_size out.js.info.data
 ```
 
 
@@ -214,7 +247,7 @@ Libraries can be grouped using regular expressions. You can
 specify what regular expressions to use by providing a `grouping.yaml` file:
 
 ```console
-$ dart2js_info_library_size_split out.js.info.json grouping.yaml
+$ dart2js_info library_size out.js.info.data grouping.yaml
 ```
 
 The format of the `grouping.yaml` file is as follows:
@@ -286,7 +319,7 @@ given in a YAML file. It can be run as follows:
 
 ```console
 $ pub global activate dart2js_info # only needed once
-$ dart2js_info_deferred_library_check out.js.info.json manifest.yaml
+$ dart2js_info deferred_check out.js.info.data manifest.yaml
 ```
 
 The format of the YAML file is:
@@ -334,7 +367,7 @@ follows:
 
 ```console
 pub global activate dart2js_info # only needed once
-dart2js_info_deferred_library_size out.js.info.json
+dart2js_info deferred_size out.js.info.data
 ```
 
 The tool will output a table listing all of the deferred imports in the program
@@ -359,7 +392,7 @@ follows:
 
 ```console
 $ pub global activate dart2js_info # only needed once
-$ dart2js_info_deferred_library_layout out.js.info.json
+$ dart2js_info deferred_layout out.js.info.data
 ```
 
 The tool will output a table listing all of the deferred output units or chunks,
@@ -403,7 +436,7 @@ and reachability data as well.
 When you run:
 ```console
 $ pub global activate dart2js_info # only needed once
-$ dart2js_info_function_size_analysis out.js.info.json
+$ dart2js_info function_size out.js.info.data
 ```
 
 the tool produces a table output with lots of entries. Here is an example entry
@@ -443,7 +476,7 @@ $ dart2js --dump-info --experiment-call-instrumentation main.dart
   * Launch the coverage server tool to serve up the JS code of your app:
 
 ```console
-$ dart2js_info_coverage_log_server main.dart.js
+$ dart2js_info coverage_server main.dart.js
 ```
 
   * (optional) If you have a complex application setup, you may need to serve an
@@ -460,7 +493,7 @@ $ dart2js_info_coverage_log_server main.dart.js
     coverage json files:
 
 ```console
-$ dart2js_info_live_code_size_analysis main.dart.info.json main.dart.coverage.json
+$ dart2js_info coverage_analysis main.dart.info.data main.dart.coverage.json
 ```
 
 ## Code location, features and bugs
@@ -472,12 +505,12 @@ bugs at the [issue tracker][tracker].
 [tracker]: https://github.com/dart-lang/dart2js_info/issues
 [code_deps]: https://github.com/dart-lang/dart2js_info/blob/master/bin/code_deps.dart
 [diff]: https://github.com/dart-lang/dart2js_info/blob/master/bin/diff.dart
-[lib_split]: https://github.com/dart-lang/dart2js_info/blob/master/bin/library_size_split.dart
-[deferred_lib]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_check.dart
+[library_size]: https://github.com/dart-lang/dart2js_info/blob/master/bin/library_size_split.dart
+[deferred_check]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_check.dart
 [deferred_size]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_size.dart
 [deferred_layout]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_layout.dart
-[coverage]: https://github.com/dart-lang/dart2js_info/blob/master/bin/coverage_log_server.dart
-[live]: https://github.com/dart-lang/dart2js_info/blob/master/bin/live_code_size_analysis.dart
-[function_analysis]: https://github.com/dart-lang/dart2js_info/blob/master/bin/function_size_analysis.dart
+[coverage_server]: https://github.com/dart-lang/dart2js_info/blob/master/bin/coverage_log_server.dart
+[coverage_analysis]: https://github.com/dart-lang/dart2js_info/blob/master/bin/live_code_size_analysis.dart
+[function_size]: https://github.com/dart-lang/dart2js_info/blob/master/bin/function_size_analysis.dart
 [AllInfo]: http://dart-lang.github.io/dart2js_info/doc/api/dart2js_info.info/AllInfo-class.html
-[info_json_to_proto]: https://github.com/dart-lang/dart2js_info/blob/master/bin/info_json_to_proto.dart
+[convert]: https://github.com/dart-lang/dart2js_info/blob/master/bin/convert.dart

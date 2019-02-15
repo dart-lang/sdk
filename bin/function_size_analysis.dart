@@ -2,20 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Command-line tool presenting how much each function contributes to the total
-/// code.
-library compiler.tool.live_code_size_analysis;
+/// Tool presenting how much each function contributes to the total code.
+library compiler.tool.function_size_analysis;
 
 import 'dart:math' as math;
+
+import 'package:args/command_runner.dart';
 
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/graph.dart';
 import 'package:dart2js_info/src/io.dart';
 import 'package:dart2js_info/src/util.dart';
 
-main(args) async {
-  var info = await infoFromFile(args.first);
-  showCodeDistribution(info);
+import 'usage_exception.dart';
+
+/// Command presenting how much each function contributes to the total code.
+class FunctionSizeCommand extends Command<void> with PrintUsageException {
+  final String name = "function_size";
+  final String description = "See breakdown of code size by function.";
+
+  void run() async {
+    var args = argResults.rest;
+    if (args.length < 1) {
+      usageException('Missing argument: info.data');
+    }
+    var info = await infoFromFile(args.first);
+    showCodeDistribution(info);
+  }
 }
 
 showCodeDistribution(AllInfo info,

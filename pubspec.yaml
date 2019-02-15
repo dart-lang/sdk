@@ -26,15 +26,4 @@ dev_dependencies:
   test: ^1.2.0
 
 executables:
-  dart2js_info_code_deps:               code_deps
-  dart2js_info_coverage_log_server:     coverage_log_server
-  dart2js_info_debug_info:              debug_info
-  dart2js_info_diff:                    diff
-  dart2js_info_deferred_library_check:  deferred_library_check
-  dart2js_info_deferred_library_size:   deferred_library_size
-  dart2js_info_deferred_library_layout: deferred_library_layout
-  dart2js_info_json_to_proto:           info_json_to_proto
-  dart2js_info_function_size_analysis:  function_size_analysis
-  dart2js_info_library_size_split:      library_size_split
-  dart2js_info_live_code_size_analysis: live_code_size_analysis
-  dart2js_info_show_inferred_types:     show_inferred_types
+  dart2js_info: tools

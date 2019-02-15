@@ -37,22 +37,37 @@ library compiler.tool.live_code_size_analysis;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/command_runner.dart';
+
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
 import 'package:dart2js_info/src/util.dart';
 
 import 'function_size_analysis.dart';
+import 'usage_exception.dart';
 
-main(args) async {
-  if (args.length < 2) {
-    print('usage: dart tool/live_code_size_analysis.dart path-to-info.json '
-        'path-to-coverage.json [-v]');
-    exit(1);
+class LiveCodeAnalysisCommand extends Command<void> with PrintUsageException {
+  final String name = "coverage_analysis";
+  final String description = "Analyze coverage data collected via the"
+      " 'coverage_server' command";
+
+  LiveCodeAnalysisCommand() {
+    argParser.addFlag('verbose',
+        abbr: 'v', negatable: false, help: 'Show verbose details.');
   }
 
-  var info = await infoFromFile(args.first);
-  var coverage = jsonDecode(new File(args[1]).readAsStringSync());
-  var verbose = args.length > 2 && args[2] == '-v';
+  void run() async {
+    var args = argResults.rest;
+    if (args.length < 2) {
+      usageException('Missing arguments, expected: info.data coverage.json');
+    }
+    await _liveCodeAnalysis(args[0], args[1], argResults['verbose']);
+  }
+}
+
+_liveCodeAnalysis(infoFile, coverageFile, bool verbose) async {
+  var info = await infoFromFile(infoFile);
+  var coverage = jsonDecode(new File(coverageFile).readAsStringSync());
 
   int realTotal = info.program.size;
   int totalLib = info.libraries.fold(0, (n, lib) => n + lib.size);
@@ -109,8 +124,7 @@ main(args) async {
         filter: (f) => !coverage.containsKey(f.coverageId) && f.size > 0,
         showLibrarySizes: true);
   } else {
-    print('\nTo see details about the size of unreachable code, run:');
-    print('  dart live_code_analysis.dart ${args[0]} ${args[1]} -v | less');
+    print('\nUse `-v` to see details about the size of unreachable code');
   }
 }
 

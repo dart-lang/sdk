@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// A command-line tool that verifies that deferred libraries split the code as
-/// expected.
+/// A command that verifies that deferred libraries split the code as expected.
+///
 /// This tool checks that the output from dart2js meets a given specification,
 /// given in a YAML file. The format of the YAML file is:
 ///
@@ -38,29 +38,35 @@ library dart2js_info.bin.deferred_library_check;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/command_runner.dart';
+
 import 'package:dart2js_info/deferred_library_check.dart';
 import 'package:dart2js_info/src/io.dart';
 import 'package:yaml/yaml.dart';
 
-Future main(List<String> args) async {
-  if (args.length < 2) {
-    usage();
-    exit(1);
-  }
-  var info = await infoFromFile(args[0]);
-  var manifest = await manifestFromFile(args[1]);
+import 'usage_exception.dart';
 
-  var failures = checkDeferredLibraryManifest(info, manifest);
-  failures.forEach(print);
-  if (failures.isNotEmpty) exitCode = 1;
+/// A command that computes the diff between two info files.
+class DeferredLibraryCheck extends Command<void> with PrintUsageException {
+  final String name = "deferred_check";
+  final String description =
+      "Verify that deferred libraries are split as expected";
+
+  void run() async {
+    var args = argResults.rest;
+    if (args.length < 2) {
+      usageException('Missing arguments, expected: info.data manifest.yaml');
+    }
+    var info = await infoFromFile(args[0]);
+    var manifest = await manifestFromFile(args[1]);
+
+    var failures = checkDeferredLibraryManifest(info, manifest);
+    failures.forEach(print);
+    if (failures.isNotEmpty) exitCode = 1;
+  }
 }
 
 Future manifestFromFile(String fileName) async {
   var file = await new File(fileName).readAsString();
   return loadYaml(file);
-}
-
-void usage() {
-  print('''
-usage: dart2js_info_deferred_library_check dump.info.json manifest.yaml''');
 }

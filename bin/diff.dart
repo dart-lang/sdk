@@ -2,103 +2,113 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:args/command_runner.dart';
+
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/diff.dart';
 import 'package:dart2js_info/src/io.dart';
 import 'package:dart2js_info/src/util.dart';
 
-/// A command-line tool that computes the diff between two info files.
-main(List<String> args) async {
-  if (args.length < 2 || args.length > 3) {
-    print('usage: dart2js_info_diff old.info.json new.info.json [--summary]');
-    return;
+import 'usage_exception.dart';
+
+/// A command that computes the diff between two info files.
+class DiffCommand extends Command<void> with PrintUsageException {
+  final String name = "diff";
+  final String description =
+      "See code size differences between two dump-info files.";
+
+  DiffCommand() {
+    argParser.addFlag('summary-only',
+        defaultsTo: false,
+        help: "Show only a summary and hide details of each library");
   }
 
-  var oldInfo = await infoFromFile(args[0]);
-  var newInfo = await infoFromFile(args[1]);
-  var summary = false;
-  if (args.length == 3) {
-    if (args[2] == "--summary") {
-      summary = true;
-    } else {
-      print('Unrecognized argument: ${args[2]}');
+  void run() async {
+    var args = argResults.rest;
+    if (args.length < 2) {
+      usageException(
+          'Missing arguments, expected two dump-info files to compare');
       return;
     }
-  }
 
-  var diffs = diff(oldInfo, newInfo);
+    var oldInfo = await infoFromFile(args[0]);
+    var newInfo = await infoFromFile(args[1]);
+    var summaryOnly = argResults['summary-only'];
 
-  // Categorize the diffs
-  var adds = <AddDiff>[];
-  var removals = <RemoveDiff>[];
-  var sizeChanges = <SizeDiff>[];
-  var becameDeferred = <DeferredStatusDiff>[];
-  var becameUndeferred = <DeferredStatusDiff>[];
+    var diffs = diff(oldInfo, newInfo);
 
-  for (var diff in diffs) {
-    switch (diff.kind) {
-      case DiffKind.add:
-        adds.add(diff as AddDiff);
-        break;
-      case DiffKind.remove:
-        removals.add(diff as RemoveDiff);
-        break;
-      case DiffKind.size:
-        sizeChanges.add(diff as SizeDiff);
-        break;
-      case DiffKind.deferred:
-        var deferredDiff = diff as DeferredStatusDiff;
-        if (deferredDiff.wasDeferredBefore) {
-          becameUndeferred.add(deferredDiff);
-        } else {
-          becameDeferred.add(deferredDiff);
-        }
-        break;
-    }
-  }
+    // Categorize the diffs
+    var adds = <AddDiff>[];
+    var removals = <RemoveDiff>[];
+    var sizeChanges = <SizeDiff>[];
+    var becameDeferred = <DeferredStatusDiff>[];
+    var becameUndeferred = <DeferredStatusDiff>[];
 
-  // Sort the changes by the size of the element that changed.
-  for (var diffs in [adds, removals, becameDeferred, becameUndeferred]) {
-    diffs.sort((a, b) => b.info.size - a.info.size);
-  }
-
-  // Sort changes in size by size difference.
-  sizeChanges.sort((a, b) => b.sizeDifference - a.sizeDifference);
-
-  var totalSizes = <List<Diff>, int>{};
-  for (var diffs in [adds, removals, becameDeferred, becameUndeferred]) {
-    var totalSize = 0;
     for (var diff in diffs) {
-      // Only count diffs from leaf elements so we don't double count
-      // them when we account for class size diff or library size diff.
-      if (diff.info.kind == InfoKind.field ||
-          diff.info.kind == InfoKind.function ||
-          diff.info.kind == InfoKind.closure ||
-          diff.info.kind == InfoKind.typedef) {
-        totalSize += diff.info.size;
+      switch (diff.kind) {
+        case DiffKind.add:
+          adds.add(diff as AddDiff);
+          break;
+        case DiffKind.remove:
+          removals.add(diff as RemoveDiff);
+          break;
+        case DiffKind.size:
+          sizeChanges.add(diff as SizeDiff);
+          break;
+        case DiffKind.deferred:
+          var deferredDiff = diff as DeferredStatusDiff;
+          if (deferredDiff.wasDeferredBefore) {
+            becameUndeferred.add(deferredDiff);
+          } else {
+            becameDeferred.add(deferredDiff);
+          }
+          break;
       }
     }
-    totalSizes[diffs] = totalSize;
-  }
-  var totalSizeChange = 0;
-  for (var sizeChange in sizeChanges) {
-    // Only count diffs from leaf elements so we don't double count
-    // them when we account for class size diff or library size diff.
-    if (sizeChange.info.kind == InfoKind.field ||
-        sizeChange.info.kind == InfoKind.function ||
-        sizeChange.info.kind == InfoKind.closure ||
-        sizeChange.info.kind == InfoKind.typedef) {
-      totalSizeChange += sizeChange.sizeDifference;
-    }
-  }
-  totalSizes[sizeChanges] = totalSizeChange;
 
-  reportSummary(oldInfo, newInfo, adds, removals, sizeChanges, becameDeferred,
-      becameUndeferred, totalSizes);
-  if (!summary) {
-    print('');
-    reportFull(oldInfo, newInfo, adds, removals, sizeChanges, becameDeferred,
+    // Sort the changes by the size of the element that changed.
+    for (var diffs in [adds, removals, becameDeferred, becameUndeferred]) {
+      diffs.sort((a, b) => b.info.size - a.info.size);
+    }
+
+    // Sort changes in size by size difference.
+    sizeChanges.sort((a, b) => b.sizeDifference - a.sizeDifference);
+
+    var totalSizes = <List<Diff>, int>{};
+    for (var diffs in [adds, removals, becameDeferred, becameUndeferred]) {
+      var totalSize = 0;
+      for (var diff in diffs) {
+        // Only count diffs from leaf elements so we don't double count
+        // them when we account for class size diff or library size diff.
+        if (diff.info.kind == InfoKind.field ||
+            diff.info.kind == InfoKind.function ||
+            diff.info.kind == InfoKind.closure ||
+            diff.info.kind == InfoKind.typedef) {
+          totalSize += diff.info.size;
+        }
+      }
+      totalSizes[diffs] = totalSize;
+    }
+    var totalSizeChange = 0;
+    for (var sizeChange in sizeChanges) {
+      // Only count diffs from leaf elements so we don't double count
+      // them when we account for class size diff or library size diff.
+      if (sizeChange.info.kind == InfoKind.field ||
+          sizeChange.info.kind == InfoKind.function ||
+          sizeChange.info.kind == InfoKind.closure ||
+          sizeChange.info.kind == InfoKind.typedef) {
+        totalSizeChange += sizeChange.sizeDifference;
+      }
+    }
+    totalSizes[sizeChanges] = totalSizeChange;
+
+    reportSummary(oldInfo, newInfo, adds, removals, sizeChanges, becameDeferred,
         becameUndeferred, totalSizes);
+    if (!summaryOnly) {
+      print('');
+      reportFull(oldInfo, newInfo, adds, removals, sizeChanges, becameDeferred,
+          becameUndeferred, totalSizes);
+    }
   }
 }
 

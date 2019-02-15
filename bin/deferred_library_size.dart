@@ -7,14 +7,28 @@ library dart2js_info.bin.deferred_library_size;
 
 import 'dart:math';
 
+import 'package:args/command_runner.dart';
+
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
 
-main(args) async {
-  // TODO(het): Would be faster to only parse the 'outputUnits' part
-  var info = await infoFromFile(args.first);
-  var sizeByImport = getSizeByImport(info);
-  printSizes(sizeByImport, info.program.size);
+import 'usage_exception.dart';
+
+/// This tool gives a breakdown of code size by deferred part in the program.
+class DeferredLibrarySize extends Command<void> with PrintUsageException {
+  final String name = "deferred_size";
+  final String description = "Show breakdown of codesize by deferred part.";
+
+  void run() async {
+    var args = argResults.rest;
+    if (args.length < 1) {
+      usageException('Missing argument: info.data');
+    }
+    // TODO(het): Would be faster to only parse the 'outputUnits' part
+    var info = await infoFromFile(args.first);
+    var sizeByImport = getSizeByImport(info);
+    printSizes(sizeByImport, info.program.size);
+  }
 }
 
 class ImportSize {

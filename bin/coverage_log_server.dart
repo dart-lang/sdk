@@ -23,46 +23,53 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:args/args.dart';
+import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf;
 
-const _DEFAULT_OUT_TEMPLATE = '<dart2js-out-file>.coverage.json';
+import 'usage_exception.dart';
 
-main(List<String> argv) async {
-  var parser = new ArgParser()
-    ..addOption('port', abbr: 'p', help: 'port number', defaultsTo: "8080")
-    ..addOption('host',
-        help: 'host name (use 0.0.0.0 for all interfaces)',
-        defaultsTo: 'localhost')
-    ..addFlag('help',
-        abbr: 'h', help: 'show this help message', negatable: false)
-    ..addOption('uri-prefix',
-        help: 'uri path prefix that will hit this server. This will be injected'
-            ' into the .js file',
-        defaultsTo: '')
-    ..addOption('out',
-        abbr: 'o', help: 'output log file', defaultsTo: _DEFAULT_OUT_TEMPLATE);
-  var args = parser.parse(argv);
-  if (args['help'] == true || args.rest.isEmpty) {
-    print('usage: dart coverage_logging.dart [options] '
-        '<dart2js-out-file> [<html-file>]');
-    print(parser.usage);
-    exit(1);
+class CoverageLogServerCommand extends Command<void> with PrintUsageException {
+  final String name = 'coverage_server';
+  final String description = 'Server to gather code coverage data';
+
+  CoverageLogServerCommand() {
+    argParser
+      ..addOption('port', abbr: 'p', help: 'port number', defaultsTo: "8080")
+      ..addOption('host',
+          help: 'host name (use 0.0.0.0 for all interfaces)',
+          defaultsTo: 'localhost')
+      ..addOption('uri-prefix',
+          help:
+              'uri path prefix that will hit this server. This will be injected'
+              ' into the .js file',
+          defaultsTo: '')
+      ..addOption('out',
+          abbr: 'o',
+          help: 'output log file',
+          defaultsTo: _DEFAULT_OUT_TEMPLATE);
   }
 
-  var jsPath = args.rest[0];
-  var htmlPath = null;
-  if (args.rest.length > 1) {
-    htmlPath = args.rest[1];
+  void run() async {
+    if (argResults.rest.isEmpty) {
+      usageException('Missing arguments: <dart2js-out-file> [<html-file>]');
+    }
+
+    var jsPath = argResults.rest[0];
+    var htmlPath = null;
+    if (argResults.rest.length > 1) {
+      htmlPath = argResults.rest[1];
+    }
+    var outPath = argResults['out'];
+    if (outPath == _DEFAULT_OUT_TEMPLATE) outPath = '$jsPath.coverage.json';
+    var server = new _Server(argResults['host'], int.parse(argResults['port']),
+        jsPath, htmlPath, outPath, argResults['uri-prefix']);
+    await server.run();
   }
-  var outPath = args['out'];
-  if (outPath == _DEFAULT_OUT_TEMPLATE) outPath = '$jsPath.coverage.json';
-  var server = new _Server(args['host'], int.parse(args['port']), jsPath,
-      htmlPath, outPath, args['uri-prefix']);
-  await server.run();
 }
+
+const _DEFAULT_OUT_TEMPLATE = '<dart2js-out-file>.coverage.json';
 
 class _Server {
   /// Server hostname, typically `localhost`,  but can be `0.0.0.0`.

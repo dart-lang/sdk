@@ -6,31 +6,38 @@
 /// that it is consistent and that it covers all the data we expect it to cover.
 library dart2js_info.bin.debug_info;
 
-import 'dart:io';
+import 'package:args/command_runner.dart';
 
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/graph.dart';
 import 'package:dart2js_info/src/io.dart';
 import 'package:dart2js_info/src/util.dart';
 
-main(args) async {
-  if (args.length < 1) {
-    print('usage: dart tool/debug_info.dart path-to-info.json '
-        '[--show-library libname]');
-    exit(1);
+import 'usage_exception.dart';
+
+class DebugCommand extends Command<void> with PrintUsageException {
+  final String name = "debug";
+  final String description = "Dart2js-team diagnostics on a dump-info file.";
+
+  DebugCommand() {
+    argParser.addOption('show-library',
+        help: "Show detailed data for a library with the given name");
   }
 
-  var info = await infoFromFile(args.first);
-  var debugLibName;
+  void run() async {
+    var args = argResults.rest;
+    if (args.length < 1) {
+      usageException('Missing argument: info.data');
+    }
 
-  if (args.length > 2 && args[1] == '--show-library') {
-    debugLibName = args[2];
+    var info = await infoFromFile(args.first);
+    var debugLibName = argResults['show-library'];
+
+    validateSize(info, debugLibName);
+    validateParents(info);
+    compareGraphs(info);
+    verifyDeps(info);
   }
-
-  validateSize(info, debugLibName);
-  validateParents(info);
-  compareGraphs(info);
-  verifyDeps(info);
 }
 
 /// Validates that codesize of elements adds up to total codesize.

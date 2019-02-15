@@ -1,5 +1,7 @@
 ## 0.6.0-dev.0.0
 
+This release contains several **breaking changes**:
+
 * The fields `Info.id` and `Info.serializedId` have been removed. These
   properties were only used for serialization and deserialization. Those values
   are now computed during the serialization process instead.
@@ -9,8 +11,9 @@
   embed code snippets (since they are duplicated with the output program).
  
   Encoder produces a new format for code-spans, but for a transitional period
-  the decoder is still backwards compatible (filling in just the `text` in
-  `CodeSpan` where the json contained a String).
+  a flag is provided to produce the old format. The decoder is still backwards
+  compatible (filling in just the `text` in `CodeSpan` where the json contained
+  a String).
 
 * Deleted unused `Measurements`.
 
@@ -20,8 +23,17 @@
   serialization/deserialization implementation. This will eventually be used by
   default by dart2js.
 
-* Added backwards compatibility to the JSON codec, to make transition to new
-  tools more gradual.
+* Added backwards compatibility flag to the JSON codec, to make transition to
+  new tools more gradual.
+
+* Consolidated all binary tools under a single command. Now you can access all
+  tools as follows:
+  ```
+  pub global activate dart2js_info
+  dart2js_info <command> [arguments] ...
+  ```
+
+  See updated documentation in README.md
 
 ## 0.5.17
 

@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Command-line tool to query for code dependencies. Currently this tool only
+/// Command to query for code dependencies. Currently this tool only
 /// supports the `some_path` query, which gives you the shortest path for how
 /// one function depends on another.
 ///
 /// You can run this tool as follows:
 /// ```bash
 /// pub global activate dart2js_info
-/// dart2js_info_code_deps out.js.info.json some_path main foo
+/// dart2js_info code_deps some_path out.js.info.json main foo
 /// ```
 ///
 /// The arguments to the query are regular expressions that can be used to
@@ -26,44 +26,52 @@
 library dart2js_info.bin.code_deps;
 
 import 'dart:collection';
-import 'dart:io';
+
+import 'package:args/command_runner.dart';
 
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/graph.dart';
 import 'package:dart2js_info/src/io.dart';
 import 'package:dart2js_info/src/util.dart';
 
-main(args) async {
-  if (args.length < 2) {
-    print('usage: dart2js_info_code_deps path-to.info.json <query>');
-    print('   where <query> can be:');
-    print('     - some_path <element-regexp-1> <element-regexp-2>');
-    // TODO(sigmund): add other queries, such as 'all_paths'.
-    exit(1);
+import 'usage_exception.dart';
+
+class CodeDepsCommand extends Command<void> with PrintUsageException {
+  final String name = "code_deps";
+  final String description = "";
+
+  CodeDepsCommand() {
+    addSubcommand(new _SomePathQuery());
   }
+}
 
-  var info = await infoFromFile(args.first);
-  var graph = graphFromInfo(info);
+class _SomePathQuery extends Command<void> with PrintUsageException {
+  final String name = "some_path";
+  final String description = "find a call-graph path between two elements.";
 
-  var queryName = args[1];
-  if (queryName == 'some_path') {
-    if (args.length < 4) {
-      print('missing arguments for `some_path`');
-      exit(1);
+  @override
+  void run() async {
+    var args = argResults.rest;
+    if (args.length < 3) {
+      usageException("Missing arguments for some_path, expected: "
+          "info.data <element-regexp-1> <element-regexp-2>");
+      return;
     }
+
+    var info = await infoFromFile(args.first);
+    var graph = graphFromInfo(info);
+
     var source = info.functions
-        .firstWhere(_longNameMatcher(new RegExp(args[2])), orElse: () => null);
+        .firstWhere(_longNameMatcher(new RegExp(args[1])), orElse: () => null);
     var target = info.functions
-        .firstWhere(_longNameMatcher(new RegExp(args[3])), orElse: () => null);
+        .firstWhere(_longNameMatcher(new RegExp(args[2])), orElse: () => null);
     print('query: some_path');
     if (source == null) {
-      print("source '${args[2]}' not found in '${args[0]}'");
-      exit(1);
+      usageException("source '${args[1]}' not found in '${args[0]}'");
     }
     print('source: ${longName(source)}');
     if (target == null) {
-      print("target '${args[3]}' not found in '${args[0]}'");
-      exit(1);
+      usageException("target '${args[2]}' not found in '${args[0]}'");
     }
     print('target: ${longName(target)}');
     var path = new SomePathQuery(source, target).run(graph);
@@ -75,8 +83,6 @@ main(args) async {
         print('  $i. ${longName(path[i])}');
       }
     }
-  } else {
-    print('unrecognized query: $queryName');
   }
 }
 
@@ -96,7 +102,7 @@ class SomePathQuery {
   SomePathQuery(this.source, this.target);
 
   List<Info> run(Graph<Info> graph) {
-    var seen = {source: null};
+    var seen = <Info, Info>{source: null};
     var queue = new Queue<Info>();
     queue.addLast(source);
     while (queue.isNotEmpty) {
