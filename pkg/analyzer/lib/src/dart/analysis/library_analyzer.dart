@@ -68,6 +68,13 @@ class LibraryAnalyzer {
   final List<UsedLocalElements> _usedLocalElementsList = [];
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
 
+  /**
+   * Constants in the current library.
+   *
+   * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
+   */
+  final Set<ConstantEvaluationTarget> _libraryConstants = new Set();
+
   final Set<ConstantEvaluationTarget> _constants = new Set();
 
   LibraryAnalyzer(
@@ -122,6 +129,7 @@ class LibraryAnalyzer {
     });
 
     units.values.forEach(_findConstants);
+    _clearConstantEvaluationResults();
     _computeConstants();
 
     PerformanceStatistics.errors.makeCurrentWhile(() {
@@ -170,6 +178,24 @@ class LibraryAnalyzer {
       results[file] = new UnitAnalysisResult(file, unit, errors);
     });
     return results;
+  }
+
+  /**
+   * Clear evaluation results for all constants before computing them again.
+   * The reason is described in https://github.com/dart-lang/sdk/issues/35940
+   *
+   * Otherwise, we reuse results, including errors are recorded only when
+   * we evaluate constants resynthesized from summaries.
+   *
+   * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
+   */
+  void _clearConstantEvaluationResults() {
+    for (var constant in _libraryConstants) {
+      if (constant is ConstFieldElementImpl_ofEnum) continue;
+      if (constant is ConstVariableElement) {
+        constant.evaluationResult = null;
+      }
+    }
   }
 
   void _computeConstantErrors(
@@ -379,6 +405,7 @@ class LibraryAnalyzer {
   void _findConstants(CompilationUnit unit) {
     ConstantFinder constantFinder = new ConstantFinder();
     unit.accept(constantFinder);
+    _libraryConstants.addAll(constantFinder.constantsToCompute);
     _constants.addAll(constantFinder.constantsToCompute);
 
     var dependenciesFinder = new ConstantExpressionsDependenciesFinder();

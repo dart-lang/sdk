@@ -40,7 +40,6 @@ const D constant2 = const D(constant);
     expect(otherFileResult.errors, isEmpty);
   }
 
-  @failingTest
   test_int_to_double_reference_from_other_library_other_file_before() async {
     addTestFile('''
 class C {
