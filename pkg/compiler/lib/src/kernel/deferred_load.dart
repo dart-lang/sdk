@@ -177,6 +177,15 @@ class ConstantCollector extends ir.RecursiveVisitor {
   }
 
   @override
+  void visitSetLiteral(ir.SetLiteral literal) {
+    if (literal.isConst) {
+      add(literal);
+    } else {
+      super.visitSetLiteral(literal);
+    }
+  }
+
+  @override
   void visitMapLiteral(ir.MapLiteral literal) {
     if (literal.isConst) {
       add(literal);

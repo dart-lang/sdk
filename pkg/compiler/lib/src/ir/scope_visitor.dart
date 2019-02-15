@@ -643,6 +643,12 @@ class ScopeModelBuilder extends ir.Visitor<void> with VariableCollectorMixin {
   }
 
   @override
+  void visitSetLiteral(ir.SetLiteral node) {
+    visitInContext(node.typeArgument, VariableUse.setLiteral);
+    visitNodes(node.expressions);
+  }
+
+  @override
   void visitMapLiteral(ir.MapLiteral node) {
     visitInContext(node.keyType, VariableUse.mapLiteral);
     visitInContext(node.valueType, VariableUse.mapLiteral);

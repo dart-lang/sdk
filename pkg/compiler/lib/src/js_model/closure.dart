@@ -259,6 +259,12 @@ class ClosureDataBuilder {
               return true;
             }
             break;
+          case VariableUseKind.setLiteral:
+            if (rtiNeed.classNeedsTypeArguments(
+                _elementMap.commonElements.setLiteralClass)) {
+              return true;
+            }
+            break;
           case VariableUseKind.mapLiteral:
             if (rtiNeed.classNeedsTypeArguments(
                 _elementMap.commonElements.mapLiteralClass)) {
