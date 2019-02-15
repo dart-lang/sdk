@@ -6,6 +6,7 @@ import "package:kernel/ast.dart"
     show
         BottomType,
         Class,
+        Component,
         DartType,
         DynamicType,
         FunctionType,
@@ -24,6 +25,8 @@ import "package:kernel/ast.dart"
 
 import "package:kernel/src/bounds_checks.dart" show calculateBounds;
 
+import "mock_sdk.dart" show mockSdk;
+
 import "type_parser.dart" as type_parser show parse;
 
 import "type_parser.dart"
@@ -37,6 +40,17 @@ import "type_parser.dart"
         ParsedTypedef,
         ParsedVoidType,
         Visitor;
+
+Component parseComponent(String source, Uri uri) {
+  Uri coreUri = Uri.parse("dart:core");
+  KernelEnvironment coreEnvironment = new KernelEnvironment(coreUri, coreUri);
+  Library coreLibrary =
+      parseLibrary(coreUri, mockSdk, environment: coreEnvironment);
+  KernelEnvironment libraryEnvironment =
+      new KernelEnvironment(uri, uri).extend(coreEnvironment.declarations);
+  Library library = parseLibrary(uri, source, environment: libraryEnvironment);
+  return new Component(libraries: <Library>[coreLibrary, library]);
+}
 
 Library parseLibrary(Uri uri, String text,
     {Uri fileUri, KernelEnvironment environment}) {

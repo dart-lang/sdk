@@ -4,14 +4,11 @@
 
 import "package:expect/expect.dart" show Expect;
 
-import "package:kernel/ast.dart"
-    show Class, Component, DartType, InterfaceType, Library;
+import "package:kernel/ast.dart" show Class, Component, DartType, InterfaceType;
 
 import "package:kernel/library_index.dart" show LibraryIndex;
 
-import "kernel_type_parser.dart" show KernelEnvironment, parseLibrary;
-
-import "mock_sdk.dart" show mockSdk;
+import "kernel_type_parser.dart" as kernel_type_parser show parseComponent;
 
 final Uri libraryUri = Uri.parse("org-dartlang-test:///library.dart");
 
@@ -31,17 +28,7 @@ abstract class LegacyUpperBoundTest {
   DartType get boolType => getCoreClass("bool").rawType;
 
   void parseComponent(String source) {
-    Uri coreUri = Uri.parse("dart:core");
-    KernelEnvironment coreEnvironment = new KernelEnvironment(coreUri, coreUri);
-    Library coreLibrary =
-        parseLibrary(coreUri, mockSdk, environment: coreEnvironment);
-    KernelEnvironment libraryEnvironment =
-        new KernelEnvironment(libraryUri, libraryUri)
-            .extend(coreEnvironment.declarations);
-    Library library =
-        parseLibrary(libraryUri, source, environment: libraryEnvironment);
-
-    component = new Component(libraries: <Library>[coreLibrary, library]);
+    component = kernel_type_parser.parseComponent(source, libraryUri);
     index = new LibraryIndex.all(component);
   }
 
