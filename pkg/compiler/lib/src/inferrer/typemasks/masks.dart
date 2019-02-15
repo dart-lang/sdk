@@ -29,6 +29,7 @@ part 'dictionary_type_mask.dart';
 part 'flat_type_mask.dart';
 part 'forwarding_type_mask.dart';
 part 'map_type_mask.dart';
+part 'set_type_mask.dart';
 part 'type_mask.dart';
 part 'union_type_mask.dart';
 part 'value_type_mask.dart';

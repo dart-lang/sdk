@@ -90,6 +90,13 @@
     "Dynamic access of 'allocationNode'.": 1,
     "Dynamic access of 'allocationElement'.": 1
   },
+  "pkg/compiler/lib/src/inferrer/typemasks/set_type_mask.dart": {
+    "Dynamic access of 'isNullable'.": 2,
+    "Dynamic access of 'isEmptyOrNull'.": 1,
+    "Dynamic access of 'isSet'.": 1,
+    "Dynamic access of 'elementType'.": 2,
+    "Dynamic access of 'forwardTo'.": 1
+  },
   "pkg/compiler/lib/src/inferrer/typemasks/type_mask.dart": {
     "Dynamic access of 'isForwarding'.": 1,
     "Dynamic access of 'forwardTo'.": 1

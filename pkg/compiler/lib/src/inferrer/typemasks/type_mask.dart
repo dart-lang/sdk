@@ -98,6 +98,7 @@ enum TypeMaskKind {
   flat,
   union,
   container,
+  set,
   map,
   dictionary,
   value,
@@ -230,6 +231,8 @@ abstract class TypeMask implements AbstractValue {
         return new UnionTypeMask.readFromDataSource(source, closedWorld);
       case TypeMaskKind.container:
         return new ContainerTypeMask.readFromDataSource(source, closedWorld);
+      case TypeMaskKind.set:
+        return new SetTypeMask.readFromDataSource(source, closedWorld);
       case TypeMaskKind.map:
         return new MapTypeMask.readFromDataSource(source, closedWorld);
       case TypeMaskKind.dictionary:
