@@ -201,6 +201,17 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           library.uriStr,
         );
 
+        var requestedElement =
+            requestedLibraryElement.exportNamespace.get(requestedName);
+        if (requestedElement == null) {
+          server.sendResponse(Response.invalidParameter(
+            request,
+            'label',
+            'No such element: $requestedName',
+          ));
+          return;
+        }
+
         var completion = params.label;
         var builder = DartChangeBuilder(session);
         await builder.addFileEdit(file, (builder) {
@@ -209,7 +220,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
             targetPath: file,
             targetOffset: params.offset,
             requestedLibrary: requestedLibraryElement,
-            requestedName: requestedName,
+            requestedElement: requestedElement,
           );
           if (result.prefix != null) {
             completion = '${result.prefix}.$completion';

@@ -1210,7 +1210,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     @required String targetPath,
     @required int targetOffset,
     @required LibraryElement requestedLibrary,
-    @required String requestedName,
+    @required Element requestedElement,
   }) {
     if (librariesToImport.isNotEmpty) {
       throw StateError('Only one library can be safely imported.');
@@ -1221,7 +1221,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       targetPath: targetPath,
       targetOffset: targetOffset,
       requestedLibrary: requestedLibrary,
-      requestedName: requestedName,
+      requestedElement: requestedElement,
     );
 
     var prefix = request.prefix;

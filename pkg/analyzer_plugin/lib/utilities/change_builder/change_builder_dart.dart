@@ -380,7 +380,7 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
     @required String targetPath,
     @required int targetOffset,
     @required LibraryElement requestedLibrary,
-    @required String requestedName,
+    @required Element requestedElement,
   });
 
   /**
