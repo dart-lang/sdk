@@ -6,6 +6,7 @@
 // Run tests like on the given builder.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -132,6 +133,91 @@ String expandVariables(String string, String builder) {
   return string;
 }
 
+/// Finds the branch of a builder given the list of branches.
+String branchOfBuilder(String builder, List<String> branches) {
+  return branches.where((branch) => branch != "master").firstWhere(
+      (branch) => builder.endsWith("-$branch"),
+      orElse: () => "master");
+}
+
+/// Finds the named configuration to test according to the test matrix
+/// information and the command line options.
+bool resolveNamedConfiguration(
+    List<String> branches,
+    List<dynamic> buildersConfigurations,
+    String requestedBranch,
+    String requestedNamedConfiguration,
+    String requestedBuilder,
+    Set<String> outputNamedConfiguration,
+    Set<String> outputBuilders) {
+  bool foundBuilder = false;
+  for (final builderConfiguration in buildersConfigurations) {
+    for (final builder in builderConfiguration["builders"]) {
+      if (requestedBuilder != null && builder != requestedBuilder) {
+        continue;
+      }
+      final branch = branchOfBuilder(builder, branches);
+      if (branch != requestedBranch) {
+        if (requestedBuilder == null) {
+          continue;
+        }
+        stderr.writeln("error: Builder $requestedBuilder is on branch $branch "
+            "rather than $requestedBranch");
+        stderr.writeln("error: To compare with that branch, use: -B $branch");
+        return false;
+      }
+      foundBuilder = true;
+      final steps = (builderConfiguration["steps"] as List).cast<Map>();
+      final testSteps = steps
+          .where((step) =>
+              !step.containsKey("script") || step["script"] == "tools/test.py")
+          .toList();
+      for (final step in testSteps) {
+        final arguments = step["arguments"]
+            .map((argument) => expandVariables(argument, builder))
+            .toList();
+        final namedConfiguration = arguments
+            .firstWhere((argument) => (argument as String).startsWith("-n"))
+            .substring(2);
+        if (requestedNamedConfiguration == null ||
+            requestedNamedConfiguration == namedConfiguration) {
+          outputNamedConfiguration.add(namedConfiguration);
+          outputBuilders.add(builder);
+        }
+      }
+    }
+  }
+  if (requestedBuilder != null && !foundBuilder) {
+    stderr.writeln("error: Builder $requestedBuilder doesn't exist");
+    return false;
+  }
+  if (requestedBuilder != null &&
+      requestedNamedConfiguration == null &&
+      outputNamedConfiguration.isEmpty) {
+    stderr.writeln("error: Builder $requestedBuilder isn't testing any named "
+        "configurations");
+    return false;
+  }
+  if (requestedBuilder != null &&
+      requestedNamedConfiguration != null &&
+      outputNamedConfiguration.isEmpty) {
+    stderr.writeln("error: The builder $requestedBuilder isn't testing the "
+        "named configuration $requestedNamedConfiguration");
+    return false;
+  }
+  if (requestedNamedConfiguration != null && outputNamedConfiguration.isEmpty) {
+    stderr.writeln("error: The named configuration "
+        "$requestedNamedConfiguration doesn't exist");
+    return false;
+  }
+  if (requestedNamedConfiguration != null && outputBuilders.isEmpty) {
+    stderr.writeln("error: The named configuration "
+        "$requestedNamedConfiguration isn't tested on any builders");
+    return false;
+  }
+  return true;
+}
+
 /// Locates the merge base between head and the [branch] on the given [remote].
 /// If a particular [commit] was requested, use that.
 Future<String> findMergeBase(
@@ -191,6 +277,10 @@ void main(List<String> args) async {
       help: "Select the builders building this branch",
       defaultsTo: "master");
   parser.addOption("commit", abbr: "C", help: "Compare with this commit");
+  parser.addOption("named-configuration",
+      abbr: "n",
+      help: "The named test configuration that supplies the\nvalues for all "
+          "test options, specifying how tests\nshould be run.");
   parser.addOption("remote",
       abbr: "R",
       help: "Compare with this remote and git branch",
@@ -198,10 +288,20 @@ void main(List<String> args) async {
   parser.addFlag("help", help: "Show the program usage.", negatable: false);
 
   final options = parser.parse(args);
-  if (options["help"] || options["builder"] == null) {
+  if (options["help"] ||
+      (options["builder"] == null && options["named-configuration"] == null)) {
     print("""
-Usage: test.dart -b [BUILDER] [OPTION]...
-Run tests and compare with the results on the given builder.
+Usage: test.dart -b [BUILDER] -n [CONFIGURATION] [OPTION]... [--]
+                 [TEST.PY OPTION]... [SELECTOR]...
+
+Run tests and compare with the results on the given builder. Either the -n or
+the -b option, or both, must be used. Any options following -- and non-option
+arguments will be forwarded to test.py invocations. The results for the specified
+named configuration will be downloaded from the specified builder. If only a
+named configuration is specified, the results are downloaded from the
+appropriate builders. If only a builder is specified, the default named
+configuration is used if the builder only has a single named configuration.
+Otherwise the available named configurations are listed.
 
 ${parser.usage}""");
     return;
@@ -211,138 +311,155 @@ ${parser.usage}""");
   gsutilPy =
       Platform.script.resolve("../third_party/gsutil/gsutil.py").toFilePath();
 
-  final builder = options["builder"];
+  // Load the test matrix.
+  final scriptPath = Platform.script.toFilePath();
+  final testMatrixPath =
+      scriptPath.substring(0, scriptPath.length - "test.dart".length) +
+          "bots/test_matrix.json";
+  final testMatrix = jsonDecode(await new File(testMatrixPath).readAsString());
+  final branches = (testMatrix["branches"] as List).cast<String>();
+  final buildersConfigurations =
+      testMatrix["builder_configurations"] as List<dynamic>;
+
+  // Determine what named configuration to run and which builders to download
+  // existing results from.
+  final namedConfigurations = new SplayTreeSet<String>();
+  final builders = new SplayTreeSet<String>();
+  if (!resolveNamedConfiguration(
+      branches,
+      buildersConfigurations,
+      options["branch"],
+      options["named-configuration"],
+      options["builder"],
+      namedConfigurations,
+      builders)) {
+    exitCode = 1;
+    return;
+  }
+  if (2 <= namedConfigurations.length) {
+    final builder = builders.single;
+    stderr.writeln(
+        "error: The builder $builder is testing multiple named configurations");
+    stderr.writeln(
+        "error: Please select the desired named configuration using -n:");
+    for (final namedConfiguration in namedConfigurations) {
+      stderr.writeln("  -n $namedConfiguration");
+    }
+    exitCode = 1;
+    return;
+  }
+  final namedConfiguration = namedConfigurations.single;
+  for (final builder in builders) {
+    print("Testing the named configuration $namedConfiguration "
+        "compared with builder $builder");
+  }
 
   // Find out where the current HEAD branched.
   final commit = await findMergeBase(
       options["commit"], options["remote"], options["branch"]);
   print("Base commit is $commit");
 
-  // Use the buildbucket API to search for builds of the right rcommit.
-  print("Finding build to compare with...");
-  final buildNumber = await buildNumberOfCommit(builder, commit);
-  print("Comparing with build $buildNumber on $builder");
-
+  // Store the downloaded results and our test results in a temporary directory.
   final outDirectory = await Directory.systemTemp.createTemp("test.dart.");
   try {
-    // Download the previous results and flakiness info from cloud storage.
-    print("Downloading previous results...");
-    await cpGsutil(
-        buildFileCloudPath(builder, buildNumber.toString(), "results.json"),
-        "${outDirectory.path}/previous.json");
-    await cpGsutil(
-        buildFileCloudPath(builder, buildNumber.toString(), "flaky.json"),
-        "${outDirectory.path}/flaky.json");
-    print("Downloaded previous results");
+    final mergedResults = <String, Map<String, dynamic>>{};
+    final mergedFlaky = <String, Map<String, dynamic>>{};
 
-    // Load the test matrix.
-    final scriptPath = Platform.script.toFilePath();
-    final testMatrixPath =
-        scriptPath.substring(0, scriptPath.length - "test.dart".length) +
-            "bots/test_matrix.json";
-    final testMatrix =
-        jsonDecode(await new File(testMatrixPath).readAsString());
-
-    // Find the appropriate test.py steps.
-    final buildersConfigurations = testMatrix["builder_configurations"];
-    final builderConfiguration = buildersConfigurations.firstWhere(
-        (builderConfiguration) =>
-            (builderConfiguration["builders"] as List).contains(builder));
-    final steps = (builderConfiguration["steps"] as List).cast<Map>();
-    final testSteps = steps
-        .where((step) =>
-            !step.containsKey("script") || step["script"] == "tools/test.py")
-        .toList();
-
-    // Run each step like the builder would, deflaking tests that need it.
-    final stepResultsPaths = <String>[];
-    final stepLogsPaths = <String>[];
-    for (int stepIndex = 0; stepIndex < testSteps.length; stepIndex++) {
-      // Run the test step.
-      final testStep = testSteps[stepIndex];
-      final stepName = testStep["name"];
-      final stepDirectory = new Directory("${outDirectory.path}/$stepIndex");
-      await stepDirectory.create();
-      final stepArguments = testStep["arguments"]
-          .map((argument) => expandVariables(argument, builder))
-          .toList()
-          .cast<String>();
-      final fullArguments = <String>[]
-        ..addAll(stepArguments)
-        ..addAll([
-          "--output-directory=${stepDirectory.path}",
-          "--clean-exit",
-          "--silent-failures",
-          "--write-results",
-          "--write-logs",
-        ])
-        ..addAll(options.rest);
-      print("".padLeft(80, "="));
-      print("$stepName: Running tests");
-      print("".padLeft(80, "="));
-      await runProcessInheritStdio(
-          "python", ["tools/test.py"]..addAll(fullArguments),
-          runInShell: Platform.isWindows);
-      stepResultsPaths.add("${stepDirectory.path}/results.json");
-      stepLogsPaths.add("${stepDirectory.path}/logs.json");
-      // Find the list of tests to deflake.
-      final deflakeListOutput = await runProcess(Platform.resolvedExecutable, [
-        "tools/bots/compare_results.dart",
-        "--changed",
-        "--failing",
-        "--passing",
-        "--flakiness-data=${outDirectory.path}/flaky.json",
-        "${outDirectory.path}/previous.json",
-        "${stepDirectory.path}/results.json",
-      ]);
-      final deflakeListPath = "${stepDirectory.path}/deflake.list";
-      final deflakeListFile = new File(deflakeListPath);
-      await deflakeListFile.writeAsString(deflakeListOutput.stdout);
-      // Deflake the changed tests.
-      final deflakingResultsPaths = <String>[];
-      for (int i = 1;
-          deflakeListOutput.stdout != "" && i <= deflakingCount;
-          i++) {
-        print("".padLeft(80, "="));
-        print("$stepName: Running deflaking iteration $i");
-        print("".padLeft(80, "="));
-        final deflakeDirectory = new Directory("${stepDirectory.path}/$i");
-        await deflakeDirectory.create();
-        final deflakeArguments = <String>[]
-          ..addAll(stepArguments)
-          ..addAll([
-            "--output-directory=${deflakeDirectory.path}",
-            "--clean-exit",
-            "--silent-failures",
-            "--write-results",
-            "--test-list=$deflakeListPath",
-          ])
-          ..addAll(options.rest);
-        await runProcessInheritStdio(
-            "python", ["tools/test.py"]..addAll(deflakeArguments),
-            runInShell: Platform.isWindows);
-        deflakingResultsPaths.add("${deflakeDirectory.path}/results.json");
+    // Use the buildbucket API to search for builds of the right commit.
+    for (final builder in builders) {
+      // Download the previous results and flakiness info from cloud storage.
+      print("Finding build on builder $builder to compare with...");
+      final buildNumber = await buildNumberOfCommit(builder, commit);
+      print("Downloading results from builder $builder build $buildNumber...");
+      await cpGsutil(
+          buildFileCloudPath(builder, buildNumber.toString(), "results.json"),
+          "${outDirectory.path}/previous.json");
+      await cpGsutil(
+          buildFileCloudPath(builder, buildNumber.toString(), "flaky.json"),
+          "${outDirectory.path}/flaky.json");
+      print("Downloaded baseline results from builder $builder");
+      // Merge the results for the builders.
+      if (2 <= builders.length) {
+        mergedResults
+            .addAll(await loadResultsMap("${outDirectory.path}/previous.json"));
+        mergedFlaky
+            .addAll(await loadResultsMap("${outDirectory.path}/flaky.json"));
       }
-      // Update the flakiness information based on what we've learned.
-      print("$stepName: Updating flakiness information");
-      await runProcess(
-          Platform.resolvedExecutable,
-          [
-            "tools/bots/update_flakiness.dart",
-            "--input=${outDirectory.path}/flaky.json",
-            "--output=${outDirectory.path}/flaky.json",
-            "${stepDirectory.path}/results.json",
-          ]..addAll(deflakingResultsPaths));
     }
-    // Collect all the results from all the steps.
-    await new File("${outDirectory.path}/results.json").writeAsString(
-        stepResultsPaths
-            .map((path) => new File(path).readAsStringSync())
-            .join(""));
-    // Collect all the logs from all the steps.
-    await new File("${outDirectory.path}/logs.json").writeAsString(stepLogsPaths
-        .map((path) => new File(path).readAsStringSync())
-        .join(""));
+
+    // Write out the merged results for the builders.
+    if (2 <= builders.length) {
+      print("Merging downloaded results from the builders...");
+      await new File("${outDirectory.path}/previous.json").writeAsString(
+          mergedResults.values.map((data) => jsonEncode(data) + "\n").join(""));
+      await new File("${outDirectory.path}/flaky.json").writeAsString(
+          mergedFlaky.values.map((data) => jsonEncode(data) + "\n").join(""));
+    }
+
+    // Run the tests.
+    final arguments = [
+      "--named-configuration=$namedConfiguration",
+      "--output-directory=${outDirectory.path}",
+      "--clean-exit",
+      "--silent-failures",
+      "--write-results",
+      "--write-logs",
+    ]..addAll(options.rest);
+    print("".padLeft(80, "="));
+    print("Running tests");
+    print("".padLeft(80, "="));
+    await runProcessInheritStdio("python", ["tools/test.py"]..addAll(arguments),
+        runInShell: Platform.isWindows);
+
+    // Find the list of tests to deflake.
+    final deflakeListOutput = await runProcess(Platform.resolvedExecutable, [
+      "tools/bots/compare_results.dart",
+      "--changed",
+      "--failing",
+      "--passing",
+      "--flakiness-data=${outDirectory.path}/flaky.json",
+      "${outDirectory.path}/previous.json",
+      "${outDirectory.path}/results.json",
+    ]);
+    final deflakeListPath = "${outDirectory.path}/deflake.list";
+    final deflakeListFile = new File(deflakeListPath);
+    await deflakeListFile.writeAsString(deflakeListOutput.stdout);
+
+    // Deflake the changed tests.
+    final deflakingResultsPaths = <String>[];
+    for (int i = 1;
+        deflakeListOutput.stdout != "" && i <= deflakingCount;
+        i++) {
+      print("".padLeft(80, "="));
+      print("Running deflaking iteration $i");
+      print("".padLeft(80, "="));
+      final deflakeDirectory = new Directory("${outDirectory.path}/$i");
+      await deflakeDirectory.create();
+      final deflakeArguments = <String>[
+        "--named-configuration=$namedConfiguration",
+        "--output-directory=${deflakeDirectory.path}",
+        "--clean-exit",
+        "--silent-failures",
+        "--write-results",
+        "--test-list=$deflakeListPath",
+      ]..addAll(options.rest);
+      await runProcessInheritStdio(
+          "python", ["tools/test.py"]..addAll(deflakeArguments),
+          runInShell: Platform.isWindows);
+      deflakingResultsPaths.add("${deflakeDirectory.path}/results.json");
+    }
+
+    // Update the flakiness information based on what we've learned.
+    print("Updating flakiness information...");
+    await runProcess(
+        Platform.resolvedExecutable,
+        [
+          "tools/bots/update_flakiness.dart",
+          "--input=${outDirectory.path}/flaky.json",
+          "--output=${outDirectory.path}/flaky.json",
+          "${outDirectory.path}/results.json",
+        ]..addAll(deflakingResultsPaths));
+
     // Write out the final comparison.
     print("".padLeft(80, "="));
     print("Test Results");

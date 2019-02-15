@@ -3,6 +3,10 @@
     "chrome": "65",
     "firefox": "61"
   },
+  "branches": [
+    "analyzer-stable",
+    "master"
+  ],
   "filesets": {
     "analyzer_unit_tests": [
       ".packages",
