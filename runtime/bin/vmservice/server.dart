@@ -4,7 +4,7 @@
 
 part of vmservice_io;
 
-final bool silentObservatory = const bool.fromEnvironment('SILENT_OBSERVATORY');
+final bool silentObservatory = new bool.fromEnvironment('SILENT_OBSERVATORY');
 
 void serverPrint(String s) {
   if (silentObservatory) {
