@@ -536,22 +536,38 @@ class TypeSystem {
     assert(keyTypes.length == valueTypes.length);
     bool isFixed = (type.type == _abstractValueDomain.constMapType);
 
-    AbstractValue keyType, valueType;
+    TypeInformation keyType, valueType;
+    for (int i = 0; i < keyTypes.length; ++i) {
+      TypeInformation type = keyTypes[i];
+      keyType = keyType == null
+          ? allocatePhi(null, null, type, isTry: false)
+          : addPhiInput(null, keyType, type);
+
+      type = valueTypes[i];
+      valueType = valueType == null
+          ? allocatePhi(null, null, type, isTry: false)
+          : addPhiInput(null, valueType, type);
+    }
+
+    keyType =
+        keyType == null ? nonNullEmpty() : simplifyPhi(null, null, keyType);
+    valueType =
+        valueType == null ? nonNullEmpty() : simplifyPhi(null, null, valueType);
+
+    AbstractValue keyTypeMask, valueTypeMask;
     if (isFixed) {
-      keyType = keyTypes.fold(nonNullEmptyType.type,
-          (type, info) => _abstractValueDomain.union(type, info.type));
-      valueType = valueTypes.fold(nonNullEmptyType.type,
-          (type, info) => _abstractValueDomain.union(type, info.type));
+      keyTypeMask = keyType.type;
+      valueTypeMask = valueType.type;
     } else {
-      keyType = valueType = dynamicType.type;
+      keyTypeMask = valueTypeMask = dynamicType.type;
     }
     AbstractValue mask = _abstractValueDomain.createMapValue(
-        type.type, node, element, keyType, valueType);
+        type.type, node, element, keyTypeMask, valueTypeMask);
 
-    TypeInformation keyTypeInfo =
-        new KeyInMapTypeInformation(_abstractValueDomain, currentMember, null);
+    TypeInformation keyTypeInfo = new KeyInMapTypeInformation(
+        _abstractValueDomain, currentMember, keyType);
     TypeInformation valueTypeInfo = new ValueInMapTypeInformation(
-        _abstractValueDomain, currentMember, null);
+        _abstractValueDomain, currentMember, valueType);
     allocatedTypes.add(keyTypeInfo);
     allocatedTypes.add(valueTypeInfo);
 
