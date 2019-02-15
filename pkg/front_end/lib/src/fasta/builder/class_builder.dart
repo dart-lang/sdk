@@ -24,7 +24,7 @@ import '../fasta_codes.dart'
 
 abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
-  final List<TypeVariableBuilder> typeVariables;
+  List<TypeVariableBuilder> typeVariables;
 
   T supertype;
 
