@@ -357,6 +357,13 @@ class JavaScriptConstantSystem extends ConstantSystem {
     return types.isSubtype(s, t);
   }
 
+  @override
+  SetConstantValue createSet(CommonElements commonElements,
+      InterfaceType sourceType, List<ConstantValue> values) {
+    InterfaceType type = commonElements.getConstantSetTypeFor(sourceType);
+    return new JavaScriptSetConstant(commonElements, type, values);
+  }
+
   MapConstantValue createMap(
       CommonElements commonElements,
       InterfaceType sourceType,
@@ -402,6 +409,24 @@ class JavaScriptConstantSystem extends ConstantSystem {
     var fields = <FieldEntity, ConstantValue>{field: argument};
     return new ConstructedConstantValue(type, fields);
   }
+}
+
+class JavaScriptSetConstant extends SetConstantValue {
+  final MapConstantValue entries;
+
+  JavaScriptSetConstant(CommonElements commonElements, InterfaceType type,
+      List<ConstantValue> values)
+      : entries = JavaScriptConstantSystem.only.createMap(
+            commonElements,
+            commonElements.mapType(
+                type.typeArguments.first, commonElements.nullType),
+            values,
+            new List<NullConstantValue>.filled(
+                values.length, const NullConstantValue())),
+        super(type, values);
+
+  @override
+  List<ConstantValue> getDependencies() => [entries];
 }
 
 class JavaScriptMapConstant extends MapConstantValue {

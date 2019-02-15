@@ -1968,6 +1968,17 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
+  void visitSet(SetConstantValue constant, [_]) {
+    // TODO(9476): Incorporate type parameters into name.
+    addRoot('Set');
+    if (constant.length == 0) {
+      add('empty');
+    } else {
+      add(getHashTag(constant, 5));
+    }
+  }
+
+  @override
   void visitMap(covariant JavaScriptMapConstant constant, [_]) {
     // TODO(9476): Incorporate type parameters into name.
     addRoot('Map');
@@ -2136,6 +2147,11 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   @override
   int visitList(ListConstantValue constant, [_]) {
     return _hashList(constant.length, constant.entries);
+  }
+
+  @override
+  int visitSet(SetConstantValue constant, [_]) {
+    return _hashList(constant.length, constant.values);
   }
 
   @override

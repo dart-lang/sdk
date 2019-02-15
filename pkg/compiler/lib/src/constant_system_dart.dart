@@ -468,6 +468,11 @@ class DartConstantSystem extends ConstantSystem {
   }
 
   @override
+  SetConstantValue createSet(CommonElements commonElements, InterfaceType type,
+          List<ConstantValue> values) =>
+      new SetConstantValue(type, values);
+
+  @override
   MapConstantValue createMap(CommonElements commonElements, InterfaceType type,
       List<ConstantValue> keys, List<ConstantValue> values) {
     return new MapConstantValue(type, keys, values);

@@ -184,6 +184,28 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   }
 
   @override
+  jsAst.Expression visitSet(JavaScriptSetConstant constant, [_]) {
+    InterfaceType sourceType = constant.type;
+    ClassEntity classElement = sourceType.element;
+    String className = classElement.name;
+    if (!identical(classElement, _commonElements.constSetLiteralClass)) {
+      failedAt(
+          classElement, "Compiler encoutered unexpected set class $className");
+    }
+
+    List<jsAst.Expression> arguments = <jsAst.Expression>[
+      constantReferenceGenerator(constant.entries),
+    ];
+
+    if (_rtiNeed.classNeedsTypeArguments(classElement)) {
+      arguments.add(_reifiedTypeArguments(constant, sourceType.typeArguments));
+    }
+
+    jsAst.Expression constructor = _emitter.constructorAccess(classElement);
+    return new jsAst.New(constructor, arguments);
+  }
+
+  @override
   jsAst.Expression visitMap(JavaScriptMapConstant constant, [_]) {
     jsAst.Expression jsMap() {
       List<jsAst.Property> properties = <jsAst.Property>[];

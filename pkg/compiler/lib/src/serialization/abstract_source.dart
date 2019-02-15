@@ -457,6 +457,10 @@ abstract class AbstractDataSource extends DataSourceMixin
         DartType type = readDartType();
         List<ConstantValue> entries = readConstants();
         return new ListConstantValue(type, entries);
+      case ConstantValueKind.SET:
+        DartType type = readDartType();
+        List<ConstantValue> values = readConstants();
+        return new SetConstantValue(type, values);
       case ConstantValueKind.MAP:
         DartType type = readDartType();
         List<ConstantValue> keys = readConstants();

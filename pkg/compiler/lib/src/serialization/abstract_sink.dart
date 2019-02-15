@@ -395,6 +395,11 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
         writeDartType(constant.type);
         writeConstants(constant.entries);
         break;
+      case ConstantValueKind.SET:
+        SetConstantValue constant = value;
+        writeDartType(constant.type);
+        writeConstants(constant.values);
+        break;
       case ConstantValueKind.MAP:
         MapConstantValue constant = value;
         writeDartType(constant.type);

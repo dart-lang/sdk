@@ -64,6 +64,8 @@ abstract class ConstantSystem {
   ConstantValue createBool(bool value);
   ConstantValue createNull();
   ConstantValue createList(InterfaceType type, List<ConstantValue> values);
+  ConstantValue createSet(CommonElements commonElements, InterfaceType type,
+      List<ConstantValue> values);
   ConstantValue createMap(CommonElements commonElements, InterfaceType type,
       List<ConstantValue> keys, List<ConstantValue> values);
   ConstantValue createType(CommonElements commonElements, DartType type);

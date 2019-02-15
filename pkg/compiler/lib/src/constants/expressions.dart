@@ -4,6 +4,8 @@
 
 library dart2js.constants.expressions;
 
+import 'dart:collection';
+
 import '../common.dart';
 import '../constants/constant_system.dart';
 import '../common_elements.dart';
@@ -32,6 +34,7 @@ enum ConstantExpressionKind {
   INT,
   INT_FROM_ENVIRONMENT,
   LIST,
+  SET,
   MAP,
   NULL,
   STRING,
@@ -400,6 +403,78 @@ class ListConstantExpression extends ConstantExpression {
 
   @override
   bool get isPotential => values.any((e) => e.isPotential);
+}
+
+/// Literal set constant.
+class SetConstantExpression extends ConstantExpression {
+  final InterfaceType type;
+  final List<ConstantExpression> values;
+
+  SetConstantExpression(this.type, this.values);
+
+  @override
+  ConstantExpressionKind get kind => ConstantExpressionKind.SET;
+
+  @override
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitSet(this, context);
+  }
+
+  @override
+  ConstantExpression apply(NormalizedArguments arguments) =>
+      new SetConstantExpression(
+          type, values.map((v) => v.apply(arguments)).toList());
+
+  @override
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    // TODO(fishythefish): Delete once the CFE provides these error messages.
+    Set<ConstantValue> set = new LinkedHashSet<ConstantValue>();
+    for (int i = 0; i < values.length; i++) {
+      ConstantValue value = values[i].evaluate(environment, constantSystem);
+      if (!value.isConstant) return new NonConstantValue();
+      if (!set.add(value)) {
+        environment.reportError(values[i], MessageKind.EQUAL_SET_ENTRY, {});
+      }
+    }
+
+    return constantSystem.createSet(
+        environment.commonElements, type, set.toList());
+  }
+
+  @override
+  DartType getKnownType(CommonElements commonElements) => type;
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Set(type=$type,values=[');
+    String delimiter = '';
+    for (ConstantExpression value in values) {
+      sb.write(delimiter);
+      value._createStructuredText(sb);
+      delimiter = ',';
+    }
+    sb.write('])');
+  }
+
+  @override
+  int _computeHashCode() => Hashing.listHash(values, Hashing.objectHash(type));
+
+  @override
+  bool _equals(SetConstantExpression other) {
+    if (type != other.type) return false;
+    if (values.length != other.values.length) return false;
+    for (int i = 0; i < values.length; i++) {
+      if (values[i] != other.values[i]) return false;
+    }
+    return true;
+  }
+
+  @override
+  bool get isImplicit => false;
+
+  @override
+  bool get isPotential => values.any((v) => v.isPotential);
 }
 
 /// Literal map constant.
@@ -2151,6 +2226,7 @@ abstract class ConstantExpressionVisitor<R, A> {
   R visitString(StringConstantExpression exp, A context);
   R visitNull(NullConstantExpression exp, A context);
   R visitList(ListConstantExpression exp, A context);
+  R visitSet(SetConstantExpression exp, A context);
   R visitMap(MapConstantExpression exp, A context);
   R visitConstructed(ConstructedConstantExpression exp, A context);
   R visitConcatenate(ConcatenateConstantExpression exp, A context);
@@ -2258,6 +2334,15 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
       needsComma = true;
     }
     sb.write(']');
+  }
+
+  @override
+  void visitSet(SetConstantExpression exp, [_]) {
+    sb.write('const ');
+    writeTypeArguments(exp.type);
+    sb.write('{');
+    sb.writeAll(exp.values, ', ');
+    sb.write('}');
   }
 
   @override

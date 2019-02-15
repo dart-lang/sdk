@@ -19,6 +19,7 @@ enum ConstantValueKind {
   BOOL,
   STRING,
   LIST,
+  SET,
   MAP,
   CONSTRUCTED,
   TYPE,
@@ -39,6 +40,7 @@ abstract class ConstantValueVisitor<R, A> {
   R visitBool(covariant BoolConstantValue constant, covariant A arg);
   R visitString(covariant StringConstantValue constant, covariant A arg);
   R visitList(covariant ListConstantValue constant, covariant A arg);
+  R visitSet(covariant SetConstantValue constant, covariant A arg);
   R visitMap(covariant MapConstantValue constant, covariant A arg);
   R visitConstructed(
       covariant ConstructedConstantValue constant, covariant A arg);
@@ -68,6 +70,7 @@ abstract class ConstantValue {
   bool get isNum => false;
   bool get isString => false;
   bool get isList => false;
+  bool get isSet => false;
   bool get isMap => false;
   bool get isConstructedObject => false;
   bool get isFunction => false;
@@ -519,6 +522,64 @@ class ListConstantValue extends ObjectConstantValue {
     sb.write('])');
     return sb.toString();
   }
+}
+
+class SetConstantValue extends ObjectConstantValue {
+  final List<ConstantValue> values;
+  final int hashCode;
+
+  SetConstantValue(InterfaceType type, List<ConstantValue> values)
+      : values = values,
+        hashCode = Hashing.listHash(values, Hashing.objectHash(type)),
+        super(type);
+
+  @override
+  bool get isSet => true;
+
+  bool operator ==(var other) {
+    if (identical(this, other)) return true;
+    if (other is! SetConstantValue) return false;
+    SetConstantValue otherSet = other;
+    if (hashCode != otherSet.hashCode) return false;
+    if (type != otherSet.type) return false;
+    if (length != otherSet.length) return false;
+    for (int i = 0; i < values.length; i++) {
+      if (values[i] != otherSet.values[i]) return false;
+    }
+    return true;
+  }
+
+  @override
+  List<ConstantValue> getDependencies() => values;
+
+  int get length => values.length;
+
+  @override
+  accept(ConstantValueVisitor visitor, arg) => visitor.visitSet(this, arg);
+
+  @override
+  String toDartText() {
+    StringBuffer sb = new StringBuffer();
+    _unparseTypeArguments(sb);
+    sb.write('{');
+    sb.writeAll(values.map((v) => v.toDartText()), ',');
+    sb.write('}');
+    return sb.toString();
+  }
+
+  @override
+  String toStructuredText() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('SetConstant(');
+    _unparseTypeArguments(sb);
+    sb.write('{');
+    sb.writeAll(values.map((v) => v.toStructuredText()), ', ');
+    sb.write('}');
+    return sb.toString();
+  }
+
+  @override
+  ConstantValueKind get kind => ConstantValueKind.SET;
 }
 
 class MapConstantValue extends ObjectConstantValue {

@@ -104,6 +104,11 @@ class ConstantValueTypeMasks
   }
 
   @override
+  TypeMask visitSet(SetConstantValue constant, JClosedWorld closedWorld) {
+    return closedWorld.abstractValueDomain.constSetType;
+  }
+
+  @override
   TypeMask visitMap(MapConstantValue constant, JClosedWorld closedWorld) {
     return closedWorld.abstractValueDomain.constMapType;
   }

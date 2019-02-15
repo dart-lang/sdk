@@ -211,6 +211,22 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   }
 
   @override
+  ConstantExpression visitSetLiteral(ir.SetLiteral node) {
+    if (!node.isConst) {
+      return defaultExpression(node);
+    }
+    DartType elementType = elementMap.getDartType(node.typeArgument);
+    List<ConstantExpression> values = <ConstantExpression>[];
+    for (ir.Expression expression in node.expressions) {
+      ConstantExpression value = visit(expression);
+      if (value == null) return null;
+      values.add(value);
+    }
+    return new SetConstantExpression(
+        _commonElements.setType(elementType), values);
+  }
+
+  @override
   ConstantExpression visitListLiteral(ir.ListLiteral node) {
     if (!node.isConst) {
       return defaultExpression(node);
