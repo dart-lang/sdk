@@ -1923,6 +1923,17 @@ fillLiteralMap(keyValuePairs, Map result) {
   return result;
 }
 
+/// Called by generated code to build a set literal.
+fillLiteralSet(values, Set result) {
+  // TODO(johnniwinther): Use JSArray to optimize this code instead of calling
+  // [getLength] and [getIndex].
+  int length = getLength(values);
+  for (int index = 0; index < length; index++) {
+    result.add(getIndex(values, index));
+  }
+  return result;
+}
+
 invokeClosure(Function closure, int numberOfArguments, var arg1, var arg2,
     var arg3, var arg4) {
   switch (numberOfArguments) {

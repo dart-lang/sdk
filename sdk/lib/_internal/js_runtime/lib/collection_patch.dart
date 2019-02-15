@@ -7,6 +7,7 @@ import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper'
     show
         fillLiteralMap,
+        fillLiteralSet,
         InternalMap,
         NoInline,
         NoSideEffects,
@@ -1239,6 +1240,30 @@ class LinkedHashSet<E> {
 
   @patch
   factory LinkedHashSet.identity() = _LinkedIdentityHashSet<E>;
+
+  // Private factory constructor called by generated code for set literals.
+  @NoThrows()
+  @NoInline()
+  @NoSideEffects()
+  factory LinkedHashSet._empty() => new _LinkedHashSet<E>();
+
+  // Private factory constructor called by generated code for set literals.
+  @NoInline()
+  factory LinkedHashSet._literal(List values) =>
+      fillLiteralSet(values, new _LinkedHashSet<E>());
+
+  // Private factory static function called by generated code for set literals.
+  // This version is for set literals without type parameters.
+  @NoThrows()
+  @NoInline()
+  @NoSideEffects()
+  static _makeEmpty() => new _LinkedHashSet();
+
+  // Private factory static function called by generated code for set literals.
+  // This version is for set literals without type parameters.
+  @NoInline()
+  static _makeLiteral(List values) =>
+      fillLiteralSet(values, new _LinkedHashSet());
 }
 
 class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
