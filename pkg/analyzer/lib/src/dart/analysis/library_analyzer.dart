@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/pending_error.dart';
@@ -48,7 +48,7 @@ class LibraryAnalyzer {
   final FileState _library;
   final ResourceProvider _resourceProvider;
 
-  final InheritanceManager3 _inheritance;
+  final InheritanceManager2 _inheritance;
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContext _context;
   final ElementResynthesizer _resynthesizer;

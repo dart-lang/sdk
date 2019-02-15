@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/summary/format.dart';
@@ -36,7 +36,7 @@ typedef bool VariableFilter(VariableElement element);
  */
 class InstanceMemberInferrer {
   final TypeProvider typeProvider;
-  final InheritanceManager3 inheritance;
+  final InheritanceManager2 inheritance;
   final Set<ClassElement> elementsBeingInferred = new HashSet<ClassElement>();
 
   InterfaceType interfaceType;
@@ -56,14 +56,14 @@ class InstanceMemberInferrer {
   }
 
   /**
-   * Return `true` if the elements corresponding to the [elements] have the same
+   * Return `true` if the elements corresponding to the [types] have the same
    * kind as the [element].
    */
   bool _allSameElementKind(
-      ExecutableElement element, List<ExecutableElement> elements) {
+      ExecutableElement element, List<FunctionType> types) {
     var elementKind = element.kind;
-    for (int i = 0; i < elements.length; i++) {
-      if (elements[i].kind != elementKind) {
+    for (int i = 0; i < types.length; i++) {
+      if (types[i].element.kind != elementKind) {
         return false;
       }
     }
@@ -83,7 +83,7 @@ class InstanceMemberInferrer {
       new Name(accessor.library.source.uri, name),
     );
 
-    List<ExecutableElement> overriddenSetters;
+    List<FunctionType> overriddenSetters;
     if (overriddenGetters == null || !accessor.variable.isFinal) {
       overriddenSetters = inheritance.getOverridden(
         interfaceType,
@@ -91,34 +91,34 @@ class InstanceMemberInferrer {
       );
     }
 
-    // Choose overridden members from getters or/and setters.
-    List<ExecutableElement> overriddenElements = <ExecutableElement>[];
+    // Choose overridden types from getters or/and setters.
+    List<FunctionType> overriddenTypes = <FunctionType>[];
     if (overriddenGetters == null && overriddenSetters == null) {
-      overriddenElements = const <ExecutableElement>[];
+      overriddenTypes = const <FunctionType>[];
     } else if (overriddenGetters == null && overriddenSetters != null) {
-      overriddenElements = overriddenSetters;
+      overriddenTypes = overriddenSetters;
     } else if (overriddenGetters != null && overriddenSetters == null) {
-      overriddenElements = overriddenGetters;
+      overriddenTypes = overriddenGetters;
     } else {
-      overriddenElements = <ExecutableElement>[]
+      overriddenTypes = <FunctionType>[]
         ..addAll(overriddenGetters)
         ..addAll(overriddenSetters);
     }
 
     bool isCovariant = false;
     DartType impliedType;
-    for (ExecutableElement overriddenElement in overriddenElements) {
-      var overriddenElementKind = overriddenElement.kind;
-      if (overriddenElement == null) {
+    for (FunctionType overriddenType in overriddenTypes) {
+      var overriddenElementKind = overriddenType.element.kind;
+      if (overriddenType == null) {
         return new _FieldOverrideInferenceResult(false, null, true);
       }
 
       DartType type;
       if (overriddenElementKind == ElementKind.GETTER) {
-        type = overriddenElement.returnType;
+        type = overriddenType.returnType;
       } else if (overriddenElementKind == ElementKind.SETTER) {
-        if (overriddenElement.parameters.length == 1) {
-          ParameterElement parameter = overriddenElement.parameters[0];
+        if (overriddenType.parameters.length == 1) {
+          ParameterElement parameter = overriddenType.parameters[0];
           type = parameter.type;
           isCovariant = isCovariant || parameter.isCovariant;
         }
@@ -355,17 +355,15 @@ class InstanceMemberInferrer {
 
     // TODO(scheglov) If no implicit types, don't ask inherited.
 
-    List<ExecutableElement> overriddenElements = inheritance.getOverridden(
+    List<FunctionType> overriddenTypes = inheritance.getOverridden(
       interfaceType,
       new Name(element.library.source.uri, element.name),
     );
-    if (overriddenElements == null ||
-        !_allSameElementKind(element, overriddenElements)) {
+    if (overriddenTypes == null ||
+        !_allSameElementKind(element, overriddenTypes)) {
       return;
     }
-
-    List<FunctionType> overriddenTypes =
-        _toOverriddenFunctionTypes(element, overriddenElements);
+    overriddenTypes = _toOverriddenFunctionTypes(element, overriddenTypes);
     if (overriddenTypes.isEmpty) {
       return;
     }
@@ -463,8 +461,11 @@ class InstanceMemberInferrer {
   }
 
   /**
-   * Return the [FunctionType] of the [overriddenElement] that [element]
-   * overrides. Return `null`, in case of type parameters inconsistency.
+   * If the [element] has formal type parameters, then the [overriddenType]
+   * must have it as well, but they are different.  Replace type parameters
+   * of the [overriddenType] with type formals of the [element].
+   *
+   * Return `null`, in case of type parameters inconsistency.
    *
    * The overridden element must have the same number of generic type
    * parameters as the target element, or none.
@@ -475,10 +476,9 @@ class InstanceMemberInferrer {
    * should infer this as `m<T>(T t)`.
    */
   FunctionType _toOverriddenFunctionType(
-      ExecutableElement element, ExecutableElement overriddenElement) {
+      ExecutableElement element, FunctionType overriddenType) {
     List<DartType> typeFormals =
         TypeParameterTypeImpl.getTypes(element.type.typeFormals);
-    FunctionType overriddenType = overriddenElement.type;
     if (overriddenType.typeFormals.isNotEmpty) {
       if (overriddenType.typeFormals.length != typeFormals.length) {
         return null;
@@ -489,21 +489,20 @@ class InstanceMemberInferrer {
   }
 
   /**
-   * Return [FunctionType]s of [overriddenElements] that override [element].
+   * Return [overriddenTypes] that override [element].
    * Return the empty list, in case of type parameters inconsistency.
    */
   List<FunctionType> _toOverriddenFunctionTypes(
-      ExecutableElement element, List<ExecutableElement> overriddenElements) {
-    var overriddenTypes = <FunctionType>[];
-    for (ExecutableElement overriddenElement in overriddenElements) {
-      FunctionType overriddenType =
-          _toOverriddenFunctionType(element, overriddenElement);
+      ExecutableElement element, List<FunctionType> overriddenTypes) {
+    var result = <FunctionType>[];
+    for (var overriddenType in overriddenTypes) {
+      overriddenType = _toOverriddenFunctionType(element, overriddenType);
       if (overriddenType == null) {
         return const <FunctionType>[];
       }
-      overriddenTypes.add(overriddenType);
+      result.add(overriddenType);
     }
-    return overriddenTypes;
+    return result;
   }
 
   /**

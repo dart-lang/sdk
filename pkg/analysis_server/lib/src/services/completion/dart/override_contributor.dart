@@ -10,8 +10,8 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol
     hide CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -36,7 +36,7 @@ class OverrideContributor implements DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
-    var inheritance = new InheritanceManager3(request.result.typeSystem);
+    var inheritance = new InheritanceManager2(request.result.typeSystem);
 
     // Generate a collection of inherited members
     var classElem = classDecl.declaredElement;
@@ -48,12 +48,12 @@ class OverrideContributor implements DartCompletionContributor {
     // Build suggestions
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     for (Name name in namesToOverride) {
-      ExecutableElement element = interfaceMap[name];
+      FunctionType signature = interfaceMap[name];
       // Gracefully degrade if the overridden element has not been resolved.
-      if (element.returnType != null) {
+      if (signature.returnType != null) {
         var invokeSuper = interface.isSuperImplemented(name);
         var suggestion =
-            await _buildSuggestion(request, targetId, element, invokeSuper);
+            await _buildSuggestion(request, targetId, signature, invokeSuper);
         if (suggestion != null) {
           suggestions.add(suggestion);
         }
@@ -64,19 +64,19 @@ class OverrideContributor implements DartCompletionContributor {
 
   /**
    * Build a suggestion to replace [targetId] in the given [request] with an
-   * override of the given [element].
+   * override of the given [signature].
    */
   Future<CompletionSuggestion> _buildSuggestion(
       DartCompletionRequest request,
       SimpleIdentifier targetId,
-      ExecutableElement element,
+      FunctionType signature,
       bool invokeSuper) async {
     var displayTextBuffer = new StringBuffer();
     var builder = new DartChangeBuilder(request.result.session);
     await builder.addFileEdit(request.result.path, (builder) {
       builder.addReplacement(range.node(targetId), (builder) {
         builder.writeOverride(
-          element,
+          signature,
           displayTextBuffer: displayTextBuffer,
           invokeSuper: invokeSuper,
         );
@@ -113,11 +113,11 @@ class OverrideContributor implements DartCompletionContributor {
         completion,
         selectionRange.offset - offsetDelta,
         selectionRange.length,
-        element.hasDeprecated,
+        signature.element.hasDeprecated,
         false,
         displayText: displayText);
-    suggestion.element = protocol.convertElement(element);
-    suggestion.elementUri = element.source.toString();
+    suggestion.element = protocol.convertElement(signature.element);
+    suggestion.elementUri = signature.element.source.toString();
     return suggestion;
   }
 
