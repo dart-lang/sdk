@@ -51,16 +51,19 @@ intptr_t TimelineEventSystraceRecorder::PrintSystrace(TimelineEvent* event,
     case TimelineEvent::kBegin: {
       length = Utils::SNPrint(buffer, buffer_size, "B|%" Pd64 "|%s", pid,
                               event->label());
-    } break;
+      break;
+    }
     case TimelineEvent::kEnd: {
       length = Utils::SNPrint(buffer, buffer_size, "E");
-    } break;
+      break;
+    }
     case TimelineEvent::kCounter: {
       if (event->arguments_length() > 0) {
         // We only report the first counter value.
         length = Utils::SNPrint(buffer, buffer_size, "C|%" Pd64 "|%s|%s", pid,
                                 event->label(), event->arguments()[0].value);
       }
+      break;
     }
     default:
       // Ignore event types that we cannot serialize to the Systrace format.

@@ -476,8 +476,8 @@ RegExpTree* RegExpParser::ParseDisjunction() {
               Advance(2);
               break;
             }
+            FALL_THROUGH;
           }
-          // FALLTHROUGH
           case '0': {
             Advance();
             uint32_t octal = ParseOctalLiteral();
@@ -557,8 +557,8 @@ RegExpTree* RegExpParser::ParseDisjunction() {
           ReportError("Nothing to repeat");
           UNREACHABLE();
         }
+        FALL_THROUGH;
       }
-      /* Falls through */
       default:
         builder->AddCharacter(current());
         Advance();
@@ -866,12 +866,19 @@ uint32_t RegExpParser::ParseClassCharacterEscape() {
       return '\\';
     }
     case '0':
+      FALL_THROUGH;
     case '1':
+      FALL_THROUGH;
     case '2':
+      FALL_THROUGH;
     case '3':
+      FALL_THROUGH;
     case '4':
+      FALL_THROUGH;
     case '5':
+      FALL_THROUGH;
     case '6':
+      FALL_THROUGH;
     case '7':
       // For compatibility, we interpret a decimal escape that isn't
       // a back reference (and therefore either \0 or not valid according

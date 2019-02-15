@@ -979,7 +979,7 @@ static inline bool EmitAtomLetter(Zone* zone,
     }
     case 4:
       macro_assembler->CheckCharacter(chars[3], &ok);
-    // Fall through!
+      FALL_THROUGH;
     case 3:
       macro_assembler->CheckCharacter(chars[0], &ok);
       macro_assembler->CheckCharacter(chars[1], &ok);

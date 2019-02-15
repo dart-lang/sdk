@@ -166,6 +166,7 @@ config("dart_config") {
       "-ggdb3",
       "-fno-rtti",
       "-fno-exceptions",
+      "-Wimplicit-fallthrough",
     ]
 
     ldflags = []

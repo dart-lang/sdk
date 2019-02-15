@@ -2554,19 +2554,30 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
         break;
       }
       case kTypedDataInt8ArrayCid:
+        FALL_THROUGH;
       case kTypedDataUint8ArrayCid:
+        FALL_THROUGH;
       case kTypedDataUint8ClampedArrayCid:
+        FALL_THROUGH;
       case kExternalTypedDataUint8ArrayCid:
+        FALL_THROUGH;
       case kExternalTypedDataUint8ClampedArrayCid:
+        FALL_THROUGH;
       case kTypedDataInt16ArrayCid:
+        FALL_THROUGH;
       case kTypedDataUint16ArrayCid:
+        FALL_THROUGH;
       case kTypedDataInt32ArrayCid:
+        FALL_THROUGH;
       case kTypedDataUint32ArrayCid:
+        FALL_THROUGH;
       case kTypedDataInt64ArrayCid:
+        FALL_THROUGH;
       case kTypedDataUint64ArrayCid:
         ASSERT(value_type.IsIntType());
-      // Fall through.
+        FALL_THROUGH;
       case kTypedDataFloat32ArrayCid:
+        FALL_THROUGH;
       case kTypedDataFloat64ArrayCid: {
         type_args = flow_graph->constant_null();
         ASSERT((array_cid != kTypedDataFloat32ArrayCid &&
@@ -4091,7 +4102,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                              call->GetBlock()->try_index(), DeoptId::kNone);
       (*entry)->InheritDeoptTarget(Z, call);
       ASSERT(!call->HasUses());
-      *last = NULL;  // Empty body.
+      *last = NULL;    // Empty body.
       *result = NULL;  // Since no uses of original call, result will be unused.
       return true;
     }

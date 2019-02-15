@@ -1998,8 +1998,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       if (function.IsImplicitClosureFunction()) {
         return BuildGraphOfImplicitClosureFunction(function);
       }
+      FALL_THROUGH;
     }
-    /* Falls through */
     case RawFunction::kClosureFunction: {
       ReadUntilFunctionNode();
       return BuildGraphOfFunction(false);

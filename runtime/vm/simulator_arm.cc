@@ -1584,8 +1584,8 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
             // Registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
             // Format(instr, "mls'cond's 'rn, 'rm, 'rs, 'rd");
             rd_val = get_register(rd);
+            FALL_THROUGH;
           }
-          /* Falls through */
           case 0: {
             // Registers rd, rn, rm are encoded as rn, rm, rs.
             // Format(instr, "mul'cond's 'rn, 'rm, 'rs");
@@ -1642,7 +1642,7 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
               // umaal is only in ARMv6 and above.
               UnimplementedInstruction(instr);
             }
-            /* Falls through */
+            FALL_THROUGH;
           case 5:
           // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
           // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");
