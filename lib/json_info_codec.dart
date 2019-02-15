@@ -334,8 +334,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   /// Whether to generate json compatible with format 5.1
   final bool isBackwardCompatible;
   final Map<Info, Id> ids = new HashMap<Info, Id>();
-  final Set<String> usedIds = new Set<String>();
-  final Set<int> usedOldIds = new Set<int>();
+  final Set<int> usedIds = new Set<int>();
 
   AllInfoToJsonConverter({this.isBackwardCompatible: false});
 
@@ -350,44 +349,22 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
             info.parent != null,
         "$info");
 
-    String id;
-    int oldId;
+    int id;
     if (info is ConstantInfo) {
       // No name and no parent, so `longName` isn't helpful
       assert(info.name == null);
       assert(info.parent == null);
       assert(info.code != null);
       // Instead, use the content of the code.
-      if (isBackwardCompatible) {
-        oldId = info.code.first.text.hashCode;
-      } else {
-        id = info.code.first.text ?? "_";
-      }
+      id = info.code.first.text.hashCode;
     } else {
-      id = longName(info, useLibraryUri: true, forId: true);
-      if (isBackwardCompatible) {
-        oldId = id.hashCode;
-      } else {
-        if (info is FieldInfo || info is FunctionInfo || info is ClosureInfo) {
-          id = "${id}_${info.size}";
-        }
-      }
+      id = longName(info, useLibraryUri: true, forId: true).hashCode;
     }
 
-    String candidateId;
-    if (isBackwardCompatible) {
-      while (!usedOldIds.add(oldId)) {
-        oldId++;
-      }
-      candidateId = '$oldId';
-    } else {
-      int suffix = 0;
-      do {
-        candidateId = id + (suffix == 0 ? '' : '.$suffix');
-        suffix++;
-      } while (!usedIds.add(candidateId));
+    while (!usedIds.add(id)) {
+      id++;
     }
-    serializedId = new Id(info.kind, candidateId);
+    serializedId = new Id(info.kind, '$id');
     return ids[info] = serializedId;
   }
 
