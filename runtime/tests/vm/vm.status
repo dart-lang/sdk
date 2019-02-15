@@ -129,6 +129,12 @@ cc/GenKernelKernelCombined: Skip  # Issue 34393.
 cc/GenKernelKernelMaxRSS: Skip  # Issue 34393.
 dart/appjit_bytecode_simple_test: Skip  # Issue 34393.
 
+[ $arch == simarm || $arch == simarm64 || $arch == simdbc || $arch == simdbc64 || $arch == ia32 || $arch == arm ]
+cc/GenKernelKernelLoadKernel: SkipByDesign  # No interpreter support.
+cc/GenKernelKernelReadAllBytecode: SkipByDesign  # No interpreter support.
+cc/GenKernelKernelCombined: SkipByDesign  # No interpreter support.
+cc/GenKernelKernelMaxRSS: SkipByDesign  # No interpreter support.
+
 [ !$strong ]
 dart/callee_side_type_checks_test: SkipByDesign
 

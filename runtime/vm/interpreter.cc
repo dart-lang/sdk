@@ -237,6 +237,10 @@ void LookupCache::Insert(intptr_t receiver_cid,
 
 Interpreter::Interpreter()
     : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL), lookup_cache_() {
+#if defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
+  FATAL("Interpreter is not supported when targeting a sim* architecture.\n");
+#endif  // defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
+
   // Setup interpreter support first. Some of this information is needed to
   // setup the architecture state.
   // We allocate the stack here, the size is computed as the sum of
