@@ -14,6 +14,7 @@ class ResolutionImpact extends WorldImpact {
 
   Iterable<Feature> get features => const <Feature>[];
   Iterable<MapLiteralUse> get mapLiterals => const <MapLiteralUse>[];
+  Iterable<SetLiteralUse> get setLiterals => const <SetLiteralUse>[];
   Iterable<ListLiteralUse> get listLiterals => const <ListLiteralUse>[];
   Iterable<String> get constSymbolNames => const <String>[];
   Iterable<ConstantExpression> get constantLiterals =>
