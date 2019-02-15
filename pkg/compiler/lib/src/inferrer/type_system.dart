@@ -36,6 +36,9 @@ abstract class TypeSystemStrategy {
   /// Returns whether [node] is valid as a list allocation node.
   bool checkListNode(ir.Node node);
 
+  /// Returns whether [node] is valid as a set allocation node.
+  bool checkSetNode(ir.Node node);
+
   /// Returns whether [node] is valid as a map allocation node.
   bool checkMapNode(ir.Node node);
 
@@ -63,6 +66,10 @@ class TypeSystem {
   /// [ListTypeInformation] for allocated lists.
   final Map<ir.TreeNode, ListTypeInformation> allocatedLists =
       new Map<ir.TreeNode, ListTypeInformation>();
+
+  /// [SetTypeInformation] for allocated Sets.
+  final Map<ir.TreeNode, SetTypeInformation> allocatedSets =
+      new Map<ir.TreeNode, SetTypeInformation>();
 
   /// [MapTypeInformation] for allocated Maps.
   final Map<ir.TreeNode, TypeInformation> allocatedMaps =
@@ -92,6 +99,7 @@ class TypeSystem {
         parameterTypeInformations.values,
         memberTypeInformations.values,
         allocatedLists.values,
+        allocatedSets.values,
         allocatedMaps.values,
         allocatedClosures,
         concreteTypes.values,
@@ -500,6 +508,25 @@ class TypeSystem {
         _abstractValueDomain, currentMember, element);
     allocatedClosures.add(result);
     return result;
+  }
+
+  TypeInformation allocateSet(
+      TypeInformation type, ir.Node node, MemberEntity enclosing,
+      [TypeInformation elementType]) {
+    assert(strategy.checkSetNode(node));
+    bool isConst = type.type == _abstractValueDomain.constSetType;
+
+    AbstractValue elementTypeMask =
+        isConst ? elementType.type : dynamicType.type;
+    AbstractValue mask = _abstractValueDomain.createSetValue(
+        type.type, node, enclosing, elementTypeMask);
+    ElementInSetTypeInformation element = new ElementInSetTypeInformation(
+        _abstractValueDomain, currentMember, elementType);
+    element.inferred = isConst;
+
+    allocatedTypes.add(element);
+    return allocatedSets[node] =
+        new SetTypeInformation(currentMember, mask, element);
   }
 
   TypeInformation allocateMap(

@@ -629,6 +629,26 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitSetLiteral(ir.SetLiteral node) {
+    return _inferrer.concreteTypes.putIfAbsent(node, () {
+      TypeInformation elementType;
+      for (ir.Expression element in node.expressions) {
+        TypeInformation type = visit(element);
+        elementType = elementType == null
+            ? _types.allocatePhi(null, null, type, isTry: false)
+            : _types.addPhiInput(null, elementType, type);
+      }
+      elementType = elementType == null
+          ? _types.nonNullEmpty()
+          : _types.simplifyPhi(null, null, elementType);
+      TypeInformation containerType =
+          node.isConst ? _types.constSetType : _types.setType;
+      return _types.allocateSet(
+          containerType, node, _analyzedMember, elementType);
+    });
+  }
+
+  @override
   TypeInformation visitMapLiteral(ir.MapLiteral node) {
     return _inferrer.concreteTypes.putIfAbsent(node, () {
       List keyTypes = <TypeInformation>[];

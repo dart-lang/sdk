@@ -1261,6 +1261,9 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
   bool checkMapNode(ir.Node node) => true;
 
   @override
+  bool checkSetNode(ir.Node node) => true;
+
+  @override
   bool checkListNode(ir.Node node) => true;
 
   @override
