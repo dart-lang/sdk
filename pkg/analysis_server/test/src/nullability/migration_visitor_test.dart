@@ -112,7 +112,7 @@ Int f(Int i, Int j) => (i + j);
 
     assertConstraint(
         [decoratedTypeAnnotation('Int operator+').nullable],
-        _mockOr(decoratedTypeAnnotation('Int f').nullable,
+        _either(decoratedTypeAnnotation('Int f').nullable,
             checkExpression('(i + j)').nullCheck));
   }
 
@@ -143,7 +143,7 @@ Int f(Int i, Int j) => i + j/*check*/;
 
     assertConstraint(
         [decoratedTypeAnnotation('Int j').nullable],
-        _mockOr(decoratedTypeAnnotation('Int other').nullable,
+        _either(decoratedTypeAnnotation('Int other').nullable,
             checkExpression('j/*check*/').nullCheck));
   }
 
@@ -185,14 +185,14 @@ int f(bool b, int i, int j) {
 
     var nullable_i = decoratedTypeAnnotation('int i').nullable;
     var nullable_j = decoratedTypeAnnotation('int j').nullable;
-    var nullable_i_or_nullable_j = _mockOr(nullable_i, nullable_j);
+    var nullable_i_or_nullable_j = _either(nullable_i, nullable_j);
     var nullable_conditional = decoratedExpressionType('(b ?').nullable;
     var nullable_return = decoratedTypeAnnotation('int f').nullable;
     assertConstraint([nullable_i], nullable_conditional);
     assertConstraint([nullable_j], nullable_conditional);
     assertConstraint([nullable_conditional], nullable_i_or_nullable_j);
     assertConstraint([nullable_conditional],
-        _mockOr(nullable_return, checkExpression('(b ? i : j)').nullCheck));
+        _either(nullable_return, checkExpression('(b ? i : j)').nullCheck));
   }
 
   test_conditionalExpression_left_non_null() async {
@@ -248,7 +248,7 @@ int/*1*/ f(int/*2*/ i) => i/*3*/;
 
     assertConstraint(
         [decoratedTypeAnnotation('int/*2*/').nullable],
-        _mockOr(decoratedTypeAnnotation('int/*1*/').nullable,
+        _either(decoratedTypeAnnotation('int/*1*/').nullable,
             checkExpression('i/*3*/').nullCheck));
   }
 
@@ -382,7 +382,7 @@ void test(int/*2*/ i) {
     var int_1 = decoratedTypeAnnotation('int/*1*/');
     var int_2 = decoratedTypeAnnotation('int/*2*/');
     var i_3 = checkExpression('i/*3*/');
-    assertConstraint([int_2.nullable], _mockOr(int_1.nullable, i_3.nullCheck));
+    assertConstraint([int_2.nullable], _either(int_1.nullable, i_3.nullCheck));
     assertConstraint([int_2.nullable, int_1.nonNullIntent], i_3.nullCheck);
   }
 
@@ -396,7 +396,7 @@ void g(int j) {
     var nullable_i = decoratedTypeAnnotation('int i').nullable;
     var nullable_j = decoratedTypeAnnotation('int j').nullable;
     assertConstraint([nullable_j],
-        _mockOr(nullable_i, checkExpression('j/*check*/').nullCheck));
+        _either(nullable_i, checkExpression('j/*check*/').nullCheck));
   }
 
   test_functionInvocation_parameter_named_missing() async {
@@ -437,7 +437,7 @@ void test() {
 
     assertConstraint(
         [ConstraintVariable.always],
-        _mockOr(decoratedTypeAnnotation('int').nullable,
+        _either(decoratedTypeAnnotation('int').nullable,
             checkExpression('null').nullCheck));
   }
 
@@ -451,7 +451,7 @@ int/*2*/ g() {
 
     assertConstraint(
         [decoratedTypeAnnotation('int/*1*/').nullable],
-        _mockOr(decoratedTypeAnnotation('int/*2*/').nullable,
+        _either(decoratedTypeAnnotation('int/*2*/').nullable,
             checkExpression('(f())').nullCheck));
   }
 
@@ -509,9 +509,9 @@ int f(int i, int j, int k) {
     var nullable_k = decoratedTypeAnnotation('int k').nullable;
     var nullable_return = decoratedTypeAnnotation('int f').nullable;
     assertConstraint([nullable_i, nullable_j],
-        _mockOr(nullable_return, checkExpression('j/*check*/').nullCheck));
+        _either(nullable_return, checkExpression('j/*check*/').nullCheck));
     assertConstraint([nullable_k],
-        _mockOr(nullable_return, checkExpression('k/*check*/').nullCheck));
+        _either(nullable_return, checkExpression('k/*check*/').nullCheck));
     var discard = statementDiscard('if (i == null)');
     expect(discard.keepTrue, same(nullable_i));
     expect(discard.keepFalse, same(ConstraintVariable.always));
@@ -533,9 +533,9 @@ int f(bool b, int i, int j) {
     var nullable_j = decoratedTypeAnnotation('int j').nullable;
     var nullable_return = decoratedTypeAnnotation('int f').nullable;
     assertConstraint([nullable_i],
-        _mockOr(nullable_return, checkExpression('i/*check*/').nullCheck));
+        _either(nullable_return, checkExpression('i/*check*/').nullCheck));
     assertConstraint([nullable_j],
-        _mockOr(nullable_return, checkExpression('j/*check*/').nullCheck));
+        _either(nullable_return, checkExpression('j/*check*/').nullCheck));
   }
 
   test_if_without_else() async {
@@ -551,7 +551,7 @@ int f(bool b, int i) {
     var nullable_i = decoratedTypeAnnotation('int i').nullable;
     var nullable_return = decoratedTypeAnnotation('int f').nullable;
     assertConstraint([nullable_i],
-        _mockOr(nullable_return, checkExpression('i/*check*/').nullCheck));
+        _either(nullable_return, checkExpression('i/*check*/').nullCheck));
   }
 
   test_intLiteral() async {
@@ -595,10 +595,10 @@ void g(C<int> c, int i) {
     var nullable_c_t =
         decoratedTypeAnnotation('C<int>').typeArguments[0].nullable;
     var nullable_t = decoratedTypeAnnotation('T t').nullable;
-    var nullable_c_t_or_nullable_t = _mockOr(nullable_c_t, nullable_t);
+    var nullable_c_t_or_nullable_t = _either(nullable_c_t, nullable_t);
     assertConstraint(
         [nullable_i],
-        _mockOr(nullable_c_t_or_nullable_t,
+        _either(nullable_c_t_or_nullable_t,
             checkExpression('i/*check*/').nullCheck));
   }
 
@@ -615,7 +615,7 @@ void g(C<int/*3*/>/*4*/ c) {
         decoratedTypeAnnotation('int/*1*/').nullable);
     assertConstraint(
         [decoratedTypeAnnotation('C<int/*3*/>/*4*/').nullable],
-        _mockOr(decoratedTypeAnnotation('C<int/*1*/>/*2*/').nullable,
+        _either(decoratedTypeAnnotation('C<int/*1*/>/*2*/').nullable,
             checkExpression('c/*check*/').nullCheck));
   }
 
@@ -631,7 +631,7 @@ void g(C c, int j) {
     var nullable_i = decoratedTypeAnnotation('int i').nullable;
     var nullable_j = decoratedTypeAnnotation('int j').nullable;
     assertConstraint([nullable_j],
-        _mockOr(nullable_i, checkExpression('j/*check*/').nullCheck));
+        _either(nullable_i, checkExpression('j/*check*/').nullCheck));
   }
 
   test_methodInvocation_target_check() async {
@@ -657,7 +657,7 @@ int f() {
 
     assertConstraint(
         [ConstraintVariable.always],
-        _mockOr(decoratedTypeAnnotation('int').nullable,
+        _either(decoratedTypeAnnotation('int').nullable,
             checkExpression('(null)').nullCheck));
   }
 
@@ -682,7 +682,7 @@ int f() {
 
     assertConstraint(
         [ConstraintVariable.always],
-        _mockOr(decoratedTypeAnnotation('int').nullable,
+        _either(decoratedTypeAnnotation('int').nullable,
             checkExpression('null').nullCheck));
   }
 
@@ -728,7 +728,7 @@ Type f() {
   /// the purpose of inspecting constraint equations in unit tests.  No
   /// additional constraints will be recorded in [_constraints] as a consequence
   /// of creating this variable.
-  ConstraintVariable _mockOr(ConstraintVariable a, ConstraintVariable b) =>
+  ConstraintVariable _either(ConstraintVariable a, ConstraintVariable b) =>
       ConstraintVariable.or(_MockConstraints(), a, b);
 }
 
