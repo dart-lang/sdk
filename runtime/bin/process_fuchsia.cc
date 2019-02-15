@@ -581,7 +581,7 @@ class ProcessStarter {
         TEMP_FAILURE_RETRY(openat(ns.fd(), ns.path(), O_RDONLY));
     zx_handle_t vmo = ZX_HANDLE_INVALID;
     zx_status_t status = fdio_get_vmo_clone(pathfd, &vmo);
-    VOID_TEMP_FAILURE_RETRY(close(pathfd));
+    close(pathfd);
     if (status != ZX_OK) {
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);

@@ -29,7 +29,7 @@ class DescriptorInfo : public DescriptorInfoBase {
   intptr_t GetPollEvents();
 
   virtual void Close() {
-    VOID_TEMP_FAILURE_RETRY(close(fd_));
+    close(fd_);
     fd_ = -1;
   }
 

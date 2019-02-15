@@ -120,9 +120,9 @@ static void DeleteDescriptorInfo(void* info) {
 
 EventHandlerImplementation::~EventHandlerImplementation() {
   socket_map_.Clear(DeleteDescriptorInfo);
-  VOID_TEMP_FAILURE_RETRY(close(epoll_fd_));
-  VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
-  VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
+  close(epoll_fd_);
+  close(interrupt_fds_[0]);
+  close(interrupt_fds_[1]);
 }
 
 void EventHandlerImplementation::UpdateEpollInstance(intptr_t old_mask,

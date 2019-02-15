@@ -395,7 +395,7 @@ bool File::Copy(Namespace* namespc,
       openat(newns.fd(), newns.path(),
              O_WRONLY | O_TRUNC | O_CREAT | O_CLOEXEC, st.st_mode));
   if (new_fd < 0) {
-    VOID_TEMP_FAILURE_RETRY(close(old_fd));
+    close(old_fd);
     return false;
   }
   // TODO(ZX-429): Use sendfile/copyfile or equivalent when there is one.

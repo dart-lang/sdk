@@ -75,7 +75,7 @@ class FSEventsWatcher {
 
     ~Node() {
       Stop();
-      VOID_TEMP_FAILURE_RETRY(close(write_fd_));
+      close(write_fd_);
       CFRelease(path_ref_);
     }
 
