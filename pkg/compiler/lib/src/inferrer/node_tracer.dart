@@ -51,6 +51,31 @@ Set<String> doesNotEscapeListSet = new Set<String>.from(const <String>[
   'checkGrowable',
 ]);
 
+Set<String> doesNotEscapeSetSet = new Set<String>.from(const <String>[
+  // From Object.
+  '==',
+  'hashCode',
+  'toString',
+  'noSuchMethod',
+  'runtimeType',
+
+  // From Iterable.
+  'isEmpty',
+  'isNotEmpty',
+  'length',
+  'contains',
+  'join',
+
+  // From Set.
+  'add',
+  'addAll',
+  'clear',
+  'containsAll',
+  'remove',
+  'removeAll',
+  'retainAll',
+]);
+
 Set<String> doesNotEscapeMapSet = new Set<String>.from(const <String>[
   // From Object.
   '==',
@@ -141,6 +166,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       }
       while (!listsToAnalyze.isEmpty) {
         analyzeStoredIntoList(listsToAnalyze.removeLast());
+      }
+      while (setsToAnalyze.isNotEmpty) {
+        analyzeStoredIntoSet(setsToAnalyze.removeLast());
       }
       while (!mapsToAnalyze.isEmpty) {
         analyzeStoredIntoMap(mapsToAnalyze.removeLast());
@@ -238,6 +266,24 @@ abstract class TracerVisitor implements TypeInformationVisitor {
             addNewEscapeInformation(user);
           } else if (!doesNotEscapeListSet.contains(user.selector.name)) {
             bailout('Escape from a list via [${user.selector.name}]');
+          }
+        });
+      });
+    }
+  }
+
+  void analyzeStoredIntoSet(SetTypeInformation set) {
+    inferrer.analyzeSetAndEnqueue(set);
+    if (set.bailedOut) {
+      bailout('Stored in a set that bailed out');
+    } else {
+      set.flowsInto.forEach((flow) {
+        flow.users.forEach((dynamic user) {
+          if (user.receiver != flow) return;
+          if (user.selector.isIndex) {
+            addNewEscapeInformation(user);
+          } else if (!doesNotEscapeSetSet.contains(user.selector.name)) {
+            bailout('Escape from a set via [${user.selector.name}]');
           }
         });
       });
