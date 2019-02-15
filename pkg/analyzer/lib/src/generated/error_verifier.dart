@@ -1005,26 +1005,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitListLiteral2(ListLiteral2 node) {
-    TypeArgumentList typeArguments = node.typeArguments;
-    if (typeArguments != null) {
-      if (node.isConst) {
-        NodeList<TypeAnnotation> arguments = typeArguments.arguments;
-        if (arguments.isNotEmpty) {
-          _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
-              CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST);
-        }
-      }
-      _checkTypeArgumentCount(typeArguments, 1,
-          StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS);
-    }
-    _checkForImplicitDynamicTypedLiteral(node);
-    _checkForListElementTypeNotAssignable2(node);
-
-    super.visitListLiteral2(node);
-  }
-
-  @override
   void visitMapLiteral(MapLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
     if (typeArguments != null) {
@@ -4033,40 +4013,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     // Check every list element.
     bool isConst = literal.isConst;
-    for (Expression element in literal.elements) {
-      if (isConst) {
-        // TODO(paulberry): this error should be based on the actual type of the
-        // list element, not the static type.  See dartbug.com/21119.
-        _checkForArgumentTypeNotAssignableWithExpectedTypes(
-            element,
-            listElementType,
-            CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
-      }
-      _checkForArgumentTypeNotAssignableWithExpectedTypes(element,
-          listElementType, StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
-    }
-  }
-
-  /**
-   * Verify that the elements of the given list [literal] are subtypes of the
-   * list's static type.
-   */
-  void _checkForListElementTypeNotAssignable2(ListLiteral2 literal) {
-    // Determine the list's element type. We base this on the static type and
-    // not the literal's type arguments because in strong mode, the type
-    // arguments may be inferred.
-    DartType listType = literal.staticType;
-    assert(listType is InterfaceTypeImpl);
-
-    List<DartType> typeArguments =
-        (listType as InterfaceTypeImpl).typeArguments;
-    assert(typeArguments.length == 1);
-
-    DartType listElementType = typeArguments[0];
-
-    // Check every list element.
-    bool isConst = literal.isConst;
-    for (CollectionElement element in literal.elements) {
+    for (CollectionElement element in literal.elements2) {
       if (isConst) {
         // TODO(paulberry): this error should be based on the actual type of the
         // list element, not the static type.  See dartbug.com/21119.

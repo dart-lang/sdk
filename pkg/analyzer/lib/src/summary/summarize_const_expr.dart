@@ -536,10 +536,18 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
+  void _serializeCollectionElement(CollectionElement element) {
+    if (element is Expression) {
+      _serialize(element);
+    } else {
+      throw new StateError('Unsupported CollectionElement: $element');
+    }
+  }
+
   void _serializeListLiteral(ListLiteral expr) {
     if (forConst || expr.typeArguments == null) {
-      List<Expression> elements = expr.elements;
-      elements.forEach(_serialize);
+      List<CollectionElement> elements = expr.elements2;
+      elements.forEach(_serializeCollectionElement);
       ints.add(elements.length);
     } else {
       ints.add(0);

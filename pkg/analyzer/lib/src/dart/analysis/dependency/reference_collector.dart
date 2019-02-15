@@ -236,6 +236,28 @@ class ReferenceCollector {
     }
   }
 
+  void _visitCollectionElement(CollectionElement node) {
+    if (node == null) {
+      return;
+    } else if (node is Expression) {
+      _visitExpression(node);
+    } else if (node is ForElement) {
+      _visitForLoopParts(node.forLoopParts);
+      _visitCollectionElement(node.body);
+    } else if (node is IfElement) {
+      _visitExpression(node.condition);
+      _visitCollectionElement(node.thenElement);
+      _visitCollectionElement(node.elseElement);
+    } else if (node is MapLiteralEntry) {
+      _visitExpression(node.key);
+      _visitExpression(node.value);
+    } else if (node is SpreadElement) {
+      _visitExpression(node.expression);
+    } else {
+      throw UnimplementedError('(${node.runtimeType}) $node');
+    }
+  }
+
   /// Record reference to the constructor of the [type] with the given [name].
   void _visitConstructor(TypeName type, SimpleIdentifier name) {
     _visitTypeAnnotation(type);
@@ -342,6 +364,8 @@ class ReferenceCollector {
       // no dependencies
     } else if (node is SetLiteral) {
       _visitSetLiteral(node);
+    } else if (node is SetOrMapLiteral) {
+      _visitSetOrMapLiteral(node);
     } else if (node is SimpleIdentifier) {
       _visitSimpleIdentifier(node, get: get, set: set);
     } else if (node is SimpleStringLiteral) {
@@ -362,6 +386,12 @@ class ReferenceCollector {
       _visitExpression(node.expression);
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');
+    }
+  }
+
+  void _visitExpressionList(NodeList<Expression> nodes) {
+    for (Expression node in nodes) {
+      _visitExpression(node);
     }
   }
 
@@ -386,6 +416,26 @@ class ReferenceCollector {
     _visitStatement(node.body);
 
     _localScopes.exit();
+  }
+
+  void _visitForLoopParts(ForLoopParts node) {
+    if (node == null) {
+      return;
+    } else if (node is ForPartsWithDeclarations) {
+      _visitVariableList(node.variables);
+      _visitExpression(node.condition);
+      _visitExpressionList(node.updaters);
+    } else if (node is ForPartsWithExpression) {
+      _visitExpression(node.initialization);
+      _visitExpression(node.condition);
+      _visitExpressionList(node.updaters);
+    } else if (node is ForEachPartsWithDeclaration) {
+      _visitExpression(node.iterable);
+    } else if (node is ForEachPartsWithIdentifier) {
+      _visitExpression(node.iterable);
+    } else {
+      throw UnimplementedError('(${node.runtimeType}) $node');
+    }
   }
 
   void _visitFormalParameterList(FormalParameterList node) {
@@ -516,10 +566,10 @@ class ReferenceCollector {
 
   void _visitListLiteral(ListLiteral node) {
     _visitTypeArguments(node.typeArguments);
-    var elements = node.elements;
+    var elements = node.elements2;
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _visitExpression(element);
+      _visitCollectionElement(element);
     }
   }
 
@@ -614,6 +664,15 @@ class ReferenceCollector {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       _visitExpression(element);
+    }
+  }
+
+  void _visitSetOrMapLiteral(SetOrMapLiteral node) {
+    _visitTypeArguments(node.typeArguments);
+    var elements = node.elements2;
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      _visitCollectionElement(element);
     }
   }
 

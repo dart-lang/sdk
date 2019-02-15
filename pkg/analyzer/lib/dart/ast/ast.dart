@@ -567,6 +567,7 @@ abstract class AstVisitor<R> {
 
   R visitListLiteral(ListLiteral node);
 
+  @Deprecated('Replaced by visitListLiteral')
   R visitListLiteral2(ListLiteral2 node);
 
   R visitMapLiteral(MapLiteral node);
@@ -3703,17 +3704,19 @@ abstract class LibraryIdentifier implements Identifier {
 /// A list literal.
 ///
 ///    listLiteral ::=
-///        'const'? ('<' [TypeAnnotation] '>')? '[' ([Expression] ','?)? ']'
+///        'const'? [TypeAnnotationList]? '[' elements? ']'
 ///
-/// This is the class that is used to represent a list literal when neither the
-/// 'control-flow-collections' nor 'spread-collections' experiments are enabled.
-/// If either of those experiments are enabled, then [ListLiteral2] will be
-/// used.
+///    elements ::=
+///        [CollectionElement] (',' [CollectionElement])* ','?
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ListLiteral implements TypedLiteral {
   /// Return the expressions used to compute the elements of the list.
+  @Deprecated('Use elements2')
   NodeList<Expression> get elements;
+
+  /// Return the syntactic elements used to compute the elements of the list.
+  NodeList<CollectionElement> get elements2;
 
   /// Return the left square bracket.
   Token get leftBracket;
@@ -3742,6 +3745,7 @@ abstract class ListLiteral implements TypedLiteral {
 /// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Replaced by ListLiteral')
 abstract class ListLiteral2 implements TypedLiteral {
   /// Return the expressions used to compute the elements of the list.
   NodeList<CollectionElement> get elements;

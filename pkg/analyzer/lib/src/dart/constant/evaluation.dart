@@ -1338,37 +1338,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return null;
     }
     bool errorOccurred = false;
-    List<DartObjectImpl> elements = new List<DartObjectImpl>();
-    for (Expression element in node.elements) {
-      DartObjectImpl elementResult = element.accept(this);
-      if (elementResult == null) {
-        errorOccurred = true;
-      } else {
-        elements.add(elementResult);
-      }
-    }
-    if (errorOccurred) {
-      return null;
-    }
-    var nodeType = node.staticType;
-    DartType elementType =
-        nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
-            ? nodeType.typeArguments[0]
-            : _typeProvider.dynamicType;
-    InterfaceType listType = _typeProvider.listType.instantiate([elementType]);
-    return new DartObjectImpl(listType, new ListState(elements));
-  }
-
-  @override
-  DartObjectImpl visitListLiteral2(ListLiteral2 node) {
-    if (!node.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
-      return null;
-    }
-    bool errorOccurred = false;
     List<DartObjectImpl> list = [];
-    for (CollectionElement element in node.elements) {
+    for (CollectionElement element in node.elements2) {
       errorOccurred = errorOccurred | _addElementsToList(list, element);
     }
     if (errorOccurred) {

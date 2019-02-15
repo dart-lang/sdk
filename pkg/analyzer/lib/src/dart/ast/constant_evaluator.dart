@@ -261,12 +261,18 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   @override
   Object visitListLiteral(ListLiteral node) {
     List<Object> list = new List<Object>();
-    for (Expression element in node.elements) {
-      Object value = element.accept(this);
-      if (identical(value, NOT_A_CONSTANT)) {
-        return value;
+    for (CollectionElement element in node.elements2) {
+      if (element is Expression) {
+        Object value = element.accept(this);
+        if (identical(value, NOT_A_CONSTANT)) {
+          return value;
+        }
+        list.add(value);
+      } else {
+        // There are a lot of constants that this class does not support, so we
+        // didn't add support for the extended collection support.
+        return NOT_A_CONSTANT;
       }
-      list.add(value);
     }
     return list;
   }
@@ -334,6 +340,33 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitPropertyAccess(PropertyAccess node) => _getConstantValue(null);
+
+  @override
+  Object visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.isMap) {
+      Map<String, Object> map = new HashMap<String, Object>();
+      for (CollectionElement element in node.elements2) {
+        if (element is MapLiteralEntry) {
+          Object key = element.key.accept(this);
+          Object value = element.value.accept(this);
+          if (key is String && !identical(value, NOT_A_CONSTANT)) {
+            map[key] = value;
+          } else {
+            return NOT_A_CONSTANT;
+          }
+        } else {
+          // There are a lot of constants that this class does not support, so
+          // we didn't add support for the extended collection support.
+          return NOT_A_CONSTANT;
+        }
+      }
+      return map;
+    } else if (node.isSet) {
+      // There are a lot of constants that this class does not support, so
+      // we didn't add support for set literals.
+    }
+    return NOT_A_CONSTANT;
+  }
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) =>

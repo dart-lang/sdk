@@ -2010,9 +2010,9 @@ num test(Iterable values) => values.fold(values.first as num, max);
     assertListOfListOfInt(literal(2).staticType);
     assertListOfListOfInt(literal(3).staticType);
 
-    assertListOfInt(literal(1).elements[0].staticType);
-    assertListOfInt(literal(2).elements[0].staticType);
-    assertListOfInt(literal(3).elements[0].staticType);
+    assertListOfInt((literal(1).elements2[0] as Expression).staticType);
+    assertListOfInt((literal(2).elements2[0] as Expression).staticType);
+    assertListOfInt((literal(3).elements2[0] as Expression).staticType);
   }
 
   test_listLiteral_simple() async {

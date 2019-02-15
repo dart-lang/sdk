@@ -95,16 +95,6 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
-  ListLiteral2 visitListLiteral2(ListLiteral2 node) {
-    ListLiteral2 literal = super.visitListLiteral2(node);
-    literal.staticType = node.staticType;
-    if (node.constKeyword == null && node.isConst) {
-      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
-    }
-    return literal;
-  }
-
-  @override
   MapLiteral visitMapLiteral(MapLiteral node) {
     MapLiteral literal = super.visitMapLiteral(node);
     literal.staticType = node.staticType;

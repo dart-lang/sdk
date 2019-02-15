@@ -4649,38 +4649,14 @@ class ResolverVisitor extends ScopedVisitor {
       listT = typeAnalyzer.inferListType(node, downwards: true);
     }
     if (listT != null) {
-      DartType eType = listT.typeArguments[0];
-      for (Expression child in node.elements) {
-        InferenceContext.setType(child, eType);
-      }
-      InferenceContext.setType(node, listT);
-    } else {
-      InferenceContext.clearType(node);
-    }
-    super.visitListLiteral(node);
-  }
-
-  @override
-  void visitListLiteral2(ListLiteral2 node) {
-    InterfaceType listT;
-
-    if (node.typeArguments != null) {
-      var targs = node.typeArguments.arguments.map((t) => t.type).toList();
-      if (targs.length == 1 && !targs[0].isDynamic) {
-        listT = typeProvider.listType.instantiate([targs[0]]);
-      }
-    } else {
-      listT = typeAnalyzer.inferListType2(node, downwards: true);
-    }
-    if (listT != null) {
-      for (CollectionElement element in node.elements) {
+      for (CollectionElement element in node.elements2) {
         _pushCollectionTypesDown(element, listT);
       }
       InferenceContext.setType(node, listT);
     } else {
       InferenceContext.clearType(node);
     }
-    super.visitListLiteral2(node);
+    super.visitListLiteral(node);
   }
 
   @override

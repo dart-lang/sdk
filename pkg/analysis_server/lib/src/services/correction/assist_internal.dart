@@ -442,15 +442,15 @@ class AssistProcessor {
     CascadeExpression cascade = invocation.thisOrAncestorOfType();
     NodeList<Expression> sections = cascade.cascadeSections;
     Expression target = cascade.target;
-    if (target is! ListLiteral2 || sections[0] != invocation) {
+    if (target is! ListLiteral || sections[0] != invocation) {
       _coverageMarker();
       return;
     }
 
     bool isEmptyListLiteral(Expression expression) =>
-        expression is ListLiteral2 && expression.elements.isEmpty;
+        expression is ListLiteral && expression.elements2.isEmpty;
 
-    ListLiteral2 list = target;
+    ListLiteral list = target;
     Expression argument = invocation.argumentList.arguments[0];
     String elementText;
     if (argument is BinaryExpression &&
@@ -475,7 +475,7 @@ class AssistProcessor {
     elementText ??= '...${utils.getNodeText(argument)}';
     DartChangeBuilder changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      builder.addSimpleInsertion(list.elements2.last.end, ', $elementText');
       builder.addDeletion(range.node(invocation));
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SPREAD);
@@ -549,7 +549,7 @@ class AssistProcessor {
       nodeToReplace = parent;
       parent = parent.parent;
     }
-    if (parent is ListLiteral2 || (parent is SetOrMapLiteral && parent.isSet)) {
+    if (parent is ListLiteral || (parent is SetOrMapLiteral && parent.isSet)) {
       ConditionalExpression conditional = node;
       Expression condition = conditional.condition.unParenthesized;
       Expression thenExpression = conditional.thenExpression.unParenthesized;
@@ -856,10 +856,6 @@ class AssistProcessor {
       hasTypeArgs = target.typeArguments != null;
       openRange = range.token(target.leftBracket);
       closeRange = range.startEnd(target.rightBracket, invocation);
-    } else if (target is ListLiteral2) {
-      hasTypeArgs = target.typeArguments != null;
-      openRange = range.token(target.leftBracket);
-      closeRange = range.startEnd(target.rightBracket, invocation);
     } else {
       _coverageMarker();
       return;
@@ -1125,11 +1121,6 @@ class AssistProcessor {
       }
       if (arguments[0] is ListLiteral) {
         ListLiteral elements = arguments[0] as ListLiteral;
-        elementTypeArguments = elements.typeArguments;
-        elementsRange =
-            range.endStart(elements.leftBracket, elements.rightBracket);
-      } else if (arguments[0] is ListLiteral2) {
-        ListLiteral2 elements = arguments[0] as ListLiteral2;
         elementTypeArguments = elements.typeArguments;
         elementsRange =
             range.endStart(elements.leftBracket, elements.rightBracket);
@@ -2232,12 +2223,12 @@ class AssistProcessor {
 
     AstNode parentList = widget.parent;
     if (parentList is ListLiteral) {
-      List<Expression> parentElements = parentList.elements;
+      List<CollectionElement> parentElements = parentList.elements2;
       int index = parentElements.indexOf(widget);
       if (index != parentElements.length - 1) {
         var changeBuilder = _newDartChangeBuilder();
         await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          Expression nextWidget = parentElements[index + 1];
+          CollectionElement nextWidget = parentElements[index + 1];
           var nextRange = range.node(nextWidget);
           var nextText = utils.getRangeText(nextRange);
 
@@ -2266,12 +2257,12 @@ class AssistProcessor {
 
     AstNode parentList = widget.parent;
     if (parentList is ListLiteral) {
-      List<Expression> parentElements = parentList.elements;
+      List<CollectionElement> parentElements = parentList.elements2;
       int index = parentElements.indexOf(widget);
       if (index > 0) {
         var changeBuilder = _newDartChangeBuilder();
         await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          Expression previousWidget = parentElements[index - 1];
+          CollectionElement previousWidget = parentElements[index - 1];
           var previousRange = range.node(previousWidget);
           var previousText = utils.getRangeText(previousRange);
 
@@ -2298,13 +2289,13 @@ class AssistProcessor {
     }
 
     // Prepare the list of our children.
-    List<Expression> childrenExpressions;
+    List<CollectionElement> childrenExpressions;
     {
       var childrenArgument = flutter.findChildrenArgument(widgetCreation);
       var childrenExpression = childrenArgument?.expression;
       if (childrenExpression is ListLiteral &&
-          childrenExpression.elements.isNotEmpty) {
-        childrenExpressions = childrenExpression.elements;
+          childrenExpression.elements2.isNotEmpty) {
+        childrenExpressions = childrenExpression.elements2;
       } else {
         return;
       }
@@ -3111,7 +3102,7 @@ class AssistProcessor {
     if (node is! ListLiteral) {
       return;
     }
-    if ((node as ListLiteral).elements.any((Expression exp) =>
+    if ((node as ListLiteral).elements2.any((CollectionElement exp) =>
         !(exp is InstanceCreationExpression &&
             flutter.isWidgetCreation(exp)))) {
       _coverageMarker();
@@ -3903,10 +3894,8 @@ class AssistProcessor {
   /// placed inside curly braces, would lexically make the resulting literal a
   /// set literal rather than a map literal.
   bool _listHasUnambiguousElement(AstNode node) {
-    if (node is ListLiteral && node.elements.length > 0) {
-      return true;
-    } else if (node is ListLiteral2) {
-      for (CollectionElement element in node.elements) {
+    if (node is ListLiteral && node.elements2.length > 0) {
+      for (CollectionElement element in node.elements2) {
         if (_isUnambiguousElement(element)) {
           return true;
         }

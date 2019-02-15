@@ -2464,11 +2464,11 @@ class ListGetter_NodeReplacerTest_test_libraryIdentifier
 }
 
 class ListGetter_NodeReplacerTest_test_listLiteral
-    extends NodeReplacerTest_ListGetter<ListLiteral, Expression> {
+    extends NodeReplacerTest_ListGetter<ListLiteral, CollectionElement> {
   ListGetter_NodeReplacerTest_test_listLiteral(int arg0) : super(arg0);
 
   @override
-  NodeList<Expression> getList(ListLiteral node) => node.elements;
+  NodeList<CollectionElement> getList(ListLiteral node) => node.elements2;
 }
 
 class ListGetter_NodeReplacerTest_test_mapLiteral

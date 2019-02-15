@@ -199,7 +199,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
           }
         } else if (isWidgetListArgument) {
           if (childrenExpression is ListLiteral) {
-            for (var element in childrenExpression.elements) {
+            for (var element in childrenExpression.elements2) {
               var child = _createOutline(element, true);
               if (child != null) {
                 children.add(child);

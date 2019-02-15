@@ -517,35 +517,11 @@ class CodeChecker extends RecursiveAstVisitor {
         }
       }
     }
-    NodeList<Expression> elements = node.elements;
-    for (int i = 0; i < elements.length; i++) {
-      checkArgument(elements[i], type);
-    }
-    super.visitListLiteral(node);
-  }
-
-  @override
-  void visitListLiteral2(ListLiteral2 node) {
-    DartType type = DynamicTypeImpl.instance;
-    if (node.typeArguments != null) {
-      NodeList<TypeAnnotation> targs = node.typeArguments.arguments;
-      if (targs.length > 0) {
-        type = targs[0].type;
-      }
-    } else {
-      DartType staticType = node.staticType;
-      if (staticType is InterfaceType) {
-        List<DartType> targs = staticType.typeArguments;
-        if (targs != null && targs.length > 0) {
-          type = targs[0];
-        }
-      }
-    }
-    NodeList<CollectionElement> elements = node.elements;
+    NodeList<CollectionElement> elements = node.elements2;
     for (int i = 0; i < elements.length; i++) {
       checkCollectionElement(elements[i], type);
     }
-    super.visitListLiteral2(node);
+    super.visitListLiteral(node);
   }
 
   @override
@@ -1907,13 +1883,6 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
   visitListLiteral(ListLiteral node) {
     if (node.typeArguments == null) {
       super.visitListLiteral(node);
-    }
-  }
-
-  @override
-  visitListLiteral2(ListLiteral2 node) {
-    if (node.typeArguments == null) {
-      super.visitListLiteral2(node);
     }
   }
 

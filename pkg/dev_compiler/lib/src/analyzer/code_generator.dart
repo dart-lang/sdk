@@ -6438,6 +6438,7 @@ class CodeGenerator extends Object
   @override
   visitForStatement2(ForStatement2 node) => _unreachable(node);
 
+  @deprecated
   @override
   visitListLiteral2(ListLiteral2 node) => _unreachable(node);
 

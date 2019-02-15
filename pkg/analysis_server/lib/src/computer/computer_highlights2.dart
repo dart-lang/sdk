@@ -712,13 +712,6 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitListLiteral2(ListLiteral2 node) {
-    computer._addRegion_node(node, HighlightRegionType.LITERAL_LIST);
-    computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
-    super.visitListLiteral2(node);
-  }
-
-  @override
   void visitMapLiteral(MapLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_MAP);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);

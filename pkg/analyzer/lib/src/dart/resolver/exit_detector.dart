@@ -445,8 +445,8 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
-  bool visitListLiteral2(ListLiteral2 node) {
-    for (CollectionElement element in node.elements) {
+  bool visitListLiteral(ListLiteral node) {
+    for (CollectionElement element in node.elements2) {
       if (_nodeExits(element)) {
         return true;
       }

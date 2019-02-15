@@ -451,12 +451,6 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitListLiteral2(ListLiteral2 node) {
-    _runSubscriptions(node, registry._forListLiteral2);
-    super.visitListLiteral2(node);
-  }
-
-  @override
   void visitMapLiteral(MapLiteral node) {
     _runSubscriptions(node, registry._forMapLiteral);
     super.visitMapLiteral(node);
@@ -833,7 +827,6 @@ class NodeLintRegistry {
   final List<_Subscription<LibraryDirective>> _forLibraryDirective = [];
   final List<_Subscription<LibraryIdentifier>> _forLibraryIdentifier = [];
   final List<_Subscription<ListLiteral>> _forListLiteral = [];
-  final List<_Subscription<ListLiteral2>> _forListLiteral2 = [];
   final List<_Subscription<MapLiteral>> _forMapLiteral = [];
   final List<_Subscription<MapLiteralEntry>> _forMapLiteralEntry = [];
   final List<_Subscription<MethodDeclaration>> _forMethodDeclaration = [];
@@ -1233,10 +1226,6 @@ class NodeLintRegistry {
 
   void addListLiteral(LintRule linter, AstVisitor visitor) {
     _forListLiteral.add(new _Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addListLiteral2(LintRule linter, AstVisitor visitor) {
-    _forListLiteral2.add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addMapLiteral(LintRule linter, AstVisitor visitor) {

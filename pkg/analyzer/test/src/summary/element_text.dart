@@ -384,7 +384,7 @@ class _ElementWriter {
       if (e.typeArguments != null) {
         writeList('<', '>', e.typeArguments.arguments, ', ', writeExpression);
       }
-      writeList('[', ']', e.elements, ', ', writeExpression,
+      writeList('[', ']', e.elements2, ', ', writeExpression,
           includeEmpty: true);
     } else if (e is Label) {
       writeExpression(e.label);

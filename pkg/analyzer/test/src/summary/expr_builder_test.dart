@@ -416,11 +416,11 @@ class C {
   }
 
   void test_makeTypedList_const() {
-    checkSimpleExpression('const <int> []');
+    checkSimpleExpression('const <int>[]');
   }
 
   void test_makeTypedMap_const() {
-    checkSimpleExpression('const <int, bool> {}');
+    checkSimpleExpression('const <int, bool>{}');
   }
 
   void test_makeUntypedList_const() {

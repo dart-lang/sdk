@@ -426,6 +426,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitListLiteral(ListLiteral node) => visitTypedLiteral(node);
 
+  @deprecated
   @override
   R visitListLiteral2(ListLiteral2 node) => visitTypedLiteral(node);
 
@@ -1088,6 +1089,7 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
+  @deprecated
   @override
   R visitListLiteral2(ListLiteral2 node) {
     node.visitChildren(this);
@@ -1638,6 +1640,7 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitListLiteral(ListLiteral node) => null;
 
+  @deprecated
   @override
   R visitListLiteral2(ListLiteral2 node) => null;
 
@@ -2040,6 +2043,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitListLiteral(ListLiteral node) => _throw(node);
 
+  @deprecated
   @override
   R visitListLiteral2(ListLiteral2 node) => _throw(node);
 
@@ -2822,6 +2826,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
+  @deprecated
   @override
   T visitListLiteral2(ListLiteral2 node) {
     stopwatch.start();
@@ -3487,6 +3492,7 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitListLiteral(ListLiteral node) => visitNode(node);
 
+  @deprecated
   @override
   R visitListLiteral2(ListLiteral2 node) => visitNode(node);
 

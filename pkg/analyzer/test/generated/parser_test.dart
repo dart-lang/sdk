@@ -6268,7 +6268,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword, isNotNull);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements, hasLength(0));
+    expect(literal.elements2, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6280,7 +6280,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword, isNotNull);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements, hasLength(0));
+    expect(literal.elements2, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6803,7 +6803,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword.keyword, Keyword.CONST);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements, hasLength(0));
+    expect(literal.elements2, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6816,7 +6816,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     Token leftBracket = literal.leftBracket;
     expect(leftBracket, isNotNull);
     expect(leftBracket.precedingComments, isNotNull);
-    expect(literal.elements, hasLength(0));
+    expect(literal.elements2, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6828,7 +6828,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword.keyword, Keyword.CONST);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements, hasLength(0));
+    expect(literal.elements2, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6839,7 +6839,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword, isNull);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements, hasLength(3));
+    expect(literal.elements2, hasLength(3));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6850,7 +6850,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword, isNull);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements, hasLength(1));
+    expect(literal.elements2, hasLength(1));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6861,7 +6861,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword, isNull);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements, hasLength(1));
+    expect(literal.elements2, hasLength(1));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6873,7 +6873,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(listLiteral.constKeyword, isNull);
     expect(listLiteral.typeArguments, isNull);
     expect(listLiteral.leftBracket, isNotNull);
-    expect(listLiteral.elements, hasLength(1));
+    expect(listLiteral.elements2, hasLength(1));
     expect(listLiteral.rightBracket, isNotNull);
   }
 
@@ -6885,7 +6885,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(listLiteral.constKeyword, isNull);
     expect(listLiteral.typeArguments, isNotNull);
     expect(listLiteral.leftBracket, isNotNull);
-    expect(listLiteral.elements, hasLength(1));
+    expect(listLiteral.elements2, hasLength(1));
     expect(listLiteral.rightBracket, isNotNull);
   }
 
@@ -9543,7 +9543,10 @@ class ParserTestCase extends EngineTestCase
   List<Expression> parseExpressionList(String code) {
     if (usingFastaParser) {
       createParser('[$code]');
-      return (parser.parseExpression2() as ListLiteral).elements.toList();
+      return (parser.parseExpression2() as ListLiteral)
+          .elements2
+          .toList()
+          .cast<Expression>();
     } else {
       createParser(code);
       return parser.parseExpressionList();

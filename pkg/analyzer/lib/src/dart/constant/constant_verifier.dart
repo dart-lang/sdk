@@ -143,11 +143,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
     if (node.isConst) {
-      DartObjectImpl result;
-      for (Expression element in node.elements) {
-        result =
-            _validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
-        if (result != null) {
+      HashSet<DartObject> keys = new HashSet<DartObject>();
+      List<Expression> invalidKeys = new List<Expression>();
+      for (CollectionElement element in node.elements2) {
+        bool isValid = _validateCollectionElement(element, true, keys,
+            invalidKeys, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+        if (isValid && element is Expression) {
+          // TODO(brianwilkerson) Handle the other kinds of elements.
           _reportErrorIfFromDeferredLibrary(
               element,
               CompileTimeErrorCode
@@ -165,49 +167,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     HashSet<DartObject> keys = new HashSet<DartObject>();
     List<Expression> invalidKeys = new List<Expression>();
     for (MapLiteralEntry entry in node.entries) {
-      Expression key = entry.key;
-      if (isConst) {
-        DartObjectImpl keyResult =
-            _validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
-        Expression valueExpression = entry.value;
-        DartObjectImpl valueResult = _validate(
-            valueExpression, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
-        if (valueResult != null) {
-          _reportErrorIfFromDeferredLibrary(
-              valueExpression,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY);
-        }
-        if (keyResult != null) {
-          _reportErrorIfFromDeferredLibrary(key,
-              CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY);
-          if (!keys.add(keyResult)) {
-            invalidKeys.add(key);
-          }
-          DartType type = keyResult.type;
-          if (_implementsEqualsWhenNotAllowed(type)) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode
-                    .CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-                key,
-                [type.displayName]);
-          }
-        }
-      } else {
-        // Note: we throw the errors away because this isn't actually a const.
-        AnalysisErrorListener errorListener =
-            AnalysisErrorListener.NULL_LISTENER;
-        ErrorReporter subErrorReporter =
-            new ErrorReporter(errorListener, _errorReporter.source);
-        DartObjectImpl result = key
-            .accept(new ConstantVisitor(_evaluationEngine, subErrorReporter));
-        if (result != null) {
-          if (!keys.add(result)) {
-            invalidKeys.add(key);
-          }
-        } else {
-          reportEqualKeys = false;
-        }
+      if (!_validateMapLiteralEntry(entry, isConst, keys, invalidKeys)) {
+        reportEqualKeys = false;
       }
     }
     if (reportEqualKeys) {
@@ -470,6 +431,35 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     return result;
   }
 
+  bool _validateCollectionElement(
+      CollectionElement element,
+      bool isConst,
+      HashSet<DartObject> keys,
+      List<Expression> invalidKeys,
+      ErrorCode errorCode) {
+    if (element is Expression) {
+      return _validate(element, errorCode) != null;
+    } else if (element is ForElement) {
+      // TODO(brianwilkerson) Validate the forLoopParts.
+      return _validateCollectionElement(
+              element.body, isConst, keys, invalidKeys, errorCode) !=
+          null;
+    } else if (element is IfElement) {
+      return _validate(element.condition, errorCode) != null &&
+          _validateCollectionElement(
+                  element.thenElement, isConst, keys, invalidKeys, errorCode) !=
+              null &&
+          _validateCollectionElement(
+                  element.elseElement, isConst, keys, invalidKeys, errorCode) !=
+              null;
+    } else if (element is MapLiteralEntry) {
+      return _validateMapLiteralEntry(element, isConst, keys, invalidKeys);
+    } else if (element is SpreadElement) {
+      return _validate(element.expression, errorCode) != null;
+    }
+    return null;
+  }
+
   /// Validate that if the passed arguments are constant expressions.
   ///
   /// @param argumentList the argument list to evaluate
@@ -617,6 +607,52 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     for (Expression argument in argumentList.arguments) {
       _validateInitializerExpression(parameterElements, argument);
     }
+  }
+
+  bool _validateMapLiteralEntry(MapLiteralEntry entry, bool isConst,
+      HashSet<DartObject> keys, List<Expression> invalidKeys) {
+    Expression key = entry.key;
+    if (isConst) {
+      DartObjectImpl keyResult =
+          _validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
+      Expression valueExpression = entry.value;
+      DartObjectImpl valueResult = _validate(
+          valueExpression, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+      if (valueResult != null) {
+        _reportErrorIfFromDeferredLibrary(valueExpression,
+            CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY);
+      }
+      if (keyResult != null) {
+        _reportErrorIfFromDeferredLibrary(key,
+            CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY);
+        if (!keys.add(keyResult)) {
+          invalidKeys.add(key);
+        }
+        DartType type = keyResult.type;
+        if (_implementsEqualsWhenNotAllowed(type)) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode
+                  .CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+              key,
+              [type.displayName]);
+        }
+      }
+    } else {
+      // Note: we throw the errors away because this isn't actually a const.
+      AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
+      ErrorReporter subErrorReporter =
+          new ErrorReporter(errorListener, _errorReporter.source);
+      DartObjectImpl result =
+          key.accept(new ConstantVisitor(_evaluationEngine, subErrorReporter));
+      if (result != null) {
+        if (!keys.add(result)) {
+          invalidKeys.add(key);
+        }
+      } else {
+        return false;
+      }
+    }
+    return true;
   }
 }
 

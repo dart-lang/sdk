@@ -9080,6 +9080,33 @@ mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
         compareConstAsts(rItem.constructorName, oItem.constructorName, desc);
         compareConstAstLists(
             rItem.argumentList.arguments, oItem.argumentList.arguments, desc);
+      } else if (oItem is ForElement && rItem is ForElement) {
+        compareConstAsts(rItem.forLoopParts, oItem.forLoopParts, desc);
+        compareConstAsts(rItem.body, oItem.body, desc);
+      } else if (oItem is ForPartsWithDeclarations &&
+          rItem is ForPartsWithDeclarations) {
+        compareConstAsts(rItem.variables, oItem.variables, desc);
+        compareConstAsts(rItem.condition, oItem.condition, desc);
+        compareConstAstLists(rItem.updaters, oItem.updaters, desc);
+      } else if (oItem is ForPartsWithExpression &&
+          rItem is ForPartsWithExpression) {
+        compareConstAsts(rItem.initialization, oItem.initialization, desc);
+        compareConstAsts(rItem.condition, oItem.condition, desc);
+        compareConstAstLists(rItem.updaters, oItem.updaters, desc);
+      } else if (oItem is ForEachPartsWithDeclaration &&
+          rItem is ForEachPartsWithDeclaration) {
+        compareConstAsts(rItem.loopVariable, oItem.loopVariable, desc);
+        compareConstAsts(rItem.iterable, oItem.iterable, desc);
+      } else if (oItem is ForEachPartsWithIdentifier &&
+          rItem is ForEachPartsWithIdentifier) {
+        compareConstAsts(rItem.identifier, oItem.identifier, desc);
+        compareConstAsts(rItem.iterable, oItem.iterable, desc);
+      } else if (oItem is IfElement && rItem is IfElement) {
+        compareConstAsts(rItem.condition, oItem.condition, desc);
+        compareConstAsts(rItem.thenElement, oItem.thenElement, desc);
+        compareConstAsts(rItem.elseElement, oItem.elseElement, desc);
+      } else if (oItem is SpreadElement && rItem is SpreadElement) {
+        compareConstAsts(rItem.expression, oItem.expression, desc);
       } else {
         fail('$desc Incompatible item types: '
             '${rItem.runtimeType} vs. ${oItem.runtimeType}');
@@ -9215,7 +9242,7 @@ mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
       } else if (o is ListLiteral && r is ListLiteral) {
         compareConstAstLists(
             r.typeArguments?.arguments, o.typeArguments?.arguments, desc);
-        compareConstAstLists(r.elements, o.elements, desc);
+        compareConstAstLists(r.elements2, o.elements2, desc);
       } else if (o is MapLiteral && r is MapLiteral) {
         compareConstAstLists(
             r.typeArguments?.arguments, o.typeArguments?.arguments, desc);

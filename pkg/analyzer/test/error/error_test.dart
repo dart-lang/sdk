@@ -70,7 +70,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
                 member.variables.variables[0].name.name == 'errorCodeValues',
             orElse: () => null);
     ListLiteral listLiteral = declaration.variables.variables[0].initializer;
-    for (PrefixedIdentifier element in listLiteral.elements) {
+    for (PrefixedIdentifier element in listLiteral.elements2) {
       listedCodes.add(element.name);
     }
     return listedCodes;

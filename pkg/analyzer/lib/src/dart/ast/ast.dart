@@ -7814,6 +7814,7 @@ class LibraryIdentifierImpl extends IdentifierImpl
  * 'control-flow-collections' or 'spread-collections' experiments are enabled.
  * If neither of those experiments are enabled, then [ListLiteral] will be used.
  */
+@Deprecated('Replaced by ListLiteralImpl')
 class ListLiteral2Impl extends TypedLiteralImpl implements ListLiteral2 {
   @override
   Token leftBracket;
@@ -7873,16 +7874,6 @@ class ListLiteral2Impl extends TypedLiteralImpl implements ListLiteral2 {
   }
 }
 
-/**
- * A list literal.
- *
- *    listLiteral ::=
- *        'const'? ('<' [TypeName] '>')? '[' ([Expression] ','?)? ']'
- *
- * This is the class that is used to represent a list literal when neither the
- * 'control-flow-collections' nor 'spread-collections' experiments are enabled.
- * If either of those experiments are enabled, then [ListLiteral2] will be used.
- */
 class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   /**
    * The left square bracket.
@@ -7893,7 +7884,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   /**
    * The expressions used to compute the elements of the list.
    */
-  NodeList<Expression> _elements;
+  NodeList<CollectionElement> _elements;
 
   /**
    * The right square bracket.
@@ -7908,9 +7899,9 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
    * list is empty.
    */
   ListLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      this.leftBracket, List<Expression> elements, this.rightBracket)
+      this.leftBracket, List<CollectionElement> elements, this.rightBracket)
       : super(constKeyword, typeArguments) {
-    _elements = new NodeListImpl<Expression>(this, elements);
+    _elements = new NodeListImpl<CollectionElement>(this, elements);
   }
 
   @override
@@ -7933,7 +7924,11 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     ..add(rightBracket);
 
   @override
-  NodeList<Expression> get elements => _elements;
+  NodeList<Expression> get elements =>
+      new NodeListImpl<Expression>(this, _elements.cast<Expression>());
+
+  @override
+  NodeList<CollectionElement> get elements2 => _elements;
 
   @override
   Token get endToken => rightBracket;

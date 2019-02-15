@@ -160,44 +160,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       if (contextType == null) {
         return null;
       }
-
       elementTypes = [];
       parameters = [];
     } else {
       // Also use upwards information to infer the type.
-      elementTypes = node.elements
-          .map((e) => e.staticType)
-          .where((t) => t != null)
-          .toList();
-      var listTypeParam = _typeProvider.listType.typeParameters[0].type;
-      var syntheticParamElement = new ParameterElementImpl.synthetic(
-          'element', listTypeParam, ParameterKind.POSITIONAL);
-      parameters = new List.filled(elementTypes.length, syntheticParamElement);
-    }
-    DartType inferred = ts.inferGenericFunctionOrType<InterfaceType>(
-        _typeProvider.listType, parameters, elementTypes, contextType,
-        downwards: downwards,
-        errorReporter: _resolver.errorReporter,
-        errorNode: node);
-    return inferred;
-  }
-
-  DartType inferListType2(ListLiteral2 node, {bool downwards: false}) {
-    DartType contextType = InferenceContext.getContext(node);
-
-    var ts = _typeSystem as Dart2TypeSystem;
-    List<DartType> elementTypes;
-    List<ParameterElement> parameters;
-
-    if (downwards) {
-      if (contextType == null) {
-        return null;
-      }
-      elementTypes = [];
-      parameters = [];
-    } else {
-      // Also use upwards information to infer the type.
-      elementTypes = node.elements
+      elementTypes = node.elements2
           .map((element) => _computeElementType(element))
           .where((t) => t != null)
           .toList();
@@ -816,45 +783,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     // If there are no type arguments, try to infer some arguments.
     DartType inferred = inferListType(node);
-
-    if (inferred != listDynamicType) {
-      // TODO(jmesserly): this results in an "inferred" message even when we
-      // in fact had an error above, because it will still attempt to return
-      // a type. Perhaps we should record inference from TypeSystem if
-      // everything was successful?
-      _resolver.inferenceContext.recordInference(node, inferred);
-      _recordStaticType(node, inferred);
-      return;
-    }
-
-    // If we have no type arguments and couldn't infer any, use dynamic.
-    _recordStaticType(node, listDynamicType);
-  }
-
-  @override
-  void visitListLiteral2(ListLiteral2 node) {
-    TypeArgumentList typeArguments = node.typeArguments;
-
-    // If we have explicit arguments, use them
-    if (typeArguments != null) {
-      DartType staticType = _dynamicType;
-      NodeList<TypeAnnotation> arguments = typeArguments.arguments;
-      if (arguments != null && arguments.length == 1) {
-        DartType argumentType = _getType(arguments[0]);
-        if (argumentType != null) {
-          staticType = argumentType;
-        }
-      }
-      _recordStaticType(
-          node, _typeProvider.listType.instantiate(<DartType>[staticType]));
-      return;
-    }
-
-    DartType listDynamicType =
-        _typeProvider.listType.instantiate(<DartType>[_dynamicType]);
-
-    // If there are no type arguments, try to infer some arguments.
-    DartType inferred = inferListType2(node);
 
     if (inferred != listDynamicType) {
       // TODO(jmesserly): this results in an "inferred" message even when we

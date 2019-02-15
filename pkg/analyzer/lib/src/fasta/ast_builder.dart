@@ -992,13 +992,8 @@ class AstBuilder extends StackListener {
       List<CollectionElement> elements = popCollectionElements(count);
 
       TypeArgumentList typeArguments = pop();
-      push(ast.listLiteral2(
-        constKeyword: constKeyword,
-        typeArguments: typeArguments,
-        leftBracket: leftBracket,
-        elements: elements,
-        rightBracket: rightBracket,
-      ));
+      push(ast.listLiteral(
+          constKeyword, typeArguments, leftBracket, elements, rightBracket));
     } else {
       List<Expression> expressions = popTypedList(count);
       TypeArgumentList typeArguments = pop();

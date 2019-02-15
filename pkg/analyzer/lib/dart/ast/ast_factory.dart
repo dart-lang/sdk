@@ -831,11 +831,12 @@ abstract class AstFactory {
    * list is empty.
    */
   ListLiteral listLiteral(Token constKeyword, TypeArgumentList typeArguments,
-      Token leftBracket, List<Expression> elements, Token rightBracket);
+      Token leftBracket, List<CollectionElement> elements, Token rightBracket);
 
   /**
    * Returns a newly created list literal.
    */
+  @Deprecated('Use listLiteral')
   ListLiteral2 listLiteral2(
       {Token constKeyword,
       TypeArgumentList typeArguments,
