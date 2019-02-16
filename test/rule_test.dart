@@ -31,17 +31,28 @@ main() {
 }
 
 final String ruleDir = p.join('test', 'rules');
+final String testConfigDir = p.join('test', 'configs');
 
 /// Rule tests
 defineRuleTests() {
   // TODO: if ruleDir cannot be found print message to set CWD to project root
   group('rule', () {
     group('dart', () {
-      for (var entry in new Directory(ruleDir).listSync()) {
-        if (entry is! File || !isDartFile(entry)) continue;
-        var ruleName = p.basenameWithoutExtension(entry.path);
-        testRule(ruleName, entry, debug: true);
-      }
+      // Rule tests run with default analysis options.
+      testRules(ruleDir, analysisOptions: null);
+
+// todo (pq): enable when experimental feature implementations are far enough along
+// see: https://github.com/dart-lang/linter/issues/1438
+//      // Rule tests run against specific configurations.
+//      for (var entry in new Directory(testConfigDir).listSync()) {
+//        if (entry is! Directory) continue;
+//        group('(config: ${p.basename(entry.path)})', () {
+//          var analysisOptionsFile =
+//              new File(p.join(entry.path, 'analysis_options.yaml'));
+//          var analysisOptions = analysisOptionsFile.readAsStringSync();
+//          testRules(ruleDir, analysisOptions: analysisOptions);
+//        });
+//      }
     });
     group('pub', () {
       for (var entry in new Directory(p.join(ruleDir, 'pub')).listSync()) {
@@ -297,7 +308,16 @@ testEachInt(Iterable<Object> values, bool f(int s), Matcher m) {
   values.forEach((s) => test('"$s"', () => expect(f(s), m)));
 }
 
-testRule(String ruleName, File file, {bool debug = false}) {
+testRules(String ruleDir, {String analysisOptions}) {
+  for (var entry in new Directory(ruleDir).listSync()) {
+    if (entry is! File || !isDartFile(entry)) continue;
+    var ruleName = p.basenameWithoutExtension(entry.path);
+    testRule(ruleName, entry, debug: true, analysisOptions: analysisOptions);
+  }
+}
+
+testRule(String ruleName, File file,
+    {bool debug = false, String analysisOptions}) {
   registerLintRules();
 
   test('$ruleName', () async {
@@ -335,7 +355,7 @@ testRule(String ruleName, File file, {bool debug = false}) {
       packageConfigPath = null;
     }
 
-    LinterOptions options = new LinterOptions([rule])
+    LinterOptions options = new LinterOptions([rule], analysisOptions)
       ..mockSdk = new MockSdk(memoryResourceProvider)
       ..resourceProvider = resourceProvider
       ..packageConfigPath = packageConfigPath;
