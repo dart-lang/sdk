@@ -441,6 +441,14 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       } finally {
         _guards.removeLast();
       }
+      if (!_inConditionalControlFlow && destinationType.nullable == null) {
+        // The destination type can never be nullable so this demonstrates
+        // non-null intent.
+        var nonNullIntent = sourceType.nonNullIntent;
+        if (nonNullIntent != null) {
+          _recordFact(nonNullIntent);
+        }
+      }
     }
     // TODO(paulberry): it's a cheat to pass in expression=null for the
     // recursive checks.  Really we want to unify all the checks in a single

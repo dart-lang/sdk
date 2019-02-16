@@ -108,6 +108,58 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_conditional_dereference_does_not_imply_non_null_intent() async {
+    var content = '''
+void f(bool b, int i) {
+  if (b) i.abs();
+}
+void g(bool b, int i) {
+  if (b) f(b, i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(bool b, int? i) {
+  if (b) i!.abs();
+}
+void g(bool b, int? i) {
+  if (b) f(b, i);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_conditional_non_null_usage_does_not_imply_non_null_intent() async {
+    var content = '''
+void f(bool b, int i, int j) {
+  if (b) i.gcd(j);
+}
+void g(bool b, int i, int j) {
+  if (b) f(b, i, j);
+}
+main() {
+  g(false, 0, null);
+}
+''';
+    var expected = '''
+void f(bool b, int i, int? j) {
+  if (b) i.gcd(j!);
+}
+void g(bool b, int i, int? j) {
+  if (b) f(b, i, j);
+}
+main() {
+  g(false, 0, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_data_flow_generic_inward() async {
     var content = '''
 class C<T> {
@@ -627,6 +679,58 @@ void g(bool b, int? i) {
 }
 main() {
   g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_unconditional_dereference_implies_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  i.abs();
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  i.abs();
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_unconditional_non_null_usage_implies_non_null_intent() async {
+    var content = '''
+void f(int i, int j) {
+  i.gcd(j);
+}
+void g(bool b, int i, int j) {
+  if (b) f(i, j);
+}
+main() {
+  g(false, 0, null);
+}
+''';
+    var expected = '''
+void f(int i, int j) {
+  i.gcd(j);
+}
+void g(bool b, int i, int? j) {
+  if (b) f(i, j!);
+}
+main() {
+  g(false, 0, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

@@ -648,6 +648,19 @@ void test(C c) {
         checkExpression('c.m').nullCheck);
   }
 
+  test_methodInvocation_target_demonstrates_non_null_intent() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(C c) {
+  c.m();
+}
+''');
+
+    assertConstraint([], decoratedTypeAnnotation('C c').nonNullIntent);
+  }
+
   test_parenthesizedExpression() async {
     await analyze('''
 int f() {
