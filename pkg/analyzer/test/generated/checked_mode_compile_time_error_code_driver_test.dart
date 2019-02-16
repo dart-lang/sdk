@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -26,9 +25,6 @@ class CheckedModeCompileTimeErrorCodeTest_Driver
 
 @reflectiveTest
 class SetElementTypeNotAssignableTest extends ResolverTestCase {
-  @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
   @override
   bool get enableNewAnalysisDriver => true;
 

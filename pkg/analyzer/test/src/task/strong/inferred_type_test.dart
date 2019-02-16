@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -4492,9 +4491,6 @@ class InferredTypeTest_Driver extends AbstractStrongTest
 @reflectiveTest
 class InferredTypeTest_SetLiterals extends AbstractStrongTest
     with InferredTypeMixin {
-  @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
   @override
   bool get enableNewAnalysisDriver => true;
 

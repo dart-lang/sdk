@@ -55,7 +55,7 @@ void f<X extends num, Y extends X>(Y y) {
 class UndefinedGetterWithControlFlowCollectionsTest extends ResolverTestCase {
   @override
   List<String> get enabledExperiments =>
-      [EnableString.control_flow_collections, EnableString.set_literals];
+      [EnableString.control_flow_collections];
 
   @override
   bool get enableNewAnalysisDriver => true;

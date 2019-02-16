@@ -799,7 +799,6 @@ class ConstantVisitorWithFlowControlAndSpreadCollectionsTest
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = [
       EnableString.control_flow_collections,
-      EnableString.set_literals,
       EnableString.spread_collections
     ];
 

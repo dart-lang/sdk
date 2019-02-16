@@ -103,9 +103,6 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTestBase {
 @reflectiveTest
 class ConstSetElementTypeImplementsEqualsTest extends ResolverTestCase {
   @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
-  @override
   bool get enableNewAnalysisDriver => true;
 
   test_constField() async {
@@ -207,7 +204,7 @@ main() {
 class ControlFlowCollectionsTest extends ResolverTestCase {
   @override
   List<String> get enabledExperiments =>
-      [EnableString.control_flow_collections, EnableString.set_literals];
+      [EnableString.control_flow_collections];
 
   @override
   bool get enableNewAnalysisDriver => true;
@@ -553,9 +550,6 @@ f() {
 @reflectiveTest
 class InvalidTypeArgumentInConstSetTest extends ResolverTestCase {
   @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
-  @override
   bool get enableNewAnalysisDriver => true;
 
   test_class() async {
@@ -574,9 +568,6 @@ class A<E> {
 
 @reflectiveTest
 class NonConstSetElementFromDeferredLibraryTest extends ResolverTestCase {
-  @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
   @override
   bool get enableNewAnalysisDriver => true;
 
@@ -615,9 +606,6 @@ f() {
 
 @reflectiveTest
 class NonConstSetElementTest extends ResolverTestCase {
-  @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
   @override
   bool get enableNewAnalysisDriver => true;
 

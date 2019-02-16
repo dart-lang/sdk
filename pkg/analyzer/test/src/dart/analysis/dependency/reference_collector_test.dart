@@ -5,8 +5,6 @@
 import 'package:analyzer/src/dart/analysis/dependency/library_builder.dart'
     hide buildLibrary;
 import 'package:analyzer/src/dart/analysis/dependency/node.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1385,10 +1383,6 @@ test() {
 
 @reflectiveTest
 class ExpressionReferenceCollectorTest_SetLiterals extends _Base {
-  @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.set_literals];
-
   test_setLiteral() async {
     var library = await buildTestLibrary(a, r'''
 test() {

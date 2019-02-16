@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
@@ -51,9 +50,6 @@ void _fail(String message) {
 
 @reflectiveTest
 class SetLiteralsTest extends StaticTypeAnalyzer2TestShared {
-  @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
   @override
   bool get enableNewAnalysisDriver => true;
 
@@ -1664,8 +1660,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 class StaticTypeAnalyzerWithSetLiteralsTest
     extends StaticTypeAnalyzer2TestShared {
   @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
   bool get enableNewAnalysisDriver => true;
 
   test_emptySetLiteral_inferredFromLinkedHashSet() async {
