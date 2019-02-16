@@ -205,7 +205,7 @@ class NullabilityMigrationAssumptions {
       {this.defaultParameterHandling:
           DefaultParameterHandling.option2_addRequiredNamedParameters,
       this.namedNoDefaultParameterHeuristic:
-          NamedNoDefaultParameterHeuristic.assumeRequired});
+          NamedNoDefaultParameterHeuristic.assumeNullable});
 }
 
 /// Records information about the possible addition of a `@required` annotation
