@@ -134,6 +134,38 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_conditional_usage_does_not_propagate_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  assert(i != null);
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+void h(bool b1, bool b2, int i) {
+  if (b1) g(b2, i);
+}
+main() {
+  h(true, false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  assert(i != null);
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+void h(bool b1, bool b2, int? i) {
+  if (b1) g(b2, i);
+}
+main() {
+  h(true, false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_conditional_non_null_usage_does_not_imply_non_null_intent() async {
     var content = '''
 void f(bool b, int i, int j) {
@@ -731,6 +763,38 @@ void g(bool b, int i, int? j) {
 }
 main() {
   g(false, 0, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_unconditional_usage_propagates_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  assert(i != null);
+}
+void g(int i) {
+  f(i);
+}
+void h(bool b, int i) {
+  if (b) g(i);
+}
+main() {
+  h(false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  assert(i != null);
+}
+void g(int i) {
+  f(i);
+}
+void h(bool b, int? i) {
+  if (b) g(i!);
+}
+main() {
+  h(false, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

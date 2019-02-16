@@ -421,6 +421,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       Expression expression) {
     if (sourceType.nullable != null) {
       _guards.add(sourceType.nullable);
+      var destinationNonNullIntent = destinationType.nonNullIntent;
       try {
         CheckExpression checkNotNull;
         if (expression != null) {
@@ -433,20 +434,22 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
             _constraints, destinationType.nullable, checkNotNull));
         if (checkNotNull != null) {
           // nullable_src & nonNullIntent_dst => check_expr
-          var nonNullIntent = destinationType.nonNullIntent;
-          if (nonNullIntent != null) {
-            _recordConstraint(nonNullIntent, checkNotNull);
+          if (destinationNonNullIntent != null) {
+            _recordConstraint(destinationNonNullIntent, checkNotNull);
           }
         }
       } finally {
         _guards.removeLast();
       }
-      if (!_inConditionalControlFlow && destinationType.nullable == null) {
-        // The destination type can never be nullable so this demonstrates
-        // non-null intent.
-        var nonNullIntent = sourceType.nonNullIntent;
-        if (nonNullIntent != null) {
-          _recordFact(nonNullIntent);
+      var sourceNonNullIntent = sourceType.nonNullIntent;
+      if (!_inConditionalControlFlow && sourceNonNullIntent != null) {
+        if (destinationType.nullable == null) {
+          // The destination type can never be nullable so this demonstrates
+          // non-null intent.
+          _recordFact(sourceNonNullIntent);
+        } else if (destinationNonNullIntent != null) {
+          // Propagate non-null intent from the destination to the source.
+          _recordConstraint(destinationNonNullIntent, sourceNonNullIntent);
         }
       }
     }

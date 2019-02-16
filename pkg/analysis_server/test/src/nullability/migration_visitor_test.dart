@@ -384,6 +384,7 @@ void test(int/*2*/ i) {
     var i_3 = checkExpression('i/*3*/');
     assertConstraint([int_2.nullable], _either(int_1.nullable, i_3.nullCheck));
     assertConstraint([int_2.nullable, int_1.nonNullIntent], i_3.nullCheck);
+    assertConstraint([int_1.nonNullIntent], int_2.nonNullIntent);
   }
 
   test_functionInvocation_parameter_named() async {
