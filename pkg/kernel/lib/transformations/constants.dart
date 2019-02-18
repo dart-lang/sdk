@@ -411,6 +411,10 @@ class ConstantEvaluator extends RecursiveVisitor {
     }
   }
 
+  Constant unevaluated(Expression expression) {
+    return new UnevaluatedConstant(expression);
+  }
+
   /// Evaluates [node] and possibly cache the evaluation result.
   /// @throws _AbortCurrentEvaluation if expression can't be evaluated.
   Constant _evaluateSubexpression(Expression node) {
@@ -551,21 +555,24 @@ class ConstantEvaluator extends RecursiveVisitor {
         constructor.function.body is! EmptyStatement) {
       throw 'Constructor "$node" has non-trivial body "${constructor.function.body.runtimeType}".';
     }
-    if (constructor.isInExternalLibrary &&
-        constructor.initializers.isEmpty &&
-        constructor.enclosingClass.supertype != null) {
-      // The constructor is unavailable due to separate compilation.
-      return new UnevaluatedConstant(new ConstructorInvocation(
-          constructor, unevaluatedArguments(node.arguments),
-          isConst: true));
-    }
     if (klass.isAbstract) {
       throw 'Constructor "$node" belongs to abstract class "${klass}".';
     }
 
-    final typeArguments = evaluateTypeArguments(node, node.arguments);
     final positionals = evaluatePositionalArguments(node.arguments);
     final named = evaluateNamedArguments(node.arguments);
+
+    bool isUnavailable = constructor.isInExternalLibrary &&
+        constructor.initializers.isEmpty &&
+        constructor.enclosingClass.supertype != null;
+    if (isUnavailable) {
+      // The constructor is unavailable due to separate compilation.
+      return unevaluated(new ConstructorInvocation(constructor,
+          unevaluatedArguments(positionals, named, node.arguments.types),
+          isConst: true));
+    }
+
+    final typeArguments = evaluateTypeArguments(node, node.arguments);
 
     // Fill in any missing type arguments with "dynamic".
     for (int i = typeArguments.length; i < klass.typeParameters.length; i++) {
@@ -1119,7 +1126,7 @@ class ConstantEvaluator extends RecursiveVisitor {
         if (target.isConst) {
           if (target.isInExternalLibrary && target.initializer == null) {
             // The variable is unavailable due to separate compilation.
-            return new UnevaluatedConstant(node);
+            return unevaluated(node);
           }
           return runInsideContext(target, () {
             return _evaluateSubexpression(target.initializer);
@@ -1165,24 +1172,19 @@ class ConstantEvaluator extends RecursiveVisitor {
   visitStaticInvocation(StaticInvocation node) {
     final Procedure target = node.target;
     final Arguments arguments = node.arguments;
+    final positionals = evaluatePositionalArguments(arguments);
+    final named = evaluateNamedArguments(arguments);
     if (target.kind == ProcedureKind.Factory) {
       if (target.isConst &&
           target.name.name == "fromEnvironment" &&
           target.enclosingLibrary == coreTypes.coreLibrary &&
-          arguments.positional.length == 1) {
+          positionals.length == 1) {
         if (environmentDefines != null) {
           // Evaluate environment constant.
-          Constant name = arguments.positional[0].accept(this);
+          Constant name = positionals.single;
           if (name is StringConstant) {
             String value = environmentDefines[name.value];
-            Constant defaultValue = null;
-            for (int i = 0; i < arguments.named.length; i++) {
-              NamedExpression named = arguments.named[i];
-              if (named.name == "defaultValue") {
-                defaultValue = named.value.accept(this);
-                break;
-              }
-            }
+            Constant defaultValue = named["defaultValue"];
 
             if (target.enclosingClass == coreTypes.boolClass) {
               Constant boolConstant = value == "true"
@@ -1211,8 +1213,8 @@ class ConstantEvaluator extends RecursiveVisitor {
           // TODO(askesc): Give more meaningful error message if name is null.
         } else {
           // Leave environment constant unevaluated.
-          return new UnevaluatedConstant(new StaticInvocation(
-              target, unevaluatedArguments(arguments),
+          return unevaluated(new StaticInvocation(
+              target, unevaluatedArguments(positionals, named, arguments.types),
               isConst: true));
         }
       }
@@ -1220,9 +1222,8 @@ class ConstantEvaluator extends RecursiveVisitor {
       // Ensure the "identical()" function comes from dart:core.
       final parent = target.parent;
       if (parent is Library && parent == coreTypes.coreLibrary) {
-        final positionalArguments = evaluatePositionalArguments(arguments);
-        final Constant left = positionalArguments[0];
-        final Constant right = positionalArguments[1];
+        final Constant left = positionals[0];
+        final Constant right = positionals[1];
         // Since we canonicalize constants during the evaluation, we can use
         // identical here.
         return identical(left, right) ? trueConstant : falseConstant;
@@ -1329,19 +1330,18 @@ class ConstantEvaluator extends RecursiveVisitor {
     return named;
   }
 
-  Arguments unevaluatedArguments(Arguments arguments) {
-    final positional = new List<Expression>(arguments.positional.length);
-    final named = new List<NamedExpression>(arguments.named.length);
-    for (int i = 0; i < arguments.positional.length; ++i) {
-      Constant constant = arguments.positional[i].accept(this);
-      positional[i] = constant.asExpression();
+  Arguments unevaluatedArguments(List<Constant> positionalArgs,
+      Map<String, Constant> namedArgs, List<DartType> types) {
+    final positional = new List<Expression>(positionalArgs.length);
+    final named = new List<NamedExpression>(namedArgs.length);
+    for (int i = 0; i < positionalArgs.length; ++i) {
+      positional[i] = positionalArgs[i].asExpression();
     }
-    for (int i = 0; i < arguments.named.length; ++i) {
-      NamedExpression arg = arguments.named[i];
-      Constant constant = arg.value.accept(this);
-      named[i] = new NamedExpression(arg.name, constant.asExpression());
-    }
-    return new Arguments(positional, named: named, types: arguments.types);
+    int i = 0;
+    namedArgs.forEach((String name, Constant value) {
+      named[i++] = new NamedExpression(name, value.asExpression());
+    });
+    return new Arguments(positional, named: named, types: types);
   }
 
   Constant canonicalize(Constant constant) {
