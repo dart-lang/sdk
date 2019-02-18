@@ -4,6 +4,7 @@
 
 // TODO(dacoharkes): Move this into compiler namespace.
 
+#include "vm/class_id.h"
 #include "vm/globals.h"
 
 #include "vm/stub_code.h"
@@ -391,6 +392,9 @@ static void GenerateUnmarshalResult(Assembler* assembler,
                                     const AbstractType& result_type,
                                     Address closure_dart) {
   switch (result_type.type_class_id()) {
+    case kFfiVoidCid:
+      __ LoadObject(RAX, Object::null_object());
+      return;
     case kFfiInt8Cid:
     case kFfiInt16Cid:
     case kFfiInt32Cid:

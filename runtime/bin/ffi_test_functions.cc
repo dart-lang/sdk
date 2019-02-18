@@ -365,4 +365,20 @@ DART_EXPORT uint8_t IsRoughly1337(float* a) {
   return retval;
 }
 
+// Does nothing with input.
+// Used for testing functions that return void
+DART_EXPORT void DevNullFloat(float a) {
+  std::cout << "DevNullFloat(" << a << ")\n";
+  std::cout << "returning nothing\n";
+}
+
+// Invents an elite floating point number.
+// Used for testing functions that do not take any arguments.
+DART_EXPORT float InventFloatValue() {
+  std::cout << "InventFloatValue()\n";
+  float retval = 1337.0f;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
 }  // namespace dart

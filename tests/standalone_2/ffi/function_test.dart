@@ -28,6 +28,8 @@ void main() {
   testNullManyArgs();
   testNullPointers();
   testFloatRounding();
+  testVoidReturn();
+  testNoArgs();
 }
 
 ffi.DynamicLibrary ffiTestFunctions =
@@ -283,4 +285,29 @@ void testFloatRounding() {
   Expect.equals(1, result);
 
   p2.free();
+}
+
+typedef NativeFloatToVoid = ffi.Void Function(ffi.Float);
+typedef DoubleToVoid = void Function(double);
+
+void testVoidReturn() {
+  DoubleToVoid devNullFloat = ffiTestFunctions
+      .lookupFunction<NativeFloatToVoid, DoubleToVoid>("DevNullFloat");
+
+  devNullFloat(1337.0);
+
+  dynamic loseSignature = devNullFloat;
+  dynamic result = loseSignature(1337.0);
+  Expect.isNull(result);
+}
+
+typedef NativeVoidToFloat = ffi.Float Function();
+typedef VoidToDouble = double Function();
+
+void testNoArgs() {
+  VoidToDouble inventFloatValue = ffiTestFunctions
+      .lookupFunction<NativeVoidToFloat, VoidToDouble>("InventFloatValue");
+
+  double result = inventFloatValue();
+  Expect.approxEquals(1337.0, result);
 }

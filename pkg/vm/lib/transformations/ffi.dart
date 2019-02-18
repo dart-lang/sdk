@@ -138,6 +138,7 @@ class FfiTransformer extends Transformer {
   /// [IntPtr]                             -> [int]
   /// [Double]                             -> [double]
   /// [Float]                              -> [double]
+  /// [Void]                               -> [void]
   /// [Pointer]<T>                         -> [Pointer]<T>
   /// T extends [Pointer]                  -> T
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
@@ -161,6 +162,9 @@ class FfiTransformer extends Transformer {
     }
     if (nativeType_ == NativeType.kFloat || nativeType_ == NativeType.kDouble) {
       return InterfaceType(doubleClass);
+    }
+    if (nativeType_ == NativeType.kVoid) {
+      return VoidType();
     }
     if (nativeType_ == NativeType.kNativeFunction) {
       DartType fun = (nativeType as InterfaceType).typeArguments[0];
