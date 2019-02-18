@@ -134,6 +134,32 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_conditional_non_null_usage_does_not_imply_non_null_intent() async {
+    var content = '''
+void f(bool b, int i, int j) {
+  if (b) i.gcd(j);
+}
+void g(bool b, int i, int j) {
+  if (b) f(b, i, j);
+}
+main() {
+  g(false, 0, null);
+}
+''';
+    var expected = '''
+void f(bool b, int i, int? j) {
+  if (b) i.gcd(j!);
+}
+void g(bool b, int i, int? j) {
+  if (b) f(b, i, j);
+}
+main() {
+  g(false, 0, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_conditional_usage_does_not_propagate_non_null_intent() async {
     var content = '''
 void f(int i) {
@@ -161,32 +187,6 @@ void h(bool b1, bool b2, int? i) {
 }
 main() {
   h(true, false, null);
-}
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
-  test_conditional_non_null_usage_does_not_imply_non_null_intent() async {
-    var content = '''
-void f(bool b, int i, int j) {
-  if (b) i.gcd(j);
-}
-void g(bool b, int i, int j) {
-  if (b) f(b, i, j);
-}
-main() {
-  g(false, 0, null);
-}
-''';
-    var expected = '''
-void f(bool b, int i, int? j) {
-  if (b) i.gcd(j!);
-}
-void g(bool b, int i, int? j) {
-  if (b) f(b, i, j);
-}
-main() {
-  g(false, 0, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
