@@ -247,9 +247,9 @@ Future<CompilerResult> _compile(List<String> args,
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
   if (argResults['summarize-text'] as bool) {
-    var sink = File(output + '.txt').openWrite();
-    kernel.Printer(sink, showExternal: false).writeComponentFile(component);
-    outFiles.add(sink.flush().then((_) => sink.close()));
+    StringBuffer sb = new StringBuffer();
+    kernel.Printer(sb, showExternal: false).writeComponentFile(component);
+    outFiles.add(File(output + '.txt').writeAsString(sb.toString()));
   }
   var target = compilerState.options.target as DevCompilerTarget;
   var compiler =
