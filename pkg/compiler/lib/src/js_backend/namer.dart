@@ -816,7 +816,10 @@ class Namer {
     FunctionEntity function = method.function;
     return _disambiguateInternalMember(method, () {
       String invocationName = operatorNameToIdentifier(function.name);
-      return '${invocationName}\$body\$${method.enclosingClass.name}';
+      // TODO(sra): If the generator is for a closure's 'call' method, we don't
+      // need to incorporate the enclosing class.
+      String className = method.enclosingClass.name.replaceAll('&', '_');
+      return '${invocationName}\$body\$${className}';
     });
   }
 

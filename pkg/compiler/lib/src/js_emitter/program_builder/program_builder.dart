@@ -701,12 +701,16 @@ class ProgramBuilder {
     if (!onlyForRti) {
       if (_elementEnvironment.isSuperMixinApplication(cls)) {
         List<MemberEntity> members = <MemberEntity>[];
-        _elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
+        void add(MemberEntity member) {
           if (member.enclosingClass == cls) {
             members.add(member);
             isSuperMixinApplication = true;
           }
-        });
+        }
+
+        _elementEnvironment.forEachLocalClassMember(cls, add);
+        _elementEnvironment.forEachInjectedClassMember(cls, add);
+
         if (members.isNotEmpty) {
           _sorter.sortMembers(members).forEach(visitMember);
         }
