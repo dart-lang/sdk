@@ -9,7 +9,7 @@ import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/allocator_analysis.dart';
-import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/util/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
@@ -17,9 +17,9 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('kdata'));
-    await checkTests(dataDir, const KAllocatorAnalysisDataComputer(),
-        args: args, testOmit: false, testFrontend: true);
+    Directory dataDir = new Directory.fromUri(Platform.script.resolve('jdata'));
+    await checkTests(dataDir, const JAllocatorAnalysisDataComputer(),
+        args: args, testOmit: false);
   });
 }
 
@@ -27,20 +27,18 @@ class Tags {
   static const String initialValue = 'initial';
 }
 
-class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
-  const KAllocatorAnalysisDataComputer();
+class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
+  const JAllocatorAnalysisDataComputer();
 
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
     if (member.isField && member.isInstanceMember) {
-      KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
-      KAllocatorAnalysis allocatorAnalysis =
-          compiler.backend.allocatorResolutionAnalysisForTesting;
-      ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
-      ConstantValue initialValue =
-          allocatorAnalysis.getFixedInitializerForTesting(member);
+      JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+      JAllocatorAnalysis allocatorAnalysis = closedWorld.allocatorAnalysis;
+      ir.Member node = closedWorld.elementMap.getMemberDefinition(member).node;
+      ConstantValue initialValue = allocatorAnalysis.initializerValue(member);
       Features features = new Features();
       if (initialValue != null) {
         features[Tags.initialValue] = initialValue.toStructuredText();
