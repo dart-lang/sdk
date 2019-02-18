@@ -504,7 +504,7 @@ class ConstantEvaluator extends RecursiveVisitor {
     }
     final List<Constant> entries = new List<Constant>(node.expressions.length);
     for (int i = 0; i < node.expressions.length; ++i) {
-      entries[i] = node.expressions[i].accept(this);
+      entries[i] = _evaluateSubexpression(node.expressions[i]);
     }
     final DartType typeArgument = evaluateDartType(node, node.typeArgument);
     return canonicalize(new ListConstant(typeArgument, entries));
@@ -519,8 +519,8 @@ class ConstantEvaluator extends RecursiveVisitor {
     final List<ConstantMapEntry> entries =
         new List<ConstantMapEntry>(node.entries.length);
     for (int i = 0; i < node.entries.length; ++i) {
-      final key = node.entries[i].key.accept(this);
-      final value = node.entries[i].value.accept(this);
+      final key = _evaluateSubexpression(node.entries[i].key);
+      final value = _evaluateSubexpression(node.entries[i].value);
       if (!usedKeys.add(key)) {
         // TODO(kustermann): We should change the context handling from just
         // capturing the `TreeNode`s to a `(TreeNode, String message)` tuple and
@@ -790,16 +790,19 @@ class ConstantEvaluator extends RecursiveVisitor {
                 evaluateNamedArguments(init.arguments));
           } else if (init is AssertInitializer) {
             if (enableAsserts) {
-              final Constant condition = init.statement.condition.accept(this);
+              final Constant condition =
+                  _evaluateSubexpression(init.statement.condition);
 
               if (condition is BoolConstant) {
                 if (!condition.value) {
-                  final Constant message = init.statement.message?.accept(this);
-                  if (message == null) {
+                  if (init.statement.message == null) {
                     throw new _AbortCurrentEvaluation(
                         errorReporter.failedAssertion(
                             contextChain, init.statement.condition, null));
-                  } else if (message is StringConstant) {
+                  }
+                  final Constant message =
+                      _evaluateSubexpression(init.statement.message);
+                  if (message is StringConstant) {
                     throw new _AbortCurrentEvaluation(
                         errorReporter.failedAssertion(contextChain,
                             init.statement.condition, message.value));
@@ -1083,7 +1086,7 @@ class ConstantEvaluator extends RecursiveVisitor {
   visitLet(Let node) {
     env.addVariableValue(
         node.variable, _evaluateSubexpression(node.variable.initializer));
-    return node.body.accept(this);
+    return _evaluateSubexpression(node.body);
   }
 
   visitVariableGet(VariableGet node) {
@@ -1139,7 +1142,7 @@ class ConstantEvaluator extends RecursiveVisitor {
 
   visitStringConcatenation(StringConcatenation node) {
     final String value = node.expressions.map((Expression node) {
-      final Constant constant = node.accept(this);
+      final Constant constant = _evaluateSubexpression(node);
 
       if (constant is NullConstant) {
         return 'null';
@@ -1230,13 +1233,13 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitAsExpression(AsExpression node) {
-    final Constant constant = node.operand.accept(this);
+    final Constant constant = _evaluateSubexpression(node.operand);
     ensureIsSubtype(constant, evaluateDartType(node, node.type), node);
     return constant;
   }
 
   visitNot(Not node) {
-    final Constant constant = node.operand.accept(this);
+    final Constant constant = _evaluateSubexpression(node.operand);
     if (constant is BoolConstant) {
       return constant == trueConstant ? falseConstant : trueConstant;
     }
@@ -1312,7 +1315,7 @@ class ConstantEvaluator extends RecursiveVisitor {
 
   List<Constant> evaluatePositionalArguments(Arguments arguments) {
     return arguments.positional.map((Expression node) {
-      return node.accept(this) as Constant;
+      return _evaluateSubexpression(node);
     }).toList();
   }
 
@@ -1321,7 +1324,7 @@ class ConstantEvaluator extends RecursiveVisitor {
 
     final Map<String, Constant> named = {};
     arguments.named.forEach((NamedExpression pair) {
-      named[pair.name] = pair.value.accept(this);
+      named[pair.name] = _evaluateSubexpression(pair.value);
     });
     return named;
   }
