@@ -450,10 +450,10 @@ class TypeConstantValue extends ObjectConstantValue {
 
   bool operator ==(other) {
     return other is TypeConstantValue &&
-        representedType == other.representedType;
+        representedType.unaliased == other.representedType.unaliased;
   }
 
-  int get hashCode => representedType.hashCode * 13;
+  int get hashCode => representedType.unaliased.hashCode * 13;
 
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
