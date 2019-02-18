@@ -22,6 +22,7 @@ import 'dart:io' as io;
 
 import '../ast.dart';
 import '../class_hierarchy.dart';
+import '../clone.dart';
 import '../core_types.dart';
 import '../kernel.dart';
 import '../type_algebra.dart';
@@ -385,6 +386,7 @@ class ConstantEvaluator extends RecursiveVisitor {
 
   final Map<Constant, Constant> canonicalizationCache;
   final Map<Node, Object> nodeCache;
+  final CloneVisitor cloner = new CloneVisitor();
 
   final NullConstant nullConstant = new NullConstant();
   final BoolConstant trueConstant = new BoolConstant(true);
@@ -394,6 +396,9 @@ class ConstantEvaluator extends RecursiveVisitor {
 
   InstanceBuilder instanceBuilder;
   EvaluationEnvironment env;
+  Expression evaluationRoot;
+  Set<TreeNode> unevaluatedNodes;
+  Set<Expression> replacementNodes;
 
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
       this.enableAsserts, this.errorReporter)
@@ -404,15 +409,50 @@ class ConstantEvaluator extends RecursiveVisitor {
 
   /// Evaluates [node] and possibly cache the evaluation result.
   Constant evaluate(Expression node) {
+    evaluationRoot = node;
     try {
       return _evaluateSubexpression(node);
     } on _AbortCurrentEvaluation catch (e) {
       return new UnevaluatedConstant(new InvalidExpression(e.message));
+    } finally {
+      // Release collections used to keep track of unevaluated nodes.
+      evaluationRoot = null;
+      unevaluatedNodes = null;
+      replacementNodes = null;
     }
   }
 
-  Constant unevaluated(Expression expression) {
-    return new UnevaluatedConstant(expression);
+  /// Produce an unevaluated constant node for an expression.
+  /// Mark all ancestors (up to the root of the constant evaluation) to
+  /// indicate that they should also be unevaluated.
+  Constant unevaluated(Expression original, Expression replacement) {
+    assert(evaluationRoot != null);
+    replacement.fileOffset = original.fileOffset;
+    unevaluatedNodes ??= new Set<TreeNode>.identity();
+    TreeNode mark = original;
+    while (unevaluatedNodes.add(mark)) {
+      if (identical(mark, evaluationRoot)) break;
+      mark = mark.parent;
+    }
+    return new UnevaluatedConstant(replacement);
+  }
+
+  /// Called whenever an expression is extracted from an unevaluated constant
+  /// to become part of the expression tree of another unevaluated constant.
+  /// Makes sure a particular expression occurs only once in the tree by
+  /// cloning further instances.
+  Expression unique(Expression expression) {
+    replacementNodes ??= new Set<Expression>.identity();
+    if (!replacementNodes.add(expression)) {
+      expression = cloner.clone(expression);
+      replacementNodes.add(expression);
+    }
+    return expression;
+  }
+
+  /// Should this node become unevaluated because of an unevaluated child?
+  bool hasUnevaluatedChild(TreeNode node) {
+    return unevaluatedNodes != null && unevaluatedNodes.contains(node);
   }
 
   /// Evaluates [node] and possibly cache the evaluation result.
@@ -510,6 +550,16 @@ class ConstantEvaluator extends RecursiveVisitor {
     for (int i = 0; i < node.expressions.length; ++i) {
       entries[i] = _evaluateSubexpression(node.expressions[i]);
     }
+    if (hasUnevaluatedChild(node)) {
+      final expressions = new List<Expression>(node.expressions.length);
+      for (int i = 0; i < node.expressions.length; ++i) {
+        expressions[i] = unique(entries[i].asExpression());
+      }
+      return unevaluated(
+          node,
+          new ListLiteral(expressions,
+              typeArgument: node.typeArgument, isConst: true));
+    }
     final DartType typeArgument = evaluateDartType(node, node.typeArgument);
     return canonicalize(new ListConstant(typeArgument, entries));
   }
@@ -533,6 +583,17 @@ class ConstantEvaluator extends RecursiveVisitor {
             errorReporter.duplicateKey(contextChain, node.entries[i], key));
       }
       entries[i] = new ConstantMapEntry(key, value);
+    }
+    if (hasUnevaluatedChild(node)) {
+      final mapEntries = new List<MapEntry>(node.entries.length);
+      for (int i = 0; i < node.entries.length; ++i) {
+        mapEntries[i] = new MapEntry(unique(entries[i].key.asExpression()),
+            unique(entries[i].value.asExpression()));
+      }
+      return unevaluated(
+          node,
+          new MapLiteral(mapEntries,
+              keyType: node.keyType, valueType: node.valueType, isConst: true));
     }
     final DartType keyType = evaluateDartType(node, node.keyType);
     final DartType valueType = evaluateDartType(node, node.valueType);
@@ -562,14 +623,17 @@ class ConstantEvaluator extends RecursiveVisitor {
     final positionals = evaluatePositionalArguments(node.arguments);
     final named = evaluateNamedArguments(node.arguments);
 
+    // Is the constructor unavailable due to separate compilation?
     bool isUnavailable = constructor.isInExternalLibrary &&
         constructor.initializers.isEmpty &&
         constructor.enclosingClass.supertype != null;
-    if (isUnavailable) {
-      // The constructor is unavailable due to separate compilation.
-      return unevaluated(new ConstructorInvocation(constructor,
-          unevaluatedArguments(positionals, named, node.arguments.types),
-          isConst: true));
+
+    if (isUnavailable || hasUnevaluatedChild(node)) {
+      return unevaluated(
+          node,
+          new ConstructorInvocation(constructor,
+              unevaluatedArguments(positionals, named, node.arguments.types),
+              isConst: true));
     }
 
     final typeArguments = evaluateTypeArguments(node, node.arguments);
@@ -850,6 +914,13 @@ class ConstantEvaluator extends RecursiveVisitor {
     final List<Constant> arguments =
         evaluatePositionalArguments(node.arguments);
 
+    if (hasUnevaluatedChild(node)) {
+      return unevaluated(
+          node,
+          new MethodInvocation(unique(receiver.asExpression()), node.name,
+              unevaluatedArguments(arguments, {}, node.arguments.types)));
+    }
+
     // TODO(http://dartbug.com/31799): Ensure we only invoke ==/!= on
     // null/bool/int/double/String objects.
 
@@ -1004,13 +1075,19 @@ class ConstantEvaluator extends RecursiveVisitor {
 
   visitLogicalExpression(LogicalExpression node) {
     final Constant left = _evaluateSubexpression(node.left);
+    if (left is UnevaluatedConstant) {
+      return unevaluated(
+          node,
+          new LogicalExpression(
+              unique(left.expression), node.operator, node.right));
+    }
     switch (node.operator) {
       case '||':
         if (left is BoolConstant) {
           if (left.value) return trueConstant;
 
           final Constant right = _evaluateSubexpression(node.right);
-          if (right is BoolConstant) {
+          if (right is BoolConstant || right is UnevaluatedConstant) {
             return right;
           }
 
@@ -1030,9 +1107,10 @@ class ConstantEvaluator extends RecursiveVisitor {
           if (!left.value) return falseConstant;
 
           final Constant right = _evaluateSubexpression(node.right);
-          if (right is BoolConstant) {
+          if (right is BoolConstant || right is UnevaluatedConstant) {
             return right;
           }
+
           throw new _AbortCurrentEvaluation(
               errorReporter.invalidBinaryOperandType(
                   contextChain,
@@ -1055,14 +1133,19 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitConditionalExpression(ConditionalExpression node) {
-    final Constant constant = _evaluateSubexpression(node.condition);
-    if (constant == trueConstant) {
+    final Constant condition = _evaluateSubexpression(node.condition);
+    if (condition == trueConstant) {
       return _evaluateSubexpression(node.then);
-    } else if (constant == falseConstant) {
+    } else if (condition == falseConstant) {
       return _evaluateSubexpression(node.otherwise);
+    } else if (condition is UnevaluatedConstant) {
+      return unevaluated(
+          node,
+          new ConditionalExpression(unique(condition.expression), node.then,
+              node.otherwise, node.staticType));
     } else {
       throw new _AbortCurrentEvaluation(errorReporter.invalidDartType(
-          contextChain, node, constant, typeEnvironment.boolType));
+          contextChain, node, condition, typeEnvironment.boolType));
     }
   }
 
@@ -1086,6 +1169,11 @@ class ConstantEvaluator extends RecursiveVisitor {
           return receiver.fieldValues[fieldRef];
         }
       }
+    } else if (receiver is UnevaluatedConstant) {
+      return unevaluated(
+          node,
+          new PropertyGet(
+              unique(receiver.expression), node.name, node.interfaceTarget));
     }
     throw 'Could not evaluate property get on $receiver.';
   }
@@ -1126,7 +1214,7 @@ class ConstantEvaluator extends RecursiveVisitor {
         if (target.isConst) {
           if (target.isInExternalLibrary && target.initializer == null) {
             // The variable is unavailable due to separate compilation.
-            return unevaluated(node);
+            return unevaluated(node, node);
           }
           return runInsideContext(target, () {
             return _evaluateSubexpression(target.initializer);
@@ -1148,25 +1236,38 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitStringConcatenation(StringConcatenation node) {
-    final String value = node.expressions.map((Expression node) {
-      final Constant constant = _evaluateSubexpression(node);
-
-      if (constant is NullConstant) {
-        return 'null';
-      } else if (constant is BoolConstant) {
-        return constant.value ? 'true' : 'false';
-      } else if (constant is IntConstant) {
-        return constant.value.toString();
-      } else if (constant is DoubleConstant) {
-        return constant.value.toString();
-      } else if (constant is StringConstant) {
-        return constant.value;
+    final List<Object> concatenated = <Object>[new StringBuffer()];
+    for (int i = 0; i < node.expressions.length; i++) {
+      Constant constant = _evaluateSubexpression(node.expressions[i]);
+      if (constant is PrimitiveConstant) {
+        String value = constant.value.toString();
+        Object last = concatenated.last;
+        if (last is StringBuffer) {
+          last.write(value);
+        } else {
+          concatenated.add(new StringBuffer(value));
+        }
+      } else if (constant is UnevaluatedConstant) {
+        concatenated.add(constant);
       } else {
         throw new _AbortCurrentEvaluation(errorReporter
             .invalidStringInterpolationOperand(contextChain, node, constant));
       }
-    }).join('');
-    return canonicalize(new StringConstant(value));
+    }
+    if (concatenated.length > 1) {
+      final expressions = new List<Expression>(concatenated.length);
+      for (int i = 0; i < concatenated.length; i++) {
+        Object value = concatenated[i];
+        if (value is UnevaluatedConstant) {
+          expressions[i] = unique(value.expression);
+        } else {
+          expressions[i] = new ConstantExpression(
+              canonicalize(new StringConstant(value.toString())));
+        }
+      }
+      return unevaluated(node, new StringConcatenation(expressions));
+    }
+    return canonicalize(new StringConstant(concatenated.single.toString()));
   }
 
   visitStaticInvocation(StaticInvocation node) {
@@ -1174,6 +1275,13 @@ class ConstantEvaluator extends RecursiveVisitor {
     final Arguments arguments = node.arguments;
     final positionals = evaluatePositionalArguments(arguments);
     final named = evaluateNamedArguments(arguments);
+    if (hasUnevaluatedChild(node)) {
+      return unevaluated(
+          node,
+          new StaticInvocation(
+              target, unevaluatedArguments(positionals, named, arguments.types),
+              isConst: true));
+    }
     if (target.kind == ProcedureKind.Factory) {
       if (target.isConst &&
           target.name.name == "fromEnvironment" &&
@@ -1213,9 +1321,11 @@ class ConstantEvaluator extends RecursiveVisitor {
           // TODO(askesc): Give more meaningful error message if name is null.
         } else {
           // Leave environment constant unevaluated.
-          return unevaluated(new StaticInvocation(
-              target, unevaluatedArguments(positionals, named, arguments.types),
-              isConst: true));
+          return unevaluated(
+              node,
+              new StaticInvocation(target,
+                  unevaluatedArguments(positionals, named, arguments.types),
+                  isConst: true));
         }
       }
     } else if (target.name.name == 'identical') {
@@ -1235,6 +1345,10 @@ class ConstantEvaluator extends RecursiveVisitor {
 
   visitAsExpression(AsExpression node) {
     final Constant constant = _evaluateSubexpression(node.operand);
+    if (constant is UnevaluatedConstant) {
+      return unevaluated(
+          node, new AsExpression(unique(constant.expression), node.type));
+    }
     ensureIsSubtype(constant, evaluateDartType(node, node.type), node);
     return constant;
   }
@@ -1243,6 +1357,9 @@ class ConstantEvaluator extends RecursiveVisitor {
     final Constant constant = _evaluateSubexpression(node.operand);
     if (constant is BoolConstant) {
       return constant == trueConstant ? falseConstant : trueConstant;
+    }
+    if (constant is UnevaluatedConstant) {
+      return unevaluated(node, new Not(unique(constant.expression)));
     }
     throw new _AbortCurrentEvaluation(errorReporter.invalidDartType(
         contextChain, node, constant, typeEnvironment.boolType));
@@ -1266,6 +1383,10 @@ class ConstantEvaluator extends RecursiveVisitor {
       throw new Exception(
           'The number of type arguments supplied in the partial instantiation '
           'does not match the number of type arguments of the $constant.');
+    }
+    if (constant is UnevaluatedConstant) {
+      return unevaluated(node,
+          new Instantiation(unique(constant.expression), node.typeArguments));
     }
     throw new Exception(
         'Only tear-off constants can be partially instantiated.');
@@ -1335,11 +1456,11 @@ class ConstantEvaluator extends RecursiveVisitor {
     final positional = new List<Expression>(positionalArgs.length);
     final named = new List<NamedExpression>(namedArgs.length);
     for (int i = 0; i < positionalArgs.length; ++i) {
-      positional[i] = positionalArgs[i].asExpression();
+      positional[i] = unique(positionalArgs[i].asExpression());
     }
     int i = 0;
     namedArgs.forEach((String name, Constant value) {
-      named[i++] = new NamedExpression(name, value.asExpression());
+      named[i++] = new NamedExpression(name, unique(value.asExpression()));
     });
     return new Arguments(positional, named: named, types: types);
   }
