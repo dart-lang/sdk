@@ -1579,6 +1579,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
     }
     handleInTryStatement();
+    if (_inliningStack.isEmpty && targetElement.isSetter) {
+      if (node.parent is ir.FunctionNode) {
+        // An arrow function definition of a setter has a ReturnStatemnt as a
+        // body, e.g. "set foo(x) => this._x = x;". There is no way to access
+        // the returned value, so don't emit a return.
+        return;
+      }
+    }
     _emitReturn(value, sourceInformation);
   }
 
