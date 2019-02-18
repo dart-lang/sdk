@@ -34,23 +34,26 @@ class Class1 {
   /*element: Class1.field7:initial=StringConstant("foo")*/
   var field7 = 'foo';
 
-  /*element: Class1.field8:*/
+  /*element: Class1.field8:initial=DoubleConstant(0.5)*/
   var field8 = 0.5;
 
-  /*element: Class1.field9:*/
+  /*element: Class1.field9:initial=ListConstant([])*/
   var field9 = const [];
 
-  /*element: Class1.field10:*/
+  /*element: Class1.field10:initial=MapConstant({})*/
   var field10 = const {};
 
-  /*element: Class1.field11:*/
+  /*element: Class1.field11:initial=ConstructedConstant(Symbol(_name=StringConstant("foo")))*/
   var field11 = #foo;
 
-  /*element: Class1.field12:*/
+  /*element: Class1.field12:initial=IntConstant(5)*/
   var field12 = 2 + 3;
 
-  /*element: Class1.field13:*/
+  /*element: Class1.field13:initial=BoolConstant(true)*/
   var field13 = const1;
+
+  /*element: Class1.field14:*/
+  var field14 = const1 is int;
 }
 
 class Class2 {
@@ -93,6 +96,9 @@ class Class2 {
   /*element: Class2.field13:*/
   var field13;
 
+  /*element: Class2.field14:*/
+  var field14;
+
   Class2()
       : field1 = null,
         field2 = true,
@@ -106,5 +112,6 @@ class Class2 {
         field10 = const {},
         field11 = #foo,
         field12 = 2 + 3,
-        field13 = const1;
+        field13 = const1,
+        field14 = const1 is int;
 }

@@ -46,10 +46,10 @@ class Class1 {
   /*element: Class1.field11:*/
   var field11 = #foo;
 
-  /*element: Class1.field12:*/
+  /*element: Class1.field12:initial=IntConstant(5)*/
   var field12 = 2 + 3;
 
-  /*element: Class1.field13:*/
+  /*element: Class1.field13:initial=BoolConstant(true)*/
   var field13 = const1;
 }
 

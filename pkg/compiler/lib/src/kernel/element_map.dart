@@ -108,8 +108,6 @@ abstract class KernelToElementMap {
   js.Name getNameForJsGetName(ConstantValue constant, Namer namer);
 
   /// Computes the [ConstantValue] for the constant [expression].
-  // TODO(johnniwinther): Move to [KernelToElementMapForBuilding]. This is only
-  // used in impact builder for symbol constants.
   ConstantValue getConstantValue(ir.Expression expression,
       {bool requireConstant: true, bool implicitNull: false});
 

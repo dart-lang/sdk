@@ -47,20 +47,11 @@ class KAllocatorAnalysis implements AllocatorAnalysis {
     Map<ir.Field, ConstantValue> inits = {};
     for (ir.Field field in classNode.fields) {
       if (!field.isInstanceMember) continue;
-      ir.Expression initializer = field.initializer;
-      // TODO(sra): Should really be using constant evaluator to determine
-      // value.
-      if (initializer == null || initializer is ir.NullLiteral) {
-        inits[field] = const NullConstantValue();
-      } else if (initializer is ir.IntLiteral) {
-        BigInt intValue = BigInt.from(initializer.value).toUnsigned(64);
-        inits[field] = IntConstantValue(intValue);
-      } else if (initializer is ir.BoolLiteral) {
-        inits[field] = BoolConstantValue(initializer.value);
-      } else if (initializer is ir.StringLiteral) {
-        if (initializer.value.length <= 20) {
-          inits[field] = StringConstantValue(initializer.value);
-        }
+      ir.Expression expression = field.initializer;
+      ConstantValue value = _elementMap.getConstantValue(expression,
+          requireConstant: false, implicitNull: true);
+      if (value != null && value.isConstant) {
+        inits[field] = value;
       }
     }
 
@@ -124,12 +115,11 @@ class JAllocatorAnalysis implements AllocatorAnalysis {
     var result = JAllocatorAnalysis._();
 
     kAnalysis._fixedInitializers.forEach((KField kField, ConstantValue value) {
-      // TODO(sra): Translate constant, but Null and these primitives do not
-      // need translating.
       if (value.isNull || value.isInt || value.isBool || value.isString) {
+        // TODO(johnniwinther): Support non-primitive constants.
         JField jField = map.toBackendMember(kField);
         if (jField != null) {
-          result._fixedInitializers[jField] = value;
+          result._fixedInitializers[jField] = map.toBackendConstant(value);
         }
       }
     });
