@@ -14,13 +14,35 @@ import '../../abstract_context.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ImportElementsComputerTest);
+    defineReflectiveTests(ImportedElementsComputerTest);
   });
 }
 
 @reflectiveTest
-class ImportElementsComputerTest extends AbstractContextTest {
+class ImportedElementsComputerTest extends AbstractContextTest {
   String sourcePath;
+
+  List<ImportedElements> importedElements;
+
+  void assertElements(List<ImportedElements> expectedElementsList) {
+    expect(importedElements, hasLength(expectedElementsList.length));
+    for (ImportedElements expectedElements in expectedElementsList) {
+      String expectedPath = convertPath(expectedElements.path);
+      bool found = false;
+      for (ImportedElements actualElements in importedElements) {
+        if (expectedPath == actualElements.path &&
+            actualElements.prefix == expectedElements.prefix) {
+          expect(actualElements.elements,
+              unorderedEquals(expectedElements.elements));
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        fail('Expected elements from $expectedPath, but none found.');
+      }
+    }
+  }
 
   setUp() {
     super.setUp();
@@ -29,126 +51,104 @@ class ImportElementsComputerTest extends AbstractContextTest {
 
   test_dartAsync_noPrefix() async {
     String selection = "Future<String> f = null;";
-    String content = """
+    String content = '''
 import 'dart:async';
 printer() {
   $selection
   print(await f);
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(2));
-    ImportedElements elements1 = elementsList[0];
-    ImportedElements elements2 = elementsList[1];
-    ImportedElements asyncElements;
-    ImportedElements coreElements;
-    if (elements1.path == convertPath('/sdk/lib/core/core.dart')) {
-      coreElements = elements1;
-      asyncElements = elements2;
-    } else {
-      coreElements = elements2;
-      asyncElements = elements1;
-    }
-    expect(coreElements, isNotNull);
-    expect(coreElements.path, convertPath('/sdk/lib/core/core.dart'));
-    expect(coreElements.prefix, '');
-    expect(coreElements.elements, unorderedEquals(['String']));
-
-    expect(asyncElements, isNotNull);
-    expect(asyncElements.path, convertPath('/sdk/lib/async/async.dart'));
-    expect(asyncElements.prefix, '');
-    expect(asyncElements.elements, unorderedEquals(['Future']));
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/sdk/lib/core/core.dart', '', ['String']),
+      new ImportedElements('/sdk/lib/async/async.dart', '', ['Future']),
+    ]);
   }
 
   test_dartAsync_prefix() async {
     String selection = "a.Future<String> f = null;";
-    String content = """
+    String content = '''
 import 'dart:async' as a;
 printer() {
   $selection
   print(await f);
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(2));
-    ImportedElements elements1 = elementsList[0];
-    ImportedElements elements2 = elementsList[1];
-    ImportedElements asyncElements;
-    ImportedElements coreElements;
-    if (elements1.path == convertPath('/sdk/lib/core/core.dart')) {
-      coreElements = elements1;
-      asyncElements = elements2;
-    } else {
-      coreElements = elements2;
-      asyncElements = elements1;
-    }
-    expect(coreElements, isNotNull);
-    expect(coreElements.path, convertPath('/sdk/lib/core/core.dart'));
-    expect(coreElements.prefix, '');
-    expect(coreElements.elements, unorderedEquals(['String']));
-
-    expect(asyncElements, isNotNull);
-    expect(asyncElements.path, convertPath('/sdk/lib/async/async.dart'));
-    expect(asyncElements.prefix, 'a');
-    expect(asyncElements.elements, unorderedEquals(['Future']));
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/sdk/lib/core/core.dart', '', ['String']),
+      new ImportedElements('/sdk/lib/async/async.dart', 'a', ['Future']),
+    ]);
   }
 
   test_dartCore_noPrefix() async {
     String selection = "String s = '';";
-    String content = """
+    String content = '''
 blankLine() {
   $selection
   print(s);
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(1));
-    ImportedElements elements = elementsList[0];
-    expect(elements, isNotNull);
-    expect(elements.path, convertPath('/sdk/lib/core/core.dart'));
-    expect(elements.prefix, '');
-    expect(elements.elements, unorderedEquals(['String']));
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/sdk/lib/core/core.dart', '', ['String']),
+    ]);
   }
 
   test_dartCore_prefix() async {
     String selection = "core.String s = '';";
-    String content = """
+    String content = '''
 import 'dart:core' as core;
 blankLine() {
   $selection
   print(s);
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(1));
-    ImportedElements elements = elementsList[0];
-    expect(elements, isNotNull);
-    expect(elements.path, convertPath('/sdk/lib/core/core.dart'));
-    expect(elements.prefix, 'core');
-    expect(elements.elements, unorderedEquals(['String']));
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/sdk/lib/core/core.dart', 'core', ['String']),
+    ]);
   }
 
   test_dartMath_noPrefix() async {
     String selection = "new Random();";
-    String content = """
+    String content = '''
 import 'dart:math';
 bool randomBool() {
   Random r = $selection
   return r.nextBool();
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(1));
-    ImportedElements elements = elementsList[0];
-    expect(elements, isNotNull);
-    expect(elements.path, convertPath('/sdk/lib/math/math.dart'));
-    expect(elements.prefix, '');
-    expect(elements.elements, unorderedEquals(['Random']));
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/sdk/lib/math/math.dart', '', ['Random']),
+    ]);
+  }
+
+  test_import_simple() async {
+    String selection = "import 'dart:math';";
+    String content = '''
+$selection
+bool randomBool() {
+  Random r = new Random();
+  return r.nextBool();
+}
+''';
+    await _computeElements(content, selection);
+    expect(importedElements, hasLength(0));
+  }
+
+  test_import_simple_show() async {
+    String selection = "import 'dart:math' show Random;";
+    String content = '''
+$selection
+bool randomBool() {
+  Random r = new Random();
+  return r.nextBool();
+}
+''';
+    await _computeElements(content, selection);
+    expect(importedElements, hasLength(0));
   }
 
   test_multiple() async {
@@ -164,34 +164,23 @@ import 'dart:math';
 
 $selection
 ''';
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(2));
-
-    ImportedElements mathElements = elementsList[0];
-    expect(mathElements, isNotNull);
-    expect(mathElements.path, convertPath('/sdk/lib/math/math.dart'));
-    expect(mathElements.prefix, '');
-    expect(mathElements.elements, unorderedEquals(['Random']));
-
-    ImportedElements coreElements = elementsList[1];
-    expect(coreElements, isNotNull);
-    expect(coreElements.path, convertPath('/sdk/lib/core/core.dart'));
-    expect(coreElements.prefix, '');
-    expect(coreElements.elements, unorderedEquals(['String', 'print']));
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/sdk/lib/core/core.dart', '', ['String', 'print']),
+      new ImportedElements('/sdk/lib/math/math.dart', '', ['Random']),
+    ]);
   }
 
   test_none_comment() async {
     String selection = 'comment';
-    String content = """
+    String content = '''
 // Method $selection.
 blankLine() {
   print('');
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(0));
+''';
+    await _computeElements(content, selection);
+    expect(importedElements, hasLength(0));
   }
 
   test_none_constructorDeclarationReturnType() async {
@@ -201,38 +190,35 @@ class A {
   A.named();
 }
 ''';
-    String content = """
+    String content = '''
 $selection
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(0));
+''';
+    await _computeElements(content, selection);
+    expect(importedElements, hasLength(0));
   }
 
   test_none_partialNames() async {
     String selection = 'x + y';
-    String content = """
+    String content = '''
 plusThree(int xx) {
   int yy = 2;
   print(x${selection}y);
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(0));
+''';
+    await _computeElements(content, selection);
+    expect(importedElements, hasLength(0));
   }
 
   test_none_wholeNames() async {
     String selection = 'x + y + 1';
-    String content = """
+    String content = '''
 plusThree(int x) {
   int y = 2;
   print($selection);
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(0));
+''';
+    await _computeElements(content, selection);
+    expect(importedElements, hasLength(0));
   }
 
   test_package_multipleInSame() async {
@@ -245,20 +231,16 @@ class B {
 }
 ''');
     String selection = "A.a + B.b";
-    String content = """
+    String content = '''
 import 'package:foo/foo.dart';
 blankLine() {
   print($selection);
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(1));
-    ImportedElements elements = elementsList[0];
-    expect(elements, isNotNull);
-    expect(elements.path, convertPath('/.pub-cache/foo/lib/foo.dart'));
-    expect(elements.prefix, '');
-    expect(elements.elements, unorderedEquals(['A', 'B']));
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['A', 'B']),
+    ]);
   }
 
   test_package_noPrefix() async {
@@ -268,20 +250,16 @@ class Foo {
 }
 ''');
     String selection = "Foo.first";
-    String content = """
+    String content = '''
 import 'package:foo/foo.dart';
 blankLine() {
   print($selection);
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(1));
-    ImportedElements elements = elementsList[0];
-    expect(elements, isNotNull);
-    expect(elements.path, convertPath('/.pub-cache/foo/lib/foo.dart'));
-    expect(elements.prefix, '');
-    expect(elements.elements, unorderedEquals(['Foo']));
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['Foo']),
+    ]);
   }
 
   test_package_prefix_selected() async {
@@ -291,20 +269,16 @@ class Foo {
 }
 ''');
     String selection = "f.Foo.first";
-    String content = """
+    String content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
   print($selection);
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(1));
-    ImportedElements elements = elementsList[0];
-    expect(elements, isNotNull);
-    expect(elements.path, convertPath('/.pub-cache/foo/lib/foo.dart'));
-    expect(elements.prefix, 'f');
-    expect(elements.elements, unorderedEquals(['Foo']));
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['Foo']),
+    ]);
   }
 
   test_package_prefix_unselected() async {
@@ -314,20 +288,16 @@ class Foo {
 }
 ''');
     String selection = "Foo.first";
-    String content = """
+    String content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
   print(f.$selection);
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(1));
-    ImportedElements elements = elementsList[0];
-    expect(elements, isNotNull);
-    expect(elements.path, convertPath('/.pub-cache/foo/lib/foo.dart'));
-    expect(elements.prefix, '');
-    expect(elements.elements, unorderedEquals(['Foo']));
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['Foo']),
+    ]);
   }
 
   test_package_prefixedAndNot() async {
@@ -338,64 +308,64 @@ class Foo {
 }
 ''');
     String selection = "f.Foo.first + Foo.second";
-    String content = """
+    String content = '''
 import 'package:foo/foo.dart';
 import 'package:foo/foo.dart' as f;
 blankLine() {
   print($selection);
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-
-    expect(elementsList, hasLength(2));
-    ImportedElements elements1 = elementsList[0];
-    ImportedElements elements2 = elementsList[1];
-    ImportedElements notPrefixedElements;
-    ImportedElements prefixedElements;
-    if (elements1.prefix == '') {
-      prefixedElements = elements2;
-      notPrefixedElements = elements1;
-    } else {
-      prefixedElements = elements1;
-      notPrefixedElements = elements2;
-    }
-
-    expect(notPrefixedElements, isNotNull);
-    expect(
-        notPrefixedElements.path, convertPath('/.pub-cache/foo/lib/foo.dart'));
-    expect(notPrefixedElements.prefix, '');
-    expect(notPrefixedElements.elements, unorderedEquals(['Foo']));
-
-    expect(prefixedElements, isNotNull);
-    expect(prefixedElements.path, convertPath('/.pub-cache/foo/lib/foo.dart'));
-    expect(prefixedElements.prefix, 'f');
-    expect(prefixedElements.elements, unorderedEquals(['Foo']));
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['Foo']),
+      new ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['Foo']),
+    ]);
   }
 
   test_self() async {
     String selection = 'A parent;';
-    String content = """
+    String content = '''
 class A {
   $selection
 }
-""";
-    List<ImportedElements> elementsList = await _computeElements(
-        content, content.indexOf(selection), selection.length);
-    expect(elementsList, hasLength(1));
-    ImportedElements elements = elementsList[0];
-    expect(elements, isNotNull);
-    expect(elements.path, sourcePath);
-    expect(elements.prefix, '');
-    expect(elements.elements, unorderedEquals(['A']));
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements(sourcePath, '', ['A']),
+    ]);
   }
 
-  Future<List<ImportedElements>> _computeElements(
-      String sourceContent, int offset, int length) async {
-    newFile(sourcePath, content: sourceContent);
+  test_wholeFile_noImports() async {
+    String content = '''
+blankLine() {
+  String s = '';
+  print(s);
+}
+''';
+    await _computeElements(content, content);
+    assertElements([
+      new ImportedElements('/sdk/lib/core/core.dart', '', ['String', 'print']),
+    ]);
+  }
+
+  test_wholeFile_withImports() async {
+    String content = '''
+import 'dart:math';
+bool randomBool() {
+  Random r = new Random();
+  return r.nextBool();
+}
+''';
+    await _computeElements(content, content);
+    expect(importedElements, hasLength(0));
+  }
+
+  Future<void> _computeElements(String content, String selection) async {
+    // TODO(brianwilkerson) Automatically extract the selection from the content.
+    newFile(sourcePath, content: content);
     ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
-    ImportedElementsComputer computer =
-        new ImportedElementsComputer(result.unit, offset, length);
-    return computer.compute();
+    ImportedElementsComputer computer = new ImportedElementsComputer(
+        result.unit, content.indexOf(selection), selection.length);
+    importedElements = computer.compute();
   }
 }

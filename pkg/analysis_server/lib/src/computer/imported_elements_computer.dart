@@ -39,10 +39,28 @@ class ImportedElementsComputer {
    * Compute and return the list of imported elements.
    */
   List<ImportedElements> compute() {
+    if (_regionIncludesDirectives()) {
+      return const <ImportedElements>[];
+    }
     _Visitor visitor =
         new _Visitor(unit.declaredElement.library, offset, offset + length);
     unit.accept(visitor);
     return visitor.importedElements.values.toList();
+  }
+
+  /**
+   * Return `true` if the region being copied includes any directives. This
+   * really only needs to check for import and export directives, but excluding
+   * other directives is unlikely to hurt the UX.
+   */
+  bool _regionIncludesDirectives() {
+    NodeList<Directive> directives = unit.directives;
+    if (directives.isEmpty) {
+      return false;
+    }
+    // This might be overly restrictive if there are directives after the first
+    // declaration, but that should be a rare case given that it's invalid.
+    return offset < directives.last.end;
   }
 }
 
