@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,12 +15,10 @@ main() {
 }
 
 @reflectiveTest
-class InvalidCastNewExprTest extends ResolverTestCase {
+class InvalidCastNewExprTest extends DriverResolutionTest {
   @override
-  List<String> get enabledExperiments => ['set-literals'];
-
-  @override
-  bool get enableNewAnalysisDriver => true;
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = ['set-literals'];
 
   test_listLiteral_const() async {
     await assertErrorsInCode(r'''

@@ -19,7 +19,9 @@ main() {
   });
 }
 
-final metaLibraryStub = r'''
+/// The contents of the 'meta' package. Code that uses this variable should be
+/// converted to use PackageMixin.addMetaPackage.
+final _metaLibraryStub = r'''
 library meta;
 
 const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
@@ -70,7 +72,7 @@ class CrossPackageHintCodeTest extends ResolverTestCase {
 
   test_subtypeOfSealedClass_extending() async {
     super.resetWith(packages: [
-      ['meta', metaLibraryStub],
+      ['meta', _metaLibraryStub],
       [
         'foo',
         r'''
@@ -92,7 +94,7 @@ import 'package:meta/meta.dart';
 
   test_subtypeOfSealedClass_implementing() async {
     super.resetWith(packages: [
-      ['meta', metaLibraryStub],
+      ['meta', _metaLibraryStub],
       [
         'foo',
         r'''
@@ -114,7 +116,7 @@ import 'package:meta/meta.dart';
 
   test_subtypeOfSealedClass_mixinApplication() async {
     super.resetWith(packages: [
-      ['meta', metaLibraryStub],
+      ['meta', _metaLibraryStub],
       [
         'foo',
         r'''
@@ -137,7 +139,7 @@ import 'package:meta/meta.dart';
 
   test_subtypeOfSealedClass_mixinImplements() async {
     super.resetWith(packages: [
-      ['meta', metaLibraryStub],
+      ['meta', _metaLibraryStub],
       [
         'foo',
         r'''
@@ -159,7 +161,7 @@ import 'package:meta/meta.dart';
 
   test_subtypeOfSealedClass_mixinOn() async {
     super.resetWith(packages: [
-      ['meta', metaLibraryStub],
+      ['meta', _metaLibraryStub],
       [
         'foo',
         r'''
@@ -181,7 +183,7 @@ import 'package:meta/meta.dart';
 
   test_subtypeOfSealedClass_with() async {
     super.resetWith(packages: [
-      ['meta', metaLibraryStub],
+      ['meta', _metaLibraryStub],
       [
         'foo',
         r'''
@@ -203,7 +205,7 @@ import 'package:meta/meta.dart';
 
   test_subtypeOfSealedClass_withinLibrary_OK() async {
     super.resetWith(packages: [
-      ['meta', metaLibraryStub],
+      ['meta', _metaLibraryStub],
     ]);
 
     _newPubPackageRoot('/pkg1');
@@ -224,7 +226,7 @@ import 'package:meta/meta.dart';
 
   test_subtypeOfSealedClass_withinPackageLibDirectory_OK() async {
     super.resetWith(packages: [
-      ['meta', metaLibraryStub],
+      ['meta', _metaLibraryStub],
     ]);
 
     _newPubPackageRoot('/pkg1');
@@ -249,7 +251,7 @@ import 'package:meta/meta.dart';
 
   test_subtypeOfSealedClass_withinPackageTestDirectory_OK() async {
     super.resetWith(packages: [
-      ['meta', metaLibraryStub],
+      ['meta', _metaLibraryStub],
     ]);
 
     newFolder('/pkg1');
@@ -276,7 +278,7 @@ import 'package:meta/meta.dart';
 
   test_subtypeOfSealedClass_withinPart_OK() async {
     super.resetWith(packages: [
-      ['meta', metaLibraryStub],
+      ['meta', _metaLibraryStub],
     ]);
 
     _newPubPackageRoot('/pkg1');
@@ -300,7 +302,7 @@ import 'package:meta/meta.dart';
 
   test_subtypeOfSealedMixin_mixinApplication() async {
     super.resetWith(packages: [
-      ['meta', metaLibraryStub],
+      ['meta', _metaLibraryStub],
       [
         'foo',
         r'''
@@ -323,7 +325,7 @@ import 'package:meta/meta.dart';
 
   test_subtypeOfSealedMixin_with() async {
     super.resetWith(packages: [
-      ['meta', metaLibraryStub],
+      ['meta', _metaLibraryStub],
       [
         'foo',
         r'''
@@ -355,7 +357,7 @@ class HintCodeTest extends ResolverTestCase {
   @override
   void reset() {
     super.resetWith(packages: [
-      ['meta', metaLibraryStub],
+      ['meta', _metaLibraryStub],
       [
         'js',
         r'''

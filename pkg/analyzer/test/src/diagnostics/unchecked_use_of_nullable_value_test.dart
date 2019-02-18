@@ -4,9 +4,10 @@
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,12 +16,10 @@ main() {
 }
 
 @reflectiveTest
-class UncheckedUseOfNullableValueTest extends ResolverTestCase {
+class UncheckedUseOfNullableValueTest extends DriverResolutionTest {
   @override
-  List<String> get enabledExperiments => [EnableString.non_nullable];
-
-  @override
-  bool get enableNewAnalysisDriver => true;
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   test_and_nonNullable() async {
     await assertNoErrorsInCode(r'''

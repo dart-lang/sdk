@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/definite_assignment.dart';
+import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +20,8 @@ main() {
 }
 
 @reflectiveTest
-class DefiniteAssignmentTrackerTest extends DriverResolutionTest {
+class DefiniteAssignmentTrackerTest extends DriverResolutionTest
+    with PackageMixin {
   DefiniteAssignmentTracker tracker;
 
   /// Assert that only local variables with the given names are marked as read
