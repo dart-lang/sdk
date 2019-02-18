@@ -11,23 +11,23 @@ import '../../abstract_context.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ProvisionalApiTest);
-    defineReflectiveTests(ProvisionalApiTestPermissive);
-    defineReflectiveTests(ProvisionalApiTestWithReset);
+    defineReflectiveTests(_ProvisionalApiTest);
+    defineReflectiveTests(_ProvisionalApiTestPermissive);
+    defineReflectiveTests(_ProvisionalApiTestWithReset);
   });
 }
 
 /// Tests of the provisional API.
 @reflectiveTest
-class ProvisionalApiTest extends ProvisionalApiTestBase
-    with ProvisionalApiTestCases {
+class _ProvisionalApiTest extends _ProvisionalApiTestBase
+    with _ProvisionalApiTestCases {
   @override
-  bool get usePermissiveMode => false;
+  bool get _usePermissiveMode => false;
 }
 
 /// Base class for provisional API tests.
-abstract class ProvisionalApiTestBase extends AbstractContextTest {
-  bool get usePermissiveMode;
+abstract class _ProvisionalApiTestBase extends AbstractContextTest {
+  bool get _usePermissiveMode;
 
   /// Hook invoked after calling `prepareInput` on each input.
   void _afterPrepare() {}
@@ -41,9 +41,9 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       newFile(path, content: input[path]);
     }
-    var listener = new TestMigrationListener();
+    var listener = new _TestMigrationListener();
     var migration = NullabilityMigration(listener,
-        permissive: usePermissiveMode, assumptions: assumptions);
+        permissive: _usePermissiveMode, assumptions: assumptions);
     for (var path in input.keys) {
       migration.prepareInput(await session.getResolvedUnit(path));
     }
@@ -53,7 +53,7 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
     }
     migration.finish();
     var sourceEdits = <String, List<SourceEdit>>{};
-    for (var fix in listener.fixes) {
+    for (var fix in listener._fixes) {
       var path = fix.source.fullName;
       expect(expectedOutput.keys, contains(path));
       (sourceEdits[path] ??= []).addAll(fix.sourceEdits);
@@ -79,7 +79,7 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
 }
 
 /// Mixin containing test cases for the provisional API.
-mixin ProvisionalApiTestCases on ProvisionalApiTestBase {
+mixin _ProvisionalApiTestCases on _ProvisionalApiTestBase {
   test_conditional_assert_statement_does_not_imply_non_null_intent() async {
     var content = '''
 void f(bool b, int i) {
@@ -802,20 +802,20 @@ main() {
 }
 
 @reflectiveTest
-class ProvisionalApiTestPermissive extends ProvisionalApiTestBase
-    with ProvisionalApiTestCases {
+class _ProvisionalApiTestPermissive extends _ProvisionalApiTestBase
+    with _ProvisionalApiTestCases {
   @override
-  bool get usePermissiveMode => true;
+  bool get _usePermissiveMode => true;
 }
 
 /// Tests of the provisional API, where the driver is reset between calls to
 /// `prepareInput` and `processInput`, ensuring that the migration algorithm
 /// sees different AST and element objects during different phases.
 @reflectiveTest
-class ProvisionalApiTestWithReset extends ProvisionalApiTestBase
-    with ProvisionalApiTestCases {
+class _ProvisionalApiTestWithReset extends _ProvisionalApiTestBase
+    with _ProvisionalApiTestCases {
   @override
-  bool get usePermissiveMode => false;
+  bool get _usePermissiveMode => false;
 
   @override
   void _afterPrepare() {
@@ -823,11 +823,11 @@ class ProvisionalApiTestWithReset extends ProvisionalApiTestBase
   }
 }
 
-class TestMigrationListener implements NullabilityMigrationListener {
-  final fixes = <SingleNullabilityFix>[];
+class _TestMigrationListener implements NullabilityMigrationListener {
+  final _fixes = <SingleNullabilityFix>[];
 
   @override
   void addFix(SingleNullabilityFix fix) {
-    fixes.add(fix);
+    _fixes.add(fix);
   }
 }
