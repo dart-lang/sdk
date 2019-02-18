@@ -41,11 +41,7 @@ class ConditionalModification extends PotentialModification {
 
   final _KeepNode elseStatement;
 
-  @override
-  final Source source;
-
-  factory ConditionalModification(
-      Source source, AstNode node, ConditionalDiscard discard) {
+  factory ConditionalModification(AstNode node, ConditionalDiscard discard) {
     if (node is IfStatement) {
       return ConditionalModification._(
           node.offset,
@@ -54,22 +50,14 @@ class ConditionalModification extends PotentialModification {
           discard,
           _KeepNode(node.condition),
           _KeepNode(node.thenStatement),
-          _KeepNode(node.elseStatement),
-          source);
+          _KeepNode(node.elseStatement));
     } else {
       throw new UnimplementedError('TODO(paulberry)');
     }
   }
 
-  ConditionalModification._(
-      this.offset,
-      this.end,
-      this.isStatement,
-      this.discard,
-      this.condition,
-      this.thenStatement,
-      this.elseStatement,
-      this.source);
+  ConditionalModification._(this.offset, this.end, this.isStatement,
+      this.discard, this.condition, this.thenStatement, this.elseStatement);
 
   @override
   bool get isEmpty => discard.keepTrue.value && discard.keepFalse.value;
@@ -171,7 +159,7 @@ class NullabilityMigration {
       this.assumptions: const NullabilityMigrationAssumptions()})
       : _permissive = permissive;
 
-  List<PotentialModification> finish() {
+  Map<Source, List<PotentialModification>> finish() {
     _constraints.applyHeuristics();
     return _variables.getPotentialModifications();
   }
@@ -211,15 +199,12 @@ class NullabilityMigrationAssumptions {
 /// Records information about the possible addition of a `@required` annotation
 /// to the source code.
 class PotentiallyAddRequired extends PotentialModification {
-  @override
-  final Source source;
-
   final ConstraintVariable _optionalVariable;
 
   final int _offset;
 
   PotentiallyAddRequired(
-      this.source, DefaultFormalParameter parameter, this._optionalVariable)
+      DefaultFormalParameter parameter, this._optionalVariable)
       : _offset = parameter.offset;
 
   @override
@@ -238,14 +223,12 @@ abstract class PotentialModification {
   /// Gets the individual migrations that need to be done, considering the
   /// solution to the constraint equations.
   Iterable<SourceEdit> get modifications;
-
-  Source get source;
 }
 
 class Variables implements VariableRecorder, VariableRepository {
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
-  final _potentialModifications = <PotentialModification>[];
+  final _potentialModifications = <Source, List<PotentialModification>>{};
 
   @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>
@@ -253,14 +236,14 @@ class Variables implements VariableRecorder, VariableRepository {
           ? DecoratedType.forElement(element)
           : throw StateError('No element found');
 
-  List<PotentialModification> getPotentialModifications() =>
-      _potentialModifications.where((m) => !m.isEmpty).toList();
+  Map<Source, List<PotentialModification>> getPotentialModifications() =>
+      _potentialModifications;
 
   @override
   void recordConditionalDiscard(
       Source source, AstNode node, ConditionalDiscard conditionalDiscard) {
-    _potentialModifications
-        .add(ConditionalModification(source, node, conditionalDiscard));
+    _addPotentialModification(
+        source, ConditionalModification(node, conditionalDiscard));
   }
 
   void recordDecoratedElementType(Element element, DecoratedType type) {
@@ -270,20 +253,26 @@ class Variables implements VariableRecorder, VariableRepository {
   void recordDecoratedExpressionType(Expression node, DecoratedType type) {}
 
   void recordDecoratedTypeAnnotation(
-      TypeAnnotation node, DecoratedTypeAnnotation type) {
-    _potentialModifications.add(type);
+      Source source, TypeAnnotation node, DecoratedTypeAnnotation type) {
+    _addPotentialModification(source, type);
   }
 
   @override
-  void recordExpressionChecks(Expression expression, ExpressionChecks checks) {
-    _potentialModifications.add(checks);
+  void recordExpressionChecks(
+      Source source, Expression expression, ExpressionChecks checks) {
+    _addPotentialModification(source, checks);
   }
 
   @override
   void recordPossiblyOptional(Source source, DefaultFormalParameter parameter,
       ConstraintVariable variable) {
-    _potentialModifications
-        .add(PotentiallyAddRequired(source, parameter, variable));
+    _addPotentialModification(
+        source, PotentiallyAddRequired(parameter, variable));
+  }
+
+  void _addPotentialModification(
+      Source source, PotentialModification potentialModification) {
+    (_potentialModifications[source] ??= []).add(potentialModification);
   }
 }
 

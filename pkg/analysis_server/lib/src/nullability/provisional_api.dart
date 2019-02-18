@@ -77,9 +77,12 @@ class NullabilityMigration {
             permissive: permissive, assumptions: assumptions);
 
   void finish() {
-    _analyzerMigration.finish().forEach((pm) {
-      listener.addFix(_SingleNullabilityFix(pm));
-    });
+    for (var entry in _analyzerMigration.finish().entries) {
+      var source = entry.key;
+      for (var potentialModification in entry.value) {
+        listener.addFix(_SingleNullabilityFix(source, potentialModification));
+      }
+    }
   }
 
   void prepareInput(ResolvedUnitResult result) {
@@ -129,7 +132,7 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
   final NullabilityFixKind kind;
 
   factory _SingleNullabilityFix(
-      analyzer.PotentialModification potentialModification) {
+      Source source, analyzer.PotentialModification potentialModification) {
     // TODO(paulberry): once everything is migrated into the analysis server,
     // the migration engine can just create SingleNullabilityFix objects
     // directly and set their kind appropriately; we won't need to translate the
@@ -148,8 +151,8 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
     } else {
       throw new UnimplementedError('TODO(paulberry)');
     }
-    return _SingleNullabilityFix._(potentialModification.modifications.toList(),
-        potentialModification.source, kind);
+    return _SingleNullabilityFix._(
+        potentialModification.modifications.toList(), source, kind);
   }
 
   _SingleNullabilityFix._(this.sourceEdits, this.source, this.kind);

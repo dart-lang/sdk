@@ -149,10 +149,9 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     var nullable = node.question == null
         ? TypeIsNullable(node.end)
         : ConstraintVariable.always;
-    var decoratedType = DecoratedTypeAnnotation(
-        type, nullable, _source, node.end,
+    var decoratedType = DecoratedTypeAnnotation(type, nullable, node.end,
         typeArguments: typeArguments);
-    _variables.recordDecoratedTypeAnnotation(node, decoratedType);
+    _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
     return decoratedType;
   }
 
@@ -193,7 +192,7 @@ abstract class VariableRecorder {
 
   /// Associates decorated type information with the given [type] node.
   void recordDecoratedTypeAnnotation(
-      TypeAnnotation node, DecoratedTypeAnnotation type);
+      Source source, TypeAnnotation node, DecoratedTypeAnnotation type);
 
   /// Associates a constraint variable with the question of whether the given
   /// named parameter should be optional (should not have a `required`
@@ -232,5 +231,6 @@ abstract class VariableRepository {
   void recordDecoratedExpressionType(Expression node, DecoratedType type);
 
   /// Associates a set of nullability checks with the given expression [node].
-  void recordExpressionChecks(Expression expression, ExpressionChecks checks);
+  void recordExpressionChecks(
+      Source source, Expression expression, ExpressionChecks checks);
 }

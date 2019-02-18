@@ -1024,14 +1024,16 @@ class _Variables extends Variables {
     _decoratedExpressionTypes[_normalizeExpression(node)] = type;
   }
 
-  void recordDecoratedTypeAnnotation(TypeAnnotation node, DecoratedType type) {
-    super.recordDecoratedTypeAnnotation(node, type);
+  void recordDecoratedTypeAnnotation(
+      Source source, TypeAnnotation node, DecoratedType type) {
+    super.recordDecoratedTypeAnnotation(source, node, type);
     _decoratedTypeAnnotations[node] = type;
   }
 
   @override
-  void recordExpressionChecks(Expression expression, ExpressionChecks checks) {
-    super.recordExpressionChecks(expression, checks);
+  void recordExpressionChecks(
+      Source source, Expression expression, ExpressionChecks checks) {
+    super.recordExpressionChecks(source, expression, checks);
     _expressionChecks[_normalizeExpression(expression)] = checks;
   }
 

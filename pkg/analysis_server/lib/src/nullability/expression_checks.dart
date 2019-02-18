@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/nullability/transitional_api.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// Container for information gathered during nullability migration about the
@@ -14,14 +13,11 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 /// that the expression is not null.  We need to add other checks, e.g. to check
 /// that a List<int?> is actually a List<int>.
 class ExpressionChecks extends PotentialModification {
-  @override
-  final Source source;
-
   /// Constraint variable whose value will be `true` if this expression requires
   /// a null check.
   final CheckExpression nullCheck;
 
-  ExpressionChecks(this.source, this.nullCheck);
+  ExpressionChecks(this.nullCheck);
 
   @override
   bool get isEmpty => !nullCheck.value;

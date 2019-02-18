@@ -427,7 +427,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
         if (expression != null) {
           checkNotNull = CheckExpression(expression);
           _variables.recordExpressionChecks(
-              expression, ExpressionChecks(_source, checkNotNull));
+              _source, expression, ExpressionChecks(checkNotNull));
         }
         // nullable_src => nullable_dst | check_expr
         _recordFact(ConstraintVariable.or(
