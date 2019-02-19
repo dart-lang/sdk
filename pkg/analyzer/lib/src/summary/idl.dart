@@ -286,72 +286,78 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
 /// Information about a single declaration.
 abstract class AvailableDeclaration extends base.SummaryClass {
   @Id(0)
-  String get docComplete;
+  String get defaultArgumentListString;
 
   @Id(1)
-  String get docSummary;
+  List<int> get defaultArgumentListTextRanges;
 
   @Id(2)
+  String get docComplete;
+
+  @Id(3)
+  String get docSummary;
+
+  @Id(4)
   int get fieldMask;
 
   /// The kind of the declaration.
-  @Id(3)
+  @Id(5)
   AvailableDeclarationKind get kind;
 
-  @Id(4)
+  @Id(6)
   bool get isAbstract;
 
-  @Id(5)
+  @Id(7)
   bool get isConst;
 
-  @Id(6)
+  @Id(8)
   bool get isDeprecated;
 
-  @Id(7)
+  @Id(9)
   bool get isFinal;
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  @Id(8)
+  @Id(10)
   String get name;
 
   /// The second, optional, part of the declaration name.  For example enum
   /// constants all have the same [name], but their own [name2].
-  @Id(9)
+  @Id(11)
   String get name2;
 
-  @Id(10)
+  @Id(12)
   int get locationOffset;
 
-  @Id(11)
+  @Id(13)
   int get locationStartColumn;
 
-  @Id(12)
+  @Id(14)
   int get locationStartLine;
 
-  @Id(13)
+  @Id(15)
   List<String> get parameterNames;
 
-  @Id(14)
+  @Id(16)
   String get parameters;
 
-  @Id(15)
+  @Id(17)
   List<String> get parameterTypes;
 
-  @Id(16)
+  @Id(18)
   int get requiredParameterCount;
 
   /// The partial list of relevance tags.  Not every declaration has one (for
   /// example, function do not currently), and not every declaration has to
   /// store one (for classes it can be computed when we know the library that
   /// includes this file).
-  @Id(17)
+  @Id(19)
   List<String> get relevanceTags;
 
-  @Id(18)
+  @Id(20)
   String get returnType;
 
-  @Id(19)
+  @Id(21)
   String get typeParameters;
 }
 

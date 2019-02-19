@@ -28,6 +28,8 @@ import 'package:yaml/yaml.dart';
 
 /// A top-level public declaration.
 class Declaration {
+  final String defaultArgumentListString;
+  final List<int> defaultArgumentListTextRanges;
   final String docComplete;
   final String docSummary;
   final bool isAbstract;
@@ -58,6 +60,8 @@ class Declaration {
   List<String> _relevanceTags;
 
   Declaration({
+    @required this.defaultArgumentListString,
+    @required this.defaultArgumentListTextRanges,
     @required this.docComplete,
     @required this.docSummary,
     @required this.isAbstract,
@@ -774,6 +778,12 @@ class _DeclarationStorage {
     }
 
     return Declaration(
+      defaultArgumentListString: d.defaultArgumentListString.isNotEmpty
+          ? d.defaultArgumentListString
+          : null,
+      defaultArgumentListTextRanges: d.defaultArgumentListTextRanges.isNotEmpty
+          ? d.defaultArgumentListTextRanges
+          : null,
       docComplete: hasDoc ? d.docComplete : null,
       docSummary: hasDoc ? d.docSummary : null,
       isAbstract: d.isAbstract,
@@ -895,6 +905,13 @@ class _DeclarationStorage {
   }
 }
 
+class _DefaultArguments {
+  final String text;
+  final List<int> ranges;
+
+  _DefaultArguments(this.text, this.ranges);
+}
+
 class _Export {
   final Uri uri;
   final List<_ExportCombinator> combinators;
@@ -928,7 +945,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 6;
+  static const int DATA_VERSION = 7;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -1103,6 +1120,8 @@ class _File {
     }
 
     void addDeclaration({
+      String defaultArgumentListString,
+      List<int> defaultArgumentListTextRanges,
       bool isAbstract = false,
       bool isConst = false,
       bool isDeprecated = false,
@@ -1126,6 +1145,8 @@ class _File {
       var locationOffset = name.offset;
       var lineLocation = lineInfo.getLocation(locationOffset);
       fileDeclarations.add(Declaration(
+        defaultArgumentListString: defaultArgumentListString,
+        defaultArgumentListTextRanges: defaultArgumentListTextRanges,
         docComplete: docComplete,
         docSummary: docSummary,
         isAbstract: isAbstract,
@@ -1204,7 +1225,10 @@ class _File {
                 _getFormalParameterRequiredCount(parameters),
           );
         } else {
+          var defaultArguments = _computeDefaultArguments(parameters);
           addDeclaration(
+            defaultArgumentListString: defaultArguments?.text,
+            defaultArgumentListTextRanges: defaultArguments?.ranges,
             isDeprecated: isDeprecated,
             kind: DeclarationKind.FUNCTION,
             name: node.name,
@@ -1315,6 +1339,39 @@ class _File {
     }).toList();
   }
 
+  static _DefaultArguments _computeDefaultArguments(
+      FormalParameterList parameters) {
+    var buffer = StringBuffer();
+    var ranges = <int>[];
+    for (var parameter in parameters.parameters) {
+      if (parameter.isRequired) {
+        if (buffer.isNotEmpty) {
+          buffer.write(', ');
+        }
+        var valueOffset = buffer.length;
+        buffer.write(parameter.identifier.name);
+        var valueLength = buffer.length - valueOffset;
+        ranges.add(valueOffset);
+        ranges.add(valueLength);
+      } else if (parameter.isNamed && _hasRequiredAnnotation(parameter)) {
+        if (buffer.isNotEmpty) {
+          buffer.write(', ');
+        }
+        buffer.write(parameter.identifier.name);
+        buffer.write(': ');
+
+        var valueOffset = buffer.length;
+        buffer.write('null');
+        var valueLength = buffer.length - valueOffset;
+
+        ranges.add(valueOffset);
+        ranges.add(valueLength);
+      }
+    }
+    if (buffer.isEmpty) return null;
+    return _DefaultArguments(buffer.toString(), ranges);
+  }
+
   static List<String> _getFormalParameterNames(FormalParameterList parameters) {
     if (parameters == null) return const <String>[];
 
@@ -1366,6 +1423,19 @@ class _File {
       var name = annotation.name;
       if (name is SimpleIdentifier) {
         if (name.name == 'deprecated' || name.name == 'Deprecated') {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Return `true` if the [node] probably has `@required` annotation.
+  static bool _hasRequiredAnnotation(FormalParameter node) {
+    for (var annotation in node.metadata) {
+      var name = annotation.name;
+      if (name is SimpleIdentifier) {
+        if (name.name == 'required') {
           return true;
         }
       }

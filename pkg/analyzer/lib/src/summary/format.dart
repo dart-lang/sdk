@@ -2114,6 +2114,8 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
 class AvailableDeclarationBuilder extends Object
     with _AvailableDeclarationMixin
     implements idl.AvailableDeclaration {
+  String _defaultArgumentListString;
+  List<int> _defaultArgumentListTextRanges;
   String _docComplete;
   String _docSummary;
   int _fieldMask;
@@ -2134,6 +2136,22 @@ class AvailableDeclarationBuilder extends Object
   List<String> _relevanceTags;
   String _returnType;
   String _typeParameters;
+
+  @override
+  String get defaultArgumentListString => _defaultArgumentListString ??= '';
+
+  void set defaultArgumentListString(String value) {
+    this._defaultArgumentListString = value;
+  }
+
+  @override
+  List<int> get defaultArgumentListTextRanges =>
+      _defaultArgumentListTextRanges ??= <int>[];
+
+  void set defaultArgumentListTextRanges(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._defaultArgumentListTextRanges = value;
+  }
 
   @override
   String get docComplete => _docComplete ??= '';
@@ -2291,7 +2309,9 @@ class AvailableDeclarationBuilder extends Object
   }
 
   AvailableDeclarationBuilder(
-      {String docComplete,
+      {String defaultArgumentListString,
+      List<int> defaultArgumentListTextRanges,
+      String docComplete,
       String docSummary,
       int fieldMask,
       idl.AvailableDeclarationKind kind,
@@ -2311,7 +2331,9 @@ class AvailableDeclarationBuilder extends Object
       List<String> relevanceTags,
       String returnType,
       String typeParameters})
-      : _docComplete = docComplete,
+      : _defaultArgumentListString = defaultArgumentListString,
+        _defaultArgumentListTextRanges = defaultArgumentListTextRanges,
+        _docComplete = docComplete,
         _docSummary = docSummary,
         _fieldMask = fieldMask,
         _kind = kind,
@@ -2341,6 +2363,15 @@ class AvailableDeclarationBuilder extends Object
    * Accumulate non-[informative] data into [signature].
    */
   void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._defaultArgumentListString ?? '');
+    if (this._defaultArgumentListTextRanges == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._defaultArgumentListTextRanges.length);
+      for (var x in this._defaultArgumentListTextRanges) {
+        signature.addInt(x);
+      }
+    }
     signature.addString(this._docComplete ?? '');
     signature.addString(this._docSummary ?? '');
     signature.addInt(this._fieldMask ?? 0);
@@ -2385,6 +2416,8 @@ class AvailableDeclarationBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_defaultArgumentListString;
+    fb.Offset offset_defaultArgumentListTextRanges;
     fb.Offset offset_docComplete;
     fb.Offset offset_docSummary;
     fb.Offset offset_name;
@@ -2395,6 +2428,15 @@ class AvailableDeclarationBuilder extends Object
     fb.Offset offset_relevanceTags;
     fb.Offset offset_returnType;
     fb.Offset offset_typeParameters;
+    if (_defaultArgumentListString != null) {
+      offset_defaultArgumentListString =
+          fbBuilder.writeString(_defaultArgumentListString);
+    }
+    if (!(_defaultArgumentListTextRanges == null ||
+        _defaultArgumentListTextRanges.isEmpty)) {
+      offset_defaultArgumentListTextRanges =
+          fbBuilder.writeListUint32(_defaultArgumentListTextRanges);
+    }
     if (_docComplete != null) {
       offset_docComplete = fbBuilder.writeString(_docComplete);
     }
@@ -2429,65 +2471,71 @@ class AvailableDeclarationBuilder extends Object
       offset_typeParameters = fbBuilder.writeString(_typeParameters);
     }
     fbBuilder.startTable();
+    if (offset_defaultArgumentListString != null) {
+      fbBuilder.addOffset(0, offset_defaultArgumentListString);
+    }
+    if (offset_defaultArgumentListTextRanges != null) {
+      fbBuilder.addOffset(1, offset_defaultArgumentListTextRanges);
+    }
     if (offset_docComplete != null) {
-      fbBuilder.addOffset(0, offset_docComplete);
+      fbBuilder.addOffset(2, offset_docComplete);
     }
     if (offset_docSummary != null) {
-      fbBuilder.addOffset(1, offset_docSummary);
+      fbBuilder.addOffset(3, offset_docSummary);
     }
     if (_fieldMask != null && _fieldMask != 0) {
-      fbBuilder.addUint32(2, _fieldMask);
+      fbBuilder.addUint32(4, _fieldMask);
     }
     if (_kind != null && _kind != idl.AvailableDeclarationKind.CLASS) {
-      fbBuilder.addUint8(3, _kind.index);
+      fbBuilder.addUint8(5, _kind.index);
     }
     if (_isAbstract == true) {
-      fbBuilder.addBool(4, true);
-    }
-    if (_isConst == true) {
-      fbBuilder.addBool(5, true);
-    }
-    if (_isDeprecated == true) {
       fbBuilder.addBool(6, true);
     }
-    if (_isFinal == true) {
+    if (_isConst == true) {
       fbBuilder.addBool(7, true);
     }
+    if (_isDeprecated == true) {
+      fbBuilder.addBool(8, true);
+    }
+    if (_isFinal == true) {
+      fbBuilder.addBool(9, true);
+    }
     if (offset_name != null) {
-      fbBuilder.addOffset(8, offset_name);
+      fbBuilder.addOffset(10, offset_name);
     }
     if (offset_name2 != null) {
-      fbBuilder.addOffset(9, offset_name2);
+      fbBuilder.addOffset(11, offset_name2);
     }
     if (_locationOffset != null && _locationOffset != 0) {
-      fbBuilder.addUint32(10, _locationOffset);
+      fbBuilder.addUint32(12, _locationOffset);
     }
     if (_locationStartColumn != null && _locationStartColumn != 0) {
-      fbBuilder.addUint32(11, _locationStartColumn);
+      fbBuilder.addUint32(13, _locationStartColumn);
     }
     if (_locationStartLine != null && _locationStartLine != 0) {
-      fbBuilder.addUint32(12, _locationStartLine);
+      fbBuilder.addUint32(14, _locationStartLine);
     }
     if (offset_parameterNames != null) {
-      fbBuilder.addOffset(13, offset_parameterNames);
+      fbBuilder.addOffset(15, offset_parameterNames);
     }
     if (offset_parameters != null) {
-      fbBuilder.addOffset(14, offset_parameters);
+      fbBuilder.addOffset(16, offset_parameters);
     }
     if (offset_parameterTypes != null) {
-      fbBuilder.addOffset(15, offset_parameterTypes);
+      fbBuilder.addOffset(17, offset_parameterTypes);
     }
     if (_requiredParameterCount != null && _requiredParameterCount != 0) {
-      fbBuilder.addUint32(16, _requiredParameterCount);
+      fbBuilder.addUint32(18, _requiredParameterCount);
     }
     if (offset_relevanceTags != null) {
-      fbBuilder.addOffset(17, offset_relevanceTags);
+      fbBuilder.addOffset(19, offset_relevanceTags);
     }
     if (offset_returnType != null) {
-      fbBuilder.addOffset(18, offset_returnType);
+      fbBuilder.addOffset(20, offset_returnType);
     }
     if (offset_typeParameters != null) {
-      fbBuilder.addOffset(19, offset_typeParameters);
+      fbBuilder.addOffset(21, offset_typeParameters);
     }
     return fbBuilder.endTable();
   }
@@ -2510,6 +2558,8 @@ class _AvailableDeclarationImpl extends Object
 
   _AvailableDeclarationImpl(this._bc, this._bcOffset);
 
+  String _defaultArgumentListString;
+  List<int> _defaultArgumentListTextRanges;
   String _docComplete;
   String _docSummary;
   int _fieldMask;
@@ -2532,131 +2582,145 @@ class _AvailableDeclarationImpl extends Object
   String _typeParameters;
 
   @override
+  String get defaultArgumentListString {
+    _defaultArgumentListString ??=
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _defaultArgumentListString;
+  }
+
+  @override
+  List<int> get defaultArgumentListTextRanges {
+    _defaultArgumentListTextRanges ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
+    return _defaultArgumentListTextRanges;
+  }
+
+  @override
   String get docComplete {
-    _docComplete ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    _docComplete ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
     return _docComplete;
   }
 
   @override
   String get docSummary {
-    _docSummary ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    _docSummary ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
     return _docSummary;
   }
 
   @override
   int get fieldMask {
-    _fieldMask ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
+    _fieldMask ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 4, 0);
     return _fieldMask;
   }
 
   @override
   idl.AvailableDeclarationKind get kind {
     _kind ??= const _AvailableDeclarationKindReader()
-        .vTableGet(_bc, _bcOffset, 3, idl.AvailableDeclarationKind.CLASS);
+        .vTableGet(_bc, _bcOffset, 5, idl.AvailableDeclarationKind.CLASS);
     return _kind;
   }
 
   @override
   bool get isAbstract {
-    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
+    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
     return _isAbstract;
   }
 
   @override
   bool get isConst {
-    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
+    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 7, false);
     return _isConst;
   }
 
   @override
   bool get isDeprecated {
-    _isDeprecated ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
+    _isDeprecated ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 8, false);
     return _isDeprecated;
   }
 
   @override
   bool get isFinal {
-    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 7, false);
+    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 9, false);
     return _isFinal;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 8, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 10, '');
     return _name;
   }
 
   @override
   String get name2 {
-    _name2 ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 9, '');
+    _name2 ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 11, '');
     return _name2;
   }
 
   @override
   int get locationOffset {
     _locationOffset ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 10, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 12, 0);
     return _locationOffset;
   }
 
   @override
   int get locationStartColumn {
     _locationStartColumn ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 13, 0);
     return _locationStartColumn;
   }
 
   @override
   int get locationStartLine {
     _locationStartLine ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 12, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 14, 0);
     return _locationStartLine;
   }
 
   @override
   List<String> get parameterNames {
     _parameterNames ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 13, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 15, const <String>[]);
     return _parameterNames;
   }
 
   @override
   String get parameters {
-    _parameters ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 14, '');
+    _parameters ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 16, '');
     return _parameters;
   }
 
   @override
   List<String> get parameterTypes {
     _parameterTypes ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 15, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 17, const <String>[]);
     return _parameterTypes;
   }
 
   @override
   int get requiredParameterCount {
     _requiredParameterCount ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 16, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 18, 0);
     return _requiredParameterCount;
   }
 
   @override
   List<String> get relevanceTags {
     _relevanceTags ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 17, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 19, const <String>[]);
     return _relevanceTags;
   }
 
   @override
   String get returnType {
-    _returnType ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 18, '');
+    _returnType ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 20, '');
     return _returnType;
   }
 
   @override
   String get typeParameters {
     _typeParameters ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 19, '');
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 21, '');
     return _typeParameters;
   }
 }
@@ -2665,6 +2729,10 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (defaultArgumentListString != '')
+      _result["defaultArgumentListString"] = defaultArgumentListString;
+    if (defaultArgumentListTextRanges.isNotEmpty)
+      _result["defaultArgumentListTextRanges"] = defaultArgumentListTextRanges;
     if (docComplete != '') _result["docComplete"] = docComplete;
     if (docSummary != '') _result["docSummary"] = docSummary;
     if (fieldMask != 0) _result["fieldMask"] = fieldMask;
@@ -2694,6 +2762,8 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
 
   @override
   Map<String, Object> toMap() => {
+        "defaultArgumentListString": defaultArgumentListString,
+        "defaultArgumentListTextRanges": defaultArgumentListTextRanges,
         "docComplete": docComplete,
         "docSummary": docSummary,
         "fieldMask": fieldMask,
