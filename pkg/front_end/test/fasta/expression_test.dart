@@ -107,6 +107,9 @@ class CompilationResult {
           buffer.write(line);
         }
         buffer.write("\n");
+        // TODO(jensj): Ignore context for now.
+        // Remove once we have positions on type parameters.
+        break;
       }
     }
     buffer.write("}\n");
