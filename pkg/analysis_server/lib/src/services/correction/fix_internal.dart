@@ -468,7 +468,8 @@ class FixProcessor {
     }
     if (errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
         errorCode == StaticWarningCode.UNDEFINED_NAMED_PARAMETER) {
-      await _addFix_addMissingNamedArgument();
+      await _addFix_addMissingParameterNamed();
+      await _addFix_changeArgumentName();
     }
     if (errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE) {
       await _addFix_illegalAsyncReturnType();
@@ -740,70 +741,6 @@ class FixProcessor {
     }
   }
 
-  Future<void> _addFix_addMissingNamedArgument() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    // Prepare the name of the missing parameter.
-    if (this.node is! SimpleIdentifier) {
-      return;
-    }
-    SimpleIdentifier node = this.node;
-    String name = node.name;
-
-    // We expect that the node is part of a NamedExpression.
-    if (node.parent?.parent is! NamedExpression) {
-      return;
-    }
-    NamedExpression namedExpression = node.parent.parent;
-
-    // We should be in an ArgumentList.
-    if (namedExpression.parent is! ArgumentList) {
-      return;
-    }
-    AstNode argumentList = namedExpression.parent;
-
-    // Prepare the invoked element.
-    var context = new _ExecutableParameters(sessionHelper, argumentList.parent);
-    if (context == null) {
-      return;
-    }
-
-    // We cannot add named parameters when there are positional positional.
-    if (context.optionalPositional.isNotEmpty) {
-      return;
-    }
-
-    Future<void> addParameter(int offset, String prefix, String suffix) async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
-      if (offset != null) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(context.file, (builder) {
-          builder.addInsertion(offset, (builder) {
-            builder.write(prefix);
-            builder.writeParameterMatchingArgument(
-                namedExpression, 0, new Set<String>());
-            builder.write(suffix);
-          });
-        });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.ADD_MISSING_PARAMETER_NAMED,
-            args: [name]);
-      }
-    }
-
-    if (context.named.isNotEmpty) {
-      var prevNode = await context.getParameterNode(context.named.last);
-      await addParameter(prevNode?.end, ', ', '');
-    } else if (context.required.isNotEmpty) {
-      var prevNode = await context.getParameterNode(context.required.last);
-      await addParameter(prevNode?.end, ', {', '}');
-    } else {
-      var parameterList = await context.getParameterList();
-      await addParameter(parameterList?.leftParenthesis?.end, '{', '}');
-    }
-  }
-
   Future<void> _addFix_addMissingParameter() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -871,6 +808,66 @@ class FixProcessor {
         var offset = parameterList?.leftParenthesis?.end;
         await addParameter(kind, offset, prefix, ']');
       }
+    }
+  }
+
+  Future<void> _addFix_addMissingParameterNamed() async {
+    // Prepare the name of the missing parameter.
+    if (this.node is! SimpleIdentifier) {
+      return;
+    }
+    SimpleIdentifier node = this.node;
+    String name = node.name;
+
+    // We expect that the node is part of a NamedExpression.
+    if (node.parent?.parent is! NamedExpression) {
+      return;
+    }
+    NamedExpression namedExpression = node.parent.parent;
+
+    // We should be in an ArgumentList.
+    if (namedExpression.parent is! ArgumentList) {
+      return;
+    }
+    AstNode argumentList = namedExpression.parent;
+
+    // Prepare the invoked element.
+    var context = new _ExecutableParameters(sessionHelper, argumentList.parent);
+    if (context == null) {
+      return;
+    }
+
+    // We cannot add named parameters when there are positional positional.
+    if (context.optionalPositional.isNotEmpty) {
+      return;
+    }
+
+    Future<void> addParameter(int offset, String prefix, String suffix) async {
+      if (offset != null) {
+        var changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(context.file, (builder) {
+          builder.addInsertion(offset, (builder) {
+            builder.write(prefix);
+            builder.writeParameterMatchingArgument(
+                namedExpression, 0, new Set<String>());
+            builder.write(suffix);
+          });
+        });
+        _addFixFromBuilder(
+            changeBuilder, DartFixKind.ADD_MISSING_PARAMETER_NAMED,
+            args: [name]);
+      }
+    }
+
+    if (context.named.isNotEmpty) {
+      var prevNode = await context.getParameterNode(context.named.last);
+      await addParameter(prevNode?.end, ', ', '');
+    } else if (context.required.isNotEmpty) {
+      var prevNode = await context.getParameterNode(context.required.last);
+      await addParameter(prevNode?.end, ', {', '}');
+    } else {
+      var parameterList = await context.getParameterList();
+      await addParameter(parameterList?.leftParenthesis?.end, '{', '}');
     }
   }
 
@@ -1026,6 +1023,70 @@ class FixProcessor {
         }
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_NULL_AWARE);
+    }
+  }
+
+  Future<void> _addFix_changeArgumentName() async {
+    const int maxDistance = 4;
+
+    Element getInvokedElement(AstNode invocation) {
+      if (invocation is InstanceCreationExpression) {
+        return invocation.staticElement;
+      } else if (invocation is MethodInvocation) {
+        return invocation.methodName.staticElement;
+      }
+      return null;
+    }
+
+    List<String> getNamedParameterNames() {
+      AstNode namedExpression = node?.parent?.parent;
+      if (node is SimpleIdentifier &&
+          namedExpression is NamedExpression &&
+          namedExpression.name == node.parent &&
+          namedExpression.parent is ArgumentList) {
+        Element element = getInvokedElement(namedExpression.parent?.parent);
+        if (element is ExecutableElement && !element.isSynthetic) {
+          List<String> names = [];
+          for (ParameterElement parameter in element.parameters) {
+            if (parameter.isNamed) {
+              names.add(parameter.name);
+            }
+          }
+          return names;
+        }
+      }
+      return null;
+    }
+
+    int computeDistance(String current, String proposal) {
+      if ((current == 'child' && proposal == 'children') ||
+          (current == 'children' && proposal == 'child')) {
+        // Special case handling for 'child' and 'children' is unnecessary if
+        // `maxDistance >= 3`, but is included to prevent regression in case the
+        // value is changed to improve results.
+        return 1;
+      }
+      return levenshtein(current, proposal, maxDistance, caseSensitive: false);
+    }
+
+    List<String> names = getNamedParameterNames();
+    if (names == null || names.isEmpty) {
+      return;
+    }
+    SimpleIdentifier argumentName = node;
+    String invalidName = argumentName.name;
+    for (String proposedName in names) {
+      int distance = computeDistance(invalidName, proposedName);
+      if (distance <= maxDistance) {
+        DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (builder) {
+          builder.addSimpleReplacement(range.node(argumentName), proposedName);
+        });
+        // TODO(brianwilkerson) Create a way to use the distance as part of the
+        //  computation of the priority (so that closer names sort first).
+        _addFixFromBuilder(changeBuilder, DartFixKind.CHANGE_ARGUMENT_NAME,
+            args: [proposedName]);
+      }
     }
   }
 

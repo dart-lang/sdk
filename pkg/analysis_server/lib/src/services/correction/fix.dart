@@ -131,6 +131,8 @@ class DartFixKind {
       'ADD_SUPER_CONSTRUCTOR_INVOCATION',
       50,
       "Add super constructor {0} invocation");
+  static const CHANGE_ARGUMENT_NAME =
+      const FixKind('CHANGE_ARGUMENT_NAME', 60, "Change to '{0}'");
   static const CHANGE_TO = const FixKind('CHANGE_TO', 51, "Change to '{0}'");
   static const CHANGE_TO_NEAREST_PRECISE_VALUE = const FixKind(
       'CHANGE_TO_NEAREST_PRECISE_VALUE',
