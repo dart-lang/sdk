@@ -1029,31 +1029,17 @@ class FixProcessor {
   Future<void> _addFix_changeArgumentName() async {
     const int maxDistance = 4;
 
-    Element getInvokedElement(AstNode invocation) {
-      if (invocation is InstanceCreationExpression) {
-        return invocation.staticElement;
-      } else if (invocation is MethodInvocation) {
-        return invocation.methodName.staticElement;
-      }
-      return null;
-    }
-
     List<String> getNamedParameterNames() {
       AstNode namedExpression = node?.parent?.parent;
       if (node is SimpleIdentifier &&
           namedExpression is NamedExpression &&
           namedExpression.name == node.parent &&
           namedExpression.parent is ArgumentList) {
-        Element element = getInvokedElement(namedExpression.parent?.parent);
-        if (element is ExecutableElement && !element.isSynthetic) {
-          List<String> names = [];
-          for (ParameterElement parameter in element.parameters) {
-            if (parameter.isNamed) {
-              names.add(parameter.name);
-            }
-          }
-          return names;
-        }
+        var parameters = _ExecutableParameters(
+          sessionHelper,
+          namedExpression.parent.parent,
+        );
+        return parameters.namedNames;
       }
       return null;
     }
@@ -1073,6 +1059,7 @@ class FixProcessor {
     if (names == null || names.isEmpty) {
       return;
     }
+
     SimpleIdentifier argumentName = node;
     String invalidName = argumentName.name;
     for (String proposedName in names) {
@@ -4377,6 +4364,10 @@ class _ExecutableParameters {
   }
 
   String get file => executable.source.fullName;
+
+  List<String> get namedNames {
+    return named.map((parameter) => parameter.name).toList();
+  }
 
   /**
    * Return the [FormalParameterList] of the [executable], or `null` is cannot
