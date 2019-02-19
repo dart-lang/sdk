@@ -83,7 +83,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   Future<CompletionResult> computeSuggestions(
     CompletionRequestImpl request,
     CompletionGetSuggestionsParams params,
-    Set<ElementKind> includedSuggestionKinds,
+    Set<ElementKind> includedElementKinds,
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
   ) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -110,7 +110,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       performance.logStartTime(COMPUTE_SUGGESTIONS_TAG);
 
       var manager = new DartCompletionManager(
-        includedSuggestionKinds: includedSuggestionKinds,
+        includedElementKinds: includedElementKinds,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       );
 
@@ -318,10 +318,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
     // If the client opted into using available suggestion sets,
     // create the kinds set, so signal the completion manager about opt-in.
-    Set<ElementKind> includedSuggestionKinds;
+    Set<ElementKind> includedElementKinds;
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
     if (_subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
-      includedSuggestionKinds = Set<ElementKind>();
+      includedElementKinds = Set<ElementKind>();
       includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
     }
 
@@ -329,11 +329,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     computeSuggestions(
       completionRequest,
       params,
-      includedSuggestionKinds,
+      includedElementKinds,
       includedSuggestionRelevanceTags,
     ).then((CompletionResult result) {
       List<IncludedSuggestionSet> includedSuggestionSets;
-      if (includedSuggestionKinds != null && resolvedUnit != null) {
+      if (includedElementKinds != null && resolvedUnit != null) {
         includedSuggestionSets = computeIncludedSetList(
           server.declarationsTracker,
           resolvedUnit,
@@ -350,7 +350,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         result.replacementLength,
         result.suggestions,
         includedSuggestionSets,
-        includedSuggestionKinds?.toList(),
+        includedElementKinds?.toList(),
         includedSuggestionRelevanceTags,
       );
       performance.logElapseTime(SEND_NOTIFICATION_TAG);
@@ -388,7 +388,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     int replacementLength,
     Iterable<CompletionSuggestion> results,
     List<IncludedSuggestionSet> includedSuggestionSets,
-    List<ElementKind> includedSuggestionKinds,
+    List<ElementKind> includedElementKinds,
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
   ) {
     server.sendNotification(
@@ -399,7 +399,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         results,
         true,
         includedSuggestionSets: includedSuggestionSets,
-        includedSuggestionKinds: includedSuggestionKinds,
+        includedElementKinds: includedElementKinds,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       ).toNotification(),
     );

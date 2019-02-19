@@ -40,7 +40,7 @@ public class IncludedSuggestionRelevanceTag {
   /**
    * The opaque value of the tag.
    */
-  private final AvailableSuggestionRelevanceTag tag;
+  private final String tag;
 
   /**
    * The boost to the relevance of the completion suggestions that match this tag, which is added to
@@ -51,7 +51,7 @@ public class IncludedSuggestionRelevanceTag {
   /**
    * Constructor for {@link IncludedSuggestionRelevanceTag}.
    */
-  public IncludedSuggestionRelevanceTag(AvailableSuggestionRelevanceTag tag, int relevanceBoost) {
+  public IncludedSuggestionRelevanceTag(String tag, int relevanceBoost) {
     this.tag = tag;
     this.relevanceBoost = relevanceBoost;
   }
@@ -68,7 +68,7 @@ public class IncludedSuggestionRelevanceTag {
   }
 
   public static IncludedSuggestionRelevanceTag fromJson(JsonObject jsonObject) {
-    AvailableSuggestionRelevanceTag tag = AvailableSuggestionRelevanceTag.fromJson(jsonObject.get("tag").getAsJsonObject());
+    String tag = jsonObject.get("tag").getAsString();
     int relevanceBoost = jsonObject.get("relevanceBoost").getAsInt();
     return new IncludedSuggestionRelevanceTag(tag, relevanceBoost);
   }
@@ -96,7 +96,7 @@ public class IncludedSuggestionRelevanceTag {
   /**
    * The opaque value of the tag.
    */
-  public AvailableSuggestionRelevanceTag getTag() {
+  public String getTag() {
     return tag;
   }
 
@@ -110,7 +110,7 @@ public class IncludedSuggestionRelevanceTag {
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
-    jsonObject.add("tag", tag.toJson());
+    jsonObject.addProperty("tag", tag);
     jsonObject.addProperty("relevanceBoost", relevanceBoost);
     return jsonObject;
   }

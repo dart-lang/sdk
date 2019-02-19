@@ -1200,7 +1200,7 @@ abstract class IntegrationTestMixin {
    *   client. The client can include applicable names from the referenced
    *   library in code completion suggestions.
    *
-   * includedSuggestionKinds: List<ElementKind> (optional)
+   * includedElementKinds: List<ElementKind> (optional)
    *
    *   This field is experimental.
    *

@@ -22,14 +22,14 @@ class GetSuggestionAvailableTest extends AvailableSuggestionsBase {
     var asyncSet = await waitForSetWithUri('dart:async');
 
     var results = await _getSuggestions(testFile, 0);
-    expect(results.includedSuggestionKinds, isNotEmpty);
+    expect(results.includedElementKinds, isNotEmpty);
 
     var includedIdSet = results.includedSuggestionSets.map((set) => set.id);
     expect(includedIdSet, contains(mathSet.id));
     expect(includedIdSet, contains(asyncSet.id));
   }
 
-  test_includedSuggestionKinds_type() async {
+  test_includedElementKinds_type() async {
     addTestFile(r'''
 class X extends {} // ref
 ''');
@@ -40,7 +40,7 @@ class X extends {} // ref
     );
 
     expect(
-      results.includedSuggestionKinds,
+      results.includedElementKinds,
       unorderedEquals([
         ElementKind.CLASS,
         ElementKind.CLASS_TYPE_ALIAS,
@@ -51,7 +51,7 @@ class X extends {} // ref
     );
   }
 
-  test_includedSuggestionKinds_value() async {
+  test_includedElementKinds_value() async {
     addTestFile(r'''
 main() {
   print(); // ref
@@ -64,7 +64,7 @@ main() {
     );
 
     expect(
-      results.includedSuggestionKinds,
+      results.includedElementKinds,
       unorderedEquals([
         ElementKind.CLASS,
         ElementKind.CLASS_TYPE_ALIAS,

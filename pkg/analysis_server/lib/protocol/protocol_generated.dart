@@ -5076,6 +5076,8 @@ class AnalyticsSendTimingResult implements ResponseResult {
  * {
  *   "label": String
  *   "element": Element
+ *   "defaultArgumentListString": optional String
+ *   "defaultArgumentListTextRanges": optional List<int>
  *   "docComplete": optional String
  *   "docSummary": optional String
  *   "parameterNames": optional List<String>
@@ -5090,6 +5092,10 @@ class AvailableSuggestion implements HasToJson {
   String _label;
 
   Element _element;
+
+  String _defaultArgumentListString;
+
+  List<int> _defaultArgumentListTextRanges;
 
   String _docComplete;
 
@@ -5127,6 +5133,42 @@ class AvailableSuggestion implements HasToJson {
   void set element(Element value) {
     assert(value != null);
     this._element = value;
+  }
+
+  /**
+   * A default String for use in generating argument list source contents on
+   * the client side.
+   */
+  String get defaultArgumentListString => _defaultArgumentListString;
+
+  /**
+   * A default String for use in generating argument list source contents on
+   * the client side.
+   */
+  void set defaultArgumentListString(String value) {
+    this._defaultArgumentListString = value;
+  }
+
+  /**
+   * Pairs of offsets and lengths describing 'defaultArgumentListString' text
+   * ranges suitable for use by clients to set up linked edits of default
+   * argument source contents. For example, given an argument list string 'x,
+   * y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
+   * of length 1, starting at offsets 0 and 3. Clients can use these ranges to
+   * treat the 'x' and 'y' values specially for linked edits.
+   */
+  List<int> get defaultArgumentListTextRanges => _defaultArgumentListTextRanges;
+
+  /**
+   * Pairs of offsets and lengths describing 'defaultArgumentListString' text
+   * ranges suitable for use by clients to set up linked edits of default
+   * argument source contents. For example, given an argument list string 'x,
+   * y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
+   * of length 1, starting at offsets 0 and 3. Clients can use these ranges to
+   * treat the 'x' and 'y' values specially for linked edits.
+   */
+  void set defaultArgumentListTextRanges(List<int> value) {
+    this._defaultArgumentListTextRanges = value;
   }
 
   /**
@@ -5214,7 +5256,9 @@ class AvailableSuggestion implements HasToJson {
   }
 
   AvailableSuggestion(String label, Element element,
-      {String docComplete,
+      {String defaultArgumentListString,
+      List<int> defaultArgumentListTextRanges,
+      String docComplete,
       String docSummary,
       List<String> parameterNames,
       List<String> parameterTypes,
@@ -5222,6 +5266,8 @@ class AvailableSuggestion implements HasToJson {
       int requiredParameterCount}) {
     this.label = label;
     this.element = element;
+    this.defaultArgumentListString = defaultArgumentListString;
+    this.defaultArgumentListTextRanges = defaultArgumentListTextRanges;
     this.docComplete = docComplete;
     this.docSummary = docSummary;
     this.parameterNames = parameterNames;
@@ -5248,6 +5294,19 @@ class AvailableSuggestion implements HasToJson {
             jsonDecoder, jsonPath + ".element", json["element"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "element");
+      }
+      String defaultArgumentListString;
+      if (json.containsKey("defaultArgumentListString")) {
+        defaultArgumentListString = jsonDecoder.decodeString(
+            jsonPath + ".defaultArgumentListString",
+            json["defaultArgumentListString"]);
+      }
+      List<int> defaultArgumentListTextRanges;
+      if (json.containsKey("defaultArgumentListTextRanges")) {
+        defaultArgumentListTextRanges = jsonDecoder.decodeList(
+            jsonPath + ".defaultArgumentListTextRanges",
+            json["defaultArgumentListTextRanges"],
+            jsonDecoder.decodeInt);
       }
       String docComplete;
       if (json.containsKey("docComplete")) {
@@ -5281,6 +5340,8 @@ class AvailableSuggestion implements HasToJson {
             json["requiredParameterCount"]);
       }
       return new AvailableSuggestion(label, element,
+          defaultArgumentListString: defaultArgumentListString,
+          defaultArgumentListTextRanges: defaultArgumentListTextRanges,
           docComplete: docComplete,
           docSummary: docSummary,
           parameterNames: parameterNames,
@@ -5297,6 +5358,12 @@ class AvailableSuggestion implements HasToJson {
     Map<String, dynamic> result = {};
     result["label"] = label;
     result["element"] = element.toJson();
+    if (defaultArgumentListString != null) {
+      result["defaultArgumentListString"] = defaultArgumentListString;
+    }
+    if (defaultArgumentListTextRanges != null) {
+      result["defaultArgumentListTextRanges"] = defaultArgumentListTextRanges;
+    }
     if (docComplete != null) {
       result["docComplete"] = docComplete;
     }
@@ -5326,6 +5393,9 @@ class AvailableSuggestion implements HasToJson {
     if (other is AvailableSuggestion) {
       return label == other.label &&
           element == other.element &&
+          defaultArgumentListString == other.defaultArgumentListString &&
+          listEqual(defaultArgumentListTextRanges,
+              other.defaultArgumentListTextRanges, (int a, int b) => a == b) &&
           docComplete == other.docComplete &&
           docSummary == other.docSummary &&
           listEqual(parameterNames, other.parameterNames,
@@ -5344,6 +5414,8 @@ class AvailableSuggestion implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, element.hashCode);
+    hash = JenkinsSmiHash.combine(hash, defaultArgumentListString.hashCode);
+    hash = JenkinsSmiHash.combine(hash, defaultArgumentListTextRanges.hashCode);
     hash = JenkinsSmiHash.combine(hash, docComplete.hashCode);
     hash = JenkinsSmiHash.combine(hash, docSummary.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameterNames.hashCode);
@@ -6344,7 +6416,7 @@ class CompletionRegisterLibraryPathsResult implements ResponseResult {
  *   "results": List<CompletionSuggestion>
  *   "isLast": bool
  *   "includedSuggestionSets": optional List<IncludedSuggestionSet>
- *   "includedSuggestionKinds": optional List<ElementKind>
+ *   "includedElementKinds": optional List<ElementKind>
  *   "includedSuggestionRelevanceTags": optional List<IncludedSuggestionRelevanceTag>
  * }
  *
@@ -6363,7 +6435,7 @@ class CompletionResultsParams implements HasToJson {
 
   List<IncludedSuggestionSet> _includedSuggestionSets;
 
-  List<ElementKind> _includedSuggestionKinds;
+  List<ElementKind> _includedElementKinds;
 
   List<IncludedSuggestionRelevanceTag> _includedSuggestionRelevanceTags;
 
@@ -6480,7 +6552,7 @@ class CompletionResultsParams implements HasToJson {
    * IncludedSuggestionSet to decide whether or not these symbols should should
    * be presented to the user.
    */
-  List<ElementKind> get includedSuggestionKinds => _includedSuggestionKinds;
+  List<ElementKind> get includedElementKinds => _includedElementKinds;
 
   /**
    * This field is experimental.
@@ -6489,8 +6561,8 @@ class CompletionResultsParams implements HasToJson {
    * IncludedSuggestionSet to decide whether or not these symbols should should
    * be presented to the user.
    */
-  void set includedSuggestionKinds(List<ElementKind> value) {
-    this._includedSuggestionKinds = value;
+  void set includedElementKinds(List<ElementKind> value) {
+    this._includedElementKinds = value;
   }
 
   /**
@@ -6528,7 +6600,7 @@ class CompletionResultsParams implements HasToJson {
   CompletionResultsParams(String id, int replacementOffset,
       int replacementLength, List<CompletionSuggestion> results, bool isLast,
       {List<IncludedSuggestionSet> includedSuggestionSets,
-      List<ElementKind> includedSuggestionKinds,
+      List<ElementKind> includedElementKinds,
       List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags}) {
     this.id = id;
     this.replacementOffset = replacementOffset;
@@ -6536,7 +6608,7 @@ class CompletionResultsParams implements HasToJson {
     this.results = results;
     this.isLast = isLast;
     this.includedSuggestionSets = includedSuggestionSets;
-    this.includedSuggestionKinds = includedSuggestionKinds;
+    this.includedElementKinds = includedElementKinds;
     this.includedSuggestionRelevanceTags = includedSuggestionRelevanceTags;
   }
 
@@ -6591,11 +6663,11 @@ class CompletionResultsParams implements HasToJson {
                 new IncludedSuggestionSet.fromJson(
                     jsonDecoder, jsonPath, json));
       }
-      List<ElementKind> includedSuggestionKinds;
-      if (json.containsKey("includedSuggestionKinds")) {
-        includedSuggestionKinds = jsonDecoder.decodeList(
-            jsonPath + ".includedSuggestionKinds",
-            json["includedSuggestionKinds"],
+      List<ElementKind> includedElementKinds;
+      if (json.containsKey("includedElementKinds")) {
+        includedElementKinds = jsonDecoder.decodeList(
+            jsonPath + ".includedElementKinds",
+            json["includedElementKinds"],
             (String jsonPath, Object json) =>
                 new ElementKind.fromJson(jsonDecoder, jsonPath, json));
       }
@@ -6611,7 +6683,7 @@ class CompletionResultsParams implements HasToJson {
       return new CompletionResultsParams(
           id, replacementOffset, replacementLength, results, isLast,
           includedSuggestionSets: includedSuggestionSets,
-          includedSuggestionKinds: includedSuggestionKinds,
+          includedElementKinds: includedElementKinds,
           includedSuggestionRelevanceTags: includedSuggestionRelevanceTags);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "completion.results params", json);
@@ -6637,8 +6709,8 @@ class CompletionResultsParams implements HasToJson {
           .map((IncludedSuggestionSet value) => value.toJson())
           .toList();
     }
-    if (includedSuggestionKinds != null) {
-      result["includedSuggestionKinds"] = includedSuggestionKinds
+    if (includedElementKinds != null) {
+      result["includedElementKinds"] = includedElementKinds
           .map((ElementKind value) => value.toJson())
           .toList();
     }
@@ -6669,7 +6741,7 @@ class CompletionResultsParams implements HasToJson {
           isLast == other.isLast &&
           listEqual(includedSuggestionSets, other.includedSuggestionSets,
               (IncludedSuggestionSet a, IncludedSuggestionSet b) => a == b) &&
-          listEqual(includedSuggestionKinds, other.includedSuggestionKinds,
+          listEqual(includedElementKinds, other.includedElementKinds,
               (ElementKind a, ElementKind b) => a == b) &&
           listEqual(
               includedSuggestionRelevanceTags,
@@ -6690,7 +6762,7 @@ class CompletionResultsParams implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, results.hashCode);
     hash = JenkinsSmiHash.combine(hash, isLast.hashCode);
     hash = JenkinsSmiHash.combine(hash, includedSuggestionSets.hashCode);
-    hash = JenkinsSmiHash.combine(hash, includedSuggestionKinds.hashCode);
+    hash = JenkinsSmiHash.combine(hash, includedElementKinds.hashCode);
     hash =
         JenkinsSmiHash.combine(hash, includedSuggestionRelevanceTags.hashCode);
     return JenkinsSmiHash.finish(hash);

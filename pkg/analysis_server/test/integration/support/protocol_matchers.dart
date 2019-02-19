@@ -169,6 +169,8 @@ final Matcher isAnalysisStatus = new LazyMatcher(() => new MatchesJsonObject(
  * {
  *   "label": String
  *   "element": Element
+ *   "defaultArgumentListString": optional String
+ *   "defaultArgumentListTextRanges": optional List<int>
  *   "docComplete": optional String
  *   "docSummary": optional String
  *   "parameterNames": optional List<String>
@@ -182,6 +184,8 @@ final Matcher isAvailableSuggestion =
           "label": isString,
           "element": isElement
         }, optionalFields: {
+          "defaultArgumentListString": isString,
+          "defaultArgumentListTextRanges": isListOf(isInt),
           "docComplete": isString,
           "docSummary": isString,
           "parameterNames": isListOf(isString),
@@ -2235,7 +2239,7 @@ final Matcher isCompletionRegisterLibraryPathsResult = isNull;
  *   "results": List<CompletionSuggestion>
  *   "isLast": bool
  *   "includedSuggestionSets": optional List<IncludedSuggestionSet>
- *   "includedSuggestionKinds": optional List<ElementKind>
+ *   "includedElementKinds": optional List<ElementKind>
  *   "includedSuggestionRelevanceTags": optional List<IncludedSuggestionRelevanceTag>
  * }
  */
@@ -2248,7 +2252,7 @@ final Matcher isCompletionResultsParams =
           "isLast": isBool
         }, optionalFields: {
           "includedSuggestionSets": isListOf(isIncludedSuggestionSet),
-          "includedSuggestionKinds": isListOf(isElementKind),
+          "includedElementKinds": isListOf(isElementKind),
           "includedSuggestionRelevanceTags":
               isListOf(isIncludedSuggestionRelevanceTag)
         }));

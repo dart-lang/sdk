@@ -60,15 +60,15 @@ class DartCompletionManager implements CompletionContributor {
   /// fill this set with kinds of elements that are applicable at the
   /// completion location, so should be suggested from available suggestion
   /// sets.
-  final Set<protocol.ElementKind> includedSuggestionKinds;
+  final Set<protocol.ElementKind> includedElementKinds;
 
-  /// If [includedSuggestionKinds] is not null, must be also not `null`, and
+  /// If [includedElementKinds] is not null, must be also not `null`, and
   /// will be filled with tags for suggestions that should be given higher
   /// relevance than other included suggestions.
   final List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
 
   DartCompletionManager({
-    this.includedSuggestionKinds,
+    this.includedElementKinds,
     this.includedSuggestionRelevanceTags,
   });
 
@@ -121,8 +121,8 @@ class DartCompletionManager implements CompletionContributor {
       new VariableNameContributor()
     ];
 
-    if (includedSuggestionKinds != null) {
-      _addIncludedSuggestionKinds(dartRequest);
+    if (includedElementKinds != null) {
+      _addIncludedElementKinds(dartRequest);
       _addIncludedSuggestionRelevanceTags(dartRequest);
     } else {
       contributors.add(new ImportedReferenceContributor());
@@ -177,12 +177,12 @@ class DartCompletionManager implements CompletionContributor {
     return suggestions;
   }
 
-  void _addIncludedSuggestionKinds(DartCompletionRequestImpl request) {
+  void _addIncludedElementKinds(DartCompletionRequestImpl request) {
     var opType = request.opType;
 
     if (!opType.includeIdentifiers) return;
 
-    var kinds = includedSuggestionKinds;
+    var kinds = includedElementKinds;
     if (kinds != null) {
       if (opType.includeTypeNameSuggestions) {
         kinds.add(protocol.ElementKind.CLASS);
