@@ -5721,10 +5721,10 @@ class CodeGenerator extends Object
   JS.Expression visitListLiteral(ListLiteral node) {
     var elementType = (node.staticType as InterfaceType).typeArguments[0];
     if (!node.isConst) {
-      return _emitList(elementType, _visitExpressionList(node.elements));
+      return _emitList(elementType, _visitExpressionList(node.elements2));
     }
-    return _cacheConst(
-        () => _emitConstList(elementType, _visitExpressionList(node.elements)));
+    return _cacheConst(() =>
+        _emitConstList(elementType, _visitExpressionList(node.elements2)));
   }
 
   @override

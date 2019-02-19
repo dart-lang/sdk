@@ -7899,7 +7899,24 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
    * list is empty.
    */
   ListLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      this.leftBracket, List<CollectionElement> elements, this.rightBracket)
+      this.leftBracket, List<Expression> elements, this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _elements = new NodeListImpl<Expression>(this, elements);
+  }
+
+  /**
+   * Initialize a newly created list literal.
+   * 
+   * The [constKeyword] can be `null` if the literal is not a constant. The
+   * [typeArguments] can be `null` if no type arguments were declared. The list
+   * of [elements] can be `null` if the list is empty.
+   */
+  ListLiteralImpl.experimental(
+      Token constKeyword,
+      TypeArgumentListImpl typeArguments,
+      this.leftBracket,
+      List<CollectionElement> elements,
+      this.rightBracket)
       : super(constKeyword, typeArguments) {
     _elements = new NodeListImpl<CollectionElement>(this, elements);
   }
@@ -7924,8 +7941,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     ..add(rightBracket);
 
   @override
-  NodeList<Expression> get elements =>
-      new NodeListImpl<Expression>(this, _elements.cast<Expression>());
+  NodeList<Expression> get elements => _elements;
 
   @override
   NodeList<CollectionElement> get elements2 => _elements;

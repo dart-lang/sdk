@@ -540,6 +540,8 @@ abstract class AbstractConstExprSerializer {
     if (element is Expression) {
       _serialize(element);
     } else {
+      // TODO(paulberry): Implement serialization for spread and control flow
+      //  elements.
       throw new StateError('Unsupported CollectionElement: $element');
     }
   }

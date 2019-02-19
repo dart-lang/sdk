@@ -143,6 +143,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
     if (node.isConst) {
+      // Dummy sets of keys to accommodate the fact that
+      // `_validateCollectionElement` handles map literals.
       HashSet<DartObject> keys = new HashSet<DartObject>();
       List<Expression> invalidKeys = new List<Expression>();
       for (CollectionElement element in node.elements2) {

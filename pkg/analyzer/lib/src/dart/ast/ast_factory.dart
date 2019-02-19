@@ -736,14 +736,15 @@ class AstFactoryImpl extends AstFactory {
       new LibraryIdentifierImpl(components);
 
   @override
-  ListLiteral listLiteral(
-          Token constKeyword,
-          TypeArgumentList typeArguments,
-          Token leftBracket,
-          List<CollectionElement> elements,
-          Token rightBracket) =>
-      new ListLiteralImpl(
+  ListLiteral listLiteral(Token constKeyword, TypeArgumentList typeArguments,
+      Token leftBracket, List<CollectionElement> elements, Token rightBracket) {
+    if (elements == null || elements is List<Expression>) {
+      return new ListLiteralImpl(
           constKeyword, typeArguments, leftBracket, elements, rightBracket);
+    }
+    return new ListLiteralImpl.experimental(
+        constKeyword, typeArguments, leftBracket, elements, rightBracket);
+  }
 
   @Deprecated('Use listLiteral')
   @override
