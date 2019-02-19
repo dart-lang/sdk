@@ -5525,6 +5525,34 @@ class CodeGenerator extends Object
   @override
   visitContinueStatement(ContinueStatement node) {
     var label = node.label;
+    if (node.label != null) {
+      var parent = node.parent;
+      if (parent is SwitchCase) {
+        // If this is the last statement in this case, and we're jumping to the
+        // next statement in the following case, just omit the continue.  JS
+        // will fall through.
+        if (parent.statements.last == node) {
+          var grandparent = parent.parent;
+          if (grandparent is SwitchStatement) {
+            var members = grandparent.members;
+            for (int i = 0; i < members.length; ++i) {
+              if (members[i] == parent) {
+                if (i < members.length - 1) {
+                  var next = members[i + 1];
+                  if (next is SwitchMember &&
+                      next.labels
+                          .map((l) => l.label.name)
+                          .contains(node.label.name)) {
+                    return js.comment('continue to next case');
+                  }
+                }
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
     return JS.Continue(label?.name);
   }
 
