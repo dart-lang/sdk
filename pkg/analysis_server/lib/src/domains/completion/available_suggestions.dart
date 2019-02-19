@@ -43,7 +43,11 @@ List<protocol.IncludedSuggestionSet> computeIncludedSetList(
     }
 
     includedSetList.add(
-      protocol.IncludedSuggestionSet(library.id, relevance),
+      protocol.IncludedSuggestionSet(
+        library.id,
+        relevance,
+        displayUri: _getRelativeFileUri(resolvedUnit, library.uri),
+      ),
     );
   }
 
@@ -78,6 +82,21 @@ protocol.Notification createCompletionAvailableSuggestionsNotification(
     }).toList(),
     removedLibraries: change.removed,
   ).toNotification();
+}
+
+/// Computes the best URI to import [what] into the [unit] library.
+String _getRelativeFileUri(ResolvedUnitResult unit, Uri what) {
+  if (what.scheme == 'file') {
+    var pathContext = unit.session.resourceProvider.pathContext;
+
+    var libraryPath = unit.libraryElement.source.fullName;
+    var libraryFolder = pathContext.dirname(libraryPath);
+
+    var whatPath = pathContext.fromUri(what);
+    var relativePath = pathContext.relative(whatPath, from: libraryFolder);
+    return pathContext.split(relativePath).join('/');
+  }
+  return null;
 }
 
 protocol.AvailableSuggestion _protocolAvailableSuggestion(
