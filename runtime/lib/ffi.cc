@@ -5,6 +5,7 @@
 #include "include/dart_api.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
+#include "vm/class_id.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/exceptions.h"
 #include "vm/log.h"
@@ -235,9 +236,12 @@ static const size_t element_size_table[kNumElementSizes] = {
 };
 
 static size_t ElementSizeInBytes(intptr_t class_id) {
-  ASSERT(RawObject::IsFfiTypeClassId(class_id));
   ASSERT(class_id != kFfiNativeFunctionCid);
   ASSERT(class_id != kFfiVoidCid);
+  if (!RawObject::IsFfiTypeClassId(class_id)) {
+    // subtype of Pointer
+    class_id = kFfiPointerCid;
+  }
   intptr_t index = class_id - kFfiPointerCid;
   return element_size_table[index];
 }

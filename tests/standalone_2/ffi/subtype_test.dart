@@ -6,14 +6,23 @@
 
 library FfiTest;
 
+import 'dart:ffi' as ffi;
+
 import "package:expect/expect.dart";
 
 import 'cstring.dart';
 
 void main() {
+  testAllocate();
+  testSizeOf();
+}
+
+void testAllocate() {
   CString cs = CString.toUtf8("hello world!");
-
   Expect.equals("hello world!", cs.fromUtf8());
-
   cs.free();
+}
+
+void testSizeOf() {
+  Expect.equals(true, 4 == ffi.sizeOf<CString>() || 8 == ffi.sizeOf<CString>());
 }
