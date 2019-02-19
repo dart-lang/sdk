@@ -195,6 +195,43 @@ class ClassHierarchyBuilder {
         .substituteType(supertype.build(null));
   }
 
+  InterfaceType getKernelLegacyLeastUpperBound(
+      InterfaceType type1, InterfaceType type2) {
+    if (type1 == type2) return type1;
+    ClassHierarchyNode node1 = getNodeFromKernelClass(type1.classNode);
+    ClassHierarchyNode node2 = getNodeFromKernelClass(type2.classNode);
+    Set<ClassHierarchyNode> nodes1 = node1.computeAllSuperNodes(this).toSet();
+    List<ClassHierarchyNode> nodes2 = node2.computeAllSuperNodes(this);
+    List<ClassHierarchyNode> common = <ClassHierarchyNode>[];
+
+    for (int i = 0; i < nodes2.length; i++) {
+      ClassHierarchyNode node = nodes2[i];
+      if (node == null) continue;
+      if (nodes1.contains(node)) {
+        DartType candidate1 = getKernelTypeAsInstanceOf(type1, node.cls.target);
+        DartType candidate2 = getKernelTypeAsInstanceOf(type2, node.cls.target);
+        if (candidate1 == candidate2) {
+          common.add(node);
+        }
+      }
+    }
+
+    if (common.length == 1) return objectKernelClass.rawType;
+    common.sort(ClassHierarchyNode.compareMaxInheritancePath);
+
+    for (int i = 0; i < common.length - 1; i++) {
+      ClassHierarchyNode node = common[i];
+      if (node.maxInheritancePath != common[i + 1].maxInheritancePath) {
+        return getKernelTypeAsInstanceOf(type1, node.cls.target);
+      } else {
+        do {
+          i++;
+        } while (node.maxInheritancePath == common[i + 1].maxInheritancePath);
+      }
+    }
+    return objectKernelClass.rawType;
+  }
+
   static ClassHierarchyBuilder build(
       KernelClassBuilder objectClass,
       List<KernelClassBuilder> classes,
@@ -867,6 +904,27 @@ class ClassHierarchyNode {
       this.interfaces,
       this.maxInheritancePath);
 
+  /// Returns a list of all supertypes of [cls], including this node.
+  List<ClassHierarchyNode> computeAllSuperNodes(
+      ClassHierarchyBuilder hierarchy) {
+    List<ClassHierarchyNode> result = new List<ClassHierarchyNode>(
+        1 + superclasses.length + interfaces.length);
+    for (int i = 0; i < superclasses.length; i++) {
+      Declaration declaration = superclasses[i].declaration;
+      if (declaration is KernelClassBuilder) {
+        result[i] = hierarchy.getNodeFromClass(declaration);
+      }
+    }
+    for (int i = 0; i < interfaces.length; i++) {
+      Declaration declaration = interfaces[i].declaration;
+      if (declaration is KernelClassBuilder) {
+        result[i + superclasses.length] =
+            hierarchy.getNodeFromClass(declaration);
+      }
+    }
+    return result..last = this;
+  }
+
   String toString([StringBuffer sb]) {
     sb ??= new StringBuffer();
     sb
@@ -921,6 +979,11 @@ class ClassHierarchyNode {
         ..write(member.fullNameForErrors)
         ..writeln();
     }
+  }
+
+  static int compareMaxInheritancePath(
+      ClassHierarchyNode a, ClassHierarchyNode b) {
+    return b.maxInheritancePath.compareTo(a.maxInheritancePath);
   }
 }
 
@@ -1058,7 +1121,6 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   @override
   InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2) {
-    // TODO(ahe): Compute the actual LUB.
-    return type1;
+    return hierarchy.getKernelLegacyLeastUpperBound(type1, type2);
   }
 }

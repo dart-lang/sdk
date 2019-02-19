@@ -49,6 +49,7 @@ Component parseComponent(String source, Uri uri) {
   KernelEnvironment libraryEnvironment =
       new KernelEnvironment(uri, uri).extend(coreEnvironment.declarations);
   Library library = parseLibrary(uri, source, environment: libraryEnvironment);
+  library.name = "lib";
   return new Component(libraries: <Library>[coreLibrary, library]);
 }
 
