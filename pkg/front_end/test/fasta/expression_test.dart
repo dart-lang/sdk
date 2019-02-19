@@ -125,6 +125,8 @@ class TestCase {
 
   final Uri entryPoint;
 
+  final Uri import;
+
   final List<String> definitions;
 
   final List<String> typeDefinitions;
@@ -142,6 +144,7 @@ class TestCase {
   TestCase(
       this.description,
       this.entryPoint,
+      this.import,
       this.definitions,
       this.typeDefinitions,
       this.isStaticMethod,
@@ -152,6 +155,7 @@ class TestCase {
   String toString() {
     return "TestCase("
         "$entryPoint, "
+        "$import, "
         "$definitions, "
         "$typeDefinitions,"
         "$library, "
@@ -242,6 +246,7 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
     String contents = await new File.fromUri(uri).readAsString();
 
     Uri entryPoint;
+    Uri import;
     List<String> definitions = <String>[];
     List<String> typeDefinitions = <String>[];
     bool isStaticMethod = false;
@@ -260,6 +265,8 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
 
         if (key == "entry_point") {
           entryPoint = description.uri.resolveUri(Uri.parse(value as String));
+        } else if (key == "import") {
+          import = description.uri.resolveUri(Uri.parse(value as String));
         } else if (key == "position") {
           Uri uri = description.uri.resolveUri(Uri.parse(value as String));
           library = uri.removeFragment();
@@ -277,7 +284,7 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
           expression = value;
         }
       }
-      var test = new TestCase(description, entryPoint, definitions,
+      var test = new TestCase(description, entryPoint, import, definitions,
           typeDefinitions, isStaticMethod, library, className, expression);
       var result = test.validate();
       if (result != null) {
@@ -330,6 +337,11 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
     for (var test in tests) {
       context.fileSystem.entityForUri(test.entryPoint).writeAsBytesSync(
           await new File.fromUri(test.entryPoint).readAsBytes());
+
+      if (test.import != null) {
+        context.fileSystem.entityForUri(test.import).writeAsBytesSync(
+            await new File.fromUri(test.import).readAsBytes());
+      }
 
       var sourceCompiler = new IncrementalCompiler(context.compilerContext);
       Component component =
