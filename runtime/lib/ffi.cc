@@ -535,7 +535,7 @@ static RawCode* TrampolineCode(const Function& function,
   ObjectPoolBuilder object_pool_builder;
   Assembler assembler(&object_pool_builder);
   GenerateFfiTrampoline(&assembler, c_signature);
-  const Code& code = Code::Handle(Code::FinalizeCode(
+  const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       function, nullptr, &assembler, Code::PoolAttachment::kAttachPool));
   code.set_exception_handlers(
       ExceptionHandlers::Handle(ExceptionHandlers::New(0)));
@@ -626,8 +626,8 @@ static void* GenerateFfiInverseTrampoline(const Function& signature,
   Assembler assembler(&object_pool_builder);
   GenerateFfiInverseTrampoline(&assembler, signature, dart_entry_point);
   const Code& code = Code::Handle(
-      Code::FinalizeCode("inverse trampoline", nullptr, &assembler,
-                         Code::PoolAttachment::kAttachPool, false));
+      Code::FinalizeCodeAndNotify("inverse trampoline", nullptr, &assembler,
+                                  Code::PoolAttachment::kAttachPool, false));
 
   uword entryPoint = code.EntryPoint();
 

@@ -4979,18 +4979,34 @@ class Code : public Object {
   // then a new [ObjectPool] will be attached to the code object as well.
   // Otherwise the caller is responsible for doing this via
   // `Object::set_object_pool()`.
-  static RawCode* FinalizeCode(const Function& function,
-                               FlowGraphCompiler* compiler,
-                               compiler::Assembler* assembler,
-                               PoolAttachment pool_attachment,
-                               bool optimized = false,
-                               CodeStatistics* stats = nullptr);
-  static RawCode* FinalizeCode(const char* name,
-                               FlowGraphCompiler* compiler,
+  static RawCode* FinalizeCode(FlowGraphCompiler* compiler,
                                compiler::Assembler* assembler,
                                PoolAttachment pool_attachment,
                                bool optimized,
-                               CodeStatistics* stats = nullptr);
+                               CodeStatistics* stats);
+
+  // Notifies all active [CodeObserver]s.
+  static void NotifyCodeObservers(const Function& function,
+                                  const Code& code,
+                                  bool optimized);
+  static void NotifyCodeObservers(const char* name,
+                                  const Code& code,
+                                  bool optimized);
+
+  // Calls [FinalizeCode] and also notifies [CodeObserver]s.
+  static RawCode* FinalizeCodeAndNotify(const Function& function,
+                                        FlowGraphCompiler* compiler,
+                                        compiler::Assembler* assembler,
+                                        PoolAttachment pool_attachment,
+                                        bool optimized = false,
+                                        CodeStatistics* stats = nullptr);
+  static RawCode* FinalizeCodeAndNotify(const char* name,
+                                        FlowGraphCompiler* compiler,
+                                        compiler::Assembler* assembler,
+                                        PoolAttachment pool_attachment,
+                                        bool optimized = false,
+                                        CodeStatistics* stats = nullptr);
+
 #endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);

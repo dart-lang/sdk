@@ -2232,9 +2232,9 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   const auto pool_attachment = FLAG_use_bare_instructions
                                    ? Code::PoolAttachment::kNotAttachPool
                                    : Code::PoolAttachment::kAttachPool;
-  const Code& code =
-      Code::Handle(Code::FinalizeCode(function, graph_compiler, assembler,
-                                      pool_attachment, optimized(), stats));
+  const Code& code = Code::Handle(
+      Code::FinalizeCodeAndNotify(function, graph_compiler, assembler,
+                                  pool_attachment, optimized(), stats));
   code.set_is_optimized(optimized());
   code.set_owner(function);
   if (!function.IsOptimizable()) {

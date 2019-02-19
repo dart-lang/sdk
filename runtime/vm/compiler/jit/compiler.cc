@@ -386,8 +386,8 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
   Code& code = Code::Handle(Code::FinalizeCode(
-      function, graph_compiler, assembler, Code::PoolAttachment::kAttachPool,
-      optimized(), /*stats=*/nullptr));
+      graph_compiler, assembler, Code::PoolAttachment::kAttachPool, optimized(),
+      /*stats=*/nullptr));
   code.set_is_optimized(optimized());
   code.set_owner(function);
 #if !defined(PRODUCT)
@@ -702,6 +702,10 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                 FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
           }
         }
+
+        // We notify code observers after finalizing the code in order to be
+        // outside a [SafepointOperationScope].
+        Code::NotifyCodeObservers(function, *result, optimized());
       }
       if (!result->IsNull()) {
 #if !defined(PRODUCT)

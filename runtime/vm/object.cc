@@ -14459,15 +14459,43 @@ static const Code::Comments& CreateCommentsFrom(
 }
 #endif
 
-RawCode* Code::FinalizeCode(const char* name,
-                            FlowGraphCompiler* compiler,
+RawCode* Code::FinalizeCodeAndNotify(const Function& function,
+                                     FlowGraphCompiler* compiler,
+                                     compiler::Assembler* assembler,
+                                     PoolAttachment pool_attachment,
+                                     bool optimized,
+                                     CodeStatistics* stats) {
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  const auto& code = Code::Handle(
+      FinalizeCode(compiler, assembler, pool_attachment, optimized, stats));
+  NotifyCodeObservers(function, code, optimized);
+  return code.raw();
+}
+
+RawCode* Code::FinalizeCodeAndNotify(const char* name,
+                                     FlowGraphCompiler* compiler,
+                                     compiler::Assembler* assembler,
+                                     PoolAttachment pool_attachment,
+                                     bool optimized,
+                                     CodeStatistics* stats) {
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  const auto& code = Code::Handle(
+      FinalizeCode(compiler, assembler, pool_attachment, optimized, stats));
+  NotifyCodeObservers(name, code, optimized);
+  return code.raw();
+}
+
+RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
                             Assembler* assembler,
                             PoolAttachment pool_attachment,
                             bool optimized,
                             CodeStatistics* stats /* = nullptr */) {
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   Isolate* isolate = Isolate::Current();
   if (!isolate->compilation_allowed()) {
-    FATAL1("Precompilation missed code %s\n", name);
+    FATAL(
+        "Compilation is not allowed (precompilation might have missed a "
+        "code\n");
   }
 
   ASSERT(assembler != NULL);
@@ -14490,19 +14518,20 @@ RawCode* Code::FinalizeCode(const char* name,
   Instructions& instrs = Instructions::ZoneHandle(Instructions::New(
       assembler->CodeSize(), assembler->has_single_entry_point(),
       compiler == nullptr ? 0 : compiler->UncheckedEntryOffset()));
-  // Important: if GC is triggerred at any point between Instructions::New
-  // and here it would write protect instructions object that we are trying
-  // to fill in.
+
   {
+    // Important: if GC is triggerred at any point between Instructions::New
+    // and here it would write protect instructions object that we are trying
+    // to fill in.
     NoSafepointScope no_safepoint;
+
     // Copy the instructions into the instruction area and apply all fixups.
     // Embedded pointers are still in handles at this point.
     MemoryRegion region(reinterpret_cast<void*>(instrs.PayloadStart()),
                         instrs.Size());
     assembler->FinalizeInstructions(region);
 
-    const ZoneGrowableArray<intptr_t>& pointer_offsets =
-        assembler->GetPointerOffsets();
+    const auto& pointer_offsets = assembler->GetPointerOffsets();
     ASSERT(pointer_offsets.length() == pointer_offset_count);
     ASSERT(code.pointer_offsets_length() == pointer_offsets.length());
 
@@ -14538,25 +14567,20 @@ RawCode* Code::FinalizeCode(const char* name,
                              instrs.raw()->HeapSize(),
                              VirtualMemory::kReadExecute);
     }
-  }
-  CPU::FlushICache(instrs.PayloadStart(), instrs.Size());
 
 #if defined(DART_PRECOMPILER)
-  if (stats != nullptr) {
-    stats->Finalize();
-    instrs.set_stats(stats);
-  }
+    if (stats != nullptr) {
+      stats->Finalize();
+      instrs.set_stats(stats);
+    }
 #endif
 
-#ifndef PRODUCT
-  const Code::Comments& comments = CreateCommentsFrom(assembler);
+    CPU::FlushICache(instrs.PayloadStart(), instrs.Size());
+  }
 
+#ifndef PRODUCT
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
-  CodeCommentsWrapper comments_wrapper(comments);
-  CodeObservers::NotifyAll(name, instrs.PayloadStart(),
-                           assembler->prologue_offset(), instrs.Size(),
-                           optimized, &comments_wrapper);
-  code.set_comments(comments);
+  code.set_comments(CreateCommentsFrom(assembler));
   if (assembler->prologue_offset() >= 0) {
     code.SetPrologueOffset(assembler->prologue_offset());
   } else {
@@ -14568,22 +14592,33 @@ RawCode* Code::FinalizeCode(const char* name,
   return code.raw();
 }
 
-RawCode* Code::FinalizeCode(const Function& function,
-                            FlowGraphCompiler* compiler,
-                            Assembler* assembler,
-                            PoolAttachment pool_attachment,
-                            bool optimized /* = false */,
-                            CodeStatistics* stats /* = nullptr */) {
-// Calling ToLibNamePrefixedQualifiedCString is very expensive,
-// try to avoid it.
-#ifndef PRODUCT
+void Code::NotifyCodeObservers(const Function& function,
+                               const Code& code,
+                               bool optimized) {
+#if !defined(PRODUCT)
+  ASSERT(!Thread::Current()->IsAtSafepoint());
+  // Calling ToLibNamePrefixedQualifiedCString is very expensive,
+  // try to avoid it.
   if (CodeObservers::AreActive()) {
-    return FinalizeCode(function.ToLibNamePrefixedQualifiedCString(), compiler,
-                        assembler, pool_attachment, optimized, stats);
+    const char* name = function.ToLibNamePrefixedQualifiedCString();
+    NotifyCodeObservers(name, code, optimized);
   }
-#endif  // !PRODUCT
-  return FinalizeCode("", compiler, assembler, pool_attachment, optimized,
-                      stats);
+#endif
+}
+
+void Code::NotifyCodeObservers(const char* name,
+                               const Code& code,
+                               bool optimized) {
+#if !defined(PRODUCT)
+  ASSERT(!Thread::Current()->IsAtSafepoint());
+  if (CodeObservers::AreActive()) {
+    const auto& instrs = Instructions::Handle(code.instructions());
+    CodeCommentsWrapper comments_wrapper(code.comments());
+    CodeObservers::NotifyAll(name, instrs.PayloadStart(),
+                             code.GetPrologueOffset(), instrs.Size(), optimized,
+                             &comments_wrapper);
+  }
+#endif
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

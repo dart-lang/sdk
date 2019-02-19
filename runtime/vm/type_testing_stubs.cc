@@ -195,7 +195,7 @@ RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   const auto pool_attachment = FLAG_use_bare_instructions
                                    ? Code::PoolAttachment::kNotAttachPool
                                    : Code::PoolAttachment::kAttachPool;
-  const Code& code = Code::Handle(Code::FinalizeCode(
+  const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       name, nullptr, &assembler, pool_attachment, false /* optimized */));
   code.set_owner(type);
 #ifndef PRODUCT

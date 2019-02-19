@@ -955,6 +955,7 @@ void Service::SendEvent(const char* stream_id,
   bool result;
   {
     TransitionVMToNative transition(thread);
+
     Dart_CObject cbytes;
     cbytes.type = Dart_CObject_kExternalTypedData;
     cbytes.value.as_external_typed_data.type = Dart_TypedData_kUint8;
@@ -974,6 +975,7 @@ void Service::SendEvent(const char* stream_id,
     message.type = Dart_CObject_kArray;
     message.value.as_array.length = 2;
     message.value.as_array.values = elements;
+
     result = Dart_PostCObject(ServiceIsolate::Port(), &message);
   }
 
@@ -1111,6 +1113,22 @@ void Service::PostEvent(Isolate* isolate,
   ASSERT(kind != NULL);
   ASSERT(event != NULL);
 
+  if (FLAG_trace_service) {
+    if (isolate != NULL) {
+      OS::PrintErr(
+          "vm-service: Pushing ServiceEvent(isolate='%s', "
+          "isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
+          "', kind='%s') to stream %s\n",
+          isolate->name(), static_cast<int64_t>(isolate->main_port()), kind,
+          stream_id);
+    } else {
+      OS::PrintErr(
+          "vm-service: Pushing ServiceEvent(isolate='<no current isolate>', "
+          "kind='%s') to stream %s\n",
+          kind, stream_id);
+    }
+  }
+
   // Message is of the format [<stream id>, <json string>].
   //
   // Build the event message in the C heap to avoid dart heap
@@ -1132,23 +1150,15 @@ void Service::PostEvent(Isolate* isolate,
   json_cobj.value.as_string = const_cast<char*>(event->ToCString());
   list_values[1] = &json_cobj;
 
-  if (FLAG_trace_service) {
-    if (isolate != NULL) {
-      OS::PrintErr(
-          "vm-service: Pushing ServiceEvent(isolate='%s', "
-          "isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
-          "', kind='%s') to stream %s\n",
-          isolate->name(), static_cast<int64_t>(isolate->main_port()), kind,
-          stream_id);
-    } else {
-      OS::PrintErr(
-          "vm-service: Pushing ServiceEvent(isolate='<no current isolate>', "
-          "kind='%s') to stream %s\n",
-          kind, stream_id);
-    }
+  // In certain cases (e.g. in the implementation of Dart_IsolateMakeRunnable)
+  // we do not have a current isolate/thread.
+  auto thread = Thread::Current();
+  if (thread != nullptr) {
+    TransitionVMToNative transition(thread);
+    Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
+  } else {
+    Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
   }
-
-  Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
 }
 
 class EmbedderServiceHandler {
