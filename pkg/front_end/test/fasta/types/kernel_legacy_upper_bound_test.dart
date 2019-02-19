@@ -12,9 +12,10 @@ class KernelLegacyUpperBoundTest extends LegacyUpperBoundTest {
   ClassHierarchy hierarchy;
 
   @override
-  void parseComponent(String source) {
+  Future<void> parseComponent(String source) {
     super.parseComponent(source);
     hierarchy = new ClassHierarchy(component);
+    return null;
   }
 
   @override

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:async_helper/async_helper.dart" show asyncTest;
+
 import "package:expect/expect.dart" show Expect;
 
 import "package:kernel/ast.dart" show Class, Component, DartType, InterfaceType;
@@ -48,15 +50,17 @@ abstract class LegacyUpperBoundTest {
     Expect.equals(expected, actual);
   }
 
-  void test() {
-    test_getLegacyLeastUpperBound_expansive();
-    test_getLegacyLeastUpperBound_generic();
-    test_getLegacyLeastUpperBound_nonGeneric();
+  Future<void> test() {
+    return asyncTest(() async {
+      await test_getLegacyLeastUpperBound_expansive();
+      await test_getLegacyLeastUpperBound_generic();
+      await test_getLegacyLeastUpperBound_nonGeneric();
+    });
   }
 
   /// Copy of the tests/language/least_upper_bound_expansive_test.dart test.
-  void test_getLegacyLeastUpperBound_expansive() {
-    parseComponent("""
+  Future<void> test_getLegacyLeastUpperBound_expansive() async {
+    await parseComponent("""
 class N<T>;
 class C1<T> extends N<N<C1<T>>>;
 class C2<T> extends N<N<C2<N<C2<T>>>>>;
@@ -91,8 +95,8 @@ class C2<T> extends N<N<C2<N<C2<T>>>>>;
         objectType);
   }
 
-  void test_getLegacyLeastUpperBound_generic() {
-    parseComponent("""
+  Future<void> test_getLegacyLeastUpperBound_generic() async {
+    await parseComponent("""
 class A;
 class B<T> implements A;
 class C<U> implements A;
@@ -126,8 +130,8 @@ class F implements D<int, bool>;
         e.rawType, f.rawType, new InterfaceType(b, [intType]));
   }
 
-  void test_getLegacyLeastUpperBound_nonGeneric() {
-    parseComponent("""
+  Future<void> test_getLegacyLeastUpperBound_nonGeneric() async {
+    await parseComponent("""
 class A;
 class B;
 class C implements A;
