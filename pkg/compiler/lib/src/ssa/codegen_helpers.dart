@@ -961,7 +961,6 @@ class SsaShareRegionConstants extends HBaseVisitor {
   SsaShareRegionConstants(this._options);
 
   visitGraph(HGraph graph) {
-    if (!_options.experimentLocalNames) return;
     // We need the async rewrite to be smarter about hoisting region constants
     // before it is worth-while.
     if (graph.needsAsyncRewrite) return;

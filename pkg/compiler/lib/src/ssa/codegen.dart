@@ -376,54 +376,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleDelayedVariableDeclarations(SourceInformation sourceInformation) {
-    if (_options.experimentLocalNames) {
-      handleDelayedVariableDeclarations2(sourceInformation);
-      return;
-    }
-
-    // If we have only one variable declaration and the first statement is an
-    // assignment to that variable then we can merge the two.  We count the
-    // number of variables in the variable allocator to try to avoid this issue,
-    // but it sometimes happens that the variable allocator introduces a
-    // temporary variable that it later eliminates.
-    if (!collectedVariableDeclarations.isEmpty) {
-      if (collectedVariableDeclarations.length == 1 &&
-          currentContainer.statements.length >= 1 &&
-          currentContainer.statements[0] is js.ExpressionStatement) {
-        String name = collectedVariableDeclarations.first;
-        js.ExpressionStatement statement = currentContainer.statements[0];
-        if (statement.expression is js.Assignment) {
-          js.Assignment assignment = statement.expression;
-          if (!assignment.isCompound &&
-              assignment.leftHandSide is js.VariableReference) {
-            js.VariableReference variableReference = assignment.leftHandSide;
-            if (variableReference.name == name) {
-              js.VariableDeclaration decl = new js.VariableDeclaration(name);
-              js.VariableInitialization initialization =
-                  new js.VariableInitialization(decl, assignment.value);
-              currentContainer.statements[0] = new js.ExpressionStatement(
-                      new js.VariableDeclarationList([initialization]))
-                  .withSourceInformation(sourceInformation);
-              return;
-            }
-          }
-        }
-      }
-      // If we can't merge the declaration with the first assignment then we
-      // just do it with a new var z,y,x; statement.
-      List<js.VariableInitialization> declarations =
-          <js.VariableInitialization>[];
-      collectedVariableDeclarations.forEach((String name) {
-        declarations.add(new js.VariableInitialization(
-            new js.VariableDeclaration(name), null));
-      });
-      var declarationList = new js.VariableDeclarationList(declarations)
-          .withSourceInformation(sourceInformation);
-      insertStatementAtStart(new js.ExpressionStatement(declarationList));
-    }
-  }
-
-  void handleDelayedVariableDeclarations2(SourceInformation sourceInformation) {
     // Create 'var' list at the start of function.  Move assignment statements
     // from the top of the body into the variable initializers.
     if (collectedVariableDeclarations.isEmpty) return;

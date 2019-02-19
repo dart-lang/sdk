@@ -265,9 +265,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is an experimental feature.
   bool experimentalTrackAllocations = false;
 
-  /// Expermental optimization.
-  bool experimentLocalNames = false;
-
   /// Experimental part file function generation.
   bool experimentStartupFunctions = false;
 
@@ -337,7 +334,6 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.experimentalTrackAllocations)
       ..experimentalAllocationsPath = _extractStringOption(
           options, "${Flags.experimentalAllocationsPath}=", null)
-      ..experimentLocalNames = _hasOption(options, Flags.experimentLocalNames)
       ..experimentStartupFunctions =
           _hasOption(options, Flags.experimentStartupFunctions)
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)

@@ -407,7 +407,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.experimentalTrackAllocations, passThrough),
     new OptionHandler("${Flags.experimentalAllocationsPath}=.+", passThrough),
 
-    new OptionHandler(Flags.experimentLocalNames, passThrough),
+    new OptionHandler(Flags.experimentLocalNames, ignoreOption),
     new OptionHandler(Flags.experimentStartupFunctions, passThrough),
     new OptionHandler(Flags.experimentToBoolean, passThrough),
     new OptionHandler(Flags.experimentCallInstrumentation, passThrough),
