@@ -117,14 +117,11 @@ class _Visitor extends UnifyingAstVisitor<void> {
         String prefix = '';
         AstNode parent = node.parent;
         if (parent is PrefixedIdentifier && parent.identifier == node) {
-          SimpleIdentifier prefixIdentifier = parent.prefix;
-          if (prefixIdentifier.offset <= endOffset &&
-              prefixIdentifier.end >= startOffset) {
-            Element prefixElement = prefixIdentifier.staticElement;
-            if (prefixElement is PrefixElement) {
-              prefix = prefixElement.name;
-            }
-          }
+          prefix = _getPrefixFrom(parent.prefix);
+        } else if (parent is MethodInvocation &&
+            parent.methodName == node &&
+            parent.target is SimpleIdentifier) {
+          prefix = _getPrefixFrom(parent.target);
         }
         String key = '$prefix;$path';
         ImportedElements elements = importedElements.putIfAbsent(
@@ -136,6 +133,16 @@ class _Visitor extends UnifyingAstVisitor<void> {
         }
       }
     }
+  }
+
+  String _getPrefixFrom(SimpleIdentifier identifier) {
+    if (identifier.offset <= endOffset && identifier.end >= startOffset) {
+      Element prefixElement = identifier.staticElement;
+      if (prefixElement is PrefixElement) {
+        return prefixElement.name;
+      }
+    }
+    return '';
   }
 
   static bool _isConstructorDeclarationReturnType(SimpleIdentifier node) {

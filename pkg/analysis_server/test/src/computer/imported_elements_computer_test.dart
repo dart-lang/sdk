@@ -262,7 +262,7 @@ blankLine() {
     ]);
   }
 
-  test_package_prefix_selected() async {
+  test_package_prefix_selected_class() async {
     addPackageFile('foo', 'foo.dart', '''
 class Foo {
   static String first = '';
@@ -278,6 +278,57 @@ blankLine() {
     await _computeElements(content, selection);
     assertElements([
       new ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['Foo']),
+    ]);
+  }
+
+  test_package_prefix_selected_function() async {
+    addPackageFile('foo', 'foo.dart', '''
+String foo() => '';
+''');
+    String selection = "f.foo()";
+    String content = '''
+import 'package:foo/foo.dart' as f;
+blankLine() {
+  print($selection);
+}
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['foo']),
+    ]);
+  }
+
+  test_package_prefix_selected_getter() async {
+    addPackageFile('foo', 'foo.dart', '''
+String foo = '';
+''');
+    String selection = "f.foo";
+    String content = '''
+import 'package:foo/foo.dart' as f;
+blankLine() {
+  print($selection);
+}
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['foo']),
+    ]);
+  }
+
+  test_package_prefix_selected_setter() async {
+    addPackageFile('foo', 'foo.dart', '''
+String foo = '';
+''');
+    String selection = "f.foo";
+    String content = '''
+import 'package:foo/foo.dart' as f;
+main() {
+  $selection = '';
+}
+''';
+    await _computeElements(content, selection);
+    assertElements([
+      new ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['foo=']),
     ]);
   }
 
