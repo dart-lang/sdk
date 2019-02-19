@@ -36,6 +36,7 @@ Am1:
   classSetters:
 
 Object with Am1<(null) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<(null) -> null, Z>
@@ -65,6 +66,7 @@ Object with Am1<(null) -> null, Z>:
   interfaceSetters:
 
 Bm1:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Bm1&Object&Am1<Z>
@@ -95,6 +97,7 @@ Bm1:
   interfaceSetters:
 
 Object with Am1<(x) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<(x) -> null, Z>
@@ -124,6 +127,7 @@ Object with Am1<(x) -> null, Z>:
   interfaceSetters:
 
 Cm1:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Cm1&Object&Am1<Z>
@@ -154,6 +158,7 @@ Cm1:
   interfaceSetters:
 
 Object with Am1<() -> int, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<() -> int, Z>
@@ -183,6 +188,7 @@ Object with Am1<() -> int, Z>:
   interfaceSetters:
 
 Dm1:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Dm1&Object&Am1<Z>
@@ -213,6 +219,7 @@ Dm1:
   interfaceSetters:
 
 Object with Am1<() -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<() -> null, Z>
@@ -242,6 +249,7 @@ Object with Am1<() -> null, Z>:
   interfaceSetters:
 
 Em1:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Em1&Object&Am1<Z>
@@ -272,6 +280,7 @@ Em1:
   interfaceSetters:
 
 Object with Am1<() -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<() -> null, Z>
@@ -301,6 +310,7 @@ Object with Am1<() -> null, Z>:
   interfaceSetters:
 
 Fm1:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Fm1&Object&Am1<Z>
@@ -331,6 +341,7 @@ Fm1:
   interfaceSetters:
 
 Object with Am1<(x) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<(x) -> null, Z>
@@ -360,6 +371,7 @@ Object with Am1<(x) -> null, Z>:
   interfaceSetters:
 
 Gm1:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Gm1&Object&Am1<Z>
@@ -390,6 +402,7 @@ Gm1:
   interfaceSetters:
 
 Object with Am1<(null) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<(null) -> null, Z>
@@ -419,6 +432,7 @@ Object with Am1<(null) -> null, Z>:
   interfaceSetters:
 
 Hm1:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Hm1&Object&Am1<Z>
@@ -449,6 +463,7 @@ Hm1:
   interfaceSetters:
 
 Object with Am1<(x) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<(x) -> null, Z>
@@ -478,6 +493,7 @@ Object with Am1<(x) -> null, Z>:
   interfaceSetters:
 
 Im1:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Im1&Object&Am1<Z>
@@ -508,6 +524,7 @@ Im1:
   interfaceSetters:
 
 Object with Am1<Function, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<Function, Z>
@@ -537,6 +554,7 @@ Object with Am1<Function, Z>:
   interfaceSetters:
 
 Jm1:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Jm1&Object&Am1<Z>
@@ -567,6 +585,7 @@ Jm1:
   interfaceSetters:
 
 Object with Am1<(Function) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<(Function) -> null, Z>
@@ -596,6 +615,7 @@ Object with Am1<(Function) -> null, Z>:
   interfaceSetters:
 
 Km1:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Km1&Object&Am1<Z>
@@ -626,6 +646,7 @@ Km1:
   interfaceSetters:
 
 Object with Am1<() -> (Function) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<() -> (Function) -> null, Z>
@@ -655,6 +676,7 @@ Object with Am1<() -> (Function) -> null, Z>:
   interfaceSetters:
 
 Lm1:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Lm1&Object&Am1<Z>
@@ -685,6 +707,7 @@ Lm1:
   interfaceSetters:
 
 Mm1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<(null) -> null, Z>
@@ -714,6 +737,7 @@ Mm1:
   interfaceSetters:
 
 Nm1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<(x) -> null, Z>
@@ -743,6 +767,7 @@ Nm1:
   interfaceSetters:
 
 Om1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<() -> int, Z>
@@ -772,6 +797,7 @@ Om1:
   interfaceSetters:
 
 Pm1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<() -> null, Z>
@@ -801,6 +827,7 @@ Pm1:
   interfaceSetters:
 
 Qm1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<() -> null, Z>
@@ -830,6 +857,7 @@ Qm1:
   interfaceSetters:
 
 Rm1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<(x) -> null, Z>
@@ -859,6 +887,7 @@ Rm1:
   interfaceSetters:
 
 Sm1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<(null) -> null, Z>
@@ -888,6 +917,7 @@ Sm1:
   interfaceSetters:
 
 Tm1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<(x) -> null, Z>
@@ -917,6 +947,7 @@ Tm1:
   interfaceSetters:
 
 Um1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<Function, Z>
@@ -946,6 +977,7 @@ Um1:
   interfaceSetters:
 
 Vm1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<(Function) -> null, Z>
@@ -975,6 +1007,7 @@ Vm1:
   interfaceSetters:
 
 Wm1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am1<() -> (Function) -> null, Z>
@@ -1021,6 +1054,7 @@ Am2:
   classSetters:
 
 Object with Am2<(null) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<(null) -> null, Z>
@@ -1050,6 +1084,7 @@ Object with Am2<(null) -> null, Z>:
   interfaceSetters:
 
 Bm2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Bm2&Object&Am2<Z>
@@ -1080,6 +1115,7 @@ Bm2:
   interfaceSetters:
 
 Object with Am2<(x) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<(x) -> null, Z>
@@ -1109,6 +1145,7 @@ Object with Am2<(x) -> null, Z>:
   interfaceSetters:
 
 Cm2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Cm2&Object&Am2<Z>
@@ -1139,6 +1176,7 @@ Cm2:
   interfaceSetters:
 
 Object with Am2<() -> int, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<() -> int, Z>
@@ -1168,6 +1206,7 @@ Object with Am2<() -> int, Z>:
   interfaceSetters:
 
 Dm2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Dm2&Object&Am2<Z>
@@ -1198,6 +1237,7 @@ Dm2:
   interfaceSetters:
 
 Object with Am2<() -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<() -> null, Z>
@@ -1227,6 +1267,7 @@ Object with Am2<() -> null, Z>:
   interfaceSetters:
 
 Em2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Em2&Object&Am2<Z>
@@ -1257,6 +1298,7 @@ Em2:
   interfaceSetters:
 
 Object with Am2<() -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<() -> null, Z>
@@ -1286,6 +1328,7 @@ Object with Am2<() -> null, Z>:
   interfaceSetters:
 
 Fm2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Fm2&Object&Am2<Z>
@@ -1316,6 +1359,7 @@ Fm2:
   interfaceSetters:
 
 Object with Am2<(x) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<(x) -> null, Z>
@@ -1345,6 +1389,7 @@ Object with Am2<(x) -> null, Z>:
   interfaceSetters:
 
 Gm2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Gm2&Object&Am2<Z>
@@ -1375,6 +1420,7 @@ Gm2:
   interfaceSetters:
 
 Object with Am2<(null) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<(null) -> null, Z>
@@ -1404,6 +1450,7 @@ Object with Am2<(null) -> null, Z>:
   interfaceSetters:
 
 Hm2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Hm2&Object&Am2<Z>
@@ -1434,6 +1481,7 @@ Hm2:
   interfaceSetters:
 
 Object with Am2<(x) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<(x) -> null, Z>
@@ -1463,6 +1511,7 @@ Object with Am2<(x) -> null, Z>:
   interfaceSetters:
 
 Im2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Im2&Object&Am2<Z>
@@ -1493,6 +1542,7 @@ Im2:
   interfaceSetters:
 
 Object with Am2<Function, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<Function, Z>
@@ -1522,6 +1572,7 @@ Object with Am2<Function, Z>:
   interfaceSetters:
 
 Jm2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Jm2&Object&Am2<Z>
@@ -1552,6 +1603,7 @@ Jm2:
   interfaceSetters:
 
 Object with Am2<(Function) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<(Function) -> null, Z>
@@ -1581,6 +1633,7 @@ Object with Am2<(Function) -> null, Z>:
   interfaceSetters:
 
 Km2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Km2&Object&Am2<Z>
@@ -1611,6 +1664,7 @@ Km2:
   interfaceSetters:
 
 Object with Am2<() -> (Function) -> null, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<() -> (Function) -> null, Z>
@@ -1640,6 +1694,7 @@ Object with Am2<() -> (Function) -> null, Z>:
   interfaceSetters:
 
 Lm2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Lm2&Object&Am2<Z>
@@ -1670,6 +1725,7 @@ Lm2:
   interfaceSetters:
 
 Mm2:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<(null) -> null, Z>
@@ -1699,6 +1755,7 @@ Mm2:
   interfaceSetters:
 
 Nm2:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<(x) -> null, Z>
@@ -1728,6 +1785,7 @@ Nm2:
   interfaceSetters:
 
 Om2:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<() -> int, Z>
@@ -1757,6 +1815,7 @@ Om2:
   interfaceSetters:
 
 Pm2:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<() -> null, Z>
@@ -1786,6 +1845,7 @@ Pm2:
   interfaceSetters:
 
 Qm2:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<() -> null, Z>
@@ -1815,6 +1875,7 @@ Qm2:
   interfaceSetters:
 
 Rm2:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<(x) -> null, Z>
@@ -1844,6 +1905,7 @@ Rm2:
   interfaceSetters:
 
 Sm2:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<(null) -> null, Z>
@@ -1873,6 +1935,7 @@ Sm2:
   interfaceSetters:
 
 Tm2:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<(x) -> null, Z>
@@ -1902,6 +1965,7 @@ Tm2:
   interfaceSetters:
 
 Um2:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<Function, Z>
@@ -1931,6 +1995,7 @@ Um2:
   interfaceSetters:
 
 Vm2:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<(Function) -> null, Z>
@@ -1960,6 +2025,7 @@ Vm2:
   interfaceSetters:
 
 Wm2:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am2<() -> (Function) -> null, Z>
@@ -2006,6 +2072,7 @@ Am3:
   classSetters:
 
 Object with Am3<TdB, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am3<TdB, Z>
@@ -2035,6 +2102,7 @@ Object with Am3<TdB, Z>:
   interfaceSetters:
 
 Bm3:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Bm3&Object&Am3<Z>
@@ -2065,6 +2133,7 @@ Bm3:
   interfaceSetters:
 
 Object with Am3<TdC, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am3<TdC, Z>
@@ -2094,6 +2163,7 @@ Object with Am3<TdC, Z>:
   interfaceSetters:
 
 Cm3:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Cm3&Object&Am3<Z>
@@ -2124,6 +2194,7 @@ Cm3:
   interfaceSetters:
 
 Object with Am3<TdD, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am3<TdD, Z>
@@ -2153,6 +2224,7 @@ Object with Am3<TdD, Z>:
   interfaceSetters:
 
 Dm3:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Dm3&Object&Am3<Z>
@@ -2183,6 +2255,7 @@ Dm3:
   interfaceSetters:
 
 Object with Am3<TdE, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am3<TdE, Z>
@@ -2212,6 +2285,7 @@ Object with Am3<TdE, Z>:
   interfaceSetters:
 
 Em3:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Em3&Object&Am3<Z>
@@ -2242,6 +2316,7 @@ Em3:
   interfaceSetters:
 
 Object with Am3<TdF, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am3<TdF, Z>
@@ -2271,6 +2346,7 @@ Object with Am3<TdF, Z>:
   interfaceSetters:
 
 Fm3:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Fm3&Object&Am3<Z>
@@ -2301,6 +2377,7 @@ Fm3:
   interfaceSetters:
 
 Object with Am3<TdG, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am3<TdG, Z>
@@ -2330,6 +2407,7 @@ Object with Am3<TdG, Z>:
   interfaceSetters:
 
 Gm3:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Gm3&Object&Am3<Z>
@@ -2360,6 +2438,7 @@ Gm3:
   interfaceSetters:
 
 Object with Am3<TdH, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am3<TdH, Z>
@@ -2389,6 +2468,7 @@ Object with Am3<TdH, Z>:
   interfaceSetters:
 
 Hm3:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Hm3&Object&Am3<Z>
@@ -2419,6 +2499,7 @@ Hm3:
   interfaceSetters:
 
 Object with Am3<TdI, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am3<TdI, Z>
@@ -2448,6 +2529,7 @@ Object with Am3<TdI, Z>:
   interfaceSetters:
 
 Im3:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Im3&Object&Am3<Z>
@@ -2478,6 +2560,7 @@ Im3:
   interfaceSetters:
 
 Object with Am3<TdJ, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am3<TdJ, Z>
@@ -2507,6 +2590,7 @@ Object with Am3<TdJ, Z>:
   interfaceSetters:
 
 Jm3:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Jm3&Object&Am3<Z>
@@ -2537,6 +2621,7 @@ Jm3:
   interfaceSetters:
 
 Object with Am3<TdK, Z>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Am3<TdK, Z>
@@ -2566,6 +2651,7 @@ Object with Am3<TdK, Z>:
   interfaceSetters:
 
 Km3:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Km3&Object&Am3<Z>

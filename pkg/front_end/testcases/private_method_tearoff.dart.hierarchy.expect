@@ -37,6 +37,7 @@ Bar:
   classSetters:
 
 Foo:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Bar
@@ -67,6 +68,7 @@ Foo:
   interfaceSetters:
 
 Baz:
+  Longest path to Object: 3
   superclasses:
     Object
       -> Foo

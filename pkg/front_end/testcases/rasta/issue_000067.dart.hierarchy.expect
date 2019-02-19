@@ -155,6 +155,7 @@ Exception:
   classSetters:
 
 ExpectException:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Exception

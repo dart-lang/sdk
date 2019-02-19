@@ -39,6 +39,7 @@ FooBase:
     FooBase._redirecting#
 
 Foo:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: FooBase
@@ -73,6 +74,7 @@ Foo:
     Foo._redirecting#
 
 Bar:
+  Longest path to Object: 3
   superclasses:
     Object
   interfaces: Foo<Tb>, FooBase
@@ -143,6 +145,7 @@ SimpleCase:
     SimpleCase._redirecting#
 
 SimpleCaseImpl:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: SimpleCase<Ai, Bi>
@@ -176,6 +179,7 @@ SimpleCaseImpl:
     SimpleCaseImpl._redirecting#
 
 SimpleCaseImpl2:
+  Longest path to Object: 3
   superclasses:
     Object
   interfaces: SimpleCaseImpl<Ai2, Bi2>, SimpleCase<Ai2, Bi2>

@@ -55,6 +55,7 @@ I2:
   classSetters:
 
 M:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: I1, I2

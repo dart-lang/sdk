@@ -39,6 +39,7 @@ Mixin:
     Mixin.field
 
 Object with Mixin:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Mixin
@@ -74,6 +75,7 @@ Object with Mixin:
     Mixin.field
 
 Foo:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Foo&Object&Mixin

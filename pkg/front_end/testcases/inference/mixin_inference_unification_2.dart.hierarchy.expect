@@ -36,6 +36,7 @@ I:
   classSetters:
 
 M0:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: I<T, List<T>>
@@ -65,6 +66,7 @@ M0:
   interfaceSetters:
 
 M1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: I<List<T>, T>
@@ -94,6 +96,7 @@ M1:
   interfaceSetters:
 
 Object with M0<dynamic>:
+  Longest path to Object: 3
   superclasses:
     Object
   interfaces: M0<dynamic>, I<dynamic, List<dynamic>>
@@ -123,6 +126,7 @@ Object with M0<dynamic>:
   interfaceSetters:
 
 _A&Object&M0 with M1<dynamic>:
+  Longest path to Object: 4
   superclasses:
     Object
       -> _A&Object&M0
@@ -153,6 +157,7 @@ _A&Object&M0 with M1<dynamic>:
   interfaceSetters:
 
 A:
+  Longest path to Object: 5
   superclasses:
     Object
       -> _A&Object&M0

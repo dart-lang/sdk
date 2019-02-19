@@ -54,6 +54,7 @@ MyTest:
   classSetters:
 
 Object with MyTest:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: MyTest
@@ -85,6 +86,7 @@ Object with MyTest:
   interfaceSetters:
 
 MyTest2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _MyTest2&Object&MyTest

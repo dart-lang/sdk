@@ -46,6 +46,7 @@ A:
   classSetters:
 
 B:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: A
@@ -55,6 +56,7 @@ B:
   interfaceSetters:
 
 C:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: A
@@ -64,6 +66,7 @@ C:
   interfaceSetters:
 
 D:
+  Longest path to Object: 3
   superclasses:
     Object
   interfaces: B<T>, A, C<U>
@@ -73,6 +76,7 @@ D:
   interfaceSetters:
 
 E:
+  Longest path to Object: 4
   superclasses:
     Object
   interfaces: D<int, double>, B<int>, A, C<double>
@@ -82,6 +86,7 @@ E:
   interfaceSetters:
 
 F:
+  Longest path to Object: 4
   superclasses:
     Object
   interfaces: D<int, bool>, B<int>, A, C<bool>
