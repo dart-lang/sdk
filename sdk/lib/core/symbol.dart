@@ -68,7 +68,7 @@ abstract class Symbol {
    * a private symbol literal like `#_foo`.
    * ```dart
    * const Symbol("_foo") // Invalid
-   * ``
+   * ```
    *
    * The created instance overrides [Object.==].
    *
