@@ -963,11 +963,13 @@ final Matcher isIncludedSuggestionRelevanceTag = new LazyMatcher(() =>
  * {
  *   "id": int
  *   "relevance": int
+ *   "displayUri": optional String
  * }
  */
 final Matcher isIncludedSuggestionSet = new LazyMatcher(() =>
     new MatchesJsonObject(
-        "IncludedSuggestionSet", {"id": isInt, "relevance": isInt}));
+        "IncludedSuggestionSet", {"id": isInt, "relevance": isInt},
+        optionalFields: {"displayUri": isString}));
 
 /**
  * KytheEntry

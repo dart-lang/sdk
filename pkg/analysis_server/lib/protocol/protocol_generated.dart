@@ -16076,6 +16076,7 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
  * {
  *   "id": int
  *   "relevance": int
+ *   "displayUri": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -16084,6 +16085,8 @@ class IncludedSuggestionSet implements HasToJson {
   int _id;
 
   int _relevance;
+
+  String _displayUri;
 
   /**
    * Clients should use it to access the set of precomputed completions to be
@@ -16115,9 +16118,34 @@ class IncludedSuggestionSet implements HasToJson {
     this._relevance = value;
   }
 
-  IncludedSuggestionSet(int id, int relevance) {
+  /**
+   * The optional string that should be displayed instead of the uri of the
+   * referenced AvailableSuggestionSet.
+   *
+   * For example libraries in the "test" directory of a package have only
+   * "file://" URIs, so are usually long, and don't look nice, but actual
+   * import directives will use relative URIs, which are short, so we probably
+   * want to display such relative URIs to the user.
+   */
+  String get displayUri => _displayUri;
+
+  /**
+   * The optional string that should be displayed instead of the uri of the
+   * referenced AvailableSuggestionSet.
+   *
+   * For example libraries in the "test" directory of a package have only
+   * "file://" URIs, so are usually long, and don't look nice, but actual
+   * import directives will use relative URIs, which are short, so we probably
+   * want to display such relative URIs to the user.
+   */
+  void set displayUri(String value) {
+    this._displayUri = value;
+  }
+
+  IncludedSuggestionSet(int id, int relevance, {String displayUri}) {
     this.id = id;
     this.relevance = relevance;
+    this.displayUri = displayUri;
   }
 
   factory IncludedSuggestionSet.fromJson(
@@ -16139,7 +16167,12 @@ class IncludedSuggestionSet implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "relevance");
       }
-      return new IncludedSuggestionSet(id, relevance);
+      String displayUri;
+      if (json.containsKey("displayUri")) {
+        displayUri = jsonDecoder.decodeString(
+            jsonPath + ".displayUri", json["displayUri"]);
+      }
+      return new IncludedSuggestionSet(id, relevance, displayUri: displayUri);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "IncludedSuggestionSet", json);
     }
@@ -16150,6 +16183,9 @@ class IncludedSuggestionSet implements HasToJson {
     Map<String, dynamic> result = {};
     result["id"] = id;
     result["relevance"] = relevance;
+    if (displayUri != null) {
+      result["displayUri"] = displayUri;
+    }
     return result;
   }
 
@@ -16159,7 +16195,9 @@ class IncludedSuggestionSet implements HasToJson {
   @override
   bool operator ==(other) {
     if (other is IncludedSuggestionSet) {
-      return id == other.id && relevance == other.relevance;
+      return id == other.id &&
+          relevance == other.relevance &&
+          displayUri == other.displayUri;
     }
     return false;
   }
@@ -16169,6 +16207,7 @@ class IncludedSuggestionSet implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     hash = JenkinsSmiHash.combine(hash, relevance.hashCode);
+    hash = JenkinsSmiHash.combine(hash, displayUri.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
