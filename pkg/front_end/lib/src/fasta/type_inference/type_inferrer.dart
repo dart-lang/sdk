@@ -52,8 +52,6 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-import 'package:kernel/class_hierarchy.dart' as kernel show MixinInferrer;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart'
@@ -118,8 +116,6 @@ import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 import '../names.dart' show callName, unaryMinusName;
 
 import '../problems.dart' show internalProblem, unexpected, unhandled;
-
-import '../source/source_loader.dart' show SourceLoader;
 
 import 'inference_helper.dart' show InferenceHelper;
 
@@ -1909,29 +1905,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 }
 
-// TODO(ahe): I'm working on removing this.
-class KernelHierarchyMixinInferrerCallback implements kernel.MixinInferrer {
-  final SourceLoader loader;
-  final bool legacyMode;
-
-  KernelHierarchyMixinInferrerCallback(this.loader, this.legacyMode);
-
-  @override
-  void infer(ClassHierarchy hierarchy, Class classNode) {
-    if (legacyMode) return;
-    Supertype mixedInType = classNode.mixedInType;
-    List<DartType> typeArguments = mixedInType.typeArguments;
-    if (typeArguments.isEmpty || typeArguments.first is! UnknownType) return;
-    new KernelHierarchyMixinInferrer(
-            hierarchy,
-            loader,
-            new TypeConstraintGatherer(
-                new TypeSchemaEnvironment(loader.coreTypes, hierarchy),
-                mixedInType.classNode.typeParameters))
-        .infer(classNode);
-  }
-}
-
 abstract class MixinInferrer {
   final CoreTypes coreTypes;
   final TypeConstraintGatherer gatherer;
@@ -2071,26 +2044,6 @@ abstract class MixinInferrer {
     for (int i = 0; i < mixedInType.typeArguments.length; ++i) {
       mixedInType.typeArguments[i] = bounds[i];
     }
-  }
-}
-
-// TODO(ahe): I'm working on removing this.
-class KernelHierarchyMixinInferrer extends MixinInferrer {
-  final ClassHierarchy hierarchy;
-  final SourceLoader loader;
-
-  KernelHierarchyMixinInferrer(
-      this.hierarchy, this.loader, TypeConstraintGatherer gatherer)
-      : super(loader.coreTypes, gatherer);
-
-  @override
-  Supertype asInstantiationOf(Supertype type, Class superclass) {
-    return hierarchy.asInstantiationOf(type, superclass);
-  }
-
-  @override
-  void reportProblem(Message message, Class cls) {
-    loader.addProblem(message, cls.fileOffset, noLength, cls.fileUri);
   }
 }
 

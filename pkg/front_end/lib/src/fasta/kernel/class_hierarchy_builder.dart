@@ -833,7 +833,6 @@ class ClassHierarchyNodeBuilder {
   }
 
   void inferMixinApplication() {
-    if (!hierarchy.loader.target.backendTarget.legacyMode) return;
     Class kernelClass = cls.target;
     Supertype kernelMixedInType = kernelClass.mixedInType;
     if (kernelMixedInType == null) return;

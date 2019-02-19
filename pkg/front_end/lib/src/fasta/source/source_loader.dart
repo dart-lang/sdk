@@ -109,9 +109,6 @@ import '../severity.dart' show Severity;
 
 import '../type_inference/interface_resolver.dart' show InterfaceResolver;
 
-import '../type_inference/type_inferrer.dart'
-    show KernelHierarchyMixinInferrerCallback;
-
 import 'diet_listener.dart' show DietListener;
 
 import 'diet_parser.dart' show DietParser;
@@ -798,13 +795,9 @@ class SourceLoader extends Loader<Library> {
     };
     if (hierarchy == null) {
       hierarchy = new ClassHierarchy(computeFullComponent(),
-          onAmbiguousSupertypes: onAmbiguousSupertypes,
-          mixinInferrer: new KernelHierarchyMixinInferrerCallback(
-              this, target.legacyMode));
+          onAmbiguousSupertypes: onAmbiguousSupertypes);
     } else {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
-      hierarchy.mixinInferrer =
-          new KernelHierarchyMixinInferrerCallback(this, target.legacyMode);
       Component component = computeFullComponent();
       hierarchy.applyTreeChanges(const [], component.libraries,
           reissueAmbiguousSupertypesFor: component);
