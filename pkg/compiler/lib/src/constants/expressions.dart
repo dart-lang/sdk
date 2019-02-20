@@ -1758,7 +1758,7 @@ class PositionalArgumentReference extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    throw new UnsupportedError('PositionalArgumentReference.evaluate');
+    return new NonConstantValue();
   }
 
   @override
@@ -1797,7 +1797,7 @@ class NamedArgumentReference extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    throw new UnsupportedError('NamedArgumentReference.evaluate');
+    return new NonConstantValue();
   }
 
   @override

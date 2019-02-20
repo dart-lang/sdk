@@ -169,25 +169,6 @@ class KFactoryConstructor extends KConstructor {
   bool get isGenerativeConstructor => false;
 }
 
-class KConstructorBody extends KFunction implements ConstructorBodyEntity {
-  final ConstructorEntity constructor;
-
-  KConstructorBody(this.constructor)
-      : super(
-            constructor.library,
-            constructor.enclosingClass,
-            constructor.memberName,
-            constructor.parameterStructure,
-            AsyncMarker.SYNC,
-            isStatic: false,
-            isExternal: false);
-
-  @override
-  bool get isFunction => true;
-
-  String get _kind => 'constructor_body';
-}
-
 class KMethod extends KFunction {
   final bool isAbstract;
 

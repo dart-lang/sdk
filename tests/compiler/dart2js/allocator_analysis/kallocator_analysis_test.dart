@@ -5,7 +5,6 @@
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/allocator_analysis.dart';
@@ -39,11 +38,17 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
       KAllocatorAnalysis allocatorAnalysis =
           compiler.backend.allocatorResolutionAnalysisForTesting;
       ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
-      ConstantValue initialValue =
+      AllocatorData data =
           allocatorAnalysis.getFixedInitializerForTesting(member);
       Features features = new Features();
-      if (initialValue != null) {
-        features[Tags.initialValue] = initialValue.toStructuredText();
+      if (data != null) {
+        if (data.initialValue != null) {
+          features[Tags.initialValue] = data.initialValue.toStructuredText();
+        }
+        data.initializers.forEach((constructor, value) {
+          features['${constructor.enclosingClass.name}.${constructor.name}'] =
+              value?.shortText();
+        });
       }
       Id id = computeEntityId(node);
       actualMap[id] = new ActualData<Features>(

@@ -9,7 +9,7 @@ import '../js_model/elements.dart' show JField;
 import '../js_model/js_world_builder.dart';
 import '../kernel/element_map.dart';
 import '../kernel/kernel_strategy.dart';
-import '../kernel/kelements.dart' show KClass, KField;
+import '../kernel/kelements.dart' show KClass, KField, KConstructor;
 import '../options.dart';
 import '../serialization/serialization.dart';
 
@@ -34,7 +34,7 @@ abstract class AllocatorAnalysis {}
 class KAllocatorAnalysis implements AllocatorAnalysis {
   final KernelToElementMap _elementMap;
 
-  final Map<KField, ConstantValue> _fixedInitializers = {};
+  final Map<KField, AllocatorData> _fixedInitializers = {};
 
   KAllocatorAnalysis(KernelFrontEndStrategy kernelStrategy)
       : _elementMap = kernelStrategy.elementMap;
@@ -44,34 +44,131 @@ class KAllocatorAnalysis implements AllocatorAnalysis {
   void registerInstantiatedClass(KClass class_) {
     ir.Class classNode = _elementMap.getClassNode(class_);
 
-    Map<ir.Field, ConstantValue> inits = {};
+    Map<ir.Field, AllocatorData> fieldData = {};
     for (ir.Field field in classNode.fields) {
       if (!field.isInstanceMember) continue;
       ir.Expression expression = field.initializer;
       ConstantValue value = _elementMap.getConstantValue(expression,
           requireConstant: false, implicitNull: true);
       if (value != null && value.isConstant) {
-        inits[field] = value;
+        fieldData[field] = new AllocatorData(value);
       }
     }
 
     for (ir.Constructor constructor in classNode.constructors) {
+      KConstructor constructorElement = _elementMap.getConstructor(constructor);
       for (ir.Initializer initializer in constructor.initializers) {
         if (initializer is ir.FieldInitializer) {
-          // TODO(sra): Check explicit initializer value to see if consistent
-          // over all constructors.
-          inits.remove(initializer.field);
+          AllocatorData data = fieldData[initializer.field];
+          if (data == null) {
+            // TODO(johnniwinther): Support initializers with side-effects?
+
+            // The field has a non-constant initializer.
+            continue;
+          }
+
+          Initializer initializerValue = const Initializer.complex();
+          ir.Expression value = initializer.value;
+          ConstantValue constantValue = _elementMap.getConstantValue(value,
+              requireConstant: false, implicitNull: true);
+          if (constantValue != null && constantValue.isConstant) {
+            initializerValue = new Initializer.direct(constantValue);
+          } else if (value is ir.VariableGet) {
+            ir.VariableDeclaration parameter = value.variable;
+            int position =
+                constructor.function.positionalParameters.indexOf(parameter);
+            if (position != -1) {
+              if (position >= constructor.function.requiredParameterCount) {
+                constantValue = _elementMap.getConstantValue(
+                    parameter.initializer,
+                    requireConstant: false,
+                    implicitNull: true);
+                if (constantValue != null && constantValue.isConstant) {
+                  initializerValue =
+                      new Initializer.positional(position, constantValue);
+                }
+              }
+            } else {
+              position =
+                  constructor.function.namedParameters.indexOf(parameter);
+              if (position != -1) {
+                constantValue = _elementMap.getConstantValue(
+                    parameter.initializer,
+                    requireConstant: false,
+                    implicitNull: true);
+                if (constantValue != null && constantValue.isConstant) {
+                  initializerValue =
+                      new Initializer.named(parameter.name, constantValue);
+                }
+              }
+            }
+          }
+          data.initializers[constructorElement] = initializerValue;
         }
       }
     }
 
-    inits.forEach((ir.Field fieldNode, ConstantValue value) {
-      _fixedInitializers[_elementMap.getField(fieldNode)] = value;
+    fieldData.forEach((ir.Field fieldNode, AllocatorData data) {
+      _fixedInitializers[_elementMap.getField(fieldNode)] = data;
     });
   }
 
-  ConstantValue getFixedInitializerForTesting(KField field) =>
+  AllocatorData getFixedInitializerForTesting(KField field) =>
       _fixedInitializers[field];
+}
+
+class AllocatorData {
+  final ConstantValue initialValue;
+  final Map<KConstructor, Initializer> initializers = {};
+
+  AllocatorData(this.initialValue);
+}
+
+enum InitializerKind {
+  direct,
+  positional,
+  named,
+  complex,
+}
+
+class Initializer {
+  final InitializerKind kind;
+  final int index;
+  final String name;
+  final ConstantValue value;
+
+  Initializer.direct(this.value)
+      : kind = InitializerKind.direct,
+        index = null,
+        name = null;
+
+  Initializer.positional(this.index, this.value)
+      : kind = InitializerKind.positional,
+        name = null;
+
+  Initializer.named(this.name, this.value)
+      : kind = InitializerKind.named,
+        index = null;
+
+  const Initializer.complex()
+      : kind = InitializerKind.complex,
+        index = null,
+        name = null,
+        value = null;
+
+  String shortText() {
+    switch (kind) {
+      case InitializerKind.direct:
+        return value.toStructuredText();
+      case InitializerKind.positional:
+        return '$index:${value.toStructuredText()}';
+      case InitializerKind.named:
+        return '$name:${value.toStructuredText()}';
+      case InitializerKind.complex:
+        return '?';
+    }
+    throw new UnsupportedError('Unexpected kind $kind');
+  }
 }
 
 class JAllocatorAnalysis implements AllocatorAnalysis {
@@ -114,12 +211,20 @@ class JAllocatorAnalysis implements AllocatorAnalysis {
       JsToFrontendMap map, CompilerOptions options) {
     var result = JAllocatorAnalysis._();
 
-    kAnalysis._fixedInitializers.forEach((KField kField, ConstantValue value) {
-      if (value.isNull || value.isInt || value.isBool || value.isString) {
-        // TODO(johnniwinther): Support non-primitive constants.
-        JField jField = map.toBackendMember(kField);
-        if (jField != null) {
-          result._fixedInitializers[jField] = map.toBackendConstant(value);
+    kAnalysis._fixedInitializers.forEach((KField kField, AllocatorData data) {
+      // TODO(johnniwinther): Use liveness of constructors and elided optional
+      // parameters to recognize more constant initializers.
+      if (data.initialValue != null && data.initializers.isEmpty) {
+        ConstantValue value = data.initialValue;
+        if (value.isNull || value.isInt || value.isBool || value.isString) {
+          // TODO(johnniwinther,sra): Support non-primitive constants in
+          // allocators when it does cause allocators to deoptimized because
+          // of deferred loading.
+
+          JField jField = map.toBackendMember(kField);
+          if (jField != null) {
+            result._fixedInitializers[jField] = map.toBackendConstant(value);
+          }
         }
       }
     });

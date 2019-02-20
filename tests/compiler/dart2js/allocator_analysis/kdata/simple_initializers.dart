@@ -57,46 +57,46 @@ class Class1 {
 }
 
 class Class2 {
-  /*element: Class2.field1:*/
+  /*element: Class2.field1:Class2.=NullConstant,initial=NullConstant*/
   var field1;
 
-  /*element: Class2.field2:*/
+  /*element: Class2.field2:Class2.=BoolConstant(true),initial=NullConstant*/
   var field2;
 
-  /*element: Class2.field3:*/
+  /*element: Class2.field3:Class2.=BoolConstant(false),initial=NullConstant*/
   var field3;
 
-  /*element: Class2.field4:*/
+  /*element: Class2.field4:Class2.=IntConstant(0),initial=NullConstant*/
   var field4;
 
-  /*element: Class2.field5:*/
+  /*element: Class2.field5:Class2.=IntConstant(1),initial=NullConstant*/
   var field5;
 
-  /*element: Class2.field6:*/
+  /*element: Class2.field6:Class2.=StringConstant(""),initial=NullConstant*/
   var field6;
 
-  /*element: Class2.field7:*/
+  /*element: Class2.field7:Class2.=StringConstant("foo"),initial=NullConstant*/
   var field7;
 
-  /*element: Class2.field8:*/
+  /*element: Class2.field8:Class2.=DoubleConstant(0.5),initial=NullConstant*/
   var field8;
 
-  /*element: Class2.field9:*/
+  /*element: Class2.field9:Class2.=ListConstant([]),initial=NullConstant*/
   var field9;
 
-  /*element: Class2.field10:*/
+  /*element: Class2.field10:Class2.=MapConstant({}),initial=NullConstant*/
   var field10;
 
-  /*element: Class2.field11:*/
+  /*element: Class2.field11:Class2.=ConstructedConstant(Symbol(_name=StringConstant("foo"))),initial=NullConstant*/
   var field11;
 
-  /*element: Class2.field12:*/
+  /*element: Class2.field12:Class2.=IntConstant(5),initial=NullConstant*/
   var field12;
 
-  /*element: Class2.field13:*/
+  /*element: Class2.field13:Class2.=BoolConstant(true),initial=NullConstant*/
   var field13;
 
-  /*element: Class2.field14:*/
+  /*element: Class2.field14:Class2.=?,initial=NullConstant*/
   var field14;
 
   Class2()
