@@ -973,6 +973,19 @@ class StatementTagger extends StatementVisitor<String>
   const StatementTagger();
 
   String tag(Statement statement) => statement.accept(this);
+
+  String visitExpressionStatement(ExpressionStatement _) => "expr";
+}
+
+TextSerializer<ExpressionStatement> expressionStatementSerializer = new Wrapped(
+    unwrapExpressionStatement, wrapExpressionStatement, expressionSerializer);
+
+Expression unwrapExpressionStatement(ExpressionStatement statement) {
+  return statement.expression;
+}
+
+ExpressionStatement wrapExpressionStatement(Expression expression) {
+  return new ExpressionStatement(expression);
 }
 
 Case<Statement> statementSerializer =
@@ -1084,5 +1097,11 @@ void initializeSerializers() {
     bottomTypeSerializer,
     functionTypeSerializer,
     typeParameterTypeSerializer,
+  ]);
+  statementSerializer.tags.addAll([
+    "expr",
+  ]);
+  statementSerializer.serializers.addAll([
+    expressionStatementSerializer,
   ]);
 }
