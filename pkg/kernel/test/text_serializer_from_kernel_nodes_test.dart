@@ -331,8 +331,8 @@ void test() {
               typeParameters: [outterParam])),
           expectation: ""
               "(type (-> (\"T^0\") ((dynamic)) ((dynamic)) "
-              "((-> (\"T^1\") ((dynamic)) ((dynamic)) () 0 (par \"T^1\" _))) 1 "
-              "(par \"T^0\" _)))",
+              "((-> (\"T^1\") ((dynamic)) ((dynamic)) () () (par \"T^1\" _))) "
+              "() (par \"T^0\" _)))",
           serializationState:
               new SerializationState(new SerializationEnvironment(null)),
           deserializationState: new DeserializationState(

@@ -911,20 +911,26 @@ TextSerializer<FunctionType> functionTypeSerializer = new Wrapped(
     new Bind(
         typeParametersSerializer,
         new Tuple3Serializer(new ListSerializer(dartTypeSerializer),
-            const DartInt(), dartTypeSerializer)));
+            new ListSerializer(dartTypeSerializer), dartTypeSerializer)));
 
-Tuple2<List<TypeParameter>, Tuple3<List<DartType>, int, DartType>>
+Tuple2<List<TypeParameter>, Tuple3<List<DartType>, List<DartType>, DartType>>
     unwrapFunctionType(FunctionType type) {
   return new Tuple2(
       type.typeParameters,
-      new Tuple3(type.positionalParameters, type.requiredParameterCount,
+      new Tuple3(
+          type.positionalParameters.sublist(0, type.requiredParameterCount),
+          type.positionalParameters.sublist(type.requiredParameterCount),
           type.returnType));
 }
 
 FunctionType wrapFunctionType(
-    Tuple2<List<TypeParameter>, Tuple3<List<DartType>, int, DartType>> tuple) {
-  return new FunctionType(tuple.second.first, tuple.second.third,
-      requiredParameterCount: tuple.second.second, typeParameters: tuple.first);
+    Tuple2<List<TypeParameter>,
+            Tuple3<List<DartType>, List<DartType>, DartType>>
+        tuple) {
+  return new FunctionType(
+      tuple.second.first + tuple.second.second, tuple.second.third,
+      requiredParameterCount: tuple.second.first.length,
+      typeParameters: tuple.first);
 }
 
 TextSerializer<TypeParameterType> typeParameterTypeSerializer = new Wrapped(
