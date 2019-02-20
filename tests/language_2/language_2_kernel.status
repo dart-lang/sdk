@@ -203,6 +203,7 @@ control_flow_collections/for_test: Crash
 control_flow_collections/for_variable_test: Crash
 control_flow_collections/if_const_test: Crash
 control_flow_collections/if_inference_test: CompileTimeError
+control_flow_collections/if_promotion_test/none: CompileTimeError
 control_flow_collections/if_test: Crash
 control_flow_collections/map_set_ambiguity_test: CompileTimeError
 control_flow_collections/syntax_error_test/09: Crash
