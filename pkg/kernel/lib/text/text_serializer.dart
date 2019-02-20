@@ -968,6 +968,16 @@ TypeParameterType wrapTypeParameterType(Tuple2<TypeParameter, DartType> tuple) {
 Case<DartType> dartTypeSerializer =
     new Case.uninitialized(const DartTypeTagger());
 
+class StatementTagger extends StatementVisitor<String>
+    implements Tagger<Statement> {
+  const StatementTagger();
+
+  String tag(Statement statement) => statement.accept(this);
+}
+
+Case<Statement> statementSerializer =
+    new Case.uninitialized(const StatementTagger());
+
 void initializeSerializers() {
   expressionSerializer.tags.addAll([
     "string",

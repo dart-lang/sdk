@@ -10,7 +10,11 @@ import '../text/serializer_combinators.dart'
 import '../text/text_reader.dart' show TextIterator;
 
 import '../text/text_serializer.dart'
-    show dartTypeSerializer, expressionSerializer, initializeSerializers;
+    show
+        dartTypeSerializer,
+        expressionSerializer,
+        initializeSerializers,
+        statementSerializer;
 
 import '../visitor.dart' show Visitor;
 
@@ -138,6 +142,28 @@ class TextSerializationVerifier implements Visitor<void> {
     DartType deserialized = readNode(initial, dartTypeSerializer, uri, offset);
     String serialized =
         writeNode(deserialized, dartTypeSerializer, uri, offset);
+
+    if (initial != serialized) {
+      failures.add(new TextRoundTripFailure(initial, serialized, uri, offset));
+    }
+  }
+
+  void makeStatementRoundTrip(Statement node) {
+    Uri uri = noUri;
+    int offset = noOffset;
+    Location location = node.location;
+    if (location != null) {
+      uri = location.file;
+      offset = node.fileOffset;
+    }
+
+    String initial = writeNode(node, statementSerializer, uri, offset);
+
+    // Do the round trip.
+    Statement deserialized =
+        readNode(initial, statementSerializer, uri, offset);
+    String serialized =
+        writeNode(deserialized, expressionSerializer, uri, offset);
 
     if (initial != serialized) {
       failures.add(new TextRoundTripFailure(initial, serialized, uri, offset));
@@ -588,121 +614,121 @@ class TextSerializationVerifier implements Visitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitYieldStatement(YieldStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitTryFinally(TryFinally node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitTryCatch(TryCatch node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitIfStatement(IfStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitContinueSwitchStatement(ContinueSwitchStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitForInStatement(ForInStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitForStatement(ForStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitDoStatement(DoStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitBreakStatement(BreakStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitEmptyStatement(EmptyStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitAssertBlock(AssertBlock node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitBlock(Block node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
     storeLastSeenUriAndOffset(node);
-    node.visitChildren(this);
+    makeStatementRoundTrip(node);
   }
 
   @override
