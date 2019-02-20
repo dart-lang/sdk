@@ -284,7 +284,6 @@ final Matcher isCompletionService =
  *   "hasNamedParameters": optional bool
  *   "parameterName": optional String
  *   "parameterType": optional String
- *   "importUri": optional String
  * }
  */
 final Matcher isCompletionSuggestion =
@@ -311,8 +310,7 @@ final Matcher isCompletionSuggestion =
           "requiredParameterCount": isInt,
           "hasNamedParameters": isBool,
           "parameterName": isString,
-          "parameterType": isString,
-          "importUri": isString
+          "parameterType": isString
         }));
 
 /**

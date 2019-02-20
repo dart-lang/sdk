@@ -10,21 +10,16 @@ import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/comment.dart';
-import 'package:path/path.dart' as path;
 
 /**
- * Return a suggestion based upon the given element
- * or `null` if a suggestion is not appropriate for the given element.
- * If the suggestion is not currently in scope, then specify
- * importForSource as the source to which an import should be added.
+ * Return a suggestion based upon the given element or `null` if a suggestion
+ * is not appropriate for the given element.
  */
 CompletionSuggestion createSuggestion(Element element,
     {String completion,
     CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-    int relevance: DART_RELEVANCE_DEFAULT,
-    Source importForSource}) {
+    int relevance: DART_RELEVANCE_DEFAULT}) {
   if (element == null) {
     return null;
   }
@@ -78,34 +73,6 @@ CompletionSuggestion createSuggestion(Element element,
 
     addDefaultArgDetails(
         suggestion, element, requiredParameters, namedParameters);
-  }
-  if (importForSource != null) {
-    String srcPath = path.dirname(importForSource.fullName);
-    LibraryElement libElem = element.library;
-    if (libElem != null) {
-      Source libSource = libElem.source;
-      if (libSource != null) {
-        UriKind uriKind = libSource.uriKind;
-        if (uriKind == UriKind.DART_URI) {
-          suggestion.importUri = libSource.uri.toString();
-        } else if (uriKind == UriKind.PACKAGE_URI) {
-          suggestion.importUri = libSource.uri.toString();
-        } else if (uriKind == UriKind.FILE_URI &&
-            element.source.uriKind == UriKind.FILE_URI) {
-          try {
-            suggestion.importUri =
-                path.relative(libSource.fullName, from: srcPath);
-          } catch (_) {
-            // ignored
-          }
-        }
-      }
-    }
-    if (suggestion.importUri == null) {
-      // Do not include out of scope suggestions
-      // for which we cannot determine an import
-      return null;
-    }
   }
   return suggestion;
 }

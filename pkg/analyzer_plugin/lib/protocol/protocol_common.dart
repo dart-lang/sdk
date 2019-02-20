@@ -616,7 +616,6 @@ class ChangeContentOverlay implements HasToJson {
  *   "hasNamedParameters": optional bool
  *   "parameterName": optional String
  *   "parameterType": optional String
- *   "importUri": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -665,8 +664,6 @@ class CompletionSuggestion implements HasToJson {
   String _parameterName;
 
   String _parameterType;
-
-  String _importUri;
 
   /**
    * The kind of element being suggested.
@@ -997,20 +994,6 @@ class CompletionSuggestion implements HasToJson {
     this._parameterType = value;
   }
 
-  /**
-   * The import to be added if the suggestion is out of scope and needs an
-   * import to be added to be in scope.
-   */
-  String get importUri => _importUri;
-
-  /**
-   * The import to be added if the suggestion is out of scope and needs an
-   * import to be added to be in scope.
-   */
-  void set importUri(String value) {
-    this._importUri = value;
-  }
-
   CompletionSuggestion(
       CompletionSuggestionKind kind,
       int relevance,
@@ -1033,8 +1016,7 @@ class CompletionSuggestion implements HasToJson {
       int requiredParameterCount,
       bool hasNamedParameters,
       String parameterName,
-      String parameterType,
-      String importUri}) {
+      String parameterType}) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -1057,7 +1039,6 @@ class CompletionSuggestion implements HasToJson {
     this.hasNamedParameters = hasNamedParameters;
     this.parameterName = parameterName;
     this.parameterType = parameterType;
-    this.importUri = importUri;
   }
 
   factory CompletionSuggestion.fromJson(
@@ -1194,11 +1175,6 @@ class CompletionSuggestion implements HasToJson {
         parameterType = jsonDecoder.decodeString(
             jsonPath + ".parameterType", json["parameterType"]);
       }
-      String importUri;
-      if (json.containsKey("importUri")) {
-        importUri = jsonDecoder.decodeString(
-            jsonPath + ".importUri", json["importUri"]);
-      }
       return new CompletionSuggestion(kind, relevance, completion,
           selectionOffset, selectionLength, isDeprecated, isPotential,
           displayText: displayText,
@@ -1215,8 +1191,7 @@ class CompletionSuggestion implements HasToJson {
           requiredParameterCount: requiredParameterCount,
           hasNamedParameters: hasNamedParameters,
           parameterName: parameterName,
-          parameterType: parameterType,
-          importUri: importUri);
+          parameterType: parameterType);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestion", json);
     }
@@ -1277,9 +1252,6 @@ class CompletionSuggestion implements HasToJson {
     if (parameterType != null) {
       result["parameterType"] = parameterType;
     }
-    if (importUri != null) {
-      result["importUri"] = importUri;
-    }
     return result;
   }
 
@@ -1313,8 +1285,7 @@ class CompletionSuggestion implements HasToJson {
           requiredParameterCount == other.requiredParameterCount &&
           hasNamedParameters == other.hasNamedParameters &&
           parameterName == other.parameterName &&
-          parameterType == other.parameterType &&
-          importUri == other.importUri;
+          parameterType == other.parameterType;
     }
     return false;
   }
@@ -1344,7 +1315,6 @@ class CompletionSuggestion implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, hasNamedParameters.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameterName.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameterType.hashCode);
-    hash = JenkinsSmiHash.combine(hash, importUri.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

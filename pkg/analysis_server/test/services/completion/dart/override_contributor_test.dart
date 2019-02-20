@@ -383,7 +383,6 @@ method() {
     }
     expect(cs.kind, equals(CompletionSuggestionKind.OVERRIDE));
     expect(cs.relevance, equals(DART_RELEVANCE_HIGH));
-    expect(cs.importUri, null);
     if (selectionOffset != null && selectionLength != null) {
       expect(cs.selectionOffset, selectionOffset);
       expect(cs.selectionLength, selectionLength);

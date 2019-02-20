@@ -102,7 +102,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   CompletionSuggestion assertSuggest(String completion,
       {CompletionSuggestionKind csKind: CompletionSuggestionKind.INVOCATION,
       int relevance: DART_RELEVANCE_DEFAULT,
-      String importUri,
       ElementKind elemKind: null,
       bool isDeprecated: false,
       bool isPotential: false,
@@ -124,7 +123,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     } else {
       expect(cs.relevance, equals(relevance), reason: completion);
     }
-    expect(cs.importUri, importUri);
     expect(cs.selectionOffset, equals(selectionOffset ?? completion.length));
     expect(cs.selectionLength, equals(0));
     expect(cs.isDeprecated, equals(isDeprecated));
@@ -160,7 +158,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggestClass(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
-      String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false,
       String elemFile,
@@ -169,7 +166,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
-        importUri: importUri,
         isDeprecated: isDeprecated,
         elemFile: elemFile,
         elemKind: ElementKind.CLASS,
@@ -177,32 +173,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.CLASS));
-    expect(element.name, equals(elemName ?? name));
-    expect(element.parameters, isNull);
-    expect(element.returnType, isNull);
-    assertHasNoParameterInfo(cs);
-    return cs;
-  }
-
-  CompletionSuggestion assertSuggestMixin(String name,
-      {int relevance: DART_RELEVANCE_DEFAULT,
-      String importUri,
-      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      bool isDeprecated: false,
-      String elemFile,
-      String elemName,
-      int elemOffset}) {
-    CompletionSuggestion cs = assertSuggest(name,
-        csKind: kind,
-        relevance: relevance,
-        importUri: importUri,
-        isDeprecated: isDeprecated,
-        elemFile: elemFile,
-        elemKind: ElementKind.MIXIN,
-        elemOffset: elemOffset);
-    Element element = cs.element;
-    expect(element, isNotNull);
-    expect(element.kind, equals(ElementKind.MIXIN));
     expect(element.name, equals(elemName ?? name));
     expect(element.parameters, isNull);
     expect(element.returnType, isNull);
@@ -227,14 +197,12 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggestConstructor(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
-      String importUri,
       String elementName,
       int elemOffset,
       String defaultArgListString: _UNCHECKED,
       List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs = assertSuggest(name,
         relevance: relevance,
-        importUri: importUri,
         elemKind: ElementKind.CONSTRUCTOR,
         elemOffset: elemOffset,
         defaultArgListString: defaultArgListString,
@@ -274,13 +242,11 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggestField(String name, String type,
       {int relevance: DART_RELEVANCE_DEFAULT,
-      String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
-        importUri: importUri,
         elemKind: ElementKind.FIELD,
         isDeprecated: isDeprecated);
     // The returnType represents the type of a field
@@ -300,13 +266,11 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false,
       int relevance: DART_RELEVANCE_DEFAULT,
-      String importUri,
       String defaultArgListString: _UNCHECKED,
       List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
-        importUri: importUri,
         isDeprecated: isDeprecated,
         defaultArgListString: defaultArgListString,
         defaultArgumentListTextRanges: defaultArgumentListTextRanges);
@@ -334,16 +298,14 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestFunctionTypeAlias(
-      String name, String returnType,
-      {bool isDeprecated: false,
-      int relevance: DART_RELEVANCE_DEFAULT,
-      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      String importUri}) {
+    String name,
+    String returnType, {
+    bool isDeprecated: false,
+    int relevance: DART_RELEVANCE_DEFAULT,
+    CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+  }) {
     CompletionSuggestion cs = assertSuggest(name,
-        csKind: kind,
-        relevance: relevance,
-        importUri: importUri,
-        isDeprecated: isDeprecated);
+        csKind: kind, relevance: relevance, isDeprecated: isDeprecated);
     if (returnType != null) {
       expect(cs.returnType, returnType);
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
@@ -370,13 +332,11 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggestGetter(String name, String returnType,
       {int relevance: DART_RELEVANCE_DEFAULT,
-      String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
-        importUri: importUri,
         elemKind: ElementKind.GETTER,
         isDeprecated: isDeprecated);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
@@ -394,7 +354,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   CompletionSuggestion assertSuggestMethod(
       String name, String declaringType, String returnType,
       {int relevance: DART_RELEVANCE_DEFAULT,
-      String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false,
       String defaultArgListString: _UNCHECKED,
@@ -402,7 +361,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
-        importUri: importUri,
         isDeprecated: isDeprecated,
         defaultArgListString: defaultArgListString,
         defaultArgumentListTextRanges: defaultArgumentListTextRanges);
@@ -421,16 +379,36 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  CompletionSuggestion assertSuggestName(String name,
+  CompletionSuggestion assertSuggestMixin(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
-      String importUri,
-      CompletionSuggestionKind kind: CompletionSuggestionKind.IDENTIFIER,
-      bool isDeprecated: false}) {
+      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+      bool isDeprecated: false,
+      String elemFile,
+      String elemName,
+      int elemOffset}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
-        importUri: importUri,
-        isDeprecated: isDeprecated);
+        isDeprecated: isDeprecated,
+        elemFile: elemFile,
+        elemKind: ElementKind.MIXIN,
+        elemOffset: elemOffset);
+    Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(ElementKind.MIXIN));
+    expect(element.name, equals(elemName ?? name));
+    expect(element.parameters, isNull);
+    expect(element.returnType, isNull);
+    assertHasNoParameterInfo(cs);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestName(String name,
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      CompletionSuggestionKind kind: CompletionSuggestionKind.IDENTIFIER,
+      bool isDeprecated: false}) {
+    CompletionSuggestion cs = assertSuggest(name,
+        csKind: kind, relevance: relevance, isDeprecated: isDeprecated);
     expect(cs.completion, equals(name));
     expect(cs.element, isNull);
     assertHasNoParameterInfo(cs);
@@ -439,13 +417,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggestSetter(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
-      String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION}) {
     CompletionSuggestion cs = assertSuggest(name,
-        csKind: kind,
-        relevance: relevance,
-        importUri: importUri,
-        elemKind: ElementKind.SETTER);
+        csKind: kind, relevance: relevance, elemKind: ElementKind.SETTER);
     Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.SETTER));
@@ -460,12 +434,14 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  CompletionSuggestion assertSuggestTopLevelVar(String name, String returnType,
-      {int relevance: DART_RELEVANCE_DEFAULT,
-      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      String importUri}) {
-    CompletionSuggestion cs = assertSuggest(name,
-        csKind: kind, relevance: relevance, importUri: importUri);
+  CompletionSuggestion assertSuggestTopLevelVar(
+    String name,
+    String returnType, {
+    int relevance: DART_RELEVANCE_DEFAULT,
+    CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+  }) {
+    CompletionSuggestion cs =
+        assertSuggest(name, csKind: kind, relevance: relevance);
     if (returnType != null) {
       expect(cs.returnType, returnType);
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
