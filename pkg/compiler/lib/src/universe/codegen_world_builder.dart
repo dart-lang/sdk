@@ -714,7 +714,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity declarer, MemberEntity member) {
       if (member.isField && member.isInstanceMember) {
-        f(declarer, member, isElided: _world.elidedFields.contains(member));
+        f(declarer, member, isElided: _world.fieldAnalysis.isElided(member));
       }
     });
   }
@@ -730,7 +730,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       if (declarer != cls) return;
       if (!member.isField) return;
       if (!member.isInstanceMember) return;
-      f(member, isElided: _world.elidedFields.contains(member));
+      f(member, isElided: _world.fieldAnalysis.isElided(member));
     });
   }
 

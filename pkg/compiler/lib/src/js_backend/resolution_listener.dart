@@ -17,7 +17,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
-import 'allocator_analysis.dart';
+import 'field_analysis.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
@@ -43,7 +43,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final CustomElementsResolutionAnalysis _customElementsAnalysis;
 
   final NativeResolutionEnqueuer _nativeEnqueuer;
-  final KAllocatorAnalysis _allocatorAnalysis;
+  final KFieldAnalysis _allocatorAnalysis;
 
   /// True when we enqueue the loadLibrary code.
   bool _isLoadLibraryFunctionResolved = false;

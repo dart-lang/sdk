@@ -20,7 +20,7 @@ import '../frontend_strategy.dart';
 import '../ir/closure.dart' show ClosureScopeModel;
 import '../ir/scope.dart' show ScopeModel;
 import '../js_backend/annotations.dart';
-import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
+import '../js_backend/field_analysis.dart' show KFieldAnalysis;
 import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
@@ -112,7 +112,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
-      KAllocatorAnalysis allocatorAnalysis,
+      KFieldAnalysis allocatorAnalysis,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
       NoSuchMethodRegistry noSuchMethodRegistry,
       AnnotationsDataBuilder annotationsDataBuilder,

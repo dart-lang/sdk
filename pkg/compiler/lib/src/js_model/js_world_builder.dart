@@ -16,7 +16,7 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../ir/closure.dart';
 import '../js_backend/annotations.dart';
-import '../js_backend/allocator_analysis.dart';
+import '../js_backend/field_analysis.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
@@ -28,7 +28,6 @@ import '../options.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/feature.dart';
-import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 import '../world.dart';
 import 'closure.dart';
@@ -192,8 +191,8 @@ class JsClosedWorldBuilder {
         map.toBackendFunctionSet(oldNoSuchMethodData.otherImpls),
         map.toBackendFunctionSet(oldNoSuchMethodData.forwardingSyntaxImpls));
 
-    JAllocatorAnalysis allocatorAnalysis =
-        JAllocatorAnalysis.from(closedWorld.allocatorAnalysis, map, _options);
+    JFieldAnalysis allocatorAnalysis =
+        JFieldAnalysis.from(closedWorld, map, _options);
 
     AnnotationsDataImpl oldAnnotationsData = closedWorld.annotationsData;
     AnnotationsData annotationsData = new AnnotationsDataImpl(
@@ -201,19 +200,6 @@ class JsClosedWorldBuilder {
 
     OutputUnitData outputUnitData =
         _convertOutputUnitData(map, kOutputUnitData, closureData);
-
-    Set<FieldEntity> elidedFields = new Set();
-    closedWorld.liveMemberUsage
-        .forEach((MemberEntity member, MemberUsage memberUsage) {
-      // TODO(johnniwinther): Should elided static fields be removed from the
-      // J model? Static setters might still assign to them.
-      if (member.isField &&
-          !memberUsage.hasRead &&
-          !closedWorld.annotationsData.hasNoElision(member) &&
-          !closedWorld.nativeData.isNativeMember(member)) {
-        elidedFields.add(map.toBackendMember(member));
-      }
-    });
 
     return new JsClosedWorld(
         _elementMap,
@@ -239,8 +225,7 @@ class JsClosedWorldBuilder {
         annotationsData,
         _globalLocalsMap,
         closureData,
-        outputUnitData,
-        elidedFields);
+        outputUnitData);
   }
 
   BackendUsage _convertBackendUsage(

@@ -43,7 +43,7 @@ import '../universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
-import 'allocator_analysis.dart';
+import 'field_analysis.dart';
 import 'annotations.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
@@ -351,7 +351,7 @@ class JavaScriptBackend {
   /// constructors for custom elements.
   CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
 
-  KAllocatorAnalysis _allocatorResolutionAnalysis;
+  KFieldAnalysis _allocatorResolutionAnalysis;
 
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
@@ -408,7 +408,7 @@ class JavaScriptBackend {
 
   ImpactCacheDeleter get impactCacheDeleter => compiler.impactCacheDeleter;
 
-  KAllocatorAnalysis get allocatorResolutionAnalysisForTesting =>
+  KFieldAnalysis get allocatorResolutionAnalysisForTesting =>
       _allocatorResolutionAnalysis;
 
   /// Resolution support for generating table of interceptors and
@@ -552,7 +552,7 @@ class JavaScriptBackend {
         nativeBasicData,
         _backendUsageBuilder);
     _allocatorResolutionAnalysis =
-        new KAllocatorAnalysis(compiler.frontendStrategy);
+        new KFieldAnalysis(compiler.frontendStrategy);
     ClassQueries classQueries = compiler.frontendStrategy.createClassQueries();
     ClassHierarchyBuilder classHierarchyBuilder =
         new ClassHierarchyBuilder(commonElements, classQueries);

@@ -18,7 +18,7 @@ import '../../elements/entities.dart';
 import '../../elements/types.dart';
 import '../../io/source_information.dart';
 import '../../js/js.dart' as js;
-import '../../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
+import '../../js_backend/field_analysis.dart' show JFieldAnalysis;
 import '../../js_backend/backend.dart' show SuperMemberData;
 import '../../js_backend/backend_usage.dart';
 import '../../js_backend/constant_handler_javascript.dart'
@@ -79,7 +79,7 @@ class ProgramBuilder {
   final Namer _namer;
   final CodeEmitterTask _task;
   final JClosedWorld _closedWorld;
-  final JAllocatorAnalysis _allocatorAnalysis;
+  final JFieldAnalysis _allocatorAnalysis;
   final InferredData _inferredData;
   final SourceInformationStrategy _sourceInformationStrategy;
 
@@ -1084,7 +1084,7 @@ class ProgramBuilder {
           setterFlags,
           needsCheckedSetter,
           initializerInAllocator,
-          _closedWorld.elidedFields.contains(field)));
+          _closedWorld.fieldAnalysis.isElided(field)));
     }
 
     FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,

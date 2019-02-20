@@ -89,7 +89,7 @@ class ModelEmitter {
         compiler.codegenWorldBuilder,
         _closedWorld.rtiNeed,
         compiler.backend.rtiEncoder,
-        _closedWorld.allocatorAnalysis,
+        _closedWorld.fieldAnalysis,
         task,
         this.generateConstantReference,
         constantListGenerator);

@@ -27,7 +27,7 @@ import '../io/source_information.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
-import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
+import '../js_backend/field_analysis.dart' show JFieldAnalysis;
 import '../js_backend/backend.dart' show FunctionInlineCache, JavaScriptBackend;
 import '../js_backend/runtime_types.dart' show RuntimeTypesSubstitutions;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
@@ -89,7 +89,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   final CodegenWorldBuilder _worldBuilder;
   final CodegenRegistry registry;
   final ClosureData closureDataLookup;
-  JAllocatorAnalysis _allocatorAnalysis;
+  JFieldAnalysis _allocatorAnalysis;
 
   /// A stack of [InterfaceType]s that have been seen during inlining of
   /// factory constructors.  These types are preserved in [HInvokeStatic]s and
@@ -145,7 +145,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this.inlineCache)
       : this.targetElement = _effectiveTargetElementFor(initialTargetElement),
         _infoReporter = compiler.dumpInfoTask,
-        _allocatorAnalysis = closedWorld.allocatorAnalysis,
+        _allocatorAnalysis = closedWorld.fieldAnalysis,
         this.closureDataLookup = closedWorld.closureDataLookup {
     _enterFrame(targetElement, null);
     this.loopHandler = new KernelLoopHandler(this);
@@ -363,7 +363,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       graph.entry.addBefore(graph.entry.last, parameter);
       HInstruction value = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
           parameter, _getDartTypeIfValid(node.type));
-      if (!closedWorld.elidedFields.contains(field)) {
+      if (!closedWorld.fieldAnalysis.isElided(field)) {
         add(new HFieldSet(abstractValueDomain, field, thisInstruction, value));
       }
     } else {
@@ -3128,7 +3128,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       pop();
     } else {
       MemberEntity target = _elementMap.getMember(staticTarget);
-      if (!closedWorld.elidedFields.contains(target)) {
+      if (!closedWorld.fieldAnalysis.isElided(target)) {
         add(new HStaticStore(
             abstractValueDomain,
             target,

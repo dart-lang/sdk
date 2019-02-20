@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../constants/values.dart';
+import '../elements/entities.dart';
 import '../js_model/elements.dart' show JField;
 import '../js_model/js_world_builder.dart';
 import '../kernel/element_map.dart';
@@ -12,8 +13,10 @@ import '../kernel/kernel_strategy.dart';
 import '../kernel/kelements.dart' show KClass, KField, KConstructor;
 import '../options.dart';
 import '../serialization/serialization.dart';
+import '../universe/member_usage.dart';
+import '../world.dart';
 
-abstract class AllocatorAnalysis {}
+abstract class FieldAnalysis {}
 
 /// AllocatorAnalysis
 ///
@@ -31,12 +34,12 @@ abstract class AllocatorAnalysis {}
 //
 //     this.x = this.z = null;
 //
-class KAllocatorAnalysis implements AllocatorAnalysis {
+class KFieldAnalysis implements FieldAnalysis {
   final KernelToElementMap _elementMap;
 
   final Map<KField, AllocatorData> _fixedInitializers = {};
 
-  KAllocatorAnalysis(KernelFrontEndStrategy kernelStrategy)
+  KFieldAnalysis(KernelFrontEndStrategy kernelStrategy)
       : _elementMap = kernelStrategy.elementMap;
 
   // Register class during resolution. Use simple syntactic analysis to find
@@ -171,47 +174,42 @@ class Initializer {
   }
 }
 
-class JAllocatorAnalysis implements AllocatorAnalysis {
-  /// Tag used for identifying serialized [JAllocatorAnalysis] objects in a
+class JFieldAnalysis implements FieldAnalysis {
+  /// Tag used for identifying serialized [JFieldAnalysis] objects in a
   /// debugging data stream.
   static const String tag = 'allocator-analysis';
 
   // --csp and --fast-startup have different constraints to the generated code.
-  final Map<JField, ConstantValue> _fixedInitializers = {};
+  final Map<FieldEntity, ConstantValue> _fixedInitializers;
 
-  JAllocatorAnalysis._();
+  final Set<FieldEntity> _elidedFields;
 
-  /// Deserializes a [JAllocatorAnalysis] object from [source].
-  factory JAllocatorAnalysis.readFromDataSource(
+  JFieldAnalysis._(this._fixedInitializers, this._elidedFields);
+
+  /// Deserializes a [JFieldAnalysis] object from [source].
+  factory JFieldAnalysis.readFromDataSource(
       DataSource source, CompilerOptions options) {
     source.begin(tag);
-    JAllocatorAnalysis analysis = new JAllocatorAnalysis._();
-    int fieldCount = source.readInt();
-    for (int i = 0; i < fieldCount; i++) {
-      JField field = source.readMember();
-      ConstantValue value = source.readConstant();
-      analysis._fixedInitializers[field] = value;
-    }
+    Map<FieldEntity, ConstantValue> fixedInitializers =
+        source.readMemberMap(source.readConstant);
+    Set<FieldEntity> elidedFields = source.readMembers<FieldEntity>().toSet();
     source.end(tag);
-    return analysis;
+    return new JFieldAnalysis._(fixedInitializers, elidedFields);
   }
 
-  /// Serializes this [JAllocatorAnalysis] to [sink].
+  /// Serializes this [JFieldAnalysis] to [sink].
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
-    sink.writeInt(_fixedInitializers.length);
-    _fixedInitializers.forEach((JField field, ConstantValue value) {
-      sink.writeMember(field);
-      sink.writeConstant(value);
-    });
+    sink.writeMemberMap(_fixedInitializers, sink.writeConstant);
+    sink.writeMembers(_elidedFields);
     sink.end(tag);
   }
 
-  static JAllocatorAnalysis from(KAllocatorAnalysis kAnalysis,
-      JsToFrontendMap map, CompilerOptions options) {
-    var result = JAllocatorAnalysis._();
-
-    kAnalysis._fixedInitializers.forEach((KField kField, AllocatorData data) {
+  factory JFieldAnalysis.from(
+      KClosedWorld closedWorld, JsToFrontendMap map, CompilerOptions options) {
+    Map<FieldEntity, ConstantValue> fixedInitializers = {};
+    closedWorld.fieldAnalysis._fixedInitializers
+        .forEach((KField kField, AllocatorData data) {
       // TODO(johnniwinther): Use liveness of constructors and elided optional
       // parameters to recognize more constant initializers.
       if (data.initialValue != null && data.initializers.isEmpty) {
@@ -223,30 +221,51 @@ class JAllocatorAnalysis implements AllocatorAnalysis {
 
           JField jField = map.toBackendMember(kField);
           if (jField != null) {
-            result._fixedInitializers[jField] = map.toBackendConstant(value);
+            fixedInitializers[jField] = map.toBackendConstant(value);
           }
         }
       }
     });
 
-    return result;
+    Set<FieldEntity> elidedFields = new Set();
+    closedWorld.liveMemberUsage
+        .forEach((MemberEntity member, MemberUsage memberUsage) {
+      // TODO(johnniwinther): Should elided static fields be removed from the
+      // J model? Static setters might still assign to them.
+      if (member.isField &&
+          !memberUsage.hasRead &&
+          !closedWorld.annotationsData.hasNoElision(member) &&
+          !closedWorld.nativeData.isNativeMember(member)) {
+        elidedFields.add(map.toBackendMember(member));
+      }
+    });
+
+    return new JFieldAnalysis._(fixedInitializers, elidedFields);
   }
 
-  bool get _isEnabled {
-    return true;
-  }
   // TODO(sra): Add way to let injected fields be initialized to a constant in
   // allocator.
 
+  /// Returns `true` if [field] is always initialized to a constant.
   bool isInitializedInAllocator(JField field) {
-    if (!_isEnabled) return false;
     return _fixedInitializers[field] != null;
   }
 
-  /// Return constant for a field initialized in allocator. Returns `null` for
-  /// fields not initialized in allocator.
+  /// Return the constant for a field initialized in allocator. Returns `null`
+  /// for fields not initialized in allocator.
   ConstantValue initializerValue(JField field) {
-    assert(_isEnabled);
     return _fixedInitializers[field];
   }
+
+  /// Returns `true` if [field] can be elided from the output.
+  ///
+  /// This happens if a field is written to but never read.
+  // TODO(johnniwinther): Include fields that are effectively final.
+  bool isElided(JField field) => _elidedFields.contains(field);
+
+  /// Returns `true` if [field] is effectively constant and therefore only
+  /// holds its [initializerValue].
+  // TODO(johnniwinther): Recognize fields that are initialized to a constant
+  // but never written to.
+  bool isEffectivelyConstant(JField field) => false;
 }

@@ -21,8 +21,7 @@ import 'elements/types.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'ir/static_type.dart';
 import 'js_backend/annotations.dart';
-import 'js_backend/allocator_analysis.dart'
-    show JAllocatorAnalysis, KAllocatorAnalysis;
+import 'js_backend/field_analysis.dart' show JFieldAnalysis, KFieldAnalysis;
 import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
@@ -47,7 +46,7 @@ abstract class World {}
 /// optimizations and other compiler decisions during code generation.
 // TODO(johnniwinther): Maybe this should just be called the JWorld.
 abstract class JClosedWorld implements World {
-  JAllocatorAnalysis get allocatorAnalysis;
+  JFieldAnalysis get fieldAnalysis;
 
   BackendUsage get backendUsage;
 
@@ -202,8 +201,6 @@ abstract class JClosedWorld implements World {
   /// Returns the single [MemberEntity] that matches a call to [selector] on the
   /// [receiver]. If multiple targets exist, `null` is returned.
   MemberEntity locateSingleMember(Selector selector, AbstractValue receiver);
-
-  Iterable<FieldEntity> get elidedFields;
 }
 
 abstract class OpenWorld implements World {
@@ -233,7 +230,7 @@ abstract class OpenWorld implements World {
 
 abstract class KClosedWorld {
   DartTypes get dartTypes;
-  KAllocatorAnalysis get allocatorAnalysis;
+  KFieldAnalysis get fieldAnalysis;
   BackendUsage get backendUsage;
   NativeData get nativeData;
   InterceptorData get interceptorData;

@@ -10,7 +10,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
-import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
+import '../js_backend/field_analysis.dart' show KFieldAnalysis;
 import '../js_backend/backend_usage.dart'
     show BackendUsage, BackendUsageBuilder;
 import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
@@ -397,7 +397,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   final InterceptorDataBuilder _interceptorDataBuilder;
   final BackendUsageBuilder _backendUsageBuilder;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
-  final KAllocatorAnalysis _allocatorAnalysis;
+  final KFieldAnalysis _allocatorAnalysis;
   final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   final NoSuchMethodRegistry _noSuchMethodRegistry;
   final AnnotationsDataBuilder _annotationsDataBuilder;
@@ -1095,7 +1095,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         noSuchMethodData: _noSuchMethodRegistry.close(),
         resolutionWorldBuilder: this,
         rtiNeedBuilder: _rtiNeedBuilder,
-        allocatorAnalysis: _allocatorAnalysis,
+        fieldAnalysis: _allocatorAnalysis,
         implementedClasses: _implementedClasses,
         liveNativeClasses: _nativeResolutionEnqueuer.liveNativeClasses,
         liveInstanceMembers: _liveInstanceMembers,

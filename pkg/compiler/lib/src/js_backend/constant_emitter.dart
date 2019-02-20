@@ -13,7 +13,7 @@ import '../js/js.dart' show js;
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
-import 'allocator_analysis.dart' show JAllocatorAnalysis;
+import 'field_analysis.dart' show JFieldAnalysis;
 import 'constant_system_javascript.dart';
 import 'js_backend.dart';
 import 'runtime_types.dart';
@@ -38,7 +38,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   final CodegenWorldBuilder _worldBuilder;
   final RuntimeTypesNeed _rtiNeed;
   final RuntimeTypesEncoder _rtiEncoder;
-  final JAllocatorAnalysis _allocatorAnalysis;
+  final JFieldAnalysis _allocatorAnalysis;
   final CodeEmitterTask _task;
   final _ConstantReferenceGenerator constantReferenceGenerator;
   final _ConstantListGenerator makeConstantList;

@@ -20,7 +20,7 @@ import '../environment.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js_emitter/sorter.dart';
 import '../js_backend/annotations.dart';
-import '../js_backend/allocator_analysis.dart';
+import '../js_backend/field_analysis.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
@@ -75,12 +75,11 @@ class JsClosedWorld implements JClosedWorld {
   final JsKernelToElementMap elementMap;
   final RuntimeTypesNeed rtiNeed;
   AbstractValueDomain _abstractValueDomain;
-  final JAllocatorAnalysis allocatorAnalysis;
+  final JFieldAnalysis fieldAnalysis;
   final AnnotationsData annotationsData;
   final GlobalLocalsMap globalLocalsMap;
   final ClosureData closureDataLookup;
   final OutputUnitData outputUnitData;
-  final Set<FieldEntity> elidedFields;
   Sorter _sorter;
 
   JsClosedWorld(
@@ -89,7 +88,7 @@ class JsClosedWorld implements JClosedWorld {
       this.interceptorData,
       this.backendUsage,
       this.rtiNeed,
-      this.allocatorAnalysis,
+      this.fieldAnalysis,
       this.noSuchMethodData,
       this.implementedClasses,
       this.liveNativeClasses,
@@ -103,8 +102,7 @@ class JsClosedWorld implements JClosedWorld {
       this.annotationsData,
       this.globalLocalsMap,
       this.closureDataLookup,
-      this.outputUnitData,
-      this.elidedFields) {
+      this.outputUnitData) {
     _abstractValueDomain = abstractValueStrategy.createDomain(this);
   }
 
@@ -134,8 +132,8 @@ class JsClosedWorld implements JClosedWorld {
     BackendUsage backendUsage = new BackendUsage.readFromDataSource(source);
     RuntimeTypesNeed rtiNeed = new RuntimeTypesNeed.readFromDataSource(
         source, elementMap.elementEnvironment);
-    JAllocatorAnalysis allocatorAnalysis =
-        new JAllocatorAnalysis.readFromDataSource(source, options);
+    JFieldAnalysis allocatorAnalysis =
+        new JFieldAnalysis.readFromDataSource(source, options);
     NoSuchMethodData noSuchMethodData =
         new NoSuchMethodData.readFromDataSource(source);
 
@@ -157,8 +155,6 @@ class JsClosedWorld implements JClosedWorld {
 
     OutputUnitData outputUnitData =
         new OutputUnitData.readFromDataSource(source);
-
-    Set<FieldEntity> elidedFields = source.readMembers<FieldEntity>().toSet();
 
     source.end(tag);
 
@@ -182,8 +178,7 @@ class JsClosedWorld implements JClosedWorld {
         annotationsData,
         globalLocalsMap,
         closureData,
-        outputUnitData,
-        elidedFields);
+        outputUnitData);
   }
 
   /// Serializes this [JsClosedWorld] to [sink].
@@ -197,7 +192,7 @@ class JsClosedWorld implements JClosedWorld {
     interceptorData.writeToDataSink(sink);
     backendUsage.writeToDataSink(sink);
     rtiNeed.writeToDataSink(sink);
-    allocatorAnalysis.writeToDataSink(sink);
+    fieldAnalysis.writeToDataSink(sink);
     noSuchMethodData.writeToDataSink(sink);
     sink.writeClasses(implementedClasses);
     sink.writeClasses(liveNativeClasses);
@@ -211,7 +206,6 @@ class JsClosedWorld implements JClosedWorld {
     annotationsData.writeToDataSink(sink);
     closureDataLookup.writeToDataSink(sink);
     outputUnitData.writeToDataSink(sink);
-    sink.writeMembers(elidedFields);
     sink.end(tag);
   }
 

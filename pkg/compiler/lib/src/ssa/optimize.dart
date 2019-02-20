@@ -14,7 +14,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
-import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
+import '../js_backend/field_analysis.dart' show JFieldAnalysis;
 import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_backend/runtime_types.dart';
@@ -1292,7 +1292,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         value = other;
       }
     }
-    if (_closedWorld.elidedFields.contains(field)) {
+    if (_closedWorld.fieldAnalysis.isElided(field)) {
       _log?.registerFieldSet(node);
       return value;
     } else {
@@ -2832,7 +2832,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
   final JClosedWorld closedWorld;
-  final JAllocatorAnalysis _allocatorAnalysis;
+  final JFieldAnalysis _allocatorAnalysis;
   final String name = "SsaLoadElimination";
   MemorySet memorySet;
   List<MemorySet> memories;
@@ -2840,7 +2840,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   HGraph _graph;
 
   SsaLoadElimination(this.compiler, this.closedWorld)
-      : _allocatorAnalysis = closedWorld.allocatorAnalysis;
+      : _allocatorAnalysis = closedWorld.fieldAnalysis;
 
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
