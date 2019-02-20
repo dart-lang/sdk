@@ -97,10 +97,14 @@ void test() {
           node: new VariableSet(x, new IntLiteral(42)),
           expectation: "(set-var \"x^0\" (int 42))",
           serializationState: new SerializationState(
-            new SerializationEnvironment(null)..add(x, "x^0"),
+            new SerializationEnvironment(null)
+              ..addBinder(x, "x^0")
+              ..close(),
           ),
           deserializationState: new DeserializationState(
-              new DeserializationEnvironment(null)..add("x^0", x),
+              new DeserializationEnvironment(null)
+                ..addBinder("x^0", x)
+                ..close(),
               new CanonicalName.root()));
     }(),
     () {
@@ -199,10 +203,14 @@ void test() {
           expectation: ""
               "(get-direct-prop (get-var \"x^0\" _)"
               " \"package:foo/bar.dart::A::@fields::field\")",
-          serializationState: new SerializationState(
-              new SerializationEnvironment(null)..add(x, "x^0")),
+          serializationState:
+              new SerializationState(new SerializationEnvironment(null)
+                ..addBinder(x, "x^0")
+                ..close()),
           deserializationState: new DeserializationState(
-              new DeserializationEnvironment(null)..add("x^0", x),
+              new DeserializationEnvironment(null)
+                ..addBinder("x^0", x)
+                ..close(),
               component.root));
     }(),
     () {
@@ -223,10 +231,14 @@ void test() {
           expectation: ""
               "(set-direct-prop (get-var \"x^0\" _)"
               " \"package:foo/bar.dart::A::@fields::field\" (int 42))",
-          serializationState: new SerializationState(
-              new SerializationEnvironment(null)..add(x, "x^0")),
+          serializationState:
+              new SerializationState(new SerializationEnvironment(null)
+                ..addBinder(x, "x^0")
+                ..close()),
           deserializationState: new DeserializationState(
-              new DeserializationEnvironment(null)..add("x^0", x),
+              new DeserializationEnvironment(null)
+                ..addBinder("x^0", x)
+                ..close(),
               component.root));
     }(),
     () {
@@ -250,10 +262,14 @@ void test() {
               "(invoke-direct-method (get-var \"x^0\" _)"
               " \"package:foo/bar.dart::A::@methods::foo\""
               " () () ())",
-          serializationState: new SerializationState(
-              new SerializationEnvironment(null)..add(x, "x^0")),
+          serializationState:
+              new SerializationState(new SerializationEnvironment(null)
+                ..addBinder(x, "x^0")
+                ..close()),
           deserializationState: new DeserializationState(
-              new DeserializationEnvironment(null)..add("x^0", x),
+              new DeserializationEnvironment(null)
+                ..addBinder("x^0", x)
+                ..close(),
               component.root));
     }(),
     () {

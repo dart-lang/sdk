@@ -398,7 +398,8 @@ class LetSerializer extends TextSerializer<Let> {
         stream,
         new DeserializationState(
             new DeserializationEnvironment(state.environment)
-              ..add(variable.name, variable),
+              ..addBinder(variable.name, variable)
+              ..close(),
             state.nameRoot));
     return new Let(variable, body);
   }
@@ -409,7 +410,8 @@ class LetSerializer extends TextSerializer<Let> {
     VariableDeclaration variable = object.variable;
     String oldVariableName = variable.name;
     String newVariableName =
-        bodyState.environment.add(variable, oldVariableName);
+        bodyState.environment.addBinder(variable, oldVariableName);
+    bodyState.environment.close();
     variableDeclarationSerializer.writeTo(
         buffer, variable..name = newVariableName, state);
     variable.name = oldVariableName;

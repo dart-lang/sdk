@@ -13,6 +13,8 @@ import 'text_serializer.dart' show Tagger;
 class DeserializationEnvironment<T extends Node> {
   final Map<String, T> locals = <String, T>{};
 
+  final Map<String, T> binders = <String, T>{};
+
   final DeserializationEnvironment<T> parent;
 
   final Set<String> usedNames = new Set<String>();
@@ -25,17 +27,24 @@ class DeserializationEnvironment<T extends Node> {
 
   T lookup(String name) => locals[name] ?? parent?.lookup(name);
 
-  T add(String name, T node) {
+  T addBinder(String name, T node) {
     if (usedNames.contains(name)) {
       throw StateError("name '$name' is already declared in this scope");
     }
     usedNames.add(name);
-    return locals[name] = node;
+    return binders[name] = node;
+  }
+
+  void close() {
+    locals.addAll(binders);
+    binders.clear();
   }
 }
 
 class SerializationEnvironment<T extends Node> {
   final Map<T, String> locals = new Map<T, String>.identity();
+
+  final Map<T, String> binders = new Map<T, String>.identity();
 
   int nameCount;
 
@@ -53,7 +62,7 @@ class SerializationEnvironment<T extends Node> {
 
   String lookup(T node) => locals[node] ?? parent?.lookup(node);
 
-  String add(T node, String name) {
+  String addBinder(T node, String name) {
     int prefixLength = name.length - 1;
     bool isOnlyDigits = true;
     while (prefixLength >= 0 && name[prefixLength] != separator) {
@@ -65,7 +74,12 @@ class SerializationEnvironment<T extends Node> {
       prefixLength = name.length;
     }
     String prefix = name.substring(0, prefixLength);
-    return locals[node] = "$prefix$separator${nameCount++}";
+    return binders[node] = "$prefix$separator${nameCount++}";
+  }
+
+  void close() {
+    locals.addAll(binders);
+    binders.clear();
   }
 }
 
