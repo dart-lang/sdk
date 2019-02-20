@@ -331,6 +331,9 @@ class FileState {
       for (UnlinkedEnum type in unlinked.enums) {
         addDeclaration(TopLevelDeclarationKind.type, type.name);
       }
+      for (UnlinkedClass type in unlinked.mixins) {
+        addDeclaration(TopLevelDeclarationKind.type, type.name);
+      }
       for (UnlinkedTypedef type in unlinked.typedefs) {
         addDeclaration(TopLevelDeclarationKind.type, type.name);
       }
