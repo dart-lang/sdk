@@ -927,9 +927,12 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
     loading_native_wrappers_library_ = false;
     library.SetLoadInProgress();
   }
+
+  StringIndex import_uri_index =
+      H.CanonicalNameString(library_helper.canonical_name_);
   library_helper.ReadUntilIncluding(LibraryHelper::kSourceUriIndex);
-  const Script& script =
-      Script::Handle(Z, ScriptAt(library_helper.source_uri_index_, library));
+  const Script& script = Script::Handle(
+      Z, ScriptAt(library_helper.source_uri_index_, library, import_uri_index));
 
   library_helper.ReadUntilExcluding(LibraryHelper::kAnnotations);
   intptr_t annotations_kernel_offset =
@@ -1936,11 +1939,17 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
   return script.raw();
 }
 
-RawScript* KernelLoader::ScriptAt(intptr_t index, const Library& library) {
+RawScript* KernelLoader::ScriptAt(intptr_t index,
+                                  const Library& library,
+                                  StringIndex import_uri) {
   ASSERT(!library.IsNull());
   const Script& script =
       Script::Handle(Z, kernel_program_info_.ScriptAt(index));
-  FixCoreLibraryScriptUri(library, script);
+  if (library.is_dart_scheme()) {
+    FixCoreLibraryScriptUri(library, script);
+  } else if (import_uri != -1) {
+    script.set_url(H.DartString(import_uri, Heap::kOld));
+  }
   return script.raw();
 }
 

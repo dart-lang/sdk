@@ -293,7 +293,9 @@ class KernelLoader : public ValueObject {
   RawScript* ScriptAt(intptr_t source_uri_index) {
     return kernel_program_info_.ScriptAt(source_uri_index);
   }
-  RawScript* ScriptAt(intptr_t source_uri_index, const Library& lib);
+  RawScript* ScriptAt(intptr_t source_uri_index,
+                      const Library& lib,
+                      StringIndex import_uri);
 
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,
