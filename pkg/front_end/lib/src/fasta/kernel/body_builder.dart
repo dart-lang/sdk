@@ -741,6 +741,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           realParameter.initializer = initializer..parent = realParameter;
           _typeInferrer?.inferParameterInitializer(
               this, initializer, realParameter.type);
+          if (transformSetLiterals) {
+            library.loader.setLiteralTransformer ??=
+                new SetLiteralTransformer(library.loader);
+            realParameter.accept(library.loader.setLiteralTransformer);
+          }
         }
       }
     }
@@ -751,7 +756,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (transformSetLiterals) {
       library.loader.setLiteralTransformer ??=
           new SetLiteralTransformer(library.loader);
-      body.accept(library.loader.setLiteralTransformer);
+      body?.accept(library.loader.setLiteralTransformer);
     }
 
     // For async, async*, and sync* functions with declared return types, we
@@ -1158,6 +1163,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       constructor.initializers.add(initializer);
     }
     setParents(constructor.initializers, constructor);
+    if (transformSetLiterals) {
+      library.loader.setLiteralTransformer ??=
+          new SetLiteralTransformer(library.loader);
+      for (int i = 0; i < constructor.initializers.length; i++) {
+        constructor.initializers[i]
+            .accept(library.loader.setLiteralTransformer);
+      }
+    }
     if (constructor.function.body == null) {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
