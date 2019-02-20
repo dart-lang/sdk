@@ -16,6 +16,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -1474,10 +1475,14 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// The object used to track the usage of labels within a given label scope.
   _LabelTracker labelTracker;
 
+  /// The experiments enabled for the analysis context which affect dead code.
+  final ExperimentStatus _experimentStatus;
+
   /// Initialize a newly created dead code verifier that will report dead code
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
-  DeadCodeVerifier(this._errorReporter, {TypeSystem typeSystem})
+  DeadCodeVerifier(this._errorReporter, this._experimentStatus,
+      {TypeSystem typeSystem})
       : this._typeSystem = typeSystem ?? new Dart2TypeSystem(null);
 
   @override
@@ -1485,6 +1490,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     Token operator = node.operator;
     bool isAmpAmp = operator.type == TokenType.AMPERSAND_AMPERSAND;
     bool isBarBar = operator.type == TokenType.BAR_BAR;
+    bool isQuestionQuestion = operator.type == TokenType.QUESTION_QUESTION;
     if (isAmpAmp || isBarBar) {
       Expression lhsCondition = node.leftOperand;
       if (!_isDebugConstant(lhsCondition)) {
@@ -1527,8 +1533,26 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 //                return null;
 //              }
 //            }
+    } else if (isQuestionQuestion && _experimentStatus.non_nullable) {
+      _checkForDeadNullCoalesce(node.leftOperand.staticType, node.rightOperand);
     }
     super.visitBinaryExpression(node);
+  }
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    TokenType operatorType = node.operator.type;
+    if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
+      _checkForDeadNullCoalesce(
+          node.leftHandSide.staticType, node.rightHandSide);
+    }
+    super.visitAssignmentExpression(node);
+  }
+
+  void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
+    if (lhsType.nullability == Nullability.nonNullable) {
+      _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, rhs, []);
+    }
   }
 
   /// For each block, this method reports and error on all statements between
@@ -1864,6 +1888,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
             new DartObjectImpl(null, BoolState.from(false)));
       }
     }
+
     // Don't consider situations where we could evaluate to a constant boolean
     // expression with the ConstantVisitor
     // else {

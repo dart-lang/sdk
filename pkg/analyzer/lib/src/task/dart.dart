@@ -2837,7 +2837,9 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     //
     // Generate errors.
     //
-    unit.accept(new DeadCodeVerifier(errorReporter, typeSystem: typeSystem));
+    unit.accept(new DeadCodeVerifier(errorReporter,
+        (analysisOptions as AnalysisOptionsImpl).experimentStatus,
+        typeSystem: typeSystem));
     // Verify imports.
     {
       ImportsVerifier verifier = new ImportsVerifier();

@@ -397,7 +397,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForUseOfVoidResult(node.rightOperand);
       _checkForNullableDereference(node.leftOperand);
       _checkForNullableDereference(node.rightOperand);
-    } else if (type != TokenType.EQ_EQ && type != TokenType.BANG_EQ) {
+    } else if (type != TokenType.EQ_EQ &&
+        type != TokenType.BANG_EQ &&
+        type != TokenType.QUESTION_QUESTION) {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
       _checkForNullableDereference(node.leftOperand);
     } else {

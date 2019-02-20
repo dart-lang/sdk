@@ -229,8 +229,9 @@ class LibraryAnalyzer {
       errorListener.onError(pendingError.toAnalysisError());
     }
 
-    unit.accept(
-        new DeadCodeVerifier(errorReporter, typeSystem: _context.typeSystem));
+    unit.accept(new DeadCodeVerifier(errorReporter,
+        (_context.analysisOptions as AnalysisOptionsImpl).experimentStatus,
+        typeSystem: _context.typeSystem));
 
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {
