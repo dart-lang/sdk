@@ -86,6 +86,10 @@ void test() {
     "(type (-> () () () ((-> () () () ((dynamic)) 1 (dynamic))) 1 "
         "(dynamic)))",
     "(type (-> (\"T^0\") ((dynamic)) ((dynamic)) () 0 (dynamic)))",
+    "(type (-> (\"T^0\") ((dynamic)) ((dynamic)) ((par \"T^0\" _)) 1 "
+        "(par \"T^0\" _)))",
+    "(type (-> (\"T^0\" \"S^1\") ((par \"S^1\" _) (par \"T^0\" _)) ((dynamic) "
+        "(dynamic)) () 0 (dynamic)))",
   ];
   for (var test in tests) {
     var literal = readExpression(test);

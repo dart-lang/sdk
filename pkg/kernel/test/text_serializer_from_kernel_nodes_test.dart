@@ -315,6 +315,29 @@ void test() {
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
+    () {
+      TypeParameter outterParam =
+          new TypeParameter("T", const DynamicType(), const DynamicType());
+      TypeParameter innerParam =
+          new TypeParameter("T", const DynamicType(), const DynamicType());
+      return new TestCase(
+          name: "/* T Function<T>(T Function<T>()) */",
+          node: new TypeLiteral(new FunctionType(
+              [
+                new FunctionType([], new TypeParameterType(innerParam),
+                    typeParameters: [innerParam])
+              ],
+              new TypeParameterType(outterParam),
+              typeParameters: [outterParam])),
+          expectation: ""
+              "(type (-> (\"T^0\") ((dynamic)) ((dynamic)) "
+              "((-> (\"T^1\") ((dynamic)) ((dynamic)) () 0 (par \"T^1\" _))) 1 "
+              "(par \"T^0\" _)))",
+          serializationState:
+              new SerializationState(new SerializationEnvironment(null)),
+          deserializationState: new DeserializationState(
+              new DeserializationEnvironment(null), null));
+    }(),
   ];
   for (TestCase testCase in tests) {
     String roundTripInput =

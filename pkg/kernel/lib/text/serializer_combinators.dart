@@ -425,6 +425,11 @@ class Optional<T> extends TextSerializer<T> {
   }
 }
 
+/// Introduces a binder to the environment.
+///
+/// Serializes an object and uses it as a binder for the name that is retrieved
+/// from the object using [nameGetter] and (temporarily) modified using
+/// [nameSetter].  The binder is added to the enclosing environment.
 class Binder<T extends Node> extends TextSerializer<T> {
   final TextSerializer<T> contents;
   final String Function(T) nameGetter;
@@ -447,6 +452,11 @@ class Binder<T extends Node> extends TextSerializer<T> {
   }
 }
 
+/// Binds binders from one term in the other.
+///
+/// Serializes a [Tuple2] of [pattern] and [term], closing [term] over the
+/// binders found in [pattern].  The binders aren't added to the enclosing
+/// environment.
 class Bind<P, T> extends TextSerializer<Tuple2<P, T>> {
   final TextSerializer<P> pattern;
   final TextSerializer<T> term;
@@ -470,5 +480,69 @@ class Bind<P, T> extends TextSerializer<Tuple2<P, T>> {
     bindingState.environment.close();
     buffer.write(' ');
     term.writeTo(buffer, tuple.second, bindingState);
+  }
+}
+
+/// Binds binders from one term in the other and adds them to the environment.
+///
+/// Serializes a [Tuple2] of [pattern] and [term], closing [term] over the
+/// binders found in [pattern].  The binders are added to the enclosing
+/// environment.
+class Rebind<P, T> extends TextSerializer<Tuple2<P, T>> {
+  final TextSerializer<P> pattern;
+  final TextSerializer<T> term;
+
+  const Rebind(this.pattern, this.term);
+
+  Tuple2<P, T> readFrom(Iterator<Object> stream, DeserializationState state) {
+    P first = pattern.readFrom(stream, state);
+    var closedState = new DeserializationState(
+        new DeserializationEnvironment(state.environment)
+          ..binders.addAll(state.environment.binders)
+          ..close(),
+        state.nameRoot);
+    T second = term.readFrom(stream, closedState);
+    return new Tuple2(first, second);
+  }
+
+  void writeTo(
+      StringBuffer buffer, Tuple2<P, T> tuple, SerializationState state) {
+    pattern.writeTo(buffer, tuple.first, state);
+    var closedState =
+        new SerializationState(new SerializationEnvironment(state.environment)
+          ..binders.addAll(state.environment.binders)
+          ..close());
+    buffer.write(' ');
+    term.writeTo(buffer, tuple.second, closedState);
+  }
+}
+
+class Zip<T, T1, T2> extends TextSerializer<List<T>> {
+  final TextSerializer<Tuple2<List<T1>, List<T2>>> lists;
+  final T Function(T1, T2) zip;
+  final Tuple2<T1, T2> Function(T) unzip;
+
+  const Zip(this.lists, this.zip, this.unzip);
+
+  List<T> readFrom(Iterator<Object> stream, DeserializationState state) {
+    Tuple2<List<T1>, List<T2>> toZip = lists.readFrom(stream, state);
+    List<T1> firsts = toZip.first;
+    List<T2> seconds = toZip.second;
+    List<T> zipped = new List<T>(toZip.first.length);
+    for (int i = 0; i < zipped.length; ++i) {
+      zipped[i] = zip(firsts[i], seconds[i]);
+    }
+    return zipped;
+  }
+
+  void writeTo(StringBuffer buffer, List<T> zipped, SerializationState state) {
+    List<T1> firsts = new List<T1>(zipped.length);
+    List<T2> seconds = new List<T2>(zipped.length);
+    for (int i = 0; i < zipped.length; ++i) {
+      Tuple2<T1, T2> tuple = unzip(zipped[i]);
+      firsts[i] = tuple.first;
+      seconds[i] = tuple.second;
+    }
+    lists.writeTo(buffer, new Tuple2(firsts, seconds), state);
   }
 }
