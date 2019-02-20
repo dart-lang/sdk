@@ -424,3 +424,51 @@ class Optional<T> extends TextSerializer<T> {
     }
   }
 }
+
+class Binder<T extends Node> extends TextSerializer<T> {
+  final TextSerializer<T> contents;
+  final String Function(T) nameGetter;
+  final void Function(T, String) nameSetter;
+
+  const Binder(this.contents, this.nameGetter, this.nameSetter);
+
+  T readFrom(Iterator<Object> stream, DeserializationState state) {
+    T object = contents.readFrom(stream, state);
+    state.environment.addBinder(nameGetter(object), object);
+    return object;
+  }
+
+  void writeTo(StringBuffer buffer, T object, SerializationState state) {
+    String oldName = nameGetter(object);
+    String newName = state.environment.addBinder(object, oldName);
+    nameSetter(object, newName);
+    contents.writeTo(buffer, object, state);
+    nameSetter(object, oldName);
+  }
+}
+
+class Bind<P, T> extends TextSerializer<Tuple2<P, T>> {
+  final TextSerializer<P> pattern;
+  final TextSerializer<T> term;
+
+  const Bind(this.pattern, this.term);
+
+  Tuple2<P, T> readFrom(Iterator<Object> stream, DeserializationState state) {
+    var bindingState = new DeserializationState(
+        new DeserializationEnvironment(state.environment), state.nameRoot);
+    P first = pattern.readFrom(stream, bindingState);
+    bindingState.environment.close();
+    T second = term.readFrom(stream, bindingState);
+    return new Tuple2(first, second);
+  }
+
+  void writeTo(
+      StringBuffer buffer, Tuple2<P, T> tuple, SerializationState state) {
+    var bindingState =
+        new SerializationState(new SerializationEnvironment(state.environment));
+    pattern.writeTo(buffer, tuple.first, bindingState);
+    bindingState.environment.close();
+    buffer.write(' ');
+    term.writeTo(buffer, tuple.second, bindingState);
+  }
+}

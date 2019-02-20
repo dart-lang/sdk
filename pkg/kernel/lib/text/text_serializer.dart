@@ -388,39 +388,27 @@ MapLiteral wrapConstMapLiteral(
       keyType: tuple.first, valueType: tuple.second, isConst: true);
 }
 
-class LetSerializer extends TextSerializer<Let> {
-  const LetSerializer();
+TextSerializer<Let> letSerializer = new Wrapped(
+    unwrapLet,
+    wrapLet,
+    new Bind(
+        new Binder(variableDeclarationSerializer, getVariableDeclarationName,
+            setVariableDeclarationName),
+        expressionSerializer));
 
-  Let readFrom(Iterator<Object> stream, DeserializationState state) {
-    VariableDeclaration variable =
-        variableDeclarationSerializer.readFrom(stream, state);
-    Expression body = expressionSerializer.readFrom(
-        stream,
-        new DeserializationState(
-            new DeserializationEnvironment(state.environment)
-              ..addBinder(variable.name, variable)
-              ..close(),
-            state.nameRoot));
-    return new Let(variable, body);
-  }
-
-  void writeTo(StringBuffer buffer, Let object, SerializationState state) {
-    SerializationState bodyState =
-        new SerializationState(new SerializationEnvironment(state.environment));
-    VariableDeclaration variable = object.variable;
-    String oldVariableName = variable.name;
-    String newVariableName =
-        bodyState.environment.addBinder(variable, oldVariableName);
-    bodyState.environment.close();
-    variableDeclarationSerializer.writeTo(
-        buffer, variable..name = newVariableName, state);
-    variable.name = oldVariableName;
-    buffer.write(' ');
-    expressionSerializer.writeTo(buffer, object.body, bodyState);
-  }
+Tuple2<VariableDeclaration, Expression> unwrapLet(Let expression) {
+  return new Tuple2(expression.variable, expression.body);
 }
 
-TextSerializer<Let> letSerializer = const LetSerializer();
+Let wrapLet(Tuple2<VariableDeclaration, Expression> tuple) {
+  return new Let(tuple.first, tuple.second);
+}
+
+String getVariableDeclarationName(VariableDeclaration node) => node.name;
+
+void setVariableDeclarationName(VariableDeclaration node, String name) {
+  node.name = name;
+}
 
 TextSerializer<PropertyGet> propertyGetSerializer = new Wrapped(
     unwrapPropertyGet,
