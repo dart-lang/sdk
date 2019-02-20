@@ -11,19 +11,16 @@ import '../canonical_name.dart' show CanonicalName;
 import 'text_serializer.dart' show Tagger;
 
 class DeserializationEnvironment<T extends Node> {
+  final DeserializationEnvironment<T> parent;
+
   final Map<String, T> locals = <String, T>{};
 
   final Map<String, T> binders = <String, T>{};
 
-  final DeserializationEnvironment<T> parent;
+  final Set<String> usedNames;
 
-  final Set<String> usedNames = new Set<String>();
-
-  DeserializationEnvironment(this.parent) {
-    if (parent != null) {
-      usedNames.addAll(parent.usedNames);
-    }
-  }
+  DeserializationEnvironment(this.parent)
+      : usedNames = parent?.usedNames?.toSet() ?? new Set<String>();
 
   T lookup(String name) => locals[name] ?? parent?.lookup(name);
 
@@ -42,27 +39,23 @@ class DeserializationEnvironment<T extends Node> {
 }
 
 class SerializationEnvironment<T extends Node> {
+  final SerializationEnvironment<T> parent;
+
   final Map<T, String> locals = new Map<T, String>.identity();
 
   final Map<T, String> binders = new Map<T, String>.identity();
 
   int nameCount;
 
-  final SerializationEnvironment<T> parent;
-
-  static const String separator = "^";
-
-  static final int codeOfZero = "0".codeUnitAt(0);
-
-  static final int codeOfNine = "9".codeUnitAt(0);
-
-  SerializationEnvironment(this.parent) {
-    nameCount = (parent?.nameCount ?? 0);
-  }
+  SerializationEnvironment(this.parent) : nameCount = parent?.nameCount ?? 0;
 
   String lookup(T node) => locals[node] ?? parent?.lookup(node);
 
   String addBinder(T node, String name) {
+    final String separator = "^";
+    final int codeOfZero = "0".codeUnitAt(0);
+    final int codeOfNine = "9".codeUnitAt(0);
+
     int prefixLength = name.length - 1;
     bool isOnlyDigits = true;
     while (prefixLength >= 0 && name[prefixLength] != separator) {
