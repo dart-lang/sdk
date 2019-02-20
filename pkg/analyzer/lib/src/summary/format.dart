@@ -2119,21 +2119,21 @@ class AvailableDeclarationBuilder extends Object
   String _docComplete;
   String _docSummary;
   int _fieldMask;
-  idl.AvailableDeclarationKind _kind;
   bool _isAbstract;
   bool _isConst;
   bool _isDeprecated;
   bool _isFinal;
-  String _name;
-  String _name2;
+  idl.AvailableDeclarationKind _kind;
   int _locationOffset;
   int _locationStartColumn;
   int _locationStartLine;
+  String _name;
+  String _name2;
   List<String> _parameterNames;
   String _parameters;
   List<String> _parameterTypes;
-  int _requiredParameterCount;
   List<String> _relevanceTags;
+  int _requiredParameterCount;
   String _returnType;
   String _typeParameters;
 
@@ -2176,15 +2176,6 @@ class AvailableDeclarationBuilder extends Object
   }
 
   @override
-  idl.AvailableDeclarationKind get kind =>
-      _kind ??= idl.AvailableDeclarationKind.CLASS;
-
-  /// The kind of the declaration.
-  void set kind(idl.AvailableDeclarationKind value) {
-    this._kind = value;
-  }
-
-  @override
   bool get isAbstract => _isAbstract ??= false;
 
   void set isAbstract(bool value) {
@@ -2213,21 +2204,12 @@ class AvailableDeclarationBuilder extends Object
   }
 
   @override
-  String get name => _name ??= '';
+  idl.AvailableDeclarationKind get kind =>
+      _kind ??= idl.AvailableDeclarationKind.CLASS;
 
-  /// The first part of the declaration name, usually the only one, for example
-  /// the name of a class like `MyClass`, or a function like `myFunction`.
-  void set name(String value) {
-    this._name = value;
-  }
-
-  @override
-  String get name2 => _name2 ??= '';
-
-  /// The second, optional, part of the declaration name.  For example enum
-  /// constants all have the same [name], but their own [name2].
-  void set name2(String value) {
-    this._name2 = value;
+  /// The kind of the declaration.
+  void set kind(idl.AvailableDeclarationKind value) {
+    this._kind = value;
   }
 
   @override
@@ -2255,6 +2237,24 @@ class AvailableDeclarationBuilder extends Object
   }
 
   @override
+  String get name => _name ??= '';
+
+  /// The first part of the declaration name, usually the only one, for example
+  /// the name of a class like `MyClass`, or a function like `myFunction`.
+  void set name(String value) {
+    this._name = value;
+  }
+
+  @override
+  String get name2 => _name2 ??= '';
+
+  /// The second, optional, part of the declaration name.  For example enum
+  /// constants all have the same [name], but their own [name2].
+  void set name2(String value) {
+    this._name2 = value;
+  }
+
+  @override
   List<String> get parameterNames => _parameterNames ??= <String>[];
 
   void set parameterNames(List<String> value) {
@@ -2276,14 +2276,6 @@ class AvailableDeclarationBuilder extends Object
   }
 
   @override
-  int get requiredParameterCount => _requiredParameterCount ??= 0;
-
-  void set requiredParameterCount(int value) {
-    assert(value == null || value >= 0);
-    this._requiredParameterCount = value;
-  }
-
-  @override
   List<String> get relevanceTags => _relevanceTags ??= <String>[];
 
   /// The partial list of relevance tags.  Not every declaration has one (for
@@ -2292,6 +2284,14 @@ class AvailableDeclarationBuilder extends Object
   /// includes this file).
   void set relevanceTags(List<String> value) {
     this._relevanceTags = value;
+  }
+
+  @override
+  int get requiredParameterCount => _requiredParameterCount ??= 0;
+
+  void set requiredParameterCount(int value) {
+    assert(value == null || value >= 0);
+    this._requiredParameterCount = value;
   }
 
   @override
@@ -2314,21 +2314,21 @@ class AvailableDeclarationBuilder extends Object
       String docComplete,
       String docSummary,
       int fieldMask,
-      idl.AvailableDeclarationKind kind,
       bool isAbstract,
       bool isConst,
       bool isDeprecated,
       bool isFinal,
-      String name,
-      String name2,
+      idl.AvailableDeclarationKind kind,
       int locationOffset,
       int locationStartColumn,
       int locationStartLine,
+      String name,
+      String name2,
       List<String> parameterNames,
       String parameters,
       List<String> parameterTypes,
-      int requiredParameterCount,
       List<String> relevanceTags,
+      int requiredParameterCount,
       String returnType,
       String typeParameters})
       : _defaultArgumentListString = defaultArgumentListString,
@@ -2336,21 +2336,21 @@ class AvailableDeclarationBuilder extends Object
         _docComplete = docComplete,
         _docSummary = docSummary,
         _fieldMask = fieldMask,
-        _kind = kind,
         _isAbstract = isAbstract,
         _isConst = isConst,
         _isDeprecated = isDeprecated,
         _isFinal = isFinal,
-        _name = name,
-        _name2 = name2,
+        _kind = kind,
         _locationOffset = locationOffset,
         _locationStartColumn = locationStartColumn,
         _locationStartLine = locationStartLine,
+        _name = name,
+        _name2 = name2,
         _parameterNames = parameterNames,
         _parameters = parameters,
         _parameterTypes = parameterTypes,
-        _requiredParameterCount = requiredParameterCount,
         _relevanceTags = relevanceTags,
+        _requiredParameterCount = requiredParameterCount,
         _returnType = returnType,
         _typeParameters = typeParameters;
 
@@ -2375,16 +2375,16 @@ class AvailableDeclarationBuilder extends Object
     signature.addString(this._docComplete ?? '');
     signature.addString(this._docSummary ?? '');
     signature.addInt(this._fieldMask ?? 0);
-    signature.addInt(this._kind == null ? 0 : this._kind.index);
     signature.addBool(this._isAbstract == true);
     signature.addBool(this._isConst == true);
     signature.addBool(this._isDeprecated == true);
     signature.addBool(this._isFinal == true);
-    signature.addString(this._name ?? '');
-    signature.addString(this._name2 ?? '');
+    signature.addInt(this._kind == null ? 0 : this._kind.index);
     signature.addInt(this._locationOffset ?? 0);
     signature.addInt(this._locationStartColumn ?? 0);
     signature.addInt(this._locationStartLine ?? 0);
+    signature.addString(this._name ?? '');
+    signature.addString(this._name2 ?? '');
     if (this._parameterNames == null) {
       signature.addInt(0);
     } else {
@@ -2402,7 +2402,6 @@ class AvailableDeclarationBuilder extends Object
         signature.addString(x);
       }
     }
-    signature.addInt(this._requiredParameterCount ?? 0);
     if (this._relevanceTags == null) {
       signature.addInt(0);
     } else {
@@ -2411,6 +2410,7 @@ class AvailableDeclarationBuilder extends Object
         signature.addString(x);
       }
     }
+    signature.addInt(this._requiredParameterCount ?? 0);
     signature.addString(this._returnType ?? '');
     signature.addString(this._typeParameters ?? '');
   }
@@ -2486,35 +2486,35 @@ class AvailableDeclarationBuilder extends Object
     if (_fieldMask != null && _fieldMask != 0) {
       fbBuilder.addUint32(4, _fieldMask);
     }
-    if (_kind != null && _kind != idl.AvailableDeclarationKind.CLASS) {
-      fbBuilder.addUint8(5, _kind.index);
-    }
     if (_isAbstract == true) {
-      fbBuilder.addBool(6, true);
+      fbBuilder.addBool(5, true);
     }
     if (_isConst == true) {
-      fbBuilder.addBool(7, true);
+      fbBuilder.addBool(6, true);
     }
     if (_isDeprecated == true) {
-      fbBuilder.addBool(8, true);
+      fbBuilder.addBool(7, true);
     }
     if (_isFinal == true) {
-      fbBuilder.addBool(9, true);
+      fbBuilder.addBool(8, true);
     }
-    if (offset_name != null) {
-      fbBuilder.addOffset(10, offset_name);
-    }
-    if (offset_name2 != null) {
-      fbBuilder.addOffset(11, offset_name2);
+    if (_kind != null && _kind != idl.AvailableDeclarationKind.CLASS) {
+      fbBuilder.addUint8(9, _kind.index);
     }
     if (_locationOffset != null && _locationOffset != 0) {
-      fbBuilder.addUint32(12, _locationOffset);
+      fbBuilder.addUint32(10, _locationOffset);
     }
     if (_locationStartColumn != null && _locationStartColumn != 0) {
-      fbBuilder.addUint32(13, _locationStartColumn);
+      fbBuilder.addUint32(11, _locationStartColumn);
     }
     if (_locationStartLine != null && _locationStartLine != 0) {
-      fbBuilder.addUint32(14, _locationStartLine);
+      fbBuilder.addUint32(12, _locationStartLine);
+    }
+    if (offset_name != null) {
+      fbBuilder.addOffset(13, offset_name);
+    }
+    if (offset_name2 != null) {
+      fbBuilder.addOffset(14, offset_name2);
     }
     if (offset_parameterNames != null) {
       fbBuilder.addOffset(15, offset_parameterNames);
@@ -2525,11 +2525,11 @@ class AvailableDeclarationBuilder extends Object
     if (offset_parameterTypes != null) {
       fbBuilder.addOffset(17, offset_parameterTypes);
     }
-    if (_requiredParameterCount != null && _requiredParameterCount != 0) {
-      fbBuilder.addUint32(18, _requiredParameterCount);
-    }
     if (offset_relevanceTags != null) {
-      fbBuilder.addOffset(19, offset_relevanceTags);
+      fbBuilder.addOffset(18, offset_relevanceTags);
+    }
+    if (_requiredParameterCount != null && _requiredParameterCount != 0) {
+      fbBuilder.addUint32(19, _requiredParameterCount);
     }
     if (offset_returnType != null) {
       fbBuilder.addOffset(20, offset_returnType);
@@ -2563,21 +2563,21 @@ class _AvailableDeclarationImpl extends Object
   String _docComplete;
   String _docSummary;
   int _fieldMask;
-  idl.AvailableDeclarationKind _kind;
   bool _isAbstract;
   bool _isConst;
   bool _isDeprecated;
   bool _isFinal;
-  String _name;
-  String _name2;
+  idl.AvailableDeclarationKind _kind;
   int _locationOffset;
   int _locationStartColumn;
   int _locationStartLine;
+  String _name;
+  String _name2;
   List<String> _parameterNames;
   String _parameters;
   List<String> _parameterTypes;
-  int _requiredParameterCount;
   List<String> _relevanceTags;
+  int _requiredParameterCount;
   String _returnType;
   String _typeParameters;
 
@@ -2614,67 +2614,67 @@ class _AvailableDeclarationImpl extends Object
   }
 
   @override
-  idl.AvailableDeclarationKind get kind {
-    _kind ??= const _AvailableDeclarationKindReader()
-        .vTableGet(_bc, _bcOffset, 5, idl.AvailableDeclarationKind.CLASS);
-    return _kind;
-  }
-
-  @override
   bool get isAbstract {
-    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
+    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
     return _isAbstract;
   }
 
   @override
   bool get isConst {
-    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 7, false);
+    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
     return _isConst;
   }
 
   @override
   bool get isDeprecated {
-    _isDeprecated ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 8, false);
+    _isDeprecated ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 7, false);
     return _isDeprecated;
   }
 
   @override
   bool get isFinal {
-    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 9, false);
+    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 8, false);
     return _isFinal;
   }
 
   @override
-  String get name {
-    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 10, '');
-    return _name;
-  }
-
-  @override
-  String get name2 {
-    _name2 ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 11, '');
-    return _name2;
+  idl.AvailableDeclarationKind get kind {
+    _kind ??= const _AvailableDeclarationKindReader()
+        .vTableGet(_bc, _bcOffset, 9, idl.AvailableDeclarationKind.CLASS);
+    return _kind;
   }
 
   @override
   int get locationOffset {
     _locationOffset ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 12, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 10, 0);
     return _locationOffset;
   }
 
   @override
   int get locationStartColumn {
     _locationStartColumn ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 13, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
     return _locationStartColumn;
   }
 
   @override
   int get locationStartLine {
     _locationStartLine ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 14, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 12, 0);
     return _locationStartLine;
+  }
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 13, '');
+    return _name;
+  }
+
+  @override
+  String get name2 {
+    _name2 ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 14, '');
+    return _name2;
   }
 
   @override
@@ -2698,17 +2698,17 @@ class _AvailableDeclarationImpl extends Object
   }
 
   @override
-  int get requiredParameterCount {
-    _requiredParameterCount ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 18, 0);
-    return _requiredParameterCount;
+  List<String> get relevanceTags {
+    _relevanceTags ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 18, const <String>[]);
+    return _relevanceTags;
   }
 
   @override
-  List<String> get relevanceTags {
-    _relevanceTags ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 19, const <String>[]);
-    return _relevanceTags;
+  int get requiredParameterCount {
+    _requiredParameterCount ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 19, 0);
+    return _requiredParameterCount;
   }
 
   @override
@@ -2736,25 +2736,25 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
     if (docComplete != '') _result["docComplete"] = docComplete;
     if (docSummary != '') _result["docSummary"] = docSummary;
     if (fieldMask != 0) _result["fieldMask"] = fieldMask;
-    if (kind != idl.AvailableDeclarationKind.CLASS)
-      _result["kind"] = kind.toString().split('.')[1];
     if (isAbstract != false) _result["isAbstract"] = isAbstract;
     if (isConst != false) _result["isConst"] = isConst;
     if (isDeprecated != false) _result["isDeprecated"] = isDeprecated;
     if (isFinal != false) _result["isFinal"] = isFinal;
-    if (name != '') _result["name"] = name;
-    if (name2 != '') _result["name2"] = name2;
+    if (kind != idl.AvailableDeclarationKind.CLASS)
+      _result["kind"] = kind.toString().split('.')[1];
     if (locationOffset != 0) _result["locationOffset"] = locationOffset;
     if (locationStartColumn != 0)
       _result["locationStartColumn"] = locationStartColumn;
     if (locationStartLine != 0)
       _result["locationStartLine"] = locationStartLine;
+    if (name != '') _result["name"] = name;
+    if (name2 != '') _result["name2"] = name2;
     if (parameterNames.isNotEmpty) _result["parameterNames"] = parameterNames;
     if (parameters != '') _result["parameters"] = parameters;
     if (parameterTypes.isNotEmpty) _result["parameterTypes"] = parameterTypes;
+    if (relevanceTags.isNotEmpty) _result["relevanceTags"] = relevanceTags;
     if (requiredParameterCount != 0)
       _result["requiredParameterCount"] = requiredParameterCount;
-    if (relevanceTags.isNotEmpty) _result["relevanceTags"] = relevanceTags;
     if (returnType != '') _result["returnType"] = returnType;
     if (typeParameters != '') _result["typeParameters"] = typeParameters;
     return _result;
@@ -2767,21 +2767,21 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
         "docComplete": docComplete,
         "docSummary": docSummary,
         "fieldMask": fieldMask,
-        "kind": kind,
         "isAbstract": isAbstract,
         "isConst": isConst,
         "isDeprecated": isDeprecated,
         "isFinal": isFinal,
-        "name": name,
-        "name2": name2,
+        "kind": kind,
         "locationOffset": locationOffset,
         "locationStartColumn": locationStartColumn,
         "locationStartLine": locationStartLine,
+        "name": name,
+        "name2": name2,
         "parameterNames": parameterNames,
         "parameters": parameters,
         "parameterTypes": parameterTypes,
-        "requiredParameterCount": requiredParameterCount,
         "relevanceTags": relevanceTags,
+        "requiredParameterCount": requiredParameterCount,
         "returnType": returnType,
         "typeParameters": typeParameters,
       };

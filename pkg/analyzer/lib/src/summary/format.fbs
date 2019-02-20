@@ -880,30 +880,30 @@ table AvailableDeclaration {
 
   fieldMask:uint (id: 4);
 
+  isAbstract:bool (id: 5);
+
+  isConst:bool (id: 6);
+
+  isDeprecated:bool (id: 7);
+
+  isFinal:bool (id: 8);
+
   /// The kind of the declaration.
-  kind:AvailableDeclarationKind (id: 5);
+  kind:AvailableDeclarationKind (id: 9);
 
-  isAbstract:bool (id: 6);
+  locationOffset:uint (id: 10);
 
-  isConst:bool (id: 7);
+  locationStartColumn:uint (id: 11);
 
-  isDeprecated:bool (id: 8);
-
-  isFinal:bool (id: 9);
+  locationStartLine:uint (id: 12);
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  name:string (id: 10);
+  name:string (id: 13);
 
   /// The second, optional, part of the declaration name.  For example enum
   /// constants all have the same [name], but their own [name2].
-  name2:string (id: 11);
-
-  locationOffset:uint (id: 12);
-
-  locationStartColumn:uint (id: 13);
-
-  locationStartLine:uint (id: 14);
+  name2:string (id: 14);
 
   parameterNames:[string] (id: 15);
 
@@ -911,13 +911,13 @@ table AvailableDeclaration {
 
   parameterTypes:[string] (id: 17);
 
-  requiredParameterCount:uint (id: 18);
-
   /// The partial list of relevance tags.  Not every declaration has one (for
   /// example, function do not currently), and not every declaration has to
   /// store one (for classes it can be computed when we know the library that
   /// includes this file).
-  relevanceTags:[string] (id: 19);
+  relevanceTags:[string] (id: 18);
+
+  requiredParameterCount:uint (id: 19);
 
   returnType:string (id: 20);
 
