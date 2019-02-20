@@ -11,7 +11,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 /// [NonNullableFix] visits each named type in a resolved compilation unit
 /// and determines whether the associated variable or parameter can be null
 /// then adds or removes a '?' trailing the named type as appropriate.
-class NonNullableFix extends FixCodeTask2 {
+class NonNullableFix extends FixCodeTask {
   /// TODO(paulberry): stop using permissive mode once the migration logic is
   /// mature enough.
   static const bool _usePermissiveMode = true;
@@ -26,18 +26,25 @@ class NonNullableFix extends FixCodeTask2 {
             permissive: _usePermissiveMode);
 
   @override
+  int get numPhases => 2;
+
+  @override
   Future<void> finish() async {
     migration.finish();
   }
 
   @override
-  Future<void> processUnit(ResolvedUnitResult result) async {
-    migration.prepareInput(result);
-  }
-
-  @override
-  Future<void> processUnit2(ResolvedUnitResult result) async {
-    migration.processInput(result);
+  Future<void> processUnit(int phase, ResolvedUnitResult result) async {
+    switch (phase) {
+      case 0:
+        migration.prepareInput(result);
+        break;
+      case 1:
+        migration.processInput(result);
+        break;
+      default:
+        throw new ArgumentError('Unsupported phase $phase');
+    }
   }
 
   static void task(DartFixRegistrar registrar, DartFixListener listener) {

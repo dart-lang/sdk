@@ -100,11 +100,13 @@ class EditDartFix
           hasErrors = true;
         }
         await processLints(result);
-        await processCodeTasks(result);
+        if (numPhases > 0) {
+          await processCodeTasks(0, result);
+        }
       });
-      if (needsSecondPass) {
+      for (int phase = 1; phase < numPhases; phase++) {
         await processResources((ResolvedUnitResult result) async {
-          await processCodeTasks2(result);
+          await processCodeTasks(phase, result);
         });
       }
       await finishLints();
