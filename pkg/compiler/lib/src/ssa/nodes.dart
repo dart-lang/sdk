@@ -2865,10 +2865,12 @@ class HStaticStore extends HInstruction {
   toString() => 'static store ${element.name}';
   accept(HVisitor visitor) => visitor.visitStaticStore(this);
 
+  HInstruction get value => inputs.single;
+
   int typeCode() => HInstruction.STATIC_STORE_TYPECODE;
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
-  bool isJsStatement() => true;
+  bool isJsStatement() => usedBy.isEmpty;
 }
 
 class HLiteralList extends HInstruction {
