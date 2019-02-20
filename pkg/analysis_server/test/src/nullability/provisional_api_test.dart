@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/nullability/provisional_api.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -53,10 +54,10 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     }
     migration.finish();
     var sourceEdits = <String, List<SourceEdit>>{};
-    for (var fix in listener._fixes) {
-      var path = fix.source.fullName;
+    for (var entry in listener._edits.entries) {
+      var path = entry.key.fullName;
       expect(expectedOutput.keys, contains(path));
-      (sourceEdits[path] ??= []).addAll(fix.sourceEdits);
+      sourceEdits[path] = entry.value;
     }
     for (var path in expectedOutput.keys) {
       var sourceEditsForPath = sourceEdits[path] ?? [];
@@ -824,10 +825,13 @@ class _ProvisionalApiTestWithReset extends _ProvisionalApiTestBase
 }
 
 class _TestMigrationListener implements NullabilityMigrationListener {
-  final _fixes = <SingleNullabilityFix>[];
+  final _edits = <Source, List<SourceEdit>>{};
 
   @override
-  void addFix(SingleNullabilityFix fix) {
-    _fixes.add(fix);
+  void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
+    (_edits[fix.source] ??= []).add(edit);
   }
+
+  @override
+  void addFix(SingleNullabilityFix fix) {}
 }

@@ -80,7 +80,11 @@ class NullabilityMigration {
     for (var entry in _analyzerMigration.finish().entries) {
       var source = entry.key;
       for (var potentialModification in entry.value) {
-        listener.addFix(_SingleNullabilityFix(source, potentialModification));
+        var fix = _SingleNullabilityFix(source, potentialModification);
+        listener.addFix(fix);
+        for (var edit in potentialModification.modifications) {
+          listener.addEdit(fix, edit);
+        }
       }
     }
   }
@@ -97,6 +101,10 @@ class NullabilityMigration {
 /// [NullabilityMigrationListener] is used by [NullabilityMigration]
 /// to communicate source changes or "fixes" to the client.
 abstract class NullabilityMigrationListener {
+  /// [addEdit] is called once for each source edit, in the order in which they
+  /// appear in the source file.
+  void addEdit(SingleNullabilityFix fix, SourceEdit edit);
+
   /// [addFix] is called once for each source change.
   void addFix(SingleNullabilityFix fix);
 }
@@ -113,18 +121,11 @@ abstract class SingleNullabilityFix {
 
   /// File to change.
   Source get source;
-
-  /// Individual source edits to achieve the change.  May be returned in any
-  /// order.
-  Iterable<SourceEdit> get sourceEdits;
 }
 
 /// Implementation of [SingleNullabilityFix] used internally by
 /// [NullabilityMigration].
 class _SingleNullabilityFix extends SingleNullabilityFix {
-  @override
-  final List<SourceEdit> sourceEdits;
-
   @override
   final Source source;
 
@@ -151,11 +152,10 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
     } else {
       throw new UnimplementedError('TODO(paulberry)');
     }
-    return _SingleNullabilityFix._(
-        potentialModification.modifications.toList(), source, kind);
+    return _SingleNullabilityFix._(source, kind);
   }
 
-  _SingleNullabilityFix._(this.sourceEdits, this.source, this.kind);
+  _SingleNullabilityFix._(this.source, this.kind);
 
   /// TODO(paulberry): do something better
   Location get location => null;

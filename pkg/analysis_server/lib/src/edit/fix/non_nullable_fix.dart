@@ -7,6 +7,7 @@ import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analysis_server/src/nullability/provisional_api.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// [NonNullableFix] visits each named type in a resolved compilation unit
 /// and determines whether the associated variable or parameter can be null
@@ -58,9 +59,13 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   NullabilityMigrationAdapter(this.listener);
 
   @override
+  void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
+    listener.addEditWithoutSuggestion(fix.source, edit);
+  }
+
+  @override
   void addFix(SingleNullabilityFix fix) {
     // TODO(danrubel): Update the description based upon the [fix.kind]
-    listener.addSourceEdits(
-        fix.kind.appliedMessage, fix.location, fix.source, fix.sourceEdits);
+    listener.addSuggestion(fix.kind.appliedMessage, fix.location);
   }
 }
