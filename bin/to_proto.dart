@@ -12,17 +12,13 @@ import 'package:args/command_runner.dart';
 import 'package:dart2js_info/proto_info_codec.dart';
 import 'package:dart2js_info/src/io.dart';
 
+import 'inject_text.dart';
 import 'usage_exception.dart';
 
 /// Converts a dump-info file emitted by dart2js to the proto format
 class ToProtoCommand extends Command<void> with PrintUsageException {
   final String name = "to_proto";
   final String description = "Convert any info file to proto format.";
-
-  ToProtoCommand() {
-    argParser.addOption('out',
-        abbr: 'o', help: 'Output file (defauts to <input>.pb)');
-  }
 
   void run() async {
     if (argResults.rest.length < 1) {
@@ -32,6 +28,7 @@ class ToProtoCommand extends Command<void> with PrintUsageException {
 
     String filename = argResults.rest[0];
     final info = await infoFromFile(filename);
+    if (argResults['inject-text']) injectText(info);
     final proto = new AllInfoProtoCodec().encode(info);
     String outputFilename = argResults['out'] ?? '$filename.pb';
     final outputFile = new File(outputFilename);

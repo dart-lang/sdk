@@ -20,16 +20,6 @@ class ToJsonCommand extends Command<void> with PrintUsageException {
   final String description = "Convert any info file to JSON format.";
 
   ToJsonCommand() {
-    argParser.addOption('out',
-        abbr: 'o', help: 'Output file (defauts to <input>.json)');
-
-    argParser.addFlag('inject-text',
-        negatable: false,
-        help: 'Whether to inject output code snippets.\n\n'
-            'By default dart2js produces code spans, but excludes the text. This\n'
-            'option can be used to embed the text directly in the output JSON.\n'
-            'This is implied by `--compat-mode`.');
-
     argParser.addFlag('compat-mode',
         negatable: false,
         help: 'Whether to generate an older version of the JSON format.\n\n'
@@ -37,8 +27,9 @@ class ToJsonCommand extends Command<void> with PrintUsageException {
             'passing `--compat-mode` will produce a JSON file that may still\n'
             'work in the visualizer tool at:\n'
             'https://dart-lang.github.io/dump-info-visualizer/.\n\n'
-            'Note, however, that files produced in this mode do not contain\n'
-            'all the data available in the input file.');
+            'This option enables `--inject-text` as well, but note that\n'
+            'files produced in this mode do not contain all the data\n'
+            'available in the input file.');
   }
 
   void run() async {
