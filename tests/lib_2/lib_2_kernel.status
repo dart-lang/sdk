@@ -17,6 +17,7 @@ async/timer_not_available_test: RuntimeError
 isolate/issue_21398_parent_isolate1_test: RuntimeError
 isolate/issue_22778_test: Crash
 isolate/kill_self_synchronously_test: RuntimeError
+isolate/message_const_type_arguments_2_test: RuntimeError
 isolate/message_test: RuntimeError
 isolate/mint_maker_test: RuntimeError
 isolate/ping_pause_test: Skip # Timeout

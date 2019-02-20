@@ -29,10 +29,8 @@ DEFINE_FLAG(
 // allocations may happen.
 #define READ_OBJECT_FIELDS(object, from, to, as_reference)                     \
   intptr_t num_flds = (to) - (from);                                           \
-  intptr_t from_offset = OFFSET_OF_FROM(object);                               \
   for (intptr_t i = 0; i <= num_flds; i++) {                                   \
-    (*reader->PassiveObjectHandle()) =                                         \
-        reader->ReadObjectImpl(as_reference, object_id, (i + from_offset));    \
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(as_reference);   \
     object.StorePointer(((from) + i), reader->PassiveObjectHandle()->raw());   \
   }
 
@@ -96,16 +94,12 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Determine if the type class of this type is in the full snapshot.
-  bool typeclass_is_in_fullsnapshot = reader->Read<bool>();
+  reader->Read<bool>();
 
   // Allocate type object.
   Type& type = Type::ZoneHandle(reader->zone(), Type::New());
   bool is_canonical = RawObject::IsCanonical(tags);
-  bool defer_canonicalization =
-      is_canonical &&
-      ((kind == Snapshot::kMessage) ||
-       (!Snapshot::IsFull(kind) && typeclass_is_in_fullsnapshot));
-  reader->AddBackRef(object_id, &type, kIsDeserialized, defer_canonicalization);
+  reader->AddBackRef(object_id, &type, kIsDeserialized);
 
   // Set all non object fields.
   type.set_token_pos(TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
@@ -115,16 +109,15 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   reader->EnqueueTypePostprocessing(type);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(type, type.raw()->from(), type.raw()->to(), kAsReference);
+  READ_OBJECT_FIELDS(type, type.raw()->from(), type.raw()->to(), as_reference);
 
   // Read in the type class.
   (*reader->ClassHandle()) =
-      Class::RawCast(reader->ReadObjectImpl(kAsReference));
+      Class::RawCast(reader->ReadObjectImpl(as_reference));
   type.set_type_class(*reader->ClassHandle());
 
-  // Set the canonical bit.
-  if (!defer_canonicalization && is_canonical) {
-    type.SetCanonical();
+  if (is_canonical) {
+    type ^= type.Canonicalize();
   }
 
   // Fill in the type testing stub.
@@ -177,11 +170,11 @@ void RawType::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   ASSERT(ptr()->type_class_id_ != Object::null());
-  SnapshotWriterVisitor visitor(writer, kAsReference);
+  SnapshotWriterVisitor visitor(writer, as_reference);
   visitor.VisitPointers(from(), to());
 
   // Write out the type class.
-  writer->WriteObjectImpl(type_class, kAsReference);
+  writer->WriteObjectImpl(type_class, as_reference);
 }
 
 RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
@@ -310,26 +303,20 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   TypeArguments& type_arguments =
       TypeArguments::ZoneHandle(reader->zone(), TypeArguments::New(len));
   bool is_canonical = RawObject::IsCanonical(tags);
-  bool defer_canonicalization = is_canonical && (!Snapshot::IsFull(kind));
-  reader->AddBackRef(object_id, &type_arguments, kIsDeserialized,
-                     defer_canonicalization);
+  reader->AddBackRef(object_id, &type_arguments, kIsDeserialized);
 
   // Set the instantiations field, which is only read from a full snapshot.
   type_arguments.set_instantiations(Object::zero_array());
 
   // Now set all the type fields.
-  intptr_t offset =
-      type_arguments.TypeAddr(0) -
-      reinterpret_cast<RawAbstractType**>(type_arguments.raw()->ptr());
   for (intptr_t i = 0; i < len; i++) {
-    *reader->TypeHandle() ^=
-        reader->ReadObjectImpl(kAsReference, object_id, (i + offset));
+    *reader->TypeHandle() ^= reader->ReadObjectImpl(as_reference);
     type_arguments.SetTypeAt(i, *reader->TypeHandle());
   }
 
   // Set the canonical bit.
-  if (!defer_canonicalization && is_canonical) {
-    type_arguments.SetCanonical();
+  if (is_canonical) {
+    type_arguments ^= type_arguments.Canonicalize();
   }
 
   return type_arguments.raw();
@@ -368,10 +355,10 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
       if (!writer->AllowObjectsInDartLibrary(type_class->ptr()->library_)) {
         writer->WriteVMIsolateObject(kDynamicType);
       } else {
-        writer->WriteObjectImpl(ptr()->types()[i], kAsReference);
+        writer->WriteObjectImpl(ptr()->types()[i], as_reference);
       }
     } else {
-      writer->WriteObjectImpl(ptr()->types()[i], kAsReference);
+      writer->WriteObjectImpl(ptr()->types()[i], as_reference);
     }
   }
 }
@@ -1490,10 +1477,7 @@ RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &array, kIsDeserialized);
 
   // Read type arguments of growable array object.
-  const intptr_t typeargs_offset =
-      GrowableObjectArray::type_arguments_offset() / kWordSize;
-  *reader->TypeArgumentsHandle() ^=
-      reader->ReadObjectImpl(kAsInlinedObject, object_id, typeargs_offset);
+  *reader->TypeArgumentsHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
   array.StorePointer(&array.raw_ptr()->type_arguments_,
                      reader->TypeArgumentsHandle()->raw());
 
@@ -1544,10 +1528,7 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &map, kIsDeserialized);
 
   // Read the type arguments.
-  const intptr_t typeargs_offset =
-      GrowableObjectArray::type_arguments_offset() / kWordSize;
-  *reader->TypeArgumentsHandle() ^=
-      reader->ReadObjectImpl(kAsInlinedObject, object_id, typeargs_offset);
+  *reader->TypeArgumentsHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
   map.SetTypeArguments(*reader->TypeArgumentsHandle());
 
   // Read the number of key/value pairs.
