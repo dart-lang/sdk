@@ -41,6 +41,20 @@ class B extends A {
 }''');
   }
 
+  test_equal_values_generic_different_files() async {
+    newFile('/test/lib/other.dart', content: '''
+class C {
+  f({x: const ['x']}) {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'other.dart';
+class D extends C {
+  f({x: const ['x']}) {}
+}
+''');
+  }
+
   test_equalValues() async {
     await assertNoErrorsInCode(r'''
 abstract class A {
