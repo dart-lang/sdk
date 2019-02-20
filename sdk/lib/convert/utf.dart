@@ -306,8 +306,24 @@ class Utf8Decoder extends Converter<List<int>, String> {
 
     var length = codeUnits.length;
     end = RangeError.checkValidRange(start, end, length);
-    var buffer = StringBuffer();
+
+    // Fast case for ASCII strings avoids StringBuffer/_Utf8Decoder.
+    int oneBytes = _scanOneByteCharacters(codeUnits, start, end);
+    StringBuffer buffer;
+    bool isFirstCharacter = true;
+    if (oneBytes > 0) {
+      var firstPart = String.fromCharCodes(codeUnits, start, start + oneBytes);
+      start += oneBytes;
+      if (start == end) {
+        return firstPart;
+      }
+      buffer = StringBuffer(firstPart);
+      isFirstCharacter = false;
+    }
+
+    buffer ??= StringBuffer();
     var decoder = _Utf8Decoder(buffer, _allowMalformed);
+    decoder._isFirstCharacter = isFirstCharacter;
     decoder.convert(codeUnits, start, end);
     decoder.flush(codeUnits, end);
     return buffer.toString();
@@ -412,12 +428,6 @@ class _Utf8Decoder {
     _expectedUnits = 0;
     _extraUnits = 0;
 
-    void addSingleBytes(int from, int to) {
-      assert(from >= startIndex && from <= endIndex);
-      assert(to >= startIndex && to <= endIndex);
-      _stringSink.write(String.fromCharCodes(codeUnits, from, to));
-    }
-
     var i = startIndex;
     loop:
     while (true) {
@@ -477,7 +487,9 @@ class _Utf8Decoder {
         var oneBytes = _scanOneByteCharacters(codeUnits, i, endIndex);
         if (oneBytes > 0) {
           _isFirstCharacter = false;
-          addSingleBytes(i, i + oneBytes);
+          assert(i + oneBytes <= endIndex);
+          _stringSink.write(String.fromCharCodes(codeUnits, i, i + oneBytes));
+
           i += oneBytes;
           if (i == endIndex) break;
         }
