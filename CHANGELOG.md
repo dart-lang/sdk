@@ -9,7 +9,7 @@ This release contains several **breaking changes**:
 * Added `CodeSpan` - a representation of code regions referring to output files.
   This will be used to transition to a lighterweight dump-info that doesn't
   embed code snippets (since they are duplicated with the output program).
- 
+
   Encoder produces a new format for code-spans, but for a transitional period
   a flag is provided to produce the old format. The decoder is still backwards
   compatible (filling in just the `text` in `CodeSpan` where the json contained
