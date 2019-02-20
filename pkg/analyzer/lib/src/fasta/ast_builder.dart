@@ -46,6 +46,7 @@ import 'package:front_end/src/fasta/messages.dart'
         messageStaticConstructor,
         messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
+        templateExpectedButGot,
         templateExpectedIdentifier,
         templateUnexpectedToken;
 import 'package:front_end/src/fasta/quote.dart';
@@ -1045,67 +1046,97 @@ class AstBuilder extends StackListener {
   @override
   void handleLiteralSetOrMap(
       int count, Token leftBrace, Token constKeyword, Token rightBrace) {
-    // TODO(danrubel): From a type resolution standpoint, this could be either
-    // a set literal or a map literal depending upon the context
-    // in which this expression occurs.
-    handleLiteralMap(count, leftBrace, constKeyword, rightBrace);
+    if (enableControlFlowCollections || enableSpreadCollections) {
+      List<CollectionElement> elements = popCollectionElements(count);
+      TypeArgumentList typeArguments = pop();
+      push(ast.setOrMapLiteral(
+        constKeyword: constKeyword,
+        typeArguments: typeArguments,
+        leftBracket: leftBrace,
+        elements: elements,
+        rightBracket: rightBrace,
+      ));
+    } else {
+      List elements = popTypedList(count);
+      TypeArgumentList typeArguments = pop();
+
+      // Replicate existing behavior that has been removed from the parser.
+      // This will be removed once control flow collections
+      // and spread collections are enabled by default.
+
+      // Determine if this is a set or map based on type args and content
+      final typeArgCount = typeArguments?.arguments?.length;
+      bool isSet = typeArgCount == 1 ? true : typeArgCount == 2 ? false : null;
+      if (isSet == null && elements != null) {
+        for (var elem in elements) {
+          if (elem is MapLiteralEntry) {
+            isSet = false;
+            break;
+          } else {
+            isSet = true;
+            break;
+          }
+        }
+      }
+
+      // Build the set or map
+      if (isSet ?? false) {
+        final setEntries = <Expression>[];
+        if (elements != null) {
+          for (var elem in elements) {
+            if (elem is MapLiteralEntry) {
+              setEntries.add(elem.key);
+              handleRecoverableError(
+                  templateUnexpectedToken.withArguments(elem.separator),
+                  elem.separator,
+                  elem.separator);
+            } else {
+              setEntries.add(elem);
+            }
+          }
+        }
+        push(ast.setLiteral(
+            constKeyword, typeArguments, leftBrace, setEntries, rightBrace));
+      } else {
+        final mapEntries = <MapLiteralEntry>[];
+        if (elements != null) {
+          for (var elem in elements) {
+            if (elem is MapLiteralEntry) {
+              mapEntries.add(elem);
+            } else {
+              Token next = (elem as Expression).endToken.next;
+              int offset = next.offset;
+              handleRecoverableError(
+                  templateExpectedButGot.withArguments(':'), next, next);
+              handleRecoverableError(
+                  templateExpectedIdentifier.withArguments(next), next, next);
+              Token separator = SyntheticToken(TokenType.COLON, offset);
+              Expression value = ast.simpleIdentifier(
+                  SyntheticStringToken(TokenType.IDENTIFIER, '', offset));
+              mapEntries.add(ast.mapLiteralEntry(elem, separator, value));
+            }
+          }
+        }
+        push(ast.mapLiteral(
+            constKeyword, typeArguments, leftBrace, mapEntries, rightBrace));
+      }
+    }
   }
 
+  @override
   void handleLiteralSet(
       int count, Token leftBracket, Token constKeyword, Token rightBracket) {
-    assert(optional('{', leftBracket));
-    assert(optionalOrNull('const', constKeyword));
-    assert(optional('}', rightBracket));
-    debugEvent("LiteralSet");
-
-    if (enableControlFlowCollections || enableSpreadCollections) {
-      List<CollectionElement> elements = popCollectionElements(count);
-
-      TypeArgumentList typeArguments = pop();
-      push(ast.setOrMapLiteral(
-        constKeyword: constKeyword,
-        typeArguments: typeArguments,
-        leftBracket: leftBracket,
-        elements: elements,
-        rightBracket: rightBracket,
-      ));
-    } else {
-      List<Expression> entries = popTypedList(count) ?? <Expression>[];
-      TypeArgumentList typeArguments = pop();
-      push(ast.setLiteral(
-          constKeyword, typeArguments, leftBracket, entries, rightBracket));
-    }
+    // TODO(danrubel): Remove this once the parser stops generating this event
+    // and only generates handleLiteralSetOrMap
+    handleLiteralSetOrMap(count, leftBracket, constKeyword, rightBracket);
   }
 
+  @override
   void handleLiteralMap(
       int count, Token leftBracket, Token constKeyword, Token rightBracket) {
-    assert(optional('{', leftBracket));
-    assert(optionalOrNull('const', constKeyword));
-    assert(optional('}', rightBracket));
-    debugEvent("LiteralMap");
-
-    if (enableControlFlowCollections || enableSpreadCollections) {
-      List<CollectionElement> elements = popCollectionElements(count);
-      TypeArgumentList typeArguments = pop();
-      push(ast.setOrMapLiteral(
-        constKeyword: constKeyword,
-        typeArguments: typeArguments,
-        leftBracket: leftBracket,
-        elements: elements,
-        rightBracket: rightBracket,
-      ));
-    } else {
-      List<MapLiteralEntry> entries = <MapLiteralEntry>[];
-      popTypedList(count)?.forEach((entry) {
-        if (entry is MapLiteralEntry) {
-          entries.add(entry);
-        }
-      });
-
-      TypeArgumentList typeArguments = pop();
-      push(ast.mapLiteral(
-          constKeyword, typeArguments, leftBracket, entries, rightBracket));
-    }
+    // TODO(danrubel): Remove this once the parser stops generating this event
+    // and only generates handleLiteralSetOrMap
+    handleLiteralSetOrMap(count, leftBracket, constKeyword, rightBracket);
   }
 
   void handleLiteralMapEntry(Token colon, Token endToken) {

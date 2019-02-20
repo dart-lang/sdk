@@ -4034,7 +4034,7 @@ class Parser {
       listener.handleNoTypeArguments(token.next);
       return parseLiteralSetOrMapSuffix(token, null);
     } else if (kind == LT_TOKEN) {
-      return parseLiteralListOrMapOrFunction(token, null);
+      return parseLiteralListSetMapOrFunction(token, null);
     } else {
       // Fall through to the recovery code.
     }
@@ -4482,7 +4482,8 @@ class Parser {
   ///   genericFunctionLiteral ::=
   ///       typeParameters formalParameterList functionBody
   /// Provide token for [constKeyword] if preceded by 'const', null if not.
-  Token parseLiteralListOrMapOrFunction(final Token start, Token constKeyword) {
+  Token parseLiteralListSetMapOrFunction(
+      final Token start, Token constKeyword) {
     assert(optional('<', start.next));
     TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(start, true);
     Token token = typeParamOrArg.skip(start);
@@ -4660,7 +4661,7 @@ class Parser {
     }
     if (identical(value, '<')) {
       listener.beginConstLiteral(next);
-      token = parseLiteralListOrMapOrFunction(token, constKeyword);
+      token = parseLiteralListSetMapOrFunction(token, constKeyword);
       listener.endConstLiteral(token.next);
       return token;
     }
