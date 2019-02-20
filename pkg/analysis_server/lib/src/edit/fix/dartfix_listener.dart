@@ -19,6 +19,12 @@ class DartFixListener {
 
   DartFixListener(this.server);
 
+  /// Record a recommendation to be sent to the client.
+  void addRecommendation(String description, [Location location]) {
+    otherSuggestions
+        .add(new DartFixSuggestion(description, location: location));
+  }
+
   /// Record a source change to be sent to the client.
   void addSourceChange(
       String description, Location location, SourceChange change) {
@@ -46,12 +52,6 @@ class DartFixListener {
     for (SourceEdit sourceEdit in fileEdit.edits) {
       sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
     }
-  }
-
-  /// Record a recommendation to be sent to the client.
-  void addRecommendation(String description, [Location location]) {
-    otherSuggestions
-        .add(new DartFixSuggestion(description, location: location));
   }
 
   /// Return the [Location] representing the specified offset and length
