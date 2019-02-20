@@ -1062,6 +1062,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       ClassElement typeReference = ElementResolver.getTypeReference(target);
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(typeReference, methodName);
+      _checkForUnnecessaryNullAware(target, node.operator);
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
       _checkForNullableDereference(node.function);
@@ -1178,6 +1179,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         propertyName.name != 'runtimeType') {
       _checkForNullableDereference(node.target);
     }
+    _checkForUnnecessaryNullAware(node.target, node.operator);
     super.visitPropertyAccess(node);
   }
 
@@ -5663,6 +5665,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
           constructor.returnType,
           [superElement.name]);
+    }
+  }
+
+  void _checkForUnnecessaryNullAware(Expression target, Token operator) {
+    if (operator.type != TokenType.QUESTION_PERIOD ||
+        !_options.experimentStatus.non_nullable) {
+      return;
+    }
+
+    if (target.staticType != null &&
+        (target.staticType as TypeImpl).nullability ==
+            Nullability.nonNullable) {
+      _errorReporter.reportErrorForToken(
+          HintCode.UNNECESSARY_NULL_AWARE_CALL, operator, []);
     }
   }
 
