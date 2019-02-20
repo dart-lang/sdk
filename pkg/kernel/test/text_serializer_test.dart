@@ -79,11 +79,13 @@ void test() {
     "(map (dynamic) (void) ((int 0) (null) (int 1) (null) (int 2) (null)))",
     "(const-map (dynamic) (void) ((int 0) (null) (int 1) (null) "
         "(int 2) (null)))",
-    "(type (-> ((dynamic)) 1 (dynamic)))",
-    "(type (-> ((dynamic)) 0 (dynamic)))",
-    "(type (-> ((dynamic) (dynamic)) 2 (dynamic)))",
-    "(type (-> () 0 (dynamic)))",
-    "(type (-> ((-> ((dynamic)) 1 (dynamic))) 1 (dynamic)))",
+    "(type (-> () () () ((dynamic)) 1 (dynamic)))",
+    "(type (-> () () () ((dynamic)) 0 (dynamic)))",
+    "(type (-> () () () ((dynamic) (dynamic)) 2 (dynamic)))",
+    "(type (-> () () () () 0 (dynamic)))",
+    "(type (-> () () () ((-> () () () ((dynamic)) 1 (dynamic))) 1 "
+        "(dynamic)))",
+    "(type (-> (\"T^0\") ((dynamic)) ((dynamic)) () 0 (dynamic)))",
   ];
   for (var test in tests) {
     var literal = readExpression(test);

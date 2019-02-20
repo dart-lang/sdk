@@ -828,6 +828,39 @@ TextSerializer<VariableDeclaration> variableDeclarationSerializer =
   constDeclarationSerializer,
 ]);
 
+TextSerializer<List<TypeParameter>> typeParametersSerializer = new Wrapped(
+    unwrapTypeParameters,
+    wrapTypeParameters,
+    new Tuple3Serializer(
+        const ListSerializer(const DartString()),
+        new ListSerializer(dartTypeSerializer),
+        new ListSerializer(dartTypeSerializer)));
+
+Tuple3<List<String>, List<DartType>, List<DartType>> unwrapTypeParameters(
+    List<TypeParameter> nodes) {
+  List<String> names = new List<String>(nodes.length);
+  List<DartType> bounds = new List<DartType>(nodes.length);
+  List<DartType> defaultTypes = new List<DartType>(nodes.length);
+  for (int i = 0; i < nodes.length; ++i) {
+    names[i] = nodes[i].name;
+    bounds[i] = nodes[i].bound;
+    defaultTypes[i] = nodes[i].defaultType;
+  }
+  return new Tuple3(names, bounds, defaultTypes);
+}
+
+List<TypeParameter> wrapTypeParameters(
+    Tuple3<List<String>, List<DartType>, List<DartType>> tuple) {
+  List<String> names = tuple.first;
+  List<DartType> bounds = tuple.second;
+  List<DartType> defaultTypes = tuple.third;
+  List<TypeParameter> result = new List<TypeParameter>(names.length);
+  for (int i = 0; i < result.length; ++i) {
+    result[i] = new TypeParameter(names[i], bounds[i], defaultTypes[i]);
+  }
+  return result;
+}
+
 class DartTypeTagger extends DartTypeVisitor<String>
     implements Tagger<DartType> {
   const DartTypeTagger();
@@ -869,21 +902,26 @@ void unwrapBottomType(BottomType type) {}
 
 BottomType wrapBottomType(void ignored) => const BottomType();
 
-// TODO(dmitryas):  Also handle typeParameters, nameParameters, and typedefType.
+// TODO(dmitryas):  Also handle nameParameters, and typedefType.
 TextSerializer<FunctionType> functionTypeSerializer = new Wrapped(
     unwrapFunctionType,
     wrapFunctionType,
-    Tuple3Serializer(new ListSerializer(dartTypeSerializer), const DartInt(),
+    Tuple4Serializer(
+        typeParametersSerializer,
+        new ListSerializer(dartTypeSerializer),
+        const DartInt(),
         dartTypeSerializer));
 
-Tuple3<List<DartType>, int, DartType> unwrapFunctionType(FunctionType type) {
-  return new Tuple3(
-      type.positionalParameters, type.requiredParameterCount, type.returnType);
+Tuple4<List<TypeParameter>, List<DartType>, int, DartType> unwrapFunctionType(
+    FunctionType type) {
+  return new Tuple4(type.typeParameters, type.positionalParameters,
+      type.requiredParameterCount, type.returnType);
 }
 
-FunctionType wrapFunctionType(Tuple3<List<DartType>, int, DartType> tuple) {
-  return new FunctionType(tuple.first, tuple.third,
-      requiredParameterCount: tuple.second);
+FunctionType wrapFunctionType(
+    Tuple4<List<TypeParameter>, List<DartType>, int, DartType> tuple) {
+  return new FunctionType(tuple.second, tuple.fourth,
+      requiredParameterCount: tuple.third, typeParameters: tuple.first);
 }
 
 Case<DartType> dartTypeSerializer =
