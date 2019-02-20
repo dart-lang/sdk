@@ -266,7 +266,6 @@ final Matcher isCompletionService =
  *   "relevance": int
  *   "completion": String
  *   "displayText": optional String
- *   "elementUri": optional String
  *   "selectionOffset": int
  *   "selectionLength": int
  *   "isDeprecated": bool
@@ -297,7 +296,6 @@ final Matcher isCompletionSuggestion =
           "isPotential": isBool
         }, optionalFields: {
           "displayText": isString,
-          "elementUri": isString,
           "docSummary": isString,
           "docComplete": isString,
           "declaringType": isString,

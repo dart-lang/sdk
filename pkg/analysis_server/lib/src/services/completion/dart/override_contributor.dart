@@ -117,7 +117,6 @@ class OverrideContributor implements DartCompletionContributor {
         false,
         displayText: displayText);
     suggestion.element = protocol.convertElement(signature.element);
-    suggestion.elementUri = signature.element.source.toString();
     return suggestion;
   }
 

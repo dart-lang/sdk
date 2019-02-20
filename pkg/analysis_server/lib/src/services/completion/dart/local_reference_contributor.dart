@@ -371,7 +371,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           isDeprecated: isDeprecated,
           parameters: param?.toSource(),
           returnType: typeName);
-      suggestion.elementUri = request.source.toString();
       if ((elemKind == protocol.ElementKind.METHOD ||
               elemKind == protocol.ElementKind.FUNCTION) &&
           param != null) {
@@ -413,7 +412,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
             constantDeclaration.name.length,
             0,
             0));
-    suggestion.elementUri = request.source.uri.toString();
   }
 
   void _addLocalSuggestion_includeReturnValueSuggestions(

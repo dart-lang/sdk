@@ -60,12 +60,6 @@ public class CompletionSuggestion {
   private final String displayText;
 
   /**
-   * The URI of the element corresponding to this suggestion. It will be set whenever analysis server
-   * is able to compute it.
-   */
-  private final String elementUri;
-
-  /**
    * The offset, relative to the beginning of the completion, of where the selection should be placed
    * after insertion.
    */
@@ -169,12 +163,11 @@ public class CompletionSuggestion {
   /**
    * Constructor for {@link CompletionSuggestion}.
    */
-  public CompletionSuggestion(String kind, int relevance, String completion, String displayText, String elementUri, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String defaultArgumentListString, int[] defaultArgumentListTextRanges, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType) {
+  public CompletionSuggestion(String kind, int relevance, String completion, String displayText, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String defaultArgumentListString, int[] defaultArgumentListTextRanges, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
     this.displayText = displayText;
-    this.elementUri = elementUri;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
     this.isDeprecated = isDeprecated;
@@ -203,7 +196,6 @@ public class CompletionSuggestion {
         other.relevance == relevance &&
         ObjectUtilities.equals(other.completion, completion) &&
         ObjectUtilities.equals(other.displayText, displayText) &&
-        ObjectUtilities.equals(other.elementUri, elementUri) &&
         other.selectionOffset == selectionOffset &&
         other.selectionLength == selectionLength &&
         other.isDeprecated == isDeprecated &&
@@ -230,7 +222,6 @@ public class CompletionSuggestion {
     int relevance = jsonObject.get("relevance").getAsInt();
     String completion = jsonObject.get("completion").getAsString();
     String displayText = jsonObject.get("displayText") == null ? null : jsonObject.get("displayText").getAsString();
-    String elementUri = jsonObject.get("elementUri") == null ? null : jsonObject.get("elementUri").getAsString();
     int selectionOffset = jsonObject.get("selectionOffset").getAsInt();
     int selectionLength = jsonObject.get("selectionLength").getAsInt();
     boolean isDeprecated = jsonObject.get("isDeprecated").getAsBoolean();
@@ -248,7 +239,7 @@ public class CompletionSuggestion {
     Boolean hasNamedParameters = jsonObject.get("hasNamedParameters") == null ? null : jsonObject.get("hasNamedParameters").getAsBoolean();
     String parameterName = jsonObject.get("parameterName") == null ? null : jsonObject.get("parameterName").getAsString();
     String parameterType = jsonObject.get("parameterType") == null ? null : jsonObject.get("parameterType").getAsString();
-    return new CompletionSuggestion(kind, relevance, completion, displayText, elementUri, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, defaultArgumentListString, defaultArgumentListTextRanges, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType);
+    return new CompletionSuggestion(kind, relevance, completion, displayText, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, defaultArgumentListString, defaultArgumentListTextRanges, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType);
   }
 
   public static List<CompletionSuggestion> fromJsonArray(JsonArray jsonArray) {
@@ -327,14 +318,6 @@ public class CompletionSuggestion {
    */
   public Element getElement() {
     return element;
-  }
-
-  /**
-   * The URI of the element corresponding to this suggestion. It will be set whenever analysis server
-   * is able to compute it.
-   */
-  public String getElementUri() {
-    return elementUri;
   }
 
   /**
@@ -444,7 +427,6 @@ public class CompletionSuggestion {
     builder.append(relevance);
     builder.append(completion);
     builder.append(displayText);
-    builder.append(elementUri);
     builder.append(selectionOffset);
     builder.append(selectionLength);
     builder.append(isDeprecated);
@@ -472,9 +454,6 @@ public class CompletionSuggestion {
     jsonObject.addProperty("completion", completion);
     if (displayText != null) {
       jsonObject.addProperty("displayText", displayText);
-    }
-    if (elementUri != null) {
-      jsonObject.addProperty("elementUri", elementUri);
     }
     jsonObject.addProperty("selectionOffset", selectionOffset);
     jsonObject.addProperty("selectionLength", selectionLength);
@@ -546,8 +525,6 @@ public class CompletionSuggestion {
     builder.append(completion + ", ");
     builder.append("displayText=");
     builder.append(displayText + ", ");
-    builder.append("elementUri=");
-    builder.append(elementUri + ", ");
     builder.append("selectionOffset=");
     builder.append(selectionOffset + ", ");
     builder.append("selectionLength=");

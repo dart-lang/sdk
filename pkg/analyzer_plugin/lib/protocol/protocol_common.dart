@@ -598,7 +598,6 @@ class ChangeContentOverlay implements HasToJson {
  *   "relevance": int
  *   "completion": String
  *   "displayText": optional String
- *   "elementUri": optional String
  *   "selectionOffset": int
  *   "selectionLength": int
  *   "isDeprecated": bool
@@ -628,8 +627,6 @@ class CompletionSuggestion implements HasToJson {
   String _completion;
 
   String _displayText;
-
-  String _elementUri;
 
   int _selectionOffset;
 
@@ -726,20 +723,6 @@ class CompletionSuggestion implements HasToJson {
    */
   void set displayText(String value) {
     this._displayText = value;
-  }
-
-  /**
-   * The URI of the element corresponding to this suggestion. It will be set
-   * whenever analysis server is able to compute it.
-   */
-  String get elementUri => _elementUri;
-
-  /**
-   * The URI of the element corresponding to this suggestion. It will be set
-   * whenever analysis server is able to compute it.
-   */
-  void set elementUri(String value) {
-    this._elementUri = value;
   }
 
   /**
@@ -1003,7 +986,6 @@ class CompletionSuggestion implements HasToJson {
       bool isDeprecated,
       bool isPotential,
       {String displayText,
-      String elementUri,
       String docSummary,
       String docComplete,
       String declaringType,
@@ -1021,7 +1003,6 @@ class CompletionSuggestion implements HasToJson {
     this.relevance = relevance;
     this.completion = completion;
     this.displayText = displayText;
-    this.elementUri = elementUri;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
     this.isDeprecated = isDeprecated;
@@ -1072,11 +1053,6 @@ class CompletionSuggestion implements HasToJson {
       if (json.containsKey("displayText")) {
         displayText = jsonDecoder.decodeString(
             jsonPath + ".displayText", json["displayText"]);
-      }
-      String elementUri;
-      if (json.containsKey("elementUri")) {
-        elementUri = jsonDecoder.decodeString(
-            jsonPath + ".elementUri", json["elementUri"]);
       }
       int selectionOffset;
       if (json.containsKey("selectionOffset")) {
@@ -1178,7 +1154,6 @@ class CompletionSuggestion implements HasToJson {
       return new CompletionSuggestion(kind, relevance, completion,
           selectionOffset, selectionLength, isDeprecated, isPotential,
           displayText: displayText,
-          elementUri: elementUri,
           docSummary: docSummary,
           docComplete: docComplete,
           declaringType: declaringType,
@@ -1205,9 +1180,6 @@ class CompletionSuggestion implements HasToJson {
     result["completion"] = completion;
     if (displayText != null) {
       result["displayText"] = displayText;
-    }
-    if (elementUri != null) {
-      result["elementUri"] = elementUri;
     }
     result["selectionOffset"] = selectionOffset;
     result["selectionLength"] = selectionLength;
@@ -1265,7 +1237,6 @@ class CompletionSuggestion implements HasToJson {
           relevance == other.relevance &&
           completion == other.completion &&
           displayText == other.displayText &&
-          elementUri == other.elementUri &&
           selectionOffset == other.selectionOffset &&
           selectionLength == other.selectionLength &&
           isDeprecated == other.isDeprecated &&
@@ -1297,7 +1268,6 @@ class CompletionSuggestion implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, relevance.hashCode);
     hash = JenkinsSmiHash.combine(hash, completion.hashCode);
     hash = JenkinsSmiHash.combine(hash, displayText.hashCode);
-    hash = JenkinsSmiHash.combine(hash, elementUri.hashCode);
     hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
     hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
