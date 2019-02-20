@@ -60,6 +60,7 @@ class TestConfiguration {
       this.localIP,
       this.keepGeneratedFiles,
       this.dart2jsOptions,
+      this.sharedOptions,
       String packages,
       this.packageRoot,
       this.suiteDirectory,
@@ -146,6 +147,9 @@ class TestConfiguration {
 
   /// Extra VM options passed to the testing script.
   List<String> get vmOptions => configuration.vmOptions;
+
+  /// Extra general options passed to the testing script.
+  final List<String> sharedOptions;
 
   String _packages;
 

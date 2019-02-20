@@ -146,7 +146,9 @@ abstract class CompilerConfiguration {
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
-    return sharedOptions.toList()..addAll(args);
+    return sharedOptions.toList()
+      ..addAll(_configuration.sharedOptions)
+      ..addAll(args);
   }
 
   List<String> computeRuntimeArguments(
@@ -202,6 +204,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
+      ..addAll(_configuration.sharedOptions)
       ..addAll(originalArguments);
   }
 }
@@ -242,7 +245,10 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
-    return sharedOptions.toList()..addAll(vmOptions)..addAll(args);
+    return sharedOptions.toList()
+      ..addAll(_configuration.sharedOptions)
+      ..addAll(vmOptions)
+      ..addAll(args);
   }
 
   List<String> computeRuntimeArguments(
@@ -264,6 +270,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
+      ..addAll(_configuration.sharedOptions)
       ..addAll(_replaceDartFiles(originalArguments, artifact.filename));
   }
 }
@@ -351,7 +358,11 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       vmOptions, sharedOptions, dart2jsOptions, ddcOptions, args) {
     // The result will be passed as an input to [extractArguments]
     // (i.e. the arguments to the [PipelineCommand]).
-    return <String>[]..addAll(vmOptions)..addAll(sharedOptions)..addAll(args);
+    return <String>[]
+      ..addAll(vmOptions)
+      ..addAll(sharedOptions)
+      ..addAll(_configuration.sharedOptions)
+      ..addAll(args);
   }
 
   List<String> computeRuntimeArguments(
@@ -448,6 +459,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       List<String> args) {
     return <String>[]
       ..addAll(sharedOptions)
+      ..addAll(_configuration.sharedOptions)
       ..addAll(dart2jsOptions)
       ..addAll(args);
   }
@@ -496,7 +508,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
-    var result = sharedOptions.toList()..addAll(ddcOptions);
+    var result = sharedOptions.toList()
+      ..addAll(_configuration.sharedOptions)
+      ..addAll(ddcOptions);
     // The file being compiled is the last argument.
     result.add(args.last);
 
@@ -528,6 +542,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       args.addAll(["--dart-sdk-summary", sdkSummary]);
     }
     args.addAll(sharedOptions);
+    args.addAll(_configuration.sharedOptions);
     if (!useKernel) {
       // TODO(jmesserly): library-root needs to be removed.
       args.addAll(
@@ -808,6 +823,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     return args
       ..addAll(filterVmOptions(vmOptions))
       ..addAll(sharedOptions)
+      ..addAll(_configuration.sharedOptions)
       ..addAll(originalArguments);
   }
 
@@ -845,6 +861,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
+      ..addAll(_configuration.sharedOptions)
       ..addAll(originalArguments);
   }
 }
@@ -897,6 +914,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
+      ..addAll(_configuration.sharedOptions)
       ..addAll(originalArguments);
   }
 
@@ -925,6 +943,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
+      ..addAll(_configuration.sharedOptions)
       ..addAll(_replaceDartFiles(originalArguments, artifact.filename));
     return args;
   }
@@ -1200,6 +1219,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       List<String> ddcOptions,
       List<String> args) {
     List<String> arguments = new List<String>.from(sharedOptions);
+    arguments.addAll(_configuration.sharedOptions);
     for (String argument in args) {
       if (argument == "--ignore-unrecognized-flags") continue;
       arguments.add(argument);
