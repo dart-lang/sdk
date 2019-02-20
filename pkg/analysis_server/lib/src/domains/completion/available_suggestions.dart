@@ -109,6 +109,8 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
   return protocol.AvailableSuggestion(
     label,
     _protocolElement(declaration),
+    defaultArgumentListString: declaration.defaultArgumentListString,
+    defaultArgumentListTextRanges: declaration.defaultArgumentListTextRanges,
     docComplete: declaration.docComplete,
     docSummary: declaration.docSummary,
     parameterNames: declaration.parameterNames,

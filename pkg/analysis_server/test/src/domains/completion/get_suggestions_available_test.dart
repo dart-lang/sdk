@@ -29,6 +29,24 @@ class GetSuggestionAvailableTest extends AvailableSuggestionsBase {
     expect(includedIdSet, contains(asyncSet.id));
   }
 
+  test_defaultArgumentListString() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+void fff(int aaa, int bbb) {}
+
+void ggg({int aaa, @required int bbb, @required int ccc}) {}
+''');
+
+    var aSet = await waitForSetWithUri('package:test/a.dart');
+
+    var fff = aSet.items.singleWhere((e) => e.label == 'fff');
+    expect(fff.defaultArgumentListString, 'aaa, bbb');
+    expect(fff.defaultArgumentListTextRanges, [0, 3, 5, 3]);
+
+    var ggg = aSet.items.singleWhere((e) => e.label == 'ggg');
+    expect(ggg.defaultArgumentListString, 'bbb: null, ccc: null');
+    expect(ggg.defaultArgumentListTextRanges, [5, 4, 16, 4]);
+  }
+
   test_displayUri_file() async {
     var aPath = '/home/test/test/a.dart';
     newFile(aPath, content: 'class A {}');

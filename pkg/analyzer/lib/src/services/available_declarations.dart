@@ -881,6 +881,8 @@ class _DeclarationStorage {
 
     var idlKind = kindToIdl(d.kind);
     return idl.AvailableDeclarationBuilder(
+      defaultArgumentListString: d.defaultArgumentListString,
+      defaultArgumentListTextRanges: d.defaultArgumentListTextRanges,
       docComplete: d.docComplete,
       docSummary: d.docSummary,
       fieldMask: fieldMask,
