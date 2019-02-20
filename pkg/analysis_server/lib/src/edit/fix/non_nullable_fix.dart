@@ -16,10 +16,6 @@ class NonNullableFix extends FixCodeTask2 {
   /// mature enough.
   static const bool _usePermissiveMode = true;
 
-  static void task(DartFixRegistrar registrar, DartFixListener listener) {
-    registrar.registerCodeTask(new NonNullableFix(listener));
-  }
-
   final DartFixListener listener;
 
   final NullabilityMigration migration;
@@ -42,6 +38,10 @@ class NonNullableFix extends FixCodeTask2 {
   @override
   Future<void> processUnit2(ResolvedUnitResult result) async {
     migration.processInput(result);
+  }
+
+  static void task(DartFixRegistrar registrar, DartFixListener listener) {
+    registrar.registerCodeTask(new NonNullableFix(listener));
   }
 }
 
