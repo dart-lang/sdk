@@ -910,27 +910,44 @@ TextSerializer<FunctionType> functionTypeSerializer = new Wrapped(
     wrapFunctionType,
     new Bind(
         typeParametersSerializer,
-        new Tuple3Serializer(new ListSerializer(dartTypeSerializer),
-            new ListSerializer(dartTypeSerializer), dartTypeSerializer)));
+        new Tuple4Serializer(
+            new ListSerializer(dartTypeSerializer),
+            new ListSerializer(dartTypeSerializer),
+            new ListSerializer(namedTypeSerializer),
+            dartTypeSerializer)));
 
-Tuple2<List<TypeParameter>, Tuple3<List<DartType>, List<DartType>, DartType>>
+Tuple2<List<TypeParameter>,
+        Tuple4<List<DartType>, List<DartType>, List<NamedType>, DartType>>
     unwrapFunctionType(FunctionType type) {
   return new Tuple2(
       type.typeParameters,
-      new Tuple3(
+      new Tuple4(
           type.positionalParameters.sublist(0, type.requiredParameterCount),
           type.positionalParameters.sublist(type.requiredParameterCount),
+          type.namedParameters,
           type.returnType));
 }
 
 FunctionType wrapFunctionType(
     Tuple2<List<TypeParameter>,
-            Tuple3<List<DartType>, List<DartType>, DartType>>
+            Tuple4<List<DartType>, List<DartType>, List<NamedType>, DartType>>
         tuple) {
   return new FunctionType(
-      tuple.second.first + tuple.second.second, tuple.second.third,
+      tuple.second.first + tuple.second.second, tuple.second.fourth,
       requiredParameterCount: tuple.second.first.length,
-      typeParameters: tuple.first);
+      typeParameters: tuple.first,
+      namedParameters: tuple.second.third);
+}
+
+TextSerializer<NamedType> namedTypeSerializer = new Wrapped(unwrapNamedType,
+    wrapNamedType, Tuple2Serializer(const DartString(), dartTypeSerializer));
+
+Tuple2<String, DartType> unwrapNamedType(NamedType namedType) {
+  return new Tuple2(namedType.name, namedType.type);
+}
+
+NamedType wrapNamedType(Tuple2<String, DartType> tuple) {
+  return new NamedType(tuple.first, tuple.second);
 }
 
 TextSerializer<TypeParameterType> typeParameterTypeSerializer = new Wrapped(

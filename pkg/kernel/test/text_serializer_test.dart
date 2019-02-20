@@ -79,17 +79,17 @@ void test() {
     "(map (dynamic) (void) ((int 0) (null) (int 1) (null) (int 2) (null)))",
     "(const-map (dynamic) (void) ((int 0) (null) (int 1) (null) "
         "(int 2) (null)))",
-    "(type (-> () () () ((dynamic)) () (dynamic)))",
-    "(type (-> () () () () ((dynamic)) (dynamic)))",
-    "(type (-> () () () ((dynamic) (dynamic)) () (dynamic)))",
-    "(type (-> () () () () () (dynamic)))",
-    "(type (-> () () () ((-> () () () ((dynamic)) () (dynamic))) () "
+    "(type (-> () () () ((dynamic)) () () (dynamic)))",
+    "(type (-> () () () () ((dynamic)) () (dynamic)))",
+    "(type (-> () () () ((dynamic) (dynamic)) () () (dynamic)))",
+    "(type (-> () () () () () () (dynamic)))",
+    "(type (-> () () () ((-> () () () ((dynamic)) () () (dynamic))) () () "
         "(dynamic)))",
-    "(type (-> (\"T^0\") ((dynamic)) ((dynamic)) () () (dynamic)))",
-    "(type (-> (\"T^0\") ((dynamic)) ((dynamic)) ((par \"T^0\" _)) () "
+    "(type (-> (\"T^0\") ((dynamic)) ((dynamic)) () () () (dynamic)))",
+    "(type (-> (\"T^0\") ((dynamic)) ((dynamic)) ((par \"T^0\" _)) () () "
         "(par \"T^0\" _)))",
     "(type (-> (\"T^0\" \"S^1\") ((par \"S^1\" _) (par \"T^0\" _)) ((dynamic) "
-        "(dynamic)) () () (dynamic)))",
+        "(dynamic)) () () () (dynamic)))",
   ];
   for (var test in tests) {
     var literal = readExpression(test);
