@@ -203,7 +203,6 @@ control_flow_collections/for_test: Crash
 control_flow_collections/for_variable_test: Crash
 control_flow_collections/if_const_test: Crash
 control_flow_collections/if_inference_test: CompileTimeError
-control_flow_collections/if_promotion_test/none: CompileTimeError
 control_flow_collections/if_test: Crash
 control_flow_collections/map_set_ambiguity_test: CompileTimeError
 control_flow_collections/syntax_error_test/09: Crash
@@ -248,6 +247,7 @@ web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 async_return_types_test/nestedFuture: MissingCompileTimeError # Issue 33068
 const_cast2_test/01: CompileTimeError # Issue 32517
 const_cast2_test/none: CompileTimeError # Issue 32517
+control_flow_collections/if_promotion_test/none: CompileTimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
