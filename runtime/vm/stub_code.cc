@@ -39,10 +39,6 @@ void StubCode::Init() {
   UNREACHABLE();
 }
 
-void StubCode::Cleanup() {
-  // Stubs will be loaded from the snapshot.
-  UNREACHABLE();
-}
 #else
 
 #define STUB_CODE_GENERATE(name)                                               \
@@ -69,14 +65,6 @@ void StubCode::Init() {
 #undef STUB_CODE_GENERATE
 #undef STUB_CODE_SET_OBJECT_POOL
 
-#define STUB_CODE_CLEANUP(name) entries_[k##name##Index] = nullptr;
-
-void StubCode::Cleanup() {
-  VM_STUB_CODE_LIST(STUB_CODE_CLEANUP);
-}
-
-#undef STUB_CODE_CLEANUP
-
 RawCode* StubCode::Generate(const char* name,
                             ObjectPoolBuilder* object_pool_builder,
                             void (*GenerateStub)(Assembler* assembler)) {
@@ -101,6 +89,14 @@ RawCode* StubCode::Generate(const char* name,
   return code.raw();
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+
+#define STUB_CODE_CLEANUP(name) entries_[k##name##Index] = nullptr;
+
+void StubCode::Cleanup() {
+  VM_STUB_CODE_LIST(STUB_CODE_CLEANUP);
+}
+
+#undef STUB_CODE_CLEANUP
 
 void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {}
 

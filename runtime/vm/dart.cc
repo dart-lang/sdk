@@ -525,10 +525,7 @@ char* Dart::Cleanup() {
   StoreBuffer::Cleanup();
   Object::Cleanup();
   SemiSpace::Cleanup();
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // Stubs are generated when not precompiled, clean them up.
   StubCode::Cleanup();
-#endif
   // Delete the current thread's TLS and set it's TLS to null.
   // If it is the last thread then the destructor would call
   // OSThread::Cleanup.
