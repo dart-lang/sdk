@@ -43,6 +43,8 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   void declaredMethod(MethodDeclaration declaration);
 
+  void declaredMixin(MixinDeclaration declaration) {}
+
   void declaredParam(SimpleIdentifier name, TypeAnnotation type);
 
   void declaredTopLevelVar(
@@ -131,6 +133,9 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
           declaration.functionType,
           declaration.functionType.typeParameters,
         );
+      } else if (declaration is MixinDeclaration) {
+        declaredMixin(declaration);
+        _visitTypeParameters(declaration, declaration.typeParameters);
       }
     });
   }

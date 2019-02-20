@@ -295,6 +295,19 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  void declaredMixin(MixinDeclaration declaration) {
+    if (optype.includeTypeNameSuggestions) {
+      _addLocalSuggestion_includeTypeNameSuggestions(
+          declaration.documentationComment,
+          declaration.name,
+          NO_RETURN_TYPE,
+          protocol.ElementKind.MIXIN,
+          isAbstract: true,
+          isDeprecated: isDeprecated(declaration));
+    }
+  }
+
+  @override
   void declaredParam(SimpleIdentifier id, TypeAnnotation typeName) {
     if (optype.includeReturnValueSuggestions) {
       _addLocalSuggestion_includeReturnValueSuggestions(

@@ -1924,6 +1924,17 @@ main() {
     assertNoSuggestions();
   }
 
+  test_extendsClause() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    addTestSource('''
+import 'a.dart';
+
+class B extends ^
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+  }
+
   test_FieldDeclaration_name_typed() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
@@ -2444,6 +2455,17 @@ main() {
     addTestSource('main() { if (v i^) }');
     await computeSuggestions();
     assertNotSuggested('int');
+  }
+
+  test_implementsClause() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    addTestSource('''
+import 'a.dart';
+
+class B implements ^
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
   }
 
   test_implicitCreation() async {
@@ -4431,5 +4453,16 @@ List<^> x;
     assertNotSuggested('f');
     assertNotSuggested('x');
     assertNotSuggested('e');
+  }
+
+  test_withClause_mixin() async {
+    newFile('/home/test/lib/a.dart', content: 'mixin M {}');
+    addTestSource('''
+import 'a.dart';
+
+class B extends A with ^
+''');
+    await computeSuggestions();
+    assertSuggestMixin('M');
   }
 }
