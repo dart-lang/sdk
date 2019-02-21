@@ -12,6 +12,9 @@ import 'package:analyzer/src/generated/engine.dart';
 /// Shared lint registry.
 LintRegistry lintRegistry = new LintRegistry();
 
+/// Current linter version.
+String linterVersion;
+
 /// Return lints associated with this [context], or an empty list if there are
 /// none.
 List<Linter> getLints(AnalysisContext context) =>
