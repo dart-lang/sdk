@@ -184,6 +184,18 @@ class Service : public AllStatic {
   static int64_t CurrentRSS();
   static int64_t MaxRSS();
 
+  static void SetDartLibraryKernelForSources(const uint8_t* kernel_bytes,
+                                             intptr_t kernel_length);
+  static bool HasDartLibraryKernelForSources() {
+    return (dart_library_kernel_ != NULL);
+  }
+
+  static const uint8_t* dart_library_kernel() { return dart_library_kernel_; }
+
+  static intptr_t dart_library_kernel_length() {
+    return dart_library_kernel_len_;
+  }
+
  private:
   static RawError* InvokeMethod(Isolate* isolate,
                                 const Array& message,
@@ -228,11 +240,8 @@ class Service : public AllStatic {
   static Dart_GetVMServiceAssetsArchive get_service_assets_callback_;
   static Dart_EmbedderInformationCallback embedder_information_callback_;
 
-  static bool needs_isolate_events_;
-  static bool needs_debug_events_;
-  static bool needs_gc_events_;
-  static bool needs_echo_events_;
-  static bool needs_graph_events_;
+  static const uint8_t* dart_library_kernel_;
+  static intptr_t dart_library_kernel_len_;
 };
 
 }  // namespace dart

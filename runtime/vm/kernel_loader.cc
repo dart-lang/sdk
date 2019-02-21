@@ -283,6 +283,24 @@ void KernelLoader::index_programs(
   subprogram_file_starts->Reverse();
 }
 
+RawString* KernelLoader::FindSourceForScript(const uint8_t* kernel_buffer,
+                                             intptr_t kernel_buffer_length,
+                                             const String& uri) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  TranslationHelper translation_helper(thread);
+  KernelReaderHelper reader(zone, &translation_helper, kernel_buffer,
+                            kernel_buffer_length, 0);
+  intptr_t source_table_size = reader.SourceTableSize();
+  for (intptr_t i = 0; i < source_table_size; ++i) {
+    const String& source_uri = reader.SourceTableUriFor(i);
+    if (source_uri.EndsWith(uri)) {
+      return reader.GetSourceFor(i).raw();
+    }
+  }
+  return String::null();
+}
+
 void KernelLoader::InitializeFields() {
   const intptr_t source_table_size = helper_.SourceTableSize();
   const Array& scripts =

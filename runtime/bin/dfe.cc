@@ -31,10 +31,6 @@ intptr_t kPlatformStrongDillSize = 0;
 namespace dart {
 namespace bin {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-DFE dfe;
-#endif
-
 #if defined(DART_NO_SNAPSHOT) || defined(DART_PRECOMPILER)
 const uint8_t* kernel_service_dill = NULL;
 const intptr_t kernel_service_dill_size = 0;
@@ -45,6 +41,10 @@ const uint8_t* kernel_service_dill = kKernelServiceDill;
 const intptr_t kernel_service_dill_size = kKernelServiceDillSize;
 const uint8_t* platform_strong_dill = kPlatformStrongDill;
 const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
+#endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+DFE dfe;
 #endif
 
 const char kKernelServiceSnapshot[] = "kernel-service.dart.snapshot";
@@ -93,6 +93,9 @@ void DFE::Init() {
   if (platform_strong_dill == NULL) {
     return;
   }
+
+  Dart_SetDartLibrarySourcesKernel(platform_strong_dill,
+                                   platform_strong_dill_size);
 
   if (frontend_filename_ == NULL) {
     // Look for the frontend snapshot next to the executable.

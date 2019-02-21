@@ -3124,6 +3124,19 @@ Dart_CompileSourcesToKernel(const char* script_uri,
 
 DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies();
 
+/**
+ * Sets the kernel buffer which will be used to load Dart SDK sources
+ * dynamically at runtime.
+ *
+ * \param platform_kernel A buffer containing kernel which has sources for the
+ * Dart SDK populated. Note: The VM does not take ownership of this memory.
+ *
+ * \param platform_kernel_size The length of the platform_kernel buffer.
+ */
+DART_EXPORT void Dart_SetDartLibrarySourcesKernel(
+    const uint8_t* platform_kernel,
+    const intptr_t platform_kernel_size);
+
 #define DART_KERNEL_ISOLATE_NAME "kernel-service"
 
 /*

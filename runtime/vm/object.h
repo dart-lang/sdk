@@ -3385,6 +3385,8 @@ class Script : public Object {
   RawString* resolved_url() const { return raw_ptr()->resolved_url_; }
   bool HasSource() const;
   RawString* Source() const;
+  bool IsPartOfDartColonLibrary() const;
+
   RawGrowableObjectArray* GenerateLineNumberArray() const;
   RawScript::Kind kind() const {
     return static_cast<RawScript::Kind>(raw_ptr()->kind_);
@@ -3460,6 +3462,11 @@ class Script : public Object {
                         const String& resolved_url,
                         const String& source,
                         RawScript::Kind kind);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void LoadSourceFromKernel(const uint8_t* kernel_buffer,
+                            intptr_t kernel_buffer_len) const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
  private:
   void set_resolved_url(const String& value) const;
@@ -7006,6 +7013,7 @@ class String : public Instance {
   intptr_t CompareTo(const String& other) const;
 
   bool StartsWith(const String& other) const;
+  bool EndsWith(const String& other) const;
 
   // Strings are canonicalized using the symbol table.
   virtual RawInstance* CheckAndCanonicalize(Thread* thread,

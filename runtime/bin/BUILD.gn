@@ -434,7 +434,7 @@ dart_io("standalone_dart_io") {
 
 gen_snapshot_action("generate_snapshot_bin") {
   deps = [
-    "../vm:vm_platform",
+    "../vm:vm_platform_stripped",
   ]
   vm_snapshot_data = "$target_gen_dir/vm_snapshot_data.bin"
   vm_snapshot_instructions = "$target_gen_dir/vm_snapshot_instructions.bin"
@@ -442,7 +442,7 @@ gen_snapshot_action("generate_snapshot_bin") {
   isolate_snapshot_instructions =
       "$target_gen_dir/isolate_snapshot_instructions.bin"
 
-  platform_dill = "$root_out_dir/vm_platform_strong.dill"
+  platform_dill = "$root_out_dir/vm_platform_strong_stripped.dill"
   inputs = [
     platform_dill,
   ]

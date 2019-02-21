@@ -121,6 +121,9 @@ StreamInfo Service::logging_stream("_Logging");
 StreamInfo Service::extension_stream("Extension");
 StreamInfo Service::timeline_stream("Timeline");
 
+const uint8_t* Service::dart_library_kernel_ = NULL;
+intptr_t Service::dart_library_kernel_len_ = 0;
+
 static StreamInfo* streams_[] = {
     &Service::vm_stream,      &Service::isolate_stream,
     &Service::debug_stream,   &Service::gc_stream,
@@ -1326,6 +1329,12 @@ int64_t Service::MaxRSS() {
   embedder_information_callback_(&info);
   ASSERT(info.version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
   return info.max_rss;
+}
+
+void Service::SetDartLibraryKernelForSources(const uint8_t* kernel_bytes,
+                                             intptr_t kernel_length) {
+  dart_library_kernel_ = kernel_bytes;
+  dart_library_kernel_len_ = kernel_length;
 }
 
 EmbedderServiceHandler* Service::FindRootEmbedderHandler(const char* name) {
@@ -4322,9 +4331,22 @@ static bool GetObject(Thread* thread, JSONStream* js) {
 
   // Handle heap objects.
   ObjectIdRing::LookupResult lookup_result;
-  const Object& obj =
-      Object::Handle(LookupHeapObject(thread, id, &lookup_result));
+  Object& obj = Object::Handle(LookupHeapObject(thread, id, &lookup_result));
   if (obj.raw() != Object::sentinel().raw()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // If obj is a script from dart:* and doesn't have source loaded, try and
+    // load the source before sending the response.
+    if (obj.IsScript()) {
+      const Script& script = Script::Cast(obj);
+      if (!script.HasSource() && script.IsPartOfDartColonLibrary() &&
+          Service::HasDartLibraryKernelForSources()) {
+        const uint8_t* kernel_buffer = Service::dart_library_kernel();
+        const intptr_t kernel_buffer_len =
+            Service::dart_library_kernel_length();
+        script.LoadSourceFromKernel(kernel_buffer, kernel_buffer_len);
+      }
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     // We found a heap object for this id.  Return it.
     obj.PrintJSON(js, false);
     return true;

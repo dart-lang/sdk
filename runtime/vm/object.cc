@@ -9086,6 +9086,25 @@ RawString* Script::Source() const {
   return raw_ptr()->source_;
 }
 
+bool Script::IsPartOfDartColonLibrary() const {
+  const String& script_url = String::Handle(url());
+  return (script_url.StartsWith(Symbols::DartScheme()) ||
+          script_url.StartsWith(Symbols::DartSchemePrivate()));
+}
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void Script::LoadSourceFromKernel(const uint8_t* kernel_buffer,
+                                  intptr_t kernel_buffer_len) const {
+  const char* dart_prefix = "dart:";
+  const size_t dart_prefix_len = strlen(dart_prefix);
+  String& uri = String::Handle(url());
+  uri ^= String::SubString(uri, dart_prefix_len);
+  String& source = String::Handle(kernel::KernelLoader::FindSourceForScript(
+      kernel_buffer, kernel_buffer_len, uri));
+  set_source(source);
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 void Script::set_compile_time_constants(const Array& value) const {
   StorePointer(&raw_ptr()->compile_time_constants_, value.raw());
 }
@@ -18916,6 +18935,25 @@ bool String::StartsWith(const String& other) const {
   intptr_t slen = other.Length();
   for (int i = 0; i < slen; i++) {
     if (this->CharAt(i) != other.CharAt(i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool String::EndsWith(const String& other) const {
+  if (other.IsNull()) {
+    return false;
+  }
+  const intptr_t len = this->Length();
+  const intptr_t other_len = other.Length();
+  const intptr_t offset = len - other_len;
+
+  if ((other_len == 0) || (other_len > len)) {
+    return false;
+  }
+  for (int i = offset; i < len; i++) {
+    if (this->CharAt(i) != other.CharAt(i - offset)) {
       return false;
     }
   }

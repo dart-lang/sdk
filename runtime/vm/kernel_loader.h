@@ -176,6 +176,10 @@ class KernelLoader : public ValueObject {
                                     intptr_t* p_num_classes,
                                     intptr_t* p_num_procedures);
 
+  static RawString* FindSourceForScript(const uint8_t* kernel_buffer,
+                                        intptr_t kernel_buffer_length,
+                                        const String& url);
+
   RawLibrary* LoadLibrary(intptr_t index);
 
   void FinishTopLevelClassLoading(const Class& toplevel_class,
