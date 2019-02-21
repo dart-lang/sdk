@@ -343,6 +343,7 @@ class SnapshotReader : public BaseReader {
   void RunDelayedTypePostprocessing();
 
   void EnqueueRehashingOfMap(const LinkedHashMap& map);
+  void EnqueueRehashingOfSet(const Object& set);
   RawObject* RunDelayedRehashingOfMaps();
 
   RawClass* ReadClassId(intptr_t object_id);
@@ -399,6 +400,7 @@ class SnapshotReader : public BaseReader {
   TypedData& typed_data_;          // Temporary typed data handle.
   Function& function_;             // Temporary function handle.
   UnhandledException& error_;      // Error handle.
+  const Class& set_class_;         // The LinkedHashSet class.
   intptr_t max_vm_isolate_object_id_;
   ZoneGrowableArray<BackRefNode>* backward_references_;
   GrowableObjectArray& types_to_postprocess_;

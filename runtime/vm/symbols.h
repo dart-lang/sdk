@@ -221,6 +221,7 @@ class ObjectPointerVisitor;
   V(_GrowableListWithData, "_GrowableList.withData")                           \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_LinkedHashMap, "_InternalLinkedHashMap")                                  \
+  V(_LinkedHashSet, "_CompactLinkedHashSet")                                   \
   V(_rehashObjects, "_rehashObjects")                                          \
   V(_String, "String")                                                         \
   V(OneByteString, "_OneByteString")                                           \

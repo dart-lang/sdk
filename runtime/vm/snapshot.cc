@@ -223,6 +223,9 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       typed_data_(TypedData::Handle(zone_)),
       function_(Function::Handle(zone_)),
       error_(UnhandledException::Handle(zone_)),
+      set_class_(Class::ZoneHandle(
+          zone_,
+          thread_->isolate()->object_store()->linked_hash_set_class())),
       max_vm_isolate_object_id_(
           (Snapshot::IsFull(kind))
               ? Object::vm_isolate_snapshot_object_table().Length()
@@ -487,6 +490,10 @@ RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value,
   return pobj_.raw();
 }
 
+void SnapshotReader::EnqueueRehashingOfSet(const Object& set) {
+  objects_to_rehash_.Add(set);
+}
+
 RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
                                         intptr_t tags,
                                         bool as_reference) {
@@ -515,6 +522,9 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
     cls_ ^= ReadObjectImpl(kAsInlinedObject);
     ASSERT(!cls_.IsNull());
     instance_size = cls_.instance_size();
+  }
+  if (cls_.id() == set_class_.id()) {
+    EnqueueRehashingOfSet(*result);
   }
   if (!as_reference) {
     // Read all the individual fields for inlined objects.
