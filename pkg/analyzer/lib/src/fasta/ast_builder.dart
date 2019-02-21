@@ -55,6 +55,8 @@ import 'package:front_end/src/fasta/source/stack_listener.dart'
     show NullValue, StackListener;
 import 'package:kernel/ast.dart' show AsyncMarker;
 
+const _invalidCollectionElement = const _InvalidCollectionElement._();
+
 /// A parser listener that builds the analyzer's AST structure.
 class AstBuilder extends StackListener {
   final AstFactory ast = standard.astFactory;
@@ -312,7 +314,10 @@ class AstBuilder extends StackListener {
       CollectionElement thenElement,
       Token elseToken,
       CollectionElement elseElement) {
-    if (enableControlFlowCollections) {
+    if (thenElement == _invalidCollectionElement ||
+        elseElement == _invalidCollectionElement) {
+      push(_invalidCollectionElement);
+    } else if (enableControlFlowCollections) {
       push(ast.ifElement(
         ifKeyword: ifToken,
         leftParenthesis: condition.leftParenthesis,
@@ -323,19 +328,24 @@ class AstBuilder extends StackListener {
         elseElement: elseElement,
       ));
     } else {
+      // TODO(danrubel): Improve error message by indicating to the user
+      // that they need to enable this experiment.
       handleRecoverableError(
           templateUnexpectedToken.withArguments(ifToken), ifToken, ifToken);
-      push(thenElement);
+      push(_invalidCollectionElement);
     }
   }
 
   @override
   void handleSpreadExpression(Token spreadToken) {
+    var expression = pop();
     if (enableSpreadCollections) {
-      push(ast.spreadElement(spreadOperator: spreadToken, expression: pop()));
+      push(ast.spreadElement(
+          spreadOperator: spreadToken, expression: expression));
     } else {
       handleRecoverableError(templateUnexpectedToken.withArguments(spreadToken),
           spreadToken, spreadToken);
+      push(_invalidCollectionElement);
     }
   }
 
@@ -928,7 +938,9 @@ class AstBuilder extends StackListener {
 
   void pushForControlFlowInfo(Token awaitToken, Token forToken,
       Token leftParenthesis, ForLoopParts forLoopParts, Object entry) {
-    if (enableControlFlowCollections) {
+    if (entry == _invalidCollectionElement) {
+      push(_invalidCollectionElement);
+    } else if (enableControlFlowCollections) {
       push(ast.forElement(
         awaitKeyword: awaitToken,
         forKeyword: forToken,
@@ -940,7 +952,7 @@ class AstBuilder extends StackListener {
     } else {
       handleRecoverableError(
           templateUnexpectedToken.withArguments(forToken), forToken, forToken);
-      push(entry);
+      push(_invalidCollectionElement);
     }
   }
 
@@ -991,13 +1003,27 @@ class AstBuilder extends StackListener {
 
     if (enableControlFlowCollections || enableSpreadCollections) {
       List<CollectionElement> elements = popCollectionElements(count);
-
       TypeArgumentList typeArguments = pop();
+
+      // TODO(danrubel): Remove this and _InvalidCollectionElement
+      // once control flow and spread collection support is enabled by default
+      elements.removeWhere((e) => e == _invalidCollectionElement);
+
       push(ast.listLiteral(
           constKeyword, typeArguments, leftBracket, elements, rightBracket));
     } else {
-      List<Expression> expressions = popTypedList(count);
+      List<dynamic> elements = popTypedList(count);
       TypeArgumentList typeArguments = pop();
+
+      List<Expression> expressions = <Expression>[];
+      if (elements != null) {
+        for (var elem in elements) {
+          if (elem is Expression) {
+            expressions.add(elem);
+          }
+        }
+      }
+
       push(ast.listLiteral(
           constKeyword, typeArguments, leftBracket, expressions, rightBracket));
     }
@@ -1048,6 +1074,11 @@ class AstBuilder extends StackListener {
       int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     if (enableControlFlowCollections || enableSpreadCollections) {
       List<CollectionElement> elements = popCollectionElements(count);
+
+      // TODO(danrubel): Remove this and _InvalidCollectionElement
+      // once control flow and spread collection support is enabled by default
+      elements.removeWhere((e) => e == _invalidCollectionElement);
+
       TypeArgumentList typeArguments = pop();
       push(ast.setOrMapLiteral(
         constKeyword: constKeyword,
@@ -1057,7 +1088,7 @@ class AstBuilder extends StackListener {
         rightBracket: rightBrace,
       ));
     } else {
-      List elements = popTypedList(count);
+      List<dynamic> elements = popTypedList(count);
       TypeArgumentList typeArguments = pop();
 
       // Replicate existing behavior that has been removed from the parser.
@@ -1072,7 +1103,7 @@ class AstBuilder extends StackListener {
           if (elem is MapLiteralEntry) {
             isSet = false;
             break;
-          } else {
+          } else if (elem is Expression) {
             isSet = true;
             break;
           }
@@ -1090,7 +1121,7 @@ class AstBuilder extends StackListener {
                   templateUnexpectedToken.withArguments(elem.separator),
                   elem.separator,
                   elem.separator);
-            } else {
+            } else if (elem is Expression) {
               setEntries.add(elem);
             }
           }
@@ -1103,8 +1134,8 @@ class AstBuilder extends StackListener {
           for (var elem in elements) {
             if (elem is MapLiteralEntry) {
               mapEntries.add(elem);
-            } else {
-              Token next = (elem as Expression).endToken.next;
+            } else if (elem is Expression) {
+              Token next = elem.endToken.next;
               int offset = next.offset;
               handleRecoverableError(
                   templateExpectedButGot.withArguments(':'), next, next);
@@ -3187,6 +3218,18 @@ class AstBuilder extends StackListener {
     if (n == 0) return null;
     return stack.popList(n, list, null);
   }
+}
+
+/// When [enableSpreadCollections] and/or [enableControlFlowCollections]
+/// are false, this class is pushed on the stack when a disabled
+/// [CollectionElement] has been parsed.
+class _InvalidCollectionElement implements CollectionElement {
+  // TODO(danrubel): Remove this once control flow and spread collections
+  // have been enabled by default.
+
+  const _InvalidCollectionElement._();
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Data structure placed on the stack to represent the default parameter
