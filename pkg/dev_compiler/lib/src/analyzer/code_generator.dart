@@ -336,6 +336,9 @@ class CodeGenerator extends Object
     compilationUnits.forEach(visitCompilationUnit);
     assert(_deferredProperties.isEmpty);
 
+    moduleItems.addAll(afterClassDefItems);
+    afterClassDefItems.clear();
+
     // Visit directives (for exports)
     compilationUnits.forEach(_emitExportDirectives);
 
@@ -884,7 +887,7 @@ class CodeGenerator extends Object
       classDef = _defineClassTypeArguments(
           classElem, typeFormals, classDef, className, deferredSupertypes);
     } else {
-      body.addAll(deferredSupertypes);
+      afterClassDefItems.addAll(deferredSupertypes);
     }
 
     body = [classDef];

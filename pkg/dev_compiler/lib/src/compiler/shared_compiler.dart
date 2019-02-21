@@ -28,6 +28,12 @@ abstract class SharedCompiler<Library, Class> {
   /// The list of output module items, in the order they need to be emitted in.
   final moduleItems = <JS.ModuleItem>[];
 
+  /// Like [moduleItems] but for items that should be emitted after classes.
+  ///
+  /// This is used for deferred supertypes of mutually recursive non-generic
+  /// classes.
+  final afterClassDefItems = <JS.ModuleItem>[];
+
   /// When compiling the body of a `operator []=` method, this will be non-null
   /// and will indicate the the value that should be returned from any `return;`
   /// statements.

@@ -314,6 +314,9 @@ class ProgramCompiler extends Object
     // This is done by forward declaring items.
     libraries.forEach(_emitLibrary);
 
+    moduleItems.addAll(afterClassDefItems);
+    afterClassDefItems.clear();
+
     // Visit directives (for exports)
     libraries.forEach(_emitExports);
 
@@ -569,7 +572,7 @@ class ProgramCompiler extends Object
       classDef = _defineClassTypeArguments(
           c, typeFormals, classDef, className, deferredSupertypes);
     } else {
-      body.addAll(deferredSupertypes);
+      afterClassDefItems.addAll(deferredSupertypes);
     }
 
     body = [classDef];
