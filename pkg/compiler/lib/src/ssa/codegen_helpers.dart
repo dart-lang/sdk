@@ -20,8 +20,6 @@ class SsaInstructionSelection extends HBaseVisitor {
   final CompilerOptions _options;
   HGraph graph;
 
-  Set<HInstruction> _processedSetters = Set();
-
   SsaInstructionSelection(
       this._options, this._closedWorld, this._interceptorData);
 
@@ -196,99 +194,6 @@ class SsaInstructionSelection extends HBaseVisitor {
     return false;
   }
 
-  void tryChainAssignment(HInstruction setter, HInstruction value) {
-    // Try to use result of field or static assignment
-    //
-    //     t1 = v;  x.f = t1;  ... t1 ...  -->  t1 = x.f = v;  ... t1 ...
-    //
-
-    // We grow the chain ahead of the block-scan, so we may have already
-    // processed the chain.
-    if (_processedSetters.contains(setter)) return;
-    _processedSetters.add(setter);
-
-    // Single use is this setter so there will be no other uses to chain.
-    if (value.usedBy.length <= 1) return;
-
-    HInstruction chain = setter;
-    setter.instructionType = value.instructionType;
-    for (HInstruction current = setter.next;;) {
-      if (current is HFieldSet) {
-        HFieldSet nextSetter = current;
-        if (nextSetter.value == value && nextSetter.receiver != value) {
-          _processedSetters.add(nextSetter);
-          nextSetter.changeUse(value, chain);
-          nextSetter.instructionType = value.instructionType;
-          chain = nextSetter;
-          current = nextSetter.next;
-          continue;
-        }
-      } else if (current is HStaticStore) {
-        HStaticStore nextStore = current;
-        if (nextStore.value == value) {
-          _processedSetters.add(nextStore);
-          nextStore.changeUse(value, chain);
-          nextStore.instructionType = value.instructionType;
-          chain = nextStore;
-          current = nextStore.next;
-          continue;
-        }
-      } else if (current is HReturn) {
-        if (current.inputs.single == value) {
-          current.changeUse(value, chain);
-          return;
-        }
-      }
-      break;
-    }
-
-    if (value.usedBy.length <= 1) return; // [setter] is only remaining use.
-
-    // Chain to other places.
-    var uses = DominatedUses.of(value, chain, excludeDominator: true);
-
-    if (uses.isEmpty) return;
-
-    bool simpleSource =
-        value is HConstant || value.nonCheck() is HParameterValue;
-
-    if (uses.isSingleton) {
-      var use = uses.single;
-      if (use is HPhi) {
-        // Filter out back-edges - that causes problems for variable
-        // assignment.
-        // TODO(sra): Better analysis to permit phis that are part of a
-        // forwards-only tree.
-        if (use.block.id < chain.block.id) return;
-        if (use.usedBy.any((node) => node is HPhi)) return;
-        // Try to avoid the variable allocator creating a new name.
-        if (simpleSource || value.usedBy.length <= 2) {
-          use.changeUse(value, chain);
-          return;
-        }
-      }
-    }
-
-    if (simpleSource) return;
-
-    // TODO(sra): Consider chaining to other places.
-    //
-    // 1. If there are many remaining uses, all of them dominated by [chain],
-    //    we should replace them with [chain] and let that value get the
-    //    variable name.
-    //
-    // 2. Chains with one remaining potential use have the potential to
-    //    generate huge expression containing many assignments. This will be
-    //    smaller but nearly impossible to read. What interior positions
-    //    should we chain into?
-    return;
-  }
-
-  HInstruction visitStaticStore(HStaticStore store) {
-    tryChainAssignment(store, store.inputs.single);
-    return null;
-  }
-
   HInstruction visitFieldSet(HFieldSet setter) {
     // Pattern match
     //     t1 = x.f; t2 = t1 + 1; x.f = t2; use(t2)   -->  ++x.f
@@ -314,7 +219,6 @@ class SsaInstructionSelection extends HBaseVisitor {
     }
 
     HInstruction noMatchingRead() {
-      tryChainAssignment(setter, setter.value);
       // If we have other HFieldSet optimizations, they go here.
       return null;
     }
@@ -488,6 +392,169 @@ class SsaTrustedCheckRemover extends HBaseVisitor {
       instruction.block.rewrite(instruction, instruction.checkedInput);
       instruction.block.remove(instruction);
     }
+  }
+}
+
+/// Use the result of static and field assignments where it is profitable to use
+/// the result of the assignment instead of the value.
+///
+///     a.x = v;
+///     b.y = v;
+/// -->
+///     b.y = a.x = v;
+class SsaAssignmentChaining extends HBaseVisitor {
+  final JClosedWorld _closedWorld;
+  final CompilerOptions _options;
+  //HGraph graph;
+
+  SsaAssignmentChaining(this._options, this._closedWorld);
+
+  AbstractValueDomain get _abstractValueDomain =>
+      _closedWorld.abstractValueDomain;
+
+  void visitGraph(HGraph graph) {
+    //this.graph = graph;
+    visitDominatorTree(graph);
+  }
+
+  void visitBasicBlock(HBasicBlock block) {
+    HInstruction instruction = block.first;
+    while (instruction != null) {
+      instruction = instruction.accept(this);
+    }
+  }
+
+  /// Returns the next instruction.
+  HInstruction visitInstruction(HInstruction node) {
+    return node.next;
+  }
+
+  HInstruction visitFieldSet(HFieldSet setter) {
+    return tryChainAssignment(setter, setter.value);
+  }
+
+  HInstruction visitStaticStore(HStaticStore store) {
+    return tryChainAssignment(store, store.inputs.single);
+  }
+
+  HInstruction tryChainAssignment(HInstruction setter, HInstruction value) {
+    // Try to use result of field or static assignment
+    //
+    //     t1 = v;  x.f = t1;  ... t1 ...
+    // -->
+    //     t1 = x.f = v;  ... t1 ...
+    //
+
+    // Single use is this setter so there will be no other uses to chain to.
+    if (value.usedBy.length <= 1) return setter.next;
+
+    // It is always worthwhile chaining into another setter, since it reduces
+    // the number of references to [value].
+    HInstruction chain = setter;
+    setter.instructionType = value.instructionType;
+    for (HInstruction current = setter.next;;) {
+      if (current is HFieldSet) {
+        HFieldSet nextSetter = current;
+        if (nextSetter.value == value && nextSetter.receiver != value) {
+          nextSetter.changeUse(value, chain);
+          nextSetter.instructionType = value.instructionType;
+          chain = nextSetter;
+          current = nextSetter.next;
+          continue;
+        }
+      } else if (current is HStaticStore) {
+        HStaticStore nextStore = current;
+        if (nextStore.value == value) {
+          nextStore.changeUse(value, chain);
+          nextStore.instructionType = value.instructionType;
+          chain = nextStore;
+          current = nextStore.next;
+          continue;
+        }
+      } else if (current is HReturn) {
+        if (current.inputs.single == value) {
+          current.changeUse(value, chain);
+          return current.next;
+        }
+      }
+      break;
+    }
+
+    final HInstruction next = chain.next;
+
+    if (value.usedBy.length <= 1) return next; // setter is only remaining use.
+
+    // Chain to other places.
+    var uses = DominatedUses.of(value, chain, excludeDominator: true);
+
+    if (uses.isEmpty) return next;
+
+    bool simpleSource = value is HConstant || value is HParameterValue;
+
+    if (uses.isSingleton) {
+      var use = uses.single;
+      if (use is HPhi) {
+        // Filter out back-edges - that causes problems for variable
+        // assignment.
+        // TODO(sra): Better analysis to permit phis that are part of a
+        // forwards-only tree.
+        if (use.block.id < chain.block.id) return next;
+        if (use.usedBy.any((node) => node is HPhi)) return next;
+
+        // A forward phi often has a new name. We want to avoid [value] having a
+        // name at the same time, so chain into the phi only if [value] (1) will
+        // never have a name (like a constant) (2) unavoidably has a name
+        // (e.g. a parameter) or (3) chaining will result in a single use that
+        // variable allocator can try to name consistently with the other phi
+        // inputs.
+        if (simpleSource || value.usedBy.length <= 2) {
+          if (value.isPure(_abstractValueDomain) ||
+              setter.previous == value ||
+              // the following tests for immediately previous phi.
+              (setter.previous == null && value.block == setter.block)) {
+            use.changeUse(value, chain);
+          }
+        }
+        return next;
+      }
+      // TODO(sra): Chains with one remaining potential use have the potential
+      // to generate huge expression containing many nested assignments. This
+      // will be smaller but nearly impossible to read. Are there interior
+      // positions that we should chain into because they are not too difficult
+      // to read?
+      return next;
+    }
+
+    if (simpleSource) return next;
+
+    // If there are many remaining uses, but they are all dominated by [chain],
+    // the variable allocator will try to give them all the same name.
+    if (uses.length >= 2 &&
+        value.usedBy.length - uses.length <= 1 &&
+        value == value.nonCheck()) {
+      // If [value] is a phi, it might have a name. Exceptions are phis that can
+      // be compiled into expressions like `a?b:c` and `a&&b`. We can't tell
+      // here if the phi is an expression, which we could chain, or an
+      // if-then-else with assignments to a variable. If we try to chain an
+      // if-then-else phi we will end up generating code like
+      //
+      //     t2 = this.x = t1;  // t1 is the phi, t2 is the chained name
+      //
+      if (value is HPhi) return next;
+
+      // We need [value] to be generate-at-use in the setter to avoid it having
+      // a name. As a quick check for generate-at-use, accept pure and
+      // immediately preceding instructions.
+      if (value.isPure(_abstractValueDomain) || setter.previous == value) {
+        // TODO(sra): We can tolerate a few non-throwing loads between setter
+        // and value.
+        uses.replaceWith(chain);
+        chain.sourceElement ??= value.sourceElement;
+      }
+      return next;
+    }
+
+    return next;
   }
 }
 
