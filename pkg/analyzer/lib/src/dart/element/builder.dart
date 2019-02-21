@@ -1353,6 +1353,8 @@ class LocalElementBuilder extends _BaseElementBuilder {
     AstNode parent2 = node.parent.parent;
     if (parent2 is ForStatement) {
       scopeNode = parent2;
+    } else if (parent2 is ForPartsWithDeclarations) {
+      scopeNode = parent2.parent;
     } else {
       scopeNode = node.thisOrAncestorOfType<Block>();
     }

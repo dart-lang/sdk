@@ -24,6 +24,7 @@ import 'non_nullable_test.dart' as non_nullable_test;
 import 'optional_const_test.dart' as optional_const_test;
 import 'property_access_test.dart' as property_access_test;
 import 'top_type_inference_test.dart' as top_type_inference_test;
+import 'type_inference/test_all.dart' as type_inference;
 
 main() {
   defineReflectiveSuite(() {
@@ -45,5 +46,6 @@ main() {
     optional_const_test.main();
     property_access_test.main();
     top_type_inference_test.main();
+    type_inference.main();
   }, name: 'resolution');
 }

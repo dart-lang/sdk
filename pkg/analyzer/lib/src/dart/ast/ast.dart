@@ -2342,7 +2342,16 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   LineInfo lineInfo;
 
+  /// ?
+  // TODO(brianwilkerson) Remove this field. It is never read, only written.
   Map<int, AstNode> localDeclarations;
+
+  /**
+   * Additional information about local variables that are declared within this
+   * compilation unit but outside any function body, or `null` if resolution has
+   * not yet been performed.
+   */
+  LocalVariableInfo localVariableInfo = new LocalVariableInfo();
 
   /**
    * Is `true` if the non-nullable feature is enabled, and this library
@@ -2437,6 +2446,20 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitCompilationUnit(this);
+
+  bool isPotentiallyMutatedInClosure(VariableElement variable) {
+    if (localVariableInfo == null) {
+      throw new StateError('Resolution has not yet been performed');
+    }
+    return localVariableInfo.potentiallyMutatedInClosure.contains(variable);
+  }
+
+  bool isPotentiallyMutatedInScope(VariableElement variable) {
+    if (localVariableInfo == null) {
+      throw new StateError('Resolution has not yet been performed');
+    }
+    return localVariableInfo.potentiallyMutatedInScope.contains(variable);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {

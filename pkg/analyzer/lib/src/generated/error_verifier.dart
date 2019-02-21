@@ -1407,7 +1407,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         grandparent is! FieldDeclaration) {
       VariableElement element = node.declaredElement;
       if (element != null) {
-        _hiddenElements.declare(element);
+        // There is no hidden elements if we are outside of a function body,
+        // which will happen for variables declared in control flow elements.
+        _hiddenElements?.declare(element);
       }
     }
   }

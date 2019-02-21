@@ -4663,21 +4663,27 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    InterfaceType listT;
+    InterfaceType listType;
 
-    if (node.typeArguments != null) {
-      var targs = node.typeArguments.arguments.map((t) => t.type).toList();
-      if (targs.length == 1 && !targs[0].isDynamic) {
-        listT = typeProvider.listType.instantiate([targs[0]]);
+    TypeArgumentList typeArguments = node.typeArguments;
+    if (typeArguments != null) {
+      if (typeArguments.arguments.length == 1) {
+        DartType elementType = typeArguments.arguments[0].type;
+        if (!elementType.isDynamic) {
+          listType = typeProvider.listType.instantiate([elementType]);
+        }
       }
     } else {
-      listT = typeAnalyzer.inferListType(node, downwards: true);
+      listType = typeAnalyzer.inferListType(node, downwards: true);
     }
-    if (listT != null) {
+    if (listType != null) {
+      DartType elementType = listType.typeArguments[0];
+      DartType iterableType =
+          typeProvider.iterableType.instantiate([elementType]);
       for (CollectionElement element in node.elements2) {
-        _pushCollectionTypesDown(element, listT);
+        _pushCollectionTypesDown(element, elementType, iterableType);
       }
-      InferenceContext.setType(node, listT);
+      InferenceContext.setType(node, listType);
     } else {
       InferenceContext.clearType(node);
     }
@@ -4921,12 +4927,15 @@ class ResolverVisitor extends ScopedVisitor {
     if (literalType != null) {
       List<DartType> typeArguments = literalType.typeArguments;
       if (typeArguments.length == 1) {
+        DartType elementType = literalType.typeArguments[0];
+        DartType iterableType =
+            typeProvider.iterableType.instantiate([elementType]);
         for (CollectionElement element in node.elements2) {
-          _pushCollectionTypesDown(element, literalType);
+          _pushCollectionTypesDown(element, elementType, iterableType);
         }
       } else if (typeArguments.length == 2) {
-        DartType kType = typeArguments[0];
-        DartType vType = typeArguments[1];
+        DartType keyType = typeArguments[0];
+        DartType valueType = typeArguments[1];
 
         void pushTypesDown(CollectionElement element) {
           if (element is ForElement) {
@@ -4935,8 +4944,8 @@ class ResolverVisitor extends ScopedVisitor {
             pushTypesDown(element.thenElement);
             pushTypesDown(element.elseElement);
           } else if (element is MapLiteralEntry) {
-            InferenceContext.setType(element.key, kType);
-            InferenceContext.setType(element.value, vType);
+            InferenceContext.setType(element.key, keyType);
+            InferenceContext.setType(element.value, valueType);
           } else if (element is SpreadElement) {
             InferenceContext.setType(element.expression, literalType);
           }
@@ -5366,16 +5375,16 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   void _pushCollectionTypesDown(
-      CollectionElement element, ParameterizedType collectionType) {
+      CollectionElement element, DartType elementType, DartType iterableType) {
     if (element is ForElement) {
-      _pushCollectionTypesDown(element.body, collectionType);
+      _pushCollectionTypesDown(element.body, elementType, iterableType);
     } else if (element is IfElement) {
-      _pushCollectionTypesDown(element.thenElement, collectionType);
-      _pushCollectionTypesDown(element.elseElement, collectionType);
+      _pushCollectionTypesDown(element.thenElement, elementType, iterableType);
+      _pushCollectionTypesDown(element.elseElement, elementType, iterableType);
     } else if (element is Expression) {
-      InferenceContext.setType(element, collectionType.typeArguments[0]);
+      InferenceContext.setType(element, elementType);
     } else if (element is SpreadElement) {
-      InferenceContext.setType(element.expression, collectionType);
+      InferenceContext.setType(element.expression, iterableType);
     }
   }
 
@@ -8560,6 +8569,12 @@ class VariableResolverVisitor extends ScopedVisitor {
   void visitBlockFunctionBody(BlockFunctionBody node) {
     assert(_localVariableInfo != null);
     super.visitBlockFunctionBody(node);
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    _localVariableInfo = (node as CompilationUnitImpl).localVariableInfo;
+    super.visitCompilationUnit(node);
   }
 
   @override
