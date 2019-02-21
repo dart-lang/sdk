@@ -1724,6 +1724,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       }
 
       // Append lints.
+      buffer.addString(linterVersion ?? '');
       buffer.addInt(lintRules.length);
       for (Linter lintRule in lintRules) {
         buffer.addString(lintRule.lintCode.uniqueName);
