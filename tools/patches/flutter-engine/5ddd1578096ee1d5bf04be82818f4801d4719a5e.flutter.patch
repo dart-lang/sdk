@@ -1,9 +1,9 @@
 diff --git a/packages/flutter_tools/lib/src/base/build.dart b/packages/flutter_tools/lib/src/base/build.dart
-index 7be3b8c203b..8e601204282 100644
+index 309f8ff85..e149ab496 100644
 --- a/packages/flutter_tools/lib/src/base/build.dart
 +++ b/packages/flutter_tools/lib/src/base/build.dart
 @@ -46,13 +46,11 @@ class GenSnapshot {
-
+ 
    Future<int> run({
      @required SnapshotType snapshotType,
 -    @required String packagesPath,
@@ -14,9 +14,9 @@ index 7be3b8c203b..8e601204282 100644
        '--causal_async_stacks',
 -      '--packages=$packagesPath',
      ]..addAll(additionalArgs);
-
+ 
      final String snapshotterPath = getSnapshotterPath(snapshotType);
-@@ -193,7 +191,6 @@ class AOTSnapshotter {
+@@ -194,7 +192,6 @@ class AOTSnapshotter {
      final SnapshotType snapshotType = SnapshotType(platform, buildMode);
      final int genSnapshotExitCode = await genSnapshot.run(
        snapshotType: snapshotType,
@@ -24,7 +24,7 @@ index 7be3b8c203b..8e601204282 100644
        additionalArgs: genSnapshotArgs,
        iosArch: iosArch,
      );
-@@ -537,7 +534,6 @@ class JITSnapshotter {
+@@ -539,7 +536,6 @@ class JITSnapshotter {
      final SnapshotType snapshotType = SnapshotType(platform, buildMode);
      final int genSnapshotExitCode = await genSnapshot.run(
        snapshotType: snapshotType,
