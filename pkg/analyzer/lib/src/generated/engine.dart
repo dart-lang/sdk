@@ -1505,6 +1505,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool implicitDynamic = true;
 
   /**
+   * A flag indicating whether inference failures are allowed, off by default.
+   *
+   * This option is experimental and subject to change.
+   */
+  bool strictInference = false;
+
+  /**
    * Initialize a newly created set of analysis options to have their default
    * values.
    */
@@ -1534,6 +1541,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
       implicitDynamic = options.implicitDynamic;
+      strictInference = options.strictInference;
     }
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
@@ -1708,6 +1716,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
+      buffer.addBool(strictInference);
       buffer.addBool(strongModeHints);
       buffer.addBool(useFastaParser);
 
@@ -1791,6 +1800,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     hint = true;
     implicitCasts = true;
     implicitDynamic = true;
+    strictInference = false;
     lint = false;
     _lintRules = null;
     patchPaths = {};

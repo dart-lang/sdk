@@ -60,6 +60,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   ExperimentStatus _experimentStatus;
 
   /**
+   * True if inference failures should be reported, otherwise false.
+   */
+  bool _strictInference;
+
+  /**
    * The type representing the class containing the nodes being analyzed,
    * or `null` if the nodes are not within a class.
    */
@@ -80,9 +85,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
     _promoteManager = _resolver.promoteManager;
-    _experimentStatus = (_resolver.definingLibrary.context.analysisOptions
-            as AnalysisOptionsImpl)
-        .experimentStatus;
+    AnalysisOptionsImpl analysisOptions =
+        _resolver.definingLibrary.context.analysisOptions;
+    _experimentStatus = analysisOptions.experimentStatus;
+    _strictInference = analysisOptions.strictInference;
   }
 
   /**
@@ -1923,8 +1929,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   void _inferLocalVariableType(
       VariableDeclaration node, Expression initializer) {
+    AstNode parent = node.parent;
     if (initializer != null) {
-      AstNode parent = node.parent;
       if (parent is VariableDeclarationList && parent.type == null) {
         DartType type = resolutionMap.staticTypeForExpression(initializer);
         if (type != null && !type.isBottom && !type.isDartCoreNull) {
@@ -1934,6 +1940,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
             node.name.staticType = initializer.staticType;
           }
         }
+      }
+    } else if (_strictInference) {
+      if (parent is VariableDeclarationList && parent.type == null) {
+        _resolver.errorReporter.reportTypeErrorForNode(
+          HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
+          node,
+          [node.name.name],
+        );
       }
     }
   }

@@ -178,6 +178,17 @@ class HintCode extends ErrorCode {
               "rename the function in the imported library.");
 
   /**
+   * When "strict-inference" in enabled, uninitialized variables must be
+   * declared with a specific type.
+   */
+  static const HintCode INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE =
+      const HintCode(
+          'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
+          "The type of {0} cannot be inferred without either a type or "
+          "initializer.",
+          correction: "Try specifying the type of the variable.");
+
+  /**
    * This hint is generated anywhere a @factory annotation is associated with
    * anything other than a method.
    */

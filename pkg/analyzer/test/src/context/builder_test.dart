@@ -952,6 +952,7 @@ environment:
     expect(actual.strongModeHints, expected.strongModeHints);
     expect(actual.implicitCasts, expected.implicitCasts);
     expect(actual.implicitDynamic, expected.implicitDynamic);
+    expect(actual.strictInference, expected.strictInference);
     expect(actual.trackCacheDependencies, expected.trackCacheDependencies);
     expect(actual.disableCacheFlushing, expected.disableCacheFlushing);
   }

@@ -58,6 +58,9 @@ class AnalyzerOptions {
   static const String implicitCasts = 'implicit-casts';
   static const String implicitDynamic = 'implicit-dynamic';
 
+  // Language options (see AnalysisOptionsImpl for documentation).
+  static const String strictInference = 'strict-inference';
+
   /// Ways to say `ignore`.
   static const List<String> ignoreSynonyms = const ['ignore', 'false'];
 
@@ -89,7 +92,9 @@ class AnalyzerOptions {
   ];
 
   /// Supported `analyzer` language options.
-  static const List<String> languageOptions = const [];
+  static const List<String> languageOptions = const [
+    strictInference,
+  ];
 }
 
 /// Validates `analyzer` options.
@@ -696,7 +701,9 @@ class _OptionsProcessor {
       AnalysisOptionsImpl options, Object feature, Object value) {
     bool boolValue = toBool(value);
     if (boolValue != null) {
-      // Currently no supported language options.
+      if (feature == AnalyzerOptions.strictInference) {
+        options.strictInference = boolValue;
+      }
     }
   }
 

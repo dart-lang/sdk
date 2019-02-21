@@ -373,10 +373,10 @@ analyzer:
 analyzer:
   language:
     unsupported: true
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES]);
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
   }
 
-  test_analyzer_language_unsupported_value() {
+  test_analyzer_strong_mode_unsupported_value() {
     validate('''
 analyzer:
   strong-mode:
