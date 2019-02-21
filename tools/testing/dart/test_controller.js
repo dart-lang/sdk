@@ -103,6 +103,17 @@ window.onerror = function (message, url, lineNumber) {
   notifyDone('FAIL');
 };
 
+window.onunhandledrejection = function (e) {
+  var reason = e.reason != null ? e.reason.stack : null;
+  var message = ('window.onunhandledrejection called: \n\n' + reason + '\n\n');
+  if (testExpectsGlobalError) {
+    testSuppressedGlobalErrors.push({message: message});
+    return;
+  }
+  recordEvent('window_onerror', message);
+  notifyDone('FAIL');
+};
+
 var waitForDone = false;
 
 var driverWindowCached = false;
