@@ -14,6 +14,8 @@
 ///   a default value of zero.
 /// - Getters of type String never return null, and have a default value of ''.
 /// - Getters of type bool never return null, and have a default value of false.
+/// - Getters of type double never return null, and have a default value of
+///   `0.0`.
 /// - Getters whose type is an enum never return null, and have a default value
 ///   of the first value declared in the enum.
 ///

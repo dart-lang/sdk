@@ -175,6 +175,8 @@ class _CodeGenerator {
     } else if (_idl.enums.containsKey(type.typeName)) {
       return '${idlPrefix(type.typeName)}.'
           '${_idl.enums[type.typeName].values[0].name}';
+    } else if (type.typeName == 'double') {
+      return '0.0';
     } else if (type.typeName == 'int') {
       return '0';
     } else if (type.typeName == 'String') {
@@ -734,6 +736,9 @@ class _CodeGenerator {
           } else if (fieldType.typeName == 'bool') {
             condition = '$valueName == true';
             writeCode = 'fbBuilder.addBool($index, true);';
+          } else if (fieldType.typeName == 'double') {
+            condition += ' && $valueName != ${defaultValue(fieldType, true)}';
+            writeCode = 'fbBuilder.addFloat64($index, $valueName);';
           } else if (fieldType.typeName == 'int') {
             condition += ' && $valueName != ${defaultValue(fieldType, true)}';
             writeCode = 'fbBuilder.addUint32($index, $valueName);';
@@ -827,6 +832,8 @@ class _CodeGenerator {
           }
         } else if (typeName == 'bool') {
           readCode = 'const fb.BoolReader()';
+        } else if (typeName == 'double') {
+          readCode = 'const fb.Float64Reader()';
         } else if (typeName == 'int') {
           readCode = 'const fb.Uint32Reader()';
         } else if (typeName == 'String') {

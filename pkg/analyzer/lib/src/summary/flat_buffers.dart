@@ -142,6 +142,19 @@ class Builder {
   }
 
   /**
+   * Add the [field] with the given 64-bit float [value].
+   */
+  void addFloat64(int field, double value, [double def]) {
+    _ensureCurrentVTable();
+    if (value != null && value != def) {
+      int size = 8;
+      _prepare(size, 1);
+      _trackField(field);
+      _setFloat64AtTail(_buf, _tail, value);
+    }
+  }
+
+  /**
    * Add the [field] with the given 32-bit signed integer [value].  The field is
    * not added if the [value] is equal to [def].
    */
@@ -752,6 +765,19 @@ class Uint8Reader extends Reader<int> {
 
   @override
   int read(BufferContext bc, int offset) => bc._getUint8(offset);
+}
+
+/**
+ * The reader of 64-bit floats.
+ */
+class Float64Reader extends Reader<double> {
+  const Float64Reader() : super();
+
+  @override
+  int get size => 8;
+
+  @override
+  double read(BufferContext bc, int offset) => bc._getFloat64(offset);
 }
 
 /**
