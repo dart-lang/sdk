@@ -61,6 +61,7 @@ class AllocStats {
     new_count = 0;
     new_size = 0;
     new_external_size = 0;
+    old_external_size = 0;
   }
 
   void AddNew(T size) {
@@ -76,6 +77,7 @@ class AllocStats {
     old_count = 0;
     old_size = 0;
     old_external_size = 0;
+    new_external_size = 0;
   }
 
   void AddOld(T size, T count = 1) {
@@ -296,6 +298,7 @@ class ClassTable {
   friend class ScavengerVisitor;
   friend class ScavengerWeakVisitor;
   friend class ClassHeapStatsTestHelper;
+  friend class HeapTestsHelper;
   static const int initial_capacity_ = 512;
   static const int capacity_increment_ = 256;
 

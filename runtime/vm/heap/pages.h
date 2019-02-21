@@ -360,6 +360,7 @@ class PageSpace {
   }
 
   void AllocateExternal(intptr_t cid, intptr_t size);
+  void PromoteExternal(intptr_t cid, intptr_t size);
   void FreeExternal(intptr_t size);
 
   // Bulk data allocation.

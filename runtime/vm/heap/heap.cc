@@ -208,7 +208,7 @@ void Heap::FreeExternal(intptr_t size, Space space) {
 
 void Heap::PromoteExternal(intptr_t cid, intptr_t size) {
   new_space_.FreeExternal(size);
-  old_space_.AllocateExternal(cid, size);
+  old_space_.PromoteExternal(cid, size);
 }
 
 bool Heap::Contains(uword addr) const {

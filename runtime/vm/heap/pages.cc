@@ -548,6 +548,11 @@ void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
       heap_->isolate()->class_table()->UpdateAllocatedExternalOld(cid, size));
 }
 
+void PageSpace::PromoteExternal(intptr_t cid, intptr_t size) {
+  intptr_t size_in_words = size >> kWordSizeLog2;
+  AtomicOperations::IncrementBy(&(usage_.external_in_words), size_in_words);
+}
+
 void PageSpace::FreeExternal(intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
   AtomicOperations::DecrementBy(&(usage_.external_in_words), size_in_words);
