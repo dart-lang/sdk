@@ -281,7 +281,7 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
-        "Operation not applicable to a 'for' statement's updaters and body.");
+        "Not all selected statements are enclosed by the same parent statement.");
   }
 
   test_bad_methodName_reference() async {

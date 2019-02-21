@@ -56,6 +56,8 @@ class LocalReferenceContributor extends DartCompletionContributor {
         // when completing the expression of the ForEachStatement
         if (node is ForEachStatement) {
           node = node.parent;
+        } else if (node is ForEachParts) {
+          node = node.parent.parent;
         }
 
         _LocalVisitor visitor = new _LocalVisitor(

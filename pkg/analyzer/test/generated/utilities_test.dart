@@ -3619,7 +3619,7 @@ class NodeReplacerTest extends EngineTestCase {
       AstNode clone = child.accept(new AstCloner());
       NodeReplacer.replace(child, clone);
       expect(getter.get(parent), clone);
-      expect(clone.parent, parent);
+      expect(clone.parent, child.parent);
     }
   }
 

@@ -1754,15 +1754,30 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * is defined.
    */
   void _inferForEachLoopVariableType(DeclaredIdentifier loopVariable) {
-    if (loopVariable != null &&
-        loopVariable.type == null &&
-        loopVariable.parent is ForEachStatement) {
-      ForEachStatement loop = loopVariable.parent;
-      if (loop.iterable != null) {
-        Expression expr = loop.iterable;
+    if (loopVariable != null && loopVariable.type == null) {
+      AstNode parent = loopVariable.parent;
+      Token awaitKeyword;
+      Expression iterable;
+      if (parent is ForEachStatement) {
+        awaitKeyword = parent.awaitKeyword;
+        iterable = parent.iterable;
+      } else if (parent is ForEachPartsWithDeclaration) {
+        AstNode parentParent = parent.parent;
+        if (parentParent is ForStatementBase) {
+          awaitKeyword = parentParent.awaitKeyword;
+        } else if (parentParent is ForElement) {
+          awaitKeyword = parentParent.awaitKeyword;
+        } else {
+          return;
+        }
+        iterable = parent.iterable;
+      } else {
+        return;
+      }
+      if (iterable != null) {
         LocalVariableElementImpl element = loopVariable.declaredElement;
-        DartType exprType = expr.staticType;
-        DartType targetType = (loop.awaitKeyword == null)
+        DartType exprType = iterable.staticType;
+        DartType targetType = (awaitKeyword == null)
             ? _typeProvider.iterableType
             : _typeProvider.streamType;
         DartType iteratedType = _findIteratedType(exprType, targetType);

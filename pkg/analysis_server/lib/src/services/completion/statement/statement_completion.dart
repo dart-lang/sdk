@@ -1141,7 +1141,9 @@ class StatementCompletionProcessor {
       return true;
     }
     AstNode p = n.parent;
-    return p is! Statement && p?.parent is! Statement;
+    return p is! Statement &&
+        p?.parent is! Statement &&
+        p?.parent?.parent is! Statement;
   }
 
   bool _isSyntheticExpression(Expression expr) {

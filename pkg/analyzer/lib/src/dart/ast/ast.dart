@@ -4714,77 +4714,30 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
  *        'await'? 'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
  *      | 'await'? 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
  */
-class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
-  /**
-   * The token representing the 'await' keyword, or `null` if there is no
-   * 'await' keyword.
-   */
-  @override
-  Token awaitKeyword;
-
-  /**
-   * The token representing the 'for' keyword.
-   */
-  @override
-  Token forKeyword;
-
-  /**
-   * The left parenthesis.
-   */
-  @override
-  Token leftParenthesis;
-
-  /**
-   * The declaration of the loop variable, or `null` if the loop variable is a
-   * simple identifier.
-   */
-  DeclaredIdentifierImpl _loopVariable;
-
-  /**
-   * The loop variable, or `null` if the loop variable is declared in the 'for'.
-   */
-  SimpleIdentifierImpl _identifier;
-
-  /**
-   * The token representing the 'in' keyword.
-   */
-  @override
-  Token inKeyword;
-
-  /**
-   * The expression evaluated to produce the iterator.
-   */
-  ExpressionImpl _iterable;
-
-  /**
-   * The right parenthesis.
-   */
-  @override
-  Token rightParenthesis;
-
-  /**
-   * The body of the loop.
-   */
-  StatementImpl _body;
-
+class ForEachStatementImpl extends ForStatementBase
+    implements ForEachStatement {
   /**
    * Initialize a newly created for-each statement whose loop control variable
    * is declared internally (in the for-loop part). The [awaitKeyword] can be
    * `null` if this is not an asynchronous for loop.
    */
   ForEachStatementImpl.withDeclaration(
-      this.awaitKeyword,
-      this.forKeyword,
-      this.leftParenthesis,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
       DeclaredIdentifierImpl loopVariable,
-      this.inKeyword,
+      Token inKeyword,
       ExpressionImpl iterator,
-      this.rightParenthesis,
-      StatementImpl body) {
-    _loopVariable = _becomeParentOf(loopVariable);
-    _iterable = _becomeParentOf(iterator);
-    _body = _becomeParentOf(body);
-  }
+      Token rightParenthesis,
+      StatementImpl body)
+      : super(
+            awaitKeyword,
+            forKeyword,
+            leftParenthesis,
+            new ForEachPartsWithDeclarationImpl(
+                loopVariable, inKeyword, iterator),
+            rightParenthesis,
+            body);
 
   /**
    * Initialize a newly created for-each statement whose loop control variable
@@ -4792,67 +4745,68 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
    * is not an asynchronous for loop.
    */
   ForEachStatementImpl.withReference(
-      this.awaitKeyword,
-      this.forKeyword,
-      this.leftParenthesis,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
       SimpleIdentifierImpl identifier,
-      this.inKeyword,
+      Token inKeyword,
       ExpressionImpl iterator,
-      this.rightParenthesis,
-      StatementImpl body) {
-    _identifier = _becomeParentOf(identifier);
-    _iterable = _becomeParentOf(iterator);
-    _body = _becomeParentOf(body);
-  }
-
-  @override
-  Token get beginToken => awaitKeyword ?? forKeyword;
-
-  @override
-  Statement get body => _body;
-
-  @override
-  void set body(Statement statement) {
-    _body = _becomeParentOf(statement as StatementImpl);
-  }
+      Token rightParenthesis,
+      StatementImpl body)
+      : super(
+            awaitKeyword,
+            forKeyword,
+            leftParenthesis,
+            new ForEachPartsWithIdentifierImpl(identifier, inKeyword, iterator),
+            rightParenthesis,
+            body);
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(awaitKeyword)
     ..add(forKeyword)
     ..add(leftParenthesis)
-    ..add(_loopVariable)
-    ..add(_identifier)
+    ..add(loopVariable)
+    ..add(identifier)
     ..add(inKeyword)
-    ..add(_iterable)
+    ..add(iterable)
     ..add(rightParenthesis)
     ..add(_body);
 
   @override
-  Token get endToken => _body.endToken;
-
-  @override
-  SimpleIdentifier get identifier => _identifier;
+  SimpleIdentifier get identifier => forLoopParts is ForEachPartsWithIdentifier
+      ? (forLoopParts as ForEachPartsWithIdentifier).identifier
+      : null;
 
   @override
   void set identifier(SimpleIdentifier identifier) {
-    _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl);
+    (forLoopParts as ForEachPartsWithIdentifierImpl).identifier = identifier;
   }
 
   @override
-  Expression get iterable => _iterable;
+  Token get inKeyword => (forLoopParts as ForEachParts).inKeyword;
+
+  @override
+  set inKeyword(Token keyword) =>
+      (forLoopParts as ForEachPartsImpl).inKeyword = keyword;
+
+  @override
+  Expression get iterable => (forLoopParts as ForEachParts).iterable;
 
   @override
   void set iterable(Expression expression) {
-    _iterable = _becomeParentOf(expression as ExpressionImpl);
+    (forLoopParts as ForEachPartsImpl).iterable = expression;
   }
 
   @override
-  DeclaredIdentifier get loopVariable => _loopVariable;
+  DeclaredIdentifier get loopVariable =>
+      forLoopParts is ForEachPartsWithDeclaration
+          ? (forLoopParts as ForEachPartsWithDeclaration).loopVariable
+          : null;
 
   @override
   void set loopVariable(DeclaredIdentifier variable) {
-    _loopVariable = _becomeParentOf(variable as DeclaredIdentifierImpl);
+    (forLoopParts as ForEachPartsWithDeclarationImpl).loopVariable = variable;
   }
 
   @override
@@ -4860,9 +4814,9 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _loopVariable?.accept(visitor);
-    _identifier?.accept(visitor);
-    _iterable?.accept(visitor);
+    loopVariable?.accept(visitor);
+    identifier?.accept(visitor);
+    iterable?.accept(visitor);
     _body?.accept(visitor);
   }
 }
@@ -5270,9 +5224,20 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 }
 
-class ForStatement2Impl extends StatementImpl
-    with ForMixin
-    implements ForStatement2 {
+class ForStatement2Impl extends ForStatementBase implements ForStatement2 {
+  /**
+   * Initialize a newly created for statement.
+   */
+  ForStatement2Impl(Token awaitKeyword, Token forKeyword, Token leftParenthesis,
+      ForLoopPartsImpl forLoopParts, Token rightParenthesis, StatementImpl body)
+      : super(awaitKeyword, forKeyword, leftParenthesis, forLoopParts,
+            rightParenthesis, body);
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement2(this);
+}
+
+abstract class ForStatementBase extends StatementImpl with ForMixin {
   /**
    * The body of the loop.
    */
@@ -5281,7 +5246,7 @@ class ForStatement2Impl extends StatementImpl
   /**
    * Initialize a newly created for statement.
    */
-  ForStatement2Impl(
+  ForStatementBase(
       Token awaitKeyword,
       Token forKeyword,
       Token leftParenthesis,
@@ -5296,7 +5261,6 @@ class ForStatement2Impl extends StatementImpl
     _body = _becomeParentOf(body);
   }
 
-  @override
   Statement get body => _body;
 
   void set body(Statement statement) {
@@ -5310,9 +5274,6 @@ class ForStatement2Impl extends StatementImpl
 
   @override
   Token get endToken => _body.endToken;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement2(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5334,67 +5295,7 @@ class ForStatement2Impl extends StatementImpl
  *        [DefaultFormalParameter]
  *      | [Expression]?
  */
-class ForStatementImpl extends StatementImpl implements ForStatement {
-  /**
-   * The token representing the 'for' keyword.
-   */
-  @override
-  Token forKeyword;
-
-  /**
-   * The left parenthesis.
-   */
-  @override
-  Token leftParenthesis;
-
-  /**
-   * The declaration of the loop variables, or `null` if there are no variables.
-   * Note that a for statement cannot have both a variable list and an
-   * initialization expression, but can validly have neither.
-   */
-  VariableDeclarationListImpl _variableList;
-
-  /**
-   * The initialization expression, or `null` if there is no initialization
-   * expression. Note that a for statement cannot have both a variable list and
-   * an initialization expression, but can validly have neither.
-   */
-  ExpressionImpl _initialization;
-
-  /**
-   * The semicolon separating the initializer and the condition.
-   */
-  @override
-  Token leftSeparator;
-
-  /**
-   * The condition used to determine when to terminate the loop, or `null` if
-   * there is no condition.
-   */
-  ExpressionImpl _condition;
-
-  /**
-   * The semicolon separating the condition and the updater.
-   */
-  @override
-  Token rightSeparator;
-
-  /**
-   * The list of expressions run after each execution of the loop body.
-   */
-  NodeList<Expression> _updaters;
-
-  /**
-   * The right parenthesis.
-   */
-  @override
-  Token rightParenthesis;
-
-  /**
-   * The body of the loop.
-   */
-  StatementImpl _body;
-
+class ForStatementImpl extends ForStatementBase implements ForStatement {
   /**
    * Initialize a newly created for statement. Either the [variableList] or the
    * [initialization] must be `null`. Either the [condition] and the list of
@@ -5402,76 +5303,88 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
    * attribute.
    */
   ForStatementImpl(
-      this.forKeyword,
-      this.leftParenthesis,
+      Token forKeyword,
+      Token leftParenthesis,
       VariableDeclarationListImpl variableList,
       ExpressionImpl initialization,
-      this.leftSeparator,
+      Token leftSeparator,
       ExpressionImpl condition,
-      this.rightSeparator,
+      Token rightSeparator,
       List<Expression> updaters,
-      this.rightParenthesis,
-      StatementImpl body) {
-    _variableList = _becomeParentOf(variableList);
-    _initialization = _becomeParentOf(initialization);
-    _condition = _becomeParentOf(condition);
-    _updaters = new NodeListImpl<Expression>(this, updaters);
-    _body = _becomeParentOf(body);
-  }
-
-  @override
-  Token get beginToken => forKeyword;
-
-  @override
-  Statement get body => _body;
-
-  @override
-  void set body(Statement statement) {
-    _body = _becomeParentOf(statement as StatementImpl);
-  }
+      Token rightParenthesis,
+      StatementImpl body)
+      : super(
+            null,
+            forKeyword,
+            leftParenthesis,
+            variableList == null
+                ? new ForPartsWithExpressionImpl(initialization, leftSeparator,
+                    condition, rightSeparator, updaters)
+                : new ForPartsWithDeclarationsImpl(variableList, leftSeparator,
+                    condition, rightSeparator, updaters),
+            rightParenthesis,
+            body);
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(forKeyword)
     ..add(leftParenthesis)
-    ..add(_variableList)
-    ..add(_initialization)
+    ..add(variables)
+    ..add(initialization)
     ..add(leftSeparator)
-    ..add(_condition)
+    ..add(condition)
     ..add(rightSeparator)
-    ..addAll(_updaters)
+    ..addAll(updaters)
     ..add(rightParenthesis)
     ..add(_body);
 
   @override
-  Expression get condition => _condition;
+  Expression get condition => (forLoopParts as ForParts).condition;
 
   @override
   void set condition(Expression expression) {
-    _condition = _becomeParentOf(expression as ExpressionImpl);
+    (forLoopParts as ForPartsImpl).condition = expression;
   }
 
   @override
-  Token get endToken => _body.endToken;
-
-  @override
-  Expression get initialization => _initialization;
+  Expression get initialization => forLoopParts is ForPartsWithExpression
+      ? (forLoopParts as ForPartsWithExpression).initialization
+      : null;
 
   @override
   void set initialization(Expression initialization) {
-    _initialization = _becomeParentOf(initialization as ExpressionImpl);
+    if (forLoopParts is ForPartsWithExpressionImpl) {
+      (forLoopParts as ForPartsWithExpressionImpl).initialization =
+          initialization;
+    }
   }
 
   @override
-  NodeList<Expression> get updaters => _updaters;
+  Token get leftSeparator => (forLoopParts as ForParts).leftSeparator;
 
   @override
-  VariableDeclarationList get variables => _variableList;
+  set leftSeparator(Token separator) =>
+      (forLoopParts as ForPartsImpl).leftSeparator = separator;
+
+  @override
+  Token get rightSeparator => (forLoopParts as ForParts).rightSeparator;
+
+  @override
+  set rightSeparator(Token separator) =>
+      (forLoopParts as ForPartsImpl).rightSeparator = separator;
+
+  @override
+  NodeList<Expression> get updaters => (forLoopParts as ForParts).updaters;
+
+  @override
+  VariableDeclarationList get variables =>
+      forLoopParts is ForPartsWithDeclarations
+          ? (forLoopParts as ForPartsWithDeclarations).variables
+          : null;
 
   @override
   void set variables(VariableDeclarationList variableList) {
-    _variableList =
-        _becomeParentOf(variableList as VariableDeclarationListImpl);
+    (forLoopParts as ForPartsWithDeclarationsImpl).variables = variableList;
   }
 
   @override
@@ -5479,10 +5392,10 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _variableList?.accept(visitor);
-    _initialization?.accept(visitor);
-    _condition?.accept(visitor);
-    _updaters.accept(visitor);
+    variables?.accept(visitor);
+    initialization?.accept(visitor);
+    condition?.accept(visitor);
+    updaters.accept(visitor);
     _body?.accept(visitor);
   }
 }
@@ -10570,6 +10483,11 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
         identical(parent.fieldName, target)) {
       return false;
     }
+    if (parent is ForEachPartsWithIdentifier) {
+      if (identical(parent.identifier, target)) {
+        return false;
+      }
+    }
     if (parent is ForEachStatement) {
       if (identical(parent.identifier, target)) {
         return false;
@@ -10616,6 +10534,8 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
       return true;
     } else if (parent is AssignmentExpression) {
       return identical(parent.leftHandSide, target);
+    } else if (parent is ForEachPartsWithIdentifier) {
+      return identical(parent.identifier, target);
     } else if (parent is ForEachStatement) {
       return identical(parent.identifier, target);
     }
