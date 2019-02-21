@@ -1532,6 +1532,7 @@ void ClassFinalizer::SortClasses() {
   RemapClassIds(old_to_new_cid);
   delete[] old_to_new_cid;
   RehashTypes();  // Types use cid's as part of their hashes.
+  I->RehashConstants();  // Const objects use cid's as part of their hashes.
 }
 
 class CidRewriteVisitor : public ObjectVisitor {

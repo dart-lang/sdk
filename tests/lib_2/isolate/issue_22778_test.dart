@@ -13,5 +13,5 @@ main() {
     Expect.isTrue(v[0] == v[1]);
     r.close();
   };
-  r.sendPort.send([func, func]);
+  r.sendPort.send(<Function>[func, func]);
 }

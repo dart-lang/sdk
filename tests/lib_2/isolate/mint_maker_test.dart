@@ -155,7 +155,7 @@ class MintMakerWrapper {
 }
 
 _checkBalance(PurseWrapper wrapper, expected) {
-  wrapper.queryBalance(expectAsync((int balance) {
+  wrapper.queryBalance(expectAsync1((balance) {
     expect(balance, equals(expected));
   }));
 }
@@ -163,11 +163,11 @@ _checkBalance(PurseWrapper wrapper, expected) {
 void main([args, port]) {
   if (testRemote(main, port)) return;
   test("creating purse, deposit, and query balance", () {
-    MintMakerWrapper.create().then(expectAsync((mintMaker) {
-      mintMaker.makeMint(expectAsync((MintWrapper mint) {
-        mint.createPurse(100, expectAsync((PurseWrapper purse) {
+    MintMakerWrapper.create().then(expectAsync1((mintMaker) {
+      mintMaker.makeMint(expectAsync1((mint) {
+        mint.createPurse(100, expectAsync1((purse) {
           _checkBalance(purse, 100);
-          purse.sproutPurse(expectAsync((PurseWrapper sprouted) {
+          purse.sproutPurse(expectAsync1((sprouted) {
             _checkBalance(sprouted, 0);
             _checkBalance(purse, 100);
 
