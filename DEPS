@@ -65,7 +65,7 @@ vars = {
   "convert_tag": "2.0.2",
   "crypto_tag" : "2.0.6",
   "csslib_tag" : "0.14.4+1",
-  "dart2js_info_tag" : "0.5.15",
+  "dart2js_info_tag" : "0.6.0",
 
   # Note: updates to dart_style have to be coordinated carefully with
   # the infrastructure-team so that the internal formatter in

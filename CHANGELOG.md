@@ -53,6 +53,38 @@ Upgraded the linter to `0.1.82` which adds the following improvements:
 *   Stopped registering "default lints".
 *   Fixed `hash_and_equals` to respect `hashCode` fields.
 
+#### dart2js
+
+*  `--dump-info=binary`
+
+   A binary format was added to dump-info. The old JSON format is still
+   available and provided by default, but we are starting to deprecate it.
+
+   The new binary format is more compact and cheaper to generate.  On some large
+   apps we tested, it was 4x faster to serialize and used 6x less memory.
+
+   To use it today, use `--dump-info=binary`, instead of `--dump-info`.
+
+   What to expect next?
+   * The [visualizer tool][visualizer] will not be updated to support this new
+     format, but you can find several command-line tools at
+     `package:dart2js_info` that provide similar features to those in the
+     visualizer.
+
+   * The command-line tools in `package:dart2js_info` also work with the old
+     JSON format, so you can start using it even before you enable the new
+     format.
+
+   * In a future release `--dump-info` will default to `--dump-info=binary`. At
+     that point, there will be an option to fallback to the JSON format, but the
+     visualizer tool will be deprecated.
+
+   * A release after that, the JSON format will no longer be available from
+     dart2js, but may be availabe from a command-line tool in
+     `package:dart2js_info`.
+
+[visualizer]: https://dart-lang.github.io/dump-info-visualizer/
+
 ### Other libraries
 
 #### `package:kernel`

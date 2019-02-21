@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that parameters keep their names in the output.
-
 import 'dart:convert';
+
+import 'package:compiler/compiler_new.dart';
+import 'package:dart2js_info/info.dart';
+import 'package:dart2js_info/json_info_codec.dart';
+import 'package:dart2js_info/binary_serialization.dart' as binary;
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
@@ -96,92 +99,82 @@ const String TEST_INLINED_2 = r"""
    main() => funcA();
 """;
 
-typedef void JsonTaking(Map<String, dynamic> json);
+typedef InfoCheck = void Function(AllInfo);
 
-jsonTest(String program, JsonTaking testFn) async {
+infoTest(String program, bool useBinary, InfoCheck check) async {
   var options = ['--out=out.js', Flags.dumpInfo];
+  // Note: we always pass '--dump-info' because the memory-compiler does not
+  // have the logic in dart2js.dart to imply dump-info when --dump-info=binary
+  // is provided.
+  if (useBinary) options.add("${Flags.dumpInfo}=binary");
+  var collector = new OutputCollector();
   var result = await runCompiler(
-      memorySourceFiles: {'main.dart': program}, options: options);
+      memorySourceFiles: {'main.dart': program},
+      options: options,
+      outputProvider: collector);
   var compiler = result.compiler;
   Expect.isFalse(compiler.compilationFailed);
-  var dumpTask = compiler.dumpInfoTask;
-
-  StringBuffer sb = new StringBuffer();
-  dumpTask.dumpInfoJson(sb, compiler.backendClosedWorldForTesting);
-  String jsonString = sb.toString();
-  Map<String, dynamic> map = json.decode(jsonString);
-
-  testFn(map);
+  AllInfo info;
+  if (useBinary) {
+    var sink = collector.binaryOutputMap[Uri.parse('out.js.info.data')];
+    info = binary.decode(sink.list);
+  } else {
+    info = new AllInfoJsonCodec().decode(
+        json.decode(collector.getOutput("out.js", OutputType.dumpInfo)));
+  }
+  check(info);
 }
 
 main() {
   asyncTest(() async {
     print('--test from kernel------------------------------------------------');
-    await runTests();
+    await runTests(useBinary: false);
+    await runTests(useBinary: true);
   });
 }
 
-runTests() async {
-  await jsonTest(TEST_BASIC, (map) {
-    Expect.isTrue(map['elements'].isNotEmpty);
-    Expect.isTrue(map['elements']['function'].isNotEmpty);
-    Expect.isTrue(map['elements']['library'].isNotEmpty);
-    Expect.isTrue(map['elements']['library'].values.any((lib) {
-      return lib['name'] == "main";
+runTests({bool useBinary: false}) async {
+  await infoTest(TEST_BASIC, useBinary, (info) {
+    Expect.isTrue(info.functions.isNotEmpty);
+    Expect.isTrue(info.libraries.isNotEmpty);
+    Expect.isTrue(info.libraries.any((lib) => lib.name == "main"));
+    Expect.isTrue(info.classes.any((c) => c.name == 'c'));
+    Expect.isTrue(info.functions.any((f) => f.name == 'f'));
+  });
+
+  await infoTest(TEST_CLOSURES, useBinary, (info) {
+    Expect.isTrue(info.functions.any((fn) {
+      return fn.name == 'bar' && fn.closures.length == 11;
     }));
-    Expect.isTrue(map['elements']['class'].values.any((clazz) {
-      return clazz['name'] == "c";
-    }));
-    Expect.isTrue(map['elements']['function'].values.any((fun) {
-      return fun['name'] == 'f';
+    Expect.isTrue(info.functions.any((fn) {
+      return fn.name == 'foo' && fn.closures.length == 10;
     }));
   });
 
-  await jsonTest(TEST_CLOSURES, (map) {
-    var functions = map['elements']['function'].values;
-    Expect.isTrue(functions.any((fn) {
-      return fn['name'] == 'bar' && fn['children'].length == 11;
-    }));
-    Expect.isTrue(functions.any((fn) {
-      return fn['name'] == 'foo' && fn['children'].length == 10;
+  await infoTest(TEST_STATICS, useBinary, (info) {
+    Expect.isTrue(info.functions.any((fn) => fn.name == 'does_something'));
+    Expect.isTrue(info.classes.any((cls) {
+      return cls.name == 'ContainsStatics' && cls.functions.length >= 1;
     }));
   });
 
-  await jsonTest(TEST_STATICS, (map) {
-    var functions = map['elements']['function'].values;
-    var classes = map['elements']['class'].values;
-    Expect.isTrue(functions.any((fn) {
-      return fn['name'] == 'does_something';
+  await infoTest(TEST_INLINED_1, useBinary, (info) {
+    Expect.isTrue(info.functions.any((fn) {
+      return fn.name == 'double' && fn.inlinedCount == 1;
     }));
-    Expect.isTrue(classes.any((cls) {
-      return cls['name'] == 'ContainsStatics' && cls['children'].length >= 1;
+    Expect.isTrue(info.classes.any((cls) {
+      return cls.name == 'Doubler' && cls.functions.length >= 1;
     }));
   });
 
-  await jsonTest(TEST_INLINED_1, (map) {
-    var functions = map['elements']['function'].values;
-    var classes = map['elements']['class'].values;
-    Expect.isTrue(functions.any((fn) {
-      return fn['name'] == 'double' && fn['inlinedCount'] == 1;
-    }));
-    Expect.isTrue(classes.any((cls) {
-      return cls['name'] == 'Doubler' && cls['children'].length >= 1;
-    }));
-  });
-
-  await jsonTest(TEST_INLINED_2, (map) {
-    var functions = map['elements']['function'].values;
-    var deps = map['holding'];
-    var main_ = functions.firstWhere((v) => v['name'] == 'main');
-    var fn1 = functions.firstWhere((v) => v['name'] == 'funcA');
-    var fn2 = functions.firstWhere((v) => v['name'] == 'funcB');
+  await infoTest(TEST_INLINED_2, useBinary, (info) {
+    var main_ = info.functions.firstWhere((v) => v.name == 'main');
+    var fn1 = info.functions.firstWhere((v) => v.name == 'funcA');
+    var fn2 = info.functions.firstWhere((v) => v.name == 'funcB');
     Expect.isTrue(main_ != null);
     Expect.isTrue(fn1 != null);
     Expect.isTrue(fn2 != null);
-    Expect.isTrue(deps.containsKey(main_['id']));
-    Expect.isTrue(deps.containsKey(fn1['id']));
-    Expect.isTrue(deps.containsKey(fn2['id']));
-    Expect.isTrue(deps[main_['id']].any((dep) => dep['id'] == fn1['id']));
-    Expect.isTrue(deps[fn1['id']].any((dep) => dep['id'] == fn2['id']));
+    Expect.isTrue(main_.uses.any((dep) => dep.target == fn1));
+    Expect.isTrue(fn1.uses.any((dep) => dep.target == fn2));
   });
 }

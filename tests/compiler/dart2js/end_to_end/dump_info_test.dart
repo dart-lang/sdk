@@ -30,8 +30,10 @@ void main() {
   Directory tmpDir = Directory.systemTemp.createTempSync('dump_info_test_');
   Directory out1 = new Directory.fromUri(tmpDir.uri.resolve('without'));
   out1.createSync();
-  Directory out2 = new Directory.fromUri(tmpDir.uri.resolve('with'));
+  Directory out2 = new Directory.fromUri(tmpDir.uri.resolve('json'));
   out2.createSync();
+  Directory out3 = new Directory.fromUri(tmpDir.uri.resolve('binary'));
+  out3.createSync();
   Directory appDir =
       new Directory.fromUri(Uri.base.resolve('samples-dev/swarm'));
 
@@ -52,7 +54,7 @@ void main() {
         .readAsStringSync();
 
     command =
-        dart2JsCommand(['--out=with/out.js', 'swarm.dart', '--dump-info']);
+        dart2JsCommand(['--out=json/out.js', 'swarm.dart', '--dump-info']);
     print('Run $command');
     result = Process.runSync(Platform.resolvedExecutable, command,
         workingDirectory: tmpDir.path);
@@ -63,10 +65,28 @@ void main() {
     print(result.stderr);
     Expect.equals(0, result.exitCode);
     String output2 =
-        new File.fromUri(tmpDir.uri.resolve('with/out.js')).readAsStringSync();
+        new File.fromUri(tmpDir.uri.resolve('json/out.js')).readAsStringSync();
 
     print('Compare outputs...');
     Expect.equals(output1, output2);
+
+    command = dart2JsCommand(
+        ['--out=binary/out.js', 'swarm.dart', '--dump-info=binary']);
+    print('Run $command');
+    result = Process.runSync(Platform.resolvedExecutable, command,
+        workingDirectory: tmpDir.path);
+    print('exit code: ${result.exitCode}');
+    print('stdout:');
+    print(result.stdout);
+    print('stderr:');
+    print(result.stderr);
+    Expect.equals(0, result.exitCode);
+    String output3 = new File.fromUri(tmpDir.uri.resolve('binary/out.js'))
+        .readAsStringSync();
+
+    print('Compare outputs...');
+    Expect.equals(output1, output3);
+
     print('Done');
   } finally {
     print("Deleting '${tmpDir.path}'.");

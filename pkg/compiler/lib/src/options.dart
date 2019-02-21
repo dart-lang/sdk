@@ -152,11 +152,14 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to disable optimization for need runtime type information.
   bool disableRtiOptimization = false;
 
-  /// Whether to emit a .json file with a summary of the information used by the
-  /// compiler during optimization. This includes resolution details,
-  /// dependencies between elements, results of type inference, and the output
-  /// code for each function.
+  /// Whether to emit a summary of the information used by the compiler during
+  /// optimization. This includes resolution details, dependencies between
+  /// elements, results of type inference, and data about generated code.
   bool dumpInfo = false;
+
+  /// Whether to use the new dump-info binary format. This will be the default
+  /// after a transitional period.
+  bool useDumpInfoBinaryFormat = false;
 
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
@@ -191,7 +194,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
 
-  /// URI of the main output if the compiler is generating source maps.
+  /// URI of the main output of the compiler.
   Uri outputUri;
 
   /// Location of the libraries specification file.
@@ -322,6 +325,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..disableRtiOptimization =
           _hasOption(options, Flags.disableRtiOptimization)
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)
+      ..useDumpInfoBinaryFormat =
+          _hasOption(options, "${Flags.dumpInfo}=binary")
       ..enableExperimentalMirrors =
           _hasOption(options, Flags.enableExperimentalMirrors)
       ..enableMinification = _hasOption(options, Flags.minify)

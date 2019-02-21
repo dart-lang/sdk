@@ -153,10 +153,13 @@
     "Dynamic access of 'index'.": 1
   },
   "third_party/pkg/dart2js_info/lib/json_info_codec.dart": {
-    "Dynamic invocation of '[]'.": 13,
-    "Dynamic invocation of 'forEach'.": 3,
+    "Dynamic invocation of '[]'.": 11,
+    "Dynamic invocation of 'forEach'.": 2,
     "Dynamic invocation of 'map'.": 2,
-    "Dynamic access of 'length'.": 1
+    "Dynamic invocation of 'compareTo'.": 1
+  },
+  "third_party/pkg/dart2js_info/lib/binary_serialization.dart": {
+    "Dynamic invocation of 'cast'.": 1
   },
   "pkg/compiler/lib/src/util/enumset.dart": {
     "Dynamic access of 'index'.": 4
@@ -216,13 +219,12 @@
     "Dynamic invocation of '>='.": 1,
     "Dynamic invocation of 'codeUnitAt'.": 1
   },
-  "third_party/pkg/dart2js_info/lib/src/measurements.dart": {
-    "Dynamic access of 'name'.": 1,
-    "Dynamic invocation of 'call'.": 1
-  },
   "third_party/pkg/dart2js_info/lib/src/util.dart": {
     "Dynamic access of 'name'.": 1,
     "Dynamic invocation of '-'.": 1
+  },
+  "third_party/pkg/dart2js_info/lib/src/binary/sink.dart": {
+    "Dynamic access of 'index'.": 1
   },
   "pkg/js_ast/lib/src/builder.dart": {
     "Dynamic invocation of 'call'.": 2

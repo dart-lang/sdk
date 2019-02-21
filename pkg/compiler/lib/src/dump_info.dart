@@ -8,6 +8,8 @@ import 'dart:convert'
     show ChunkedConversionSink, JsonEncoder, StringConversionSink;
 
 import 'package:dart2js_info/info.dart';
+import 'package:dart2js_info/json_info_codec.dart';
+import 'package:dart2js_info/binary_serialization.dart' as dump_info;
 
 import '../compiler_new.dart';
 import 'common/names.dart';
@@ -16,7 +18,7 @@ import 'common.dart';
 import 'common_elements.dart' show JElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
-import 'deferred_load.dart' show OutputUnit;
+import 'deferred_load.dart' show OutputUnit, deferredPartFileName;
 import 'elements/entities.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
@@ -26,6 +28,7 @@ import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'universe/codegen_world_builder.dart';
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
+import 'util/sink_adapter.dart';
 import 'world.dart' show JClosedWorld;
 
 class ElementInfoCollector {
@@ -48,11 +51,11 @@ class ElementInfoCollector {
   void run() {
     dumpInfoTask._constantToNode.forEach((constant, node) {
       // TODO(sigmund): add dependencies on other constants
-      var size = dumpInfoTask._nodeData[node].length;
-      var code = jsAst.prettyPrint(node,
-          enableMinification: compiler.options.enableMinification);
+      var span = dumpInfoTask._nodeData[node];
       var info = new ConstantInfo(
-          size: size, code: code, outputUnit: _unitInfoForConstant(constant));
+          size: span.end - span.start,
+          code: [span],
+          outputUnit: _unitInfoForConstant(constant));
       _constantToInfo[constant] = info;
       result.constants.add(info);
     });
@@ -124,7 +127,7 @@ class ElementInfoCollector {
     }
 
     int size = dumpInfoTask.sizeOf(field);
-    String code = dumpInfoTask.codeOf(field);
+    List<CodeSpan> code = dumpInfoTask.codeOf(field);
 
     // TODO(het): Why doesn't `size` account for the code size already?
     if (code != null) size += code.length;
@@ -261,7 +264,7 @@ class ElementInfoCollector {
           : false,
       isExternal: function.isExternal,
     );
-    String code = dumpInfoTask.codeOf(function);
+    List<CodeSpan> code = dumpInfoTask.codeOf(function);
 
     List<ParameterInfo> parameters = <ParameterInfo>[];
     List<String> inferredParameterTypes = <String>[];
@@ -340,8 +343,11 @@ class ElementInfoCollector {
       // emitter is used it will fail here.
       JavaScriptBackend backend = compiler.backend;
       assert(outputUnit.name != null || outputUnit.isMainOutput);
-      OutputUnitInfo info = new OutputUnitInfo(
-          outputUnit.name, backend.emitter.emitter.generatedSize(outputUnit));
+      var filename = outputUnit.isMainOutput
+          ? compiler.options.outputUri.pathSegments.last
+          : deferredPartFileName(compiler.options, outputUnit.name);
+      OutputUnitInfo info = new OutputUnitInfo(filename, outputUnit.name,
+          backend.emitter.emitter.generatedSize(outputUnit));
       info.imports
           .addAll(closedWorld.outputUnitData.getImportNames(outputUnit));
       result.outputUnits.add(info);
@@ -389,9 +395,10 @@ abstract class InfoReporter {
 class DumpInfoTask extends CompilerTask implements InfoReporter {
   static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Dump info');
   final Compiler compiler;
+  final bool useBinaryFormat;
 
-  DumpInfoTask(Compiler compiler)
-      : compiler = compiler,
+  DumpInfoTask(this.compiler)
+      : useBinaryFormat = compiler.options.useDumpInfoBinaryFormat,
         super(compiler.measurer);
 
   String get name => "Dump Info";
@@ -404,7 +411,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   /// Data associated with javascript AST nodes. The map only contains keys for
   /// nodes that we care about.  Keys are automatically added when
   /// [registerEntityAst] is called.
-  final Map<jsAst.Node, _CodeData> _nodeData = <jsAst.Node, _CodeData>{};
+  final Map<jsAst.Node, CodeSpan> _nodeData = <jsAst.Node, CodeSpan>{};
 
   // A mapping from Dart Entities to Javascript AST Nodes.
   final Map<Entity, List<jsAst.Node>> _entityToNodes =
@@ -475,7 +482,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       _entityToNodes
           .putIfAbsent(entity, () => new List<jsAst.Node>())
           .add(code);
-      _nodeData[code] ??= _CodeData();
+      _nodeData[code] ??= useBinaryFormat ? new CodeSpan() : new _CodeData();
     }
   }
 
@@ -484,34 +491,39 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       assert(_constantToNode[constant] == null ||
           _constantToNode[constant] == code);
       _constantToNode[constant] = code;
-      _nodeData[code] ??= _CodeData();
+      _nodeData[code] ??= useBinaryFormat ? new CodeSpan() : new _CodeData();
     }
   }
 
+  bool get shouldEmitText => !useBinaryFormat;
   // TODO(sigmund): delete the stack once we stop emitting the source text.
   List<_CodeData> _stack = [];
   void enterNode(jsAst.Node node, int start) {
     var data = _nodeData[node];
-    if (data != null) {
+    data?.start = start;
+
+    if (shouldEmitText && data != null) {
       _stack.add(data);
-      data.start = start;
     }
   }
 
   void emit(String string) {
-    // Note: historically we emitted the full body of classes and methods, so
-    // instance methods ended up emitted twice.  Once we use a different
-    // encoding of dump info, we also plan to remove this duplication.
-    _stack.forEach((f) => f.text.write(string));
+    if (shouldEmitText) {
+      // Note: historically we emitted the full body of classes and methods, so
+      // instance methods ended up emitted twice.  Once we use a different
+      // encoding of dump info, we also plan to remove this duplication.
+      _stack.forEach((f) => f._text.write(string));
+    }
   }
 
   void exitNode(jsAst.Node node, int start, int end, int closing) {
     var data = _nodeData[node];
-    if (data == null) return;
-    var last = _stack.removeLast();
-    assert(data == last);
-    assert(data.start == start);
-    data.end = end;
+    data?.end = end;
+    if (shouldEmitText && data != null) {
+      var last = _stack.removeLast();
+      assert(data == last);
+      assert(data.start == start);
+    }
   }
 
   /// Returns the size of the source code that was generated for an entity.
@@ -524,17 +536,16 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
   }
 
-  int sizeOfNode(jsAst.Node node) => _nodeData[node].length ?? 0;
+  int sizeOfNode(jsAst.Node node) {
+    CodeSpan span = _nodeData[node];
+    if (span == null) return 0;
+    return span.end - span.start;
+  }
 
-  String codeOf(Entity entity) {
+  List<CodeSpan> codeOf(MemberEntity entity) {
     List<jsAst.Node> code = _entityToNodes[entity];
-    if (code == null) return null;
-    // Concatenate rendered ASTs.
-    StringBuffer sb = new StringBuffer();
-    for (jsAst.Node ast in code) {
-      sb.writeln(_nodeData[ast].text);
-    }
-    return sb.toString();
+    if (code == null) return const [];
+    return code.map((ast) => _nodeData[ast]).toList();
   }
 
   void dumpInfo(JClosedWorld closedWorld,
@@ -543,20 +554,46 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       infoCollector = new ElementInfoCollector(
           compiler, this, closedWorld, globalInferenceResults)
         ..run();
-      StringBuffer jsonBuffer = new StringBuffer();
-      dumpInfoJson(jsonBuffer, closedWorld);
-      compiler.outputProvider.createOutputSink(
-          compiler.options.outputUri.pathSegments.last,
-          'info.json',
-          OutputType.dumpInfo)
-        ..add(jsonBuffer.toString())
-        ..close();
-      BasicInfo.resetIds();
+
+      var allInfo = buildDumpInfoData(closedWorld);
+      if (useBinaryFormat) {
+        dumpInfoBinary(allInfo);
+      } else {
+        dumpInfoJson(allInfo);
+      }
     });
   }
 
-  void dumpInfoJson(StringSink buffer, JClosedWorld closedWorld) {
+  void dumpInfoJson(AllInfo data) {
+    StringBuffer jsonBuffer = new StringBuffer();
     JsonEncoder encoder = const JsonEncoder.withIndent('  ');
+    ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(
+        new StringConversionSink.fromStringSink(jsonBuffer));
+    sink.add(new AllInfoJsonCodec(isBackwardCompatible: true).encode(data));
+    compiler.outputProvider.createOutputSink(
+        compiler.options.outputUri.pathSegments.last,
+        'info.json',
+        OutputType.dumpInfo)
+      ..add(jsonBuffer.toString())
+      ..close();
+    compiler.reporter.reportInfo(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+      'text': "View the dumped .info.json file at "
+          "https://dart-lang.github.io/dump-info-visualizer"
+    });
+  }
+
+  void dumpInfoBinary(AllInfo data) {
+    var name = compiler.options.outputUri.pathSegments.last + ".info.data";
+    Sink<List<int>> sink = new BinaryOutputSinkAdapter(compiler.outputProvider
+        .createBinarySink(compiler.options.outputUri.resolve(name)));
+    dump_info.encode(data, sink);
+    compiler.reporter.reportInfo(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+      'text': "Use `package:dart2js_info` to parse and process the dumped "
+          ".info.data file."
+    });
+  }
+
+  AllInfo buildDumpInfoData(JClosedWorld closedWorld) {
     Stopwatch stopwatch = new Stopwatch();
     stopwatch.start();
 
@@ -573,8 +610,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         // Don't register dart2js builtin functions that are not recorded.
         Info useInfo = infoCollector._entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
-        info.uses.add(
-            new DependencyInfo(useInfo, '${selection.receiverConstraint}'));
+        info.uses.add(new DependencyInfo(
+            useInfo, selection.receiverConstraint?.toString()));
       }
     }
 
@@ -588,8 +625,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       for (Selection selection in uses) {
         Info useInfo = infoCollector._entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
-        info.uses.add(
-            new DependencyInfo(useInfo, '${selection.receiverConstraint}'));
+        info.uses.add(new DependencyInfo(
+            useInfo, selection.receiverConstraint?.toString()));
       }
     }
 
@@ -629,24 +666,14 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         isMirrorsUsed: closedWorld.backendUsage.isMirrorsUsed,
         minified: compiler.options.enableMinification);
 
-    ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(
-        new StringConversionSink.fromStringSink(buffer));
-    sink.add(new AllInfoJsonCodec().encode(result));
-    compiler.reporter.reportInfo(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
-      'text': "View the dumped .info.json file at "
-          "https://dart-lang.github.io/dump-info-visualizer"
-    });
+    return result;
   }
 }
 
 /// Helper class to store what dump-info will show for a piece of code.
-///
-/// Currently we print out the actual text, in the future, we will only emit
-/// start and end offsets.
-class _CodeData {
-  int start;
-  int end;
-  StringBuffer text = new StringBuffer();
-
+// TODO(sigmund): delete once we no longer emit text by default.
+class _CodeData extends CodeSpan {
+  StringBuffer _text = new StringBuffer();
+  String get text => '$_text';
   int get length => end - start;
 }
