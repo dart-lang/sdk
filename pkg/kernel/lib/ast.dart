@@ -3644,6 +3644,39 @@ class Let extends Expression {
   }
 }
 
+class BlockExpression extends Expression {
+  final List<Statement> statements;
+  Expression value;
+
+  BlockExpression(this.statements, this.value) {
+    // Ensure statements is mutable.
+    assert((statements
+          ..add(null)
+          ..removeLast()) !=
+        null);
+    setParents(statements, this);
+    value?.parent = this;
+  }
+
+  DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
+
+  accept(ExpressionVisitor v) => v.visitBlockExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitBlockExpression(this, arg);
+
+  visitChildren(Visitor v) {
+    visitList(statements, v);
+    value?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    transformList(statements, v, this);
+    if (value != null) {
+      value = value.accept(v);
+      value?.parent = this;
+    }
+  }
+}
+
 /// Attempt to load the library referred to by a deferred import.
 ///
 /// This instruction is concerned with:

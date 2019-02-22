@@ -5028,6 +5028,11 @@ class ProgramCompiler extends Object
   }
 
   @override
+  visitBlockExpression(BlockExpression node) {
+    throw UnimplementedError('ProgramCompiler.visitBlockExpression');
+  }
+
+  @override
   visitInstantiation(Instantiation node) {
     return runtimeCall('gbind(#, #)', [
       _visitExpression(node.expression),

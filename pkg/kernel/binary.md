@@ -137,7 +137,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 18;
+  UInt32 formatVersion = 19;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -843,6 +843,12 @@ type Let extends Expression {
   Byte tag = 53;
   VariableDeclaration variable;
   Expression body;
+}
+
+type BlockExpression extends Expression {
+  Byte tag = 82;
+  List<Statement> body;
+  Expression value;
 }
 
 type Instantiation extends Expression {

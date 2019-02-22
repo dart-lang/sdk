@@ -338,6 +338,10 @@ class VerifyingVisitor extends RecursiveVisitor {
     visitWithLocalScope(node);
   }
 
+  visitBlockExpression(BlockExpression node) {
+    visitWithLocalScope(node);
+  }
+
   visitCatch(Catch node) {
     bool savedInCatchBlock = inCatchBlock;
     inCatchBlock = true;

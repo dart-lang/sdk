@@ -489,6 +489,12 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitBlockExpression(BlockExpression node) {
+    node.statements.forEach(visitStatement);
+    return visitExpression(node.value);
+  }
+
+  @override
   DartType visitInstantiation(Instantiation node) {
     DartType type = visitExpression(node.expression);
     if (type is! FunctionType) {

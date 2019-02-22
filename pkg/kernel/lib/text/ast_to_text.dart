@@ -1392,6 +1392,21 @@ class Printer extends Visitor<Null> {
     writeExpression(node.body);
   }
 
+  visitBlockExpression(BlockExpression node) {
+    writeSpaced('block');
+    if (node.statements.isEmpty) {
+      writeSymbol('{');
+    } else {
+      endLine('{');
+    }
+    ++indentation;
+    node.statements.forEach(writeNode);
+    --indentation;
+    writeIndentation();
+    writeSymbol('} =>');
+    writeExpression(node.value);
+  }
+
   visitInstantiation(Instantiation node) {
     writeExpression(node.expression);
     writeSymbol('<');

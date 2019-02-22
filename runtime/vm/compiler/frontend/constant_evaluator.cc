@@ -117,6 +117,10 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kLet:
         EvaluateLet();
         break;
+      case kBlockExpression: {
+        UNIMPLEMENTED();
+        break;
+      }
       case kInstantiation:
         EvaluatePartialTearoffInstantiation();
         break;

@@ -2126,6 +2126,10 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildFunctionExpression();
     case kLet:
       return BuildLet(position);
+    case kBlockExpression: {
+      UNIMPLEMENTED();
+      break;
+    }
     case kBigIntLiteral:
       return BuildBigIntLiteral(position);
     case kStringLiteral:

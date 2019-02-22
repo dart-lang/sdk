@@ -67,6 +67,7 @@ class Tag {
   static const int AwaitExpression = 51;
   static const int FunctionExpression = 52;
   static const int Let = 53;
+  static const int BlockExpression = 82;
   static const int Instantiation = 54;
   static const int PositiveIntLiteral = 55;
   static const int NegativeIntLiteral = 56;
@@ -98,6 +99,7 @@ class Tag {
   static const int FunctionDeclaration = 79;
   static const int AsyncForInStatement = 80;
   static const int AssertBlock = 81;
+  // 82 is occupied by [BlockExpression] (expression).
 
   // Types
   static const int TypedefType = 87;
@@ -137,7 +139,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 18;
+  static const int BinaryFormatVersion = 19;
 }
 
 abstract class ConstantTag {
