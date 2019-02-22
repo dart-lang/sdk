@@ -13,9 +13,14 @@ typedef bool AstNodePredicate(AstNode node);
 
 class DartTypeUtilities {
   static bool extendsClass(DartType type, String className, String library) =>
-      isClass(type, className, library) ||
-      (type is InterfaceType &&
-          extendsClass(type.superclass, className, library));
+      _extendsClass(type, new Set<DartType>(), className, library);
+
+  static bool _extendsClass(DartType type, Set<DartType> seenTypes,
+          String className, String library) =>
+      seenTypes.add(type) &&
+      (isClass(type, className, library) ||
+          (type is InterfaceType &&
+              _extendsClass(type.superclass, seenTypes, className, library)));
 
   static Element getCanonicalElement(Element element) {
     if (element is PropertyAccessorElement) {
