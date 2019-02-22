@@ -768,7 +768,9 @@ class SourceLoader extends Loader<Library> {
     List<Library> workList = <Library>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (!library.isPatch &&
-          (library.loader == this || library.uri.scheme == "dart")) {
+          (library.loader == this ||
+              library.uri.scheme == "dart" ||
+              library == this.first)) {
         if (libraries.add(library.target)) {
           workList.add(library.target);
         }

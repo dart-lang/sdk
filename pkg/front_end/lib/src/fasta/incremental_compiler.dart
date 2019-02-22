@@ -91,7 +91,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   List<LibraryBuilder> platformBuilders;
   Map<Uri, LibraryBuilder> userBuilders;
   final Uri initializeFromDillUri;
-  Component componentToInitializeFrom;
+  final Component componentToInitializeFrom;
   bool initializedFromDill = false;
   bool hasToCheckPackageUris = false;
   Map<Uri, List<DiagnosticMessageFromJson>> remainingComponentProblems =
@@ -190,19 +190,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       data.initializationBytes = null;
 
       Set<Uri> invalidatedUris = this.invalidatedUris.toSet();
-      if ((data.includeUserLoadedLibraries &&
-              componentToInitializeFrom ==
-                  null) // when loading state from component no need to invalidate anything
-          ||
-          fullComponent) {
-        invalidatedUris.add(entryPoint);
-      }
-      if (componentToInitializeFrom != null) {
-        // Once compiler was initialized from component, no need to skip logic
-        // above that adds entryPoint to invalidatedUris for successive
-        // [computeDelta] calls.
-        componentToInitializeFrom = null;
-      }
 
       ClassHierarchy hierarchy = userCode?.loader?.hierarchy;
       Set<LibraryBuilder> notReusedLibraries = new Set<LibraryBuilder>();
@@ -253,15 +240,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       for (LibraryBuilder library in reusedLibraries) {
         userCode.loader.builders[library.uri] = library;
-        if (entryPoint == library.uri) {
-          userCode.loader.first = library;
-        }
         if (library.uri.scheme == "dart" && library.uri.path == "core") {
           userCode.loader.coreLibrary = library;
         }
       }
 
       entryPoint = userCode.setEntryPoints(<Uri>[entryPoint]).single;
+      if (userCode.loader.first == null &&
+          userCode.loader.builders[entryPoint] != null) {
+        userCode.loader.first = userCode.loader.builders[entryPoint];
+      }
       await userCode.buildOutlines();
 
       // This is not the full component. It is the component including all
@@ -332,7 +320,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   List<String> reissueComponentProblems(Component componentWithDill) {
     // These problems have already been reported.
     Set<String> issuedProblems = new Set<String>();
-    if (componentWithDill.problemsAsJson != null) {
+    if (componentWithDill?.problemsAsJson != null) {
       issuedProblems.addAll(componentWithDill.problemsAsJson);
     }
 
@@ -348,7 +336,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     // Save any new component-problems.
-    if (componentWithDill.problemsAsJson != null) {
+    if (componentWithDill?.problemsAsJson != null) {
       for (String jsonString in componentWithDill.problemsAsJson) {
         DiagnosticMessageFromJson message =
             new DiagnosticMessageFromJson.fromJson(jsonString);
