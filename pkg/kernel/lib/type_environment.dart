@@ -163,12 +163,27 @@ abstract class SubtypeTester {
   InterfaceType futureType(DartType type);
   bool get legacyMode;
 
+  static List<Object> typeChecks;
+
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass);
 
   /// Determines if the given type is at the top of the type hierarchy.  May be
   /// overridden in subclasses.
   bool isTop(DartType type) =>
       type is DynamicType || type is VoidType || type == objectType;
+
+  /// Can be use to collect type checks. To use:
+  /// 1. Rename `isSubtypeOf` to `_isSubtypeOf`.
+  /// 2. Rename `_collect_isSubtypeOf` to `isSubtypeOf`.
+  /// 3. Comment out the call to `_isSubtypeOf` below.
+  // ignore:unused_element
+  bool _collect_isSubtypeOf(DartType subtype, DartType supertype) {
+    bool result = true;
+    // result = _isSubtypeOf(subtype, supertype);
+    typeChecks ??= <Object>[];
+    typeChecks.add([subtype, supertype, result]);
+    return result;
+  }
 
   /// Returns true if [subtype] is a subtype of [supertype].
   bool isSubtypeOf(DartType subtype, DartType supertype) {
