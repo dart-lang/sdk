@@ -954,35 +954,6 @@ class ConstantEvaluator extends RecursiveVisitor {
                     other.getType(typeEnvironment)));
         }
       }
-    } else if (receiver is BoolConstant) {
-      if (arguments.length == 1) {
-        switch (node.name.name) {
-          case '!':
-            return !receiver.value ? trueConstant : falseConstant;
-        }
-      } else if (arguments.length == 2) {
-        final right = arguments[0];
-        if (right is BoolConstant) {
-          switch (node.name.name) {
-            case '&&':
-              return (receiver.value && right.value)
-                  ? trueConstant
-                  : falseConstant;
-            case '||':
-              return (receiver.value || right.value)
-                  ? trueConstant
-                  : falseConstant;
-          }
-        }
-        throw new _AbortCurrentEvaluation(
-            errorReporter.invalidBinaryOperandType(
-                contextChain,
-                node,
-                receiver,
-                '${node.name.name}',
-                typeEnvironment.boolType,
-                right.getType(typeEnvironment)));
-      }
     } else if (receiver is IntConstant) {
       if (arguments.length == 0) {
         switch (node.name.name) {
