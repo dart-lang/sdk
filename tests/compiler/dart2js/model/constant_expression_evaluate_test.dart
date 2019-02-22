@@ -633,7 +633,7 @@ Future testData(TestData data) async {
           MemoryEnvironment environment =
               new MemoryEnvironment(getEnvironment(compiler, field), env);
           ConstantValue value =
-              constant.evaluate(environment, JavaScriptConstantSystem.only);
+              constant.evaluate(environment, ConstantSystem.only);
 
           Expect.isNotNull(
               value,

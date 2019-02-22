@@ -1874,7 +1874,7 @@ class KernelConstantEnvironment implements ConstantEnvironment {
   KernelConstantEnvironment(this._elementMap, this._environment);
 
   @override
-  ConstantSystem get constantSystem => JavaScriptConstantSystem.only;
+  ConstantSystem get constantSystem => ConstantSystem.only;
 
   ConstantValue _getConstantValue(
       Spannable spannable, ConstantExpression expression,
