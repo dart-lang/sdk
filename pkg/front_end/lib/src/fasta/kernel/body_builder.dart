@@ -122,6 +122,10 @@ import 'kernel_builder.dart';
 // TODO(ahe): Remove this and ensure all nodes have a location.
 const noLocation = null;
 
+// TODO(danrubel): Remove this once control flow and spread collection support
+// has been enabled by default.
+const invalidCollectionElement = const Object();
+
 abstract class BodyBuilder extends ScopeListener<JumpTarget>
     implements ExpressionGeneratorHelper {
   // TODO(ahe): Rename [library] to 'part'.
@@ -2266,8 +2270,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void endForControlFlow(Token token) {
     debugEvent("endForControlFlow");
     // TODO(danrubel) implement control flow support
-    var entry = pop();
 
+    var entry = pop();
     int updateExpressionCount = pop();
     pop(); // left separator
     pop(); // left parenthesis
@@ -2276,13 +2280,21 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     popListForEffect(updateExpressionCount); // updates
     popStatement(); // condition
     Object variableOrExpression = pop();
-    buildVariableDeclarations(variableOrExpression); // variables
 
-    push(entry); // push the entry back on the stack and drop the rest
-    handleRecoverableError(
-        fasta.templateUnexpectedToken.withArguments(forToken),
-        forToken,
-        forToken);
+    if (entry != invalidCollectionElement) {
+      // TODO(danrubel): Replace with control flow structures
+      buildVariableDeclarations(variableOrExpression); // variables
+      // TODO(danrubel): Report a more user friendly error message
+      // when an experiment is not enabled
+      handleRecoverableError(
+          fasta.templateUnexpectedToken.withArguments(forToken),
+          forToken,
+          forToken);
+      push(invalidCollectionElement);
+    } else {
+      // TODO(danrubel): Remove once unified collections enabled by default
+      push(invalidCollectionElement);
+    }
   }
 
   @override
@@ -2352,8 +2364,22 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLiteralList(
       int count, Token leftBracket, Token constKeyword, Token rightBracket) {
     debugEvent("LiteralList");
-    List<Expression> expressions = popListForValue(count);
+
+    // TODO(danrubel): Replace this with popListForValue
+    // when control flow and spread collections have been enabled by default
+    List<Expression> expressions =
+        new List<Expression>.filled(count, null, growable: true);
+    for (int i = count - 1; i >= 0; i--) {
+      var elem = pop();
+      if (elem != invalidCollectionElement) {
+        expressions[i] = toValue(elem);
+      } else {
+        expressions.removeAt(i);
+      }
+    }
+
     List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
+
     DartType typeArgument;
     if (typeArguments != null) {
       if (typeArguments.length > 1) {
@@ -2372,6 +2398,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       typeArgument = implicitTypeArgument;
     }
+
     Expression node = forest.literalList(
         constKeyword,
         constKeyword != null || constantContext == ConstantContext.inferred,
@@ -2388,26 +2415,40 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLiteralSet(
       int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     debugEvent("LiteralSet");
-    List<Expression> expressions = popListForValue(count);
-    List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
+
+    // TODO(danrubel): Remove this once the parser stops generating this event
+    // and only generates handleLiteralSetOrMap
+
+    handleLiteralSetOrMap2(count, leftBrace, constKeyword, rightBrace, false);
+  }
+
+  void buildLiteralSet(List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+      Token constKeyword, Token leftBrace, List<dynamic> setOrMapEntries) {
     DartType typeArgument;
     if (typeArguments != null) {
-      if (typeArguments.length > 1) {
-        addProblem(
-            fasta.messageSetLiteralTooManyTypeArguments,
-            offsetForToken(leftBrace),
-            lengthOfSpan(leftBrace, leftBrace.endGroup));
-        typeArgument = const InvalidType();
-      } else {
-        typeArgument = buildDartType(typeArguments.single);
-        if (!library.loader.target.legacyMode) {
-          typeArgument =
-              instantiateToBounds(typeArgument, coreTypes.objectClass);
-        }
+      typeArgument = buildDartType(typeArguments.single);
+      if (!library.loader.target.legacyMode) {
+        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
       }
     } else {
       typeArgument = implicitTypeArgument;
     }
+
+    var expressions = <Expression>[];
+    if (setOrMapEntries != null) {
+      for (var entry in setOrMapEntries) {
+        if (entry is MapEntry) {
+          // TODO(danrubel): report the error on the colon
+          addProblem(fasta.templateExpectedButGot.withArguments(','),
+              entry.value.fileOffset - 1, 1);
+        } else {
+          // TODO(danrubel): Revise once control flow and spread
+          //  collection entries are supported.
+          expressions.add(entry as Expression);
+        }
+      }
+    }
+
     Expression node = forest.literalSet(
         constKeyword,
         constKeyword != null || constantContext == ConstantContext.inferred,
@@ -2415,7 +2456,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         typeArguments,
         leftBrace,
         expressions,
-        rightBrace);
+        leftBrace.endGroup);
     library.checkBoundsInSetLiteral(node, typeEnvironment);
     if (!library.loader.target.enableSetLiterals) {
       internalProblem(
@@ -2428,9 +2469,60 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleLiteralSetOrMap(
       int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    handleLiteralSetOrMap2(count, leftBrace, constKeyword, rightBrace, false);
+  }
+
+  void handleLiteralSetOrMap2(
+    int count,
+    Token leftBrace,
+    Token constKeyword,
+    Token rightBrace,
+    // TODO(danrubel): revise handleLiteralSetOrMap to have the additional
+    // hasMapEntry parameter for replicating existing behavior. This parameter
+    // will be removed once unified collection has been implemented.
+    bool hasMapEntry,
+  ) {
     debugEvent("LiteralSetOrMap");
-    // Treat as map literal - type inference will find the right type.
-    handleLiteralMap(count, leftBrace, constKeyword, rightBrace);
+
+    var setOrMapEntries = new List<dynamic>.filled(count, null, growable: true);
+    for (int i = count - 1; i >= 0; i--) {
+      var elem = pop();
+      // TODO(danrubel): Revise this to handle control flow and spread
+      if (elem == invalidCollectionElement) {
+        setOrMapEntries.removeAt(i);
+      } else if (elem is MapEntry) {
+        setOrMapEntries[i] = elem;
+      } else {
+        setOrMapEntries[i] = toValue(elem);
+      }
+    }
+    List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
+
+    // Replicate existing behavior that has been removed from the parser.
+    // This will be removed once unified collections is implemented.
+
+    // Determine if this is a set or map based on type args and content
+    // TODO(danrubel): Since type resolution is needed to disambiguate
+    // set or map in some situations, consider always deferring determination
+    // until the type resolution phase.
+    final typeArgCount = typeArguments?.length;
+    bool isSet = typeArgCount == 1 ? true : typeArgCount != null ? false : null;
+
+    // TODO(danrubel): If the type arguments are not known (null) then
+    // defer set/map determination until after type resolution as per the
+    // unified collection spec: https://github.com/dart-lang/language/pull/200
+    // rather than trying to guess as done below.
+    if (isSet == null &&
+        setOrMapEntries != null &&
+        setOrMapEntries.isNotEmpty) {
+      isSet = !hasMapEntry;
+    }
+
+    if (isSet ?? false) {
+      buildLiteralSet(typeArguments, constKeyword, leftBrace, setOrMapEntries);
+    } else {
+      buildLiteralMap(typeArguments, constKeyword, leftBrace, setOrMapEntries);
+    }
   }
 
   @override
@@ -2458,21 +2550,19 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     debugEvent("LiteralMap");
 
-    // TODO(danrubel): Revise once spread collection entries are supported.
-    // For now, drop those on the floor
-    // as error(s) have already been reported in handleSpreadExpression.
-    List<MapEntry> entries = <MapEntry>[];
-    const FixedNullableList<dynamic>().pop(stack, count)?.forEach((entry) {
-      if (entry is MapEntry) {
-        entries.add(entry);
-      }
-    });
+    // TODO(danrubel): Remove this once the parser stops generating this event
+    // and only generates handleLiteralSetOrMap
 
-    List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
+    handleLiteralSetOrMap2(count, leftBrace, constKeyword, rightBrace, true);
+  }
+
+  void buildLiteralMap(List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+      Token constKeyword, Token leftBrace, List<dynamic> setOrMapEntries) {
     DartType keyType;
     DartType valueType;
     if (typeArguments != null) {
       if (typeArguments.length != 2) {
+        // TODO(danrubel): Remove once parser generates this error message
         addProblem(
             fasta.messageMapLiteralTypeArgumentMismatch,
             offsetForToken(leftBrace),
@@ -2492,6 +2582,24 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       keyType = implicitTypeArgument;
       valueType = implicitTypeArgument;
     }
+
+    // TODO(danrubel): Revise once spread collection entries are supported.
+    List<MapEntry> entries = <MapEntry>[];
+    if (setOrMapEntries != null) {
+      for (var entry in setOrMapEntries) {
+        if (entry is MapEntry) {
+          entries.add(entry);
+        } else {
+          addProblem(
+            fasta.templateExpectedAfterButGot.withArguments(':'),
+            (entry as Expression).fileOffset,
+            // TODO(danrubel): what is the length of the expression?
+            1,
+          );
+        }
+      }
+    }
+
     Expression node = forest.literalMap(
         constKeyword,
         constKeyword != null || constantContext == ConstantContext.inferred,
@@ -2500,7 +2608,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         typeArguments,
         leftBrace,
         entries,
-        rightBrace);
+        leftBrace.endGroup);
     library.checkBoundsInMapLiteral(node, typeEnvironment);
     push(node);
   }
@@ -3568,7 +3676,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void beginIfControlFlow(Token ifToken) {
-    // TODO(danrubel): remove this when control flow support is added
+    // TODO(danrubel): consider removing this when control flow support is added
+    // if the ifToken is not needed for error reporting
     push(ifToken);
   }
 
@@ -3576,35 +3685,63 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void endIfControlFlow(Token token) {
     debugEvent("endIfControlFlow");
     // TODO(danrubel) implement control flow support
+
     var entry = pop();
     pop(); // parenthesized expression
     Token ifToken = pop();
-    push(entry); // push the entry back on the stack and drop the rest
-    handleRecoverableError(
-        fasta.templateUnexpectedToken.withArguments(ifToken), ifToken, ifToken);
+    if (entry != invalidCollectionElement) {
+      // TODO(danrubel): Replace this with control flow structure
+      // TODO(danrubel): Report a more user friendly error message
+      // when an experiment is not enabled
+      handleRecoverableError(
+          fasta.templateUnexpectedToken.withArguments(ifToken),
+          ifToken,
+          ifToken);
+      push(invalidCollectionElement);
+    } else {
+      // TODO(danrubel): Remove this when unified collections enabled
+      push(invalidCollectionElement);
+    }
   }
 
   @override
   void endIfElseControlFlow(Token token) {
     debugEvent("endIfElseControlFlow");
     // TODO(danrubel) implement control flow support
-    pop(); // else entry
-    var entry = pop(); // then entry
+
+    var elseEntry = pop(); // else entry
+    var thenEntry = pop(); // then entry
     pop(); // parenthesized expression
     Token ifToken = pop();
-    push(entry); // push the entry back on the stack and drop the rest
-    handleRecoverableError(
-        fasta.templateUnexpectedToken.withArguments(ifToken), ifToken, ifToken);
+    if (thenEntry != invalidCollectionElement &&
+        elseEntry != invalidCollectionElement) {
+      // TODO(danrubel): Replace this with control flow support
+      // TODO(danrubel): Report a more user friendly error message
+      // when an experiment is not enabled
+      handleRecoverableError(
+          fasta.templateUnexpectedToken.withArguments(ifToken),
+          ifToken,
+          ifToken);
+      push(invalidCollectionElement);
+    } else {
+      // TODO(danrubel): Remove when unified collections enabled
+      push(invalidCollectionElement);
+    }
   }
 
   @override
   void handleSpreadExpression(Token spreadToken) {
     debugEvent("SpreadExpression");
     // TODO(danrubel) implement spread expression support
+
+    pop(); // expression
+    // TODO(danrubel): Report a more user friendly error message
+    // when an experiment is not enabled
     handleRecoverableError(
         fasta.templateUnexpectedToken.withArguments(spreadToken),
         spreadToken,
         spreadToken);
+    push(invalidCollectionElement);
   }
 
   @override
@@ -3897,20 +4034,27 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void endForInControlFlow(Token token) {
     debugEvent("endForInControlFlow");
     // TODO(danrubel) implement control flow support
-    var entry = pop();
 
+    var entry = pop();
     pop(); // `in` keyword
     Token forToken = pop();
     pop(NullValue.AwaitToken); // await token
-
     popForValue(); // expression
     pop(); // lvalue
 
-    push(entry); // push the entry back on the stack and drop the rest
-    handleRecoverableError(
-        fasta.templateUnexpectedToken.withArguments(forToken),
-        forToken,
-        forToken);
+    if (entry != invalidCollectionElement) {
+      // TODO(danrubel): Replace this with control flow element
+      // TODO(danrubel): Report a more user friendly error message
+      // when an experiment is not enabled
+      handleRecoverableError(
+          fasta.templateUnexpectedToken.withArguments(forToken),
+          forToken,
+          forToken);
+      push(invalidCollectionElement);
+    } else {
+      // TODO(danrubel): Remove once unified collections enabled by default
+      push(invalidCollectionElement);
+    }
   }
 
   @override

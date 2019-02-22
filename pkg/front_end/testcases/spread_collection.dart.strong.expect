@@ -30,54 +30,14 @@ library;
 //   final aSetOrMap = {...foo()};
 //                      ^^^
 //
-// pkg/front_end/testcases/spread_collection.dart:6:29: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
-//  - 'List' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   final aList = <int>[1, ...[2], ...?[3]];
-//                             ^
-//
-// pkg/front_end/testcases/spread_collection.dart:6:38: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
-//  - 'List' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   final aList = <int>[1, ...[2], ...?[3]];
-//                                      ^
-//
-// pkg/front_end/testcases/spread_collection.dart:8:28: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
-//  - 'List' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   final aSet = <int>{1, ...[2], ...?[3]};
-//                            ^
-//
-// pkg/front_end/testcases/spread_collection.dart:8:37: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
-//  - 'List' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   final aSet = <int>{1, ...[2], ...?[3]};
-//                                     ^
-//
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 
 static method main() → dynamic {
-  final core::List<core::int> aList = <core::int>[1, let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/spread_collection.dart:6:29: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
- - 'List' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  final aList = <int>[1, ...[2], ...?[3]];
-                            ^" in <core::int>[2] as{TypeError} core::int, let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/spread_collection.dart:6:38: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
- - 'List' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  final aList = <int>[1, ...[2], ...?[3]];
-                                     ^" in <core::int>[3] as{TypeError} core::int];
+  final core::List<core::int> aList = <core::int>[1];
   final core::Map<core::int, core::int> aMap = <core::int, core::int>{1: 1};
-  final core::Set<core::int> aSet = let final core::Set<core::int> #t3 = col::LinkedHashSet::•<core::int>() in let final dynamic #t4 = #t3.{core::Set::add}(1) in let final dynamic #t5 = #t3.{core::Set::add}(let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/spread_collection.dart:8:28: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
- - 'List' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  final aSet = <int>{1, ...[2], ...?[3]};
-                           ^" in <core::int>[2] as{TypeError} core::int) in let final dynamic #t7 = #t3.{core::Set::add}(let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/spread_collection.dart:8:37: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
- - 'List' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  final aSet = <int>{1, ...[2], ...?[3]};
-                                    ^" in <core::int>[3] as{TypeError} core::int) in #t3;
+  final core::Set<core::int> aSet = let final core::Set<core::int> #t1 = col::LinkedHashSet::•<core::int>() in let final dynamic #t2 = #t1.{core::Set::add}(1) in #t1;
   final core::Map<dynamic, dynamic> aSetOrMap = <dynamic, dynamic>{};
   core::print(aList);
   core::print(aSet);

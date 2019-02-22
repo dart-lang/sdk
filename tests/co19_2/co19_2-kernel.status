@@ -846,19 +846,19 @@ LanguageFeatures/Control-flow-collections/const_collections_A08_t01/27: Crash, P
 LanguageFeatures/Control-flow-collections/const_collections_A08_t01/28: Crash, Pass
 LanguageFeatures/Control-flow-collections/const_collections_A08_t01/29: Crash, Pass
 LanguageFeatures/Control-flow-collections/const_collections_A08_t01/30: Crash, Pass
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A02_t01: Crash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t01: Crash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t02: Crash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A04_t01: Crash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A02_t01: Crash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A02_t02: Crash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t01: Crash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t02: Crash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A04_t01: Crash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A02_t01: Crash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A03_t01: Crash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A03_t02: Crash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A04_t01: Crash
+LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A02_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A04_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A02_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A02_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A04_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A02_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A03_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A03_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A04_t01: CompileTimeError
 
 [ $runtime == vm && $system == linux && ($compiler == dartk || $compiler == dartkb) ]
 LibTest/io/Link/stat_A01_t01: RuntimeError

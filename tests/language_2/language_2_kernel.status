@@ -198,12 +198,12 @@ const_cast1_test/02: MissingCompileTimeError
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
 constructor5_test: CompileTimeError # Verification error
 constructor6_test: CompileTimeError # Verification error
-control_flow_collections/for_inference_test: Crash
-control_flow_collections/for_test: Crash
-control_flow_collections/for_variable_test: Crash
-control_flow_collections/if_const_test: Crash
+control_flow_collections/for_inference_test: CompileTimeError
+control_flow_collections/for_test: CompileTimeError
+control_flow_collections/for_variable_test: CompileTimeError
+control_flow_collections/if_const_test: CompileTimeError
 control_flow_collections/if_inference_test: CompileTimeError
-control_flow_collections/if_test: Crash
+control_flow_collections/if_test: CompileTimeError
 control_flow_collections/map_set_ambiguity_test: CompileTimeError
 control_flow_collections/syntax_error_test/09: Crash
 control_flow_collections/syntax_error_test/10: Crash
