@@ -1871,7 +1871,7 @@ class SyntheticIdentifier extends IdentifierImpl {
   int get offset => targetIdentifier.offset;
 
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
 
   @deprecated
   @override

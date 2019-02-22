@@ -501,7 +501,7 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   }
 
   @override
-  int get precedence => 7;
+  int get precedence => RELATIONAL_PRECEDENCE;
 
   @override
   TypeAnnotation get type => _type;
@@ -778,7 +778,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
   }
 
   @override
-  int get precedence => 1;
+  int get precedence => ASSIGNMENT_PRECEDENCE;
 
   @deprecated
   @override
@@ -1017,7 +1017,7 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   }
 
   @override
-  int get precedence => 14;
+  int get precedence => PREFIX_PRECEDENCE;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
@@ -1426,7 +1426,7 @@ class CascadeExpressionImpl extends ExpressionImpl
   Token get endToken => _cascadeSections.endToken;
 
   @override
-  int get precedence => 2;
+  int get precedence => CASCADE_PRECEDENCE;
 
   @override
   Expression get target => _target;
@@ -2581,7 +2581,7 @@ class ConditionalExpressionImpl extends ExpressionImpl
   Token get endToken => _elseExpression.endToken;
 
   @override
-  int get precedence => 3;
+  int get precedence => CONDITIONAL_PRECEDENCE;
 
   @override
   Expression get thenExpression => _thenExpression;
@@ -5731,7 +5731,7 @@ class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
 
   @override
   TypeParameterList get typeParameters => _typeParameters;
@@ -5808,7 +5808,7 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   }
 
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
 
   @deprecated
   @override
@@ -6787,7 +6787,7 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   bool get isCascaded => period != null;
 
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
 
   @deprecated
   @override
@@ -6975,7 +6975,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   bool get isImplicit => keyword == null;
 
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
 
   /**
    * Return the type arguments associated with the constructor, rather than with
@@ -7013,7 +7013,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
    *
    * Also note that this method can cause constant evaluation to occur, which
    * can be computationally expensive.
-   * 
+   *
    * Deprecated: Use `LinterContext.canBeConst` instead.
    */
   @deprecated
@@ -7462,7 +7462,7 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 
   @override
-  int get precedence => 7;
+  int get precedence => RELATIONAL_PRECEDENCE;
 
   @override
   TypeAnnotation get type => _type;
@@ -7721,7 +7721,7 @@ class LibraryIdentifierImpl extends IdentifierImpl
   }
 
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
 
   @deprecated
   @override
@@ -7842,7 +7842,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 
   /**
    * Initialize a newly created list literal.
-   * 
+   *
    * The [constKeyword] can be `null` if the literal is not a constant. The
    * [typeArguments] can be `null` if no type arguments were declared. The list
    * of [elements] can be `null` if the list is empty.
@@ -7909,7 +7909,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
  */
 abstract class LiteralImpl extends ExpressionImpl implements Literal {
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
 }
 
 /**
@@ -8376,7 +8376,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
 
   @override
   Expression get realTarget {
@@ -8610,7 +8610,7 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
   }
 
   @override
-  int get precedence => 0;
+  int get precedence => NO_PRECEDENCE;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitNamedExpression(this);
@@ -9236,7 +9236,7 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 
   @override
-  int get precedence => 15;
+  int get precedence => SELECTOR_PRECEDENCE;
 
   @override
   Expression get unParenthesized {
@@ -9462,7 +9462,7 @@ class PostfixExpressionImpl extends ExpressionImpl
   }
 
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
 
   @deprecated
   @override
@@ -9583,7 +9583,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   String get name => "${_prefix.name}.${_identifier.name}";
 
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
 
   @override
   SimpleIdentifier get prefix => _prefix;
@@ -9669,7 +9669,7 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   }
 
   @override
-  int get precedence => 14;
+  int get precedence => PREFIX_PRECEDENCE;
 
   @deprecated
   @override
@@ -9763,7 +9763,7 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
       operator != null && operator.type == TokenType.PERIOD_PERIOD;
 
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
 
   @override
   SimpleIdentifier get propertyName => _propertyName;
@@ -9924,7 +9924,7 @@ class RethrowExpressionImpl extends ExpressionImpl
   Token get endToken => rethrowKeyword;
 
   @override
-  int get precedence => 0;
+  int get precedence => ASSIGNMENT_PRECEDENCE;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitRethrowExpression(this);
@@ -10424,7 +10424,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   String get name => token.lexeme;
 
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
 
   @deprecated
   @override
@@ -11033,7 +11033,7 @@ class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
   Token get endToken => superKeyword;
 
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitSuperExpression(this);
@@ -11353,7 +11353,7 @@ class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
   Token get endToken => thisKeyword;
 
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitThisExpression(this);
@@ -11412,7 +11412,7 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
   }
 
   @override
-  int get precedence => 0;
+  int get precedence => ASSIGNMENT_PRECEDENCE;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitThrowExpression(this);

@@ -300,17 +300,17 @@ AstNode getEnclosingExecutableNode(AstNode node) {
 }
 
 /**
- * Returns [getExpressionPrecedence] for the parent of [node], or `0` if the
- * parent node is a [ParenthesizedExpression].
+ * Returns [getExpressionPrecedence] for the parent of [node], or
+ * ASSIGNMENT_PRECEDENCE if the parent node is a [ParenthesizedExpression].
  *
  * The reason is that `(expr)` is always executed after `expr`.
  */
 int getExpressionParentPrecedence(AstNode node) {
   AstNode parent = node.parent;
   if (parent is ParenthesizedExpression) {
-    return 0;
+    return ASSIGNMENT_PRECEDENCE;
   } else if (parent is IndexExpression && parent.index == node) {
-    return 0;
+    return ASSIGNMENT_PRECEDENCE;
   } else if (parent is AssignmentExpression &&
       node == parent.rightHandSide &&
       parent.parent is CascadeExpression) {
@@ -319,19 +319,20 @@ int getExpressionParentPrecedence(AstNode node) {
     // expressions are equal it sometimes means that we don't need parentheses
     // (such as replacing the `b` in `a + b` with `c + d`) and sometimes do
     // (such as replacing the `v` in `..f = v` with `a..b`).
-    return 3;
+    return CONDITIONAL_PRECEDENCE;
   }
   return getExpressionPrecedence(parent);
 }
 
 /**
- * Returns the precedence of [node] it is an [Expression], negative otherwise.
+ * Returns the precedence of [node] it is an [Expression], NO_PRECEDENCE
+ * otherwise.
  */
 int getExpressionPrecedence(AstNode node) {
   if (node is Expression) {
     return node.precedence;
   }
-  return -1000;
+  return NO_PRECEDENCE;
 }
 
 /**

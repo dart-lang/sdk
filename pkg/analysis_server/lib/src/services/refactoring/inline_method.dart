@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
@@ -79,7 +80,7 @@ String _getMethodSourceForInvocation(
         return;
       }
       // an optional parameter
-      argumentPrecedence = -1000;
+      argumentPrecedence = NO_PRECEDENCE;
       argumentSource = parameter.defaultValueCode;
       if (argumentSource == null) {
         argumentSource = 'null';
@@ -416,6 +417,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 class _ParameterOccurrence {
   final int parentPrecedence;
   final SourceRange range;
+
   _ParameterOccurrence(this.parentPrecedence, this.range);
 }
 
