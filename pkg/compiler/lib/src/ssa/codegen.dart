@@ -378,8 +378,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         new SsaInstructionSelection(_options, _closedWorld, _interceptorData));
     runPhase(new SsaTypeKnownRemover());
     runPhase(new SsaTrustedCheckRemover(_options));
-    // TODO(sra): Re-enable chaining.
-    // runPhase(new SsaAssignmentChaining(_options, _closedWorld));
+    runPhase(new SsaAssignmentChaining(_options, _closedWorld));
     runPhase(new SsaInstructionMerger(
         _abstractValueDomain, generateAtUseSite, _superMemberData));
     runPhase(new SsaConditionMerger(generateAtUseSite, controlFlowOperators));

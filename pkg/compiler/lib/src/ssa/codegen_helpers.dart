@@ -513,7 +513,7 @@ class SsaAssignmentChaining extends HBaseVisitor with CodegenPhase {
               setter.previous == value ||
               // the following tests for immediately previous phi.
               (setter.previous == null && value.block == setter.block)) {
-            use.changeUse(value, chain);
+            uses.replaceWith(chain);
           }
         }
         return next;
