@@ -67,11 +67,12 @@ class DiagnosticsDescribeAllProperties extends LintRule
     implements NodeLintRule {
   DiagnosticsDescribeAllProperties()
       : super(
-            name: 'diagnostic_describe_all_properties',
-            description: _desc,
-            details: _details,
-            maturity: Maturity.experimental,
-            group: Group.errors);
+          name: 'diagnostic_describe_all_properties',
+          description: _desc,
+          details: _details,
+          maturity: Maturity.experimental,
+          group: Group.errors,
+        );
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
@@ -134,36 +135,24 @@ class _Visitor extends SimpleAstVisitor {
     var properties = <SimpleIdentifier>[];
     for (var member in node.members) {
       if (member is MethodDeclaration && member.isGetter) {
-        if (isPrivate(member.name)) {
-          continue;
+        if (!member.isStatic &&
+            !skipForDiagnostic(
+              element: member.declaredElement,
+              name: member.name,
+              type: member.returnType?.type,
+            )) {
+          properties.add(member.name);
         }
-        if (member.isStatic) {
-          continue;
-        }
-        if (isWidgetProperty(member.returnType?.type)) {
-          continue;
-        }
-        if (_isOverridingMember(member.declaredElement)) {
-          continue;
-        }
-
-        properties.add(member.name);
       } else if (member is FieldDeclaration) {
         for (var v in member.fields.variables) {
-          if (isPrivate(v.name)) {
-            continue;
+          if (!v.declaredElement.isStatic &&
+              !skipForDiagnostic(
+                element: v.declaredElement,
+                name: v.name,
+                type: v.declaredElement.type,
+              )) {
+            properties.add(v.name);
           }
-          if (v.declaredElement.isStatic) {
-            continue;
-          }
-          if (isWidgetProperty(v.declaredElement.type)) {
-            continue;
-          }
-          if (_isOverridingMember(v.declaredElement)) {
-            continue;
-          }
-
-          properties.add(v.name);
         }
       }
     }
@@ -213,12 +202,16 @@ class _Visitor extends SimpleAstVisitor {
         .forEach((p) {
       var debugName;
       var name;
-      if (p.name.startsWith('debug') && p.name.length > 5) {
+      const debugPrefix = 'debug';
+      if (p.name.startsWith(debugPrefix) &&
+          p.name.length > debugPrefix.length) {
         debugName = p.name;
-        name = '${p.name[5].toLowerCase()}${p.name.substring(6)}';
+        name =
+            '${p.name[debugPrefix.length].toLowerCase()}${p.name.substring(debugPrefix.length + 1)}';
       } else {
         name = p.name;
-        debugName = 'debug${p.name[0].toUpperCase()}${p.name.substring(1)}';
+        debugName =
+            '$debugPrefix${p.name[0].toUpperCase()}${p.name.substring(1)}';
       }
       properties.removeWhere(
           (property) => property.name == debugName || property.name == name);
@@ -239,10 +232,13 @@ class _Visitor extends SimpleAstVisitor {
     }
     if (type is ParameterizedType &&
         DartTypeUtilities.implementsAnyInterface(type, collectionInterfaces)) {
-      // todo (pq): improve....
       return type.typeParameters.length == 1 &&
           isWidgetProperty(type.typeArguments.first);
     }
     return false;
   }
+
+  bool skipForDiagnostic(
+          {Element element, DartType type, SimpleIdentifier name}) =>
+      isPrivate(name) || _isOverridingMember(element) || isWidgetProperty(type);
 }
