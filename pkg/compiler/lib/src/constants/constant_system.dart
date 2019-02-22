@@ -14,32 +14,38 @@ import 'values.dart';
 
 final _BITS32 = new BigInt.from(0xFFFFFFFF);
 
-const add = const AddOperation();
-const bitAnd = const BitAndOperation();
+const add = const JavaScriptAddOperation();
+const bitAnd = const JavaScriptBinaryBitOperation(const BitAndOperation());
 const bitNot = const BitNotOperation();
-const bitOr = const BitOrOperation();
-const bitXor = const BitXorOperation();
+const bitOr = const JavaScriptBinaryBitOperation(const BitOrOperation());
+const bitXor = const JavaScriptBinaryBitOperation(const BitXorOperation());
 const booleanAnd = const BooleanAndOperation();
 const booleanOr = const BooleanOrOperation();
-const divide = const DivideOperation();
+const divide =
+    const JavaScriptBinaryArithmeticOperation(const DivideOperation());
 const equal = const EqualsOperation();
 const greaterEqual = const GreaterEqualOperation();
 const greater = const GreaterOperation();
-const identity = const IdentityOperation();
+const identity = const JavaScriptIdentityOperation();
 const ifNull = const IfNullOperation();
 const lessEqual = const LessEqualOperation();
 const less = const LessOperation();
-const modulo = const ModuloOperation();
-const multiply = const MultiplyOperation();
-const negate = const NegateOperation();
+const modulo =
+    const JavaScriptBinaryArithmeticOperation(const ModuloOperation());
+const multiply =
+    const JavaScriptBinaryArithmeticOperation(const MultiplyOperation());
+const negate = const JavaScriptNegateOperation();
 const not = const NotOperation();
-const remainder = const RemainderOperation();
-const shiftLeft = const ShiftLeftOperation();
-const shiftRight = const ShiftRightOperation();
-const subtract = const SubtractOperation();
-const truncatingDivide = const TruncatingDivideOperation();
-const codeUnitAt = const CodeUnitAtOperation();
-const round = const RoundOperation();
+const remainder = const JavaScriptRemainderOperation();
+const shiftLeft =
+    const JavaScriptBinaryBitOperation(const ShiftLeftOperation());
+const shiftRight = const JavaScriptShiftRightOperation();
+const subtract =
+    const JavaScriptBinaryArithmeticOperation(const SubtractOperation());
+const truncatingDivide = const JavaScriptBinaryArithmeticOperation(
+    const TruncatingDivideOperation());
+const codeUnitAt = const CodeUnitAtRuntimeOperation();
+const round = const JavaScriptRoundOperation();
 const abs = const UnfoldedUnaryOperation('abs');
 
 /// Returns true if [value] will turn into NaN or infinity
@@ -259,12 +265,9 @@ abstract class BinaryOperation extends Operation {
 }
 
 class BitNotOperation implements UnaryOperation {
-  @override
   final String name = '~';
-
   const BitNotOperation();
 
-  @override
   ConstantValue fold(ConstantValue constant) {
     if (isInt(constant)) {
       // In JavaScript we don't check for -0 and treat it as if it was zero.
@@ -280,42 +283,42 @@ class BitNotOperation implements UnaryOperation {
 }
 
 class NegateOperation implements UnaryOperation {
-  @override
   final String name = 'negate';
-
   const NegateOperation();
-
-  @override
   ConstantValue fold(ConstantValue constant) {
-    ConstantValue _fold(ConstantValue constant) {
-      if (constant.isInt) {
-        IntConstantValue intConstant = constant;
-        return createInt(-intConstant.intValue);
-      }
-      if (constant.isDouble) {
-        DoubleConstantValue doubleConstant = constant;
-        return createDouble(-doubleConstant.doubleValue);
-      }
-      return null;
+    if (constant.isInt) {
+      IntConstantValue intConstant = constant;
+      return createInt(-intConstant.intValue);
     }
+    if (constant.isDouble) {
+      DoubleConstantValue doubleConstant = constant;
+      return createDouble(-doubleConstant.doubleValue);
+    }
+    return null;
+  }
+}
 
+class JavaScriptNegateOperation implements UnaryOperation {
+  final NegateOperation dartNegateOperation = const NegateOperation();
+
+  const JavaScriptNegateOperation();
+
+  String get name => dartNegateOperation.name;
+
+  ConstantValue fold(ConstantValue constant) {
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
       if (intConstant.intValue == BigInt.zero) {
         return createDouble(-0.0);
       }
     }
-    return _fold(constant);
+    return dartNegateOperation.fold(constant);
   }
 }
 
 class NotOperation implements UnaryOperation {
-  @override
   final String name = '!';
-
   const NotOperation();
-
-  @override
   ConstantValue fold(ConstantValue constant) {
     if (constant.isBool) {
       BoolConstantValue boolConstant = constant;
@@ -328,20 +331,30 @@ class NotOperation implements UnaryOperation {
 /// Operations that only work if both arguments are integers.
 abstract class BinaryBitOperation implements BinaryOperation {
   const BinaryBitOperation();
-
-  @override
   ConstantValue fold(ConstantValue left, ConstantValue right) {
-    ConstantValue _fold(ConstantValue left, ConstantValue right) {
-      if (left.isInt && right.isInt) {
-        IntConstantValue leftInt = left;
-        IntConstantValue rightInt = right;
-        BigInt resultValue = foldInts(leftInt.intValue, rightInt.intValue);
-        if (resultValue == null) return null;
-        return createInt(resultValue);
-      }
-      return null;
+    if (left.isInt && right.isInt) {
+      IntConstantValue leftInt = left;
+      IntConstantValue rightInt = right;
+      BigInt resultValue = foldInts(leftInt.intValue, rightInt.intValue);
+      if (resultValue == null) return null;
+      return createInt(resultValue);
     }
+    return null;
+  }
 
+  BigInt foldInts(BigInt left, BigInt right);
+}
+
+/// In JavaScript we truncate the result to an unsigned 32 bit integer. Also, -0
+/// is treated as if it was the integer 0.
+class JavaScriptBinaryBitOperation implements BinaryOperation {
+  final BinaryBitOperation dartBitOperation;
+
+  const JavaScriptBinaryBitOperation(this.dartBitOperation);
+
+  String get name => dartBitOperation.name;
+
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
     // In JavaScript we don't check for -0 and treat it as if it was zero.
     if (left.isMinusZero) {
       left = createInt(BigInt.zero);
@@ -349,7 +362,7 @@ abstract class BinaryBitOperation implements BinaryOperation {
     if (right.isMinusZero) {
       right = createInt(BigInt.zero);
     }
-    IntConstantValue result = _fold(left, right);
+    IntConstantValue result = dartBitOperation.fold(left, right);
     if (result != null) {
       // We convert the result of bit-operations to 32 bit unsigned integers.
       return _createInt32(result.intValue);
@@ -357,55 +370,33 @@ abstract class BinaryBitOperation implements BinaryOperation {
     return result;
   }
 
-  BigInt foldInts(BigInt left, BigInt right);
+  apply(left, right) => dartBitOperation.apply(left, right);
 }
 
 class BitAndOperation extends BinaryBitOperation {
-  @override
   final String name = '&';
-
   const BitAndOperation();
-
-  @override
   BigInt foldInts(BigInt left, BigInt right) => left & right;
-
-  @override
   apply(left, right) => left & right;
 }
 
 class BitOrOperation extends BinaryBitOperation {
-  @override
   final String name = '|';
-
   const BitOrOperation();
-
-  @override
   BigInt foldInts(BigInt left, BigInt right) => left | right;
-
-  @override
   apply(left, right) => left | right;
 }
 
 class BitXorOperation extends BinaryBitOperation {
-  @override
   final String name = '^';
-
   const BitXorOperation();
-
-  @override
   BigInt foldInts(BigInt left, BigInt right) => left ^ right;
-
-  @override
   apply(left, right) => left ^ right;
 }
 
 class ShiftLeftOperation extends BinaryBitOperation {
-  @override
   final String name = '<<';
-
   const ShiftLeftOperation();
-
-  @override
   BigInt foldInts(BigInt left, BigInt right) {
     // TODO(floitsch): find a better way to guard against excessive shifts to
     // the left.
@@ -413,17 +404,23 @@ class ShiftLeftOperation extends BinaryBitOperation {
     return left << right.toInt();
   }
 
-  @override
   apply(left, right) => left << right;
 }
 
 class ShiftRightOperation extends BinaryBitOperation {
-  @override
   final String name = '>>';
-
   const ShiftRightOperation();
+  BigInt foldInts(BigInt left, BigInt right) {
+    if (right < BigInt.zero) return null;
+    return left >> right.toInt();
+  }
 
-  @override
+  apply(left, right) => left >> right;
+}
+
+class JavaScriptShiftRightOperation extends JavaScriptBinaryBitOperation {
+  const JavaScriptShiftRightOperation() : super(const ShiftRightOperation());
+
   ConstantValue fold(ConstantValue left, ConstantValue right) {
     // Truncate the input value to 32 bits if necessary.
     if (left.isInt) {
@@ -450,21 +447,10 @@ class ShiftRightOperation extends BinaryBitOperation {
     }
     return super.fold(left, right);
   }
-
-  @override
-  BigInt foldInts(BigInt left, BigInt right) {
-    if (right < BigInt.zero) return null;
-    return left >> right.toInt();
-  }
-
-  @override
-  apply(left, right) => left >> right;
 }
 
 abstract class BinaryBoolOperation implements BinaryOperation {
   const BinaryBoolOperation();
-
-  @override
   ConstantValue fold(ConstantValue left, ConstantValue right) {
     if (left.isBool && right.isBool) {
       BoolConstantValue leftBool = left;
@@ -479,63 +465,43 @@ abstract class BinaryBoolOperation implements BinaryOperation {
 }
 
 class BooleanAndOperation extends BinaryBoolOperation {
-  @override
   final String name = '&&';
-
   const BooleanAndOperation();
-
-  @override
   bool foldBools(bool left, bool right) => left && right;
-
-  @override
   apply(left, right) => left && right;
 }
 
 class BooleanOrOperation extends BinaryBoolOperation {
-  @override
   final String name = '||';
-
   const BooleanOrOperation();
-
-  @override
   bool foldBools(bool left, bool right) => left || right;
-
-  @override
   apply(left, right) => left || right;
 }
 
 abstract class ArithmeticNumOperation implements BinaryOperation {
   const ArithmeticNumOperation();
-
-  @override
   ConstantValue fold(ConstantValue left, ConstantValue right) {
-    ConstantValue _fold(ConstantValue left, ConstantValue right) {
-      if (left.isNum && right.isNum) {
-        NumConstantValue leftNum = left;
-        NumConstantValue rightNum = right;
-        var foldedValue;
-        if (left.isInt && right.isInt) {
-          IntConstantValue leftInt = leftNum;
-          IntConstantValue rightInt = rightNum;
-          foldedValue = foldInts(leftInt.intValue, rightInt.intValue);
-        } else {
-          foldedValue = foldNums(leftNum.doubleValue, rightNum.doubleValue);
-        }
-        // A division by 0 means that we might not have a folded value.
-        if (foldedValue == null) return null;
-        if (left.isInt && right.isInt && !isDivide() || isTruncatingDivide()) {
-          assert(foldedValue is BigInt);
-          return createInt(foldedValue);
-        } else {
-          return createDouble(foldedValue);
-        }
+    if (left.isNum && right.isNum) {
+      NumConstantValue leftNum = left;
+      NumConstantValue rightNum = right;
+      var foldedValue;
+      if (left.isInt && right.isInt) {
+        IntConstantValue leftInt = leftNum;
+        IntConstantValue rightInt = rightNum;
+        foldedValue = foldInts(leftInt.intValue, rightInt.intValue);
+      } else {
+        foldedValue = foldNums(leftNum.doubleValue, rightNum.doubleValue);
       }
-      return null;
+      // A division by 0 means that we might not have a folded value.
+      if (foldedValue == null) return null;
+      if (left.isInt && right.isInt && !isDivide() || isTruncatingDivide()) {
+        assert(foldedValue is BigInt);
+        return createInt(foldedValue);
+      } else {
+        return createDouble(foldedValue);
+      }
     }
-
-    ConstantValue result = _fold(left, right);
-    if (result == null) return result;
-    return _convertToJavaScriptConstant(result);
+    return null;
   }
 
   bool isDivide() => false;
@@ -544,165 +510,137 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
   foldNums(num left, num right);
 }
 
+class JavaScriptBinaryArithmeticOperation implements BinaryOperation {
+  final BinaryOperation dartArithmeticOperation;
+
+  const JavaScriptBinaryArithmeticOperation(this.dartArithmeticOperation);
+
+  String get name => dartArithmeticOperation.name;
+
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
+    ConstantValue result = dartArithmeticOperation.fold(left, right);
+    if (result == null) return result;
+    return _convertToJavaScriptConstant(result);
+  }
+
+  apply(left, right) => dartArithmeticOperation.apply(left, right);
+}
+
 class SubtractOperation extends ArithmeticNumOperation {
-  @override
   final String name = '-';
-
   const SubtractOperation();
-
-  @override
   BigInt foldInts(BigInt left, BigInt right) => left - right;
-
-  @override
   num foldNums(num left, num right) => left - right;
-
-  @override
   apply(left, right) => left - right;
 }
 
 class MultiplyOperation extends ArithmeticNumOperation {
-  @override
   final String name = '*';
-
   const MultiplyOperation();
-
-  @override
   BigInt foldInts(BigInt left, BigInt right) => left * right;
-
-  @override
   num foldNums(num left, num right) => left * right;
-
-  @override
   apply(left, right) => left * right;
 }
 
 class ModuloOperation extends ArithmeticNumOperation {
-  @override
   final String name = '%';
-
   const ModuloOperation();
-
-  @override
   BigInt foldInts(BigInt left, BigInt right) {
     if (right == BigInt.zero) return null;
     return left % right;
   }
 
-  @override
   num foldNums(num left, num right) => left % right;
-
-  @override
   apply(left, right) => left % right;
 }
 
-class RemainderOperation extends ArithmeticNumOperation {
-  @override
-  final String name = 'remainder';
+class JavaScriptRemainderOperation extends ArithmeticNumOperation {
+  String get name => 'remainder';
 
-  const RemainderOperation();
+  const JavaScriptRemainderOperation();
 
-  @override
   BigInt foldInts(BigInt left, BigInt right) {
     if (right == BigInt.zero) return null;
     return left.remainder(right);
   }
 
-  @override
   num foldNums(num left, num right) => left.remainder(right);
-
-  @override
   apply(left, right) => left.remainder(right);
 }
 
 class TruncatingDivideOperation extends ArithmeticNumOperation {
-  @override
   final String name = '~/';
-
   const TruncatingDivideOperation();
-
-  @override
   BigInt foldInts(BigInt left, BigInt right) {
     if (right == BigInt.zero) return null;
     return left ~/ right;
   }
 
-  @override
   BigInt foldNums(num left, num right) {
     num ratio = left / right;
     if (ratio.isNaN || ratio.isInfinite) return null;
     return new BigInt.from(ratio.truncate().toInt());
   }
 
-  @override
   apply(left, right) => left ~/ right;
-
-  @override
   bool isTruncatingDivide() => true;
 }
 
 class DivideOperation extends ArithmeticNumOperation {
-  @override
   final String name = '/';
-
   const DivideOperation();
-
-  @override
   double foldInts(BigInt left, BigInt right) => left / right;
-
-  @override
   num foldNums(num left, num right) => left / right;
-
-  @override
   bool isDivide() => true;
-
-  @override
   apply(left, right) => left / right;
 }
 
 class AddOperation implements BinaryOperation {
-  @override
   final String name = '+';
-
   const AddOperation();
-
-  @override
   ConstantValue fold(ConstantValue left, ConstantValue right) {
-    ConstantValue _fold(ConstantValue left, ConstantValue right) {
-      if (left.isInt && right.isInt) {
-        IntConstantValue leftInt = left;
-        IntConstantValue rightInt = right;
-        BigInt result = leftInt.intValue + rightInt.intValue;
-        return createInt(result);
-      } else if (left.isNum && right.isNum) {
-        NumConstantValue leftNum = left;
-        NumConstantValue rightNum = right;
-        double result = leftNum.doubleValue + rightNum.doubleValue;
-        return createDouble(result);
-      } else if (left.isString && right.isString) {
-        StringConstantValue leftString = left;
-        StringConstantValue rightString = right;
-        String result = leftString.stringValue + rightString.stringValue;
-        return createString(result);
-      } else {
-        return null;
-      }
+    if (left.isInt && right.isInt) {
+      IntConstantValue leftInt = left;
+      IntConstantValue rightInt = right;
+      BigInt result = leftInt.intValue + rightInt.intValue;
+      return createInt(result);
+    } else if (left.isNum && right.isNum) {
+      NumConstantValue leftNum = left;
+      NumConstantValue rightNum = right;
+      double result = leftNum.doubleValue + rightNum.doubleValue;
+      return createDouble(result);
+    } else if (left.isString && right.isString) {
+      StringConstantValue leftString = left;
+      StringConstantValue rightString = right;
+      String result = leftString.stringValue + rightString.stringValue;
+      return createString(result);
+    } else {
+      return null;
     }
+  }
 
-    ConstantValue result = _fold(left, right);
+  apply(left, right) => left + right;
+}
+
+class JavaScriptAddOperation implements BinaryOperation {
+  final _addOperation = const AddOperation();
+  String get name => _addOperation.name;
+
+  const JavaScriptAddOperation();
+
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
+    ConstantValue result = _addOperation.fold(left, right);
     if (result != null && result.isNum) {
       return _convertToJavaScriptConstant(result);
     }
     return result;
   }
 
-  @override
-  apply(left, right) => left + right;
+  apply(left, right) => _addOperation.apply(left, right);
 }
 
 abstract class RelationalNumOperation implements BinaryOperation {
   const RelationalNumOperation();
-
-  @override
   ConstantValue fold(ConstantValue left, ConstantValue right) {
     if (!left.isNum || !right.isNum) return null;
     bool foldedValue;
@@ -724,76 +662,40 @@ abstract class RelationalNumOperation implements BinaryOperation {
 }
 
 class LessOperation extends RelationalNumOperation {
-  @override
   final String name = '<';
-
   const LessOperation();
-
-  @override
   bool foldInts(BigInt left, BigInt right) => left < right;
-
-  @override
   bool foldNums(num left, num right) => left < right;
-
-  @override
   apply(left, right) => left < right;
 }
 
 class LessEqualOperation extends RelationalNumOperation {
-  @override
   final String name = '<=';
-
   const LessEqualOperation();
-
-  @override
   bool foldInts(BigInt left, BigInt right) => left <= right;
-
-  @override
   bool foldNums(num left, num right) => left <= right;
-
-  @override
   apply(left, right) => left <= right;
 }
 
 class GreaterOperation extends RelationalNumOperation {
-  @override
   final String name = '>';
-
   const GreaterOperation();
-
-  @override
   bool foldInts(BigInt left, BigInt right) => left > right;
-
-  @override
   bool foldNums(num left, num right) => left > right;
-
-  @override
   apply(left, right) => left > right;
 }
 
 class GreaterEqualOperation extends RelationalNumOperation {
-  @override
   final String name = '>=';
-
   const GreaterEqualOperation();
-
-  @override
   bool foldInts(BigInt left, BigInt right) => left >= right;
-
-  @override
   bool foldNums(num left, num right) => left >= right;
-
-  @override
   apply(left, right) => left >= right;
 }
 
 class EqualsOperation implements BinaryOperation {
-  @override
   final String name = '==';
-
   const EqualsOperation();
-
-  @override
   ConstantValue fold(ConstantValue left, ConstantValue right) {
     // Numbers need to be treated specially because: NaN != NaN, -0.0 == 0.0,
     // and 1 == 1.0.
@@ -823,27 +725,32 @@ class EqualsOperation implements BinaryOperation {
     return createBool(left == right);
   }
 
-  @override
   apply(left, right) => left == right;
 }
 
 class IdentityOperation implements BinaryOperation {
-  @override
   final String name = '===';
-
   const IdentityOperation();
-
-  @override
   BoolConstantValue fold(ConstantValue left, ConstantValue right) {
-    BoolConstantValue _fold(ConstantValue left, ConstantValue right) {
-      // In order to preserve runtime semantics which says that NaN !== NaN
-      // don't constant fold NaN === NaN. Otherwise the output depends on
-      // inlined variables and other optimizations.
-      if (left.isNaN && right.isNaN) return null;
-      return createBool(left == right);
-    }
+    // In order to preserve runtime semantics which says that NaN !== NaN don't
+    // constant fold NaN === NaN. Otherwise the output depends on inlined
+    // variables and other optimizations.
+    if (left.isNaN && right.isNaN) return null;
+    return createBool(left == right);
+  }
 
-    BoolConstantValue result = _fold(left, right);
+  apply(left, right) => identical(left, right);
+}
+
+class JavaScriptIdentityOperation implements BinaryOperation {
+  final IdentityOperation dartIdentityOperation = const IdentityOperation();
+
+  const JavaScriptIdentityOperation();
+
+  String get name => dartIdentityOperation.name;
+
+  BoolConstantValue fold(ConstantValue left, ConstantValue right) {
+    BoolConstantValue result = dartIdentityOperation.fold(left, right);
     if (result == null || result.boolValue) return result;
     // In JavaScript -0.0 === 0 and all doubles are equal to their integer
     // values. Furthermore NaN !== NaN.
@@ -862,33 +769,29 @@ class IdentityOperation implements BinaryOperation {
     return result;
   }
 
-  @override
   apply(left, right) => identical(left, right);
 }
 
 class IfNullOperation implements BinaryOperation {
-  @override
   final String name = '??';
-
   const IfNullOperation();
-
-  @override
   ConstantValue fold(ConstantValue left, ConstantValue right) {
     if (left.isNull) return right;
     return left;
   }
 
-  @override
   apply(left, right) => left ?? right;
 }
 
 class CodeUnitAtOperation implements BinaryOperation {
-  @override
-  final String name = 'charCodeAt';
-
+  String get name => 'charCodeAt';
   const CodeUnitAtOperation();
+  ConstantValue fold(ConstantValue left, ConstantValue right) => null;
+  apply(left, right) => left.codeUnitAt(right);
+}
 
-  @override
+class CodeUnitAtRuntimeOperation extends CodeUnitAtOperation {
+  const CodeUnitAtRuntimeOperation();
   IntConstantValue fold(ConstantValue left, ConstantValue right) {
     if (left.isString && right.isInt) {
       StringConstantValue stringConstant = left;
@@ -901,18 +804,11 @@ class CodeUnitAtOperation implements BinaryOperation {
     }
     return null;
   }
-
-  @override
-  apply(left, right) => left.codeUnitAt(right);
 }
 
-class RoundOperation implements UnaryOperation {
-  @override
-  final String name = 'round';
-
-  const RoundOperation();
-
-  @override
+class JavaScriptRoundOperation implements UnaryOperation {
+  const JavaScriptRoundOperation();
+  String get name => round.name;
   ConstantValue fold(ConstantValue constant) {
     // Be careful to round() only values that do not throw on either the host or
     // target platform.
@@ -950,12 +846,8 @@ class RoundOperation implements UnaryOperation {
 }
 
 class UnfoldedUnaryOperation implements UnaryOperation {
-  @override
   final String name;
-
   const UnfoldedUnaryOperation(this.name);
-
-  @override
   ConstantValue fold(ConstantValue constant) {
     return null;
   }
