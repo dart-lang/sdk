@@ -10,6 +10,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/constants/constant_system.dart';
 import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/constants/evaluation.dart';
 import 'package:compiler/src/constants/expressions.dart';
@@ -631,7 +632,8 @@ Future testData(TestData data) async {
         expectedResults.forEach((Map<String, String> env, String expectedText) {
           MemoryEnvironment environment =
               new MemoryEnvironment(getEnvironment(compiler, field), env);
-          ConstantValue value = constant.evaluate(environment);
+          ConstantValue value =
+              constant.evaluate(environment, ConstantSystem.only);
 
           Expect.isNotNull(
               value,

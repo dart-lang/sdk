@@ -7,7 +7,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 import '../closure.dart';
 import '../common.dart';
 import '../compiler.dart' show Compiler;
-import '../constants/constant_system.dart' as constant_system;
+import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
@@ -298,21 +298,23 @@ class HGraph {
   }
 
   HConstant addConstantInt(int i, JClosedWorld closedWorld) {
-    return addConstant(constant_system.createIntFromInt(i), closedWorld);
+    return addConstant(
+        closedWorld.constantSystem.createIntFromInt(i), closedWorld);
   }
 
   HConstant addConstantIntAsUnsigned(int i, JClosedWorld closedWorld) {
     return addConstant(
-        constant_system.createInt(new BigInt.from(i).toUnsigned(64)),
+        closedWorld.constantSystem.createInt(new BigInt.from(i).toUnsigned(64)),
         closedWorld);
   }
 
   HConstant addConstantDouble(double d, JClosedWorld closedWorld) {
-    return addConstant(constant_system.createDouble(d), closedWorld);
+    return addConstant(closedWorld.constantSystem.createDouble(d), closedWorld);
   }
 
   HConstant addConstantString(String str, JClosedWorld closedWorld) {
-    return addConstant(constant_system.createString(str), closedWorld);
+    return addConstant(
+        closedWorld.constantSystem.createString(str), closedWorld);
   }
 
   HConstant addConstantStringFromName(js.Name name, JClosedWorld closedWorld) {
@@ -323,11 +325,12 @@ class HGraph {
   }
 
   HConstant addConstantBool(bool value, JClosedWorld closedWorld) {
-    return addConstant(constant_system.createBool(value), closedWorld);
+    return addConstant(
+        closedWorld.constantSystem.createBool(value), closedWorld);
   }
 
   HConstant addConstantNull(JClosedWorld closedWorld) {
-    return addConstant(constant_system.createNull(), closedWorld);
+    return addConstant(closedWorld.constantSystem.createNull(), closedWorld);
   }
 
   HConstant addConstantUnreachable(JClosedWorld closedWorld) {
@@ -2138,14 +2141,14 @@ abstract class HInvokeBinary extends HInstruction {
   HInstruction get left => inputs[0];
   HInstruction get right => inputs[1];
 
-  constant_system.BinaryOperation operation();
+  BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 abstract class HBinaryArithmetic extends HInvokeBinary {
   HBinaryArithmetic(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
-  constant_system.BinaryOperation operation();
+  BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HAdd extends HBinaryArithmetic {
@@ -2154,7 +2157,8 @@ class HAdd extends HBinaryArithmetic {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
-  constant_system.BinaryOperation operation() => constant_system.add;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.add;
   int typeCode() => HInstruction.ADD_TYPECODE;
   bool typeEquals(other) => other is HAdd;
   bool dataEquals(HInstruction other) => true;
@@ -2166,7 +2170,8 @@ class HDivide extends HBinaryArithmetic {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitDivide(this);
 
-  constant_system.BinaryOperation operation() => constant_system.divide;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.divide;
   int typeCode() => HInstruction.DIVIDE_TYPECODE;
   bool typeEquals(other) => other is HDivide;
   bool dataEquals(HInstruction other) => true;
@@ -2178,7 +2183,7 @@ class HMultiply extends HBinaryArithmetic {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
 
-  constant_system.BinaryOperation operation() => constant_system.multiply;
+  BinaryOperation operation(ConstantSystem operations) => operations.multiply;
   int typeCode() => HInstruction.MULTIPLY_TYPECODE;
   bool typeEquals(other) => other is HMultiply;
   bool dataEquals(HInstruction other) => true;
@@ -2190,7 +2195,8 @@ class HSubtract extends HBinaryArithmetic {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
 
-  constant_system.BinaryOperation operation() => constant_system.subtract;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.subtract;
   int typeCode() => HInstruction.SUBTRACT_TYPECODE;
   bool typeEquals(other) => other is HSubtract;
   bool dataEquals(HInstruction other) => true;
@@ -2202,8 +2208,8 @@ class HTruncatingDivide extends HBinaryArithmetic {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 
-  constant_system.BinaryOperation operation() =>
-      constant_system.truncatingDivide;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.truncatingDivide;
   int typeCode() => HInstruction.TRUNCATING_DIVIDE_TYPECODE;
   bool typeEquals(other) => other is HTruncatingDivide;
   bool dataEquals(HInstruction other) => true;
@@ -2215,7 +2221,8 @@ class HRemainder extends HBinaryArithmetic {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitRemainder(this);
 
-  constant_system.BinaryOperation operation() => constant_system.remainder;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.remainder;
   int typeCode() => HInstruction.REMAINDER_TYPECODE;
   bool typeEquals(other) => other is HRemainder;
   bool dataEquals(HInstruction other) => true;
@@ -2253,7 +2260,8 @@ class HShiftLeft extends HBinaryBitOp {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
-  constant_system.BinaryOperation operation() => constant_system.shiftLeft;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.shiftLeft;
   int typeCode() => HInstruction.SHIFT_LEFT_TYPECODE;
   bool typeEquals(other) => other is HShiftLeft;
   bool dataEquals(HInstruction other) => true;
@@ -2265,7 +2273,8 @@ class HShiftRight extends HBinaryBitOp {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
-  constant_system.BinaryOperation operation() => constant_system.shiftRight;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.shiftRight;
   int typeCode() => HInstruction.SHIFT_RIGHT_TYPECODE;
   bool typeEquals(other) => other is HShiftRight;
   bool dataEquals(HInstruction other) => true;
@@ -2277,7 +2286,8 @@ class HBitOr extends HBinaryBitOp {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
-  constant_system.BinaryOperation operation() => constant_system.bitOr;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.bitOr;
   int typeCode() => HInstruction.BIT_OR_TYPECODE;
   bool typeEquals(other) => other is HBitOr;
   bool dataEquals(HInstruction other) => true;
@@ -2289,7 +2299,8 @@ class HBitAnd extends HBinaryBitOp {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
-  constant_system.BinaryOperation operation() => constant_system.bitAnd;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.bitAnd;
   int typeCode() => HInstruction.BIT_AND_TYPECODE;
   bool typeEquals(other) => other is HBitAnd;
   bool dataEquals(HInstruction other) => true;
@@ -2301,7 +2312,8 @@ class HBitXor extends HBinaryBitOp {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
-  constant_system.BinaryOperation operation() => constant_system.bitXor;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.bitXor;
   int typeCode() => HInstruction.BIT_XOR_TYPECODE;
   bool typeEquals(other) => other is HBitXor;
   bool dataEquals(HInstruction other) => true;
@@ -2318,7 +2330,7 @@ abstract class HInvokeUnary extends HInstruction {
 
   HInstruction get operand => inputs[0];
 
-  constant_system.UnaryOperation operation();
+  UnaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HNegate extends HInvokeUnary {
@@ -2326,7 +2338,8 @@ class HNegate extends HInvokeUnary {
       : super(input, selector, type);
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
-  constant_system.UnaryOperation operation() => constant_system.negate;
+  UnaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.negate;
   int typeCode() => HInstruction.NEGATE_TYPECODE;
   bool typeEquals(other) => other is HNegate;
   bool dataEquals(HInstruction other) => true;
@@ -2337,7 +2350,7 @@ class HAbs extends HInvokeUnary {
       : super(input, selector, type);
   accept(HVisitor visitor) => visitor.visitAbs(this);
 
-  constant_system.UnaryOperation operation() => constant_system.abs;
+  UnaryOperation operation(ConstantSystem constantSystem) => constantSystem.abs;
   int typeCode() => HInstruction.ABS_TYPECODE;
   bool typeEquals(other) => other is HAbs;
   bool dataEquals(HInstruction other) => true;
@@ -2348,7 +2361,8 @@ class HBitNot extends HInvokeUnary {
       : super(input, selector, type);
   accept(HVisitor visitor) => visitor.visitBitNot(this);
 
-  constant_system.UnaryOperation operation() => constant_system.bitNot;
+  UnaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.bitNot;
   int typeCode() => HInstruction.BIT_NOT_TYPECODE;
   bool typeEquals(other) => other is HBitNot;
   bool dataEquals(HInstruction other) => true;
@@ -2614,7 +2628,8 @@ class HIdentity extends HRelational {
   HIdentity(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitIdentity(this);
 
-  constant_system.BinaryOperation operation() => constant_system.identity;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.identity;
   int typeCode() => HInstruction.IDENTITY_TYPECODE;
   bool typeEquals(other) => other is HIdentity;
   bool dataEquals(HInstruction other) => true;
@@ -2624,7 +2639,8 @@ class HGreater extends HRelational {
   HGreater(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitGreater(this);
 
-  constant_system.BinaryOperation operation() => constant_system.greater;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.greater;
   int typeCode() => HInstruction.GREATER_TYPECODE;
   bool typeEquals(other) => other is HGreater;
   bool dataEquals(HInstruction other) => true;
@@ -2635,7 +2651,8 @@ class HGreaterEqual extends HRelational {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
 
-  constant_system.BinaryOperation operation() => constant_system.greaterEqual;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.greaterEqual;
   int typeCode() => HInstruction.GREATER_EQUAL_TYPECODE;
   bool typeEquals(other) => other is HGreaterEqual;
   bool dataEquals(HInstruction other) => true;
@@ -2645,7 +2662,8 @@ class HLess extends HRelational {
   HLess(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitLess(this);
 
-  constant_system.BinaryOperation operation() => constant_system.less;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.less;
   int typeCode() => HInstruction.LESS_TYPECODE;
   bool typeEquals(other) => other is HLess;
   bool dataEquals(HInstruction other) => true;
@@ -2655,7 +2673,8 @@ class HLessEqual extends HRelational {
   HLessEqual(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
 
-  constant_system.BinaryOperation operation() => constant_system.lessEqual;
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.lessEqual;
   int typeCode() => HInstruction.LESS_EQUAL_TYPECODE;
   bool typeEquals(other) => other is HLessEqual;
   bool dataEquals(HInstruction other) => true;

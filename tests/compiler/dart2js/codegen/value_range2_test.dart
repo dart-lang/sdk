@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:compiler/src/constants/constant_system.dart";
 import "package:compiler/src/inferrer/abstract_value_domain.dart";
 import "package:compiler/src/ssa/nodes.dart";
 import "package:compiler/src/ssa/value_range_analyzer.dart";
 
-ValueRangeInfo info = new ValueRangeInfo();
+ValueRangeInfo info = new ValueRangeInfo(ConstantSystem.only);
 
 class AbstractValueDomainMock implements AbstractValueDomain {
   const AbstractValueDomainMock();

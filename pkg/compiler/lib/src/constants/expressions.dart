@@ -7,8 +7,8 @@ library dart2js.constants.expressions;
 import 'dart:collection';
 
 import '../common.dart';
+import '../constants/constant_system.dart';
 import '../common_elements.dart';
-import '../constants/constant_system.dart' as constant_system;
 import '../elements/entities.dart';
 import '../elements/operators.dart';
 import '../elements/types.dart';
@@ -73,8 +73,10 @@ abstract class ConstantExpression {
   /// Substitute free variables using arguments.
   ConstantExpression apply(NormalizedArguments arguments) => this;
 
-  /// Compute the [ConstantValue] for this expression using the [environment].
-  ConstantValue evaluate(EvaluationEnvironment environment);
+  /// Compute the [ConstantValue] for this expression using the [environment]
+  /// and the [constantSystem].
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem);
 
   /// Returns the type of this constant expression, if it is independent of the
   /// environment values.
@@ -143,7 +145,8 @@ class ErroneousConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     // TODO(johnniwinther): Use non-constant values for errors.
     return new NonConstantValue();
   }
@@ -178,8 +181,9 @@ class BoolConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    return constant_system.createBool(boolValue);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    return constantSystem.createBool(boolValue);
   }
 
   @override
@@ -213,8 +217,9 @@ class IntConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    return constant_system.createInt(intValue);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    return constantSystem.createInt(intValue);
   }
 
   @override
@@ -248,8 +253,9 @@ class DoubleConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    return constant_system.createDouble(doubleValue);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    return constantSystem.createDouble(doubleValue);
   }
 
   @override
@@ -283,8 +289,9 @@ class StringConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    return constant_system.createString(stringValue);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    return constantSystem.createString(stringValue);
   }
 
   @override
@@ -316,8 +323,9 @@ class NullConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    return constant_system.createNull();
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    return constantSystem.createNull();
   }
 
   @override
@@ -357,9 +365,10 @@ class ListConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    return constant_system.createList(
-        type, values.map((v) => v.evaluate(environment)).toList());
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    return constantSystem.createList(type,
+        values.map((v) => v.evaluate(environment, constantSystem)).toList());
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -417,18 +426,19 @@ class SetConstantExpression extends ConstantExpression {
           type, values.map((v) => v.apply(arguments)).toList());
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     // TODO(fishythefish): Delete once the CFE provides these error messages.
     Set<ConstantValue> set = new LinkedHashSet<ConstantValue>();
     for (int i = 0; i < values.length; i++) {
-      ConstantValue value = values[i].evaluate(environment);
+      ConstantValue value = values[i].evaluate(environment, constantSystem);
       if (!value.isConstant) return new NonConstantValue();
       if (!set.add(value)) {
         environment.reportError(values[i], MessageKind.EQUAL_SET_ENTRY, {});
       }
     }
 
-    return constant_system.createSet(
+    return constantSystem.createSet(
         environment.commonElements, type, set.toList());
   }
 
@@ -496,17 +506,18 @@ class MapConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     // TODO(sigmund): delete once the CFE provides these error messages.
     bool isSetLiteral = environment.immediateUnderSetLiteral;
     return environment.evaluateMapBody(() {
       Map<ConstantValue, ConstantValue> map = <ConstantValue, ConstantValue>{};
       for (int i = 0; i < keys.length; i++) {
-        ConstantValue key = keys[i].evaluate(environment);
+        ConstantValue key = keys[i].evaluate(environment, constantSystem);
         if (!key.isConstant) {
           return new NonConstantValue();
         }
-        ConstantValue value = values[i].evaluate(environment);
+        ConstantValue value = values[i].evaluate(environment, constantSystem);
         if (!value.isConstant) {
           return new NonConstantValue();
         }
@@ -520,7 +531,7 @@ class MapConstantExpression extends ConstantExpression {
         }
         map[key] = value;
       }
-      return constant_system.createMap(environment.commonElements, type,
+      return constantSystem.createMap(environment.commonElements, type,
           map.keys.toList(), map.values.toList());
     });
   }
@@ -617,7 +628,8 @@ class ConstructedConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     InterfaceType instanceType = computeInstanceType(environment);
     return environment.evaluateConstructor(target, instanceType, () {
       InstanceData instanceData = computeInstanceData(environment);
@@ -629,7 +641,7 @@ class ConstructedConstantExpression extends ConstantExpression {
           <FieldEntity, ConstantValue>{};
       instanceData.fieldMap
           .forEach((FieldEntity field, ConstantExpression constant) {
-        ConstantValue value = constant.evaluate(environment);
+        ConstantValue value = constant.evaluate(environment, constantSystem);
         assert(
             value != null,
             failedAt(CURRENT_ELEMENT_SPANNABLE,
@@ -641,7 +653,7 @@ class ConstructedConstantExpression extends ConstantExpression {
         }
       });
       for (AssertConstantExpression assertion in instanceData.assertions) {
-        if (!assertion.evaluate(environment).isConstant) {
+        if (!assertion.evaluate(environment, constantSystem).isConstant) {
           isValidAsConstant = false;
         }
       }
@@ -713,11 +725,12 @@ class ConcatenateConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     bool isValid = true;
     StringBuffer sb = new StringBuffer();
     for (ConstantExpression expression in expressions) {
-      ConstantValue value = expression.evaluate(environment);
+      ConstantValue value = expression.evaluate(environment, constantSystem);
       if (!value.isConstant) {
         isValid = false;
         // Use `continue` instead of `return` here to report all errors in the
@@ -749,7 +762,7 @@ class ConcatenateConstantExpression extends ConstantExpression {
       }
     }
     if (isValid) {
-      return constant_system.createString(sb.toString());
+      return constantSystem.createString(sb.toString());
     }
     return new NonConstantValue();
   }
@@ -808,8 +821,9 @@ class SymbolConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    return constant_system.createSymbol(environment.commonElements, name);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    return constantSystem.createSymbol(environment.commonElements, name);
   }
 
   @override
@@ -840,8 +854,9 @@ class TypeConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    return constant_system.createType(environment.commonElements, type);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    return constantSystem.createType(environment.commonElements, type);
   }
 
   @override
@@ -879,7 +894,8 @@ class AsConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     // Running example for comments:
     //
     //     class A<T> {
@@ -894,7 +910,8 @@ class AsConstantExpression extends ConstantExpression {
     // We visit `t as A.T` while evaluating `const B<num>(0)`.
 
     // The expression value is `0`.
-    ConstantValue expressionValue = expression.evaluate(environment);
+    ConstantValue expressionValue =
+        expression.evaluate(environment, constantSystem);
 
     if (!environment.checkCasts) return expressionValue;
 
@@ -907,7 +924,7 @@ class AsConstantExpression extends ConstantExpression {
 
     // Check that the expression type, `int`, is a subtype of the type in
     // context, `num`.
-    if (!constant_system.isSubtype(
+    if (!constantSystem.isSubtype(
         environment.types, expressionType, typeInContext)) {
       // TODO(sigmund): consider reporting different messages and error
       // locations for implicit vs explicit casts.
@@ -954,10 +971,11 @@ class FieldConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return environment.evaluateField(element, () {
       ConstantExpression constant = environment.getFieldConstant(element);
-      return constant.evaluate(environment);
+      return constant.evaluate(environment, constantSystem);
     });
   }
 
@@ -988,9 +1006,10 @@ class LocalVariableConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     ConstantExpression constant = environment.getLocalConstant(element);
-    return constant.evaluate(environment);
+    return constant.evaluate(environment, constantSystem);
   }
 
   @override
@@ -1021,7 +1040,8 @@ class FunctionConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return new FunctionConstantValue(element, type);
   }
 
@@ -1068,9 +1088,10 @@ class BinaryConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    ConstantValue leftValue = left.evaluate(environment);
-    ConstantValue rightValue = right.evaluate(environment);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    ConstantValue leftValue = left.evaluate(environment, constantSystem);
+    ConstantValue rightValue = right.evaluate(environment, constantSystem);
     if (!leftValue.isConstant || !rightValue.isConstant) {
       return new NonConstantValue();
     }
@@ -1272,12 +1293,11 @@ class BinaryConstantExpression extends ConstantExpression {
       switch (operator.kind) {
         case BinaryOperatorKind.NOT_EQ:
           BoolConstantValue equals =
-              constant_system.equal.fold(leftValue, rightValue);
+              constantSystem.equal.fold(leftValue, rightValue);
           return equals.negate();
         default:
-          ConstantValue value = constant_system
-              .lookupBinary(operator)
-              .fold(leftValue, rightValue);
+          ConstantValue value =
+              constantSystem.lookupBinary(operator).fold(leftValue, rightValue);
           if (value != null) {
             return value;
           }
@@ -1412,11 +1432,12 @@ class IdenticalConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    ConstantValue leftValue = left.evaluate(environment);
-    ConstantValue rightValue = right.evaluate(environment);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    ConstantValue leftValue = left.evaluate(environment, constantSystem);
+    ConstantValue rightValue = right.evaluate(environment, constantSystem);
     if (leftValue.isConstant && rightValue.isConstant) {
-      return constant_system.identity.fold(leftValue, rightValue);
+      return constantSystem.identity.fold(leftValue, rightValue);
     }
     return new NonConstantValue();
   }
@@ -1471,8 +1492,10 @@ class UnaryConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    ConstantValue expressionValue = expression.evaluate(environment);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    ConstantValue expressionValue =
+        expression.evaluate(environment, constantSystem);
     bool isValid = true;
     switch (operator.kind) {
       case UnaryOperatorKind.NOT:
@@ -1511,7 +1534,7 @@ class UnaryConstantExpression extends ConstantExpression {
     }
     if (isValid) {
       ConstantValue value =
-          constant_system.lookupUnary(operator).fold(expressionValue);
+          constantSystem.lookupUnary(operator).fold(expressionValue);
       if (value != null) {
         return value;
       }
@@ -1572,8 +1595,9 @@ class StringLengthConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    ConstantValue value = expression.evaluate(environment);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    ConstantValue value = expression.evaluate(environment, constantSystem);
     if (!value.isString) {
       environment.reportError(
           expression, MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE, {
@@ -1583,7 +1607,7 @@ class StringLengthConstantExpression extends ConstantExpression {
       return new NonConstantValue();
     } else {
       StringConstantValue stringValue = value;
-      return constant_system
+      return constantSystem
           .createInt(new BigInt.from(stringValue.stringValue.length));
     }
   }
@@ -1661,10 +1685,12 @@ class ConditionalConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    ConstantValue conditionValue = condition.evaluate(environment);
-    ConstantValue trueValue = trueExp.evaluate(environment);
-    ConstantValue falseValue = falseExp.evaluate(environment);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    ConstantValue conditionValue =
+        condition.evaluate(environment, constantSystem);
+    ConstantValue trueValue = trueExp.evaluate(environment, constantSystem);
+    ConstantValue falseValue = falseExp.evaluate(environment, constantSystem);
     bool isValid = true;
     if (!conditionValue.isBool) {
       environment.reportError(
@@ -1730,7 +1756,8 @@ class PositionalArgumentReference extends ConstantExpression {
   bool _equals(PositionalArgumentReference other) => index == other.index;
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return new NonConstantValue();
   }
 
@@ -1768,7 +1795,8 @@ class NamedArgumentReference extends ConstantExpression {
   bool _equals(NamedArgumentReference other) => name == other.name;
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return new NonConstantValue();
   }
 
@@ -1846,13 +1874,15 @@ class BoolFromEnvironmentConstantExpression
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    ConstantValue nameConstantValue = name.evaluate(environment);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    ConstantValue nameConstantValue =
+        name.evaluate(environment, constantSystem);
     ConstantValue defaultConstantValue;
     if (defaultValue != null) {
-      defaultConstantValue = defaultValue.evaluate(environment);
+      defaultConstantValue = defaultValue.evaluate(environment, constantSystem);
     } else {
-      defaultConstantValue = constant_system.createBool(false);
+      defaultConstantValue = constantSystem.createBool(false);
     }
     if (!nameConstantValue.isConstant || !defaultConstantValue.isConstant) {
       return new NonConstantValue();
@@ -1874,9 +1904,9 @@ class BoolFromEnvironmentConstantExpression
       String text =
           environment.readFromEnvironment(nameStringConstantValue.stringValue);
       if (text == 'true') {
-        return constant_system.createBool(true);
+        return constantSystem.createBool(true);
       } else if (text == 'false') {
-        return constant_system.createBool(false);
+        return constantSystem.createBool(false);
       } else {
         return defaultConstantValue;
       }
@@ -1923,13 +1953,15 @@ class IntFromEnvironmentConstantExpression
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    ConstantValue nameConstantValue = name.evaluate(environment);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    ConstantValue nameConstantValue =
+        name.evaluate(environment, constantSystem);
     ConstantValue defaultConstantValue;
     if (defaultValue != null) {
-      defaultConstantValue = defaultValue.evaluate(environment);
+      defaultConstantValue = defaultValue.evaluate(environment, constantSystem);
     } else {
-      defaultConstantValue = constant_system.createNull();
+      defaultConstantValue = constantSystem.createNull();
     }
     if (!nameConstantValue.isConstant || !defaultConstantValue.isConstant) {
       return new NonConstantValue();
@@ -1957,7 +1989,7 @@ class IntFromEnvironmentConstantExpression
       if (value == null) {
         return defaultConstantValue;
       } else {
-        return constant_system.createInt(value);
+        return constantSystem.createInt(value);
       }
     }
     return new NonConstantValue();
@@ -2002,13 +2034,15 @@ class StringFromEnvironmentConstantExpression
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    ConstantValue nameConstantValue = name.evaluate(environment);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    ConstantValue nameConstantValue =
+        name.evaluate(environment, constantSystem);
     ConstantValue defaultConstantValue;
     if (defaultValue != null) {
-      defaultConstantValue = defaultValue.evaluate(environment);
+      defaultConstantValue = defaultValue.evaluate(environment, constantSystem);
     } else {
-      defaultConstantValue = constant_system.createNull();
+      defaultConstantValue = constantSystem.createNull();
     }
     if (!nameConstantValue.isConstant || !defaultConstantValue.isConstant) {
       return new NonConstantValue();
@@ -2032,7 +2066,7 @@ class StringFromEnvironmentConstantExpression
       if (text == null) {
         return defaultConstantValue;
       } else {
-        return constant_system.createString(text);
+        return constantSystem.createString(text);
       }
     }
     return new NonConstantValue();
@@ -2081,8 +2115,10 @@ class AssertConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
-    ConstantValue conditionValue = condition.evaluate(environment);
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    ConstantValue conditionValue =
+        condition.evaluate(environment, constantSystem);
     bool validAssert;
     if (environment.enableAssertions) {
       // Boolean conversion:
@@ -2093,7 +2129,7 @@ class AssertConstantExpression extends ConstantExpression {
     }
     if (!validAssert) {
       if (message != null) {
-        ConstantValue value = message.evaluate(environment);
+        ConstantValue value = message.evaluate(environment, constantSystem);
         if (value is StringConstantValue) {
           String text = '${value.stringValue}';
           environment.reportError(this,
@@ -2141,11 +2177,12 @@ class InstantiationConstantExpression extends ConstantExpression {
   }
 
   @override
-  ConstantValue evaluate(EvaluationEnvironment environment) {
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     List<DartType> typeArgumentsInContext =
         typeArguments.map(environment.getTypeInContext).toList();
-    return new InstantiationConstantValue(
-        typeArgumentsInContext, expression.evaluate(environment));
+    return new InstantiationConstantValue(typeArgumentsInContext,
+        expression.evaluate(environment, constantSystem));
   }
 
   @override

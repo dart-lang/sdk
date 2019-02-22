@@ -4,7 +4,7 @@
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../constants/constant_system.dart' as constant_system;
+import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -184,8 +184,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   }
 
   @override
-  jsAst.Expression visitSet(constant_system.JavaScriptSetConstant constant,
-      [_]) {
+  jsAst.Expression visitSet(JavaScriptSetConstant constant, [_]) {
     InterfaceType sourceType = constant.type;
     ClassEntity classElement = sourceType.element;
     String className = classElement.name;
@@ -207,14 +206,12 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   }
 
   @override
-  jsAst.Expression visitMap(constant_system.JavaScriptMapConstant constant,
-      [_]) {
+  jsAst.Expression visitMap(JavaScriptMapConstant constant, [_]) {
     jsAst.Expression jsMap() {
       List<jsAst.Property> properties = <jsAst.Property>[];
       for (int i = 0; i < constant.length; i++) {
         StringConstantValue key = constant.keys[i];
-        if (key.stringValue ==
-            constant_system.JavaScriptMapConstant.PROTO_PROPERTY) {
+        if (key.stringValue == JavaScriptMapConstant.PROTO_PROPERTY) {
           continue;
         }
 
@@ -251,21 +248,17 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     _worldBuilder.forEachInstanceField(classElement,
         (ClassEntity enclosing, FieldEntity field, {bool isElided}) {
       if (isElided) return;
-      if (field.name == constant_system.JavaScriptMapConstant.LENGTH_NAME) {
+      if (field.name == JavaScriptMapConstant.LENGTH_NAME) {
         arguments
             .add(new jsAst.LiteralNumber('${constant.keyList.entries.length}'));
-      } else if (field.name ==
-          constant_system.JavaScriptMapConstant.JS_OBJECT_NAME) {
+      } else if (field.name == JavaScriptMapConstant.JS_OBJECT_NAME) {
         arguments.add(jsMap());
-      } else if (field.name ==
-          constant_system.JavaScriptMapConstant.KEYS_NAME) {
+      } else if (field.name == JavaScriptMapConstant.KEYS_NAME) {
         arguments.add(constantReferenceGenerator(constant.keyList));
-      } else if (field.name ==
-          constant_system.JavaScriptMapConstant.PROTO_VALUE) {
+      } else if (field.name == JavaScriptMapConstant.PROTO_VALUE) {
         assert(constant.protoValue != null);
         arguments.add(constantReferenceGenerator(constant.protoValue));
-      } else if (field.name ==
-          constant_system.JavaScriptMapConstant.JS_DATA_NAME) {
+      } else if (field.name == JavaScriptMapConstant.JS_DATA_NAME) {
         arguments.add(jsGeneralMap());
       } else {
         failedAt(field,
@@ -273,12 +266,11 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       }
       emittedArgumentCount++;
     });
-    if ((className == constant_system.JavaScriptMapConstant.DART_STRING_CLASS &&
+    if ((className == JavaScriptMapConstant.DART_STRING_CLASS &&
             emittedArgumentCount != 3) ||
-        (className == constant_system.JavaScriptMapConstant.DART_PROTO_CLASS &&
+        (className == JavaScriptMapConstant.DART_PROTO_CLASS &&
             emittedArgumentCount != 4) ||
-        (className ==
-                constant_system.JavaScriptMapConstant.DART_GENERAL_CLASS &&
+        (className == JavaScriptMapConstant.DART_GENERAL_CLASS &&
             emittedArgumentCount != 1)) {
       failedAt(classElement,
           "Compiler and ${className} disagree on number of fields.");

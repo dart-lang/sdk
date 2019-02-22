@@ -4,6 +4,7 @@
 
 import '../compile_time_constants.dart';
 import '../compiler.dart' show Compiler;
+import '../constants/constant_system.dart';
 import '../elements/entities.dart';
 
 /// [ConstantCompilerTask] for compilation of constants for the JavaScript
@@ -21,6 +22,9 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
         super(compiler.measurer);
 
   String get name => 'ConstantHandler';
+
+  @override
+  ConstantSystem get constantSystem => ConstantSystem.only;
 }
 
 /// The [JavaScriptConstantCompiler] is used to keep track of compile-time
@@ -32,6 +36,8 @@ class JavaScriptConstantCompiler implements BackendConstantEnvironment {
   final Set<FieldEntity> lazyStatics = new Set<FieldEntity>();
 
   JavaScriptConstantCompiler();
+
+  ConstantSystem get constantSystem => ConstantSystem.only;
 
   @override
   void registerLazyStatic(FieldEntity element) {

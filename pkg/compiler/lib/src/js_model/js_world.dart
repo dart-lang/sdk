@@ -9,6 +9,7 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart';
 import '../common_elements.dart' show JCommonElements, JElementEnvironment;
+import '../constants/constant_system.dart';
 import '../deferred_load.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/entities.dart';
@@ -206,6 +207,8 @@ class JsClosedWorld implements JClosedWorld {
     outputUnitData.writeToDataSink(sink);
     sink.end(tag);
   }
+
+  ConstantSystem get constantSystem => ConstantSystem.only;
 
   JElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
 

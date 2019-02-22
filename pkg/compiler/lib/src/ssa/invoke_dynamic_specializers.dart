@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common_elements.dart' show JCommonElements;
-import '../constants/constant_system.dart' as constant_system;
+import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
@@ -57,7 +57,7 @@ class InvokeDynamicSpecializer {
         new CallStructure(selector.argumentCount));
   }
 
-  constant_system.Operation operation() => null;
+  Operation operation(ConstantSystem constantSystem) => null;
 
   static InvokeDynamicSpecializer lookupSpecializer(Selector selector) {
     if (selector.isIndex) return const IndexSpecializer();
@@ -221,8 +221,8 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
 class BitNotSpecializer extends InvokeDynamicSpecializer {
   const BitNotSpecializer();
 
-  constant_system.UnaryOperation operation() {
-    return constant_system.bitNot;
+  UnaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.bitNot;
   }
 
   AbstractValue computeTypeFromInputTypes(
@@ -266,8 +266,8 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
 class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
   const UnaryNegateSpecializer();
 
-  constant_system.UnaryOperation operation() {
-    return constant_system.negate;
+  UnaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.negate;
   }
 
   AbstractValue computeTypeFromInputTypes(
@@ -322,8 +322,8 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
 class AbsSpecializer extends InvokeDynamicSpecializer {
   const AbsSpecializer();
 
-  constant_system.UnaryOperation operation() {
-    return constant_system.abs;
+  UnaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.abs;
   }
 
   AbstractValue computeTypeFromInputTypes(
@@ -480,8 +480,8 @@ class AddSpecializer extends BinaryArithmeticSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.add;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.add;
   }
 
   HInstruction newBuiltinVariant(
@@ -506,8 +506,8 @@ class AddSpecializer extends BinaryArithmeticSpecializer {
 class DivideSpecializer extends BinaryArithmeticSpecializer {
   const DivideSpecializer();
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.divide;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.divide;
   }
 
   AbstractValue computeTypeFromInputTypes(
@@ -554,8 +554,8 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.modulo;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.modulo;
   }
 
   HInstruction newBuiltinVariant(
@@ -646,8 +646,8 @@ class RemainderSpecializer extends BinaryArithmeticSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.remainder;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.remainder;
   }
 
   HInstruction newBuiltinVariant(
@@ -672,8 +672,8 @@ class RemainderSpecializer extends BinaryArithmeticSpecializer {
 class MultiplySpecializer extends BinaryArithmeticSpecializer {
   const MultiplySpecializer();
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.multiply;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.multiply;
   }
 
   AbstractValue computeTypeFromInputTypes(
@@ -710,8 +710,8 @@ class MultiplySpecializer extends BinaryArithmeticSpecializer {
 class SubtractSpecializer extends BinaryArithmeticSpecializer {
   const SubtractSpecializer();
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.subtract;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.subtract;
   }
 
   HInstruction newBuiltinVariant(
@@ -736,8 +736,8 @@ class SubtractSpecializer extends BinaryArithmeticSpecializer {
 class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
   const TruncatingDivideSpecializer();
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.truncatingDivide;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.truncatingDivide;
   }
 
   AbstractValue computeTypeFromInputTypes(
@@ -895,8 +895,8 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
 class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
   const ShiftLeftSpecializer();
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.shiftLeft;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.shiftLeft;
   }
 
   HInstruction tryConvertToBuiltin(
@@ -1027,8 +1027,8 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
   }
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.shiftRight;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.shiftRight;
   }
 
   @override
@@ -1041,8 +1041,8 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
 class BitOrSpecializer extends BinaryBitOpSpecializer {
   const BitOrSpecializer();
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.bitOr;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.bitOr;
   }
 
   AbstractValue computeTypeFromInputTypes(
@@ -1081,8 +1081,8 @@ class BitOrSpecializer extends BinaryBitOpSpecializer {
 class BitAndSpecializer extends BinaryBitOpSpecializer {
   const BitAndSpecializer();
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.bitAnd;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.bitAnd;
   }
 
   AbstractValue computeTypeFromInputTypes(
@@ -1124,8 +1124,8 @@ class BitAndSpecializer extends BinaryBitOpSpecializer {
 class BitXorSpecializer extends BinaryBitOpSpecializer {
   const BitXorSpecializer();
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.bitXor;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.bitXor;
   }
 
   AbstractValue computeTypeFromInputTypes(
@@ -1250,8 +1250,8 @@ class EqualsSpecializer extends RelationalSpecializer {
     return null;
   }
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.equal;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.equal;
   }
 
   HInstruction newBuiltinVariant(
@@ -1270,8 +1270,8 @@ class EqualsSpecializer extends RelationalSpecializer {
 class LessSpecializer extends RelationalSpecializer {
   const LessSpecializer();
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.less;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.less;
   }
 
   HInstruction newBuiltinVariant(
@@ -1290,8 +1290,8 @@ class LessSpecializer extends RelationalSpecializer {
 class GreaterSpecializer extends RelationalSpecializer {
   const GreaterSpecializer();
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.greater;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.greater;
   }
 
   HInstruction newBuiltinVariant(
@@ -1310,8 +1310,8 @@ class GreaterSpecializer extends RelationalSpecializer {
 class GreaterEqualSpecializer extends RelationalSpecializer {
   const GreaterEqualSpecializer();
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.greaterEqual;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.greaterEqual;
   }
 
   HInstruction newBuiltinVariant(
@@ -1330,8 +1330,8 @@ class GreaterEqualSpecializer extends RelationalSpecializer {
 class LessEqualSpecializer extends RelationalSpecializer {
   const LessEqualSpecializer();
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.lessEqual;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.lessEqual;
   }
 
   HInstruction newBuiltinVariant(
@@ -1350,8 +1350,8 @@ class LessEqualSpecializer extends RelationalSpecializer {
 class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
   const CodeUnitAtSpecializer();
 
-  constant_system.BinaryOperation operation() {
-    return constant_system.codeUnitAt;
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.codeUnitAt;
   }
 
   HInstruction tryConvertToBuiltin(
@@ -1510,8 +1510,8 @@ class PatternMatchSpecializer extends InvokeDynamicSpecializer {
 class RoundSpecializer extends InvokeDynamicSpecializer {
   const RoundSpecializer();
 
-  constant_system.UnaryOperation operation() {
-    return constant_system.round;
+  UnaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.round;
   }
 
   HInstruction tryConvertToBuiltin(

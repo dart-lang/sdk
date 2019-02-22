@@ -12,6 +12,7 @@ import '../common/tasks.dart' show CompilerTask;
 import '../common_elements.dart'
     show CommonElements, ElementEnvironment, JElementEnvironment;
 import '../compiler.dart' show Compiler;
+import '../constants/constant_system.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/entities.dart';
@@ -399,6 +400,10 @@ class JavaScriptBackend {
         this, compiler.measurer, sourceInformationStrategy);
   }
 
+  /// The [ConstantSystem] used to interpret compile-time constants for this
+  /// backend.
+  ConstantSystem get constantSystem => constants.constantSystem;
+
   DiagnosticReporter get reporter => compiler.reporter;
 
   ImpactCacheDeleter get impactCacheDeleter => compiler.impactCacheDeleter;
@@ -541,6 +546,7 @@ class JavaScriptBackend {
         compiler.frontendStrategy.createNativeClassFinder(nativeBasicData));
     _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
     _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
+        constantSystem,
         elementEnvironment,
         commonElements,
         nativeBasicData,
@@ -614,7 +620,10 @@ class JavaScriptBackend {
     CommonElements commonElements = closedWorld.commonElements;
     BackendImpacts impacts = new BackendImpacts(commonElements);
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
-        commonElements, elementEnvironment, closedWorld.nativeData);
+        constantSystem,
+        commonElements,
+        elementEnvironment,
+        closedWorld.nativeData);
     _nativeCodegenEnqueuer = new NativeCodegenEnqueuer(
         compiler.options,
         elementEnvironment,

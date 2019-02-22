@@ -7,7 +7,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart';
-import '../constants/constant_system.dart' as constant_system;
+import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
@@ -681,20 +681,24 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  TypeInformation visitIntLiteral(ir.IntLiteral node) =>
-      // The JavaScript backend may turn this literal into a double at
-      // runtime.
-      _types.getConcreteTypeFor(_closedWorld.abstractValueDomain
-          .computeAbstractValueForConstant(
-              constant_system.createIntFromInt(node.value)));
+  TypeInformation visitIntLiteral(ir.IntLiteral node) {
+    ConstantSystem constantSystem = _closedWorld.constantSystem;
+    // The JavaScript backend may turn this literal into a double at
+    // runtime.
+    return _types.getConcreteTypeFor(_closedWorld.abstractValueDomain
+        .computeAbstractValueForConstant(
+            constantSystem.createIntFromInt(node.value)));
+  }
 
   @override
-  TypeInformation visitDoubleLiteral(ir.DoubleLiteral node) =>
-      // The JavaScript backend may turn this literal into an integer at
-      // runtime.
-      _types.getConcreteTypeFor(_closedWorld.abstractValueDomain
-          .computeAbstractValueForConstant(
-              constant_system.createDouble(node.value)));
+  TypeInformation visitDoubleLiteral(ir.DoubleLiteral node) {
+    ConstantSystem constantSystem = _closedWorld.constantSystem;
+    // The JavaScript backend may turn this literal into an integer at
+    // runtime.
+    return _types.getConcreteTypeFor(_closedWorld.abstractValueDomain
+        .computeAbstractValueForConstant(
+            constantSystem.createDouble(node.value)));
+  }
 
   @override
   TypeInformation visitStringLiteral(ir.StringLiteral node) {
