@@ -7,12 +7,12 @@ library dart2js.type_system;
 
 import 'common.dart';
 import 'common/names.dart' show Identifiers, Uris;
-import 'constants/constant_system.dart';
 import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'inferrer/abstract_value_domain.dart';
+import 'js_backend/constant_system_javascript.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
 import 'kernel/dart2js_target.dart';
 import 'universe/selector.dart' show Selector;

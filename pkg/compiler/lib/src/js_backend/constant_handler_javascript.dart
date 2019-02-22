@@ -6,6 +6,7 @@ import '../compile_time_constants.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../elements/entities.dart';
+import 'constant_system_javascript.dart';
 
 /// [ConstantCompilerTask] for compilation of constants for the JavaScript
 /// backend.

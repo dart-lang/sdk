@@ -4,7 +4,6 @@
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -15,6 +14,7 @@ import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
 import 'field_analysis.dart' show JFieldAnalysis;
+import 'constant_system_javascript.dart';
 import 'js_backend.dart';
 import 'runtime_types.dart';
 
