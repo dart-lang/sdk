@@ -36,13 +36,15 @@ Iterable<String> nameGenerator() sync* {
 class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   final List<Object> checks = <Object>[];
 
-  final Map<Class, String> classNames = <Class, String>{};
+  final Map<TreeNode, String> nodeNames = <TreeNode, String>{};
 
   final Set<String> usedNames = new Set<String>();
 
   final Iterator<String> names = nameGenerator().iterator..moveNext();
 
   final List<String> classes = <String>[];
+
+  final List<TypeParameter> usedTypeParameters = <TypeParameter>[];
 
   String serializeTypeChecks(List<Object> typeChecks) {
     for (List<Object> list in typeChecks) {
@@ -53,24 +55,66 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   }
 
   void writeTypeCheck(DartType s, DartType t, bool expected) {
-    List<String> arguments = new List<String>(2);
-    Map<String, dynamic> typeCheck = <String, dynamic>{
-      "kind": expected ? "isSubtype" : "isNotSubtype",
-      "arguments": arguments,
-    };
+    assert(usedTypeParameters.isEmpty);
+    usedTypeParameters.clear();
     StringBuffer sb = new StringBuffer();
     s.accept1(this, sb);
-    arguments[0] = "$sb";
+    String sString = "$sb";
     sb.clear();
     t.accept1(this, sb);
-    arguments[1] = "$sb";
-    checks.add(typeCheck);
+    String tString = "$sb";
+    List<Object> arguments = <Object>[sString, tString];
+    Set<TypeParameter> seenTypeParameters = new Set<TypeParameter>();
+    List<String> parameterStrings = <String>[];
+    while (usedTypeParameters.isNotEmpty) {
+      List<TypeParameter> typeParameters = usedTypeParameters.toList();
+      usedTypeParameters.clear();
+      for (TypeParameter parameter in typeParameters) {
+        if (seenTypeParameters.add(parameter)) {
+          sb.clear();
+          writeTypeParameter(parameter, sb);
+          parameterStrings.add("$sb");
+        }
+      }
+    }
+    if (parameterStrings.isNotEmpty) {
+      arguments.add(parameterStrings);
+    }
+    checks.add(<String, dynamic>{
+      "kind": expected ? "isSubtype" : "isNotSubtype",
+      "arguments": arguments,
+    });
+  }
+
+  void writeTypeParameter(TypeParameter parameter, StringBuffer sb) {
+    sb.write(computeName(parameter));
+    if (parameter.defaultType is! DynamicType ||
+        parameter.bound is DynamicType) {
+      sb.write(" extends ");
+      parameter.bound.accept1(this, sb);
+    }
+  }
+
+  void writeTypeParameters(
+      List<TypeParameter> typeParameters, StringBuffer sb) {
+    if (typeParameters.isNotEmpty) {
+      sb.write("<");
+      bool first = true;
+      for (TypeParameter p in typeParameters) {
+        if (!first) sb.write(", ");
+        writeTypeParameter(p, sb);
+        first = false;
+      }
+      sb.write(">");
+    }
   }
 
   void writeClasses() {
     Set<Class> writtenClasses = new Set<Class>();
-    for (Class cls in classNames.keys.toList()) {
-      writeClass(cls, writtenClasses);
+    for (TreeNode node in nodeNames.keys.toList()) {
+      if (node is Class) {
+        writeClass(node, writtenClasses);
+      }
     }
   }
 
@@ -86,6 +130,7 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     StringBuffer sb = new StringBuffer();
     sb.write("class ");
     sb.write(computeName(cls));
+    writeTypeParameters(cls.typeParameters, sb);
     if (supertype != null) {
       sb.write(" extends ");
       supertype.asInterfaceType.accept1(this, sb);
@@ -120,23 +165,23 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     classes.add("$sb");
   }
 
-  String computeName(Class cls) {
-    String name = classNames[cls];
+  String computeName(TreeNode node) {
+    String name = nodeNames[node];
     if (name != null) return name;
-    Library library = cls.enclosingLibrary;
-    if ("${library.importUri}" == "dart:core") {
-      if (!usedNames.add(cls.name)) {
-        throw "Class name conflict for $cls";
+    if (node is Class) {
+      Library library = node.enclosingLibrary;
+      if ("${library?.importUri}" == "dart:core") {
+        if (!usedNames.add(node.name)) {
+          throw "Class name conflict for $node";
+        }
+        return nodeNames[node] = node.name;
       }
-      return classNames[cls] = cls.name;
-    } else {
-      String name;
-      while (!usedNames.add(name = names.current)) {
-        names.moveNext();
-      }
-      names.moveNext();
-      return classNames[cls] = name;
     }
+    while (!usedNames.add(name = names.current)) {
+      names.moveNext();
+    }
+    names.moveNext();
+    return nodeNames[node] = name;
   }
 
   @override
@@ -185,18 +230,7 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
 
   @override
   void visitFunctionType(FunctionType node, StringBuffer sb) {
-    if (node.typeParameters.isNotEmpty) {
-      sb.write("<");
-      bool first = true;
-      for (TypeParameter p in node.typeParameters) {
-        if (!first) sb.write(", ");
-        sb.write(p.name);
-        sb.write(" extends ");
-        p.bound.accept1(this, sb);
-        first = false;
-      }
-      sb.write(">");
-    }
+    writeTypeParameters(node.typeParameters, sb);
     sb.write("(");
     bool first = true;
     for (int i = 0; i < node.requiredParameterCount; i++) {
@@ -238,10 +272,13 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
 
   @override
   void visitTypeParameterType(TypeParameterType node, StringBuffer sb) {
-    // TODO(ahe): We need to collect used type parameters. See
-    // pkg/front_end/test/fasta/types/shared_type_tests.dart for how they can
-    // be used in testing subtype checks.
-    sb.write(node.parameter.name);
+    String name = computeName(node.parameter);
+    usedTypeParameters.add(node.parameter);
+    sb.write(name);
+    if (node.promotedBound != null) {
+      sb.write(" & ");
+      node.promotedBound.accept1(this, sb);
+    }
   }
 
   @override

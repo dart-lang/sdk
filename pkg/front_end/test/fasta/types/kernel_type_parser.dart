@@ -291,7 +291,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
         typeParameter
           ..bound = type
           // The default type will be overridden below, but we need to set it
-          // so [calculateBounds] can destinquish between explicit and implicit
+          // so [calculateBounds] can distinguish between explicit and implicit
           // bounds.
           ..defaultType = type;
       }
