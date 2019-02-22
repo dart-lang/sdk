@@ -8,6 +8,10 @@ import 'literal_entry_info_impl.dart';
 import 'parser.dart';
 import 'util.dart';
 
+/// [simpleEntry] is the first step for parsing a literal entry
+/// without any control flow or spread collection operator.
+const LiteralEntryInfo simpleEntry = const LiteralEntryInfo(true);
+
 /// [LiteralEntryInfo] represents steps for processing an entry
 /// in a literal list, map, or set. These steps will handle parsing
 /// both control flow and spreadable operators, and indicate

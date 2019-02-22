@@ -1061,7 +1061,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   void test_setLiteral_invalid_map_entry() {
     SetLiteral set = parseExpression('<int>{1: 1}', errors: [
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
+      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 1),
     ]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments.arguments, hasLength(1));

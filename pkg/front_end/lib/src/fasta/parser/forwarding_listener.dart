@@ -703,6 +703,20 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleLiteralSetOrMap(
+    int count,
+    Token leftBrace,
+    Token constKeyword,
+    Token rightBrace,
+    // TODO(danrubel): hasSetEntry parameter exists for replicating existing
+    // behavior and will be removed once unified collection has been enabled
+    bool hasSetEntry,
+  ) {
+    listener?.handleLiteralSetOrMap(
+        count, leftBrace, constKeyword, rightBrace, hasSetEntry);
+  }
+
+  @override
   void endLiteralString(int interpolationCount, Token endToken) {
     listener?.endLiteralString(interpolationCount, endToken);
   }
@@ -1013,12 +1027,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleLiteralSetOrMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
-    listener?.handleLiteralSetOrMap(count, leftBrace, constKeyword, rightBrace);
-  }
-
-  @override
   void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     listener?.handleExpressionFunctionBody(arrowToken, endToken);
   }
@@ -1145,20 +1153,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleLiteralMap(
-      int count, Token beginToken, Token constKeyword, Token endToken) {
-    listener?.handleLiteralMap(count, beginToken, constKeyword, endToken);
-  }
-
-  @override
   void handleLiteralNull(Token token) {
     listener?.handleLiteralNull(token);
-  }
-
-  @override
-  void handleLiteralSet(
-      int count, Token beginToken, Token constKeyword, Token token) {
-    listener?.handleLiteralSet(count, beginToken, constKeyword, token);
   }
 
   @override

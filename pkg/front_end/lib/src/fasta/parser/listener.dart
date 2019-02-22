@@ -1200,18 +1200,15 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralList");
   }
 
-  void handleLiteralMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
-    logEvent("LiteralMap");
-  }
-
-  void handleLiteralSet(
-      int count, Token beginToken, Token constKeyword, Token token) {
-    logEvent("LiteralSet");
-  }
-
   void handleLiteralSetOrMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    int count,
+    Token leftBrace,
+    Token constKeyword,
+    Token rightBrace,
+    // TODO(danrubel): hasSetEntry parameter exists for replicating existing
+    // behavior and will be removed once unified collection has been enabled
+    bool hasSetEntry,
+  ) {
     logEvent('LiteralSetOrMap');
   }
 

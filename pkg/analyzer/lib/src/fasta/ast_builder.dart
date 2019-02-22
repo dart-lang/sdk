@@ -1071,7 +1071,14 @@ class AstBuilder extends StackListener {
 
   @override
   void handleLiteralSetOrMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    int count,
+    Token leftBrace,
+    Token constKeyword,
+    Token rightBrace,
+    // TODO(danrubel): hasSetEntry parameter exists for replicating existing
+    // behavior and will be removed once unified collection has been enabled
+    bool hasSetEntry,
+  ) {
     if (enableControlFlowCollections || enableSpreadCollections) {
       List<CollectionElement> elements = popCollectionElements(count);
 
@@ -1097,21 +1104,12 @@ class AstBuilder extends StackListener {
 
       // Determine if this is a set or map based on type args and content
       final typeArgCount = typeArguments?.arguments?.length;
-      bool isSet = typeArgCount == 1 ? true : typeArgCount == 2 ? false : null;
-      if (isSet == null && elements != null) {
-        for (var elem in elements) {
-          if (elem is MapLiteralEntry) {
-            isSet = false;
-            break;
-          } else if (elem is Expression) {
-            isSet = true;
-            break;
-          }
-        }
-      }
+      bool isSet =
+          typeArgCount == 1 ? true : typeArgCount != null ? false : null;
+      isSet ??= hasSetEntry;
 
       // Build the set or map
-      if (isSet ?? false) {
+      if (isSet) {
         final setEntries = <Expression>[];
         if (elements != null) {
           for (var elem in elements) {
@@ -1152,22 +1150,6 @@ class AstBuilder extends StackListener {
             constKeyword, typeArguments, leftBrace, mapEntries, rightBrace));
       }
     }
-  }
-
-  @override
-  void handleLiteralSet(
-      int count, Token leftBracket, Token constKeyword, Token rightBracket) {
-    // TODO(danrubel): Remove this once the parser stops generating this event
-    // and only generates handleLiteralSetOrMap
-    handleLiteralSetOrMap(count, leftBracket, constKeyword, rightBracket);
-  }
-
-  @override
-  void handleLiteralMap(
-      int count, Token leftBracket, Token constKeyword, Token rightBracket) {
-    // TODO(danrubel): Remove this once the parser stops generating this event
-    // and only generates handleLiteralSetOrMap
-    handleLiteralSetOrMap(count, leftBracket, constKeyword, rightBracket);
   }
 
   void handleLiteralMapEntry(Token colon, Token endToken) {

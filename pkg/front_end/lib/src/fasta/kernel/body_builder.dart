@@ -2411,17 +2411,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     push(node);
   }
 
-  @override
-  void handleLiteralSet(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
-    debugEvent("LiteralSet");
-
-    // TODO(danrubel): Remove this once the parser stops generating this event
-    // and only generates handleLiteralSetOrMap
-
-    handleLiteralSetOrMap2(count, leftBrace, constKeyword, rightBrace, false);
-  }
-
   void buildLiteralSet(List<UnresolvedType<KernelTypeBuilder>> typeArguments,
       Token constKeyword, Token leftBrace, List<dynamic> setOrMapEntries) {
     DartType typeArgument;
@@ -2468,19 +2457,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void handleLiteralSetOrMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
-    handleLiteralSetOrMap2(count, leftBrace, constKeyword, rightBrace, false);
-  }
-
-  void handleLiteralSetOrMap2(
     int count,
     Token leftBrace,
     Token constKeyword,
     Token rightBrace,
-    // TODO(danrubel): revise handleLiteralSetOrMap to have the additional
-    // hasMapEntry parameter for replicating existing behavior. This parameter
-    // will be removed once unified collection has been implemented.
-    bool hasMapEntry,
+    // TODO(danrubel): hasSetEntry parameter exists for replicating existing
+    // behavior and will be removed once unified collection has been enabled
+    bool hasSetEntry,
   ) {
     debugEvent("LiteralSetOrMap");
 
@@ -2512,13 +2495,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // defer set/map determination until after type resolution as per the
     // unified collection spec: https://github.com/dart-lang/language/pull/200
     // rather than trying to guess as done below.
-    if (isSet == null &&
-        setOrMapEntries != null &&
-        setOrMapEntries.isNotEmpty) {
-      isSet = !hasMapEntry;
-    }
+    isSet ??= hasSetEntry;
 
-    if (isSet ?? false) {
+    if (isSet) {
       buildLiteralSet(typeArguments, constKeyword, leftBrace, setOrMapEntries);
     } else {
       buildLiteralMap(typeArguments, constKeyword, leftBrace, setOrMapEntries);
@@ -2545,28 +2524,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     push(forest.literalNull(token));
   }
 
-  @override
-  void handleLiteralMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
-    debugEvent("LiteralMap");
-
-    // TODO(danrubel): Remove this once the parser stops generating this event
-    // and only generates handleLiteralSetOrMap
-
-    handleLiteralSetOrMap2(count, leftBrace, constKeyword, rightBrace, true);
-  }
-
   void buildLiteralMap(List<UnresolvedType<KernelTypeBuilder>> typeArguments,
       Token constKeyword, Token leftBrace, List<dynamic> setOrMapEntries) {
     DartType keyType;
     DartType valueType;
     if (typeArguments != null) {
       if (typeArguments.length != 2) {
-        // TODO(danrubel): Remove once parser generates this error message
-        addProblem(
-            fasta.messageMapLiteralTypeArgumentMismatch,
-            offsetForToken(leftBrace),
-            lengthOfSpan(leftBrace, leftBrace.endGroup));
         keyType = const InvalidType();
         valueType = const InvalidType();
       } else {
