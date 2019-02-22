@@ -262,7 +262,8 @@ main() {
     await test(TEST_14, 'return t1[0]');
     await test(TEST_15, 'return 42');
     await test(TEST_16, 'return \$.a');
-    await test(TEST_17, r'return $.x === 0 ? $.a = true : $.a = false');
+    await test(TEST_17,
+        RegExp(r'return (t1|\$\.x === 0 \? \$\.a = true : \$\.a = false);'));
     await test(TEST_18, 'return t1');
   }
 

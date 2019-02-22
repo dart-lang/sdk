@@ -356,7 +356,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .visitGraph(graph);
     new SsaTypeKnownRemover().visitGraph(graph);
     new SsaTrustedCheckRemover(_options).visitGraph(graph);
-    new SsaAssignmentChaining(_options, _closedWorld).visitGraph(graph);
+    // TODO(sra): Re-enable chaining.
+    //     new SsaAssignmentChaining(_options, _closedWorld).visitGraph(graph);
     new SsaInstructionMerger(
             _abstractValueDomain, generateAtUseSite, _superMemberData)
         .visitGraph(graph);
