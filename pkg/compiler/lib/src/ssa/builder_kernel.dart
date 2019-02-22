@@ -10,6 +10,7 @@ import '../common/codegen.dart' show CodegenRegistry;
 import '../common/names.dart';
 import '../common_elements.dart';
 import '../compiler.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart'
     show
         ConstantValue,
@@ -2555,7 +2556,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       List<ConstantValue> getConstants(
           ir.SwitchStatement parentSwitch, ir.SwitchCase switchCase) {
         return <ConstantValue>[
-          constantSystem.createIntFromInt(caseIndex[switchCase])
+          constant_system.createIntFromInt(caseIndex[switchCase])
         ];
       }
 
@@ -3849,8 +3850,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     HConstant nameConstant = graph.addConstant(
-        closedWorld.constantSystem
-            .createSymbol(closedWorld.commonElements, name),
+        constant_system.createSymbol(closedWorld.commonElements, name),
         closedWorld);
 
     List<HInstruction> arguments = <HInstruction>[];
@@ -3882,7 +3882,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     for (String argumentName
         in selector.callStructure.getOrderedNamedArguments()) {
       ConstantValue argumentNameConstant =
-          constantSystem.createString(argumentName);
+          constant_system.createString(argumentName);
       argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
     }
     HInstruction argumentNamesInstruction = buildLiteralList(argumentNames);
@@ -3894,7 +3894,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     js.Name internalName = namer.invocationName(selector);
 
     ConstantValue kindConstant =
-        constantSystem.createIntFromInt(selector.invocationMirrorKind);
+        constant_system.createIntFromInt(selector.invocationMirrorKind);
 
     _pushStaticInvocation(
         _commonElements.createUnmangledInvocationMirror,
@@ -4676,7 +4676,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     FunctionEntity noSuchMethod =
         _elementMap.getSuperNoSuchMethod(containingClass);
 
-    ConstantValue nameConstant = constantSystem.createString(publicName);
+    ConstantValue nameConstant = constant_system.createString(publicName);
 
     js.Name internalName = namer.invocationName(selector);
 
@@ -4686,14 +4686,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
     var argumentNames = new List<HInstruction>();
     for (String argumentName in selector.namedArguments) {
       ConstantValue argumentNameConstant =
-          constantSystem.createString(argumentName);
+          constant_system.createString(argumentName);
       argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
     }
     var argumentNamesInstruction = buildLiteralList(argumentNames);
     add(argumentNamesInstruction);
 
     ConstantValue kindConstant =
-        constantSystem.createIntFromInt(selector.invocationMirrorKind);
+        constant_system.createIntFromInt(selector.invocationMirrorKind);
 
     _pushStaticInvocation(
         _commonElements.createInvocationMirror,

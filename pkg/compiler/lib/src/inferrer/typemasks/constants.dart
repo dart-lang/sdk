@@ -5,6 +5,7 @@
 library types.constants;
 
 import '../../common.dart';
+import '../../constants/constant_system.dart' as constant_system;
 import '../../constants/values.dart';
 import '../../js_backend/js_backend.dart' show SyntheticConstantKind;
 import '../../world.dart' show JClosedWorld;
@@ -37,7 +38,7 @@ class ConstantValueTypeMasks
   @override
   TypeMask visitDouble(DoubleConstantValue constant, JClosedWorld closedWorld) {
     // We have to recognize double constants that are 'is int'.
-    if (closedWorld.constantSystem.isInt(constant)) {
+    if (constant_system.isInt(constant)) {
       if (constant.isMinusZero) {
         return closedWorld.abstractValueDomain.uint31Type;
       } else {
