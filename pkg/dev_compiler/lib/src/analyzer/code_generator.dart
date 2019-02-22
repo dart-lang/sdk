@@ -5759,19 +5759,24 @@ class CodeGenerator extends Object
   }
 
   @override
-  JS.Expression visitSetLiteral(SetLiteral node) {
+  JS.Expression visitSetLiteral(SetLiteral node) =>
+      _emitSetLiteral(node.elements, node);
+
+  // TODO(nshahan) Cleanup after control flow collections experiments are removed.
+  JS.Expression _emitSetLiteral(
+      Iterable<CollectionElement> elements, SetOrMapLiteral node) {
     var type = node.staticType as InterfaceType;
     if (!node.isConst) {
       var setType = _emitType(type);
-      if (node.elements.isEmpty) {
+      if (elements.isEmpty) {
         return js.call('#.new()', [setType]);
       }
-      return js
-          .call('#.from([#])', [setType, _visitExpressionList(node.elements)]);
+      return js.call(
+          '#.from([#])', [setType, _visitCollectionElementList(elements)]);
     }
     return _cacheConst(() => runtimeCall('constSet(#, [#])', [
           _emitType((node.staticType as InterfaceType).typeArguments[0]),
-          _visitExpressionList(node.elements)
+          _visitCollectionElementList(elements)
         ]));
   }
 
@@ -5796,25 +5801,21 @@ class CodeGenerator extends Object
   }
 
   @override
-  visitMapLiteral(MapLiteral node) {
-    emitEntries() {
-      var entries = <JS.Expression>[];
-      for (var e in node.entries) {
-        entries.add(_visitExpression(e.key));
-        entries.add(_visitExpression(e.value));
-      }
-      return entries;
-    }
+  visitMapLiteral(MapLiteral node) => _emitMapLiteral(node.entries, node);
 
+  JS.Expression _emitMapLiteral(
+      Iterable<CollectionElement> elements, SetOrMapLiteral node) {
     var type = node.staticType as InterfaceType;
     if (!node.isConst) {
       var mapType = _emitMapImplType(type);
-      if (node.entries.isEmpty) {
+      if (elements.isEmpty) {
         return js.call('new #.new()', [mapType]);
       }
-      return js.call('new #.from([#])', [mapType, emitEntries()]);
+      return js.call(
+          'new #.from([#])', [mapType, _visitCollectionElementList(elements)]);
     }
-    return _cacheConst(() => _emitConstMap(type, emitEntries()));
+    return _cacheConst(
+        () => _emitConstMap(type, _visitCollectionElementList(elements)));
   }
 
   JS.Expression _emitConstMap(InterfaceType type, List<JS.Expression> entries) {
@@ -5886,6 +5887,11 @@ class CodeGenerator extends Object
     return e;
   }
 
+  /// Visits [nodes] with [_visitExpression].
+  List<JS.Expression> _visitExpressionList(Iterable<AstNode> nodes) {
+    return nodes?.map(_visitExpression)?.toList();
+  }
+
   /// Visit a Dart [node] that produces a JS statement, and marks its source
   /// location for debugging.
   JS.Statement _visitStatement(AstNode node) {
@@ -5900,9 +5906,20 @@ class CodeGenerator extends Object
     return nodes?.map(_visitStatement)?.toList();
   }
 
-  /// Visits [nodes] with [_visitExpression].
-  List<JS.Expression> _visitExpressionList(Iterable<AstNode> nodes) {
-    return nodes?.map(_visitExpression)?.toList();
+  /// Visits [nodes] with [_visitColelctionElement].
+  List<JS.Expression> _visitCollectionElementList(
+      Iterable<CollectionElement> nodes) {
+    var expressions = <JS.Expression>[];
+    for (var node in nodes) {
+      //TODO(nshahan) Handle [IfElement] and [ForElement].
+      if (node is MapLiteralEntry) {
+        expressions.add(_visitExpression(node.key));
+        expressions.add(_visitExpression(node.value));
+      } else {
+        expressions.add(_visitExpression(node));
+      }
+    }
+    return expressions;
   }
 
   /// Gets the start position of [node] for use in source mapping.
@@ -6482,7 +6499,9 @@ class CodeGenerator extends Object
   visitSetLiteral2(SetLiteral2 node) => _unreachable(node);
 
   @override
-  visitSetOrMapLiteral(SetOrMapLiteral node) => _unreachable(node);
+  visitSetOrMapLiteral(SetOrMapLiteral node) => node.isSet
+      ? _emitSetLiteral(node.elements2, node)
+      : _emitMapLiteral(node.elements2, node);
 
   @override
   visitSpreadElement(SpreadElement node) => _unreachable(node);
