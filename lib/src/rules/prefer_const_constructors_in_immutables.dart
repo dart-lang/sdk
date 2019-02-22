@@ -93,7 +93,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
     InterfaceType current = type;
-    while (current != null) {
+    Set<ClassElement> seenTypes = new Set<ClassElement>();
+    while (current != null && seenTypes.add(type.element)) {
       yield current;
       current = current.superclass;
     }
