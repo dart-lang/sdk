@@ -5,7 +5,6 @@
 import '../compile_time_constants.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
-import '../constant_system_dart.dart';
 import '../elements/entities.dart';
 import 'constant_system_javascript.dart';
 
@@ -17,18 +16,16 @@ import 'constant_system_javascript.dart';
 /// [DartConstantCompiler] for the frontend interpretation of the constants and
 /// to a [JavaScriptConstantCompiler] for the backend interpretation.
 class JavaScriptConstantTask extends ConstantCompilerTask {
-  ConstantSystem dartConstantSystem;
   JavaScriptConstantCompiler jsConstantCompiler;
 
   JavaScriptConstantTask(Compiler compiler)
-      : this.dartConstantSystem = const DartConstantSystem(),
-        this.jsConstantCompiler = new JavaScriptConstantCompiler(),
+      : this.jsConstantCompiler = new JavaScriptConstantCompiler(),
         super(compiler.measurer);
 
   String get name => 'ConstantHandler';
 
   @override
-  ConstantSystem get constantSystem => dartConstantSystem;
+  ConstantSystem get constantSystem => JavaScriptConstantSystem.only;
 }
 
 /// The [JavaScriptConstantCompiler] is used to keep track of compile-time
