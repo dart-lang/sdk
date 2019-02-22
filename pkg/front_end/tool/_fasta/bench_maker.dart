@@ -197,7 +197,40 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
       sb.write(">");
     }
     sb.write("(");
-    // TODO(ahe): Write function arguments here.
+    bool first = true;
+    for (int i = 0; i < node.requiredParameterCount; i++) {
+      if (!first) sb.write(", ");
+      node.positionalParameters[i].accept1(this, sb);
+      first = false;
+    }
+    if (node.requiredParameterCount != node.positionalParameters.length) {
+      if (!first) sb.write(", ");
+      sb.write("[");
+      first = true;
+      for (int i = node.requiredParameterCount;
+          i < node.positionalParameters.length;
+          i++) {
+        if (!first) sb.write(", ");
+        node.positionalParameters[i].accept1(this, sb);
+        first = false;
+      }
+      sb.write("]");
+      first = false;
+    }
+    if (node.namedParameters.isNotEmpty) {
+      if (!first) sb.write(", ");
+      sb.write("{");
+      first = true;
+      for (NamedType named in node.namedParameters) {
+        if (!first) sb.write(", ");
+        named.type.accept1(this, sb);
+        sb.write(" ");
+        sb.write(named.name);
+        first = false;
+      }
+      sb.write("}");
+      first = false;
+    }
     sb.write(") -> ");
     node.returnType.accept1(this, sb);
   }
