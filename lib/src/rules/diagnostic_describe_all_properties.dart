@@ -192,15 +192,15 @@ class _Visitor extends SimpleAstVisitor {
     // Flag the rest.
     properties.forEach(rule.reportLint);
 
-    // todo (pq): remove before landing
-    for (var prop in properties) {
-      var line = lineInfo.getLocation(prop.offset).lineNumber;
-      var prefix =
-          'https://github.com/flutter/flutter/blob/master/packages/flutter/';
-      var path = node.element.source.fullName.split('packages/flutter/')[1];
-      print('| [$path:$line]($prefix$path#L$line) | ${node.name}.$prop |');
-      ++debugPropertyCount;
-    }
+//    // todo (pq): remove before landing
+//    for (var prop in properties) {
+//      var line = lineInfo.getLocation(prop.offset).lineNumber;
+//      var prefix =
+//          'https://github.com/flutter/flutter/blob/master/packages/flutter/';
+//      var path = node.element.source.fullName.split('packages/flutter/')[1];
+//      print('| [$path:$line]($prefix$path#L$line) | ${node.name}.$prop |');
+//      ++debugPropertyCount;
+//    }
   }
 
   void removeReferences(
