@@ -1,3 +1,16 @@
+## 0.35.2
+* Updated support in the AST structure for the control_flow_collections and
+  spread_collections experiments.  The following methods are now deprecated:
+  * `AstFactory.mapLiteral2` and `AstFactory.setLiteral2` (replaced by
+    `AstFactory.setOrMapLiteral`).
+  * `AstVisitor.visitListLiteral2` (clients should not need to override this
+    anymore).
+  * `AstVisitor.visitMapLiteral2 and AstVisitor.visitSetLiteral2` (replaced by
+    `AstVisitor.visitSetOrMapLiteral`).
+* Started to add support for strict-inference as an analysis option.
+* Bug fixes: #35870, #35922, #35936, #35940,
+  https://github.com/flutter/flutter-intellij/issues/3204
+
 ## 0.35.1
 * The new "set literals" language feature is now enabled by default.
 * The dev_dependency analysis_tool was created so that clients do not have to
