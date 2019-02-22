@@ -49,6 +49,7 @@ import 'package:linter/src/rules/comment_references.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/control_flow_in_finally.dart';
 import 'package:linter/src/rules/curly_braces_in_flow_control_structures.dart';
+import 'package:linter/src/rules/diagnostic_describe_all_properties.dart';
 import 'package:linter/src/rules/directives_ordering.dart';
 import 'package:linter/src/rules/empty_catches.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
@@ -190,6 +191,7 @@ void registerLintRules() {
     ..register(new ControlFlowInFinally())
     ..register(new ConstantIdentifierNames())
     ..register(new CurlyBracesInFlowControlStructures())
+    ..register(new DiagnosticsDescribeAllProperties())
     ..register(new DirectivesOrdering())
     ..register(new EmptyCatches())
     ..register(new EmptyConstructorBodies())
