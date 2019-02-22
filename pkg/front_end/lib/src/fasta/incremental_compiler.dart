@@ -27,7 +27,6 @@ import 'package:kernel/kernel.dart'
         Procedure,
         ProcedureKind,
         ReturnStatement,
-        Source,
         TreeNode,
         TypeParameter;
 
@@ -126,56 +125,62 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ticker.logMs("Read packages file");
 
       if (dillLoadedData == null) {
-        List<int> summaryBytes = await c.options.loadSdkSummaryBytes();
-        int bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
-        if (initializeFromDillUri != null) {
-          try {
-            bytesLength += await initializeFromDill(uriTranslator, c, data);
-          } catch (e, st) {
-            // We might have loaded x out of y libraries into the component.
-            // To avoid any unforeseen problems start over.
-            bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
+        int bytesLength = 0;
+        if (componentToInitializeFrom != null) {
+          // If initializing from a component it has to include the sdk,
+          // so we explicitly don't load it here.
+          initializeFromComponent(uriTranslator, c, data);
+        } else {
+          List<int> summaryBytes = await c.options.loadSdkSummaryBytes();
+          bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
+          if (initializeFromDillUri != null) {
+            try {
+              bytesLength += await initializeFromDill(uriTranslator, c, data);
+            } catch (e, st) {
+              // We might have loaded x out of y libraries into the component.
+              // To avoid any unforeseen problems start over.
+              bytesLength =
+                  prepareSummary(summaryBytes, uriTranslator, c, data);
 
-            if (e is InvalidKernelVersionError || e is PackageChangedError) {
-              // Don't report any warning.
-            } else {
-              Uri gzInitializedFrom;
-              if (c.options.writeFileOnCrashReport) {
-                gzInitializedFrom = saveAsGzip(
-                    data.initializationBytes, "initialize_from.dill");
-                recordTemporaryFileForTesting(gzInitializedFrom);
-              }
-              if (e is CanonicalNameError) {
-                Message message = gzInitializedFrom != null
-                    ? templateInitializeFromDillNotSelfContained.withArguments(
-                        initializeFromDillUri.toString(), gzInitializedFrom)
-                    : templateInitializeFromDillNotSelfContainedNoDump
-                        .withArguments(initializeFromDillUri.toString());
-                dillLoadedData.loader
-                    .addProblem(message, TreeNode.noOffset, 1, null);
+              if (e is InvalidKernelVersionError || e is PackageChangedError) {
+                // Don't report any warning.
               } else {
-                // Unknown error: Report problem as such.
-                Message message = gzInitializedFrom != null
-                    ? templateInitializeFromDillUnknownProblem.withArguments(
-                        initializeFromDillUri.toString(),
-                        "$e",
-                        "$st",
-                        gzInitializedFrom)
-                    : templateInitializeFromDillUnknownProblemNoDump
-                        .withArguments(
-                            initializeFromDillUri.toString(), "$e", "$st");
-                dillLoadedData.loader
-                    .addProblem(message, TreeNode.noOffset, 1, null);
+                Uri gzInitializedFrom;
+                if (c.options.writeFileOnCrashReport) {
+                  gzInitializedFrom = saveAsGzip(
+                      data.initializationBytes, "initialize_from.dill");
+                  recordTemporaryFileForTesting(gzInitializedFrom);
+                }
+                if (e is CanonicalNameError) {
+                  Message message = gzInitializedFrom != null
+                      ? templateInitializeFromDillNotSelfContained
+                          .withArguments(initializeFromDillUri.toString(),
+                              gzInitializedFrom)
+                      : templateInitializeFromDillNotSelfContainedNoDump
+                          .withArguments(initializeFromDillUri.toString());
+                  dillLoadedData.loader
+                      .addProblem(message, TreeNode.noOffset, 1, null);
+                } else {
+                  // Unknown error: Report problem as such.
+                  Message message = gzInitializedFrom != null
+                      ? templateInitializeFromDillUnknownProblem.withArguments(
+                          initializeFromDillUri.toString(),
+                          "$e",
+                          "$st",
+                          gzInitializedFrom)
+                      : templateInitializeFromDillUnknownProblemNoDump
+                          .withArguments(
+                              initializeFromDillUri.toString(), "$e", "$st");
+                  dillLoadedData.loader
+                      .addProblem(message, TreeNode.noOffset, 1, null);
+                }
               }
             }
           }
-        } else if (componentToInitializeFrom != null) {
-          initializeFromComponent(uriTranslator, c, data);
         }
         appendLibraries(data, bytesLength);
 
         await dillLoadedData.buildOutlines();
-        summaryBytes = null;
         userBuilders = <Uri, LibraryBuilder>{};
         platformBuilders = <LibraryBuilder>[];
         dillLoadedData.loader.builders.forEach((uri, builder) {
@@ -522,35 +527,32 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   // This procedure will set up compiler from [componentToInitializeFrom].
   void initializeFromComponent(UriTranslator uriTranslator, CompilerContext c,
       IncrementalCompilerData data) {
-    ticker.logMs("Read initializeFromComponent");
+    ticker.logMs("About to initializeFromComponent");
 
-    // [libraries] and [uriToSource] from [componentToInitializeFrom] take
-    // precedence over what was already read into [data.component]. Assumption
-    // is that [data.component] is initialized with standard prebuilt various
-    // platform libraries.
-    List<Library> combinedLibs = <Library>[];
-    Set<Uri> readLibs =
-        componentToInitializeFrom.libraries.map((lib) => lib.fileUri).toSet();
-    combinedLibs.addAll(componentToInitializeFrom.libraries);
-    for (Library lib in data.component.libraries) {
-      if (!readLibs.contains(lib.fileUri)) {
-        combinedLibs.add(lib);
-      }
-    }
-    Map<Uri, Source> combinedMaps = new Map<Uri, Source>();
-    combinedMaps.addAll(componentToInitializeFrom.uriToSource);
-    Set<Uri> uris = combinedMaps.keys.toSet();
-    for (MapEntry<Uri, Source> entry in data.component.uriToSource.entries) {
-      if (!uris.contains(entry.key)) {
-        combinedMaps[entry.key] = entry.value;
-      }
-    }
-
-    data.component =
-        new Component(libraries: combinedLibs, uriToSource: combinedMaps)
-          ..mainMethod = componentToInitializeFrom.mainMethod;
-    data.userLoadedUriMain = data.component.mainMethod;
+    dillLoadedData = new DillTarget(ticker, uriTranslator, c.options.target);
+    data.component = new Component(
+        libraries: componentToInitializeFrom.libraries,
+        uriToSource: componentToInitializeFrom.uriToSource)
+      ..mainMethod = componentToInitializeFrom.mainMethod;
+    data.userLoadedUriMain = componentToInitializeFrom.mainMethod;
     saveComponentProblems(data);
+
+    bool foundDartCore = false;
+    for (int i = 0; i < data.component.libraries.length; i++) {
+      Library library = data.component.libraries[i];
+      if (library.importUri.scheme == "dart" &&
+          library.importUri.path == "core") {
+        foundDartCore = true;
+        break;
+      }
+    }
+
+    if (!foundDartCore) {
+      throw const InitializeFromComponentError("Did not find dart:core when "
+          "tried to initialize from component.");
+    }
+
+    ticker.logMs("Ran initializeFromComponent");
   }
 
   void appendLibraries(IncrementalCompilerData data, int bytesLength) {
@@ -796,6 +798,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
 class PackageChangedError {
   const PackageChangedError();
+}
+
+class InitializeFromComponentError {
+  final String message;
+
+  const InitializeFromComponentError(this.message);
+
+  String toString() => message;
 }
 
 class IncrementalCompilerData {

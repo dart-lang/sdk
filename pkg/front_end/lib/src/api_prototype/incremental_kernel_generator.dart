@@ -26,6 +26,10 @@ abstract class IncrementalKernelGenerator {
         initializeFromDillUri);
   }
 
+  /// Initialize the incremental compiler from a component.
+  ///
+  /// Notice that the component has to include the platform, and that no other
+  /// platform will be loaded.
   factory IncrementalKernelGenerator.fromComponent(
       CompilerOptions options, Uri entryPoint, Component component) {
     return new IncrementalCompiler.fromComponent(

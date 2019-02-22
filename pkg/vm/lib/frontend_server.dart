@@ -333,7 +333,7 @@ class FrontendCompiler implements CompilerInterface {
     Component component;
     if (options['incremental']) {
       _compilerOptions = compilerOptions;
-      _compilerOptions.omitPlatform = true;
+      _compilerOptions.omitPlatform = false;
       _generator =
           generator ?? _createGenerator(new Uri.file(_initializeFromDill));
       await invalidateIfInitializingFromDill();

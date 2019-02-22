@@ -17,10 +17,6 @@ const String kDebugProcedureName = ":Eval";
 class IncrementalCompiler {
   IncrementalKernelGenerator _generator;
 
-  // Component that reflect current state of the compiler, which has not
-  // been yet accepted by the client. Is [null] if no compilation was done
-  // since last accept/reject acknowledgement by the client.
-  Component _candidate;
   // Component that reflect the state that was most recently accepted by the
   // client. Is [null], if no compilation results were accepted by the client.
   Component _lastKnownGood;
@@ -51,54 +47,63 @@ class IncrementalCompiler {
         entryPoint: entryPoint, fullComponent: fullComponent);
     initialized = true;
     fullComponent = false;
-    final bool firstDelta = _pendingDeltas.isEmpty;
     _pendingDeltas.add(component);
-    if (!firstDelta) {
-      // If more than one delta is pending, we need to combine them.
-      Procedure mainMethod;
-      Map<Uri, Library> combined = <Uri, Library>{};
-      for (Component delta in _pendingDeltas) {
-        if (delta.mainMethod != null) {
-          mainMethod = delta.mainMethod;
-        }
-        for (Library library in delta.libraries) {
-          combined[library.importUri] = library;
-        }
+    return _combinePendingDeltas(false);
+  }
+
+  _combinePendingDeltas(bool includePlatform) {
+    Procedure mainMethod;
+    Map<Uri, Library> combined = <Uri, Library>{};
+    Map<Uri, Source> uriToSource = new Map<Uri, Source>();
+    for (Component delta in _pendingDeltas) {
+      if (delta.mainMethod != null) {
+        mainMethod = delta.mainMethod;
       }
-      // TODO(vegorov) this needs to merge metadata repositories from deltas.
-      component = new Component(libraries: combined.values.toList())
-        ..mainMethod = mainMethod;
+      uriToSource.addAll(delta.uriToSource);
+      for (Library library in delta.libraries) {
+        bool isPlatform =
+            library.importUri.scheme == "dart" && !library.isSynthetic;
+        if (!includePlatform && isPlatform) continue;
+        combined[library.importUri] = library;
+      }
     }
-    _candidate = component;
-    return component;
+
+    // TODO(vegorov) this needs to merge metadata repositories from deltas.
+    return new Component(
+        libraries: combined.values.toList(), uriToSource: uriToSource)
+      ..mainMethod = mainMethod;
   }
 
   /// This lets incremental compiler know that results of last [compile] call
   /// were accepted, don't need to be included into subsequent [compile] calls
   /// results.
   accept() {
-    _pendingDeltas.clear();
-
     Map<Uri, Library> combined = <Uri, Library>{};
+    Map<Uri, Source> uriToSource = <Uri, Source>{};
+
     if (_lastKnownGood != null) {
       // TODO(aam): Figure out how to skip no-longer-used libraries from
       // [_lastKnownGood] libraries.
       for (Library library in _lastKnownGood.libraries) {
         combined[library.importUri] = library;
       }
-    }
-    for (Library library in _candidate.libraries) {
-      combined[library.importUri] = library;
-    }
-    _lastKnownGood = new Component(
-      libraries: combined.values.toList(),
-      uriToSource: _candidate.uriToSource,
-    )..mainMethod = _candidate.mainMethod;
-    for (final repo in _candidate.metadata.values) {
-      _lastKnownGood.addMetadataRepository(repo);
+      uriToSource.addAll(_lastKnownGood.uriToSource);
     }
 
-    _candidate = null;
+    Component candidate = _combinePendingDeltas(true);
+    for (Library library in candidate.libraries) {
+      combined[library.importUri] = library;
+    }
+    uriToSource.addAll(candidate.uriToSource);
+
+    _lastKnownGood = new Component(
+      libraries: combined.values.toList(),
+      uriToSource: uriToSource,
+    )..mainMethod = candidate.mainMethod;
+    for (final repo in candidate.metadata.values) {
+      _lastKnownGood.addMetadataRepository(repo);
+    }
+    _pendingDeltas.clear();
   }
 
   /// This lets incremental compiler know that results of last [compile] call
@@ -106,7 +111,6 @@ class IncrementalCompiler {
   /// be processed without changes picked up by rejected [compile] call.
   reject() async {
     _pendingDeltas.clear();
-    _candidate = null;
     // Need to reset and warm up compiler so that expression evaluation requests
     // are processed in that known good state.
     _generator = new IncrementalKernelGenerator.fromComponent(
