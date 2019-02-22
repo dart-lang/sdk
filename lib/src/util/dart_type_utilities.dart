@@ -20,7 +20,7 @@ class DartTypeUtilities {
       type is InterfaceType &&
       seenTypes.add(type.element) &&
       (isClass(type, className, library) ||
-          (_extendsClass(type.superclass, seenTypes, className, library)));
+          _extendsClass(type.superclass, seenTypes, className, library));
 
   static Element getCanonicalElement(Element element) {
     if (element is PropertyAccessorElement) {
