@@ -2491,7 +2491,7 @@ class JsConstantEnvironment implements ConstantEnvironment {
   JsConstantEnvironment(this._elementMap, this._environment);
 
   @override
-  ConstantSystem get constantSystem => ConstantSystem.only;
+  ConstantSystem get constantSystem => JavaScriptConstantSystem.only;
 
   ConstantValue _getConstantValue(
       Spannable spannable, ConstantExpression expression,

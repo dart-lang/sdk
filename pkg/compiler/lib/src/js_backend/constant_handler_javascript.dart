@@ -24,7 +24,7 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
   String get name => 'ConstantHandler';
 
   @override
-  ConstantSystem get constantSystem => ConstantSystem.only;
+  ConstantSystem get constantSystem => JavaScriptConstantSystem.only;
 }
 
 /// The [JavaScriptConstantCompiler] is used to keep track of compile-time
@@ -37,7 +37,7 @@ class JavaScriptConstantCompiler implements BackendConstantEnvironment {
 
   JavaScriptConstantCompiler();
 
-  ConstantSystem get constantSystem => ConstantSystem.only;
+  ConstantSystem get constantSystem => JavaScriptConstantSystem.only;
 
   @override
   void registerLazyStatic(FieldEntity element) {

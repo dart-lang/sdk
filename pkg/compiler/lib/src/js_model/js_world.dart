@@ -208,7 +208,7 @@ class JsClosedWorld implements JClosedWorld {
     sink.end(tag);
   }
 
-  ConstantSystem get constantSystem => ConstantSystem.only;
+  ConstantSystem get constantSystem => JavaScriptConstantSystem.only;
 
   JElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
 
