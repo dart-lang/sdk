@@ -5420,17 +5420,8 @@ class CodeGenerator extends Object
 
   @override
   JS.For visitForStatement(ForStatement node) {
-    var init = _visitExpression(node.initialization) ??
-        visitVariableDeclarationList(node.variables);
-    var updaters = node.updaters;
-    JS.Expression update;
-    if (updaters != null && updaters.isNotEmpty) {
-      update =
-          JS.Expression.binary(updaters.map(_visitExpression).toList(), ',')
-              .toVoidExpression();
-    }
-    var condition = _visitTest(node.condition);
-    return JS.For(init, condition, update, _visitScope(node.body));
+    return _emitFor(node.initialization, node.variables, node.condition,
+        node.updaters, node.body);
   }
 
   @override
@@ -5446,29 +5437,16 @@ class CodeGenerator extends Object
   @override
   JS.Statement visitForEachStatement(ForEachStatement node) {
     if (node.awaitKeyword != null) {
-      return _emitAwaitFor(node);
+      return _emitAwaitFor(
+          node.identifier, node.loopVariable, node.iterable, node.body);
     }
 
-    var init = _visitExpression(node.identifier);
-    var iterable = _visitExpression(node.iterable);
-
-    var body = _visitScope(node.body);
-    if (init == null) {
-      var id = _emitVariableDef(node.loopVariable.identifier);
-      init = js.call('let #', id);
-      if (_annotatedNullCheck(node.loopVariable.declaredElement)) {
-        body = JS.Block([_nullParameterCheck(JS.Identifier(id.name)), body]);
-      }
-      if (variableIsReferenced(id.name, iterable)) {
-        var temp = JS.TemporaryId('iter');
-        return JS.Block(
-            [iterable.toVariableDeclaration(temp), JS.ForOf(init, temp, body)]);
-      }
-    }
-    return JS.ForOf(init, iterable, body);
+    return _emitForEach(
+        node.identifier, node.loopVariable, node.iterable, node.body);
   }
 
-  JS.Statement _emitAwaitFor(ForEachStatement node) {
+  JS.Statement _emitAwaitFor(SimpleIdentifier identifier,
+      DeclaredIdentifier loopVariable, Expression iterable, Statement body) {
     // Emits `await for (var value in stream) ...`, which desugars as:
     //
     // let iter = new StreamIterator(stream);
@@ -5491,10 +5469,10 @@ class CodeGenerator extends Object
     var createStreamIter = _emitInstanceCreationExpression(
         streamIterator.element.unnamedConstructor,
         streamIterator,
-        () => [_visitExpression(node.iterable)]);
+        () => [_visitExpression(iterable)]);
     var iter = JS.TemporaryId('iter');
-    var variable = node.identifier ?? node.loopVariable.identifier;
-    var init = _visitExpression(node.identifier);
+    var variable = identifier ?? loopVariable.identifier;
+    var init = _visitExpression(identifier);
     if (init == null) {
       init = js.call('let # = #.current', [_emitVariableDef(variable), iter]);
     } else {
@@ -5513,7 +5491,7 @@ class CodeGenerator extends Object
           JS.Yield(js.call('#.moveNext()', iter))
             ..sourceInformation = _nodeStart(variable),
           init,
-          _visitStatement(node.body),
+          _visitStatement(body),
           JS.Yield(js.call('#.cancel()', iter))
             ..sourceInformation = _nodeStart(variable)
         ]);
@@ -6469,6 +6447,48 @@ class CodeGenerator extends Object
   @override
   visitWithClause(node) => _unreachable(node);
 
+  // TODO(nshahan) Simplify when control-flow-collections experiments are removed.
+  // Should just accept a ForParts as an arg with fewer casts.
+  JS.For _emitFor(Expression initialization, VariableDeclarationList variables,
+      Expression condition, Iterable<Expression> updaters, Statement body) {
+    var init = _visitExpression(initialization) ??
+        visitVariableDeclarationList(variables);
+    JS.Expression update;
+    if (updaters != null && updaters.isNotEmpty) {
+      update =
+          JS.Expression.binary(updaters.map(_visitExpression).toList(), ',')
+              .toVoidExpression();
+    }
+
+    return JS.For(init, _visitTest(condition), update, _visitScope(body));
+  }
+
+  // TODO(nshahan) Simplify when control-flow-collections experiments are removed.
+  // Should just accept a ForEachParts as an arg with fewer casts.
+  JS.Statement _emitForEach(SimpleIdentifier identifier,
+      DeclaredIdentifier loopVariable, Expression iterable, Statement body) {
+    var jsLeftExpression = _visitExpression(identifier);
+    var jsIterable = _visitExpression(iterable);
+
+    var jsBody = _visitScope(body);
+    if (jsLeftExpression == null) {
+      var id = _emitVariableDef(loopVariable.identifier);
+      jsLeftExpression = js.call('let #', id);
+      if (_annotatedNullCheck(loopVariable.declaredElement)) {
+        jsBody =
+            JS.Block([_nullParameterCheck(JS.Identifier(id.name)), jsBody]);
+      }
+      if (variableIsReferenced(id.name, jsIterable)) {
+        var temp = JS.TemporaryId('iter');
+        return JS.Block([
+          jsIterable.toVariableDeclaration(temp),
+          JS.ForOf(jsLeftExpression, temp, jsBody)
+        ]);
+      }
+    }
+    return JS.ForOf(jsLeftExpression, jsIterable, jsBody);
+  }
+
   @override
   visitForElement(ForElement node) => _unreachable(node);
 
@@ -6484,7 +6504,32 @@ class CodeGenerator extends Object
       _unreachable(node);
 
   @override
-  visitForStatement2(ForStatement2 node) => _unreachable(node);
+  JS.Statement visitForStatement2(ForStatement2 node) {
+    // TODO(nshahan) Simplify when control-flow-collections experiments are removed.
+    var forParts = node.forLoopParts;
+    if (forParts is ForPartsWithExpression) {
+      return _emitFor(forParts.initialization, null, forParts.condition,
+          forParts.updaters, node.body);
+    } else if (forParts is ForPartsWithDeclarations) {
+      return _emitFor(null, forParts.variables, forParts.condition,
+          forParts.updaters, node.body);
+    } else if (node.awaitKeyword == null) {
+      if (forParts is ForEachPartsWithIdentifier) {
+        return _emitForEach(
+            forParts.identifier, null, forParts.iterable, node.body);
+      } else if (forParts is ForEachPartsWithDeclaration) {
+        return _emitForEach(
+            null, forParts.loopVariable, forParts.iterable, node.body);
+      }
+    } else if (forParts is ForEachPartsWithIdentifier) {
+      return _emitAwaitFor(
+          forParts.identifier, null, forParts.iterable, node.body);
+    } else if (forParts is ForEachPartsWithDeclaration) {
+      return _emitAwaitFor(
+          null, forParts.loopVariable, forParts.iterable, node.body);
+    }
+    return _unreachable(node);
+  }
 
   @deprecated
   @override
