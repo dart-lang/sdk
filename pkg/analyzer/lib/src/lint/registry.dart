@@ -58,10 +58,4 @@ class Registry with IterableMixin<LintRule> {
   void register(LintRule rule) {
     _ruleMap[rule.name] = rule;
   }
-
-  // todo (pq): remove once linter-0.1.79 is in DEPS.
-  @deprecated
-  void registerDefault(LintRule rule) {
-    register(rule);
-  }
 }
