@@ -1012,97 +1012,97 @@ class TokenClass {
    * A value used to indicate that the token type is an additive operator.
    */
   static const TokenClass ADDITIVE_OPERATOR =
-      const TokenClass('ADDITIVE_OPERATOR', 13);
+      const TokenClass('ADDITIVE_OPERATOR', ADDITIVE_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is an assignment operator.
    */
   static const TokenClass ASSIGNMENT_OPERATOR =
-      const TokenClass('ASSIGNMENT_OPERATOR', 1);
+      const TokenClass('ASSIGNMENT_OPERATOR', ASSIGNMENT_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is a bitwise-and operator.
    */
   static const TokenClass BITWISE_AND_OPERATOR =
-      const TokenClass('BITWISE_AND_OPERATOR', 11);
+      const TokenClass('BITWISE_AND_OPERATOR', BITWISE_AND_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is a bitwise-or operator.
    */
   static const TokenClass BITWISE_OR_OPERATOR =
-      const TokenClass('BITWISE_OR_OPERATOR', 9);
+      const TokenClass('BITWISE_OR_OPERATOR', BITWISE_OR_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is a bitwise-xor operator.
    */
   static const TokenClass BITWISE_XOR_OPERATOR =
-      const TokenClass('BITWISE_XOR_OPERATOR', 10);
+      const TokenClass('BITWISE_XOR_OPERATOR', BITWISE_XOR_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is a cascade operator.
    */
   static const TokenClass CASCADE_OPERATOR =
-      const TokenClass('CASCADE_OPERATOR', 2);
+      const TokenClass('CASCADE_OPERATOR', CASCADE_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is a conditional operator.
    */
   static const TokenClass CONDITIONAL_OPERATOR =
-      const TokenClass('CONDITIONAL_OPERATOR', 3);
+      const TokenClass('CONDITIONAL_OPERATOR', CONDITIONAL_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is an equality operator.
    */
   static const TokenClass EQUALITY_OPERATOR =
-      const TokenClass('EQUALITY_OPERATOR', 7);
+      const TokenClass('EQUALITY_OPERATOR', EQUALITY_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is an if-null operator.
    */
   static const TokenClass IF_NULL_OPERATOR =
-      const TokenClass('IF_NULL_OPERATOR', 4);
+      const TokenClass('IF_NULL_OPERATOR', IF_NULL_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is a logical-and operator.
    */
   static const TokenClass LOGICAL_AND_OPERATOR =
-      const TokenClass('LOGICAL_AND_OPERATOR', 6);
+      const TokenClass('LOGICAL_AND_OPERATOR', LOGICAL_AND_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is a logical-or operator.
    */
   static const TokenClass LOGICAL_OR_OPERATOR =
-      const TokenClass('LOGICAL_OR_OPERATOR', 5);
+      const TokenClass('LOGICAL_OR_OPERATOR', LOGICAL_OR_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is a multiplicative operator.
    */
   static const TokenClass MULTIPLICATIVE_OPERATOR =
-      const TokenClass('MULTIPLICATIVE_OPERATOR', 14);
+      const TokenClass('MULTIPLICATIVE_OPERATOR', MULTIPLICATIVE_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is a relational operator.
    */
   static const TokenClass RELATIONAL_OPERATOR =
-      const TokenClass('RELATIONAL_OPERATOR', 8);
+      const TokenClass('RELATIONAL_OPERATOR', RELATIONAL_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is a shift operator.
    */
   static const TokenClass SHIFT_OPERATOR =
-      const TokenClass('SHIFT_OPERATOR', 12);
+      const TokenClass('SHIFT_OPERATOR', SHIFT_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is a unary operator.
    */
   static const TokenClass UNARY_POSTFIX_OPERATOR =
-      const TokenClass('UNARY_POSTFIX_OPERATOR', 16);
+      const TokenClass('UNARY_POSTFIX_OPERATOR', POSTFIX_PRECEDENCE);
 
   /**
    * A value used to indicate that the token type is a unary operator.
    */
   static const TokenClass UNARY_PREFIX_OPERATOR =
-      const TokenClass('UNARY_PREFIX_OPERATOR', 15);
+      const TokenClass('UNARY_PREFIX_OPERATOR', PREFIX_PRECEDENCE);
 
   /**
    * The name of the token class.
@@ -1119,7 +1119,7 @@ class TokenClass {
    * Initialize a newly created class of tokens to have the given [name] and
    * [precedence].
    */
-  const TokenClass(this.name, [this.precedence = 0]);
+  const TokenClass(this.name, [this.precedence = NO_PRECEDENCE]);
 
   @override
   String toString() => name;
