@@ -47,7 +47,7 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
         }
         data.initializers.forEach((constructor, value) {
           features['${constructor.enclosingClass.name}.${constructor.name}'] =
-              value?.shortText();
+              value?.shortText;
         });
       }
       Id id = computeEntityId(node);

@@ -3,24 +3,85 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  new Class1(0);
-  new Class1(0, 1);
-  new Class2(0);
-  new Class2(0, field2: 1);
+  var c1a = new Class1a(0);
+  new Class1a(0, 1);
+  c1a.field1 = null;
+  c1a.field2 = null;
+  c1a.field3 = null;
+  print(c1a.field1);
+  print(c1a.field2);
+  print(c1a.field3);
+
+  var c1b = new Class1b(0);
+  new Class1b(0, 1);
+  print(c1b.field1);
+  print(c1b.field2);
+  print(c1b.field3);
+
+  var c2a = new Class2a(0);
+  new Class2a(0, field2: 1);
+  c2a.field1 = null;
+  c2a.field2 = null;
+  c2a.field3 = null;
+  print(c2a.field1);
+  print(c2a.field2);
+  print(c2a.field3);
+
+  var c2b = new Class2b(0);
+  new Class2b(0, field2: 1);
+  print(c2b.field1);
+  print(c2b.field2);
+  print(c2b.field3);
 }
 
-class Class1 {
+class Class1a {
+  /*element: Class1a.field1:*/
   var field1;
+
+  /*element: Class1a.field2:*/
   var field2;
+
+  /*element: Class1a.field3:initial=IntConstant(3)*/
   var field3;
 
-  Class1(this.field1, [this.field2 = 2, this.field3 = 3]);
+  Class1a(this.field1, [this.field2 = 2, this.field3 = 3]);
 }
 
-class Class2 {
+class Class1b {
+  /*element: Class1b.field1:*/
   var field1;
+
+  /*element: Class1b.field2:*/
   var field2;
+
+  /*element: Class1b.field3:constant=IntConstant(3)*/
   var field3;
 
-  Class2(this.field1, {this.field2 = 2, this.field3 = 3});
+  Class1b(this.field1, [this.field2 = 2, this.field3 = 3]);
+}
+
+class Class2a {
+  /*element: Class2a.field1:*/
+  var field1;
+
+  /*element: Class2a.field2:*/
+  var field2;
+
+  /*element: Class2a.field3:initial=IntConstant(3)*/
+  var field3;
+
+  Class2a(this.field1, {this.field2 = 2, this.field3 = 3});
+}
+
+class Class2b {
+  /*element: Class2b.field1:*/
+  var field1;
+
+  /*element: Class2b.field2:*/
+  var field2;
+
+  /*element: Class2b.field3:constant=IntConstant(3)*/
+  var field3;
+
+  Class2b(this.field1, {this.field2 = 2, this.field3 = 3});
 }

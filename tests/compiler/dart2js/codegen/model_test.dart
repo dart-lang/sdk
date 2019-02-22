@@ -64,6 +64,7 @@ class Tags {
   static const String assignment = 'assign';
   static const String isLazy = 'lazy';
   static const String propertyAccess = 'access';
+  static const String switchCase = 'switch';
 }
 
 /// AST visitor for computing inference data for a member.
@@ -222,6 +223,11 @@ class ModelIrComputer extends IrDataExtractor<Features> {
             features.addElement(Tags.propertyAccess, '${name}');
           }
         });
+
+        forEachNode(code, onSwitch: (js.Switch node) {
+          features.add(Tags.switchCase);
+        });
+
         return features;
       }
     }

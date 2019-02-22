@@ -4,21 +4,30 @@
 
 main() {
   var c = new Class1.a();
+  c.field3a = null;
   c.field4a = null;
+  c.field5a = null;
   new Class1.b();
 
   print(c.field1);
   print(c.field2);
-  print(c.field3);
+  print(c.field3a);
+  print(c.field3b);
   print(c.field4a);
   print(c.field4b);
-  print(c.field5);
+  print(c.field5a);
+  print(c.field5b);
 }
 
 class Class1 {
   var field1 = 0;
   var field2;
-  var field3;
+
+  /*element: Class1.field3a:initial=IntConstant(3)*/
+  var field3a;
+
+  /*element: Class1.field3b:constant=IntConstant(3)*/
+  var field3b;
 
   /*element: Class1.field4a:initial=IntConstant(4)*/
   var field4a = 4;
@@ -26,16 +35,24 @@ class Class1 {
   /*element: Class1.field4b:constant=IntConstant(4)*/
   var field4b = 4;
 
-  var field5 = 5;
+  /*element: Class1.field5a:initial=IntConstant(5)*/
+  var field5a = 5;
+
+  /*element: Class1.field5b:constant=IntConstant(5)*/
+  var field5b = 5;
 
   Class1.a()
       : field1 = 1,
         field2 = 1,
-        field3 = 3,
-        field5 = 5;
+        field3a = 3,
+        field3b = 3,
+        field5a = 5,
+        field5b = 5;
 
   Class1.b()
       : field2 = 2,
-        field3 = 3,
-        field5 = 5;
+        field3a = 3,
+        field3b = 3,
+        field5a = 5,
+        field5b = 5;
 }

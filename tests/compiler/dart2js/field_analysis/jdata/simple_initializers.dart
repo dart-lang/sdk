@@ -214,94 +214,94 @@ class Class1 {
 }
 
 class Class2 {
-  /*element: Class2.field1a:*/
+  /*element: Class2.field1a:initial=NullConstant*/
   var field1a;
 
-  /*element: Class2.field1b:*/
+  /*element: Class2.field1b:constant=NullConstant*/
   var field1b;
 
-  /*element: Class2.field2a:*/
+  /*element: Class2.field2a:initial=BoolConstant(true)*/
   var field2a;
 
-  /*element: Class2.field2b:*/
+  /*element: Class2.field2b:constant=BoolConstant(true)*/
   var field2b;
 
-  /*element: Class2.field3a:*/
+  /*element: Class2.field3a:initial=BoolConstant(false)*/
   var field3a;
 
-  /*element: Class2.field3b:*/
+  /*element: Class2.field3b:constant=BoolConstant(false)*/
   var field3b;
 
-  /*element: Class2.field4a:*/
+  /*element: Class2.field4a:initial=IntConstant(0)*/
   var field4a;
 
-  /*element: Class2.field4b:*/
+  /*element: Class2.field4b:constant=IntConstant(0)*/
   var field4b;
 
-  /*element: Class2.field5a:*/
+  /*element: Class2.field5a:initial=IntConstant(1)*/
   var field5a;
 
-  /*element: Class2.field5b:*/
+  /*element: Class2.field5b:constant=IntConstant(1)*/
   var field5b;
 
-  /*element: Class2.field6a:*/
+  /*element: Class2.field6a:initial=StringConstant("")*/
   var field6a;
 
-  /*element: Class2.field6b:*/
+  /*element: Class2.field6b:constant=StringConstant("")*/
   var field6b;
 
-  /*element: Class2.field7a:*/
+  /*element: Class2.field7a:initial=StringConstant("foo")*/
   var field7a;
 
-  /*element: Class2.field7b:*/
+  /*element: Class2.field7b:constant=StringConstant("foo")*/
   var field7b;
 
   /*element: Class2.field8a:*/
   var field8a;
 
-  /*element: Class2.field8b:*/
+  /*element: Class2.field8b:constant=DoubleConstant(0.5)*/
   var field8b;
 
   /*element: Class2.field9a:*/
   var field9a;
 
-  /*element: Class2.field9b:*/
+  /*element: Class2.field9b:constant=ListConstant([])*/
   var field9b;
 
   /*element: Class2.field9c:*/
   var field9c;
 
-  /*element: Class2.field9d:*/
+  /*element: Class2.field9d:constant=ListConstant(<int>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
   var field9d;
 
   /*element: Class2.field10a:*/
   var field10a;
 
-  /*element: Class2.field10b:*/
+  /*element: Class2.field10b:constant=MapConstant({})*/
   var field10b;
 
   /*element: Class2.field10c:*/
   var field10c;
 
-  /*element: Class2.field10d:*/
+  /*element: Class2.field10d:constant=MapConstant(<int, int>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
   var field10d;
 
   /*element: Class2.field11a:*/
   var field11a;
 
-  /*element: Class2.field11b:*/
+  /*element: Class2.field11b:constant=ConstructedConstant(Symbol(_name=StringConstant("foo")))*/
   var field11b;
 
-  /*element: Class2.field12a:*/
+  /*element: Class2.field12a:initial=IntConstant(5)*/
   var field12a;
 
-  /*element: Class2.field12b:*/
+  /*element: Class2.field12b:constant=IntConstant(5)*/
   var field12b;
 
-  /*element: Class2.field13a:*/
+  /*element: Class2.field13a:initial=BoolConstant(true)*/
   var field13a;
 
-  /*element: Class2.field13b:*/
+  /*element: Class2.field13b:constant=BoolConstant(true)*/
   var field13b;
 
   Class2()

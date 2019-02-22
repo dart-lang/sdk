@@ -37,7 +37,7 @@ abstract class FieldAnalysis {}
 class KFieldAnalysis implements FieldAnalysis {
   final KernelToElementMap _elementMap;
 
-  final Map<KField, AllocatorData> _fixedInitializers = {};
+  final Map<KClass, ClassData> _classData = {};
 
   KFieldAnalysis(KernelFrontEndStrategy kernelStrategy)
       : _elementMap = kernelStrategy.elementMap;
@@ -47,22 +47,27 @@ class KFieldAnalysis implements FieldAnalysis {
   void registerInstantiatedClass(KClass class_) {
     ir.Class classNode = _elementMap.getClassNode(class_);
 
-    Map<ir.Field, AllocatorData> fieldData = {};
+    List<KConstructor> constructors = [];
+    Map<KField, AllocatorData> fieldData = {};
     for (ir.Field field in classNode.fields) {
       if (!field.isInstanceMember) continue;
+
+      FieldEntity fieldElement = _elementMap.getField(field);
       ir.Expression expression = field.initializer;
       ConstantValue value = _elementMap.getConstantValue(expression,
           requireConstant: false, implicitNull: true);
       if (value != null && value.isConstant) {
-        fieldData[field] = new AllocatorData(value);
+        fieldData[fieldElement] = new AllocatorData(value);
       }
     }
 
     for (ir.Constructor constructor in classNode.constructors) {
       KConstructor constructorElement = _elementMap.getConstructor(constructor);
+      constructors.add(constructorElement);
       for (ir.Initializer initializer in constructor.initializers) {
         if (initializer is ir.FieldInitializer) {
-          AllocatorData data = fieldData[initializer.field];
+          AllocatorData data =
+              fieldData[_elementMap.getField(initializer.field)];
           if (data == null) {
             // TODO(johnniwinther): Support initializers with side-effects?
 
@@ -111,13 +116,19 @@ class KFieldAnalysis implements FieldAnalysis {
       }
     }
 
-    fieldData.forEach((ir.Field fieldNode, AllocatorData data) {
-      _fixedInitializers[_elementMap.getField(fieldNode)] = data;
-    });
+    _classData[class_] = new ClassData(constructors, fieldData);
   }
 
-  AllocatorData getFixedInitializerForTesting(KField field) =>
-      _fixedInitializers[field];
+  AllocatorData getFixedInitializerForTesting(KField field) {
+    return _classData[field.enclosingClass].fieldData[field];
+  }
+}
+
+class ClassData {
+  final List<KConstructor> constructors;
+  final Map<KField, AllocatorData> fieldData;
+
+  ClassData(this.constructors, this.fieldData);
 }
 
 class AllocatorData {
@@ -159,7 +170,7 @@ class Initializer {
         name = null,
         value = null;
 
-  String shortText() {
+  String get shortText {
     switch (kind) {
       case InitializerKind.direct:
         return value.toStructuredText();
@@ -172,6 +183,8 @@ class Initializer {
     }
     throw new UnsupportedError('Unexpected kind $kind');
   }
+
+  String toString() => shortText;
 }
 
 class JFieldAnalysis implements FieldAnalysis {
@@ -223,41 +236,103 @@ class JFieldAnalysis implements FieldAnalysis {
           !closedWorld.nativeData.isNativeMember(field);
     }
 
-    closedWorld.fieldAnalysis._fixedInitializers
-        .forEach((KField kField, AllocatorData data) {
-      JField jField = map.toBackendMember(kField);
-      if (jField == null) {
-        return;
-      }
-
-      // TODO(johnniwinther): Should elided static fields be removed from the
-      // J model? Static setters might still assign to them.
-
-      MemberUsage memberUsage = closedWorld.liveMemberUsage[kField];
-      if (!memberUsage.hasRead) {
-        if (canBeElided(kField)) {
-          elidedFields.add(jField);
+    closedWorld.fieldAnalysis._classData
+        .forEach((ClassEntity cls, ClassData classData) {
+      classData.fieldData.forEach((KField kField, AllocatorData data) {
+        JField jField = map.toBackendMember(kField);
+        if (jField == null) {
+          return;
         }
-      } else {
-        // TODO(johnniwinther): Use liveness of constructors and elided optional
-        // parameters to recognize more constant initializers.
-        if (data.initialValue != null && data.initializers.isEmpty) {
-          ConstantValue value = map.toBackendConstant(data.initialValue);
-          assert(value != null);
-          if (!memberUsage.hasWrite && canBeElided(kField)) {
+
+        // TODO(johnniwinther): Should elided static fields be removed from the
+        // J model? Static setters might still assign to them.
+
+        MemberUsage memberUsage = closedWorld.liveMemberUsage[kField];
+        if (!memberUsage.hasRead) {
+          if (canBeElided(kField)) {
             elidedFields.add(jField);
-            effectivelyConstantFields[jField] = value;
-          } else if (value.isNull ||
-              value.isInt ||
-              value.isBool ||
-              value.isString) {
-            // TODO(johnniwinther,sra): Support non-primitive constants in
-            // allocators when it does cause allocators to deoptimized because
-            // of deferred loading.
-            fixedInitializers[jField] = value;
+          }
+        } else {
+          // TODO(johnniwinther): Use liveness of constructors and elided optional
+          // parameters to recognize more constant initializers.
+          if (data.initialValue != null) {
+            ConstantValue initialValue;
+            bool isTooComplex = false;
+
+            void includeInitialValue(ConstantValue value) {
+              if (isTooComplex) return;
+              if (initialValue == null) {
+                initialValue = value;
+              } else if (initialValue != value) {
+                initialValue = null;
+                isTooComplex = true;
+              }
+            }
+
+            bool inAllConstructors = true;
+            for (KConstructor constructor in classData.constructors) {
+              if (isTooComplex) {
+                break;
+              }
+
+              MemberUsage constructorUsage =
+                  closedWorld.liveMemberUsage[constructor];
+              if (constructorUsage == null) return;
+              ParameterStructure invokedParameters =
+                  constructorUsage.invokedParameters;
+
+              Initializer initializer = data.initializers[constructor];
+              if (initializer == null) {
+                inAllConstructors = false;
+              } else {
+                switch (initializer.kind) {
+                  case InitializerKind.direct:
+                    includeInitialValue(initializer.value);
+                    break;
+                  case InitializerKind.positional:
+                    if (initializer.index >=
+                        invokedParameters.positionalParameters) {
+                      includeInitialValue(initializer.value);
+                    } else {
+                      isTooComplex = true;
+                    }
+                    break;
+                  case InitializerKind.named:
+                    if (!invokedParameters.namedParameters
+                        .contains(initializer.name)) {
+                      includeInitialValue(initializer.value);
+                    } else {
+                      isTooComplex = true;
+                    }
+                    break;
+                  case InitializerKind.complex:
+                    isTooComplex = true;
+                    break;
+                }
+              }
+            }
+            if (!inAllConstructors) {
+              includeInitialValue(data.initialValue);
+            }
+            if (!isTooComplex && initialValue != null) {
+              ConstantValue value = map.toBackendConstant(initialValue);
+              assert(value != null);
+              if (!memberUsage.hasWrite && canBeElided(kField)) {
+                elidedFields.add(jField);
+                effectivelyConstantFields[jField] = value;
+              } else if (value.isNull ||
+                  value.isInt ||
+                  value.isBool ||
+                  value.isString) {
+                // TODO(johnniwinther,sra): Support non-primitive constants in
+                // allocators when it does cause allocators to deoptimized
+                // because of deferred loading.
+                fixedInitializers[jField] = value;
+              }
+            }
           }
         }
-      }
+      });
     });
 
     // TODO(johnniwinther): Recognize effectively constant top level/static

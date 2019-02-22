@@ -227,11 +227,13 @@ class ClassData {
 void forEachNode(js.Node root,
     {void Function(js.Call) onCall,
     void Function(js.PropertyAccess) onPropertyAccess,
-    void Function(js.Assignment) onAssignment}) {
+    void Function(js.Assignment) onAssignment,
+    void Function(js.Switch) onSwitch}) {
   CallbackVisitor visitor = new CallbackVisitor(
       onCall: onCall,
       onPropertyAccess: onPropertyAccess,
-      onAssignment: onAssignment);
+      onAssignment: onAssignment,
+      onSwitch: onSwitch);
   root.accept(visitor);
 }
 
@@ -239,8 +241,10 @@ class CallbackVisitor extends js.BaseVisitor {
   final void Function(js.Call) onCall;
   final void Function(js.PropertyAccess) onPropertyAccess;
   final void Function(js.Assignment) onAssignment;
+  final void Function(js.Switch) onSwitch;
 
-  CallbackVisitor({this.onCall, this.onPropertyAccess, this.onAssignment});
+  CallbackVisitor(
+      {this.onCall, this.onPropertyAccess, this.onAssignment, this.onSwitch});
 
   @override
   visitCall(js.Call node) {
@@ -258,5 +262,11 @@ class CallbackVisitor extends js.BaseVisitor {
   visitAssignment(js.Assignment node) {
     if (onAssignment != null) onAssignment(node);
     return super.visitAssignment(node);
+  }
+
+  @override
+  visitSwitch(js.Switch node) {
+    if (onSwitch != null) onSwitch(node);
+    return super.visitSwitch(node);
   }
 }
