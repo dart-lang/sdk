@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../js_backend/constant_system_javascript.dart';
 import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';

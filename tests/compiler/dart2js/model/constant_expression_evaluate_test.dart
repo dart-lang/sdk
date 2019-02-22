@@ -147,6 +147,7 @@ const List<TestData> DATA = const [
     const ConstantData('true', 'BoolConstant(true)'),
     const ConstantData('0', 'IntConstant(0)'),
     const ConstantData('0.0', 'IntConstant(0)'),
+    const ConstantData('0.5', 'DoubleConstant(0.5)'),
     const ConstantData('"foo"', 'StringConstant("foo")'),
     const ConstantData('1 + 2', 'IntConstant(3)'),
     const ConstantData('-(1)', 'IntConstant(-1)'),

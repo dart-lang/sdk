@@ -147,23 +147,7 @@
     "Dynamic invocation of '-'.": 1
   },
   "pkg/compiler/lib/src/js_backend/constant_system_javascript.dart": {
-    "Dynamic invocation of '>>'.": 1,
-    "Dynamic invocation of '+'.": 1,
-    "Dynamic invocation of 'remainder'.": 1,
-    "Dynamic invocation of '&'.": 1,
-    "Dynamic invocation of '|'.": 1,
-    "Dynamic invocation of '^'.": 1,
-    "Dynamic invocation of '/'.": 1,
-    "Dynamic invocation of '>='.": 1,
-    "Dynamic invocation of '>'.": 1,
-    "Dynamic invocation of '<='.": 1,
-    "Dynamic invocation of '<'.": 1,
-    "Dynamic invocation of '%'.": 1,
-    "Dynamic invocation of '*'.": 1,
-    "Dynamic invocation of '<<'.": 1,
-    "Dynamic invocation of '-'.": 1,
-    "Dynamic invocation of '~/'.": 1,
-    "Dynamic invocation of 'codeUnitAt'.": 1
+    "Dynamic invocation of 'remainder'.": 1
   },
   "pkg/compiler/lib/src/serialization/binary_sink.dart": {
     "Dynamic access of 'index'.": 1
@@ -215,6 +199,25 @@
     "Dynamic invocation of 'isInBasicBlock'.": 2,
     "Dynamic access of 'usedBy'.": 2,
     "Dynamic access of 'inputs'.": 1
+  },
+  "pkg/compiler/lib/src/constant_system_dart.dart": {
+    "Dynamic invocation of '|'.": 1,
+    "Dynamic invocation of '&'.": 1,
+    "Dynamic invocation of '^'.": 1,
+    "Dynamic invocation of '<<'.": 1,
+    "Dynamic invocation of '>>'.": 1,
+    "Dynamic invocation of '-'.": 1,
+    "Dynamic invocation of '*'.": 1,
+    "Dynamic invocation of '%'.": 1,
+    "Dynamic invocation of 'remainder'.": 1,
+    "Dynamic invocation of '~/'.": 1,
+    "Dynamic invocation of '/'.": 1,
+    "Dynamic invocation of '+'.": 1,
+    "Dynamic invocation of '<'.": 1,
+    "Dynamic invocation of '<='.": 1,
+    "Dynamic invocation of '>'.": 1,
+    "Dynamic invocation of '>='.": 1,
+    "Dynamic invocation of 'codeUnitAt'.": 1
   },
   "third_party/pkg/dart2js_info/lib/src/util.dart": {
     "Dynamic access of 'name'.": 1,
