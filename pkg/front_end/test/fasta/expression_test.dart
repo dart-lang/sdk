@@ -405,6 +405,7 @@ Future<Context> createContext(
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..target = new VmTarget(new TargetFlags())
     ..verbose = true
+    ..omitPlatform = true
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
     ..onDiagnostic = (DiagnosticMessage message) {

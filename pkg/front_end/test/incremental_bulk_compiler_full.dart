@@ -56,6 +56,7 @@ CompilerOptions getOptions(bool strong) {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
+    ..omitPlatform = true
     ..onDiagnostic = (DiagnosticMessage message) {
       // Ignored.
     }

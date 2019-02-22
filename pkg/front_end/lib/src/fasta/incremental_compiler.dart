@@ -272,10 +272,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       List<Library> outputLibraries;
       Set<Library> allLibraries;
-      if (data.includeUserLoadedLibraries || fullComponent) {
+      if (data.component != null || fullComponent) {
         outputLibraries = computeTransitiveClosure(compiledLibraries,
             entryPoint, reusedLibraries, hierarchy, uriTranslator);
         allLibraries = outputLibraries.toSet();
+        if (!c.options.omitPlatform) {
+          for (int i = 0; i < platformBuilders.length; i++) {
+            Library lib = platformBuilders[i].target;
+            outputLibraries.add(lib);
+          }
+        }
       } else {
         outputLibraries = new List<Library>();
         allLibraries = computeTransitiveClosure(compiledLibraries, entryPoint,
@@ -494,7 +500,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         initializedFromDill = true;
         bytesLength += initializationBytes.length;
         data.userLoadedUriMain = data.component.mainMethod;
-        data.includeUserLoadedLibraries = true;
         saveComponentProblems(data);
       }
     }
@@ -545,7 +550,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         new Component(libraries: combinedLibs, uriToSource: combinedMaps)
           ..mainMethod = componentToInitializeFrom.mainMethod;
     data.userLoadedUriMain = data.component.mainMethod;
-    data.includeUserLoadedLibraries = true;
     saveComponentProblems(data);
   }
 
@@ -795,7 +799,6 @@ class PackageChangedError {
 }
 
 class IncrementalCompilerData {
-  bool includeUserLoadedLibraries = false;
   Procedure userLoadedUriMain = null;
   Component component = null;
   List<int> initializationBytes = null;

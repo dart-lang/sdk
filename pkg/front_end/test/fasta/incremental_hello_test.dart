@@ -37,6 +37,7 @@ test({bool sdkFromSource}) async {
     ..packagesFileUri = Uri.base.resolve(".packages")
     ..target = new VmTarget(new TargetFlags(legacyMode: true))
     ..legacyMode = true
+    ..omitPlatform = true
     ..onDiagnostic = diagnosticMessageHandler;
 
   if (sdkFromSource) {

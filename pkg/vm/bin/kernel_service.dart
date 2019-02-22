@@ -110,6 +110,7 @@ abstract class Compiler {
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernelPath
       ..verbose = verbose
+      ..omitPlatform = true
       ..bytecode = bytecode
       ..experimentalFlags =
           parseExperimentalFlags(expFlags, (msg) => errors.add(msg))
