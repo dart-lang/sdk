@@ -182,9 +182,12 @@ class JFieldAnalysis implements FieldAnalysis {
   // --csp and --fast-startup have different constraints to the generated code.
   final Map<FieldEntity, ConstantValue> _fixedInitializers;
 
+  final Map<FieldEntity, ConstantValue> _effectivelyConstantFields;
+
   final Set<FieldEntity> _elidedFields;
 
-  JFieldAnalysis._(this._fixedInitializers, this._elidedFields);
+  JFieldAnalysis._(this._fixedInitializers, this._effectivelyConstantFields,
+      this._elidedFields);
 
   /// Deserializes a [JFieldAnalysis] object from [source].
   factory JFieldAnalysis.readFromDataSource(
@@ -192,15 +195,19 @@ class JFieldAnalysis implements FieldAnalysis {
     source.begin(tag);
     Map<FieldEntity, ConstantValue> fixedInitializers =
         source.readMemberMap(source.readConstant);
+    Map<FieldEntity, ConstantValue> effectivelyConstantFields =
+        source.readMemberMap(source.readConstant);
     Set<FieldEntity> elidedFields = source.readMembers<FieldEntity>().toSet();
     source.end(tag);
-    return new JFieldAnalysis._(fixedInitializers, elidedFields);
+    return new JFieldAnalysis._(
+        fixedInitializers, effectivelyConstantFields, elidedFields);
   }
 
   /// Serializes this [JFieldAnalysis] to [sink].
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     sink.writeMemberMap(_fixedInitializers, sink.writeConstant);
+    sink.writeMemberMap(_effectivelyConstantFields, sink.writeConstant);
     sink.writeMembers(_elidedFields);
     sink.end(tag);
   }
@@ -208,39 +215,64 @@ class JFieldAnalysis implements FieldAnalysis {
   factory JFieldAnalysis.from(
       KClosedWorld closedWorld, JsToFrontendMap map, CompilerOptions options) {
     Map<FieldEntity, ConstantValue> fixedInitializers = {};
+    Map<FieldEntity, ConstantValue> effectivelyConstantFields = {};
+    Set<FieldEntity> elidedFields = new Set();
+
+    bool canBeElided(FieldEntity field) {
+      return !closedWorld.annotationsData.hasNoElision(field) &&
+          !closedWorld.nativeData.isNativeMember(field);
+    }
+
     closedWorld.fieldAnalysis._fixedInitializers
         .forEach((KField kField, AllocatorData data) {
-      // TODO(johnniwinther): Use liveness of constructors and elided optional
-      // parameters to recognize more constant initializers.
-      if (data.initialValue != null && data.initializers.isEmpty) {
-        ConstantValue value = data.initialValue;
-        if (value.isNull || value.isInt || value.isBool || value.isString) {
-          // TODO(johnniwinther,sra): Support non-primitive constants in
-          // allocators when it does cause allocators to deoptimized because
-          // of deferred loading.
+      JField jField = map.toBackendMember(kField);
+      if (jField == null) {
+        return;
+      }
 
-          JField jField = map.toBackendMember(kField);
-          if (jField != null) {
-            fixedInitializers[jField] = map.toBackendConstant(value);
+      // TODO(johnniwinther): Should elided static fields be removed from the
+      // J model? Static setters might still assign to them.
+
+      MemberUsage memberUsage = closedWorld.liveMemberUsage[kField];
+      if (!memberUsage.hasRead) {
+        if (canBeElided(kField)) {
+          elidedFields.add(jField);
+        }
+      } else {
+        // TODO(johnniwinther): Use liveness of constructors and elided optional
+        // parameters to recognize more constant initializers.
+        if (data.initialValue != null && data.initializers.isEmpty) {
+          ConstantValue value = map.toBackendConstant(data.initialValue);
+          assert(value != null);
+          if (!memberUsage.hasWrite && canBeElided(kField)) {
+            elidedFields.add(jField);
+            effectivelyConstantFields[jField] = value;
+          } else if (value.isNull ||
+              value.isInt ||
+              value.isBool ||
+              value.isString) {
+            // TODO(johnniwinther,sra): Support non-primitive constants in
+            // allocators when it does cause allocators to deoptimized because
+            // of deferred loading.
+            fixedInitializers[jField] = value;
           }
         }
       }
     });
 
-    Set<FieldEntity> elidedFields = new Set();
+    // TODO(johnniwinther): Recognize effectively constant top level/static
+    // fields.
     closedWorld.liveMemberUsage
         .forEach((MemberEntity member, MemberUsage memberUsage) {
-      // TODO(johnniwinther): Should elided static fields be removed from the
-      // J model? Static setters might still assign to them.
-      if (member.isField &&
-          !memberUsage.hasRead &&
-          !closedWorld.annotationsData.hasNoElision(member) &&
-          !closedWorld.nativeData.isNativeMember(member)) {
-        elidedFields.add(map.toBackendMember(member));
+      if (member.isField && !member.isInstanceMember) {
+        if (!memberUsage.hasRead && canBeElided(member)) {
+          elidedFields.add(map.toBackendMember(member));
+        }
       }
     });
 
-    return new JFieldAnalysis._(fixedInitializers, elidedFields);
+    return new JFieldAnalysis._(
+        fixedInitializers, effectivelyConstantFields, elidedFields);
   }
 
   // TODO(sra): Add way to let injected fields be initialized to a constant in
@@ -254,18 +286,23 @@ class JFieldAnalysis implements FieldAnalysis {
   /// Return the constant for a field initialized in allocator. Returns `null`
   /// for fields not initialized in allocator.
   ConstantValue initializerValue(JField field) {
+    assert(isInitializedInAllocator(field));
     return _fixedInitializers[field];
   }
 
   /// Returns `true` if [field] can be elided from the output.
   ///
   /// This happens if a field is written to but never read.
-  // TODO(johnniwinther): Include fields that are effectively final.
   bool isElided(JField field) => _elidedFields.contains(field);
 
   /// Returns `true` if [field] is effectively constant and therefore only
   /// holds its [initializerValue].
-  // TODO(johnniwinther): Recognize fields that are initialized to a constant
-  // but never written to.
-  bool isEffectivelyConstant(JField field) => false;
+  bool isEffectivelyConstant(JField field) =>
+      _effectivelyConstantFields.containsKey(field);
+
+  /// Returns the [ConstantValue] for the effectively constant [field].
+  ConstantValue getConstantValue(JField field) {
+    assert(isEffectivelyConstant(field));
+    return _effectivelyConstantFields[field];
+  }
 }

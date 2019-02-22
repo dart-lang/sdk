@@ -574,7 +574,7 @@ class Namer {
   }
 
   /// Used to disambiguate names for constants in [constantName].
-  final NamingScope constantScope = new NamingScope();
+  final NamingScope _constantScope = new NamingScope();
 
   /// Used to store scopes for instances of [PrivatelyNamedJsEntity]
   final Map<Entity, NamingScope> _privateNamingScopes = {};
@@ -583,8 +583,8 @@ class Namer {
 
   final Map<LibraryEntity, String> libraryLongNames = HashMap();
 
-  final Map<ConstantValue, jsAst.Name> constantNames = HashMap();
-  final Map<ConstantValue, String> constantLongNames = {};
+  final Map<ConstantValue, jsAst.Name> _constantNames = HashMap();
+  final Map<ConstantValue, String> _constantLongNames = {};
   ConstantCanonicalHasher _constantHasher;
 
   /// Maps private names to a library that may use that name without prefixing
@@ -718,25 +718,25 @@ class Namer {
     // function constants since the function-implementation itself serves as
     // constant and can be accessed directly.
     assert(!constant.isFunction);
-    jsAst.Name result = constantNames[constant];
+    jsAst.Name result = _constantNames[constant];
     if (result == null) {
       String longName = constantLongName(constant);
-      result = getFreshName(constantScope, longName);
-      constantNames[constant] = result;
+      result = getFreshName(_constantScope, longName);
+      _constantNames[constant] = result;
     }
     return _newReference(result);
   }
 
   /// Proposed name for [constant].
   String constantLongName(ConstantValue constant) {
-    String longName = constantLongNames[constant];
+    String longName = _constantLongNames[constant];
     if (longName == null) {
       _constantHasher ??=
           new ConstantCanonicalHasher(rtiEncoder, _codegenWorldBuilder);
       longName = new ConstantNamingVisitor(
               rtiEncoder, _codegenWorldBuilder, _constantHasher)
           .getName(constant);
-      constantLongNames[constant] = longName;
+      _constantLongNames[constant] = longName;
     }
     return longName;
   }

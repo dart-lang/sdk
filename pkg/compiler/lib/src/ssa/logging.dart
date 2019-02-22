@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../elements/entities.dart';
 import '../util/features.dart';
 import 'nodes.dart';
 
@@ -28,8 +29,12 @@ class OptimizationTestLog {
 
   void registerFieldGet(HInvokeDynamicGetter original, HFieldGet converted) {
     Features features = new Features();
-    features['name'] =
-        '${converted.element.enclosingClass.name}.${converted.element.name}';
+    if (converted.element != null) {
+      features['name'] =
+          '${converted.element.enclosingClass.name}.${converted.element.name}';
+    } else {
+      features['name'] = '<null-guard>';
+    }
     entries.add(new OptimizationLogEntry('FieldGet', features));
   }
 
@@ -42,6 +47,33 @@ class OptimizationTestLog {
       features['removed'] = original.selector.name;
     }
     entries.add(new OptimizationLogEntry('FieldSet', features));
+  }
+
+  void registerFieldCall(HInvokeDynamicMethod original, HFieldGet converted) {
+    Features features = new Features();
+    if (converted.element != null) {
+      features['name'] =
+          '${converted.element.enclosingClass.name}.${converted.element.name}';
+    } else {
+      features['name'] = '<null-guard>';
+    }
+    entries.add(new OptimizationLogEntry('FieldCall', features));
+  }
+
+  void registerConstantFieldGet(
+      HInvokeDynamicGetter original, FieldEntity field, HConstant converted) {
+    Features features = new Features();
+    features['name'] = '${field.enclosingClass.name}.${field.name}';
+    features['value'] = converted.constant.toStructuredText();
+    entries.add(new OptimizationLogEntry('ConstantFieldGet', features));
+  }
+
+  void registerConstantFieldCall(
+      HInvokeDynamicMethod original, FieldEntity field, HConstant converted) {
+    Features features = new Features();
+    features['name'] = '${field.enclosingClass.name}.${field.name}';
+    features['value'] = converted.constant.toStructuredText();
+    entries.add(new OptimizationLogEntry('ConstantFieldCall', features));
   }
 
   Features _registerSpecializer(

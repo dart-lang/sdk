@@ -3,8 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  new Class1.a();
+  var c = new Class1.a();
+  c.field4a = null;
   new Class1.b();
+
+  print(c.field1);
+  print(c.field2);
+  print(c.field3);
+  print(c.field4a);
+  print(c.field4b);
+  print(c.field5);
 }
 
 class Class1 {
@@ -12,8 +20,11 @@ class Class1 {
   var field2;
   var field3;
 
-  /*element: Class1.field4:initial=IntConstant(4)*/
-  var field4 = 4;
+  /*element: Class1.field4a:initial=IntConstant(4)*/
+  var field4a = 4;
+
+  /*element: Class1.field4b:constant=IntConstant(4)*/
+  var field4b = 4;
 
   var field5 = 5;
 

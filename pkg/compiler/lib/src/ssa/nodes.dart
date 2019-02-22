@@ -1866,10 +1866,12 @@ class HFieldGet extends HFieldAccess {
   final bool isAssignable;
 
   HFieldGet(FieldEntity element, HInstruction receiver, AbstractValue type,
+      SourceInformation sourceInformation,
       {bool isAssignable})
       : this.isAssignable =
             (isAssignable != null) ? isAssignable : element.isAssignable,
         super(element, <HInstruction>[receiver], type) {
+    this.sourceInformation = sourceInformation;
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     setUseGvn();

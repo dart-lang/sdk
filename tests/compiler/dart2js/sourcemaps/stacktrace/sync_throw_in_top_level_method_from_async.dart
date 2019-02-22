@@ -8,8 +8,9 @@ main() {
   /*1:main*/ test1();
 }
 
+// TODO(34942): Step 2 should point to the body block.
 @NoInline()
-test1() async /*2:test1*/ {
+test1 /*2:test1*/ () async {
   /*9:test1*/ test2();
 }
 

@@ -14,10 +14,10 @@ import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/constants/evaluation.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
-import 'package:compiler/src/constant_system_dart.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
+import 'package:compiler/src/js_backend/constant_system_javascript.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import '../helpers/memory_compiler.dart';
@@ -146,7 +146,8 @@ const List<TestData> DATA = const [
     const ConstantData('false', 'BoolConstant(false)'),
     const ConstantData('true', 'BoolConstant(true)'),
     const ConstantData('0', 'IntConstant(0)'),
-    const ConstantData('0.0', 'DoubleConstant(0.0)'),
+    const ConstantData('0.0', 'IntConstant(0)'),
+    const ConstantData('0.5', 'DoubleConstant(0.5)'),
     const ConstantData('"foo"', 'StringConstant("foo")'),
     const ConstantData('1 + 2', 'IntConstant(3)'),
     const ConstantData('-(1)', 'IntConstant(-1)'),
@@ -633,7 +634,7 @@ Future testData(TestData data) async {
           MemoryEnvironment environment =
               new MemoryEnvironment(getEnvironment(compiler, field), env);
           ConstantValue value =
-              constant.evaluate(environment, DART_CONSTANT_SYSTEM);
+              constant.evaluate(environment, JavaScriptConstantSystem.only);
 
           Expect.isNotNull(
               value,

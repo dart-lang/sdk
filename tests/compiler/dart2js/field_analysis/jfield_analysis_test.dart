@@ -5,7 +5,6 @@
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/field_analysis.dart';
@@ -25,6 +24,7 @@ main(List<String> args) {
 
 class Tags {
   static const String initialValue = 'initial';
+  static const String constantValue = 'constant';
 }
 
 class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
@@ -38,10 +38,14 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
       JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
       JFieldAnalysis allocatorAnalysis = closedWorld.fieldAnalysis;
       ir.Member node = closedWorld.elementMap.getMemberDefinition(member).node;
-      ConstantValue initialValue = allocatorAnalysis.initializerValue(member);
       Features features = new Features();
-      if (initialValue != null) {
-        features[Tags.initialValue] = initialValue.toStructuredText();
+      if (allocatorAnalysis.isInitializedInAllocator(member)) {
+        features[Tags.initialValue] =
+            allocatorAnalysis.initializerValue(member).toStructuredText();
+      }
+      if (allocatorAnalysis.isEffectivelyConstant(member)) {
+        features[Tags.constantValue] =
+            allocatorAnalysis.getConstantValue(member).toStructuredText();
       }
       Id id = computeEntityId(node);
       actualMap[id] = new ActualData<Features>(

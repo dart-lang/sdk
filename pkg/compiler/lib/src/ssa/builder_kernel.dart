@@ -554,7 +554,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Null guard ensures an error if we are being called from an explicit
       // 'new' of the constructor instead of via an upgrade. It is optimized out
       // if there are field initializers.
-      add(new HFieldGet(null, newObject, abstractValueDomain.dynamicType,
+      add(new HFieldGet(
+          null, newObject, abstractValueDomain.dynamicType, sourceInformation,
           isAssignable: false));
       for (int i = 0; i < fields.length; i++) {
         add(new HFieldSet(abstractValueDomain, fields[i], newObject,
@@ -802,10 +803,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
     var foundSuperOrRedirectCall = false;
     for (var initializer in constructor.initializers) {
       if (initializer is ir.FieldInitializer) {
-        // TODO(sra): Skip fields initialized in allocator.
-        initializer.value.accept(this);
-        constructorData.fieldValues[_elementMap.getField(initializer.field)] =
-            pop();
+        FieldEntity field = _elementMap.getField(initializer.field);
+        if (!closedWorld.fieldAnalysis.isInitializedInAllocator(field)) {
+          initializer.value.accept(this);
+          constructorData.fieldValues[field] = pop();
+        }
       } else if (initializer is ir.SuperInitializer) {
         assert(!foundSuperOrRedirectCall);
         foundSuperOrRedirectCall = true;
@@ -4761,6 +4763,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (member == null) {
       _generateSuperNoSuchMethod(node, _elementMap.getSelector(node).name,
           const <HInstruction>[], const <DartType>[], sourceInformation);
+    } else if (member.isField &&
+        closedWorld.fieldAnalysis.isEffectivelyConstant(member)) {
+      ConstantValue value = closedWorld.fieldAnalysis.getConstantValue(member);
+      stack.add(graph.addConstant(value, closedWorld,
+          sourceInformation: sourceInformation));
     } else {
       _buildInvokeSuper(
           _elementMap.getSelector(node),
@@ -5331,10 +5338,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
           function is! ConstructorBodyEntity &&
           (mask == null ||
               abstractValueDomain.isNull(mask).isPotentiallyTrue)) {
-        add(new HFieldGet(
-            null, providedArguments[0], abstractValueDomain.dynamicType,
-            isAssignable: false)
-          ..sourceInformation = sourceInformation);
+        add(new HFieldGet(null, providedArguments[0],
+            abstractValueDomain.dynamicType, sourceInformation,
+            isAssignable: false));
       }
       List<HInstruction> compiledArguments = _completeCallArgumentsList(
           function, selector, providedArguments, currentNode);

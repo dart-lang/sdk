@@ -256,6 +256,15 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
+  ConstantValue readConstantOrNull() {
+    bool hasClass = readBool();
+    if (hasClass) {
+      return readConstant();
+    }
+    return null;
+  }
+
+  @override
   List<E> readConstants<E extends ConstantValue>({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -607,6 +616,14 @@ abstract class DataSinkMixin implements DataSink {
       for (ir.TypeParameter value in values) {
         writeTypeParameterNode(value);
       }
+    }
+  }
+
+  @override
+  void writeConstantOrNull(ConstantValue value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeConstant(value);
     }
   }
 

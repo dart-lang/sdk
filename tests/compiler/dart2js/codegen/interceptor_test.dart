@@ -16,6 +16,7 @@ const String TEST_ONE = r"""
 
 const String TEST_TWO = r"""
   class A {
+    @pragma('dart2js:noElision')
     var length;
   }
   foo(a) {
@@ -37,11 +38,13 @@ main() {
     // intercepted, is turned into a regular getter call or field
     // access.
     await compile(TEST_TWO, entry: 'foo', check: (String generated) {
-      Expect.isFalse(generated.contains(r'a.get$length()'));
+      Expect.isFalse(generated.contains(r'a.get$length()'),
+          'a.get\$length() not expected in\n$generated');
+      Expect.isTrue(generated.contains(new RegExp(r'[$A-Z]+\.A\$\(\)\.length')),
+          '.length expected in\n$generated');
       Expect.isTrue(
-          generated.contains(new RegExp(r'[$A-Z]+\.A\$\(\)\.length')));
-      Expect.isTrue(
-          generated.contains(new RegExp(r'[$A-Z]+\.get\$length\$as\(a\)')));
+          generated.contains(new RegExp(r'[$A-Z]+\.get\$length\$as\(a\)')),
+          '*.get\$length expected in\n$generated');
     });
   }
 

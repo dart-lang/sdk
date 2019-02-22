@@ -15,6 +15,7 @@ import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../ir/static_type_base.dart';
+import '../js_backend/constant_system_javascript.dart';
 import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 
@@ -314,6 +315,9 @@ abstract class DataSink {
 
   /// Writes the constant [value] to this data sink.
   void writeConstant(ConstantValue value);
+
+  /// Writes the potentially `null` constant [value] to this data sink.
+  void writeConstantOrNull(ConstantValue value);
 
   /// Writes constant [values] to this data sink. If [allowNull] is `true`,
   /// [values] is allowed to be `null`.
@@ -625,6 +629,9 @@ abstract class DataSource {
 
   /// Reads a constant value from this data source.
   ConstantValue readConstant();
+
+  /// Reads a potentially `null` constant value from this data source.
+  ConstantValue readConstantOrNull();
 
   /// Reads a double value from this data source.
   double readDoubleValue();

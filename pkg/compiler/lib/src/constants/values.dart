@@ -582,7 +582,7 @@ class SetConstantValue extends ObjectConstantValue {
   ConstantValueKind get kind => ConstantValueKind.SET;
 }
 
-class MapConstantValue extends ObjectConstantValue {
+abstract class MapConstantValue extends ObjectConstantValue {
   final List<ConstantValue> keys;
   final List<ConstantValue> values;
   final int hashCode;

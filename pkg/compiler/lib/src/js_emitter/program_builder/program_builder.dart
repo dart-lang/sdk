@@ -1071,9 +1071,13 @@ class ProgramBuilder {
         }
       }
 
-      ConstantValue initializerInAllocator = null;
+      ConstantValue initializerInAllocator;
       if (_allocatorAnalysis.isInitializedInAllocator(field)) {
         initializerInAllocator = _allocatorAnalysis.initializerValue(field);
+      }
+      ConstantValue constantValue;
+      if (_allocatorAnalysis.isEffectivelyConstant(field)) {
+        constantValue = _allocatorAnalysis.getConstantValue(field);
       }
 
       fields.add(new Field(
@@ -1084,6 +1088,7 @@ class ProgramBuilder {
           setterFlags,
           needsCheckedSetter,
           initializerInAllocator,
+          constantValue,
           _closedWorld.fieldAnalysis.isElided(field)));
     }
 

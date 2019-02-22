@@ -9,13 +9,15 @@ main() {
   /*1:main*/ test1();
 }
 
+// TODO(34942): Step 3 should point to the body block.
 @NoInline()
-test1() async /*3:test1*/ {
+test1 /*3:test1*/ () async {
   // This call is on the stack when the error is thrown.
   await /*5:test1*/ test2();
 }
 
+// TODO(34942): Step 7 should point to the body block.
 @NoInline()
-test2() async /*7:test2*/ {
+test2 /*7:test2*/ () async {
   /*9:test2*/ throw '>ExceptionMarker<';
 }

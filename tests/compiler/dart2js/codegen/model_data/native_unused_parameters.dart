@@ -5,7 +5,7 @@
 // ignore: import_internal_library
 import 'dart:_js_helper';
 
-/*element: Class.:params=1*/
+/*element: Class.:access=[toString],params=1*/
 @Native('Class')
 class Class {
   /*element: Class.method1:calls=[method1()],params=1*/

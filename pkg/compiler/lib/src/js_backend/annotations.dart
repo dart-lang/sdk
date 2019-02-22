@@ -10,6 +10,7 @@ import '../diagnostics/diagnostic_listener.dart';
 import '../diagnostics/messages.dart';
 import '../elements/entities.dart';
 import '../kernel/dart2js_target.dart';
+import '../options.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 
@@ -95,6 +96,7 @@ class PragmaAnnotation {
 }
 
 Set<PragmaAnnotation> processMemberAnnotations(
+    CompilerOptions options,
     DiagnosticReporter reporter,
     KCommonElements commonElements,
     KElementEnvironment elementEnvironment,
@@ -107,7 +109,8 @@ Set<PragmaAnnotation> processMemberAnnotations(
   }
 
   LibraryEntity library = element.library;
-  bool platformAnnotationsAllowed = library.canonicalUri.scheme == 'dart' ||
+  bool platformAnnotationsAllowed = options.testMode ||
+      library.canonicalUri.scheme == 'dart' ||
       maybeEnableNative(library.canonicalUri);
 
   for (ConstantValue constantValue

@@ -9,7 +9,8 @@ main() {
   /*1:main*/ test();
 }
 
+// TODO(34942): Step 2 should point to the body block.
 @NoInline()
-test() async /*2:test*/ {
+test /*2:test*/ () async {
   /*4:test*/ throw '>ExceptionMarker<';
 }

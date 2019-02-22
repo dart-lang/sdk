@@ -227,6 +227,7 @@ class KernelWorkItem implements WorkItem {
     return _compilerTask.measure(() {
       _nativeMemberResolver.resolveNativeMember(element);
       Set<PragmaAnnotation> annotations = processMemberAnnotations(
+          _elementMap.options,
           _elementMap.reporter,
           _elementMap.commonElements,
           _elementMap.elementEnvironment,

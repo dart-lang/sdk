@@ -443,6 +443,8 @@ class DartConstantSystem extends ConstantSystem {
   final round = const UnfoldedUnaryOperation('round');
   final abs = const UnfoldedUnaryOperation('abs');
 
+  // TODO(johnniwinther): Delete this (embed parts into JavaScript constant
+  // system where needed).
   const DartConstantSystem();
 
   @override
@@ -475,7 +477,7 @@ class DartConstantSystem extends ConstantSystem {
   @override
   MapConstantValue createMap(CommonElements commonElements, InterfaceType type,
       List<ConstantValue> keys, List<ConstantValue> values) {
-    return new MapConstantValue(type, keys, values);
+    throw new UnsupportedError('DartConstantSystem.createMap');
   }
 
   @override

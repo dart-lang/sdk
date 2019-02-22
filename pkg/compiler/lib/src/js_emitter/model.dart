@@ -384,6 +384,8 @@ class Field {
 
   final ConstantValue initializerInAllocator;
 
+  final ConstantValue constantValue;
+
   final bool isElided;
 
   // TODO(floitsch): support renamed fields.
@@ -395,6 +397,7 @@ class Field {
       this.setterFlags,
       this.needsCheckedSetter,
       this.initializerInAllocator,
+      this.constantValue,
       this.isElided);
 
   bool get needsGetter => getterFlags != 0;

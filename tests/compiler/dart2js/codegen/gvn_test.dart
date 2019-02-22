@@ -65,6 +65,7 @@ main() {
 // Check that a gvn'able instruction in the loop header gets hoisted.
 const String TEST_SIX = r"""
 class A {
+  @pragma('dart2js:noElision')
   final field = 54;
 }
 

@@ -32,6 +32,7 @@ set field2c(_) {}
 
 class Class {
   /*element: Class.field1a:emitted*/
+  @pragma('dart2js:noElision')
   var field1a;
 
   /*element: Class.field1b:elided*/

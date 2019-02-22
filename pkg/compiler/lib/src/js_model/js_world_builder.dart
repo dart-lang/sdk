@@ -16,8 +16,9 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../ir/closure.dart';
 import '../js_backend/annotations.dart';
-import '../js_backend/field_analysis.dart';
 import '../js_backend/backend_usage.dart';
+import '../js_backend/constant_system_javascript.dart';
+import '../js_backend/field_analysis.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
@@ -859,16 +860,19 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     return new SetConstantValue(type, values);
   }
 
-  ConstantValue visitMap(MapConstantValue constant, _) {
-    var type = typeConverter.visit(constant.type, toBackendEntity);
-    List<ConstantValue> keys = _handleValues(constant.keys);
+  ConstantValue visitMap(covariant JavaScriptMapConstant constant, _) {
+    DartType type = typeConverter.visit(constant.type, toBackendEntity);
+    ListConstantValue keys = constant.keyList.accept(this, null);
     List<ConstantValue> values = _handleValues(constant.values);
+    ConstantValue protoValue = constant.protoValue?.accept(this, null);
     if (identical(keys, constant.keys) &&
         identical(values, constant.values) &&
-        type == constant.type) {
+        type == constant.type &&
+        protoValue == constant.protoValue) {
       return constant;
     }
-    return new MapConstantValue(type, keys, values);
+    return new JavaScriptMapConstant(
+        type, keys, values, protoValue, constant.onlyStringKeys);
   }
 
   ConstantValue visitConstructed(ConstructedConstantValue constant, _) {

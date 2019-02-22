@@ -696,8 +696,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (folded != node) return folded;
     }
 
-    AbstractValue receiverType =
-        node.getDartReceiver(_closedWorld).instructionType;
+    HInstruction receiver = node.getDartReceiver(_closedWorld);
+    AbstractValue receiverType = receiver.instructionType;
     MemberEntity element =
         _closedWorld.locateSingleMember(node.selector, receiverType);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
@@ -734,20 +734,46 @@ class SsaInstructionSimplifier extends HBaseVisitor
       FieldEntity field = element;
       if (!_nativeData.isNativeMember(field) &&
           !node.isCallOnInterceptor(_closedWorld)) {
-        HInstruction receiver = node.getDartReceiver(_closedWorld);
-        AbstractValue type = AbstractValueFactory.inferredTypeForMember(
-            // ignore: UNNECESSARY_CAST
-            field as Entity,
-            _globalInferenceResults);
-        HInstruction load = new HFieldGet(field, receiver, type);
-        node.block.addBefore(node, load);
+        // Insertion point for the closure call.
+        HInstruction insertionPoint = node;
+        HInstruction load;
+        if (_closedWorld.fieldAnalysis.isEffectivelyConstant(field)) {
+          // The field is elided and replace it with its constant value.
+          if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
+            // The receiver is potentially `null` so we insert a null receiver
+            // guard to trigger a null pointer exception.
+            //
+            // This could be inserted unconditionally and removed by later
+            // optimizations if unnecessary, but performance we do it
+            // conditionally here.
+            // TODO(35996): Replace with null receiver guard instruction.
+            HInstruction dummyGet = new HFieldGet(null, receiver,
+                _abstractValueDomain.dynamicType, node.sourceInformation,
+                isAssignable: false);
+            _log?.registerFieldCall(node, dummyGet);
+            node.block.addBefore(node, dummyGet);
+            insertionPoint = dummyGet;
+          }
+          ConstantValue value =
+              _closedWorld.fieldAnalysis.getConstantValue(field);
+          load = _graph.addConstant(value, _closedWorld,
+              sourceInformation: node.sourceInformation);
+          _log?.registerConstantFieldCall(node, field, load);
+        } else {
+          AbstractValue type = AbstractValueFactory.inferredTypeForMember(
+              field, _globalInferenceResults);
+          load = new HFieldGet(field, receiver, type, node.sourceInformation);
+          _log?.registerFieldCall(node, load);
+          node.block.addBefore(node, load);
+          insertionPoint = load;
+        }
         Selector callSelector = new Selector.callClosureFrom(node.selector);
         List<HInstruction> inputs = <HInstruction>[load]
           ..addAll(node.inputs.skip(node.isInterceptedCall ? 2 : 1));
         HInstruction closureCall = new HInvokeClosure(
             callSelector, inputs, node.instructionType, node.typeArguments)
           ..sourceInformation = node.sourceInformation;
-        node.block.addAfter(load, closureCall);
+        node.block.addAfter(insertionPoint, closureCall);
         return closureCall;
       }
     }
@@ -1215,17 +1241,42 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (folded != node) return folded;
     }
     HInstruction receiver = node.getDartReceiver(_closedWorld);
+    AbstractValue receiverType = receiver.instructionType;
     FieldEntity field = node.element is FieldEntity
         ? node.element
         : findConcreteFieldForDynamicAccess(node, receiver);
     if (field != null) {
-      HFieldGet result = _directFieldGet(receiver, field, node);
-      _log?.registerFieldGet(node, result);
-      return result;
+      if (_closedWorld.fieldAnalysis.isEffectivelyConstant(field)) {
+        // The field is elided and replace it with its constant value.
+        if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
+          // The receiver is potentially `null` so we insert a null receiver
+          // guard to trigger a null pointer exception.
+          //
+          // This could be inserted unconditionally and removed by later
+          // optimizations if unnecessary, but performance we do it
+          // conditionally here.
+          // TODO(35996): Replace with null receiver guard instruction.
+          HInstruction dummyGet = new HFieldGet(null, receiver,
+              _abstractValueDomain.dynamicType, node.sourceInformation,
+              isAssignable: false);
+          _log?.registerFieldGet(node, dummyGet);
+          node.block.addBefore(node, dummyGet);
+        }
+        ConstantValue constant =
+            _closedWorld.fieldAnalysis.getConstantValue(field);
+        HConstant result = _graph.addConstant(constant, _closedWorld,
+            sourceInformation: node.sourceInformation);
+        _log?.registerConstantFieldGet(node, field, result);
+        return result;
+      } else {
+        HFieldGet result = _directFieldGet(receiver, field, node);
+        _log?.registerFieldGet(node, result);
+        return result;
+      }
     }
 
-    node.element ??= _closedWorld.locateSingleMember(
-        node.selector, receiver.instructionType);
+    node.element ??=
+        _closedWorld.locateSingleMember(node.selector, receiverType);
     if (node.element != null &&
         node.element.name == node.selector.name &&
         node.element.isFunction) {
@@ -1256,8 +1307,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
           field, _globalInferenceResults);
     }
 
-    return new HFieldGet(field, receiver, type, isAssignable: isAssignable)
-      ..sourceInformation = node.sourceInformation;
+    return new HFieldGet(field, receiver, type, node.sourceInformation,
+        isAssignable: isAssignable);
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
