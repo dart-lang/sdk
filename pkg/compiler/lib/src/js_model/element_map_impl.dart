@@ -37,7 +37,6 @@ import '../ir/static_type_base.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
-import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_emitter/code_emitter_task.dart';

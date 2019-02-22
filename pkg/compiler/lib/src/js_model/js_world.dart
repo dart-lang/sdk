@@ -22,7 +22,6 @@ import '../js_emitter/sorter.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/field_analysis.dart';
 import '../js_backend/backend_usage.dart';
-import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
