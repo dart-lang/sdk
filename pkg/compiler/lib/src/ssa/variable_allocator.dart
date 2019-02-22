@@ -4,6 +4,7 @@
 
 import '../common.dart';
 import '../js_backend/js_backend.dart';
+import 'codegen.dart' show CodegenPhase;
 import 'nodes.dart';
 
 /// The [LiveRange] class covers a range where an instruction is live.
@@ -153,7 +154,7 @@ class LiveEnvironment {
 /// Builds the live intervals of each instruction. The algorithm visits
 /// the graph post-dominator tree to find the last uses of an
 /// instruction, and computes the liveIns of each basic block.
-class SsaLiveIntervalBuilder extends HBaseVisitor {
+class SsaLiveIntervalBuilder extends HBaseVisitor with CodegenPhase {
   final Set<HInstruction> generateAtUseSite;
   final Set<HInstruction> controlFlowOperators;
 
@@ -561,7 +562,7 @@ class VariableNamer {
 /// instruction, it frees the names of the inputs that die at that
 /// instruction, and allocates a name to the instruction. For each phi,
 /// it adds a copy to the CopyHandler of the corresponding predecessor.
-class SsaVariableAllocator extends HBaseVisitor {
+class SsaVariableAllocator extends HBaseVisitor with CodegenPhase {
   final Namer _namer;
   final Map<HBasicBlock, LiveEnvironment> liveInstructions;
   final Map<HInstruction, LiveInterval> liveIntervals;

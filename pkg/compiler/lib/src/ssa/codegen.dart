@@ -31,6 +31,7 @@ import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
+import '../tracer.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart'
@@ -39,6 +40,11 @@ import '../world.dart' show JClosedWorld;
 import 'codegen_helpers.dart';
 import 'nodes.dart';
 import 'variable_allocator.dart';
+
+abstract class CodegenPhase {
+  String get name => '$runtimeType';
+  void visitGraph(HGraph graph);
+}
 
 class SsaCodeGeneratorTask extends CompilerTask {
   final JavaScriptBackend backend;
@@ -89,6 +95,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           .createBuilderForContext(work.element)
           .buildDeclaration(work.element);
       SsaCodeGenerator codegen = new SsaCodeGenerator(
+          this,
           backend.compiler.options,
           backend.emitter,
           backend.nativeCodegenEnqueuer,
@@ -98,6 +105,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           backend.rtiEncoder,
           backend.namer,
           backend.superMemberData,
+          backend.tracer,
           closedWorld,
           work);
       codegen.visitGraph(graph);
@@ -114,6 +122,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
         work.registry.registerAsyncMarker(element.asyncMarker);
       }
       SsaCodeGenerator codegen = new SsaCodeGenerator(
+          this,
           backend.compiler.options,
           backend.emitter,
           backend.nativeCodegenEnqueuer,
@@ -123,6 +132,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           backend.rtiEncoder,
           backend.namer,
           backend.superMemberData,
+          backend.tracer,
           closedWorld,
           work);
       codegen.visitGraph(graph);
@@ -152,6 +162,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /// This includes declarations, which are generated as expressions.
   bool isGeneratingExpression = false;
 
+  final CompilerTask _codegenTask;
   final CompilerOptions _options;
   final CodeEmitterTask _emitter;
   final NativeCodegenEnqueuer _nativeEnqueuer;
@@ -161,6 +172,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final RuntimeTypesEncoder _rtiEncoder;
   final Namer _namer;
   final SuperMemberData _superMemberData;
+  final Tracer _tracer;
   final JClosedWorld _closedWorld;
   final CodegenWorkItem _work;
 
@@ -207,6 +219,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   Queue<HBasicBlock> blockQueue;
 
   SsaCodeGenerator(
+      this._codegenTask,
       this._options,
       this._emitter,
       this._nativeEnqueuer,
@@ -216,6 +229,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._rtiEncoder,
       this._namer,
       this._superMemberData,
+      this._tracer,
       this._closedWorld,
       this._work,
       {SourceInformation sourceInformation})
@@ -352,27 +366,34 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void preGenerateMethod(HGraph graph) {
-    new SsaInstructionSelection(_options, _closedWorld, _interceptorData)
-        .visitGraph(graph);
-    new SsaTypeKnownRemover().visitGraph(graph);
-    new SsaTrustedCheckRemover(_options).visitGraph(graph);
+    void runPhase(CodegenPhase phase, {bool traceGraph = true}) {
+      _codegenTask.measureSubtask(phase.name, () => phase.visitGraph(graph));
+      if (traceGraph) {
+        _tracer.traceGraph(phase.name, graph);
+      }
+      assert(graph.isValid(), 'Graph not valid after ${phase.name}');
+    }
+
+    runPhase(
+        new SsaInstructionSelection(_options, _closedWorld, _interceptorData));
+    runPhase(new SsaTypeKnownRemover());
+    runPhase(new SsaTrustedCheckRemover(_options));
     // TODO(sra): Re-enable chaining.
-    //     new SsaAssignmentChaining(_options, _closedWorld).visitGraph(graph);
-    new SsaInstructionMerger(
-            _abstractValueDomain, generateAtUseSite, _superMemberData)
-        .visitGraph(graph);
-    new SsaConditionMerger(generateAtUseSite, controlFlowOperators)
-        .visitGraph(graph);
-    new SsaShareRegionConstants(_options).visitGraph(graph);
+    // runPhase(new SsaAssignmentChaining(_options, _closedWorld));
+    runPhase(new SsaInstructionMerger(
+        _abstractValueDomain, generateAtUseSite, _superMemberData));
+    runPhase(new SsaConditionMerger(generateAtUseSite, controlFlowOperators));
+    runPhase(new SsaShareRegionConstants(_options));
+
     SsaLiveIntervalBuilder intervalBuilder =
         new SsaLiveIntervalBuilder(generateAtUseSite, controlFlowOperators);
-    intervalBuilder.visitGraph(graph);
+    runPhase(intervalBuilder, traceGraph: false);
     SsaVariableAllocator allocator = new SsaVariableAllocator(
         _namer,
         intervalBuilder.liveInstructions,
         intervalBuilder.liveIntervals,
         generateAtUseSite);
-    allocator.visitGraph(graph);
+    runPhase(allocator, traceGraph: false);
     variableNames = allocator.names;
     shouldGroupVarDeclarations = allocator.names.numberOfVariables > 1;
   }

@@ -10,11 +10,12 @@ import '../js_backend/interceptor_data.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
+import 'codegen.dart' show CodegenPhase;
 import 'nodes.dart';
 
 /// Replaces some instructions with specialized versions to make codegen easier.
 /// Caches codegen information on nodes.
-class SsaInstructionSelection extends HBaseVisitor {
+class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
   final JClosedWorld _closedWorld;
   final InterceptorData _interceptorData;
   final CompilerOptions _options;
@@ -341,7 +342,7 @@ class SsaInstructionSelection extends HBaseVisitor {
 
 /// Remove [HTypeKnown] instructions from the graph, to make codegen
 /// analysis easier.
-class SsaTypeKnownRemover extends HBaseVisitor {
+class SsaTypeKnownRemover extends HBaseVisitor with CodegenPhase {
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
@@ -368,7 +369,7 @@ class SsaTypeKnownRemover extends HBaseVisitor {
 
 /// Remove [HTypeConversion] instructions from the graph in '--trust-primitives'
 /// mode.
-class SsaTrustedCheckRemover extends HBaseVisitor {
+class SsaTrustedCheckRemover extends HBaseVisitor with CodegenPhase {
   final CompilerOptions _options;
 
   SsaTrustedCheckRemover(this._options);
@@ -402,7 +403,7 @@ class SsaTrustedCheckRemover extends HBaseVisitor {
 ///     b.y = v;
 /// -->
 ///     b.y = a.x = v;
-class SsaAssignmentChaining extends HBaseVisitor {
+class SsaAssignmentChaining extends HBaseVisitor with CodegenPhase {
   final JClosedWorld _closedWorld;
   final CompilerOptions _options;
   //HGraph graph;
@@ -566,7 +567,7 @@ class SsaAssignmentChaining extends HBaseVisitor {
 ///   t2 = add(t0, t1);
 /// t0 and t1 would be marked and the resulting code would then be:
 ///   t2 = add(4, 3);
-class SsaInstructionMerger extends HBaseVisitor {
+class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
   final AbstractValueDomain _abstractValueDomain;
   final SuperMemberData _superMemberData;
 
@@ -866,7 +867,7 @@ class SsaInstructionMerger extends HBaseVisitor {
 ///  Detect control flow arising from short-circuit logical and
 ///  conditional operators, and prepare the program to be generated
 ///  using these operators instead of nested ifs and boolean variables.
-class SsaConditionMerger extends HGraphVisitor {
+class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
   Set<HInstruction> generateAtUseSite;
   Set<HInstruction> controlFlowOperators;
 
@@ -1040,7 +1041,7 @@ class SsaConditionMerger extends HGraphVisitor {
 /// Insert 'caches' for whole-function region-constants when the local minified
 /// name would be shorter than repeated references.  These are caches for 'this'
 /// and constant values.
-class SsaShareRegionConstants extends HBaseVisitor {
+class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
   final CompilerOptions _options;
 
   SsaShareRegionConstants(this._options);
