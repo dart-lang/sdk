@@ -55,6 +55,56 @@ class D extends C {
 ''');
   }
 
+  test_equal_values_generic_undefined_value_base() async {
+    // Note: we expect some errors due to the constant referring to undefined
+    // values, but there should not be any INVALID_OVERRIDE... error.
+    await assertErrorsInCode('''
+class A {
+  m({x = Undefined.value}) {}
+}
+class B extends A {
+  m({x = 1}) {}
+}
+''', [
+      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
+      StaticWarningCode.UNDEFINED_IDENTIFIER
+    ]);
+  }
+
+  test_equal_values_generic_undefined_value_both() async {
+    // Note: we expect some errors due to the constant referring to undefined
+    // values, but there should not be any INVALID_OVERRIDE... error.
+    await assertErrorsInCode('''
+class A {
+  m({x = Undefined.value}) {}
+}
+class B extends A {
+  m({x = Undefined2.value2}) {}
+}
+''', [
+      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
+      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
+      StaticWarningCode.UNDEFINED_IDENTIFIER,
+      StaticWarningCode.UNDEFINED_IDENTIFIER
+    ]);
+  }
+
+  test_equal_values_generic_undefined_value_derived() async {
+    // Note: we expect some errors due to the constant referring to undefined
+    // values, but there should not be any INVALID_OVERRIDE... error.
+    await assertErrorsInCode('''
+class A {
+  m({x = 1}) {}
+}
+class B extends A {
+  m({x = Undefined.value}) {}
+}
+''', [
+      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
+      StaticWarningCode.UNDEFINED_IDENTIFIER
+    ]);
+  }
+
   test_equalValues() async {
     await assertNoErrorsInCode(r'''
 abstract class A {

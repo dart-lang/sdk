@@ -722,6 +722,10 @@ class _ClassVerifier {
   }
 
   static bool _constantValuesEqual(DartObject x, DartObject y) {
+    // If either constant value couldn't be computed due to an error, the
+    // corresponding DartObject will be `null`.  Since an error has already been
+    // reported, there's no need to report another.
+    if (x == null || y == null) return true;
     return (x as DartObjectImpl).isEqualIgnoringTypesRecursively(y);
   }
 }
