@@ -14,6 +14,7 @@ import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Names, Selectors;
+import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
@@ -31,7 +32,6 @@ import '../universe/selector.dart' show Selector, SelectorKind;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'backend.dart';
-import 'constant_system_javascript.dart';
 import 'native_data.dart';
 import 'runtime_types.dart';
 

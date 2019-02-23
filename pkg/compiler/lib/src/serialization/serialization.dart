@@ -9,13 +9,13 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
 import '../closure.dart';
+import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../ir/static_type_base.dart';
-import '../js_backend/constant_system_javascript.dart';
 import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 
