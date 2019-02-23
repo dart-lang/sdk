@@ -899,21 +899,37 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (variable != null) {
       Local local = _localsMap.getLocalVariable(variable);
       if (!_capturedVariables.contains(local)) {
-        TypeInformation refinedType = _types
-            .refineReceiver(selector, mask, receiverType, isConditional: false);
         DartType type = _localsMap.getLocalType(_elementMap, local);
         _state.updateLocal(
-            _inferrer, _capturedAndBoxed, local, refinedType, node, type);
-        List<Refinement> refinements = _localRefinementMap[variable];
-        if (refinements != null) {
-          refinements.add(new Refinement(selector, mask));
-        }
+            _inferrer, _capturedAndBoxed, local, receiverType, node, type,
+            isNullable: _appliesToNullWithoutThrow(selector));
       }
     }
 
     return _inferrer.registerCalledSelector(callType, node, selector, mask,
         receiverType, _analyzedMember, arguments, _sideEffectsBuilder,
         inLoop: inLoop, isConditional: false);
+  }
+
+  /// Whether [selector] could be a valid selector on `Null` without throwing.
+  bool _appliesToNullWithoutThrow(Selector selector) {
+    var name = selector.name;
+    if (selector.isOperator && name == "==") return true;
+    // Known getters and valid tear-offs.
+    if (selector.isGetter &&
+        (name == "hashCode" ||
+            name == "runtimeType" ||
+            name == "toString" ||
+            name == "noSuchMethod")) return true;
+    // Calling toString always succeeds, calls to `noSuchMethod` (even well
+    // formed calls) always throw.
+    if (selector.isCall &&
+        name == "toString" &&
+        selector.positionalArgumentCount == 0 &&
+        selector.namedArgumentCount == 0) {
+      return true;
+    }
+    return false;
   }
 
   TypeInformation handleDynamicGet(ir.Node node, Selector selector,
@@ -944,60 +960,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         callType, node, selector, mask, receiverType, arguments);
   }
 
-  /// Map from synthesized variables created for non-null operations to observed
-  /// refinements. This is used to refine locals in cases like:
-  ///
-  ///     local?.method()
-  ///
-  /// which in kernel is encoded as
-  ///
-  ///     let #t1 = local in #t1 == null ? null : #1.method()
-  ///
-  Map<ir.VariableDeclaration, List<Refinement>> _localRefinementMap =
-      <ir.VariableDeclaration, List<Refinement>>{};
-
   @override
   TypeInformation visitLet(ir.Let node) {
-    ir.VariableDeclaration alias;
-    ir.Expression body = node.body;
-    if (node.variable.name == null &&
-        node.variable.isFinal &&
-        node.variable.initializer is ir.VariableGet &&
-        body is ir.ConditionalExpression &&
-        body.condition is ir.MethodInvocation &&
-        body.then is ir.NullLiteral) {
-      ir.VariableGet get = node.variable.initializer;
-      ir.MethodInvocation invocation = body.condition;
-      ir.Expression receiver = invocation.receiver;
-      if (invocation.name.name == '==' &&
-          receiver is ir.VariableGet &&
-          receiver.variable == node.variable &&
-          invocation.arguments.positional.single is ir.NullLiteral) {
-        // We have
-        //   let #t1 = local in #t1 == null ? null : e
-        alias = get.variable;
-        _localRefinementMap[node.variable] = <Refinement>[];
-      }
-    }
     visit(node.variable);
-    TypeInformation type = visit(body);
-    if (alias != null) {
-      List<Refinement> refinements = _localRefinementMap.remove(node.variable);
-      if (refinements.isNotEmpty) {
-        Local local = _localsMap.getLocalVariable(alias);
-        DartType type = _localsMap.getLocalType(_elementMap, local);
-        TypeInformation localType =
-            _state.readLocal(_inferrer, _capturedAndBoxed, local);
-        for (Refinement refinement in refinements) {
-          localType = _types.refineReceiver(
-              refinement.selector, refinement.mask, localType,
-              isConditional: true);
-          _state.updateLocal(
-              _inferrer, _capturedAndBoxed, local, localType, node, type);
-        }
-      }
-    }
-    return type;
+    return visit(node.body);
   }
 
   @override
@@ -1553,7 +1519,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       Local local = _localsMap.getLocalVariable(variable);
       DartType type = _localsMap.getLocalType(_elementMap, local);
       _state.updateLocal(
-          _inferrer, _capturedAndBoxed, local, localFunctionType, node, type);
+          _inferrer, _capturedAndBoxed, local, localFunctionType, node, type,
+          isNullable: false);
     }
 
     // We don't put the closure in the work queue of the
@@ -1669,14 +1636,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       }
       Local local = _localsMap.getLocalVariable(exception);
       _state.updateLocal(
-          _inferrer, _capturedAndBoxed, local, mask, node, const DynamicType());
+          _inferrer, _capturedAndBoxed, local, mask, node, const DynamicType(),
+          isNullable: false /* `throw null` produces a NullThrownError */);
     }
     ir.VariableDeclaration stackTrace = node.stackTrace;
     if (stackTrace != null) {
       Local local = _localsMap.getLocalVariable(stackTrace);
       // TODO(johnniwinther): Use a mask based on [StackTrace].
       _state.updateLocal(_inferrer, _capturedAndBoxed, local,
-          _types.dynamicType, node, const DynamicType());
+          _types.dynamicType, node, const DynamicType(),
+          isNullable: false /* if requested, the stack is never null */);
     }
     visit(node.body);
     return null;
@@ -1905,9 +1874,10 @@ class LocalState {
       Local local,
       TypeInformation type,
       ir.Node node,
-      DartType staticType) {
+      DartType staticType,
+      {isNullable: true}) {
     assert(type != null);
-    type = inferrer.types.narrowType(type, staticType);
+    type = inferrer.types.narrowType(type, staticType, isNullable: isNullable);
 
     FieldEntity field = capturedAndBoxed[local];
     if (field != null) {
@@ -1923,10 +1893,9 @@ class LocalState {
       Local local,
       DartType type,
       ir.Node node) {
-    TypeInformation existing = readLocal(inferrer, capturedAndBoxed, local);
-    TypeInformation newType =
-        inferrer.types.narrowType(existing, type, isNullable: false);
-    updateLocal(inferrer, capturedAndBoxed, local, newType, node, type);
+    TypeInformation currentType = readLocal(inferrer, capturedAndBoxed, local);
+    updateLocal(inferrer, capturedAndBoxed, local, currentType, node, type,
+        isNullable: false);
   }
 
   LocalState mergeFlow(InferrerEngine inferrer, LocalState other) {

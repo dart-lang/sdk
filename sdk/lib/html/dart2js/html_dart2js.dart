@@ -14869,7 +14869,7 @@ class Event extends Interceptor {
       _convertNativeToDart_EventTarget(this._get_currentTarget);
   @JSName('currentTarget')
   @Creates('Null')
-  @Returns('EventTarget|=Object')
+  @Returns('EventTarget|=Object|Null')
   final dynamic _get_currentTarget;
 
   final bool defaultPrevented;
@@ -21153,7 +21153,7 @@ class MouseEvent extends UIEvent {
       _convertNativeToDart_EventTarget(this._get_relatedTarget);
   @JSName('relatedTarget')
   @Creates('Node')
-  @Returns('EventTarget|=Object')
+  @Returns('EventTarget|=Object|Null')
   final dynamic _get_relatedTarget;
 
   @JSName('screenX')

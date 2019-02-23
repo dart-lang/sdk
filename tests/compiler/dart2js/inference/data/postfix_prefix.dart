@@ -18,7 +18,7 @@ class A {
   /*element: A.[]=:[null]*/
   operator []=(/*[empty]*/ index, /*[subclass=JSNumber]*/ value) {}
 
-  /*element: A.returnDynamic1:[exact=JSUInt31]*/
+  /*element: A.returnDynamic1:Union([exact=JSString], [exact=JSUInt31])*/
   returnDynamic1() => /*[subclass=A]*/ /*update: [subclass=A]*/ foo
       /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --;
 
@@ -30,7 +30,7 @@ class A {
   returnNum2() => /*[subclass=A]*/ /*update: [subclass=A]*/ foo
       /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ -= 42;
 
-  /*element: A.returnDynamic2:[exact=JSUInt31]*/
+  /*element: A.returnDynamic2:Union([exact=JSString], [exact=JSUInt31])*/
   returnDynamic2() => this
           /*[subclass=A]*/ /*update: [subclass=A]*/ [index]
       /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --;
@@ -44,12 +44,10 @@ class A {
           /*[subclass=A]*/ /*update: [subclass=A]*/ [index]
       /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ -= 42;
 
-  // TODO(johnniwinther): Investigate why implementations differ on update.
   /*element: A.returnEmpty3:[empty]*/
   returnEmpty3() {
     dynamic a = this;
-    return a. /*[subclass=A]*/
-            /*update: [empty]*/
+    return a. /*[subclass=A]*/ /*update: [subclass=A]*/
             bar
         /*invoke: [empty]*/ --;
   }
@@ -76,7 +74,7 @@ class B extends A {
   /*element: B.[]:[exact=JSUInt31]*/
   operator [](/*[empty]*/ index) => 42;
 
-  /*element: B.returnString1:[empty]*/
+  /*element: B.returnString1:Value([exact=JSString], value: "string")*/
   returnString1() =>
       super.foo /*invoke: Value([exact=JSString], value: "string")*/ --;
 
@@ -89,7 +87,7 @@ class B extends A {
   returnDynamic2() =>
       super.foo /*invoke: Value([exact=JSString], value: "string")*/ -= 42;
 
-  /*element: B.returnString2:[empty]*/
+  /*element: B.returnString2:Value([exact=JSString], value: "string")*/
   returnString2() => super[index]
       /*invoke: Value([exact=JSString], value: "string")*/ --;
 

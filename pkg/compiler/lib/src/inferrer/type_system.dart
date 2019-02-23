@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../universe/selector.dart';
 import '../world.dart';
 import 'abstract_value_domain.dart';
 import 'type_graph_nodes.dart';
@@ -309,52 +308,28 @@ class TypeSystem {
     return info.type != mask;
   }
 
-  /// Returns a new receiver type for this [selector] applied to
-  /// [receiverType].
-  ///
-  /// The option [isConditional] is true when [selector] was seen in a
-  /// conditional send (e.g.  `a?.selector`), in which case the returned type
-  /// may be null.
-  TypeInformation refineReceiver(
-      Selector selector, AbstractValue mask, TypeInformation receiver,
-      {bool isConditional}) {
-    if (_abstractValueDomain.isExact(receiver.type).isDefinitelyTrue) {
-      return receiver;
-    }
-    AbstractValue otherType = _closedWorld.computeReceiverType(selector, mask);
-    // Conditional sends (a?.b) can still narrow the possible types of `a`,
-    // however, we still need to consider that `a` may be null.
-    if (isConditional) {
-      // Note: we don't check that receiver.type.isNullable here because this is
-      // called during the graph construction.
-      otherType = _abstractValueDomain.includeNull(otherType);
-    }
-    // If this is refining to nullable subtype of `Object` just return
-    // the receiver. We know the narrowing is useless.
-    if (_abstractValueDomain.isNull(otherType).isPotentiallyTrue &&
-        _abstractValueDomain.containsAll(otherType).isPotentiallyTrue) {
-      return receiver;
-    }
-    TypeInformation newType =
-        new NarrowTypeInformation(_abstractValueDomain, receiver, otherType);
-    allocatedTypes.add(newType);
-    return newType;
-  }
+  bool _isNonNullNarrow(TypeInformation type) =>
+      type is NarrowTypeInformation &&
+      _abstractValueDomain.isNull(type.typeAnnotation).isDefinitelyFalse;
 
   /// Returns the intersection between [type] and [annotation].
   /// [isNullable] indicates whether the annotation implies a null
   /// type.
   TypeInformation narrowType(TypeInformation type, DartType annotation,
       {bool isNullable: true}) {
-    if (annotation.treatAsDynamic) return type;
-    if (annotation.isVoid) return type;
     AbstractValue otherType;
-    if (annotation.isInterfaceType) {
+    if (annotation.isVoid) return type;
+    if (annotation.treatAsDynamic) {
+      if (isNullable) return type;
+      // If the input is already narrowed to be not-null, there is no value
+      // in adding another narrowing node.
+      if (_isNonNullNarrow(type)) return type;
+      otherType = _abstractValueDomain.excludeNull(dynamicType.type);
+    } else if (annotation.isInterfaceType) {
       InterfaceType interface = annotation;
       if (interface.element == _closedWorld.commonElements.objectClass) {
-        if (isNullable) {
-          return type;
-        }
+        if (isNullable) return type;
+        if (_isNonNullNarrow(type)) return type;
         otherType = _abstractValueDomain.excludeNull(dynamicType.type);
       } else {
         otherType =
@@ -373,23 +348,9 @@ class TypeSystem {
     if (isNullable) {
       otherType = _abstractValueDomain.includeNull(otherType);
     }
-    if (_abstractValueDomain.isExact(type.type).isDefinitelyTrue) {
-      return type;
-    } else {
-      TypeInformation newType =
-          new NarrowTypeInformation(_abstractValueDomain, type, otherType);
-      allocatedTypes.add(newType);
-      return newType;
-    }
-  }
-
-  /// Returns the non-nullable type of [type].
-  TypeInformation narrowNotNull(TypeInformation type) {
-    if (_abstractValueDomain.isExact(type.type).isDefinitelyTrue) {
-      return type;
-    }
-    TypeInformation newType = new NarrowTypeInformation(_abstractValueDomain,
-        type, _abstractValueDomain.excludeNull(dynamicType.type));
+    if (_abstractValueDomain.isExact(type.type).isDefinitelyTrue) return type;
+    TypeInformation newType =
+        new NarrowTypeInformation(_abstractValueDomain, type, otherType);
     allocatedTypes.add(newType);
     return newType;
   }
@@ -674,14 +635,20 @@ class TypeSystem {
     // mapped iterable, we save the intermediate results to avoid computing them
     // again.
     var list = [];
+    bool isDynamicIngoringNull = false;
+    bool mayBeNull = false;
     for (AbstractValue mask in masks) {
       // Don't do any work on computing unions if we know that after all that
       // work the result will be `dynamic`.
       // TODO(sigmund): change to `mask == dynamicType` so we can continue to
       // track the non-nullable bit.
       if (_abstractValueDomain.containsAll(mask).isPotentiallyTrue) {
-        return dynamicType;
+        isDynamicIngoringNull = true;
       }
+      if (_abstractValueDomain.isNull(mask).isPotentiallyTrue) {
+        mayBeNull = true;
+      }
+      if (isDynamicIngoringNull && mayBeNull) return dynamicType;
       list.add(mask);
     }
 
@@ -691,8 +658,12 @@ class TypeSystem {
           newType == null ? mask : _abstractValueDomain.union(newType, mask);
       // Likewise - stop early if we already reach dynamic.
       if (_abstractValueDomain.containsAll(newType).isPotentiallyTrue) {
-        return dynamicType;
+        isDynamicIngoringNull = true;
       }
+      if (_abstractValueDomain.isNull(newType).isPotentiallyTrue) {
+        mayBeNull = true;
+      }
+      if (isDynamicIngoringNull && mayBeNull) return dynamicType;
     }
 
     return newType ?? _abstractValueDomain.emptyType;

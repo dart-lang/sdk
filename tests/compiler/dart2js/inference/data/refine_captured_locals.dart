@@ -20,12 +20,9 @@ class Class1 {
   method1() {}
 }
 
-/*element: Class2.:[exact=Class2]*/
-class Class2 {}
-
 /*element: _refineBeforeCapture:[exact=Class1]*/
-_refineBeforeCapture(/*Union([exact=Class1], [exact=Class2])*/ o) {
-  o. /*invoke: Union([exact=Class1], [exact=Class2])*/ method1();
+_refineBeforeCapture(/*[null|exact=Class1]*/ o) {
+  o. /*invoke: [null|exact=Class1]*/ method1();
   o. /*invoke: [exact=Class1]*/ method1();
 
   /*[exact=Class1]*/ localFunction() => o;
@@ -35,7 +32,7 @@ _refineBeforeCapture(/*Union([exact=Class1], [exact=Class2])*/ o) {
 /*element: refineBeforeCapture:[null]*/
 refineBeforeCapture() {
   _refineBeforeCapture(new Class1());
-  _refineBeforeCapture(new Class2());
+  _refineBeforeCapture(null);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

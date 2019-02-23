@@ -157,7 +157,7 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     # addEventListener on the target, so we avoid
     'Event.currentTarget': [
       "@Creates('Null')",
-      "@Returns('EventTarget|=Object')",
+      "@Returns('EventTarget|=Object|Null')",
     ],
 
     # Only nodes in the DOM bubble and have target !== currentTarget.
@@ -324,7 +324,7 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
 
     'MouseEvent.relatedTarget': [
       "@Creates('Node')",
-      "@Returns('EventTarget|=Object')",
+      "@Returns('EventTarget|=Object|Null')",
     ],
 
     'Notification.data': [

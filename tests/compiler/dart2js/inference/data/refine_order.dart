@@ -37,7 +37,7 @@ main() {
 @AssumeDynamic()
 statementOrderFieldAccess(/*[null|subclass=Object]*/ o) {
   o.field;
-  o. /*[exact=Class]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -48,7 +48,7 @@ statementOrderFieldAccess(/*[null|subclass=Object]*/ o) {
 @AssumeDynamic()
 statementOrderFieldUpdate(/*[null|subclass=Object]*/ o) {
   o.field = 42;
-  o. /*update: [exact=Class]*/ field = 42;
+  o. /*update: [subclass=Object]*/ field = 42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ statementOrderFieldUpdate(/*[null|subclass=Object]*/ o) {
 @AssumeDynamic()
 statementOrderInvocation(/*[null|subclass=Object]*/ o) {
   o.method(null);
-  o. /*invoke: [exact=Class]*/ method(null);
+  o. /*invoke: [subclass=Object]*/ method(null);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -71,7 +71,7 @@ statementOrderInvocation(/*[null|subclass=Object]*/ o) {
 receiverVsArgument(/*[null|subclass=Object]*/ o) {
   // TODO(johnniwinther): The arguments should refine the receiver.
   o.method(o.field);
-  o. /*[exact=Class]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -82,8 +82,8 @@ receiverVsArgument(/*[null|subclass=Object]*/ o) {
 @AssumeDynamic()
 argumentsOrder(/*[null|subclass=Object]*/ o) {
   // TODO(johnniwinther): The arguments should refine the receiver.
-  o.method(o.field, o. /*[exact=Class]*/ field);
-  o. /*[exact=Class]*/ field;
+  o.method(o.field, o. /*[subclass=Object]*/ field);
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -93,8 +93,8 @@ argumentsOrder(/*[null|subclass=Object]*/ o) {
 /*element: operatorOrder:[null]*/
 @AssumeDynamic()
 operatorOrder(/*[null|subclass=Object]*/ o) {
-  o.field /*invoke: [exact=JSUInt31]*/ < o. /*[exact=Class]*/ field;
-  o. /*[exact=Class]*/ field;
+  o.field /*invoke: [exact=JSUInt31]*/ < o. /*[subclass=Object]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -107,7 +107,7 @@ updateVsRhs(/*[null|subclass=Object]*/ o) {
   // TODO(johnniwinther): The right-hand side should refine the left-hand side
   // receiver.
   o.field = o.field;
-  o. /*[exact=Class]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -117,8 +117,8 @@ updateVsRhs(/*[null|subclass=Object]*/ o) {
 /*element: logicalOr:[null]*/
 @AssumeDynamic()
 logicalOr(/*[null|subclass=Object]*/ o) {
-  o.field || o. /*[exact=Class]*/ field;
-  o. /*[exact=Class]*/ field;
+  o.field || o. /*[subclass=Object]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -128,8 +128,8 @@ logicalOr(/*[null|subclass=Object]*/ o) {
 /*element: conditionalCondition:[null]*/
 @AssumeDynamic()
 conditionalCondition(/*[null|subclass=Object]*/ o) {
-  o.field ? o. /*[exact=Class]*/ field : o. /*[exact=Class]*/ field;
-  o. /*[exact=Class]*/ field;
+  o.field ? o. /*[subclass=Object]*/ field : o. /*[subclass=Object]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +141,7 @@ conditionalCondition(/*[null|subclass=Object]*/ o) {
 conditionalBothBranches(/*[null|subclass=Object]*/ o) {
   // ignore: DEAD_CODE
   true ? o.field : o.field;
-  o. /*[exact=Class]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -154,5 +154,5 @@ conditionalOneBranchOnly(/*[null|subclass=Object]*/ o) {
   // ignore: DEAD_CODE
   true ? o.field : null;
   o.field;
-  o. /*[exact=Class]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
