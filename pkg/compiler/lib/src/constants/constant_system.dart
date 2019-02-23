@@ -25,19 +25,19 @@ abstract class BinaryOperation extends Operation {
   apply(left, right);
 }
 
-class JavaScriptBitNotOperation implements UnaryOperation {
+class BitNotOperation implements UnaryOperation {
   final String name = '~';
-  const JavaScriptBitNotOperation();
+  const BitNotOperation();
 
   ConstantValue fold(ConstantValue constant) {
-    if (JavaScriptConstantSystem.only.isInt(constant)) {
+    if (ConstantSystem.only.isInt(constant)) {
       // In JavaScript we don't check for -0 and treat it as if it was zero.
       if (constant.isMinusZero) {
-        constant = JavaScriptConstantSystem.only.createInt(BigInt.zero);
+        constant = ConstantSystem.only.createInt(BigInt.zero);
       }
       IntConstantValue intConstant = constant;
       // We convert the result of bit-operations to 32 bit unsigned integers.
-      return JavaScriptConstantSystem.only.createInt32(~intConstant.intValue);
+      return ConstantSystem.only.createInt32(~intConstant.intValue);
     }
     return null;
   }
@@ -49,12 +49,11 @@ class NegateOperation implements UnaryOperation {
   ConstantValue fold(ConstantValue constant) {
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
-      return JavaScriptConstantSystem.only.createInt(-intConstant.intValue);
+      return ConstantSystem.only.createInt(-intConstant.intValue);
     }
     if (constant.isDouble) {
       DoubleConstantValue doubleConstant = constant;
-      return JavaScriptConstantSystem.only
-          .createDouble(-doubleConstant.doubleValue);
+      return ConstantSystem.only.createDouble(-doubleConstant.doubleValue);
     }
     return null;
   }
@@ -71,7 +70,7 @@ class JavaScriptNegateOperation implements UnaryOperation {
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
       if (intConstant.intValue == BigInt.zero) {
-        return JavaScriptConstantSystem.only.createDouble(-0.0);
+        return ConstantSystem.only.createDouble(-0.0);
       }
     }
     return dartNegateOperation.fold(constant);
@@ -84,7 +83,7 @@ class NotOperation implements UnaryOperation {
   ConstantValue fold(ConstantValue constant) {
     if (constant.isBool) {
       BoolConstantValue boolConstant = constant;
-      return JavaScriptConstantSystem.only.createBool(!boolConstant.boolValue);
+      return ConstantSystem.only.createBool(!boolConstant.boolValue);
     }
     return null;
   }
@@ -99,7 +98,7 @@ abstract class BinaryBitOperation implements BinaryOperation {
       IntConstantValue rightInt = right;
       BigInt resultValue = foldInts(leftInt.intValue, rightInt.intValue);
       if (resultValue == null) return null;
-      return JavaScriptConstantSystem.only.createInt(resultValue);
+      return ConstantSystem.only.createInt(resultValue);
     }
     return null;
   }
@@ -119,15 +118,15 @@ class JavaScriptBinaryBitOperation implements BinaryOperation {
   ConstantValue fold(ConstantValue left, ConstantValue right) {
     // In JavaScript we don't check for -0 and treat it as if it was zero.
     if (left.isMinusZero) {
-      left = JavaScriptConstantSystem.only.createInt(BigInt.zero);
+      left = ConstantSystem.only.createInt(BigInt.zero);
     }
     if (right.isMinusZero) {
-      right = JavaScriptConstantSystem.only.createInt(BigInt.zero);
+      right = ConstantSystem.only.createInt(BigInt.zero);
     }
     IntConstantValue result = dartBitOperation.fold(left, right);
     if (result != null) {
       // We convert the result of bit-operations to 32 bit unsigned integers.
-      return JavaScriptConstantSystem.only.createInt32(result.intValue);
+      return ConstantSystem.only.createInt32(result.intValue);
     }
     return result;
   }
@@ -188,7 +187,7 @@ class JavaScriptShiftRightOperation extends JavaScriptBinaryBitOperation {
     if (left.isInt) {
       IntConstantValue intConstant = left;
       BigInt value = intConstant.intValue;
-      BigInt truncatedValue = value & JavaScriptConstantSystem.only.BITS32;
+      BigInt truncatedValue = value & ConstantSystem.only.BITS32;
       if (value < BigInt.zero) {
         // Sign-extend if the input was negative. The current semantics don't
         // make much sense, since we only look at bit 31.
@@ -204,7 +203,7 @@ class JavaScriptShiftRightOperation extends JavaScriptBinaryBitOperation {
         truncatedValue -= BigInt.two * (truncatedValue & SIGN_BIT);
       }
       if (value != truncatedValue) {
-        left = JavaScriptConstantSystem.only.createInt(truncatedValue);
+        left = ConstantSystem.only.createInt(truncatedValue);
       }
     }
     return super.fold(left, right);
@@ -218,7 +217,7 @@ abstract class BinaryBoolOperation implements BinaryOperation {
       BoolConstantValue leftBool = left;
       BoolConstantValue rightBool = right;
       bool resultValue = foldBools(leftBool.boolValue, rightBool.boolValue);
-      return JavaScriptConstantSystem.only.createBool(resultValue);
+      return ConstantSystem.only.createBool(resultValue);
     }
     return null;
   }
@@ -258,9 +257,9 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
       if (foldedValue == null) return null;
       if (left.isInt && right.isInt && !isDivide() || isTruncatingDivide()) {
         assert(foldedValue is BigInt);
-        return JavaScriptConstantSystem.only.createInt(foldedValue);
+        return ConstantSystem.only.createInt(foldedValue);
       } else {
-        return JavaScriptConstantSystem.only.createDouble(foldedValue);
+        return ConstantSystem.only.createDouble(foldedValue);
       }
     }
     return null;
@@ -282,7 +281,7 @@ class JavaScriptBinaryArithmeticOperation implements BinaryOperation {
   ConstantValue fold(ConstantValue left, ConstantValue right) {
     ConstantValue result = dartArithmeticOperation.fold(left, right);
     if (result == null) return result;
-    return JavaScriptConstantSystem.only.convertToJavaScriptConstant(result);
+    return ConstantSystem.only.convertToJavaScriptConstant(result);
   }
 
   apply(left, right) => dartArithmeticOperation.apply(left, right);
@@ -365,17 +364,17 @@ class AddOperation implements BinaryOperation {
       IntConstantValue leftInt = left;
       IntConstantValue rightInt = right;
       BigInt result = leftInt.intValue + rightInt.intValue;
-      return JavaScriptConstantSystem.only.createInt(result);
+      return ConstantSystem.only.createInt(result);
     } else if (left.isNum && right.isNum) {
       NumConstantValue leftNum = left;
       NumConstantValue rightNum = right;
       double result = leftNum.doubleValue + rightNum.doubleValue;
-      return JavaScriptConstantSystem.only.createDouble(result);
+      return ConstantSystem.only.createDouble(result);
     } else if (left.isString && right.isString) {
       StringConstantValue leftString = left;
       StringConstantValue rightString = right;
       String result = leftString.stringValue + rightString.stringValue;
-      return JavaScriptConstantSystem.only.createString(result);
+      return ConstantSystem.only.createString(result);
     } else {
       return null;
     }
@@ -393,7 +392,7 @@ class JavaScriptAddOperation implements BinaryOperation {
   ConstantValue fold(ConstantValue left, ConstantValue right) {
     ConstantValue result = _addOperation.fold(left, right);
     if (result != null && result.isNum) {
-      return JavaScriptConstantSystem.only.convertToJavaScriptConstant(result);
+      return ConstantSystem.only.convertToJavaScriptConstant(result);
     }
     return result;
   }
@@ -416,7 +415,7 @@ abstract class RelationalNumOperation implements BinaryOperation {
       foldedValue = foldNums(leftNum.doubleValue, rightNum.doubleValue);
     }
     assert(foldedValue != null);
-    return JavaScriptConstantSystem.only.createBool(foldedValue);
+    return ConstantSystem.only.createBool(foldedValue);
   }
 
   bool foldInts(BigInt left, BigInt right);
@@ -465,26 +464,26 @@ class EqualsOperation implements BinaryOperation {
       IntConstantValue leftInt = left;
       IntConstantValue rightInt = right;
       bool result = leftInt.intValue == rightInt.intValue;
-      return JavaScriptConstantSystem.only.createBool(result);
+      return ConstantSystem.only.createBool(result);
     }
 
     if (left.isNum && right.isNum) {
       NumConstantValue leftNum = left;
       NumConstantValue rightNum = right;
       bool result = leftNum.doubleValue == rightNum.doubleValue;
-      return JavaScriptConstantSystem.only.createBool(result);
+      return ConstantSystem.only.createBool(result);
     }
 
     if (left.isConstructedObject) {
       if (right.isNull) {
-        return JavaScriptConstantSystem.only.createBool(false);
+        return ConstantSystem.only.createBool(false);
       }
       // Unless we know that the user-defined object does not implement the
       // equality operator we cannot fold here.
       return null;
     }
 
-    return JavaScriptConstantSystem.only.createBool(left == right);
+    return ConstantSystem.only.createBool(left == right);
   }
 
   apply(left, right) => left == right;
@@ -498,7 +497,7 @@ class IdentityOperation implements BinaryOperation {
     // constant fold NaN === NaN. Otherwise the output depends on inlined
     // variables and other optimizations.
     if (left.isNaN && right.isNaN) return null;
-    return JavaScriptConstantSystem.only.createBool(left == right);
+    return ConstantSystem.only.createBool(left == right);
   }
 
   apply(left, right) => identical(left, right);
@@ -562,7 +561,7 @@ class CodeUnitAtRuntimeOperation extends CodeUnitAtOperation {
       int index = indexConstant.intValue.toInt();
       if (index < 0 || index >= string.length) return null;
       int value = string.codeUnitAt(index);
-      return JavaScriptConstantSystem.only.createIntFromInt(value);
+      return ConstantSystem.only.createIntFromInt(value);
     }
     return null;
   }
@@ -570,7 +569,7 @@ class CodeUnitAtRuntimeOperation extends CodeUnitAtOperation {
 
 class JavaScriptRoundOperation implements UnaryOperation {
   const JavaScriptRoundOperation();
-  String get name => JavaScriptConstantSystem.only.round.name;
+  String get name => ConstantSystem.only.round.name;
   ConstantValue fold(ConstantValue constant) {
     // Be careful to round() only values that do not throw on either the host or
     // target platform.
@@ -584,7 +583,7 @@ class JavaScriptRoundOperation implements UnaryOperation {
       double rounded1 = (value * (1.0 + severalULP)).roundToDouble();
       double rounded2 = (value * (1.0 - severalULP)).roundToDouble();
       if (rounded != rounded1 || rounded != rounded2) return null;
-      return JavaScriptConstantSystem.only.convertToJavaScriptConstant(
+      return ConstantSystem.only.convertToJavaScriptConstant(
           new IntConstantValue(new BigInt.from(value.round())));
     }
 
@@ -615,71 +614,192 @@ class UnfoldedUnaryOperation implements UnaryOperation {
   }
 }
 
-/// A [ConstantSystem] is responsible for creating constants and folding them.
-abstract class ConstantSystem {
-  BinaryOperation get add;
-  BinaryOperation get bitAnd;
-  UnaryOperation get bitNot;
-  BinaryOperation get bitOr;
-  BinaryOperation get bitXor;
-  BinaryOperation get booleanAnd;
-  BinaryOperation get booleanOr;
-  BinaryOperation get divide;
-  BinaryOperation get equal;
-  BinaryOperation get greaterEqual;
-  BinaryOperation get greater;
-  BinaryOperation get identity;
-  BinaryOperation get ifNull;
-  BinaryOperation get lessEqual;
-  BinaryOperation get less;
-  BinaryOperation get modulo;
-  BinaryOperation get multiply;
-  UnaryOperation get negate;
-  UnaryOperation get not;
-  BinaryOperation get remainder;
-  BinaryOperation get shiftLeft;
-  BinaryOperation get shiftRight;
-  BinaryOperation get subtract;
-  BinaryOperation get truncatingDivide;
+/// Constant system following the semantics for Dart code that has been
+/// compiled to JavaScript.
+class ConstantSystem {
+  final BITS32 = new BigInt.from(0xFFFFFFFF);
 
-  BinaryOperation get codeUnitAt;
-  UnaryOperation get round;
-  UnaryOperation get abs;
+  final add = const JavaScriptAddOperation();
+  final bitAnd = const JavaScriptBinaryBitOperation(const BitAndOperation());
+  final bitNot = const BitNotOperation();
+  final bitOr = const JavaScriptBinaryBitOperation(const BitOrOperation());
+  final bitXor = const JavaScriptBinaryBitOperation(const BitXorOperation());
+  final booleanAnd = const BooleanAndOperation();
+  final booleanOr = const BooleanOrOperation();
+  final divide =
+      const JavaScriptBinaryArithmeticOperation(const DivideOperation());
+  final equal = const EqualsOperation();
+  final greaterEqual = const GreaterEqualOperation();
+  final greater = const GreaterOperation();
+  final identity = const JavaScriptIdentityOperation();
+  final ifNull = const IfNullOperation();
+  final lessEqual = const LessEqualOperation();
+  final less = const LessOperation();
+  final modulo =
+      const JavaScriptBinaryArithmeticOperation(const ModuloOperation());
+  final multiply =
+      const JavaScriptBinaryArithmeticOperation(const MultiplyOperation());
+  final negate = const JavaScriptNegateOperation();
+  final not = const NotOperation();
+  final remainder = const JavaScriptRemainderOperation();
+  final shiftLeft =
+      const JavaScriptBinaryBitOperation(const ShiftLeftOperation());
+  final shiftRight = const JavaScriptShiftRightOperation();
+  final subtract =
+      const JavaScriptBinaryArithmeticOperation(const SubtractOperation());
+  final truncatingDivide = const JavaScriptBinaryArithmeticOperation(
+      const TruncatingDivideOperation());
+  final codeUnitAt = const CodeUnitAtRuntimeOperation();
+  final round = const JavaScriptRoundOperation();
+  final abs = const UnfoldedUnaryOperation('abs');
 
-  const ConstantSystem();
+  static final ConstantSystem only = new ConstantSystem._internal();
 
-  ConstantValue createInt(BigInt i);
-  ConstantValue createIntFromInt(int i) => createInt(new BigInt.from(i));
-  ConstantValue createDouble(double d);
-  ConstantValue createString(String string);
-  ConstantValue createBool(bool value);
-  ConstantValue createNull();
-  ConstantValue createList(InterfaceType type, List<ConstantValue> values);
-  ConstantValue createSet(CommonElements commonElements, InterfaceType type,
-      List<ConstantValue> values);
-  ConstantValue createMap(CommonElements commonElements, InterfaceType type,
-      List<ConstantValue> keys, List<ConstantValue> values);
-  ConstantValue createType(CommonElements commonElements, DartType type);
-  ConstantValue createSymbol(CommonElements commonElements, String text);
+  ConstantSystem._internal();
 
-  // We need to special case the subtype check for JavaScript constant
-  // system because an int is a double at runtime.
-  bool isSubtype(DartTypes types, DartType s, DartType t);
+  /// Returns true if [value] will turn into NaN or infinity
+  /// at runtime.
+  bool integerBecomesNanOrInfinity(BigInt value) {
+    double doubleValue = value.toDouble();
+    return doubleValue.isNaN || doubleValue.isInfinite;
+  }
+
+  NumConstantValue convertToJavaScriptConstant(NumConstantValue constant) {
+    if (constant.isInt) {
+      IntConstantValue intConstant = constant;
+      BigInt intValue = intConstant.intValue;
+      if (integerBecomesNanOrInfinity(intValue)) {
+        return new DoubleConstantValue(intValue.toDouble());
+      }
+      // If the integer loses precision with JavaScript numbers, use
+      // the floored version JavaScript will use.
+      BigInt floorValue = new BigInt.from(intValue.toDouble());
+      if (floorValue != intValue) {
+        return new IntConstantValue(floorValue);
+      }
+    } else if (constant.isDouble) {
+      DoubleConstantValue doubleResult = constant;
+      double doubleValue = doubleResult.doubleValue;
+      if (!doubleValue.isInfinite &&
+          !doubleValue.isNaN &&
+          !constant.isMinusZero) {
+        double truncated = doubleValue.truncateToDouble();
+        if (truncated == doubleValue) {
+          return new IntConstantValue(new BigInt.from(truncated));
+        }
+      }
+    }
+    return constant;
+  }
+
+  NumConstantValue createInt(BigInt i) =>
+      convertToJavaScriptConstant(new IntConstantValue(i));
+  NumConstantValue createIntFromInt(int i) => createInt(new BigInt.from(i));
+  NumConstantValue createInt32(BigInt i) => new IntConstantValue(i & BITS32);
+  NumConstantValue createDouble(double d) =>
+      convertToJavaScriptConstant(new DoubleConstantValue(d));
+  StringConstantValue createString(String string) =>
+      new StringConstantValue(string);
+  BoolConstantValue createBool(bool value) => new BoolConstantValue(value);
+  NullConstantValue createNull() => new NullConstantValue();
+  ListConstantValue createList(
+          InterfaceType type, List<ConstantValue> values) =>
+      new ListConstantValue(type, values);
+
+  ConstantValue createType(CommonElements commonElements, DartType type) {
+    InterfaceType instanceType = commonElements.typeLiteralType;
+    return new TypeConstantValue(type, instanceType);
+  }
 
   /// Returns true if the [constant] is an integer at runtime.
-  bool isInt(ConstantValue constant);
+  ///
+  /// Integer checks report true for -0.0, INFINITY, and -INFINITY.  At
+  /// runtime an 'X is int' check is implemented as:
+  ///
+  /// typeof(X) === "number" && Math.floor(X) === X
+  ///
+  /// We consistently match that runtime semantics at compile time as well.
+  bool isInt(ConstantValue constant) =>
+      constant.isInt ||
+      constant.isMinusZero ||
+      constant.isPositiveInfinity ||
+      constant.isNegativeInfinity;
 
   /// Returns true if the [constant] is a double at runtime.
-  bool isDouble(ConstantValue constant);
+  bool isDouble(ConstantValue constant) =>
+      constant.isDouble && !constant.isMinusZero;
 
   /// Returns true if the [constant] is a string at runtime.
-  bool isString(ConstantValue constant);
+  bool isString(ConstantValue constant) => constant.isString;
 
   /// Returns true if the [constant] is a boolean at runtime.
-  bool isBool(ConstantValue constant);
+  bool isBool(ConstantValue constant) => constant.isBool;
 
   /// Returns true if the [constant] is null at runtime.
-  bool isNull(ConstantValue constant);
+  bool isNull(ConstantValue constant) => constant.isNull;
+
+  bool isSubtype(DartTypes types, DartType s, DartType t) {
+    // At runtime, an integer is both an integer and a double: the
+    // integer type check is Math.floor, which will return true only
+    // for real integers, and our double type check is 'typeof number'
+    // which will return true for both integers and doubles.
+    if (s == types.commonElements.intType &&
+        t == types.commonElements.doubleType) {
+      return true;
+    }
+    return types.isSubtype(s, t);
+  }
+
+  SetConstantValue createSet(CommonElements commonElements,
+      InterfaceType sourceType, List<ConstantValue> values) {
+    InterfaceType type = commonElements.getConstantSetTypeFor(sourceType);
+    return new JavaScriptSetConstant(commonElements, type, values);
+  }
+
+  MapConstantValue createMap(
+      CommonElements commonElements,
+      InterfaceType sourceType,
+      List<ConstantValue> keys,
+      List<ConstantValue> values) {
+    bool onlyStringKeys = true;
+    ConstantValue protoValue = null;
+    for (int i = 0; i < keys.length; i++) {
+      dynamic key = keys[i];
+      if (key.isString) {
+        if (key.stringValue == JavaScriptMapConstant.PROTO_PROPERTY) {
+          protoValue = values[i];
+        }
+      } else {
+        onlyStringKeys = false;
+        // Don't handle __proto__ values specially in the general map case.
+        protoValue = null;
+        break;
+      }
+    }
+
+    bool hasProtoKey = (protoValue != null);
+    InterfaceType keysType;
+    if (sourceType.treatAsRaw) {
+      keysType = commonElements.listType();
+    } else {
+      keysType = commonElements.listType(sourceType.typeArguments.first);
+    }
+    ListConstantValue keysList = new ListConstantValue(keysType, keys);
+    InterfaceType type = commonElements.getConstantMapTypeFor(sourceType,
+        hasProtoKey: hasProtoKey, onlyStringKeys: onlyStringKeys);
+    return new JavaScriptMapConstant(
+        type, keysList, values, protoValue, onlyStringKeys);
+  }
+
+  ConstantValue createSymbol(CommonElements commonElements, String text) {
+    InterfaceType type = commonElements.symbolImplementationType;
+    FieldEntity field = commonElements.symbolField;
+    ConstantValue argument = createString(text);
+    // TODO(johnniwinther): Use type arguments when all uses no longer expect
+    // a [FieldElement].
+    var fields = <FieldEntity, ConstantValue>{field: argument};
+    return new ConstructedConstantValue(type, fields);
+  }
 
   UnaryOperation lookupUnary(UnaryOperator operator) {
     switch (operator.kind) {
@@ -740,202 +860,12 @@ abstract class ConstantSystem {
   }
 }
 
-/// Constant system following the semantics for Dart code that has been
-/// compiled to JavaScript.
-class JavaScriptConstantSystem extends ConstantSystem {
-  final BITS32 = new BigInt.from(0xFFFFFFFF);
-
-  final add = const JavaScriptAddOperation();
-  final bitAnd = const JavaScriptBinaryBitOperation(const BitAndOperation());
-  final bitNot = const JavaScriptBitNotOperation();
-  final bitOr = const JavaScriptBinaryBitOperation(const BitOrOperation());
-  final bitXor = const JavaScriptBinaryBitOperation(const BitXorOperation());
-  final booleanAnd = const BooleanAndOperation();
-  final booleanOr = const BooleanOrOperation();
-  final divide =
-      const JavaScriptBinaryArithmeticOperation(const DivideOperation());
-  final equal = const EqualsOperation();
-  final greaterEqual = const GreaterEqualOperation();
-  final greater = const GreaterOperation();
-  final identity = const JavaScriptIdentityOperation();
-  final ifNull = const IfNullOperation();
-  final lessEqual = const LessEqualOperation();
-  final less = const LessOperation();
-  final modulo =
-      const JavaScriptBinaryArithmeticOperation(const ModuloOperation());
-  final multiply =
-      const JavaScriptBinaryArithmeticOperation(const MultiplyOperation());
-  final negate = const JavaScriptNegateOperation();
-  final not = const NotOperation();
-  final remainder = const JavaScriptRemainderOperation();
-  final shiftLeft =
-      const JavaScriptBinaryBitOperation(const ShiftLeftOperation());
-  final shiftRight = const JavaScriptShiftRightOperation();
-  final subtract =
-      const JavaScriptBinaryArithmeticOperation(const SubtractOperation());
-  final truncatingDivide = const JavaScriptBinaryArithmeticOperation(
-      const TruncatingDivideOperation());
-  final codeUnitAt = const CodeUnitAtRuntimeOperation();
-  final round = const JavaScriptRoundOperation();
-  final abs = const UnfoldedUnaryOperation('abs');
-
-  static final JavaScriptConstantSystem only =
-      new JavaScriptConstantSystem._internal();
-
-  JavaScriptConstantSystem._internal();
-
-  /// Returns true if [value] will turn into NaN or infinity
-  /// at runtime.
-  bool integerBecomesNanOrInfinity(BigInt value) {
-    double doubleValue = value.toDouble();
-    return doubleValue.isNaN || doubleValue.isInfinite;
-  }
-
-  NumConstantValue convertToJavaScriptConstant(NumConstantValue constant) {
-    if (constant.isInt) {
-      IntConstantValue intConstant = constant;
-      BigInt intValue = intConstant.intValue;
-      if (integerBecomesNanOrInfinity(intValue)) {
-        return new DoubleConstantValue(intValue.toDouble());
-      }
-      // If the integer loses precision with JavaScript numbers, use
-      // the floored version JavaScript will use.
-      BigInt floorValue = new BigInt.from(intValue.toDouble());
-      if (floorValue != intValue) {
-        return new IntConstantValue(floorValue);
-      }
-    } else if (constant.isDouble) {
-      DoubleConstantValue doubleResult = constant;
-      double doubleValue = doubleResult.doubleValue;
-      if (!doubleValue.isInfinite &&
-          !doubleValue.isNaN &&
-          !constant.isMinusZero) {
-        double truncated = doubleValue.truncateToDouble();
-        if (truncated == doubleValue) {
-          return new IntConstantValue(new BigInt.from(truncated));
-        }
-      }
-    }
-    return constant;
-  }
-
-  @override
-  NumConstantValue createInt(BigInt i) {
-    return convertToJavaScriptConstant(new IntConstantValue(i));
-  }
-
-  NumConstantValue createInt32(BigInt i) => new IntConstantValue(i & BITS32);
-  NumConstantValue createDouble(double d) =>
-      convertToJavaScriptConstant(new DoubleConstantValue(d));
-  StringConstantValue createString(String string) {
-    return new StringConstantValue(string);
-  }
-
-  BoolConstantValue createBool(bool value) => new BoolConstantValue(value);
-  NullConstantValue createNull() => new NullConstantValue();
-
-  @override
-  ListConstantValue createList(InterfaceType type, List<ConstantValue> values) {
-    return new ListConstantValue(type, values);
-  }
-
-  @override
-  ConstantValue createType(CommonElements commonElements, DartType type) {
-    InterfaceType instanceType = commonElements.typeLiteralType;
-    return new TypeConstantValue(type, instanceType);
-  }
-
-  // Integer checks report true for -0.0, INFINITY, and -INFINITY.  At
-  // runtime an 'X is int' check is implemented as:
-  //
-  // typeof(X) === "number" && Math.floor(X) === X
-  //
-  // We consistently match that runtime semantics at compile time as well.
-  bool isInt(ConstantValue constant) {
-    return constant.isInt ||
-        constant.isMinusZero ||
-        constant.isPositiveInfinity ||
-        constant.isNegativeInfinity;
-  }
-
-  bool isDouble(ConstantValue constant) =>
-      constant.isDouble && !constant.isMinusZero;
-  bool isString(ConstantValue constant) => constant.isString;
-  bool isBool(ConstantValue constant) => constant.isBool;
-  bool isNull(ConstantValue constant) => constant.isNull;
-
-  bool isSubtype(DartTypes types, DartType s, DartType t) {
-    // At runtime, an integer is both an integer and a double: the
-    // integer type check is Math.floor, which will return true only
-    // for real integers, and our double type check is 'typeof number'
-    // which will return true for both integers and doubles.
-    if (s == types.commonElements.intType &&
-        t == types.commonElements.doubleType) {
-      return true;
-    }
-    return types.isSubtype(s, t);
-  }
-
-  @override
-  SetConstantValue createSet(CommonElements commonElements,
-      InterfaceType sourceType, List<ConstantValue> values) {
-    InterfaceType type = commonElements.getConstantSetTypeFor(sourceType);
-    return new JavaScriptSetConstant(commonElements, type, values);
-  }
-
-  MapConstantValue createMap(
-      CommonElements commonElements,
-      InterfaceType sourceType,
-      List<ConstantValue> keys,
-      List<ConstantValue> values) {
-    bool onlyStringKeys = true;
-    ConstantValue protoValue = null;
-    for (int i = 0; i < keys.length; i++) {
-      dynamic key = keys[i];
-      if (key.isString) {
-        if (key.stringValue == JavaScriptMapConstant.PROTO_PROPERTY) {
-          protoValue = values[i];
-        }
-      } else {
-        onlyStringKeys = false;
-        // Don't handle __proto__ values specially in the general map case.
-        protoValue = null;
-        break;
-      }
-    }
-
-    bool hasProtoKey = (protoValue != null);
-    InterfaceType keysType;
-    if (sourceType.treatAsRaw) {
-      keysType = commonElements.listType();
-    } else {
-      keysType = commonElements.listType(sourceType.typeArguments.first);
-    }
-    ListConstantValue keysList = new ListConstantValue(keysType, keys);
-    InterfaceType type = commonElements.getConstantMapTypeFor(sourceType,
-        hasProtoKey: hasProtoKey, onlyStringKeys: onlyStringKeys);
-    return new JavaScriptMapConstant(
-        type, keysList, values, protoValue, onlyStringKeys);
-  }
-
-  @override
-  ConstantValue createSymbol(CommonElements commonElements, String text) {
-    InterfaceType type = commonElements.symbolImplementationType;
-    FieldEntity field = commonElements.symbolField;
-    ConstantValue argument = createString(text);
-    // TODO(johnniwinther): Use type arguments when all uses no longer expect
-    // a [FieldElement].
-    var fields = <FieldEntity, ConstantValue>{field: argument};
-    return new ConstructedConstantValue(type, fields);
-  }
-}
-
 class JavaScriptSetConstant extends SetConstantValue {
   final MapConstantValue entries;
 
   JavaScriptSetConstant(CommonElements commonElements, InterfaceType type,
       List<ConstantValue> values)
-      : entries = JavaScriptConstantSystem.only.createMap(
+      : entries = ConstantSystem.only.createMap(
             commonElements,
             commonElements.mapType(
                 type.typeArguments.first, commonElements.nullType),
