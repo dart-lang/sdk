@@ -174,6 +174,8 @@ class DevCompilerConstantsBackend extends ConstantsBackend {
 
   @override
   Constant lowerConstant(Constant constant) {
+    // TODO(markzipan): Remove this lowering logic when we switch to
+    // front-end constant evaluation
     if (constant is DoubleConstant) {
       // Convert to an integer when possible (matching the runtime behavior
       // of `is int`).
