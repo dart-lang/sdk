@@ -7,7 +7,7 @@ library dart2js.type_system;
 
 import 'common.dart';
 import 'common/names.dart' show Identifiers, Uris;
-import 'constants/constant_system.dart';
+import 'constants/constant_system.dart' as constant_system;
 import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart';
 import 'elements/entities.dart';
@@ -1438,13 +1438,13 @@ class CommonElementsImpl
   ClassEntity get stackTraceHelperClass => _findHelperClass('_StackTrace');
 
   ClassEntity get constantMapClass =>
-      _findHelperClass(JavaScriptMapConstant.DART_CLASS);
+      _findHelperClass(constant_system.JavaScriptMapConstant.DART_CLASS);
   ClassEntity get constantStringMapClass =>
-      _findHelperClass(JavaScriptMapConstant.DART_STRING_CLASS);
+      _findHelperClass(constant_system.JavaScriptMapConstant.DART_STRING_CLASS);
   ClassEntity get constantProtoMapClass =>
-      _findHelperClass(JavaScriptMapConstant.DART_PROTO_CLASS);
-  ClassEntity get generalConstantMapClass =>
-      _findHelperClass(JavaScriptMapConstant.DART_GENERAL_CLASS);
+      _findHelperClass(constant_system.JavaScriptMapConstant.DART_PROTO_CLASS);
+  ClassEntity get generalConstantMapClass => _findHelperClass(
+      constant_system.JavaScriptMapConstant.DART_GENERAL_CLASS);
 
   ClassEntity get annotationCreatesClass => _findHelperClass('Creates');
 

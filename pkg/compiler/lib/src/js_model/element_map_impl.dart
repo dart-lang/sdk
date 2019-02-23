@@ -16,7 +16,6 @@ import '../common.dart';
 import '../common/names.dart';
 import '../common_elements.dart';
 import '../compile_time_constants.dart';
-import '../constants/constant_system.dart';
 import '../constants/constructors.dart';
 import '../constants/evaluation.dart';
 import '../constants/expressions.dart';
@@ -2490,17 +2489,13 @@ class JsConstantEnvironment implements ConstantEnvironment {
 
   JsConstantEnvironment(this._elementMap, this._environment);
 
-  @override
-  ConstantSystem get constantSystem => ConstantSystem.only;
-
   ConstantValue _getConstantValue(
       Spannable spannable, ConstantExpression expression,
       {bool constantRequired}) {
     return _valueMap.putIfAbsent(expression, () {
-      return expression.evaluate(
-          new JsEvaluationEnvironment(_elementMap, _environment, spannable,
-              constantRequired: constantRequired),
-          constantSystem);
+      return expression.evaluate(new JsEvaluationEnvironment(
+          _elementMap, _environment, spannable,
+          constantRequired: constantRequired));
     });
   }
 }

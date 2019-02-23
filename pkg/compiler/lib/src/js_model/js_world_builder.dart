@@ -7,7 +7,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common.dart';
 import '../common_elements.dart';
-import '../constants/constant_system.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
@@ -860,7 +860,8 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     return new SetConstantValue(type, values);
   }
 
-  ConstantValue visitMap(covariant JavaScriptMapConstant constant, _) {
+  ConstantValue visitMap(
+      covariant constant_system.JavaScriptMapConstant constant, _) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     ListConstantValue keys = constant.keyList.accept(this, null);
     List<ConstantValue> values = _handleValues(constant.values);
@@ -871,7 +872,7 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
         protoValue == constant.protoValue) {
       return constant;
     }
-    return new JavaScriptMapConstant(
+    return new constant_system.JavaScriptMapConstant(
         type, keys, values, protoValue, constant.onlyStringKeys);
   }
 

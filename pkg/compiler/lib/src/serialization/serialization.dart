@@ -9,7 +9,7 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
 import '../closure.dart';
-import '../constants/constant_system.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/entities.dart';

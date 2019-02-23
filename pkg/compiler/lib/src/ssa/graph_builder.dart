@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../constants/constant_system.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common_elements.dart';
 import '../compiler.dart';
@@ -78,8 +77,6 @@ abstract class GraphBuilder {
   RuntimeTypesNeed get rtiNeed => closedWorld.rtiNeed;
 
   JavaScriptConstantCompiler get constants => backend.constants;
-
-  ConstantSystem get constantSystem => constants.constantSystem;
 
   RuntimeTypesEncoder get rtiEncoder => backend.rtiEncoder;
 

@@ -467,7 +467,7 @@ abstract class AbstractDataSource extends DataSourceMixin
         List<ConstantValue> values = readConstants();
         ConstantValue protoValue = readConstantOrNull();
         bool onlyStringKeys = readBool();
-        return new JavaScriptMapConstant(
+        return new constant_system.JavaScriptMapConstant(
             type, keyList, values, protoValue, onlyStringKeys);
       case ConstantValueKind.CONSTRUCTED:
         InterfaceType type = readDartType();

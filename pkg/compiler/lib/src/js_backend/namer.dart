@@ -14,7 +14,7 @@ import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Names, Selectors;
-import '../constants/constant_system.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
@@ -1982,7 +1982,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
-  void visitMap(covariant JavaScriptMapConstant constant, [_]) {
+  void visitMap(covariant constant_system.JavaScriptMapConstant constant, [_]) {
     // TODO(9476): Incorporate type parameters into name.
     addRoot('Map');
     if (constant.length == 0) {
