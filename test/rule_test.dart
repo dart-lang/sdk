@@ -13,12 +13,14 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/services/lint.dart' as lint_service;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/formatter.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
+import 'package:linter/src/version.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -244,6 +246,11 @@ defineSanityTests() {
       File file = new File(path);
       testRule('non_constant_identifier_names', file);
     });
+  });
+
+  test('linter version caching', () {
+    registerLintRules();
+    expect(lint_service.linterVersion, version);
   });
 }
 

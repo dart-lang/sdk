@@ -55,7 +55,6 @@ import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/empty_statements.dart';
 import 'package:linter/src/rules/file_names.dart';
 import 'package:linter/src/rules/flutter_style_todos.dart';
-import 'package:linter/src/rules/provide_deprecation_message.dart';
 import 'package:linter/src/rules/hash_and_equals.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/invariant_booleans.dart';
@@ -107,6 +106,7 @@ import 'package:linter/src/rules/prefer_null_aware_operators.dart';
 import 'package:linter/src/rules/prefer_single_quotes.dart';
 import 'package:linter/src/rules/prefer_typing_uninitialized_variables.dart';
 import 'package:linter/src/rules/prefer_void_to_null.dart';
+import 'package:linter/src/rules/provide_deprecation_message.dart';
 import 'package:linter/src/rules/pub/package_names.dart';
 import 'package:linter/src/rules/pub/sort_pub_dependencies.dart';
 import 'package:linter/src/rules/public_member_api_docs.dart';
@@ -143,6 +143,7 @@ import 'package:linter/src/rules/valid_regexps.dart';
 import 'package:linter/src/rules/void_checks.dart';
 
 void registerLintRules() {
+  Analyzer.facade.cacheLinterVersion();
   Analyzer.facade
     ..register(new AlwaysDeclareReturnTypes())
     ..register(new AlwaysPutControlBodyOnNewLine())

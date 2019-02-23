@@ -2,19 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: implementation_imports
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/io.dart' // ignore: implementation_imports
-    show
-        errorSink;
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/util.dart' // ignore: implementation_imports
-    as util;
+import 'package:analyzer/src/lint/io.dart' show errorSink;
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/util.dart' as util;
+import 'package:analyzer/src/services/lint.dart' as lint_service;
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/version.dart';
 
 export 'package:analyzer/src/dart/ast/token.dart';
 export 'package:analyzer/src/dart/constant/evaluation.dart'
@@ -101,12 +102,18 @@ class Analyzer {
   void register(LintRule lint) {
     Registry.ruleRegistry.register(lint);
   }
+
+  /// Cache linter version; used in summary signatures.
+  void cacheLinterVersion() {
+    lint_service.linterVersion = version;
+  }
 }
 
 class ErrorWatchingSink implements IOSink {
   bool encounteredError = false;
 
   IOSink delegate;
+
   ErrorWatchingSink(this.delegate);
 
   @override
