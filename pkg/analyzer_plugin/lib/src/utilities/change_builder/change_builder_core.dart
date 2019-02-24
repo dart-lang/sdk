@@ -288,8 +288,10 @@ class FileEditBuilderImpl implements FileEditBuilder {
 
   @override
   void addDeletion(SourceRange range) {
-    EditBuilderImpl builder = createEditBuilder(range.offset, range.length);
-    _addEdit(builder);
+    if (range.length > 0) {
+      EditBuilderImpl builder = createEditBuilder(range.offset, range.length);
+      _addEdit(builder);
+    }
   }
 
   @override
