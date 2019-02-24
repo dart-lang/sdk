@@ -13,6 +13,7 @@ main() {
     defineReflectiveTests(MapLiteralTest);
     defineReflectiveTests(MissingCodeTest);
     defineReflectiveTests(ParameterListTest);
+    defineReflectiveTests(TypedefTest);
   });
 }
 
@@ -709,6 +710,21 @@ f({a: 0}) {}
 f(a = 0) {}
 ''', [ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP], '''
 f([a = 0]) {}
+''');
+  }
+}
+
+/**
+ * Test how well the parser recovers when tokens are missing in a typedef.
+ */
+@reflectiveTest
+class TypedefTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_missingFunction() {
+    testRecovery('''
+typedef Predicate = bool <E>(E element);
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+typedef Predicate = bool Function<E>(E element);
 ''');
   }
 }
