@@ -451,6 +451,20 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     return new JumpTarget(kind, functionNestingLevel, member, charOffset);
   }
 
+  void inferAnnotations(List<Expression> annotations) {
+    if (annotations != null) {
+      _typeInferrer?.inferMetadata(this, annotations);
+      if (transformSetLiterals) {
+        library.loader.setLiteralTransformer ??=
+            new SetLiteralTransformer(library.loader);
+        for (int i = 0; i < annotations.length; i++) {
+          annotations[i] =
+              annotations[i].accept(library.loader.setLiteralTransformer);
+        }
+      }
+    }
+  }
+
   @override
   void beginMetadata(Token token) {
     debugEvent("beginMetadata");
@@ -578,7 +592,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     List<Expression> annotations = pop();
     if (annotations != null) {
-      _typeInferrer?.inferMetadata(this, annotations);
+      inferAnnotations(annotations);
       Field field = fields.first.target;
       // The first (and often only field) will not get a clone.
       for (int i = 0; i < annotations.length; i++) {
@@ -882,7 +896,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     Member target = builder.target;
-    _typeInferrer?.inferMetadata(this, annotations);
+    inferAnnotations(annotations);
     for (Expression annotation in annotations ?? const []) {
       target.addAnnotation(annotation);
     }
@@ -995,15 +1009,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
     if (variablesWithMetadata != null) {
       for (int i = 0; i < variablesWithMetadata.length; i++) {
-        _typeInferrer?.inferMetadata(
-            this, variablesWithMetadata[i].annotations);
+        inferAnnotations(variablesWithMetadata[i].annotations);
       }
     }
     if (multiVariablesWithMetadata != null) {
       for (int i = 0; i < multiVariablesWithMetadata.length; i++) {
         List<VariableDeclaration> variables = multiVariablesWithMetadata[i];
         List<Expression> annotations = variables.first.annotations;
-        _typeInferrer?.inferMetadata(this, annotations);
+        inferAnnotations(annotations);
         for (int i = 1; i < variables.length; i++) {
           cloner ??= new CloneVisitor();
           VariableDeclaration variable = variables[i];
@@ -1018,7 +1031,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   List<Expression> finishMetadata(TreeNode parent) {
     List<Expression> expressions = pop();
-    _typeInferrer?.inferMetadata(this, expressions);
+    inferAnnotations(expressions);
 
     // The invocation of [resolveRedirectingFactoryTargets] below may change the
     // root nodes of the annotation expressions.  We need to have a parent of
@@ -2880,7 +2893,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     if (annotations != null) {
       if (functionNestingLevel == 0) {
-        _typeInferrer?.inferMetadata(this, annotations);
+        inferAnnotations(annotations);
       }
       for (Expression annotation in annotations) {
         variable.addAnnotation(annotation);
@@ -4516,7 +4529,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     KernelTypeVariableBuilder variable = new KernelTypeVariableBuilder(
         name.name, library, name.charOffset, null);
     if (annotations != null) {
-      _typeInferrer?.inferMetadata(this, annotations);
+      inferAnnotations(annotations);
       for (Expression annotation in annotations) {
         variable.parameter.addAnnotation(annotation);
       }
