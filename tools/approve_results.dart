@@ -108,7 +108,8 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
     // which build the commit queue was rebased on.
     final build = (changelistBuild != null
             ? await loadLog(changelistBuild["id"],
-                "gsutil_find_latest_build/0/logs/raw_io.output_text_latest_/0")
+                "download_previous_results/0/steps/gsutil_find_latest_build/0/logs/"
+                "raw_io.output_text_latest_/0")
             : await readFile(bot, "latest"))
         .trim();
 
