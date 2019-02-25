@@ -1505,6 +1505,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartCoreDouble {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "double" && element.library.isDartCore;
+  }
+
+  @override
   bool get isDartCoreFunction {
     ClassElement element = this.element;
     if (element == null) {
@@ -2745,6 +2754,9 @@ abstract class TypeImpl implements DartType {
 
   @override
   bool get isDartCoreBool => false;
+
+  @override
+  bool get isDartCoreDouble => false;
 
   @override
   bool get isDartCoreFunction => false;

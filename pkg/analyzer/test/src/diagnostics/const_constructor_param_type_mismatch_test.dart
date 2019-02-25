@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -71,6 +72,48 @@ class C {
 }
 const C constant = const C(0);
 ''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_int_to_double_via_default_value_other_file_after() async {
+    addTestFile('''
+import 'other.dart';
+
+void main() {
+  const c = C();
+}
+''');
+    newFile('/test/lib/other.dart', content: '''
+class C {
+  final double x;
+  const C([this.x = 0]);
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    var otherFileResult =
+        await resolveFile(convertPath('/test/lib/other.dart'));
+    expect(otherFileResult.errors, isEmpty);
+  }
+
+  test_int_to_double_via_default_value_other_file_before() async {
+    addTestFile('''
+import 'other.dart';
+
+void main() {
+  const c = C();
+}
+''');
+    newFile('/test/lib/other.dart', content: '''
+class C {
+  final double x;
+  const C([this.x = 0]);
+}
+''');
+    var otherFileResult =
+        await resolveFile(convertPath('/test/lib/other.dart'));
+    expect(otherFileResult.errors, isEmpty);
     await resolveTestFile();
     assertNoTestErrors();
   }

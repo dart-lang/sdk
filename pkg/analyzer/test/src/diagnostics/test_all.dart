@@ -42,6 +42,7 @@ import 'unused_label_test.dart' as unused_label;
 import 'unused_local_variable_test.dart' as unused_local_variable;
 import 'unused_shown_name_test.dart' as unused_shown_name;
 import 'use_of_void_result_test.dart' as use_of_void_result;
+import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
 
 main() {
   defineReflectiveSuite(() {
@@ -80,5 +81,6 @@ main() {
     unused_local_variable.main();
     unused_shown_name.main();
     use_of_void_result.main();
+    variable_type_mismatch.main();
   }, name: 'diagnostics');
 }
