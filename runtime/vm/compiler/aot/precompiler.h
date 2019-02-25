@@ -29,25 +29,6 @@ class Precompiler;
 class FlowGraph;
 class PrecompilerEntryPointsPrinter;
 
-class TypeRangeCache : public ValueObject {
- public:
-  TypeRangeCache(Precompiler* precompiler, Thread* thread, intptr_t num_cids);
-  ~TypeRangeCache();
-
-  bool InstanceOfHasClassRange(const AbstractType& type,
-                               intptr_t* lower_limit,
-                               intptr_t* upper_limit);
-
- private:
-  static const intptr_t kNotComputed = -1;
-  static const intptr_t kNotContiguous = -2;
-
-  Precompiler* precompiler_;
-  Thread* thread_;
-  intptr_t* lower_limits_;
-  intptr_t* upper_limits_;
-};
-
 class SymbolKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.

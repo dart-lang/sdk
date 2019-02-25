@@ -126,19 +126,6 @@ static void Jump(const Error& error) {
   Thread::Current()->long_jump_base()->Jump(1, error);
 }
 
-TypeRangeCache::TypeRangeCache(Precompiler* precompiler,
-                               Thread* thread,
-                               intptr_t num_cids)
-    : precompiler_(precompiler),
-      thread_(thread),
-      lower_limits_(thread->zone()->Alloc<intptr_t>(num_cids)),
-      upper_limits_(thread->zone()->Alloc<intptr_t>(num_cids)) {
-  for (intptr_t i = 0; i < num_cids; i++) {
-    lower_limits_[i] = kNotComputed;
-    upper_limits_[i] = kNotComputed;
-  }
-}
-
 RawError* Precompiler::CompileAll() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {

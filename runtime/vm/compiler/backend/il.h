@@ -190,8 +190,9 @@ class HierarchyInfo : public ThreadStackResource {
  public:
   explicit HierarchyInfo(Thread* thread)
       : ThreadStackResource(thread),
-        cid_subtype_ranges_(NULL),
-        cid_subtype_ranges_abstract_(NULL),
+        cid_subtype_ranges_nullable_(NULL),
+        cid_subtype_ranges_abstract_nullable_(NULL),
+        cid_subtype_ranges_nonnullable_(NULL),
         cid_subclass_ranges_(NULL) {
     thread->set_hierarchy_info(this);
   }
@@ -199,18 +200,22 @@ class HierarchyInfo : public ThreadStackResource {
   ~HierarchyInfo() {
     thread()->set_hierarchy_info(NULL);
 
-    delete[] cid_subtype_ranges_;
-    cid_subtype_ranges_ = NULL;
+    delete[] cid_subtype_ranges_nullable_;
+    cid_subtype_ranges_nullable_ = NULL;
 
-    delete[] cid_subtype_ranges_abstract_;
-    cid_subtype_ranges_abstract_ = NULL;
+    delete[] cid_subtype_ranges_abstract_nullable_;
+    cid_subtype_ranges_abstract_nullable_ = NULL;
+
+    delete[] cid_subtype_ranges_nonnullable_;
+    cid_subtype_ranges_nonnullable_ = NULL;
 
     delete[] cid_subclass_ranges_;
     cid_subclass_ranges_ = NULL;
   }
 
   const CidRangeVector& SubtypeRangesForClass(const Class& klass,
-                                              bool include_abstract = false);
+                                              bool include_abstract,
+                                              bool exclude_null);
   const CidRangeVector& SubclassRangesForClass(const Class& klass);
 
   bool InstanceOfHasClassRange(const AbstractType& type,
@@ -242,7 +247,8 @@ class HierarchyInfo : public ThreadStackResource {
                       CidRangeVector* ranges,
                       const Class& klass,
                       bool use_subtype_test,
-                      bool include_abstract = false);
+                      bool include_abstract,
+                      bool exclude_null);
 
   // In JIT mode we use hierarchy information stored in the [RawClass]s
   // direct_subclasses_/direct_implementors_ arrays.
@@ -250,10 +256,11 @@ class HierarchyInfo : public ThreadStackResource {
                          CidRangeVector* ranges,
                          const Class& klass,
                          bool use_subtype_test,
-                         bool include_abstract = false);
+                         bool include_abstract);
 
-  CidRangeVector* cid_subtype_ranges_;
-  CidRangeVector* cid_subtype_ranges_abstract_;
+  CidRangeVector* cid_subtype_ranges_nullable_;
+  CidRangeVector* cid_subtype_ranges_abstract_nullable_;
+  CidRangeVector* cid_subtype_ranges_nonnullable_;
   CidRangeVector* cid_subclass_ranges_;
 };
 
