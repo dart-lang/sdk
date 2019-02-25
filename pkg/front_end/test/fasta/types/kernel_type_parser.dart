@@ -195,6 +195,11 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       } else {
         cls.supertype = toSupertype(type);
       }
+      InterfaceType mixedInType =
+          node.mixedInType?.accept<Node, KernelEnvironment>(this, environment);
+      if (mixedInType != null) {
+        cls.mixedInType = toSupertype(mixedInType);
+      }
       List<ParsedType> interfaces = node.interfaces;
       for (int i = 0; i < interfaces.length; i++) {
         cls.implementedTypes.add(toSupertype(

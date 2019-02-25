@@ -33,6 +33,7 @@ typedef TestSorting ({int c, int b, int a}) -> void;
 class Super implements Comparable<Sub>;
 class Sub extends Super;
 class FBound<T extends FBound<T>>;
+class MixinApplication extends Object with FBound<MixinApplication>;
 """;
 
 const String expectedSdk = """
@@ -77,6 +78,8 @@ class Super extends self::Object implements self::Comparable<self::Sub> {
 class Sub extends self::Super {
 }
 class FBound<T extends self::FBound<self::FBound::T> = self::FBound<dynamic>> extends self::Object {
+}
+class MixinApplication = self::Object with self::FBound<self::MixinApplication> {
 }
 """;
 

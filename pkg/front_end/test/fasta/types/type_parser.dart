@@ -43,11 +43,12 @@ abstract class ParsedDeclaration extends ParsedType {
 class ParsedClass extends ParsedDeclaration {
   final List<ParsedTypeVariable> typeVariables;
   final ParsedInterfaceType supertype;
+  final ParsedInterfaceType mixedInType;
   final List<ParsedType> interfaces;
   final ParsedFunctionType callableType;
 
-  ParsedClass(String name, this.typeVariables, this.supertype, this.interfaces,
-      this.callableType)
+  ParsedClass(String name, this.typeVariables, this.supertype, this.mixedInType,
+      this.interfaces, this.callableType)
       : super(name);
 
   String toString() {
@@ -372,8 +373,12 @@ class Parser {
     String name = parseName();
     List<ParsedTypeVariable> typeVariables = parseTypeVariablesOpt();
     ParsedType supertype;
+    ParsedType mixedInType;
     if (optionalAdvance("extends")) {
       supertype = parseType();
+      if (optionalAdvance("with")) {
+        mixedInType = parseType();
+      }
     }
     List<ParsedType> interfaces = <ParsedType>[];
     if (optionalAdvance("implements")) {
@@ -389,7 +394,7 @@ class Parser {
       expect(";");
     }
     return new ParsedClass(
-        name, typeVariables, supertype, interfaces, callableType);
+        name, typeVariables, supertype, mixedInType, interfaces, callableType);
   }
 
   /// This parses a general typedef on this form:
