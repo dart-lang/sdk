@@ -19,10 +19,8 @@ abstract class TypeChecker {
   final bool ignoreSdk;
   TypeEnvironment environment;
 
-  TypeChecker(this.coreTypes, this.hierarchy,
-      {bool legacyMode: false, this.ignoreSdk: true})
-      : environment =
-            new TypeEnvironment(coreTypes, hierarchy, legacyMode: legacyMode);
+  TypeChecker(this.coreTypes, this.hierarchy, {this.ignoreSdk: true})
+      : environment = new TypeEnvironment(coreTypes, hierarchy);
 
   void checkComponent(Component component) {
     for (var library in component.libraries) {

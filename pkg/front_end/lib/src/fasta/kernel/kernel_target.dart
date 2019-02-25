@@ -750,9 +750,8 @@ class KernelTarget extends TargetImplementation {
   /// libraries for the first time.
   void runBuildTransformations() {
     if (loader.target.enableConstantUpdate2018) {
-      TypeEnvironment environment = new TypeEnvironment(
-          loader.coreTypes, loader.hierarchy,
-          legacyMode: false);
+      TypeEnvironment environment =
+          new TypeEnvironment(loader.coreTypes, loader.hierarchy);
       constants.transformLibraries(
           loader.libraries,
           loader.target.backendTarget.constantsBackend(loader.coreTypes),
