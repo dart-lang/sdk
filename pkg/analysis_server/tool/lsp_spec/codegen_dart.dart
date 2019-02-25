@@ -21,10 +21,17 @@ Map<String, TypeAlias> _typeAliases = {};
 /// in the spec (it's important the server doesn't crash on deserialising
 /// newer values).
 bool enumClassAllowsAnyValue(String name) {
-  // TODO(dantup): This should return true by default, and allow opt-out for
-  // those things we know are not supported. This behaviour matches the old
-  // code in order to simplify diffs while migrating.
-  return name == 'ErrorCodes' || name == 'CodeActionKind' || name == 'Method';
+  // The types listed here are the ones that have a guaranteed restricted type
+  // in the LSP spec, for example:
+  //
+  //   export type CompletionTriggerKind = 1 | 2 | 3;
+  //
+  // The other enum types use string/number/etc. in the referencing classes.
+  return name != 'CompletionTriggerKind' &&
+      name != 'FailureHandlingKind' &&
+      name != 'InsertTextFormat' &&
+      name != 'MarkupKind' &&
+      name != 'ResourceOperationKind';
 }
 
 String generateDartForTypes(List<AstNode> types) {

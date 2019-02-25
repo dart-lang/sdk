@@ -1599,68 +1599,40 @@ class CompletionItem implements ToJsonable {
 
 /// The kind of a completion entry.
 class CompletionItemKind {
-  const CompletionItemKind._(this._value);
+  const CompletionItemKind(this._value);
   const CompletionItemKind.fromJson(this._value);
 
   final num _value;
 
   static bool canParse(Object obj) {
-    switch (obj) {
-      case 1:
-      case 2:
-      case 3:
-      case 4:
-      case 5:
-      case 6:
-      case 7:
-      case 8:
-      case 9:
-      case 10:
-      case 11:
-      case 12:
-      case 13:
-      case 14:
-      case 15:
-      case 16:
-      case 17:
-      case 18:
-      case 19:
-      case 20:
-      case 21:
-      case 22:
-      case 23:
-      case 24:
-      case 25:
-        return true;
-    }
-    return false;
+    return obj is num;
   }
 
-  static const Text = const CompletionItemKind._(1);
-  static const Method = const CompletionItemKind._(2);
-  static const Function = const CompletionItemKind._(3);
-  static const Constructor = const CompletionItemKind._(4);
-  static const Field = const CompletionItemKind._(5);
-  static const Variable = const CompletionItemKind._(6);
-  static const Class = const CompletionItemKind._(7);
-  static const Interface = const CompletionItemKind._(8);
-  static const Module = const CompletionItemKind._(9);
-  static const Property = const CompletionItemKind._(10);
-  static const Unit = const CompletionItemKind._(11);
-  static const Value = const CompletionItemKind._(12);
-  static const Enum = const CompletionItemKind._(13);
-  static const Keyword = const CompletionItemKind._(14);
-  static const Snippet = const CompletionItemKind._(15);
-  static const Color = const CompletionItemKind._(16);
-  static const File = const CompletionItemKind._(17);
-  static const Reference = const CompletionItemKind._(18);
-  static const Folder = const CompletionItemKind._(19);
-  static const EnumMember = const CompletionItemKind._(20);
-  static const Constant = const CompletionItemKind._(21);
-  static const Struct = const CompletionItemKind._(22);
-  static const Event = const CompletionItemKind._(23);
-  static const Operator = const CompletionItemKind._(24);
-  static const TypeParameter = const CompletionItemKind._(25);
+  static const Text = const CompletionItemKind(1);
+  static const Method = const CompletionItemKind(2);
+  static const Function = const CompletionItemKind(3);
+  static const Constructor = const CompletionItemKind(4);
+  static const Field = const CompletionItemKind(5);
+  static const Variable = const CompletionItemKind(6);
+  static const Class = const CompletionItemKind(7);
+  static const Interface = const CompletionItemKind(8);
+  static const Module = const CompletionItemKind(9);
+  static const Property = const CompletionItemKind(10);
+  static const Unit = const CompletionItemKind(11);
+  static const Value = const CompletionItemKind(12);
+  static const Enum = const CompletionItemKind(13);
+  static const Keyword = const CompletionItemKind(14);
+  static const Snippet = const CompletionItemKind(15);
+  static const Color = const CompletionItemKind(16);
+  static const File = const CompletionItemKind(17);
+  static const Reference = const CompletionItemKind(18);
+  static const Folder = const CompletionItemKind(19);
+  static const EnumMember = const CompletionItemKind(20);
+  static const Constant = const CompletionItemKind(21);
+  static const Struct = const CompletionItemKind(22);
+  static const Event = const CompletionItemKind(23);
+  static const Operator = const CompletionItemKind(24);
+  static const TypeParameter = const CompletionItemKind(25);
 
   Object toJson() => _value;
 
@@ -2513,33 +2485,26 @@ class DiagnosticRelatedInformation implements ToJsonable {
 }
 
 class DiagnosticSeverity {
-  const DiagnosticSeverity._(this._value);
+  const DiagnosticSeverity(this._value);
   const DiagnosticSeverity.fromJson(this._value);
 
   final num _value;
 
   static bool canParse(Object obj) {
-    switch (obj) {
-      case 1:
-      case 2:
-      case 3:
-      case 4:
-        return true;
-    }
-    return false;
+    return obj is num;
   }
 
   /// Reports an error.
-  static const Error = const DiagnosticSeverity._(1);
+  static const Error = const DiagnosticSeverity(1);
 
   /// Reports a warning.
-  static const Warning = const DiagnosticSeverity._(2);
+  static const Warning = const DiagnosticSeverity(2);
 
   /// Reports an information.
-  static const Information = const DiagnosticSeverity._(3);
+  static const Information = const DiagnosticSeverity(3);
 
   /// Reports a hint.
-  static const Hint = const DiagnosticSeverity._(4);
+  static const Hint = const DiagnosticSeverity(4);
 
   Object toJson() => _value;
 
@@ -3171,29 +3136,23 @@ class DocumentHighlight implements ToJsonable {
 
 /// A document highlight kind.
 class DocumentHighlightKind {
-  const DocumentHighlightKind._(this._value);
+  const DocumentHighlightKind(this._value);
   const DocumentHighlightKind.fromJson(this._value);
 
   final num _value;
 
   static bool canParse(Object obj) {
-    switch (obj) {
-      case 1:
-      case 2:
-      case 3:
-        return true;
-    }
-    return false;
+    return obj is num;
   }
 
   /// A textual occurrence.
-  static const Text = const DocumentHighlightKind._(1);
+  static const Text = const DocumentHighlightKind(1);
 
   /// Read-access of a symbol, like reading a variable.
-  static const Read = const DocumentHighlightKind._(2);
+  static const Read = const DocumentHighlightKind(2);
 
   /// Write-access of a symbol, like writing to a variable.
-  static const Write = const DocumentHighlightKind._(3);
+  static const Write = const DocumentHighlightKind(3);
 
   Object toJson() => _value;
 
@@ -4154,29 +4113,23 @@ class FailureHandlingKind {
 
 /// The file event type.
 class FileChangeType {
-  const FileChangeType._(this._value);
+  const FileChangeType(this._value);
   const FileChangeType.fromJson(this._value);
 
   final num _value;
 
   static bool canParse(Object obj) {
-    switch (obj) {
-      case 1:
-      case 2:
-      case 3:
-        return true;
-    }
-    return false;
+    return obj is num;
   }
 
   /// The file got created.
-  static const Created = const FileChangeType._(1);
+  static const Created = const FileChangeType(1);
 
   /// The file got changed.
-  static const Changed = const FileChangeType._(2);
+  static const Changed = const FileChangeType(2);
 
   /// The file got deleted.
-  static const Deleted = const FileChangeType._(3);
+  static const Deleted = const FileChangeType(3);
 
   Object toJson() => _value;
 
@@ -4411,29 +4364,23 @@ class FoldingRange implements ToJsonable {
 
 /// Enum of known range kinds
 class FoldingRangeKind {
-  const FoldingRangeKind._(this._value);
+  const FoldingRangeKind(this._value);
   const FoldingRangeKind.fromJson(this._value);
 
   final String _value;
 
   static bool canParse(Object obj) {
-    switch (obj) {
-      case r'comment':
-      case r'imports':
-      case r'region':
-        return true;
-    }
-    return false;
+    return obj is String;
   }
 
   /// Folding range for a comment
-  static const Comment = const FoldingRangeKind._(r'comment');
+  static const Comment = const FoldingRangeKind(r'comment');
 
   /// Folding range for a imports or includes
-  static const Imports = const FoldingRangeKind._(r'imports');
+  static const Imports = const FoldingRangeKind(r'imports');
 
   /// Folding range for a region (e.g. `#region`)
-  static const Region = const FoldingRangeKind._(r'region');
+  static const Region = const FoldingRangeKind(r'region');
 
   Object toJson() => _value;
 
@@ -5320,33 +5267,26 @@ class MessageActionItem implements ToJsonable {
 }
 
 class MessageType {
-  const MessageType._(this._value);
+  const MessageType(this._value);
   const MessageType.fromJson(this._value);
 
   final num _value;
 
   static bool canParse(Object obj) {
-    switch (obj) {
-      case 1:
-      case 2:
-      case 3:
-      case 4:
-        return true;
-    }
-    return false;
+    return obj is num;
   }
 
   /// An error message.
-  static const Error = const MessageType._(1);
+  static const Error = const MessageType(1);
 
   /// A warning message.
-  static const Warning = const MessageType._(2);
+  static const Warning = const MessageType(2);
 
   /// An information message.
-  static const Info = const MessageType._(3);
+  static const Info = const MessageType(3);
 
   /// A log message.
-  static const Log = const MessageType._(4);
+  static const Log = const MessageType(4);
 
   Object toJson() => _value;
 
@@ -7834,70 +7774,41 @@ class SymbolInformation implements ToJsonable {
 
 /// A symbol kind.
 class SymbolKind {
-  const SymbolKind._(this._value);
+  const SymbolKind(this._value);
   const SymbolKind.fromJson(this._value);
 
   final num _value;
 
   static bool canParse(Object obj) {
-    switch (obj) {
-      case 1:
-      case 2:
-      case 3:
-      case 4:
-      case 5:
-      case 6:
-      case 7:
-      case 8:
-      case 9:
-      case 10:
-      case 11:
-      case 12:
-      case 13:
-      case 14:
-      case 15:
-      case 16:
-      case 17:
-      case 18:
-      case 19:
-      case 20:
-      case 21:
-      case 22:
-      case 23:
-      case 24:
-      case 25:
-      case 26:
-        return true;
-    }
-    return false;
+    return obj is num;
   }
 
-  static const File = const SymbolKind._(1);
-  static const Module = const SymbolKind._(2);
-  static const Namespace = const SymbolKind._(3);
-  static const Package = const SymbolKind._(4);
-  static const Class = const SymbolKind._(5);
-  static const Method = const SymbolKind._(6);
-  static const Property = const SymbolKind._(7);
-  static const Field = const SymbolKind._(8);
-  static const Constructor = const SymbolKind._(9);
-  static const Enum = const SymbolKind._(10);
-  static const Interface = const SymbolKind._(11);
-  static const Function = const SymbolKind._(12);
-  static const Variable = const SymbolKind._(13);
-  static const Constant = const SymbolKind._(14);
-  static const Str = const SymbolKind._(15);
-  static const Number = const SymbolKind._(16);
-  static const Boolean = const SymbolKind._(17);
-  static const Array = const SymbolKind._(18);
-  static const Obj = const SymbolKind._(19);
-  static const Key = const SymbolKind._(20);
-  static const Null = const SymbolKind._(21);
-  static const EnumMember = const SymbolKind._(22);
-  static const Struct = const SymbolKind._(23);
-  static const Event = const SymbolKind._(24);
-  static const Operator = const SymbolKind._(25);
-  static const TypeParameter = const SymbolKind._(26);
+  static const File = const SymbolKind(1);
+  static const Module = const SymbolKind(2);
+  static const Namespace = const SymbolKind(3);
+  static const Package = const SymbolKind(4);
+  static const Class = const SymbolKind(5);
+  static const Method = const SymbolKind(6);
+  static const Property = const SymbolKind(7);
+  static const Field = const SymbolKind(8);
+  static const Constructor = const SymbolKind(9);
+  static const Enum = const SymbolKind(10);
+  static const Interface = const SymbolKind(11);
+  static const Function = const SymbolKind(12);
+  static const Variable = const SymbolKind(13);
+  static const Constant = const SymbolKind(14);
+  static const Str = const SymbolKind(15);
+  static const Number = const SymbolKind(16);
+  static const Boolean = const SymbolKind(17);
+  static const Array = const SymbolKind(18);
+  static const Obj = const SymbolKind(19);
+  static const Key = const SymbolKind(20);
+  static const Null = const SymbolKind(21);
+  static const EnumMember = const SymbolKind(22);
+  static const Struct = const SymbolKind(23);
+  static const Event = const SymbolKind(24);
+  static const Operator = const SymbolKind(25);
+  static const TypeParameter = const SymbolKind(26);
 
   Object toJson() => _value;
 
@@ -10277,30 +10188,24 @@ class TextDocumentRegistrationOptions implements ToJsonable {
 
 /// Represents reasons why a text document is saved.
 class TextDocumentSaveReason {
-  const TextDocumentSaveReason._(this._value);
+  const TextDocumentSaveReason(this._value);
   const TextDocumentSaveReason.fromJson(this._value);
 
   final num _value;
 
   static bool canParse(Object obj) {
-    switch (obj) {
-      case 1:
-      case 2:
-      case 3:
-        return true;
-    }
-    return false;
+    return obj is num;
   }
 
   /// Manually triggered, e.g. by the user pressing save, by starting debugging,
   /// or by an API call.
-  static const Manual = const TextDocumentSaveReason._(1);
+  static const Manual = const TextDocumentSaveReason(1);
 
   /// Automatic after a delay.
-  static const AfterDelay = const TextDocumentSaveReason._(2);
+  static const AfterDelay = const TextDocumentSaveReason(2);
 
   /// When the editor lost focus.
-  static const FocusOut = const TextDocumentSaveReason._(3);
+  static const FocusOut = const TextDocumentSaveReason(3);
 
   Object toJson() => _value;
 
@@ -10376,30 +10281,24 @@ class TextDocumentSaveRegistrationOptions
 /// Defines how the host (editor) should sync document changes to the language
 /// server.
 class TextDocumentSyncKind {
-  const TextDocumentSyncKind._(this._value);
+  const TextDocumentSyncKind(this._value);
   const TextDocumentSyncKind.fromJson(this._value);
 
   final num _value;
 
   static bool canParse(Object obj) {
-    switch (obj) {
-      case 0:
-      case 1:
-      case 2:
-        return true;
-    }
-    return false;
+    return obj is num;
   }
 
   /// Documents should not be synced at all.
-  static const None = const TextDocumentSyncKind._(0);
+  static const None = const TextDocumentSyncKind(0);
 
   /// Documents are synced by always sending the full content of the document.
-  static const Full = const TextDocumentSyncKind._(1);
+  static const Full = const TextDocumentSyncKind(1);
 
   /// Documents are synced by sending the full content on open. After that only
   /// incremental updates to the document are send.
-  static const Incremental = const TextDocumentSyncKind._(2);
+  static const Incremental = const TextDocumentSyncKind(2);
 
   Object toJson() => _value;
 
@@ -10728,29 +10627,23 @@ class VersionedTextDocumentIdentifier
 }
 
 class WatchKind {
-  const WatchKind._(this._value);
+  const WatchKind(this._value);
   const WatchKind.fromJson(this._value);
 
   final num _value;
 
   static bool canParse(Object obj) {
-    switch (obj) {
-      case 1:
-      case 2:
-      case 4:
-        return true;
-    }
-    return false;
+    return obj is num;
   }
 
   /// Interested in create events.
-  static const Create = const WatchKind._(1);
+  static const Create = const WatchKind(1);
 
   /// Interested in change events
-  static const Change = const WatchKind._(2);
+  static const Change = const WatchKind(2);
 
   /// Interested in delete events
-  static const Delete = const WatchKind._(4);
+  static const Delete = const WatchKind(4);
 
   Object toJson() => _value;
 
