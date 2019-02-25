@@ -176,16 +176,18 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
 
   const CodeSourceMap& map =
       CodeSourceMap::Handle(zone, code.code_source_map());
-  ASSERT(!map.IsNull());
+  String& member_name = String::Handle(zone);
+  if (!map.IsNull()) {
+    CodeSourceMapReader reader(map, Array::null_array(),
+                               Function::null_function());
+    const intptr_t name_index = reader.GetNullCheckNameIndexAt(pc_offset);
+    RELEASE_ASSERT(name_index >= 0);
 
-  CodeSourceMapReader reader(map, Array::null_array(),
-                             Function::null_function());
-  const intptr_t name_index = reader.GetNullCheckNameIndexAt(pc_offset);
-  RELEASE_ASSERT(name_index >= 0);
-
-  const ObjectPool& pool = ObjectPool::Handle(zone, code.GetObjectPool());
-  const String& member_name =
-      String::CheckedHandle(zone, pool.ObjectAt(name_index));
+    const ObjectPool& pool = ObjectPool::Handle(zone, code.GetObjectPool());
+    member_name ^= pool.ObjectAt(name_index);
+  } else {
+    member_name = Symbols::OptimizedOut().raw();
+  }
 
   NullErrorHelper(zone, member_name);
 }

@@ -54,6 +54,7 @@ dart/truncating_ints_test: SkipByDesign # The test requires int64.
 dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 dart/regress_range_analysis_shift_test: SkipByDesign # The test requires int64.
 dart/fuzz3608420507_regression_test: SkipByDesign # Not relevant to dart2js.
+dart/null_checks_with_dwarf_stack_traces_test: SkipByDesign # Not relevant to dart2js.
 
 [ $compiler != dartk || ($arch != x64 && $arch != simarm && $arch != arm) || $hot_reload || $hot_reload_rollback ]
 dart/entrypoints/jit/*: SkipByDesign  # Only supported in the Dart 2 JIT and AOT, and test optimizations - hence disabled on hotreload bots.
