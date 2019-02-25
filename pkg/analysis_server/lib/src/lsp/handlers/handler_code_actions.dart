@@ -115,9 +115,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     int length,
     ResolvedUnitResult unit,
   ) async {
-    // TODO(dantup): Is it acceptable not to support these for clients that can't
-    // handle Code Action literals? (Doing so requires we encode this into a
-    // command/arguments set and allow the client to call us back later).
+    // We only support these for clients that advertise codeActionLiteralSupport.
     if (!clientSupportsLiteralCodeActions ||
         !clientSupportedCodeActionKinds.contains(CodeActionKind.Refactor)) {
       return const [];
@@ -168,9 +166,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     Range range,
     ResolvedUnitResult unit,
   ) async {
-    // TODO(dantup): Is it acceptable not to support these for clients that can't
-    // handle Code Action literals? (Doing so requires we encode this into a
-    // command/arguments set and allow the client to call us back later).
+    // We only support these for clients that advertise codeActionLiteralSupport.
     if (!clientSupportsLiteralCodeActions ||
         !clientSupportedCodeActionKinds.contains(CodeActionKind.QuickFix)) {
       return const [];
@@ -214,9 +210,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     Range range,
     ResolvedUnitResult unit,
   ) async {
-    // TODO(dantup): Is it acceptable not to support these for clients that can't
-    // handle Code Action literals? (Doing so requires we encode this into a
-    // command/arguments set and allow the client to call us back later).
+    // We only support these for clients that advertise codeActionLiteralSupport.
     if (!clientSupportsLiteralCodeActions ||
         !clientSupportedCodeActionKinds.contains(CodeActionKind.Refactor)) {
       return const [];
