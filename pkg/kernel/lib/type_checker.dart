@@ -488,7 +488,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitBlockExpression(BlockExpression node) {
-    node.statements.forEach(visitStatement);
+    visitStatement(node.body);
     return visitExpression(node.value);
   }
 

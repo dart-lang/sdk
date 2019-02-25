@@ -278,8 +278,7 @@ class CloneVisitor implements TreeVisitor {
   }
 
   visitBlockExpression(BlockExpression node) {
-    return new BlockExpression(
-        node.statements.map(clone).toList(), clone(node.value));
+    return new BlockExpression(clone(node.body), clone(node.value));
   }
 
   visitExpressionStatement(ExpressionStatement node) {

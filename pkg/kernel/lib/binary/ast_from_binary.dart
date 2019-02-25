@@ -1598,7 +1598,7 @@ class BinaryBuilder {
         var statements = readStatementList();
         var value = readExpression();
         variableStack.length = stackHeight;
-        return new BlockExpression(statements, value);
+        return new BlockExpression(new Block(statements), value);
       case Tag.Instantiation:
         var expression = readExpression();
         var typeArguments = readDartTypeList();

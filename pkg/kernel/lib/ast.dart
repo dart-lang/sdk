@@ -3645,16 +3645,11 @@ class Let extends Expression {
 }
 
 class BlockExpression extends Expression {
-  final List<Statement> statements;
+  Block body;
   Expression value;
 
-  BlockExpression(this.statements, this.value) {
-    // Ensure statements is mutable.
-    assert((statements
-          ..add(null)
-          ..removeLast()) !=
-        null);
-    setParents(statements, this);
+  BlockExpression(this.body, this.value) {
+    body?.parent = this;
     value?.parent = this;
   }
 
@@ -3664,12 +3659,15 @@ class BlockExpression extends Expression {
   accept1(ExpressionVisitor1 v, arg) => v.visitBlockExpression(this, arg);
 
   visitChildren(Visitor v) {
-    visitList(statements, v);
+    body?.accept(v);
     value?.accept(v);
   }
 
   transformChildren(Transformer v) {
-    transformList(statements, v, this);
+    if (body != null) {
+      body = body.accept(v);
+      body?.parent = this;
+    }
     if (value != null) {
       value = value.accept(v);
       value?.parent = this;

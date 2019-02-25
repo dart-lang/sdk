@@ -1394,16 +1394,8 @@ class Printer extends Visitor<Null> {
 
   visitBlockExpression(BlockExpression node) {
     writeSpaced('block');
-    if (node.statements.isEmpty) {
-      writeSymbol('{');
-    } else {
-      endLine('{');
-    }
-    ++indentation;
-    node.statements.forEach(writeNode);
-    --indentation;
-    writeIndentation();
-    writeSymbol('} =>');
+    writeBlockBody(node.body.statements, asExpression: true);
+    writeSymbol(' =>');
     writeExpression(node.value);
   }
 
@@ -1556,33 +1548,28 @@ class Printer extends Visitor<Null> {
     endLine(';');
   }
 
-  visitBlock(Block node) {
-    writeIndentation();
-    if (node.statements.isEmpty) {
-      endLine('{}');
-      return null;
+  void writeBlockBody(List<Statement> statements, {bool asExpression = false}) {
+    if (statements.isEmpty) {
+      asExpression ? writeSymbol('{}') : endLine('{}');
+      return;
     }
     endLine('{');
     ++indentation;
-    node.statements.forEach(writeNode);
+    statements.forEach(writeNode);
     --indentation;
     writeIndentation();
-    endLine('}');
+    asExpression ? writeSymbol('}') : endLine('}');
+  }
+
+  visitBlock(Block node) {
+    writeIndentation();
+    writeBlockBody(node.statements);
   }
 
   visitAssertBlock(AssertBlock node) {
     writeIndentation();
     writeSpaced('assert');
-    if (node.statements.isEmpty) {
-      endLine('{}');
-      return;
-    }
-    endLine('{');
-    ++indentation;
-    node.statements.forEach(writeNode);
-    --indentation;
-    writeIndentation();
-    endLine('}');
+    writeBlockBody(node.statements);
   }
 
   visitEmptyStatement(EmptyStatement node) {
@@ -1590,8 +1577,8 @@ class Printer extends Visitor<Null> {
     endLine(';');
   }
 
-  visitAssertStatement(AssertStatement node, {bool asExpr = false}) {
-    if (asExpr != true) {
+  visitAssertStatement(AssertStatement node, {bool asExpression = false}) {
+    if (!asExpression) {
       writeIndentation();
     }
     writeWord('assert');
@@ -1601,7 +1588,7 @@ class Printer extends Visitor<Null> {
       writeComma();
       writeExpression(node.message);
     }
-    if (asExpr != true) {
+    if (!asExpression) {
       endLine(');');
     } else {
       writeSymbol(')');
@@ -1878,7 +1865,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitAssertInitializer(AssertInitializer node) {
-    visitAssertStatement(node.statement, asExpr: true);
+    visitAssertStatement(node.statement, asExpression: true);
   }
 
   defaultInitializer(Initializer node) {
