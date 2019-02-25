@@ -59,7 +59,16 @@ Library parseLibrary(Uri uri, String text,
   environment ??= new KernelEnvironment(uri, fileUri);
   Library library =
       new Library(uri, fileUri: fileUri, name: uri.path.replaceAll("/", "."));
-  for (ParsedType type in type_parser.parse(text)) {
+  List<ParsedType> types = type_parser.parse(text);
+  for (ParsedType type in types) {
+    if (type is ParsedClass) {
+      String name = type.name;
+      environment[name] = new Class(fileUri: fileUri, name: name)
+        ..typeParameters.addAll(
+            new List<TypeParameter>.filled(type.typeVariables.length, null));
+    }
+  }
+  for (ParsedType type in types) {
     Node node = environment.kernelFromParsedType(type);
     if (node is Class) {
       library.addClass(node);
@@ -167,13 +176,14 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
 
   Class visitClass(ParsedClass node, KernelEnvironment environment) {
     String name = node.name;
-    Class cls =
-        environment[name] = new Class(fileUri: environment.fileUri, name: name);
+    Class cls = environment[name];
     ParameterEnvironment parameterEnvironment =
         computeTypeParameterEnvironment(node.typeVariables, environment);
     List<TypeParameter> parameters = parameterEnvironment.parameters;
     setParents(parameters, cls);
-    cls.typeParameters.addAll(parameters);
+    cls.typeParameters
+      ..clear()
+      ..addAll(parameters);
     {
       KernelEnvironment environment = parameterEnvironment.environment;
       InterfaceType type =
