@@ -5,8 +5,6 @@
 // TODO:
 //  - starting dominator treemap from a group of nodes instead of only a
 //    single node
-//  - overlaying a logical tree (such as library -> class -> function) and
-//    attributing size to this tree
 
 "use strict";
 
@@ -64,7 +62,14 @@ function Graph() {
   this.stack_ = null;
 }
 
-Graph.prototype.loadV8Profile = function(data) {
+// Load a graph in V8 heap profile format from `data`, then compute the graph's
+// dominator tree and the retained size of each vertex.
+//
+// If `rewriteForOwners` is true, for each vertex that has an "owner" edge,
+// replace all edges to the vertex with an edge from the owner to the vertex.
+// This can be the graph more hierachical and reveal more structure in the
+// dominator tree.
+Graph.prototype.loadV8Profile = function(data, rewriteForOwners) {
   console.log("Building successors...");
 
   const N = data.snapshot.node_count;
@@ -156,6 +161,9 @@ Graph.prototype.loadV8Profile = function(data) {
   this.shallowSizeSum_ = shallowSizeSum;
 
   this.computePredecessors();
+  if (rewriteForOwners) {
+    this.rewriteEdgesForOwners();
+  }
   this.computePreorder(1);
   this.computeDominators();
   this.computeRetainedSizes();
@@ -216,6 +224,115 @@ Graph.prototype.computePredecessors = function() {
   this.firstPredecessor_ = firstPredecessor;
   this.predecessors_ = predecessors;
   this.predecessorName_ = predecessorName;
+};
+
+Graph.prototype.rewriteEdgesForOwners = function() {
+  console.log("Rewriting edges for owners...");
+
+  // Rewrite some edges to make the graph more hierarchical.
+  // If there is an edge A.owner -> B,
+  //   - remove all edges to A, and
+  //   - add edge B.<unnamed> -> A.
+
+  const N = this.N_;
+  const E = this.E_;
+  const firstSuccessor = this.firstSuccessor_;
+  const successors = this.successors_;
+  const successorName = this.successorName_;
+  const firstPredecessor = this.firstPredecessor_;
+  const predecessors = this.predecessors_;
+  const predecessorName = this.predecessorName_;
+  const owners = new Uint32Array(N + 1);
+  const owneeCount = new Uint32Array(N + 1);
+
+  // Identify owner.
+  for (let i = 1; i <= N; i++) {
+    let cls = this.class_[i];
+    let ownerEdgeName;
+
+    if (cls == "Class") {
+      ownerEdgeName = "library_";
+    } else if (cls == "PatchClass") {
+      ownerEdgeName = "patched_class_";
+    } else if (cls == "Function") {
+      ownerEdgeName = "owner_";
+    } else if (cls == "Field") {
+      ownerEdgeName = "owner_";
+    } else if (cls == "Code") {
+      ownerEdgeName = "owner_";
+    } else if (cls == "ICData") {
+      ownerEdgeName = "owner_";
+    } else {
+      continue;
+    }
+
+    let firstSuccessorIndex = firstSuccessor[i];
+    let lastSuccessorIndex = firstSuccessor[i + 1];
+    for (let successorIndex = firstSuccessorIndex;
+         successorIndex < lastSuccessorIndex;
+         successorIndex++) {
+      let edge = this.strings_[this.successorName_[successorIndex]];
+      if (edge == ownerEdgeName) {
+        let owner = successors[successorIndex];
+        owners[i] = owner;
+        owneeCount[owner]++;
+        break;
+      }
+    }
+  }
+
+  // Remove successors if the target has an owner.
+  // Allocate space for extra successors added to owners.
+  const newSuccessors = new Uint32Array(E);
+  const newSuccessorName = new Uint32Array(E);
+  let newSuccessorIndex = 0;
+  for (let i = 1; i <= N; i++) {
+    let firstSuccessorIndex = firstSuccessor[i];
+    let lastSuccessorIndex = firstSuccessor[i + 1];
+    firstSuccessor[i] = newSuccessorIndex;
+    for (let successorIndex = firstSuccessorIndex;
+         successorIndex < lastSuccessorIndex;
+         successorIndex++) {
+      let successor = successors[successorIndex];
+      let name = successorName[successorIndex];
+
+      if (owners[successor] != 0) {
+        // Drop successor.
+      } else {
+        newSuccessors[newSuccessorIndex] = successor;
+        newSuccessorName[newSuccessorIndex] = name;
+        newSuccessorIndex++;
+      }
+    }
+    newSuccessorIndex += owneeCount[i];
+  }
+  firstSuccessor[N + 1] = newSuccessorIndex;
+
+  // Remove predecessors if the target has an owner.
+  // Add the owner as a predecessor.
+  // Add extra successors for owner.
+  for (let i = 1; i <= N; i++) {
+    let owner = owners[i];
+    if (owner == 0) {
+      continue;
+    }
+
+    let firstPredecessorIndex = firstPredecessor[i];
+    let lastPredecessorIndex = firstPredecessor[i + 1];
+    for (let predecessorIndex = firstPredecessorIndex;
+         predecessorIndex < lastPredecessorIndex;
+         predecessorIndex++) {
+      predecessors[predecessorIndex] = 0;
+    }
+    predecessors[firstPredecessorIndex] = owner;
+
+    let nextSuccessorIndex = firstSuccessor[owner + 1] - owneeCount[owner];
+    newSuccessors[nextSuccessorIndex] = i;
+    owneeCount[owner]--;
+  }
+
+  this.successors_ = newSuccessors;
+  this.successorName_ = newSuccessorName;
 };
 
 // Thomas Lengauer and Robert Endre Tarjan. 1979. A fast algorithm for finding
@@ -1227,6 +1344,12 @@ function showTables(nodes) {
     group.name = group.nodes.length + " sources of " + group.edge;
   }
 
+  let rewrite = document.createElement("input");
+  rewrite.setAttribute("type", "checkbox");
+
+  let rewriteLabel = document.createElement("span");
+  rewriteLabel.textContent = "Owners ";
+
   let input = document.createElement("input");
   input.setAttribute("type", "file");
   input.setAttribute("multiple", false);
@@ -1238,7 +1361,7 @@ function showTables(nodes) {
       let data = JSON.parse(event.target.result);
       document.title = file.name;
       graph = new Graph();
-      graph.loadV8Profile(data);
+      graph.loadV8Profile(data, rewrite.checked);
       data = null; // Release memory
       showTables([graph.getRoot()]);
     };
@@ -1273,6 +1396,8 @@ function showTables(nodes) {
   topBar.style["display"] = "flex";
   topBar.style["flex-direction"] = "row";
   topBar.style["align-items"] = "center";
+  topBar.appendChild(rewrite);
+  topBar.appendChild(rewriteLabel);
   topBar.appendChild(input);
   if (graph) {
     topBar.appendChild(selectRoot);
