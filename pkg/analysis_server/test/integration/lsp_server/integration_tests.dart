@@ -151,6 +151,13 @@ class LspServerClient {
       }
     });
 
+    // If the server writes to stderr, fail tests with a more useful message
+    // (rather than having the test just hang waiting for a response).
+    _process.stderr.listen((data) {
+      final message = String.fromCharCodes(data);
+      throw 'Analysis Server wrote to stderr:\n\n$message';
+    });
+
     channel = new LspByteStreamServerChannel(
         _process.stdout, _process.stdin, InstrumentationService.NULL_SERVICE);
     channel.listen(_serverToClient.add);
