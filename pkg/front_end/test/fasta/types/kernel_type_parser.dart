@@ -79,7 +79,9 @@ class KernelEnvironment {
 
   final Map<String, TreeNode> declarations = <String, TreeNode>{};
 
-  KernelEnvironment(this.uri, this.fileUri);
+  final KernelEnvironment parent;
+
+  KernelEnvironment(this.uri, this.fileUri, [this.parent]);
 
   Node kernelFromParsedType(ParsedType type) {
     Node node = type.accept(const KernelFromParsedType(), this);
@@ -91,7 +93,12 @@ class KernelEnvironment {
   Class get objectClass => this["Object"];
 
   TreeNode operator [](String name) {
-    return declarations[name] ?? (throw "Not found: $name");
+    TreeNode result = declarations[name];
+    if (result == null && parent != null) {
+      return parent[name];
+    }
+    if (result == null) throw "Not found: $name";
+    return result;
   }
 
   void operator []=(String name, TreeNode declaration) {
@@ -103,8 +110,7 @@ class KernelEnvironment {
   }
 
   KernelEnvironment extend(Map<String, TreeNode> declarations) {
-    return new KernelEnvironment(uri, fileUri)
-      ..declarations.addAll(this.declarations)
+    return new KernelEnvironment(uri, fileUri, this)
       ..declarations.addAll(declarations);
   }
 }
