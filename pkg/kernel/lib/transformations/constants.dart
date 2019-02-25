@@ -31,7 +31,6 @@ import '../type_environment.dart';
 Component transformComponent(Component component, ConstantsBackend backend,
     Map<String, String> environmentDefines, ErrorReporter errorReporter,
     {bool keepFields: false,
-    bool legacyMode: false,
     bool enableAsserts: false,
     bool evaluateAnnotations: true,
     CoreTypes coreTypes,
@@ -39,8 +38,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
   coreTypes ??= new CoreTypes(component);
   hierarchy ??= new ClassHierarchy(component);
 
-  final typeEnvironment =
-      new TypeEnvironment(coreTypes, hierarchy, legacyMode: legacyMode);
+  final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
 
   transformLibraries(component.libraries, backend, environmentDefines,
       typeEnvironment, errorReporter,
