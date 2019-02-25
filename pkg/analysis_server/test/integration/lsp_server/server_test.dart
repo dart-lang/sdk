@@ -38,7 +38,8 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(responseBody, contains('<title>Analysis Server</title>'));
   }
 
-  test_exit_afterShutdown() async {
+  test_exit_inintializedWithShutdown() async {
+    await initialize();
     await sendShutdown();
     sendExit();
 
@@ -52,7 +53,11 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(exitCode, equals(0));
   }
 
-  test_exit_withoutShutdown() async {
+  test_exit_initializedWithoutShutdown() async {
+    // Send a request that we can wait for, to ensure the server is fully ready
+    // before we send exit. Otherwise the exit notification won't be handled for
+    // a long time (while the server starts up) and will exceed the 10s timeout.
+    await initialize();
     sendExit();
 
     await client.channel.closed.timeout(const Duration(seconds: 10),
@@ -61,6 +66,33 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
 
     final exitCode = await client.exitCode.timeout(const Duration(seconds: 10),
         onTimeout: () => fail('Server process did not exit within 10 seconds'));
+
+    expect(exitCode, equals(1));
+  }
+
+  test_exit_uninintializedWithShutdown() async {
+    await sendShutdown();
+    sendExit();
+
+    await client.channel.closed.timeout(const Duration(seconds: 10),
+        onTimeout: () =>
+            fail('Server channel did not close within 10 seconds'));
+
+    final exitCode = await client.exitCode.timeout(const Duration(seconds: 10),
+        onTimeout: () => fail('Server process did not exit within 10 seconds'));
+
+    expect(exitCode, equals(0));
+  }
+
+  test_exit_uninitializedWithoutShutdown() async {
+    // This tests the same as test_exit_withoutShutdown but without sending
+    // initialize. It can't be as strict with the timeout as the server may take
+    // time to start up (we can't tell when it's ready without sending a request).
+
+    sendExit();
+
+    await client.channel.closed;
+    final exitCode = await client.exitCode;
 
     expect(exitCode, equals(1));
   }
