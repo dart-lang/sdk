@@ -14,6 +14,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_definition.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_highlights.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_symbols.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_exit.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_folding.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_format_on_type.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_formatting.dart';
@@ -22,6 +23,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_references.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_rename.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_shutdown.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_signature_help.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_text_document_changes.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
@@ -50,6 +52,8 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         'Server already initialized');
     reject(Method.initialized, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
+    registerHandler(new ShutdownMessageHandler(server));
+    registerHandler(new ExitMessageHandler(server));
     registerHandler(new TextDocumentOpenHandler(server));
     registerHandler(new TextDocumentChangeHandler(server));
     registerHandler(new TextDocumentCloseHandler(server));
@@ -79,6 +83,8 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
       : super(server) {
     reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
+    registerHandler(new ShutdownMessageHandler(server));
+    registerHandler(new ExitMessageHandler(server));
     registerHandler(new IntializedMessageHandler(server, openWorkspacePaths));
   }
 
@@ -97,6 +103,8 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
 
 class UninitializedStateMessageHandler extends ServerStateMessageHandler {
   UninitializedStateMessageHandler(LspAnalysisServer server) : super(server) {
+    registerHandler(new ShutdownMessageHandler(server));
+    registerHandler(new ExitMessageHandler(server));
     registerHandler(new InitializeMessageHandler(server));
   }
 
@@ -108,5 +116,22 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
     }
     return failure(ErrorCodes.ServerNotInitialized,
         'Unable to handle ${message.method} before client has sent initialize request');
+  }
+}
+
+class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
+  ShuttingDownStateMessageHandler(LspAnalysisServer server) : super(server) {
+    registerHandler(
+        new ExitMessageHandler(server, clientDidCallShutdown: true));
+  }
+
+  @override
+  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
+    // Silently drop non-requests.
+    if (message is! RequestMessage) {
+      return success();
+    }
+    return failure(ServerErrorCodes.ServerShuttingDown,
+        'Unable to handle ${message.method} after shutdown request');
   }
 }

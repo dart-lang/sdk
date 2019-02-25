@@ -555,8 +555,12 @@ class Driver implements ServerStarter {
       LspStdioAnalysisServer stdioServer =
           new LspStdioAnalysisServer(socketServer);
       stdioServer.serveStdio().then((_) async {
-        socketServer.analysisServer.shutdown();
-        exit(0);
+        // Only shutdown the server and exit if the server is not already
+        // handling the shutdown.
+        if (!socketServer.analysisServer.willExit) {
+          socketServer.analysisServer.shutdown();
+          exit(0);
+        }
       });
     });
   }

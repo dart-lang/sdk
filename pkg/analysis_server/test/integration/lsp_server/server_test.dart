@@ -29,7 +29,6 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(exitCode, equals(0));
   }
 
-  @failingTest
   test_exit_withoutShutdown() async {
     sendExit();
 
@@ -40,7 +39,6 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     final exitCode = await client.exitCode.timeout(const Duration(seconds: 10),
         onTimeout: () => fail('Server process did not exit within 10 seconds'));
 
-    // TODO(dantup): Fix the server so this works.
     expect(exitCode, equals(1));
   }
 }

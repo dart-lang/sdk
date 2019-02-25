@@ -7,9 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_exit.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_shutdown.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
@@ -86,11 +84,7 @@ abstract class ServerStateMessageHandler {
   final LspAnalysisServer server;
   final Map<Method, MessageHandler> _messageHandlers = {};
 
-  ServerStateMessageHandler(this.server) {
-    // All server states support shutdown and exit.
-    registerHandler(new ShutdownMessageHandler(server));
-    registerHandler(new ExitMessageHandler(server));
-  }
+  ServerStateMessageHandler(this.server);
 
   ErrorOr<Object> failure<Object>(ErrorCodes code, String message,
           [String data]) =>

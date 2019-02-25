@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
@@ -10,7 +11,13 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class ExitMessageHandler extends MessageHandler<void, void> {
-  ExitMessageHandler(LspAnalysisServer server) : super(server);
+  final bool clientDidCallShutdown;
+
+  ExitMessageHandler(
+    LspAnalysisServer server, {
+    this.clientDidCallShutdown = false,
+  }) : super(server);
+
   Method get handlesMessage => Method.exit;
 
   @override
@@ -18,11 +25,15 @@ class ExitMessageHandler extends MessageHandler<void, void> {
 
   @override
   Future<ErrorOr<void>> handle(void _) async {
-    // TODO(dantup): Spec says we should exit with a code of 1 if we had not
-    // received a shutdown request prior to exit.
-    // TODO(dantup): Probably we should add a new state for "shutting down"
-    // that refuses any more requests between shutdown and exit.
+    // Set a flag that the server shutdown is being controlled here to ensure
+    // that the normal code that shuts down the server when the channel closes
+    // does not fire.
+    server.willExit = true;
+
     await server.shutdown();
+    new Future(() {
+      exit(clientDidCallShutdown ? 0 : 1);
+    });
     return success();
   }
 }

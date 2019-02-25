@@ -132,6 +132,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   LspPerformance performanceStats = new LspPerformance();
 
+  /// Whether or not the server is controlling the shutdown and will exit
+  /// automatically.
+  bool willExit = false;
+
   /**
    * Initialize a newly created server to send and receive messages to the given
    * [channel].
