@@ -65,31 +65,6 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  @failingTest
-  test_diagnosticServer() async {
-    // TODO(dantup): This test fails because server.diagnosticServer is not
-    // set up in these tests. This needs moving to an integration test (which
-    // we don't yet have for LSP, but the existing server does have that we
-    // can mirror).
-    await initialize();
-
-    // Send the custom request to the LSP server to get the Dart diagnostic
-    // server info.
-    final server = await getDiagnosticServer();
-
-    expect(server.port, isNotNull);
-    expect(server.port, isNonZero);
-    expect(server.port, isPositive);
-
-    // Ensure the server was actually started.
-    final client = new HttpClient();
-    HttpClientRequest request = await client
-        .getUrl(Uri.parse('http://localhost:${server.port}/status'));
-    final response = await request.close();
-    final responseBody = await utf8.decodeStream(response);
-    expect(responseBody, contains('<title>Analysis Server</title>'));
-  }
-
   test_unknownOptionalNotifications_silentlyDropped() async {
     await initialize();
     final notification =

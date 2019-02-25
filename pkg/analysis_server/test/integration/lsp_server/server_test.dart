@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -15,6 +18,26 @@ main() {
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
+  test_diagnosticServer() async {
+    await initialize();
+
+    // Send the custom request to the LSP server to get the Dart diagnostic
+    // server info.
+    final server = await getDiagnosticServer();
+
+    expect(server.port, isNotNull);
+    expect(server.port, isNonZero);
+    expect(server.port, isPositive);
+
+    // Ensure the server was actually started.
+    final client = new HttpClient();
+    HttpClientRequest request = await client
+        .getUrl(Uri.parse('http://localhost:${server.port}/status'));
+    final response = await request.close();
+    final responseBody = await utf8.decodeStream(response);
+    expect(responseBody, contains('<title>Analysis Server</title>'));
+  }
+
   test_exit_afterShutdown() async {
     await sendShutdown();
     sendExit();

@@ -295,16 +295,7 @@ mixin LspAnalysisServerTestMixin
     return requestFromServer;
   }
 
-  /// Sends a request to the server and unwraps the result. Throws if the
-  /// response was not successful or returned an error.
-  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
-    final resp = await sendRequestToServer(request);
-    if (resp.error != null) {
-      throw resp.error;
-    } else {
-      return resp.result as T;
-    }
-  }
+  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request);
 
   Future<List<TextEdit>> formatDocument(String fileUri) {
     final request = makeRequest(
@@ -730,6 +721,17 @@ abstract class AbstractLspAnalysisServerTest
   LspAnalysisServer server;
 
   Stream<Message> get serverToClient => channel.serverToClient;
+
+  /// Sends a request to the server and unwraps the result. Throws if the
+  /// response was not successful or returned an error.
+  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
+    final resp = await sendRequestToServer(request);
+    if (resp.error != null) {
+      throw resp.error;
+    } else {
+      return resp.result as T;
+    }
+  }
 
   Future sendNotificationToServer(NotificationMessage notification) async {
     channel.sendNotificationToServer(notification);
