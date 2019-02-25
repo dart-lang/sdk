@@ -1,3 +1,8 @@
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// test w/ `pub run test -N avoid_shadowing_type_parameters`
 void fn1<T>() {
   void fn2<T>() {} // LINT
   void fn3<U>() {} // OK
@@ -57,3 +62,5 @@ typedef Fn2<T> = void Function<U>(T); // OK
 typedef Fn3<T> = void Function<U>(U); // OK
 typedef Fn4<T> = void Function(T); // OK
 typedef Fn5 = void Function<T>(T); // OK
+
+typedef Predicate = bool <E>(E element); // OK
