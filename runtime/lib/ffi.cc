@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/compiler/ffi.h"
 #include "include/dart_api.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
@@ -212,40 +213,6 @@ static const Double& AsDouble(const Instance& instance) {
   return Double::Cast(instance);
 }
 
-// Native data types sizes in bytes
-
-static const size_t kSizeUnknown = 0;
-
-static const intptr_t kNumElementSizes = kFfiVoidCid - kFfiPointerCid + 1;
-
-static const size_t element_size_table[kNumElementSizes] = {
-    sizeof(intptr_t),  // kFfiPointerCid
-    kSizeUnknown,      // kFfiNativeFunctionCid
-    1,                 // kFfiInt8Cid
-    2,                 // kFfiInt16Cid
-    4,                 // kFfiInt32Cid
-    8,                 // kFfiInt64Cid
-    1,                 // kFfiUint8Cid
-    2,                 // kFfiUint16Cid
-    4,                 // kFfiUint32Cid
-    8,                 // kFfiUint64Cid
-    sizeof(intptr_t),  // kFfiIntPtrCid
-    4,                 // kFfiFloatCid
-    8,                 // kFfiDoubleCid
-    kSizeUnknown,      // kFfiVoidCid
-};
-
-static size_t ElementSizeInBytes(intptr_t class_id) {
-  ASSERT(class_id != kFfiNativeFunctionCid);
-  ASSERT(class_id != kFfiVoidCid);
-  if (!RawObject::IsFfiTypeClassId(class_id)) {
-    // subtype of Pointer
-    class_id = kFfiPointerCid;
-  }
-  intptr_t index = class_id - kFfiPointerCid;
-  return element_size_table[index];
-}
-
 // The remainder of this file implements the dart:ffi native methods.
 
 DEFINE_NATIVE_ENTRY(Ffi_allocate, 1, 1) {
@@ -260,10 +227,10 @@ DEFINE_NATIVE_ENTRY(Ffi_allocate, 1, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, argCount, arguments->NativeArgAt(0));
   int64_t count = argCount.AsInt64Value();
   classid_t type_cid = type_arg.type_class_id();
-  int64_t max_count = INTPTR_MAX / ElementSizeInBytes(type_cid);
+  int64_t max_count = INTPTR_MAX / ffi::ElementSizeInBytes(type_cid);
   CheckRange(argCount, 1, max_count, "count");
 
-  size_t size = ElementSizeInBytes(type_cid) * count;
+  size_t size = ffi::ElementSizeInBytes(type_cid) * count;
   uint8_t* memory = reinterpret_cast<uint8_t*>(malloc(size));
   if (memory == NULL) {
     const String& error = String::Handle(String::NewFormatted(
@@ -302,7 +269,7 @@ DEFINE_NATIVE_ENTRY(Ffi_elementAt, 0, 2) {
   classid_t class_id = pointer_type_arg.type_class_id();
   uint8_t* address = pointer.GetCMemoryAddress();
   uint8_t* address_new =
-      address + index.AsInt64Value() * ElementSizeInBytes(class_id);
+      address + index.AsInt64Value() * ffi::ElementSizeInBytes(class_id);
   RawPointer* result = Pointer::New(pointer_type_arg, address_new);
   return result;
 }
@@ -493,7 +460,7 @@ DEFINE_NATIVE_ENTRY(Ffi_sizeOf, 1, 0) {
   CheckSized(type_arg);
 
   classid_t type_cid = type_arg.type_class_id();
-  return Smi::New(ElementSizeInBytes(type_cid));
+  return Smi::New(ffi::ElementSizeInBytes(type_cid));
 }
 
 // Generates assembly to trampoline from Dart into C++.
