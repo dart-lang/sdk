@@ -110,7 +110,6 @@ int f(A a) => a?.m();
 ''');
   }
 
-  @soloTest
   test_equal_prefixedIdentifier() async {
     await resolveTestUnit('''
 class A {
