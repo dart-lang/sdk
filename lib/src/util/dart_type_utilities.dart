@@ -132,7 +132,7 @@ class DartTypeUtilities {
     }
 
     final interfaceTypes = <InterfaceType>[];
-    recursiveCall(type, new Set<ClassElement>(), interfaceTypes);
+    recursiveCall(type, <ClassElement>{}, interfaceTypes);
     return interfaceTypes;
   }
 

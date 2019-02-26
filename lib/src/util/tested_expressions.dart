@@ -102,7 +102,7 @@ class TestedExpressions {
     if (_contradictions.isEmpty) {
       Set<Expression> set = (binaryExpression != null
           ? _extractComparisons(testingExpression)
-          : [testingExpression].toSet())
+          : {testingExpression})
         ..addAll(truths)
         ..addAll(negations);
       // Here and in several places we proceed only for

@@ -241,7 +241,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    Set<AstNode> lintedNodes = new Set<AstNode>();
+    Set<AstNode> lintedNodes = <AstNode>{};
     _checkDartDirectiveGoFirst(lintedNodes, node);
     _checkPackageDirectiveBeforeRelative(lintedNodes, node);
     _checkThirdPartyDirectiveBeforeOwn(lintedNodes, node);
