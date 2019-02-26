@@ -24,12 +24,6 @@ abstract class EvaluationEnvironment {
   /// Type in the enclosing constructed
   InterfaceType get enclosingConstructedType;
 
-  /// Whether the immediate parent is a set literal.
-  ///
-  /// Used to distinguish map-literal from set-literal errors. This will be
-  /// removed once the CFE reports errors on constants.
-  bool get immediateUnderSetLiteral;
-
   /// Read environments string passed in using the '-Dname=value' option.
   String readFromEnvironment(String name);
 
@@ -78,7 +72,6 @@ abstract class EvaluationEnvironment {
 abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
   Link<Spannable> _spannableStack = const Link<Spannable>();
   InterfaceType enclosingConstructedType;
-  bool immediateUnderSetLiteral = false;
   final Set<FieldEntity> _currentlyEvaluatedFields = new Set<FieldEntity>();
   final bool constantRequired;
 
@@ -126,14 +119,10 @@ abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
     _spannableStack = _spannableStack.prepend(constructor);
     var old = enclosingConstructedType;
     enclosingConstructedType = type;
-    if (type.element == commonElements.unmodifiableSetClass) {
-      immediateUnderSetLiteral = true;
-    }
     ConstantValue result = evaluate();
     // All const set literals have as an immediate child a const map. The map
     // evaluate method calls evaluateMapBody and reset this flag immediately.
     // Because there are no other children, the flag is kept false.
-    assert(!immediateUnderSetLiteral);
     enclosingConstructedType = old;
     _spannableStack = _spannableStack.tail;
     return result;
@@ -141,7 +130,6 @@ abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
 
   @override
   ConstantValue evaluateMapBody(ConstantValue evaluate()) {
-    immediateUnderSetLiteral = false;
     return evaluate();
   }
 

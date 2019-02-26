@@ -498,7 +498,6 @@ class MapConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(EvaluationEnvironment environment) {
     // TODO(sigmund): delete once the CFE provides these error messages.
-    bool isSetLiteral = environment.immediateUnderSetLiteral;
     return environment.evaluateMapBody(() {
       Map<ConstantValue, ConstantValue> map = <ConstantValue, ConstantValue>{};
       for (int i = 0; i < keys.length; i++) {
@@ -511,12 +510,7 @@ class MapConstantExpression extends ConstantExpression {
           return new NonConstantValue();
         }
         if (map.containsKey(key)) {
-          environment.reportError(
-              keys[i],
-              isSetLiteral
-                  ? MessageKind.EQUAL_SET_ENTRY
-                  : MessageKind.EQUAL_MAP_ENTRY_KEY,
-              {});
+          environment.reportError(keys[i], MessageKind.EQUAL_MAP_ENTRY_KEY, {});
         }
         map[key] = value;
       }

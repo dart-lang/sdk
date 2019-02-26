@@ -66,8 +66,6 @@ class MemoryEnvironment implements EvaluationEnvironment {
 
   bool get checkCasts => true;
 
-  bool get immediateUnderSetLiteral => _environment.immediateUnderSetLiteral;
-
   @override
   String readFromEnvironment(String name) => env[name];
 
