@@ -972,8 +972,8 @@ RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
            Function::KindToCString(function.kind()));
   }
 
-#if !defined(PRODUCT)
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
+#if defined(SUPPORT_TIMELINE)
   const char* event_name;
   if (IsBackgroundCompilation()) {
     event_name = "CompileFunctionUnoptimizedBackground";
@@ -981,7 +981,7 @@ RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
     event_name = "CompileFunction";
   }
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
-#endif  // !defined(PRODUCT)
+#endif  // defined(SUPPORT_TIMELINE)
 
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
@@ -991,12 +991,10 @@ RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
 }
 
 RawError* Compiler::ParseFunction(Thread* thread, const Function& function) {
-  Isolate* isolate = thread->isolate();
-#if !defined(PRODUCT)
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "ParseFunction", function);
-#endif  // !defined(PRODUCT)
 
+  Isolate* isolate = thread->isolate();
   if (!isolate->compilation_allowed()) {
     FATAL3("Precompilation missed function %s (%s, %s)\n",
            function.ToLibNamePrefixedQualifiedCString(),
@@ -1045,8 +1043,8 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
 RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
                                               const Function& function,
                                               intptr_t osr_id) {
-#if !defined(PRODUCT)
   VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
+#if defined(SUPPORT_TIMELINE)
   const char* event_name;
   if (osr_id != kNoOSRDeoptId) {
     event_name = "CompileFunctionOptimizedOSR";
@@ -1056,7 +1054,7 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
     event_name = "CompileFunctionOptimized";
   }
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
-#endif  // !defined(PRODUCT)
+#endif  // defined(SUPPORT_TIMELINE)
 
   ASSERT(function.ShouldCompilerOptimize());
 
@@ -1207,15 +1205,15 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
       return DartEntry::InvokeFunction(initializer, Object::empty_array());
     }
     {
-#if defined(SUPPORT_TIMELINE)
       VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
+#if defined(SUPPORT_TIMELINE)
       TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
                                 "CompileStaticInitializer");
       if (tds.enabled()) {
         tds.SetNumArguments(1);
         tds.CopyArgument(0, "field", field.ToCString());
       }
-#endif  // !defined(PRODUCT)
+#endif  // defined(SUPPORT_TIMELINE)
 
       StackZone stack_zone(thread);
       Zone* zone = stack_zone.GetZone();
