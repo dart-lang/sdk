@@ -13,7 +13,7 @@ const _desc = r'Specify type annotations.';
 
 const _details = r'''
 
-From the [flutter style guide](https://flutter.io/style-guide/):
+From the [flutter style guide](https://flutter.dev/style-guide/):
 
 **DO** specify type annotations.
 
