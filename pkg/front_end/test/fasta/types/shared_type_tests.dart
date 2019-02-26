@@ -178,6 +178,21 @@ abstract class SubtypeTest<T, E> {
     // T extends A <: T extends A
     isSubtype('T', 'T', typeParameters: 'T extends num');
 
+    isSubtype('T', 'T', typeParameters: 'T');
+    isNotSubtype('S', 'T', typeParameters: 'S, T');
+
+    isSubtype('T', 'T', typeParameters: 'T extends Object');
+    isNotSubtype('S', 'T',
+        typeParameters: 'S extends Object, T extends Object');
+
+    isSubtype('T', 'T', typeParameters: 'T extends dynamic');
+    isNotSubtype('S', 'T',
+        typeParameters: 'S extends dynamic, T extends dynamic');
+
+    // S <: T extends S
+    isNotSubtype('S', 'T', typeParameters: 'S, T extends S');
+    isSubtype('T', 'S', typeParameters: 'S, T extends S');
+
     // S & B <: A if B <: A, A is not S (or a promotion thereof)
     isSubtype('S & int', 'int', typeParameters: 'S');
     isSubtype('S & int', 'num', typeParameters: 'S');

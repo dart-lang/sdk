@@ -407,7 +407,9 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
   @override
   bool isTypeParameterRelated(
       TypeParameterType s, TypeParameterType t, Types types) {
-    return s.parameter == t.parameter;
+    return s.parameter == t.parameter ||
+        // Rule 13.
+        types.isSubtypeOfKernel(s.bound, t);
   }
 
   @override
