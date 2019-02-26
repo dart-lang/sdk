@@ -183,7 +183,8 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     if (name != null) return name;
     if (node is Class) {
       Library library = node.enclosingLibrary;
-      if ("${library?.importUri}" == "dart:core") {
+      String uriString = "${library?.importUri}";
+      if (uriString == "dart:core" || uriString == "dart:async") {
         if (!usedNames.add(node.name)) {
           throw "Class name conflict for $node";
         }
@@ -306,7 +307,7 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     };
   }
 
-  static writeTypeChecks(String filename, List<Object> typeChecks) {
+  static void writeTypeChecks(String filename, List<Object> typeChecks) {
     new File(filename)
         .writeAsString(new BenchMaker().serializeTypeChecks(typeChecks));
   }
