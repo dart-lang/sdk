@@ -452,6 +452,21 @@ hooks = [
     ],
   },
   {
+    "name": "front_end_benchmark_data",
+    "pattern": ".",
+    "action": [
+      "download_from_google_storage",
+      "--no_auth",
+      "--no_resume",
+      "--bucket",
+      "dart-dependencies",
+      "--recursive",
+      "--extract",
+      "--directory",
+      Var('dart_root') + "/pkg/front_end/test/fasta/types",
+    ],
+  },
+  {
     # Pull Debian wheezy sysroot for i386 Linux
     'name': 'sysroot_i386',
     'pattern': '.',

@@ -40,6 +40,8 @@ front_end/test/fasta/sdk_test: SkipByDesign # sdk_test would take too long to co
 front_end/test/fasta/shaker_test: Skip # Issue http://dartbug.com/32531
 front_end/test/fasta/strong_test: Pass, ExtraSlow
 front_end/test/fasta/text_serialization_test: Pass, ExtraSlow
+front_end/test/fasta/types/dart2js_benchmark_test: Pass, Slow
+front_end/test/fasta/types/large_app_benchmark_test: Pass, ExtraSlow
 front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
 front_end/test/whole_program_test: Slow, Pass
 front_end/testcases/*: Skip # These are not tests but input for tests.

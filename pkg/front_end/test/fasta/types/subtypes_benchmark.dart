@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:convert" show json;
+import "dart:convert" show json, utf8;
 
-import "dart:io" show File;
+import "dart:io" show File, gzip;
 
 import "package:kernel/ast.dart" show Component, DartType, Library;
 
@@ -119,13 +119,19 @@ void performFastaChecks(
   }
 }
 
-main() async {
+Future<void> run(Uri benchmarkInput, String name) async {
   const int runs = 50;
-  final Ticker ticker = new Ticker(isVerbose: true);
+  final Ticker ticker = new Ticker(isVerbose: false);
   Stopwatch kernelWatch = new Stopwatch();
   Stopwatch fastaWatch = new Stopwatch();
-  SubtypesBenchmark bench =
-      parseBenchMark(await new File("type_checks.json").readAsString());
+  List<int> bytes = await new File.fromUri(benchmarkInput).readAsBytes();
+  if (bytes.length > 3) {
+    if (bytes[0] == 0x1f && bytes[1] == 0x8b && bytes[2] == 0x08) {
+      bytes = gzip.decode(bytes);
+    }
+  }
+  SubtypesBenchmark bench = parseBenchMark(utf8.decode(bytes));
+  bytes = null;
   ticker.logMs("Parsed benchmark file");
   Component c = new Component(libraries: [bench.library]);
   ClassHierarchy hierarchy = new ClassHierarchy(c);
@@ -155,13 +161,20 @@ main() async {
       fastaWatch.start();
       performFastaChecks(bench.checks, hierarchy);
       fastaWatch.stop();
+
+      if (i == 0) {
+        print("SubtypeKernel${name}First(RuntimeRaw): "
+            "${kernelWatch.elapsedMilliseconds} ms");
+        print("SubtypeFasta${name}First(RuntimeRaw): "
+            "${fastaWatch.elapsedMilliseconds} ms");
+      }
     }
   });
 
-  print(
-      "Kernel average over $runs runs (${bench.checks.length} type tests per run):"
-      " ${kernelWatch.elapsedMilliseconds / runs}ms");
-  print(
-      "Fasta average over $runs runs (${bench.checks.length} type tests per run):"
-      " ${fastaWatch.elapsedMilliseconds / runs}ms");
+  print("SubtypeKernel${name}Avg${runs}(RuntimeRaw): "
+      "${kernelWatch.elapsedMilliseconds / runs} ms");
+  print("SubtypeFasta${name}Avg${runs}(RuntimeRaw): "
+      "${fastaWatch.elapsedMilliseconds / runs} ms");
 }
+
+main() => run(Uri.base.resolve("type_checks.json"), "***");
