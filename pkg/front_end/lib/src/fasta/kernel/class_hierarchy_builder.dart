@@ -546,7 +546,7 @@ class ClassHierarchyNodeBuilder {
       } else {
         interfaceMembers = supernode.interfaceMembers;
         interfaceSetters = supernode.interfaceSetters;
-        interfaces = supernode.interfaces;
+        interfaces = substSupertypes(cls.supertype, supernode.interfaces);
       }
       if (interfaceMembers != null) {
         interfaceMembers =

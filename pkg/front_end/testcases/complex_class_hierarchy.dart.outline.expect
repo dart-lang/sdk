@@ -74,5 +74,17 @@ class GV extends self::GU implements self::GW {
   synthetic constructor •() → self::GV
     ;
 }
+class ARO<S extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::ARO<self::ARO::S>
+    ;
+}
+class ARQ<T extends core::Object = dynamic> extends core::Object implements self::ARO<self::ARQ::T> {
+  synthetic constructor •() → self::ARQ<self::ARQ::T>
+    ;
+}
+class ARN extends self::ARQ<self::A> {
+  synthetic constructor •() → self::ARN
+    ;
+}
 static method main() → dynamic
   ;
