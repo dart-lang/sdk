@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -305,12 +306,12 @@ AstNode getEnclosingExecutableNode(AstNode node) {
  *
  * The reason is that `(expr)` is always executed after `expr`.
  */
-int getExpressionParentPrecedence(AstNode node) {
+Precedence getExpressionParentPrecedence(AstNode node) {
   AstNode parent = node.parent;
   if (parent is ParenthesizedExpression) {
-    return ASSIGNMENT_PRECEDENCE;
+    return Precedence.assignment;
   } else if (parent is IndexExpression && parent.index == node) {
-    return ASSIGNMENT_PRECEDENCE;
+    return Precedence.assignment;
   } else if (parent is AssignmentExpression &&
       node == parent.rightHandSide &&
       parent.parent is CascadeExpression) {
@@ -319,7 +320,7 @@ int getExpressionParentPrecedence(AstNode node) {
     // expressions are equal it sometimes means that we don't need parentheses
     // (such as replacing the `b` in `a + b` with `c + d`) and sometimes do
     // (such as replacing the `v` in `..f = v` with `a..b`).
-    return CONDITIONAL_PRECEDENCE;
+    return Precedence.conditional;
   }
   return getExpressionPrecedence(parent);
 }
@@ -328,11 +329,11 @@ int getExpressionParentPrecedence(AstNode node) {
  * Returns the precedence of [node] it is an [Expression], NO_PRECEDENCE
  * otherwise.
  */
-int getExpressionPrecedence(AstNode node) {
+Precedence getExpressionPrecedence(AstNode node) {
   if (node is Expression) {
-    return node.precedence;
+    return node.precedence2;
   }
-  return NO_PRECEDENCE;
+  return Precedence.none;
 }
 
 /**

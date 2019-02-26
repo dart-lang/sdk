@@ -1,3 +1,8 @@
+##
+* Deprecated `Expression.precedence`.  In analyzer version 0.36.0, its return
+  type will be changed to `Precedence`.  Clients that wish to prepare for the
+  change can switch to `Expression.precedence2`.
+
 ## 0.35.2
 * Updated support in the AST structure for the control_flow_collections and
   spread_collections experiments.  The following methods are now deprecated:

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/precedence.dart';
+
 /// Defines the AST model. The AST (Abstract Syntax Tree) model describes the
 /// syntactic (as opposed to semantic) structure of Dart code. The semantic
 /// structure of the code is modeled by the
@@ -1977,11 +1979,15 @@ abstract class Expression implements CollectionElement {
   /// integer value that defines how the source code is parsed into an AST. For
   /// example `a * b + c` is parsed as `(a * b) + c` because the precedence of
   /// `*` is greater than the precedence of `+`.
-  ///
-  /// Clients should not assume that returned values will stay the same, they
-  /// might change as result of specification change. Only relative order should
-  /// be used.
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   int get precedence;
+
+  /// Return the precedence of this expression. The precedence is a positive
+  /// integer value that defines how the source code is parsed into an AST. For
+  /// example `a * b + c` is parsed as `(a * b) + c` because the precedence of
+  /// `*` is greater than the precedence of `+`.
+  Precedence get precedence2;
 
   /// If this expression is an argument to an invocation, and the AST structure
   /// has been resolved, and the function being invoked is known based on

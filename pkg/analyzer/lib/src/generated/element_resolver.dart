@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -1870,8 +1871,13 @@ class SyntheticIdentifier extends IdentifierImpl {
   @override
   int get offset => targetIdentifier.offset;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 
   @deprecated
   @override

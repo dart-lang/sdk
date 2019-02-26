@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
@@ -192,7 +193,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   static bool _shouldUseParenthesis(Expression init, AstNode node) {
     // check precedence
-    int initPrecedence = getExpressionPrecedence(init);
+    Precedence initPrecedence = getExpressionPrecedence(init);
     if (initPrecedence < getExpressionParentPrecedence(node)) {
       return true;
     }

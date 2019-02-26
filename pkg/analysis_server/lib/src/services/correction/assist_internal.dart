@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -1584,7 +1585,7 @@ class AssistProcessor {
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       if (getExpressionParentPrecedence(prefExpression) >=
-          TokenClass.RELATIONAL_OPERATOR.precedence) {
+          Precedence.relational) {
         builder.addDeletion(range.token(prefExpression.operator));
       } else {
         builder.addDeletion(
@@ -1638,7 +1639,7 @@ class AssistProcessor {
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       if (getExpressionParentPrecedence(prefExpression) >=
-          TokenClass.RELATIONAL_OPERATOR.precedence) {
+          Precedence.relational) {
         builder.addDeletion(range.token(prefExpression.operator));
       } else {
         builder.addDeletion(

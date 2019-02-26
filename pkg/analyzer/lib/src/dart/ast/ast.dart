@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -500,8 +501,13 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => RELATIONAL_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.relational;
 
   @override
   TypeAnnotation get type => _type;
@@ -777,8 +783,13 @@ class AssignmentExpressionImpl extends ExpressionImpl
     _leftHandSide = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => ASSIGNMENT_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.assignment;
 
   @deprecated
   @override
@@ -1016,8 +1027,13 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => PREFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.prefix;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
@@ -1093,8 +1109,13 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
     _leftOperand = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => operator.type.precedence;
+
+  @override
+  Precedence get precedence2 => Precedence.forTokenType(operator.type);
 
   @deprecated
   @override
@@ -1425,8 +1446,13 @@ class CascadeExpressionImpl extends ExpressionImpl
   @override
   Token get endToken => _cascadeSections.endToken;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => CASCADE_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.cascade;
 
   @override
   Expression get target => _target;
@@ -2580,8 +2606,13 @@ class ConditionalExpressionImpl extends ExpressionImpl
   @override
   Token get endToken => _elseExpression.endToken;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => CONDITIONAL_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.conditional;
 
   @override
   Expression get thenExpression => _thenExpression;
@@ -5730,8 +5761,13 @@ class FunctionExpressionImpl extends ExpressionImpl
     _parameters = _becomeParentOf(parameters as FormalParameterListImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 
   @override
   TypeParameterList get typeParameters => _typeParameters;
@@ -5807,8 +5843,13 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     _function = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @deprecated
   @override
@@ -6786,8 +6827,13 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   @override
   bool get isCascaded => period != null;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @deprecated
   @override
@@ -6974,8 +7020,13 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
    */
   bool get isImplicit => keyword == null;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 
   /**
    * Return the type arguments associated with the constructor, rather than with
@@ -7461,8 +7512,13 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => RELATIONAL_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.relational;
 
   @override
   TypeAnnotation get type => _type;
@@ -7720,8 +7776,13 @@ class LibraryIdentifierImpl extends IdentifierImpl
     return buffer.toString();
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @deprecated
   @override
@@ -7908,8 +7969,13 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
  *      | [StringLiteral]
  */
 abstract class LiteralImpl extends ExpressionImpl implements Literal {
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 }
 
 /**
@@ -8375,8 +8441,13 @@ class MethodInvocationImpl extends InvocationExpressionImpl
     _methodNameType = methodNameType;
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @override
   Expression get realTarget {
@@ -8609,8 +8680,13 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
     _name = _becomeParentOf(identifier as LabelImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => NO_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.none;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitNamedExpression(this);
@@ -9235,8 +9311,13 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 
   @override
   Expression get unParenthesized {
@@ -9461,8 +9542,13 @@ class PostfixExpressionImpl extends ExpressionImpl
     _operand = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @deprecated
   @override
@@ -9582,8 +9668,13 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   String get name => "${_prefix.name}.${_identifier.name}";
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @override
   SimpleIdentifier get prefix => _prefix;
@@ -9668,8 +9759,13 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
     _operand = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => PREFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.prefix;
 
   @deprecated
   @override
@@ -9762,8 +9858,13 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
   bool get isCascaded =>
       operator != null && operator.type == TokenType.PERIOD_PERIOD;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @override
   SimpleIdentifier get propertyName => _propertyName;
@@ -9923,8 +10024,13 @@ class RethrowExpressionImpl extends ExpressionImpl
   @override
   Token get endToken => rethrowKeyword;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => ASSIGNMENT_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.assignment;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitRethrowExpression(this);
@@ -10423,8 +10529,13 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   @override
   String get name => token.lexeme;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 
   @deprecated
   @override
@@ -11032,8 +11143,13 @@ class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
   @override
   Token get endToken => superKeyword;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitSuperExpression(this);
@@ -11352,8 +11468,13 @@ class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
   @override
   Token get endToken => thisKeyword;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitThisExpression(this);
@@ -11411,8 +11532,13 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => ASSIGNMENT_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.assignment;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitThrowExpression(this);

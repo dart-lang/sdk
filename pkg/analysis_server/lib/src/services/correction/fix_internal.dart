@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -676,7 +677,7 @@ class FixProcessor {
       // TODO(brianwilkerson) Consider updating the right operand.
       return;
     }
-    bool needsParentheses = target.precedence < POSTFIX_PRECEDENCE;
+    bool needsParentheses = target.precedence2 < Precedence.postfix;
     if (((_isDartCoreIterable(fromType) || _isDartCoreList(fromType)) &&
             _isDartCoreList(toType)) ||
         (_isDartCoreSet(fromType) && _isDartCoreSet(toType))) {
@@ -3004,7 +3005,7 @@ class FixProcessor {
     }
     AsExpression asExpression = coveredNode as AsExpression;
     Expression expression = asExpression.expression;
-    int expressionPrecedence = getExpressionPrecedence(expression);
+    Precedence expressionPrecedence = getExpressionPrecedence(expression);
     // remove 'as T' from 'e as T'
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -4192,7 +4193,7 @@ class FixProcessor {
    * [exprPrecedence] - the effective precedence of [expr].
    */
   void _removeEnclosingParentheses(
-      DartFileEditBuilder builder, Expression expr, int exprPrecedence) {
+      DartFileEditBuilder builder, Expression expr, Precedence exprPrecedence) {
     while (expr.parent is ParenthesizedExpression) {
       ParenthesizedExpression parenthesized =
           expr.parent as ParenthesizedExpression;

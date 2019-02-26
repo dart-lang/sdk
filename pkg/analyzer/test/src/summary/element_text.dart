@@ -306,7 +306,7 @@ class _ElementWriter {
   void writeExpression(AstNode e, [Expression enclosing]) {
     bool needsParenthesis = e is Expression &&
         enclosing != null &&
-        e.precedence < enclosing.precedence;
+        e.precedence2 < enclosing.precedence2;
 
     if (needsParenthesis) {
       buffer.write('(');
@@ -952,5 +952,6 @@ class _Replacement {
   final int offset;
   final int end;
   final String text;
+
   _Replacement(this.offset, this.end, this.text);
 }
