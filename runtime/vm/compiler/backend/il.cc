@@ -131,12 +131,11 @@ const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
   CidRangeVector& ranges = (*cid_ranges)[klass.id()];
   if (ranges.length() == 0) {
     if (!FLAG_precompiled_mode) {
-      BuildRangesForJIT(table, &ranges, klass,
-                        /*use_subtype_test=*/true,
-                        /*include_abstract*/ false);
+      BuildRangesForJIT(table, &ranges, klass, /*use_subtype_test=*/true,
+                        include_abstract, exclude_null);
     } else {
-      BuildRangesFor(table, &ranges, klass,
-                     /*use_subtype_test=*/true, include_abstract, exclude_null);
+      BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/true,
+                     include_abstract, exclude_null);
     }
   }
   return ranges;
@@ -155,7 +154,8 @@ const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
     if (!FLAG_precompiled_mode) {
       BuildRangesForJIT(table, &ranges, klass,
                         /*use_subtype_test=*/true,
-                        /*include_abstract=*/false);
+                        /*include_abstract=*/false,
+                        /*exclude_null=*/false);
     } else {
       BuildRangesFor(table, &ranges, klass,
                      /*use_subtype_test=*/false,
@@ -201,6 +201,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     if (cid == kTypeArgumentsCid) continue;
     if (cid == kVoidCid) continue;
     if (cid == kDynamicCid) continue;
+    if (cid == kNullCid && !exclude_null) continue;
     cls = table->At(cid);
     if (!include_abstract && cls.is_abstract()) continue;
     if (cls.is_patch()) continue;
@@ -209,7 +210,8 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     // We are either interested in [CidRange]es of subclasses or subtypes.
     bool test_succeeded = false;
     if (cid == kNullCid) {
-      test_succeeded = !exclude_null;
+      ASSERT(exclude_null);
+      test_succeeded = false;
     } else if (use_subtype_test) {
       cls_type = cls.RareType();
       test_succeeded = cls_type.IsSubtypeOf(dst_type, Heap::kNew);
@@ -256,12 +258,14 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
                                       CidRangeVector* ranges,
                                       const Class& dst_klass,
                                       bool use_subtype_test,
-                                      bool include_abstract) {
+                                      bool include_abstract,
+                                      bool exclude_null) {
   if (dst_klass.InVMHeap()) {
     BuildRangesFor(table, ranges, dst_klass, use_subtype_test, include_abstract,
-                   /*exclude_null=*/false);
+                   exclude_null);
     return;
   }
+  ASSERT(!exclude_null);
 
   Zone* zone = thread()->zone();
   GrowableArray<intptr_t> cids;

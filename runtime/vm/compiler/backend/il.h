@@ -242,7 +242,10 @@ class HierarchyInfo : public ThreadStackResource {
 
  private:
   // Does not use any hierarchy information available in the system but computes
-  // it via O(n) class table traversal.
+  // it via O(n) class table traversal. The boolean parameters denote:
+  //   use_subtype_test : if set, IsSubtypeOf() is used to compute inclusion
+  //   include_abstract : if set, include abstract types (don't care otherwise)
+  //   exclude_null     : if set, exclude null types (don't care otherwise)
   void BuildRangesFor(ClassTable* table,
                       CidRangeVector* ranges,
                       const Class& klass,
@@ -256,7 +259,8 @@ class HierarchyInfo : public ThreadStackResource {
                          CidRangeVector* ranges,
                          const Class& klass,
                          bool use_subtype_test,
-                         bool include_abstract);
+                         bool include_abstract,
+                         bool exclude_null);
 
   CidRangeVector* cid_subtype_ranges_nullable_;
   CidRangeVector* cid_subtype_ranges_abstract_nullable_;
