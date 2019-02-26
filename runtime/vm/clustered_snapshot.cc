@@ -4724,8 +4724,7 @@ void Serializer::AddVMIsolateBaseObjects() {
   }
 }
 
-intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
-                                     ZoneGrowableArray<Object*>* seeds) {
+intptr_t Serializer::WriteVMSnapshot(const Array& symbols) {
   NoSafepointScope no_safepoint;
 
   AddVMIsolateBaseObjects();
@@ -4735,11 +4734,6 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
   if (Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
       Push(StubCode::EntryAt(i).raw());
-    }
-  }
-  if (seeds != NULL) {
-    for (intptr_t i = 0; i < seeds->length(); i++) {
-      Push((*seeds)[i]->raw());
     }
   }
 
@@ -5280,92 +5274,6 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   Bootstrap::SetupNativeResolver();
 }
 
-// Iterates the program structure looking for objects to write into
-// the VM isolate's snapshot, causing them to be shared across isolates.
-// Duplicates will be removed by Serializer::Push.
-class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
- public:
-  SeedVMIsolateVisitor(Zone* zone, bool include_code)
-      : zone_(zone),
-        include_code_(include_code),
-        seeds_(new (zone) ZoneGrowableArray<Object*>(4 * KB)),
-        script_(Script::Handle(zone)),
-        code_(Code::Handle(zone)),
-        stack_maps_(Array::Handle(zone)),
-        library_(Library::Handle(zone)),
-        kernel_program_info_(KernelProgramInfo::Handle(zone)) {}
-
-  void Visit(const Class& cls) {
-    script_ = cls.script();
-    if (!script_.IsNull()) {
-      Visit(script_);
-    }
-
-    library_ = cls.library();
-    AddSeed(library_.kernel_data());
-
-    if (!include_code_) return;
-
-    code_ = cls.allocation_stub();
-    Visit(code_);
-  }
-
-  void Visit(const Function& function) {
-    script_ = function.script();
-    if (!script_.IsNull()) {
-      Visit(script_);
-    }
-
-    if (!include_code_) return;
-
-    code_ = function.CurrentCode();
-    Visit(code_);
-    code_ = function.unoptimized_code();
-    Visit(code_);
-  }
-
-  void Visit(const Script& script) {
-    kernel_program_info_ = script_.kernel_program_info();
-    if (!kernel_program_info_.IsNull()) {
-      AddSeed(kernel_program_info_.string_offsets());
-      AddSeed(kernel_program_info_.string_data());
-      AddSeed(kernel_program_info_.canonical_names());
-      AddSeed(kernel_program_info_.metadata_payloads());
-      AddSeed(kernel_program_info_.metadata_mappings());
-      AddSeed(kernel_program_info_.constants());
-    }
-  }
-
-  ZoneGrowableArray<Object*>* seeds() { return seeds_; }
-
- private:
-  void Visit(const Code& code) {
-    ASSERT(include_code_);
-    if (code.IsNull()) return;
-
-    AddSeed(code.pc_descriptors());
-    AddSeed(code.code_source_map());
-
-    stack_maps_ = code_.stackmaps();
-    if (!stack_maps_.IsNull()) {
-      for (intptr_t i = 0; i < stack_maps_.Length(); i++) {
-        AddSeed(stack_maps_.At(i));
-      }
-    }
-  }
-
-  void AddSeed(RawObject* seed) { seeds_->Add(&Object::Handle(zone_, seed)); }
-
-  Zone* zone_;
-  bool include_code_;
-  ZoneGrowableArray<Object*>* seeds_;
-  Script& script_;
-  Code& code_;
-  Array& stack_maps_;
-  Library& library_;
-  KernelProgramInfo& kernel_program_info_;
-};
-
 #if defined(DART_PRECOMPILER)
 DEFINE_FLAG(charp,
             write_v8_snapshot_profile_to,
@@ -5388,9 +5296,6 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
       isolate_snapshot_size_(0),
       vm_image_writer_(vm_image_writer),
       isolate_image_writer_(isolate_image_writer),
-      seeds_(NULL),
-      saved_symbol_table_(Array::Handle(zone())),
-      new_vm_symbol_table_(Array::Handle(zone())),
       clustered_vm_size_(0),
       clustered_isolate_size_(0),
       mapped_data_size_(0),
@@ -5406,36 +5311,6 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
   isolate()->ValidateConstants();
 #endif  // DEBUG
 
-  // TODO(rmacnak): The special case for AOT causes us to always generate the
-  // same VM isolate snapshot for every app. AOT snapshots should be cleaned up
-  // so the VM isolate snapshot is generated separately and each app is
-  // generated from a VM that has loaded this snapshots, much like app-jit
-  // snapshots.
-  if ((vm_snapshot_data_buffer != NULL) && (kind != Snapshot::kFullAOT)) {
-    TIMELINE_DURATION(thread(), Isolate, "PrepareNewVMIsolate");
-
-    SeedVMIsolateVisitor visitor(thread()->zone(),
-                                 Snapshot::IncludesCode(kind));
-    ProgramVisitor::VisitClasses(&visitor);
-    ProgramVisitor::VisitFunctions(&visitor);
-    seeds_ = visitor.seeds();
-
-    // Tuck away the current symbol table.
-    saved_symbol_table_ = object_store->symbol_table();
-
-    // Create a unified symbol table that will be written as the vm isolate's
-    // symbol table.
-    new_vm_symbol_table_ = Symbols::UnifiedSymbolTable();
-
-    // Create an empty symbol table that will be written as the isolate's symbol
-    // table.
-    Symbols::SetupSymbolTable(isolate());
-  } else {
-    // Reuse the current vm isolate.
-    saved_symbol_table_ = object_store->symbol_table();
-    new_vm_symbol_table_ = Dart::vm_isolate()->object_store()->symbol_table();
-  }
-
 #if defined(DART_PRECOMPILER)
   if (FLAG_write_v8_snapshot_profile_to != nullptr) {
     profile_writer_ = new (zone()) V8SnapshotProfileWriter(zone());
@@ -5443,14 +5318,7 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
 #endif
 }
 
-FullSnapshotWriter::~FullSnapshotWriter() {
-  // We may run Dart code afterwards, restore the symbol table if needed.
-  if (!saved_symbol_table_.IsNull()) {
-    isolate()->object_store()->set_symbol_table(saved_symbol_table_);
-    saved_symbol_table_ = Array::null();
-  }
-  new_vm_symbol_table_ = Array::null();
-}
+FullSnapshotWriter::~FullSnapshotWriter() {}
 
 intptr_t FullSnapshotWriter::WriteVMSnapshot() {
   TIMELINE_DURATION(thread(), Isolate, "WriteVMSnapshot");
@@ -5464,10 +5332,11 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
   serializer.WriteVersionAndFeatures(true);
   // VM snapshot roots are:
   // - the symbol table
-  // - all the token streams
   // - the stub code (App-AOT, App-JIT or Core-JIT)
-  intptr_t num_objects =
-      serializer.WriteVMSnapshot(new_vm_symbol_table_, seeds_);
+
+  const Array& symbols =
+      Array::Handle(Dart::vm_isolate()->object_store()->symbol_table());
+  intptr_t num_objects = serializer.WriteVMSnapshot(symbols);
   serializer.FillHeader(serializer.kind());
   clustered_vm_size_ = serializer.bytes_written();
 

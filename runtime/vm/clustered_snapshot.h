@@ -139,8 +139,7 @@ class Serializer : public ThreadStackResource {
              V8SnapshotProfileWriter* profile_writer = nullptr);
   ~Serializer();
 
-  intptr_t WriteVMSnapshot(const Array& symbols,
-                           ZoneGrowableArray<Object*>* seeds);
+  intptr_t WriteVMSnapshot(const Array& symbols);
   void WriteIsolateSnapshot(intptr_t num_base_objects,
                             ObjectStore* object_store);
 
@@ -642,9 +641,6 @@ class FullSnapshotWriter {
   ForwardList* forward_list_;
   ImageWriter* vm_image_writer_;
   ImageWriter* isolate_image_writer_;
-  ZoneGrowableArray<Object*>* seeds_;
-  Array& saved_symbol_table_;
-  Array& new_vm_symbol_table_;
 
   // Stats for benchmarking.
   intptr_t clustered_vm_size_;

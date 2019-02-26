@@ -629,8 +629,6 @@ class Symbols : public AllStatic {
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);
 
-  static RawArray* UnifiedSymbolTable();
-
   // Treat the symbol table as weak and collect garbage.
   static void Compact();
 
