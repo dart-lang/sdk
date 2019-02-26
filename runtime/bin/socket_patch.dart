@@ -463,6 +463,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         final _InternetAddress address = it.current;
         var socket = new _NativeSocket.normal();
         socket.localAddress = address;
+        socket.localPort = port;
         var result;
         if (sourceAddress == null) {
           result = socket.nativeCreateConnect(address._in_addr, port);
