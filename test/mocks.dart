@@ -218,18 +218,6 @@ class MockRule implements LintRule {
   noSuchMethod(Invocation invocation) => null;
 
   @override
-  void reportLint(AstNode node,
-      {List<Object> arguments = const [],
-      ErrorCode errorCode,
-      bool ignoreSyntheticNodes = true}) {}
-
-  @override
-  void reportLintForToken(Token token,
-      {List<Object> arguments = const [],
-      ErrorCode errorCode,
-      bool ignoreSyntheticTokens = true}) {}
-
-  @override
   void reportPubLint(PSNode node) {}
 }
 
