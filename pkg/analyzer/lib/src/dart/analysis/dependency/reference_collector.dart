@@ -430,8 +430,12 @@ class ReferenceCollector {
       _visitExpression(node.condition);
       _visitExpressionList(node.updaters);
     } else if (node is ForEachPartsWithDeclaration) {
+      var variable = node.loopVariable;
+      _visitTypeAnnotation(variable.type);
       _visitExpression(node.iterable);
+      _localScopes.add(variable.identifier.name);
     } else if (node is ForEachPartsWithIdentifier) {
+      _visitExpression(node.identifier);
       _visitExpression(node.iterable);
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');
@@ -499,6 +503,15 @@ class ReferenceCollector {
       _visitExpression(updaters[i]);
     }
 
+    _visitStatement(node.body);
+
+    _localScopes.exit();
+  }
+
+  void _visitForStatement2(ForStatement2 node) {
+    _localScopes.enter();
+
+    _visitForLoopParts(node.forLoopParts);
     _visitStatement(node.body);
 
     _localScopes.exit();
@@ -716,6 +729,8 @@ class ReferenceCollector {
       _visitForEachStatement(node);
     } else if (node is ForStatement) {
       _visitForStatement(node);
+    } else if (node is ForStatement2) {
+      _visitForStatement2(node);
     } else if (node is FunctionDeclarationStatement) {
       _visitFunctionDeclarationStatement(node);
     } else if (node is IfStatement) {
