@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         InvalidType,
         Library,
+        NamedType,
         TypeParameter,
         TypeParameterType,
         TypedefType,
@@ -85,17 +86,28 @@ class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
     // We could compute the type variables here. However, the current
     // implementation of [visitTypeParameterType] is suffient.
     List<KernelTypeVariableBuilder> typeVariables = null;
+    List<DartType> positionalParameters = node.positionalParameters;
+    List<NamedType> namedParameters = node.namedParameters;
     List<KernelFormalParameterBuilder> formals =
-        <KernelFormalParameterBuilder>[];
-    for (int i = 0; i < node.positionalParameters.length; i++) {
-      KernelTypeBuilder type = node.positionalParameters[i].accept(this);
+        new List<KernelFormalParameterBuilder>(
+            positionalParameters.length + namedParameters.length);
+    for (int i = 0; i < positionalParameters.length; i++) {
+      KernelTypeBuilder type = positionalParameters[i].accept(this);
       FormalParameterKind kind = FormalParameterKind.mandatory;
       if (i >= node.requiredParameterCount) {
         kind = FormalParameterKind.optionalPositional;
       }
-      formals.add(
+      formals[i] =
           new KernelFormalParameterBuilder(null, 0, type, null, null, -1)
-            ..kind = kind);
+            ..kind = kind;
+    }
+    for (int i = 0; i < namedParameters.length; i++) {
+      NamedType parameter = namedParameters[i];
+      KernelTypeBuilder type = positionalParameters[i].accept(this);
+      formals[i + positionalParameters.length] =
+          new KernelFormalParameterBuilder(
+              null, 0, type, parameter.name, null, -1)
+            ..kind = FormalParameterKind.optionalNamed;
     }
 
     return new KernelFunctionTypeBuilder(returnType, typeVariables, formals);
