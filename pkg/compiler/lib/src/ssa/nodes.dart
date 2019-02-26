@@ -361,6 +361,35 @@ class HGraph {
         }
       }
     }
+    assignDominatorRanges();
+  }
+
+  void assignDominatorRanges() {
+    // DFS walk of dominator tree to assign dfs-in and dfs-out numbers to basic
+    // blocks. A dominator has a dfs-in..dfs-out range that includes the range
+    // of the dominated block. See [HGraphVisitor.visitDominatorTree] for
+    // recursion-free schema.
+    _Frame frame = new _Frame(null);
+    frame.block = entry;
+    frame.index = 0;
+
+    int dfsNumber = 0;
+    frame.block.dominatorDfsIn = dfsNumber;
+
+    while (frame != null) {
+      HBasicBlock block = frame.block;
+      int index = frame.index;
+      if (index < block.dominatedBlocks.length) {
+        frame.index = index + 1;
+        frame = frame.next ??= new _Frame(frame);
+        frame.block = block.dominatedBlocks[index];
+        frame.index = 0;
+        frame.block.dominatorDfsIn = ++dfsNumber;
+        continue;
+      }
+      block.dominatorDfsOut = dfsNumber;
+      frame = frame.previous;
+    }
   }
 
   bool isValid() {
@@ -630,6 +659,8 @@ class HBasicBlock extends HInstructionList {
 
   HBasicBlock dominator = null;
   final List<HBasicBlock> dominatedBlocks;
+  int dominatorDfsIn;
+  int dominatorDfsOut;
 
   HBasicBlock() : this.withId(null);
   HBasicBlock.withId(this.id)
@@ -888,20 +919,9 @@ class HBasicBlock extends HInstructionList {
     return validator.isValid;
   }
 
-  Map<HBasicBlock, bool> dominatesCache;
-
   bool dominates(HBasicBlock other) {
-    if (dominatesCache == null) {
-      dominatesCache = new Map<HBasicBlock, bool>();
-    } else {
-      bool res = dominatesCache[other];
-      if (res != null) return res;
-    }
-    do {
-      if (identical(this, other)) return dominatesCache[other] = true;
-      other = other.dominator;
-    } while (other != null && other.id >= id);
-    return dominatesCache[other] = false;
+    return this.dominatorDfsIn <= other.dominatorDfsIn &&
+        other.dominatorDfsOut <= this.dominatorDfsOut;
   }
 
   toString() => 'HBasicBlock($id)';
