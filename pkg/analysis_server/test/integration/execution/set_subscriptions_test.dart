@@ -17,7 +17,7 @@ main() {
 class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
   test_subscribe() async {
     standardAnalysisSetup();
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     await sendExecutionSetSubscriptions([ExecutionService.LAUNCH_DATA]);
   }
 }

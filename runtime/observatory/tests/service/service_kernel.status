@@ -31,6 +31,7 @@ get_retaining_path_rpc_test: SkipByDesign # No incremental compiler available.
 get_user_level_retaining_path_rpc_test: SkipByDesign # No incremental compiler available.
 instance_field_order_rpc_test: SkipByDesign # No incremental compiler available.
 pause_on_exceptions_test: SkipByDesign # No incremental compiler available.
+regress_34841_test: RuntimeError # http://dartbug.com/34841
 rewind_optimized_out_test: SkipByDesign # No incremental compiler available.
 rewind_test: SkipByDesign # No incremental compiler available.
 simple_reload_test: RuntimeError, Timeout # Issue 35506
@@ -46,6 +47,7 @@ evaluate_activation_in_method_class_test: RuntimeError # Issue 35505
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
 evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 pause_on_unhandled_async_exceptions2_test: Pass, Slow
+regress_34841_test: RuntimeError # http://dartbug.com/34841
 unused_changes_in_last_reload_test: RuntimeError
 
 [ $compiler == dartkp ]

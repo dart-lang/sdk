@@ -35,7 +35,14 @@ import 'compiler_state.dart' show InitializedCompilerState;
 export '../api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags;
 
-export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
+export '../api_prototype/diagnostic_message.dart'
+    show
+        DiagnosticMessage,
+        getMessageCharOffset,
+        getMessageHeaderText,
+        getMessageLength,
+        getMessageRelatedInformation,
+        getMessageUri;
 
 export '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
@@ -48,8 +55,6 @@ export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
 
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-
-export '../fasta/fasta_codes.dart' show FormattedMessage;
 
 export '../fasta/kernel/redirecting_factory_body.dart'
     show RedirectingFactoryBody;

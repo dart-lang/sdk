@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_29984.dart:6:16: Error: Getter not found: 'i'.
 //   for (int i = i;; false) {}
@@ -10,8 +12,7 @@
 // pkg/front_end/testcases/regress/issue_29984.dart:6:16: Context: Previous use of 'i'.
 //   for (int i = i;; false) {}
 //                ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

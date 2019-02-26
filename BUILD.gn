@@ -46,6 +46,9 @@ group("runtime") {
     "runtime/bin:run_vm_tests",
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
+    "runtime/bin:entrypoints_verification_test_extension",
+    "runtime/bin:ffi_test_dynamic_library",
+    "runtime/bin:ffi_test_functions",
     "runtime/vm:kernel_platform_files($host_toolchain)",
     "utils/kernel-service:kernel-service",
   ]

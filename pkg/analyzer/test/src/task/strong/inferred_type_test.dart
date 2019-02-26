@@ -16,75 +16,9 @@ import 'strong_test_helper.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InferredTypeTest);
     defineReflectiveTests(InferredTypeTest_Driver);
     defineReflectiveTests(InferredTypeTest_SetLiterals);
   });
-}
-
-@reflectiveTest
-class InferredTypeTest extends AbstractStrongTest with InferredTypeMixin {
-  @override
-  bool get mayCheckTypesOfLocals => true;
-
-  @override
-  Future<CompilationUnitElement> checkFileElement(String content) async {
-    CompilationUnit unit = await checkFile(content);
-    return unit.declaredElement;
-  }
-
-  @override
-  @failingTest
-  test_circularReference_viaClosures() {
-    return super.test_circularReference_viaClosures();
-  }
-
-  @override
-  @failingTest
-  test_circularReference_viaClosures_initializerTypes() {
-    return super.test_circularReference_viaClosures_initializerTypes();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_typeName_error1() {
-    // Test doesn't work with the old task model
-    return super.test_instantiateToBounds_typeName_error1();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_typeName_error2() {
-    // Test doesn't work with the old task model
-    return super.test_instantiateToBounds_typeName_error2();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_typeName_error3() {
-    // Test doesn't work with the old task model
-    return super.test_instantiateToBounds_typeName_error3();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_typeName_OK_hasBound_definedAfter() {
-    return super.test_instantiateToBounds_typeName_OK_hasBound_definedAfter();
-  }
-
-  @override
-  @failingTest
-  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() {
-    return super
-        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1();
-  }
-
-  @failingTest
-  @override
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() {
-    return super
-        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1();
-  }
 }
 
 mixin InferredTypeMixin {
@@ -1571,7 +1505,7 @@ Stream<List<int>> foo() async* {
 Iterable<Map<int, int>> bar() sync* {
   yield /*info:INFERRED_TYPE_LITERAL*/{};
   yield /*error:YIELD_OF_INVALID_TYPE*/new List();
-  yield* /*error:YIELD_OF_INVALID_TYPE*/{};
+  yield* {};
   yield* /*info:INFERRED_TYPE_ALLOCATION*/new List();
 }
 ''');
@@ -4454,6 +4388,71 @@ main() {
     var y = unit.topLevelVariables[1];
     expect(x.type.toString(), 'dynamic');
     expect(y.type.toString(), 'void');
+  }
+}
+
+@reflectiveTest
+class InferredTypeTest extends AbstractStrongTest with InferredTypeMixin {
+  @override
+  bool get mayCheckTypesOfLocals => true;
+
+  @override
+  Future<CompilationUnitElement> checkFileElement(String content) async {
+    CompilationUnit unit = await checkFile(content);
+    return unit.declaredElement;
+  }
+
+  @override
+  @failingTest
+  test_circularReference_viaClosures() {
+    return super.test_circularReference_viaClosures();
+  }
+
+  @override
+  @failingTest
+  test_circularReference_viaClosures_initializerTypes() {
+    return super.test_circularReference_viaClosures_initializerTypes();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_typeName_error1() {
+    // Test doesn't work with the old task model
+    return super.test_instantiateToBounds_typeName_error1();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_typeName_error2() {
+    // Test doesn't work with the old task model
+    return super.test_instantiateToBounds_typeName_error2();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_typeName_error3() {
+    // Test doesn't work with the old task model
+    return super.test_instantiateToBounds_typeName_error3();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_typeName_OK_hasBound_definedAfter() {
+    return super.test_instantiateToBounds_typeName_OK_hasBound_definedAfter();
+  }
+
+  @override
+  @failingTest
+  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1();
   }
 }
 

@@ -270,18 +270,6 @@ class BinaryBuilder {
       case ConstantTag.TypeLiteralConstant:
         final DartType type = readDartType();
         return new TypeLiteralConstant(type);
-      case ConstantTag.EnvironmentBoolConstant:
-        final String name = readStringReference();
-        final Constant defaultValue = readConstantReference();
-        return new EnvironmentBoolConstant(name, defaultValue);
-      case ConstantTag.EnvironmentIntConstant:
-        final String name = readStringReference();
-        final Constant defaultValue = readConstantReference();
-        return new EnvironmentIntConstant(name, defaultValue);
-      case ConstantTag.EnvironmentStringConstant:
-        final String name = readStringReference();
-        final Constant defaultValue = readConstantReference();
-        return new EnvironmentStringConstant(name, defaultValue);
       case ConstantTag.UnevaluatedConstant:
         final Expression expression = readExpression();
         return new UnevaluatedConstant(expression);
@@ -624,6 +612,12 @@ class BinaryBuilder {
       throw InvalidKernelVersionError(formatVersion);
     }
 
+    List<String> problemsAsJson = readListOfStrings();
+    if (problemsAsJson != null) {
+      component.problemsAsJson ??= <String>[];
+      component.problemsAsJson.addAll(problemsAsJson);
+    }
+
     // Read component index from the end of this ComponentFiles serialized data.
     _ComponentIndex index = _readComponentIndex(componentFileSize);
 
@@ -657,6 +651,19 @@ class BinaryBuilder {
     component.mainMethodName ??= mainMethod;
 
     _byteOffset = _componentStartOffset + componentFileSize;
+  }
+
+  /// Read a list of strings. If the list is empty, [null] is returned.
+  List<String> readListOfStrings() {
+    int length = readUInt();
+    if (length == 0) return null;
+    List<String> strings =
+        new List<String>.filled(length, null, growable: true);
+    for (int i = 0; i < length; i++) {
+      String s = const Utf8Decoder().convert(readByteList());
+      strings[i] = s;
+    }
+    return strings;
   }
 
   Map<Uri, Source> readUriToSource() {
@@ -778,7 +785,7 @@ class BinaryBuilder {
     _byteOffset = savedByteOffset;
 
     int flags = readByte();
-    bool isExternal = (flags & 0x1) != 0;
+    bool isExternal = (flags & Library.ExternalFlag) != 0;
     _isReadingLibraryImplementation = !isExternal;
     var canonicalName = readCanonicalNameReference();
     Reference reference = canonicalName.getReference();
@@ -795,10 +802,13 @@ class BinaryBuilder {
     // TODO(jensj): We currently save (almost the same) uri twice.
     Uri fileUri = readUriReference();
 
+    List<String> problemsAsJson = readListOfStrings();
+
     if (shouldWriteData) {
-      library.isExternal = isExternal;
+      library.flags = flags;
       library.name = name;
       library.fileUri = fileUri;
+      library.problemsAsJson = problemsAsJson;
     }
 
     assert(() {

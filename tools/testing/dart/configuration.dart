@@ -50,7 +50,6 @@ class TestConfiguration {
       this.firefoxPath,
       this.dartPath,
       this.dartPrecompiledPath,
-      this.flutterPath,
       this.taskCount,
       this.shardCount,
       this.shard,
@@ -116,7 +115,6 @@ class TestConfiguration {
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
   bool get useBlobs => configuration.useBlobs;
   bool get useSdk => configuration.useSdk;
-  bool get useFastStartup => configuration.useFastStartup;
   bool get useEnableAsserts => configuration.enableAsserts;
   bool get useDart2JSWithKernel => configuration.useDart2JSWithKernel;
   bool get useDart2JSOldFrontend => configuration.useDart2JSOldFrontEnd;
@@ -129,7 +127,6 @@ class TestConfiguration {
   final String firefoxPath;
   final String dartPath;
   final String dartPrecompiledPath;
-  final String flutterPath;
   final List<String> testList;
 
   final int taskCount;
@@ -245,7 +242,6 @@ class TestConfiguration {
 
     if (isMinified) args.add("--minify");
     if (isCsp) args.add("--csp");
-    if (useFastStartup) args.add("--fast-startup");
     if (useEnableAsserts) args.add("--enable-asserts");
     if (useDart2JSWithKernel) args.add("--use-kernel");
     if (useDart2JSOldFrontend) args.add("--use-old-frontend");
@@ -286,9 +282,6 @@ class TestConfiguration {
         break;
       case Runtime.firefox:
         location = firefoxPath;
-        break;
-      case Runtime.flutter:
-        location = flutterPath;
         break;
       case Runtime.safari:
         location = safariPath;
@@ -372,17 +365,6 @@ class TestConfiguration {
       isValid = false;
     }
 
-    if (runtime == Runtime.flutter && flutterPath == null) {
-      print("-rflutter requires the flutter engine executable to "
-          "be specified using --flutter");
-      isValid = false;
-    }
-
-    if (runtime == Runtime.flutter && architecture != Architecture.x64) {
-      isValid = false;
-      print("-rflutter is applicable only for --arch=x64");
-    }
-
     return isValid;
   }
 
@@ -463,7 +445,6 @@ class TestConfiguration {
         'fasta': usesFasta,
         'use_sdk': useSdk,
         'builder_tag': builderTag,
-        'fast_startup': useFastStartup,
         'timeout': timeout,
         'no_preview_dart_2': noPreviewDart2,
         'use_cfe': useAnalyzerCfe,

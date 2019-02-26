@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/invocations.dart:7:3: Error: Method not found: 'z'.
 //   z("Hello, World!");
@@ -35,8 +37,7 @@
 // pkg/front_end/testcases/invocations.dart:13:7: Error: This expression has type 'void' and can't be used.
 //       print("Hello, World!") +
 //       ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

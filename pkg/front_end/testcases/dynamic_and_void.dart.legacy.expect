@@ -1,11 +1,14 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/dynamic_and_void.dart:12:27: Warning: Type 'dynamic' not found.
 // /*@warning=TypeNotFound*/ dynamic testDynamic() => 0;
 //                           ^^^^^^^
-
-library;
+//
 import self as self;
+
+import "dart:core";
 
 static method testDynamic() → invalid-type
   return 0;

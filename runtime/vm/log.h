@@ -11,8 +11,8 @@
 
 namespace dart {
 
+class Isolate;
 class LogBlock;
-class Thread;
 
 #if defined(_MSC_VER)
 #define THR_Print(format, ...) Log::Current()->Print(format, __VA_ARGS__)

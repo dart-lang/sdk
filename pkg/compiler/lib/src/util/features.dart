@@ -62,12 +62,15 @@ class Features {
     return sb.toString();
   }
 
+  String toString() => 'Features(${getText()})';
+
   /// Creates a [Features] object by parse the [text] encoding.
   ///
   /// Single features will be parsed as strings and list features (features
   /// encoded in `[...]` will be parsed as lists of strings.
   static Features fromText(String text) {
     Features features = new Features();
+    if (text == null) return features;
     int index = 0;
     while (index < text.length) {
       int eqPos = text.indexOf('=', index);

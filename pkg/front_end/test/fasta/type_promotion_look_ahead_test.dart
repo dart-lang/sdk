@@ -4,8 +4,6 @@
 
 import 'dart:convert' show jsonDecode;
 
-import 'dart:io' show File, IOSink;
-
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
@@ -29,7 +27,7 @@ import 'package:front_end/src/fasta/source/type_promotion_look_ahead_listener.da
         UnspecifiedDeclaration;
 
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
-    show openWrite, runDiff;
+    show MatchContext;
 
 import 'package:front_end/src/fasta/testing/scanner_chain.dart'
     show Read, Scan, ScannedFile;
@@ -64,7 +62,7 @@ Future<ChainContext> createContext(
       context, environment["updateExpectations"] == "true");
 }
 
-class TypePromotionLookAheadContext extends ChainContext {
+class TypePromotionLookAheadContext extends ChainContext with MatchContext {
   final CompilerContext context;
 
   final List<Step> steps = const <Step>[
@@ -80,12 +78,6 @@ class TypePromotionLookAheadContext extends ChainContext {
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
 
   TypePromotionLookAheadContext(this.context, this.updateExpectations);
-
-  Expectation get expectationFileMismatch =>
-      expectationSet["ExpectationFileMismatch"];
-
-  Expectation get expectationFileMissing =>
-      expectationSet["ExpectationFileMissing"];
 }
 
 class TypePromotionLookAheadStep extends Step<ScannedFile, TypePromotionResult,
@@ -228,48 +220,9 @@ class CheckTypePromotionResult
   String get name => "Check Type Promotion Result";
 
   Future<Result<Null>> run(
-      TypePromotionResult result, TypePromotionLookAheadContext context) async {
-    Uri uri = result.uri;
-    String actual = result.trace.trim();
-    if (actual.isNotEmpty) {
-      actual += "\n";
-    }
-    File expectedFile = new File("${uri.toFilePath()}.type_promotion.expect");
-    if (await expectedFile.exists()) {
-      String expected = await expectedFile.readAsString();
-      if (expected != actual) {
-        if (context.updateExpectations) {
-          return updateExpectationFile(expectedFile.uri, actual);
-        }
-        String diff = await runDiff(expectedFile.uri, actual);
-        return new Result<Null>(null, context.expectationFileMismatch,
-            "$uri doesn't match ${expectedFile.uri}\n$diff", null);
-      }
-      return pass(null);
-    } else {
-      if (actual.isEmpty) return pass(null);
-      if (context.updateExpectations) {
-        return updateExpectationFile(expectedFile.uri, actual);
-      }
-      return new Result<Null>(
-          null,
-          context.expectationFileMissing,
-          """
-Please create file ${expectedFile.path} with this content:
-$actual""",
-          null);
-    }
-  }
-
-  Future<Result<Null>> updateExpectationFile(Uri uri, String actual) async {
-    if (actual.isEmpty) {
-      await new File.fromUri(uri).delete();
-    } else {
-      await openWrite(uri, (IOSink sink) {
-        sink.write(actual);
-      });
-    }
-    return pass(null);
+      TypePromotionResult result, TypePromotionLookAheadContext context) {
+    return context.match<Null>(
+        ".type_promotion.expect", result.trace, result.uri, null);
   }
 }
 

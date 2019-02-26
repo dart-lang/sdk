@@ -38,7 +38,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
         intptr_t index = IndexFromPPLoadDisp32(pc + 3);
         const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
         if (!pool.IsNull()) {
-          if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
+          if (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject) {
             *obj = pool.ObjectAt(index);
             return true;
           }
@@ -48,7 +48,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
         intptr_t index = IndexFromPPLoadDisp8(pc + 3);
         const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
         if (!pool.IsNull()) {
-          if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
+          if (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject) {
             *obj = pool.ObjectAt(index);
             return true;
           }

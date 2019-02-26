@@ -43,7 +43,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         capabilities?.codeActionLiteralSupport?.codeActionKind?.valueSet ?? []);
 
     final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireUnit);
+    final unit = await path.mapResult(requireResolvedUnit);
 
     return unit.mapResult((unit) {
       final startOffset = toOffset(unit.lineInfo, params.range.start);

@@ -37,15 +37,20 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   void expectSuggestion(DartFixSuggestion suggestion, String partialText,
-      int offset, int length) {
+      [int offset, int length]) {
     expect(suggestion.description, contains(partialText));
-    expect(suggestion.location.offset, offset);
-    expect(suggestion.location.length, length);
+    if (offset == null) {
+      expect(suggestion.location, isNull);
+    } else {
+      expect(suggestion.location.offset, offset);
+      expect(suggestion.location.length, length);
+    }
   }
 
-  Future<EditDartfixResult> performFix() async {
+  Future<EditDartfixResult> performFix({List<String> includedFixes}) async {
     final id = nextRequestId;
     final params = new EditDartfixParams([projectPath]);
+    params.includedFixes = includedFixes;
     final request = new Request(id, 'edit.dartfix', params.toJson());
 
     final response = await new EditDartFix(server, request).compute();
@@ -63,12 +68,12 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_dartfix_convertClassToMixin() async {
-    createProject();
     addTestFile('''
 class A {}
 class B extends A {}
 class C with B {}
     ''');
+    createProject();
     EditDartfixResult result = await performFix();
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'mixin', 17, 1);
@@ -80,10 +85,10 @@ class C with B {}
   }
 
   test_dartfix_convertToIntLiteral() async {
-    createProject();
     addTestFile('''
 const double myDouble = 42.0;
     ''');
+    createProject();
     EditDartfixResult result = await performFix();
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 24, 4);
@@ -93,13 +98,13 @@ const double myDouble = 42;
   }
 
   test_dartfix_moveTypeArgumentToClass() async {
-    createProject();
     addTestFile('''
 class A<T> { A.from(Object obj) { } }
 main() {
   print(new A.from<String>([]));
 }
     ''');
+    createProject();
     EditDartfixResult result = await performFix();
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'type arguments', 65, 8);
@@ -118,44 +123,23 @@ analyzer:
   enable-experiment:
     - non-nullable
 ''');
-
-    createProject();
     addTestFile('''
-main() {
-  functionWithNullableParam(new List<Object>(1));
-  functionWithNullableParam(null);
-}
-
-void functionWithNullableParam(Object object) {
-  if (object == null) {
-    print('object is null');
-  } else {
-    print('object is not-null');
-  }
-  List<Object> list = null;
-  list = <Object>[];
-  list.add(object);
+int f(int i) => 0;
+int g(int i) => f(i);
+void test() {
+  g(null);
 }
 ''');
-    EditDartfixResult result = await performFix();
-    expect(result.suggestions, hasLength(1));
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['non-nullable']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
-    expectSuggestion(result.suggestions[0], 'non-nullable', 46, 6);
     expectEdits(result.edits, '''
-main() {
-  functionWithNullableParam(new List<Object?>(1));
-  functionWithNullableParam(null);
-}
-
-void functionWithNullableParam(Object? object) {
-  if (object == null) {
-    print('object is null');
-  } else {
-    print('object is not-null');
-  }
-  List<Object?>? list = null;
-  list = <Object?>[];
-  list.add(object);
+int f(int? i) => 0;
+int g(int? i) => f(i);
+void test() {
+  g(null);
 }
 ''');
   }
@@ -168,10 +152,10 @@ analyzer:
     - lib/**
 ''');
 
-    createProject();
     addTestFile('''
 const double myDouble = 42.0;
     ''');
+    createProject();
 
     // Assert no suggestions now that source has been excluded
     final result = await performFix();
@@ -180,7 +164,6 @@ const double myDouble = 42.0;
   }
 
   test_dartfix_partFile() async {
-    createProject();
     newFile('/project/lib/lib.dart', content: '''
 library lib2;
 part 'fileToBeFixed.dart';
@@ -189,6 +172,7 @@ part 'fileToBeFixed.dart';
 part of lib2;
 const double myDouble = 42.0;
     ''');
+    createProject();
 
     // Assert dartfix suggestions
     EditDartfixResult result = await performFix();
@@ -201,11 +185,11 @@ const double myDouble = 42;
   }
 
   test_dartfix_partFile_loose() async {
-    createProject();
     addTestFile('''
 part of lib2;
 const double myDouble = 42.0;
     ''');
+    createProject();
 
     // Assert dartfix suggestions
     EditDartfixResult result = await performFix();

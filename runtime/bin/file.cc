@@ -113,12 +113,15 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
-  Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
-  TypedDataScope data(path_handle);
-  ASSERT(data.type() == Dart_TypedData_kUint8);
-  const char* filename = data.GetCString();
-  bool exists = File::Exists(namespc, filename);
+  bool exists;
+  {
+    Namespace* namespc = Namespace::GetNamespace(args, 0);
+    Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
+    TypedDataScope data(path_handle);
+    ASSERT(data.type() == Dart_TypedData_kUint8);
+    const char* filename = data.GetCString();
+    exists = File::Exists(namespc, filename);
+  }
   Dart_SetBooleanReturnValue(args, exists);
 }
 
@@ -710,13 +713,16 @@ void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
-  Namespace* namespc = Namespace::GetNamespace(args, 0);
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
-  TypedDataScope data(path_handle);
-  ASSERT(data.type() == Dart_TypedData_kUint8);
-  const char* path = data.GetCString();
-  bool follow_links = DartUtils::GetNativeBooleanArgument(args, 2);
-  File::Type type = File::GetType(namespc, path, follow_links);
+  File::Type type;
+  {
+    Namespace* namespc = Namespace::GetNamespace(args, 0);
+    Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
+    TypedDataScope data(path_handle);
+    ASSERT(data.type() == Dart_TypedData_kUint8);
+    const char* path = data.GetCString();
+    bool follow_links = DartUtils::GetNativeBooleanArgument(args, 2);
+    type = File::GetType(namespc, path, follow_links);
+  }
   Dart_SetIntegerReturnValue(args, static_cast<int>(type));
 }
 

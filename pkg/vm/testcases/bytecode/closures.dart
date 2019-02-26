@@ -143,6 +143,14 @@ class D<T> {
   foo(T t) {
     return () => t;
   }
+
+  bar() {
+    return () {
+      inner() {}
+
+      inner();
+    };
+  }
 }
 
 main() {}

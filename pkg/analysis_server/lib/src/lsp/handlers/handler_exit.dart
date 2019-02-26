@@ -18,6 +18,10 @@ class ExitMessageHandler extends MessageHandler<void, void> {
 
   @override
   Future<ErrorOr<void>> handle(void _) async {
+    // TODO(dantup): Spec says we should exit with a code of 1 if we had not
+    // received a shutdown request prior to exit.
+    // TODO(dantup): Probably we should add a new state for "shutting down"
+    // that refuses any more requests between shutdown and exit.
     await server.shutdown();
     return success();
   }

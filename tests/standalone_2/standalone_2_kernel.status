@@ -34,6 +34,10 @@ io/web_socket_pipe_test: RuntimeError
 io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError
 
+[ $compiler == dartkb ]
+io/platform_resolved_executable_test/03: RuntimeError
+io/platform_resolved_executable_test/04: RuntimeError
+
 [ $compiler == dartkp ]
 io/test_runner_test: SkipByDesign # Is not relevant for AOT.
 
@@ -124,6 +128,9 @@ no_support_debugger_test: Skip # kernel-service snapshot not compatible with fla
 regress_29350_test: MissingCompileTimeError
 regress_29350_test/none: Pass # Issue 31537
 
+[ $compiler == dartkp && $system == android ]
+io/http_close_test: Timeout # Issue 28380
+
 [ $compiler == dartkp && !$strong ]
 *: SkipByDesign
 
@@ -148,8 +155,6 @@ io/web_socket_ping_test: Crash, Pass
 
 [ $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
 io/http_client_request_test: Pass, Timeout
-io/platform_resolved_executable_test/03: Pass, RuntimeError
-io/platform_resolved_executable_test/04: Pass, RuntimeError
 io/secure_builtin_roots_test: Pass, Timeout
 io/socket_finalizer_test: Pass, Timeout
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
@@ -221,3 +226,6 @@ io/test_extension_fail_test: RuntimeError
 io/test_extension_test: RuntimeError
 io/web_socket_compression_test: Skip # Timeout
 io/web_socket_test: Skip # Timeout
+
+[ $hot_reload || $hot_reload_rollback || $compiler != dartk && $compiler != dartkb ]
+io/entrypoints_verification_test: Skip # Test runs in JIT mode only

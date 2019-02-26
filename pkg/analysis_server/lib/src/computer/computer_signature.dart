@@ -8,6 +8,7 @@ import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 
 /**

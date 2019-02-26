@@ -295,12 +295,6 @@ class ConstantVisitor<R> {
       defaultConstant(node);
   R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
-  R visitEnvironmentBoolConstant(EnvironmentBoolConstant node) =>
-      defaultConstant(node);
-  R visitEnvironmentIntConstant(EnvironmentIntConstant node) =>
-      defaultConstant(node);
-  R visitEnvironmentStringConstant(EnvironmentStringConstant node) =>
-      defaultConstant(node);
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 }
 
@@ -355,12 +349,6 @@ class Visitor<R> extends TreeVisitor<R>
       defaultConstant(node);
   R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
-  R visitEnvironmentBoolConstant(EnvironmentBoolConstant node) =>
-      defaultConstant(node);
-  R visitEnvironmentIntConstant(EnvironmentIntConstant node) =>
-      defaultConstant(node);
-  R visitEnvironmentStringConstant(EnvironmentStringConstant node) =>
-      defaultConstant(node);
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 
   // Class references
@@ -393,12 +381,6 @@ class Visitor<R> extends TreeVisitor<R>
   R visitTearOffConstantReference(TearOffConstant node) =>
       defaultConstantReference(node);
   R visitTypeLiteralConstantReference(TypeLiteralConstant node) =>
-      defaultConstantReference(node);
-  R visitEnvironmentBoolConstantReference(EnvironmentBoolConstant node) =>
-      defaultConstantReference(node);
-  R visitEnvironmentIntConstantReference(EnvironmentIntConstant node) =>
-      defaultConstantReference(node);
-  R visitEnvironmentStringConstantReference(EnvironmentStringConstant node) =>
       defaultConstantReference(node);
   R visitUnevaluatedConstantReference(UnevaluatedConstant node) =>
       defaultConstantReference(node);

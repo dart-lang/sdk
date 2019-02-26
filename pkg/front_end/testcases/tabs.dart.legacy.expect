@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/tabs.dart:9:8: Warning: Getter not found: 'one'.
 // 	print(one);
@@ -19,8 +21,7 @@
 // pkg/front_end/testcases/tabs.dart:13:14: Warning: Getter not found: 'five'.
 // 	   	  print(five);
 // 	   	        ^^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

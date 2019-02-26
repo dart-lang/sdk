@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -37,19 +40,13 @@ class ServerTest extends AbstractLspAnalysisServerTest {
 
   test_shutdown_initialized() async {
     await initialize();
-    final request = makeRequest(Method.shutdown, null);
-    final response = await channel.sendRequestToServer(request);
-    expect(response.id, equals(request.id));
-    expect(response.error, isNull);
-    expect(response.result, isNull);
+    final response = await sendShutdown();
+    expect(response, isNull);
   }
 
   test_shutdown_uninitialized() async {
-    final request = makeRequest(Method.shutdown, null);
-    final response = await channel.sendRequestToServer(request);
-    expect(response.id, equals(request.id));
-    expect(response.error, isNull);
-    expect(response.result, isNull);
+    final response = await sendShutdown();
+    expect(response, isNull);
   }
 
   test_unknownNotifications_logError() async {
@@ -68,11 +65,36 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  @failingTest
+  test_diagnosticServer() async {
+    // TODO(dantup): This test fails because server.diagnosticServer is not
+    // set up in these tests. This needs moving to an integration test (which
+    // we don't yet have for LSP, but the existing server does have that we
+    // can mirror).
+    await initialize();
+
+    // Send the custom request to the LSP server to get the Dart diagnostic
+    // server info.
+    final server = await getDiagnosticServer();
+
+    expect(server.port, isNotNull);
+    expect(server.port, isNonZero);
+    expect(server.port, isPositive);
+
+    // Ensure the server was actually started.
+    final client = new HttpClient();
+    HttpClientRequest request = await client
+        .getUrl(Uri.parse('http://localhost:${server.port}/status'));
+    final response = await request.close();
+    final responseBody = await utf8.decodeStream(response);
+    expect(responseBody, contains('<title>Analysis Server</title>'));
+  }
+
   test_unknownOptionalNotifications_silentlyDropped() async {
     await initialize();
     final notification =
         makeNotification(new Method.fromJson(r'$/randomNotification'), null);
-    final firstError = channel.errorNotificationsFromServer.first;
+    final firstError = errorNotificationsFromServer.first;
     channel.sendNotificationToServer(notification);
 
     // Wait up to 1sec to ensure no error/log notifications were sent back.

@@ -43,7 +43,7 @@ void Object::AddCommonObjectProperties(JSONObject* jsobj,
   }
   if (!ref) {
     if (raw()->IsHeapObject()) {
-      jsobj->AddProperty("size", raw()->Size());
+      jsobj->AddProperty("size", raw()->HeapSize());
     } else {
       jsobj->AddProperty("size", (intptr_t)0);
     }
@@ -349,6 +349,10 @@ void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
+void FfiTrampolineData::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
 void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   Class& cls = Class::Handle(Owner());
@@ -628,27 +632,27 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
       JSONObject jsentry(stream);
       jsentry.AddProperty("offset", OffsetFromIndex(i));
       switch (TypeAt(i)) {
-        case ObjectPool::kTaggedObject:
+        case ObjectPool::EntryType::kTaggedObject:
           obj = ObjectAt(i);
           jsentry.AddProperty("kind", "Object");
           jsentry.AddProperty("value", obj);
           break;
-        case ObjectPool::kImmediate:
+        case ObjectPool::EntryType::kImmediate:
           imm = RawValueAt(i);
           jsentry.AddProperty("kind", "Immediate");
           jsentry.AddProperty64("value", imm);
           break;
-        case ObjectPool::kNativeEntryData:
+        case ObjectPool::EntryType::kNativeEntryData:
           obj = ObjectAt(i);
           jsentry.AddProperty("kind", "NativeEntryData");
           jsentry.AddProperty("value", obj);
           break;
-        case ObjectPool::kNativeFunction:
+        case ObjectPool::EntryType::kNativeFunction:
           imm = RawValueAt(i);
           jsentry.AddProperty("kind", "NativeFunction");
           jsentry.AddProperty64("value", imm);
           break;
-        case ObjectPool::kNativeFunctionWrapper:
+        case ObjectPool::EntryType::kNativeFunctionWrapper:
           imm = RawValueAt(i);
           jsentry.AddProperty("kind", "NativeFunctionWrapper");
           jsentry.AddProperty64("value", imm);
@@ -758,7 +762,7 @@ void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("_argumentsDescriptor",
                     Object::Handle(arguments_descriptor()));
-  jsobj.AddProperty("_entries", Object::Handle(ic_data()));
+  jsobj.AddProperty("_entries", Object::Handle(entries()));
 }
 
 void ICData::PrintToJSONArray(const JSONArray& jsarray,
@@ -798,7 +802,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const char* qualified_name = QualifiedName();
   const char* vm_name = Name();
   AddNameProperties(&jsobj, qualified_name, vm_name);
-  const bool is_stub = IsStubCode() || IsAllocationStubCode();
+  const bool is_stub =
+      IsStubCode() || IsAllocationStubCode() || IsTypeTestStubCode();
   if (is_stub) {
     jsobj.AddProperty("kind", "Stub");
   } else {
@@ -1413,6 +1418,20 @@ void ExternalTypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
                                 DataAddr(offset * ElementSizeInBytes())),
                             count * ElementSizeInBytes());
   }
+}
+
+void Pointer::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  // TODO(dacoharkes): what is the JSONStream used for?
+  // should it fail because it's not supported?
+  // or should it print something reasonable as default?
+  Instance::PrintJSONImpl(stream, ref);
+}
+
+void DynamicLibrary::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  // TODO(dacoharkes): what is the JSONStream used for?
+  // should it fail because it's not supported?
+  // or should it print something reasonable as default?
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 void Capability::PrintJSONImpl(JSONStream* stream, bool ref) const {

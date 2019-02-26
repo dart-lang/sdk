@@ -75,8 +75,6 @@ import '../fasta_codes.dart'
         templateIncorrectTypeArgumentInSupertype,
         templateIncorrectTypeArgumentInSupertypeInferred,
         templateInterfaceCheckContext,
-        templateMissingImplementationCause,
-        templateMissingImplementationNotAbstract,
         templateMixinApplicationIncompatibleSupertype,
         templateNamedMixinOverrideContext,
         templateOverriddenMethodCause,
@@ -615,12 +613,11 @@ abstract class KernelClassBuilder
 
   void checkAbstractMembers(CoreTypes coreTypes, ClassHierarchy hierarchy,
       TypeEnvironment typeEnvironment) {
+    // TODO(ahe): Move this to [ClassHierarchyBuilder].
     if (isAbstract) {
       // Unimplemented members allowed
       return;
     }
-
-    List<LocatedMessage> context = null;
 
     bool mustHaveImplementation(Member member) {
       // Public member
@@ -639,10 +636,6 @@ abstract class KernelClassBuilder
           isSetter, overridePairCallback,
           isInterfaceCheck: true);
     }
-
-    Member noSuchMethod = hierarchy.getDispatchTarget(cls, noSuchMethodName);
-    bool hasNoSuchMethod = noSuchMethod != null &&
-        noSuchMethod.enclosingClass != coreTypes.objectClass;
 
     void findMissingImplementations({bool setters}) {
       List<Member> dispatchTargets =
@@ -679,19 +672,6 @@ abstract class KernelClassBuilder
                 interfaceMember.enclosingClass)) {
               overridePairCallback(dispatchTarget, interfaceMember, setters);
             }
-          } else if (!hasNoSuchMethod) {
-            Name name = interfaceMember.name;
-            String displayName = name.name + (setters ? "=" : "");
-            if (interfaceMember is Procedure &&
-                interfaceMember.isSyntheticForwarder) {
-              Procedure forwarder = interfaceMember;
-              interfaceMember = forwarder.forwardingStubInterfaceTarget;
-            }
-            context ??= <LocatedMessage>[];
-            context.add(templateMissingImplementationCause
-                .withArguments(displayName)
-                .withLocation(interfaceMember.fileUri,
-                    interfaceMember.fileOffset, name.name.length));
           }
         }
       }
@@ -699,18 +679,6 @@ abstract class KernelClassBuilder
 
     findMissingImplementations(setters: false);
     findMissingImplementations(setters: true);
-
-    if (context?.isNotEmpty ?? false) {
-      List<String> memberNames = new List<String>.from(
-          context.map((message) => "'${message.arguments["name"]}'"));
-      library.addProblem(
-          templateMissingImplementationNotAbstract.withArguments(
-              cls.name, memberNames),
-          cls.fileOffset,
-          cls.name.length,
-          cls.fileUri,
-          context: context);
-    }
   }
 
   bool hasUserDefinedNoSuchMethod(
@@ -1362,7 +1330,7 @@ abstract class KernelClassBuilder
   }
 
   String get fullNameForErrors {
-    return isMixinApplication
+    return isMixinApplication && !isNamedMixinApplication
         ? "${supertype.fullNameForErrors} with ${mixedInType.fullNameForErrors}"
         : name;
   }

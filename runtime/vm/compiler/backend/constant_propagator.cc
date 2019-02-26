@@ -272,6 +272,14 @@ void ConstantPropagator::VisitCheckNull(CheckNullInstr* instr) {}
 void ConstantPropagator::VisitCheckEitherNonSmi(CheckEitherNonSmiInstr* instr) {
 }
 
+void ConstantPropagator::VisitStoreIndexedUnsafe(
+    StoreIndexedUnsafeInstr* instr) {}
+
+void ConstantPropagator::VisitStoreIndexed(StoreIndexedInstr* instr) {}
+
+void ConstantPropagator::VisitStoreInstanceField(
+    StoreInstanceFieldInstr* instr) {}
+
 void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
   // TODO(vegorov) remove all code after DeoptimizeInstr as dead.
 }
@@ -402,6 +410,23 @@ void ConstantPropagator::VisitPolymorphicInstanceCall(
 }
 
 void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
+  const Function& function = instr->function();
+  switch (MethodRecognizer::RecognizeKind(function)) {
+    case MethodRecognizer::kOneByteString_equality:
+    case MethodRecognizer::kTwoByteString_equality: {
+      ASSERT(instr->FirstArgIndex() == 0);
+      // Use pure identity as a fast equality test.
+      if (instr->ArgumentAt(0)->OriginalDefinition() ==
+          instr->ArgumentAt(1)->OriginalDefinition()) {
+        SetValue(instr, Bool::True());
+        return;
+      }
+      break;
+    }
+    default:
+      // TODO(ajcbik): consider more cases
+      break;
+  }
   SetValue(instr, non_constant_);
 }
 
@@ -682,20 +707,6 @@ void ConstantPropagator::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
 
 void ConstantPropagator::VisitLoadIndexedUnsafe(LoadIndexedUnsafeInstr* instr) {
   SetValue(instr, non_constant_);
-}
-
-void ConstantPropagator::VisitStoreIndexedUnsafe(
-    StoreIndexedUnsafeInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
-void ConstantPropagator::VisitStoreIndexed(StoreIndexedInstr* instr) {
-  SetValue(instr, instr->value()->definition()->constant_value());
-}
-
-void ConstantPropagator::VisitStoreInstanceField(
-    StoreInstanceFieldInstr* instr) {
-  SetValue(instr, instr->value()->definition()->constant_value());
 }
 
 void ConstantPropagator::VisitInitStaticField(InitStaticFieldInstr* instr) {
@@ -1364,6 +1375,14 @@ void ConstantPropagator::EliminateRedundantBranches() {
   }
 }
 
+static void RemovePushArguments(StaticCallInstr* call) {
+  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+    PushArgumentInstr* push = call->PushArgumentAt(i);
+    push->ReplaceUsesWith(push->value()->definition());
+    push->RemoveFromGraph();
+  }
+}
+
 void ConstantPropagator::Transform() {
   // We will recompute dominators, block ordering, block ids, block last
   // instructions, previous pointers, predecessors, etc. after eliminating
@@ -1453,6 +1472,9 @@ void ConstantPropagator::Transform() {
           const char* error_str = nullptr;
           value = Instance::Cast(value).CheckAndCanonicalize(T, &error_str);
           ASSERT(!value.IsNull() && (error_str == nullptr));
+        }
+        if (auto call = defn->AsStaticCall()) {
+          RemovePushArguments(call);
         }
         ConstantInstr* constant = graph_->GetConstant(value);
         defn->ReplaceUsesWith(constant);

@@ -110,6 +110,37 @@ void testSwitchBool(bool input, int expect) {
   Expect.equals(expect, result);
 }
 
+void testSwitchString(String input, int expect) {
+  int result = null;
+  switch (input) {
+    case 'one':
+      result = 1;
+      break;
+    case 'two':
+      result = 2;
+      break;
+  }
+  Expect.equals(expect, result);
+}
+
+switchConstString() {
+  const c = 'a';
+  switch (c) {
+    case 'a':
+      return 'aa';
+    case 'b':
+      return 'bb';
+    case 'c':
+      return 'cc';
+    case 'd':
+      return 'dd';
+    case 'e':
+      return 'ee';
+    case 'f':
+      return 'ff';
+  }
+}
+
 main() {
   SwitchTest.testMain();
 
@@ -127,4 +158,11 @@ main() {
 
   testSwitchBool(true, 12);
   testSwitchBool(false, 22);
+
+  testSwitchString(null, null);
+  testSwitchString('one', 1);
+  testSwitchString('two', 2);
+  testSwitchString('three', null);
+
+  Expect.equals('aa', switchConstString());
 }

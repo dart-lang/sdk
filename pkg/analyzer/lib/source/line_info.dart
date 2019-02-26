@@ -8,7 +8,7 @@ import 'package:analyzer/src/generated/source.dart';
 /**
  * The location of a character represented as a line and column pair.
  */
-// ignore: deprecated_member_use
+// ignore: deprecated_member_use_from_same_package
 class CharacterLocation extends LineInfo_Location {
   // TODO(brianwilkerson) Replace the body of this class with the body of
   // LineInfo_Location and remove LineInfo_Location.
@@ -64,10 +64,10 @@ class LineInfo {
    * Return the location information for the character at the given [offset].
    *
    * A future version of this API will return a [CharacterLocation] rather than
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use_from_same_package
    * a [LineInfo_Location].
    */
-  // ignore: deprecated_member_use
+  // ignore: deprecated_member_use_from_same_package
   LineInfo_Location getLocation(int offset) {
     var min = 0;
     var max = lineStarts.length - 1;

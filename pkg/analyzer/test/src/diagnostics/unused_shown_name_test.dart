@@ -11,12 +11,14 @@ import '../../generated/resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedShownNameTest);
-    defineReflectiveTests(UnusedShownNameTest_Driver);
   });
 }
 
 @reflectiveTest
 class UnusedShownNameTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_unreferenced() async {
     Source source = addSource(r'''
 library L;
@@ -98,10 +100,4 @@ const int var4 = 4;
     assertNoErrors(source2);
     verify([source, source2]);
   }
-}
-
-@reflectiveTest
-class UnusedShownNameTest_Driver extends UnusedShownNameTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -9,8 +9,8 @@
  */
 import 'dart:convert';
 
-import 'package:analyzer/src/codegen/html.dart';
-import 'package:analyzer/src/codegen/tools.dart';
+import 'package:analysis_tool/html.dart';
+import 'package:analysis_tool/tools.dart';
 import 'package:html/dom.dart' as dom;
 
 import 'api.dart';

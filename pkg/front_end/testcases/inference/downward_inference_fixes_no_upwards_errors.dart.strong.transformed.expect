@@ -1,4 +1,6 @@
-// Unhandled errors:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference/downward_inference_fixes_no_upwards_errors.dart:21:63: Error: Inferred type argument 'dynamic' doesn't conform to the bound 'num' of the type variable 'T' on 'max'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
@@ -9,11 +11,12 @@
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //   var /*@type=dynamic*/ d = /*error:COULD_NOT_INFER*/ /*@typeArgs=dynamic*/ max(
 //                                                                             ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 import "dart:math" as math;
+
+import "dart:math";
 
 static method f() → dynamic {
   core::num x;

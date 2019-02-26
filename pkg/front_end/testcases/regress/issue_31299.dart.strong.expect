@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_31299.dart:18:12: Error: Too many positional arguments: 0 allowed, but 2 found.
 // Try removing the extra positional arguments.
@@ -11,14 +13,7 @@
 // pkg/front_end/testcases/regress/issue_31299.dart:15:14: Error: Too few positional arguments: 2 required, 0 given.
 //   new A().foo();
 //              ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/regress/issue_31299.dart:15:14: Error: Too few positional arguments: 2 required, 0 given.
-//   new A().foo();
-//              ^
-
-library;
 import self as self;
 import "dart:core" as core;
 

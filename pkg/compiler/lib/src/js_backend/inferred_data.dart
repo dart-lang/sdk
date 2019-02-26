@@ -218,8 +218,8 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
       new Set<FunctionEntity>();
 
   InferredDataBuilderImpl(AnnotationsData annotationsData) {
-    annotationsData.cannotThrowFunctions.forEach(registerCannotThrow);
-    annotationsData.sideEffectFreeFunctions.forEach(registerSideEffectsFree);
+    annotationsData.forEachNoThrows(registerCannotThrow);
+    annotationsData.forEachNoSideEffects(registerSideEffectsFree);
   }
 
   @override

@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference_new/infer_field_override_getter_overrides_setter.dart:19:24: Error: The return type of the method 'C.x' is 'int', which does not match the return type of the overridden method, 'num'.
 // Change to a subtype of 'num'.
@@ -7,15 +9,7 @@
 // pkg/front_end/testcases/inference_new/infer_field_override_getter_overrides_setter.dart:9:12: Context: This is the overridden method ('x').
 //   void set x(num value);
 //            ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/inference_new/infer_field_override_getter_overrides_setter.dart:19:24: Error: The return type of the method 'C.x' is 'int', which does not match the return type of the overridden method, 'num'.
-// Change to a subtype of 'num'.
-//   var /*@topType=int*/ x;
-//                        ^
-
-library test;
 import self as self;
 import "dart:core" as core;
 

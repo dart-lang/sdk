@@ -64,7 +64,7 @@ class JsBackendStrategy implements BackendStrategy {
         _compiler.reporter,
         _compiler.environment,
         strategy.elementMap,
-        closedWorld.processedMembers);
+        closedWorld.liveMemberUsage);
     GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
     ClosureDataBuilder closureDataBuilder = new ClosureDataBuilder(
         _elementMap, _globalLocalsMap, _compiler.options);
@@ -94,7 +94,11 @@ class JsBackendStrategy implements BackendStrategy {
   @override
   SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy) {
-    return new KernelSsaBuilder(task, backend.compiler, elementMap);
+    return new KernelSsaBuilder(
+        task,
+        backend.compiler,
+        // ignore:deprecated_member_use_from_same_package
+        elementMap);
   }
 
   @override

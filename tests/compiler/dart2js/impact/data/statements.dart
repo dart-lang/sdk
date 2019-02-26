@@ -70,7 +70,7 @@ testIfThenElse() {
   current,
   iterator,
   moveNext(0)],
- static=[checkConcurrentModificationError],
+ static=[checkConcurrentModificationError(2)],
  type=[
   impl:Iterable<dynamic>,
   inst:JSBool,
@@ -87,7 +87,7 @@ testForIn(o) {
   current,
   iterator,
   moveNext(0)],
- static=[checkConcurrentModificationError],
+ static=[checkConcurrentModificationError(2)],
  type=[
   impl:Iterable<dynamic>,
   impl:int,
@@ -101,7 +101,7 @@ testForInTyped(o) {
 }
 
 /*element: testTryCatch:
- static=[unwrapException],
+ static=[unwrapException(1)],
  type=[
   inst:PlainJavaScriptObject,
   inst:UnknownJavaScriptObject]
@@ -111,7 +111,7 @@ testTryCatch() {
 }
 
 /*element: testTryCatchOn:
- static=[unwrapException],
+ static=[unwrapException(1)],
  type=[
   catch:String,
   inst:JSBool,
@@ -125,8 +125,8 @@ testTryCatchOn() {
 
 /*element: testTryCatchStackTrace:
  static=[
-  getTraceFromException,
-  unwrapException],
+  getTraceFromException(1),
+  unwrapException(1)],
  type=[
   inst:PlainJavaScriptObject,
   inst:UnknownJavaScriptObject,
@@ -144,8 +144,8 @@ testTryFinally() {
 
 /*element: testSwitchWithoutFallthrough:
  static=[
-  throwExpression,
-  wrapException],
+  throwExpression(1),
+  wrapException(1)],
  type=[
   inst:JSDouble,
   inst:JSInt,
@@ -171,12 +171,12 @@ testSwitchWithoutFallthrough(o) {
   }
 }
 
-/*element: testAssert:static=[assertHelper],type=[inst:JSBool]*/
+/*element: testAssert:static=[assertHelper(1)],type=[inst:JSBool]*/
 testAssert() {
   assert(true);
 }
 
-/*element: testAssertWithMessage:static=[assertTest,assertThrow],type=[inst:JSBool,inst:JSString]*/
+/*element: testAssertWithMessage:static=[assertTest(1),assertThrow(1)],type=[inst:JSBool,inst:JSString]*/
 testAssertWithMessage() {
   assert(true, 'ok');
 }

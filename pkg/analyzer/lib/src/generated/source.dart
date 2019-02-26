@@ -370,12 +370,6 @@ class NonExistingSource extends Source {
  */
 abstract class Source implements AnalysisTarget {
   /**
-   * An empty list of sources.
-   */
-  @deprecated
-  static const List<Source> EMPTY_LIST = const <Source>[];
-
-  /**
    * Get the contents and timestamp of this source.
    *
    * Clients should consider using the method [AnalysisContext.getContents]

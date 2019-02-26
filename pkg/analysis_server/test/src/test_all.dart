@@ -8,6 +8,7 @@ import 'computer/test_all.dart' as computer_all;
 import 'domain_abstract_test.dart' as domain_abstract_test;
 import 'domains/test_all.dart' as domains_all;
 import 'flutter/test_all.dart' as flutter_all;
+import 'nullability/test_all.dart' as nullability_all;
 import 'plugin/test_all.dart' as plugin_all;
 import 'services/test_all.dart' as services_all;
 import 'utilities/test_all.dart' as utilities_all;
@@ -22,6 +23,7 @@ main() {
     domain_abstract_test.main();
     domains_all.main();
     flutter_all.main();
+    nullability_all.main();
     plugin_all.main();
     services_all.main();
     utilities_all.main();

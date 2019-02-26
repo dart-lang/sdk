@@ -2,6 +2,8 @@ library #lib;
 import self as self;
 import "dart:core" as core;
 
+import "dart:collection";
+
 class Element extends core::Object {
   synthetic constructor •() → self::Element
     : super core::Object::•()

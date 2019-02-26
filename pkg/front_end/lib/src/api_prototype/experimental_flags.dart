@@ -5,16 +5,22 @@
 // TODO(askesc): Generate this file from a flag specification.
 
 enum ExperimentalFlag {
-  setLiterals,
   constantUpdate2018,
+  controlFlowCollections,
+  setLiterals,
+  spreadCollections,
 }
 
 ExperimentalFlag parseExperimentalFlag(String flag) {
   switch (flag) {
-    case "set-literals":
-      return ExperimentalFlag.setLiterals;
     case "constant-update-2018":
       return ExperimentalFlag.constantUpdate2018;
+    case "control-flow-collections":
+      return ExperimentalFlag.controlFlowCollections;
+    case "set-literals":
+      return ExperimentalFlag.setLiterals;
+    case "spread-collections":
+      return ExperimentalFlag.spreadCollections;
   }
   return null;
 }

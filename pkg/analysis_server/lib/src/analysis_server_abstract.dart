@@ -8,6 +8,7 @@ import 'dart:core';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
+import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -24,6 +25,7 @@ import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
+import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/glob.dart';
@@ -37,6 +39,11 @@ abstract class AbstractAnalysisServer {
   /// The [ContextManager] that handles the mapping from analysis roots to
   /// context directories.
   ContextManager contextManager;
+
+  /// The DiagnosticServer for this AnalysisServer. If available, it can be used
+  /// to start an http diagnostics server or return the port for an existing
+  /// server.
+  final DiagnosticServer diagnosticServer;
 
   /// A [RecentBuffer] of the most recent exceptions encountered by the analysis
   /// server.
@@ -69,11 +76,15 @@ abstract class AbstractAnalysisServer {
   /// The [ResourceProvider] using which paths are converted into [Resource]s.
   final OverlayResourceProvider resourceProvider;
 
+  /// The next modification stamp for a changed file in the [resourceProvider].
+  int overlayModificationStamp = 0;
+
   /// A list of the globs used to determine which files should be analyzed. The
   /// list is lazily created and should be accessed using [analyzedFilesGlobs].
   List<Glob> _analyzedFilesGlobs = null;
 
-  AbstractAnalysisServer(this.options, ResourceProvider baseResourceProvider)
+  AbstractAnalysisServer(this.options, this.diagnosticServer,
+      ResourceProvider baseResourceProvider)
       : resourceProvider = OverlayResourceProvider(baseResourceProvider) {
     performance = performanceDuringStartup;
   }
@@ -219,6 +230,15 @@ abstract class AbstractAnalysisServer {
       return new NodeLocator(offset).searchWithin(unit);
     }
     return null;
+  }
+
+  /// Return the unresolved unit for the file with the given [path].
+  ParsedUnitResult getParsedUnit(String path) {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return null;
+    }
+
+    return getAnalysisDriver(path)?.currentSession?.getParsedUnit(path);
   }
 
   /// Return the resolved unit for the file with the given [path]. The file is

@@ -60,17 +60,14 @@ Severity rewriteSeverity(
       case "builder/dynamic_type_builder.dart":
       case "builder/field_builder.dart":
       case "builder/formal_parameter_builder.dart":
-      case "builder/function_type_alias_builder.dart":
       case "builder/function_type_builder.dart":
       case "builder/library_builder.dart":
       case "builder/member_builder.dart":
-      case "builder/metadata_builder.dart":
       case "builder/mixin_application_builder.dart":
       case "builder/named_type_builder.dart":
       case "builder/prefix_builder.dart":
       case "builder/procedure_builder.dart":
       case "builder/type_builder.dart":
-      case "builder/type_declaration_builder.dart":
       case "builder/type_variable_builder.dart":
       case "builder/unresolved_type.dart":
       case "builder/void_type_builder.dart":
@@ -80,7 +77,6 @@ Severity rewriteSeverity(
       case "dill/dill_library_builder.dart":
       case "dill/dill_loader.dart":
       case "dill/dill_target.dart":
-      case "dill/dill_typedef_builder.dart":
       case "entry_points.dart":
       case "export.dart":
       case "fasta_codes.dart":
@@ -96,7 +92,6 @@ Severity rewriteSeverity(
       case "kernel/kernel_expression_generator_impl.dart":
       case "kernel/kernel_field_builder.dart":
       case "kernel/kernel_formal_parameter_builder.dart":
-      case "kernel/kernel_function_type_alias_builder.dart":
       case "kernel/kernel_function_type_builder.dart":
       case "kernel/kernel_invalid_type_builder.dart":
       case "kernel/kernel_library_builder.dart":

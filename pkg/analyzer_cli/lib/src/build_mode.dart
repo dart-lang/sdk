@@ -193,11 +193,17 @@ class BuildMode with HasContextMixin {
   PackageBundleAssembler assembler;
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
+  // May be null.
+  final DependencyTracker dependencyTracker;
+
   BuildMode(this.resourceProvider, this.options, this.stats, this.contextCache,
       {PerformanceLog logger, PackageBundleProvider packageBundleProvider})
       : logger = logger ?? new PerformanceLog(null),
         packageBundleProvider = packageBundleProvider ??
-            new DirectPackageBundleProvider(resourceProvider);
+            new DirectPackageBundleProvider(resourceProvider),
+        dependencyTracker = options.summaryDepsOutput != null
+            ? DependencyTracker(options.summaryDepsOutput)
+            : null;
 
   bool get _shouldOutputSummary =>
       options.buildSummaryOutput != null ||
@@ -306,6 +312,11 @@ class BuildMode with HasContextMixin {
         }
       }
 
+      if (dependencyTracker != null) {
+        io.File file = new io.File(dependencyTracker.outputPath);
+        file.writeAsStringSync(dependencyTracker.dependencies.join('\n'));
+      }
+
       if (options.buildSummaryOnly) {
         return ErrorSeverity.NONE;
       } else {
@@ -323,11 +334,25 @@ class BuildMode with HasContextMixin {
    */
   void _computeLinkedLibraries(Set<String> libraryUris) {
     logger.run('Link output summary', () {
-      LinkedLibrary getDependency(String absoluteUri) =>
-          summaryDataStore.linkedMap[absoluteUri];
+      void trackDependency(String absoluteUri) {
+        if (dependencyTracker != null) {
+          var summaryUri = summaryDataStore.uriToSummaryPath[absoluteUri];
+          if (summaryUri != null) {
+            dependencyTracker.record(summaryUri);
+          }
+        }
+      }
 
-      UnlinkedUnit getUnit(String absoluteUri) =>
-          summaryDataStore.unlinkedMap[absoluteUri] ?? uriToUnit[absoluteUri];
+      LinkedLibrary getDependency(String absoluteUri) {
+        trackDependency(absoluteUri);
+        return summaryDataStore.linkedMap[absoluteUri];
+      }
+
+      UnlinkedUnit getUnit(String absoluteUri) {
+        trackDependency(absoluteUri);
+        return summaryDataStore.unlinkedMap[absoluteUri] ??
+            uriToUnit[absoluteUri];
+      }
 
       Map<String, LinkedLibraryBuilder> linkResult = link(libraryUris,
           getDependency, getUnit, analysisDriver.declaredVariables.get);
@@ -693,4 +718,20 @@ class WorkerPackageBundleProvider implements PackageBundleProvider {
   PackageBundle get(String path) {
     return cache.get(inputs, path);
   }
+}
+
+/**
+ * Tracks paths to dependencies, really just a thin api around a Set<String>.
+ */
+class DependencyTracker {
+  final _dependencies = Set<String>();
+
+  Iterable<String> get dependencies => _dependencies;
+
+  /// The path to the file to create once tracking is done.
+  final String outputPath;
+
+  DependencyTracker(this.outputPath);
+
+  void record(String path) => _dependencies.add(path);
 }

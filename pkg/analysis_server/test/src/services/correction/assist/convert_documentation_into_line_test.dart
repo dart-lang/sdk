@@ -109,4 +109,25 @@ class A {
 }
 ''');
   }
+
+  test_preserveIndentation() async {
+    await resolveTestUnit('''
+class A {
+  /**
+   * First line.
+   *     Indented line.
+   * Last line.
+   */
+  m() {}
+}
+''');
+    await assertHasAssistAt('Indented', '''
+class A {
+  /// First line.
+  ///     Indented line.
+  /// Last line.
+  m() {}
+}
+''');
+  }
 }

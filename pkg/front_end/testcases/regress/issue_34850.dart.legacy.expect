@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_34850.dart:5:1: Error: Expected a declaration, but got '<'.
 // <foo<
@@ -39,35 +41,7 @@
 // pkg/front_end/testcases/regress/issue_34850.dart:12:1: Context: This isn't a type.
 // Future<List<int>> f2() async => null;
 // ^^^^^^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/regress/issue_34850.dart:5:1: Error: Expected a declaration, but got '<'.
-// <foo<
-// ^
-//
-// pkg/front_end/testcases/regress/issue_34850.dart:7:1: Error: Expected '>' after this.
-// int f1() {
-// ^^^
-//
-// pkg/front_end/testcases/regress/issue_34850.dart:12:8: Error: Expected '>' after this.
-// Future<List<int>> f2() async => null;
-//        ^^^^
-//
-// pkg/front_end/testcases/regress/issue_34850.dart:12:1: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-// Future<List<int>> f2() async => null;
-// ^^^^^^
-//
-// pkg/front_end/testcases/regress/issue_34850.dart:12:19: Error: Expected '{' before this.
-// Future<List<int>> f2() async => null;
-//                   ^^
-//
-// pkg/front_end/testcases/regress/issue_34850.dart:14:13: Error: Expected a type, but got '>>'.
-// Future<List<>> f3() async {
-//             ^^
-
-library;
 import self as self;
 import "dart:core" as core;
 

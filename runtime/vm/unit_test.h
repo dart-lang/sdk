@@ -92,8 +92,8 @@
       bool use_far_branches = false;                                           \
       LongJumpScope jump;                                                      \
       if (setjmp(*jump.Set()) == 0) {                                          \
-        ObjectPoolWrapper object_pool_wrapper;                                 \
-        Assembler assembler(&object_pool_wrapper, use_far_branches);           \
+        ObjectPoolBuilder object_pool_builder;                                 \
+        Assembler assembler(&object_pool_builder, use_far_branches);           \
         AssemblerTest test("" #name, &assembler);                              \
         AssemblerTestGenerate##name(test.assembler());                         \
         test.Assemble();                                                       \
@@ -105,8 +105,8 @@
     const Error& error = Error::Handle(Thread::Current()->sticky_error());     \
     if (error.raw() == Object::branch_offset_error().raw()) {                  \
       bool use_far_branches = true;                                            \
-      ObjectPoolWrapper object_pool_wrapper;                                   \
-      Assembler assembler(&object_pool_wrapper, use_far_branches);             \
+      ObjectPoolBuilder object_pool_builder;                                   \
+      Assembler assembler(&object_pool_builder, use_far_branches);             \
       AssemblerTest test("" #name, &assembler);                                \
       AssemblerTestGenerate##name(test.assembler());                           \
       test.Assemble();                                                         \
@@ -198,7 +198,9 @@ inline Dart_Handle NewString(const char* str) {
 namespace dart {
 
 // Forward declarations.
+namespace compiler {
 class Assembler;
+}
 class CodeGenerator;
 class VirtualMemory;
 

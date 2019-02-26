@@ -3,17 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'compile_time_error_code_test.dart';
+import 'compile_time_error_code.dart';
 import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompileTimeErrorCodeTest_Driver);
     defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest);
+    defineReflectiveTests(ControlFlowCollectionsTest);
     defineReflectiveTests(InvalidTypeArgumentInConstSetTest);
     defineReflectiveTests(NonConstSetElementFromDeferredLibraryTest);
     defineReflectiveTests(NonConstSetElementTest);
@@ -197,6 +199,343 @@ main() {
     await computeAnalysisResult(source);
     assertErrors(source,
         [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+}
+
+@reflectiveTest
+class ControlFlowCollectionsTest extends ResolverTestCase {
+  @override
+  List<String> get enabledExperiments =>
+      [EnableString.control_flow_collections, EnableString.set_literals];
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_awaitForIn_declaredVariableWrongType() async {
+    await assertErrorsInCode('''
+import 'dart:async';
+f() async {
+  Stream<String> stream;
+  await for (int i in stream) {}
+}
+''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+  }
+
+  test_awaitForIn_existingVariableWrongType() async {
+    await assertErrorsInCode('''
+import 'dart:async';
+f() async {
+  Stream<String> stream;
+  int i;
+  await for (i in stream) {}
+}
+''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+  }
+
+  test_awaitForIn_notStream() async {
+    await assertErrorsInCode('''
+f() async {
+  await for (var i in true) {}
+}
+''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE]);
+  }
+
+  test_duplicateDefinition_for_initializers() async {
+    Source source = addSource(r'''
+f() {
+  for (int i = 0, i = 0; i < 5;) {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    verify([source]);
+  }
+
+  test_expectedOneListTypeArgument() async {
+    await assertErrorsInCode(r'''
+main() {
+  <int, int>[];
+}''', [StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS]);
+  }
+
+  test_expectedOneSetTypeArgument() async {
+    await assertErrorsInCode(r'''
+main() {
+  <int, int, int>{2, 3};
+}''', [StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS]);
+  }
+
+  test_expectedTwoMapTypeArguments_three() async {
+    await assertErrorsInCode(r'''
+main() {
+  <int, int, int>{};
+}''', [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
+  }
+
+  test_forIn_declaredVariableWrongType() async {
+    await assertErrorsInCode('''
+f() {
+  for (int i in <String>[]) {}
+}
+''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+  }
+
+  test_forIn_existingVariableWrongType() async {
+    await assertErrorsInCode('''
+f() {
+  int i;
+  for (i in <String>[]) {}
+}
+''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+  }
+
+  test_forIn_notIterable() async {
+    await assertErrorsInCode('''
+f() {
+  for (var i in true) {}
+}
+''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE]);
+  }
+
+  test_forIn_typeBoundBad() async {
+    await assertErrorsInCode('''
+class Foo<T extends Iterable<int>> {
+  void method(T iterable) {
+    for (String i in iterable) {}
+  }
+}
+''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+  }
+
+  test_forInWithConstVariable_forEach_identifier() async {
+    Source source = addSource(r'''
+f() {
+  const x = 0;
+  for (x in [0, 1, 2]) {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE]);
+    verify([source]);
+  }
+
+  test_forInWithConstVariable_forEach_loopVariable() async {
+    Source source = addSource(r'''
+f() {
+  for (const x in [0, 1, 2]) {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE]);
+    verify([source]);
+  }
+
+  test_generalizedVoid_useOfInForeachIterableError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  for (var v in x) {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_generalizedVoid_useOfVoidInForeachVariableError() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  var y;
+  for (y in x) {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+  }
+
+  test_invalidTypeArgumentInConstList() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <E>[];
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
+    verify([source]);
+  }
+
+  test_invalidTypeArgumentInConstMap_key() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <E, String>{};
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
+    verify([source]);
+  }
+
+  test_invalidTypeArgumentInConstMap_value() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <String, E>{};
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
+    verify([source]);
+  }
+
+  test_invalidTypeArgumentInConstSet_class() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <E>{};
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET]);
+    verify([source]);
+  }
+
+  test_listElementTypeNotAssignable_const() async {
+    Source source = addSource("var v = const <String>[42];");
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  test_listElementTypeNotAssignable_nonConst() async {
+    Source source = addSource("var v = <String> [42];");
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  test_mapKeyTypeNotAssignable_const() async {
+    Source source = addSource("var v = const <String, int >{1 : 2};");
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  test_mapKeyTypeNotAssignable_nonConst() async {
+    Source source = addSource("var v = <String, int >{1 : 2};");
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  test_mapValueTypeNotAssignable_const() async {
+    Source source = addSource("var v = const <String, String>{'a' : 2};");
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  test_mapValueTypeNotAssignable_nonConst() async {
+    Source source = addSource("var v = <String, String>{'a' : 2};");
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  test_nonBoolCondition_for_declaration() async {
+    // https://github.com/dart-lang/sdk/issues/24713
+    await assertErrorsInCode(r'''
+f() {
+  for (int i = 0; 3;) {}
+}
+''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+  }
+
+  test_nonBoolCondition_for_expression() async {
+    // https://github.com/dart-lang/sdk/issues/24713
+    await assertErrorsInCode(r'''
+f() {
+  int i;
+  for (i = 0; 3;) {}
+}''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+  }
+
+  test_nonConstMapAsExpressionStatement_begin() async {
+    Source source = addSource(r'''
+f() {
+  {'a' : 0, 'b' : 1}.length;
+}''');
+    await computeAnalysisResult(source);
+    // TODO(danrubel) Fasta is not recovering.
+    assertErrors(source, [
+      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
+//    assertErrors(
+//        source, [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+    verify([source]);
+  }
+
+  test_nonConstMapAsExpressionStatement_only() async {
+    Source source = addSource(r'''
+f() {
+  {'a' : 0, 'b' : 1};
+}''');
+    await computeAnalysisResult(source);
+    // TODO(danrubel) Fasta is not recovering.
+    assertErrors(source, [
+      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
+//    assertErrors(
+//        source, [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+    verify([source]);
+  }
+
+  test_setElementTypeNotAssignable_const() async {
+    Source source = addSource("var v = const <String>{42};");
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  test_setElementTypeNotAssignable_nonConst() async {
+    Source source = addSource("var v = <String>{42};");
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 }

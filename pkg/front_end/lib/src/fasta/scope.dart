@@ -284,6 +284,36 @@ class Scope extends MutableScope {
     });
     return nestingLevel;
   }
+
+  Scope computeMixinScope() {
+    List<String> names = this.local.keys.toList();
+    Map<String, Declaration> local = <String, Declaration>{};
+    bool needsCopy = false;
+    for (int i = 0; i < names.length; i++) {
+      String name = names[i];
+      Declaration declaration = this.local[name];
+      if (declaration.isStatic) {
+        needsCopy = true;
+      } else {
+        local[name] = declaration;
+      }
+    }
+    names = this.setters.keys.toList();
+    Map<String, Declaration> setters = <String, Declaration>{};
+    for (int i = 0; i < names.length; i++) {
+      String name = names[i];
+      Declaration declaration = this.setters[name];
+      if (declaration.isStatic) {
+        needsCopy = true;
+      } else {
+        setters[name] = declaration;
+      }
+    }
+    return needsCopy
+        ? new Scope(local, setters, parent, classNameOrDebugName,
+            isModifiable: isModifiable)
+        : this;
+  }
 }
 
 class ScopeBuilder {

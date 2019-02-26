@@ -37,14 +37,20 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls]. All fields inherited from superclasses and mixins are
   /// included.
+  ///
+  /// If [isElided] is `true`, the field is not read and should therefore not
+  /// be emitted.
   void forEachInstanceField(covariant ClassEntity cls,
-      void f(ClassEntity declarer, FieldEntity field));
+      void f(ClassEntity declarer, FieldEntity field, {bool isElided}));
 
   /// Calls [f] with every instance field declared directly in class [cls]
   /// (i.e. no inherited fields). Fields are presented in initialization
   /// (i.e. textual) order.
+  ///
+  /// If [isElided] is `true`, the field is not read and should therefore not
+  /// be emitted.
   void forEachDirectInstanceField(
-      covariant ClassEntity cls, void f(FieldEntity field));
+      covariant ClassEntity cls, void f(FieldEntity field, {bool isElided}));
 
   /// Calls [f] for each parameter of [function] providing the type and name of
   /// the parameter and the [defaultValue] if the parameter is optional.
@@ -302,7 +308,9 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         registerDynamicInvocation(
             dynamicUse.selector, dynamicUse.typeArguments);
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
-          _process(_instanceMembersByName, (m) => m.invoke());
+          // We don't track parameters in the codegen world builder, so we
+          // pass `null` instead of the concrete call structure.
+          _process(_instanceMembersByName, (m) => m.invoke(null));
           return true;
         }
         break;
@@ -405,7 +413,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.GET:
       case StaticUseKind.SET:
       case StaticUseKind.INIT:
-      case StaticUseKind.REFLECT:
         break;
     }
   }
@@ -447,7 +454,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.GET:
       case StaticUseKind.SET:
       case StaticUseKind.INIT:
-      case StaticUseKind.REFLECT:
         useSet.addAll(usage.normalUse());
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
@@ -458,7 +464,9 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.DIRECT_INVOKE:
         MemberEntity member = staticUse.element;
         MemberUsage instanceUsage = _getMemberUsage(member, memberUsed);
-        memberUsed(instanceUsage.entity, instanceUsage.invoke());
+        // We don't track parameters in the codegen world builder, so we
+        // pass `null` instead of the concrete call structure.
+        memberUsed(instanceUsage.entity, instanceUsage.invoke(null));
         _instanceMembersByName[instanceUsage.entity.name]
             ?.remove(instanceUsage);
         useSet.addAll(usage.normalUse());
@@ -514,17 +522,19 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         useSet.addAll(usage.write());
       }
       if (!usage.hasInvoke && hasInvocation(member)) {
-        useSet.addAll(usage.invoke());
+        // We don't track parameters in the codegen world builder, so we
+        // pass `null` instead of the concrete call structures.
+        useSet.addAll(usage.invoke(null));
       }
 
-      if (usage.pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)) {
+      if (usage.hasPendingClosurizationUse) {
         // Store the member in [instanceFunctionsByName] to catch
         // getters on the function.
         _instanceFunctionsByName
             .putIfAbsent(usage.entity.name, () => new Set<MemberUsage>())
             .add(usage);
       }
-      if (usage.pendingUse.contains(MemberUse.NORMAL)) {
+      if (usage.hasPendingNormalUse) {
         // The element is not yet used. Add it to the list of instance
         // members to still be processed.
         _instanceMembersByName
@@ -683,26 +693,35 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   @override
   void forEachParameter(FunctionEntity function,
       void f(DartType type, String name, ConstantValue defaultValue)) {
-    _elementMap.forEachParameter(function, f);
+    _elementMap.forEachParameter(function, f,
+        isNative: _world.nativeData.isNativeMember(function));
   }
 
   @override
   void forEachParameterAsLocal(
       FunctionEntity function, void f(Local parameter)) {
-    forEachOrderedParameter(_globalLocalsMap, _elementMap, function, f);
-  }
-
-  @override
-  void forEachInstanceField(
-      ClassEntity cls, void f(ClassEntity declarer, FieldEntity field)) {
-    _elementEnvironment.forEachClassMember(cls,
-        (ClassEntity declarer, MemberEntity member) {
-      if (member.isField && member.isInstanceMember) f(declarer, member);
+    forEachOrderedParameterAsLocal(_globalLocalsMap, _elementMap, function,
+        (Local parameter, {bool isElided}) {
+      if (!isElided) {
+        f(parameter);
+      }
     });
   }
 
   @override
-  void forEachDirectInstanceField(ClassEntity cls, void f(FieldEntity field)) {
+  void forEachInstanceField(ClassEntity cls,
+      void f(ClassEntity declarer, FieldEntity field, {bool isElided})) {
+    _elementEnvironment.forEachClassMember(cls,
+        (ClassEntity declarer, MemberEntity member) {
+      if (member.isField && member.isInstanceMember) {
+        f(declarer, member, isElided: _world.elidedFields.contains(member));
+      }
+    });
+  }
+
+  @override
+  void forEachDirectInstanceField(
+      ClassEntity cls, void f(FieldEntity field, {bool isElided})) {
     // TODO(sra): Add ElementEnvironment.forEachDirectInstanceField or
     // parameterize [forEachInstanceField] to filter members to avoid a
     // potentially O(n^2) scan of the superclasses.
@@ -711,7 +730,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       if (declarer != cls) return;
       if (!member.isField) return;
       if (!member.isInstanceMember) return;
-      f(member);
+      f(member, isElided: _world.elidedFields.contains(member));
     });
   }
 

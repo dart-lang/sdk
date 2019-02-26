@@ -1242,7 +1242,7 @@ class InferrerEngineImpl extends InferrerEngine {
 
   @override
   bool assumeDynamic(MemberEntity member) {
-    return closedWorld.annotationsData.assumeDynamicMembers.contains(member);
+    return closedWorld.annotationsData.hasAssumeDynamic(member);
   }
 }
 
@@ -1272,8 +1272,11 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
 
   @override
   void forEachParameter(FunctionEntity function, void f(Local parameter)) {
-    forEachOrderedParameter(
-        _closedWorld.globalLocalsMap, _closedWorld.elementMap, function, f);
+    forEachOrderedParameterAsLocal(
+        _closedWorld.globalLocalsMap, _closedWorld.elementMap, function,
+        (Local parameter, {bool isElided}) {
+      f(parameter);
+    });
   }
 
   @override

@@ -13,16 +13,15 @@ Bytecode {
   PushInt              0
   PushInt              0
   PushNull
-  PushConstant         CP#1
-  IndirectStaticCall   3, CP#0
+  DirectCall           3, CP#0
   Drop1
 L1:
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 3, num-type-args 0, names []
-  [1] = StaticICData target 'dart:core::_AssertionError::_throwNew', arg-desc CP#0
+  [0] = DirectCall 'dart:core::_AssertionError::_throwNew', ArgDesc num-args 3, num-type-args 0, names []
+  [1] = Reserved
 }
 ]static method test1(core::bool condition) → void {
   assert(condition);
@@ -40,19 +39,18 @@ Bytecode {
   PushInt              0
   Push                 FP[-5]
   DynamicCall          1, CP#2
-  PushConstant         CP#4
-  IndirectStaticCall   3, CP#3
+  DirectCall           3, CP#3
   Drop1
 L1:
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [0] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
   [1] = ICData dynamic target-name 'call', arg-desc CP#0
   [2] = ICData dynamic target-name 'call', arg-desc CP#0
-  [3] = ArgDesc num-args 3, num-type-args 0, names []
-  [4] = StaticICData target 'dart:core::_AssertionError::_throwNew', arg-desc CP#3
+  [3] = DirectCall 'dart:core::_AssertionError::_throwNew', ArgDesc num-args 3, num-type-args 0, names []
+  [4] = Reserved
 }
 ]static method test2(() → core::bool condition, () → core::String message) → void {
   assert([@vm.call-site-attributes.metadata=receiverType:() → dart.core::bool] condition.call(), [@vm.call-site-attributes.metadata=receiverType:() → dart.core::String] message.call());

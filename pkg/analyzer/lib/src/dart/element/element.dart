@@ -1133,7 +1133,7 @@ class ClassElementImpl extends AbstractClassElementImpl
           }
           implicitParameter.isConst = superParameter.isConst;
           implicitParameter.isFinal = superParameter.isFinal;
-          // ignore: deprecated_member_use
+          // ignore: deprecated_member_use_from_same_package
           implicitParameter.parameterKind = superParameter.parameterKind;
           implicitParameter.isSynthetic = true;
           implicitParameter.type =
@@ -3868,7 +3868,7 @@ abstract class ExecutableElementImpl extends ElementImpl
           buffer.write(", ");
         }
         ParameterElement parameter = parameters[i];
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use_from_same_package
         ParameterKind parameterKind = parameter.parameterKind;
         if (parameterKind != kind) {
           if (closing != null) {

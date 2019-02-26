@@ -12,7 +12,7 @@
 #include "vm/virtual_memory.h"
 
 namespace dart {
-
+namespace compiler {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
@@ -339,12 +339,13 @@ ASSEMBLER_TEST_RUN(WordOverflow, test) {
 ASSEMBLER_TEST_GENERATE(SimpleLoadStore, assembler) {
   __ SetupDartSP();
 
-  __ sub(CSP, CSP, Operand(2 * kWordSize));  // Must not access beyond CSP.
+  __ sub(CSP, CSP,
+         Operand(2 * target::kWordSize));  // Must not access beyond CSP.
 
   __ movz(R0, Immediate(43), 0);
   __ movz(R1, Immediate(42), 0);
-  __ str(R1, Address(SP, -1 * kWordSize, Address::PreIndex));
-  __ ldr(R0, Address(SP, 1 * kWordSize, Address::PostIndex));
+  __ str(R1, Address(SP, -1 * target::kWordSize, Address::PreIndex));
+  __ ldr(R0, Address(SP, 1 * target::kWordSize, Address::PostIndex));
   __ RestoreCSP();
   __ ret();
 }
@@ -373,16 +374,17 @@ ASSEMBLER_TEST_RUN(SimpleLoadStoreHeapTag, test) {
 ASSEMBLER_TEST_GENERATE(LoadStoreLargeIndex, assembler) {
   __ SetupDartSP();
 
-  __ sub(CSP, CSP, Operand(32 * kWordSize));  // Must not access beyond CSP.
+  __ sub(CSP, CSP,
+         Operand(32 * target::kWordSize));  // Must not access beyond CSP.
 
   __ movz(R0, Immediate(43), 0);
   __ movz(R1, Immediate(42), 0);
   // Largest negative offset that can fit in the signed 9-bit immediate field.
-  __ str(R1, Address(SP, -32 * kWordSize, Address::PreIndex));
+  __ str(R1, Address(SP, -32 * target::kWordSize, Address::PreIndex));
   // Largest positive kWordSize aligned offset that we can fit.
-  __ ldr(R0, Address(SP, 31 * kWordSize, Address::PostIndex));
+  __ ldr(R0, Address(SP, 31 * target::kWordSize, Address::PostIndex));
   // Correction.
-  __ add(SP, SP, Operand(kWordSize));  // Restore SP.
+  __ add(SP, SP, Operand(target::kWordSize));  // Restore SP.
   __ RestoreCSP();
   __ ret();
 }
@@ -396,10 +398,10 @@ ASSEMBLER_TEST_GENERATE(LoadStoreLargeOffset, assembler) {
   __ SetupDartSP();
   __ movz(R0, Immediate(43), 0);
   __ movz(R1, Immediate(42), 0);
-  __ sub(SP, SP, Operand(512 * kWordSize));
+  __ sub(SP, SP, Operand(512 * target::kWordSize));
   __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
-  __ str(R1, Address(SP, 512 * kWordSize, Address::Offset));
-  __ add(SP, SP, Operand(512 * kWordSize));
+  __ str(R1, Address(SP, 512 * target::kWordSize, Address::Offset));
+  __ add(SP, SP, Operand(512 * target::kWordSize));
   __ ldr(R0, Address(SP));
   __ RestoreCSP();
   __ ret();
@@ -419,10 +421,10 @@ ASSEMBLER_TEST_GENERATE(LoadStoreExtReg, assembler) {
   // This should sign extend R2, and add to SP to get address,
   // i.e. SP - kWordSize.
   __ str(R1, Address(SP, R2, SXTW));
-  __ sub(SP, SP, Operand(kWordSize));
+  __ sub(SP, SP, Operand(target::kWordSize));
   __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
   __ ldr(R0, Address(SP));
-  __ add(SP, SP, Operand(kWordSize));
+  __ add(SP, SP, Operand(target::kWordSize));
   __ RestoreCSP();
   __ ret();
 }
@@ -437,12 +439,12 @@ ASSEMBLER_TEST_GENERATE(LoadStoreScaledReg, assembler) {
   __ movz(R0, Immediate(43), 0);
   __ movz(R1, Immediate(42), 0);
   __ movz(R2, Immediate(10), 0);
-  __ sub(SP, SP, Operand(10 * kWordSize));
+  __ sub(SP, SP, Operand(10 * target::kWordSize));
   __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
   // Store R1 into SP + R2 * kWordSize.
   __ str(R1, Address(SP, R2, UXTX, Address::Scaled));
   __ ldr(R0, Address(SP, R2, UXTX, Address::Scaled));
-  __ add(SP, SP, Operand(10 * kWordSize));
+  __ add(SP, SP, Operand(10 * target::kWordSize));
   __ RestoreCSP();
   __ ret();
 }
@@ -455,7 +457,8 @@ ASSEMBLER_TEST_RUN(LoadStoreScaledReg, test) {
 ASSEMBLER_TEST_GENERATE(LoadSigned32Bit, assembler) {
   __ SetupDartSP();
 
-  __ sub(CSP, CSP, Operand(2 * kWordSize));  // Must not access beyond CSP.
+  __ sub(CSP, CSP,
+         Operand(2 * target::kWordSize));  // Must not access beyond CSP.
 
   __ LoadImmediate(R1, 0xffffffff);
   __ str(R1, Address(SP, -4, Address::PreIndex, kWord), kWord);
@@ -473,12 +476,13 @@ ASSEMBLER_TEST_RUN(LoadSigned32Bit, test) {
 ASSEMBLER_TEST_GENERATE(SimpleLoadStorePair, assembler) {
   __ SetupDartSP();
 
-  __ sub(CSP, CSP, Operand(2 * kWordSize));  // Must not access beyond CSP.
+  __ sub(CSP, CSP,
+         Operand(2 * target::kWordSize));  // Must not access beyond CSP.
 
   __ LoadImmediate(R2, 43);
   __ LoadImmediate(R3, 42);
-  __ stp(R2, R3, Address(SP, -2 * kWordSize, Address::PairPreIndex));
-  __ ldp(R0, R1, Address(SP, 2 * kWordSize, Address::PairPostIndex));
+  __ stp(R2, R3, Address(SP, -2 * target::kWordSize, Address::PairPreIndex));
+  __ ldp(R0, R1, Address(SP, 2 * target::kWordSize, Address::PairPostIndex));
   __ sub(R0, R0, Operand(R1));
   __ RestoreCSP();
   __ ret();
@@ -493,11 +497,11 @@ ASSEMBLER_TEST_GENERATE(LoadStorePairOffset, assembler) {
   __ SetupDartSP();
   __ LoadImmediate(R2, 43);
   __ LoadImmediate(R3, 42);
-  __ sub(SP, SP, Operand(4 * kWordSize));
+  __ sub(SP, SP, Operand(4 * target::kWordSize));
   __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
-  __ stp(R2, R3, Address::Pair(SP, 2 * kWordSize));
-  __ ldp(R0, R1, Address::Pair(SP, 2 * kWordSize));
-  __ add(SP, SP, Operand(4 * kWordSize));
+  __ stp(R2, R3, Address::Pair(SP, 2 * target::kWordSize));
+  __ ldp(R0, R1, Address::Pair(SP, 2 * target::kWordSize));
+  __ add(SP, SP, Operand(4 * target::kWordSize));
   __ sub(R0, R0, Operand(R1));
   __ RestoreCSP();
   __ ret();
@@ -2520,11 +2524,12 @@ ASSEMBLER_TEST_RUN(Fmovsr, test) {
 ASSEMBLER_TEST_GENERATE(FldrdFstrdPrePostIndex, assembler) {
   __ SetupDartSP();
 
-  __ sub(CSP, CSP, Operand(2 * kWordSize));  // Must not access beyond CSP.
+  __ sub(CSP, CSP,
+         Operand(2 * target::kWordSize));  // Must not access beyond CSP.
 
   __ LoadDImmediate(V1, 42.0);
-  __ fstrd(V1, Address(SP, -1 * kWordSize, Address::PreIndex));
-  __ fldrd(V0, Address(SP, 1 * kWordSize, Address::PostIndex));
+  __ fstrd(V1, Address(SP, -1 * target::kWordSize, Address::PreIndex));
+  __ fldrd(V0, Address(SP, 1 * target::kWordSize, Address::PostIndex));
   __ RestoreCSP();
   __ ret();
 }
@@ -2537,12 +2542,13 @@ ASSEMBLER_TEST_RUN(FldrdFstrdPrePostIndex, test) {
 ASSEMBLER_TEST_GENERATE(FldrsFstrsPrePostIndex, assembler) {
   __ SetupDartSP();
 
-  __ sub(CSP, CSP, Operand(2 * kWordSize));  // Must not access beyond CSP.
+  __ sub(CSP, CSP,
+         Operand(2 * target::kWordSize));  // Must not access beyond CSP.
 
   __ LoadDImmediate(V1, 42.0);
   __ fcvtsd(V2, V1);
-  __ fstrs(V2, Address(SP, -1 * kWordSize, Address::PreIndex));
-  __ fldrs(V3, Address(SP, 1 * kWordSize, Address::PostIndex));
+  __ fstrs(V2, Address(SP, -1 * target::kWordSize, Address::PreIndex));
+  __ fldrs(V3, Address(SP, 1 * target::kWordSize, Address::PostIndex));
   __ fcvtds(V0, V3);
   __ RestoreCSP();
   __ ret();
@@ -2556,7 +2562,8 @@ ASSEMBLER_TEST_RUN(FldrsFstrsPrePostIndex, test) {
 ASSEMBLER_TEST_GENERATE(FldrqFstrqPrePostIndex, assembler) {
   __ SetupDartSP();
 
-  __ sub(CSP, CSP, Operand(2 * kWordSize));  // Must not access beyond CSP.
+  __ sub(CSP, CSP,
+         Operand(2 * target::kWordSize));  // Must not access beyond CSP.
 
   __ LoadDImmediate(V1, 21.0);
   __ LoadDImmediate(V2, 21.0);
@@ -2564,9 +2571,9 @@ ASSEMBLER_TEST_GENERATE(FldrqFstrqPrePostIndex, assembler) {
   __ Push(R1);
   __ PushDouble(V1);
   __ PushDouble(V2);
-  __ fldrq(V3, Address(SP, 2 * kWordSize, Address::PostIndex));
+  __ fldrq(V3, Address(SP, 2 * target::kWordSize, Address::PostIndex));
   __ Pop(R0);
-  __ fstrq(V3, Address(SP, -2 * kWordSize, Address::PreIndex));
+  __ fstrq(V3, Address(SP, -2 * target::kWordSize, Address::PreIndex));
   __ PopDouble(V0);
   __ PopDouble(V1);
   __ faddd(V0, V0, V1);
@@ -2720,11 +2727,11 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdHeapTag, assembler) {
   __ SetupDartSP();
   __ LoadDImmediate(V0, 43.0);
   __ LoadDImmediate(V1, 42.0);
-  __ AddImmediate(SP, SP, -1 * kWordSize);
+  __ AddImmediate(SP, SP, -1 * target::kWordSize);
   __ add(R2, SP, Operand(1));
   __ fstrd(V1, Address(R2, -1));
   __ fldrd(V0, Address(R2, -1));
-  __ AddImmediate(SP, 1 * kWordSize);
+  __ AddImmediate(SP, 1 * target::kWordSize);
   __ RestoreCSP();
   __ ret();
 }
@@ -2737,16 +2744,17 @@ ASSEMBLER_TEST_RUN(FldrdFstrdHeapTag, test) {
 ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeIndex, assembler) {
   __ SetupDartSP();
 
-  __ sub(CSP, CSP, Operand(32 * kWordSize));  // Must not access beyond CSP.
+  __ sub(CSP, CSP,
+         Operand(32 * target::kWordSize));  // Must not access beyond CSP.
 
   __ LoadDImmediate(V0, 43.0);
   __ LoadDImmediate(V1, 42.0);
   // Largest negative offset that can fit in the signed 9-bit immediate field.
-  __ fstrd(V1, Address(SP, -32 * kWordSize, Address::PreIndex));
+  __ fstrd(V1, Address(SP, -32 * target::kWordSize, Address::PreIndex));
   // Largest positive kWordSize aligned offset that we can fit.
-  __ fldrd(V0, Address(SP, 31 * kWordSize, Address::PostIndex));
+  __ fldrd(V0, Address(SP, 31 * target::kWordSize, Address::PostIndex));
   // Correction.
-  __ add(SP, SP, Operand(kWordSize));  // Restore SP.
+  __ add(SP, SP, Operand(target::kWordSize));  // Restore SP.
   __ RestoreCSP();
   __ ret();
 }
@@ -2760,10 +2768,10 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeOffset, assembler) {
   __ SetupDartSP();
   __ LoadDImmediate(V0, 43.0);
   __ LoadDImmediate(V1, 42.0);
-  __ sub(SP, SP, Operand(512 * kWordSize));
+  __ sub(SP, SP, Operand(512 * target::kWordSize));
   __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
-  __ fstrd(V1, Address(SP, 512 * kWordSize, Address::Offset));
-  __ add(SP, SP, Operand(512 * kWordSize));
+  __ fstrd(V1, Address(SP, 512 * target::kWordSize, Address::Offset));
+  __ add(SP, SP, Operand(512 * target::kWordSize));
   __ fldrd(V0, Address(SP));
   __ RestoreCSP();
   __ ret();
@@ -2783,10 +2791,10 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdExtReg, assembler) {
   // This should sign extend R2, and add to SP to get address,
   // i.e. SP - kWordSize.
   __ fstrd(V1, Address(SP, R2, SXTW));
-  __ sub(SP, SP, Operand(kWordSize));
+  __ sub(SP, SP, Operand(target::kWordSize));
   __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
   __ fldrd(V0, Address(SP));
-  __ add(SP, SP, Operand(kWordSize));
+  __ add(SP, SP, Operand(target::kWordSize));
   __ RestoreCSP();
   __ ret();
 }
@@ -2801,12 +2809,12 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdScaledReg, assembler) {
   __ LoadDImmediate(V0, 43.0);
   __ LoadDImmediate(V1, 42.0);
   __ movz(R2, Immediate(10), 0);
-  __ sub(SP, SP, Operand(10 * kWordSize));
+  __ sub(SP, SP, Operand(10 * target::kWordSize));
   __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
   // Store V1 into SP + R2 * kWordSize.
   __ fstrd(V1, Address(SP, R2, UXTX, Address::Scaled));
   __ fldrd(V0, Address(SP, R2, UXTX, Address::Scaled));
-  __ add(SP, SP, Operand(10 * kWordSize));
+  __ add(SP, SP, Operand(10 * target::kWordSize));
   __ RestoreCSP();
   __ ret();
 }
@@ -4107,6 +4115,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ ret();
 }
 
+}  // namespace compiler
 }  // namespace dart
 
 #endif  // defined(TARGET_ARCH_ARM64)

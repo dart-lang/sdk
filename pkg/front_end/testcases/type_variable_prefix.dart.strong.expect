@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/type_variable_prefix.dart:8:3: Error: 'T.String' can't be used as a type because 'T' doesn't refer to an import prefix.
 //   T.String method() => "Hello, World!";
@@ -13,16 +15,11 @@
 // Try changing the type of the left hand side, or casting the right hand side to 'String'.
 //   T.String s = new C().method();
 //                        ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/type_variable_prefix.dart:8:3: Error: 'T.String' can't be used as a type because 'T' doesn't refer to an import prefix.
-//   T.String method() => "Hello, World!";
-//   ^^^^^^^^
-
-library;
 import self as self;
 import "dart:core" as core;
+
+import "dart:core" as T;
 
 class C<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T>

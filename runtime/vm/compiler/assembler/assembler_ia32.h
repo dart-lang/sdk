@@ -13,11 +13,10 @@
 #include "platform/utils.h"
 #include "vm/constants_ia32.h"
 #include "vm/constants_x86.h"
+#include "vm/pointer_tagging.h"
 
 namespace dart {
-
-// Forward declarations.
-class RuntimeEntry;
+namespace compiler {
 
 class Immediate : public ValueObject {
  public:
@@ -222,11 +221,11 @@ class FieldAddress : public Address {
 
 class Assembler : public AssemblerBase {
  public:
-  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+  explicit Assembler(ObjectPoolBuilder* object_pool_builder,
                      bool use_far_branches = false)
-      : AssemblerBase(object_pool_wrapper),
+      : AssemblerBase(object_pool_builder),
         jit_cookie_(0),
-        code_(Code::ZoneHandle()) {
+        code_(NewZoneHandle(ThreadState::Current()->zone())) {
     // This mode is only needed and implemented for ARM.
     ASSERT(!use_far_branches);
   }
@@ -689,7 +688,7 @@ class Assembler : public AssemblerBase {
                                            intptr_t extra_disp = 0);
 
   static Address VMTagAddress() {
-    return Address(THR, Thread::vm_tag_offset());
+    return Address(THR, target::Thread::vm_tag_offset());
   }
 
   /*
@@ -774,18 +773,14 @@ class Assembler : public AssemblerBase {
                             Label* trace,
                             bool near_jump);
 
-  void UpdateAllocationStats(intptr_t cid,
-                             Register temp_reg,
-                             Heap::Space space);
+  void UpdateAllocationStats(intptr_t cid, Register temp_reg);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
-                                     Register temp_reg,
-                                     Heap::Space space);
+                                     Register temp_reg);
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      intptr_t instance_size,
-                                     Register temp_reg,
-                                     Heap::Space space);
+                                     Register temp_reg);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
@@ -814,29 +809,23 @@ class Assembler : public AssemblerBase {
   static const char* RegisterName(Register reg);
   static const char* FpuRegisterName(FpuRegister reg);
 
-  // Smis that do not fit into 17 bits (16 bits of payload) are unsafe.
+  // Check if the given value is an integer value that can be directly
+  // emdedded into the code without additional XORing with jit_cookie.
+  // We consider 16-bit integers, powers of two and corresponding masks
+  // as safe values that can be emdedded into the code object.
   static bool IsSafeSmi(const Object& object) {
-    if (!object.IsSmi()) {
-      return false;
+    int64_t value;
+    if (HasIntegerValue(object, &value)) {
+      return Utils::IsInt(16, value) || Utils::IsPowerOfTwo(value) ||
+             Utils::IsPowerOfTwo(value + 1);
     }
-
-    if (Utils::IsInt(17, reinterpret_cast<intptr_t>(object.raw()))) {
-      return true;
-    }
-
-    // Single bit smis (powers of two) and corresponding masks are safe.
-    const intptr_t value = Smi::Cast(object).Value();
-    if (Utils::IsPowerOfTwo(value) || Utils::IsPowerOfTwo(value + 1)) {
-      return true;
-    }
-
     return false;
   }
   static bool IsSafe(const Object& object) {
-    return !object.IsSmi() || IsSafeSmi(object);
+    return !target::IsSmi(object) || IsSafeSmi(object);
   }
 
-  void set_code_object(const Code& code) { code_ ^= code.raw(); }
+  Object& GetSelfHandle() const { return code_; }
 
   void PushCodeObject();
 
@@ -880,12 +869,10 @@ class Assembler : public AssemblerBase {
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
 
-  void UnverifiedStoreOldObject(const Address& dest, const Object& value);
-
   int32_t jit_cookie();
 
   int32_t jit_cookie_;
-  Code& code_;
+  Object& code_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
@@ -915,6 +902,12 @@ inline void Assembler::EmitFixup(AssemblerFixup* fixup) {
 inline void Assembler::EmitOperandSizeOverride() {
   EmitUint8(0x66);
 }
+
+}  // namespace compiler
+
+using compiler::Address;
+using compiler::FieldAddress;
+using compiler::Immediate;
 
 }  // namespace dart
 

@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/abstract_members.dart:19:16: Error: Can't inherit members that conflict with each other.
 // abstract class A implements Interface1, Interface2, Interface3 {
@@ -89,8 +91,47 @@
 // pkg/front_end/testcases/abstract_members.dart:16:8: Context: 'Interface3.interfaceMethod3' is defined here.
 //   void interfaceMethod3() {}
 //        ^^^^^^^^^^^^^^^^
-
-library;
+//
+// pkg/front_end/testcases/abstract_members.dart:64:16: Error: Can't inherit members that conflict with each other.
+// abstract class D extends C implements Interface2 {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:12:7: Context: This is one inherited member.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:59:8: Context: This is the other inherited member.
+//   void interfaceMethod1(_) {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:72:16: Error: Can't inherit members that conflict with each other.
+// abstract class F extends E implements Interface1 {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:6:8: Context: This is one inherited member.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/abstract_members.dart:67:12: Context: This is the other inherited member.
+//   void set interfaceMethod1(_) {}
+//            ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:84:16: Error: Can't inherit members that conflict with each other.
+// abstract class H extends G implements Foo {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:75:8: Context: This is one inherited member.
+//   void foo() {}
+//        ^^^
+// pkg/front_end/testcases/abstract_members.dart:79:14: Context: This is the other inherited member.
+//   Object get foo => null;
+//              ^^^
+//
+// pkg/front_end/testcases/abstract_members.dart:96:16: Error: Can't inherit members that conflict with each other.
+// abstract class J extends I implements Bar {}
+//                ^
+// pkg/front_end/testcases/abstract_members.dart:87:14: Context: This is one inherited member.
+//   Object get foo => null;
+//              ^^^
+// pkg/front_end/testcases/abstract_members.dart:91:10: Context: This is the other inherited member.
+//   Object foo() {}
+//          ^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -194,6 +235,58 @@ class MyMock3 extends self::B {
     return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#property1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   no-such-method-forwarder set property2(dynamic _) → void
     return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#property2=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  method interfaceMethod1(dynamic _) → void
+    ;
+}
+abstract class D extends self::C implements self::Interface2 {
+  synthetic constructor •() → self::D
+    ;
+}
+class E extends core::Object {
+  synthetic constructor •() → self::E
+    ;
+  set interfaceMethod1(dynamic _) → void
+    ;
+}
+abstract class F extends self::E implements self::Interface1 {
+  synthetic constructor •() → self::F
+    ;
+}
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    ;
+  method foo() → void
+    ;
+}
+class G extends core::Object {
+  synthetic constructor •() → self::G
+    ;
+  get foo() → core::Object
+    ;
+}
+abstract class H extends self::G implements self::Foo {
+  synthetic constructor •() → self::H
+    ;
+}
+class Bar extends core::Object {
+  synthetic constructor •() → self::Bar
+    ;
+  get foo() → core::Object
+    ;
+}
+class I extends core::Object {
+  synthetic constructor •() → self::I
+    ;
+  method foo() → core::Object
+    ;
+}
+abstract class J extends self::I implements self::Bar {
+  synthetic constructor •() → self::J
+    ;
 }
 static method main() → dynamic
   ;

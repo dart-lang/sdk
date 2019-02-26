@@ -13,7 +13,6 @@ import '../elements/names.dart' show Name;
 import '../elements/types.dart';
 import '../ir/closure.dart';
 import '../ir/element_map.dart';
-import '../ir/util.dart';
 import '../js_model/element_map.dart';
 import '../js_model/env.dart';
 import '../ordered_typeset.dart';
@@ -1032,7 +1031,7 @@ abstract class ClosureMemberData implements JMemberData {
 }
 
 class ClosureFunctionData extends ClosureMemberData
-    with FunctionDataMixin
+    with FunctionDataTypeVariablesMixin, FunctionDataForEachParameterMixin
     implements FunctionData {
   /// Tag used for identifying serialized [ClosureFunctionData] objects in a
   /// debugging data stream.
@@ -1073,31 +1072,6 @@ class ClosureFunctionData extends ClosureMemberData
     sink.writeTreeNode(functionNode);
     sink.writeEnum(classTypeVariableAccess);
     sink.end(tag);
-  }
-
-  void forEachParameter(JsToElementMap elementMap,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
-    void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
-      DartType type = elementMap.getDartType(node.type);
-      String name = node.name;
-      ConstantValue defaultValue;
-      if (isOptional) {
-        if (node.initializer != null) {
-          defaultValue = elementMap.getConstantValue(node.initializer);
-        } else {
-          defaultValue = new NullConstantValue();
-        }
-      }
-      f(type, name, defaultValue);
-    }
-
-    for (int i = 0; i < functionNode.positionalParameters.length; i++) {
-      handleParameter(functionNode.positionalParameters[i],
-          isOptional: i >= functionNode.requiredParameterCount);
-    }
-    functionNode.namedParameters.toList()
-      ..sort(namedOrdering)
-      ..forEach(handleParameter);
   }
 
   @override

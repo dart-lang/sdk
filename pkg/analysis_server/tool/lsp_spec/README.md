@@ -37,9 +37,11 @@ Below is a list of LSP methods and their implementation status.
 | telemetry/event | | | | |
 | client/registerCapability | | | | | unused, but should be used for DocumentSelector at least
 | client/unregisterCapability | | | | |
-| workspace/didChangeWatchedFiles | | | | | unused, server does own watching |
+| workspace/workspaceFolders | | | | |
 | workspace/didChangeWorkspaceFolders | ✅ | ✅ | ✅ | ✅ |
-| workspace/symbol | | | | |
+| workspace/configuration | | | | |
+| workspace/didChangeWatchedFiles | | | | | unused, server does own watching |
+| workspace/symbol | ✅ | ✅ | ✅ | ✅ |
 | workspace/executeCommand | ✅ | ✅ | ✅ | ✅ |
 | workspace/applyEdit | ✅ | ✅ | ✅ | ✅ |
 | textDocument/didOpen | ✅ | ✅ | ✅ | ✅ |
@@ -52,6 +54,7 @@ Below is a list of LSP methods and their implementation status.
 | completionItem/resolve | | | | | not required |
 | textDocument/hover | ✅ | ✅ | ✅ | ✅ |
 | textDocument/signatureHelp | ✅ | ✅ | ✅ | ✅ | trigger character handling outstanding
+| textDocument/declaration | | | | |
 | textDocument/definition | ✅ | ✅ | ✅ | ✅ |
 | textDocument/typeDefinition | | | | |
 | textDocument/implementation | | | | |
@@ -67,10 +70,13 @@ Below is a list of LSP methods and their implementation status.
 | codeLens/resolve | | | | |
 | textDocument/documentLink | | | | |
 | documentLink/resolve | | | | |
+| textDocument/documentColor | | | | |
+| textDocument/colorPresentation | | | | |
 | textDocument/formatting | ✅ | ✅ | ✅ | ✅ |
 | textDocument/rangeFormatting | | | | | requires support from dart_style?
 | textDocument/onTypeFormatting | ✅ | ✅ | ✅ | ✅ |
-| textDocument/rename | ✅ | ✅ | Incomplete! | |
+| textDocument/rename | ✅ | ✅ | ✅ | ✅ |
 | textDocument/prepareRename | | | | |
-| textDocument/foldingRange | | | | |
+| textDocument/foldingRange | ✅ | ✅ | ✅ | ✅ |
+
 

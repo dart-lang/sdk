@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/cycles.dart:5:7: Error: 'A' is a supertype of itself.
 // class A implements C {}
@@ -11,8 +13,7 @@
 // pkg/front_end/testcases/cycles.dart:9:7: Error: 'C' is a supertype of itself.
 // class C extends B implements D {}
 //       ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

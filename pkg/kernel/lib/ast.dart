@@ -155,6 +155,8 @@ abstract class TreeNode extends Node {
 
   Component get enclosingComponent => parent?.enclosingComponent;
 
+  Library get enclosingLibrary => parent?.enclosingLibrary;
+
   /// Returns the best known source location of the given AST node, or `null` if
   /// the node is orphaned.
   ///
@@ -278,6 +280,11 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   /// The URI of the source file this library was loaded from.
   Uri fileUri;
 
+  static const int ExternalFlag = 1 << 0;
+  static const int SyntheticFlag = 1 << 1;
+
+  int flags = 0;
+
   /// If true, the library is part of another build unit and its contents
   /// are only partially loaded.
   ///
@@ -287,9 +294,25 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   ///
   /// If the library is non-external, then its classes are at [ClassLevel.Body]
   /// and all members are loaded.
-  bool isExternal;
+  bool get isExternal => (flags & ExternalFlag) != 0;
+  void set isExternal(bool value) {
+    flags = value ? (flags | ExternalFlag) : (flags & ~ExternalFlag);
+  }
+
+  /// If true, the library is synthetic, for instance library that doesn't
+  /// represents an actual file and is created as the result of error recovery.
+  bool get isSynthetic => flags & SyntheticFlag != 0;
+  void set isSynthetic(bool value) {
+    flags = value ? (flags | SyntheticFlag) : (flags & ~SyntheticFlag);
+  }
 
   String name;
+
+  /// Problems in this [Library] encoded as json objects.
+  ///
+  /// Note that this field can be null, and by convention should be null if the
+  /// list is empty.
+  List<String> problemsAsJson;
 
   @nocoq
   final List<Expression> annotations;
@@ -312,7 +335,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
 
   Library(this.importUri,
       {this.name,
-      this.isExternal: false,
+      bool isExternal: false,
       List<Expression> annotations,
       List<LibraryDependency> dependencies,
       List<LibraryPart> parts,
@@ -330,6 +353,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[],
         super(reference) {
+    this.isExternal = isExternal;
     setParents(this.dependencies, this);
     setParents(this.parts, this);
     setParents(this.typedefs, this);
@@ -444,6 +468,8 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
+
+  Library get enclosingLibraray => this;
 }
 
 /// An import or export declaration in a library.
@@ -5104,6 +5130,10 @@ abstract class Constant extends Node {
 
   /// Gets the type of this constant.
   DartType getType(TypeEnvironment types);
+
+  Expression asExpression() {
+    return new ConstantExpression(this);
+  }
 }
 
 abstract class PrimitiveConstant<T> extends Constant {
@@ -5296,7 +5326,7 @@ class InstanceConstant extends Constant {
 
   InstanceConstant(this.classReference, this.typeArguments, this.fieldValues);
 
-  Class get klass => classReference.asClass;
+  Class get classNode => classReference.asClass;
 
   visitChildren(Visitor v) {
     classReference.asClass.acceptReference(v);
@@ -5344,7 +5374,7 @@ class InstanceConstant extends Constant {
   }
 
   DartType getType(TypeEnvironment types) =>
-      new InterfaceType(klass, typeArguments);
+      new InterfaceType(classNode, typeArguments);
 }
 
 class PartialInstantiationConstant extends Constant {
@@ -5440,56 +5470,12 @@ class TypeLiteralConstant extends Constant {
   DartType getType(TypeEnvironment types) => types.typeType;
 }
 
-abstract class EnvironmentConstant extends Constant {
-  final String name;
-  final Constant defaultValue;
-
-  EnvironmentConstant(this.name, this.defaultValue);
-  visitChildren(Visitor v) {
-    defaultValue.acceptReference(v);
-  }
-}
-
-class EnvironmentBoolConstant extends EnvironmentConstant {
-  EnvironmentBoolConstant(String name, Constant defaultValue)
-      : super(name, defaultValue);
-
-  accept(ConstantVisitor v) => v.visitEnvironmentBoolConstant(this);
-  acceptReference(Visitor v) {
-    return v.visitEnvironmentBoolConstantReference(this);
-  }
-
-  DartType getType(TypeEnvironment types) => types.boolType;
-}
-
-class EnvironmentIntConstant extends EnvironmentConstant {
-  EnvironmentIntConstant(String name, Constant defaultValue)
-      : super(name, defaultValue);
-
-  accept(ConstantVisitor v) => v.visitEnvironmentIntConstant(this);
-  acceptReference(Visitor v) {
-    return v.visitEnvironmentIntConstantReference(this);
-  }
-
-  DartType getType(TypeEnvironment types) => types.intType;
-}
-
-class EnvironmentStringConstant extends EnvironmentConstant {
-  EnvironmentStringConstant(String name, Constant defaultValue)
-      : super(name, defaultValue);
-
-  accept(ConstantVisitor v) => v.visitEnvironmentStringConstant(this);
-  acceptReference(Visitor v) {
-    return v.visitEnvironmentStringConstantReference(this);
-  }
-
-  DartType getType(TypeEnvironment types) => types.stringType;
-}
-
 class UnevaluatedConstant extends Constant {
   final Expression expression;
 
-  UnevaluatedConstant(this.expression);
+  UnevaluatedConstant(this.expression) {
+    expression?.parent = null;
+  }
 
   visitChildren(Visitor v) {
     expression.accept(v);
@@ -5499,6 +5485,9 @@ class UnevaluatedConstant extends Constant {
   acceptReference(Visitor v) => v.visitUnevaluatedConstantReference(this);
 
   DartType getType(TypeEnvironment types) => expression.getStaticType(types);
+
+  @override
+  Expression asExpression() => expression;
 }
 
 // ------------------------------------------------------------------------
@@ -5508,6 +5497,12 @@ class UnevaluatedConstant extends Constant {
 /// A way to bundle up libraries in a component.
 class Component extends TreeNode {
   final CanonicalName root;
+
+  /// Problems in this [Component] encoded as json objects.
+  ///
+  /// Note that this field can be null, and by convention should be null if the
+  /// list is empty.
+  List<String> problemsAsJson;
 
   final List<Library> libraries;
 

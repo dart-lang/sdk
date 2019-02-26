@@ -14,7 +14,7 @@ import 'builder.dart'
 
 abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
     extends ModifierBuilder {
-  final List<MetadataBuilder> metadata;
+  final List<MetadataBuilder<T>> metadata;
 
   final int modifiers;
 
@@ -34,8 +34,9 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
 
   int get typeVariablesCount => 0;
 
-  R buildType(LibraryBuilder library, List<T> arguments);
+  R buildType(LibraryBuilder<T, Object> library, List<T> arguments);
 
   /// [arguments] have already been built.
-  R buildTypesWithBuiltArguments(LibraryBuilder library, List<R> arguments);
+  R buildTypesWithBuiltArguments(
+      LibraryBuilder<T, Object> library, List<R> arguments);
 }

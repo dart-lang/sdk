@@ -8,7 +8,7 @@
 
 abstract_members: TypeCheckError
 accessors: TextSerializationFailure # Was: RuntimeError
-ambiguous_exports: TextSerializationFailure # Was: RuntimeError # Expected, this file exports two main methods.
+ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 annotation_eof: TextSerializationFailure # Was: Pass
 annotation_on_enum_values: TextSerializationFailure # Was: Pass
 annotation_top: TextSerializationFailure # Was: Pass
@@ -59,6 +59,7 @@ classes: TextSerializationFailure # Was: Pass
 clone_function_type: TextSerializationFailure # Was: Pass
 closure: TextSerializationFailure # Was: Pass
 co19_language_metadata_syntax_t04: TextSerializationFailure # Was: Pass
+complex_class_hierarchy: TextSerializationFailure
 constructor_const_inference: TextSerializationFailure # Was: Pass
 constructor_cycle: TextSerializationFailure # Was: Pass
 constructor_function_types: TextSerializationFailure # Was: Pass
@@ -91,11 +92,10 @@ external: TextSerializationFailure # Was: Pass
 fallthrough: ExpectationFileMismatch
 fibonacci: TextSerializationFailure # Was: Pass
 for_in_scope: TextSerializationFailure # Was: Pass
-for_in_without_declaration: TypeCheckError
+for_in_without_declaration: TextSerializationFailure
 function_in_field: TextSerializationFailure # Was: Pass
 functions: TextSerializationFailure # Was: Pass
 function_type_assignments: TextSerializationFailure # Was: Pass
-function_type_default_value: TextSerializationFailure # Was: Pass
 function_type_is_check: TextSerializationFailure # Was: Pass
 function_type_recovery: TextSerializationFailure # Was: Pass
 future_or_test: TextSerializationFailure # Was: Pass
@@ -664,10 +664,13 @@ invalid_assignment: TextSerializationFailure # Was: Pass
 invalid_cast: TextSerializationFailure # Was: Pass
 invalid_type: TypeCheckError
 invocations: TextSerializationFailure # Was: RuntimeError
+issue34515: TextSerializationFailure
 issue34899: TypeCheckError
+issue35875: TextSerializationFailure
 literals: TextSerializationFailure # Was: Pass
 local_generic_function: TextSerializationFailure # Was: Pass
 magic_const: TextSerializationFailure # Was: Pass
+many_errors: TextSerializationFailure
 map: TextSerializationFailure # Was: Pass
 metadata_enum: TextSerializationFailure # Was: Pass
 metadata_named_mixin_application: TextSerializationFailure # Was: Pass
@@ -675,9 +678,11 @@ micro: TextSerializationFailure # Was: RuntimeError
 minimum_int: TextSerializationFailure # Was: Pass
 missing_constructor: TextSerializationFailure # Was: Pass
 mixin_application_override: TypeCheckError
+mixin_conflicts: TextSerializationFailure
 mixin_constructors_with_default_values: TextSerializationFailure # Was: Pass
 mixin_inherited_setter_for_mixed_in_field: TextSerializationFailure # Was: Pass
 mixin_super_repeated: TextSerializationFailure # Was: Pass
+mixin_with_static_member: TextSerializationFailure
 mixin: TextSerializationFailure # Was: Pass
 named_function_scope: TextSerializationFailure # Was: Pass
 named_parameters: TextSerializationFailure # Was: Pass
@@ -721,6 +726,10 @@ override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 override: TextSerializationFailure # Was: Pass
 part_as_entry_point_lib: TextSerializationFailure # Was: Pass
 part_as_entry_point: TextSerializationFailure # Was: Pass
+part_not_part_of: TextSerializationFailure
+part_not_part_of_same_named_library: TextSerializationFailure
+part_part_of_different_unnamed_library: TextSerializationFailure
+part_part_of_differently_named_library: TextSerializationFailure
 prefer_baseclass: TextSerializationFailure # Was: Pass
 private_method_tearoff_lib: TextSerializationFailure # Was: Pass
 private_method_tearoff: TextSerializationFailure # Was: Pass
@@ -777,7 +786,6 @@ rasta/issue_000042: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000043: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000044: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000046: TextSerializationFailure # Was: RuntimeError
-rasta/issue_000047: TextSerializationFailure # Was: Pass
 rasta/issue_000048: TextSerializationFailure # Was: Pass
 rasta/issue_000052: TextSerializationFailure # Was: Pass
 rasta/issue_000053: TextSerializationFailure # Was: Pass
@@ -829,7 +837,6 @@ regress/issue_29940: TextSerializationFailure # Was: Pass
 regress/issue_29941: TextSerializationFailure # Was: Pass
 regress/issue_29942: TextSerializationFailure # Was: Pass
 regress/issue_29944: TextSerializationFailure # Was: Pass
-regress/issue_29975: TextSerializationFailure # Was: Pass
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29978: TextSerializationFailure # Was: Pass
 regress/issue_29979: TextSerializationFailure # Was: Pass
@@ -847,7 +854,6 @@ regress/issue_31181: TextSerializationFailure # Was: Pass
 regress/issue_31183: TextSerializationFailure # Was: Pass
 regress/issue_31184: TextSerializationFailure # Was: Pass
 regress/issue_31185: TextSerializationFailure # Was: Pass
-regress/issue_31188: TextSerializationFailure # Was: Pass
 regress/issue_31190: TextSerializationFailure # Was: Pass
 regress/issue_31192: TextSerializationFailure # Was: Pass
 regress/issue_31198: TextSerializationFailure # Was: Pass
@@ -950,7 +956,9 @@ runtime_checks_new/stub_from_interface_covariantImpl_from_class: TextSerializati
 runtime_checks_new/stub_from_interface_covariantImpl_from_interface: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariantImpl_from_super: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariantInterface_from_class: TextSerializationFailure # Was: Pass
+sdk_diagnostic: TextSerializationFailure
 set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
+spread_collection: TextSerializationFailure # Should be fixed as part of implementing spread collection support
 statements: Crash
 static_setter: TextSerializationFailure # Was: Pass
 store_load: TextSerializationFailure # Was: Pass
@@ -962,12 +970,14 @@ top_level_accessors_part: TextSerializationFailure # Was: Pass
 top_level_accessors: TextSerializationFailure # Was: Pass
 top_level_library_method: TextSerializationFailure # Was: Pass
 typedef: TextSerializationFailure # Was: Pass
+type_of_null: TextSerializationFailure
 type_variable_as_super: TextSerializationFailure # Was: RuntimeError
 type_variable_prefix: TextSerializationFailure # Was: RuntimeError
 type_variable_uses: TextSerializationFailure # Was: Pass
 undefined_getter_in_compound_assignment: TextSerializationFailure # Was: Pass
 undefined: TextSerializationFailure # Was: Pass
 uninitialized_fields: TextSerializationFailure # Was: Pass
+unsound_promotion: TextSerializationFailure
 unused_methods: TextSerializationFailure # Was: Pass
 var_as_type_name: TextSerializationFailure # Was: Pass
 void_methods: ExpectationFileMismatch

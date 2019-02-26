@@ -485,23 +485,21 @@ const ICData* Instruction::GetICData(
   ASSERT(deopt_id_ != DeoptId::kNone);
   if (deopt_id_ < ic_data_array.length()) {
     const ICData* result = ic_data_array[deopt_id_];
-#if defined(TAG_IC_DATA)
+#if defined(DEBUG)
     if (result != NULL) {
-      ICData::Tag ic_data_tag = ICData::Tag::kUnknown;
       switch (tag()) {
         case kInstanceCall:
-          ic_data_tag = ICData::Tag::kInstanceCall;
+          if (result->is_static_call()) {
+            FATAL("ICData tag mismatch");
+          }
           break;
         case kStaticCall:
-          ic_data_tag = ICData::Tag::kStaticCall;
+          if (!result->is_static_call()) {
+            FATAL("ICData tag mismatch");
+          }
           break;
         default:
           UNREACHABLE();
-      }
-      if (result->tag() == ICData::Tag::kUnknown) {
-        result->set_tag(ic_data_tag);
-      } else if (result->tag() != ic_data_tag) {
-        FATAL("ICData tag mismatch");
       }
     }
 #endif
@@ -1076,10 +1074,12 @@ Instruction* Instruction::AppendInstruction(Instruction* tail) {
 BlockEntryInstr* Instruction::GetBlock() {
   // TODO(fschneider): Implement a faster way to get the block of an
   // instruction.
-  ASSERT(previous() != NULL);
   Instruction* result = previous();
-  while (!result->IsBlockEntry())
+  ASSERT(result != nullptr);
+  while (!result->IsBlockEntry()) {
     result = result->previous();
+    ASSERT(result != nullptr);
+  }
   return result->AsBlockEntry();
 }
 
@@ -1316,38 +1316,44 @@ bool Instruction::CanTriggerGC() const {
   return (kInstructionAttrs[tag()] & InstrAttrs::kNoGC) == 0;
 }
 
-void Definition::ReplaceWith(Definition* other,
-                             ForwardInstructionIterator* iterator) {
-  // Record other's input uses.
-  for (intptr_t i = other->InputCount() - 1; i >= 0; --i) {
-    Value* input = other->InputAt(i);
+void Definition::ReplaceWithResult(Instruction* replacement,
+                                   Definition* replacement_for_uses,
+                                   ForwardInstructionIterator* iterator) {
+  // Record replacement's input uses.
+  for (intptr_t i = replacement->InputCount() - 1; i >= 0; --i) {
+    Value* input = replacement->InputAt(i);
     input->definition()->AddInputUse(input);
   }
-  // Take other's environment from this definition.
-  ASSERT(other->env() == NULL);
-  other->SetEnvironment(env());
+  // Take replacement's environment from this definition.
+  ASSERT(replacement->env() == NULL);
+  replacement->SetEnvironment(env());
   ClearEnv();
-  // Replace all uses of this definition with other.
-  ReplaceUsesWith(other);
-  // Reuse this instruction's SSA name for other.
-  ASSERT(!other->HasSSATemp());
-  if (HasSSATemp()) {
-    other->set_ssa_temp_index(ssa_temp_index());
-  }
+  // Replace all uses of this definition with replacement_for_uses.
+  ReplaceUsesWith(replacement_for_uses);
 
-  // Finally insert the other definition in place of this one in the graph.
-  previous()->LinkTo(other);
+  // Finally replace this one with the replacement instruction in the graph.
+  previous()->LinkTo(replacement);
   if ((iterator != NULL) && (this == iterator->Current())) {
     // Remove through the iterator.
-    other->LinkTo(this);
+    replacement->LinkTo(this);
     iterator->RemoveCurrentFromGraph();
   } else {
-    other->LinkTo(next());
+    replacement->LinkTo(next());
     // Remove this definition's input uses.
     UnuseAllInputs();
   }
   set_previous(NULL);
   set_next(NULL);
+}
+
+void Definition::ReplaceWith(Definition* other,
+                             ForwardInstructionIterator* iterator) {
+  // Reuse this instruction's SSA name for other.
+  ASSERT(!other->HasSSATemp());
+  if (HasSSATemp()) {
+    other->set_ssa_temp_index(ssa_temp_index());
+  }
+  ReplaceWithResult(other, other, iterator);
 }
 
 void BranchInstr::SetComparison(ComparisonInstr* new_comparison) {
@@ -2879,7 +2885,7 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
     return box_defn->value()->definition();
   }
 
-  if ((representation() == kUnboxedDouble) && value()->BindsToConstant()) {
+  if (representation() == kUnboxedDouble && value()->BindsToConstant()) {
     UnboxedConstantInstr* uc = NULL;
 
     const Object& val = value()->BoundConstant();
@@ -3214,7 +3220,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       comp->RemoveFromGraph();
       SetComparison(comp);
       if (FLAG_trace_optimization) {
-        OS::PrintErr("Merging comparison v%" Pd "\n", comp->ssa_temp_index());
+        THR_Print("Merging comparison v%" Pd "\n", comp->ssa_temp_index());
       }
       // Clear the comparison's temp index and ssa temp index since the
       // value of the comparison is not used outside the branch anymore.
@@ -3235,7 +3241,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
     }
     if (bit_and != NULL) {
       if (FLAG_trace_optimization) {
-        OS::PrintErr("Merging test smi v%" Pd "\n", bit_and->ssa_temp_index());
+        THR_Print("Merging test smi v%" Pd "\n", bit_and->ssa_temp_index());
       }
       TestSmiInstr* test = new TestSmiInstr(
           comparison()->token_pos(),
@@ -3444,6 +3450,7 @@ UnboxInstr* UnboxInstr::Create(Representation to,
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
+      ASSERT(FlowGraphCompiler::SupportsUnboxedDoubles());
       return new UnboxInstr(to, value, deopt_id, speculative_mode);
 
     default:
@@ -4528,43 +4535,16 @@ LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-class NullErrorSlowPath : public ThrowErrorSlowPathCode {
- public:
-  static const intptr_t kNumberOfArguments = 0;
-
-  NullErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
-      : ThrowErrorSlowPathCode(instruction,
-                               kNullErrorRuntimeEntry,
-                               kNumberOfArguments,
-                               try_index) {}
-
-  const char* name() override { return "check null"; }
-
-  void EmitSharedStubCall(Assembler* assembler,
-                          bool save_fpu_registers) override {
-    assembler->CallNullErrorShared(save_fpu_registers);
-  }
-
-  void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) override {
-    const String& function_name = instruction()->AsCheckNull()->function_name();
-    const intptr_t name_index =
-        compiler->assembler()->object_pool_wrapper().FindObject(function_name);
-    compiler->AddNullCheck(compiler->assembler()->CodeSize(),
-                           instruction()->token_pos(), name_index);
-  }
-};
-
-void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  NullErrorSlowPath* slow_path =
-      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
-  compiler->AddSlowPathCode(slow_path);
-
-  Register value_reg = locs()->in(0).reg();
-  // TODO(dartbug.com/30480): Consider passing `null` literal as an argument
-  // in order to be able to allocate it on register.
-  __ CompareObject(value_reg, Object::null_object());
-  __ BranchIf(EQUAL, slow_path->entry_label());
+#if !defined(TARGET_ARCH_DBC)
+void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
+                                               FlowGraphCompiler* compiler) {
+  const String& function_name = check_null->function_name();
+  const intptr_t name_index =
+      compiler->assembler()->object_pool_builder().FindObject(function_name);
+  compiler->AddNullCheck(compiler->assembler()->CodeSize(),
+                         check_null->token_pos(), name_index);
 }
+#endif  // !defined(TARGET_ARCH_DBC)
 
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const intptr_t box_cid = BoxCid();
@@ -4992,7 +4972,7 @@ StoreIndexedInstr::StoreIndexedInstr(Value* array,
                                      AlignmentType alignment,
                                      intptr_t deopt_id,
                                      TokenPosition token_pos)
-    : TemplateDefinition(deopt_id),
+    : TemplateInstruction(deopt_id),
       emit_store_barrier_(emit_store_barrier),
       index_scale_(index_scale),
       class_id_(class_id),

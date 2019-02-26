@@ -1056,6 +1056,105 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Subscribe for completion services. All previous subscriptions are replaced
+   * by the given set of services.
+   *
+   * It is an error if any of the elements in the list are not valid services.
+   * If there is an error, then the current subscriptions will remain
+   * unchanged.
+   *
+   * Parameters
+   *
+   * subscriptions: List<CompletionService>
+   *
+   *   A list of the services being subscribed to.
+   */
+  Future sendCompletionSetSubscriptions(
+      List<CompletionService> subscriptions) async {
+    var params = new CompletionSetSubscriptionsParams(subscriptions).toJson();
+    var result = await server.send("completion.setSubscriptions", params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
+  /**
+   * The client can make this request to express interest in certain libraries
+   * to receive completion suggestions from based on the client path. If this
+   * request is received before the client has used
+   * 'completion.setSubscriptions' to subscribe to the
+   * AVAILABLE_SUGGESTION_SETS service, then an error of type
+   * NOT_SUBSCRIBED_TO_AVAILABLE_SUGGESTION_SETS will be generated. All
+   * previous paths are replaced by the given set of paths.
+   *
+   * Parameters
+   *
+   * paths: List<LibraryPathSet>
+   *
+   *   A list of objects each containing a path and the additional libraries
+   *   from which the client is interested in receiving completion suggestions.
+   *   If one configured path is beneath another, the descendent will override
+   *   the ancestors' configured libraries of interest.
+   */
+  Future sendCompletionRegisterLibraryPaths(List<LibraryPathSet> paths) async {
+    var params = new CompletionRegisterLibraryPathsParams(paths).toJson();
+    var result = await server.send("completion.registerLibraryPaths", params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
+  /**
+   * Clients must make this request when the user has selected a completion
+   * suggestion from an AvailableSuggestionSet. Analysis server will respond
+   * with the text to insert as well as any SourceChange that needs to be
+   * applied in case the completion requires an additional import to be added.
+   * It is an error if the id is no longer valid, for instance if the library
+   * has been removed after the completion suggestion is accepted.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The path of the file into which this completion is being inserted.
+   *
+   * id: int
+   *
+   *   The identifier of the AvailableSuggestionSet containing the selected
+   *   label.
+   *
+   * label: String
+   *
+   *   The label from the AvailableSuggestionSet with the `id` for which
+   *   insertion information is requested.
+   *
+   * offset: int
+   *
+   *   The offset in the file where the completion will be inserted.
+   *
+   * Returns
+   *
+   * completion: String
+   *
+   *   The full text to insert, including any optional import prefix.
+   *
+   * change: SourceChange (optional)
+   *
+   *   A change for the client to apply in case the library containing the
+   *   accepted completion suggestion needs to be imported. The field will be
+   *   omitted if there are no additional changes that need to be made.
+   */
+  Future<CompletionGetSuggestionDetailsResult>
+      sendCompletionGetSuggestionDetails(
+          String file, int id, String label, int offset) async {
+    var params =
+        new CompletionGetSuggestionDetailsParams(file, id, label, offset)
+            .toJson();
+    var result = await server.send("completion.getSuggestionDetails", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new CompletionGetSuggestionDetailsResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /**
    * Reports the completion suggestions that should be presented to the user.
    * The set of suggestions included in the notification is always a complete
    * list that supersedes any previously reported suggestions.
@@ -1092,6 +1191,36 @@ abstract class IntegrationTestMixin {
    *
    *   True if this is that last set of results that will be returned for the
    *   indicated completion.
+   *
+   * includedSuggestionSets: List<IncludedSuggestionSet> (optional)
+   *
+   *   This field is experimental.
+   *
+   *   References to AvailableSuggestionSet objects previously sent to the
+   *   client. The client can include applicable names from the referenced
+   *   library in code completion suggestions.
+   *
+   * includedSuggestionKinds: List<ElementKind> (optional)
+   *
+   *   This field is experimental.
+   *
+   *   The client is expected to check this list against the ElementKind sent
+   *   in IncludedSuggestionSet to decide whether or not these symbols should
+   *   should be presented to the user.
+   *
+   * includedSuggestionRelevanceTags: List<IncludedSuggestionRelevanceTag>
+   * (optional)
+   *
+   *   This field is experimental.
+   *
+   *   The client is expected to check this list against the values of the
+   *   field relevanceTags of AvailableSuggestion to decide if the suggestion
+   *   should be given a different relevance than the IncludedSuggestionSet
+   *   that contains it. This might be used for example to give higher
+   *   relevance to suggestions of matching types.
+   *
+   *   If an AvailableSuggestion has relevance tags that match more than one
+   *   IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
    */
   Stream<CompletionResultsParams> onCompletionResults;
 
@@ -1099,6 +1228,34 @@ abstract class IntegrationTestMixin {
    * Stream controller for [onCompletionResults].
    */
   StreamController<CompletionResultsParams> _onCompletionResults;
+
+  /**
+   * Reports the pre-computed, candidate completions from symbols defined in a
+   * corresponding library. This notification may be sent multiple times. When
+   * a notification is processed, clients should replace any previous
+   * information about the libraries in the list of changedLibraries, discard
+   * any information about the libraries in the list of removedLibraries, and
+   * preserve any previously received information about any libraries that are
+   * not included in either list.
+   *
+   * Parameters
+   *
+   * changedLibraries: List<AvailableSuggestionSet> (optional)
+   *
+   *   A list of pre-computed, potential completions coming from this set of
+   *   completion suggestions.
+   *
+   * removedLibraries: List<int> (optional)
+   *
+   *   A list of library ids that no longer apply.
+   */
+  Stream<CompletionAvailableSuggestionsParams> onCompletionAvailableSuggestions;
+
+  /**
+   * Stream controller for [onCompletionAvailableSuggestions].
+   */
+  StreamController<CompletionAvailableSuggestionsParams>
+      _onCompletionAvailableSuggestions;
 
   /**
    * Perform a search for references to the element defined or referenced at
@@ -1482,10 +1639,37 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Request information about edit.dartfix such as the list of known fixes
+   * that can be specified in an edit.dartfix request.
+   *
+   * Parameters
+   *
+   * Returns
+   *
+   * fixes: List<DartFix>
+   *
+   *   A list of fixes that can be specified in an edit.dartfix request.
+   */
+  Future<EditGetDartfixInfoResult> sendEditGetDartfixInfo() async {
+    var params = new EditGetDartfixInfoParams().toJson();
+    var result = await server.send("edit.getDartfixInfo", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditGetDartfixInfoResult.fromJson(decoder, 'result', result);
+  }
+
+  /**
    * Analyze the specified sources for recommended changes and return a set of
    * suggested edits for those sources. These edits may include changes to
    * sources outside the set of specified sources if a change in a specified
    * source requires it.
+   *
+   * If includedFixes is specified, then those fixes will be applied. If
+   * includeRequiredFixes is specified, then "required" fixes will be applied
+   * in addition to whatever fixes are specified in includedFixes if any. If
+   * neither includedFixes nor includeRequiredFixes is specified, then all
+   * fixes will be applied. If excludedFixes is specified, then those fixes
+   * will not be applied regardless of whether they are "required" or specified
+   * in includedFixes.
    *
    * Parameters
    *
@@ -1500,6 +1684,24 @@ abstract class IntegrationTestMixin {
    *   associated with any analysis root specified to
    *   analysis.setAnalysisRoots), an error of type FILE_NOT_ANALYZED will be
    *   generated.
+   *
+   * includedFixes: List<String> (optional)
+   *
+   *   A list of names indicating which fixes should be applied.
+   *
+   *   If a name is specified that does not match the name of a known fix, an
+   *   error of type UNKNOWN_FIX will be generated.
+   *
+   * includeRequiredFixes: bool (optional)
+   *
+   *   A flag indicating that "required" fixes should be applied.
+   *
+   * excludedFixes: List<String> (optional)
+   *
+   *   A list of names indicating which fixes should not be applied.
+   *
+   *   If a name is specified that does not match the name of a known fix, an
+   *   error of type UNKNOWN_FIX will be generated.
    *
    * Returns
    *
@@ -1522,8 +1724,15 @@ abstract class IntegrationTestMixin {
    *
    *   A list of source edits to apply the recommended changes.
    */
-  Future<EditDartfixResult> sendEditDartfix(List<String> included) async {
-    var params = new EditDartfixParams(included).toJson();
+  Future<EditDartfixResult> sendEditDartfix(List<String> included,
+      {List<String> includedFixes,
+      bool includeRequiredFixes,
+      List<String> excludedFixes}) async {
+    var params = new EditDartfixParams(included,
+            includedFixes: includedFixes,
+            includeRequiredFixes: includeRequiredFixes,
+            excludedFixes: excludedFixes)
+        .toJson();
     var result = await server.send("edit.dartfix", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new EditDartfixResult.fromJson(decoder, 'result', result);
@@ -2459,6 +2668,10 @@ abstract class IntegrationTestMixin {
     _onCompletionResults =
         new StreamController<CompletionResultsParams>(sync: true);
     onCompletionResults = _onCompletionResults.stream.asBroadcastStream();
+    _onCompletionAvailableSuggestions =
+        new StreamController<CompletionAvailableSuggestionsParams>(sync: true);
+    onCompletionAvailableSuggestions =
+        _onCompletionAvailableSuggestions.stream.asBroadcastStream();
     _onSearchResults = new StreamController<SearchResultsParams>(sync: true);
     onSearchResults = _onSearchResults.stream.asBroadcastStream();
     _onExecutionLaunchData =
@@ -2554,6 +2767,12 @@ abstract class IntegrationTestMixin {
         outOfTestExpect(params, isCompletionResultsParams);
         _onCompletionResults.add(
             new CompletionResultsParams.fromJson(decoder, 'params', params));
+        break;
+      case "completion.availableSuggestions":
+        outOfTestExpect(params, isCompletionAvailableSuggestionsParams);
+        _onCompletionAvailableSuggestions.add(
+            new CompletionAvailableSuggestionsParams.fromJson(
+                decoder, 'params', params));
         break;
       case "search.results":
         outOfTestExpect(params, isSearchResultsParams);

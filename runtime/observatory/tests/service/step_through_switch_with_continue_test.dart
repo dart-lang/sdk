@@ -31,6 +31,7 @@ List<String> expected = [
   "$file:${LINE+0}:5", // after 'code'
 
   "$file:${LINE+1}:11", // on switchOnMe
+  "$file:${LINE+17}:27", // on switchOnMe initializer starting '['
   "$file:${LINE+1}:22", // on length
 
   "$file:${LINE+2}:10", // on 0

@@ -1,0 +1,39 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/sdk_diagnostic.dart:5:7: Error: The non-abstract class 'C' is missing implementations for these members:
+//  - Iterable.iterator
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class C extends Iterable<Object> {
+//       ^
+// sdk/lib/core/iterable.dart:154:19: Context: 'Iterable.iterator' is defined here.
+//   Iterator<E> get iterator;
+//                   ^^^^^^^^
+//
+// pkg/front_end/testcases/sdk_diagnostic.dart:12:8: Error: Too few positional arguments: 1 required, 0 given.
+//   print(incorrectArgument: "fisk");
+//        ^
+// sdk/lib/core/print.dart:8:6: Context: Found this candidate, but the arguments don't match.
+// void print(Object object) {
+//      ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Iterable<core::Object> {
+  synthetic constructor •() → self::C
+    : super core::Iterable::•()
+    ;
+}
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/sdk_diagnostic.dart:12:8: Error: Too few positional arguments: 1 required, 0 given.
+  print(incorrectArgument: \"fisk\");
+       ^";
+}
+static method main() → dynamic {}

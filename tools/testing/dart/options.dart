@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:smith/smith.dart';
 
@@ -104,7 +105,6 @@ spec_parser:   Parse Dart code using the specification parser.''',
         'runtime',
         '''Where the tests should be run.
 vm:               Run Dart code on the standalone Dart VM.
-flutter:          Run Dart code on the Flutter engine.
 dart_precompiled: Run a precompiled snapshot on the VM without a JIT.
 d8:               Run JavaScript from the command line using v8.
 jsshell:          Run JavaScript from the command line using Firefox js-shell.
@@ -147,8 +147,7 @@ simdbc, simdbc64''',
     new _Option(
         'named_configuration',
         '''The named test configuration that supplies the values for all
-test options, specifying how tests should be run. Unimplemented
-currently.''',
+test options, specifying how tests should be run.''',
         abbr: 'n',
         hide: true),
     new _Option.bool('checked', 'Run tests in checked mode.'),
@@ -161,8 +160,6 @@ currently.''',
         hide: true),
     new _Option.bool(
         'csp', 'Run tests under Content Security Policy restrictions.',
-        hide: true),
-    new _Option.bool('fast_startup', 'Pass the --fast-startup flag to dart2js.',
         hide: true),
     new _Option.bool('fast_tests',
         'Only run tests that are not marked `Slow` or `Timeout`.'),
@@ -238,7 +235,6 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
         hide: true),
     new _Option.bool('time', 'Print timing information after running tests.'),
     new _Option('dart', 'Path to dart executable.', hide: true),
-    new _Option('flutter', 'Path to flutter executable.', hide: true),
     new _Option('firefox', 'Path to firefox browser executable.', hide: true),
     new _Option('chrome', 'Path to chrome browser executable.', hide: true),
     new _Option('safari', 'Path to safari browser executable.', hide: true),
@@ -294,7 +290,9 @@ used for browsers to connect to.''',
     new _Option.int(
         'test_driver_error_port', 'Port for http test driver server errors.',
         defaultsTo: 0, hide: true),
-    new _Option('test_list', 'File containing a list of tests to be executed'),
+    new _Option('test_list', 'File containing a list of tests to be executed',
+        hide: true),
+    new _Option('tests', 'A newline separated list of tests to be executed'),
     new _Option(
         'builder_tag',
         '''Machine specific options that is not captured by the regular test
@@ -343,7 +341,6 @@ compiler.''',
     'drt',
     'exclude_suite',
     'firefox',
-    'flutter',
     'local_ip',
     'output_directory',
     'progress',
@@ -506,9 +503,17 @@ compiler.''',
     }
 
     // Fetch list of tests to run, if option is present.
-    if (configuration['test_list'] is String) {
-      configuration['test_list_contents'] =
-          File(configuration['test_list'] as String).readAsLinesSync();
+    var testList = configuration['test_list'];
+    if (testList is String) {
+      configuration['test_list_contents'] = File(testList).readAsLinesSync();
+    }
+
+    var tests = configuration['tests'];
+    if (tests is String) {
+      if (configuration.containsKey('test_list_contents')) {
+        _fail('--tests and --test-list cannot be used together');
+      }
+      configuration['test_list_contents'] = LineSplitter.split(tests).toList();
     }
 
     return _createConfigurations(configuration);
@@ -674,7 +679,6 @@ compiler.''',
                         data["analyzer_use_fasta_parser"] as bool,
                     useBlobs: data["use_blobs"] as bool,
                     useSdk: data["use_sdk"] as bool,
-                    useFastStartup: data["fast_startup"] as bool,
                     useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
                     useDart2JSOldFrontEnd: data["dart2js_old_frontend"] as bool,
                     useHotReload: data["hot_reload"] as bool,
@@ -716,7 +720,6 @@ compiler.''',
                 firefoxPath: data["firefox"] as String,
                 dartPath: data["dart"] as String,
                 dartPrecompiledPath: data["dart_precompiled"] as String,
-                flutterPath: data["flutter"] as String,
                 keepGeneratedFiles: data["keep_generated_files"] as bool,
                 taskCount: data["tasks"] as int,
                 shardCount: data["shards"] as int,

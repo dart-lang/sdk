@@ -14,14 +14,12 @@ bool VirtualMemory::InSamePage(uword address0, uword address1) {
           Utils::RoundDown(address1, PageSize()));
 }
 
-void VirtualMemory::Truncate(intptr_t new_size, bool try_unmap) {
-  ASSERT((new_size & (PageSize() - 1)) == 0);
+void VirtualMemory::Truncate(intptr_t new_size) {
+  ASSERT(Utils::IsAligned(new_size, PageSize()));
   ASSERT(new_size <= size());
-  if (try_unmap &&
-      (reserved_.size() ==
-       region_.size()) && /* Don't create holes in reservation. */
-      FreeSubSegment(reinterpret_cast<void*>(start() + new_size),
-                     size() - new_size)) {
+  if (reserved_.size() == region_.size()) { // Don't create holes in reservation.
+    FreeSubSegment(reinterpret_cast<void*>(start() + new_size),
+                   size() - new_size);
     reserved_.set_size(new_size);
   }
   region_.Subregion(region_, 0, new_size);

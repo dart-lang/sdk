@@ -54,6 +54,7 @@ import 'make_class_abstract_test.dart' as make_class_abstract;
 import 'make_field_not_final_test.dart' as make_field_not_final;
 import 'make_final_test.dart' as make_final;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
+import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_dead_code_test.dart' as remove_dead_code;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
@@ -64,6 +65,7 @@ import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
+import 'remove_name_from_combinator_test.dart' as remove_name_from_combinator;
 import 'remove_parameters_in_getter_declaration_test.dart'
     as remove_parameters_in_getter_declaration;
 import 'remove_parentheses_in_getter_invocation_test.dart'
@@ -84,7 +86,6 @@ import 'replace_with_brackets_test.dart' as replace_with_brackets;
 import 'replace_with_conditional_assignment_test.dart'
     as replace_with_conditional_assignment;
 import 'replace_with_identifier_test.dart' as replace_with_identifier;
-import 'replace_with_literal_test.dart' as replace_with_literal;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
@@ -141,6 +142,7 @@ main() {
     make_field_not_final.main();
     make_final.main();
     move_type_arguments_to_class.main();
+    remove_annotation.main();
     remove_await.main();
     remove_dead_code.main();
     remove_empty_catch.main();
@@ -150,6 +152,7 @@ main() {
     remove_initializer.main();
     remove_interpolation_braces.main();
     remove_method_declaration.main();
+    remove_name_from_combinator.main();
     remove_parameters_in_getter_declaration.main();
     remove_parentheses_in_getter_invocation.main();
     remove_this_expression.main();
@@ -166,7 +169,6 @@ main() {
     replace_var_with_dynamic.main();
     replace_with_brackets.main();
     replace_with_conditional_assignment.main();
-    replace_with_literal.main();
     replace_with_identifier.main();
     replace_with_null_aware.main();
     replace_with_tear_off.main();

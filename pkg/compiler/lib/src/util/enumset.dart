@@ -54,6 +54,12 @@ abstract class EnumSet<E> {
     return new EnumSet.fromValue(value & other.value);
   }
 
+  /// Returns a new set containing all values either in this set or in the
+  /// [other] set.
+  EnumSet<E> union(EnumSet<E> other) {
+    return new EnumSet.fromValue(value | other.value);
+  }
+
   /// Returns a new set containing all values in this set that are not in the
   /// [other] set.
   EnumSet<E> minus(EnumSet<E> other) {

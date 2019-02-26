@@ -1,4 +1,6 @@
-// Unhandled errors:
+library lib;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_30994.dart:6:7: Error: Can't use string interpolation in a URI.
 // part '$foo';
@@ -27,8 +29,41 @@
 // pkg/front_end/testcases/regress/issue_30994.dart:12:12: Error: Can't use string interpolation in a URI.
 // part 'part_${'a'}_$foo.dart';
 //            ^
-
-library lib;
+//
 import self as self;
 
+part org-dartlang-malformed-uri:bad235;
+part org-dartlang-malformed-uri:bad248;
+part org-dartlang-malformed-uri:bad265;
+part org-dartlang-malformed-uri:bad282;
+part org-dartlang-malformed-uri:bad298;
+part org-dartlang-malformed-uri:bad319;
+part org-dartlang-malformed-uri:bad348;
 static method main() → dynamic {}
+
+library;
+import self as self2;
+
+
+library;
+import self as self3;
+
+
+library;
+import self as self4;
+
+
+library;
+import self as self5;
+
+
+library;
+import self as self6;
+
+
+library;
+import self as self7;
+
+
+library;
+import self as self8;

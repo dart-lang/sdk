@@ -60,8 +60,7 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
     code = code.replaceAll('^', '');
 
     var computer = new RuntimeCompletionComputer(
-        resourceProvider,
-        fileContentOverlay,
+        overlayResourceProvider,
         driver,
         code,
         codeOffset,

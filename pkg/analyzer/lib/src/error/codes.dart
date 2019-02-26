@@ -3899,7 +3899,8 @@ class StaticWarningCode extends ErrorCode {
           'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED',
           "Parameters can't override default values, "
           "this method overrides '{0}.{1}' where '{2}' has a different value.",
-          correction: "Try using the same default value in both methods.");
+          correction: "Try using the same default value in both methods.",
+          errorSeverity: ErrorSeverity.WARNING);
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -3914,7 +3915,8 @@ class StaticWarningCode extends ErrorCode {
           'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL',
           "Parameters can't override default values, this method overrides "
           "'{0}.{1}' where this positional parameter has a different value.",
-          correction: "Try using the same default value in both methods.");
+          correction: "Try using the same default value in both methods.",
+          errorSeverity: ErrorSeverity.WARNING);
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -4597,6 +4599,19 @@ class StaticWarningCode extends ErrorCode {
               "defining a new parameter with this name.");
 
   /**
+   * For the purposes of experimenting with potential non-null type semantics.
+   *
+   * Parameters: none
+   */
+  static const StaticWarningCode UNCHECKED_USE_OF_NULLABLE_VALUE =
+      const StaticWarningCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          'The expression is nullable and must be null-checked before it can be'
+          ' used.',
+          correction:
+              'Try casting or check the value is not null before using it.');
+
+  /**
    * It is a static warning to assign void to any non-void type in dart.
    * compile-time error). Report that error specially for a better user
    * experience.
@@ -4611,6 +4626,9 @@ class StaticWarningCode extends ErrorCode {
           " call that returns void you didn't expect. Also check type parameters"
           ' and variables which, in rare cases, may be void as well.');
 
+  @override
+  final ErrorSeverity errorSeverity;
+
   /**
    * Initialize a newly created error code to have the given [name]. The message
    * associated with the error will be created from the given [message]
@@ -4618,13 +4636,12 @@ class StaticWarningCode extends ErrorCode {
    * given [correction] template.
    */
   const StaticWarningCode(String name, String message,
-      {String correction, bool isUnresolvedIdentifier: false})
+      {String correction,
+      this.errorSeverity: ErrorSeverity.ERROR,
+      bool isUnresolvedIdentifier: false})
       : super.temporary(name, message,
             correction: correction,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorType.STATIC_WARNING.severity;
 
   @override
   ErrorType get type => ErrorType.STATIC_WARNING;

@@ -402,7 +402,7 @@ WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to
 WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Please triage this failure
 WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: RuntimeError # Please triage this failure
 
-[ $compiler == dart2js && $fast_startup ]
+[ $compiler == dart2js ]
 Language/Classes/Instance_Methods/Operators/unary_minus: Fail # mirrors not supported
 Language/Expressions/Null/instance_of_class_null_t01: Fail # mirrors not supported
 Language/Metadata/before_class_t01: Fail # mirrors not supported
@@ -448,13 +448,13 @@ WebPlatformTest/shadow-dom/testcommon: Fail # mirrors not supported
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
 
-[ $compiler == dart2js && $fast_startup && $runtime == d8]
+[ $compiler == dart2js && $runtime == d8]
 LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
 
-[ $compiler == dart2js && $fast_startup && $runtime == jsshell ]
+[ $compiler == dart2js && $runtime == jsshell ]
 LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: Fail # please triage
 
-[ $compiler == dart2js && $fast_startup && $browser ]
+[ $compiler == dart2js && $browser ]
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-001_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t02: Fail # please triage
@@ -486,7 +486,7 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-a
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: Fail # please triage
 
-[ $compiler == dart2js && $fast_startup && $browser && $runtime != chrome ]
+[ $compiler == dart2js && $browser && $runtime != chrome ]
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-005_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/test-002_t01: Fail # please triage
@@ -538,10 +538,10 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocume
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/shadow-root-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-011_t01: Fail # please triage
 
-[ $compiler == dart2js && $fast_startup && $browser && $runtime != chrome ]
+[ $compiler == dart2js && $browser && $runtime != chrome ]
 WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-003_t01: Fail # please triage
 
-[ $compiler == dart2js && $fast_startup && $browser ]
+[ $compiler == dart2js && $browser ]
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-004_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-002_t01: Fail # please triage

@@ -38,15 +38,15 @@ class SpecialType {
 }
 
 /// Description of the exception behaviour of native code.
-///
-/// TODO(sra): Replace with something that better supports specialization on
-/// first argument properties.
 class NativeThrowBehavior {
-  static const NativeThrowBehavior NEVER = const NativeThrowBehavior._(0);
-  static const NativeThrowBehavior MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS =
-      const NativeThrowBehavior._(1);
-  static const NativeThrowBehavior MAY = const NativeThrowBehavior._(2);
-  static const NativeThrowBehavior MUST = const NativeThrowBehavior._(3);
+  static const NativeThrowBehavior NEVER = NativeThrowBehavior._(0);
+  static const NativeThrowBehavior MAY = NativeThrowBehavior._(1);
+
+  /// Throws only if first argument is null.
+  static const NativeThrowBehavior NULL_NSM = NativeThrowBehavior._(2);
+
+  /// Throws if first argument is null, then may throw.
+  static const NativeThrowBehavior NULL_NSM_THEN_MAY = NativeThrowBehavior._(3);
 
   final int _bits;
   const NativeThrowBehavior._(this._bits);
@@ -55,43 +55,73 @@ class NativeThrowBehavior {
 
   /// Does this behavior always throw a noSuchMethod check on a null first
   /// argument before any side effect or other exception?
-  // TODO(sra): Extend NativeThrowBehavior with the concept of NSM guard
-  // followed by other potential behavior.
-  bool get isNullNSMGuard => this == MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS;
+  bool get isNullNSMGuard => this == NULL_NSM || this == NULL_NSM_THEN_MAY;
 
   /// Does this behavior always act as a null noSuchMethod check, and has no
   /// other throwing behavior?
-  bool get isOnlyNullNSMGuard =>
-      this == MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS;
+  bool get isOnlyNullNSMGuard => this == NULL_NSM;
 
   /// Returns the behavior if we assume the first argument is not null.
   NativeThrowBehavior get onNonNull {
-    if (this == MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS) return NEVER;
+    if (this == NULL_NSM) return NEVER;
+    if (this == NULL_NSM_THEN_MAY) return MAY;
     return this;
   }
 
   String toString() {
     if (this == NEVER) return 'never';
     if (this == MAY) return 'may';
-    if (this == MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS) return 'null(1)';
-    if (this == MUST) return 'must';
+    if (this == NULL_NSM) return 'null(1)';
+    if (this == NULL_NSM_THEN_MAY) return 'null(1)+may';
     return 'NativeThrowBehavior($_bits)';
   }
 
   /// Canonical list of marker values.
   ///
   /// Added to make [NativeThrowBehavior] enum-like.
-  static const List<NativeThrowBehavior> values = const <NativeThrowBehavior>[
+  static const List<NativeThrowBehavior> values = [
     NEVER,
-    MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS,
     MAY,
-    MUST,
+    NULL_NSM,
+    NULL_NSM_THEN_MAY,
   ];
 
   /// Index to this marker within [values].
   ///
   /// Added to make [NativeThrowBehavior] enum-like.
   int get index => values.indexOf(this);
+
+  /// Deserializer helper.
+  static NativeThrowBehavior _bitsToValue(int bits) {
+    switch (bits) {
+      case 0:
+        return NEVER;
+      case 1:
+        return MAY;
+      case 2:
+        return NULL_NSM;
+      case 3:
+        return NULL_NSM_THEN_MAY;
+      default:
+        return null;
+    }
+  }
+
+  /// Sequence operator.
+  NativeThrowBehavior then(NativeThrowBehavior second) {
+    if (this == NEVER) return second;
+    if (this == MAY) return MAY;
+    if (this == NULL_NSM_THEN_MAY) return NULL_NSM_THEN_MAY;
+    assert(this == NULL_NSM);
+    if (second == NEVER) return this;
+    return NULL_NSM_THEN_MAY;
+  }
+
+  /// Choice operator.
+  NativeThrowBehavior or(NativeThrowBehavior other) {
+    if (this == other) return this;
+    return MAY;
+  }
 }
 
 /// A summary of the behavior of a native element.
@@ -190,21 +220,8 @@ class NativeBehavior {
       behavior.codeTemplateText = codeTemplateText;
       behavior.codeTemplate = js.js.parseForeignJS(codeTemplateText);
     }
-    switch (throwBehavior) {
-      case 0:
-        behavior.throwBehavior = NativeThrowBehavior.NEVER;
-        break;
-      case 1:
-        behavior.throwBehavior =
-            NativeThrowBehavior.MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS;
-        break;
-      case 2:
-        behavior.throwBehavior = NativeThrowBehavior.MAY;
-        break;
-      case 3:
-        behavior.throwBehavior = NativeThrowBehavior.MUST;
-        break;
-    }
+    behavior.throwBehavior = NativeThrowBehavior._bitsToValue(throwBehavior);
+    assert(behavior.throwBehavior._bits == throwBehavior);
     behavior.isAllocation = isAllocation;
     behavior.useGvn = useGvn;
     return behavior;
@@ -319,12 +336,12 @@ class NativeBehavior {
   ///    indicated with 'no-static'. The flags 'effects' and 'depends' must be
   ///    used in unison (either both are present or none is).
   ///
-  ///    The <throws-string> values are 'never', 'may', 'must', and 'null(1)'.
-  ///    The default if unspecified is 'may'. 'null(1)' means that the template
-  ///    expression throws if and only if the first template parameter is `null`
-  ///    or `undefined`.
-  ///    TODO(sra): Can we simplify to must/may/never and add null(1) by
-  ///    inspection as an orthogonal attribute?
+  ///    The <throws-string> values are 'never', 'may', 'null(1)', and
+  ///    'null(1)+may'.  The default if unspecified is 'may'. 'null(1)' means
+  ///    that the template expression throws if and only if the first template
+  ///    parameter is `null` or `undefined`, and 'null(1)+may' throws if the
+  ///    first argument is `null` / `undefined`, and then may throw for other
+  ///    reasons.
   ///
   ///    <gvn-string> values are 'true' and 'false'. The default if unspecified
   ///    is 'false'.
@@ -478,14 +495,14 @@ class NativeBehavior {
       });
     }
 
-    const throwsOption = const <String, NativeThrowBehavior>{
+    const throwsOption = <String, NativeThrowBehavior>{
       'never': NativeThrowBehavior.NEVER,
-      'null(1)': NativeThrowBehavior.MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS,
       'may': NativeThrowBehavior.MAY,
-      'must': NativeThrowBehavior.MUST
+      'null(1)': NativeThrowBehavior.NULL_NSM,
+      'null(1)+may': NativeThrowBehavior.NULL_NSM_THEN_MAY,
     };
 
-    const boolOptions = const <String, bool>{'true': true, 'false': false};
+    const boolOptions = <String, bool>{'true': true, 'false': false};
 
     SideEffects sideEffects =
         processEffects(reportError, values['effects'], values['depends']);

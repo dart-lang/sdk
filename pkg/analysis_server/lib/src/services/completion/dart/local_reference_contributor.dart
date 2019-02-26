@@ -11,12 +11,12 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
     show DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -317,14 +317,30 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
   }
 
+  @override
+  void declaredTypeParameter(TypeParameter node) {
+    if (optype.includeTypeNameSuggestions) {
+      _addLocalSuggestion(
+        null,
+        node.name,
+        null,
+        protocol.ElementKind.TYPE_PARAMETER,
+        isDeprecated: isDeprecated(node),
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: DART_RELEVANCE_TYPE_PARAMETER,
+      );
+    }
+  }
+
   void _addLocalSuggestion(Comment documentationComment, SimpleIdentifier id,
       TypeAnnotation typeName, protocol.ElementKind elemKind,
       {bool isAbstract: false,
       bool isDeprecated: false,
       ClassOrMixinDeclaration classDecl,
+      CompletionSuggestionKind kind,
       FormalParameterList param,
       int relevance: DART_RELEVANCE_DEFAULT}) {
-    CompletionSuggestionKind kind = targetIsFunctionalArgument
+    kind ??= targetIsFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
         : optype.suggestKind;
     CompletionSuggestion suggestion = createLocalSuggestion(
@@ -342,6 +358,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           isDeprecated: isDeprecated,
           parameters: param?.toSource(),
           returnType: typeName);
+      suggestion.elementUri = request.source.toString();
       if ((elemKind == protocol.ElementKind.METHOD ||
               elemKind == protocol.ElementKind.FUNCTION) &&
           param != null) {
@@ -383,6 +400,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
             constantDeclaration.name.length,
             0,
             0));
+    suggestion.elementUri = request.source.uri.toString();
   }
 
   void _addLocalSuggestion_includeReturnValueSuggestions(
@@ -524,7 +542,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           .map((Token t) => t.toString())
           .join('\n')
           .replaceAll('\r\n', '\n');
-      String doc = removeDartDocDelimiters(text);
+      String doc = getDartDocPlainText(text);
       suggestion.docComplete = doc;
       suggestion.docSummary = getDartDocSummary(doc);
     }

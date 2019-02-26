@@ -101,7 +101,7 @@ void ObjectPool::ResetICDatas(Zone* zone) const {
   Object& object = Object::Handle(zone);
   for (intptr_t i = 0; i < Length(); i++) {
     ObjectPool::EntryType entry_type = TypeAt(i);
-    if (entry_type != ObjectPool::kTaggedObject) {
+    if (entry_type != ObjectPool::EntryType::kTaggedObject) {
       continue;
     }
     object = ObjectAt(i);
@@ -725,7 +725,7 @@ void ICData::Reset(Zone* zone) const {
         // count.
         ClearCountAt(0);
         WriteSentinelAt(1);
-        const Array& array = Array::Handle(ic_data());
+        const Array& array = Array::Handle(entries());
         array.Truncate(2 * TestEntryLength());
         return;
       }
@@ -733,7 +733,7 @@ void ICData::Reset(Zone* zone) const {
     }
     const Array& data_array = Array::Handle(
         zone, CachedEmptyICDataArray(num_args, tracking_exactness));
-    set_ic_data_array(data_array);
+    set_entries(data_array);
     return;
   } else if (rule == kNoRebind || rule == kNSMDispatch) {
     // TODO(30877) we should account for addition/removal of NSM.

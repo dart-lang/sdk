@@ -20,6 +20,8 @@
 
 namespace dart {
 
+using compiler::ObjectPoolBuilder;
+
 DEFINE_FLAG(bool, disassemble_stubs, false, "Disassemble generated stubs.");
 DECLARE_FLAG(bool, precompiled_mode);
 
@@ -45,20 +47,22 @@ void StubCode::Cleanup() {
 
 #define STUB_CODE_GENERATE(name)                                               \
   entries_[k##name##Index] = Code::ReadOnlyHandle();                           \
-  *entries_[k##name##Index] = Generate("_stub_" #name, &object_pool_wrapper,   \
-                                       StubCode::Generate##name##Stub);
+  *entries_[k##name##Index] =                                                  \
+      Generate("_stub_" #name, &object_pool_builder,                           \
+               compiler::StubCodeCompiler::Generate##name##Stub);
 
 #define STUB_CODE_SET_OBJECT_POOL(name)                                        \
   entries_[k##name##Index]->set_object_pool(object_pool.raw());
 
 void StubCode::Init() {
-  ObjectPoolWrapper object_pool_wrapper;
+  ObjectPoolBuilder object_pool_builder;
 
   // Generate all the stubs.
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
 
   const ObjectPool& object_pool =
-      ObjectPool::Handle(object_pool_wrapper.MakeObjectPool());
+      ObjectPool::Handle(ObjectPool::NewFromBuilder(object_pool_builder));
+
   VM_STUB_CODE_LIST(STUB_CODE_SET_OBJECT_POOL)
 }
 
@@ -74,9 +78,9 @@ void StubCode::Cleanup() {
 #undef STUB_CODE_CLEANUP
 
 RawCode* StubCode::Generate(const char* name,
-                            ObjectPoolWrapper* object_pool_wrapper,
+                            ObjectPoolBuilder* object_pool_builder,
                             void (*GenerateStub)(Assembler* assembler)) {
-  Assembler assembler(object_pool_wrapper);
+  Assembler assembler(object_pool_builder);
   GenerateStub(&assembler);
   const Code& code = Code::Handle(Code::FinalizeCode(
       name, nullptr, &assembler, Code::PoolAttachment::kNotAttachPool,
@@ -163,13 +167,13 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
   Code& stub = Code::Handle(zone, cls.allocation_stub());
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (stub.IsNull()) {
-    ObjectPoolWrapper object_pool_wrapper;
+    ObjectPoolBuilder object_pool_builder;
     Precompiler* precompiler = Precompiler::Instance();
 
-    ObjectPoolWrapper* wrapper =
+    ObjectPoolBuilder* wrapper =
         FLAG_use_bare_instructions && precompiler != NULL
-            ? precompiler->global_object_pool_wrapper()
-            : &object_pool_wrapper;
+            ? precompiler->global_object_pool_builder()
+            : &object_pool_builder;
 
     const auto pool_attachment =
         FLAG_precompiled_mode && FLAG_use_bare_instructions
@@ -178,7 +182,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 
     Assembler assembler(wrapper);
     const char* name = cls.ToCString();
-    StubCode::GenerateAllocationStubForClass(&assembler, cls);
+    compiler::StubCodeCompiler::GenerateAllocationStubForClass(&assembler, cls);
 
     if (thread->IsMutatorThread()) {
       stub ^= Code::FinalizeCode(name, nullptr, &assembler, pool_attachment,
@@ -238,11 +242,22 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 }
 
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
-RawCode* StubCode::GetBuildMethodExtractorStub(ObjectPoolWrapper* pool) {
+RawCode* StubCode::GetBuildMethodExtractorStub(ObjectPoolBuilder* pool) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  ObjectPoolWrapper object_pool_wrapper;
-  Assembler assembler(pool != nullptr ? pool : &object_pool_wrapper);
-  StubCode::GenerateBuildMethodExtractorStub(&assembler);
+  auto thread = Thread::Current();
+  auto Z = thread->zone();
+  auto object_store = thread->isolate()->object_store();
+
+  const auto& closure_class =
+      Class::ZoneHandle(Z, object_store->closure_class());
+  const auto& closure_allocation_stub =
+      Code::ZoneHandle(Z, StubCode::GetAllocationStubForClass(closure_class));
+  const auto& context_allocation_stub = StubCode::AllocateContext();
+
+  ObjectPoolBuilder object_pool_builder;
+  Assembler assembler(pool != nullptr ? pool : &object_pool_builder);
+  compiler::StubCodeCompiler::GenerateBuildMethodExtractorStub(
+      &assembler, closure_allocation_stub, context_allocation_stub);
 
   const char* name = "BuildMethodExtractor";
   const Code& stub = Code::Handle(Code::FinalizeCode(
@@ -250,9 +265,7 @@ RawCode* StubCode::GetBuildMethodExtractorStub(ObjectPoolWrapper* pool) {
       /*optimized=*/false));
 
   if (pool == nullptr) {
-    const ObjectPool& object_pool =
-        ObjectPool::Handle(object_pool_wrapper.MakeObjectPool());
-    stub.set_object_pool(object_pool.raw());
+    stub.set_object_pool(ObjectPool::NewFromBuilder(object_pool_builder));
   }
 
 #ifndef PRODUCT
@@ -298,6 +311,7 @@ const Code& StubCode::UnoptimizedStaticCallEntry(intptr_t num_args_tested) {
 const char* StubCode::NameOfStub(uword entry_point) {
 #define VM_STUB_CODE_TESTER(name)                                              \
   if (entries_[k##name##Index] != nullptr &&                                   \
+      !entries_[k##name##Index]->IsNull() &&                                   \
       entries_[k##name##Index]->EntryPoint() == entry_point) {                 \
     return "" #name;                                                           \
   }

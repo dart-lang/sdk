@@ -102,10 +102,17 @@ class AssistKind {
   final String message;
 
   /**
-   * Initialize a newly created kind of assist to have the given [id],
-   * [priority] and [message].
+   * A list of any associated error codes. Assists with associated error codes
+   * can be presented as "fixes" for the associated errors by clients.
    */
-  const AssistKind(this.id, this.priority, this.message);
+  final List<String> associatedErrorCodes;
+
+  /**
+   * Initialize a newly created kind of assist to have the given [id],
+   * [priority], [message] and optionally any [associatedErrorCodes].
+   */
+  const AssistKind(this.id, this.priority, this.message,
+      {this.associatedErrorCodes});
 
   @override
   String toString() => id;

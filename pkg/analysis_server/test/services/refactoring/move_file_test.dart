@@ -37,7 +37,7 @@ import 'dart:math';
 import '22/c.dart';
 export '333/d.dart';
 part 'a.dart';
-part '${convertAbsolutePathToUri('/absolute/uri.dart')}';
+part '${toUriStr('/absolute/uri.dart')}';
 ''');
     // perform refactoring
     _createRefactoring('/home/test/000/1111/22/new_name.dart');
@@ -51,7 +51,7 @@ import 'dart:math';
 import 'c.dart';
 export '../333/d.dart';
 part '../a.dart';
-part '${convertAbsolutePathToUri('/absolute/uri.dart')}';
+part '${toUriStr('/absolute/uri.dart')}';
 ''');
   }
 

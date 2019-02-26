@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_34403.dart:16:14: Error: A constructor invocation can't have type arguments on the constructor name.
 // Try to place the type arguments on the class name.
@@ -79,11 +81,12 @@
 // Try to place the type arguments on the class name.
 //   const f4 = const p.F<String>.foo<int>();
 //                                ^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 import "./issue_34403_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue_34403_lib.dart" as p;
 
 class C<T extends core::Object = dynamic> extends core::Object {
   constructor bar() → self::C<self::C::T>
@@ -128,4 +131,19 @@ static method main() → dynamic {
   f3.{core::Object::toString}();
   const iss::F<core::String> f4 = const iss::F::foo<core::String>();
   f4.{core::Object::toString}();
+}
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+class E<T extends core::Object = dynamic> extends core::Object {
+  constructor bar() → iss::E<iss::E::T>
+    : super core::Object::•()
+    ;
+}
+class F<T extends core::Object = dynamic> extends core::Object {
+  const constructor foo() → iss::F<iss::F::T>
+    : super core::Object::•()
+    ;
 }

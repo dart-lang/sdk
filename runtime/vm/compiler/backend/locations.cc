@@ -23,6 +23,23 @@ intptr_t RegisterSet::RegisterCount(intptr_t registers) {
   return count;
 }
 
+void RegisterSet::DebugPrint() {
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    Register r = static_cast<Register>(i);
+    if (ContainsRegister(r)) {
+      THR_Print("%s %s\n", Assembler::RegisterName(r),
+                IsTagged(r) ? "tagged" : "untagged");
+    }
+  }
+
+  for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
+    FpuRegister r = static_cast<FpuRegister>(i);
+    if (ContainsFpuRegister(r)) {
+      THR_Print("%s\n", Assembler::FpuRegisterName(r));
+    }
+  }
+}
+
 LocationSummary::LocationSummary(Zone* zone,
                                  intptr_t input_count,
                                  intptr_t temp_count,
@@ -233,20 +250,20 @@ Location Location::RemapForSlowPath(Definition* def,
     intptr_t index = cpu_reg_slots[reg()];
     ASSERT(index >= 0);
     return Location::StackSlot(
-        compiler_frame_layout.FrameSlotForVariableIndex(-index));
+        compiler::target::frame_layout.FrameSlotForVariableIndex(-index));
   } else if (IsFpuRegister()) {
     intptr_t index = fpu_reg_slots[fpu_reg()];
     ASSERT(index >= 0);
     switch (def->representation()) {
       case kUnboxedDouble:
         return Location::DoubleStackSlot(
-            compiler_frame_layout.FrameSlotForVariableIndex(-index));
+            compiler::target::frame_layout.FrameSlotForVariableIndex(-index));
 
       case kUnboxedFloat32x4:
       case kUnboxedInt32x4:
       case kUnboxedFloat64x2:
         return Location::QuadStackSlot(
-            compiler_frame_layout.FrameSlotForVariableIndex(-index));
+            compiler::target::frame_layout.FrameSlotForVariableIndex(-index));
 
       default:
         UNREACHABLE();
@@ -258,7 +275,7 @@ Location Location::RemapForSlowPath(Definition* def,
     intptr_t index_hi;
 
     if (value_pair->At(0).IsRegister()) {
-      index_lo = compiler_frame_layout.FrameSlotForVariableIndex(
+      index_lo = compiler::target::frame_layout.FrameSlotForVariableIndex(
           -cpu_reg_slots[value_pair->At(0).reg()]);
     } else {
       ASSERT(value_pair->At(0).IsStackSlot());
@@ -266,7 +283,7 @@ Location Location::RemapForSlowPath(Definition* def,
     }
 
     if (value_pair->At(1).IsRegister()) {
-      index_hi = compiler_frame_layout.FrameSlotForVariableIndex(
+      index_hi = compiler::target::frame_layout.FrameSlotForVariableIndex(
           -cpu_reg_slots[value_pair->At(1).reg()]);
     } else {
       ASSERT(value_pair->At(1).IsStackSlot());

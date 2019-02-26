@@ -38,14 +38,14 @@ collectLog(DateTime time, HttpRequest request) async {
   } on FormatException catch (e) {
     print(e);
     return badRequest(
-        request, HttpStatus.BAD_REQUEST, "Malformed JSON data: ${e.message}.");
+        request, HttpStatus.badRequest, "Malformed JSON data: ${e.message}.");
   }
   if (data is! Map) {
     return badRequest(
-        request, HttpStatus.BAD_REQUEST, "Malformed JSON data: not a map.");
+        request, HttpStatus.badRequest, "Malformed JSON data: not a map.");
   }
   if (data["type"] != "crash") {
-    return badRequest(request, HttpStatus.BAD_REQUEST,
+    return badRequest(request, HttpStatus.badRequest,
         "Malformed JSON data: type should be 'crash'.");
   }
   request.response.close();
@@ -92,16 +92,16 @@ main(List<String> arguments) async {
     throw "Unexpected arguments: ${arguments.join(' ')}.";
   }
   int port = uri.hasPort ? uri.port : 0;
-  var host = uri.host.isEmpty ? InternetAddress.LOOPBACK_IP_V4 : uri.host;
+  var host = uri.host.isEmpty ? InternetAddress.loopbackIPv4 : uri.host;
   HttpServer server = await HttpServer.bind(host, port);
   print("Listening on http://${server.address.host}:${server.port}/");
   await for (HttpRequest request in server) {
     if (request.method != "POST") {
-      badRequest(request, HttpStatus.METHOD_NOT_ALLOWED, "Not allowed.");
+      badRequest(request, HttpStatus.methodNotAllowed, "Not allowed.");
       continue;
     }
     if (request.uri.path != "/") {
-      badRequest(request, HttpStatus.NOT_FOUND, "Not found.");
+      badRequest(request, HttpStatus.notFound, "Not found.");
       continue;
     }
     collectLog(new DateTime.now(), request);

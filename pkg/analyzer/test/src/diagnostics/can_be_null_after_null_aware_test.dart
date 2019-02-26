@@ -10,12 +10,14 @@ import '../../generated/resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CanBeNullAfterNullAwareTest);
-    defineReflectiveTests(CanBeNullAfterNullAwareTest_Driver);
   });
 }
 
 @reflectiveTest
 class CanBeNullAfterNullAwareTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_afterCascade() async {
     await assertErrorsInCode(r'''
 m(x) {
@@ -102,10 +104,4 @@ m(x) {
 }
 ''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
   }
-}
-
-@reflectiveTest
-class CanBeNullAfterNullAwareTest_Driver extends CanBeNullAfterNullAwareTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

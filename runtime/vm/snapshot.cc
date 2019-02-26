@@ -187,9 +187,9 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
 }
 
 RawSmi* BaseReader::ReadAsSmi() {
-  intptr_t value = Read<int32_t>();
-  ASSERT((value & kSmiTagMask) == kSmiTag);
-  return reinterpret_cast<RawSmi*>(value);
+  RawSmi* value = Read<RawSmi*>();
+  ASSERT((reinterpret_cast<uword>(value) & kSmiTagMask) == kSmiTag);
+  return value;
 }
 
 intptr_t BaseReader::ReadSmiValue() {
@@ -271,14 +271,16 @@ void SnapshotReader::EnqueueTypePostprocessing(const AbstractType& type) {
 }
 
 void SnapshotReader::RunDelayedTypePostprocessing() {
-  if (types_to_postprocess_.Length() > 0) {
-    AbstractType& type = AbstractType::Handle();
-    Instructions& instr = Instructions::Handle();
-    for (intptr_t i = 0; i < types_to_postprocess_.Length(); ++i) {
-      type ^= types_to_postprocess_.At(i);
-      instr = TypeTestingStubGenerator::DefaultCodeForType(type);
-      type.SetTypeTestingStub(instr);
-    }
+  if (types_to_postprocess_.Length() == 0) {
+    return;
+  }
+
+  AbstractType& type = AbstractType::Handle();
+  Code& code = Code::Handle();
+  for (intptr_t i = 0; i < types_to_postprocess_.Length(); ++i) {
+    type ^= types_to_postprocess_.At(i);
+    code = TypeTestingStubGenerator::DefaultCodeForType(type);
+    type.SetTypeTestingStub(code);
   }
 }
 
@@ -480,6 +482,10 @@ RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value,
       pobj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_, true);
       break;
     }
+#undef SNAPSHOT_READ
+#define SNAPSHOT_READ(clazz) case kFfi##clazz##Cid:
+
+    CLASS_LIST_FFI(SNAPSHOT_READ) { UNREACHABLE(); }
 #undef SNAPSHOT_READ
     default:
       UNREACHABLE();
@@ -1069,16 +1075,16 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
     return true;
   }
 
-  // Now check if it is an object from the VM isolate. These objects are shared
-  // by all isolates.
-  if (rawobj->IsVMHeapObject() && HandleVMIsolateObject(rawobj)) {
-    return true;
-  }
-
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
   if ((cid == kCodeCid) || (cid == kBytecodeCid)) {
     WriteVMIsolateObject(kNullObject);
+    return true;
+  }
+
+  // Now check if it is an object from the VM isolate. These objects are shared
+  // by all isolates.
+  if (rawobj->IsVMHeapObject() && HandleVMIsolateObject(rawobj)) {
     return true;
   }
 
@@ -1172,6 +1178,10 @@ void SnapshotWriter::WriteMarkedObjectImpl(RawObject* raw,
       raw_obj->WriteTo(this, object_id, kind_, as_reference);
       return;
     }
+#undef SNAPSHOT_WRITE
+#define SNAPSHOT_WRITE(clazz) case kFfi##clazz##Cid:
+
+    CLASS_LIST_FFI(SNAPSHOT_WRITE) { UNREACHABLE(); }
 #undef SNAPSHOT_WRITE
     default:
       break;

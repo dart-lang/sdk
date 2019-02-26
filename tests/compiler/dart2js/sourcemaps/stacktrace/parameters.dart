@@ -7,6 +7,15 @@ import 'package:meta/dart2js.dart';
 main() {
   var c = new Class();
   c. /*1:main*/ instancePositional1(0);
+
+  // Use all optional parameters to ensure that they are not elided.
+  var d = new Class();
+  d.instancePositional1(null, null, null);
+  d.instancePositional2(null, null, null);
+  d.instanceNamed1(null, b: null, c: null, d: null);
+  d.instanceNamed2(null, b: null, c: null, d: null);
+  d.instanceNamed3(null, b: null, c: null, d: null);
+  d.instanceNamed4(null, b: null, c: null, d: null);
 }
 
 class Class {

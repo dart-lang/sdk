@@ -39,8 +39,6 @@ class Timer {
 typedef Timer _TimerFactoryClosure(
     int milliseconds, void callback(Timer timer), bool repeating);
 
-// Warning: Dartium sets _TimerFactory._factory instead of setting things up
-// through VMLibraryHooks.timerFactory.
 class _TimerFactory {
   static _TimerFactoryClosure _factory;
 }

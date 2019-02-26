@@ -7,6 +7,7 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/object_store.h"
+#include "vm/timeline.h"
 
 #define __ assembler->
 
@@ -91,7 +92,7 @@ const char* TypeTestingStubNamer::AssemblerSafeName(char* cname) {
   return cname;
 }
 
-RawInstructions* TypeTestingStubGenerator::DefaultCodeForType(
+RawCode* TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
   // During bootstrapping we have no access to stubs yet, so we'll just return
@@ -100,25 +101,25 @@ RawInstructions* TypeTestingStubGenerator::DefaultCodeForType(
     ASSERT(type.IsType());
     const intptr_t cid = Type::Cast(type).type_class_id();
     ASSERT(cid == kDynamicCid || cid == kVoidCid);
-    return Instructions::null();
+    return Code::null();
   }
 
   if (type.raw() == Type::ObjectType() || type.raw() == Type::DynamicType() ||
       type.raw() == Type::VoidType()) {
-    return StubCode::TopTypeTypeTest().instructions();
+    return StubCode::TopTypeTypeTest().raw();
   }
 
   if (type.IsTypeRef()) {
-    return StubCode::TypeRefTypeTest().instructions();
+    return StubCode::TypeRefTypeTest().raw();
   }
 
   if (type.IsType() || type.IsTypeParameter()) {
     const bool should_specialize = !FLAG_precompiled_mode && lazy_specialize;
-    return should_specialize ? StubCode::LazySpecializeTypeTest().instructions()
-                             : StubCode::DefaultTypeTest().instructions();
-  } else {
-    return StubCode::UnreachableTypeTest().instructions();
+    return should_specialize ? StubCode::LazySpecializeTypeTest().raw()
+                             : StubCode::DefaultTypeTest().raw();
   }
+
+  return StubCode::UnreachableTypeTest().raw();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -126,215 +127,61 @@ void TypeTestingStubGenerator::SpecializeStubFor(Thread* thread,
                                                  const AbstractType& type) {
   HierarchyInfo hi(thread);
   TypeTestingStubGenerator generator;
-  const Instructions& instr = Instructions::Handle(
-      thread->zone(), generator.OptimizedCodeForType(type));
-  type.SetTypeTestingStub(instr);
+  const Code& code =
+      Code::Handle(thread->zone(), generator.OptimizedCodeForType(type));
+  type.SetTypeTestingStub(code);
 }
 #endif
 
 TypeTestingStubGenerator::TypeTestingStubGenerator()
-    : object_store_(Isolate::Current()->object_store()),
-      array_(GrowableObjectArray::Handle()),
-      instr_(Instructions::Handle()) {}
+    : object_store_(Isolate::Current()->object_store()) {}
 
-RawInstructions* TypeTestingStubGenerator::OptimizedCodeForType(
+RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
     const AbstractType& type) {
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
   ASSERT(StubCode::HasBeenInitialized());
 
   if (type.IsTypeRef()) {
-    return StubCode::TypeRefTypeTest().instructions();
+    return StubCode::TypeRefTypeTest().raw();
   }
 
   if (type.raw() == Type::ObjectType() || type.raw() == Type::DynamicType()) {
-    return StubCode::TopTypeTypeTest().instructions();
+    return StubCode::TopTypeTypeTest().raw();
   }
 
   if (type.IsCanonical()) {
     if (type.IsType()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      // Lazily create the type testing stubs array.
-      array_ = object_store_->type_testing_stubs();
-      if (array_.IsNull()) {
-        array_ = GrowableObjectArray::New(Heap::kOld);
-        object_store_->set_type_testing_stubs(array_);
+      const Code& code = Code::Handle(
+          TypeTestingStubGenerator::BuildCodeForType(Type::Cast(type)));
+      if (!code.IsNull()) {
+        return code.raw();
       }
 
-      instr_ = TypeTestingStubGenerator::BuildCodeForType(Type::Cast(type));
-      if (!instr_.IsNull()) {
-        array_.Add(type);
-        array_.Add(instr_);
-      } else {
-        // Fall back to default.
-        instr_ = StubCode::DefaultTypeTest().instructions();
-      }
+      // Fall back to default.
+      return StubCode::DefaultTypeTest().raw();
 #else
       // In the precompiled runtime we cannot lazily create new optimized type
       // testing stubs, so if we cannot find one, we'll just return the default
       // one.
-      instr_ = StubCode::DefaultTypeTest().instructions();
+      return StubCode::DefaultTypeTest().raw();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-      return instr_.raw();
     }
   }
 #endif  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
   return TypeTestingStubGenerator::DefaultCodeForType(type, false);
 }
 
-TypeTestingStubFinder::TypeTestingStubFinder()
-    : array_(GrowableObjectArray::Handle()),
-      type_(Type::Handle()),
-      code_(Code::Handle()),
-      instr_(Instructions::Handle()) {
-  array_ = Isolate::Current()->object_store()->type_testing_stubs();
-  if (!array_.IsNull()) {
-    SortTableForFastLookup();
-  }
-}
-
-// TODO(kustermann): Use sorting/hashtables to speed this up.
-RawInstructions* TypeTestingStubFinder::LookupByAddresss(
-    uword entry_point) const {
-  // First test the 4 common ones:
-  code_ = StubCode::DefaultTypeTest().raw();
-  if (entry_point == code_.EntryPoint()) {
-    return code_.instructions();
-  }
-  code_ = StubCode::LazySpecializeTypeTest().raw();
-  if (entry_point == code_.EntryPoint()) {
-    return code_.instructions();
-  }
-  code_ = StubCode::TopTypeTypeTest().raw();
-  if (entry_point == code_.EntryPoint()) {
-    return code_.instructions();
-  }
-  code_ = StubCode::TypeRefTypeTest().raw();
-  if (entry_point == code_.EntryPoint()) {
-    return code_.instructions();
-  }
-  code_ = StubCode::UnreachableTypeTest().raw();
-  if (entry_point == code_.EntryPoint()) {
-    return code_.instructions();
-  }
-
-  const intptr_t tuple_idx = LookupInSortedArray(entry_point);
-  return Instructions::RawCast(array_.At(2 * tuple_idx + 1));
-}
-
-const char* TypeTestingStubFinder::StubNameFromAddresss(
-    uword entry_point) const {
-  // First test the 4 common ones:
-  code_ = StubCode::DefaultTypeTest().raw();
-  if (entry_point == code_.EntryPoint()) {
-    return "TypeTestingStub_Default";
-  }
-  code_ = StubCode::LazySpecializeTypeTest().raw();
-  if (entry_point == code_.EntryPoint()) {
-    return "TypeTestingStub_LazySpecialize";
-  }
-  code_ = StubCode::TopTypeTypeTest().raw();
-  if (entry_point == code_.EntryPoint()) {
-    return "TypeTestingStub_Top";
-  }
-  code_ = StubCode::TypeRefTypeTest().raw();
-  if (entry_point == code_.EntryPoint()) {
-    return "TypeTestingStub_Ref";
-  }
-  code_ = StubCode::UnreachableTypeTest().raw();
-  if (entry_point == code_.EntryPoint()) {
-    return "TypeTestingStub_Unreachable";
-  }
-
-  const intptr_t tuple_idx = LookupInSortedArray(entry_point);
-  type_ = AbstractType::RawCast(array_.At(2 * tuple_idx));
-  return namer_.StubNameForType(type_);
-}
-
-void TypeTestingStubFinder::SortTableForFastLookup() {
-  struct Sorter {
-    explicit Sorter(const GrowableObjectArray& array)
-        : array_(array),
-          object_(AbstractType::Handle()),
-          object2_(AbstractType::Handle()) {}
-
-    void Sort() {
-      const intptr_t tuples = array_.Length() / 2;
-      InsertionSort(0, tuples - 1);
-    }
-
-    void InsertionSort(intptr_t start, intptr_t end) {
-      for (intptr_t i = start + 1; i <= end; ++i) {
-        intptr_t j = i;
-        while (j > start && Value(j - 1) > Value(j)) {
-          Swap(j - 1, j);
-          j--;
-        }
-      }
-    }
-
-    void Swap(intptr_t i, intptr_t j) {
-      // Swap type.
-      object_ = array_.At(2 * i);
-      object2_ = array_.At(2 * j);
-      array_.SetAt(2 * i, object2_);
-      array_.SetAt(2 * j, object_);
-
-      // Swap instructions.
-      object_ = array_.At(2 * i + 1);
-      object2_ = array_.At(2 * j + 1);
-      array_.SetAt(2 * i + 1, object2_);
-      array_.SetAt(2 * j + 1, object_);
-    }
-
-    uword Value(intptr_t i) {
-      return Instructions::EntryPoint(
-          Instructions::RawCast(array_.At(2 * i + 1)));
-    }
-
-    const GrowableObjectArray& array_;
-    Object& object_;
-    Object& object2_;
-  };
-
-  Sorter sorter(array_);
-  sorter.Sort();
-}
-
-intptr_t TypeTestingStubFinder::LookupInSortedArray(uword entry_point) const {
-  intptr_t left = 0;
-  intptr_t right = array_.Length() / 2 - 1;
-
-  while (left <= right) {
-    const intptr_t mid = left + (right - left) / 2;
-    RawInstructions* instr = Instructions::RawCast(array_.At(2 * mid + 1));
-    const uword mid_value = Instructions::EntryPoint(instr);
-
-    if (entry_point < mid_value) {
-      right = mid - 1;
-    } else if (mid_value == entry_point) {
-      return mid;
-    } else {
-      left = mid + 1;
-    }
-  }
-
-  // The caller should only call this function if [entry_point] is a real type
-  // testing entrypoint, in which case it must be guaranteed to find it.
-  UNREACHABLE();
-  return NULL;
-}
-
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-RawInstructions* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
+RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   HierarchyInfo* hi = Thread::Current()->hierarchy_info();
   ASSERT(hi != NULL);
 
-  if (!hi->CanUseSubtypeRangeCheckFor(type)) {
-    if (!hi->CanUseGenericSubtypeRangeCheckFor(type)) {
-      return Instructions::null();
-    }
+  if (!hi->CanUseSubtypeRangeCheckFor(type) &&
+      !hi->CanUseGenericSubtypeRangeCheckFor(type)) {
+    return Code::null();
   }
 
   const Class& type_class = Class::Handle(type.type_class());
@@ -350,6 +197,7 @@ RawInstructions* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
                                    : Code::PoolAttachment::kAttachPool;
   const Code& code = Code::Handle(Code::FinalizeCode(
       name, nullptr, &assembler, pool_attachment, false /* optimized */));
+  code.set_owner(type);
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
     LogBlock lb;
@@ -364,7 +212,7 @@ RawInstructions* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   }
 #endif  // !PRODUCT
 
-  return code.instructions();
+  return code.raw();
 }
 
 void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
@@ -1003,19 +851,45 @@ bool TypeUsageInfo::IsUsedInTypeTest(const AbstractType& type) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 void DeoptimizeTypeTestingStubs() {
-  auto isolate = Isolate::Current();
-  auto& tts_array = GrowableObjectArray::Handle(
-      isolate->object_store()->type_testing_stubs());
-  auto& type = AbstractType::Handle();
-  auto& instr = Instructions::Handle();
+  class CollectTypes : public ObjectVisitor {
+   public:
+    CollectTypes(GrowableArray<AbstractType*>* types, Zone* zone)
+        : types_(types), object_(Object::Handle(zone)), zone_(zone) {}
+
+    void VisitObject(RawObject* object) {
+      if (object->IsPseudoObject()) {
+        // Cannot even be wrapped in handles.
+        return;
+      }
+      object_ = object;
+      if (object_.IsAbstractType()) {
+        types_->Add(
+            &AbstractType::Handle(zone_, AbstractType::RawCast(object)));
+      }
+    }
+
+   private:
+    GrowableArray<AbstractType*>* types_;
+    Object& object_;
+    Zone* zone_;
+  };
+
+  Thread* thread = Thread::Current();
+  TIMELINE_DURATION(thread, Isolate, "DeoptimizeTypeTestingStubs");
+  HANDLESCOPE(thread);
+  Zone* zone = thread->zone();
+  GrowableArray<AbstractType*> types;
+  {
+    HeapIterationScope iter(thread);
+    CollectTypes visitor(&types, zone);
+    iter.IterateObjects(&visitor);
+  }
 
   TypeTestingStubGenerator generator;
-  if (!tts_array.IsNull()) {
-    for (intptr_t i = 0; i < tts_array.Length(); i += 2) {
-      type ^= tts_array.At(i);
-      instr = generator.DefaultCodeForType(type);
-      type.SetTypeTestingStub(instr);
-    }
+  Code& code = Code::Handle(zone);
+  for (intptr_t i = 0; i < types.length(); i++) {
+    code = generator.DefaultCodeForType(*types[i]);
+    types[i]->SetTypeTestingStub(code);
   }
 }
 

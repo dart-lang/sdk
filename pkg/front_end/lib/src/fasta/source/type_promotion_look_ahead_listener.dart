@@ -376,6 +376,37 @@ class TypePromotionLookAheadListener extends Listener {
     doConstuctorInvocation(token, true);
   }
 
+  @override
+  void endForControlFlow(Token token) {
+    // TODO(danrubel) add support for for control flow collection entries
+    // but for now this is ignored and an error reported in the body builder.
+  }
+
+  @override
+  void endForInControlFlow(Token token) {
+    // TODO(danrubel) add support for for control flow collection entries
+    // but for now this is ignored and an error reported in the body builder.
+  }
+
+  @override
+  void endIfControlFlow(Token token) {
+    // TODO(danrubel) add support for if control flow collection entries
+    // but for now this is ignored and an error reported in the body builder.
+  }
+
+  @override
+  void endIfElseControlFlow(Token token) {
+    // TODO(danrubel) add support for if control flow collection entries
+    // but for now this is ignored and an error reported in the body builder.
+  }
+
+  @override
+  void handleSpreadExpression(Token spreadToken) {
+    // TODO(danrubel) add support for spread collections
+    // but for now this is ignored and an error reported in the body builder.
+    // The top of stack is the spread collection expression.
+  }
+
   void doConstuctorInvocation(Token token, bool isConst) {
     state.pop(); // Arguments.
     state.popPushNull(token.lexeme, token); // Constructor reference.
@@ -522,9 +553,8 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token endToken) {
-    debugEvent("ForIn", awaitToken);
+  void endForIn(Token endToken) {
+    debugEvent("ForIn", endToken);
   }
 
   @override
@@ -555,10 +585,15 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
-    debugEvent("ForStatement", forKeyword);
+  void handleForLoopParts(Token forKeyword, Token leftParen,
+      Token leftSeparator, int updateExpressionCount) {
+    debugEvent("handleForLoopParts", forKeyword);
     state.discard(updateExpressionCount);
+  }
+
+  @override
+  void endForStatement(Token endToken) {
+    debugEvent("ForStatement", endToken);
   }
 
   @override
@@ -852,9 +887,10 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void handleEmptyLiteralSetOrMap(
-      Token leftBrace, Token constKeyword, Token rightBrace) {
-    debugEvent("EmptyLiteralSetOrMap", leftBrace);
+  void handleLiteralSetOrMap(
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    debugEvent("LiteralSetOrMap", leftBrace);
+    state.discard(count);
     state.pushNull("{}", leftBrace);
   }
 

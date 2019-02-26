@@ -11,10 +11,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -45,10 +45,14 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
 typedef void _ElementVisitorFunction(Element element);
 
 class AbstractContextTest with ResourceProviderMixin {
-  FileContentOverlay fileContentOverlay = new FileContentOverlay();
+  OverlayResourceProvider overlayResourceProvider;
 
   AnalysisContextCollection _analysisContextCollection;
   AnalysisDriver _driver;
+
+  /// The file system specific `/home/test/analysis_options.yaml` path.
+  String get analysisOptionsPath =>
+      convertPath('/home/test/analysis_options.yaml');
 
   AnalysisDriver get driver => _driver;
 
@@ -67,15 +71,65 @@ class AbstractContextTest with ResourceProviderMixin {
     addPackageFile('meta', 'meta.dart', r'''
 library meta;
 
+const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
+
+@deprecated
+const _Checked checked = const _Checked();
+
+const _Experimental experimental = const _Experimental();
+
+const _Factory factory = const _Factory();
+
+const Immutable immutable = const Immutable();
+
 const _IsTest isTest = const _IsTest();
 
 const _IsTestGroup isTestGroup = const _IsTestGroup();
 
+const _Literal literal = const _Literal();
+
+const _MustCallSuper mustCallSuper = const _MustCallSuper();
+
+const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
+
+const _Protected protected = const _Protected();
+
 const Required required = const Required();
+
+const _Sealed sealed = const _Sealed();
+
+@deprecated
+const _Virtual virtual = const _Virtual();
+
+const _VisibleForOverriding visibleForOverriding =
+    const _VisibleForOverriding();
+
+const _VisibleForTesting visibleForTesting = const _VisibleForTesting();
+
+class Immutable {
+  final String reason;
+  const Immutable([this.reason]);
+}
 
 class Required {
   final String reason;
   const Required([this.reason]);
+}
+
+class _AlwaysThrows {
+  const _AlwaysThrows();
+}
+
+class _Checked {
+  const _Checked();
+}
+
+class _Experimental {
+  const _Experimental();
+}
+
+class _Factory {
+  const _Factory();
 }
 
 class _IsTest {
@@ -84,6 +138,39 @@ class _IsTest {
 
 class _IsTestGroup {
   const _IsTestGroup();
+}
+
+class _Literal {
+  const _Literal();
+}
+
+class _MustCallSuper {
+  const _MustCallSuper();
+}
+
+class _OptionalTypeArgs {
+  const _OptionalTypeArgs();
+}
+
+class _Protected {
+  const _Protected();
+}
+
+class _Sealed {
+  const _Sealed();
+}
+
+@deprecated
+class _Virtual {
+  const _Virtual();
+}
+
+class _VisibleForOverriding {
+  const _VisibleForOverriding();
+}
+
+class _VisibleForTesting {
+  const _VisibleForTesting();
 }
 ''');
   }
@@ -127,13 +214,28 @@ class _IsTestGroup {
     _analysisContextCollection = AnalysisContextCollectionImpl(
       includedPaths: [convertPath('/home')],
       enableIndex: true,
-      fileContentOverlay: fileContentOverlay,
-      resourceProvider: resourceProvider,
+      resourceProvider: overlayResourceProvider,
       sdkPath: convertPath('/sdk'),
     );
 
     var testPath = convertPath('/home/test');
     _driver = getDriver(testPath);
+  }
+
+  /// Create an analysis options file based on the given arguments.
+  void createAnalysisOptionsFile({List<String> experiments}) {
+    StringBuffer buffer = new StringBuffer();
+    if (experiments != null) {
+      buffer.writeln('analyzer:');
+      buffer.writeln('  enable-experiment:');
+      for (String experiment in experiments) {
+        buffer.writeln('    - $experiment');
+      }
+    }
+    newFile(analysisOptionsPath, content: buffer.toString());
+    if (_driver != null) {
+      createAnalysisContexts();
+    }
   }
 
   /// Return the existing analysis context that should be used to analyze the
@@ -159,6 +261,7 @@ class _IsTestGroup {
 
   void setUp() {
     setupResourceProvider();
+    overlayResourceProvider = OverlayResourceProvider(resourceProvider);
 
     new MockSdk(resourceProvider: resourceProvider);
 

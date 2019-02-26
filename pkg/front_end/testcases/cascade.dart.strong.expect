@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/cascade.dart:26:5: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
 //  - 'List' is from 'dart:core'.
@@ -20,8 +22,7 @@
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'last'.
 //     ..[0].last.toString();
 //           ^^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 
@@ -36,15 +37,15 @@ static method main() → dynamic {
  - 'List' is from 'dart:core'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
     [1]
-    ^" in <core::int>[1] as{TypeError} core::int] in let final dynamic #t15 = (let final dynamic #t16 = #t13.{core::Iterable::first} in invalid-expression "pkg/front_end/testcases/cascade.dart:28:13: Error: The getter 'last' isn't defined for the class 'int'.
+    ^" in <core::int>[1] as{TypeError} core::int] in let final dynamic #t15 = invalid-expression "pkg/front_end/testcases/cascade.dart:28:13: Error: The getter 'last' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'last'.
     ..first.last.toString()
-            ^^^^").{core::Object::toString}() in let final dynamic #t17 = (let final dynamic #t18 = #t13.{core::Iterable::first} in invalid-expression "pkg/front_end/testcases/cascade.dart:29:12: Error: The method '[]' isn't defined for the class 'int'.
+            ^^^^".{core::Object::toString}() in let final dynamic #t16 = invalid-expression "pkg/front_end/testcases/cascade.dart:29:12: Error: The method '[]' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named '[]'.
     ..first[0].toString()
-           ^^").{core::Object::toString}() in let final dynamic #t19 = (let final dynamic #t20 = #t13.{core::List::[]}(0) in invalid-expression "pkg/front_end/testcases/cascade.dart:30:11: Error: The getter 'last' isn't defined for the class 'int'.
+           ^^".{core::Object::toString}() in let final dynamic #t17 = invalid-expression "pkg/front_end/testcases/cascade.dart:30:11: Error: The getter 'last' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'last'.
     ..[0].last.toString();
-          ^^^^").{core::Object::toString}() in #t13;
+          ^^^^".{core::Object::toString}() in #t13;
   core::print(list);
 }

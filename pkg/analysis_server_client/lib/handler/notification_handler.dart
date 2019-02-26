@@ -67,6 +67,11 @@ mixin NotificationHandler {
         onAnalysisOverrides(
             new AnalysisOverridesParams.fromJson(decoder, 'params', params));
         break;
+      case COMPLETION_NOTIFICATION_AVAILABLE_SUGGESTIONS:
+        onCompletionAvailableSuggestions(
+            new CompletionAvailableSuggestionsParams.fromJson(
+                decoder, 'params', params));
+        break;
       case COMPLETION_NOTIFICATION_RESULTS:
         onCompletionResults(
             new CompletionResultsParams.fromJson(decoder, 'params', params));
@@ -205,6 +210,16 @@ mixin NotificationHandler {
   /// the list of services passed in an analysis.setSubscriptions
   /// request.
   void onAnalysisOverrides(AnalysisOverridesParams params) {}
+
+  /// Reports the pre-computed, candidate completions from symbols defined
+  /// in a corresponding library. This notification may be sent multiple times.
+  /// When a notification is processed, clients should replace any previous
+  /// information about the libraries in the list of changedLibraries, discard
+  /// any information about the libraries in the list of removedLibraries, and
+  /// preserve any previously received information about any libraries that are
+  /// not included in either list.
+  void onCompletionAvailableSuggestions(
+      CompletionAvailableSuggestionsParams params) {}
 
   /// Reports the completion suggestions that should be presented
   /// to the user. The set of suggestions included in the

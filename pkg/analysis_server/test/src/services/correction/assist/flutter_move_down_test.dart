@@ -24,11 +24,11 @@ class FlutterMoveDownTest extends AssistProcessorTest {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: <Widget>[
-      new Text('aaa'),
-      /*caret*/new Text('bbbbbb'),
-      new Text('ccccccccc'),
+      Text('aaa'),
+      /*caret*/Text('bbbbbb'),
+      Text('ccccccccc'),
     ],
   );
 }
@@ -36,16 +36,16 @@ main() {
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: <Widget>[
-      new Text('aaa'),
-      /*caret*/new Text('ccccccccc'),
-      new Text('bbbbbb'),
+      Text('aaa'),
+      Text('ccccccccc'),
+      Text('bbbbbb'),
     ],
   );
 }
 ''');
-    assertExitPosition(before: "new Text('bbbbbb')");
+    assertExitPosition(before: "Text('bbbbbb')");
   }
 
   test_last() async {
@@ -53,11 +53,11 @@ main() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: <Widget>[
-      new Text('aaa'),
-      new Text('bbb'),
-      /*caret*/new Text('ccc'),
+      Text('aaa'),
+      Text('bbb'),
+      /*caret*/Text('ccc'),
     ],
   );
 }
@@ -70,8 +70,8 @@ main() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  new Center(
-    child: /*caret*/new Text('aaa'),
+  Center(
+    child: /*caret*/Text('aaa'),
   );
 }
 ''');

@@ -283,6 +283,141 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
   UnlinkedUnit get unit;
 }
 
+/// Information about a single declaration.
+abstract class AvailableDeclaration extends base.SummaryClass {
+  @Id(0)
+  String get docComplete;
+
+  @Id(1)
+  String get docSummary;
+
+  @Id(2)
+  int get fieldMask;
+
+  /// The kind of the declaration.
+  @Id(3)
+  AvailableDeclarationKind get kind;
+
+  @Id(4)
+  bool get isAbstract;
+
+  @Id(5)
+  bool get isConst;
+
+  @Id(6)
+  bool get isDeprecated;
+
+  @Id(7)
+  bool get isFinal;
+
+  /// The first part of the declaration name, usually the only one, for example
+  /// the name of a class like `MyClass`, or a function like `myFunction`.
+  @Id(8)
+  String get name;
+
+  /// The second, optional, part of the declaration name.  For example enum
+  /// constants all have the same [name], but their own [name2].
+  @Id(9)
+  String get name2;
+
+  @Id(10)
+  int get locationOffset;
+
+  @Id(11)
+  int get locationStartColumn;
+
+  @Id(12)
+  int get locationStartLine;
+
+  @Id(13)
+  List<String> get parameterNames;
+
+  @Id(14)
+  String get parameters;
+
+  @Id(15)
+  List<String> get parameterTypes;
+
+  @Id(16)
+  int get requiredParameterCount;
+
+  /// The partial list of relevance tags.  Not every declaration has one (for
+  /// example, function do not currently), and not every declaration has to
+  /// store one (for classes it can be computed when we know the library that
+  /// includes this file).
+  @Id(17)
+  List<String> get relevanceTags;
+
+  @Id(18)
+  String get returnType;
+
+  @Id(19)
+  String get typeParameters;
+}
+
+/// Enum of declaration kinds in available files.
+enum AvailableDeclarationKind {
+  CLASS,
+  CLASS_TYPE_ALIAS,
+  ENUM,
+  ENUM_CONSTANT,
+  FUNCTION,
+  FUNCTION_TYPE_ALIAS,
+  GETTER,
+  MIXIN,
+  SETTER,
+  VARIABLE
+}
+
+/// Information about an available, even if not yet imported file.
+@TopLevel('UICF')
+abstract class AvailableFile extends base.SummaryClass {
+  factory AvailableFile.fromBuffer(List<int> buffer) =>
+      generated.readAvailableFile(buffer);
+
+  /// Declarations of the file.
+  @Id(0)
+  List<AvailableDeclaration> get declarations;
+
+  /// Exports directives of the file.
+  @Id(1)
+  List<AvailableFileExport> get exports;
+
+  /// Is `true` if this file is a library.
+  @Id(2)
+  bool get isLibrary;
+
+  /// Is `true` if this file is a library, and it is deprecated.
+  @Id(3)
+  bool get isLibraryDeprecated;
+
+  /// URIs of `part` directives.
+  @Id(4)
+  List<String> get parts;
+}
+
+/// Information about an export directive.
+abstract class AvailableFileExport extends base.SummaryClass {
+  /// Combinators contained in this export directive.
+  @Id(1)
+  List<AvailableFileExportCombinator> get combinators;
+
+  /// URI of the exported library.
+  @Id(0)
+  String get uri;
+}
+
+/// Information about a `show` or `hide` combinator in an export directive.
+abstract class AvailableFileExportCombinator extends base.SummaryClass {
+  /// List of names which are hidden.  Empty if this is a `show` combinator.
+  @Id(1)
+  List<String> get hides;
+
+  /// List of names which are shown.  Empty if this is a `hide` combinator.
+  @Id(0)
+  List<String> get shows;
+}
+
 /// Information about an element code range.
 abstract class CodeRange extends base.SummaryClass {
   /// Length of the element code.

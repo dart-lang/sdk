@@ -2056,6 +2056,9 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   }
 }
 
+abstract class CollectionElementImpl extends AstNodeImpl
+    implements CollectionElement {}
+
 /**
  * A combinator associated with an import or export directive.
  *
@@ -4074,7 +4077,8 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
  *      | [ConditionalExpression] cascadeSection*
  *      | [ThrowExpression]
  */
-abstract class ExpressionImpl extends AstNodeImpl implements Expression {
+abstract class ExpressionImpl extends AstNodeImpl
+    implements CollectionElementImpl, Expression {
   /**
    * The static type of this expression, or `null` if the AST structure has not
    * been resolved.
@@ -4121,7 +4125,10 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
     AstNode child = this;
     while (child is Expression ||
         child is ArgumentList ||
-        child is MapLiteralEntry) {
+        child is MapLiteralEntry ||
+        child is SpreadElement ||
+        child is IfElement ||
+        child is ForElement) {
       AstNode parent = child.parent;
       if (parent is TypedLiteralImpl && parent.constKeyword != null) {
         // Inside an explicitly `const` list or map literal.
@@ -4549,6 +4556,134 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   }
 }
 
+abstract class ForEachPartsImpl extends ForLoopPartsImpl
+    implements ForEachParts {
+  @override
+  Token inKeyword;
+
+  /**
+   * The expression evaluated to produce the iterator.
+   */
+  ExpressionImpl _iterable;
+
+  /**
+   * Initialize a newly created for-each statement whose loop control variable
+   * is declared internally (in the for-loop part). The [awaitKeyword] can be
+   * `null` if this is not an asynchronous for loop.
+   */
+  ForEachPartsImpl(this.inKeyword, ExpressionImpl iterator) {
+    _iterable = _becomeParentOf(iterator);
+  }
+
+  @override
+  Token get beginToken => inKeyword;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities =>
+      new ChildEntities()..add(inKeyword)..add(_iterable);
+
+  @override
+  Token get endToken => _iterable.endToken;
+
+  @override
+  Expression get iterable => _iterable;
+
+  void set iterable(Expression expression) {
+    _iterable = _becomeParentOf(expression as ExpressionImpl);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _iterable?.accept(visitor);
+  }
+}
+
+class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
+    implements ForEachPartsWithDeclaration {
+  /**
+   * The declaration of the loop variable.
+   */
+  DeclaredIdentifierImpl _loopVariable;
+
+  /**
+   * Initialize a newly created for-each statement whose loop control variable
+   * is declared internally (inside the for-loop part).
+   */
+  ForEachPartsWithDeclarationImpl(DeclaredIdentifierImpl loopVariable,
+      Token inKeyword, ExpressionImpl iterator)
+      : super(inKeyword, iterator) {
+    _loopVariable = _becomeParentOf(loopVariable);
+  }
+
+  @override
+  Token get beginToken => _loopVariable.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(_loopVariable)
+    ..addAll(super.childEntities);
+
+  @override
+  DeclaredIdentifier get loopVariable => _loopVariable;
+
+  void set loopVariable(DeclaredIdentifier variable) {
+    _loopVariable = _becomeParentOf(variable as DeclaredIdentifierImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForEachPartsWithDeclaration(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _loopVariable?.accept(visitor);
+    super.visitChildren(visitor);
+  }
+}
+
+class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
+    implements ForEachPartsWithIdentifier {
+  /**
+   * The loop variable.
+   */
+  SimpleIdentifierImpl _identifier;
+
+  /**
+   * Initialize a newly created for-each statement whose loop control variable
+   * is declared externally (outside the for-loop part).
+   */
+  ForEachPartsWithIdentifierImpl(
+      SimpleIdentifierImpl identifier, Token inKeyword, ExpressionImpl iterator)
+      : super(inKeyword, iterator) {
+    _identifier = _becomeParentOf(identifier);
+  }
+
+  @override
+  Token get beginToken => _identifier.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(_identifier)
+    ..addAll(super.childEntities);
+
+  @override
+  SimpleIdentifier get identifier => _identifier;
+
+  void set identifier(SimpleIdentifier identifier) {
+    _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForEachPartsWithIdentifier(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _identifier?.accept(visitor);
+    _iterable?.accept(visitor);
+  }
+}
+
 /**
  * A for-each statement.
  *
@@ -4648,7 +4783,7 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
   }
 
   @override
-  Token get beginToken => forKeyword;
+  Token get beginToken => awaitKeyword ?? forKeyword;
 
   @override
   Statement get body => _body;
@@ -4708,6 +4843,59 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
     _body?.accept(visitor);
   }
 }
+
+class ForElementImpl extends CollectionElementImpl
+    with ForMixin
+    implements ForElement {
+  /**
+   * The body of the loop.
+   */
+  CollectionElementImpl _body;
+
+  /**
+   * Initialize a newly created for element.
+   */
+  ForElementImpl(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopPartsImpl forLoopParts,
+      Token rightParenthesis,
+      CollectionElementImpl body) {
+    this.awaitKeyword = awaitKeyword;
+    this.forKeyword = forKeyword;
+    this.leftParenthesis = leftParenthesis;
+    _forLoopParts = _becomeParentOf(forLoopParts);
+    this.rightParenthesis = rightParenthesis;
+    _body = _becomeParentOf(body);
+  }
+
+  @override
+  CollectionElement get body => _body;
+
+  void set body(CollectionElement statement) {
+    _body = _becomeParentOf(statement as CollectionElementImpl);
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..addAll(super.childEntities)
+    ..add(_body);
+
+  @override
+  Token get endToken => _body.endToken;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitForElement(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _forLoopParts?.accept(visitor);
+    _body?.accept(visitor);
+  }
+}
+
+abstract class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
 
 /**
  * A node representing a parameter to a function.
@@ -4870,6 +5058,243 @@ class FormalParameterListImpl extends AstNodeImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _parameters.accept(visitor);
+  }
+}
+
+mixin ForMixin on AstNodeImpl {
+  Token awaitKeyword;
+
+  Token forKeyword;
+
+  Token leftParenthesis;
+
+  ForLoopPartsImpl _forLoopParts;
+
+  Token rightParenthesis;
+
+  @override
+  Token get beginToken => awaitKeyword ?? forKeyword;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(awaitKeyword)
+    ..add(forKeyword)
+    ..add(leftParenthesis)
+    ..add(_forLoopParts)
+    ..add(rightParenthesis);
+
+  ForLoopParts get forLoopParts => _forLoopParts;
+
+  void set forLoopParts(ForLoopParts forLoopParts) {
+    _forLoopParts = _becomeParentOf(forLoopParts as ForLoopPartsImpl);
+  }
+}
+
+abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
+  @override
+  Token leftSeparator;
+
+  /**
+   * The condition used to determine when to terminate the loop, or `null` if
+   * there is no condition.
+   */
+  ExpressionImpl _condition;
+
+  @override
+  Token rightSeparator;
+
+  /**
+   * The list of expressions run after each execution of the loop body.
+   */
+  NodeList<Expression> _updaters;
+
+  /**
+   * Initialize a newly created for statement. Either the [variableList] or the
+   * [initialization] must be `null`. Either the [condition] and the list of
+   * [updaters] can be `null` if the loop does not have the corresponding
+   * attribute.
+   */
+  ForPartsImpl(this.leftSeparator, ExpressionImpl condition,
+      this.rightSeparator, List<Expression> updaters) {
+    _condition = _becomeParentOf(condition);
+    _updaters = new NodeListImpl<Expression>(this, updaters);
+  }
+
+  @override
+  Token get beginToken => leftSeparator;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(leftSeparator)
+    ..add(_condition)
+    ..add(rightSeparator)
+    ..addAll(_updaters);
+
+  @override
+  Expression get condition => _condition;
+
+  void set condition(Expression expression) {
+    _condition = _becomeParentOf(expression as ExpressionImpl);
+  }
+
+  @override
+  Token get endToken => _updaters?.endToken ?? rightSeparator;
+
+  @override
+  NodeList<Expression> get updaters => _updaters;
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _condition?.accept(visitor);
+    _updaters.accept(visitor);
+  }
+}
+
+class ForPartsWithDeclarationsImpl extends ForPartsImpl
+    implements ForPartsWithDeclarations {
+  /**
+   * The declaration of the loop variables, or `null` if there are no variables.
+   * Note that a for statement cannot have both a variable list and an
+   * initialization expression, but can validly have neither.
+   */
+  VariableDeclarationListImpl _variableList;
+
+  /**
+   * Initialize a newly created for statement. Both the [condition] and the list
+   * of [updaters] can be `null` if the loop does not have the corresponding
+   * attribute.
+   */
+  ForPartsWithDeclarationsImpl(
+      VariableDeclarationListImpl variableList,
+      Token leftSeparator,
+      ExpressionImpl condition,
+      Token rightSeparator,
+      List<Expression> updaters)
+      : super(leftSeparator, condition, rightSeparator, updaters) {
+    _variableList = _becomeParentOf(variableList);
+  }
+
+  @override
+  Token get beginToken => _variableList?.beginToken ?? super.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(_variableList)
+    ..addAll(super.childEntities);
+
+  @override
+  VariableDeclarationList get variables => _variableList;
+
+  void set variables(VariableDeclarationList variableList) {
+    _variableList =
+        _becomeParentOf(variableList as VariableDeclarationListImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForPartsWithDeclarations(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _variableList?.accept(visitor);
+    super.visitChildren(visitor);
+  }
+}
+
+class ForPartsWithExpressionImpl extends ForPartsImpl
+    implements ForPartsWithExpression {
+  /**
+   * The initialization expression, or `null` if there is no initialization
+   * expression. Note that a for statement cannot have both a variable list and
+   * an initialization expression, but can validly have neither.
+   */
+  ExpressionImpl _initialization;
+
+  /**
+   * Initialize a newly created for statement. Both the [condition] and the list
+   * of [updaters] can be `null` if the loop does not have the corresponding
+   * attribute.
+   */
+  ForPartsWithExpressionImpl(ExpressionImpl initialization, Token leftSeparator,
+      ExpressionImpl condition, Token rightSeparator, List<Expression> updaters)
+      : super(leftSeparator, condition, rightSeparator, updaters) {
+    _initialization = _becomeParentOf(initialization);
+  }
+
+  @override
+  Token get beginToken => initialization?.beginToken ?? super.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(_initialization)
+    ..addAll(super.childEntities);
+
+  @override
+  Expression get initialization => _initialization;
+
+  void set initialization(Expression initialization) {
+    _initialization = _becomeParentOf(initialization as ExpressionImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForPartsWithExpression(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _initialization?.accept(visitor);
+    super.visitChildren(visitor);
+  }
+}
+
+class ForStatement2Impl extends StatementImpl
+    with ForMixin
+    implements ForStatement2 {
+  /**
+   * The body of the loop.
+   */
+  StatementImpl _body;
+
+  /**
+   * Initialize a newly created for statement.
+   */
+  ForStatement2Impl(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopPartsImpl forLoopParts,
+      Token rightParenthesis,
+      StatementImpl body) {
+    this.awaitKeyword = awaitKeyword;
+    this.forKeyword = forKeyword;
+    this.leftParenthesis = leftParenthesis;
+    _forLoopParts = _becomeParentOf(forLoopParts);
+    this.rightParenthesis = rightParenthesis;
+    _body = _becomeParentOf(body);
+  }
+
+  @override
+  Statement get body => _body;
+
+  void set body(Statement statement) {
+    _body = _becomeParentOf(statement as StatementImpl);
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..addAll(super.childEntities)
+    ..add(_body);
+
+  @override
+  Token get endToken => _body.endToken;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement2(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _forLoopParts?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -5950,6 +6375,111 @@ abstract class IdentifierImpl extends ExpressionImpl implements Identifier {
 
   @override
   bool get isAssignable => true;
+}
+
+class IfElementImpl extends CollectionElementImpl
+    with IfMixin
+    implements IfElement {
+  /**
+   * The element to be executed if the condition is `true`.
+   */
+  CollectionElementImpl _thenElement;
+
+  /**
+   * The element to be executed if the condition is `false`, or `null` if there
+   * is no such element.
+   */
+  CollectionElementImpl _elseElement;
+
+  /**
+   * Initialize a newly created for element.
+   */
+  IfElementImpl(
+      Token ifKeyword,
+      Token leftParenthesis,
+      ExpressionImpl condition,
+      Token rightParenthesis,
+      CollectionElementImpl thenElement,
+      Token elseKeyword,
+      CollectionElementImpl elseElement) {
+    this.ifKeyword = ifKeyword;
+    this.leftParenthesis = leftParenthesis;
+    _condition = _becomeParentOf(condition);
+    this.rightParenthesis = rightParenthesis;
+    _thenElement = _becomeParentOf(thenElement);
+    this.elseKeyword = elseKeyword;
+    _elseElement = _becomeParentOf(elseElement);
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..addAll(super.childEntities)
+    ..add(_thenElement)
+    ..add(_elseElement);
+
+  @override
+  CollectionElement get elseElement => _elseElement;
+
+  set elseElement(CollectionElement element) {
+    _elseElement = _becomeParentOf(element as CollectionElementImpl);
+  }
+
+  @override
+  Token get endToken => _elseElement?.endToken ?? _thenElement.endToken;
+
+  @override
+  CollectionElement get thenElement => _thenElement;
+
+  set thenElement(CollectionElement element) {
+    _thenElement = _becomeParentOf(element as CollectionElementImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitIfElement(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _thenElement?.accept(visitor);
+    _elseElement?.accept(visitor);
+  }
+}
+
+mixin IfMixin on AstNodeImpl {
+  Token ifKeyword;
+
+  Token leftParenthesis;
+
+  /**
+   * The condition used to determine which of the branches is executed next.
+   */
+  ExpressionImpl _condition;
+
+  Token rightParenthesis;
+
+  Token elseKeyword;
+
+  @override
+  Token get beginToken => ifKeyword;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(ifKeyword)
+    ..add(leftParenthesis)
+    ..add(_condition)
+    ..add(rightParenthesis)
+    ..add(elseKeyword);
+
+  Expression get condition => _condition;
+
+  void set condition(Expression expression) {
+    _condition = _becomeParentOf(expression as ExpressionImpl);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _condition?.accept(visitor);
+  }
 }
 
 /**
@@ -7277,7 +7807,81 @@ class LibraryIdentifierImpl extends IdentifierImpl
  * A list literal.
  *
  *    listLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] '>')?
+ *        '[' ([CollectionLiteralElement] ','?)? ']'
+ *
+ * This is the class that is used to represent a list literal when either the
+ * 'control-flow-collections' or 'spread-collections' experiments are enabled.
+ * If neither of those experiments are enabled, then [ListLiteral] will be used.
+ */
+class ListLiteral2Impl extends TypedLiteralImpl implements ListLiteral2 {
+  @override
+  Token leftBracket;
+
+  /**
+   * The elements used to compute the elements of the list.
+   */
+  NodeList<CollectionElement> _elements;
+
+  @override
+  Token rightBracket;
+
+  /**
+   * Initialize a newly created list literal. The [constKeyword] can be `null`
+   * if the literal is not a constant. The [typeArguments] can be `null` if no
+   * type arguments were declared. The list of [elements] can be `null` if the
+   * list is empty.
+   */
+  ListLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      this.leftBracket, List<CollectionElement> elements, this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _elements = new NodeListImpl<CollectionElement>(this, elements);
+  }
+
+  @override
+  Token get beginToken {
+    if (constKeyword != null) {
+      return constKeyword;
+    }
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
+    }
+    return leftBracket;
+  }
+
+  @override
+  // TODO(paulberry): add commas.
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(leftBracket)
+    ..addAll(_elements)
+    ..add(rightBracket);
+
+  @override
+  NodeList<CollectionElement> get elements => _elements;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral2(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _elements.accept(visitor);
+  }
+}
+
+/**
+ * A list literal.
+ *
+ *    listLiteral ::=
  *        'const'? ('<' [TypeName] '>')? '[' ([Expression] ','?)? ']'
+ *
+ * This is the class that is used to represent a list literal when neither the
+ * 'control-flow-collections' nor 'spread-collections' experiments are enabled.
+ * If either of those experiments are enabled, then [ListLiteral2] will be used.
  */
 class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   /**
@@ -7382,12 +7986,82 @@ class LocalVariableInfo {
 }
 
 /**
+ * A literal map.
+ *
+ *    mapLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] (',' [TypeAnnotation])* '>')?
+ *        '{' ([MapElement] (',' [MapElement])* ','?)? '}'
+ *
+ * This is the class that is used to represent a map literal when either the
+ * 'control-flow-collections' or 'spread-collections' experiments are enabled.
+ * If neither of those experiments are enabled, then [MapLiteral] will be used.
+ */
+class MapLiteral2Impl extends TypedLiteralImpl implements MapLiteral2 {
+  @override
+  Token leftBracket;
+
+  /**
+   * The entries in the map.
+   */
+  NodeList<CollectionElement> _entries;
+
+  @override
+  Token rightBracket;
+
+  /**
+   * Initialize a newly created map literal. The [constKeyword] can be `null` if
+   * the literal is not a constant. The [typeArguments] can be `null` if no type
+   * arguments were declared. The [entries] can be `null` if the map is empty.
+   */
+  MapLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      this.leftBracket, List<CollectionElement> entries, this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _entries = new NodeListImpl<CollectionElement>(this, entries);
+  }
+
+  @override
+  Token get beginToken {
+    if (constKeyword != null) {
+      return constKeyword;
+    }
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
+    }
+    return leftBracket;
+  }
+
+  @override
+  // TODO(paulberry): add commas.
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(leftBracket)
+    ..addAll(entries)
+    ..add(rightBracket);
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  NodeList<CollectionElement> get entries => _entries;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral2(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _entries.accept(visitor);
+  }
+}
+
+/**
  * A single key/value pair in a map literal.
  *
  *    mapLiteralEntry ::=
  *        [Expression] ':' [Expression]
  */
-class MapLiteralEntryImpl extends AstNodeImpl implements MapLiteralEntry {
+class MapLiteralEntryImpl extends CollectionElementImpl
+    implements MapLiteralEntry {
   /**
    * The expression computing the key with which the value will be associated.
    */
@@ -9507,8 +10181,82 @@ class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
  *
  *    setLiteral ::=
  *        'const'? ('<' [TypeAnnotation] '>')?
+ *        '{' [CollectionElement] (',' [Expression])* ','? '}'
+ *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
+ *
+ * This is the class that is used to represent a set literal when either the
+ * 'control-flow-collections' or 'spread-collections' experiments are enabled.
+ * If neither of those experiments are enabled, then [SetLiteral] will be used.
+ */
+class SetLiteral2Impl extends TypedLiteralImpl implements SetLiteral2 {
+  @override
+  Token leftBracket;
+
+  /**
+   * The elements in the set.
+   */
+  NodeList<CollectionElement> _elements;
+
+  @override
+  Token rightBracket;
+
+  /**
+   * Initialize a newly created set literal. The [constKeyword] can be `null` if
+   * the literal is not a constant. The [typeArguments] can be `null` if no type
+   * arguments were declared. The [elements] can be `null` if the set is empty.
+   */
+  SetLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      this.leftBracket, List<CollectionElement> elements, this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _elements = new NodeListImpl<CollectionElement>(this, elements);
+  }
+
+  @override
+  Token get beginToken {
+    if (constKeyword != null) {
+      return constKeyword;
+    }
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
+    }
+    return leftBracket;
+  }
+
+  @override
+  // TODO(paulberry): add commas.
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(leftBracket)
+    ..addAll(elements)
+    ..add(rightBracket);
+
+  @override
+  NodeList<CollectionElement> get elements => _elements;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral2(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _elements.accept(visitor);
+  }
+}
+
+/**
+ * A literal set.
+ *
+ *    setLiteral ::=
+ *        'const'? ('<' [TypeAnnotation] '>')?
  *        '{' [Expression] (',' [Expression])* ','? '}'
  *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
+ *
+ * This is the class that is used to represent a set literal when neither the
+ * 'control-flow-collections' nor 'spread-collections' experiments are enabled.
+ * If either of those experiments are enabled, then [SetLiteral2] will be used.
  */
 class SetLiteralImpl extends TypedLiteralImpl implements SetLiteral {
   /**
@@ -9998,6 +10746,44 @@ class SimpleStringLiteralImpl extends SingleStringLiteralImpl
  */
 abstract class SingleStringLiteralImpl extends StringLiteralImpl
     implements SingleStringLiteral {}
+
+class SpreadElementImpl extends AstNodeImpl
+    implements CollectionElementImpl, SpreadElement {
+  Token spreadOperator;
+
+  ExpressionImpl _expression;
+
+  SpreadElementImpl(this.spreadOperator, ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
+
+  @override
+  Token get beginToken => spreadOperator;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities =>
+      new ChildEntities()..add(spreadOperator)..add(_expression);
+
+  @override
+  Token get endToken => _expression.endToken;
+
+  @override
+  Expression get expression => _expression;
+
+  set expression(Expression expression) {
+    _expression = _becomeParentOf(expression as ExpressionImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitSpreadElement(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _expression?.accept(visitor);
+  }
+}
 
 /**
  * A node that represents a statement.

@@ -155,8 +155,9 @@ DeoptContext::~DeoptContext() {
   delete[] deferred_objects_;
   deferred_objects_ = NULL;
   deferred_objects_count_ = 0;
-#ifndef PRODUCT
-  if (FLAG_support_timeline && (deopt_start_micros_ != 0)) {
+
+#if defined(SUPPORT_TIMELINE)
+  if (deopt_start_micros_ != 0) {
     TimelineStream* compiler_stream = Timeline::GetCompilerStream();
     ASSERT(compiler_stream != NULL);
     if (compiler_stream->enabled()) {
@@ -1056,12 +1057,12 @@ DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone,
       materializations_() {}
 
 intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
-  return assembler_->object_pool_wrapper().FindObject(obj);
+  return assembler_->object_pool_builder().FindObject(obj);
 }
 
 intptr_t DeoptInfoBuilder::CalculateStackIndex(
     const Location& source_loc) const {
-  intptr_t index = -compiler_frame_layout.VariableIndexForFrameSlot(
+  intptr_t index = -compiler::target::frame_layout.VariableIndexForFrameSlot(
       source_loc.stack_index());
   return index < 0 ? index + num_args_
                    : index + num_args_ + kDartFrameFixedSize;

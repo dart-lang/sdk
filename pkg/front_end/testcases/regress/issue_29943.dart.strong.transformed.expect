@@ -1,4 +1,11 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29943.dart:6:5: Error: Expected an identifier, but got '('.
+//   x.(null);
+//     ^
+//
 import self as self;
 
 static method bad() → dynamic {

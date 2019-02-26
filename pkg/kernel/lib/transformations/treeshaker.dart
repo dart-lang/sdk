@@ -977,7 +977,7 @@ class _TreeShakerVisitor extends RecursiveVisitor {
 
   @override
   visitInstanceConstant(InstanceConstant node) {
-    shaker._addInstantiatedClass(node.klass);
+    shaker._addInstantiatedClass(node.classNode);
     super.visitInstanceConstant(node);
   }
 

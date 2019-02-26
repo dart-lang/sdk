@@ -105,7 +105,12 @@ const _MockSdkLibrary _LIB_COLLECTION = const _MockSdkLibrary(
 library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {}
-abstract class LinkedHashMap<K, V> implements Map<K, V> {}
+abstract class LinkedHashMap<K, V> implements Map<K, V> {
+  factory LinkedHashMap(
+      {bool equals(K key1, K key2),
+      int hashCode(K key),
+      bool isValidKey(potentialKey)}) => null;
+}
 abstract class HashSet<E> implements Set<E> {}
 abstract class LinkedHashSet<E> implements Set<E> {}
 ''');
@@ -235,6 +240,8 @@ abstract class Iterable<E> {
 
   List<E> toList();
 
+  Set<E> toSet();
+
   Iterable<E> where(bool test(E element));
 }
 
@@ -259,6 +266,9 @@ class List<E> implements Iterable<E> {
 }
 
 class Map<K, V> {
+  factory Map() => {}
+  factory Map.fromIterable(Iterable iterable,
+      {K key(element), V value(element)}) => {}
   Iterable<K> get keys => null;
   int get length => 0;
   Iterable<V> get values => null;
@@ -312,6 +322,10 @@ abstract class RegExp implements Pattern {
 }
 
 abstract class Set<E> implements Iterable<E> {
+  factory Set() => null;
+  factory Set.identity() => null;
+  factory Set.from(Iterable elements) => null;
+  factory Set.of(Iterable<E> elements) => null;
   Set<R> cast<R>();
 }
 
@@ -435,6 +449,7 @@ T max<T extends num>(T a, T b) => null;
 external double cos(num radians);
 external double sin(num radians);
 external double sqrt(num radians);
+external double tan(num radians);
 class Random {
   bool nextBool() => true;
   double nextDouble() => 2.0;

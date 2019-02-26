@@ -19,6 +19,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'domain_completion_util.dart';
+import 'mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -251,7 +252,7 @@ class A {
 
   test_import_uri_with_trailing() {
     final filePath = '/project/bin/testA.dart';
-    final incompleteImportText = convertAbsolutePathToUri('/project/bin/t');
+    final incompleteImportText = toUriStr('/project/bin/t');
     newFile(filePath, content: 'library libA;');
     addTestFile('''
     import "$incompleteImportText^.dart";
@@ -260,8 +261,7 @@ class A {
       expect(replacementOffset,
           equals(completionOffset - incompleteImportText.length));
       expect(replacementLength, equals(5 + incompleteImportText.length));
-      assertHasResult(
-          CompletionSuggestionKind.IMPORT, convertAbsolutePathToUri(filePath));
+      assertHasResult(CompletionSuggestionKind.IMPORT, toUriStr(filePath));
       assertNoResult('test');
     });
   }
@@ -509,7 +509,7 @@ class A {
   foo(bar) => 0;''');
     addTestFile('''
   library libA;
-  part "${convertAbsolutePathToUri('/testA.dart')}";
+  part "${toUriStr('/testA.dart')}";
   import "dart:math";
   /// The [^]
   main(aaa, bbb) {}
@@ -546,6 +546,27 @@ class B extends A {
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
     });
+  }
+
+  test_invalidFilePathFormat_notAbsolute() async {
+    var request =
+        new CompletionGetSuggestionsParams('test.dart', 0).toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  test_invalidFilePathFormat_notNormalized() async {
+    var request = new CompletionGetSuggestionsParams(
+            convertPath('/foo/../bar/test.dart'), 0)
+        .toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
   }
 
   test_invocation() {

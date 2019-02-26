@@ -7,13 +7,13 @@
 
 #include "platform/allocation.h"
 #include "platform/assert.h"
-#include "vm/base_isolate.h"
 #include "vm/globals.h"
 
 namespace dart {
 
 // Forward declarations.
 class ThreadState;
+class Zone;
 
 // Stack resources subclass from this base class. The VM will ensure that the
 // destructors of these objects are called before the stack is unwound past the

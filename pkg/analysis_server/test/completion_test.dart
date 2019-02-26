@@ -163,19 +163,13 @@ interface A<X> default B<X extends !1List!2> {}''',
         <String>["1+DateTime", "2+List"],
         failingTests: '12');
 
-    buildTests(
-        'testCommentSnippets030',
-        '''
+    buildTests('testCommentSnippets030', '''
 class Bar<T extends Foo> {const Bar(!1T!2 k);T!3 m(T!4 a, T!5 b){}final T!6 f = null;}''',
-        <String>["1+T", "2+T", "3+T", "4+T", "5+T", "6+T"],
-        failingTests: '123456');
+        <String>["1+T", "2+T", "3+T", "4+T", "5+T", "6+T"]);
 
-    buildTests(
-        'testCommentSnippets031',
-        '''
+    buildTests('testCommentSnippets031', '''
 class Bar<T extends Foo> {m(x){if (x is !1) return;if (x is!!!2)}}''',
-        <String>["1+Bar", "1+T", "2+T", "2+Bar"],
-        failingTests: '12');
+        <String>["1+Bar", "1+T", "2+T", "2+Bar"]);
 
     buildTests(
         'testCommentSnippets032',

@@ -3,6 +3,8 @@ import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
 
+import "dart:async";
+
 static method test() → dynamic {
   asy::Future<core::int> f;
   asy::Future<core::List<core::int>> b = f.{asy::Future::then}<core::List<dynamic>>((core::int x) → core::List<dynamic> => <dynamic>[]).{asy::Future::whenComplete}(() → core::Null {}) as{TypeError} asy::Future<core::List<core::int>>;

@@ -102,21 +102,21 @@ const char* CanonicalFunction(const char* func);
     }                                                                          \
   } while (0)
 
-#ifndef PRODUCT
+#ifdef SUPPORT_TIMELINE
 #define API_TIMELINE_DURATION(thread)                                          \
-  TimelineDurationScope tds(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
+  TimelineDurationScope api_tds(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
 #define API_TIMELINE_DURATION_BASIC(thread)                                    \
   API_TIMELINE_DURATION(thread);                                               \
-  tds.SetNumArguments(1);                                                      \
-  tds.CopyArgument(0, "mode", "basic");
+  api_tds.SetNumArguments(1);                                                  \
+  api_tds.CopyArgument(0, "mode", "basic");
 
 #define API_TIMELINE_BEGIN_END(thread)                                         \
-  TimelineBeginEndScope tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
+  TimelineBeginEndScope api_tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
 
 #define API_TIMELINE_BEGIN_END_BASIC(thread)                                   \
   API_TIMELINE_BEGIN_END(thread);                                              \
-  tbes.SetNumArguments(1);                                                     \
-  tbes.CopyArgument(0, "mode", "basic");
+  api_tbes.SetNumArguments(1);                                                 \
+  api_tbes.CopyArgument(0, "mode", "basic");
 #else
 #define API_TIMELINE_DURATION(thread)                                          \
   do {                                                                         \
@@ -293,6 +293,25 @@ class Api : AllStatic {
                                        Dart_WeakPersistentHandle retval);
 
   static RawString* GetEnvironmentValue(Thread* thread, const String& name);
+
+  static bool ffiEnabled() {
+    // dart:ffi is not implemented for the following configurations
+#if !defined(TARGET_ARCH_X64)
+    // https://github.com/dart-lang/sdk/issues/35774
+    return false;
+#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
+    // https://github.com/dart-lang/sdk/issues/35760 Arm32 && Android
+    // https://github.com/dart-lang/sdk/issues/35771 Windows
+    // https://github.com/dart-lang/sdk/issues/35772 Arm64
+    // https://github.com/dart-lang/sdk/issues/35773 DBC
+    return false;
+#else
+    // dart:ffi is also not implemented for precompiled in which case
+    // FLAG_enable_ffi is set to false by --precompilation.
+    // Once dart:ffi is supported on all targets, only users will set this flag
+    return FLAG_enable_ffi;
+#endif
+  }
 
  private:
   static Dart_Handle InitNewHandle(Thread* thread, RawObject* raw);

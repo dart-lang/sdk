@@ -1,10 +1,11 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/issue_000047.dart:5:17: Error: Expected ')' before this.
 // typedef void T(C<C>);
 //                 ^
-
-library;
+//
 import self as self;
 
 typedef T = (dynamic) → void;

@@ -699,6 +699,7 @@ class LibraryHelper {
     kCanonicalName,
     kName,
     kSourceUriIndex,
+    kProblemsAsJson,
     kAnnotations,
     kDependencies,
     kAdditionalExports,
@@ -712,7 +713,8 @@ class LibraryHelper {
   };
 
   enum Flag {
-    kExternal = 1,
+    kExternal = 1 << 0,
+    kSynthetic = 1 << 1,
   };
 
   explicit LibraryHelper(KernelReaderHelper* helper)
@@ -728,6 +730,7 @@ class LibraryHelper {
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
+  bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
 
   uint8_t flags_;
   NameIndex canonical_name_;
@@ -1072,6 +1075,7 @@ class KernelReaderHelper {
   intptr_t data_program_offset_;
 
   friend class BytecodeMetadataHelper;
+  friend class BytecodeReaderHelper;
   friend class ClassHelper;
   friend class CallSiteAttributesMetadataHelper;
   friend class ConstantEvaluator;

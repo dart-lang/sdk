@@ -1,4 +1,6 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference/abstract_class_instantiation.dart:15:27: Warning: The class 'C' is abstract and can't be instantiated.
 //   var /*@type=C*/ x = new C();
@@ -11,8 +13,7 @@
 // pkg/front_end/testcases/inference/abstract_class_instantiation.dart:17:48: Warning: The class 'D' is abstract and can't be instantiated.
 //   D<List<int>> z = new /*@typeArgs=List<int>*/ D(/*@typeArgs=int*/ []);
 //                                                ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 

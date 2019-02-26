@@ -22,26 +22,14 @@ void VirtualMemory::Init() {
   page_size_ = info.dwPageSize;
 }
 
-VirtualMemory* VirtualMemory::Allocate(intptr_t size,
-                                       bool is_executable,
-                                       const char* name) {
-  ASSERT(Utils::IsAligned(size, page_size_));
-  int prot = is_executable ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
-  void* address = VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, prot);
-  if (address == NULL) {
-    return NULL;
-  }
-  MemoryRegion region(address, size);
-  return new VirtualMemory(region, region);
-}
-
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
                                               const char* name) {
   ASSERT(Utils::IsAligned(size, page_size_));
+  ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, page_size_));
-  intptr_t reserved_size = size + alignment;
+  intptr_t reserved_size = size + alignment - page_size_;
   int prot = is_executable ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
   void* address = VirtualAlloc(NULL, reserved_size, MEM_RESERVE, prot);
   if (address == NULL) {
@@ -74,12 +62,11 @@ VirtualMemory::~VirtualMemory() {
   }
 }
 
-bool VirtualMemory::FreeSubSegment(void* address,
+void VirtualMemory::FreeSubSegment(void* address,
                                    intptr_t size) {
   if (VirtualFree(address, size, MEM_DECOMMIT) == 0) {
     FATAL1("VirtualFree failed: Error code %d\n", GetLastError());
   }
-  return true;
 }
 
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {

@@ -1,6 +1,60 @@
+## 0.35.1
+* The new "set literals" language feature is now enabled by default.
+* The dev_dependency analysis_tool was created so that clients do not have to
+  depend on code that is used internally in the analyzer at development time.
+* The `InheritanceManager` class is now deprecated.  The new
+  `InheritanceManager2` class now supports accessing inherited interface/class
+  maps.
+* Added quick assists to support set literals.
+* Added the ability for linter tests to drive the analyzer using custom analysis
+  options.
+* Updated support in the AST structure for the control_flow_collections and
+  spread_collections experiments.  The new AST structures are still in
+  development.
+* Bug fixes: #34437, #35127, #35141, #35306, #35621.
+
+## 0.35.0
+* Added support in the AST structure for the control_flow_collections and
+  spread_collections experiments. This includes adding new visitor methods to
+  `AstVisitor`, which will need to be implemented by any classes that implement
+  `AstVisitor` directly. Concrete implementations were added to other visitor
+  classes (such as `RecursiveAstVisitor`) so that clients that extend those
+  other classes will not be impacted.
+* Removed `EMPTY_LIST` constants.  Please use `const <...>[]` instead.
+* Disabled support for the task model.  Please use the new `AnalysisSession`
+  API.
+* Removed `StrongTypeSystemImpl`.  Please use `Dart2TypeSystem` instead.
+* Made ERROR the default severity for StaticWarningCode.  We no longer need to
+  promote warnings to errors in "strong mode" because strong mode is the only
+  mode.
+* Added exact type analysis for set literals (#35742).
+* Bug fixes: #35305, #35750.
+
+## 0.34.3
+* Non-breaking AST changes in support for the control_flow_collections and
+  spread_collections experiments.  Clients who wish to begin adding support for
+  these experiments can depend on this release of the analyzer and begin writing
+  visit methods.  The visit methods won't be added to the AstVisitor base class
+  until 0.35.0.
+* Bug fixes: #35551, #35708, #35723.
+
 ## 0.34.2
 * Removed support for the `@checked` annotation.  Please use the `covariant`
-  keyword instead.
+  keyword instead (#28797).
+* Did additional work on the new set_literals and constant_update_2018 features.
+* Began adding a string representation of initializer expressions to summaries
+  (#35418).
+* Added a pub aware workspace so that pub packages can be handled properly.
+* Added logging in an effort to track down #35551.
+* Split off DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE from DEPRECATED_MEMBER_USE
+  (#30084).
+* Removed the unused hint code INVALID_ASSIGNMENT.
+* Added a hint enforcing the contract of `@literal`:
+  NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR.
+* Added a hint INVALID_LITERAL_ANNOTATION (#34259).
+* Fixed handling of @immutable on mixins.
+* Did work on @sealed annotation for classes and mixins.
+* Bug fixes: #25860, #29394, #33930, #35090, #35441, #35458, #35467, #35548.
 
 ## 0.34.1
 * Added logic to report a hint if a deprecated lint is specified in the user's

@@ -3,6 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "dart:typed_data" as typ;
 
+import "dart:typed_data";
+
 class _Vector extends core::Object {
 [@vm.inferred-type.metadata=dart.core::_Smi] [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false]  final field core::int _offset;
 [@vm.inferred-type.metadata=dart.core::_Smi] [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false]  final field core::int _length;

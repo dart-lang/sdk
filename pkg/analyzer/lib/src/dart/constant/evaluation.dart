@@ -1360,6 +1360,30 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
+  DartObjectImpl visitListLiteral2(ListLiteral2 node) {
+    if (!node.isConst) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
+      return null;
+    }
+    bool errorOccurred = false;
+    List<DartObjectImpl> list = [];
+    for (CollectionElement element in node.elements) {
+      errorOccurred = errorOccurred | _addElementsToList(list, element);
+    }
+    if (errorOccurred) {
+      return null;
+    }
+    DartType nodeType = node.staticType;
+    DartType elementType =
+        nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
+            ? nodeType.typeArguments[0]
+            : _typeProvider.dynamicType;
+    InterfaceType listType = _typeProvider.listType.instantiate([elementType]);
+    return new DartObjectImpl(listType, new ListState(list));
+  }
+
+  @override
   DartObjectImpl visitMapLiteral(MapLiteral node) {
     if (!node.isConst) {
       _errorReporter.reportErrorForNode(
@@ -1384,6 +1408,36 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     DartType keyType = _typeProvider.dynamicType;
     DartType valueType = _typeProvider.dynamicType;
     var nodeType = node.staticType;
+    if (nodeType is InterfaceType) {
+      var typeArguments = nodeType.typeArguments;
+      if (typeArguments.length >= 2) {
+        keyType = typeArguments[0];
+        valueType = typeArguments[1];
+      }
+    }
+    InterfaceType mapType =
+        _typeProvider.mapType.instantiate([keyType, valueType]);
+    return new DartObjectImpl(mapType, new MapState(map));
+  }
+
+  @override
+  DartObjectImpl visitMapLiteral2(MapLiteral2 node) {
+    if (!node.isConst) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node);
+      return null;
+    }
+    Map<DartObjectImpl, DartObjectImpl> map = {};
+    bool errorOccurred = false;
+    for (CollectionElement element in node.entries) {
+      errorOccurred = errorOccurred | _addElementsToMap(map, element);
+    }
+    if (errorOccurred) {
+      return null;
+    }
+    DartType keyType = _typeProvider.dynamicType;
+    DartType valueType = _typeProvider.dynamicType;
+    DartType nodeType = node.staticType;
     if (nodeType is InterfaceType) {
       var typeArguments = nodeType.typeArguments;
       if (typeArguments.length >= 2) {
@@ -1523,6 +1577,30 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
+  DartObjectImpl visitSetLiteral2(SetLiteral2 node) {
+    if (!node.isConst) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL, node);
+      return null;
+    }
+    bool errorOccurred = false;
+    Set<DartObjectImpl> set = new Set<DartObjectImpl>();
+    for (CollectionElement element in node.elements) {
+      errorOccurred = errorOccurred | _addElementsToSet(set, element);
+    }
+    if (errorOccurred) {
+      return null;
+    }
+    DartType nodeType = node.staticType;
+    DartType elementType =
+        nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
+            ? nodeType.typeArguments[0]
+            : _typeProvider.dynamicType;
+    InterfaceType setType = _typeProvider.setType.instantiate([elementType]);
+    return new DartObjectImpl(setType, new SetState(set));
+  }
+
+  @override
   DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {
     if (_lexicalEnvironment != null &&
         _lexicalEnvironment.containsKey(node.name)) {
@@ -1575,6 +1653,119 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitTypeName(TypeName node) => visitTypeAnnotation(node);
+
+  /**
+   * Add the entries produced by evaluating the given collection [element] to
+   * the given [list]. Return `true` if the evaluation of one or more of the
+   * elements failed.
+   */
+  bool _addElementsToList(List<DartObject> list, CollectionElement element) {
+    if (element is IfElement) {
+      DartObjectImpl conditionResult = element.condition.accept(this);
+      bool conditionValue = conditionResult?.toBoolValue();
+      if (conditionValue == null) {
+        return true;
+      } else if (conditionValue) {
+        return _addElementsToList(list, element.thenElement);
+      } else if (element.elseElement != null) {
+        return _addElementsToList(list, element.elseElement);
+      }
+      return false;
+    } else if (element is Expression) {
+      DartObjectImpl value = element.accept(this);
+      if (value == null) {
+        return true;
+      }
+      list.add(value);
+      return false;
+    } else if (element is SpreadElement) {
+      DartObjectImpl elementResult = element.expression.accept(this);
+      List<DartObject> value = elementResult?.toListValue();
+      if (value == null) {
+        return true;
+      }
+      list.addAll(value);
+      return false;
+    }
+    // This error should have been reported elsewhere.
+    return true;
+  }
+
+  /**
+   * Add the entries produced by evaluating the given map [element] to the given
+   * [map]. Return `true` if the evaluation of one or more of the entries
+   * failed.
+   */
+  bool _addElementsToMap(
+      Map<DartObjectImpl, DartObjectImpl> map, CollectionElement element) {
+    if (element is IfElement) {
+      DartObjectImpl conditionResult = element.condition.accept(this);
+      bool conditionValue = conditionResult?.toBoolValue();
+      if (conditionValue == null) {
+        return true;
+      } else if (conditionValue) {
+        return _addElementsToMap(map, element.thenElement);
+      } else if (element.elseElement != null) {
+        return _addElementsToMap(map, element.elseElement);
+      }
+      return false;
+    } else if (element is MapLiteralEntry) {
+      DartObjectImpl keyResult = element.key.accept(this);
+      DartObjectImpl valueResult = element.value.accept(this);
+      if (keyResult == null || valueResult == null) {
+        return true;
+      }
+      map[keyResult] = valueResult;
+      return false;
+    } else if (element is SpreadElement) {
+      DartObjectImpl elementResult = element.expression.accept(this);
+      Map<DartObject, DartObject> value = elementResult?.toMapValue();
+      if (value == null) {
+        return true;
+      }
+      map.addAll(value);
+      return false;
+    }
+    // This error should have been reported elsewhere.
+    return true;
+  }
+
+  /**
+   * Add the entries produced by evaluating the given collection [element] to
+   * the given [set]. Return `true` if the evaluation of one or more of the
+   * elements failed.
+   */
+  bool _addElementsToSet(Set<DartObject> set, CollectionElement element) {
+    if (element is IfElement) {
+      DartObjectImpl conditionResult = element.condition.accept(this);
+      bool conditionValue = conditionResult?.toBoolValue();
+      if (conditionValue == null) {
+        return true;
+      } else if (conditionValue) {
+        return _addElementsToSet(set, element.thenElement);
+      } else if (element.elseElement != null) {
+        return _addElementsToSet(set, element.elseElement);
+      }
+      return false;
+    } else if (element is Expression) {
+      DartObjectImpl value = element.accept(this);
+      if (value == null) {
+        return true;
+      }
+      set.add(value);
+      return false;
+    } else if (element is SpreadElement) {
+      DartObjectImpl elementResult = element.expression.accept(this);
+      Set<DartObject> value = elementResult?.toSetValue();
+      if (value == null) {
+        return true;
+      }
+      set.addAll(value);
+      return false;
+    }
+    // This error should have been reported elsewhere.
+    return true;
+  }
 
   /**
    * Create an error associated with the given [node]. The error will have the

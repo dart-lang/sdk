@@ -30,6 +30,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
+import '../../util/element_type_matchers.dart';
 import '../abstract_single_unit.dart';
 import 'element_text.dart';
 import 'test_strategies.dart';
@@ -9671,7 +9672,7 @@ mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
     compareVariableElements(resynthesized, original, desc);
     compareParameterElementLists(
         resynthesized.parameters, original.parameters, desc);
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     expect(resynthesized.parameterKind, original.parameterKind, reason: desc);
     expect(resynthesized.isInitializingFormal, original.isInitializingFormal,
         reason: desc);
@@ -9796,7 +9797,7 @@ mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
           reason: desc);
       if (original.element.enclosingElement == null &&
           original.element is FunctionElement) {
-        expect(resynthesized.element, new TypeMatcher<FunctionElement>());
+        expect(resynthesized.element, isFunctionElement);
         expect(resynthesized.element.enclosingElement, isNull, reason: desc);
         compareFunctionElements(
             resynthesized.element, original.element, '$desc.element',

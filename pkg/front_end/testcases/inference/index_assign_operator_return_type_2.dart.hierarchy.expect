@@ -1,0 +1,87 @@
+Object:
+  superclasses:
+  interfaces:
+  classMembers:
+    Object._haveSameRuntimeType
+    Object.toString
+    Object.runtimeType
+    Object._toString
+    Object._simpleInstanceOf
+    Object._hashCodeRnd
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._objectHashCode
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+C:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    C.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+I:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    I.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+D:
+  superclasses:
+    Object
+      -> C
+  interfaces: I
+  classMembers:
+    D.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    D.[]=
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:

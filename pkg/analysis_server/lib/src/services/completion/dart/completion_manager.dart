@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show AbortCompletion, CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -32,13 +33,13 @@ import 'package:analysis_server/src/services/completion/dart/variable_name_contr
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -54,6 +55,22 @@ class DartCompletionManager implements CompletionContributor {
    * to maintain state between calls to [DartContributionSorter#sort(...)].
    */
   static DartContributionSorter contributionSorter = new CommonUsageSorter();
+
+  /// If not `null`, then instead of using [ImportedReferenceContributor],
+  /// fill this set with kinds of elements that are applicable at the
+  /// completion location, so should be suggested from available suggestion
+  /// sets.
+  final Set<protocol.ElementKind> includedSuggestionKinds;
+
+  /// If [includedSuggestionKinds] is not null, must be also not `null`, and
+  /// will be filled with tags for suggestions that should be given higher
+  /// relevance than other included suggestions.
+  final List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
+
+  DartCompletionManager({
+    this.includedSuggestionKinds,
+    this.includedSuggestionRelevanceTags,
+  });
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
@@ -88,7 +105,6 @@ class DartCompletionManager implements CompletionContributor {
       new ArgListContributor(),
       new CombinatorContributor(),
       new FieldFormalContributor(),
-      new ImportedReferenceContributor(),
       new InheritedReferenceContributor(),
       new KeywordContributor(),
       new LabelContributor(),
@@ -104,6 +120,14 @@ class DartCompletionManager implements CompletionContributor {
       new UriContributor(),
       new VariableNameContributor()
     ];
+
+    if (includedSuggestionKinds != null) {
+      _addIncludedSuggestionKinds(dartRequest);
+      _addIncludedSuggestionRelevanceTags(dartRequest);
+    } else {
+      contributors.add(new ImportedReferenceContributor());
+    }
+
     try {
       for (DartCompletionContributor contributor in contributors) {
         String contributorTag =
@@ -151,6 +175,79 @@ class DartCompletionManager implements CompletionContributor {
     performance.logElapseTime(SORT_TAG);
     request.checkAborted();
     return suggestions;
+  }
+
+  void _addIncludedSuggestionKinds(DartCompletionRequestImpl request) {
+    var opType = request.opType;
+
+    if (!opType.includeIdentifiers) return;
+
+    var kinds = includedSuggestionKinds;
+    if (kinds != null) {
+      if (opType.includeTypeNameSuggestions) {
+        kinds.add(protocol.ElementKind.CLASS);
+        kinds.add(protocol.ElementKind.CLASS_TYPE_ALIAS);
+        kinds.add(protocol.ElementKind.ENUM);
+        kinds.add(protocol.ElementKind.FUNCTION_TYPE_ALIAS);
+        kinds.add(protocol.ElementKind.MIXIN);
+      }
+      if (opType.includeReturnValueSuggestions) {
+        kinds.add(protocol.ElementKind.ENUM_CONSTANT);
+        kinds.add(protocol.ElementKind.FUNCTION);
+        kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
+      }
+    }
+  }
+
+  void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
+    var target = request.target;
+
+    void addTypeTag(DartType type) {
+      if (type is InterfaceType) {
+        var element = type.element;
+        var tag = '${element.librarySource.uri}::${element.name}';
+        if (element.isEnum) {
+          includedSuggestionRelevanceTags.add(
+            IncludedSuggestionRelevanceTag(
+              tag,
+              DART_RELEVANCE_BOOST_AVAILABLE_ENUM,
+            ),
+          );
+        } else {
+          includedSuggestionRelevanceTags.add(
+            IncludedSuggestionRelevanceTag(
+              tag,
+              DART_RELEVANCE_BOOST_AVAILABLE_DECLARATION,
+            ),
+          );
+        }
+      }
+    }
+
+    var parameter = target.parameterElement;
+    if (parameter != null) {
+      addTypeTag(parameter.type);
+    }
+
+    var containingNode = target.containingNode;
+
+    if (containingNode is AssignmentExpression &&
+        containingNode.operator.type == TokenType.EQ &&
+        target.offset >= containingNode.operator.end) {
+      addTypeTag(containingNode.leftHandSide.staticType);
+    }
+
+    if (containingNode is ListLiteral &&
+        target.offset >= containingNode.leftBracket.end &&
+        target.offset <= containingNode.rightBracket.offset) {
+      var type = containingNode.staticType;
+      if (type is InterfaceType) {
+        var typeArguments = type.typeArguments;
+        if (typeArguments.isNotEmpty) {
+          addTypeTag(typeArguments[0]);
+        }
+      }
+    }
   }
 
   static List<String> _ensureList(Map<String, List<String>> map, String key) {
@@ -303,8 +400,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
    * based on the given [request]. This method will throw [AbortCompletion]
    * if the completion request has been aborted.
    */
-  static Future<DartCompletionRequest> from(CompletionRequest request,
-      {ResultDescriptor resultDescriptor}) async {
+  static Future<DartCompletionRequest> from(CompletionRequest request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     request.checkAborted();

@@ -3,15 +3,15 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-Language/Classes/Abstract_Instance_Members/override_default_value_t01: MissingCompileTimeError # Issue 33995
-Language/Classes/Abstract_Instance_Members/override_default_value_t02: MissingCompileTimeError # Issue 33995
-Language/Classes/Abstract_Instance_Members/override_default_value_t03: MissingCompileTimeError # Issue 33995
-Language/Classes/Abstract_Instance_Members/override_default_value_t04: MissingCompileTimeError # Issue 33995
-Language/Classes/Abstract_Instance_Members/override_default_value_t05: MissingCompileTimeError # Issue 33995
+Language/Classes/Abstract_Instance_Members/override_default_value_t01: MissingCompileTimeError # https://github.com/dart-lang/co19/issues/234
+Language/Classes/Abstract_Instance_Members/override_default_value_t02: MissingCompileTimeError # https://github.com/dart-lang/co19/issues/234
+Language/Classes/Abstract_Instance_Members/override_default_value_t03: MissingCompileTimeError # https://github.com/dart-lang/co19/issues/234
+Language/Classes/Abstract_Instance_Members/override_default_value_t04: MissingCompileTimeError # https://github.com/dart-lang/co19/issues/234
+Language/Classes/Abstract_Instance_Members/override_default_value_t05: MissingCompileTimeError # https://github.com/dart-lang/co19/issues/234
 Language/Classes/Getters/type_object_t01: CompileTimeError # Issue 33995
 Language/Classes/Getters/type_object_t02: CompileTimeError # Issue 33995
-Language/Classes/Instance_Methods/override_different_default_values_t01: MissingCompileTimeError # Issue 33995
-Language/Classes/Instance_Methods/override_different_default_values_t02: MissingCompileTimeError # Issue 33995
+Language/Classes/Instance_Methods/override_different_default_values_t01: MissingCompileTimeError # https://github.com/dart-lang/co19/issues/234
+Language/Classes/Instance_Methods/override_different_default_values_t02: MissingCompileTimeError # https://github.com/dart-lang/co19/issues/234
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError # Invalid test, see #33237
 Language/Classes/method_definition_t06: MissingCompileTimeError # Please triage this failure
 Language/Enums/syntax_t08: CompileTimeError # Issue 33995

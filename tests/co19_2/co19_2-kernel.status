@@ -2,6 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dartk ]
+LanguageFeatures/Set-literals/semantics_A05_t02: RuntimeError
+LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
+
 [ $compiler == dartkp ]
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: DartkCrash
@@ -14,13 +18,25 @@ Language/Metadata/before_param_t09: DartkCrash
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError
 Language/Types/Interface_Types/subtype_t03: RuntimeError
 Language/Types/Interface_Types/subtype_t26: RuntimeError
+LanguageFeatures/Constant_update2018/CastOperator_A03_t01/none: RuntimeError
+LanguageFeatures/Constant_update2018/CastOperator_A03_t03/none: RuntimeError
+LanguageFeatures/Constant_update2018/EqualityOperator_A01_t01: RuntimeError
+LanguageFeatures/Constant_update2018/EqualityOperator_A01_t02: RuntimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t03/none: RuntimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t06/none: RuntimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t09/none: RuntimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t02: RuntimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t04: RuntimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05/none: RuntimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t06/none: RuntimeError
+LanguageFeatures/Set-literals/semantics_A05_t02: RuntimeError
+LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
 LanguageFeatures/Subtyping/static/generated/left_bottom_global_variable_A02_t01: DartkCrash
 LanguageFeatures/Subtyping/static/generated/left_promoted_variable_global_variable_A02_t01: DartkCrash
-LibTest/async/Stream/Stream.periodic_A02_t01: RuntimeError
 LibTest/collection/DoubleLinkedQueue/removeWhere_A02_t02: RuntimeError
 LibTest/core/StackOverflowError/stackTrace_A01_t02: RuntimeError
 LibTest/core/Uri/Uri.dataFromString_A01_t01: RuntimeError
-LibTest/core/double/round_A01_t03: RuntimeError
 LibTest/io/Cookie/Cookie_A01_t02: RuntimeError
 LibTest/io/File/openRead_A01_t04: RuntimeError
 LibTest/io/HttpClientRequest/addStream_A02_t02: RuntimeError
@@ -56,55 +72,8 @@ LibTest/isolate/ReceivePort/lastWhere_A01_t01: RuntimeError
 [ $compiler == fasta ]
 Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
-LanguageFeatures/Constant_update2018/*: Crash, Pass # Please triage these failures
-LanguageFeatures/Set-literals/constant_set_literals_A02_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/01: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/02: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/03: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/04: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/01: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/02: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/03: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A03_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/01: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/02: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/03: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/04: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/05: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/06: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/07: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/08: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/09: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/01: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/02: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/04: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/01: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/02: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/05: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/06: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/08: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/non_constant_set_literals_A01_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/non_constant_set_literals_A02_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/semantics_A04_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/semantics_A01_t01/01: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/semantics_A01_t01/02: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/semantics_A01_t01/09: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/semantics_A01_t01/10: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/semantics_A05_t01: Pass
-LanguageFeatures/Set-literals/semantics_A05_t05/01: MissingCompileTimeError # Exact types
-LanguageFeatures/Set-literals/semantics_A05_t05/02: MissingCompileTimeError # Exact types
-LanguageFeatures/Set-literals/semantics_A05_t05/03: MissingCompileTimeError # Exact types
-LanguageFeatures/Set-literals/set_literals_A01_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/set_literals_A02_t01: Pass # CompileTimeError on $fasta
-LanguageFeatures/Set-literals/set_literals_A04_t02/01: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/02: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/03: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/04: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/05: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/11: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/12: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/set_literals_A04_t02/13: MissingCompileTimeError # Issue 35608
-LanguageFeatures/Set-literals/syntax_compatibility_A01_t01: Pass # CompileTimeError on $fasta
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: Crash
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t04: Crash
 
 [ $runtime == vm ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow # Does many calls
@@ -122,18 +91,6 @@ LibTest/io/RawDatagramSocket/receive_A01_t01: Pass, Fail # Issue https://github.
 LibTest/io/RawDatagramSocket/timeout_A02_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
 LibTest/io/RawDatagramSocket/timeout_A06_t01: Pass, Fail # Next roll might fix it (see https://github.com/dart-lang/co19/commit/8b2e2be5bc3bb9fec41efec8ac6fc777e231d915)
 LibTest/io/RawDatagramSocket/where_A01_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/Stdin/first_A04_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/193
-LibTest/io/Stdin/last_A02_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/182
-LibTest/io/Stdout/add_A02_t03: Skip # https://github.com/dart-lang/co19/pull/204
-LibTest/io/Stdout/add_A02_t04: Skip # https://github.com/dart-lang/co19/pull/204
-LibTest/io/Stdout/add_A02_t05: Skip # https://github.com/dart-lang/co19/pull/204
-LibTest/io/Stdout/add_A02_t06: Skip # https://github.com/dart-lang/co19/pull/204
-LibTest/io/Stdout/add_A02_t07: Skip # https://github.com/dart-lang/co19/pull/204
-LibTest/io/Stdout/add_A02_t08: Skip # https://github.com/dart-lang/co19/pull/204
-LibTest/io/Stdout/add_A02_t09: Skip # https://github.com/dart-lang/co19/pull/204
-LibTest/io/Stdout/writeCharCode_A01_t03: Skip # https://github.com/dart-lang/co19/pull/204
-LibTest/io/Stdout/write_A01_t04: Skip # https://github.com/dart-lang/co19/pull/204
-LibTest/io/Stdout/write_A01_t05: Skip # https://github.com/dart-lang/co19/pull/204
 
 [ $fasta ]
 Language/Classes/Abstract_Instance_Members/override_default_value_t01: MissingCompileTimeError # Issue 34190
@@ -233,29 +190,78 @@ Language/Statements/Continue/control_transfer_t09: CompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError # Issue 34206
 Language/Statements/Try/catch_scope_t01: CompileTimeError
 Language/Types/Interface_Types/subtype_t30: CompileTimeError
-LanguageFeatures/Constant_update2018/CastOperator_A01_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/CastOperator_A02_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/CastOperator_A02_t02: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/CastOperator_A03_t01/none: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/CastOperator_A03_t02/none: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/NewOperators_A01_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/NewOperators_A01_t02: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t02: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t03: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t03: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t02: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t02: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t03/none: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t04/none: CompileTimeError # This feature is not implemented yet
+LanguageFeatures/Constant_update2018/CastOperator_A01_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/CastOperator_A02_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/CastOperator_A02_t02: CompileTimeError
+LanguageFeatures/Constant_update2018/CastOperator_A03_t02/none: CompileTimeError
+LanguageFeatures/Constant_update2018/CastOperator_A04_t01/none: CompileTimeError
+LanguageFeatures/Constant_update2018/CastOperator_A04_t02/none: CompileTimeError
+LanguageFeatures/Constant_update2018/EqualityOperator_A01_t03/none: CompileTimeError
+LanguageFeatures/Constant_update2018/EqualityOperator_A01_t04/none: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A01_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A01_t02: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t02: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t04: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t05: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t07: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t08: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t02/none: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t03: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t05/none: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t02/none: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t03: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t05/none: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t02: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t03/none: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t04/none: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t02: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t01/none: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t02/none: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t03/none: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t04/none: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t01/none: CompileTimeError
+LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t02/none: CompileTimeError
+LanguageFeatures/Control-flow-collections/scoping_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/scoping_A02_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_errors_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_errors_A02_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_errors_A03_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_errors_A04_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_errors_A05_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_errors_A06_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_errors_A07_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_errors_A08_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_errors_A09_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_errors_A10_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_errors_A11_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/syntax_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/syntax_A01_t02: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/syntax_A01_t03: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/syntax_A02_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/syntax_A02_t02: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/syntax_A03_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/type_inference_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/type_inference_A02_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/type_inference_A03_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/type_inference_A04_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/type_inference_A05_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/type_inference_A06_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/type_inference_A07_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/type_inference_A08_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/type_promotion_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
+LanguageFeatures/Control-flow-collections/type_promotion_A01_t02: CompileTimeError, Crash, Pass # This feature is not implemented yet
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t01: Crash
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t02: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t03: Crash
@@ -286,6 +292,7 @@ LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/01: Cras
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/02: Crash, Pass
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/none: Crash
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t02/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t03/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t04/01: Crash, Pass
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t04/none: Crash, Pass
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t06/none: CompileTimeError
@@ -332,6 +339,7 @@ LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_typedef_l1_t05: Ru
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_typedef_l1_t06: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_FutureOr_l1_t02/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t02/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t03/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/02: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/03: MissingCompileTimeError
@@ -340,6 +348,7 @@ LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/05: MissingC
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/06: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/07: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t07/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t08/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/02: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/03: MissingCompileTimeError
@@ -347,22 +356,127 @@ LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/04: MissingC
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/05: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/06: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/07: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t04: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t10/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t01/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t02/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t03/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t04/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t05/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t06/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t07/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t08/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t09/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t10/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t11/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t12/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t13/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t14/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t15/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t16/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t17/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t18/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t19/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t20/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t01/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t02/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t03/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t04/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t05/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t12: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t13: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t06/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t07/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t08/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t09/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t10/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t11/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t12/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t13/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t14/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t15/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t16/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t17/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t18/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t19/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t20/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t01/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t02/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t03/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t05: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t04/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t05/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t06/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t07/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t08/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t09/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t10: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t11: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t12/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t13/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t14/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t15/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t16/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t17/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t18/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t19/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t20/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t01/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t02/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t03/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t04/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t05/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t05: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t04: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t06/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t07/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t08/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t09/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t10/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t11/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t12/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t13/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t14/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t15/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t16/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t17/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t18/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t19/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t20/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t01/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t02/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t03/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t04/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t05/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t06/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t07/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t08/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t09/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t10/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t11/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t12/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t13/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t14/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t15/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t16/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t17/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t18/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t19/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t20/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t01/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t02/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t03/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t04/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t05/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t06/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t07/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t08/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t09/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t10/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t11/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t12/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t13/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t14/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t15/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t16/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t17/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t18/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t19/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t20/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t01/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t02/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t06/none: CompileTimeError
@@ -378,6 +492,7 @@ LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t04/06: 
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t04/07: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t05/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t06/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t07/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/02: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/03: MissingCompileTimeError
@@ -385,25 +500,32 @@ LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/04: 
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/05: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/06: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/07: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/constant_set_literals_A03_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/constant_set_literals_A04_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t03: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/non_constant_set_literals_A01_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/non_constant_set_literals_A02_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/semantics_A04_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/semantics_A05_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/semantics_A05_t02: RuntimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/set_literals_A01_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/set_literals_A02_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/set_literals_A04_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/syntax_compatibility_A01_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t09/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t10/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t11/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t13/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t14/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t15/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t17/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t18/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t19/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t02/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t02/02: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t02/03: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t02/04: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t03/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t03/02: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t03/03: MissingCompileTimeError
+LanguageFeatures/Set-literals/exact_types_of_literals_A01_t03: CompileTimeError
+LanguageFeatures/Set-literals/semantics_A05_t01: CompileTimeError
+LanguageFeatures/Set-literals/set_literals_A04_t01: CompileTimeError
 LanguageFeatures/Simple-bounds/dynamic/class_FutureOr_l1_t02: CompileTimeError
-LanguageFeatures/Simple-bounds/static/class_FutureOr_l1_t02: CompileTimeError
+LanguageFeatures/Simple-bounds/static/class_FutureOr_l1_t02/none: CompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_FutureOr_l1_t02/none: CompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_l1_t07/none: CompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_l2_t02/none: CompileTimeError
+LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t04/01: MissingCompileTimeError
+LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t04/02: MissingCompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t10: CompileTimeError
 LanguageFeatures/Super-mixins/covariance_t03: MissingCompileTimeError # Issue 35111
 LanguageFeatures/Super-mixins/covariance_t06: MissingCompileTimeError # Issue 35111
@@ -415,9 +537,14 @@ LanguageFeatures/regression/34635_t02: CompileTimeError
 LanguageFeatures/regression/34635_t03: CompileTimeError
 LanguageFeatures/regression/34803_t01: Crash
 LanguageFeatures/regression/34803_t02: Crash
-LibTest/async/Future/Future_A01_t01: CompileTimeError
 
 [ $arch == simdbc64 && $compiler == dartk ]
+LanguageFeatures/Constant_update2018/NewOperators_A02_t01: Pass
+LanguageFeatures/Constant_update2018/NewOperators_A02_t02: Pass
+LanguageFeatures/Constant_update2018/NewOperators_A02_t04: Pass
+LanguageFeatures/Constant_update2018/NewOperators_A02_t05: Pass
+LanguageFeatures/Constant_update2018/NewOperators_A02_t07: Pass
+LanguageFeatures/Constant_update2018/NewOperators_A02_t08: Pass
 LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Issue http://dartbug.com/35242
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Issue http://dartbug.com/35242
 LibTest/core/List/List_class_A01_t02: Crash # Issue http://dartbug.com/35242
@@ -434,6 +561,7 @@ LibTest/io/HttpClientRequest/headers_A03_t01: RuntimeError, Pass
 LibTest/io/Stdout/writeCharCode_A01_t03: Timeout, Pass
 
 [ $arch == simdbc64 && ($compiler == dartk || $compiler == dartkb) ]
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: CompileTimeError
 LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout, Pass # https://github.com/dart-lang/sdk/issues/35316 as well?
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout, Pass # https://github.com/dart-lang/sdk/issues/35316 as well?
 LibTest/io/Link/renameSync_A02_t01: RuntimeError, Pass
@@ -498,6 +626,9 @@ LibTest/io/stderr/stderr_A01_t01: RuntimeError, Pass
 LibTest/isolate/Isolate/ping_A03_t02: RuntimeError, Pass
 LibTest/isolate/Isolate/removeErrorListener_A02_t01: Crash, Pass
 
+[ $arch != simdbc64 && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: CompileTimeError
+
 [ $compiler != dart2js && $runtime != vm && $fasta ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError # Issue 34191
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError # Issue 34191
@@ -515,6 +646,23 @@ Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t
 Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError # Issue 34192
 Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError # Issue 32557
 Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError # Issue 32557
+
+[ $compiler != dartkp && $fasta ]
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/02: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/03: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/04: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/05: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/06: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/02: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/03: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/04: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/05: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/06: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/07: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/08: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/09: MissingCompileTimeError
 
 [ $mode == debug && $runtime == vm && $system == linux && ($compiler == dartk || $compiler == dartkb) ]
 LibTest/io/Stdin/readByteSync_A02_t01: RuntimeError, Pass
@@ -688,13 +836,38 @@ LibTest/io/InternetAddress/lookup_A03_t02: RuntimeError
 LibTest/io/RawDatagramSocket/receive_A02_t02: RuntimeError
 
 [ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
-Language/Classes/definition_t23: CompileTimeError
 Language/Expressions/Constants/exception_t02/01: MissingRuntimeError
 Language/Expressions/Function_Invocation/async_invokation_t02: RuntimeError
 Language/Expressions/Logical_Boolean_Expressions/syntax_t01: RuntimeError
-Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError
 Language/Statements/Assert/execution_t08: RuntimeError
 Language/Types/Function_Types/call_t01: RuntimeError
+LanguageFeatures/Constant_update2018/CastOperator_A01_t01: DartkCrash
+LanguageFeatures/Constant_update2018/CastOperator_A02_t01: DartkCrash
+LanguageFeatures/Constant_update2018/CastOperator_A02_t02: DartkCrash
+LanguageFeatures/Constant_update2018/CastOperator_A03_t01/02: Pass
+LanguageFeatures/Constant_update2018/CastOperator_A03_t01/03: Pass
+LanguageFeatures/Constant_update2018/CastOperator_A04_t01: Pass
+LanguageFeatures/Constant_update2018/EqualityOperator_A01_t03: Pass
+LanguageFeatures/Constant_update2018/EqualityOperator_A01_t04: Pass
+LanguageFeatures/Constant_update2018/NewOperators_A01_t01: DartkCrash
+LanguageFeatures/Constant_update2018/NewOperators_A01_t02: DartkCrash
+LanguageFeatures/Constant_update2018/NewOperators_A02_t01: Fail
+LanguageFeatures/Constant_update2018/NewOperators_A02_t02: DartkCrash
+LanguageFeatures/Constant_update2018/NewOperators_A02_t04: Fail
+LanguageFeatures/Constant_update2018/NewOperators_A02_t05: DartkCrash
+LanguageFeatures/Constant_update2018/NewOperators_A02_t07: Fail
+LanguageFeatures/Constant_update2018/NewOperators_A02_t08: DartkCrash
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05: Pass
+LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: DartkCrash
+LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: DartkCrash
+LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: DartkCrash
+LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t02: DartkCrash
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t01: Pass
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t02: Pass
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t03/01: Pass
+LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t04/01: Pass
+LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t01: Pass
+LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t02: Pass
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l2_t06: RuntimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t04/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/none: CompileTimeError
@@ -748,9 +921,7 @@ LanguageFeatures/Simple-bounds/dynamic/typedef_l2_t02: RuntimeError
 LanguageFeatures/regression/33701_t01: MissingCompileTimeError
 LanguageFeatures/regression/34803_t01: DartkCrash
 LanguageFeatures/regression/34803_t02: DartkCrash
-LibTest/async/Stream/Stream.fromFutures_A04_t01: RuntimeError
 LibTest/async/Stream/Stream.fromIterable_A02_t01: RuntimeError
-LibTest/async/StreamController/addStream_A03_t01: RuntimeError
 LibTest/async/StreamSink/addStream_A01_t02: RuntimeError
 LibTest/core/Function/Function_class_A01_t01: RuntimeError
 LibTest/io/Cookie/Cookie_A01_t04: RuntimeError
@@ -816,93 +987,6 @@ LibTest/isolate/Isolate/ping_A03_t02: RuntimeError, Pass
 LibTest/isolate/ReceivePort/firstWhere_A01_t01: RuntimeError
 LibTest/isolate/ReceivePort/firstWhere_A02_t01: RuntimeError
 LibTest/isolate/ReceivePort/transform_A01_t01: RuntimeError
-
-[ $runtime == vm && $arch != simdbc64 && ($compiler == dartk || $compiler == dartkb) ]
-LanguageFeatures/Constant_update2018/CastOperator_A01_t01: DartkCrash
-LanguageFeatures/Constant_update2018/CastOperator_A02_t01: DartkCrash
-LanguageFeatures/Constant_update2018/CastOperator_A02_t02: DartkCrash
-LanguageFeatures/Constant_update2018/CastOperator_A03_t01/02: Pass
-LanguageFeatures/Constant_update2018/CastOperator_A03_t01/03: Pass
-LanguageFeatures/Constant_update2018/CastOperator_A03_t02/01: DartkCrash
-LanguageFeatures/Constant_update2018/CastOperator_A04_t01: Pass
-LanguageFeatures/Constant_update2018/CastOperator_A04_t02: DartkCrash
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t03: DartkCrash
-LanguageFeatures/Constant_update2018/EqualityOperator_A01_t04: DartkCrash
-LanguageFeatures/Constant_update2018/NewOperators_A01_t01: DartkCrash
-LanguageFeatures/Constant_update2018/NewOperators_A01_t02: DartkCrash
-LanguageFeatures/Constant_update2018/NewOperators_A02_t01: Fail
-LanguageFeatures/Constant_update2018/NewOperators_A02_t02: DartkCrash
-LanguageFeatures/Constant_update2018/NewOperators_A02_t03: DartkCrash
-LanguageFeatures/Constant_update2018/NewOperators_A02_t04: Fail
-LanguageFeatures/Constant_update2018/NewOperators_A02_t05: DartkCrash
-LanguageFeatures/Constant_update2018/NewOperators_A02_t06: DartkCrash
-LanguageFeatures/Constant_update2018/NewOperators_A02_t07: Fail
-LanguageFeatures/Constant_update2018/NewOperators_A02_t08: DartkCrash
-LanguageFeatures/Constant_update2018/NewOperators_A02_t09: DartkCrash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t02: DartkCrash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t05: DartkCrash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t02: DartkCrash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t05: DartkCrash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05: DartkCrash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t06: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t02: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t01: Pass
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t02: Pass
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t03/01: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t04/01: DartkCrash
-LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t01: Pass
-LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t02: Pass
-LanguageFeatures/Set-literals/constant_set_literals_A02_t01: Pass
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A03_t01: Pass
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/05: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/06: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/07: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/08: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/09: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t01/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/05: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/06: MissingCompileTimeError
-LanguageFeatures/Set-literals/exact_types_of_literals_A01_t02/08: MissingCompileTimeError
-LanguageFeatures/Set-literals/non_constant_set_literals_A01_t01: Pass
-LanguageFeatures/Set-literals/non_constant_set_literals_A02_t01: RuntimeError
-LanguageFeatures/Set-literals/semantics_A01_t01/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/semantics_A01_t01/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/semantics_A01_t01/09: MissingCompileTimeError
-LanguageFeatures/Set-literals/semantics_A01_t01/10: MissingCompileTimeError
-LanguageFeatures/Set-literals/semantics_A04_t01: Pass
-LanguageFeatures/Set-literals/semantics_A05_t05/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/semantics_A05_t05/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/semantics_A05_t05/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/semantics_A05_t01: RuntimeError
-LanguageFeatures/Set-literals/set_literals_A01_t01: Pass
-LanguageFeatures/Set-literals/set_literals_A02_t01: Pass
-LanguageFeatures/Set-literals/set_literals_A04_t02/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/05: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/11: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/12: MissingCompileTimeError
-LanguageFeatures/Set-literals/set_literals_A04_t02/13: MissingCompileTimeError
-LanguageFeatures/Set-literals/syntax_compatibility_A01_t01: Pass
 
 [ $runtime != vm && $fasta ]
 Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: MissingCompileTimeError # Issue 34192
@@ -1114,41 +1198,25 @@ Language/Types/Interface_Types/subtype_t26: RuntimeError
 Language/Types/Type_Declarations/Typedef/dynamic_param_type_t02: RuntimeError
 Language/Variables/constant_initialization_t03: RuntimeError
 Language/Variables/constant_variable_t09: RuntimeError
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l1_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l1_t02: RuntimeError
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/typedef_l2_t01: RuntimeError
 LibTest/async/Future/asStream_A01_t02: RuntimeError
-LibTest/async/Stream/Stream.fromFutures_A04_t02: RuntimeError
 LibTest/async/Stream/Stream.fromFutures_A04_t03: RuntimeError
 LibTest/async/Stream/Stream.fromIterable_A03_t02: RuntimeError
-LibTest/async/Stream/Stream.periodic_A02_t01: RuntimeError
-LibTest/async/Stream/Stream.periodic_A03_t01: RuntimeError
-LibTest/async/Stream/Stream.periodic_A04_t02: RuntimeError
 LibTest/async/Stream/Stream.periodic_A04_t03: RuntimeError
 LibTest/async/StreamController/StreamController.broadcast_A03_t02: RuntimeError
-LibTest/async/StreamController/StreamController.broadcast_A09_t02: RuntimeError
 LibTest/async/StreamController/StreamController.broadcast_A09_t03: RuntimeError
-LibTest/async/StreamController/StreamController.broadcast_A10_t02: RuntimeError
 LibTest/async/StreamController/StreamController.broadcast_A10_t03: RuntimeError
 LibTest/async/StreamController/StreamController_A03_t03: RuntimeError
-LibTest/async/StreamController/stream_A02_t02: RuntimeError
 LibTest/async/StreamController/stream_A02_t03: RuntimeError
-LibTest/async/StreamController/stream_A03_t02: RuntimeError
 LibTest/async/StreamController/stream_A03_t03: RuntimeError
-LibTest/async/StreamTransformer/StreamTransformer.fromHandlers_A01_t03: RuntimeError
-LibTest/async/StreamTransformer/StreamTransformer.fromHandlers_A01_t04: RuntimeError
-LibTest/async/StreamTransformer/StreamTransformer_A01_t02: RuntimeError
-LibTest/async/StreamTransformer/StreamTransformer_A01_t03: RuntimeError
-LibTest/async/StreamTransformer/StreamTransformer_A02_t01: RuntimeError
-LibTest/async/StreamTransformer/StreamTransformer_A02_t02: RuntimeError
-LibTest/async/Zone/registerBinaryCallback_A01_t01: RuntimeError
 LibTest/collection/DoubleLinkedQueue/removeWhere_A02_t02: RuntimeError
 LibTest/collection/DoubleLinkedQueue/removeWhere_A02_t03: RuntimeError
 LibTest/collection/DoubleLinkedQueue/retainWhere_A02_t02: RuntimeError
 LibTest/collection/DoubleLinkedQueue/retainWhere_A02_t03: RuntimeError
-LibTest/convert/ByteConversionSink/ByteConversionSink.from_A01_t01: RuntimeError
 LibTest/convert/ByteConversionSink/ByteConversionSink_class_A01_t01: RuntimeError
 LibTest/convert/LineSplitter/fuse_A01_t01: RuntimeError
-LibTest/convert/StringConversionSink/StringConversionSink.from_A01_t01: RuntimeError
 LibTest/convert/StringConversionSink/asStringSink_A02_t01: RuntimeError
 LibTest/convert/StringConversionSink/asUtf8Sink_A02_t01: RuntimeError
 LibTest/convert/Utf8Codec/Utf8Codec_A01_t02: RuntimeError
@@ -1196,12 +1264,6 @@ LibTest/core/UriData/contentText_A01_t01: RuntimeError
 LibTest/core/UriData/isBase64_A01_t01: RuntimeError
 LibTest/core/UriData/parse_A01_t01: RuntimeError
 LibTest/core/UriData/toString_A01_t01: RuntimeError
-LibTest/core/double/ceil_A01_t04: RuntimeError
-LibTest/core/double/floor_A01_t04: RuntimeError
-LibTest/core/double/round_A01_t03: RuntimeError
-LibTest/core/double/toInt_A01_t05: RuntimeError
-LibTest/core/double/truncate_A01_t05: RuntimeError
-LibTest/core/int/toStringAsFixed_A03_t01: RuntimeError
 LibTest/io/CompressionOptions/DEFAULT_A01_t01: RuntimeError
 LibTest/io/Cookie/Cookie_A01_t01: RuntimeError
 LibTest/io/Cookie/Cookie_A01_t02: RuntimeError
@@ -1246,7 +1308,6 @@ LibTest/io/HttpClientBasicCredentials/HttpClientBasicCredentials_A01_t01: Runtim
 LibTest/io/HttpClientDigestCredentials/HttpClientDigestCredentials_A01_t01: RuntimeError
 LibTest/io/HttpClientRequest/addStream_A02_t02: RuntimeError
 LibTest/io/HttpClientRequest/add_A03_t01: RuntimeError
-LibTest/io/HttpClientRequest/close_A02_t01: RuntimeError
 LibTest/io/HttpClientRequest/done_A02_t01: RuntimeError, Timeout, Pass
 LibTest/io/HttpClientResponse/certificate_A01_t01: RuntimeError
 LibTest/io/HttpClientResponse/isRedirect_A01_t02: RuntimeError

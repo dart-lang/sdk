@@ -75,11 +75,11 @@ runTest() async {
     Expect.isNotNull(method);
     Expect.equals(
         expectNoInline,
-        closedWorld.annotationsData.nonInlinableFunctions.contains(method),
+        closedWorld.annotationsData.hasNoInline(method),
         "Unexpected annotation of @NoInline() on '$method'.");
     Expect.equals(
         expectAssumeDynamic,
-        closedWorld.annotationsData.assumeDynamicMembers.contains(method),
+        closedWorld.annotationsData.hasAssumeDynamic(method),
         "Unexpected annotation of @AssumeDynamic() on '$method'.");
     GlobalTypeInferenceResults results =
         compiler.globalInference.resultsForTesting;

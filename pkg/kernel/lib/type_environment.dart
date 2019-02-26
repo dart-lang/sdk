@@ -165,11 +165,6 @@ abstract class SubtypeTester {
 
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass);
 
-  /// Determines if the given type is at the bottom of the type hierarchy.  May
-  /// be overridden in subclasses.
-  bool isBottom(DartType type) =>
-      type is BottomType || (!legacyMode && type == nullType);
-
   /// Determines if the given type is at the top of the type hierarchy.  May be
   /// overridden in subclasses.
   bool isTop(DartType type) =>
@@ -180,7 +175,11 @@ abstract class SubtypeTester {
     subtype = subtype.unalias;
     supertype = supertype.unalias;
     if (identical(subtype, supertype)) return true;
-    if (isBottom(subtype)) return true;
+    if (subtype is BottomType) return true;
+    if (subtype == nullType) {
+      // See rule 4 of the subtype rules from the Dart Language Specification.
+      return supertype is! BottomType;
+    }
     if (isTop(supertype)) return true;
 
     // Handle FutureOr<T> union type.

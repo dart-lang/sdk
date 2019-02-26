@@ -261,7 +261,6 @@ class Configuration {
         useBlobs: boolOption("use-blobs"),
         useDart2JSWithKernel: boolOption("dart2js-with-kernel"),
         useDart2JSOldFrontEnd: boolOption("dart2js-old-frontend"),
-        useFastStartup: boolOption("fast-startup"),
         useHotReload: boolOption("hot-reload"),
         useHotReloadRollback: boolOption("hot-reload-rollback"),
         useSdk: boolOption("use-sdk"));
@@ -318,8 +317,6 @@ class Configuration {
   final bool useDart2JSWithKernel;
   final bool useDart2JSOldFrontEnd;
 
-  final bool useFastStartup;
-
   final bool useHotReload;
   final bool useHotReloadRollback;
 
@@ -341,7 +338,6 @@ class Configuration {
       bool useBlobs,
       bool useDart2JSWithKernel,
       bool useDart2JSOldFrontEnd,
-      bool useFastStartup,
       bool useHotReload,
       bool useHotReloadRollback,
       bool useSdk})
@@ -359,7 +355,6 @@ class Configuration {
         useBlobs = useBlobs ?? false,
         useDart2JSWithKernel = useDart2JSWithKernel ?? false,
         useDart2JSOldFrontEnd = useDart2JSOldFrontEnd ?? false,
-        useFastStartup = useFastStartup ?? false,
         useHotReload = useHotReload ?? false,
         useHotReloadRollback = useHotReloadRollback ?? false,
         useSdk = useSdk ?? false;
@@ -386,13 +381,15 @@ class Configuration {
       useBlobs == other.useBlobs &&
       useDart2JSWithKernel == other.useDart2JSWithKernel &&
       useDart2JSOldFrontEnd == other.useDart2JSOldFrontEnd &&
-      useFastStartup == other.useFastStartup &&
       useHotReload == other.useHotReload &&
       useHotReloadRollback == other.useHotReloadRollback &&
       useSdk == other.useSdk;
 
   bool operator ==(Object other) =>
       other is Configuration && name == other.name && optionsEqual(other);
+
+  int _toBinary(List<bool> bits) =>
+      bits.fold(0, (sum, bit) => (sum << 1) ^ (bit ? 1 : 0));
 
   int get hashCode =>
       name.hashCode ^
@@ -404,21 +401,22 @@ class Configuration {
       builderTag.hashCode ^
       vmOptions.join(" & ").hashCode ^
       timeout.hashCode ^
-      (enableAsserts ? 1 : 0) ^
-      (isChecked ? 2 : 0) ^
-      (isCsp ? 4 : 0) ^
-      (isHostChecked ? 8 : 0) ^
-      (isMinified ? 16 : 0) ^
-      (previewDart2 ? 32 : 0) ^
-      (useAnalyzerCfe ? 64 : 0) ^
-      (useAnalyzerFastaParser ? 128 : 0) ^
-      (useBlobs ? 256 : 0) ^
-      (useDart2JSWithKernel ? 512 : 0) ^
-      (useDart2JSOldFrontEnd ? 1024 : 0) ^
-      (useFastStartup ? 2048 : 0) ^
-      (useHotReload ? 4096 : 0) ^
-      (useHotReloadRollback ? 8192 : 0) ^
-      (useSdk ? 16384 : 0);
+      _toBinary([
+        enableAsserts,
+        isChecked,
+        isCsp,
+        isHostChecked,
+        isMinified,
+        previewDart2,
+        useAnalyzerCfe,
+        useAnalyzerFastaParser,
+        useBlobs,
+        useDart2JSWithKernel,
+        useDart2JSOldFrontEnd,
+        useHotReload,
+        useHotReloadRollback,
+        useSdk
+      ]);
 
   String toString() {
     var buffer = new StringBuffer();
@@ -446,7 +444,6 @@ class Configuration {
     if (useBlobs) fields.add("use-blobs");
     if (useDart2JSWithKernel) fields.add("dart2js-with-kernel");
     if (useDart2JSOldFrontEnd) fields.add("dart2js-old-frontend");
-    if (useFastStartup) fields.add("fast-startup");
     if (useHotReload) fields.add("hot-reload");
     if (useHotReloadRollback) fields.add("hot-reload-rollback");
     if (useSdk) fields.add("use-sdk");
@@ -514,9 +511,6 @@ class Configuration {
     if (useDart2JSOldFrontEnd || other.useDart2JSOldFrontEnd) {
       fields.add("useDart2JSOldFrontEnd "
           "$useDart2JSOldFrontEnd ${other.useDart2JSOldFrontEnd}");
-    }
-    if (useFastStartup || other.useFastStartup) {
-      fields.add("useFastStartup $useFastStartup ${other.useFastStartup}");
     }
     if (useHotReload || other.useHotReload) {
       fields.add("useHotReload $useHotReload ${other.useHotReload}");

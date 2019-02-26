@@ -296,7 +296,10 @@ abstract class PropertyAccessGenerator implements Generator {
       Member setter,
       bool isNullAware) {
     if (helper.forest.isThisExpression(receiver)) {
-      return unsupported("ThisExpression", offsetForToken(token), helper.uri);
+      getter ??= helper.lookupInstanceMember(name);
+      setter ??= helper.lookupInstanceMember(name, isSetter: true);
+      return new ThisPropertyAccessGenerator(
+          helper, token, name, getter, setter);
     } else {
       return isNullAware
           ? new NullAwarePropertyAccessGenerator(

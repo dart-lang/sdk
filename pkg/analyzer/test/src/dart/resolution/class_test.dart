@@ -8,12 +8,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
 import 'resolution.dart';
-import 'task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassDriverResolutionTest);
-    defineReflectiveTests(ClassTaskResolutionTest);
   });
 }
 
@@ -1679,19 +1677,5 @@ class B extends A {
 }''');
     await resolveTestFile();
     assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_SETTER]);
-  }
-}
-
-@reflectiveTest
-class ClassTaskResolutionTest extends TaskResolutionTest
-    with ClassResolutionMixin {
-  @failingTest
-  test_conflictingGenericInterfaces_simple() {
-    return super.test_conflictingGenericInterfaces_simple();
-  }
-
-  @failingTest
-  test_conflictingGenericInterfaces_viaMixin() {
-    return super.test_conflictingGenericInterfaces_viaMixin();
   }
 }

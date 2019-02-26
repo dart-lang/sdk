@@ -43,6 +43,7 @@ convert/streamed_conversion_utf8_decode_test: Slow, Pass, Timeout # Issue 29922
 convert/utf85_test: Slow, Pass
 html/async_spawnuri_test: RuntimeError # Issue 29922
 html/async_test: RuntimeError # Issue 29922
+html/callback_list_test: Skip # Test requires user interaction to accept permissions.
 html/custom/attribute_changed_callback_test: Skip # Issue 31577
 html/custom/constructor_calls_created_synchronously_test: Skip # Issue 31577
 html/custom/created_callback_test: RuntimeError

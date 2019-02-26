@@ -1,10 +1,11 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_31187.dart:6:16: Error: Expected an identifier, but got '1'.
 //   return null?.1;
 //                ^
-
-library;
+//
 import self as self;
 
 static method bad() → dynamic {

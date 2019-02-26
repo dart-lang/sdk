@@ -17,7 +17,7 @@ isolate/ping_pause_test: Skip # Resolve test issues
 isolate/ping_test: Skip # Resolve test issues
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
-[ $compiler == precompiler || $runtime == flutter ]
+[ $compiler == precompiler ]
 isolate/count_test: SkipByDesign
 isolate/cross_isolate_message_test: SkipByDesign
 isolate/illegal_msg_function_test: SkipByDesign

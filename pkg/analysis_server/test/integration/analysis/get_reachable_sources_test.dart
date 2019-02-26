@@ -35,7 +35,7 @@ class Bar {
     await analysisFinished;
 
     AnalysisGetReachableSourcesResult result =
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use_from_same_package
         await sendAnalysisGetReachableSources(pathname);
     Map<String, List<String>> sources = result.sources;
     List<String> keys = sources.keys.toList();

@@ -41,6 +41,8 @@ class DillClassBuilder extends KernelClassBuilder {
             parent,
             cls.fileOffset);
 
+  Uri get fileUri => cls.fileUri;
+
   KernelTypeBuilder get supertype {
     KernelTypeBuilder supertype = super.supertype;
     if (supertype == null) {
@@ -101,6 +103,19 @@ class DillClassBuilder extends KernelClassBuilder {
 
   KernelTypeBuilder get mixedInType {
     return computeTypeBuilder(library, cls.mixedInType);
+  }
+
+  List<KernelTypeBuilder> get interfaces {
+    if (cls.implementedTypes.isEmpty) return null;
+    if (super.interfaces == null) {
+      List<KernelTypeBuilder> result =
+          new List<KernelTypeBuilder>(cls.implementedTypes.length);
+      for (int i = 0; i < result.length; i++) {
+        result[i] = computeTypeBuilder(library, cls.implementedTypes[i]);
+      }
+      super.interfaces = result;
+    }
+    return super.interfaces;
   }
 
   void set mixedInType(KernelTypeBuilder mixin) {

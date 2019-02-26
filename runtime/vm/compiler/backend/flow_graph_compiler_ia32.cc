@@ -29,6 +29,8 @@ DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 
 DECLARE_FLAG(bool, enable_simd_inline);
 
+void FlowGraphCompiler::ArchSpecificInitialization() {}
+
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
@@ -348,8 +350,6 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   const Register kClassIdReg = ECX;
   __ LoadClassId(kClassIdReg, kInstanceReg);
-  // See ClassFinalizer::CheckSuperTypeAndInterfaces for list of restricted
-  // interfaces.
   // Bool interface can be implemented only by core class Bool.
   if (type.IsBoolType()) {
     __ cmpl(kClassIdReg, Immediate(kBoolCid));
@@ -804,7 +804,7 @@ void FlowGraphCompiler::CompileGraph() {
 
     intptr_t args_desc_slot = -1;
     if (parsed_function().has_arg_desc_var()) {
-      args_desc_slot = compiler_frame_layout.FrameSlotForVariable(
+      args_desc_slot = compiler::target::frame_layout.FrameSlotForVariable(
           parsed_function().arg_desc_var());
     }
 
@@ -816,7 +816,7 @@ void FlowGraphCompiler::CompileGraph() {
     }
     for (intptr_t i = 0; i < num_locals; ++i) {
       const intptr_t slot_index =
-          compiler_frame_layout.FrameSlotForVariableIndex(-i);
+          compiler::target::frame_layout.FrameSlotForVariableIndex(-i);
       Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : EAX;
       __ movl(Address(EBP, slot_index * kWordSize), value_reg);
     }

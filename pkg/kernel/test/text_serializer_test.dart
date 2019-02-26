@@ -4,6 +4,7 @@
 library kernel.text_serializer_test;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/text/serializer_combinators.dart';
 import 'package:kernel/text/text_reader.dart';
 import 'package:kernel/text/text_serializer.dart';
 
@@ -16,7 +17,8 @@ void main() {
 Expression readExpression(String input) {
   TextIterator stream = new TextIterator(input, 0);
   stream.moveNext();
-  Expression result = expressionSerializer.readFrom(stream, null);
+  Expression result = expressionSerializer.readFrom(
+      stream, new DeserializationState(null, new CanonicalName.root()));
   if (stream.moveNext()) {
     throw StateError("extra cruft in basic literal");
   }
@@ -25,7 +27,8 @@ Expression readExpression(String input) {
 
 String writeExpression(Expression expression) {
   StringBuffer buffer = new StringBuffer();
-  expressionSerializer.writeTo(buffer, expression, null);
+  expressionSerializer.writeTo(
+      buffer, expression, new SerializationState(null));
   return buffer.toString();
 }
 
@@ -76,6 +79,11 @@ void test() {
     "(map (dynamic) (void) ((int 0) (null) (int 1) (null) (int 2) (null)))",
     "(const-map (dynamic) (void) ((int 0) (null) (int 1) (null) "
         "(int 2) (null)))",
+    "(type (-> ((dynamic)) 1 (dynamic)))",
+    "(type (-> ((dynamic)) 0 (dynamic)))",
+    "(type (-> ((dynamic) (dynamic)) 2 (dynamic)))",
+    "(type (-> () 0 (dynamic)))",
+    "(type (-> ((-> ((dynamic)) 1 (dynamic))) 1 (dynamic)))",
   ];
   for (var test in tests) {
     var literal = readExpression(test);

@@ -67,7 +67,10 @@ bool _isTop(DartType t) {
  * A type system that implements the type semantics for Dart 2.0.
  */
 class Dart2TypeSystem extends TypeSystem {
-  static bool _comparingTypeParameterBounds = false;
+  /// Track types currently being compared via type parameter bounds so that we
+  /// can detect recursion.
+  static Set<TypeComparison> _typeParameterBoundsComparisons =
+      new HashSet<TypeComparison>();
 
   /**
    * True if implicit casts should be allowed, otherwise false.
@@ -625,7 +628,7 @@ class Dart2TypeSystem extends TypeSystem {
     // For a type parameter `T extends U`, allow promoting the upper bound
     // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
     if (from is TypeParameterType) {
-      if (isSubtypeOf(to, from.resolveToBound(DynamicTypeImpl.instance))) {
+      if (isSubtypeOf(to, from.bound ?? DynamicTypeImpl.instance)) {
         return new TypeParameterMember(from.element, null, to).type;
       }
     }
@@ -908,10 +911,9 @@ class Dart2TypeSystem extends TypeSystem {
         var newType =
             _substituteForUnknownType(p.type, lowerBound: !lowerBound);
         return new ParameterElementImpl.synthetic(
-            // ignore: deprecated_member_use
             p.name,
             newType,
-            // ignore: deprecated_member_use
+            // ignore: deprecated_member_use_from_same_package
             p.parameterKind);
       });
       // Return type is covariant.
@@ -931,14 +933,15 @@ class Dart2TypeSystem extends TypeSystem {
 
   bool _typeParameterBoundsSubtype(
       DartType t1, DartType t2, bool recursionValue) {
-    if (_comparingTypeParameterBounds) {
+    TypeComparison comparison = TypeComparison(t1, t2);
+    if (_typeParameterBoundsComparisons.contains(comparison)) {
       return recursionValue;
     }
-    _comparingTypeParameterBounds = true;
+    _typeParameterBoundsComparisons.add(comparison);
     try {
       return isSubtypeOf(t1, t2);
     } finally {
-      _comparingTypeParameterBounds = false;
+      _typeParameterBoundsComparisons.remove(comparison);
     }
   }
 
@@ -1662,12 +1665,27 @@ class GenericInferrer {
   }
 }
 
-/**
- * A type system that implements the type semantics for strong mode.
- */
-@deprecated
-class StrongTypeSystemImpl extends Dart2TypeSystem {
-  StrongTypeSystemImpl(TypeProvider typeProvider) : super(typeProvider);
+/// Used to check for infinite loops, if we repeat the same type comparison.
+class TypeComparison {
+  final DartType lhs;
+  final DartType rhs;
+
+  TypeComparison(this.lhs, this.rhs);
+
+  @override
+  int get hashCode => lhs.hashCode * 11 + rhs.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is TypeComparison) {
+      return lhs == other.lhs && rhs == other.rhs;
+    }
+
+    return false;
+  }
+
+  @override
+  String toString() => "$lhs vs $rhs";
 }
 
 /**

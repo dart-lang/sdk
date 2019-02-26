@@ -284,8 +284,8 @@ void FlowGraph::MergeBlocks() {
       merged->Add(successor->postorder_number());
       changed = true;
       if (FLAG_trace_optimization) {
-        OS::PrintErr("Merged blocks B%" Pd " and B%" Pd "\n", block->block_id(),
-                     successor->block_id());
+        THR_Print("Merged blocks B%" Pd " and B%" Pd "\n", block->block_id(),
+                  successor->block_id());
       }
     }
     // The new block inherits the block id of the last successor to maintain
@@ -696,25 +696,25 @@ void LivenessAnalysis::Analyze() {
 }
 
 static void PrintBitVector(const char* tag, BitVector* v) {
-  OS::PrintErr("%s:", tag);
+  THR_Print("%s:", tag);
   for (BitVector::Iterator it(v); !it.Done(); it.Advance()) {
-    OS::PrintErr(" %" Pd "", it.Current());
+    THR_Print(" %" Pd "", it.Current());
   }
-  OS::PrintErr("\n");
+  THR_Print("\n");
 }
 
 void LivenessAnalysis::Dump() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
     BlockEntryInstr* block = postorder_[i];
-    OS::PrintErr("block @%" Pd " -> ", block->block_id());
+    THR_Print("block @%" Pd " -> ", block->block_id());
 
     Instruction* last = block->last_instruction();
     for (intptr_t j = 0; j < last->SuccessorCount(); j++) {
       BlockEntryInstr* succ = last->SuccessorAt(j);
-      OS::PrintErr(" @%" Pd "", succ->block_id());
+      THR_Print(" @%" Pd "", succ->block_id());
     }
-    OS::PrintErr("\n");
+    THR_Print("\n");
 
     PrintBitVector("  live out", live_out_[i]);
     PrintBitVector("  kill", kill_[i]);
@@ -1559,7 +1559,13 @@ RedefinitionInstr* FlowGraph::EnsureRedefinition(Instruction* prev,
     }
   }
   RedefinitionInstr* redef = new RedefinitionInstr(new Value(original));
-  redef->set_constrained_type(new CompileType(compile_type));
+
+  // Don't set the constrained type when the type is None(), which denotes an
+  // unreachable value (e.g. using value null after an explicit null check).
+  if (!compile_type.IsNone()) {
+    redef->set_constrained_type(new CompileType(compile_type));
+  }
+
   InsertAfter(prev, redef, NULL, FlowGraph::kValue);
   RenameDominatedUses(original, redef, redef);
   return redef;
@@ -1807,8 +1813,36 @@ static void UnboxPhi(PhiInstr* phi) {
       break;
   }
 
-  if ((unboxed == kTagged) && phi->Type()->IsInt() &&
-      RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt64)) {
+  // If all the inputs are unboxed, leave the Phi unboxed.
+  if ((unboxed == kTagged) && phi->Type()->IsInt()) {
+    bool should_unbox = true;
+    Representation new_representation = kTagged;
+    for (intptr_t i = 0; i < phi->InputCount(); i++) {
+      Definition* input = phi->InputAt(i)->definition();
+      if (input->representation() != kUnboxedInt64 &&
+          input->representation() != kUnboxedInt32 &&
+          input->representation() != kUnboxedUint32 && !(input == phi)) {
+        should_unbox = false;
+        break;
+      }
+
+      if (new_representation == kTagged) {
+        new_representation = input->representation();
+      } else if (new_representation != input->representation()) {
+        new_representation = kNoRepresentation;
+      }
+    }
+    if (should_unbox) {
+      unboxed = new_representation != kNoRepresentation
+                    ? new_representation
+                    : RangeUtils::Fits(phi->range(),
+                                       RangeBoundary::kRangeBoundaryInt32)
+                          ? kUnboxedInt32
+                          : kUnboxedInt64;
+    }
+  }
+
+  if ((unboxed == kTagged) && phi->Type()->IsInt()) {
     // Conservatively unbox phis that:
     //   - are proven to be of type Int;
     //   - fit into 64bits range;
@@ -1818,9 +1852,7 @@ static void UnboxPhi(PhiInstr* phi) {
     bool should_unbox = false;
     for (intptr_t i = 0; i < phi->InputCount(); i++) {
       Definition* input = phi->InputAt(i)->definition();
-      if (input->IsBox() &&
-          RangeUtils::Fits(input->range(),
-                           RangeBoundary::kRangeBoundaryInt64)) {
+      if (input->IsBox()) {
         should_unbox = true;
       } else if (!input->IsConstant()) {
         should_unbox = false;

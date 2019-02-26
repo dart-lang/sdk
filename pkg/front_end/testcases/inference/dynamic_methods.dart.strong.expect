@@ -1,10 +1,11 @@
-// Formatted problems:
+library test;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/inference/dynamic_methods.dart:16:39: Error: 'hashCode' isn't a function or method and can't be invoked.
 //       d. /*@target=Object::hashCode*/ hashCode();
 //                                       ^
-
-library test;
+//
 import self as self;
 import "dart:core" as core;
 

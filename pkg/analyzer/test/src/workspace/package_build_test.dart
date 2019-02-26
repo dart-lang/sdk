@@ -488,10 +488,19 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
 class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
   PackageBuildWorkspace _createPackageBuildWorkspace() {
     final contextBuilder = new MockContextBuilder();
-    final packages = new MockPackages();
-    final packageMap = <String, List<Folder>>{'project': []};
-    contextBuilder.packagesMapMap[convertPath('/workspace')] = packages;
-    contextBuilder.packagesToMapMap[packages] = packageMap;
+    final packagesForWorkspace = new MockPackages();
+    contextBuilder.packagesMapMap[convertPath('/workspace')] =
+        packagesForWorkspace;
+    contextBuilder.packagesToMapMap[packagesForWorkspace] = {
+      'project': <Folder>[]
+    };
+
+    final packagesForWorkspace2 = new MockPackages();
+    contextBuilder.packagesMapMap[convertPath('/workspace2')] =
+        packagesForWorkspace2;
+    contextBuilder.packagesToMapMap[packagesForWorkspace2] = {
+      'project2': <Folder>[]
+    };
 
     newFolder('/workspace/.dart_tool/build');
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
@@ -504,7 +513,7 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
     newFile('/workspace/project/lib/file.dart');
 
     var package = workspace
-        .findPackageFor(convertPath('/workspace2/project/lib/file.dart'));
+        .findPackageFor(convertPath('/workspace2/project2/lib/file.dart'));
     expect(package, isNull);
   }
 
@@ -521,11 +530,11 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
 
   void test_contains_differentWorkspace() {
     PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
-    newFile('/workspace2/project/lib/file.dart');
+    newFile('/workspace2/project2/lib/file.dart');
 
     var package = workspace
         .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
-    expect(package.contains('/workspace2/project/lib/file.dart'), isFalse);
+    expect(package.contains('/workspace2/project2/lib/file.dart'), isFalse);
   }
 
   void test_contains_sameWorkspace() {

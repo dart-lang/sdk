@@ -221,8 +221,10 @@ test14() {
 class A15 {
   /*element: A15.x15:[exact=JSUInt31]*/
   x15(/*[exact=JSUInt31]*/ p1,
-          [/*Value([exact=JSString], value: "s")*/ p2 = "s"]) =>
-      1;
+      [/*Value([exact=JSString], value: "s")*/ p2 = "s"]) {
+    p2. /*Value([exact=JSString], value: "s")*/ length;
+    return 1;
+  }
 }
 
 /*element: test15:[null]*/

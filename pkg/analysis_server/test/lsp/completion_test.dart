@@ -195,7 +195,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(res.any((c) => c.label == 'abcdefghij'), isTrue);
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
     expect(item.insertTextFormat, equals(InsertTextFormat.PlainText));
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
     expect(updated, contains('a.abcdefghij'));
@@ -219,7 +219,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(res.any((c) => c.label == 'abcdefghij'), isTrue);
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
     expect(item.insertTextFormat, equals(InsertTextFormat.PlainText));
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
     expect(updated, contains('a.abcdefghij'));

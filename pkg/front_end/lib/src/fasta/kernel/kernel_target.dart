@@ -23,14 +23,12 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         InvalidInitializer,
         Library,
-        ListLiteral,
         Name,
         NamedExpression,
         NullLiteral,
         Procedure,
         RedirectingInitializer,
         Source,
-        StringLiteral,
         SuperInitializer,
         TypeParameter,
         TypeParameterType,
@@ -41,10 +39,12 @@ import 'package:kernel/clone.dart' show CloneVisitor;
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
+import 'package:kernel/target/targets.dart' show DiagnosticReporter;
+
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import 'package:kernel/transformations/constants.dart' as constants
-    show SimpleErrorReporter, transformLibraries;
+    show transformLibraries;
 
 import '../../api_prototype/file_system.dart' show FileSystem;
 
@@ -56,9 +56,13 @@ import '../dill/dill_target.dart' show DillTarget;
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
+import '../fasta_codes.dart' show Message, LocatedMessage;
+
+import '../loader.dart' show Loader;
+
 import '../messages.dart'
     show
-        LocatedMessage,
+        FormattedMessage,
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
@@ -70,8 +74,6 @@ import '../messages.dart'
         templateSuperclassHasNoDefaultConstructor;
 
 import '../problems.dart' show unhandled, unimplemented;
-
-import '../severity.dart' show Severity;
 
 import '../scope.dart' show AmbiguousBuilder;
 
@@ -86,6 +88,7 @@ import '../uri_translator.dart' show UriTranslator;
 import 'kernel_builder.dart'
     show
         ClassBuilder,
+        ClassHierarchyBuilder,
         Declaration,
         InvalidTypeBuilder,
         KernelClassBuilder,
@@ -98,7 +101,7 @@ import 'kernel_builder.dart'
         TypeBuilder,
         TypeDeclarationBuilder;
 
-import 'kernel_constants.dart' show KernelConstantsBackend;
+import 'kernel_constants.dart' show KernelConstantErrorReporter;
 
 import 'metadata_collector.dart' show MetadataCollector;
 
@@ -113,13 +116,10 @@ class KernelTarget extends TargetImplementation {
 
   final DillTarget dillTarget;
 
-  /// Shared with [CompilerContext].
-  final Map<Uri, Source> uriToSource;
-
   /// The [MetadataCollector] to write metadata to.
   final MetadataCollector metadataCollector;
 
-  SourceLoader<Library> loader;
+  SourceLoader loader;
 
   Component component;
 
@@ -140,22 +140,25 @@ class KernelTarget extends TargetImplementation {
       UriTranslator uriTranslator,
       {MetadataCollector metadataCollector})
       : dillTarget = dillTarget,
-        uriToSource = CompilerContext.current.uriToSource,
         metadataCollector = metadataCollector,
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     loader = createLoader();
   }
 
-  SourceLoader<Library> createLoader() =>
-      new SourceLoader<Library>(fileSystem, includeComments, this);
+  void set builderHierarchy(ClassHierarchyBuilder o) {}
+
+  SourceLoader createLoader() =>
+      new SourceLoader(fileSystem, includeComments, this);
 
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode) {
     uriToSource[uri] = new Source(lineStarts, sourceCode);
   }
 
-  void setEntryPoints(List<Uri> entryPoints) {
+  /// Return list of same size as input with possibly translated uris.
+  List<Uri> setEntryPoints(List<Uri> entryPoints) {
     Map<String, Uri> packagesMap;
+    List<Uri> result = new List<Uri>();
     for (Uri entryPoint in entryPoints) {
       String scheme = entryPoint.scheme;
       Uri fileUri;
@@ -186,8 +189,10 @@ class KernelTarget extends TargetImplementation {
             }
           }
       }
+      result.add(entryPoint);
       loader.read(entryPoint, -1, accessor: loader.first, fileUri: fileUri);
     }
+    return result;
   }
 
   @override
@@ -255,7 +260,8 @@ class KernelTarget extends TargetImplementation {
       component =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       computeCoreTypes();
-      loader.buildClassHierarchy(myClasses, objectClassBuilder);
+      builderHierarchy =
+          loader.buildClassHierarchy(myClasses, objectClassBuilder);
       loader.computeHierarchy();
       loader.performTopLevelInference(myClasses);
       loader.checkSupertypes(myClasses);
@@ -265,6 +271,8 @@ class KernelTarget extends TargetImplementation {
       loader.checkRedirectingFactories(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
+      installAllComponentProblems(loader.allComponentProblems);
+      loader.allComponentProblems.clear();
       return component;
     }, () => loader?.currentUriForCrashReporting);
   }
@@ -293,27 +301,20 @@ class KernelTarget extends TargetImplementation {
       runBuildTransformations();
 
       if (verify) this.verify();
-      handleRecoverableErrors(loader.unhandledErrors);
+      installAllComponentProblems(loader.allComponentProblems);
       return component;
     }, () => loader?.currentUriForCrashReporting);
   }
 
-  /// Adds a synthetic field named `#errors` to the main library that contains
-  /// [recoverableErrors] formatted.
-  ///
-  /// If [recoverableErrors] is empty, this method does nothing.
-  void handleRecoverableErrors(List<LocatedMessage> recoverableErrors) {
-    if (recoverableErrors.isEmpty) return;
-    KernelLibraryBuilder mainLibrary = loader.first;
-    if (mainLibrary == null) return;
-    List<Expression> expressions = <Expression>[];
-    for (LocatedMessage error in recoverableErrors) {
-      expressions.add(new StringLiteral(context.format(error, Severity.error)));
+  void installAllComponentProblems(
+      List<FormattedMessage> allComponentProblems) {
+    if (allComponentProblems.isNotEmpty) {
+      component.problemsAsJson ??= <String>[];
     }
-    mainLibrary.library.addMember(new Field(new Name("#errors"),
-        initializer: new ListLiteral(expressions, isConst: true),
-        isConst: true,
-        isStatic: true));
+    for (int i = 0; i < allComponentProblems.length; i++) {
+      FormattedMessage formattedMessage = allComponentProblems[i];
+      component.problemsAsJson.add(formattedMessage.toJsonString());
+    }
   }
 
   /// Creates a component by combining [libraries] with the libraries of
@@ -557,6 +558,7 @@ class KernelTarget extends TargetImplementation {
       "dart:_internal",
       "dart:async",
       "dart:core",
+      "dart:ffi",
       "dart:mirrors"
     ]) {
       Uri uri = Uri.parse(platformLibrary);
@@ -572,8 +574,8 @@ class KernelTarget extends TargetImplementation {
             break;
           }
         }
-        if (!found && uri.path != "mirrors") {
-          // dart:mirrors is optional.
+        if (!found && uri.path != "mirrors" && uri.path != "ffi") {
+          // dart:mirrors and dart:ffi are optional.
           throw "Can't find $uri";
         }
       } else {
@@ -749,17 +751,23 @@ class KernelTarget extends TargetImplementation {
   /// libraries for the first time.
   void runBuildTransformations() {
     if (loader.target.enableConstantUpdate2018) {
+      TypeEnvironment environment = new TypeEnvironment(
+          loader.coreTypes, loader.hierarchy,
+          legacyMode: false);
       constants.transformLibraries(
           loader.libraries,
-          new KernelConstantsBackend(),
-          loader.coreTypes,
-          new TypeEnvironment(loader.coreTypes, loader.hierarchy,
-              legacyMode: false),
-          const constants.SimpleErrorReporter());
+          loader.target.backendTarget.constantsBackend(loader.coreTypes),
+          CompilerContext.current.options.environmentDefines,
+          environment,
+          new KernelConstantErrorReporter(loader, environment));
       ticker.logMs("Evaluated constants");
     }
     backendTarget.performModularTransformationsOnLibraries(
-        component, loader.coreTypes, loader.hierarchy, loader.libraries,
+        component,
+        loader.coreTypes,
+        loader.hierarchy,
+        loader.libraries,
+        new KernelDiagnosticReporter(loader),
         logger: (String msg) => ticker.logMs(msg));
   }
 
@@ -801,6 +809,7 @@ class KernelTarget extends TargetImplementation {
           KernelLibraryBuilder part = library.loader.read(patch, -1,
               origin: library, fileUri: patch, accessor: library);
           first.parts.add(part);
+          first.partOffsets.add(-1);
           part.partOfUri = first.uri;
         }
       }
@@ -823,4 +832,16 @@ Constructor defaultSuperConstructor(Class cls) {
     }
   }
   return null;
+}
+
+class KernelDiagnosticReporter
+    extends DiagnosticReporter<Message, LocatedMessage> {
+  final Loader<Library> loader;
+
+  KernelDiagnosticReporter(this.loader);
+
+  void report(Message message, int charOffset, int length, Uri fileUri,
+      {List<LocatedMessage> context}) {
+    loader.addProblem(message, charOffset, noLength, fileUri, context: context);
+  }
 }

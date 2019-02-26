@@ -33,11 +33,13 @@ void printComponentText(Component component,
     {bool libraryFilter(Library library)}) {
   if (component == null) return;
   StringBuffer sb = new StringBuffer();
+  Printer printer = new Printer(sb);
+  printer.writeComponentProblems(component);
   for (Library library in component.libraries) {
     if (libraryFilter != null && !libraryFilter(library)) continue;
-    Printer printer = new Printer(sb);
     printer.writeLibraryFile(library);
   }
+  printer.writeConstantTable(component);
   print(sb);
 }
 
@@ -95,9 +97,12 @@ List<int> serializeProcedure(Procedure procedure) {
     }
 
     fakeClass.parent = fakeLibrary;
-    fakeClass.supertype = new Supertype.byReference(
-        realClass.supertype.className,
-        realClass.supertype.typeArguments.map(cloner.visitType).toList());
+    if (realClass.supertype != null) {
+      // supertype is null for Object.
+      fakeClass.supertype = new Supertype.byReference(
+          realClass.supertype.className,
+          realClass.supertype.typeArguments.map(cloner.visitType).toList());
+    }
 
     // Rebind the type parameters in the procedure.
     procedure = procedure.accept(cloner);

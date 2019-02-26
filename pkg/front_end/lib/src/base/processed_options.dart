@@ -177,10 +177,14 @@ class ProcessedOptions {
   /// The Uri where output is generated, may be null.
   final Uri output;
 
+  final Map<String, String> environmentDefines;
+
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
   ProcessedOptions({CompilerOptions options, List<Uri> inputs, this.output})
       : this._raw = options ?? new CompilerOptions(),
         this.inputs = inputs ?? <Uri>[],
+        // TODO(askesc): Copy the map when kernel_service supports that.
+        this.environmentDefines = options?.environmentDefines,
         // TODO(sigmund, ahe): create ticker even earlier or pass in a stopwatch
         // collecting time since the start of the VM.
         this.ticker = new Ticker(isVerbose: options?.verbose ?? false);
@@ -212,12 +216,15 @@ class ProcessedOptions {
     if (CompilerContext.current.options.setExitCodeOnProblem) {
       exitCode = 1;
     }
-    (_raw.onDiagnostic ??
-        _defaultDiagnosticMessageHandler)(format(message, severity, context));
+    reportDiagnosticMessage(format(message, severity, context));
     if (command_line_reporting.shouldThrowOn(severity)) {
       throw new DebugAbort(
           message.uri, message.charOffset, severity, StackTrace.current);
     }
+  }
+
+  void reportDiagnosticMessage(DiagnosticMessage message) {
+    (_raw.onDiagnostic ?? _defaultDiagnosticMessageHandler)(message);
   }
 
   void _defaultDiagnosticMessageHandler(DiagnosticMessage message) {
@@ -300,6 +307,7 @@ class ProcessedOptions {
 
   bool isExperimentEnabled(ExperimentalFlag flag) {
     // TODO(askesc): Determine default flag value from specification file.
+    if (flag == ExperimentalFlag.setLiterals) return true;
     return _raw.experimentalFlags[flag] ?? false;
   }
 

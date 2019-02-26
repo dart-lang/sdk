@@ -55,4 +55,44 @@ class MyMock3 extends B {
   noSuchMethod(_);
 }
 
+class C {
+  void interfaceMethod1(_) {}
+}
+
+// This class should have an error, the method C.interfaceMethod1 conflicts
+// with the field Interface2.interfaceMethod1.
+abstract class D extends C implements Interface2 {}
+
+class E {
+  void set interfaceMethod1(_) {}
+}
+
+// This class should have an error, the setter E.interfaceMethod1 conflicts
+// with the method Interface1.interfaceMethod1.
+abstract class F extends E implements Interface1 {}
+
+class Foo {
+  void foo() {}
+}
+
+class G {
+  Object get foo => null;
+}
+
+// This class should have an error, the getter G.foo conflicts with the method
+// Foo.foo.
+abstract class H extends G implements Foo {}
+
+class Bar {
+  Object get foo => null;
+}
+
+class I {
+  Object foo() {}
+}
+
+// This class should have an error, the getter Bar.foo conflicts with the
+// method I.foo.
+abstract class J extends I implements Bar {}
+
 main() {}

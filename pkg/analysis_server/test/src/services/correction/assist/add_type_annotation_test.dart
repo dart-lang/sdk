@@ -204,7 +204,7 @@ main() {
     await assertHasAssist('''
 part of my_app;
 main() {
-  HashMap<String, int> /*caret*/v = getMap();
+  HashMap<String, int> v = getMap();
 }
 ''', additionallyChangedFiles: {
       appPath: [
@@ -521,14 +521,14 @@ main() {
   test_privateType_sameLibrary() async {
     await resolveTestUnit('''
 class _A {}
-_A getValue() => new _A();
+_A getValue() => _A();
 main() {
   var v = getValue();
 }
 ''');
     await assertHasAssistAt('var ', '''
 class _A {}
-_A getValue() => new _A();
+_A getValue() => _A();
 main() {
   _A v = getValue();
 }
@@ -540,7 +540,7 @@ main() {
 library my_lib;
 class A {}
 class _B extends A {}
-_B getValue() => new _B();
+_B getValue() => _B();
 ''');
     await resolveTestUnit('''
 import 'my_lib.dart';

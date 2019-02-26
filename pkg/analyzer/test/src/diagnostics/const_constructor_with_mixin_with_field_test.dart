@@ -6,17 +6,15 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/resolution.dart';
-import '../dart/resolution/task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstConstructorWithMixinWithFieldTest_DriverTest);
-    defineReflectiveTests(ConstConstructorWithMixinWithFieldTest_TaskTest);
+    defineReflectiveTests(ConstConstructorWithMixinWithFieldTest);
   });
 }
 
-mixin ConstConstructorWithMixinWithFieldMixin implements ResolutionTest {
+@reflectiveTest
+class ConstConstructorWithMixinWithFieldTest extends DriverResolutionTest {
   test_class_instance() async {
     addTestFile(r'''
 class A {
@@ -135,11 +133,3 @@ class X extends Object with M {
     assertNoTestErrors();
   }
 }
-
-@reflectiveTest
-class ConstConstructorWithMixinWithFieldTest_DriverTest
-    extends DriverResolutionTest with ConstConstructorWithMixinWithFieldMixin {}
-
-@reflectiveTest
-class ConstConstructorWithMixinWithFieldTest_TaskTest extends TaskResolutionTest
-    with ConstConstructorWithMixinWithFieldMixin {}

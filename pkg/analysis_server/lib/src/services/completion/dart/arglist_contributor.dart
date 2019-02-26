@@ -8,11 +8,11 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/util/comment.dart';
 
 /**
  * Determine the number of arguments.
@@ -29,52 +29,6 @@ int _argCount(DartCompletionRequest request) {
     return node.arguments.length;
   }
   return 0;
-}
-
-/**
- * If the containing [node] is an argument list
- * or named expression in an argument list
- * then return the simple identifier for the method, constructor, or annotation
- * to which the argument list is associated
- */
-SimpleIdentifier _getTargetId(AstNode node) {
-  if (node is NamedExpression) {
-    return _getTargetId(node.parent);
-  }
-  if (node is ArgumentList) {
-    AstNode parent = node.parent;
-    if (parent is MethodInvocation) {
-      return parent.methodName;
-    }
-    if (parent is InstanceCreationExpression) {
-      ConstructorName constructorName = parent.constructorName;
-      if (constructorName != null) {
-        if (constructorName.name != null) {
-          return constructorName.name;
-        }
-        Identifier typeName = constructorName.type.name;
-        if (typeName is SimpleIdentifier) {
-          return typeName;
-        }
-        if (typeName is PrefixedIdentifier) {
-          return typeName.identifier;
-        }
-      }
-    }
-    if (parent is Annotation) {
-      SimpleIdentifier name = parent.constructorName;
-      if (name == null) {
-        Identifier parentName = parent.name;
-        if (parentName is SimpleIdentifier) {
-          return parentName;
-        } else if (parentName is PrefixedIdentifier) {
-          return parentName.identifier;
-        }
-      }
-      return name;
-    }
-  }
-  return null;
 }
 
 /**
@@ -193,35 +147,13 @@ class ArgListContributor extends DartCompletionContributor {
     this.request = request;
     this.suggestions = <CompletionSuggestion>[];
 
-    // Determine if the target is in an argument list
-    // for a method or a constructor or an annotation
-    SimpleIdentifier targetId = _getTargetId(request.target.containingNode);
-    if (targetId == null) {
-      return const <CompletionSuggestion>[];
-    }
-    Element elem = targetId.staticElement;
-    if (elem == null) {
+    var executable = request.target.executableElement;
+    if (executable == null) {
       return const <CompletionSuggestion>[];
     }
 
-    // Generate argument list suggestion based upon the type of element
-    if (elem is ClassElement) {
-      _addSuggestions(elem.unnamedConstructor?.parameters);
-      return suggestions;
-    }
-    if (elem is ConstructorElement) {
-      _addSuggestions(elem.parameters);
-      return suggestions;
-    }
-    if (elem is FunctionElement) {
-      _addSuggestions(elem.parameters);
-      return suggestions;
-    }
-    if (elem is MethodElement) {
-      _addSuggestions(elem.parameters);
-      return suggestions;
-    }
-    return const <CompletionSuggestion>[];
+    _addSuggestions(executable.parameters);
+    return suggestions;
   }
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,
@@ -280,6 +212,7 @@ class ArgListContributor extends DartCompletionContributor {
       if (parameter is FieldFormalParameterElement) {
         _setDocumentation(suggestion, parameter.field?.documentationComment);
         suggestion.element = convertElement(parameter);
+        suggestion.elementUri = parameter.source.toString();
       }
 
       suggestions.add(suggestion);
@@ -341,7 +274,7 @@ class ArgListContributor extends DartCompletionContributor {
   static void _setDocumentation(
       CompletionSuggestion suggestion, String comment) {
     if (comment != null) {
-      String doc = removeDartDocDelimiters(comment);
+      String doc = getDartDocPlainText(comment);
       suggestion.docComplete = doc;
       suggestion.docSummary = getDartDocSummary(doc);
     }

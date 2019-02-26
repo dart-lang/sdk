@@ -1,8 +1,5 @@
-The `dartfix` tool is a command-line interface
-for making automated updates to your Dart code.
-The tool isn't in the Dart SDK;
-instead, it's distributed in the [`dartfix` package.][dartfix]
-
+`dartfix` is a command-line tool for migrating your Dart code
+to use newer syntax styles.
 
 ## Usage
 
@@ -24,13 +21,21 @@ $ dartfix examples/misc --overwrite
 ```
 
 ## Features
+`dartfix` applies different types of "fixes" to migrate your Dart code.
+By default, all fixes are applied, but you can select only the specific fixes you
+want. See `dartfix --help` for more about the available command line options.
 
-As of release 0.1.3, `dartfix` can make the following changes to your code:
+Some of the fixes that you can apply are "required" in that the Dart language
+is changing and at some point the old syntax will no longer be supported.
+To only apply these changes, pass the `--required` option on the command line.
+The required fixes include:
 
-* Convert code to use the following [features added to Dart in 2.1][]:
-  * Find classes used as mixins, and convert them to use the `mixin` keyword
+* Find classes used as mixins, and convert them to use the `mixin` keyword
     instead of `class`.
-  * Find `double` literals that end in `.0`, and remove the `.0`.
+    Mixin support is one of the [features added to Dart in 2.1][].
+    At some point in the future, the Dart team plans
+    to disallow using classes as mixins.
+
 * Move named constructor type arguments from the name to the type. <br>
   For example, given `class A<T> { A.from(Object obj) { } }`,
   `dartfix` changes constructor invocations in the following way:
@@ -42,6 +47,11 @@ As of release 0.1.3, `dartfix` can make the following changes to your code:
   Code produced by dartfix:
   A<String>.from(anObject) // Same, but the type is directly after `A`.
   ```
+
+Other changes are recommended but not required. These include:
+
+* Find `double` literals that end in `.0`, and remove the `.0`.
+  Language support for this was [added in Dart in 2.1][].
 
 ## Installing and updating dartfix
 
@@ -56,27 +66,6 @@ Use the same command to update `dartfix`.
 We recommend updating `dartfix` whenever you update your Dart SDK
 or when a new feature is released.
 
-## Options
-
-<dl>
-  <dt><code>--[no-]color</code></dt>
-  <dd> Use colors when printing messages. On by default. </dd>
-
-  <dt><code>-f, --force</code></dt>
-  <dd>Apply the recommended changes even if the input code has errors.
-  </dd>
-
-  <dt><code>-h, --help</code></dt>
-  <dd>See a complete list of `dartfix` options.</dd>
-
-  <dt><code>-v, --verbose</code></dt>
-  <dd>Verbose output.</dd>
-
-  <dt><code>-w, --overwrite</code></dt>
-  <dd>Apply the recommended changes.</dd>
-</dl>
-
-
 ## Filing issues
 
 If you want a new fix, first look at [dartfix issues][]
@@ -85,6 +74,7 @@ If no issue exists for the fix, [create a GitHub issue.][new issue]
 
 [dartfix]: https://pub.dartlang.org/packages/dartfix
 [dartfmt]: https://www.dartlang.org/tools/dartfmt
+[added in Dart in 2.1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#210---2018-11-15
 [features added to Dart in 2.1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#210---2018-11-15
 [globally install]: https://www.dartlang.org/tools/pub/cmd/pub-global
 [new issue]: https://github.com/dart-lang/sdk/issues/new?title=dartfix%20request%3A%20%3CSUMMARIZE%20REQUEST%20HERE%3E

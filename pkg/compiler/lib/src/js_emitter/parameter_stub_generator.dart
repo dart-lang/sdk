@@ -226,7 +226,7 @@ class ParameterStubGenerator {
     jsAst.Name name = member.isStatic ? null : _namer.invocationName(selector);
     jsAst.Name callName =
         (callSelector != null) ? _namer.invocationName(callSelector) : null;
-    return new ParameterStubMethod(name, callName, function);
+    return new ParameterStubMethod(name, callName, function, element: member);
   }
 
   // We fill the lists depending on possible/invoked selectors. For example,

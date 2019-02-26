@@ -80,7 +80,8 @@ void CompilerDeoptInfo::AllocateIncomingParametersRecursive(
     if (it.CurrentLocation().IsInvalid() &&
         it.CurrentValue()->definition()->IsPushArgument()) {
       it.SetCurrentLocation(Location::StackSlot(
-          compiler_frame_layout.FrameSlotForVariableIndex(-*stack_height)));
+          compiler::target::frame_layout.FrameSlotForVariableIndex(
+              -*stack_height)));
       (*stack_height)++;
     }
   }
@@ -164,6 +165,8 @@ FlowGraphCompiler::FlowGraphCompiler(
   code_source_map_builder_ = new (zone_)
       CodeSourceMapBuilder(stack_traces_only, caller_inline_id,
                            inline_id_to_token_pos, inline_id_to_function);
+
+  ArchSpecificInitialization();
 }
 
 bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
@@ -354,7 +357,8 @@ intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
 #if defined(DART_PRECOMPILER)
 static intptr_t LocationToStackIndex(const Location& src) {
   ASSERT(src.HasStackIndex());
-  return -compiler_frame_layout.VariableIndexForFrameSlot(src.stack_index());
+  return -compiler::target::frame_layout.VariableIndexForFrameSlot(
+      src.stack_index());
 }
 
 static CatchEntryMove CatchEntryMoveFor(Assembler* assembler,
@@ -367,7 +371,7 @@ static CatchEntryMove CatchEntryMoveFor(Assembler* assembler,
       return CatchEntryMove();
     }
     const intptr_t pool_index =
-        assembler->object_pool_wrapper().FindObject(src.constant());
+        assembler->object_pool_builder().FindObject(src.constant());
     return CatchEntryMove::FromSlot(CatchEntryMove::SourceKind::kConstant,
                                     pool_index, dst_index);
   }
@@ -471,10 +475,11 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env,
 void FlowGraphCompiler::EmitCallsiteMetadata(TokenPosition token_pos,
                                              intptr_t deopt_id,
                                              RawPcDescriptors::Kind kind,
-                                             LocationSummary* locs) {
+                                             LocationSummary* locs,
+                                             Environment* env) {
   AddCurrentDescriptor(kind, deopt_id, token_pos);
   RecordSafepoint(locs);
-  RecordCatchEntryMoves();
+  RecordCatchEntryMoves(env);
   if (deopt_id != DeoptId::kNone) {
     // Marks either the continuation point in unoptimized code or the
     // deoptimization point in optimized code, after call.
@@ -746,6 +751,16 @@ CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
       new (zone()) CompilerDeoptInfo(deopt_id, ICData::kDeoptAtCall,
                                      0,  // No flags.
                                      pending_deoptimization_env_);
+  info->set_pc_offset(assembler()->CodeSize());
+  deopt_infos_.Add(info);
+  return info;
+}
+
+CompilerDeoptInfo* FlowGraphCompiler::AddSlowPathDeoptInfo(intptr_t deopt_id,
+                                                           Environment* env) {
+  ASSERT(deopt_id != DeoptId::kNone);
+  CompilerDeoptInfo* info =
+      new (zone()) CompilerDeoptInfo(deopt_id, ICData::kDeoptUnknown, 0, env);
   info->set_pc_offset(assembler()->CodeSize());
   deopt_infos_.Add(info);
   return info;
@@ -1048,7 +1063,7 @@ void FlowGraphCompiler::FinalizeStackMaps(const Code& code) {
 
 void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
 #if defined(PRODUCT)
-  // No debugger: no var descriptors.
+// No debugger: no var descriptors.
 #else
   // TODO(alexmarkov): revise local vars descriptors when compiling bytecode
   if (code.is_optimized() || flow_graph().function().HasBytecode()) {
@@ -1070,7 +1085,7 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     info.scope_id = 0;
     info.begin_pos = TokenPosition::kMinSource;
     info.end_pos = TokenPosition::kMinSource;
-    info.set_index(compiler_frame_layout.FrameSlotForVariable(
+    info.set_index(compiler::target::frame_layout.FrameSlotForVariable(
         parsed_function().current_context_var()));
     var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
   }
@@ -1205,7 +1220,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
   EnterIntrinsicMode();
 
   SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-  bool complete = Intrinsifier::Intrinsify(parsed_function(), this);
+  bool complete = compiler::Intrinsifier::Intrinsify(parsed_function(), this);
   SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
 
   ExitIntrinsicMode();
@@ -1413,8 +1428,7 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
 
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
-  instr->InitializeLocationSummary(zone(),
-                                   false);  // Not optimizing.
+  instr->InitializeLocationSummary(zone(), false);  // Not optimizing.
 
 // No need to allocate registers based on LocationSummary on DBC as in
 // unoptimized mode it's a stack based bytecode just like IR itself.
@@ -1751,9 +1765,6 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
       zone(), ICData::New(parsed_function().function(), target_name,
                           arguments_descriptor, deopt_id, num_args_tested,
                           ICData::kInstance, receiver_type));
-#if defined(TAG_IC_DATA)
-  ic_data.set_tag(ICData::Tag::kInstanceCall);
-#endif
   if (deopt_id_to_ic_data_ != NULL) {
     (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   }
@@ -1785,9 +1796,6 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
                   String::Handle(zone(), target.name()), arguments_descriptor,
                   deopt_id, num_args_tested, rebind_rule));
   ic_data.AddTarget(target);
-#if defined(TAG_IC_DATA)
-  ic_data.set_tag(ICData::Tag::kStaticCall);
-#endif
   if (deopt_id_to_ic_data_ != NULL) {
     (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   }
@@ -2284,7 +2292,7 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ PushRegister(locs->in(i).reg());
   }
   if (use_shared_stub) {
-    EmitSharedStubCall(compiler->assembler(), live_fpu_registers);
+    EmitSharedStubCall(compiler, live_fpu_registers);
   } else {
     __ CallRuntime(runtime_entry_, num_args_);
   }
@@ -2303,7 +2311,11 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
       (compiler->CurrentTryIndex() != kInvalidTryIndex)) {
     Environment* env =
         compiler->SlowPathEnvironmentFor(instruction(), num_args_);
-    compiler->RecordCatchEntryMoves(env, try_index_);
+    if (FLAG_precompiled_mode) {
+      compiler->RecordCatchEntryMoves(env, try_index_);
+    } else if (env != nullptr) {
+      compiler->AddSlowPathDeoptInfo(deopt_id, env);
+    }
   }
   if (!use_shared_stub) {
     __ Breakpoint();

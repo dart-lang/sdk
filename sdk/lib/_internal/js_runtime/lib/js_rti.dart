@@ -60,6 +60,7 @@ class TypeImpl implements Type {
   // TODO(ahe): This is a poor hashCode as it collides with its name.
   int get hashCode => _hashCode ??= _typeName.hashCode;
 
+  @pragma('dart2js:noInline')
   bool operator ==(other) {
     return (other is TypeImpl) && _typeName == other._typeName;
   }

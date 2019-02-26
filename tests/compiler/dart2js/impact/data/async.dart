@@ -33,45 +33,48 @@ main() {
 
 /*element: testSyncStar:
  static=[
-  _IterationMarker.endOfIteration,
-  _IterationMarker.uncaughtError,
-  _IterationMarker.yieldStar,
+  _IterationMarker.endOfIteration(0),
+  _IterationMarker.uncaughtError(1),
+  _IterationMarker.yieldStar(1),
   _makeSyncStarIterable<dynamic>(1)]
 */
 testSyncStar() sync* {}
 
 /*element: testAsync:
  static=[
-  StreamIterator.,
-  _asyncAwait,
-  _asyncRethrow,
-  _asyncReturn,
-  _asyncStartSync,
+  StreamIterator.(1),
+  _asyncAwait(2),
+  _asyncRethrow(2),
+  _asyncReturn(2),
+  _asyncStartSync(2),
   _makeAsyncAwaitCompleter<dynamic>(0),
-  _wrapJsFunctionForAsync]
+  _wrapJsFunctionForAsync(1)]
 */
 testAsync() async {}
 
-/*element: testAsyncStar:static=[StreamIterator.,
-  _IterationMarker.yieldSingle,
-  _IterationMarker.yieldStar,
-  _asyncStarHelper,
+/*element: testAsyncStar:
+ static=[
+  StreamIterator.(1),
+  _IterationMarker.yieldSingle(1),
+  _IterationMarker.yieldStar(1),
+  _asyncStarHelper(3),
   _makeAsyncStarStreamController<dynamic>(1),
-  _streamOfController,
-  _wrapJsFunctionForAsync]*/
+  _streamOfController(1),
+  _wrapJsFunctionForAsync(1)]
+*/
 testAsyncStar() async* {}
 
 /*strong.element: testLocalSyncStar:
  static=[
-  _IterationMarker.endOfIteration,
-  _IterationMarker.uncaughtError,
-  _IterationMarker.yieldStar,
+  _IterationMarker.endOfIteration(0),
+  _IterationMarker.uncaughtError(1),
+  _IterationMarker.yieldStar(1),
   _makeSyncStarIterable<Null>(1),
-  computeSignature,
+  computeSignature(3),
   def:local,
-  getRuntimeTypeArguments,
-  getRuntimeTypeInfo,
-  setRuntimeTypeInfo],
+  getRuntimeTypeArguments(3),
+  getRuntimeTypeInfo(1),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:Function,
   inst:JSArray<dynamic>,
@@ -87,18 +90,18 @@ testLocalSyncStar() {
 
 /*strong.element: testLocalAsync:
  static=[
-  StreamIterator.,
-  _asyncAwait,
-  _asyncRethrow,
-  _asyncReturn,
-  _asyncStartSync,
+  StreamIterator.(1),
+  _asyncAwait(2),
+  _asyncRethrow(2),
+  _asyncReturn(2),
+  _asyncStartSync(2),
   _makeAsyncAwaitCompleter<Null>(0),
-  _wrapJsFunctionForAsync,
-  computeSignature,
+  _wrapJsFunctionForAsync(1),
+  computeSignature(3),
   def:local,
-  getRuntimeTypeArguments,
-  getRuntimeTypeInfo,
-  setRuntimeTypeInfo],
+  getRuntimeTypeArguments(3),
+  getRuntimeTypeInfo(1),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:Function,
   inst:JSArray<dynamic>,
@@ -114,18 +117,18 @@ testLocalAsync() {
 
 /*strong.element: testLocalAsyncStar:
  static=[
-  StreamIterator.,
-  _IterationMarker.yieldSingle,
-  _IterationMarker.yieldStar,
-  _asyncStarHelper,
+  StreamIterator.(1),
+  _IterationMarker.yieldSingle(1),
+  _IterationMarker.yieldStar(1),
+  _asyncStarHelper(3),
   _makeAsyncStarStreamController<Null>(1),
-  _streamOfController,
-  _wrapJsFunctionForAsync,
-  computeSignature,
+  _streamOfController(1),
+  _wrapJsFunctionForAsync(1),
+  computeSignature(3),
   def:local,
-  getRuntimeTypeArguments,
-  getRuntimeTypeInfo,
-  setRuntimeTypeInfo],
+  getRuntimeTypeArguments(3),
+  getRuntimeTypeInfo(1),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:Function,
   inst:JSArray<dynamic>,
@@ -141,15 +144,15 @@ testLocalAsyncStar() {
 
 /*strong.element: testAnonymousSyncStar:
  static=[
-  _IterationMarker.endOfIteration,
-  _IterationMarker.uncaughtError,
-  _IterationMarker.yieldStar,
+  _IterationMarker.endOfIteration(0),
+  _IterationMarker.uncaughtError(1),
+  _IterationMarker.yieldStar(1),
   _makeSyncStarIterable<Null>(1),
-  computeSignature,
+  computeSignature(3),
   def:<anonymous>,
-  getRuntimeTypeArguments,
-  getRuntimeTypeInfo,
-  setRuntimeTypeInfo],
+  getRuntimeTypeArguments(3),
+  getRuntimeTypeInfo(1),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:Function,
   inst:JSArray<dynamic>,
@@ -164,18 +167,18 @@ testAnonymousSyncStar() {
 
 /*strong.element: testAnonymousAsync:
  static=[
-  StreamIterator.,
-  _asyncAwait,
-  _asyncRethrow,
-  _asyncReturn,
-  _asyncStartSync,
+  StreamIterator.(1),
+  _asyncAwait(2),
+  _asyncRethrow(2),
+  _asyncReturn(2),
+  _asyncStartSync(2),
   _makeAsyncAwaitCompleter<Null>(0),
-  _wrapJsFunctionForAsync,
-  computeSignature,
+  _wrapJsFunctionForAsync(1),
+  computeSignature(3),
   def:<anonymous>,
-  getRuntimeTypeArguments,
-  getRuntimeTypeInfo,
-  setRuntimeTypeInfo],
+  getRuntimeTypeArguments(3),
+  getRuntimeTypeInfo(1),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:Function,
   inst:JSArray<dynamic>,
@@ -190,18 +193,18 @@ testAnonymousAsync() {
 
 /*strong.element: testAnonymousAsyncStar:
  static=[
-  StreamIterator.,
-  _IterationMarker.yieldSingle,
-  _IterationMarker.yieldStar,
-  _asyncStarHelper,
+  StreamIterator.(1),
+  _IterationMarker.yieldSingle(1),
+  _IterationMarker.yieldStar(1),
+  _asyncStarHelper(3),
   _makeAsyncStarStreamController<Null>(1),
-  _streamOfController,
-  _wrapJsFunctionForAsync,
-  computeSignature,
+  _streamOfController(1),
+  _wrapJsFunctionForAsync(1),
+  computeSignature(3),
   def:<anonymous>,
-  getRuntimeTypeArguments,
-  getRuntimeTypeInfo,
-  setRuntimeTypeInfo],
+  getRuntimeTypeArguments(3),
+  getRuntimeTypeInfo(1),
+  setRuntimeTypeInfo(2)],
  type=[
   inst:Function,
   inst:JSArray<dynamic>,
@@ -220,13 +223,13 @@ testAnonymousAsyncStar() {
   current,
   moveNext(0)],
  static=[
-  StreamIterator.,
-  _asyncAwait,
-  _asyncRethrow,
-  _asyncReturn,
-  _asyncStartSync,
+  StreamIterator.(1),
+  _asyncAwait(2),
+  _asyncRethrow(2),
+  _asyncReturn(2),
+  _asyncStartSync(2),
   _makeAsyncAwaitCompleter<dynamic>(0),
-  _wrapJsFunctionForAsync],
+  _wrapJsFunctionForAsync(1)],
  type=[
   impl:Stream<dynamic>,
   inst:JSBool,
@@ -244,13 +247,13 @@ testAsyncForIn(o) async {
   current,
   moveNext(0)],
  static=[
-  StreamIterator.,
-  _asyncAwait,
-  _asyncRethrow,
-  _asyncReturn,
-  _asyncStartSync,
+  StreamIterator.(1),
+  _asyncAwait(2),
+  _asyncRethrow(2),
+  _asyncReturn(2),
+  _asyncStartSync(2),
   _makeAsyncAwaitCompleter<dynamic>(0),
-  _wrapJsFunctionForAsync],
+  _wrapJsFunctionForAsync(1)],
  type=[
   impl:Stream<dynamic>,
   impl:int,

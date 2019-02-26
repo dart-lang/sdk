@@ -267,13 +267,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       break;
     }
     case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitStaticFinalGetter:
     case RawFunction::kImplicitSetter: {
       ASSERT(helper_.PeekTag() == kField);
-      if (IsFieldInitializer(function, Z)) {
-        VisitNode();
-        break;
-      }
       const bool is_setter = function.IsImplicitSetterFunction();
       const bool is_method = !function.IsStaticFunction();
       intptr_t pos = 0;
@@ -306,6 +301,18 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
                 LocalVariable::kTypeCheckedByCaller);
           }
         }
+      }
+      break;
+    }
+    case RawFunction::kImplicitStaticFinalGetter: {
+      ASSERT(helper_.PeekTag() == kField);
+      ASSERT(function.IsStaticFunction());
+      // In addition to static field initializers, scopes/local variables
+      // are needed for implicit getters of static const fields, in order to
+      // be able to evaluate their initializers in constant evaluator.
+      if (IsFieldInitializer(function, Z) ||
+          Field::Handle(Z, function.accessor_field()).is_const()) {
+        VisitNode();
       }
       break;
     }
@@ -376,6 +383,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       break;
     case RawFunction::kSignatureFunction:
     case RawFunction::kIrregexpFunction:
+    case RawFunction::kFfiTrampoline:
       UNREACHABLE();
   }
   if (needs_expr_temp_) {

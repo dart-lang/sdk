@@ -74,13 +74,6 @@ class ClassFinalizer : public AllStatic {
 
  private:
   static void AllocateEnumValues(const Class& enum_cls);
-  static bool IsSuperCycleFree(const Class& cls);
-  static bool IsTypedefCycleFree(const Class& cls,
-                                 const AbstractType& type,
-                                 GrowableArray<intptr_t>* visited);
-  static void CheckForLegalConstClass(const Class& cls);
-  static void CheckSuperTypeAndInterfaces(const Class& cls,
-                                          GrowableArray<intptr_t>* visited);
   static void FinalizeTypeParameters(const Class& cls,
                                      PendingTypes* pending_types = NULL);
   static intptr_t ExpandAndFinalizeTypeArguments(const Class& cls,

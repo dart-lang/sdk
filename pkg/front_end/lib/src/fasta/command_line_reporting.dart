@@ -14,6 +14,8 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:kernel/ast.dart' show Location;
 
+import '../compute_platform_binaries_location.dart' show translateSdk;
+
 import 'colors.dart' show green, magenta, red;
 
 import 'compiler_context.dart' show CompilerContext;
@@ -72,7 +74,7 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
     }
 
     if (message.uri != null) {
-      String path = relativizeUri(message.uri);
+      String path = relativizeUri(translateSdk(message.uri));
       int offset = message.charOffset;
       location ??= (offset == -1 ? null : getLocation(message.uri, offset));
       String sourceLine = getSourceLine(location);

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
@@ -33,6 +34,7 @@ Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
  */
 class Declaration {
   final int fileIndex;
+  final LineInfo lineInfo;
   final String name;
   final DeclarationKind kind;
   final int offset;
@@ -46,6 +48,7 @@ class Declaration {
 
   Declaration(
       this.fileIndex,
+      this.lineInfo,
       this.name,
       this.kind,
       this.offset,
@@ -188,6 +191,7 @@ class Search {
           var location = file.lineInfo.getLocation(offset);
           declarations.add(new Declaration(
               fileIndex,
+              file.lineInfo,
               name,
               kind,
               offset,

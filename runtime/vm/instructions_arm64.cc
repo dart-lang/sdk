@@ -12,6 +12,7 @@
 #include "vm/constants_arm64.h"
 #include "vm/cpu.h"
 #include "vm/object.h"
+#include "vm/reverse_pc_lookup_cache.h"
 
 namespace dart {
 
@@ -318,7 +319,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
       const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
       if (!pool.IsNull()) {
-        if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
+        if (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject) {
           *obj = pool.ObjectAt(index);
           return true;
         }
@@ -443,7 +444,8 @@ RawCode* BareSwitchableCallPattern::target() const {
 }
 
 void BareSwitchableCallPattern::SetTarget(const Code& target) const {
-  ASSERT(object_pool_.TypeAt(target_pool_index_) == ObjectPool::kImmediate);
+  ASSERT(object_pool_.TypeAt(target_pool_index_) ==
+         ObjectPool::EntryType::kImmediate);
   object_pool_.SetRawValueAt(target_pool_index_,
                              target.MonomorphicEntryPoint());
 }
@@ -464,11 +466,60 @@ bool PcRelativeCallPattern::IsValid() const {
   return (word >> 26) == branch_link;
 }
 
-bool PcRelativeJumpPattern::IsValid() const {
-  // b <offset>
-  const uint32_t word = *reinterpret_cast<uint32_t*>(pc_);
-  const uint32_t branch_nolink = 0x5;
-  return (word >> 26) == branch_nolink;
+void PcRelativeTrampolineJumpPattern::Initialize() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  uint32_t* pattern = reinterpret_cast<uint32_t*>(pattern_start_);
+  pattern[0] = kAdrEncoding;
+  pattern[1] = kMovzEncoding;
+  pattern[2] = kAddTmpTmp2;
+  pattern[3] = kJumpEncoding;
+  set_distance(0);
+#else
+  UNREACHABLE();
+#endif
+}
+
+int32_t PcRelativeTrampolineJumpPattern::distance() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  uint32_t* pattern = reinterpret_cast<uint32_t*>(pattern_start_);
+  const uint32_t adr = pattern[0];
+  const uint32_t movz = pattern[1];
+  const uint32_t lower16 =
+      (((adr >> 5) & ((1 << 19) - 1)) << 2) | ((adr >> 29) & 0x3);
+  const uint32_t higher16 = (movz >> kImm16Shift) & 0xffff;
+  return (higher16 << 16) | lower16;
+#else
+  UNREACHABLE();
+  return 0;
+#endif
+}
+
+void PcRelativeTrampolineJumpPattern::set_distance(int32_t distance) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  uint32_t* pattern = reinterpret_cast<uint32_t*>(pattern_start_);
+  uint32_t low16 = distance & 0xffff;
+  uint32_t high16 = (distance >> 16) & 0xffff;
+  pattern[0] = kAdrEncoding | ((low16 & 0x3) << 29) | ((low16 >> 2) << 5);
+  pattern[1] = kMovzEncoding | (high16 << kImm16Shift);
+  ASSERT(IsValid());
+#else
+  UNREACHABLE();
+#endif
+}
+
+bool PcRelativeTrampolineJumpPattern::IsValid() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const uint32_t adr_mask = (3 << 29) | (((1 << 19) - 1) << 5);
+  const uint32_t movz_mask = 0xffff << 5;
+  uint32_t* pattern = reinterpret_cast<uint32_t*>(pattern_start_);
+  return (pattern[0] & ~adr_mask) == kAdrEncoding &
+             (pattern[1] & ~movz_mask) == kMovzEncoding &
+             pattern[2] == kAddTmpTmp2 &&
+         pattern[3] == kJumpEncoding;
+#else
+  UNREACHABLE();
+  return false;
+#endif
 }
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {

@@ -83,6 +83,12 @@ class CallSpecializer : public FlowGraphVisitor {
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
 
+  // Replaces a call where the replacement code does not end in a
+  // value-returning instruction, so we must specify what definition should be
+  // used instead to replace uses of the call return value.
+  void ReplaceCallWithResult(Definition* call,
+                             Instruction* replacement,
+                             Definition* result);
   void ReplaceCall(Definition* call, Definition* replacement);
 
   // Add a class check for the call's first argument (receiver).

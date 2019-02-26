@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/missing_constructor.dart:10:11: Warning: Superclass has no constructor named 'Super'.
 //   Sub() : super();
@@ -23,8 +25,7 @@
 // pkg/front_end/testcases/missing_constructor.dart:23:28: Warning: Superclass has no constructor named 'Super.foo'.
 //   MixinApplication.foo() : super.foo();
 //                            ^^^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

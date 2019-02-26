@@ -72,6 +72,12 @@ abstract class NativeMemberResolverBase implements NativeMemberResolver {
       // using a JS-call.
       _setNativeName(element);
       return true;
+    } else {
+      String name = _findJsNameFromAnnotation(element);
+      if (name != null) {
+        failedAt(element,
+            '@JSName(...) annotation is not supported for static fields.');
+      }
     }
     return false;
   }

@@ -7,16 +7,15 @@ Bytecode {
   Entry                0
   CheckStack           0
   PushConstant         CP#0
-  PushConstant         CP#2
-  IndirectStaticCall   1, CP#1
+  DirectCall           1, CP#1
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = String 'Hello, Dart Bytecode!'
-  [1] = ArgDesc num-args 1, num-type-args 0, names []
-  [2] = StaticICData target 'dart:core::print', arg-desc CP#1
+  [0] = ObjectRef 'Hello, Dart Bytecode!'
+  [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
 }
 ]static method main() → dynamic {
   core::print("Hello, Dart Bytecode!");

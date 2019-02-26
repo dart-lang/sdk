@@ -311,7 +311,7 @@ class AnalyzerToKernel {
 
       var c = Class(
           name: runningName,
-          isAbstract: e.isAbstract,
+          isAbstract: true,
           mixedInType: mixedInType,
           supertype: supertype,
           typeParameters: typeParameters,

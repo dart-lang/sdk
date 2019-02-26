@@ -22,6 +22,8 @@ class ApplyCheckElementTextReplacements {
   }
 }
 
+/// TODO(paulberry): migrate this test away from the task model.
+/// See dartbug.com/35734.
 @reflectiveTest
 class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
     with ResynthesizeTestCases, ResynthesizeTestHelpers {

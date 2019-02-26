@@ -134,7 +134,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       // Get the new location of the object.
       new_addr = ForwardedAddr(header);
     } else {
-      intptr_t size = raw_obj->Size();
+      intptr_t size = raw_obj->HeapSize();
       NOT_IN_PRODUCT(intptr_t cid = raw_obj->GetClassId());
       NOT_IN_PRODUCT(ClassTable* class_table = isolate()->class_table());
       // Check whether object should be promoted.
@@ -592,18 +592,14 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
   if (!FLAG_support_service) {
     return;
   }
-  ObjectIdRing* ring = isolate->object_id_ring();
-  if (ring == NULL) {
-    // --gc_at_alloc can get us here before the ring has been initialized.
-    ASSERT(FLAG_gc_at_alloc);
-    return;
-  }
-  ring->VisitPointers(visitor);
+  isolate->object_id_ring()->VisitPointers(visitor);
 #endif  // !PRODUCT
 }
 
 void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
-  NOT_IN_PRODUCT(Thread* thread = Thread::Current());
+#ifdef SUPPORT_TIMELINE
+  Thread* thread = Thread::Current();
+#endif
   int64_t start = OS::GetCurrentMonotonicMicros();
   {
     TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRoots");
@@ -772,7 +768,7 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
     if (!IsForwarding(header)) {
       // Key is white.  Enqueue the weak property.
       EnqueueWeakProperty(raw_weak);
-      return raw_weak->Size();
+      return raw_weak->HeapSize();
     }
   }
   // Key is gray or black.  Make the weak property black.
@@ -896,7 +892,7 @@ void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
     visitor->VisitObject(raw_obj);
-    cur += raw_obj->Size();
+    cur += raw_obj->HeapSize();
   }
 }
 
@@ -911,7 +907,7 @@ RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
   if (visitor->VisitRange(cur, top_)) {
     while (cur < top_) {
       RawObject* raw_obj = RawObject::FromAddr(cur);
-      uword next = cur + raw_obj->Size();
+      uword next = cur + raw_obj->HeapSize();
       if (visitor->VisitRange(cur, next) && raw_obj->FindObject(visitor)) {
         return raw_obj;  // Found object, return it.
       }
@@ -930,6 +926,15 @@ uword Scavenger::TryAllocateNewTLAB(Thread* thread, intptr_t size) {
   uword result = top_;
   intptr_t remaining = end_ - top_;
   if (remaining < size) {
+    // Grab whatever is remaining
+    size = remaining;
+  } else {
+    // Reduce TLAB size so we land at even TLAB size for future TLABs.
+    intptr_t survived_size = UsedInWords() * kWordSize;
+    size -= survived_size % size;
+  }
+  size = Utils::RoundDown(size, kObjectAlignment);
+  if (size == 0) {
     return 0;
   }
   ASSERT(to_->Contains(result));

@@ -29,6 +29,24 @@ class RawSocket {
 }
 
 @patch
+class RawSocketOption {
+  static final List<int> _optionsCache =
+      List<int>(_RawSocketOptions.values.length);
+
+  @patch
+  static int _getOptionValue(int key) {
+    if (key > _RawSocketOptions.values.length) {
+      throw ArgumentError.value(key, 'key');
+    }
+    _optionsCache[key] ??= _getNativeOptionValue(key);
+    return _optionsCache[key];
+  }
+
+  static int _getNativeOptionValue(int key)
+      native "RawSocketOption_GetOptionValue";
+}
+
+@patch
 class InternetAddress {
   @patch
   static InternetAddress get LOOPBACK_IP_V4 {
@@ -1084,6 +1102,23 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     return true;
   }
 
+  Uint8List getRawOption(RawSocketOption option) {
+    if (option == null) throw new ArgumentError.notNull("option");
+    if (option.value == null) throw new ArgumentError.notNull("option.value");
+
+    var result = nativeGetRawOption(option.level, option.option, option.value);
+    if (result != null) throw result;
+    return option.value;
+  }
+
+  void setRawOption(RawSocketOption option) {
+    if (option == null) throw new ArgumentError.notNull("option");
+    if (option.value == null) throw new ArgumentError.notNull("option.value");
+
+    var result = nativeSetRawOption(option.level, option.option, option.value);
+    if (result != null) throw result;
+  }
+
   InternetAddress multicastAddress(
       InternetAddress addr, NetworkInterface interface) {
     // On Mac OS using the interface index for joining IPv4 multicast groups
@@ -1146,8 +1181,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   int nativeGetSocketId() native "Socket_GetSocketId";
   OSError nativeGetError() native "Socket_GetError";
   nativeGetOption(int option, int protocol) native "Socket_GetOption";
+  OSError nativeGetRawOption(int level, int option, Uint8List data)
+      native "Socket_GetRawOption";
   OSError nativeSetOption(int option, int protocol, value)
       native "Socket_SetOption";
+  OSError nativeSetRawOption(int level, int option, Uint8List data)
+      native "Socket_SetRawOption";
   OSError nativeJoinMulticast(List<int> addr, List<int> interfaceAddr,
       int interfaceIndex) native "Socket_JoinMulticast";
   bool nativeLeaveMulticast(List<int> addr, List<int> interfaceAddr,
@@ -1376,6 +1415,10 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
 
   bool setOption(SocketOption option, bool enabled) =>
       _socket.setOption(option, enabled);
+
+  Uint8List getRawOption(RawSocketOption option) =>
+      _socket.getRawOption(option);
+  void setRawOption(RawSocketOption option) => _socket.setRawOption(option);
 
   _pause() {
     _socket.setListening(read: false, write: false);
@@ -1640,6 +1683,15 @@ class _Socket extends Stream<List<int>> implements Socket {
   bool setOption(SocketOption option, bool enabled) {
     if (_raw == null) return false;
     return _raw.setOption(option, enabled);
+  }
+
+  Uint8List getRawOption(RawSocketOption option) {
+    if (_raw == null) return null;
+    return _raw.getRawOption(option);
+  }
+
+  void setRawOption(RawSocketOption option) {
+    _raw?.setRawOption(option);
   }
 
   int get port {
@@ -1913,6 +1965,10 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
       _socket.close();
     }
   }
+
+  Uint8List getRawOption(RawSocketOption option) =>
+      _socket.getRawOption(option);
+  void setRawOption(RawSocketOption option) => _socket.setRawOption(option);
 }
 
 @pragma("vm:entry-point")

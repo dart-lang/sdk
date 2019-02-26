@@ -31,6 +31,7 @@ import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
+import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
@@ -65,6 +66,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
+import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:telemetry/crash_reporting.dart';
@@ -150,15 +152,11 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   ByteStore byteStore;
   nd.AnalysisDriverScheduler analysisDriverScheduler;
+  DeclarationsTracker declarationsTracker;
 
   /// The controller for [onAnalysisSetChanged].
   final StreamController _onAnalysisSetChangedController =
       new StreamController.broadcast(sync: true);
-
-  /// The DiagnosticServer for this AnalysisServer. If available, it can be used
-  /// to start an http diagnostics server or return the port for an existing
-  /// server.
-  final DiagnosticServer diagnosticServer;
 
   final DetachableFileSystemManager detachableFileSystemManager;
 
@@ -175,11 +173,11 @@ class AnalysisServer extends AbstractAnalysisServer {
     AnalysisServerOptions options,
     this.sdkManager,
     this.instrumentationService, {
-    this.diagnosticServer,
+    DiagnosticServer diagnosticServer,
     ResolverProvider fileResolverProvider: null,
     ResolverProvider packageResolverProvider: null,
     this.detachableFileSystemManager: null,
-  }) : super(options, baseResourceProvider) {
+  }) : super(options, diagnosticServer, baseResourceProvider) {
     notificationManager = new NotificationManager(channel, resourceProvider);
 
     pluginManager = new PluginManager(
@@ -281,6 +279,36 @@ class AnalysisServer extends AbstractAnalysisServer {
     return _onAnalysisStartedController.stream;
   }
 
+  void createDeclarationsTracker(void Function(LibraryChange) listener) {
+    if (declarationsTracker != null) return;
+
+    declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
+    declarationsTracker.changes.listen(listener);
+
+    _addContextsToDeclarationsTracker();
+
+    // Configure the scheduler to run the tracker.
+    analysisDriverScheduler.outOfBandWorker =
+        CompletionLibrariesWorker(declarationsTracker);
+
+    // We might have done running drivers work, so ask the scheduler to check.
+    analysisDriverScheduler.notify(null);
+  }
+
+  /// Notify the declarations tracker that the file with the given [path] was
+  /// changed - added, updated, or removed.  Schedule processing of the file.
+  void notifyDeclarationsTracker(String path) {
+    if (declarationsTracker != null) {
+      declarationsTracker.changeFile(path);
+      analysisDriverScheduler.notify(null);
+    }
+  }
+
+  void disposeDeclarationsTracker() {
+    declarationsTracker = null;
+    analysisDriverScheduler.outOfBandWorker = null;
+  }
+
   /// The socket from which requests are being read has been closed.
   void done() {}
 
@@ -351,6 +379,12 @@ class AnalysisServer extends AbstractAnalysisServer {
     });
   }
 
+  /// Return `true` if the [path] is both absolute and normalized.
+  bool isAbsoluteAndNormalized(String path) {
+    var pathContext = resourceProvider.pathContext;
+    return pathContext.isAbsolute(path) && pathContext.normalize(path) == path;
+  }
+
   /// Return `true` if analysis is complete.
   bool isAnalysisComplete() {
     return !analysisDriverScheduler.isAnalyzing;
@@ -380,6 +414,16 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Send the given [response] to the client.
   void sendResponse(Response response) {
     channel.sendResponse(response);
+  }
+
+  /// If the [path] is not a valid file path, that is absolute and normalized,
+  /// send an error response, and return `true`. If OK then return `false`.
+  bool sendResponseErrorIfInvalidFilePath(Request request, String path) {
+    if (!isAbsoluteAndNormalized(path)) {
+      sendResponse(Response.invalidFilePathFormat(request, path));
+      return true;
+    }
+    return false;
   }
 
   /// Sends a `server.error` notification.
@@ -472,6 +516,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// projects/contexts support.
   void setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths, Map<String, String> packageRoots) {
+    declarationsTracker?.discardContexts();
     if (notificationManager != null) {
       notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
     }
@@ -481,6 +526,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       throw new RequestFailure(
           new Response.unsupportedFeature(requestId, e.message));
     }
+    _addContextsToDeclarationsTracker();
   }
 
   /// Implementation for `analysis.setSubscriptions`.
@@ -612,8 +658,11 @@ class AnalysisServer extends AbstractAnalysisServer {
       }
 
       if (newContents != null) {
-        resourceProvider.setOverlay(file,
-            content: newContents, modificationStamp: 0);
+        resourceProvider.setOverlay(
+          file,
+          content: newContents,
+          modificationStamp: overlayModificationStamp++,
+        );
       } else {
         resourceProvider.removeOverlay(file);
       }
@@ -625,6 +674,8 @@ class AnalysisServer extends AbstractAnalysisServer {
       // If the file did not exist, and is "overlay only", it still should be
       // analyzed. Add it to driver to which it should have been added.
       contextManager.getDriverFor(file)?.addFile(file);
+
+      notifyDeclarationsTracker(file);
 
       // TODO(scheglov) implement other cases
     });
@@ -653,6 +704,15 @@ class AnalysisServer extends AbstractAnalysisServer {
 //    optionUpdaters.forEach((OptionUpdater optionUpdater) {
 //      optionUpdater(defaultContextOptions);
 //    });
+  }
+
+  void _addContextsToDeclarationsTracker() {
+    if (declarationsTracker != null) {
+      for (var driver in driverMap.values) {
+        declarationsTracker.addContext(driver.analysisContext);
+        driver.resetUriResolution();
+      }
+    }
   }
 
   /// Return the path to the location of the byte store on disk, or `null` if
@@ -902,6 +962,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void broadcastWatchEvent(WatchEvent event) {
+    analysisServer.notifyDeclarationsTracker(event.path);
     analysisServer.pluginManager.broadcastWatchEvent(event);
   }
 

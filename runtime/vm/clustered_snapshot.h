@@ -17,7 +17,6 @@
 #include "vm/object.h"
 #include "vm/raw_object_fields.h"
 #include "vm/snapshot.h"
-#include "vm/type_testing_stubs.h"
 #include "vm/v8_snapshot_writer.h"
 #include "vm/version.h"
 
@@ -368,7 +367,6 @@ class Serializer : public ThreadStackResource {
   void DumpCombinedCodeStatistics();
 
  private:
-  TypeTestingStubFinder type_testing_stubs_;
   Heap* heap_;
   Zone* zone_;
   Snapshot::Kind kind_;
@@ -431,6 +429,42 @@ struct SerializerWritingObjectScope {
   Serializer* serializer_;
 };
 
+// This class can be used to read version and features from a snapshot before
+// the VM has been initialized.
+class SnapshotHeaderReader {
+ public:
+  static char* InitializeGlobalVMFlagsFromSnapshot(const Snapshot* snapshot);
+
+  explicit SnapshotHeaderReader(const Snapshot* snapshot)
+      : SnapshotHeaderReader(snapshot->kind(),
+                             snapshot->Addr(),
+                             snapshot->length()) {}
+
+  SnapshotHeaderReader(Snapshot::Kind kind,
+                       const uint8_t* buffer,
+                       intptr_t size)
+      : kind_(kind), stream_(buffer, size) {
+    stream_.SetPosition(Snapshot::kHeaderSize);
+  }
+
+  // Verifies the version and features in the snapshot are compatible with the
+  // current VM.  If isolate is non-null it validates isolate-specific features.
+  //
+  // Returns null on success and a malloc()ed error on failure.
+  // The [offset] will be the next position in the snapshot stream after the
+  // features.
+  char* VerifyVersionAndFeatures(Isolate* isolate, intptr_t* offset);
+
+ private:
+  char* VerifyVersion();
+  char* ReadFeatures(const char** features, intptr_t* features_length);
+  char* VerifyFeatures(Isolate* isolate);
+  char* BuildError(const char* message);
+
+  Snapshot::Kind kind_;
+  ReadStream stream_;
+};
+
 class Deserializer : public ThreadStackResource {
  public:
   Deserializer(Thread* thread,
@@ -440,8 +474,15 @@ class Deserializer : public ThreadStackResource {
                const uint8_t* data_buffer,
                const uint8_t* instructions_buffer,
                const uint8_t* shared_data_buffer,
-               const uint8_t* shared_instructions_buffer);
+               const uint8_t* shared_instructions_buffer,
+               intptr_t offset = 0);
   ~Deserializer();
+
+  // Verifies the image alignment.
+  //
+  // Returns ApiError::null() on success and an ApiError with an an appropriate
+  // message otherwise.
+  RawApiError* VerifyImageAlignment();
 
   void ReadIsolateSnapshot(ObjectStore* object_store);
   void ReadVMSnapshot();
@@ -469,8 +510,6 @@ class Deserializer : public ThreadStackResource {
 
   void Advance(intptr_t value) { stream_.Advance(value); }
   void Align(intptr_t alignment) { stream_.Align(alignment); }
-
-  intptr_t PendingBytes() const { return stream_.PendingBytes(); }
 
   void AddBaseObject(RawObject* base_object) { AssignRef(base_object); }
 
@@ -516,8 +555,6 @@ class Deserializer : public ThreadStackResource {
   RawObject* GetSharedObjectAt(uint32_t offset) const;
 
   void SkipHeader() { stream_.SetPosition(Snapshot::kHeaderSize); }
-
-  RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
 
   void Prepare();
   void Deserialize();
@@ -633,6 +670,8 @@ class FullSnapshotReader {
   RawApiError* ReadIsolateSnapshot();
 
  private:
+  RawApiError* ConvertToApiError(char* message);
+
   Snapshot::Kind kind_;
   Thread* thread_;
   const uint8_t* buffer_;

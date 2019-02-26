@@ -38,8 +38,6 @@
 #include "platform/hashmap.h"
 #include "platform/text_buffer.h"
 
-#include "vm/flags.h"
-
 extern "C" {
 extern const uint8_t kDartVmSnapshotData[];
 extern const uint8_t kDartVmSnapshotInstructions[];
@@ -228,7 +226,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   result = DartUtils::PrepareForScriptLoading(false, Options::trace_loading());
   CHECK_RESULT(result);
 
-  if (FLAG_support_service || !kDartPrecompiledRuntime) {
+  if (Dart_IsVMFlagSet("support_service") || !Dart_IsPrecompiledRuntime()) {
     // Set up the load port provided by the service isolate so that we can
     // load scripts.
     result = DartUtils::SetupServiceLoadPort();
@@ -307,7 +305,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     result = DartUtils::SetupIOLibrary(namespc, script_uri,
                                        Options::exit_disabled());
     CHECK_RESULT(result);
-    if (FLAG_support_service || !kDartPrecompiledRuntime) {
+    if (Dart_IsVMFlagSet("support_service") || !Dart_IsPrecompiledRuntime()) {
       Loader::InitForSnapshot(script_uri);
     }
 #if !defined(DART_PRECOMPILED_RUNTIME)

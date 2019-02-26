@@ -214,6 +214,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void beginForControlFlow(Token awaitToken, Token forToken) {
+    super.beginForControlFlow(awaitToken, forToken);
+    begin('ForControlFlow');
+  }
+
+  @override
   void beginForInBody(Token token) {
     super.beginForInBody(token);
     begin('ForInBody');
@@ -248,6 +254,12 @@ class ForwardingTestListener extends ForwardingListener {
   void beginFormalParameters(Token token, MemberKind kind) {
     super.beginFormalParameters(token, kind);
     begin('FormalParameters');
+  }
+
+  @override
+  void beginIfControlFlow(Token ifToken) {
+    super.beginIfControlFlow(ifToken);
+    begin('IfControlFlow');
   }
 
   @override
@@ -698,10 +710,21 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endForIn(Token awaitToken, Token forToken, Token leftParen,
-      Token inKeyword, Token endToken) {
+  void endForControlFlow(Token token) {
+    end('ForControlFlow');
+    super.endForControlFlow(token);
+  }
+
+  @override
+  void endForInControlFlow(Token token) {
+    end('ForControlFlow');
+    super.endForInControlFlow(token);
+  }
+
+  @override
+  void endForIn(Token endToken) {
     end('ForStatement');
-    super.endForIn(awaitToken, forToken, leftParen, inKeyword, endToken);
+    super.endForIn(endToken);
   }
 
   @override
@@ -717,11 +740,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
+  void endForStatement(Token endToken) {
     end('ForStatement');
-    super.endForStatement(
-        forKeyword, leftParen, leftSeparator, updateExpressionCount, endToken);
+    super.endForStatement(endToken);
   }
 
   @override
@@ -786,6 +807,18 @@ class ForwardingTestListener extends ForwardingListener {
   void endHide(Token hideKeyword) {
     end('Hide');
     super.endHide(hideKeyword);
+  }
+
+  @override
+  void endIfControlFlow(Token token) {
+    end('IfControlFlow');
+    super.endIfControlFlow(token);
+  }
+
+  @override
+  void endIfElseControlFlow(Token token) {
+    end('IfControlFlow');
+    super.endIfElseControlFlow(token);
   }
 
   @override

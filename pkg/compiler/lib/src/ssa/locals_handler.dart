@@ -196,6 +196,7 @@ class LocalsHandler {
       ScopeInfo scopeInfo,
       CapturedScope scopeData,
       Map<Local, AbstractValue> parameters,
+      Set<Local> elidedParameters,
       SourceInformation sourceInformation,
       {bool isGenerativeConstructorBody}) {
     this.scopeInfo = scopeInfo;
@@ -208,10 +209,12 @@ class LocalsHandler {
           return;
         }
       }
-      HInstruction parameter = builder.addParameter(local, typeMask);
+      HInstruction parameter = builder.addParameter(local, typeMask,
+          isElided: elidedParameters.contains(local));
       builder.parameters[local] = parameter;
       directLocals[local] = parameter;
     });
+    builder.elidedParameters = elidedParameters;
 
     enterScope(scopeData, sourceInformation,
         forGenerativeConstructorBody: isGenerativeConstructorBody);

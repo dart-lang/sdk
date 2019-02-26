@@ -19,6 +19,73 @@ class RemoveDeadCodeTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_DEAD_CODE;
 
+  test_catch_afterCatchAll_catch() async {
+    await resolveTestUnit('''
+main() {
+  try {
+  } catch (e) {
+    print('a');
+  } catch (e) {
+    print('b');
+  }
+}
+''');
+    await assertHasFix('''
+main() {
+  try {
+  } catch (e) {
+    print('a');
+  }
+}
+''');
+  }
+
+  test_catch_afterCatchAll_on() async {
+    await resolveTestUnit('''
+main() {
+  try {
+  } on Object {
+    print('a');
+  } catch (e) {
+    print('b');
+  }
+}
+''');
+    await assertHasFix('''
+main() {
+  try {
+  } on Object {
+    print('a');
+  }
+}
+''');
+  }
+
+  test_catch_subtype() async {
+    await resolveTestUnit('''
+class A {}
+class B extends A {}
+main() {
+  try {
+  } on A {
+    print('a');
+  } on B {
+    print('b');
+  }
+}
+''');
+    await assertHasFix('''
+class A {}
+class B extends A {}
+main() {
+  try {
+  } on A {
+    print('a');
+  }
+}
+''');
+  }
+
   test_condition() async {
     await resolveTestUnit('''
 main(int p) {

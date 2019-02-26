@@ -72,13 +72,6 @@ function clearConsole() {
   }
 }
 
-function printToDOM(message) {
-  var pre = document.createElement('pre');
-  pre.appendChild(document.createTextNode(String(message)));
-  document.body.appendChild(pre);
-  document.body.appendChild(document.createTextNode('\n'));
-}
-
 function printToConsole(message) {
   var consoleAvailable = typeof console === 'object';
 
@@ -109,11 +102,6 @@ window.onerror = function (message, url, lineNumber) {
   recordEvent('window_onerror', message);
   notifyDone('FAIL');
 };
-
-// testRunner is provided by content shell.
-// It is not available in browser tests.
-var testRunner = window.testRunner || window.layoutTestController;
-var isContentShell = testRunner;
 
 var waitForDone = false;
 
@@ -173,13 +161,7 @@ function notifyUpdate(testOutcome, isFirstMessage, isStatusUpdate, isDone) {
   // If we are not using the browser controller (e.g. in the none-drt
   // configuration), we need to print 'testOutcome' as it is.
   if (isDone && !usingBrowserController()) {
-    if (isContentShell) {
-      // We need this, since test.dart is looking for 'FAIL\n', 'PASS\n' in the
-      // DOM output of content shell.
-      printToDOM(testOutcome);
-    } else {
-      printToConsole('Test outcome: ' + testOutcome);
-    }
+    printToConsole('Test outcome: ' + testOutcome);
   } else if (usingBrowserController()) {
     // To support in browser launching of tests we post back start and result
     // messages to the window.opener.
@@ -200,9 +182,6 @@ function notifyUpdate(testOutcome, isFirstMessage, isStatusUpdate, isDone) {
           is_status_update: isStatusUpdate,
           is_done: isDone
         }), '*');
-  }
-  if (isDone) {
-    if (testRunner) testRunner.notifyDone();
   }
 }
 
@@ -228,13 +207,6 @@ function processMessage(msg) {
   if (typeof msg != 'string') return;
   if (msg == 'unittest-suite-wait-for-done') {
     waitForDone = true;
-    if (testRunner) {
-      testRunner.startedDartTest = true;
-    }
-  } else if (msg == 'dart-calling-main') {
-    if (testRunner) {
-      testRunner.startedDartTest = true;
-    }
   } else if (msg == 'dart-main-done') {
     if (!waitForDone) {
       notifyDone('PASS');
@@ -251,10 +223,6 @@ function onReceive(e) {
   processMessage(e.data);
 }
 
-if (testRunner) {
-  testRunner.dumpAsText();
-  testRunner.waitUntilDone();
-}
 window.addEventListener('message', onReceive, false);
 
 function onLoad(e) {

@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/duplicated_declarations.dart:7:1: Error: Import directives must preceed part directives.
 // Try moving the import directives before the part directives.
@@ -124,6 +126,48 @@
 // enum AnotherEnum {
 //      ^^^^^^^^^^^
 //
+// pkg/front_end/testcases/duplicated_declarations_part.dart:11:9: Error: 'Typedef' is already declared in this scope.
+// typedef Typedef = void Function();
+//         ^^^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:13:9: Context: Previous declaration of 'Typedef'.
+// typedef Typedef = Object Function();
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:17:14: Error: 'OldTypedef' is already declared in this scope.
+// typedef void OldTypedef();
+//              ^^^^^^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:19:16: Context: Previous declaration of 'OldTypedef'.
+// typedef Object OldTypedef();
+//                ^^^^^^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:21:5: Error: 'field' is already declared in this scope.
+// var field = "3rd";
+//     ^^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:23:5: Context: Previous declaration of 'field'.
+// var field = "2nd";
+//     ^^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:27:1: Error: 'main' is already declared in this scope.
+// main() {
+// ^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:29:1: Context: Previous declaration of 'main'.
+// main() {
+// ^^^^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:39:7: Error: 'C' is already declared in this scope.
+// class C {
+//       ^
+// pkg/front_end/testcases/duplicated_declarations.dart:70:7: Context: Previous declaration of 'C'.
+// class C {
+//       ^
+//
+// pkg/front_end/testcases/duplicated_declarations_part.dart:73:6: Error: 'Enum' is already declared in this scope.
+// enum Enum {
+//      ^^^^
+// pkg/front_end/testcases/duplicated_declarations.dart:81:6: Context: Previous declaration of 'Enum'.
+// enum Enum {
+//      ^^^^
+//
 // pkg/front_end/testcases/duplicated_declarations_part.dart:7:1: Error: The part-of directive must be the only directive in a part.
 // Try removing the other directives, or moving them to the library for which this is a part.
 // import 'duplicated_declarations_lib.dart' as Typedef;
@@ -248,48 +292,6 @@
 // enum Enum {
 //      ^^^^
 //
-// pkg/front_end/testcases/duplicated_declarations_part.dart:11:9: Error: 'Typedef' is already declared in this scope.
-// typedef Typedef = void Function();
-//         ^^^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:13:9: Context: Previous declaration of 'Typedef'.
-// typedef Typedef = Object Function();
-//         ^^^^^^^
-//
-// pkg/front_end/testcases/duplicated_declarations_part.dart:17:14: Error: 'OldTypedef' is already declared in this scope.
-// typedef void OldTypedef();
-//              ^^^^^^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:19:16: Context: Previous declaration of 'OldTypedef'.
-// typedef Object OldTypedef();
-//                ^^^^^^^^^^
-//
-// pkg/front_end/testcases/duplicated_declarations_part.dart:21:5: Error: 'field' is already declared in this scope.
-// var field = "3rd";
-//     ^^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:23:5: Context: Previous declaration of 'field'.
-// var field = "2nd";
-//     ^^^^^
-//
-// pkg/front_end/testcases/duplicated_declarations_part.dart:27:1: Error: 'main' is already declared in this scope.
-// main() {
-// ^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:29:1: Context: Previous declaration of 'main'.
-// main() {
-// ^^^^
-//
-// pkg/front_end/testcases/duplicated_declarations_part.dart:39:7: Error: 'C' is already declared in this scope.
-// class C {
-//       ^
-// pkg/front_end/testcases/duplicated_declarations.dart:70:7: Context: Previous declaration of 'C'.
-// class C {
-//       ^
-//
-// pkg/front_end/testcases/duplicated_declarations_part.dart:73:6: Error: 'Enum' is already declared in this scope.
-// enum Enum {
-//      ^^^^
-// pkg/front_end/testcases/duplicated_declarations.dart:81:6: Context: Previous declaration of 'Enum'.
-// enum Enum {
-//      ^^^^
-//
 // pkg/front_end/testcases/duplicated_declarations.dart:7:46: Error: 'Typedef' is already declared in this scope.
 // import 'duplicated_declarations_lib.dart' as Typedef;
 //                                              ^^^^^^^
@@ -300,11 +302,18 @@
 // pkg/front_end/testcases/duplicated_declarations.dart:65:19: Error: 'C' isn't a type.
 // class Sub extends C {
 //                   ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
+
+part duplicated_declarations_part.dart;
 typedef Typedef = () → void;
 typedef OldTypedef = () → void;
 class C#4 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
@@ -430,3 +439,6 @@ static method foo() → dynamic
   ;
 static method useAnotherEnum() → dynamic
   ;
+
+library;
+import self as self2;

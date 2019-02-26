@@ -1050,7 +1050,7 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   @override
   visitInstanceConstant(InstanceConstant constant) {
     instanceConstants.add(constant);
-    shaker.addClassUsedInType(constant.klass);
+    shaker.addClassUsedInType(constant.classNode);
     visitList(constant.typeArguments, typeVisitor);
     constant.fieldValues.forEach((Reference fieldRef, Constant value) {
       shaker.addUsedMember(fieldRef.asField);

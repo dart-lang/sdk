@@ -298,6 +298,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
   auto& temp_function = Function::Handle(zone);
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
+    lib.EnsureTopLevelClassIsFinalized();
     DictionaryIterator it(lib);
     while (it.HasNext()) {
       entry = it.GetNext();

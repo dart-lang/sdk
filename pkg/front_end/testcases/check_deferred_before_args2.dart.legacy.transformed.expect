@@ -3,6 +3,8 @@ import self as self;
 import "dart:async" as asy;
 import "./deferred_lib.dart" as def;
 
+import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
+
 static method main() → dynamic {}
 static method test() → dynamic /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
@@ -33,3 +35,19 @@ static method test() → dynamic /* originally async */ {
   :async_completer.start(:async_op);
   return :async_completer.{asy::Completer::future};
 }
+
+library;
+import self as def;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field core::int y = 1;
+  synthetic constructor •() → def::C
+    : super core::Object::•()
+    ;
+  static method m() → core::int
+    return 2;
+}
+static field dynamic x = 0;
+static method m(dynamic x) → dynamic
+  return null;

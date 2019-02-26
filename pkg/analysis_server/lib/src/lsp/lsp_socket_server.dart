@@ -8,6 +8,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -31,11 +32,12 @@ class LspSocketServer implements AbstractSocketServer {
    * The function used to create a new SDK using the default SDK.
    */
   final DartSdkManager sdkManager;
-
+  final DiagnosticServer diagnosticServer;
   final InstrumentationService instrumentationService;
 
   LspSocketServer(
     this.analysisServerOptions,
+    this.diagnosticServer,
     this.sdkManager,
     this.instrumentationService,
   );
@@ -78,6 +80,7 @@ class LspSocketServer implements AbstractSocketServer {
     }
 
     analysisServer = new LspAnalysisServer(serverChannel, resourceProvider,
-        analysisServerOptions, sdkManager, instrumentationService);
+        analysisServerOptions, sdkManager, instrumentationService,
+        diagnosticServer: diagnosticServer);
   }
 }

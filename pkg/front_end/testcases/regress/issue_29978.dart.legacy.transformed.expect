@@ -1,10 +1,11 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_29978.dart:8:13: Error: A function expression can't have a name.
 //   foo(null, f() {});
 //             ^
-
-library;
+//
 import self as self;
 
 static method foo(dynamic a, dynamic b) → dynamic

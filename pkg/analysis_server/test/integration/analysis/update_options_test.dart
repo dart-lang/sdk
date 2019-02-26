@@ -30,14 +30,14 @@ class Foo {
 ''');
     standardAnalysisSetup();
 
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     await sendAnalysisUpdateOptions(
         new AnalysisOptions()..generateHints = false);
     await sendAnalysisReanalyze();
     await analysisFinished;
     expect(getErrors(pathname), isEmpty);
 
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     await sendAnalysisUpdateOptions(
         new AnalysisOptions()..generateHints = true);
     await sendAnalysisReanalyze();

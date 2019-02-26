@@ -23,6 +23,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/parser_test.dart';
 import '../../generated/test_support.dart';
+import '../../util/element_type_matchers.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -878,7 +879,7 @@ class C {
     FunctionElement initializerElement = fieldElement.initializer;
     expect(initializerElement, isNotNull);
     expect(initializerElement.hasImplicitReturnType, isTrue);
-    expect(initializer.declaredElement, new TypeMatcher<FunctionElement>());
+    expect(initializer.declaredElement, isFunctionElement);
     LocalVariableElement variableElement = variable.declaredElement;
     expect(variableElement.hasImplicitType, isTrue);
     expect(variableElement.isConst, isFalse);

@@ -6,6 +6,9 @@
 #define RUNTIME_VM_RUNTIME_ENTRY_H_
 
 #include "vm/allocation.h"
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/runtime_api.h"
+#endif
 #include "vm/flags.h"
 #include "vm/heap/safepoint.h"
 #include "vm/native_arguments.h"
@@ -13,25 +16,34 @@
 
 namespace dart {
 
-class Assembler;
-
 typedef void (*RuntimeFunction)(NativeArguments arguments);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+using BaseRuntimeEntry = compiler::RuntimeEntry;
+#else
+using BaseRuntimeEntry = ValueObject;
+#endif
 
 // Class RuntimeEntry is used to encapsulate runtime functions, it includes
 // the entry point for the runtime function and the number of arguments expected
 // by the function.
-class RuntimeEntry : public ValueObject {
+class RuntimeEntry : public BaseRuntimeEntry {
  public:
   RuntimeEntry(const char* name,
                RuntimeFunction function,
                intptr_t argument_count,
                bool is_leaf,
                bool is_float)
-      : name_(name),
+      :
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        compiler::RuntimeEntry(this, &CallInternal),
+#endif
+        name_(name),
         function_(function),
         argument_count_(argument_count),
         is_leaf_(is_leaf),
-        is_float_(is_float) {}
+        is_float_(is_float) {
+  }
 
   const char* name() const { return name_; }
   RuntimeFunction function() const { return function_; }
@@ -41,8 +53,8 @@ class RuntimeEntry : public ValueObject {
   uword GetEntryPoint() const;
 
   // Generate code to call the runtime entry.
-  NOT_IN_PRECOMPILED(void Call(Assembler* assembler, intptr_t argument_count)
-                         const);
+  NOT_IN_PRECOMPILED(void Call(compiler::Assembler* assembler,
+                               intptr_t argument_count) const);
 
   static uword InterpretCallEntry();
   static RawObject* InterpretCall(RawFunction* function,
@@ -50,6 +62,11 @@ class RuntimeEntry : public ValueObject {
                                   intptr_t argc,
                                   RawObject** argv,
                                   Thread* thread);
+
+ protected:
+  NOT_IN_PRECOMPILED(static void CallInternal(const RuntimeEntry* runtime_entry,
+                                              compiler::Assembler* assembler,
+                                              intptr_t argument_count));
 
  private:
   const char* const name_;

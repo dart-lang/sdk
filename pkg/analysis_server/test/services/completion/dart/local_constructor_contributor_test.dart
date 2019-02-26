@@ -87,7 +87,6 @@ void main() {expect(^)}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -118,7 +117,6 @@ void main() {expect(^)}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -150,7 +148,6 @@ void main() {new A(^)}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -184,7 +181,6 @@ void main() {new A(^)}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -216,7 +212,6 @@ void main() {expect(^)}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -247,7 +242,6 @@ String bar() => true;''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -279,7 +273,6 @@ void main() {bar(^);}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
@@ -311,7 +304,6 @@ void main() {new B().bar(^);}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
     if (suggestConstructorsWithoutNew) {

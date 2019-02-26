@@ -6,12 +6,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
 import 'resolution.dart';
-import 'task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassAliasDriverResolutionTest);
-    defineReflectiveTests(ClassAliasTaskResolutionTest);
   });
 }
 
@@ -130,7 +128,3 @@ class B<E extends num> = A<E> with M;
     assertConstructors(findElement.class_('B'), ['B(E x, E y) → B<E>']);
   }
 }
-
-@reflectiveTest
-class ClassAliasTaskResolutionTest extends TaskResolutionTest
-    with ClassAliasResolutionMixin {}

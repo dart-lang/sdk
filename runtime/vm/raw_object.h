@@ -5,12 +5,18 @@
 #ifndef RUNTIME_VM_RAW_OBJECT_H_
 #define RUNTIME_VM_RAW_OBJECT_H_
 
+#if defined(SHOULD_NOT_INCLUDE_RUNTIME)
+#error "Should not include runtime"
+#endif
+
 #include "platform/assert.h"
 #include "platform/atomic.h"
+#include "vm/class_id.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/object_graph.h"
+#include "vm/pointer_tagging.h"
 #include "vm/snapshot.h"
 #include "vm/token.h"
 #include "vm/token_position.h"
@@ -20,178 +26,12 @@ namespace dart {
 // For now there are no compressed pointers.
 typedef RawObject* RawCompressed;
 
-// Macrobatics to define the Object hierarchy of VM implementation classes.
-#define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                           \
-  V(Class)                                                                     \
-  V(PatchClass)                                                                \
-  V(Function)                                                                  \
-  V(ClosureData)                                                               \
-  V(SignatureData)                                                             \
-  V(RedirectionData)                                                           \
-  V(Field)                                                                     \
-  V(Script)                                                                    \
-  V(Library)                                                                   \
-  V(Namespace)                                                                 \
-  V(KernelProgramInfo)                                                         \
-  V(Code)                                                                      \
-  V(Bytecode)                                                                  \
-  V(Instructions)                                                              \
-  V(ObjectPool)                                                                \
-  V(PcDescriptors)                                                             \
-  V(CodeSourceMap)                                                             \
-  V(StackMap)                                                                  \
-  V(LocalVarDescriptors)                                                       \
-  V(ExceptionHandlers)                                                         \
-  V(Context)                                                                   \
-  V(ContextScope)                                                              \
-  V(SingleTargetCache)                                                         \
-  V(UnlinkedCall)                                                              \
-  V(ICData)                                                                    \
-  V(MegamorphicCache)                                                          \
-  V(SubtypeTestCache)                                                          \
-  V(Error)                                                                     \
-  V(ApiError)                                                                  \
-  V(LanguageError)                                                             \
-  V(UnhandledException)                                                        \
-  V(UnwindError)                                                               \
-  V(Instance)                                                                  \
-  V(LibraryPrefix)                                                             \
-  V(TypeArguments)                                                             \
-  V(AbstractType)                                                              \
-  V(Type)                                                                      \
-  V(TypeRef)                                                                   \
-  V(TypeParameter)                                                             \
-  V(Closure)                                                                   \
-  V(Number)                                                                    \
-  V(Integer)                                                                   \
-  V(Smi)                                                                       \
-  V(Mint)                                                                      \
-  V(Double)                                                                    \
-  V(Bool)                                                                      \
-  V(GrowableObjectArray)                                                       \
-  V(Float32x4)                                                                 \
-  V(Int32x4)                                                                   \
-  V(Float64x2)                                                                 \
-  V(TypedData)                                                                 \
-  V(ExternalTypedData)                                                         \
-  V(Capability)                                                                \
-  V(ReceivePort)                                                               \
-  V(SendPort)                                                                  \
-  V(StackTrace)                                                                \
-  V(RegExp)                                                                    \
-  V(WeakProperty)                                                              \
-  V(MirrorReference)                                                           \
-  V(LinkedHashMap)                                                             \
-  V(UserTag)
-
-#define CLASS_LIST_ARRAYS(V)                                                   \
-  V(Array)                                                                     \
-  V(ImmutableArray)
-
-#define CLASS_LIST_STRINGS(V)                                                  \
-  V(String)                                                                    \
-  V(OneByteString)                                                             \
-  V(TwoByteString)                                                             \
-  V(ExternalOneByteString)                                                     \
-  V(ExternalTwoByteString)
-
-#define CLASS_LIST_TYPED_DATA(V)                                               \
-  V(Int8Array)                                                                 \
-  V(Uint8Array)                                                                \
-  V(Uint8ClampedArray)                                                         \
-  V(Int16Array)                                                                \
-  V(Uint16Array)                                                               \
-  V(Int32Array)                                                                \
-  V(Uint32Array)                                                               \
-  V(Int64Array)                                                                \
-  V(Uint64Array)                                                               \
-  V(Float32Array)                                                              \
-  V(Float64Array)                                                              \
-  V(Float32x4Array)                                                            \
-  V(Int32x4Array)                                                              \
-  V(Float64x2Array)
-
-#define DART_CLASS_LIST_TYPED_DATA(V)                                          \
-  V(Int8)                                                                      \
-  V(Uint8)                                                                     \
-  V(Uint8Clamped)                                                              \
-  V(Int16)                                                                     \
-  V(Uint16)                                                                    \
-  V(Int32)                                                                     \
-  V(Uint32)                                                                    \
-  V(Int64)                                                                     \
-  V(Uint64)                                                                    \
-  V(Float32)                                                                   \
-  V(Float64)                                                                   \
-  V(Float32x4)                                                                 \
-  V(Int32x4)                                                                   \
-  V(Float64x2)
-
-#define CLASS_LIST_FOR_HANDLES(V)                                              \
-  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
-  V(Array)                                                                     \
-  V(String)
-
-#define CLASS_LIST_NO_OBJECT(V)                                                \
-  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
-  CLASS_LIST_ARRAYS(V)                                                         \
-  CLASS_LIST_STRINGS(V)
-
-#define CLASS_LIST(V)                                                          \
-  V(Object)                                                                    \
-  CLASS_LIST_NO_OBJECT(V)
-
 // Forward declarations.
 class Isolate;
 #define DEFINE_FORWARD_DECLARATION(clazz) class Raw##clazz;
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
 class CodeStatistics;
-
-enum ClassId {
-  // Illegal class id.
-  kIllegalCid = 0,
-
-  // A sentinel used by the vm service's heap snapshots to represent references
-  // from the stack.
-  kStackCid = 1,
-
-  // The following entries describes classes for pseudo-objects in the heap
-  // that should never be reachable from live objects. Free list elements
-  // maintain the free list for old space, and forwarding corpses are used to
-  // implement one-way become.
-  kFreeListElement,
-  kForwardingCorpse,
-
-// List of Ids for predefined classes.
-#define DEFINE_OBJECT_KIND(clazz) k##clazz##Cid,
-  CLASS_LIST(DEFINE_OBJECT_KIND)
-#undef DEFINE_OBJECT_KIND
-
-#define DEFINE_OBJECT_KIND(clazz) kTypedData##clazz##Cid,
-      CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
-#undef DEFINE_OBJECT_KIND
-
-#define DEFINE_OBJECT_KIND(clazz) kTypedData##clazz##ViewCid,
-          CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
-#undef DEFINE_OBJECT_KIND
-
-              kByteDataViewCid,
-
-#define DEFINE_OBJECT_KIND(clazz) kExternalTypedData##clazz##Cid,
-  CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
-#undef DEFINE_OBJECT_KIND
-
-      kByteBufferCid,
-
-  // The following entries do not describe a predefined class, but instead
-  // are class indexes for pre-allocated instances (Null, dynamic and Void).
-  kNullCid,
-  kDynamicCid,
-  kVoidCid,
-
-  kNumPredefinedCids,
-};
 
 #define VISIT_FROM(type, first)                                                \
   type* from() { return reinterpret_cast<type*>(&ptr()->first); }
@@ -214,25 +54,6 @@ enum ClassId {
 
 #define ASSERT_NOTHING_TO_VISIT(Type)                                          \
   ASSERT(SIZE_OF_RETURNED_VALUE(Raw##Type, NothingToVisit) == sizeof(int))
-
-enum ObjectAlignment {
-  // Alignment offsets are used to determine object age.
-  kNewObjectAlignmentOffset = kWordSize,
-  kOldObjectAlignmentOffset = 0,
-  kNewObjectBitPosition = kWordSizeLog2,
-  // Object sizes are aligned to kObjectAlignment.
-  kObjectAlignment = 2 * kWordSize,
-  kObjectAlignmentLog2 = kWordSizeLog2 + 1,
-  kObjectAlignmentMask = kObjectAlignment - 1,
-};
-
-enum {
-  kSmiTag = 0,
-  kHeapObjectTag = 1,
-  kSmiTagSize = 1,
-  kSmiTagMask = 1,
-  kSmiTagShift = 1,
-};
 
 enum TypedDataElementType {
 #define V(name) k##name##Element,
@@ -523,6 +344,11 @@ class RawObject {
   CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
 #undef DEFINE_IS_CID
 
+#define DEFINE_IS_CID(clazz)                                                   \
+  bool IsFfi##clazz() const { return ((GetClassId() == kFfi##clazz##Cid)); }
+  CLASS_LIST_FFI(DEFINE_IS_CID)
+#undef DEFINE_IS_CID
+
   bool IsStringInstance() const { return IsStringClassId(GetClassId()); }
   bool IsRawNull() const { return GetClassId() == kNullCid; }
   bool IsDartInstance() const {
@@ -542,17 +368,18 @@ class RawObject {
     return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
   }
 
-  intptr_t Size() const {
+  intptr_t HeapSize() const {
+    ASSERT(IsHeapObject());
     uint32_t tags = ptr()->tags_;
     intptr_t result = SizeTag::decode(tags);
     if (result != 0) {
 #if defined(DEBUG)
       // TODO(22501) Array::MakeFixedLength has a race with this code: we might
       // have loaded tags field and then MakeFixedLength could have updated it
-      // leading to inconsistency between SizeFromClass() and
+      // leading to inconsistency between HeapSizeFromClass() and
       // SizeTag::decode(tags). We are working around it by reloading tags_ and
       // recomputing size from tags.
-      const intptr_t size_from_class = SizeFromClass();
+      const intptr_t size_from_class = HeapSizeFromClass();
       if ((result > size_from_class) && (GetClassId() == kArrayCid) &&
           (ptr()->tags_ != tags)) {
         result = SizeTag::decode(ptr()->tags_);
@@ -561,13 +388,13 @@ class RawObject {
 #endif
       return result;
     }
-    result = SizeFromClass();
+    result = HeapSizeFromClass();
     ASSERT(result > SizeTag::kMaxSizeTag);
     return result;
   }
 
   bool Contains(uword addr) const {
-    intptr_t this_size = Size();
+    intptr_t this_size = HeapSize();
     uword this_addr = RawObject::ToAddr(this);
     return (addr >= this_addr) && (addr < (this_addr + this_size));
   }
@@ -586,7 +413,7 @@ class RawObject {
     }
 
     // Calculate the first and last raw object pointer fields.
-    intptr_t instance_size = Size();
+    intptr_t instance_size = HeapSize();
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(RawObject);
     uword to = obj_addr + instance_size - kWordSize;
@@ -607,7 +434,7 @@ class RawObject {
     }
 
     // Calculate the first and last raw object pointer fields.
-    intptr_t instance_size = Size();
+    intptr_t instance_size = HeapSize();
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(RawObject);
     uword to = obj_addr + instance_size - kWordSize;
@@ -649,6 +476,15 @@ class RawObject {
   static bool IsTypedDataClassId(intptr_t index);
   static bool IsTypedDataViewClassId(intptr_t index);
   static bool IsExternalTypedDataClassId(intptr_t index);
+  static bool IsFfiNativeTypeTypeClassId(intptr_t index);
+  static bool IsFfiPointerClassId(intptr_t index);
+  static bool IsFfiTypeClassId(intptr_t index);
+  static bool IsFfiTypeIntClassId(intptr_t index);
+  static bool IsFfiTypeDoubleClassId(intptr_t index);
+  static bool IsFfiTypeVoidClassId(intptr_t index);
+  static bool IsFfiTypeNativeFunctionClassId(intptr_t index);
+  static bool IsFfiDynamicLibraryClassId(intptr_t index);
+  static bool IsFfiClassId(intptr_t index);
   static bool IsInternalVMdefinedClassId(intptr_t index);
   static bool IsVariableSizeClassId(intptr_t index);
   static bool IsImplicitFieldClassId(intptr_t index);
@@ -672,7 +508,7 @@ class RawObject {
   intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
                                    intptr_t class_id);
 
-  intptr_t SizeFromClass() const;
+  intptr_t HeapSizeFromClass() const;
 
   intptr_t GetClassId() const {
     uint32_t tags = ptr()->tags_;
@@ -842,7 +678,9 @@ class RawObject {
   friend class CidRewriteVisitor;
   friend class Closure;
   friend class Code;
+  friend class Pointer;
   friend class Double;
+  friend class DynamicLibrary;
   friend class ForwardPointersVisitor;  // StorePointer
   friend class FreeListElement;
   friend class Function;
@@ -1033,6 +871,7 @@ class RawFunction : public RawObject {
     kDynamicInvocationForwarder,  // represents forwarder which performs type
                                   // checks for arguments of a dynamic
                                   // invocation.
+    kFfiTrampoline,
   };
 
   enum AsyncModifier {
@@ -1180,6 +1019,15 @@ class RawRedirectionData : public RawObject {
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
+class RawFfiTrampolineData : public RawObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData);
+
+  VISIT_FROM(RawObject*, signature_type_);
+  RawType* signature_type_;
+  VISIT_TO(RawObject*, signature_type_);
+};
+
 class RawField : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Field);
 
@@ -1192,15 +1040,13 @@ class RawField : public RawObject {
     RawInstance* static_value_;  // Value for static fields.
     RawSmi* offset_;             // Offset in words for instance fields.
   } value_;
-  union {
-    // When precompiling we need to save the static initializer function here
-    // so that code for it can be generated.
-    RawFunction* precompiled_;  // Static initializer function - precompiling.
-    // When generating script snapshots after running the application it is
-    // necessary to save the initial value of static fields so that we can
-    // restore the value back to the original initial value.
-    RawInstance* saved_value_;  // Saved initial value - static fields.
-  } initializer_;
+  RawFunction* initializer_;  // Static initializer function.
+  // When generating APPJIT snapshots after running the application it is
+  // necessary to save the initial value of static fields so that we can
+  // restore the value back to the original initial value.
+  NOT_IN_PRECOMPILED(
+      RawInstance*
+          saved_initial_value_);  // Saved initial value - static fields.
   RawSmi* guarded_list_length_;
   RawArray* dependent_code_;
   RawObject** to_snapshot(Snapshot::Kind kind) {
@@ -1340,7 +1186,6 @@ class RawLibrary : public RawObject {
   classid_t index_;       // Library id number.
   uint16_t num_imports_;  // Number of entries in imports_.
   int8_t load_state_;     // Of type LibraryState.
-  bool corelib_imported_;
   bool is_dart_scheme_;
   bool debuggable_;          // True if debugger can stop in library.
   bool is_in_fullsnapshot_;  // True if library is in a full snapshot.
@@ -1493,16 +1338,19 @@ class RawCode : public RawObject {
 class RawBytecode : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Bytecode);
 
+  uword instructions_;
+  intptr_t instructions_size_;
+
   VISIT_FROM(RawObject*, object_pool_);
   RawObjectPool* object_pool_;
-  RawExternalTypedData* instructions_;
   RawFunction* function_;
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   VISIT_TO(RawObject*, pc_descriptors_);
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
-  intptr_t source_positions_binary_offset_;
+  int32_t instructions_binary_offset_;
+  int32_t source_positions_binary_offset_;
 
   static bool ContainsPC(RawObject* raw_obj, uword pc);
 
@@ -1852,8 +1700,8 @@ class RawUnlinkedCall : public RawObject {
 class RawICData : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
 
-  VISIT_FROM(RawObject*, ic_data_);
-  RawArray* ic_data_;          // Contains class-ids, target and count.
+  VISIT_FROM(RawObject*, entries_);
+  RawArray* entries_;          // Contains class-ids, target and count.
   RawString* target_name_;     // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
   // Static type of the receiver. If it is set then we are performing
@@ -1879,12 +1727,6 @@ class RawICData : public RawObject {
   }
   NOT_IN_PRECOMPILED(int32_t deopt_id_);
   uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons.
-#if defined(TAG_IC_DATA)
-  enum class Tag : intptr_t{kUnknown, kInstanceCall, kStaticCall};
-
-  Tag tag_;  // Debugging, verifying that the icdata is assigned to the
-             // same instruction again.
-#endif
 };
 
 class RawMegamorphicCache : public RawObject {
@@ -2018,7 +1860,7 @@ class RawTypeArguments : public RawInstance {
 };
 
 class RawAbstractType : public RawInstance {
- protected:
+ public:
   enum TypeState {
     kAllocated,                // Initial state.
     kBeingFinalized,           // In the process of being finalized.
@@ -2026,13 +1868,10 @@ class RawAbstractType : public RawInstance {
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
 
-  // Note: we don't handle this field in GC in any special way.
-  // Instead we rely on two things:
-  //   (1) GC not moving code objects and
-  //   (2) lifetime of optimized stubs exceeding that of types;
-  // Practically (2) means that optimized stubs never die because
-  // canonical types to which they are attached never die.
+ protected:
   uword type_test_stub_entry_point_;  // Accessed from generated code.
+  RawCode* type_test_stub_;  // Must be the last field, since subclasses use it
+                             // in their VISIT_FROM.
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
@@ -2045,7 +1884,7 @@ class RawType : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
-  VISIT_FROM(RawObject*, type_class_id_)
+  VISIT_FROM(RawObject*, type_test_stub_)
   RawSmi* type_class_id_;
   RawTypeArguments* arguments_;
   RawSmi* hash_;
@@ -2066,7 +1905,7 @@ class RawTypeRef : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
 
-  VISIT_FROM(RawObject*, type_)
+  VISIT_FROM(RawObject*, type_test_stub_)
   RawAbstractType* type_;  // The referenced type.
   VISIT_TO(RawObject*, type_)
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
@@ -2076,7 +1915,7 @@ class RawTypeParameter : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
-  VISIT_FROM(RawObject*, name_)
+  VISIT_FROM(RawObject*, type_test_stub_)
   RawString* name_;
   RawSmi* hash_;
   RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
@@ -2400,6 +2239,24 @@ class RawExternalTypedData : public RawInstance {
   friend class RawBytecode;
 };
 
+class RawPointer : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
+  VISIT_FROM(RawCompressed, type_arguments_)
+  RawTypeArguments* type_arguments_;
+  VISIT_TO(RawCompressed, type_arguments_)
+  uint8_t* c_memory_address_;
+
+  friend class Pointer;
+};
+
+class RawDynamicLibrary : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(DynamicLibrary);
+  VISIT_NOTHING();
+  void* handle_;
+
+  friend class DynamicLibrary;
+};
+
 // VM implementations of the basic types in the isolate.
 class RawCapability : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Capability);
@@ -2668,6 +2525,56 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
       (kByteBufferCid == kExternalTypedDataInt8ArrayCid + 14));
   return (index >= kExternalTypedDataInt8ArrayCid &&
           index <= kExternalTypedDataFloat64x2ArrayCid);
+}
+
+inline bool RawObject::IsFfiNativeTypeTypeClassId(intptr_t index) {
+  return index == kFfiNativeTypeCid;
+}
+
+inline bool RawObject::IsFfiTypeClassId(intptr_t index) {
+  // Make sure this is updated when new Ffi types are added.
+  COMPILE_ASSERT(kFfiNativeFunctionCid == kFfiPointerCid + 1 &&
+                 kFfiInt8Cid == kFfiPointerCid + 2 &&
+                 kFfiInt16Cid == kFfiPointerCid + 3 &&
+                 kFfiInt32Cid == kFfiPointerCid + 4 &&
+                 kFfiInt64Cid == kFfiPointerCid + 5 &&
+                 kFfiUint8Cid == kFfiPointerCid + 6 &&
+                 kFfiUint16Cid == kFfiPointerCid + 7 &&
+                 kFfiUint32Cid == kFfiPointerCid + 8 &&
+                 kFfiUint64Cid == kFfiPointerCid + 9 &&
+                 kFfiIntPtrCid == kFfiPointerCid + 10 &&
+                 kFfiFloatCid == kFfiPointerCid + 11 &&
+                 kFfiDoubleCid == kFfiPointerCid + 12 &&
+                 kFfiVoidCid == kFfiPointerCid + 13);
+  return (index >= kFfiPointerCid && index <= kFfiVoidCid);
+}
+
+inline bool RawObject::IsFfiTypeIntClassId(intptr_t index) {
+  return (index >= kFfiInt8Cid && index <= kFfiIntPtrCid);
+}
+
+inline bool RawObject::IsFfiTypeDoubleClassId(intptr_t index) {
+  return (index >= kFfiFloatCid && index <= kFfiDoubleCid);
+}
+
+inline bool RawObject::IsFfiPointerClassId(intptr_t index) {
+  return index == kFfiPointerCid;
+}
+
+inline bool RawObject::IsFfiTypeVoidClassId(intptr_t index) {
+  return index == kFfiVoidCid;
+}
+
+inline bool RawObject::IsFfiTypeNativeFunctionClassId(intptr_t index) {
+  return index == kFfiNativeFunctionCid;
+}
+
+inline bool RawObject::IsFfiClassId(intptr_t index) {
+  return (index >= kFfiPointerCid && index <= kFfiVoidCid);
+}
+
+inline bool RawObject::IsFfiDynamicLibraryClassId(intptr_t index) {
+  return index == kFfiDynamicLibraryCid;
 }
 
 inline bool RawObject::IsInternalVMdefinedClassId(intptr_t index) {

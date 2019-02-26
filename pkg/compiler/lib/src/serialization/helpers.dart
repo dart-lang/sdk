@@ -10,7 +10,7 @@ part of 'serialization.dart';
 /// and deserialization.
 enum DataKind {
   bool,
-  int,
+  uint30,
   string,
   enumValue,
   uri,
@@ -25,6 +25,8 @@ enum DataKind {
   sourceSpan,
   constant,
   import,
+  double,
+  int,
 }
 
 /// Enum used for identifying the enclosing entity of a member in serialization.

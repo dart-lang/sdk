@@ -273,7 +273,8 @@ class ClosureIrChecker extends IrDataExtractor<String> {
         addLocals('fields', (f(Local local, _)) {
           codegenWorldBuilder.forEachInstanceField(
               closureRepresentationInfo.closureClassEntity,
-              (_, FieldEntity field) {
+              (_, FieldEntity field, {bool isElided}) {
+            if (isElided) return;
             f(closureRepresentationInfo.getLocalForField(field), field);
           });
         });

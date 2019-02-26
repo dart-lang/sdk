@@ -71,7 +71,6 @@ const uint8_t* isolate_snapshot_instructions = NULL;
 enum SnapshotKind {
   kCore,
   kCoreJIT,
-  kCoreJITAll,
   kApp,
   kAppJIT,
   kAppAOTBlobs,
@@ -99,7 +98,6 @@ static const char* kSnapshotKindNames[] = {
     // clang-format off
     "core",
     "core-jit",
-    "core-jit-all",
     "app",
     "app-jit",
     "app-aot-blobs",
@@ -132,6 +130,8 @@ static const char* kSnapshotKindNames[] = {
   V(save_obfuscation_map, obfuscation_map_filename)
 
 #define BOOL_OPTIONS_LIST(V)                                                   \
+  V(read_all_bytecode, read_all_bytecode)                                      \
+  V(compile_all, compile_all)                                                  \
   V(obfuscate, obfuscate)                                                      \
   V(verbose, verbose)                                                          \
   V(version, version)                                                          \
@@ -286,7 +286,6 @@ static int ParseArguments(int argc,
       }
       break;
     }
-    case kCoreJITAll:
     case kCoreJIT: {
       if ((vm_snapshot_data_filename == NULL) ||
           (vm_snapshot_instructions_filename == NULL) ||
@@ -461,7 +460,6 @@ class DependenciesFileWriter : public ValueObject {
         WriteDependenciesWithTarget(isolate_snapshot_data_filename);
         // WriteDependenciesWithTarget(isolate_snapshot_instructions_filename);
         break;
-      case kCoreJITAll:
       case kCoreJIT:
         WriteDependenciesWithTarget(vm_snapshot_data_filename);
         // WriteDependenciesWithTarget(vm_snapshot_instructions_filename);
@@ -550,16 +548,20 @@ static void CreateAndWriteDependenciesFile() {
   dependencies->Clear();
 }
 
-static void LoadBytecode() {
-  if ((Dart_IsVMFlagSet("enable_interpreter") ||
-       Dart_IsVMFlagSet("use_bytecode_compiler")) &&
-      ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
+static void MaybeLoadCode() {
+  if (read_all_bytecode &&
+      ((snapshot_kind == kCore) || (snapshot_kind == kCoreJIT) ||
+       (snapshot_kind == kApp) || (snapshot_kind == kAppJIT))) {
     Dart_Handle result = Dart_ReadAllBytecode();
     CHECK_RESULT(result);
   }
-}
 
-static void LoadCompilationTrace() {
+  if (compile_all &&
+      ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
+    Dart_Handle result = Dart_CompileAll();
+    CHECK_RESULT(result);
+  }
+
   if ((load_compilation_trace_filename != NULL) &&
       ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
     uint8_t* buffer = NULL;
@@ -568,19 +570,13 @@ static void LoadCompilationTrace() {
     Dart_Handle result = Dart_LoadCompilationTrace(buffer, size);
     CHECK_RESULT(result);
   }
+
   if ((load_type_feedback_filename != NULL) &&
       ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
     uint8_t* buffer = NULL;
     intptr_t size = 0;
     ReadFile(load_type_feedback_filename, &buffer, &size);
     Dart_Handle result = Dart_LoadTypeFeedback(buffer, size);
-    CHECK_RESULT(result);
-  }
-}
-
-static void CompileAll() {
-  if (snapshot_kind == kCoreJITAll) {
-    Dart_Handle result = Dart_CompileAll();
     CHECK_RESULT(result);
   }
 }
@@ -645,7 +641,7 @@ static std::unique_ptr<MappedMemory> MapFile(const char* filename,
 }
 
 static void CreateAndWriteCoreJITSnapshot() {
-  ASSERT((snapshot_kind == kCoreJIT) || (snapshot_kind == kCoreJITAll));
+  ASSERT(snapshot_kind == kCoreJIT);
   ASSERT(vm_snapshot_data_filename != NULL);
   ASSERT(vm_snapshot_instructions_filename != NULL);
   ASSERT(isolate_snapshot_data_filename != NULL);
@@ -909,6 +905,8 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
       Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size));
   CHECK_RESULT(result);
 
+  MaybeLoadCode();
+
   switch (snapshot_kind) {
     case kAppAOTBlobs:
     case kAppAOTAssembly: {
@@ -927,21 +925,13 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
     case kCore:
       CreateAndWriteCoreSnapshot();
       break;
-    case kCoreJITAll:
-      CompileAll();
-      CreateAndWriteCoreJITSnapshot();
-      break;
     case kCoreJIT:
-      LoadBytecode();
-      LoadCompilationTrace();
       CreateAndWriteCoreJITSnapshot();
       break;
     case kApp:
       CreateAndWriteAppSnapshot();
       break;
     case kAppJIT:
-      LoadBytecode();
-      LoadCompilationTrace();
       CreateAndWriteAppJITSnapshot();
       break;
     case kVMAOTAssembly: {
@@ -1019,8 +1009,7 @@ int main(int argc, char** argv) {
 
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
-  } else if ((snapshot_kind == kCoreJITAll) || (snapshot_kind == kCoreJIT) ||
-             (snapshot_kind == kAppJIT)) {
+  } else if ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT)) {
     vm_options.AddArgument("--fields_may_be_reset");
 #if !defined(TARGET_ARCH_IA32)
     vm_options.AddArgument("--link_natives_lazily");

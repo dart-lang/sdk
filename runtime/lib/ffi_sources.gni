@@ -1,0 +1,17 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Sources visible via dart:ffi library.
+ffi_runtime_cc_files = [
+  "ffi.cc",
+  "ffi_dynamic_library.cc",
+]
+
+ffi_runtime_dart_files = [
+  "ffi_patch.dart",
+  "ffi_dynamic_library_patch.dart",
+  "ffi_native_type_patch.dart",
+]
+
+ffi_runtime_sources = ffi_runtime_cc_files + ffi_runtime_dart_files

@@ -98,6 +98,23 @@ class ExpressionTagger extends ExpressionVisitor<String>
 
   String visitVariableGet(VariableGet _) => "get-var";
   String visitVariableSet(VariableSet _) => "set-var";
+  String visitStaticGet(StaticGet _) => "get-static";
+  String visitStaticSet(StaticSet _) => "set-static";
+  String visitDirectPropertyGet(DirectPropertyGet _) => "get-direct-prop";
+  String visitDirectPropertySet(DirectPropertySet _) => "set-direct-prop";
+  String visitStaticInvocation(StaticInvocation expression) {
+    return expression.isConst ? "invoke-const-static" : "invoke-static";
+  }
+
+  String visitDirectMethodInvocation(DirectMethodInvocation _) {
+    return "invoke-direct-method";
+  }
+
+  String visitConstructorInvocation(ConstructorInvocation expression) {
+    return expression.isConst
+        ? "invoke-const-constructor"
+        : "invoke-constructor";
+  }
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -374,29 +391,30 @@ MapLiteral wrapConstMapLiteral(
 class LetSerializer extends TextSerializer<Let> {
   const LetSerializer();
 
-  Let readFrom(
-      Iterator<Object> stream, DeserializationEnvironment environment) {
+  Let readFrom(Iterator<Object> stream, DeserializationState state) {
     VariableDeclaration variable =
-        variableDeclarationSerializer.readFrom(stream, environment);
+        variableDeclarationSerializer.readFrom(stream, state);
     Expression body = expressionSerializer.readFrom(
         stream,
-        new DeserializationEnvironment(environment)
-          ..add(variable.name, variable));
+        new DeserializationState(
+            new DeserializationEnvironment(state.environment)
+              ..add(variable.name, variable),
+            state.nameRoot));
     return new Let(variable, body);
   }
 
-  void writeTo(
-      StringBuffer buffer, Let object, SerializationEnvironment environment) {
-    SerializationEnvironment bodyScope =
-        new SerializationEnvironment(environment);
+  void writeTo(StringBuffer buffer, Let object, SerializationState state) {
+    SerializationState bodyState =
+        new SerializationState(new SerializationEnvironment(state.environment));
     VariableDeclaration variable = object.variable;
     String oldVariableName = variable.name;
-    String newVariableName = bodyScope.add(variable, oldVariableName);
+    String newVariableName =
+        bodyState.environment.add(variable, oldVariableName);
     variableDeclarationSerializer.writeTo(
-        buffer, variable..name = newVariableName, environment);
+        buffer, variable..name = newVariableName, state);
     variable.name = oldVariableName;
     buffer.write(' ');
-    expressionSerializer.writeTo(buffer, object.body, bodyScope);
+    expressionSerializer.writeTo(buffer, object.body, bodyState);
   }
 }
 
@@ -485,7 +503,7 @@ SuperMethodInvocation wrapSuperMethodInvocation(Tuple2<Name, Arguments> tuple) {
 TextSerializer<VariableGet> variableGetSerializer = new Wrapped(
     unwrapVariableGet,
     wrapVariableGet,
-    new Tuple2Serializer(const ScopedReference<VariableDeclaration>(),
+    new Tuple2Serializer(const ScopedUse<VariableDeclaration>(),
         new Optional(dartTypeSerializer)));
 
 Tuple2<VariableDeclaration, DartType> unwrapVariableGet(VariableGet node) {
@@ -501,7 +519,7 @@ TextSerializer<VariableSet> variableSetSerializer = new Wrapped(
     unwrapVariableSet,
     wrapVariableSet,
     new Tuple2Serializer(
-        const ScopedReference<VariableDeclaration>(), expressionSerializer));
+        const ScopedUse<VariableDeclaration>(), expressionSerializer));
 
 Tuple2<VariableDeclaration, Expression> unwrapVariableSet(VariableSet node) {
   return new Tuple2<VariableDeclaration, Expression>(node.variable, node.value);
@@ -509,6 +527,178 @@ Tuple2<VariableDeclaration, Expression> unwrapVariableSet(VariableSet node) {
 
 VariableSet wrapVariableSet(Tuple2<VariableDeclaration, Expression> tuple) {
   return new VariableSet(tuple.first, tuple.second);
+}
+
+class CanonicalNameSerializer extends TextSerializer<CanonicalName> {
+  static const String delimiter = "::";
+
+  const CanonicalNameSerializer();
+
+  static void writeName(CanonicalName name, StringBuffer buffer) {
+    if (!name.isRoot) {
+      if (!name.parent.isRoot) {
+        writeName(name.parent, buffer);
+        buffer.write(delimiter);
+      }
+      buffer.write(name.name);
+    }
+  }
+
+  CanonicalName readFrom(Iterator<Object> stream, DeserializationState state) {
+    String string = const DartString().readFrom(stream, state);
+    CanonicalName name = state.nameRoot;
+    for (String s in string.split(delimiter)) {
+      name = name.getChild(s);
+    }
+    return name;
+  }
+
+  void writeTo(
+      StringBuffer buffer, CanonicalName name, SerializationState state) {
+    StringBuffer sb = new StringBuffer();
+    writeName(name, sb);
+    const DartString().writeTo(buffer, sb.toString(), state);
+  }
+}
+
+TextSerializer<StaticGet> staticGetSerializer =
+    new Wrapped(unwrapStaticGet, wrapStaticGet, new CanonicalNameSerializer());
+
+CanonicalName unwrapStaticGet(StaticGet expression) {
+  return expression.targetReference.canonicalName;
+}
+
+StaticGet wrapStaticGet(CanonicalName name) {
+  return new StaticGet.byReference(name.getReference());
+}
+
+TextSerializer<StaticSet> staticSetSerializer = new Wrapped(
+    unwrapStaticSet,
+    wrapStaticSet,
+    new Tuple2Serializer(
+        const CanonicalNameSerializer(), expressionSerializer));
+
+Tuple2<CanonicalName, Expression> unwrapStaticSet(StaticSet expression) {
+  return new Tuple2(expression.targetReference.canonicalName, expression.value);
+}
+
+StaticSet wrapStaticSet(Tuple2<CanonicalName, Expression> tuple) {
+  return new StaticSet.byReference(tuple.first.getReference(), tuple.second);
+}
+
+TextSerializer<DirectPropertyGet> directPropertyGetSerializer = new Wrapped(
+    unwrapDirectPropertyGet,
+    wrapDirectPropertyGet,
+    new Tuple2Serializer(
+        expressionSerializer, const CanonicalNameSerializer()));
+
+Tuple2<Expression, CanonicalName> unwrapDirectPropertyGet(
+    DirectPropertyGet expression) {
+  return new Tuple2(
+      expression.receiver, expression.targetReference.canonicalName);
+}
+
+DirectPropertyGet wrapDirectPropertyGet(
+    Tuple2<Expression, CanonicalName> tuple) {
+  return new DirectPropertyGet.byReference(
+      tuple.first, tuple.second.getReference());
+}
+
+TextSerializer<DirectPropertySet> directPropertySetSerializer = new Wrapped(
+    unwrapDirectPropertySet,
+    wrapDirectPropertySet,
+    new Tuple3Serializer(expressionSerializer, const CanonicalNameSerializer(),
+        expressionSerializer));
+
+Tuple3<Expression, CanonicalName, Expression> unwrapDirectPropertySet(
+    DirectPropertySet expression) {
+  return new Tuple3(expression.receiver,
+      expression.targetReference.canonicalName, expression.value);
+}
+
+DirectPropertySet wrapDirectPropertySet(
+    Tuple3<Expression, CanonicalName, Expression> tuple) {
+  return new DirectPropertySet.byReference(
+      tuple.first, tuple.second.getReference(), tuple.third);
+}
+
+TextSerializer<StaticInvocation> staticInvocationSerializer = new Wrapped(
+    unwrapStaticInvocation,
+    wrapStaticInvocation,
+    new Tuple2Serializer(const CanonicalNameSerializer(), argumentsSerializer));
+
+Tuple2<CanonicalName, Arguments> unwrapStaticInvocation(
+    StaticInvocation expression) {
+  return new Tuple2(
+      expression.targetReference.canonicalName, expression.arguments);
+}
+
+StaticInvocation wrapStaticInvocation(Tuple2<CanonicalName, Arguments> tuple) {
+  return new StaticInvocation.byReference(
+      tuple.first.getReference(), tuple.second,
+      isConst: false);
+}
+
+TextSerializer<StaticInvocation> constStaticInvocationSerializer = new Wrapped(
+    unwrapStaticInvocation,
+    wrapConstStaticInvocation,
+    new Tuple2Serializer(const CanonicalNameSerializer(), argumentsSerializer));
+
+StaticInvocation wrapConstStaticInvocation(
+    Tuple2<CanonicalName, Arguments> tuple) {
+  return new StaticInvocation.byReference(
+      tuple.first.getReference(), tuple.second,
+      isConst: true);
+}
+
+TextSerializer<DirectMethodInvocation> directMethodInvocationSerializer =
+    new Wrapped(
+        unwrapDirectMethodInvocation,
+        wrapDirectMethodInvocation,
+        new Tuple3Serializer(expressionSerializer,
+            const CanonicalNameSerializer(), argumentsSerializer));
+
+Tuple3<Expression, CanonicalName, Arguments> unwrapDirectMethodInvocation(
+    DirectMethodInvocation expression) {
+  return new Tuple3(expression.receiver,
+      expression.targetReference.canonicalName, expression.arguments);
+}
+
+DirectMethodInvocation wrapDirectMethodInvocation(
+    Tuple3<Expression, CanonicalName, Arguments> tuple) {
+  return new DirectMethodInvocation.byReference(
+      tuple.first, tuple.second.getReference(), tuple.third);
+}
+
+TextSerializer<ConstructorInvocation> constructorInvocationSerializer =
+    new Wrapped(
+        unwrapConstructorInvocation,
+        wrapConstructorInvocation,
+        new Tuple2Serializer(
+            const CanonicalNameSerializer(), argumentsSerializer));
+
+Tuple2<CanonicalName, Arguments> unwrapConstructorInvocation(
+    ConstructorInvocation expression) {
+  return new Tuple2(
+      expression.targetReference.canonicalName, expression.arguments);
+}
+
+ConstructorInvocation wrapConstructorInvocation(
+    Tuple2<CanonicalName, Arguments> tuple) {
+  return new ConstructorInvocation.byReference(
+      tuple.first.getReference(), tuple.second,
+      isConst: false);
+}
+
+TextSerializer<ConstructorInvocation> constConstructorInvocationSerializer =
+    new Wrapped(unwrapConstructorInvocation, wrapConstConstructorInvocation,
+        Tuple2Serializer(const CanonicalNameSerializer(), argumentsSerializer));
+
+ConstructorInvocation wrapConstConstructorInvocation(
+    Tuple2<CanonicalName, Arguments> tuple) {
+  return new ConstructorInvocation.byReference(
+      tuple.first.getReference(), tuple.second,
+      isConst: true);
 }
 
 Case<Expression> expressionSerializer =
@@ -648,6 +838,7 @@ class DartTypeTagger extends DartTypeVisitor<String>
   String visitDynamicType(DynamicType _) => "dynamic";
   String visitVoidType(VoidType _) => "void";
   String visitBottomType(BottomType _) => "bottom";
+  String visitFunctionType(FunctionType _) => "->";
 }
 
 TextSerializer<InvalidType> invalidTypeSerializer =
@@ -677,6 +868,23 @@ TextSerializer<BottomType> bottomTypeSerializer =
 void unwrapBottomType(BottomType type) {}
 
 BottomType wrapBottomType(void ignored) => const BottomType();
+
+// TODO(dmitryas):  Also handle typeParameters, nameParameters, and typedefType.
+TextSerializer<FunctionType> functionTypeSerializer = new Wrapped(
+    unwrapFunctionType,
+    wrapFunctionType,
+    Tuple3Serializer(new ListSerializer(dartTypeSerializer), const DartInt(),
+        dartTypeSerializer));
+
+Tuple3<List<DartType>, int, DartType> unwrapFunctionType(FunctionType type) {
+  return new Tuple3(
+      type.positionalParameters, type.requiredParameterCount, type.returnType);
+}
+
+FunctionType wrapFunctionType(Tuple3<List<DartType>, int, DartType> tuple) {
+  return new FunctionType(tuple.first, tuple.third,
+      requiredParameterCount: tuple.second);
+}
 
 Case<DartType> dartTypeSerializer =
     new Case.uninitialized(const DartTypeTagger());
@@ -717,6 +925,15 @@ void initializeSerializers() {
     "invoke-super",
     "get-var",
     "set-var",
+    "get-static",
+    "set-static",
+    "get-direct-prop",
+    "set-direct-prop",
+    "invoke-static",
+    "invoke-const-static",
+    "invoke-direct-method",
+    "invoke-constructor",
+    "invoke-const-constructor",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -753,17 +970,28 @@ void initializeSerializers() {
     superMethodInvocationSerializer,
     variableGetSerializer,
     variableSetSerializer,
+    staticGetSerializer,
+    staticSetSerializer,
+    directPropertyGetSerializer,
+    directPropertySetSerializer,
+    staticInvocationSerializer,
+    constStaticInvocationSerializer,
+    directMethodInvocationSerializer,
+    constructorInvocationSerializer,
+    constConstructorInvocationSerializer,
   ]);
   dartTypeSerializer.tags.addAll([
     "invalid",
     "dynamic",
     "void",
     "bottom",
+    "->",
   ]);
   dartTypeSerializer.serializers.addAll([
     invalidTypeSerializer,
     dynamicTypeSerializer,
     voidTypeSerializer,
     bottomTypeSerializer,
+    functionTypeSerializer,
   ]);
 }

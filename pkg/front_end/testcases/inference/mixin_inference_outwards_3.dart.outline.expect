@@ -1,4 +1,5 @@
-// Formatted problems:
+//
+// Problems in component:
 //
 // pkg/front_end/testcases/inference/mixin_inference_outwards_3.dart:15:69: Error: 'Object with M0, M1' can't implement both 'I<dynamic>' and 'I<int>'
 //  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_outwards_3.dart'.
@@ -9,7 +10,7 @@
 //  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_outwards_3.dart'.
 // class /*@error=AmbiguousSupertypes*/ /*@error=AmbiguousSupertypes*/ A
 //                                                                     ^
-
+//
 library;
 import self as self;
 import "dart:core" as core;

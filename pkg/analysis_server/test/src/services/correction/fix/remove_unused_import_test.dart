@@ -86,6 +86,24 @@ main() {
 ''');
   }
 
+  test_duplicateImport() async {
+    await resolveTestUnit('''
+import 'dart:math';
+import 'dart:math';
+
+main() {
+  print(min(0, 1));
+}
+''');
+    await assertHasFix('''
+import 'dart:math';
+
+main() {
+  print(min(0, 1));
+}
+''');
+  }
+
   test_multipleOfSame_all() async {
     await resolveTestUnit('''
 import 'dart:math';

@@ -145,14 +145,14 @@ class ElementResolver extends SimpleAstVisitor<void> {
     Expression leftHandSide = node.leftHandSide;
     DartType staticType = _getStaticType(leftHandSide, read: true);
 
-    // For any compound assignments to a void variable, report bad void usage.
+    // For any compound assignments to a void or nullable variable, report it.
     // Example: `y += voidFn()`, not allowed.
-    if (operatorType != TokenType.EQ &&
-        staticType != null &&
-        staticType.isVoid) {
-      _recordUndefinedToken(
-          null, StaticWarningCode.USE_OF_VOID_RESULT, operator, []);
-      return;
+    if (operatorType != TokenType.EQ) {
+      if (staticType != null && staticType.isVoid) {
+        _recordUndefinedToken(
+            null, StaticWarningCode.USE_OF_VOID_RESULT, operator, []);
+        return;
+      }
     }
 
     if (operatorType != TokenType.AMPERSAND_AMPERSAND_EQ &&
@@ -165,7 +165,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         MethodElement staticMethod =
             _lookUpMethod(leftHandSide, staticType, methodName);
         node.staticElement = staticMethod;
-        if (_shouldReportMissingMember(staticType, staticMethod)) {
+        if (_shouldReportInvalidMember(staticType, staticMethod)) {
           _recordUndefinedToken(
               staticType.element,
               StaticTypeWarningCode.UNDEFINED_METHOD,
@@ -533,7 +533,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     DartType staticType = _getStaticType(operand);
     MethodElement staticMethod = _lookUpMethod(operand, staticType, methodName);
     node.staticElement = staticMethod;
-    if (_shouldReportMissingMember(staticType, staticMethod)) {
+    if (_shouldReportInvalidMember(staticType, staticMethod)) {
       if (operand is SuperExpression) {
         _recordUndefinedToken(
             staticType.element,
@@ -646,7 +646,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       MethodElement staticMethod =
           _lookUpMethod(operand, staticType, methodName);
       node.staticElement = staticMethod;
-      if (_shouldReportMissingMember(staticType, staticMethod)) {
+      if (_shouldReportInvalidMember(staticType, staticMethod)) {
         if (operand is SuperExpression) {
           _recordUndefinedToken(
               staticType.element,
@@ -891,7 +891,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       String methodName,
       MethodElement staticMethod,
       DartType staticType) {
-    if (_shouldReportMissingMember(staticType, staticMethod)) {
+    if (_shouldReportInvalidMember(staticType, staticMethod)) {
       Token leftBracket = expression.leftBracket;
       Token rightBracket = expression.rightBracket;
       ErrorCode errorCode;
@@ -1443,7 +1443,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var invokeElement = invokeType?.element;
       node.staticElement = invokeElement;
       node.staticInvokeType = invokeType;
-      if (_shouldReportMissingMember(leftType, invokeElement)) {
+      if (_shouldReportInvalidMember(leftType, invokeElement)) {
         if (isSuper) {
           _recordUndefinedToken(
               leftType.element,
@@ -1608,7 +1608,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return;
     }
     propertyName.staticElement = staticElement;
-    if (_shouldReportMissingMember(staticType, staticElement)) {
+    if (_shouldReportInvalidMember(staticType, staticElement)) {
       Element staticOrPropagatedEnclosingElt = staticType.element;
       bool isStaticProperty = _isStatic(staticOrPropagatedEnclosingElt);
       // Special getter cases.
@@ -1731,12 +1731,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
       type?.resolveToBound(_resolver.typeProvider.objectType);
 
   /**
-   * Return `true` if we should report an error as a result of looking up a
-   * [member] in the given [type] and not finding any member.
+   * Return `true` if we should report an error for a [member] lookup that found
+   * no match on the given [type], or accessing a [member] on a nullable type.
    */
-  bool _shouldReportMissingMember(DartType type, Element member) {
-    return member == null &&
-        type != null &&
+  bool _shouldReportInvalidMember(DartType type, Element member) {
+    return type != null &&
+        member == null &&
         !type.isDynamic &&
         !type.isDartCoreNull;
   }

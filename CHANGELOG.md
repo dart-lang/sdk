@@ -1,6 +1,79 @@
+## 2.2.0 - 2019-02-26
+
+### Language
+
+Sets now have a literal syntax like lists and maps do:
+
+```dart
+var set = {1, 2, 3};
+```
+
+Using curly braces makes empty sets ambiguous with maps:
+
+```dart
+var collection = {}; // Empty set or map?
+```
+
+To avoid breaking existing code, an ambiguous literal is treated as a map.
+To create an empty set, you can rely on either a surrounding context type
+or an explicit type argument:
+
+```dart
+// Variable type forces this to be a set:
+Set<int> set = {};
+
+// A single type argument means this must be a set:
+var set2 = <int>{};
+```
+
+Set literals are released on all platforms. The `set-literals` experiment flag
+has been disabled.
+
+### Tools
+
+#### Analyzer
+
+*   The `DEPRECATED_MEMBER_USE` hint was split into two hints:
+
+    *   `DEPRECATED_MEMBER_USE` reports on usage of `@deprecated` members
+        declared in a different package.
+    *   `DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE` reports on usage of
+        `@deprecated` members declared in the same package.
+
+#### Linter
+
+Upgraded the linter to `0.1.82` which adds the following improvements:
+
+*   Added `provide_deprecation_message`, and
+    `use_full_hex_values_for_flutter_colors`, `prefer_null_aware_operators`.
+*   Fixed `prefer_const_declarations` set literal false-positives.
+*   Updated `prefer_collection_literals` to support set literals.
+*   Updated `unnecessary_parenthesis` play nicer with cascades.
+*   Removed deprecated lints from the "all options" sample.
+*   Stopped registering "default lints".
+*   Fixed `hash_and_equals` to respect `hashCode` fields.
+
+### Other libraries
+
+#### `package:kernel`
+
+*   **Breaking change:** The `klass` getter on the `InstanceConstant` class in
+    the Kernel AST API has been renamed to `classNode` for consistency.
+
+*   **Breaking change:** Updated `Link` implementation to utilize true symbolic
+    links instead of junctions on Windows. Existing junctions will continue to
+    work with the new `Link` implementation, but all new links will create
+    symbolic links.
+
+    To create a symbolic link, Dart must be run with administrative privileges
+    or Developer Mode must be enabled, otherwise a `FileSystemException` will be
+    raised with errno set to `ERROR_PRIVILEGE_NOT_HELD` (Issue [33966]).
+
+[33966]: https://github.com/dart-lang/sdk/issues/33966
+
 ## 2.1.1 - 2019-02-18
 
-This is a minor version release. Again, the team's focus was mostly on improving
+This is a patch version release. Again, the team's focus was mostly on improving
 performance and stability after the large changes in Dart 2.0.0. In particular,
 dart2js now always uses the "fast startup" emitter and the old emitter has been
 removed.
@@ -2783,7 +2856,7 @@ during isolate initialization.
     people in practice.
 
   * **Breaking:** Support for `barback` versions prior to 0.15.0 (released July
-    2014) has been dropped. Pub will no longer install these older barback
+    1)    has been dropped. Pub will no longer install these older barback
     versions.
 
   * `pub serve` now GZIPs the assets it serves to make load times more similar

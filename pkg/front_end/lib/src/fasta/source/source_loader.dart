@@ -79,8 +79,10 @@ import '../kernel/kernel_builder.dart'
         ClassHierarchyBuilder,
         Declaration,
         EnumBuilder,
+        KernelClassBuilder,
         KernelFieldBuilder,
         KernelProcedureBuilder,
+        KernelTypeBuilder,
         LibraryBuilder,
         NamedTypeBuilder,
         TypeBuilder;
@@ -90,6 +92,8 @@ import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
+
+import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 
 import '../loader.dart' show Loader, untranslatableUriScheme;
 
@@ -106,7 +110,7 @@ import '../severity.dart' show Severity;
 import '../type_inference/interface_resolver.dart' show InterfaceResolver;
 
 import '../type_inference/type_inferrer.dart'
-    show LegacyModeMixinInferrer, StrongModeMixinInferrer;
+    show KernelHierarchyMixinInferrerCallback;
 
 import 'diet_listener.dart' show DietListener;
 
@@ -118,7 +122,7 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
-class SourceLoader<L> extends Loader<L> {
+class SourceLoader extends Loader<Library> {
   /// The [FileSystem] which should be used to access files.
   final FileSystem fileSystem;
 
@@ -753,8 +757,8 @@ class SourceLoader<L> extends Loader<L> {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library;
-        L target = sourceLibrary.build(coreLibrary);
-        if (!library.isPatch && !library.isSynthetic) {
+        Library target = sourceLibrary.build(coreLibrary);
+        if (!library.isPatch) {
           libraries.add(target);
         }
       }
@@ -767,7 +771,7 @@ class SourceLoader<L> extends Loader<L> {
     List<Library> workList = <Library>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (!library.isPatch &&
-          (library.loader == this || library.fileUri.scheme == "dart")) {
+          (library.loader == this || library.uri.scheme == "dart")) {
         if (libraries.add(library.target)) {
           workList.add(library.target);
         }
@@ -795,11 +799,12 @@ class SourceLoader<L> extends Loader<L> {
     if (hierarchy == null) {
       hierarchy = new ClassHierarchy(computeFullComponent(),
           onAmbiguousSupertypes: onAmbiguousSupertypes,
-          mixinInferrer: target.legacyMode
-              ? new LegacyModeMixinInferrer()
-              : new StrongModeMixinInferrer(this));
+          mixinInferrer: new KernelHierarchyMixinInferrerCallback(
+              this, target.legacyMode));
     } else {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
+      hierarchy.mixinInferrer =
+          new KernelHierarchyMixinInferrerCallback(this, target.legacyMode);
       Component component = computeFullComponent();
       hierarchy.applyTreeChanges(const [], component.libraries,
           reissueAmbiguousSupertypesFor: component);
@@ -926,16 +931,12 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Checked mixin declaration applications");
   }
 
-  void buildClassHierarchy(
+  ClassHierarchyBuilder buildClassHierarchy(
       List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
-    if (!target.legacyMode) return;
-    ticker.logMs("Building class hierarchy");
-    ClassHierarchyBuilder classHierarchyBuilder =
-        new ClassHierarchyBuilder(objectClass);
-    for (int i = 0; i < sourceClasses.length; i++) {
-      classHierarchyBuilder.add(sourceClasses[i]);
-    }
+    ClassHierarchyBuilder hierarchy = ClassHierarchyBuilder.build(
+        objectClass, sourceClasses, this, coreTypes);
     ticker.logMs("Built class hierarchy");
+    return hierarchy;
   }
 
   void createTypeInferenceEngine() {
@@ -1110,6 +1111,18 @@ class SourceLoader<L> extends Loader<L> {
     hierarchy = null;
     typeInferenceEngine = null;
   }
+
+  @override
+  KernelClassBuilder computeClassBuilderFromTargetClass(Class cls) {
+    Library kernelLibrary = cls.enclosingLibrary;
+    LibraryBuilder library = builders[kernelLibrary.importUri];
+    return library[cls.name];
+  }
+
+  @override
+  KernelTypeBuilder computeTypeBuilder(DartType type) {
+    return type.accept(new TypeBuilderComputer(this));
+  }
 }
 
 /// A minimal implementation of dart:core that is sufficient to create an
@@ -1117,6 +1130,8 @@ class SourceLoader<L> extends Loader<L> {
 const String defaultDartCoreSource = """
 import 'dart:_internal';
 import 'dart:async';
+
+export 'dart:async' show Future, Stream;
 
 print(object) {}
 
@@ -1167,6 +1182,8 @@ class _SyncIterator {
   var _current;
   var _yieldEachIterable;
 }
+
+class Function {}
 """;
 
 /// A minimal implementation of dart:async that is sufficient to create an

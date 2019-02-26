@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -22,29 +23,35 @@ import '../equivalence/id_equivalence_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, const OptimizationDataComputer(), args: args);
+    bool strict = args.contains('-s');
+    await checkTests(dataDir, new OptimizationDataComputer(strict: strict),
+        options: [Flags.disableInlining], args: args);
   });
 }
 
-class OptimizationDataValidator implements DataInterpreter<OptimizationLog> {
-  const OptimizationDataValidator();
+class OptimizationDataValidator
+    implements DataInterpreter<OptimizationTestLog> {
+  final bool strict;
+
+  const OptimizationDataValidator({this.strict: false});
 
   @override
-  String getText(OptimizationLog actualData) {
+  String getText(OptimizationTestLog actualData) {
     Features features = new Features();
     for (OptimizationLogEntry entry in actualData.entries) {
-      features.addElement(entry.tag, entry.features.getText());
+      features.addElement(
+          entry.tag, entry.features.getText().replaceAll(',', '&'));
     }
     return features.getText();
   }
 
   @override
-  bool isEmpty(OptimizationLog actualData) {
+  bool isEmpty(OptimizationTestLog actualData) {
     return actualData == null || actualData.entries.isEmpty;
   }
 
   @override
-  String isAsExpected(OptimizationLog actualLog, String expectedLog) {
+  String isAsExpected(OptimizationTestLog actualLog, String expectedLog) {
     expectedLog ??= '';
     if (expectedLog == '') {
       return actualLog.entries.isEmpty
@@ -60,8 +67,12 @@ class OptimizationDataValidator implements DataInterpreter<OptimizationLog> {
     expectedLogEntries.forEach((String tag, dynamic expectedEntryData) {
       List<OptimizationLogEntry> actualDataForTag =
           actualDataEntries.where((data) => data.tag == tag).toList();
-      if (expectedEntryData == '' ||
-          expectedEntryData is List && expectedEntryData.isEmpty) {
+      for (OptimizationLogEntry entry in actualDataForTag) {
+        actualDataEntries.remove(entry);
+      }
+      if (expectedEntryData == '') {
+        errorsFound.add("Unknown expected entry '$tag'");
+      } else if (expectedEntryData is List && expectedEntryData.isEmpty) {
         if (actualDataForTag.isNotEmpty) {
           errorsFound.add('Non-empty log found for tag $tag');
         }
@@ -69,7 +80,14 @@ class OptimizationDataValidator implements DataInterpreter<OptimizationLog> {
         // Anything allowed.
       } else if (expectedEntryData is List) {
         for (Object object in expectedEntryData) {
-          Features expectedLogEntry = Features.fromText('$object');
+          String expectedLogEntryText = '$object';
+          bool expectMatch = true;
+          if (expectedLogEntryText.startsWith('!')) {
+            expectedLogEntryText = expectedLogEntryText.substring(1);
+            expectMatch = false;
+          }
+          expectedLogEntryText = expectedLogEntryText.replaceAll('&', ',');
+          Features expectedLogEntry = Features.fromText(expectedLogEntryText);
           bool matchFound = false;
           for (OptimizationLogEntry actualLogEntry in actualDataForTag) {
             bool validData = true;
@@ -85,27 +103,40 @@ class OptimizationDataValidator implements DataInterpreter<OptimizationLog> {
               break;
             }
           }
-          if (!matchFound) {
-            errorsFound.add("No match found for $tag=[$object]");
+          if (expectMatch) {
+            if (!matchFound) {
+              errorsFound.add("No match found for $tag=[$object]");
+            }
+          } else {
+            if (matchFound) {
+              errorsFound.add("Unexpected match found for $tag=[$object]");
+            }
           }
         }
       } else {
-        errorsFound.add("Unknown expected entry '$expectedEntryData'");
+        errorsFound.add("Unknown expected entry $tag=$expectedEntryData");
       }
     });
+    if (strict) {
+      for (OptimizationLogEntry entry in actualDataEntries) {
+        errorsFound.add("Extra entry ${entry.tag}=${entry.features.getText()}");
+      }
+    }
     return errorsFound.isNotEmpty ? errorsFound.join(', ') : null;
   }
 }
 
-class OptimizationDataComputer extends DataComputer<OptimizationLog> {
-  const OptimizationDataComputer();
+class OptimizationDataComputer extends DataComputer<OptimizationTestLog> {
+  final bool strict;
+
+  const OptimizationDataComputer({this.strict: false});
 
   /// Compute type inference data for [member] from kernel based inference.
   ///
   /// Fills [actualMap] with the data.
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
-      Map<Id, ActualData<OptimizationLog>> actualMap,
+      Map<Id, ActualData<OptimizationTestLog>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
@@ -116,31 +147,31 @@ class OptimizationDataComputer extends DataComputer<OptimizationLog> {
   }
 
   @override
-  DataInterpreter<OptimizationLog> get dataValidator =>
-      const OptimizationDataValidator();
+  DataInterpreter<OptimizationTestLog> get dataValidator =>
+      new OptimizationDataValidator(strict: strict);
 }
 
 /// AST visitor for computing inference data for a member.
-class OptimizationIrComputer extends IrDataExtractor<OptimizationLog> {
+class OptimizationIrComputer extends IrDataExtractor<OptimizationTestLog> {
   final JavaScriptBackend backend;
   final JsToElementMap _elementMap;
   final ClosureData _closureDataLookup;
 
   OptimizationIrComputer(
       DiagnosticReporter reporter,
-      Map<Id, ActualData<OptimizationLog>> actualMap,
+      Map<Id, ActualData<OptimizationTestLog>> actualMap,
       this._elementMap,
       MemberEntity member,
       this.backend,
       this._closureDataLookup)
       : super(reporter, actualMap);
 
-  OptimizationLog getLog(MemberEntity member) {
+  OptimizationTestLog getLog(MemberEntity member) {
     SsaFunctionCompiler functionCompiler = backend.functionCompiler;
     return functionCompiler.optimizer.loggersForTesting[member];
   }
 
-  OptimizationLog getMemberValue(MemberEntity member) {
+  OptimizationTestLog getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {
       return getLog(member);
     }
@@ -148,12 +179,12 @@ class OptimizationIrComputer extends IrDataExtractor<OptimizationLog> {
   }
 
   @override
-  OptimizationLog computeMemberValue(Id id, ir.Member node) {
+  OptimizationTestLog computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }
 
   @override
-  OptimizationLog computeNodeValue(Id id, ir.TreeNode node) {
+  OptimizationTestLog computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
       ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
       return getMemberValue(info.callMethod);

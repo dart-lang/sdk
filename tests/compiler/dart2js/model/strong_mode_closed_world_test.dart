@@ -205,7 +205,7 @@ method2() {
     List<String> expectedLiveMembers =
         expectedLiveMembersMap[cls.name] ?? const <String>[];
     List<String> actualLiveMembers = <String>[];
-    closedWorld.processedMembers.forEach((MemberEntity member) {
+    closedWorld.liveMemberUsage.forEach((MemberEntity member, _) {
       if (member.enclosingClass != cls) return;
       if (member.isConstructor) return;
       actualLiveMembers.add(member.name);

@@ -42,7 +42,7 @@ void RawObject::Validate(Isolate* isolate) const {
       FATAL1("New object has kOldAndNotMarkedBit: %x\n", tags);
     }
     if (OldAndNotRememberedBit::decode(tags)) {
-      FATAL1("Mew object has kOldAndNotRememberedBit: %x\n", tags);
+      FATAL1("New object has kOldAndNotRememberedBit: %x\n", tags);
     }
   } else {
     if (NewBit::decode(tags)) {
@@ -61,16 +61,20 @@ void RawObject::Validate(Isolate* isolate) const {
     // Null class not yet initialized; skip.
     return;
   }
-  intptr_t size = SizeTag::decode(tags);
-  if (size != 0 && size != SizeFromClass()) {
-    FATAL1("Inconsistent class size encountered %" Pd "\n", size);
+  intptr_t size_from_tags = SizeTag::decode(tags);
+  intptr_t size_from_class = HeapSizeFromClass();
+  if ((size_from_tags != 0) && (size_from_tags != size_from_class)) {
+    FATAL3(
+        "Inconsistent size encountered "
+        "cid: %" Pd ", size_from_tags: %" Pd ", size_from_class: %" Pd "\n",
+        class_id, size_from_tags, size_from_class);
   }
 }
 
 // Can't look at the class object because it can be called during
 // compaction when the class objects are moving. Can use the class
 // id in the header and the sizes in the Class Table.
-intptr_t RawObject::SizeFromClass() const {
+intptr_t RawObject::HeapSizeFromClass() const {
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
 
@@ -143,6 +147,9 @@ intptr_t RawObject::SizeFromClass() const {
         break;
       }
 #undef SIZE_FROM_CLASS
+    case kFfiPointerCid:
+      instance_size = Pointer::InstanceSize();
+      break;
     case kTypeArgumentsCid: {
       const RawTypeArguments* raw_array =
           reinterpret_cast<const RawTypeArguments*>(this);
@@ -187,13 +194,13 @@ intptr_t RawObject::SizeFromClass() const {
     case kFreeListElement: {
       uword addr = RawObject::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
-      instance_size = element->Size();
+      instance_size = element->HeapSize();
       break;
     }
     case kForwardingCorpse: {
       uword addr = RawObject::ToAddr(this);
       ForwardingCorpse* element = reinterpret_cast<ForwardingCorpse*>(addr);
-      instance_size = element->Size();
+      instance_size = element->HeapSize();
       break;
     }
     default: {
@@ -278,20 +285,30 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       break;
     }
 #undef RAW_VISITPOINTERS
+    case kFfiPointerCid: {
+      RawPointer* raw_obj = reinterpret_cast<RawPointer*>(this);
+      size = RawPointer::VisitPointerPointers(raw_obj, visitor);
+      break;
+    }
+    case kFfiDynamicLibraryCid: {
+      RawDynamicLibrary* raw_obj = reinterpret_cast<RawDynamicLibrary*>(this);
+      size = RawDynamicLibrary::VisitDynamicLibraryPointers(raw_obj, visitor);
+      break;
+    }
     case kFreeListElement: {
       uword addr = RawObject::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
-      size = element->Size();
+      size = element->HeapSize();
       break;
     }
     case kForwardingCorpse: {
       uword addr = RawObject::ToAddr(this);
       ForwardingCorpse* forwarder = reinterpret_cast<ForwardingCorpse*>(addr);
-      size = forwarder->Size();
+      size = forwarder->HeapSize();
       break;
     }
     case kNullCid:
-      size = Size();
+      size = HeapSize();
       break;
     default:
       OS::PrintErr("Class Id: %" Pd "\n", class_id);
@@ -301,13 +318,13 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 
 #if defined(DEBUG)
   ASSERT(size != 0);
-  const intptr_t expected_size = Size();
+  const intptr_t expected_size = HeapSize();
 
-  // In general we expect that visitors return exactly the same size that Size
-  // would compute. However in case of Arrays we might have a discrepancy when
-  // concurrently visiting an array that is being shrunk with
+  // In general we expect that visitors return exactly the same size that
+  // HeapSize would compute. However in case of Arrays we might have a
+  // discrepancy when concurrently visiting an array that is being shrunk with
   // Array::MakeFixedLength: the visitor might have visited the full array while
-  // here we are observing a smaller Size().
+  // here we are observing a smaller HeapSize().
   ASSERT(size == expected_size ||
          (class_id == kArrayCid && size > expected_size));
   return size;  // Prefer larger size.
@@ -391,6 +408,7 @@ COMPRESSED_VISITOR(Closure)
 REGULAR_VISITOR(ClosureData)
 REGULAR_VISITOR(SignatureData)
 REGULAR_VISITOR(RedirectionData)
+REGULAR_VISITOR(FfiTrampolineData)
 REGULAR_VISITOR(Field)
 REGULAR_VISITOR(Script)
 REGULAR_VISITOR(Library)
@@ -435,6 +453,8 @@ NULL_VISITOR(Float64x2)
 NULL_VISITOR(Bool)
 NULL_VISITOR(Capability)
 NULL_VISITOR(SendPort)
+REGULAR_VISITOR(Pointer)
+NULL_VISITOR(DynamicLibrary)
 VARIABLE_NULL_VISITOR(Instructions, Instructions::Size(raw_obj))
 VARIABLE_NULL_VISITOR(PcDescriptors, raw_obj->ptr()->length_)
 VARIABLE_NULL_VISITOR(CodeSourceMap, raw_obj->ptr()->length_)
@@ -556,9 +576,8 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
 bool RawBytecode::ContainsPC(RawObject* raw_obj, uword pc) {
   if (raw_obj->IsBytecode()) {
     RawBytecode* raw_bytecode = static_cast<RawBytecode*>(raw_obj);
-    RawExternalTypedData* bytes = raw_bytecode->ptr()->instructions_;
-    uword start = reinterpret_cast<uword>(bytes->ptr()->data_);
-    uword size = Smi::Value(bytes->ptr()->length_);
+    uword start = raw_bytecode->ptr()->instructions_;
+    uword size = raw_bytecode->ptr()->instructions_size_;
     return (pc - start) < size;
   }
   return false;
@@ -572,8 +591,8 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
   for (intptr_t i = 0; i < length; ++i) {
     ObjectPool::EntryType entry_type =
         ObjectPool::TypeBits::decode(entry_bits[i]);
-    if ((entry_type == ObjectPool::kTaggedObject) ||
-        (entry_type == ObjectPool::kNativeEntryData)) {
+    if ((entry_type == ObjectPool::EntryType::kTaggedObject) ||
+        (entry_type == ObjectPool::EntryType::kNativeEntryData)) {
       visitor->VisitPointer(&entries[i].raw_obj_);
     }
   }

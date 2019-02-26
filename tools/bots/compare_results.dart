@@ -214,9 +214,9 @@ main(List<String> args) async {
       help: "Show the old and new result for each test",
       negatable: false);
   parser.addOption("logs",
-      abbr: "l", help: "Path to file holding logs of failing tests.");
+      abbr: "l", help: "Path to file holding logs of failing and flaky tests.");
   parser.addFlag("logs-only",
-      help: "Only print logs of failing tests, no other output",
+      help: "Only print logs of failing and flaky tests, no other output",
       negatable: false);
 
   final options = parser.parse(args);
@@ -347,7 +347,10 @@ ${parser.usage}""");
       final aboutApproval =
           approvalDescriptions[searchForStatus][searchForApproval];
       final sectionHeader = "The following tests $aboutStatus$aboutApproval:";
-      final logSectionArg = searchForStatus == "failing" ? logSection : null;
+      final logSectionArg =
+          searchForStatus == "failing" || searchForStatus == "flaky"
+              ? logSection
+              : null;
       bool possibleJudgement = search(sectionHeader, searchForStatus,
           searchForApproval, events, options, logs, logSectionArg);
       if ((searchForStatus == null || searchForStatus == "failing") &&

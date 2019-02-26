@@ -71,7 +71,7 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   }
 
   /**
-   * Validates that there is no an [ImplementedClass] at the offset of [search].
+   * Validates that there is no [ImplementedMember] at the offset of [search].
    *
    * If [length] is not specified explicitly, then length of an identifier
    * from [search] is used.
@@ -165,6 +165,21 @@ class B implements A {}
 ''');
     await prepareImplementedElements();
     assertHasImplementedClass('A {');
+  }
+
+  test_class_inMixin() async {
+    addTestFile('''
+class A {} // ref
+class B {} // ref
+class C {} // ref
+class D {} // ref
+mixin M on A, B implements C, D {}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedClass('A {} // ref');
+    assertHasImplementedClass('B {} // ref');
+    assertHasImplementedClass('C {} // ref');
+    assertHasImplementedClass('D {} // ref');
   }
 
   test_class_mixed() async {
@@ -311,6 +326,40 @@ class B extends A {
 ''');
     await prepareImplementedElements();
     assertHasImplementedMember('m(); // A');
+  }
+
+  test_mixin_implemented() async {
+    addTestFile('''
+mixin M { // ref
+  void foo() {} // ref
+  void bar() {} // ref
+}
+
+class A implements M {
+  void foo() {}
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedClass('M { // ref');
+    assertHasImplementedMember('foo() {} // ref');
+    assertNoImplementedMember('bar() {} // ref');
+  }
+
+  test_mixin_mixed() async {
+    addTestFile('''
+mixin M { // ref
+  void foo() {} // ref
+  void bar() {} // ref
+}
+
+class A extends Object with M {
+  void foo() {}
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedClass('M { // ref');
+    assertHasImplementedMember('foo() {} // ref');
+    assertNoImplementedMember('bar() {} // ref');
   }
 
   test_setter_withField() async {

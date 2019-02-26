@@ -1,16 +1,11 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/regress/issue_29944.dart:7:7: Error: A class member can't have the same name as the enclosing class.
-//   var C;
-//       ^
-
-// Unhandled errors:
-//
-// pkg/front_end/testcases/regress/issue_29944.dart:7:7: Error: A class member can't have the same name as the enclosing class.
-//   var C;
-//       ^
-
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29944.dart:7:7: Error: A class member can't have the same name as the enclosing class.
+//   var C;
+//       ^
+//
 import self as self;
 import "dart:core" as core;
 

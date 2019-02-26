@@ -92,11 +92,11 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Compile expressions with the Kernel front-end.")                          \
   P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
+  P(enable_ffi, bool, true, "Disable to make importing dart:ffi an error.")    \
   P(fields_may_be_reset, bool, false,                                          \
     "Don't optimize away static field initialization")                         \
   C(force_clone_compiler_objects, false, false, bool, false,                   \
     "Force cloning of objects needed in compiler (ICData and Field).")         \
-  R(gc_at_alloc, false, bool, false, "GC at every allocation.")                \
   P(getter_setter_ratio, int, 13,                                              \
     "Ratio of getter/setter usage used for double field unboxing heuristics")  \
   P(guess_icdata_cid, bool, true,                                              \
@@ -127,6 +127,8 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Initial size of new gen semi space in MB")                                \
   P(optimization_counter_threshold, int, 30000,                                \
     "Function's usage-counter value before it is optimized, -1 means never")   \
+  P(optimization_level, int, 2,                                                \
+    "Optimization level: 1 (favor size), 2 (default), 3 (favor speed)")        \
   P(old_gen_heap_size, int, kDefaultMaxOldGenHeapSize,                         \
     "Max size of old gen heap size in MB, or 0 for unlimited,"                 \
     "e.g: --old_gen_heap_size=1024 allows up to 1024MB old gen heap")          \
@@ -147,7 +149,6 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Print live ranges after allocation.")                                     \
   R(print_stacktrace_at_api_error, false, bool, false,                         \
     "Attempt to print a native stack trace when an API error is created.")     \
-  C(print_stop_message, false, false, bool, false, "Print stop message.")      \
   D(print_variable_descriptors, bool, false,                                   \
     "Print variable descriptors in disassembly.")                              \
   R(profiler, false, bool, false, "Enable the profiler.")                      \
@@ -156,12 +157,11 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  P(use_bare_instructions, bool, false, "Enable bare instructions mode.")      \
+  P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
   C(support_reload, false, false, bool, true, "Support isolate reload.")       \
   R(support_service, false, bool, true, "Support the service protocol.")       \
-  R(support_timeline, false, bool, true, "Support timeline.")                  \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
   R(trace_field_guards, false, bool, false, "Trace changes in field's cids.")  \
   D(trace_ic, bool, false, "Trace IC handling")                                \
@@ -215,6 +215,19 @@ constexpr bool kDartPrecompiledRuntime = false;
   R(eliminate_type_checks, true, bool, true,                                   \
     "Eliminate type checks when allowed by static type analysis.")             \
   P(enable_interpreter, bool, false, "Enable interpreting kernel bytecode.")   \
-  D(support_rr, bool, false, "Support running within RR.")
+  D(support_rr, bool, false, "Support running within RR.")                     \
+  P(verify_entry_points, bool, false,                                          \
+    "Throw API error on invalid member access throuh native API. See "         \
+    "entry_point_pragma.md")
+
+// List of VM-global (i.e. non-isolate specific) flags.
+//
+// The value used for those flags at snapshot generation time needs to be the
+// same as during runtime.
+//
+// Usage:
+//   P(name, command-line-flag-name)
+#define VM_GLOBAL_FLAG_LIST(V)                                                 \
+  V(use_bare_instructions, FLAG_use_bare_instructions)
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

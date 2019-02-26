@@ -42,6 +42,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
   /**
    * The inheritance manager being tested.
    */
+  @deprecated
   InheritanceManager _inheritanceManager;
 
   /**
@@ -49,6 +50,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
    */
   int _numOfMembersInObject = 0;
 
+  @deprecated
   void setUp() {
     _typeProvider = new TestTypeProvider();
     _inheritanceManager = _createInheritanceManager();
@@ -1106,6 +1108,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
    *
    * @return the inheritance manager that was created
    */
+  @deprecated
   InheritanceManager _createInheritanceManager() {
     AnalysisContext context = AnalysisContextFactory.contextWithCore(
         resourceProvider: resourceProvider);

@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/optional.dart:47:21: Error: The argument type 'InvalidListener' can't be assigned to the parameter type 'Listener'.
 //  - 'InvalidListener' is from 'pkg/front_end/testcases/optional.dart'.
@@ -24,28 +26,7 @@
 // Try removing the extra positional arguments.
 //   var nothing4 = extern.externalMethod(1, 2, 3, 4);
 //                                       ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/optional.dart:49:28: Error: Too few positional arguments: 1 required, 0 given.
-//   var nothing1 = foo.method();
-//                            ^
-//
-// pkg/front_end/testcases/optional.dart:50:28: Error: Too many positional arguments: 3 allowed, but 4 found.
-// Try removing the extra positional arguments.
-//   var nothing2 = foo.method(1, 2, 3, 4);
-//                            ^
-//
-// pkg/front_end/testcases/optional.dart:51:39: Error: Too few positional arguments: 1 required, 0 given.
-//   var nothing3 = extern.externalMethod();
-//                                       ^
-//
-// pkg/front_end/testcases/optional.dart:52:39: Error: Too many positional arguments: 3 allowed, but 4 found.
-// Try removing the extra positional arguments.
-//   var nothing4 = extern.externalMethod(1, 2, 3, 4);
-//                                       ^
-
-library;
 import self as self;
 import "dart:core" as core;
 

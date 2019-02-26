@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,7 +43,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestConstructor('A');
+    CompletionSuggestion cs = assertSuggestConstructor('A');
+    expect(cs.elementUri, 'package:test/a.dart');
     // Suggested by LocalConstructorContributor
     assertNotSuggested('B.bar');
     // Suggested by ImportedReferenceContributor

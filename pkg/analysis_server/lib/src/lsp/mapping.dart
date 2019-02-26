@@ -15,6 +15,8 @@ import 'package:analysis_server/src/protocol_server.dart' as server
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
+import 'package:analyzer/src/dart/analysis/search.dart' as server
+    show DeclarationKind;
 import 'package:analyzer/src/generated/source.dart' as server;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' as server;
 
@@ -45,6 +47,48 @@ lsp.WorkspaceEdit createWorkspaceEdit(
               server.getLineInfo(e.file),
               e.edits))
           .toList());
+}
+
+lsp.SymbolKind declarationKindToSymbolKind(
+  HashSet<lsp.SymbolKind> clientSupportedSymbolKinds,
+  server.DeclarationKind kind,
+) {
+  bool isSupported(lsp.SymbolKind kind) =>
+      clientSupportedSymbolKinds.contains(kind);
+
+  List<lsp.SymbolKind> getKindPreferences() {
+    switch (kind) {
+      case server.DeclarationKind.CLASS:
+      case server.DeclarationKind.CLASS_TYPE_ALIAS:
+        return const [lsp.SymbolKind.Class];
+      case server.DeclarationKind.CONSTRUCTOR:
+        return const [lsp.SymbolKind.Constructor];
+      case server.DeclarationKind.ENUM:
+      case server.DeclarationKind.ENUM_CONSTANT:
+        return const [lsp.SymbolKind.Enum];
+      case server.DeclarationKind.FIELD:
+        return const [lsp.SymbolKind.Field];
+      case server.DeclarationKind.FUNCTION:
+        return const [lsp.SymbolKind.Function];
+      case server.DeclarationKind.FUNCTION_TYPE_ALIAS:
+        return const [lsp.SymbolKind.Class];
+      case server.DeclarationKind.GETTER:
+        return const [lsp.SymbolKind.Property];
+      case server.DeclarationKind.METHOD:
+        return const [lsp.SymbolKind.Method];
+      case server.DeclarationKind.MIXIN:
+        return const [lsp.SymbolKind.Class];
+      case server.DeclarationKind.SETTER:
+        return const [lsp.SymbolKind.Property];
+      case server.DeclarationKind.VARIABLE:
+        return const [lsp.SymbolKind.Variable];
+      default:
+        assert(false, 'Unexpected declaration kind $kind');
+        return null;
+    }
+  }
+
+  return getKindPreferences().firstWhere(isSupported, orElse: () => null);
 }
 
 lsp.CompletionItemKind elementKindToCompletionItemKind(
@@ -256,7 +300,7 @@ ErrorOr<String> pathOfUri(Uri uri) {
     return new ErrorOr<String>.error(new ResponseError(
         lsp.ServerErrorCodes.InvalidFilePath,
         'URI was not a valid file:// URI',
-        uri));
+        uri.toString()));
   }
   try {
     return new ErrorOr<String>.success(uri.toFilePath());
@@ -266,7 +310,7 @@ ErrorOr<String> pathOfUri(Uri uri) {
     return new ErrorOr<String>.error(new ResponseError(
         lsp.ServerErrorCodes.InvalidFilePath,
         'File URI did not contain a valid file path',
-        uri));
+        uri.toString()));
   }
 }
 
@@ -417,6 +461,28 @@ lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {
   }
 }
 
+lsp.FoldingRange toFoldingRange(
+    server.LineInfo lineInfo, server.FoldingRegion region) {
+  final range = toRange(lineInfo, region.offset, region.length);
+  return new lsp.FoldingRange(range.start.line, range.start.character,
+      range.end.line, range.end.character, toFoldingRangeKind(region.kind));
+}
+
+lsp.FoldingRangeKind toFoldingRangeKind(server.FoldingKind kind) {
+  switch (kind) {
+    case server.FoldingKind.DOCUMENTATION_COMMENT:
+    case server.FoldingKind.FILE_HEADER:
+      return lsp.FoldingRangeKind.Comment;
+    case server.FoldingKind.DIRECTIVES:
+      return lsp.FoldingRangeKind.Imports;
+    default:
+      // null (actually undefined in LSP, the toJson() takes care of that) is
+      // valid, and actually the value used for the majority of folds
+      // (class/functions/etc.).
+      return null;
+  }
+}
+
 List<lsp.DocumentHighlight> toHighlights(
     server.LineInfo lineInfo, server.Occurrences occurrences) {
   return occurrences.offsets
@@ -436,7 +502,7 @@ ErrorOr<int> toOffset(
             ? lsp.ServerErrorCodes.ClientServerInconsistentState
             : lsp.ServerErrorCodes.InvalidFileLineCol,
         'Invalid line number',
-        pos.line));
+        pos.line.toString()));
   }
   // TODO(dantup): Is there any way to validate the character? We could ensure
   // it's less than the offset of the next line, but that would only work for

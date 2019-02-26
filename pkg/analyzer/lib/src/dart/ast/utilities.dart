@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -16,6 +15,8 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:meta/meta.dart';
+
+export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 
 /**
  * A function used to handle exceptions that are thrown by delegates while using
@@ -363,7 +364,7 @@ class AstCloner implements AstVisitor<AstNode> {
   @override
   DefaultFormalParameter visitDefaultFormalParameter(
           DefaultFormalParameter node) =>
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       astFactory.defaultFormalParameter(cloneNode(node.parameter), node.kind,
           cloneToken(node.separator), cloneNode(node.defaultValue));
 
@@ -470,6 +471,22 @@ class AstCloner implements AstVisitor<AstNode> {
           parameters: cloneNode(node.parameters));
 
   @override
+  ForEachPartsWithDeclaration visitForEachPartsWithDeclaration(
+          ForEachPartsWithDeclaration node) =>
+      astFactory.forEachPartsWithDeclaration(
+          loopVariable: cloneNode(node.loopVariable),
+          inKeyword: cloneToken(node.inKeyword),
+          iterable: cloneNode(node.iterable));
+
+  @override
+  ForEachPartsWithIdentifier visitForEachPartsWithIdentifier(
+          ForEachPartsWithIdentifier node) =>
+      astFactory.forEachPartsWithIdentifier(
+          identifier: cloneNode(node.identifier),
+          inKeyword: cloneToken(node.inKeyword),
+          iterable: cloneNode(node.iterable));
+
+  @override
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
@@ -495,6 +512,14 @@ class AstCloner implements AstVisitor<AstNode> {
   }
 
   @override
+  ForElement visitForElement(ForElement node) => astFactory.forElement(
+      forKeyword: cloneToken(node.forKeyword),
+      leftParenthesis: cloneToken(node.leftParenthesis),
+      forLoopParts: cloneNode(node.forLoopParts),
+      rightParenthesis: cloneToken(node.rightParenthesis),
+      body: cloneNode(node.body));
+
+  @override
   FormalParameterList visitFormalParameterList(FormalParameterList node) =>
       astFactory.formalParameterList(
           cloneToken(node.leftParenthesis),
@@ -502,6 +527,26 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneToken(node.leftDelimiter),
           cloneToken(node.rightDelimiter),
           cloneToken(node.rightParenthesis));
+
+  @override
+  ForPartsWithDeclarations visitForPartsWithDeclarations(
+          ForPartsWithDeclarations node) =>
+      astFactory.forPartsWithDeclarations(
+          variables: cloneNode(node.variables),
+          leftSeparator: cloneToken(node.leftSeparator),
+          condition: cloneNode(node.condition),
+          rightSeparator: cloneToken(node.rightSeparator),
+          updaters: cloneNodeList(node.updaters));
+
+  @override
+  ForPartsWithExpression visitForPartsWithExpression(
+          ForPartsWithExpression node) =>
+      astFactory.forPartsWithExpression(
+          initialization: cloneNode(node.initialization),
+          leftSeparator: cloneToken(node.leftSeparator),
+          condition: cloneNode(node.condition),
+          rightSeparator: cloneToken(node.rightSeparator),
+          updaters: cloneNodeList(node.updaters));
 
   @override
   ForStatement visitForStatement(ForStatement node) => astFactory.forStatement(
@@ -515,6 +560,15 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneNodeList(node.updaters),
       cloneToken(node.rightParenthesis),
       cloneNode(node.body));
+
+  @override
+  ForStatement2 visitForStatement2(ForStatement2 node) =>
+      astFactory.forStatement2(
+          forKeyword: cloneToken(node.forKeyword),
+          leftParenthesis: cloneToken(node.leftParenthesis),
+          forLoopParts: cloneNode(node.forLoopParts),
+          rightParenthesis: cloneToken(node.rightParenthesis),
+          body: cloneNode(node.body));
 
   @override
   FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) =>
@@ -593,6 +647,16 @@ class AstCloner implements AstVisitor<AstNode> {
   HideCombinator visitHideCombinator(HideCombinator node) =>
       astFactory.hideCombinator(
           cloneToken(node.keyword), cloneNodeList(node.hiddenNames));
+
+  @override
+  IfElement visitIfElement(IfElement node) => astFactory.ifElement(
+      ifKeyword: cloneToken(node.ifKeyword),
+      leftParenthesis: cloneToken(node.leftParenthesis),
+      condition: cloneNode(node.condition),
+      rightParenthesis: cloneToken(node.rightParenthesis),
+      thenElement: cloneNode(node.thenElement),
+      elseKeyword: cloneToken(node.elseKeyword),
+      elseElement: cloneNode(node.elseElement));
 
   @override
   IfStatement visitIfStatement(IfStatement node) => astFactory.ifStatement(
@@ -704,12 +768,28 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneToken(node.rightBracket));
 
   @override
+  ListLiteral2 visitListLiteral2(ListLiteral2 node) => astFactory.listLiteral2(
+      constKeyword: cloneToken(node.constKeyword),
+      typeArguments: cloneNode(node.typeArguments),
+      leftBracket: cloneToken(node.leftBracket),
+      elements: cloneNodeList(node.elements),
+      rightBracket: cloneToken(node.rightBracket));
+
+  @override
   MapLiteral visitMapLiteral(MapLiteral node) => astFactory.mapLiteral(
       cloneToken(node.constKeyword),
       cloneNode(node.typeArguments),
       cloneToken(node.leftBracket),
       cloneNodeList(node.entries),
       cloneToken(node.rightBracket));
+
+  @override
+  MapLiteral2 visitMapLiteral2(MapLiteral2 node) => astFactory.mapLiteral2(
+      constKeyword: cloneToken(node.constKeyword),
+      typeArguments: cloneNode(node.typeArguments),
+      leftBracket: cloneToken(node.leftBracket),
+      entries: cloneNodeList(node.entries),
+      rightBracket: cloneToken(node.rightBracket));
 
   @override
   MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) =>
@@ -854,6 +934,14 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneToken(node.rightBracket));
 
   @override
+  SetLiteral2 visitSetLiteral2(SetLiteral2 node) => astFactory.setLiteral2(
+      constKeyword: cloneToken(node.constKeyword),
+      typeArguments: cloneNode(node.typeArguments),
+      leftBracket: cloneToken(node.leftBracket),
+      elements: cloneNodeList(node.elements),
+      rightBracket: cloneToken(node.rightBracket));
+
+  @override
   ShowCombinator visitShowCombinator(ShowCombinator node) => astFactory
       .showCombinator(cloneToken(node.keyword), cloneNodeList(node.shownNames));
 
@@ -876,6 +964,12 @@ class AstCloner implements AstVisitor<AstNode> {
   @override
   SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) =>
       astFactory.simpleStringLiteral(cloneToken(node.literal), node.value);
+
+  @override
+  SpreadElement visitSpreadElement(SpreadElement node) =>
+      astFactory.spreadElement(
+          spreadOperator: cloneToken(node.spreadOperator),
+          expression: cloneNode(node.expression));
 
   @override
   StringInterpolation visitStringInterpolation(StringInterpolation node) =>
@@ -1439,7 +1533,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitDefaultFormalParameter(DefaultFormalParameter node) {
     DefaultFormalParameter other = _other as DefaultFormalParameter;
     return isEqualNodes(node.parameter, other.parameter) &&
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use_from_same_package
         node.kind == other.kind &&
         isEqualTokens(node.separator, other.separator) &&
         isEqualNodes(node.defaultValue, other.defaultValue);
@@ -1563,6 +1657,22 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    ForEachPartsWithDeclaration other = _other as ForEachPartsWithDeclaration;
+    return isEqualNodes(node.loopVariable, other.loopVariable) &&
+        isEqualTokens(node.inKeyword, other.inKeyword) &&
+        isEqualNodes(node.iterable, other.iterable);
+  }
+
+  @override
+  bool visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    ForEachPartsWithIdentifier other = _other as ForEachPartsWithIdentifier;
+    return isEqualNodes(node.identifier, other.identifier) &&
+        isEqualTokens(node.inKeyword, other.inKeyword) &&
+        isEqualNodes(node.iterable, other.iterable);
+  }
+
+  @override
   bool visitForEachStatement(ForEachStatement node) {
     ForEachStatement other = _other as ForEachStatement;
     return isEqualTokens(node.forKeyword, other.forKeyword) &&
@@ -1570,6 +1680,16 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.loopVariable, other.loopVariable) &&
         isEqualTokens(node.inKeyword, other.inKeyword) &&
         isEqualNodes(node.iterable, other.iterable) &&
+        isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
+        isEqualNodes(node.body, other.body);
+  }
+
+  @override
+  bool visitForElement(ForElement node) {
+    ForElement other = _other as ForElement;
+    return isEqualTokens(node.forKeyword, other.forKeyword) &&
+        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
+        isEqualNodes(node.forLoopParts, other.forLoopParts) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualNodes(node.body, other.body);
   }
@@ -1585,6 +1705,26 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    ForPartsWithDeclarations other = _other as ForPartsWithDeclarations;
+    return isEqualNodes(node.variables, other.variables) &&
+        isEqualTokens(node.leftSeparator, other.leftSeparator) &&
+        isEqualNodes(node.condition, other.condition) &&
+        isEqualTokens(node.rightSeparator, other.rightSeparator) &&
+        _isEqualNodeLists(node.updaters, other.updaters);
+  }
+
+  @override
+  bool visitForPartsWithExpression(ForPartsWithExpression node) {
+    ForPartsWithExpression other = _other as ForPartsWithExpression;
+    return isEqualNodes(node.initialization, other.initialization) &&
+        isEqualTokens(node.leftSeparator, other.leftSeparator) &&
+        isEqualNodes(node.condition, other.condition) &&
+        isEqualTokens(node.rightSeparator, other.rightSeparator) &&
+        _isEqualNodeLists(node.updaters, other.updaters);
+  }
+
+  @override
   bool visitForStatement(ForStatement node) {
     ForStatement other = _other as ForStatement;
     return isEqualTokens(node.forKeyword, other.forKeyword) &&
@@ -1595,6 +1735,16 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.condition, other.condition) &&
         isEqualTokens(node.rightSeparator, other.rightSeparator) &&
         _isEqualNodeLists(node.updaters, other.updaters) &&
+        isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
+        isEqualNodes(node.body, other.body);
+  }
+
+  @override
+  bool visitForStatement2(ForStatement2 node) {
+    ForStatement2 other = _other as ForStatement2;
+    return isEqualTokens(node.forKeyword, other.forKeyword) &&
+        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
+        isEqualNodes(node.forLoopParts, other.forLoopParts) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualNodes(node.body, other.body);
   }
@@ -1685,6 +1835,18 @@ class AstComparator implements AstVisitor<bool> {
     HideCombinator other = _other as HideCombinator;
     return isEqualTokens(node.keyword, other.keyword) &&
         _isEqualNodeLists(node.hiddenNames, other.hiddenNames);
+  }
+
+  @override
+  bool visitIfElement(IfElement node) {
+    IfElement other = _other as IfElement;
+    return isEqualTokens(node.ifKeyword, other.ifKeyword) &&
+        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
+        isEqualNodes(node.condition, other.condition) &&
+        isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
+        isEqualNodes(node.thenElement, other.thenElement) &&
+        isEqualTokens(node.elseKeyword, other.elseKeyword) &&
+        isEqualNodes(node.elseElement, other.elseElement);
   }
 
   @override
@@ -1812,8 +1974,28 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitListLiteral2(ListLiteral2 node) {
+    ListLiteral2 other = _other as ListLiteral2;
+    return isEqualTokens(node.constKeyword, other.constKeyword) &&
+        isEqualNodes(node.typeArguments, other.typeArguments) &&
+        isEqualTokens(node.leftBracket, other.leftBracket) &&
+        _isEqualNodeLists(node.elements, other.elements) &&
+        isEqualTokens(node.rightBracket, other.rightBracket);
+  }
+
+  @override
   bool visitMapLiteral(MapLiteral node) {
     MapLiteral other = _other as MapLiteral;
+    return isEqualTokens(node.constKeyword, other.constKeyword) &&
+        isEqualNodes(node.typeArguments, other.typeArguments) &&
+        isEqualTokens(node.leftBracket, other.leftBracket) &&
+        _isEqualNodeLists(node.entries, other.entries) &&
+        isEqualTokens(node.rightBracket, other.rightBracket);
+  }
+
+  @override
+  bool visitMapLiteral2(MapLiteral2 node) {
+    MapLiteral2 other = _other as MapLiteral2;
     return isEqualTokens(node.constKeyword, other.constKeyword) &&
         isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualTokens(node.leftBracket, other.leftBracket) &&
@@ -2009,6 +2191,16 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitSetLiteral2(SetLiteral2 node) {
+    SetLiteral2 other = _other as SetLiteral2;
+    return isEqualTokens(node.constKeyword, other.constKeyword) &&
+        isEqualNodes(node.typeArguments, other.typeArguments) &&
+        isEqualTokens(node.leftBracket, other.leftBracket) &&
+        _isEqualNodeLists(node.elements, other.elements) &&
+        isEqualTokens(node.rightBracket, other.rightBracket);
+  }
+
+  @override
   bool visitShowCombinator(ShowCombinator node) {
     ShowCombinator other = _other as ShowCombinator;
     return isEqualTokens(node.keyword, other.keyword) &&
@@ -2037,6 +2229,13 @@ class AstComparator implements AstVisitor<bool> {
     SimpleStringLiteral other = _other as SimpleStringLiteral;
     return isEqualTokens(node.literal, other.literal) &&
         failIfNotEqual(node, node.value, other, other.value);
+  }
+
+  @override
+  bool visitSpreadElement(SpreadElement node) {
+    SpreadElement other = _other as SpreadElement;
+    return isEqualTokens(node.spreadOperator, other.spreadOperator) &&
+        isEqualNodes(node.expression, other.expression);
   }
 
   @override
@@ -2269,386 +2468,6 @@ class AstComparator implements AstVisitor<bool> {
 }
 
 /**
- * Instances of the class [ConstantEvaluator] evaluate constant expressions to
- * produce their compile-time value.
- *
- * According to the Dart Language Specification:
- *
- * > A constant expression is one of the following:
- * >
- * > * A literal number.
- * > * A literal boolean.
- * > * A literal string where any interpolated expression is a compile-time
- * >   constant that evaluates to a numeric, string or boolean value or to
- * >   **null**.
- * > * A literal symbol.
- * > * **null**.
- * > * A qualified reference to a static constant variable.
- * > * An identifier expression that denotes a constant variable, class or type
- * >   alias.
- * > * A constant constructor invocation.
- * > * A constant list literal.
- * > * A constant map literal.
- * > * A simple or qualified identifier denoting a top-level function or a
- * >   static method.
- * > * A parenthesized expression _(e)_ where _e_ is a constant expression.
- * > * <span>
- * >   An expression of the form <i>identical(e<sub>1</sub>, e<sub>2</sub>)</i>
- * >   where <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
- * >   expressions and <i>identical()</i> is statically bound to the predefined
- * >   dart function <i>identical()</i> discussed above.
- * >   </span>
- * > * <span>
- * >   An expression of one of the forms <i>e<sub>1</sub> == e<sub>2</sub></i>
- * >   or <i>e<sub>1</sub> != e<sub>2</sub></i> where <i>e<sub>1</sub></i> and
- * >   <i>e<sub>2</sub></i> are constant expressions that evaluate to a
- * >   numeric, string or boolean value.
- * >   </span>
- * > * <span>
- * >   An expression of one of the forms <i>!e</i>, <i>e<sub>1</sub> &amp;&amp;
- * >   e<sub>2</sub></i> or <i>e<sub>1</sub> || e<sub>2</sub></i>, where
- * >   <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
- * >   expressions that evaluate to a boolean value.
- * >   </span>
- * > * <span>
- * >   An expression of one of the forms <i>~e</i>, <i>e<sub>1</sub> ^
- * >   e<sub>2</sub></i>, <i>e<sub>1</sub> &amp; e<sub>2</sub></i>,
- * >   <i>e<sub>1</sub> | e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;&gt;
- * >   e<sub>2</sub></i> or <i>e<sub>1</sub> &lt;&lt; e<sub>2</sub></i>, where
- * >   <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
- * >   expressions that evaluate to an integer value or to <b>null</b>.
- * >   </span>
- * > * <span>
- * >   An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub>
- * >   -e<sub>2</sub></i>, <i>e<sub>1</sub> * e<sub>2</sub></i>,
- * >   <i>e<sub>1</sub> / e<sub>2</sub></i>, <i>e<sub>1</sub> ~/
- * >   e<sub>2</sub></i>, <i>e<sub>1</sub> &gt; e<sub>2</sub></i>,
- * >   <i>e<sub>1</sub> &lt; e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;=
- * >   e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or
- * >   <i>e<sub>1</sub> % e<sub>2</sub></i>, where <i>e</i>,
- * >   <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions
- * >   that evaluate to a numeric value or to <b>null</b>.
- * >   </span>
- * > * <span>
- * >   An expression of one the form <i>e<sub>1</sub> + e<sub>2</sub></i>,
- * >   <i>e<sub>1</sub> -e<sub>2</sub></i> where <i>e<sub>1</sub> and
- * >   e<sub>2</sub></i> are constant expressions that evaluate to a numeric or
- * >   string value or to <b>null</b>.
- * >   </span>
- * > * <span>
- * >   An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> :
- * >   e<sub>3</sub></i> where <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and
- * >   <i>e<sub>3</sub></i> are constant expressions, and <i>e<sub>1</sub></i>
- * >   evaluates to a boolean value.
- * >   </span>
- *
- * However, this comment is now at least a little bit out of sync with the spec.
- *
- * The values returned by instances of this class are therefore `null` and
- * instances of the classes `Boolean`, `BigInteger`, `Double`, `String`, and
- * `DartObject`.
- *
- * In addition, this class defines several values that can be returned to
- * indicate various conditions encountered during evaluation. These are
- * documented with the static fields that define those values.
- */
-class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
-  /**
-   * The value returned for expressions (or non-expression nodes) that are not
-   * compile-time constant expressions.
-   */
-  static Object NOT_A_CONSTANT = new Object();
-
-  @override
-  Object visitAdjacentStrings(AdjacentStrings node) {
-    StringBuffer buffer = new StringBuffer();
-    for (StringLiteral string in node.strings) {
-      Object value = string.accept(this);
-      if (identical(value, NOT_A_CONSTANT)) {
-        return value;
-      }
-      buffer.write(value);
-    }
-    return buffer.toString();
-  }
-
-  @override
-  Object visitBinaryExpression(BinaryExpression node) {
-    Object leftOperand = node.leftOperand.accept(this);
-    if (identical(leftOperand, NOT_A_CONSTANT)) {
-      return leftOperand;
-    }
-    Object rightOperand = node.rightOperand.accept(this);
-    if (identical(rightOperand, NOT_A_CONSTANT)) {
-      return rightOperand;
-    }
-    while (true) {
-      if (node.operator.type == TokenType.AMPERSAND) {
-        // integer or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand & rightOperand;
-        }
-      } else if (node.operator.type == TokenType.AMPERSAND_AMPERSAND) {
-        // boolean or {@code null}
-        if (leftOperand is bool && rightOperand is bool) {
-          return leftOperand && rightOperand;
-        }
-      } else if (node.operator.type == TokenType.BANG_EQ) {
-        // numeric, string, boolean, or {@code null}
-        if (leftOperand is bool && rightOperand is bool) {
-          return leftOperand != rightOperand;
-        } else if (leftOperand is num && rightOperand is num) {
-          return leftOperand != rightOperand;
-        } else if (leftOperand is String && rightOperand is String) {
-          return leftOperand != rightOperand;
-        }
-      } else if (node.operator.type == TokenType.BAR) {
-        // integer or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand | rightOperand;
-        }
-      } else if (node.operator.type == TokenType.BAR_BAR) {
-        // boolean or {@code null}
-        if (leftOperand is bool && rightOperand is bool) {
-          return leftOperand || rightOperand;
-        }
-      } else if (node.operator.type == TokenType.CARET) {
-        // integer or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand ^ rightOperand;
-        }
-      } else if (node.operator.type == TokenType.EQ_EQ) {
-        // numeric, string, boolean, or {@code null}
-        if (leftOperand is bool && rightOperand is bool) {
-          return leftOperand == rightOperand;
-        } else if (leftOperand is num && rightOperand is num) {
-          return leftOperand == rightOperand;
-        } else if (leftOperand is String && rightOperand is String) {
-          return leftOperand == rightOperand;
-        }
-      } else if (node.operator.type == TokenType.GT) {
-        // numeric or {@code null}
-        if (leftOperand is num && rightOperand is num) {
-          return leftOperand.compareTo(rightOperand) > 0;
-        }
-      } else if (node.operator.type == TokenType.GT_EQ) {
-        // numeric or {@code null}
-        if (leftOperand is num && rightOperand is num) {
-          return leftOperand.compareTo(rightOperand) >= 0;
-        }
-      } else if (node.operator.type == TokenType.GT_GT) {
-        // integer or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand >> rightOperand;
-        }
-      } else if (node.operator.type == TokenType.LT) {
-        // numeric or {@code null}
-        if (leftOperand is num && rightOperand is num) {
-          return leftOperand.compareTo(rightOperand) < 0;
-        }
-      } else if (node.operator.type == TokenType.LT_EQ) {
-        // numeric or {@code null}
-        if (leftOperand is num && rightOperand is num) {
-          return leftOperand.compareTo(rightOperand) <= 0;
-        }
-      } else if (node.operator.type == TokenType.LT_LT) {
-        // integer or {@code null}
-        if (leftOperand is int && rightOperand is int) {
-          return leftOperand << rightOperand;
-        }
-      } else if (node.operator.type == TokenType.MINUS) {
-        // numeric or {@code null}
-        if (leftOperand is num && rightOperand is num) {
-          return leftOperand - rightOperand;
-        }
-      } else if (node.operator.type == TokenType.PERCENT) {
-        // numeric or {@code null}
-        if (leftOperand is num && rightOperand is num) {
-          return leftOperand.remainder(rightOperand);
-        }
-      } else if (node.operator.type == TokenType.PLUS) {
-        // numeric or {@code null}
-        if (leftOperand is num && rightOperand is num) {
-          return leftOperand + rightOperand;
-        }
-        if (leftOperand is String && rightOperand is String) {
-          return leftOperand + rightOperand;
-        }
-      } else if (node.operator.type == TokenType.STAR) {
-        // numeric or {@code null}
-        if (leftOperand is num && rightOperand is num) {
-          return leftOperand * rightOperand;
-        }
-      } else if (node.operator.type == TokenType.SLASH) {
-        // numeric or {@code null}
-        if (leftOperand is num && rightOperand is num) {
-          return leftOperand / rightOperand;
-        }
-      } else if (node.operator.type == TokenType.TILDE_SLASH) {
-        // numeric or {@code null}
-        if (leftOperand is num && rightOperand is num) {
-          return leftOperand ~/ rightOperand;
-        }
-      }
-      break;
-    }
-    // TODO(brianwilkerson) This doesn't handle numeric conversions.
-    return visitExpression(node);
-  }
-
-  @override
-  Object visitBooleanLiteral(BooleanLiteral node) => node.value ? true : false;
-
-  @override
-  Object visitDoubleLiteral(DoubleLiteral node) => node.value;
-
-  @override
-  Object visitIntegerLiteral(IntegerLiteral node) => node.value;
-
-  @override
-  Object visitInterpolationExpression(InterpolationExpression node) {
-    Object value = node.expression.accept(this);
-    if (value == null || value is bool || value is String || value is num) {
-      return value;
-    }
-    return NOT_A_CONSTANT;
-  }
-
-  @override
-  Object visitInterpolationString(InterpolationString node) => node.value;
-
-  @override
-  Object visitListLiteral(ListLiteral node) {
-    List<Object> list = new List<Object>();
-    for (Expression element in node.elements) {
-      Object value = element.accept(this);
-      if (identical(value, NOT_A_CONSTANT)) {
-        return value;
-      }
-      list.add(value);
-    }
-    return list;
-  }
-
-  @override
-  Object visitMapLiteral(MapLiteral node) {
-    Map<String, Object> map = new HashMap<String, Object>();
-    for (MapLiteralEntry entry in node.entries) {
-      Object key = entry.key.accept(this);
-      Object value = entry.value.accept(this);
-      if (key is String && !identical(value, NOT_A_CONSTANT)) {
-        map[key] = value;
-      } else {
-        return NOT_A_CONSTANT;
-      }
-    }
-    return map;
-  }
-
-  @override
-  Object visitMethodInvocation(MethodInvocation node) => visitNode(node);
-
-  @override
-  Object visitNode(AstNode node) => NOT_A_CONSTANT;
-
-  @override
-  Object visitNullLiteral(NullLiteral node) => null;
-
-  @override
-  Object visitParenthesizedExpression(ParenthesizedExpression node) =>
-      node.expression.accept(this);
-
-  @override
-  Object visitPrefixedIdentifier(PrefixedIdentifier node) =>
-      _getConstantValue(null);
-
-  @override
-  Object visitPrefixExpression(PrefixExpression node) {
-    Object operand = node.operand.accept(this);
-    if (identical(operand, NOT_A_CONSTANT)) {
-      return operand;
-    }
-    while (true) {
-      if (node.operator.type == TokenType.BANG) {
-        if (identical(operand, true)) {
-          return false;
-        } else if (identical(operand, false)) {
-          return true;
-        }
-      } else if (node.operator.type == TokenType.TILDE) {
-        if (operand is int) {
-          return ~operand;
-        }
-      } else if (node.operator.type == TokenType.MINUS) {
-        if (operand == null) {
-          return null;
-        } else if (operand is num) {
-          return -operand;
-        }
-      } else {}
-      break;
-    }
-    return NOT_A_CONSTANT;
-  }
-
-  @override
-  Object visitPropertyAccess(PropertyAccess node) => _getConstantValue(null);
-
-  @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) =>
-      _getConstantValue(null);
-
-  @override
-  Object visitSimpleStringLiteral(SimpleStringLiteral node) => node.value;
-
-  @override
-  Object visitStringInterpolation(StringInterpolation node) {
-    StringBuffer buffer = new StringBuffer();
-    for (InterpolationElement element in node.elements) {
-      Object value = element.accept(this);
-      if (identical(value, NOT_A_CONSTANT)) {
-        return value;
-      }
-      buffer.write(value);
-    }
-    return buffer.toString();
-  }
-
-  @override
-  Object visitSymbolLiteral(SymbolLiteral node) {
-    // TODO(brianwilkerson) This isn't optimal because a Symbol is not a String.
-    StringBuffer buffer = new StringBuffer();
-    for (Token component in node.components) {
-      if (buffer.length > 0) {
-        buffer.writeCharCode(0x2E);
-      }
-      buffer.write(component.lexeme);
-    }
-    return buffer.toString();
-  }
-
-  /**
-   * Return the constant value of the static constant represented by the given
-   * [element].
-   */
-  Object _getConstantValue(Element element) {
-    // TODO(brianwilkerson) Implement this
-//    if (element is FieldElement) {
-//      FieldElement field = element;
-//      if (field.isStatic && field.isConst) {
-//        //field.getConstantValue();
-//      }
-//      //    } else if (element instanceof VariableElement) {
-//      //      VariableElement variable = (VariableElement) element;
-//      //      if (variable.isStatic() && variable.isConst()) {
-//      //        //variable.getConstantValue();
-//      //      }
-//    }
-    return NOT_A_CONSTANT;
-  }
-}
-
-/**
  * A recursive AST visitor that is used to run over [Expression]s to determine
  * whether the expression is composed by at least one deferred
  * [PrefixedIdentifier].
@@ -2676,138 +2495,6 @@ class DeferredLibraryReferenceDetector extends RecursiveAstVisitor<void> {
       }
     }
   }
-}
-
-/**
- * An object used to locate the [Element] associated with a given [AstNode].
- */
-class ElementLocator {
-  /**
-   * Return the element associated with the given [node], or `null` if there is
-   * no element associated with the node.
-   */
-  static Element locate(AstNode node) {
-    if (node == null) {
-      return null;
-    }
-    ElementLocator_ElementMapper mapper = new ElementLocator_ElementMapper();
-    return node.accept(mapper);
-  }
-}
-
-/**
- * Visitor that maps nodes to elements.
- */
-class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
-  @override
-  Element visitAnnotation(Annotation node) => node.element;
-
-  @override
-  Element visitAssignmentExpression(AssignmentExpression node) =>
-      node.staticElement;
-
-  @override
-  Element visitBinaryExpression(BinaryExpression node) => node.staticElement;
-
-  @override
-  Element visitClassDeclaration(ClassDeclaration node) => node.declaredElement;
-
-  @override
-  Element visitCompilationUnit(CompilationUnit node) => node.declaredElement;
-
-  @override
-  Element visitConstructorDeclaration(ConstructorDeclaration node) =>
-      node.declaredElement;
-
-  @override
-  Element visitExportDirective(ExportDirective node) => node.element;
-
-  @override
-  Element visitFunctionDeclaration(FunctionDeclaration node) =>
-      node.declaredElement;
-
-  @override
-  Element visitIdentifier(Identifier node) {
-    AstNode parent = node.parent;
-    if (parent is Annotation) {
-      // Type name in Annotation
-      if (identical(parent.name, node) && parent.constructorName == null) {
-        return parent.element;
-      }
-    } else if (parent is ConstructorDeclaration) {
-      // Extra work to map Constructor Declarations to their associated
-      // Constructor Elements
-      Identifier returnType = parent.returnType;
-      if (identical(returnType, node)) {
-        SimpleIdentifier name = parent.name;
-        if (name != null) {
-          return name.staticElement;
-        }
-        Element element = node.staticElement;
-        if (element is ClassElement) {
-          return element.unnamedConstructor;
-        }
-      }
-    } else if (parent is LibraryIdentifier) {
-      AstNode grandParent = parent.parent;
-      if (grandParent is PartOfDirective) {
-        Element element = grandParent.element;
-        if (element is LibraryElement) {
-          return element.definingCompilationUnit;
-        }
-      } else if (grandParent is LibraryDirective) {
-        return grandParent.element;
-      }
-    }
-    return node.staticElement;
-  }
-
-  @override
-  Element visitImportDirective(ImportDirective node) => node.element;
-
-  @override
-  Element visitIndexExpression(IndexExpression node) => node.staticElement;
-
-  @override
-  Element visitInstanceCreationExpression(InstanceCreationExpression node) =>
-      node.staticElement;
-
-  @override
-  Element visitLibraryDirective(LibraryDirective node) => node.element;
-
-  @override
-  Element visitMethodDeclaration(MethodDeclaration node) =>
-      node.declaredElement;
-
-  @override
-  Element visitMethodInvocation(MethodInvocation node) =>
-      node.methodName.staticElement;
-
-  @override
-  Element visitPartOfDirective(PartOfDirective node) => node.element;
-
-  @override
-  Element visitPostfixExpression(PostfixExpression node) => node.staticElement;
-
-  @override
-  Element visitPrefixedIdentifier(PrefixedIdentifier node) =>
-      node.staticElement;
-
-  @override
-  Element visitPrefixExpression(PrefixExpression node) => node.staticElement;
-
-  @override
-  Element visitStringLiteral(StringLiteral node) {
-    AstNode parent = node.parent;
-    if (parent is UriBasedDirective) {
-      return parent.uriElement;
-    }
-    return null;
-  }
-
-  @override
-  Element visitVariableDeclaration(VariableDeclaration node) =>
-      node.declaredElement;
 }
 
 /**
@@ -3272,6 +2959,22 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           parameters: _cloneNode(node.parameters));
 
   @override
+  ForEachPartsWithDeclaration visitForEachPartsWithDeclaration(
+          ForEachPartsWithDeclaration node) =>
+      astFactory.forEachPartsWithDeclaration(
+          loopVariable: _cloneNode(node.loopVariable),
+          inKeyword: _mapToken(node.inKeyword),
+          iterable: _cloneNode(node.iterable));
+
+  @override
+  ForEachPartsWithIdentifier visitForEachPartsWithIdentifier(
+          ForEachPartsWithIdentifier node) =>
+      astFactory.forEachPartsWithIdentifier(
+          identifier: _cloneNode(node.identifier),
+          inKeyword: _mapToken(node.inKeyword),
+          iterable: _cloneNode(node.iterable));
+
+  @override
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
@@ -3297,6 +3000,14 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
+  ForElement visitForElement(ForElement node) => astFactory.forElement(
+      forKeyword: _mapToken(node.forKeyword),
+      leftParenthesis: _mapToken(node.leftParenthesis),
+      forLoopParts: _cloneNode(node.forLoopParts),
+      rightParenthesis: _mapToken(node.rightParenthesis),
+      body: _cloneNode(node.body));
+
+  @override
   FormalParameterList visitFormalParameterList(FormalParameterList node) =>
       astFactory.formalParameterList(
           _mapToken(node.leftParenthesis),
@@ -3304,6 +3015,26 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _mapToken(node.leftDelimiter),
           _mapToken(node.rightDelimiter),
           _mapToken(node.rightParenthesis));
+
+  @override
+  ForPartsWithDeclarations visitForPartsWithDeclarations(
+          ForPartsWithDeclarations node) =>
+      astFactory.forPartsWithDeclarations(
+          variables: _cloneNode(node.variables),
+          leftSeparator: _mapToken(node.leftSeparator),
+          condition: _cloneNode(node.condition),
+          rightSeparator: _mapToken(node.rightSeparator),
+          updaters: _cloneNodeList(node.updaters));
+
+  @override
+  ForPartsWithExpression visitForPartsWithExpression(
+          ForPartsWithExpression node) =>
+      astFactory.forPartsWithExpression(
+          initialization: _cloneNode(node.initialization),
+          leftSeparator: _mapToken(node.leftSeparator),
+          condition: _cloneNode(node.condition),
+          rightSeparator: _mapToken(node.rightSeparator),
+          updaters: _cloneNodeList(node.updaters));
 
   @override
   ForStatement visitForStatement(ForStatement node) => astFactory.forStatement(
@@ -3317,6 +3048,15 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       _cloneNodeList(node.updaters),
       _mapToken(node.rightParenthesis),
       _cloneNode(node.body));
+
+  @override
+  ForStatement2 visitForStatement2(ForStatement2 node) =>
+      astFactory.forStatement2(
+          forKeyword: _mapToken(node.forKeyword),
+          leftParenthesis: _mapToken(node.leftParenthesis),
+          forLoopParts: _cloneNode(node.forLoopParts),
+          rightParenthesis: _mapToken(node.rightParenthesis),
+          body: _cloneNode(node.body));
 
   @override
   FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) =>
@@ -3407,6 +3147,16 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   HideCombinator visitHideCombinator(HideCombinator node) =>
       astFactory.hideCombinator(
           _mapToken(node.keyword), _cloneNodeList(node.hiddenNames));
+
+  @override
+  IfElement visitIfElement(IfElement node) => astFactory.ifElement(
+      ifKeyword: _mapToken(node.ifKeyword),
+      leftParenthesis: _mapToken(node.leftParenthesis),
+      condition: _cloneNode(node.condition),
+      rightParenthesis: _mapToken(node.rightParenthesis),
+      thenElement: _cloneNode(node.thenElement),
+      elseKeyword: _mapToken(node.elseKeyword),
+      elseElement: _cloneNode(node.elseElement));
 
   @override
   IfStatement visitIfStatement(IfStatement node) => astFactory.ifStatement(
@@ -3546,6 +3296,14 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
+  ListLiteral2 visitListLiteral2(ListLiteral2 node) => astFactory.listLiteral2(
+      constKeyword: _mapToken(node.constKeyword),
+      typeArguments: _cloneNode(node.typeArguments),
+      leftBracket: _mapToken(node.leftBracket),
+      elements: _cloneNodeList(node.elements),
+      rightBracket: _mapToken(node.rightBracket));
+
+  @override
   MapLiteral visitMapLiteral(MapLiteral node) {
     MapLiteral copy = astFactory.mapLiteral(
         _mapToken(node.constKeyword),
@@ -3556,6 +3314,14 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
     copy.staticType = node.staticType;
     return copy;
   }
+
+  @override
+  MapLiteral2 visitMapLiteral2(MapLiteral2 node) => astFactory.mapLiteral2(
+      constKeyword: _mapToken(node.constKeyword),
+      typeArguments: _cloneNode(node.typeArguments),
+      leftBracket: _mapToken(node.leftBracket),
+      entries: _cloneNodeList(node.entries),
+      rightBracket: _mapToken(node.rightBracket));
 
   @override
   MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) =>
@@ -3747,6 +3513,14 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
+  SetLiteral2 visitSetLiteral2(SetLiteral2 node) => astFactory.setLiteral2(
+      constKeyword: _mapToken(node.constKeyword),
+      typeArguments: _cloneNode(node.typeArguments),
+      leftBracket: _mapToken(node.leftBracket),
+      elements: _cloneNodeList(node.elements),
+      rightBracket: _mapToken(node.rightBracket));
+
+  @override
   ShowCombinator visitShowCombinator(ShowCombinator node) => astFactory
       .showCombinator(_mapToken(node.keyword), _cloneNodeList(node.shownNames));
 
@@ -3787,6 +3561,12 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
     copy.staticType = node.staticType;
     return copy;
   }
+
+  @override
+  SpreadElement visitSpreadElement(SpreadElement node) =>
+      astFactory.spreadElement(
+          spreadOperator: _mapToken(node.spreadOperator),
+          expression: _cloneNode(node.expression));
 
   @override
   StringInterpolation visitStringInterpolation(StringInterpolation node) {
@@ -4663,6 +4443,34 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    if (identical(node.loopVariable, _oldNode)) {
+      (node as ForEachPartsWithDeclarationImpl).loopVariable =
+          _newNode as DeclaredIdentifier;
+      return true;
+    } else if (identical(node.iterable, _oldNode)) {
+      (node as ForEachPartsWithDeclarationImpl).iterable =
+          _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    if (identical(node.identifier, _oldNode)) {
+      (node as ForEachPartsWithIdentifierImpl).identifier =
+          _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.iterable, _oldNode)) {
+      (node as ForEachPartsWithIdentifierImpl).iterable =
+          _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitForEachStatement(ForEachStatement node) {
     if (identical(node.loopVariable, _oldNode)) {
       node.loopVariable = _newNode as DeclaredIdentifier;
@@ -4681,8 +4489,50 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitForElement(ForElement node) {
+    if (identical(node.forLoopParts, _oldNode)) {
+      (node as ForElementImpl).forLoopParts = _newNode as ForLoopParts;
+      return true;
+    } else if (identical(node.body, _oldNode)) {
+      (node as ForElementImpl).body = _newNode as CollectionElement;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitFormalParameterList(FormalParameterList node) {
     if (_replaceInList(node.parameters)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    if (identical(node.variables, _oldNode)) {
+      (node as ForPartsWithDeclarationsImpl).variables =
+          _newNode as VariableDeclarationList;
+      return true;
+    } else if (identical(node.condition, _oldNode)) {
+      (node as ForPartsWithDeclarationsImpl).condition = _newNode as Expression;
+      return true;
+    } else if (_replaceInList(node.updaters)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitForPartsWithExpression(ForPartsWithExpression node) {
+    if (identical(node.initialization, _oldNode)) {
+      (node as ForPartsWithExpressionImpl).initialization =
+          _newNode as Expression;
+      return true;
+    } else if (identical(node.condition, _oldNode)) {
+      (node as ForPartsWithExpressionImpl).condition = _newNode as Expression;
+      return true;
+    } else if (_replaceInList(node.updaters)) {
       return true;
     }
     return visitNode(node);
@@ -4703,6 +4553,18 @@ class NodeReplacer implements AstVisitor<bool> {
       node.body = _newNode as Statement;
       return true;
     } else if (_replaceInList(node.updaters)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitForStatement2(ForStatement2 node) {
+    if (identical(node.forLoopParts, _oldNode)) {
+      (node as ForStatement2Impl).forLoopParts = _newNode as ForLoopParts;
+      return true;
+    } else if (identical(node.body, _oldNode)) {
+      (node as ForStatement2Impl).body = _newNode as Statement;
       return true;
     }
     return visitNode(node);
@@ -4821,6 +4683,21 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitHideCombinator(HideCombinator node) {
     if (_replaceInList(node.hiddenNames)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitIfElement(IfElement node) {
+    if (identical(node.condition, _oldNode)) {
+      (node as IfElementImpl).condition = _newNode as Expression;
+      return true;
+    } else if (identical(node.thenElement, _oldNode)) {
+      (node as IfElementImpl).thenElement = _newNode as CollectionElement;
+      return true;
+    } else if (identical(node.elseElement, _oldNode)) {
+      (node as IfElementImpl).elseElement = _newNode as CollectionElement;
       return true;
     }
     return visitNode(node);
@@ -4955,11 +4832,33 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitListLiteral2(ListLiteral2 node) {
+    if (identical(node.typeArguments, _oldNode)) {
+      (node as ListLiteral2Impl).typeArguments = _newNode as TypeArgumentList;
+      return true;
+    } else if (_replaceInList(node.elements)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitMapLiteral(MapLiteral node) {
     if (_replaceInList(node.entries)) {
       return true;
     }
     return visitTypedLiteral(node);
+  }
+
+  @override
+  bool visitMapLiteral2(MapLiteral2 node) {
+    if (identical(node.typeArguments, _oldNode)) {
+      (node as MapLiteral2Impl).typeArguments = _newNode as TypeArgumentList;
+      return true;
+    } else if (_replaceInList(node.entries)) {
+      return true;
+    }
+    return visitNode(node);
   }
 
   @override
@@ -5199,6 +5098,17 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitSetLiteral2(SetLiteral2 node) {
+    if (identical(node.typeArguments, _oldNode)) {
+      (node as SetLiteral2Impl).typeArguments = _newNode as TypeArgumentList;
+      return true;
+    } else if (_replaceInList(node.elements)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitShowCombinator(ShowCombinator node) {
     if (_replaceInList(node.shownNames)) {
       return true;
@@ -5220,6 +5130,15 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitSimpleStringLiteral(SimpleStringLiteral node) => visitNode(node);
+
+  @override
+  bool visitSpreadElement(SpreadElement node) {
+    if (identical(node.expression, _oldNode)) {
+      (node as SpreadElementImpl).expression = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
 
   @override
   bool visitStringInterpolation(StringInterpolation node) {
@@ -5824,7 +5743,7 @@ class ResolutionCopier implements AstVisitor<bool> {
     DefaultFormalParameter toNode = this._toNode as DefaultFormalParameter;
     return _and(
         _isEqualNodes(node.parameter, toNode.parameter),
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use_from_same_package
         node.kind == toNode.kind,
         _isEqualTokens(node.separator, toNode.separator),
         _isEqualNodes(node.defaultValue, toNode.defaultValue));
@@ -5958,6 +5877,26 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
+  bool visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    ForEachPartsWithDeclaration toNode =
+        this._toNode as ForEachPartsWithDeclaration;
+    return _and(
+        _isEqualNodes(node.loopVariable, toNode.loopVariable),
+        _isEqualTokens(node.inKeyword, toNode.inKeyword),
+        _isEqualNodes(node.iterable, toNode.iterable));
+  }
+
+  @override
+  bool visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    ForEachPartsWithIdentifier toNode =
+        this._toNode as ForEachPartsWithIdentifier;
+    return _and(
+        _isEqualNodes(node.identifier, toNode.identifier),
+        _isEqualTokens(node.inKeyword, toNode.inKeyword),
+        _isEqualNodes(node.iterable, toNode.iterable));
+  }
+
+  @override
   bool visitForEachStatement(ForEachStatement node) {
     ForEachStatement toNode = this._toNode as ForEachStatement;
     return _and(
@@ -5967,6 +5906,17 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualNodes(node.identifier, toNode.identifier),
         _isEqualTokens(node.inKeyword, toNode.inKeyword),
         _isEqualNodes(node.iterable, toNode.iterable),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.body, toNode.body));
+  }
+
+  @override
+  bool visitForElement(ForElement node) {
+    ForElement toNode = this._toNode as ForElement;
+    return _and(
+        _isEqualTokens(node.forKeyword, toNode.forKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.forLoopParts, toNode.forLoopParts),
         _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
         _isEqualNodes(node.body, toNode.body));
   }
@@ -5983,6 +5933,28 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
+  bool visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    ForPartsWithDeclarations toNode = this._toNode as ForPartsWithDeclarations;
+    return _and(
+        _isEqualNodes(node.variables, toNode.variables),
+        _isEqualTokens(node.leftSeparator, toNode.leftSeparator),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.rightSeparator, toNode.rightSeparator),
+        _isEqualNodeLists(node.updaters, toNode.updaters));
+  }
+
+  @override
+  bool visitForPartsWithExpression(ForPartsWithExpression node) {
+    ForPartsWithExpression toNode = this._toNode as ForPartsWithExpression;
+    return _and(
+        _isEqualNodes(node.initialization, toNode.initialization),
+        _isEqualTokens(node.leftSeparator, toNode.leftSeparator),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.rightSeparator, toNode.rightSeparator),
+        _isEqualNodeLists(node.updaters, toNode.updaters));
+  }
+
+  @override
   bool visitForStatement(ForStatement node) {
     ForStatement toNode = this._toNode as ForStatement;
     return _and(
@@ -5994,6 +5966,17 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualNodes(node.condition, toNode.condition),
         _isEqualTokens(node.rightSeparator, toNode.rightSeparator),
         _isEqualNodeLists(node.updaters, toNode.updaters),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.body, toNode.body));
+  }
+
+  @override
+  bool visitForStatement2(ForStatement2 node) {
+    ForStatement2 toNode = this._toNode as ForStatement2;
+    return _and(
+        _isEqualTokens(node.forKeyword, toNode.forKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.forLoopParts, toNode.forLoopParts),
         _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
         _isEqualNodes(node.body, toNode.body));
   }
@@ -6109,6 +6092,19 @@ class ResolutionCopier implements AstVisitor<bool> {
     HideCombinator toNode = this._toNode as HideCombinator;
     return _and(_isEqualTokens(node.keyword, toNode.keyword),
         _isEqualNodeLists(node.hiddenNames, toNode.hiddenNames));
+  }
+
+  @override
+  bool visitIfElement(IfElement node) {
+    IfElement toNode = this._toNode as IfElement;
+    return _and(
+        _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.thenElement, toNode.thenElement),
+        _isEqualTokens(node.elseKeyword, toNode.elseKeyword),
+        _isEqualNodes(node.elseElement, toNode.elseElement));
   }
 
   @override
@@ -6277,8 +6273,38 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
+  bool visitListLiteral2(ListLiteral2 node) {
+    ListLiteral2 toNode = this._toNode as ListLiteral2;
+    if (_and(
+        _isEqualTokens(node.constKeyword, toNode.constKeyword),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.elements, toNode.elements),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
   bool visitMapLiteral(MapLiteral node) {
     MapLiteral toNode = this._toNode as MapLiteral;
+    if (_and(
+        _isEqualTokens(node.constKeyword, toNode.constKeyword),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.entries, toNode.entries),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitMapLiteral2(MapLiteral2 node) {
+    MapLiteral2 toNode = this._toNode as MapLiteral2;
     if (_and(
         _isEqualTokens(node.constKeyword, toNode.constKeyword),
         _isEqualNodes(node.typeArguments, toNode.typeArguments),
@@ -6545,6 +6571,21 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
+  bool visitSetLiteral2(SetLiteral2 node) {
+    SetLiteral2 toNode = this._toNode as SetLiteral2;
+    if (_and(
+        _isEqualTokens(node.constKeyword, toNode.constKeyword),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.elements, toNode.elements),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
   bool visitShowCombinator(ShowCombinator node) {
     ShowCombinator toNode = this._toNode as ShowCombinator;
     return _and(_isEqualTokens(node.keyword, toNode.keyword),
@@ -6588,6 +6629,13 @@ class ResolutionCopier implements AstVisitor<bool> {
       return true;
     }
     return false;
+  }
+
+  @override
+  bool visitSpreadElement(SpreadElement node) {
+    SpreadElement toNode = this._toNode as SpreadElement;
+    return _and(_isEqualTokens(node.spreadOperator, toNode.spreadOperator),
+        _isEqualNodes(node.expression, toNode.expression));
   }
 
   @override
@@ -6991,12 +7039,24 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    _addToScope(node.loopVariable.identifier);
+    super.visitForEachPartsWithDeclaration(node);
+  }
+
+  @override
   void visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable != null) {
       _addToScope(loopVariable.identifier);
     }
     super.visitForEachStatement(node);
+  }
+
+  @override
+  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    _addVariables(node.variables.variables);
+    super.visitForPartsWithDeclarations(node);
   }
 
   @override
@@ -7483,6 +7543,20 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    _visitNode(node.loopVariable);
+    _writer.print(' in ');
+    _visitNode(node.iterable);
+  }
+
+  @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    _visitNode(node.identifier);
+    _writer.print(' in ');
+    _visitNode(node.iterable);
+  }
+
+  @override
   void visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (node.awaitKeyword != null) {
@@ -7497,6 +7571,14 @@ class ToSourceVisitor implements AstVisitor<void> {
     _writer.print(" in ");
     _visitNode(node.iterable);
     _writer.print(") ");
+    _visitNode(node.body);
+  }
+
+  @override
+  void visitForElement(ForElement node) {
+    _writer.print('for (');
+    _visitNode(node.forLoopParts);
+    _writer.print(') ');
     _visitNode(node.body);
   }
 
@@ -7529,6 +7611,24 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    _visitNode(node.variables);
+    _writer.print(';');
+    _visitNodeWithPrefix(' ', node.condition);
+    _writer.print(';');
+    _visitNodeListWithSeparatorAndPrefix(' ', node.updaters, ', ');
+  }
+
+  @override
+  void visitForPartsWithExpression(ForPartsWithExpression node) {
+    _visitNode(node.initialization);
+    _writer.print(';');
+    _visitNodeWithPrefix(' ', node.condition);
+    _writer.print(';');
+    _visitNodeListWithSeparatorAndPrefix(" ", node.updaters, ', ');
+  }
+
+  @override
   void visitForStatement(ForStatement node) {
     Expression initialization = node.initialization;
     _writer.print("for (");
@@ -7542,6 +7642,14 @@ class ToSourceVisitor implements AstVisitor<void> {
     _writer.print(";");
     _visitNodeListWithSeparatorAndPrefix(" ", node.updaters, ", ");
     _writer.print(") ");
+    _visitNode(node.body);
+  }
+
+  @override
+  void visitForStatement2(ForStatement2 node) {
+    _writer.print('for (');
+    _visitNode(node.forLoopParts);
+    _writer.print(') ');
     _visitNode(node.body);
   }
 
@@ -7623,6 +7731,15 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitHideCombinator(HideCombinator node) {
     _writer.print("hide ");
     _visitNodeListWithSeparator(node.hiddenNames, ", ");
+  }
+
+  @override
+  void visitIfElement(IfElement node) {
+    _writer.print('if (');
+    _visitNode(node.condition);
+    _writer.print(') ');
+    _visitNode(node.thenElement);
+    _visitNodeWithPrefix(' else ', node.elseElement);
   }
 
   @override
@@ -7743,6 +7860,15 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitListLiteral2(ListLiteral2 node) {
+    _visitTokenWithSuffix(node.constKeyword, ' ');
+    _visitNode(node.typeArguments);
+    _writer.print('[');
+    _visitNodeListWithSeparator(node.elements, ', ');
+    _writer.print(']');
+  }
+
+  @override
   void visitMapLiteral(MapLiteral node) {
     if (node.constKeyword != null) {
       _writer.print(node.constKeyword.lexeme);
@@ -7752,6 +7878,15 @@ class ToSourceVisitor implements AstVisitor<void> {
     _writer.print("{");
     _visitNodeListWithSeparator(node.entries, ", ");
     _writer.print("}");
+  }
+
+  @override
+  void visitMapLiteral2(MapLiteral2 node) {
+    _visitTokenWithSuffix(node.constKeyword, ' ');
+    _visitNode(node.typeArguments);
+    _writer.print('{');
+    _visitNodeListWithSeparator(node.entries, ', ');
+    _writer.print('}');
   }
 
   @override
@@ -7931,6 +8066,15 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitSetLiteral2(SetLiteral2 node) {
+    _visitTokenWithSuffix(node.constKeyword, ' ');
+    _visitNode(node.typeArguments);
+    _writer.print('{');
+    _visitNodeListWithSeparator(node.elements, ', ');
+    _writer.print('}');
+  }
+
+  @override
   void visitShowCombinator(ShowCombinator node) {
     _writer.print("show ");
     _visitNodeListWithSeparator(node.shownNames, ", ");
@@ -7956,6 +8100,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     _writer.print(node.literal.lexeme);
+  }
+
+  @override
+  void visitSpreadElement(SpreadElement node) {
+    _writer.print(node.spreadOperator.lexeme);
+    _visitNode(node.expression);
   }
 
   @override
@@ -8720,6 +8870,20 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   }
 
   @override
+  void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    safelyVisitNode(node.loopVariable);
+    sink.write(' in ');
+    safelyVisitNode(node.iterable);
+  }
+
+  @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    safelyVisitNode(node.identifier);
+    sink.write(' in ');
+    safelyVisitNode(node.iterable);
+  }
+
+  @override
   void visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (node.awaitKeyword != null) {
@@ -8734,6 +8898,14 @@ class ToSourceVisitor2 implements AstVisitor<void> {
     sink.write(" in ");
     safelyVisitNode(node.iterable);
     sink.write(") ");
+    safelyVisitNode(node.body);
+  }
+
+  @override
+  void visitForElement(ForElement node) {
+    sink.write('for (');
+    safelyVisitNode(node.forLoopParts);
+    sink.write(') ');
     safelyVisitNode(node.body);
   }
 
@@ -8766,6 +8938,24 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   }
 
   @override
+  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    safelyVisitNode(node.variables);
+    sink.write(';');
+    safelyVisitNodeWithPrefix(' ', node.condition);
+    sink.write(';');
+    safelyVisitNodeListWithSeparatorAndPrefix(' ', node.updaters, ', ');
+  }
+
+  @override
+  void visitForPartsWithExpression(ForPartsWithExpression node) {
+    safelyVisitNode(node.initialization);
+    sink.write(';');
+    safelyVisitNodeWithPrefix(' ', node.condition);
+    sink.write(';');
+    safelyVisitNodeListWithSeparatorAndPrefix(" ", node.updaters, ', ');
+  }
+
+  @override
   void visitForStatement(ForStatement node) {
     Expression initialization = node.initialization;
     sink.write("for (");
@@ -8779,6 +8969,14 @@ class ToSourceVisitor2 implements AstVisitor<void> {
     sink.write(";");
     safelyVisitNodeListWithSeparatorAndPrefix(" ", node.updaters, ", ");
     sink.write(") ");
+    safelyVisitNode(node.body);
+  }
+
+  @override
+  void visitForStatement2(ForStatement2 node) {
+    sink.write('for (');
+    safelyVisitNode(node.forLoopParts);
+    sink.write(') ');
     safelyVisitNode(node.body);
   }
 
@@ -8860,6 +9058,15 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   void visitHideCombinator(HideCombinator node) {
     sink.write("hide ");
     safelyVisitNodeListWithSeparator(node.hiddenNames, ", ");
+  }
+
+  @override
+  void visitIfElement(IfElement node) {
+    sink.write('if (');
+    safelyVisitNode(node.condition);
+    sink.write(') ');
+    safelyVisitNode(node.thenElement);
+    safelyVisitNodeWithPrefix(' else ', node.elseElement);
   }
 
   @override
@@ -8969,10 +9176,7 @@ class ToSourceVisitor2 implements AstVisitor<void> {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    if (node.constKeyword != null) {
-      sink.write(node.constKeyword.lexeme);
-      sink.write(' ');
-    }
+    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
     safelyVisitNodeWithSuffix(node.typeArguments, " ");
     sink.write("[");
     safelyVisitNodeListWithSeparator(node.elements, ", ");
@@ -8980,15 +9184,30 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   }
 
   @override
+  void visitListLiteral2(ListLiteral2 node) {
+    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
+    safelyVisitNode(node.typeArguments);
+    sink.write('[');
+    safelyVisitNodeListWithSeparator(node.elements, ', ');
+    sink.write(']');
+  }
+
+  @override
   void visitMapLiteral(MapLiteral node) {
-    if (node.constKeyword != null) {
-      sink.write(node.constKeyword.lexeme);
-      sink.write(' ');
-    }
+    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
     safelyVisitNodeWithSuffix(node.typeArguments, " ");
     sink.write("{");
     safelyVisitNodeListWithSeparator(node.entries, ", ");
     sink.write("}");
+  }
+
+  @override
+  void visitMapLiteral2(MapLiteral2 node) {
+    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
+    safelyVisitNode(node.typeArguments);
+    sink.write('{');
+    safelyVisitNodeListWithSeparator(node.entries, ', ');
+    sink.write('}');
   }
 
   @override
@@ -9157,14 +9376,20 @@ class ToSourceVisitor2 implements AstVisitor<void> {
 
   @override
   void visitSetLiteral(SetLiteral node) {
-    if (node.constKeyword != null) {
-      sink.write(node.constKeyword.lexeme);
-      sink.write(' ');
-    }
+    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
     safelyVisitNodeWithSuffix(node.typeArguments, " ");
     sink.write("{");
     safelyVisitNodeListWithSeparator(node.elements, ", ");
     sink.write("}");
+  }
+
+  @override
+  void visitSetLiteral2(SetLiteral2 node) {
+    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
+    safelyVisitNode(node.typeArguments);
+    sink.write('{');
+    safelyVisitNodeListWithSeparator(node.elements, ', ');
+    sink.write('}');
   }
 
   @override
@@ -9193,6 +9418,12 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     sink.write(node.literal.lexeme);
+  }
+
+  @override
+  void visitSpreadElement(SpreadElement node) {
+    sink.write(node.spreadOperator.lexeme);
+    safelyVisitNode(node.expression);
   }
 
   @override

@@ -118,7 +118,8 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Comment("Stack Check");
   Label done;
   const intptr_t fp_sp_dist =
-      (compiler_frame_layout.first_local_from_fp + 1 - compiler->StackSize()) *
+      (compiler::target::frame_layout.first_local_from_fp + 1 -
+       compiler->StackSize()) *
       kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ movq(RDI, RSP);
@@ -238,7 +239,7 @@ LocationSummary* LoadLocalInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 0;
   const intptr_t stack_index =
-      compiler_frame_layout.FrameSlotForVariable(&local());
+      compiler::target::frame_layout.FrameSlotForVariable(&local());
   return LocationSummary::Make(zone, kNumInputs,
                                Location::StackSlot(stack_index),
                                LocationSummary::kNoCall);
@@ -260,9 +261,9 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
   ASSERT(result == value);  // Assert that register assignment is correct.
-  __ movq(Address(RBP, compiler_frame_layout.FrameOffsetInBytesForVariable(
-                           &local())),
-          value);
+  __ movq(
+      Address(RBP, compiler::target::FrameOffsetInBytesForVariable(&local())),
+      value);
 }
 
 LocationSummary* ConstantInstr::MakeLocationSummary(Zone* zone,
@@ -853,7 +854,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (link_lazily()) {
     stub = &StubCode::CallBootstrapNative();
     ExternalLabel label(NativeEntry::LinkNativeCallEntry());
-    __ LoadNativeEntry(RBX, &label, ObjectPool::kPatchable);
+    __ LoadNativeEntry(RBX, &label,
+                       compiler::ObjectPoolBuilderEntry::kPatchable);
     compiler->GeneratePatchableCall(token_pos(), *stub,
                                     RawPcDescriptors::kOther, locs());
   } else {
@@ -865,7 +867,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       stub = &StubCode::CallNoScopeNative();
     }
     const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
-    __ LoadNativeEntry(RBX, &label, ObjectPool::kNotPatchable);
+    __ LoadNativeEntry(RBX, &label,
+                       compiler::ObjectPoolBuilderEntry::kNotPatchable);
     compiler->GenerateCall(token_pos(), *stub, RawPcDescriptors::kOther,
                            locs());
   }
@@ -2668,19 +2671,20 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore RSP from RBP as we are coming from a throw and the code for
   // popping arguments has not been run.
   const intptr_t fp_sp_dist =
-      (compiler_frame_layout.first_local_from_fp + 1 - compiler->StackSize()) *
+      (compiler::target::frame_layout.first_local_from_fp + 1 -
+       compiler->StackSize()) *
       kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ leaq(RSP, Address(RBP, fp_sp_dist));
 
   if (!compiler->is_optimizing()) {
     if (raw_exception_var_ != nullptr) {
-      __ movq(Address(RBP, compiler_frame_layout.FrameOffsetInBytesForVariable(
+      __ movq(Address(RBP, compiler::target::FrameOffsetInBytesForVariable(
                                raw_exception_var_)),
               kExceptionObjectReg);
     }
     if (raw_stacktrace_var_ != nullptr) {
-      __ movq(Address(RBP, compiler_frame_layout.FrameOffsetInBytesForVariable(
+      __ movq(Address(RBP, compiler::target::FrameOffsetInBytesForVariable(
                                raw_stacktrace_var_)),
               kStackTraceObjectReg);
     }
@@ -2730,11 +2734,9 @@ class CheckStackOverflowSlowPath
     compiler->pending_deoptimization_env_ = env;
 
     if (using_shared_stub) {
-      uword entry_point_offset =
-          instruction()->locs()->live_registers()->FpuRegisterCount() > 0
-              ? Thread::stack_overflow_shared_with_fpu_regs_entry_point_offset()
-              : Thread::
-                    stack_overflow_shared_without_fpu_regs_entry_point_offset();
+      const uword entry_point_offset =
+          Thread::stack_overflow_shared_stub_entry_point_offset(
+              instruction()->locs()->live_registers()->FpuRegisterCount() > 0);
       __ call(Address(THR, entry_point_offset));
       compiler->RecordSafepoint(instruction()->locs(), kNumSlowPathArgs);
       compiler->RecordCatchEntryMoves();
@@ -5193,6 +5195,23 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ BranchIfNotSmi(value, deopt);
 }
 
+void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  NullErrorSlowPath* slow_path =
+      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+
+  Register value_reg = locs()->in(0).reg();
+  // TODO(dartbug.com/30480): Consider passing `null` literal as an argument
+  // in order to be able to allocate it on register.
+  __ CompareObject(value_reg, Object::null_object());
+  __ BranchIf(EQUAL, slow_path->entry_label());
+}
+
+void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                           bool save_fpu_registers) {
+  compiler->assembler()->CallNullErrorShared(save_fpu_registers);
+}
+
 LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -5776,7 +5795,7 @@ void SpeculativeShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(locs()->in(1).reg() == RCX);
     __ SmiUntag(RCX);
 
-    // Deoptimize if shift count is > 63 or negative.
+    // Deoptimize if shift count is > 63 or negative (or not a smi).
     if (!IsShiftCountInRange()) {
       ASSERT(CanDeoptimize());
       Label* deopt =
@@ -6168,7 +6187,7 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(__ CodeSize() == entry_to_rip_offset);
   }
 
-  // Load from [current frame pointer] + compiler_frame_layout.code_from_fp.
+  // Load from FP+compiler::target::frame_layout.code_from_fp.
 
   // Calculate the final absolute address.
   if (offset()->definition()->representation() == kTagged) {

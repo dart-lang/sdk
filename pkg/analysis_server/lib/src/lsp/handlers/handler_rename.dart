@@ -24,7 +24,7 @@ class PrepareRenameHandler
       TextDocumentPositionParams params) async {
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireUnit);
+    final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) async {
@@ -84,7 +84,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
         params.textDocument is VersionedTextDocumentIdentifier
             ? params.textDocument
             : server.getVersionedDocumentIdentifier(path)));
-    final unit = await path.mapResult(requireUnit);
+    final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) async {

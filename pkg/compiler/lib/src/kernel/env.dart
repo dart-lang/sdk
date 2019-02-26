@@ -25,6 +25,7 @@ import '../js_model/element_map.dart';
 import '../js_model/env.dart';
 import '../ordered_typeset.dart';
 import '../ssa/type_builder.dart';
+import '../universe/member_usage.dart';
 import 'element_map_impl.dart';
 
 /// Environment for fast lookup of component libraries.
@@ -162,8 +163,8 @@ class KLibraryEnv {
 
   /// Convert this [KLibraryEnv] to a corresponding [JLibraryEnv] containing
   /// only the members in [liveMembers].
-  JLibraryEnv convert(
-      IrToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
+  JLibraryEnv convert(IrToElementMap elementMap,
+      Map<MemberEntity, MemberUsage> liveMemberUsage) {
     Map<String, ir.Member> memberMap;
     Map<String, ir.Member> setterMap;
     if (_memberMap == null) {
@@ -172,7 +173,7 @@ class KLibraryEnv {
       memberMap = <String, ir.Member>{};
       _memberMap.forEach((String name, ir.Member node) {
         MemberEntity member = elementMap.getMember(node);
-        if (liveMembers.contains(member)) {
+        if (liveMemberUsage.containsKey(member)) {
           memberMap[name] = node;
         }
       });
@@ -183,7 +184,7 @@ class KLibraryEnv {
       setterMap = <String, ir.Member>{};
       _setterMap.forEach((String name, ir.Member node) {
         MemberEntity member = elementMap.getMember(node);
-        if (liveMembers.contains(member)) {
+        if (liveMemberUsage.containsKey(member)) {
           setterMap[name] = node;
         }
       });
@@ -268,8 +269,8 @@ abstract class KClassEnv {
 
   /// Convert this [KClassEnv] to the corresponding [JClassEnv] containing only
   /// the members in [liveMembers].
-  JClassEnv convert(
-      IrToElementMap elementMap, Iterable<MemberEntity> liveMembers);
+  JClassEnv convert(IrToElementMap elementMap,
+      Map<MemberEntity, MemberUsage> liveMemberUsage);
 }
 
 int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
@@ -544,8 +545,8 @@ class KClassEnvImpl implements KClassEnv {
     _constructorBodyList?.forEach(f);
   }
 
-  JClassEnv convert(
-      IrToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
+  JClassEnv convert(IrToElementMap elementMap,
+      Map<MemberEntity, MemberUsage> liveMemberUsage) {
     Map<String, ir.Member> constructorMap;
     Map<String, ir.Member> memberMap;
     Map<String, ir.Member> setterMap;
@@ -556,7 +557,7 @@ class KClassEnvImpl implements KClassEnv {
       constructorMap = <String, ir.Member>{};
       _constructorMap.forEach((String name, ir.Member node) {
         MemberEntity member = elementMap.getMember(node);
-        if (liveMembers.contains(member)) {
+        if (liveMemberUsage.containsKey(member)) {
           constructorMap[name] = node;
         }
       });
@@ -567,7 +568,7 @@ class KClassEnvImpl implements KClassEnv {
       memberMap = <String, ir.Member>{};
       _memberMap.forEach((String name, ir.Member node) {
         MemberEntity member = elementMap.getMember(node);
-        if (liveMembers.contains(member)) {
+        if (liveMemberUsage.containsKey(member)) {
           memberMap[name] = node;
         }
       });
@@ -578,7 +579,7 @@ class KClassEnvImpl implements KClassEnv {
       setterMap = <String, ir.Member>{};
       _setterMap.forEach((String name, ir.Member node) {
         MemberEntity member = elementMap.getMember(node);
-        if (liveMembers.contains(member)) {
+        if (liveMemberUsage.containsKey(member)) {
           setterMap[name] = node;
         }
       });
@@ -589,7 +590,7 @@ class KClassEnvImpl implements KClassEnv {
       members = <ir.Member>[];
       _members.forEach((ir.Member node) {
         MemberEntity member = elementMap.getMember(node);
-        if (liveMembers.contains(member)) {
+        if (liveMemberUsage.containsKey(member)) {
           members.add(node);
         }
       });

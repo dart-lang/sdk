@@ -1,4 +1,6 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_29982.dart:7:15: Error: The non-ASCII character 'é' (U+00E9) can't be used in identifiers, only in strings and comments.
 // Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).
@@ -23,6 +25,10 @@
 //   print('${eh[éh']}');
 //                 ^^^^
 //
+// pkg/front_end/testcases/regress/issue_29982.dart:7:15: Error: Getter not found: 'éh'.
+//   print('${eh[éh']}');
+//               ^^
+//
 // pkg/front_end/testcases/regress/issue_29982.dart:7:17: Error: Expected '}' before this.
 //   print('${eh[éh']}');
 //                 ^^^^
@@ -30,8 +36,7 @@
 // pkg/front_end/testcases/regress/issue_29982.dart:7:21: Error: Expected a String, but got ')'.
 //   print('${eh[éh']}');
 //                     ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

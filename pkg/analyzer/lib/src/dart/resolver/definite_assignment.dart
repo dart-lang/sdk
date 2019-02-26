@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -541,6 +541,12 @@ class DefiniteAssignmentTracker {
   }
 
   void beginForStatement(ForStatement statement) {
+    // Not strongly necessary, because we discard everything anyway.
+    // Just for consistency, so that `break` is handled without `null`.
+    _statementToStackIndex[statement] = _stack.length;
+  }
+
+  void beginForStatement2(ForStatement2 statement) {
     // Not strongly necessary, because we discard everything anyway.
     // Just for consistency, so that `break` is handled without `null`.
     _statementToStackIndex[statement] = _stack.length;

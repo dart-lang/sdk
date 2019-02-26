@@ -95,10 +95,10 @@ class FunctionInlineCache {
   final Set<FunctionEntity> _tryInlineFunctions = new Set<FunctionEntity>();
 
   FunctionInlineCache(AnnotationsData annotationsData) {
-    annotationsData.nonInlinableFunctions.forEach((FunctionEntity function) {
+    annotationsData.forEachNoInline((FunctionEntity function) {
       markAsNonInlinable(function);
     });
-    annotationsData.tryInlineFunctions.forEach((FunctionEntity function) {
+    annotationsData.forEachTryInline((FunctionEntity function) {
       markAsTryInline(function);
     });
   }
@@ -407,6 +407,9 @@ class JavaScriptBackend {
   DiagnosticReporter get reporter => compiler.reporter;
 
   ImpactCacheDeleter get impactCacheDeleter => compiler.impactCacheDeleter;
+
+  KAllocatorAnalysis get allocatorResolutionAnalysisForTesting =>
+      _allocatorResolutionAnalysis;
 
   /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.

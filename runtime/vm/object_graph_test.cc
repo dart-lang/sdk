@@ -23,7 +23,7 @@ class CounterVisitor : public ObjectGraph::Visitor {
       return kBacktrack;
     }
     ++count_;
-    size_ += obj->Size();
+    size_ += obj->HeapSize();
     return kProceed;
   }
 
@@ -52,10 +52,10 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
   b.SetAt(0, c);
   b.SetAt(1, d);
   a.SetAt(11, d);
-  intptr_t a_size = a.raw()->Size();
-  intptr_t b_size = b.raw()->Size();
-  intptr_t c_size = c.raw()->Size();
-  intptr_t d_size = d.raw()->Size();
+  intptr_t a_size = a.raw()->HeapSize();
+  intptr_t b_size = b.raw()->HeapSize();
+  intptr_t c_size = c.raw()->HeapSize();
+  intptr_t d_size = d.raw()->HeapSize();
   {
     // No more allocation; raw pointers ahead.
     SafepointOperationScope safepoint(thread);

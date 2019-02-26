@@ -25,7 +25,7 @@ class FlutterWrapCenterTest extends AssistProcessorTest {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    return /*caret*/new Center();
+    return /*caret*/Center();
   }
 }
 ''');
@@ -38,7 +38,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    return /*caret*/new Container();
+    return /*caret*/Container();
   }
 }
 ''');
@@ -46,7 +46,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    return /*caret*/Center(child: new Container());
+    return Center(child: Container());
   }
 }
 ''');
@@ -77,7 +77,7 @@ class MyWidget extends StatelessWidget {
 }
 
 main() {
-  return Center(child: MyWidget./*caret*/named());
+  return Center(child: MyWidget.named());
 }
 ''');
   }

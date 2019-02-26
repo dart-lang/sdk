@@ -1,0 +1,120 @@
+Object:
+  superclasses:
+  interfaces:
+  classMembers:
+    Object._haveSameRuntimeType
+    Object.toString
+    Object.runtimeType
+    Object._toString
+    Object._simpleInstanceOf
+    Object._hashCodeRnd
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._objectHashCode
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+B:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    B.y
+    Object.toString
+    B.x
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+    B.y
+    B.x
+
+I:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    I.y
+    Object.toString
+    I.x
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+    I.y
+    I.x
+
+M:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    M.y
+    Object.toString
+    M.x
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+    M.y
+    M.x
+
+C:
+  superclasses:
+    Object
+      -> B
+  interfaces: M, I<int>
+  classMembers:
+    M.y
+    Object.toString
+    M.x
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+    M.y
+    M.x
+  interfaceMembers:
+    M.y
+    Object.toString
+    M.x
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+    M.y
+    M.x

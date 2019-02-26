@@ -9,11 +9,14 @@
 
 namespace dart {
 
+namespace compiler {
+class ObjectPoolBuilder;
+}
+
 class Array;
 class Function;
 class Isolate;
 class ObjectPointerVisitor;
-class ObjectPoolWrapper;
 class RawArray;
 class RawFunction;
 class RawCode;
@@ -33,7 +36,7 @@ class MegamorphicCacheTable : public AllStatic {
   // re-generate the handler to ensure it uses the common object pool.
   NOT_IN_PRECOMPILED(
       static void ReInitMissHandlerCode(Isolate* isolate,
-                                        ObjectPoolWrapper* wrapper));
+                                        compiler::ObjectPoolBuilder* wrapper));
 
   static RawMegamorphicCache* Lookup(Isolate* isolate,
                                      const String& name,

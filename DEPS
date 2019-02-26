@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "9c03cd19b61a9307db192f174a7e7a1ec6759bb2",
+  "co19_2_rev": "31f7dc1e222910ce64ab57ffee286382b03446a4",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -81,13 +81,11 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.2.2",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.27.0",
-  "file_rev": "515ed1dd48740ab14b625de1be464cb2bca4fefd",  # 5.0.6
+  "dartdoc_tag" : "v0.28.1+2",
   "fixnum_tag": "0.10.9",
-  "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "1.1.7",
   "html_tag" : "0.13.3+2",
-  "http_io_rev": "265e90afbffacb7b2988385d4a6aa2f14e970d44",
+  "http_io_rev": "57da05a66f5bf7df3dd7aebe7b7efe0dfc477baa",
   "http_multi_server_tag" : "2.0.5",
   "http_parser_tag" : "3.1.1",
   "http_retry_tag": "0.1.1",
@@ -97,23 +95,22 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.78",
+  "linter_tag": "0.1.82",
   "logging_tag": "0.11.3+2",
+  "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.0.2",
   "matcher_tag": "0.12.3",
   "mime_tag": "0.9.6+2",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
-  "mustache4dart_tag" : "v2.1.2",
+  "mustache_tag" : "5e81b12215566dbe2473b2afd01a8a8aedd56ad9",
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
   "package_config_tag": "1.0.5",
   "package_resolver_tag": "1.0.4",
   "path_tag": "1.6.2",
-  "platform_rev": "c368ca95775a4ec8d0b60899ce51299a9fbda399", # 2.2.0
   "plugin_tag": "f5b4b0e32d1406d62daccea030ba6457d14b1c47",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
-  "process_rev": "b8d73f0bad7be5ab5130baf10cd042aae4366d7c", # 3.0.5
   "protobuf_tag": "0.9.0",
   "pub_rev": "9f00679ef47bc79cadc18e143720ade6c06c0100",
   "pub_semver_tag": "1.4.2",
@@ -179,6 +176,10 @@ deps = {
       }],
       "dep_type": "cipd",
   },
+
+  Var("dart_root") + "/third_party/markupsafe":
+      Var("chromium_git") + "/chromium/src/third_party/markupsafe.git" +
+      "@" + Var("markupsafe_rev"),
 
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
@@ -248,12 +249,8 @@ deps = {
       Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_tag"),
-  Var("dart_root") + "/third_party/pkg/file":
-      Var("dart_git") + "file.dart.git" + "@" + Var("file_rev"),
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_tag"),
-  Var("dart_root") + "/third_party/pkg/func":
-      Var("dart_git") + "func.git" + "@" + Var("func_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       Var("dart_git") + "glob.git" + "@" + Var("glob_tag"),
   Var("dart_root") + "/third_party/pkg/html":
@@ -289,10 +286,10 @@ deps = {
       Var("dart_git") + "mime.git" + "@" + Var("mime_tag"),
   Var("dart_root") + "/third_party/pkg/mockito":
       Var("dart_git") + "mockito.git" + "@" + Var("mockito_tag"),
-  Var("dart_root") + "/third_party/pkg/mustache4dart":
-      Var("chromium_git")
-      + "/external/github.com/valotas/mustache4dart.git"
-      + "@" + Var("mustache4dart_tag"),
+  Var("dart_root") + "/third_party/pkg/mustache":
+      Var("dart_git")
+      + "external/github.com/xxgreg/mustache"
+      + "@" + Var("mustache_tag"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       Var("dart_git") + "oauth2.git" + "@" + Var("oauth2_tag"),
   Var("dart_root") + "/third_party/observatory_pub_packages":
@@ -306,14 +303,10 @@ deps = {
       + "@" + Var("package_resolver_tag"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("dart_git") + "path.git" + "@" + Var("path_tag"),
-  Var("dart_root") + "/third_party/pkg/platform":
-      Var("dart_git") + "platform.dart.git" + "@" + Var("platform_rev"),
   Var("dart_root") + "/third_party/pkg/plugin":
       Var("dart_git") + "plugin.git" + "@" + Var("plugin_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
       Var("dart_git") + "pool.git" + "@" + Var("pool_tag"),
-  Var("dart_root") + "/third_party/pkg/process":
-      Var("dart_git") + "process.dart.git" + "@" + Var("process_rev"),
   Var("dart_root") + "/third_party/pkg/protobuf":
       Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_tag"),
   Var("dart_root") + "/third_party/pkg/pub_semver":

@@ -54,6 +54,8 @@ class CompilerContext {
 
   bool enableColorsCached = null;
 
+  Uri cachedSdkRoot = null;
+
   CompilerContext(this.options);
 
   void disableColors() {

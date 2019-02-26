@@ -39,11 +39,6 @@ main() {
     ['x']
   ]);
 
-  AnalysisError assignment_no_type = new AnalysisError(
-      new TestSource(), 0, 1, StaticWarningCode.ASSIGNMENT_TO_TYPE, [
-    ['x']
-  ]);
-
   // We in-line a lint code here in order to avoid adding a dependency on the
   // linter package.
   AnalysisError annotate_overrides = new AnalysisError(
@@ -68,15 +63,7 @@ analyzer:
       expect(getProcessor(invalid_assignment).severity, ErrorSeverity.ERROR);
       expect(getProcessor(missing_return).severity, isNull);
       expect(getProcessor(unused_local_variable), isNull);
-      expect(getProcessor(use_of_void_result), isNotNull);
-    });
-
-    test('upgrades static warnings to errors in strong mode', () {
-      configureOptions('''
-analyzer:
-  strong-mode: true
-''');
-      expect(getProcessor(assignment_no_type).severity, ErrorSeverity.ERROR);
+      expect(getProcessor(use_of_void_result), isNull);
     });
 
     test('does not upgrade other warnings to errors in strong mode', () {

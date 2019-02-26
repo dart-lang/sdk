@@ -11,15 +11,14 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  synthetic constructor •() → self::_ScheduleImmediate
     : super core::Object::•()
@@ -32,15 +31,14 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  constructor _() → self::_NamespaceImpl
     : super core::Object::•()
@@ -91,22 +89,20 @@ Bytecode {
   Allocate             CP#0
   StoreLocal           r1
   Push                 r1
-  PushConstant         CP#2
-  IndirectStaticCall   1, CP#1
+  DirectCall           1, CP#1
   Drop1
   Push                 FP[-5]
-  PushConstant         CP#4
-  IndirectStaticCall   2, CP#3
+  DirectCall           2, CP#3
   StoreStaticTOS       CP#5
   PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = Class #lib::_NamespaceImpl
-  [1] = ArgDesc num-args 1, num-type-args 0, names []
-  [2] = StaticICData target '#lib::_NamespaceImpl::_ (constructor)', arg-desc CP#1
-  [3] = ArgDesc num-args 2, num-type-args 0, names []
-  [4] = StaticICData target '#lib::_NamespaceImpl::_create', arg-desc CP#3
+  [1] = DirectCall '#lib::_NamespaceImpl::_ (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = DirectCall '#lib::_NamespaceImpl::_create', ArgDesc num-args 2, num-type-args 0, names []
+  [4] = Reserved
   [5] = StaticField #lib::_NamespaceImpl::_cachedNamespace (field)
 }
 ]  static method _setupNamespace(dynamic namespace) → void {
@@ -123,13 +119,10 @@ Bytecode {
   Allocate             CP#1
   StoreLocal           r1
   Push                 r1
-  PushConstant         CP#3
-  IndirectStaticCall   1, CP#2
+  DirectCall           1, CP#2
   Drop1
-  PushConstant         CP#5
-  IndirectStaticCall   0, CP#4
-  PushConstant         CP#7
-  IndirectStaticCall   2, CP#6
+  DirectCall           0, CP#4
+  DirectCall           2, CP#6
   StoreStaticTOS       CP#0
 L1:
   PushConstant         CP#0
@@ -139,12 +132,12 @@ L1:
 ConstantPool {
   [0] = StaticField #lib::_NamespaceImpl::_cachedNamespace (field)
   [1] = Class #lib::_NamespaceImpl
-  [2] = ArgDesc num-args 1, num-type-args 0, names []
-  [3] = StaticICData target '#lib::_NamespaceImpl::_ (constructor)', arg-desc CP#2
-  [4] = ArgDesc num-args 0, num-type-args 0, names []
-  [5] = StaticICData target '#lib::_NamespaceImpl::_getDefault', arg-desc CP#4
-  [6] = ArgDesc num-args 2, num-type-args 0, names []
-  [7] = StaticICData target '#lib::_NamespaceImpl::_create', arg-desc CP#6
+  [2] = DirectCall '#lib::_NamespaceImpl::_ (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = DirectCall '#lib::_NamespaceImpl::_getDefault', ArgDesc num-args 0, num-type-args 0, names []
+  [5] = Reserved
+  [6] = DirectCall '#lib::_NamespaceImpl::_create', ArgDesc num-args 2, num-type-args 0, names []
+  [7] = Reserved
 }
 ]  static get _namespace() → self::_NamespaceImpl {
     if(self::_NamespaceImpl::_cachedNamespace.{core::Object::==}(null)) {
@@ -156,17 +149,15 @@ ConstantPool {
 Bytecode {
   Entry                0
   CheckStack           0
-  PushConstant         CP#1
-  IndirectStaticCall   0, CP#0
-  PushConstant         CP#3
-  IndirectStaticCall   1, CP#2
+  DirectCall           0, CP#0
+  DirectCall           1, CP#2
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 0, num-type-args 0, names []
-  [1] = StaticICData target '#lib::_NamespaceImpl::get:_namespace', arg-desc CP#0
-  [2] = ArgDesc num-args 1, num-type-args 0, names []
-  [3] = StaticICData target '#lib::_NamespaceImpl::_getPointer', arg-desc CP#2
+  [0] = DirectCall '#lib::_NamespaceImpl::get:_namespace', ArgDesc num-args 0, num-type-args 0, names []
+  [1] = Reserved
+  [2] = DirectCall '#lib::_NamespaceImpl::_getPointer', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
 }
 ]  static get _namespacePointer() → core::int
     return self::_NamespaceImpl::_getPointer(self::_NamespaceImpl::_namespace);
@@ -177,15 +168,14 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  synthetic constructor •() → self::_Namespace
     : super core::Object::•()
@@ -195,15 +185,14 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target '#lib::_NamespaceImpl::_setupNamespace', arg-desc CP#0
+  [0] = DirectCall '#lib::_NamespaceImpl::_setupNamespace', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  static method _setupNamespace(dynamic namespace) → void {
     self::_NamespaceImpl::_setupNamespace(namespace);
@@ -212,13 +201,12 @@ ConstantPool {
 Bytecode {
   Entry                0
   CheckStack           0
-  PushConstant         CP#1
-  IndirectStaticCall   0, CP#0
+  DirectCall           0, CP#0
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 0, num-type-args 0, names []
-  [1] = StaticICData target '#lib::_NamespaceImpl::get:_namespace', arg-desc CP#0
+  [0] = DirectCall '#lib::_NamespaceImpl::get:_namespace', ArgDesc num-args 0, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  static get _namespace() → self::_Namespace
     return self::_NamespaceImpl::_namespace;
@@ -226,13 +214,12 @@ ConstantPool {
 Bytecode {
   Entry                0
   CheckStack           0
-  PushConstant         CP#1
-  IndirectStaticCall   0, CP#0
+  DirectCall           0, CP#0
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 0, num-type-args 0, names []
-  [1] = StaticICData target '#lib::_NamespaceImpl::get:_namespacePointer', arg-desc CP#0
+  [0] = DirectCall '#lib::_NamespaceImpl::get:_namespacePointer', ArgDesc num-args 0, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  static get _namespacePointer() → core::int
     return self::_NamespaceImpl::_namespacePointer;
@@ -254,15 +241,14 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  synthetic constructor •() → self::VMLibraryHooks
     : super core::Object::•()
@@ -318,7 +304,7 @@ L3:
 ConstantPool {
   [0] = StaticField #lib::VMLibraryHooks::_cachedScript (field)
   [1] = StaticField #lib::VMLibraryHooks::_computeScriptUri (field)
-  [2] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
   [3] = ICData dynamic target-name 'call', arg-desc CP#2
 }
 ]  static get platformScript() → dynamic {
@@ -334,15 +320,14 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  synthetic constructor •() → self::Stdin
     : super core::Object::•()
@@ -354,15 +339,14 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart:core::Object::'' (constructor)', arg-desc CP#0
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]  synthetic constructor •() → self::_StdIOUtils
     : super core::Object::•()
@@ -402,18 +386,17 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  InterfaceCall        1, CP#1
-  PushConstant         CP#3
-  IndirectStaticCall   1, CP#0
+  InterfaceCall        1, CP#0
+  DirectCall           1, CP#2
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = InterfaceCall target-name 'toString', arg-desc CP#0
-  [2] = Reserved
-  [3] = StaticICData target '#lib::_printString', arg-desc CP#0
+  [0] = InterfaceCall 'dart:core::Object::toString', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = DirectCall '#lib::_printString', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
 }
 ]static method _print(dynamic arg) → void {
   self::_printString(arg.{core::Object::toString}());
@@ -426,7 +409,7 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = TearOff #lib::_print
+  [0] = ObjectRef const tear-off #lib::_print
 }
 ]static method _getPrintClosure() → dynamic
   return self::_print;
@@ -475,13 +458,13 @@ Bytecode {
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#1
-  InterfaceCall        2, CP#3
+  InterfaceCall        2, CP#2
   AssertBoolean        0
   JumpIfTrue           L1
   PushConstant         CP#0
   PushStatic           CP#0
-  PushConstant         CP#5
-  InterfaceCall        2, CP#3
+  PushConstant         CP#4
+  InterfaceCall        2, CP#2
   AssertBoolean        0
   PopLocal             r1
   Jump                 L2
@@ -493,8 +476,8 @@ L2:
   JumpIfTrue           L3
   PushConstant         CP#0
   PushStatic           CP#0
-  PushConstant         CP#6
-  InterfaceCall        2, CP#3
+  PushConstant         CP#5
+  InterfaceCall        2, CP#2
   AssertBoolean        0
   PopLocal             r0
   Jump                 L4
@@ -506,34 +489,31 @@ L4:
   JumpIfFalse          L5
   PushConstant         CP#0
   PushStatic           CP#0
-  PushConstant         CP#8
-  IndirectStaticCall   1, CP#7
+  DirectCall           1, CP#6
   ReturnTOS
 L5:
-  PushConstant         CP#10
-  IndirectStaticCall   0, CP#9
+  DirectCall           0, CP#8
   PushNull
   PushConstant         CP#0
   PushStatic           CP#0
-  PushConstant         CP#11
-  IndirectStaticCall   2, CP#2
+  DirectCall           2, CP#10
   InterfaceCall        2, CP#12
   ReturnTOS
 }
 ConstantPool {
   [0] = StaticField #lib::_rawScript (field)
-  [1] = String 'http:'
-  [2] = ArgDesc num-args 2, num-type-args 0, names []
-  [3] = InterfaceCall target-name 'startsWith', arg-desc CP#2
-  [4] = Reserved
-  [5] = String 'https:'
-  [6] = String 'file:'
-  [7] = ArgDesc num-args 1, num-type-args 0, names []
-  [8] = StaticICData target 'dart:core::Uri::parse', arg-desc CP#7
-  [9] = ArgDesc num-args 0, num-type-args 0, names []
-  [10] = StaticICData target 'dart:core::Uri::get:base', arg-desc CP#9
-  [11] = StaticICData target 'dart:core::_Uri::file (constructor)', arg-desc CP#2
-  [12] = InterfaceCall target-name 'resolveUri', arg-desc CP#2
+  [1] = ObjectRef 'http:'
+  [2] = InterfaceCall 'dart:core::String::startsWith', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+  [4] = ObjectRef 'https:'
+  [5] = ObjectRef 'file:'
+  [6] = DirectCall 'dart:core::Uri::parse', ArgDesc num-args 1, num-type-args 0, names []
+  [7] = Reserved
+  [8] = DirectCall 'dart:core::Uri::get:base', ArgDesc num-args 0, num-type-args 0, names []
+  [9] = Reserved
+  [10] = DirectCall 'dart:core::_Uri::file (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [11] = Reserved
+  [12] = InterfaceCall 'dart:core::Uri::resolveUri', ArgDesc num-args 2, num-type-args 0, names []
   [13] = Reserved
 }
 ]static method _scriptUri() → core::Uri {
@@ -549,16 +529,15 @@ Bytecode {
   Entry                1
   CheckStack           0
   PushConstant         CP#0
-  PushConstant         CP#2
-  IndirectStaticCall   1, CP#1
+  DirectCall           1, CP#1
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
-  [0] = TearOff #lib::_scriptUri
-  [1] = ArgDesc num-args 1, num-type-args 0, names []
-  [2] = StaticICData target '#lib::VMLibraryHooks::set:platformScript', arg-desc CP#1
+  [0] = ObjectRef const tear-off #lib::_scriptUri
+  [1] = DirectCall '#lib::VMLibraryHooks::set:platformScript', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
 }
 ]static method _setupHooks() → dynamic {
   self::VMLibraryHooks::platformScript = self::_scriptUri;
@@ -573,8 +552,7 @@ Bytecode {
   JumpIfFalse          L1
   PushConstant         CP#1
   PushStatic           CP#1
-  PushConstant         CP#3
-  IndirectStaticCall   1, CP#2
+  DirectCall           1, CP#2
   StoreLocal           r1
   Push                 r1
   StoreStaticTOS       CP#0
@@ -593,8 +571,8 @@ L2:
 ConstantPool {
   [0] = StaticField #lib::_stdin (field)
   [1] = StaticField #lib::_stdinFD (field)
-  [2] = ArgDesc num-args 1, num-type-args 0, names []
-  [3] = StaticICData target '#lib::_StdIOUtils::_getStdioInputStream', arg-desc CP#2
+  [2] = DirectCall '#lib::_StdIOUtils::_getStdioInputStream', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
 }
 ]static get stdin() → self::Stdin {
   self::_stdin.{core::Object::==}(null) ?{self::Stdin} self::_stdin = self::_StdIOUtils::_getStdioInputStream(self::_stdinFD) : null;

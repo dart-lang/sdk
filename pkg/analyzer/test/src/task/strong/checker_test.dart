@@ -8,13 +8,11 @@ import 'strong_test_helper.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CheckerTest);
     defineReflectiveTests(CheckerTest_Driver);
   });
 }
 
-@reflectiveTest
-class CheckerTest extends AbstractStrongTest {
+abstract class CheckerTest extends AbstractStrongTest {
   test_awaitForInCastsStreamElementToVariable() async {
     await checkFile('''
 import 'dart:async';
@@ -3985,7 +3983,10 @@ void h<T extends Clonable<T>>(T object) {
 
     SubClonable<T> s = object;
     takesSubClonable<T>(object);
-    h(object);
+    // Issue #35799: According to the language team, this should work, but both
+    // analyzer and CFE currently reject it, likely due to a strange
+    // representation of promoted type variables.
+    // h(object);
   }
 }
 ''');

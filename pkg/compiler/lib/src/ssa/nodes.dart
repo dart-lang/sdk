@@ -2540,7 +2540,7 @@ class HLocalValue extends HInstruction {
 }
 
 class HParameterValue extends HLocalValue {
-  HParameterValue(Entity variable, type) : super(variable, type);
+  HParameterValue(Entity variable, AbstractValue type) : super(variable, type);
 
   // [HParameterValue]s are either the value of the parameter (in fully SSA
   // converted code), or the mutable variable containing the value (in

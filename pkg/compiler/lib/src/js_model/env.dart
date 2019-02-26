@@ -15,7 +15,6 @@ import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/visitors.dart';
-import '../ir/util.dart';
 import '../js_model/element_map.dart';
 import '../ordered_typeset.dart';
 import '../serialization/serialization.dart';
@@ -565,11 +564,14 @@ abstract class FunctionData implements JMemberData {
 
   List<TypeVariableType> getFunctionTypeVariables(IrToElementMap elementMap);
 
-  void forEachParameter(JsToElementMap elementMap,
-      void f(DartType type, String name, ConstantValue defaultValue));
+  void forEachParameter(
+      JsToElementMap elementMap,
+      ParameterStructure parameterStructure,
+      void f(DartType type, String name, ConstantValue defaultValue),
+      {bool isNative: false});
 }
 
-abstract class FunctionDataMixin implements FunctionData {
+abstract class FunctionDataTypeVariablesMixin implements FunctionData {
   ir.FunctionNode get functionNode;
   List<TypeVariableType> _typeVariables;
 
@@ -597,8 +599,39 @@ abstract class FunctionDataMixin implements FunctionData {
   }
 }
 
+abstract class FunctionDataForEachParameterMixin implements FunctionData {
+  ir.FunctionNode get functionNode;
+
+  void forEachParameter(
+      JsToElementMap elementMap,
+      ParameterStructure parameterStructure,
+      void f(DartType type, String name, ConstantValue defaultValue),
+      {bool isNative: false}) {
+    void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
+      DartType type = elementMap.getDartType(node.type);
+      String name = node.name;
+      ConstantValue defaultValue;
+      if (isOptional) {
+        if (node.initializer != null) {
+          defaultValue = elementMap.getConstantValue(node.initializer);
+        } else {
+          defaultValue = new NullConstantValue();
+        }
+      }
+      f(type, name, defaultValue);
+    }
+
+    forEachOrderedParameterByFunctionNode(functionNode, parameterStructure,
+        (ir.VariableDeclaration parameter, {bool isOptional, bool isElided}) {
+      if (!isElided) {
+        handleParameter(parameter, isOptional: isOptional);
+      }
+    }, useNativeOrdering: isNative);
+  }
+}
+
 class FunctionDataImpl extends JMemberDataImpl
-    with FunctionDataMixin
+    with FunctionDataTypeVariablesMixin, FunctionDataForEachParameterMixin
     implements FunctionData {
   /// Tag used for identifying serialized [FunctionDataImpl] objects in a
   /// debugging data stream.
@@ -642,31 +675,6 @@ class FunctionDataImpl extends JMemberDataImpl
 
   FunctionType getFunctionType(covariant JsKernelToElementMap elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
-  }
-
-  void forEachParameter(JsToElementMap elementMap,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
-    void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
-      DartType type = elementMap.getDartType(node.type);
-      String name = node.name;
-      ConstantValue defaultValue;
-      if (isOptional) {
-        if (node.initializer != null) {
-          defaultValue = elementMap.getConstantValue(node.initializer);
-        } else {
-          defaultValue = new NullConstantValue();
-        }
-      }
-      f(type, name, defaultValue);
-    }
-
-    for (int i = 0; i < functionNode.positionalParameters.length; i++) {
-      handleParameter(functionNode.positionalParameters[i],
-          isOptional: i >= functionNode.requiredParameterCount);
-    }
-    functionNode.namedParameters.toList()
-      ..sort(namedOrdering)
-      ..forEach(handleParameter);
   }
 
   @override
@@ -726,8 +734,11 @@ class SignatureFunctionData implements FunctionData {
     }).toList();
   }
 
-  void forEachParameter(JsToElementMap elementMap,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
+  void forEachParameter(
+      JsToElementMap elementMap,
+      ParameterStructure parameterStructure,
+      void f(DartType type, String name, ConstantValue defaultValue),
+      {bool isNative: false}) {
     throw new UnimplementedError('SignatureData.forEachParameter');
   }
 
@@ -749,9 +760,13 @@ abstract class DelegatedFunctionData implements FunctionData {
     return baseData.getFunctionTypeVariables(elementMap);
   }
 
-  void forEachParameter(JsToElementMap elementMap,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
-    return baseData.forEachParameter(elementMap, f);
+  void forEachParameter(
+      JsToElementMap elementMap,
+      ParameterStructure parameterStructure,
+      void f(DartType type, String name, ConstantValue defaultValue),
+      {bool isNative: false}) {
+    return baseData.forEachParameter(elementMap, parameterStructure, f,
+        isNative: isNative);
   }
 
   InterfaceType getMemberThisType(JsToElementMap elementMap) {

@@ -28,6 +28,8 @@ DEFINE_FLAG(bool,
 DEFINE_FLAG(bool, use_far_branches, false, "Enable far branches for ARM.");
 #endif
 
+namespace compiler {
+
 static uword NewContents(intptr_t capacity) {
   Zone* zone = Thread::Current()->zone();
   uword result = zone->AllocUnsafe(capacity);
@@ -163,14 +165,16 @@ intptr_t AssemblerBuffer::CountPointerOffsets() const {
   return count;
 }
 
+#if defined(TARGET_ARCH_IA32)
 void AssemblerBuffer::EmitObject(const Object& object) {
   // Since we are going to store the handle as part of the fixup information
   // the handle needs to be a zone handle.
-  ASSERT(object.IsNotTemporaryScopedHandle());
-  ASSERT(object.IsOld());
+  ASSERT(IsNotTemporaryScopedHandle(object));
+  ASSERT(IsInOldSpace(object));
   EmitFixup(new PatchCodeWithHandle(pointer_offsets_, object));
-  cursor_ += kWordSize;  // Reserve space for pointer.
+  cursor_ += target::kWordSize;  // Reserve space for pointer.
 }
+#endif
 
 // Shared macros are implemented here.
 void AssemblerBase::Unimplemented(const char* message) {
@@ -207,8 +211,7 @@ void AssemblerBase::Comment(const char* format, ...) {
     va_end(args);
 
     comments_.Add(
-        new CodeComment(buffer_.GetPosition(),
-                        String::ZoneHandle(String::New(buffer, Heap::kOld))));
+        new CodeComment(buffer_.GetPosition(), AllocateString(buffer)));
   }
 }
 
@@ -216,46 +219,27 @@ bool AssemblerBase::EmittingComments() {
   return FLAG_code_comments || FLAG_disassemble || FLAG_disassemble_optimized;
 }
 
-const Code::Comments& AssemblerBase::GetCodeComments() const {
-  Code::Comments& comments = Code::Comments::New(comments_.length());
-
-  for (intptr_t i = 0; i < comments_.length(); i++) {
-    comments.SetPCOffsetAt(i, comments_[i]->pc_offset());
-    comments.SetCommentAt(i, comments_[i]->comment());
-  }
-
-  return comments;
+#if !defined(TARGET_ARCH_DBC)
+void Assembler::Stop(const char* message) {
+  Comment("Stop: %s", message);
+  Breakpoint();
 }
+#endif
 
 intptr_t ObjIndexPair::Hashcode(Key key) {
-  if (key.type() != ObjectPool::kTaggedObject) {
+  if (key.type() != ObjectPoolBuilderEntry::kTaggedObject) {
     return key.raw_value_;
   }
-  if (key.obj_->IsNull()) {
-    return 2011;
-  }
-  if (key.obj_->IsString() || key.obj_->IsNumber()) {
-    return Instance::Cast(*key.obj_).CanonicalizeHash();
-  }
-  if (key.obj_->IsCode()) {
-    // Instructions don't move during compaction.
-    return Code::Cast(*key.obj_).PayloadStart();
-  }
-  if (key.obj_->IsFunction()) {
-    return Function::Cast(*key.obj_).Hash();
-  }
-  if (key.obj_->IsField()) {
-    return String::HashRawSymbol(Field::Cast(*key.obj_).name());
-  }
-  // Unlikely.
-  return key.obj_->GetClassId();
+
+  return ObjectHash(*key.obj_);
 }
-void ObjectPoolWrapper::Reset() {
+
+void ObjectPoolBuilder::Reset() {
   // Null out the handles we've accumulated.
   for (intptr_t i = 0; i < object_pool_.length(); ++i) {
-    if (object_pool_[i].type() == ObjectPool::kTaggedObject) {
-      *const_cast<Object*>(object_pool_[i].obj_) = Object::null();
-      *const_cast<Object*>(object_pool_[i].equivalence_) = Object::null();
+    if (object_pool_[i].type() == ObjectPoolBuilderEntry::kTaggedObject) {
+      SetToNull(const_cast<Object*>(object_pool_[i].obj_));
+      SetToNull(const_cast<Object*>(object_pool_[i].equivalence_));
     }
   }
 
@@ -263,65 +247,38 @@ void ObjectPoolWrapper::Reset() {
   object_pool_index_table_.Clear();
 }
 
-void ObjectPoolWrapper::InitializeFrom(const ObjectPool& other) {
-  ASSERT(object_pool_.length() == 0);
-
-  for (intptr_t i = 0; i < other.Length(); i++) {
-    auto type = other.TypeAt(i);
-    auto patchable = other.PatchableAt(i);
-    switch (type) {
-      case ObjectPool::kTaggedObject: {
-        ObjectPoolWrapperEntry entry(&Object::ZoneHandle(other.ObjectAt(i)),
-                                     patchable);
-        AddObject(entry);
-        break;
-      }
-      case ObjectPool::kImmediate:
-      case ObjectPool::kNativeFunction:
-      case ObjectPool::kNativeFunctionWrapper: {
-        ObjectPoolWrapperEntry entry(other.RawValueAt(i), type, patchable);
-        AddObject(entry);
-        break;
-      }
-      default:
-        UNREACHABLE();
-    }
-  }
-
-  ASSERT(CurrentLength() == other.Length());
+intptr_t ObjectPoolBuilder::AddObject(
+    const Object& obj,
+    ObjectPoolBuilderEntry::Patchability patchable) {
+  ASSERT(IsNotTemporaryScopedHandle(obj));
+  return AddObject(ObjectPoolBuilderEntry(&obj, patchable));
 }
 
-intptr_t ObjectPoolWrapper::AddObject(const Object& obj,
-                                      ObjectPool::Patchability patchable) {
-  ASSERT(obj.IsNotTemporaryScopedHandle());
-  return AddObject(ObjectPoolWrapperEntry(&obj, patchable));
+intptr_t ObjectPoolBuilder::AddImmediate(uword imm) {
+  return AddObject(
+      ObjectPoolBuilderEntry(imm, ObjectPoolBuilderEntry::kImmediate,
+                             ObjectPoolBuilderEntry::kNotPatchable));
 }
 
-intptr_t ObjectPoolWrapper::AddImmediate(uword imm) {
-  return AddObject(ObjectPoolWrapperEntry(imm, ObjectPool::kImmediate,
-                                          ObjectPool::kNotPatchable));
-}
-
-intptr_t ObjectPoolWrapper::AddObject(ObjectPoolWrapperEntry entry) {
-  ASSERT((entry.type() != ObjectPool::kTaggedObject) ||
-         (entry.obj_->IsNotTemporaryScopedHandle() &&
+intptr_t ObjectPoolBuilder::AddObject(ObjectPoolBuilderEntry entry) {
+  ASSERT((entry.type() != ObjectPoolBuilderEntry::kTaggedObject) ||
+         (IsNotTemporaryScopedHandle(*entry.obj_) &&
           (entry.equivalence_ == NULL ||
-           entry.equivalence_->IsNotTemporaryScopedHandle())));
+           IsNotTemporaryScopedHandle(*entry.equivalence_))));
 
-  if (entry.type() == ObjectPool::kTaggedObject) {
+  if (entry.type() == ObjectPoolBuilderEntry::kTaggedObject) {
     // If the owner of the object pool wrapper specified a specific zone we
     // shoulld use we'll do so.
     if (zone_ != NULL) {
-      entry.obj_ = &Object::ZoneHandle(zone_, entry.obj_->raw());
+      entry.obj_ = &NewZoneHandle(zone_, *entry.obj_);
       if (entry.equivalence_ != NULL) {
-        entry.equivalence_ =
-            &Object::ZoneHandle(zone_, entry.equivalence_->raw());
+        entry.equivalence_ = &NewZoneHandle(zone_, *entry.equivalence_);
       }
     }
   }
 
   object_pool_.Add(entry);
-  if (entry.patchable() == ObjectPool::kNotPatchable) {
+  if (entry.patchable() == ObjectPoolBuilderEntry::kNotPatchable) {
     // The object isn't patchable. Record the index for fast lookup.
     object_pool_index_table_.Insert(
         ObjIndexPair(entry, object_pool_.length() - 1));
@@ -329,10 +286,10 @@ intptr_t ObjectPoolWrapper::AddObject(ObjectPoolWrapperEntry entry) {
   return object_pool_.length() - 1;
 }
 
-intptr_t ObjectPoolWrapper::FindObject(ObjectPoolWrapperEntry entry) {
+intptr_t ObjectPoolBuilder::FindObject(ObjectPoolBuilderEntry entry) {
   // If the object is not patchable, check if we've already got it in the
   // object pool.
-  if (entry.patchable() == ObjectPool::kNotPatchable) {
+  if (entry.patchable() == ObjectPoolBuilderEntry::kNotPatchable) {
     intptr_t idx = object_pool_index_table_.LookupValue(entry);
     if (idx != ObjIndexPair::kNoIndex) {
       return idx;
@@ -341,54 +298,40 @@ intptr_t ObjectPoolWrapper::FindObject(ObjectPoolWrapperEntry entry) {
   return AddObject(entry);
 }
 
-intptr_t ObjectPoolWrapper::FindObject(const Object& obj,
-                                       ObjectPool::Patchability patchable) {
-  return FindObject(ObjectPoolWrapperEntry(&obj, patchable));
+intptr_t ObjectPoolBuilder::FindObject(
+    const Object& obj,
+    ObjectPoolBuilderEntry::Patchability patchable) {
+  return FindObject(ObjectPoolBuilderEntry(&obj, patchable));
 }
 
-intptr_t ObjectPoolWrapper::FindObject(const Object& obj,
+intptr_t ObjectPoolBuilder::FindObject(const Object& obj,
                                        const Object& equivalence) {
+  return FindObject(ObjectPoolBuilderEntry(
+      &obj, &equivalence, ObjectPoolBuilderEntry::kNotPatchable));
+}
+
+intptr_t ObjectPoolBuilder::FindImmediate(uword imm) {
   return FindObject(
-      ObjectPoolWrapperEntry(&obj, &equivalence, ObjectPool::kNotPatchable));
+      ObjectPoolBuilderEntry(imm, ObjectPoolBuilderEntry::kImmediate,
+                             ObjectPoolBuilderEntry::kNotPatchable));
 }
 
-intptr_t ObjectPoolWrapper::FindImmediate(uword imm) {
-  return FindObject(ObjectPoolWrapperEntry(imm, ObjectPool::kImmediate,
-                                           ObjectPool::kNotPatchable));
-}
-
-intptr_t ObjectPoolWrapper::FindNativeFunction(
+intptr_t ObjectPoolBuilder::FindNativeFunction(
     const ExternalLabel* label,
-    ObjectPool::Patchability patchable) {
-  return FindObject(ObjectPoolWrapperEntry(
-      label->address(), ObjectPool::kNativeFunction, patchable));
+    ObjectPoolBuilderEntry::Patchability patchable) {
+  return FindObject(ObjectPoolBuilderEntry(
+      label->address(), ObjectPoolBuilderEntry::kNativeFunction, patchable));
 }
 
-intptr_t ObjectPoolWrapper::FindNativeFunctionWrapper(
+intptr_t ObjectPoolBuilder::FindNativeFunctionWrapper(
     const ExternalLabel* label,
-    ObjectPool::Patchability patchable) {
-  return FindObject(ObjectPoolWrapperEntry(
-      label->address(), ObjectPool::kNativeFunctionWrapper, patchable));
+    ObjectPoolBuilderEntry::Patchability patchable) {
+  return FindObject(ObjectPoolBuilderEntry(
+      label->address(), ObjectPoolBuilderEntry::kNativeFunctionWrapper,
+      patchable));
 }
 
-RawObjectPool* ObjectPoolWrapper::MakeObjectPool() {
-  intptr_t len = object_pool_.length();
-  if (len == 0) {
-    return Object::empty_object_pool().raw();
-  }
-  const ObjectPool& result = ObjectPool::Handle(ObjectPool::New(len));
-  for (intptr_t i = 0; i < len; ++i) {
-    auto type = object_pool_[i].type();
-    auto patchable = object_pool_[i].patchable();
-    result.SetTypeAt(i, type, patchable);
-    if (type == ObjectPool::kTaggedObject) {
-      result.SetObjectAt(i, *object_pool_[i].obj_);
-    } else {
-      result.SetRawValueAt(i, object_pool_[i].raw_value_);
-    }
-  }
-  return result.raw();
-}
+}  // namespace compiler
 
 }  // namespace dart
 

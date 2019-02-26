@@ -29,6 +29,8 @@ DEFINE_FLAG(bool, unbox_doubles, true, "Optimize double arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
 DECLARE_FLAG(charp, optimization_filter);
 
+void FlowGraphCompiler::ArchSpecificInitialization() {}
+
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
@@ -110,7 +112,8 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     builder->AddCopy(
         NULL,
         Location::StackSlot(
-            compiler_frame_layout.FrameSlotForVariableIndex(-stack_height)),
+            compiler::target::frame_layout.FrameSlotForVariableIndex(
+                -stack_height)),
         slot_ix++);
   }
 
@@ -280,7 +283,7 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 }
 
 void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
-  __ Move(0, -(1 + compiler_frame_layout.param_end_from_fp));
+  __ Move(0, -(1 + compiler::target::frame_layout.param_end_from_fp));
   ASSERT(offset % kWordSize == 0);
   if (Utils::IsInt(8, offset / kWordSize)) {
     __ LoadField(0, 0, offset / kWordSize);
@@ -292,8 +295,8 @@ void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
 }
 
 void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
-  __ Move(0, -(2 + compiler_frame_layout.param_end_from_fp));
-  __ Move(1, -(1 + compiler_frame_layout.param_end_from_fp));
+  __ Move(0, -(2 + compiler::target::frame_layout.param_end_from_fp));
+  __ Move(1, -(1 + compiler::target::frame_layout.param_end_from_fp));
   ASSERT(offset % kWordSize == 0);
   if (Utils::IsInt(8, offset / kWordSize)) {
     __ StoreField(0, offset / kWordSize, 1);
@@ -326,8 +329,9 @@ void FlowGraphCompiler::EmitFrameEntry() {
     if (parsed_function().has_arg_desc_var()) {
       // TODO(kustermann): If dbc simulator put the args_desc_ into the
       // _special_regs, we could replace these 3 with the MoveSpecial bytecode.
-      const intptr_t slot_index = compiler_frame_layout.FrameSlotForVariable(
-          parsed_function().arg_desc_var());
+      const intptr_t slot_index =
+          compiler::target::frame_layout.FrameSlotForVariable(
+              parsed_function().arg_desc_var());
       __ LoadArgDescriptor();
       __ StoreLocal(LocalVarIndex(0, slot_index));
       __ Drop(1);
@@ -367,7 +371,8 @@ void ParallelMoveResolver::EmitMove(int index) {
     // Only allow access to the arguments (which have in the non-inverted stack
     // positive indices).
     ASSERT(source.base_reg() == FPREG);
-    ASSERT(source.stack_index() > compiler_frame_layout.param_end_from_fp);
+    ASSERT(source.stack_index() >
+           compiler::target::frame_layout.param_end_from_fp);
     __ Move(destination.reg(), -source.stack_index());
   } else if (source.IsRegister() && destination.IsRegister()) {
     __ Move(destination.reg(), source.reg());

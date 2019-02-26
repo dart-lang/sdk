@@ -221,7 +221,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       constant.entries.forEach(writeConstantReference);
     } else if (constant is InstanceConstant) {
       writeByte(ConstantTag.InstanceConstant);
-      writeClassReference(constant.klass);
+      writeClassReference(constant.classNode);
       writeUInt30(constant.typeArguments.length);
       constant.typeArguments.forEach(writeDartType);
       writeUInt30(constant.fieldValues.length);
@@ -243,18 +243,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     } else if (constant is TypeLiteralConstant) {
       writeByte(ConstantTag.TypeLiteralConstant);
       writeDartType(constant.type);
-    } else if (constant is EnvironmentBoolConstant) {
-      writeByte(ConstantTag.EnvironmentBoolConstant);
-      writeStringReference(constant.name);
-      writeConstantReference(constant.defaultValue);
-    } else if (constant is EnvironmentIntConstant) {
-      writeByte(ConstantTag.EnvironmentIntConstant);
-      writeStringReference(constant.name);
-      writeConstantReference(constant.defaultValue);
-    } else if (constant is EnvironmentStringConstant) {
-      writeByte(ConstantTag.EnvironmentStringConstant);
-      writeStringReference(constant.name);
-      writeConstantReference(constant.defaultValue);
     } else if (constant is UnevaluatedConstant) {
       writeByte(ConstantTag.UnevaluatedConstant);
       writeNode(constant.expression);
@@ -526,6 +514,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     final componentOffset = getBufferOffset();
     writeUInt32(Tag.ComponentFile);
     writeUInt32(Tag.BinaryFormatVersion);
+    writeListOfStrings(component.problemsAsJson);
     indexLinkTable(component);
     _collectMetadata(component);
     if (_metadataSubsections != null) {
@@ -545,6 +534,18 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeComponentIndex(component, component.libraries);
 
     _flush();
+  }
+
+  void writeListOfStrings(List<String> strings) {
+    writeUInt30(strings?.length ?? 0);
+    if (strings != null) {
+      for (int i = 0; i < strings.length; i++) {
+        String s = strings[i];
+        // This is slow, but we expect there to in general be no problems. If this
+        // turns out to be wrong we can optimize it as we do URLs for instance.
+        writeByteList(utf8.encoder.convert(s));
+      }
+    }
   }
 
   /// Collect non-empty metadata repositories associated with the component.
@@ -882,10 +883,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitLibrary(Library node) {
     insideExternalLibrary = node.isExternal;
     libraryOffsets.add(getBufferOffset());
-    writeByte(insideExternalLibrary ? 1 : 0);
+    writeByte(node.flags);
     writeNonNullCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
     writeUriReference(node.fileUri);
+    writeListOfStrings(node.problemsAsJson);
     enterScope(memberScope: true);
     writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);
@@ -2060,39 +2062,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitDoubleConstantReference(DoubleConstant node) {
     throw new UnsupportedError('serialization of DoubleConstant references');
-  }
-
-  @override
-  void visitEnvironmentBoolConstant(EnvironmentBoolConstant node) {
-    throw new UnsupportedError('serialization of EnvironmentBoolConstants');
-  }
-
-  @override
-  void visitEnvironmentBoolConstantReference(EnvironmentBoolConstant node) {
-    throw new UnsupportedError(
-        'serialization of EnvironmentBoolConstant references');
-  }
-
-  @override
-  void visitEnvironmentIntConstant(EnvironmentIntConstant node) {
-    throw new UnsupportedError('serialization of EnvironmentIntConstants');
-  }
-
-  @override
-  void visitEnvironmentIntConstantReference(EnvironmentIntConstant node) {
-    throw new UnsupportedError(
-        'serialization of EnvironmentIntConstant references');
-  }
-
-  @override
-  void visitEnvironmentStringConstant(EnvironmentStringConstant node) {
-    throw new UnsupportedError('serialization of EnvironmentStringConstants');
-  }
-
-  @override
-  void visitEnvironmentStringConstantReference(EnvironmentStringConstant node) {
-    throw new UnsupportedError(
-        'serialization of EnvironmentStringConstant references');
   }
 
   @override

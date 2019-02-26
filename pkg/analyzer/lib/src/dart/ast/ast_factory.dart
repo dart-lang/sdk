@@ -338,6 +338,7 @@ class AstFactoryImpl extends AstFactory {
           Token semicolon) =>
       new ExportDirectiveImpl(comment, metadata, keyword, libraryUri,
           configurations, combinators, semicolon);
+
   @override
   ExpressionFunctionBody expressionFunctionBody(Token keyword,
           Token functionDefinition, Expression expression, Token semicolon) =>
@@ -404,6 +405,20 @@ class AstFactoryImpl extends AstFactory {
           type, thisKeyword, period, identifier, typeParameters, parameters);
 
   @override
+  ForEachPartsWithDeclaration forEachPartsWithDeclaration(
+          {DeclaredIdentifier loopVariable,
+          Token inKeyword,
+          Expression iterable}) =>
+      new ForEachPartsWithDeclarationImpl(loopVariable, inKeyword, iterable);
+
+  @override
+  ForEachPartsWithIdentifier forEachPartsWithIdentifier(
+          {SimpleIdentifier identifier,
+          Token inKeyword,
+          Expression iterable}) =>
+      new ForEachPartsWithIdentifierImpl(identifier, inKeyword, iterable);
+
+  @override
   ForEachStatement forEachStatementWithDeclaration(
           Token awaitKeyword,
           Token forKeyword,
@@ -444,6 +459,17 @@ class AstFactoryImpl extends AstFactory {
           body);
 
   @override
+  ForElement forElement(
+          {Token awaitKeyword,
+          Token forKeyword,
+          Token leftParenthesis,
+          ForLoopParts forLoopParts,
+          Token rightParenthesis,
+          CollectionElement body}) =>
+      new ForElementImpl(awaitKeyword, forKeyword, leftParenthesis,
+          forLoopParts, rightParenthesis, body);
+
+  @override
   FormalParameterList formalParameterList(
           Token leftParenthesis,
           List<FormalParameter> parameters,
@@ -452,6 +478,26 @@ class AstFactoryImpl extends AstFactory {
           Token rightParenthesis) =>
       new FormalParameterListImpl(leftParenthesis, parameters, leftDelimiter,
           rightDelimiter, rightParenthesis);
+
+  @override
+  ForPartsWithDeclarations forPartsWithDeclarations(
+          {VariableDeclarationList variables,
+          Token leftSeparator,
+          Expression condition,
+          Token rightSeparator,
+          List<Expression> updaters}) =>
+      new ForPartsWithDeclarationsImpl(
+          variables, leftSeparator, condition, rightSeparator, updaters);
+
+  @override
+  ForPartsWithExpression forPartsWithExpression(
+          {Expression initialization,
+          Token leftSeparator,
+          Expression condition,
+          Token rightSeparator,
+          List<Expression> updaters}) =>
+      new ForPartsWithExpressionImpl(
+          initialization, leftSeparator, condition, rightSeparator, updaters);
 
   @override
   ForStatement forStatement(
@@ -476,6 +522,17 @@ class AstFactoryImpl extends AstFactory {
           updaters,
           rightParenthesis,
           body);
+
+  @override
+  ForStatement2 forStatement2(
+          {Token awaitKeyword,
+          Token forKeyword,
+          Token leftParenthesis,
+          ForLoopParts forLoopParts,
+          Token rightParenthesis,
+          Statement body}) =>
+      new ForStatement2Impl(awaitKeyword, forKeyword, leftParenthesis,
+          forLoopParts, rightParenthesis, body);
 
   @override
   FunctionDeclaration functionDeclaration(
@@ -569,6 +626,18 @@ class AstFactoryImpl extends AstFactory {
   HideCombinator hideCombinator(
           Token keyword, List<SimpleIdentifier> hiddenNames) =>
       new HideCombinatorImpl(keyword, hiddenNames);
+
+  @override
+  IfElement ifElement(
+          {Token ifKeyword,
+          Token leftParenthesis,
+          Expression condition,
+          Token rightParenthesis,
+          CollectionElement thenElement,
+          Token elseKeyword,
+          CollectionElement elseElement}) =>
+      new IfElementImpl(ifKeyword, leftParenthesis, condition, rightParenthesis,
+          thenElement, elseKeyword, elseElement);
 
   @override
   IfStatement ifStatement(
@@ -673,6 +742,16 @@ class AstFactoryImpl extends AstFactory {
           constKeyword, typeArguments, leftBracket, elements, rightBracket);
 
   @override
+  ListLiteral2 listLiteral2(
+          {Token constKeyword,
+          TypeArgumentList typeArguments,
+          Token leftBracket,
+          List<CollectionElement> elements,
+          Token rightBracket}) =>
+      new ListLiteral2Impl(
+          constKeyword, typeArguments, leftBracket, elements, rightBracket);
+
+  @override
   MapLiteral mapLiteral(
           Token constKeyword,
           TypeArgumentList typeArguments,
@@ -680,6 +759,16 @@ class AstFactoryImpl extends AstFactory {
           List<MapLiteralEntry> entries,
           Token rightBracket) =>
       new MapLiteralImpl(
+          constKeyword, typeArguments, leftBracket, entries, rightBracket);
+
+  @override
+  MapLiteral2 mapLiteral2(
+          {Token constKeyword,
+          TypeArgumentList typeArguments,
+          Token leftBracket,
+          List<CollectionElement> entries,
+          Token rightBracket}) =>
+      new MapLiteral2Impl(
           constKeyword, typeArguments, leftBracket, entries, rightBracket);
 
   @override
@@ -840,6 +929,16 @@ class AstFactoryImpl extends AstFactory {
           constKeyword, typeArguments, leftBracket, elements, rightBracket);
 
   @override
+  SetLiteral2 setLiteral2(
+          {Token constKeyword,
+          TypeArgumentList typeArguments,
+          Token leftBracket,
+          List<CollectionElement> elements,
+          Token rightBracket}) =>
+      new SetLiteral2Impl(
+          constKeyword, typeArguments, leftBracket, elements, rightBracket);
+
+  @override
   ShowCombinator showCombinator(
           Token keyword, List<SimpleIdentifier> shownNames) =>
       new ShowCombinatorImpl(keyword, shownNames);
@@ -876,6 +975,10 @@ class AstFactoryImpl extends AstFactory {
   @override
   SimpleStringLiteral simpleStringLiteral(Token literal, String value) =>
       new SimpleStringLiteralImpl(literal, value);
+
+  @override
+  SpreadElement spreadElement({Token spreadOperator, Expression expression}) =>
+      new SpreadElementImpl(spreadOperator, expression);
 
   @override
   StringInterpolation stringInterpolation(

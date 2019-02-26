@@ -226,9 +226,7 @@ class ClassTable {
 
   void AllocateIndex(intptr_t index);
 
-#if defined(DEBUG)
   void Unregister(intptr_t index);
-#endif
 
   void Remap(intptr_t* old_to_new_cids);
 

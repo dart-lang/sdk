@@ -4366,8 +4366,13 @@ class _ByteDataView implements ByteData {
     _typedData._setFloat32x4(_offset + byteOffset, value);
   }
 
+  @pragma("vm:non-nullable-result-type")
   final _TypedList _typedData;
+
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   final int _offset;
+
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   final int length;
 }
 

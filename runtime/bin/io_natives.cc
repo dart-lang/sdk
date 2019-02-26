@@ -9,6 +9,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/socket_base.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 
@@ -109,6 +110,7 @@ namespace bin {
   V(Process_ClearSignalHandler, 1)                                             \
   V(ProcessInfo_CurrentRSS, 0)                                                 \
   V(ProcessInfo_MaxRSS, 0)                                                     \
+  V(RawSocketOption_GetOptionValue, 1)                                         \
   V(SecureSocket_Connect, 7)                                                   \
   V(SecureSocket_Destroy, 1)                                                   \
   V(SecureSocket_FilterPointer, 1)                                             \
@@ -137,6 +139,7 @@ namespace bin {
   V(Socket_GetRemotePeer, 1)                                                   \
   V(Socket_GetError, 1)                                                        \
   V(Socket_GetOption, 3)                                                       \
+  V(Socket_GetRawOption, 4)                                                    \
   V(Socket_GetSocketId, 1)                                                     \
   V(Socket_GetStdioHandle, 2)                                                  \
   V(Socket_GetType, 1)                                                         \
@@ -146,6 +149,7 @@ namespace bin {
   V(Socket_RecvFrom, 1)                                                        \
   V(Socket_SendTo, 6)                                                          \
   V(Socket_SetOption, 4)                                                       \
+  V(Socket_SetRawOption, 4)                                                    \
   V(Socket_SetSocketId, 3)                                                     \
   V(Socket_WriteList, 4)                                                       \
   V(Stdin_ReadByte, 1)                                                         \

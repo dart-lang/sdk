@@ -188,6 +188,8 @@ for interface in _removed_html_interfaces:
 
 convert_to_future_members = monitored.Set(
   'htmlrenamer.converted_to_future_members', [
+  'Database.changeVersion',
+  'Database.readTransaction',
   'DataTransferItem.getAsString',
   'DirectoryEntry.getDirectory',
   'DirectoryEntry.getFile',
@@ -222,6 +224,9 @@ ddc_extensions = monitored.Dict('ddcextensions.ddc_extensions', {
   'Entry': {
       'getMetadata': [
           'applyExtension(\'Metadata\', value);',
+      ],
+      'getParent': [
+          'applyExtension(\'Entry\', value);',
       ]
   },
   'FileEntry': {
@@ -296,6 +301,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'CompositionEvent.initCompositionEvent',
   'CustomEvent.detail',
   'CustomEvent.initCustomEvent',
+  'DataTransferItem.webkitGetAsEntry',
   'DeviceOrientationEvent.initDeviceOrientationEvent',
   'DirectoryEntry.createReader',
   'DirectoryReader.readEntries',
@@ -342,10 +348,14 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Element.insertAdjacentHTML',
   'Element.scrollIntoView',
   'Element.scrollIntoViewIfNeeded',
-  'Element.removeAttribute',
-  'Element.removeAttributeNS',
+  'Element.getAttribute',
+  'Element.getAttributeNS',
   'Element.hasAttribute',
   'Element.hasAttributeNS',
+  'Element.removeAttribute',
+  'Element.removeAttributeNS',
+  'Element.setAttribute',
+  'Element.setAttributeNS',
   'Element.innerHTML',
   'Element.querySelectorAll',
   # TODO(vsm): These have been converted from int to double in Chrome 36.
@@ -495,19 +505,27 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
-    'ConsoleBase.assert': 'assertCondition', 'CSSKeyframesRule.insertRule':
-    'appendRule', 'DirectoryEntry.getDirectory': '_getDirectory',
-    'DirectoryEntry.getFile': '_getFile', 'Document.createCDATASection':
-    'createCDataSection', 'Document.defaultView': 'window', 'Window.CSS': 'css',
+    'ConsoleBase.assert': 'assertCondition',
+    'CSSKeyframesRule.insertRule': 'appendRule',
+    'DirectoryEntry.getDirectory': '_getDirectory',
+    'DirectoryEntry.getFile': '_getFile',
+    'Document.createCDATASection': 'createCDataSection',
+    'Document.defaultView': 'window',
+    'Window.CSS': 'css',
     'Window.webkitNotifications': 'notifications',
     'Window.webkitRequestFileSystem': '_requestFileSystem',
     'Window.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
-    'Navigator.webkitGetUserMedia': '_getUserMedia', 'Node.appendChild':
-    'append', 'Node.cloneNode': 'clone', 'Node.nextSibling': 'nextNode',
-    'Node.parentElement': 'parent', 'Node.previousSibling': 'previousNode',
-    'Node.textContent': 'text', 'SVGElement.className': '_svgClassName',
-    'SVGStopElement.offset': 'gradientOffset', 'URL.createObjectURL':
-    'createObjectUrl', 'URL.revokeObjectURL': 'revokeObjectUrl',
+    'Navigator.webkitGetUserMedia': '_getUserMedia',
+    'Node.appendChild': 'append',
+    'Node.cloneNode': 'clone',
+    'Node.nextSibling': 'nextNode',
+    'Node.parentElement': 'parent',
+    'Node.previousSibling': 'previousNode',
+    'Node.textContent': 'text',
+    'SVGElement.className': '_svgClassName',
+    'SVGStopElement.offset': 'gradientOffset',
+    'URL.createObjectURL': 'createObjectUrl',
+    'URL.revokeObjectURL': 'revokeObjectUrl',
     #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
     #'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
 
@@ -600,6 +618,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'AudioContext.decodeAudioData',
     'AudioBufferSourceNode.looping', # TODO(vsm): Use deprecated IDL annotation
     'CSSStyleDeclaration.getPropertyCSSValue',
+    'HTMLCanvasElement.toBlob',
     'CanvasRenderingContext2D.clearShadow',
     'CanvasRenderingContext2D.drawImageFromRect',
     'CanvasRenderingContext2D.setAlpha',
@@ -727,8 +746,10 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Element.prepend',
     'Element.removeAttributeNode',
     'Element.set:outerHTML',
+    'Element.setApplyScroll',
     'Element.setAttributeNode',
     'Element.setAttributeNodeNS',
+    'Element.setDistributeScroll',
     'Element.webkitCreateShadowRoot',
     'Element.webkitMatchesSelector',
     'Element.webkitPseudo',
@@ -849,8 +870,6 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'IDBDatabase.transaction', # We do this in a template without the generated implementation at all.
     'Location.valueOf',
     'MessageEvent.data',
-    'MessageEvent.ports',
-    'MessageEvent.webkitInitMessageEvent',
     'MouseEvent.webkitMovementX',
     'MouseEvent.webkitMovementY',
     'MouseEvent.x',

@@ -1,8 +1,14 @@
-// Unhandled errors:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/issue_000042.dart:6:13: Error: Unexpected token ','.
 //   for (var x, y in []) {}
 //             ^
+//
+// pkg/front_end/testcases/rasta/issue_000042.dart:6:8: Error: A for-in loop can't have more than one loop variable.
+//   for (var x, y in []) {}
+//        ^^^
 //
 // pkg/front_end/testcases/rasta/issue_000042.dart:7:8: Error: A continue statement can't be used outside of a loop or switch statement.
 // Try removing the continue statement.
@@ -13,8 +19,7 @@
 // Try removing the continue statement.
 //   L: if (true) { continue L; }
 //                  ^^^^^^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

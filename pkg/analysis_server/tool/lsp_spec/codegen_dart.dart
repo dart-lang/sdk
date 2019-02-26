@@ -24,7 +24,7 @@ bool enumClassAllowsAnyValue(String name) {
   // TODO(dantup): This should return true by default, and allow opt-out for
   // those things we know are not supported. This behaviour matches the old
   // code in order to simplify diffs while migrating.
-  return name == 'ErrorCodes' || name == 'CodeActionKind';
+  return name == 'ErrorCodes' || name == 'CodeActionKind' || name == 'Method';
 }
 
 String generateDartForTypes(List<AstNode> types) {

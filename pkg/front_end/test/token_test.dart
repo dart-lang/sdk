@@ -46,22 +46,22 @@ class Foo {
     Token comment = nextComment();
     expect(comment.lexeme, contains('Single line dartdoc comment'));
     expect(comment.type, TokenType.SINGLE_LINE_COMMENT);
-    expect(comment, new isInstanceOf<DocumentationCommentToken>());
+    expect(comment, const TypeMatcher<DocumentationCommentToken>());
 
     comment = nextComment();
     expect(comment.lexeme, contains('Multi-line dartdoc comment'));
     expect(comment.type, TokenType.MULTI_LINE_COMMENT);
-    expect(comment, new isInstanceOf<DocumentationCommentToken>());
+    expect(comment, const TypeMatcher<DocumentationCommentToken>());
 
     comment = nextComment();
     expect(comment.lexeme, contains('Single line comment'));
     expect(comment.type, TokenType.SINGLE_LINE_COMMENT);
-    expect(comment, new isInstanceOf<CommentToken>());
+    expect(comment, const TypeMatcher<CommentToken>());
 
     comment = nextComment();
     expect(comment.lexeme, contains('Multi-line comment'));
     expect(comment.type, TokenType.MULTI_LINE_COMMENT);
-    expect(comment, new isInstanceOf<CommentToken>());
+    expect(comment, const TypeMatcher<CommentToken>());
   }
 
   void test_isSynthetic() {

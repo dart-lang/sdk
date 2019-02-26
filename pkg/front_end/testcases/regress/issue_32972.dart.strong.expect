@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_32972.dart:22:3: Error: Expected 1 type arguments.
 //   foo<String, String>("hello world");
@@ -24,14 +26,7 @@
 // pkg/front_end/testcases/regress/issue_32972.dart:27:5: Error: Expected 1 type arguments.
 //   f.bar<double, double>(42.42);
 //     ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/regress/issue_32972.dart:27:5: Error: Expected 1 type arguments.
-//   f.bar<double, double>(42.42);
-//     ^
-
-library;
 import self as self;
 import "dart:core" as core;
 

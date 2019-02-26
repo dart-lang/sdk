@@ -563,6 +563,66 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
     }
   }
 
+  @pragma('dart2js:tryInline')
+  String getAttribute(String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    return _getAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  String getAttributeNS(String namespaceURI, String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
+    assert(name != null, 'Attribute name cannot be null');
+    return _getAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  bool hasAttribute(String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    return _hasAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  bool hasAttributeNS(String namespaceURI, String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
+    assert(name != null, 'Attribute name cannot be null');
+    return _hasAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void removeAttribute(String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    _removeAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void removeAttributeNS(String namespaceURI, String name) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    _removeAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void setAttribute(String name, String value) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
+    _setAttribute(name, value);
+  }
+
+  @pragma('dart2js:tryInline')
+  void setAttributeNS(String namespaceURI, String name, String value) {
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
+    _setAttributeNS(namespaceURI, name, value);
+  }
+
   /**
    * List of the direct children of this element.
    *
@@ -598,6 +658,28 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    */
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
     new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
+
+  @JSName('setApplyScroll')
+  void _setApplyScroll(ScrollStateCallback scrollStateCallback, String nativeScrollBehavior) native;
+
+  Future<ScrollState> setApplyScroll(String nativeScrollBehavior) {
+    var completer = new Completer<ScrollState>();
+      _setApplyScroll((value) {
+        completer.complete(value);
+      }, nativeScrollBehavior);
+    return completer.future;
+  }
+
+  @JSName('setDistributeScroll')
+  void _setDistributeScroll(ScrollStateCallback scrollStateCallback, String nativeScrollBehavior) native;
+
+  Future<ScrollState> setDistributeScroll(String nativeScrollBehavior) {
+    var completer = new Completer<ScrollState>();
+      _setDistributeScroll((value) {
+        completer.complete(value);
+      }, nativeScrollBehavior);
+    return completer.future;
+  }
 
   /**
    * The set of CSS classes applied to this element.

@@ -136,7 +136,7 @@ class BacktrackStack {
   intptr_t max_size() const { return kBacktrackStackSize; }
 
  private:
-  static const intptr_t kBacktrackStackSize = 10000;
+  static const intptr_t kBacktrackStackSize = 1 << 16;
 
   intptr_t* data_;
 

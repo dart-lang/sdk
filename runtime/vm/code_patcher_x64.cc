@@ -378,11 +378,13 @@ class BareSwitchableCall : public SwitchableCallBase {
     } else {
       FATAL1("Failed to decode at %" Px, pc);
     }
-    ASSERT(object_pool_.TypeAt(target_index_) == ObjectPool::kImmediate);
+    ASSERT(object_pool_.TypeAt(target_index_) ==
+           ObjectPool::EntryType::kImmediate);
   }
 
   void SetTarget(const Code& target) const {
-    ASSERT(object_pool_.TypeAt(target_index()) == ObjectPool::kImmediate);
+    ASSERT(object_pool_.TypeAt(target_index()) ==
+           ObjectPool::EntryType::kImmediate);
     object_pool_.SetRawValueAt(target_index(), target.MonomorphicEntryPoint());
   }
 

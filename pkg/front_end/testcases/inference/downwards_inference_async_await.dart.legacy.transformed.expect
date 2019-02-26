@@ -3,6 +3,8 @@ import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
 
+import "dart:async";
+
 static method main() → asy::Future<dynamic> /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
   asy::FutureOr<dynamic> :return_value;

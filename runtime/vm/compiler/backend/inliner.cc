@@ -56,6 +56,10 @@ DEFINE_FLAG(int,
             80,
             "Do not inline callees larger than threshold");
 DEFINE_FLAG(int,
+            inlining_small_leaf_size_threshold,
+            50,
+            "Do not inline leaf callees larger than threshold");
+DEFINE_FLAG(int,
             inlining_caller_size_threshold,
             50000,
             "Stop inlining once caller reaches the threshold.");
@@ -332,19 +336,16 @@ class CallSites : public ValueObject {
   static intptr_t AotCallCountApproximation(intptr_t nesting_depth) {
     switch (nesting_depth) {
       case 0:
-        // Note that we use value 0, and not 1, i.e. any straightline code
-        // outside a loop is assumed to be very cold. With value 1, inlining
-        // inside loops is still favored over inlining inside straightline
-        // code, but for a method without loops, *all* call sites are inlined
-        // (potentially more performance, at the expense of larger code size).
-        // TODO(ajcbik): use 1 and fine tune other heuristics
-        return 0;
+        // The value 1 makes most sense, but it may give a high ratio to call
+        // sites outside loops. Therefore, such call sites are subject to
+        // subsequent stricter heuristic to limit code size increase.
+        return 1;
       case 1:
         return 10;
       case 2:
-        return 100;
+        return 10 * 10;
       default:
-        return 1000;
+        return 10 * 10 * 10;
     }
   }
 
@@ -511,6 +512,36 @@ class CallSites : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(CallSites);
 };
+
+// Determines if inlining this graph yields a small leaf node.
+static bool IsSmallLeaf(FlowGraph* graph) {
+  intptr_t instruction_count = 0;
+  for (BlockIterator block_it = graph->postorder_iterator(); !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* entry = block_it.Current();
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      ++instruction_count;
+      if (current->IsInstanceCall() || current->IsPolymorphicInstanceCall() ||
+          current->IsClosureCall()) {
+        return false;
+      } else if (current->IsStaticCall()) {
+        const Function& function = current->AsStaticCall()->function();
+        const intptr_t inl_size = function.optimized_instruction_count();
+        // Accept a static call is always inlined in some way and add the
+        // cached size to the total instruction count. A reasonable guess
+        // is made if the count has not been collected yet (listed methods
+        // are never very large).
+        if (!function.always_inline() && !function.IsRecognized()) {
+          return false;
+        }
+        static constexpr intptr_t kAvgListedMethodSize = 20;
+        instruction_count += (inl_size == 0 ? kAvgListedMethodSize : inl_size);
+      }
+    }
+  }
+  return instruction_count <= FLAG_inlining_small_leaf_size_threshold;
+}
 
 struct InlinedCallData {
   InlinedCallData(Definition* call,
@@ -863,7 +894,8 @@ class CallSiteInliner : public ValueObject {
 
   bool TryInlining(const Function& function,
                    const Array& argument_names,
-                   InlinedCallData* call_data) {
+                   InlinedCallData* call_data,
+                   bool stricter_heuristic) {
     if (trace_inlining()) {
       String& name = String::Handle(function.QualifiedUserVisibleName());
       THR_Print("  => %s (deopt count %d)\n", name.ToCString(),
@@ -1174,7 +1206,7 @@ class CallSiteInliner : public ValueObject {
 
         if (FLAG_support_il_printer && trace_inlining() &&
             (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized)) {
-          THR_Print("Callee graph for inlining %s\n",
+          THR_Print("Callee graph for inlining %s (optimized)\n",
                     function.ToFullyQualifiedCString());
           FlowGraphPrinter printer(*callee_graph);
           printer.PrintBlocks();
@@ -1213,6 +1245,19 @@ class CallSiteInliner : public ValueObject {
           PRINT_INLINING_TREE("Heuristic fail", &call_data->caller, &function,
                               call_data->call);
           return false;
+        }
+
+        // If requested, a stricter heuristic is applied to this inlining. This
+        // heuristic always scans the method (rather than possibly reusing
+        // cached results) to make sure all specializations are accounted for.
+        if (stricter_heuristic) {
+          if (!IsSmallLeaf(callee_graph)) {
+            TRACE_INLINING(
+                THR_Print("     Bailout: heuristics (no small leaf)\n"));
+            PRINT_INLINING_TREE("Heuristic fail (no small leaf)",
+                                &call_data->caller, &function, call_data->call);
+            return false;
+          }
         }
 
         // Inline dispatcher methods regardless of the current depth.
@@ -1436,7 +1481,17 @@ class CallSiteInliner : public ValueObject {
           call, Array::ZoneHandle(Z, call->GetArgumentsDescriptor()),
           call->FirstArgIndex(), &arguments, call_info[call_idx].caller(),
           call_info[call_idx].caller_graph->inlining_id());
-      if (TryInlining(call->function(), call->argument_names(), &call_data)) {
+
+      // Under AOT, calls outside loops may pass our regular heuristics due
+      // to a relatively high ratio. So, unless we are optimizing solely for
+      // speed, such call sites are subject to subsequent stricter heuristic
+      // to limit code size increase.
+      bool stricter_heuristic = FLAG_precompiled_mode &&
+                                FLAG_optimization_level <= 2 &&
+                                !inliner_->AlwaysInline(target) &&
+                                call_info[call_idx].nesting_depth == 0;
+      if (TryInlining(call->function(), call->argument_names(), &call_data,
+                      stricter_heuristic)) {
         InlineCall(&call_data);
         inlined = true;
       }
@@ -1489,7 +1544,7 @@ class CallSiteInliner : public ValueObject {
           call, arguments_descriptor, call->FirstArgIndex(), &arguments,
           call_info[call_idx].caller(),
           call_info[call_idx].caller_graph->inlining_id());
-      if (TryInlining(target, call->argument_names(), &call_data)) {
+      if (TryInlining(target, call->argument_names(), &call_data, false)) {
         InlineCall(&call_data);
         inlined = true;
       }
@@ -1751,7 +1806,7 @@ bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
                             caller_function_, caller_inlining_id_);
   Function& target = Function::ZoneHandle(zone(), target_info.target->raw());
   if (!owner_->TryInlining(target, call_->instance_call()->argument_names(),
-                           &call_data)) {
+                           &call_data, false)) {
     return false;
   }
 
@@ -3386,20 +3441,25 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
       entry->UnuseAllInputs();  // Entry block is not in the graph.
       if (last != NULL) {
         BlockEntryInstr* link = call->GetBlock();
-        Instruction* exit = last->GetBlock();
+        BlockEntryInstr* exit = last->GetBlock();
         if (link != exit) {
           // Dominance relation and SSA are updated incrementally when
           // conditionals are inserted. But succ/pred and ordering needs
           // to be redone. TODO(ajcbik): do this incrementally too.
+          for (intptr_t i = 0, n = link->dominated_blocks().length(); i < n;
+               ++i) {
+            exit->AddDominatedBlock(link->dominated_blocks()[i]);
+          }
           link->ClearDominatedBlocks();
           for (intptr_t i = 0, n = entry->dominated_blocks().length(); i < n;
                ++i) {
             link->AddDominatedBlock(entry->dominated_blocks()[i]);
           }
-          while (exit->next()) {
-            exit = exit->next();
+          Instruction* scan = exit;
+          while (scan->next() != nullptr) {
+            scan = scan->next();
           }
-          exit->LinkTo(call);
+          scan->LinkTo(call);
           flow_graph->DiscoverBlocks();
         } else {
           last->LinkTo(call);

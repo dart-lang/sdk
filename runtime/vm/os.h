@@ -13,7 +13,6 @@ struct tm;
 namespace dart {
 
 // Forward declarations.
-class Isolate;
 class Zone;
 
 // Interface to the underlying OS platform.

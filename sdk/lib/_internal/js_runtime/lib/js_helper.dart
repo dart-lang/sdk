@@ -377,167 +377,6 @@ class JSInvocationMirror implements Invocation {
   }
 }
 
-class ReflectionInfo {
-  static const int REQUIRED_PARAMETERS_INFO = 0;
-  static const int OPTIONAL_PARAMETERS_INFO = 1;
-  static const int FUNCTION_TYPE_INDEX = 2;
-  static const int FIRST_DEFAULT_ARGUMENT = 3;
-
-  /// A JavaScript function object.
-  final jsFunction;
-
-  /// Raw reflection information.
-  final List data;
-
-  /// Is this a getter or a setter.
-  final bool isAccessor;
-
-  /// Number of required parameters.
-  final int requiredParameterCount;
-
-  /// Number of optional parameters.
-  final int optionalParameterCount;
-
-  /// Are optional parameters named.
-  final bool areOptionalParametersNamed;
-
-  /// Either an index to the function type in the embedded `metadata` global or
-  /// a JavaScript function object which can compute such a type (presumably
-  /// due to free type variables).
-  final functionType;
-
-  List cachedSortedIndices;
-
-  ReflectionInfo.internal(
-      this.jsFunction,
-      this.data,
-      this.isAccessor,
-      this.requiredParameterCount,
-      this.optionalParameterCount,
-      this.areOptionalParametersNamed,
-      this.functionType);
-
-  factory ReflectionInfo(jsFunction) {
-    List data = JS('JSExtendableArray|Null', r'#.$reflectionInfo', jsFunction);
-    if (data == null) return null;
-    data = JSArray.markFixedList(data);
-
-    int requiredParametersInfo =
-        JS('int', '#[#]', data, REQUIRED_PARAMETERS_INFO);
-    int requiredParameterCount = JS('int', '# >> 2', requiredParametersInfo);
-    bool isAccessor = (requiredParametersInfo & 2) == 2;
-
-    int optionalParametersInfo =
-        JS('int', '#[#]', data, OPTIONAL_PARAMETERS_INFO);
-    int optionalParameterCount = JS('int', '# >> 1', optionalParametersInfo);
-    bool areOptionalParametersNamed = (optionalParametersInfo & 1) == 1;
-
-    var functionType = JS('', '#[#]', data, FUNCTION_TYPE_INDEX);
-    return new ReflectionInfo.internal(
-        jsFunction,
-        data,
-        isAccessor,
-        requiredParameterCount,
-        optionalParameterCount,
-        areOptionalParametersNamed,
-        functionType);
-  }
-
-  String parameterName(int parameter) {
-    int metadataIndex;
-    if (JS_GET_FLAG('MUST_RETAIN_METADATA')) {
-      metadataIndex = JS('int', '#[2 * # + # + #]', data, parameter,
-          optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
-    } else {
-      metadataIndex = JS('int', '#[# + # + #]', data, parameter,
-          optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
-    }
-    var name = getMetadata(metadataIndex);
-    return JS('String', '#', name);
-  }
-
-  List<int> parameterMetadataAnnotations(int parameter) {
-    if (!JS_GET_FLAG('MUST_RETAIN_METADATA')) {
-      throw new StateError('metadata has not been preserved');
-    } else {
-      return JS('', '#[2 * # + # + # + 1]', data, parameter,
-          optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
-    }
-  }
-
-  int defaultValue(int parameter) {
-    if (parameter < requiredParameterCount) return null;
-    return JS('int', '#[# + # - #]', data, FIRST_DEFAULT_ARGUMENT, parameter,
-        requiredParameterCount);
-  }
-
-  /// Returns the default value of the [parameter]th entry of the list of
-  /// parameters sorted by name.
-  int defaultValueInOrder(int parameter) {
-    if (parameter < requiredParameterCount) return null;
-
-    if (!areOptionalParametersNamed || optionalParameterCount == 1) {
-      return defaultValue(parameter);
-    }
-
-    int index = sortedIndex(parameter - requiredParameterCount);
-    return defaultValue(index);
-  }
-
-  /// Returns the default value of the [parameter]th entry of the list of
-  /// parameters sorted by name.
-  String parameterNameInOrder(int parameter) {
-    if (parameter < requiredParameterCount) return null;
-
-    if (!areOptionalParametersNamed || optionalParameterCount == 1) {
-      return parameterName(parameter);
-    }
-
-    int index = sortedIndex(parameter - requiredParameterCount);
-    return parameterName(index);
-  }
-
-  /// Computes the index of the parameter in the list of named parameters sorted
-  /// by their name.
-  int sortedIndex(int unsortedIndex) {
-    if (cachedSortedIndices == null) {
-      // TODO(karlklose): cache this between [ReflectionInfo] instances or cache
-      // [ReflectionInfo] instances by [jsFunction].
-      cachedSortedIndices = new List(optionalParameterCount);
-      Map<String, int> positions = <String, int>{};
-      for (int i = 0; i < optionalParameterCount; i++) {
-        int index = requiredParameterCount + i;
-        positions[parameterName(index)] = index;
-      }
-      int index = 0;
-      (positions.keys.toList()..sort()).forEach((String name) {
-        cachedSortedIndices[index++] = positions[name];
-      });
-    }
-    return cachedSortedIndices[unsortedIndex];
-  }
-
-  @NoInline()
-  computeFunctionRti(jsConstructor) {
-    if (JS('bool', 'typeof # == "number"', functionType)) {
-      return getType(functionType);
-    } else if (JS('bool', 'typeof # == "function"', functionType)) {
-      if (jsConstructor != null) {
-        var fakeInstance = JS('', 'new #()', jsConstructor);
-        setRuntimeTypeInfo(
-            fakeInstance, JS('JSExtendableArray', '#["<>"]', fakeInstance));
-        return JS('=Object|Null', r'#.apply({$receiver:#})', functionType,
-            fakeInstance);
-      }
-      return functionType;
-    } else {
-      throw new RuntimeError('Unexpected function type');
-    }
-  }
-
-  String get reflectionName => JS('String', r'#.$reflectionName', jsFunction);
-}
-
 class Primitives {
   static int objectHashCode(object) {
     int hash = JS('int|Null', r'#.$identityHash', object);
@@ -1397,22 +1236,22 @@ checkNull(object) {
 }
 
 @NoInline()
-checkNum(value) {
+num checkNum(value) {
   if (value is! num) throw argumentErrorValue(value);
   return value;
 }
 
-checkInt(value) {
+int checkInt(value) {
   if (value is! int) throw argumentErrorValue(value);
   return value;
 }
 
-checkBool(value) {
+bool checkBool(value) {
   if (value is! bool) throw argumentErrorValue(value);
   return value;
 }
 
-checkString(value) {
+String checkString(value) {
   if (value is! String) throw argumentErrorValue(value);
   return value;
 }
@@ -2196,14 +2035,7 @@ abstract class Closure implements Function {
     // This variable holds either an index into the types-table, or a function
     // that can compute a function-rti. (The latter is necessary if the type
     // is dependent on generic arguments).
-    var functionType;
-    if (reflectionInfo is List) {
-      JS('', '#.\$reflectionInfo = #', function, reflectionInfo);
-      ReflectionInfo info = new ReflectionInfo(function);
-      functionType = info.functionType;
-    } else {
-      functionType = reflectionInfo;
-    }
+    var functionType = reflectionInfo;
 
     // function tmp() {};
     // tmp.prototype = BC.prototype;
@@ -3353,7 +3185,19 @@ String _cspNonce = _computeCspNonce();
 String _computeCspNonce() {
   var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
   if (currentScript == null) return null;
-  return JS('String', 'String(#.nonce)', currentScript);
+  String nonce = JS('String|Null', '#.nonce', currentScript);
+  return (nonce != null && nonce != '')
+      ? nonce
+      : JS('String|Null', '#.getAttribute("nonce")', currentScript);
+}
+
+/// The 'crossOrigin' value on the current script used for CORS, if any.
+String _crossOrigin = _computeCrossOrigin();
+
+String _computeCrossOrigin() {
+  var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
+  if (currentScript == null) return null;
+  return JS('String|Null', '#.crossOrigin', currentScript);
 }
 
 /// Returns true if we are currently in a worker context.
@@ -3500,6 +3344,10 @@ Future<Null> _loadHunk(String hunkName) {
     JS('', '#.src = #', script, uri);
     if (_cspNonce != null && _cspNonce != '') {
       JS('', '#.nonce = #', script, _cspNonce);
+      JS('', '#.setAttribute("nonce", #)', script, _cspNonce);
+    }
+    if (_crossOrigin != null && _crossOrigin != '') {
+      JS('', '#.crossOrigin = #', script, _crossOrigin);
     }
     JS('', '#.addEventListener("load", #, false)', script, jsSuccess);
     JS('', '#.addEventListener("error", #, false)', script, jsFailure);

@@ -171,12 +171,6 @@ class ConstructorInvocation {
  * A representation of an instance of a Dart class.
  */
 class DartObjectImpl implements DartObject {
-  /**
-   * An empty list of objects.
-   */
-  @deprecated
-  static const List<DartObjectImpl> EMPTY_LIST = const <DartObjectImpl>[];
-
   @override
   final ParameterizedType type;
 

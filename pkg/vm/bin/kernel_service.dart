@@ -21,6 +21,7 @@
 library runtime.tools.kernel_service;
 
 import 'dart:async' show Future, ZoneSpecification, runZoned;
+import 'dart:collection' show UnmodifiableMapBase;
 import 'dart:convert' show utf8;
 import 'dart:io' show Platform, stderr hide FileSystemEntity;
 import 'dart:isolate';
@@ -112,6 +113,7 @@ abstract class Compiler {
       ..bytecode = bytecode
       ..experimentalFlags =
           parseExperimentalFlags(expFlags, (msg) => errors.add(msg))
+      ..environmentDefines = new EnvironmentMap()
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {
@@ -152,6 +154,25 @@ abstract class Compiler {
   }
 
   Future<Component> compileInternal(Uri script);
+}
+
+// Environment map which looks up environment defines in the VM environment
+// at runtime.
+// TODO(askesc): This is a temporary hack to get hold of the environment during
+// JIT compilation. We use a lazy map accessing the VM runtime environment using
+// new String.fromEnvironment, since the VM currently does not support providing
+// the full (isolate specific) environment as a finite, static map.
+class EnvironmentMap extends UnmodifiableMapBase<String, String> {
+  @override
+  String operator [](Object key) {
+    // The fromEnvironment constructor is specified to throw when called using
+    // new. However, the VM implementation actually looks up the given name in
+    // the environment.
+    return new String.fromEnvironment(key);
+  }
+
+  @override
+  get keys => throw "Environment map iteration not supported";
 }
 
 class FileSink implements Sink<List<int>> {

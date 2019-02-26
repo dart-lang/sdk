@@ -2269,10 +2269,14 @@ void IsolateReloadContext::RebuildDirectSubclasses() {
 
       interface_types = cls.interfaces();
       if (!interface_types.IsNull()) {
+        const intptr_t mixin_index = cls.is_transformed_mixin_application()
+                                         ? interface_types.Length() - 1
+                                         : -1;
         for (intptr_t j = 0; j < interface_types.Length(); ++j) {
           interface_type ^= interface_types.At(j);
           interface_class = interface_type.type_class();
-          interface_class.AddDirectImplementor(cls);
+          interface_class.AddDirectImplementor(
+              cls, /* is_mixin = */ i == mixin_index);
         }
       }
     }

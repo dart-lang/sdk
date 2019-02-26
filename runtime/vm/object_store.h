@@ -22,6 +22,7 @@ class ObjectPointerVisitor;
   M(Collection, collection)                                                    \
   M(Convert, convert)                                                          \
   M(Developer, developer)                                                      \
+  M(Ffi, ffi)                                                                  \
   M(Internal, _internal)                                                       \
   M(Isolate, isolate)                                                          \
   M(Math, math)                                                                \
@@ -59,6 +60,8 @@ class ObjectPointerVisitor;
   RW(TypeArguments, type_argument_string_string)                               \
   RW(Class, compiletime_error_class)                                           \
   RW(Class, pragma_class)                                                      \
+  RW(Field, pragma_name)                                                       \
+  RW(Field, pragma_options)                                                    \
   RW(Class, future_class)                                                      \
   RW(Class, completer_class)                                                   \
   RW(Class, symbol_class)                                                      \
@@ -87,6 +90,7 @@ class ObjectPointerVisitor;
   RW(Library, collection_library)                                              \
   RW(Library, convert_library)                                                 \
   RW(Library, developer_library)                                               \
+  RW(Library, ffi_library)                                                     \
   RW(Library, _internal_library)                                               \
   RW(Library, isolate_library)                                                 \
   RW(Library, math_library)                                                    \
@@ -109,7 +113,6 @@ class ObjectPointerVisitor;
   RW(UnhandledException, preallocated_unhandled_exception)                     \
   RW(StackTrace, preallocated_stack_trace)                                     \
   RW(Function, lookup_port_handler)                                            \
-  RW(TypedData, empty_uint32_array)                                            \
   RW(Function, handle_message_function)                                        \
   RW(Function, growable_list_factory)                                          \
   RW(Function, simple_instance_of_function)                                    \
@@ -125,12 +128,19 @@ class ObjectPointerVisitor;
   RW(Array, unique_dynamic_targets)                                            \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
   RW(Code, build_method_extractor_code)                                        \
+  RW(Code, null_error_stub_with_fpu_regs_stub)                                 \
+  RW(Code, null_error_stub_without_fpu_regs_stub)                              \
+  RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
+  RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
+  RW(Code, write_barrier_wrappers_stub)                                        \
+  RW(Code, array_write_barrier_stub)                                           \
   R_(Code, megamorphic_miss_code)                                              \
   R_(Function, megamorphic_miss_function)                                      \
   RW(Array, code_order_table)                                                  \
   RW(Array, obfuscation_map)                                                   \
-  RW(GrowableObjectArray, type_testing_stubs)                                  \
   RW(GrowableObjectArray, changed_in_last_reload)                              \
+  RW(Class, ffi_pointer_class)                                                 \
+  RW(Class, ffi_native_type_class)                                             \
 // Please remember the last entry must be referred in the 'to' function below.
 
 // The object store is a per isolate instance which stores references to
@@ -223,7 +233,7 @@ class ObjectStore {
                           DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&changed_in_last_reload_);
+    return reinterpret_cast<RawObject**>(&ffi_pointer_class_);
   }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {

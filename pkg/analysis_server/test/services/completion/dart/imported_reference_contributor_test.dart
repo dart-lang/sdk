@@ -43,8 +43,9 @@ import 'b.dart';
 void main() {f^}''');
     await computeSuggestions();
 
-    assertSuggestFunction('foo', 'bool',
+    CompletionSuggestion cs = assertSuggestFunction('foo', 'bool',
         defaultArgListString: 'bar, baz: null');
+    expect(cs.elementUri, equals('package:test/b.dart'));
   }
 
   test_ArgumentList() async {
@@ -62,7 +63,6 @@ void main() {f^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertSuggestFunction('hasLength', 'bool');
     assertSuggestFunction('identical', 'bool');
@@ -89,7 +89,6 @@ void main() {f^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertSuggestFunction('hasLength', 'bool');
     assertSuggestFunction('identical', 'bool');
@@ -117,7 +116,6 @@ void main() {f^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertSuggestFunction('hasLength', 'bool',
         kind: CompletionSuggestionKind.IDENTIFIER);
@@ -149,7 +147,6 @@ void main() {f^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertSuggestFunction('hasLength', 'bool',
         kind: CompletionSuggestionKind.IDENTIFIER);
@@ -179,7 +176,6 @@ void main() {f^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertSuggestFunction('hasLength', 'bool');
     assertSuggestFunction('identical', 'bool');
@@ -206,7 +202,6 @@ void main() {f^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertSuggestFunction('hasLength', 'bool');
     assertSuggestFunction('identical', 'bool');
@@ -234,7 +229,6 @@ void main() {f^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertNotSuggested('bar');
     assertSuggestFunction('hasLength', 'bool',
         kind: CompletionSuggestionKind.IDENTIFIER);
@@ -264,7 +258,6 @@ void main() {f^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertSuggestFunction('hasLength', 'bool',
         kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestFunction('identical', 'bool',

@@ -508,10 +508,10 @@ void BytecodeFlowGraphBuilder::BuildEntryOptional() {
   PrologueBuilder prologue_builder(parsed_function(), B->last_used_block_id_,
                                    B->IsCompiledForOsr(), B->IsInlining());
 
-  B->last_used_block_id_ = prologue_builder.last_used_block_id();
-
   copy_args_prologue += prologue_builder.BuildOptionalParameterHandling(
       throw_no_such_method_, temp_var);
+
+  B->last_used_block_id_ = prologue_builder.last_used_block_id();
 
   JoinEntryInstr* prologue_exit = B->BuildJoinEntry();
   copy_args_prologue += B->Goto(prologue_exit);
@@ -597,7 +597,7 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
     store_type_args += B->LoadArgDescriptor();
     store_type_args += B->LoadNativeField(Slot::ArgumentsDescriptor_count());
     store_type_args += B->LoadFpRelativeSlot(
-        kWordSize * (1 + compiler_frame_layout.param_end_from_fp));
+        kWordSize * (1 + compiler::target::frame_layout.param_end_from_fp));
     store_type_args +=
         B->StoreLocalRaw(TokenPosition::kNoSource, type_args_var);
     store_type_args += B->Drop();
@@ -693,6 +693,33 @@ void BytecodeFlowGraphBuilder::BuildIndirectStaticCall() {
       position_, target, arg_desc.TypeArgsLen(),
       Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), arguments,
       *ic_data_array_, icdata.deopt_id(), ICData::kStatic);
+
+  // TODO(alexmarkov): add type info
+  // SetResultTypeForStaticCall(call, target, argument_count, result_type);
+
+  code_ <<= call;
+  B->Push(call);
+}
+
+void BytecodeFlowGraphBuilder::BuildDirectCall() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
+  const Array& arg_desc_array =
+      Array::Cast(ConstantAt(DecodeOperandD(), 1).value());
+  const ArgumentsDescriptor arg_desc(arg_desc_array);
+  intptr_t argc = DecodeOperandA().value();
+
+  ArgumentArray arguments = GetArguments(argc);
+
+  // TODO(alexmarkov): pass ICData::kSuper for super calls
+  // (need to distinguish them in bytecode).
+  StaticCallInstr* call = new (Z) StaticCallInstr(
+      position_, target, arg_desc.TypeArgsLen(),
+      Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), arguments,
+      *ic_data_array_, B->GetNextDeoptId(), ICData::kStatic);
 
   // TODO(alexmarkov): add type info
   // SetResultTypeForStaticCall(call, target, argument_count, result_type);
@@ -994,7 +1021,6 @@ void BytecodeFlowGraphBuilder::BuildPushStatic() {
 void BytecodeFlowGraphBuilder::BuildStoreIndexedTOS() {
   LoadStackSlots(3);
   code_ += B->StoreIndexed(kArrayCid);
-  code_ += B->Drop();
 }
 
 void BytecodeFlowGraphBuilder::BuildBooleanNegateTOS() {
@@ -1365,7 +1391,7 @@ void BytecodeFlowGraphBuilder::BuildCompareIntLe() {
 }
 
 static bool IsICDataEntry(const ObjectPool& object_pool, intptr_t index) {
-  if (object_pool.TypeAt(index) != ObjectPool::kTaggedObject) {
+  if (object_pool.TypeAt(index) != ObjectPool::EntryType::kTaggedObject) {
     return false;
   }
   RawObject* entry = object_pool.ObjectAt(index);

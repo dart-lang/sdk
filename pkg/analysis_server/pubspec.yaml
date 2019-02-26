@@ -1,0 +1,29 @@
+name: analysis_server
+publish_to: none
+
+environment:
+  sdk: '>=2.1.0-dev.5.0 <3.0.0'
+
+dependencies:
+  analyzer: any
+  analyzer_plugin: any
+  args: any
+  convert: any
+  crypto: any
+  dart_style: any
+  front_end: any
+  linter: any
+  logging: any
+  meta: any
+  source_span: any
+  package_config: any
+  path: any
+  watcher: any
+  yaml: any
+
+dev_dependencies:
+  analysis_tool: any
+  html: any
+  http: any
+  test_reflective_loader: any
+  test: any

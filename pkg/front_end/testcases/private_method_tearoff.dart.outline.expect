@@ -3,6 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "./private_method_tearoff_lib.dart" as pri;
 
+import "org-dartlang-testcase:///private_method_tearoff_lib.dart";
+
 class Foo extends core::Object implements pri::Bar {
   synthetic constructor •() → self::Foo
     ;
@@ -14,4 +16,17 @@ class Baz extends self::Foo {
     ;
 }
 static method main() → dynamic
+  ;
+
+library;
+import self as pri;
+import "dart:core" as core;
+
+class Bar extends core::Object {
+  synthetic constructor •() → pri::Bar
+    ;
+  method _f() → void
+    ;
+}
+static method baz(pri::Bar bar) → void
   ;

@@ -76,6 +76,14 @@ class EnqueueTask extends CompilerTask {
 }
 
 abstract class Enqueuer {
+  /// If `true` the checking for unenqueued members is skipped. The current
+  /// implementation registers parameter usages as a side-effect so unit
+  /// testing of member usage we need to test both with and without the
+  /// enqueuer check.
+  // TODO(johnniwinther): [checkEnqueuerConsistency] should not have
+  // side-effects.
+  static bool skipEnqueuerCheckForTesting = false;
+
   WorldBuilder get worldBuilder;
 
   void open(ImpactStrategy impactStrategy, FunctionEntity mainMethod,
@@ -277,6 +285,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   bool checkNoEnqueuedInvokedInstanceMethods(
       ElementEnvironment elementEnvironment) {
+    if (Enqueuer.skipEnqueuerCheckForTesting) return true;
     return checkEnqueuerConsistency(elementEnvironment);
   }
 

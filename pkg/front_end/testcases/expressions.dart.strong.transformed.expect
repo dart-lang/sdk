@@ -1,4 +1,11 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/expressions.dart:74:16: Error: Method not found: 'int.toString'.
+//     print(int?.toString());
+//                ^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 

@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -29,6 +28,30 @@ abstract class B extends A {
   }
 
   void foo(int _) {} // does not matter
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+
+    var invocation = findNode.methodInvocation('foo(0)');
+    assertMethodInvocation(
+      invocation,
+      findElement.method('foo', of: 'A'),
+      '(int) → void',
+    );
+    assertSuperExpression(invocation.target);
+  }
+
+  test_error_abstractSuperMemberReference_mixin_implements() async {
+    addTestFile(r'''
+class A {
+  void foo(int _) {}
+}
+
+mixin M implements A {
+  void bar() {
+    super.foo(0);
+  }
 }
 ''');
     await resolveTestFile();
@@ -444,7 +467,7 @@ main() {
       CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
     ]);
 
-    var import = _importFinder('package:test/a.dart');
+    var import = findElement.importFind('package:test/a.dart');
 
     var invocation = findNode.methodInvocation('foo();');
     assertMethodInvocation(
@@ -468,7 +491,7 @@ main() {
       CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
     ]);
 
-    var import = _importFinder('dart:math');
+    var import = findElement.importFind('dart:math');
 
     var invocation = findNode.methodInvocation('loadLibrary()');
     assertMethodInvocation(
@@ -1052,7 +1075,7 @@ main() {
     await resolveTestFile();
     assertNoTestErrors();
 
-    var import = _importFinder('dart:math');
+    var import = findElement.importFind('dart:math');
 
     var invocation = findNode.methodInvocation('loadLibrary()');
     assertMethodInvocation(
@@ -1099,7 +1122,7 @@ main() {
     await resolveTestFile();
     assertNoTestErrors();
 
-    var import = _importFinder('package:test/a.dart');
+    var import = findElement.importFind('package:test/a.dart');
 
     var invocation = findNode.methodInvocation('foo(1, 2)');
     assertMethodInvocation(
@@ -1125,7 +1148,7 @@ main() {
     await resolveTestFile();
     assertNoTestErrors();
 
-    var import = _importFinder('package:test/a.dart');
+    var import = findElement.importFind('package:test/a.dart');
 
     var invocation = findNode.methodInvocation('foo(1, 2)');
     assertMethodInvocation(
@@ -1304,7 +1327,7 @@ main() {
     await resolveTestFile();
     assertNoTestErrors();
 
-    var import = _importFinder('package:test/a.dart');
+    var import = findElement.importFind('package:test/a.dart');
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertMethodInvocation(
@@ -1336,7 +1359,7 @@ main() {
     await resolveTestFile();
     assertNoTestErrors();
 
-    var import = _importFinder('package:test/a.dart');
+    var import = findElement.importFind('package:test/a.dart');
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertMethodInvocation(
@@ -1726,51 +1749,5 @@ main() {
 //      'dynamic',
 //      expectedType: 'dynamic',
 //    );
-  }
-
-  _ImportElementFinder _importFinder(String targetUri) {
-    var import = findElement.import(targetUri);
-    return _ImportElementFinder(import);
-  }
-}
-
-class _ImportElementFinder {
-  final ImportElement import;
-
-  _ImportElementFinder(this.import);
-
-  CompilationUnitElement get definingUnit {
-    return importedLibrary.definingCompilationUnit;
-  }
-
-  LibraryElement get importedLibrary => import.importedLibrary;
-
-  PrefixElement get prefix => import.prefix;
-
-  ClassElement class_(String name) {
-    for (var class_ in definingUnit.types) {
-      if (class_.name == name) {
-        return class_;
-      }
-    }
-    fail('Not found class: $name');
-  }
-
-  FunctionElement topFunction(String name) {
-    for (var function in definingUnit.functions) {
-      if (function.name == name) {
-        return function;
-      }
-    }
-    fail('Not found top-level function: $name');
-  }
-
-  PropertyAccessorElement topGetter(String name) {
-    for (var accessor in definingUnit.accessors) {
-      if (accessor.name == name && accessor.isGetter) {
-        return accessor;
-      }
-    }
-    fail('Not found top-level getter: $name');
   }
 }

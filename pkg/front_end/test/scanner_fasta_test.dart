@@ -324,6 +324,15 @@ main() {}
     }
   }
 
+  void test_spread_operators() {
+    ErrorListener listener = new ErrorListener();
+    Token openBracket = scanWithListener('[ 1, ...[2], ...?[3], ]', listener);
+    Token spreadToken = openBracket.next.next.next;
+    expect(spreadToken.lexeme, '...');
+    Token spreadQToken = spreadToken.next.next.next.next.next;
+    expect(spreadQToken.lexeme, '...?');
+  }
+
   @override
   void test_unmatched_openers() {
     ErrorListener listener = new ErrorListener();

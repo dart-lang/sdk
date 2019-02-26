@@ -1,4 +1,13 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/set_literals/disambiguation_rule.dart:13:28: Error: The set literal type 'Set<dynamic>' isn't of expected type 'LinkedHashSet<int>'.
+//  - 'Set' is from 'dart:core'.
+//  - 'LinkedHashSet' is from 'dart:collection'.
+// Change the type of the set literal or the context in which it is used.
+//   LinkedHashSet<int> lhs = {};
+//                            ^
 //
 // pkg/front_end/testcases/set_literals/disambiguation_rule.dart:14:34: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
 //  - 'Map' is from 'dart:core'.
@@ -6,6 +15,13 @@
 // Change the type of the map literal or the context in which it is used.
 //   LinkedHashMap<int, bool> lhm = {};
 //                                  ^
+//
+// pkg/front_end/testcases/set_literals/disambiguation_rule.dart:32:46: Error: The set literal type 'Set<dynamic>' isn't of expected type 'LinkedHashSet<int>'.
+//  - 'Set' is from 'dart:core'.
+//  - 'LinkedHashSet' is from 'dart:collection'.
+// Change the type of the set literal or the context in which it is used.
+// Future<LinkedHashSet<int>> lhsfun() async => {};
+//                                              ^
 //
 // pkg/front_end/testcases/set_literals/disambiguation_rule.dart:33:52: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
 //  - 'Map' is from 'dart:core'.
@@ -29,19 +45,26 @@
 // Try changing the type of the left hand side, or casting the right hand side to 'FutureOr<LinkedHashMap<int, bool>>'.
 // FutureOr<LinkedHashMap<int, bool>> lhmfun2() => {};
 //                                                 ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 import "dart:async" as asy;
 
+import "dart:async";
+import "dart:collection";
+
 static method main() → dynamic async {
   core::Map<core::int, core::bool> m = <core::int, core::bool>{};
   core::Set<core::int> s = let final core::Set<core::int> #t1 = col::LinkedHashSet::•<core::int>() in #t1;
   core::Iterable<core::int> i = let final core::Set<core::int> #t2 = col::LinkedHashSet::•<core::int>() in #t2;
-  col::LinkedHashSet<core::int> lhs = (let final core::Set<dynamic> #t3 = col::LinkedHashSet::•<dynamic>() in #t3) as{TypeError} col::LinkedHashSet<core::int>;
-  col::LinkedHashMap<core::int, core::bool> lhm = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:14:34: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
+  col::LinkedHashSet<core::int> lhs = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:13:28: Error: The set literal type 'Set<dynamic>' isn't of expected type 'LinkedHashSet<int>'.
+ - 'Set' is from 'dart:core'.
+ - 'LinkedHashSet' is from 'dart:collection'.
+Change the type of the set literal or the context in which it is used.
+  LinkedHashSet<int> lhs = {};
+                           ^" in let final core::Set<dynamic> #t4 = col::LinkedHashSet::•<dynamic>() in #t4;
+  col::LinkedHashMap<core::int, core::bool> lhm = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:14:34: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
  - 'Map' is from 'dart:core'.
  - 'LinkedHashMap' is from 'dart:collection'.
 Change the type of the map literal or the context in which it is used.
@@ -61,13 +84,18 @@ Change the type of the map literal or the context in which it is used.
 static method mapfun() → asy::Future<core::Map<core::int, core::bool>> async 
   return <core::int, core::bool>{};
 static method setfun() → asy::Future<core::Set<core::int>> async 
-  return let final core::Set<core::int> #t5 = col::LinkedHashSet::•<core::int>() in #t5;
-static method iterablefun() → asy::Future<core::Iterable<core::int>> async 
   return let final core::Set<core::int> #t6 = col::LinkedHashSet::•<core::int>() in #t6;
+static method iterablefun() → asy::Future<core::Iterable<core::int>> async 
+  return let final core::Set<core::int> #t7 = col::LinkedHashSet::•<core::int>() in #t7;
 static method lhsfun() → asy::Future<col::LinkedHashSet<core::int>> async 
-  return (let final core::Set<dynamic> #t7 = col::LinkedHashSet::•<dynamic>() in #t7) as{TypeError} asy::FutureOr<col::LinkedHashSet<core::int>>;
+  return let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:32:46: Error: The set literal type 'Set<dynamic>' isn't of expected type 'LinkedHashSet<int>'.
+ - 'Set' is from 'dart:core'.
+ - 'LinkedHashSet' is from 'dart:collection'.
+Change the type of the set literal or the context in which it is used.
+Future<LinkedHashSet<int>> lhsfun() async => {};
+                                             ^" in let final core::Set<dynamic> #t9 = col::LinkedHashSet::•<dynamic>() in #t9;
 static method lhmfun() → asy::Future<col::LinkedHashMap<core::int, core::bool>> async 
-  return let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:33:52: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
+  return let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:33:52: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
  - 'Map' is from 'dart:core'.
  - 'LinkedHashMap' is from 'dart:collection'.
 Change the type of the map literal or the context in which it is used.
@@ -76,19 +104,19 @@ Future<LinkedHashMap<int, bool>> lhmfun() async => {};
 static method mapfun2() → asy::FutureOr<core::Map<core::int, core::bool>>
   return <core::int, core::bool>{};
 static method setfun2() → asy::FutureOr<core::Set<core::int>>
-  return let final core::Set<core::int> #t9 = col::LinkedHashSet::•<core::int>() in #t9;
+  return let final core::Set<core::int> #t11 = col::LinkedHashSet::•<core::int>() in #t11;
 static method iterablefun2() → asy::FutureOr<core::Iterable<core::int>>
-  return let final core::Set<core::int> #t10 = col::LinkedHashSet::•<core::int>() in #t10;
+  return let final core::Set<core::int> #t12 = col::LinkedHashSet::•<core::int>() in #t12;
 static method lhsfun2() → asy::FutureOr<col::LinkedHashSet<core::int>>
-  return let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:38:43: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashSet<int>>'.
+  return let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:38:43: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashSet<int>>'.
  - 'Set' is from 'dart:core'.
  - 'FutureOr' is from 'dart:async'.
  - 'LinkedHashSet' is from 'dart:collection'.
 Try changing the type of the left hand side, or casting the right hand side to 'FutureOr<LinkedHashSet<int>>'.
 FutureOr<LinkedHashSet<int>> lhsfun2() => {};
-                                          ^" in (let final core::Set<dynamic> #t12 = col::LinkedHashSet::•<dynamic>() in #t12) as{TypeError} asy::FutureOr<col::LinkedHashSet<core::int>>;
+                                          ^" in (let final core::Set<dynamic> #t14 = col::LinkedHashSet::•<dynamic>() in #t14) as{TypeError} asy::FutureOr<col::LinkedHashSet<core::int>>;
 static method lhmfun2() → asy::FutureOr<col::LinkedHashMap<core::int, core::bool>>
-  return let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:39:49: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashMap<int, bool>>'.
+  return let final<BottomType> #t15 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:39:49: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashMap<int, bool>>'.
  - 'Map' is from 'dart:core'.
  - 'FutureOr' is from 'dart:async'.
  - 'LinkedHashMap' is from 'dart:collection'.

@@ -5,10 +5,12 @@
 #ifndef RUNTIME_VM_THREAD_STATE_H_
 #define RUNTIME_VM_THREAD_STATE_H_
 
+#include "include/dart_api.h"
 #include "vm/os_thread.h"
 
 namespace dart {
 
+class HandleScope;
 class LongJumpScope;
 class Zone;
 
@@ -35,7 +37,7 @@ class ThreadState : public BaseThread {
   }
 
   explicit ThreadState(bool is_os_thread);
-  ~ThreadState();
+  virtual ~ThreadState();
 
   // OSThread corresponding to this thread.
   OSThread* os_thread() const { return os_thread_; }
@@ -72,6 +74,27 @@ class ThreadState : public BaseThread {
   LongJumpScope* long_jump_base() const { return long_jump_base_; }
   void set_long_jump_base(LongJumpScope* value) { long_jump_base_ = value; }
 
+  bool IsValidZoneHandle(Dart_Handle object) const;
+  intptr_t CountZoneHandles() const;
+  bool IsValidScopedHandle(Dart_Handle object) const;
+  intptr_t CountScopedHandles() const;
+
+  virtual bool MayAllocateHandles() = 0;
+
+  HandleScope* top_handle_scope() const {
+#if defined(DEBUG)
+    return top_handle_scope_;
+#else
+    return 0;
+#endif
+  }
+
+  void set_top_handle_scope(HandleScope* handle_scope) {
+#if defined(DEBUG)
+    top_handle_scope_ = handle_scope;
+#endif
+  }
+
  private:
   void set_zone(Zone* zone) { zone_ = zone; }
 
@@ -81,6 +104,11 @@ class ThreadState : public BaseThread {
   uintptr_t zone_high_watermark_ = 0;
   StackResource* top_resource_ = nullptr;
   LongJumpScope* long_jump_base_ = nullptr;
+
+  // This field is only used in the DEBUG builds, but we don't exclude it
+  // because it would cause RELEASE and DEBUG builds to have different
+  // offsets for various Thread fields that are used from generated code.
+  HandleScope* top_handle_scope_ = nullptr;
 
   friend class ApiZone;
   friend class StackZone;

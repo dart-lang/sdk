@@ -10,12 +10,14 @@ import '../../generated/resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedLabelTest);
-    defineReflectiveTests(UnusedLabelTest_Driver);
   });
 }
 
 @reflectiveTest
 class UnusedLabelTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_unused_inSwitch() async {
     await assertErrorsInCode(r'''
 f(x) {
@@ -61,10 +63,4 @@ f(condition()) {
 }
 ''');
   }
-}
-
-@reflectiveTest
-class UnusedLabelTest_Driver extends UnusedLabelTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

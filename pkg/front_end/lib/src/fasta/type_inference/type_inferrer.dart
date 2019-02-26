@@ -35,6 +35,7 @@ import 'package:kernel/ast.dart'
         PropertyGet,
         PropertySet,
         ReturnStatement,
+        SetLiteral,
         Statement,
         StaticGet,
         SuperMethodInvocation,
@@ -49,7 +50,9 @@ import 'package:kernel/ast.dart'
         VariableGet,
         VoidType;
 
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy, MixinInferrer;
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import 'package:kernel/class_hierarchy.dart' as kernel show MixinInferrer;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -83,6 +86,7 @@ import '../fasta_codes.dart'
         templateInvalidCastFunctionExpr,
         templateInvalidCastLiteralList,
         templateInvalidCastLiteralMap,
+        templateInvalidCastLiteralSet,
         templateInvalidCastLocalFunction,
         templateInvalidCastNewExpr,
         templateInvalidCastStaticMethod,
@@ -109,13 +113,13 @@ import '../kernel/kernel_shadow_ast.dart'
         getExplicitTypeArguments,
         getInferredType;
 
+import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
+
 import '../names.dart' show callName, unaryMinusName;
 
 import '../problems.dart' show internalProblem, unexpected, unhandled;
 
 import '../source/source_loader.dart' show SourceLoader;
-
-import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
 import 'inference_helper.dart' show InferenceHelper;
 
@@ -769,14 +773,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       expression.parent.replaceChild(
           expression,
-          new Let(
-              new VariableDeclaration.forValue(receiver)
-                ..fileOffset = receiver.fileOffset,
-              helper.desugarSyntheticExpression(helper.buildProblem(
-                  errorTemplate.withArguments(name.name, receiverType),
-                  fileOffset,
-                  length)))
-            ..fileOffset = fileOffset);
+          helper.desugarSyntheticExpression(helper.buildProblem(
+              errorTemplate.withArguments(name.name, receiverType),
+              fileOffset,
+              length)));
     }
     return interfaceMember;
   }
@@ -1676,12 +1676,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Modifies a type as appropriate when inferring a closure return type.
   DartType inferReturnType(DartType returnType) {
-    if (returnType == null) {
-      // Analyzer infers `Null` if there is no `return` expression; the spec
-      // says to return `void`.  TODO(paulberry): resolve this difference.
-      return coreTypes.nullClass.rawType;
-    }
-    return returnType;
+    return returnType ?? typeSchemaEnvironment.nullType;
   }
 
   /// Performs type inference on the given [statement].
@@ -1869,6 +1864,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (expression is MapLiteral) {
       return templateInvalidCastLiteralMap;
     }
+    if (expression is SetLiteral) {
+      return templateInvalidCastLiteralSet;
+    }
     if (expression is FunctionExpression) {
       return templateInvalidCastFunctionExpr;
     }
@@ -1911,28 +1909,41 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 }
 
-class LegacyModeMixinInferrer implements MixinInferrer {
+// TODO(ahe): I'm working on removing this.
+class KernelHierarchyMixinInferrerCallback implements kernel.MixinInferrer {
+  final SourceLoader loader;
+  final bool legacyMode;
+
+  KernelHierarchyMixinInferrerCallback(this.loader, this.legacyMode);
+
+  @override
   void infer(ClassHierarchy hierarchy, Class classNode) {
+    if (legacyMode) return;
     Supertype mixedInType = classNode.mixedInType;
-    if (mixedInType.typeArguments.isNotEmpty &&
-        mixedInType.typeArguments.first == const UnknownType()) {
-      assert(mixedInType.typeArguments.every((t) => t == const UnknownType()));
-      for (int i = 0; i < mixedInType.typeArguments.length; ++i) {
-        mixedInType.typeArguments[i] = const DynamicType();
-      }
-    }
+    List<DartType> typeArguments = mixedInType.typeArguments;
+    if (typeArguments.isEmpty || typeArguments.first is! UnknownType) return;
+    new KernelHierarchyMixinInferrer(
+            hierarchy,
+            loader,
+            new TypeConstraintGatherer(
+                new TypeSchemaEnvironment(loader.coreTypes, hierarchy),
+                mixedInType.classNode.typeParameters))
+        .infer(classNode);
   }
 }
 
-class StrongModeMixinInferrer implements MixinInferrer {
+abstract class MixinInferrer {
   final CoreTypes coreTypes;
-  final SourceLoader loader;
-  TypeConstraintGatherer gatherer;
+  final TypeConstraintGatherer gatherer;
 
-  StrongModeMixinInferrer(this.loader) : coreTypes = loader.coreTypes;
+  MixinInferrer(this.coreTypes, this.gatherer);
 
-  void generateConstraints(ClassHierarchy hierarchy, Class mixinClass,
-      Supertype baseType, Supertype mixinSupertype) {
+  Supertype asInstantiationOf(Supertype type, Class superclass);
+
+  void reportProblem(Message message, Class cls);
+
+  void generateConstraints(
+      Class mixinClass, Supertype baseType, Supertype mixinSupertype) {
     if (mixinSupertype.typeArguments.isEmpty) {
       // The supertype constraint isn't generic; it doesn't constrain anything.
     } else if (mixinSupertype.classNode.isAnonymousMixin) {
@@ -1990,20 +2001,18 @@ class StrongModeMixinInferrer implements MixinInferrer {
       }
       s0 = substitution.substituteSupertype(s0);
       s1 = substitution.substituteSupertype(s1);
-      generateConstraints(hierarchy, mixinClass, baseType, s0);
-      generateConstraints(hierarchy, mixinClass, baseType, s1);
+      generateConstraints(mixinClass, baseType, s0);
+      generateConstraints(mixinClass, baseType, s1);
     } else {
       // Find the type U0 which is baseType as an instance of mixinSupertype's
       // class.
       Supertype supertype =
-          hierarchy.asInstantiationOf(baseType, mixinSupertype.classNode);
+          asInstantiationOf(baseType, mixinSupertype.classNode);
       if (supertype == null) {
-        loader.addProblem(
+        reportProblem(
             templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
                 baseType.classNode.name, mixinSupertype.asInterfaceType),
-            mixinClass.fileOffset,
-            noLength,
-            mixinClass.fileUri);
+            mixinClass);
         return;
       }
       InterfaceType u0 = Substitution.fromSupertype(baseType)
@@ -2018,62 +2027,70 @@ class StrongModeMixinInferrer implements MixinInferrer {
     }
   }
 
-  void infer(ClassHierarchy hierarchy, Class classNode) {
+  void infer(Class classNode) {
     Supertype mixedInType = classNode.mixedInType;
-    if (mixedInType.typeArguments.isNotEmpty &&
-        mixedInType.typeArguments.first == const UnknownType()) {
-      assert(mixedInType.typeArguments.every((t) => t == const UnknownType()));
-      // Note that we have no anonymous mixin applications, they have all
-      // been named.  Note also that mixin composition has been translated
-      // so that we only have mixin applications of the form `S with M`.
-      Supertype baseType = classNode.supertype;
-      Class mixinClass = mixedInType.classNode;
-      Supertype mixinSupertype = mixinClass.supertype;
-      gatherer = new TypeConstraintGatherer(
-          new TypeSchemaEnvironment(loader.coreTypes, hierarchy),
-          mixinClass.typeParameters);
-      // Generate constraints based on the mixin's supertype.
-      generateConstraints(hierarchy, mixinClass, baseType, mixinSupertype);
-      // Solve them to get a map from type parameters to upper and lower
-      // bounds.
-      var result = gatherer.computeConstraints();
-      // Generate new type parameters with the solution as bounds.
-      List<TypeParameter> parameters = mixinClass.typeParameters.map((p) {
-        var constraint = result[p];
-        // Because we solved for equality, a valid solution has a parameter
-        // either unconstrained or else with identical upper and lower bounds.
-        if (constraint != null && constraint.upper != constraint.lower) {
-          loader.addProblem(
-              templateMixinInferenceNoMatchingClass.withArguments(
-                  mixinClass.name,
-                  baseType.classNode.name,
-                  mixinSupertype.asInterfaceType),
-              mixinClass.fileOffset,
-              noLength,
-              mixinClass.fileUri);
-          return p;
-        }
-        assert(constraint == null || constraint.upper == constraint.lower);
-        bool exact =
-            constraint != null && constraint.upper != const UnknownType();
-        return new TypeParameter(
-            p.name, exact ? constraint.upper : p.bound, p.defaultType);
-      }).toList();
-      // Bounds might mention the mixin class's type parameters so we have to
-      // substitute them before calling instantiate to bounds.
-      var substitution = Substitution.fromPairs(mixinClass.typeParameters,
-          parameters.map((p) => new TypeParameterType(p)).toList());
-      for (var p in parameters) {
-        p.bound = substitution.substituteType(p.bound);
+    assert(mixedInType.typeArguments.every((t) => t == const UnknownType()));
+    // Note that we have no anonymous mixin applications, they have all
+    // been named.  Note also that mixin composition has been translated
+    // so that we only have mixin applications of the form `S with M`.
+    Supertype baseType = classNode.supertype;
+    Class mixinClass = mixedInType.classNode;
+    Supertype mixinSupertype = mixinClass.supertype;
+    // Generate constraints based on the mixin's supertype.
+    generateConstraints(mixinClass, baseType, mixinSupertype);
+    // Solve them to get a map from type parameters to upper and lower
+    // bounds.
+    var result = gatherer.computeConstraints();
+    // Generate new type parameters with the solution as bounds.
+    List<TypeParameter> parameters = mixinClass.typeParameters.map((p) {
+      var constraint = result[p];
+      // Because we solved for equality, a valid solution has a parameter
+      // either unconstrained or else with identical upper and lower bounds.
+      if (constraint != null && constraint.upper != constraint.lower) {
+        reportProblem(
+            templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
+                baseType.classNode.name, mixinSupertype.asInterfaceType),
+            mixinClass);
+        return p;
       }
-      // Use instantiate to bounds.
-      List<DartType> bounds =
-          calculateBounds(parameters, loader.coreTypes.objectClass);
-      for (int i = 0; i < mixedInType.typeArguments.length; ++i) {
-        mixedInType.typeArguments[i] = bounds[i];
-      }
-      gatherer = null;
+      assert(constraint == null || constraint.upper == constraint.lower);
+      bool exact =
+          constraint != null && constraint.upper != const UnknownType();
+      return new TypeParameter(
+          p.name, exact ? constraint.upper : p.bound, p.defaultType);
+    }).toList();
+    // Bounds might mention the mixin class's type parameters so we have to
+    // substitute them before calling instantiate to bounds.
+    var substitution = Substitution.fromPairs(mixinClass.typeParameters,
+        parameters.map((p) => new TypeParameterType(p)).toList());
+    for (var p in parameters) {
+      p.bound = substitution.substituteType(p.bound);
     }
+    // Use instantiate to bounds.
+    List<DartType> bounds = calculateBounds(parameters, coreTypes.objectClass);
+    for (int i = 0; i < mixedInType.typeArguments.length; ++i) {
+      mixedInType.typeArguments[i] = bounds[i];
+    }
+  }
+}
+
+// TODO(ahe): I'm working on removing this.
+class KernelHierarchyMixinInferrer extends MixinInferrer {
+  final ClassHierarchy hierarchy;
+  final SourceLoader loader;
+
+  KernelHierarchyMixinInferrer(
+      this.hierarchy, this.loader, TypeConstraintGatherer gatherer)
+      : super(loader.coreTypes, gatherer);
+
+  @override
+  Supertype asInstantiationOf(Supertype type, Class superclass) {
+    return hierarchy.asInstantiationOf(type, superclass);
+  }
+
+  @override
+  void reportProblem(Message message, Class cls) {
+    loader.addProblem(message, cls.fileOffset, noLength, cls.fileUri);
   }
 }
 

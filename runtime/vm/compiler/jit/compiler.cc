@@ -103,6 +103,9 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_background_compilation = false;
     FLAG_collect_code = false;
     FLAG_enable_mirrors = false;
+    // TODO(dacoharkes): Ffi support in AOT
+    // https://github.com/dart-lang/sdk/issues/35765
+    FLAG_enable_ffi = false;
     FLAG_fields_may_be_reset = true;
     FLAG_interpret_irregexp = true;
     FLAG_lazy_dispatchers = false;
@@ -125,7 +128,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
     FLAG_load_deferred_eagerly = true;
-    FLAG_print_stop_message = false;
     FLAG_use_osr = false;
 #endif
   }
@@ -557,8 +559,6 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
     return Code::null();
   }
   Zone* const zone = thread()->zone();
-  NOT_IN_PRODUCT(TimelineStream* compiler_timeline =
-                     Timeline::GetCompilerStream());
   HANDLESCOPE(thread());
 
   // We may reattempt compilation if the function needs to be assembled using
@@ -619,8 +619,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           }
         }
 
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
-                                                 "BuildFlowGraph"));
+        TIMELINE_DURATION(thread(), CompilerVerbose, "BuildFlowGraph");
         flow_graph = pipeline->BuildFlowGraph(
             zone, parsed_function(), ic_data_array, osr_id(), optimized());
       }
@@ -638,19 +637,17 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       const bool reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized());
       if (reorder_blocks) {
-        NOT_IN_PRODUCT(TimelineDurationScope tds(
-            thread(), compiler_timeline, "BlockScheduler::AssignEdgeWeights"));
+        TIMELINE_DURATION(thread(), CompilerVerbose,
+                          "BlockScheduler::AssignEdgeWeights");
         block_scheduler.AssignEdgeWeights();
       }
 
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy);
-      NOT_IN_PRODUCT(pass_state.compiler_timeline = compiler_timeline);
       pass_state.block_scheduler = &block_scheduler;
       pass_state.reorder_blocks = reorder_blocks;
 
       if (optimized()) {
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
-                                                 "OptimizationPasses"));
+        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
         pass_state.inline_id_to_function.Add(&function);
         // We do not add the token position now because we don't know the
@@ -669,22 +666,20 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       ASSERT(pass_state.inline_id_to_function.length() ==
              pass_state.caller_inline_id.length());
-      ObjectPoolWrapper object_pool_wrapper;
-      Assembler assembler(&object_pool_wrapper, use_far_branches);
+      ObjectPoolBuilder object_pool_builder;
+      Assembler assembler(&object_pool_builder, use_far_branches);
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
           &speculative_policy, pass_state.inline_id_to_function,
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
           ic_data_array);
       {
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
-                                                 "CompileGraph"));
+        TIMELINE_DURATION(thread(), CompilerVerbose, "CompileGraph");
         graph_compiler.CompileGraph();
         pipeline->FinalizeCompilation(flow_graph);
       }
       {
-        NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
-                                                 "FinalizeCompilation"));
+        TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
         if (thread()->IsMutatorThread()) {
           *result =
               FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
@@ -706,6 +701,19 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
             *result =
                 FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
           }
+        }
+      }
+      if (!result->IsNull()) {
+#if !defined(PRODUCT)
+        if (!function.HasOptimizedCode()) {
+          isolate()->debugger()->NotifyCompilation(function);
+        }
+#endif
+        if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
+          Disassembler::DisassembleCode(function, *result, optimized());
+        } else if (FLAG_disassemble_optimized && optimized() &&
+                   FlowGraphPrinter::ShouldPrint(function)) {
+          Disassembler::DisassembleCode(function, *result, true);
         }
       }
       // Exit the loop and the function with the correct result value.
@@ -880,17 +888,6 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                 Code::Handle(function.CurrentCode()).PayloadStart(),
                 Code::Handle(function.CurrentCode()).Size(),
                 per_compile_timer.TotalElapsedTime());
-    }
-
-#if !defined(PRODUCT)
-    isolate->debugger()->NotifyCompilation(function);
-#endif
-
-    if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
-      Disassembler::DisassembleCode(function, result, optimized);
-    } else if (FLAG_disassemble_optimized && optimized &&
-               FlowGraphPrinter::ShouldPrint(function)) {
-      Disassembler::DisassembleCode(function, result, true);
     }
 
     return result.raw();
@@ -1201,11 +1198,12 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
     ASSERT(thread->IsMutatorThread());
     NoOOBMessageScope no_msg_scope(thread);
     NoReloadScope no_reload_scope(thread->isolate(), thread);
-    // Under lazy compilation initializer has not yet been created, so create
-    // it now, but don't bother remembering it because it won't be used again.
-    ASSERT(!field.HasPrecompiledInitializer());
+    if (field.HasInitializer()) {
+      const Function& initializer = Function::Handle(field.Initializer());
+      return DartEntry::InvokeFunction(initializer, Object::empty_array());
+    }
     {
-#if !defined(PRODUCT)
+#if defined(SUPPORT_TIMELINE)
       VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
       TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
                                 "CompileStaticInitializer");
@@ -1706,9 +1704,8 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 }
 
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
-  ASSERT(field.HasPrecompiledInitializer());
-  const Function& initializer =
-      Function::Handle(field.PrecompiledInitializer());
+  ASSERT(field.HasInitializer());
+  const Function& initializer = Function::Handle(field.Initializer());
   return DartEntry::InvokeFunction(initializer, Object::empty_array());
 }
 

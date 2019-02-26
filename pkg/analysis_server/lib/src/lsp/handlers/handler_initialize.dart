@@ -29,11 +29,11 @@ class InitializeMessageHandler
     }
     if (params.rootUri != null) {
       openWorkspacePaths.add(Uri.parse(params.rootUri).toFilePath());
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
     } else if (params.rootPath != null) {
       // This is deprecated according to LSP spec, but we still want to support
       // it in case older clients send us it.
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       openWorkspacePaths.add(params.rootPath);
     }
 
@@ -60,10 +60,25 @@ class InitializeMessageHandler
           false,
           // Set the characters that will cause the editor to automatically
           // trigger completion.
-          // TODO(dantup): This is quite eager and may need filtering in the
-          // completion handler.
-          // See https://github.com/Dart-Code/Dart-Code/blob/c616c93c87972713454eb0518f97c0278201a99a/src/providers/dart_completion_item_provider.ts#L36
-          r'''.: =(${'"/\'''.split(''),
+          // TODO(dantup): There are several characters that we want to conditionally
+          // allow to trigger completion, but they can only be added when the completion
+          // provider is able to handle them in context:
+          //
+          //    {   trigger if being typed in a string immediately after a $
+          //    '   trigger if the opening quote for an import/export
+          //    "   trigger if the opening quote for an import/export
+          //    /   trigger if as part of a path in an import/export
+          //    \   trigger if as part of a path in an import/export
+          //    :   don't trigger when typing case expressions (`case x:`)
+          //
+          // Additionally, we need to prefix `filterText` on completion items
+          // with spaces for those that can follow whitespace (eg. `foo` in
+          // `myArg: foo`) to ensure they're not filtered away when the user
+          // types space.
+          //
+          // See https://github.com/Dart-Code/Dart-Code/blob/68d1cd271e88a785570257d487adbdec17abd6a3/src/providers/dart_completion_item_provider.ts#L36-L64
+          // for the VS Code implementation of this.
+          r'''.=($'''.split(''),
         ),
         new SignatureHelpOptions(
           // TODO(dantup): Signature help triggering is even more sensitive to
@@ -77,7 +92,7 @@ class InitializeMessageHandler
         true, // referencesProvider
         true, // documentHighlightProvider
         true, // documentSymbolProvider
-        null,
+        true, // workspaceSymbolProvider
         // "The `CodeActionOptions` return type is only valid if the client
         // signals code action literal support via the property
         // `textDocument.codeAction.codeActionLiteralSupport`."
@@ -94,7 +109,7 @@ class InitializeMessageHandler
             : Either2<bool, RenameOptions>.t1(true),
         null,
         null,
-        null,
+        Either3<bool, FoldingRangeProviderOptions, dynamic>.t1(true),
         new ExecuteCommandOptions(Commands.serverSupportedCommands),
         new ServerCapabilitiesWorkspace(
             new ServerCapabilitiesWorkspaceFolders(true, true)),

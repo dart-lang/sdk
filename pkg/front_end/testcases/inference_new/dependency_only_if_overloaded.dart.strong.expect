@@ -1,28 +1,17 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:17:67: Error: Can't infer the type of 'b': circularity found during type inference.
-// Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ b = a();
-//                                                                   ^
-//
-// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:15:67: Error: Can't infer the type of 'a': circularity found during type inference.
-// Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ a = /*@returnType=num*/ () =>
-//                                                                   ^
-
-// Unhandled errors:
-//
-// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:17:67: Error: Can't infer the type of 'b': circularity found during type inference.
-// Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ b = a();
-//                                                                   ^
-//
-// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:15:67: Error: Can't infer the type of 'a': circularity found during type inference.
-// Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ a = /*@returnType=num*/ () =>
-//                                                                   ^
-
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:17:67: Error: Can't infer the type of 'b': circularity found during type inference.
+// Specify the type explicitly.
+// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ b = a();
+//                                                                   ^
+//
+// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:15:67: Error: Can't infer the type of 'a': circularity found during type inference.
+// Specify the type explicitly.
+// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ a = /*@returnType=num*/ () =>
+//                                                                   ^
+//
 import self as self;
 import "dart:core" as core;
 

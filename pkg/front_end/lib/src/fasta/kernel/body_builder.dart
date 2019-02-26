@@ -862,8 +862,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       builder.body = body;
     } else {
       if (body != null) {
-        builder.body =
-            wrapInProblemStatement(body, fasta.messageExternalMethodWithBody);
+        builder.body = new Block(<Statement>[
+          new ExpressionStatementJudgment(desugarSyntheticExpression(
+              buildProblem(fasta.messageExternalMethodWithBody, body.fileOffset,
+                  noLength)))
+            ..fileOffset = body.fileOffset,
+          body,
+        ])
+          ..fileOffset = body.fileOffset;
       }
     }
     Member target = builder.target;
@@ -1118,7 +1124,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // TODO(ahe): Change this to a null check.
       int offset = builder.body?.fileOffset ?? builder.charOffset;
       constructor.initializers.add(buildInvalidInitializer(
-          buildProblem(fasta.messageConstructorNotSync, offset, noLength),
+          desugarSyntheticExpression(
+              buildProblem(fasta.messageConstructorNotSync, offset, noLength)),
           offset));
     }
     if (needsImplicitSuperInitializer) {
@@ -2234,10 +2241,47 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
-      int updateExpressionCount, Token endToken) {
+  void handleForLoopParts(Token forKeyword, Token leftParen,
+      Token leftSeparator, int updateExpressionCount) {
+    push(forKeyword);
+    push(leftParen);
+    push(leftSeparator);
+    push(updateExpressionCount);
+  }
+
+  @override
+  void endForControlFlow(Token token) {
+    debugEvent("endForControlFlow");
+    // TODO(danrubel) implement control flow support
+    var entry = pop();
+
+    int updateExpressionCount = pop();
+    pop(); // left separator
+    pop(); // left parenthesis
+    Token forToken = pop();
+
+    popListForEffect(updateExpressionCount); // updates
+    popStatement(); // condition
+    Object variableOrExpression = pop();
+    buildVariableDeclarations(variableOrExpression); // variables
+
+    push(entry); // push the entry back on the stack and drop the rest
+    handleRecoverableError(
+        fasta.templateUnexpectedToken.withArguments(forToken),
+        forToken,
+        forToken);
+  }
+
+  @override
+  void endForStatement(Token endToken) {
     debugEvent("ForStatement");
     Statement body = popStatement();
+
+    int updateExpressionCount = pop();
+    Token leftSeparator = pop();
+    Token leftParen = pop();
+    Token forKeyword = pop();
+
     List<Expression> updates = popListForEffect(updateExpressionCount);
     Statement conditionStatement = popStatement();
     Object variableOrExpression = pop();
@@ -2361,42 +2405,19 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         rightBrace);
     library.checkBoundsInSetLiteral(node, typeEnvironment);
     if (!library.loader.target.enableSetLiterals) {
-      node = wrapInProblem(node, fasta.messageSetLiteralsNotSupported,
-          lengthOfSpan(leftBrace, leftBrace.endGroup));
+      internalProblem(
+          fasta.messageSetLiteralsNotSupported, node.fileOffset, uri);
+      return;
     }
     push(node);
   }
 
   @override
-  void handleEmptyLiteralSetOrMap(
-      Token leftBrace, Token constKeyword, Token rightBrace) {
-    debugEvent("EmptyLiteralSetOrMap");
+  void handleLiteralSetOrMap(
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    debugEvent("LiteralSetOrMap");
     // Treat as map literal - type inference will find the right type.
-    List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
-    assert(typeArguments == null || typeArguments.length > 2);
-    if (typeArguments != null && typeArguments.length > 2) {
-      if (library.loader.target.enableSetLiterals) {
-        addProblem(
-            fasta.messageSetOrMapLiteralTooManyTypeArguments,
-            offsetForToken(leftBrace),
-            lengthOfSpan(leftBrace, leftBrace.endGroup));
-      } else {
-        addProblem(
-            fasta.messageMapLiteralTypeArgumentMismatch,
-            offsetForToken(leftBrace),
-            lengthOfSpan(leftBrace, leftBrace.endGroup));
-      }
-    }
-    DartType implicitTypeArgument = this.implicitTypeArgument;
-    push(forest.literalMap(
-        constKeyword,
-        constKeyword != null || constantContext == ConstantContext.inferred,
-        implicitTypeArgument,
-        implicitTypeArgument,
-        null,
-        leftBrace,
-        <MapEntry>[],
-        rightBrace));
+    handleLiteralMap(count, leftBrace, constKeyword, rightBrace);
   }
 
   @override
@@ -2423,8 +2444,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLiteralMap(
       int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     debugEvent("LiteralMap");
-    List<MapEntry> entries =
-        const GrowableList<MapEntry>().pop(stack, count) ?? <MapEntry>[];
+
+    // TODO(danrubel): Revise once spread collection entries are supported.
+    // For now, drop those on the floor
+    // as error(s) have already been reported in handleSpreadExpression.
+    List<MapEntry> entries = <MapEntry>[];
+    const FixedNullableList<dynamic>().pop(stack, count)?.forEach((entry) {
+      if (entry is MapEntry) {
+        entries.add(entry);
+      }
+    });
+
     List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
     DartType keyType;
     DartType valueType;
@@ -3495,6 +3525,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         errorName ??= debugName(type.name, name);
       }
+    } else if (type is InvalidTypeBuilder<TypeBuilder, Object>) {
+      LocatedMessage message = type.message;
+      return evaluateArgumentsBefore(
+          arguments,
+          buildProblem(message.messageObject, nameToken.charOffset,
+              nameToken.lexeme.length));
     } else {
       errorName = debugName(getNodeName(type), name);
     }
@@ -3516,6 +3552,46 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("endConstExpression");
     buildConstructorReferenceInvocation(
         token.next, token.offset, Constness.explicitConst);
+  }
+
+  void beginIfControlFlow(Token ifToken) {
+    // TODO(danrubel): remove this when control flow support is added
+    push(ifToken);
+  }
+
+  @override
+  void endIfControlFlow(Token token) {
+    debugEvent("endIfControlFlow");
+    // TODO(danrubel) implement control flow support
+    var entry = pop();
+    pop(); // parenthesized expression
+    Token ifToken = pop();
+    push(entry); // push the entry back on the stack and drop the rest
+    handleRecoverableError(
+        fasta.templateUnexpectedToken.withArguments(ifToken), ifToken, ifToken);
+  }
+
+  @override
+  void endIfElseControlFlow(Token token) {
+    debugEvent("endIfElseControlFlow");
+    // TODO(danrubel) implement control flow support
+    pop(); // else entry
+    var entry = pop(); // then entry
+    pop(); // parenthesized expression
+    Token ifToken = pop();
+    push(entry); // push the entry back on the stack and drop the rest
+    handleRecoverableError(
+        fasta.templateUnexpectedToken.withArguments(ifToken), ifToken, ifToken);
+  }
+
+  @override
+  void handleSpreadExpression(Token spreadToken) {
+    debugEvent("SpreadExpression");
+    // TODO(danrubel) implement spread expression support
+    handleRecoverableError(
+        fasta.templateUnexpectedToken.withArguments(spreadToken),
+        spreadToken,
+        spreadToken);
   }
 
   @override
@@ -3797,10 +3873,42 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token endToken) {
+  void handleForInLoopParts(Token awaitToken, Token forToken,
+      Token leftParenthesis, Token inKeyword) {
+    push(awaitToken ?? NullValue.AwaitToken);
+    push(forToken);
+    push(inKeyword);
+  }
+
+  @override
+  void endForInControlFlow(Token token) {
+    debugEvent("endForInControlFlow");
+    // TODO(danrubel) implement control flow support
+    var entry = pop();
+
+    pop(); // `in` keyword
+    Token forToken = pop();
+    pop(NullValue.AwaitToken); // await token
+
+    popForValue(); // expression
+    pop(); // lvalue
+
+    push(entry); // push the entry back on the stack and drop the rest
+    handleRecoverableError(
+        fasta.templateUnexpectedToken.withArguments(forToken),
+        forToken,
+        forToken);
+  }
+
+  @override
+  void endForIn(Token endToken) {
     debugEvent("ForIn");
     Statement body = popStatement();
+
+    Token inKeyword = pop();
+    Token forToken = pop();
+    Token awaitToken = pop(NullValue.AwaitToken);
+
     Expression expression = popForValue();
     Object lvalue = pop();
     exitLocalScope();
@@ -4454,16 +4562,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // TODO(ahe): The following doesn't make sense to Analyzer AST.
     Declaration constructor =
         library.loader.getAbstractClassInstantiationError();
-    return forest.throwExpression(
-        null,
-        buildStaticInvocation(
-            constructor.target,
-            forest.arguments(<Expression>[
-              forest.literalString(className, null)..fileOffset = charOffset
-            ], noLocation)
-              ..fileOffset = charOffset,
-            charOffset: charOffset))
-      ..fileOffset = charOffset;
+    Expression invocation = buildStaticInvocation(
+        constructor.target,
+        forest.arguments(<Expression>[
+          forest.literalString(className, null)..fileOffset = charOffset
+        ], noLocation)
+          ..fileOffset = charOffset,
+        charOffset: charOffset);
+    if (invocation is shadow.SyntheticExpressionJudgment) {
+      invocation = desugarSyntheticExpression(invocation);
+    }
+    return forest.throwExpression(null, invocation)..fileOffset = charOffset;
   }
 
   Statement buildProblemStatement(Message message, int charOffset,
@@ -4558,20 +4667,22 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             ]);
         Declaration constructor =
             library.loader.getDuplicatedFieldInitializerError();
+        Expression invocation = buildStaticInvocation(
+            constructor.target,
+            forest.arguments(<Expression>[
+              forest.literalString(name, null)..fileOffset = assignmentOffset
+            ], noLocation)
+              ..fileOffset = assignmentOffset,
+            charOffset: assignmentOffset);
+        if (invocation is shadow.SyntheticExpressionJudgment) {
+          invocation = desugarSyntheticExpression(invocation);
+        }
         return new ShadowInvalidFieldInitializer(
             builder.field,
             expression,
-            new VariableDeclaration.forValue(forest.throwExpression(
-                null,
-                buildStaticInvocation(
-                    constructor.target,
-                    forest.arguments(<Expression>[
-                      forest.literalString(name, null)
-                        ..fileOffset = assignmentOffset
-                    ], noLocation)
-                      ..fileOffset = assignmentOffset,
-                    charOffset: assignmentOffset))
-              ..fileOffset = assignmentOffset))
+            new VariableDeclaration.forValue(
+                forest.throwExpression(null, invocation)
+                  ..fileOffset = assignmentOffset))
           ..fileOffset = assignmentOffset;
       } else {
         if (!legacyMode &&

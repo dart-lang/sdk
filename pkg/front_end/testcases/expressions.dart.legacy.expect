@@ -1,10 +1,11 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/expressions.dart:74:16: Warning: Method not found: 'int.toString'.
 //     print(int?.toString());
 //                ^^^^^^^^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

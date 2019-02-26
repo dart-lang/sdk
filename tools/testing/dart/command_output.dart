@@ -472,7 +472,7 @@ class AnalysisCommandOutput extends CommandOutput {
     }
 
     // Handle errors / missing errors
-    if (testCase.expectCompileError) {
+    if (testCase.hasCompileError) {
       if (errors.isNotEmpty) {
         return Expectation.pass;
       }
@@ -629,7 +629,7 @@ class SpecParseCommandOutput extends CommandOutput {
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
-    if (testCase.expectCompileError) {
+    if (testCase.hasCompileError) {
       if (testCase.hasSyntaxError) {
         // A syntax error is expected.
         return hasSyntaxError
@@ -676,7 +676,7 @@ class VMCommandOutput extends CommandOutput with UnittestSuiteMessagesMixin {
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     // Multitests are handled specially.
-    if (testCase.expectCompileError) {
+    if (testCase.hasCompileError) {
       if (exitCode == _compileErrorExitCode) {
         return Expectation.pass;
       }
@@ -794,7 +794,7 @@ class CompilationCommandOutput extends CommandOutput {
     }
 
     // Multitests are handled specially.
-    if (testCase.expectCompileError) {
+    if (testCase.hasCompileError) {
       // Nonzero exit code of the compiler means compilation failed
       // TODO(kustermann): Do we have a special exit code in that case???
       if (exitCode != 0) {
@@ -836,7 +836,7 @@ class DevCompilerCommandOutput extends CommandOutput {
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     // Handle errors / missing errors
-    if (testCase.expectCompileError) {
+    if (testCase.hasCompileError) {
       return exitCode == 0
           ? Expectation.missingCompileTimeError
           : Expectation.pass;
@@ -897,7 +897,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     }
 
     // Multitests are handled specially.
-    if (testCase.expectCompileError) {
+    if (testCase.hasCompileError) {
       if (exitCode == VMCommandOutput._compileErrorExitCode ||
           exitCode == kBatchModeCompileTimeErrorExit) {
         return Expectation.pass;

@@ -7,6 +7,7 @@
 
 #include "vm/flags.h"
 #include "vm/globals.h"
+#include "vm/handle_visitor.h"
 #include "vm/handles.h"
 #include "vm/thread.h"
 #include "vm/visitor.h"

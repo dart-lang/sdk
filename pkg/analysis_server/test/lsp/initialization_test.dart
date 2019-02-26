@@ -66,7 +66,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   test_uninitialized_dropsNotifications() async {
     final notification =
         makeNotification(new Method.fromJson('randomNotification'), null);
-    final nextNotification = channel.errorNotificationsFromServer.first;
+    final nextNotification = errorNotificationsFromServer.first;
     channel.sendNotificationToServer(notification);
 
     // Wait up to 1sec to ensure no error/log notifications were sent back.

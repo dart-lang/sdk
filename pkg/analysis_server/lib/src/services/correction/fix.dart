@@ -201,6 +201,8 @@ class DartFixKind {
       'MOVE_TYPE_ARGUMENTS_TO_CLASS',
       50,
       "Move type arguments to after class name");
+  static const REMOVE_ANNOTATION =
+      const FixKind('REMOVE_ANNOTATION', 50, "Remove the '{0}' annotation");
   static const REMOVE_AWAIT = const FixKind('REMOVE_AWAIT', 50, "Remove await");
   static const REMOVE_DEAD_CODE =
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
@@ -220,6 +222,8 @@ class DartFixKind {
       "Remove unnecessary interpolation braces");
   static const REMOVE_METHOD_DECLARATION = const FixKind(
       'REMOVE_METHOD_DECLARATION', 50, "Remove method declaration");
+  static const REMOVE_NAME_FROM_COMBINATOR = const FixKind(
+      'REMOVE_NAME_FROM_COMBINATOR', 50, "Remove name from '{0}'");
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = const FixKind(
       'REMOVE_PARAMETERS_IN_GETTER_DECLARATION',
       50,
@@ -263,8 +267,6 @@ class DartFixKind {
       'REPLACE_WITH_CONDITIONAL_ASSIGNMENT', 50, "Replace with ??=");
   static const REPLACE_WITH_IDENTIFIER =
       const FixKind('REPLACE_WITH_IDENTIFIER', 50, "Replace with identifier");
-  static const REPLACE_WITH_LITERAL =
-      const FixKind('REPLACE_WITH_LITERAL', 50, "Replace with literal");
   static const REPLACE_WITH_NULL_AWARE = const FixKind(
       'REPLACE_WITH_NULL_AWARE',
       50,

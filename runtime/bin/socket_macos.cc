@@ -95,6 +95,7 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
     return -1;
   }
 
+
   if (reuseAddress) {
     int optval = 1;
     VOID_NO_RETRY_EXPECTED(
@@ -115,6 +116,12 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
     FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
+
+  // Don't raise SIGPIPE when attempting to write to a connection which has
+  // already closed.
+  int optval = 1;
+  VOID_NO_RETRY_EXPECTED(
+      setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &optval, sizeof(optval)));
 
   if (NO_RETRY_EXPECTED(
           bind(fd, &addr.addr, SocketAddress::GetAddrLength(addr))) < 0) {
@@ -147,6 +154,12 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   int optval = 1;
   VOID_NO_RETRY_EXPECTED(
       setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
+
+  // Don't raise SIGPIPE when attempting to write to a connection which has
+  // already closed.
+  optval = 1;
+  VOID_NO_RETRY_EXPECTED(
+      setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &optval, sizeof(optval)));
 
   if (addr.ss.ss_family == AF_INET6) {
     optval = v6_only ? 1 : 0;

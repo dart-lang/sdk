@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_31171.dart:8:1: Error: Expected a type, but got 'typedef'.
 // typedef F = Map<String, dynamic> Function();
@@ -11,22 +13,7 @@
 // pkg/front_end/testcases/regress/issue_31171.dart:7:11: Error: Can't create typedef from non-function type.
 // typedef T =
 //           ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/regress/issue_31171.dart:8:1: Error: Expected a type, but got 'typedef'.
-// typedef F = Map<String, dynamic> Function();
-// ^^^^^^^
-//
-// pkg/front_end/testcases/regress/issue_31171.dart:8:1: Error: Expected ';' after this.
-// typedef F = Map<String, dynamic> Function();
-// ^^^^^^^
-//
-// pkg/front_end/testcases/regress/issue_31171.dart:7:11: Error: Can't create typedef from non-function type.
-// typedef T = 
-//           ^
-
-library;
 import self as self;
 import "dart:core" as core;
 

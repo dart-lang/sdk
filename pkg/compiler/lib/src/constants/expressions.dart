@@ -433,23 +433,32 @@ class MapConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
-    Map<ConstantValue, ConstantValue> map = <ConstantValue, ConstantValue>{};
-    for (int i = 0; i < keys.length; i++) {
-      ConstantValue key = keys[i].evaluate(environment, constantSystem);
-      if (!key.isConstant) {
-        return new NonConstantValue();
+    // TODO(sigmund): delete once the CFE provides these error messages.
+    bool isSetLiteral = environment.immediateUnderSetLiteral;
+    return environment.evaluateMapBody(() {
+      Map<ConstantValue, ConstantValue> map = <ConstantValue, ConstantValue>{};
+      for (int i = 0; i < keys.length; i++) {
+        ConstantValue key = keys[i].evaluate(environment, constantSystem);
+        if (!key.isConstant) {
+          return new NonConstantValue();
+        }
+        ConstantValue value = values[i].evaluate(environment, constantSystem);
+        if (!value.isConstant) {
+          return new NonConstantValue();
+        }
+        if (map.containsKey(key)) {
+          environment.reportError(
+              keys[i],
+              isSetLiteral
+                  ? MessageKind.EQUAL_SET_ENTRY
+                  : MessageKind.EQUAL_MAP_ENTRY_KEY,
+              {});
+        }
+        map[key] = value;
       }
-      ConstantValue value = values[i].evaluate(environment, constantSystem);
-      if (!value.isConstant) {
-        return new NonConstantValue();
-      }
-      if (map.containsKey(key)) {
-        environment.reportError(keys[i], MessageKind.EQUAL_MAP_ENTRY_KEY, {});
-      }
-      map[key] = value;
-    }
-    return constantSystem.createMap(environment.commonElements, type,
-        map.keys.toList(), map.values.toList());
+      return constantSystem.createMap(environment.commonElements, type,
+          map.keys.toList(), map.values.toList());
+    });
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {

@@ -31,6 +31,8 @@ dev_compiler/test/worker/*: Skip # test needs fixes
 front_end/test/fasta/analyze_test: Pass, Slow
 front_end/test/fasta/ast_builder_test: Pass, Slow
 front_end/test/fasta/bootstrap_test: Pass, Slow
+front_end/test/fasta/fast_legacy_test: Pass, Slow
+front_end/test/fasta/fast_strong_test: Pass, Slow
 front_end/test/fasta/legacy_test: Pass, ExtraSlow
 front_end/test/fasta/outline_test: Pass, Slow
 front_end/test/fasta/rasta/*: SkipByDesign # Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
@@ -86,9 +88,6 @@ kernel/test/closures_test: Fail
 
 [ $runtime == dart_precompiled ]
 *: SkipByDesign # The pkg test framework imports dart:mirrors.
-
-[ $runtime == flutter ]
-status_file/*: SkipByDesign # Only meant to run on the standalone VM.
 
 [ $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Issue 26103. Timers are not supported.

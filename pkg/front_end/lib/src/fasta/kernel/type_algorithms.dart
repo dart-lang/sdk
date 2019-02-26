@@ -25,7 +25,7 @@ import 'kernel_builder.dart'
     show
         ClassBuilder,
         FormalParameterBuilder,
-        FunctionTypeAliasBuilder,
+        TypeAliasBuilder,
         FunctionTypeBuilder,
         KernelClassBuilder,
         KernelFormalParameterBuilder,
@@ -40,7 +40,7 @@ import 'kernel_builder.dart'
 
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
 
-import '../dill/dill_typedef_builder.dart' show DillFunctionTypeAliasBuilder;
+import '../dill/dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 
 import '../fasta_codes.dart'
     show
@@ -362,7 +362,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
           typesAndDependencies.add(type);
           typesAndDependencies.add(const <Object>[]);
         }
-      } else if (declaration is DillFunctionTypeAliasBuilder) {
+      } else if (declaration is DillTypeAliasBuilder) {
         bool hasInbound = false;
         List<TypeParameter> typeParameters = declaration.target.typeParameters;
         for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
@@ -383,7 +383,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
           typesAndDependencies.add(type);
           typesAndDependencies.add(dependencies);
         }
-      } else if (declaration is FunctionTypeAliasBuilder<TypeBuilder, Object>) {
+      } else if (declaration is TypeAliasBuilder<TypeBuilder, Object>) {
         if (declaration.typeVariables != null) {
           List<Object> dependencies =
               findInboundReferences(declaration.typeVariables);
@@ -518,8 +518,7 @@ List<List<Object>> findRawTypePathsToDeclaration(
               }
             }
           }
-        } else if (declaration
-            is FunctionTypeAliasBuilder<TypeBuilder, Object>) {
+        } else if (declaration is TypeAliasBuilder<TypeBuilder, Object>) {
           if (declaration.typeVariables != null) {
             for (TypeVariableBuilder<TypeBuilder, Object> variable
                 in declaration.typeVariables) {
@@ -604,7 +603,7 @@ List<List<Object>> findRawTypeCycles(
         }
       }
     }
-  } else if (declaration is FunctionTypeAliasBuilder<TypeBuilder, Object>) {
+  } else if (declaration is TypeAliasBuilder<TypeBuilder, Object>) {
     if (declaration.typeVariables != null) {
       for (TypeVariableBuilder<TypeBuilder, Object> variable
           in declaration.typeVariables) {
@@ -709,7 +708,7 @@ List<Object> getNonSimplicityIssuesForDeclaration(
   if (declaration is ClassBuilder<TypeBuilder, Object> &&
       declaration.typeVariables != null) {
     issues.addAll(getInboundReferenceIssues(declaration.typeVariables));
-  } else if (declaration is FunctionTypeAliasBuilder<TypeBuilder, Object> &&
+  } else if (declaration is TypeAliasBuilder<TypeBuilder, Object> &&
       declaration.typeVariables != null) {
     issues.addAll(getInboundReferenceIssues(declaration.typeVariables));
   }

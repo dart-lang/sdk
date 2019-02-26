@@ -7,7 +7,7 @@
  */
 import 'dart:convert';
 
-import 'package:analyzer/src/codegen/tools.dart';
+import 'package:analysis_tool/tools.dart';
 
 import 'api.dart';
 import 'from_html.dart';

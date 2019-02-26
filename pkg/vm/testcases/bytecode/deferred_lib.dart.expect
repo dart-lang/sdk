@@ -2,23 +2,23 @@ library #lib;
 import self as self;
 import "./hello.dart" as hel;
 
+import "#pkg/vm/testcases/bytecode/hello.dart" deferred as lib;
+
 [@vm.bytecode=
 Bytecode {
   Entry                1
   CheckStack           0
   PushNull
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   PopLocal             r0
-  PushConstant         CP#3
-  IndirectStaticCall   0, CP#2
+  DirectCall           0, CP#2
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart:async::Future::value (constructor)', arg-desc CP#0
-  [2] = ArgDesc num-args 0, num-type-args 0, names []
-  [3] = StaticICData target '#pkg/vm/testcases/bytecode/hello.dart::main', arg-desc CP#2
+  [0] = DirectCall 'dart:async::Future::value (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = DirectCall '#pkg/vm/testcases/bytecode/hello.dart::main', ArgDesc num-args 0, num-type-args 0, names []
+  [3] = Reserved
 }
 ]static method callDeferred() → dynamic
   return let final dynamic #t1 = CheckLibraryIsLoaded(lib) in hel::main();
@@ -27,13 +27,12 @@ Bytecode {
   Entry                0
   CheckStack           0
   PushNull
-  PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
+  DirectCall           1, CP#0
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target 'dart:async::Future::value (constructor)', arg-desc CP#0
+  [0] = DirectCall 'dart:async::Future::value (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
 }
 ]static method testLoadLibrary() → dynamic
   return LoadLibrary(lib);

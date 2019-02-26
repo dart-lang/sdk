@@ -22,6 +22,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart'
     show CompletionPerformance;
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -141,8 +142,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     AnalysisServerOptions options,
     this.sdkManager,
     this.instrumentationService, {
+    DiagnosticServer diagnosticServer,
     ResolverProvider packageResolverProvider: null,
-  }) : super(options, baseResourceProvider) {
+  }) : super(options, diagnosticServer, baseResourceProvider) {
     messageHandler = new UninitializedStateMessageHandler(this);
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useFastaParser;
@@ -299,16 +301,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
                 errorMessage,
                 null,
               ));
-          logError(error.toString());
-          if (stackTrace != null) {
-            logError(stackTrace.toString());
-          }
+          logException(errorMessage, error, stackTrace);
         }
       });
     }, onError: error);
   }
 
-  void logError(String message) {
+  /// Logs the error on the client using window/logMessage.
+  void logErrorToClient(String message) {
     channel.sendNotification(new NotificationMessage(
       Method.window_logMessage,
       new LogMessageParams(MessageType.Error, message),
@@ -341,7 +341,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           new ResponseMessage(message.id, null, error, jsonRpcVersion));
       // Since the LSP client might not show the failed requests to the user,
       // also ensure the error is logged to the client.
-      logError(error.message);
+      logErrorToClient(error.message);
     } else if (message is ResponseMessage) {
       // For bad response messages where we can't respond with an error, send it as
       // show instead of log.
@@ -359,7 +359,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       messageHandler = new FailureStateMessageHandler(this);
 
       final message = 'An unrecoverable error occurred.';
-      logError(
+      logErrorToClient(
           '$message\n\n${error.message}\n\n${error.code}\n\n${error.data}');
 
       shutdown();
@@ -399,24 +399,28 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   void sendServerErrorNotification(String message, exception, stackTrace) {
-    final fullError = new StringBuffer();
-
-    fullError.writeln(exception == null ? message : '$message: $exception');
+    message = exception == null ? message : '$message: $exception';
 
     // Show message (without stack) to the user.
-    showError(fullError.toString());
+    showError(message);
 
-    if (stackTrace != null) {
-      fullError.writeln(stackTrace.toString());
-    }
-    // Log the full message since showMessage above may be truncated or formatted
-    // badly (eg. VS Code takes the newlines out).
-    logError(fullError.toString());
+    logException(message, exception, stackTrace);
+  }
 
-    // remember the last few exceptions
+  /// Logs an exception by sending it to the client (window/logMessage) and
+  /// recording it in a buffer on the server for diagnostics.
+  void logException(String message, exception, stackTrace) {
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
     }
+
+    final fullError = stackTrace == null ? message : '$message\n$stackTrace';
+
+    // Log the full message since showMessage above may be truncated or formatted
+    // badly (eg. VS Code takes the newlines out).
+    logErrorToClient(fullError);
+
+    // remember the last few exceptions
     exceptions.add(new ServerException(
       message,
       exception,

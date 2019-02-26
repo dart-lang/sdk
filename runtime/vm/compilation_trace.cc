@@ -316,12 +316,37 @@ TypeFeedbackSaver::TypeFeedbackSaver(WriteStream* stream)
       call_sites_(Array::Handle()),
       call_site_(ICData::Handle()) {}
 
+// These flags affect deopt ids.
+static char* CompilerFlags() {
+  TextBuffer buffer(64);
+
+#define ADD_FLAG(flag) buffer.AddString(FLAG_##flag ? " " #flag : " no-" #flag)
+  ADD_FLAG(enable_asserts);
+  ADD_FLAG(use_field_guards);
+  ADD_FLAG(use_osr);
+  ADD_FLAG(causal_async_stacks);
+  ADD_FLAG(fields_may_be_reset);
+#undef ADD_FLAG
+  buffer.AddString(FLAG_use_bytecode_compiler || FLAG_enable_interpreter
+                       ? " bytecode"
+                       : " no-bytecode");
+
+  return buffer.Steal();
+}
+
 void TypeFeedbackSaver::WriteHeader() {
   const char* expected_version = Version::SnapshotString();
   ASSERT(expected_version != NULL);
   const intptr_t version_len = strlen(expected_version);
   stream_->WriteBytes(reinterpret_cast<const uint8_t*>(expected_version),
                       version_len);
+
+  char* expected_features = CompilerFlags();
+  ASSERT(expected_features != NULL);
+  const intptr_t features_len = strlen(expected_features);
+  stream_->WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
+                      features_len + 1);
+  free(expected_features);
 }
 
 void TypeFeedbackSaver::SaveClasses() {
@@ -534,6 +559,27 @@ RawObject* TypeFeedbackLoader::CheckHeader() {
   }
   stream_->Advance(version_len);
 
+  char* expected_features = CompilerFlags();
+  ASSERT(expected_features != NULL);
+  const intptr_t expected_len = strlen(expected_features);
+
+  const char* features =
+      reinterpret_cast<const char*>(stream_->AddressOfCurrentPosition());
+  ASSERT(features != NULL);
+  intptr_t buffer_len = Utils::StrNLen(features, stream_->PendingBytes());
+  if ((buffer_len != expected_len) ||
+      strncmp(features, expected_features, expected_len)) {
+    const String& msg = String::Handle(String::NewFormatted(
+        Heap::kOld,
+        "Feedback not compatible with the current VM configuration: "
+        "the feedback requires '%.*s' but the VM has '%s'",
+        static_cast<int>(buffer_len > 1024 ? 1024 : buffer_len), features,
+        expected_features));
+    free(expected_features);
+    return ApiError::New(msg, Heap::kOld);
+  }
+  free(expected_features);
+  stream_->Advance(expected_len + 1);
   return Error::null();
 }
 

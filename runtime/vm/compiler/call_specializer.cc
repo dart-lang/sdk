@@ -311,14 +311,25 @@ void CallSpecializer::SpecializePolymorphicInstanceCall(
   call->ReplaceWith(specialized, current_iterator());
 }
 
-void CallSpecializer::ReplaceCall(Definition* call, Definition* replacement) {
+void CallSpecializer::ReplaceCallWithResult(Definition* call,
+                                            Instruction* replacement,
+                                            Definition* result) {
   // Remove the original push arguments.
   for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
     PushArgumentInstr* push = call->PushArgumentAt(i);
     push->ReplaceUsesWith(push->value()->definition());
     push->RemoveFromGraph();
   }
-  call->ReplaceWith(replacement, current_iterator());
+  if (result == nullptr) {
+    ASSERT(replacement->IsDefinition());
+    call->ReplaceWith(replacement->AsDefinition(), current_iterator());
+  } else {
+    call->ReplaceWithResult(replacement, result, current_iterator());
+  }
+}
+
+void CallSpecializer::ReplaceCall(Definition* call, Definition* replacement) {
+  ReplaceCallWithResult(call, replacement, nullptr);
 }
 
 void CallSpecializer::AddCheckSmi(Definition* to_check,
@@ -1065,7 +1076,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   // Discard the environment from the original instruction because the store
   // can't deoptimize.
   instr->RemoveEnvironment();
-  ReplaceCall(instr, store);
+  ReplaceCallWithResult(instr, store, flow_graph()->constant_null());
   return true;
 }
 

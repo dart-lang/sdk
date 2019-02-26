@@ -17,7 +17,6 @@ import '../../../generated/test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(Dart2InferenceTest);
-    defineReflectiveTests(Dart2InferenceTest_Task);
   });
 }
 
@@ -884,12 +883,6 @@ main() {
       return n is MethodInvocation;
     });
   }
-}
-
-@reflectiveTest
-class Dart2InferenceTest_Task extends Dart2InferenceTest {
-  @override
-  bool get enableNewAnalysisDriver => false;
 }
 
 class _TypeAnnotationsValidator extends RecursiveAstVisitor {

@@ -93,7 +93,7 @@ Future<T> reportCrash<T>(error, StackTrace trace,
       int port = request?.connectionInfo?.remotePort;
       await note(" to $host:$port");
       await request
-        ..headers.contentType = ContentType.JSON
+        ..headers.contentType = ContentType.json
         ..write(json);
       await request.close();
       await note(".");

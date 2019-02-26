@@ -205,11 +205,9 @@ void ClassTable::AllocateIndex(intptr_t index) {
   }
 }
 
-#if defined(DEBUG)
 void ClassTable::Unregister(intptr_t index) {
   table_[index] = ClassAndSize(NULL);
 }
-#endif
 
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
   ASSERT(Thread::Current()->IsAtSafepoint());

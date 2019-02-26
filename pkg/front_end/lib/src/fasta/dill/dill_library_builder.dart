@@ -48,14 +48,12 @@ import 'dill_member_builder.dart' show DillMemberBuilder;
 
 import 'dill_loader.dart' show DillLoader;
 
-import 'dill_typedef_builder.dart' show DillFunctionTypeAliasBuilder;
+import 'dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 
 class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
-  final Uri uri;
+  final Library library;
 
   final DillLoader loader;
-
-  Library library;
 
   /// Exports that can't be serialized.
   ///
@@ -63,10 +61,15 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   /// [../kernel/kernel_library_builder.dart].
   Map<String, String> unserializableExports;
 
-  DillLibraryBuilder(this.uri, this.loader)
-      : super(uri, new Scope.top(), new Scope.top());
+  DillLibraryBuilder(this.library, this.loader)
+      : super(library.fileUri, new Scope.top(), new Scope.top());
 
-  Uri get fileUri => uri;
+  @override
+  bool get isSynthetic => library.isSynthetic;
+
+  Uri get uri => library.importUri;
+
+  Uri get fileUri => library.fileUri;
 
   @override
   String get name => library.name;
@@ -132,17 +135,12 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   }
 
   void addTypedef(Typedef typedef) {
-    DartType alias = typedef.type;
-    if (alias is FunctionType) {
-      if (alias.typedefType == null) {
-        unhandled("null", "addTypedef", typedef.fileOffset, typedef.fileUri);
-      }
-      addBuilder(typedef.name, new DillFunctionTypeAliasBuilder(typedef, this),
-          typedef.fileOffset);
-    } else {
-      unhandled("${alias.runtimeType}", "addTypedef", typedef.fileOffset,
-          typedef.fileUri);
+    DartType type = typedef.type;
+    if (type is FunctionType && type.typedefType == null) {
+      unhandled("null", "addTypedef", typedef.fileOffset, typedef.fileUri);
     }
+    addBuilder(typedef.name, new DillTypeAliasBuilder(typedef, this),
+        typedef.fileOffset);
   }
 
   @override

@@ -15,6 +15,7 @@ import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:front_end/src/fasta/parser/async_modifier.dart';
 import 'package:front_end/src/fasta/parser/forwarding_listener.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
@@ -33,6 +34,7 @@ import 'test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassMemberParserTest_Fasta);
+    defineReflectiveTests(CollectionLiteralParserTest);
     defineReflectiveTests(ComplexParserTest_Fasta);
     defineReflectiveTests(ErrorParserTest_Fasta);
     defineReflectiveTests(ExpressionParserTest_Fasta);
@@ -101,6 +103,626 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
+  }
+}
+
+/**
+ * Tests of the fasta parser based on [ExpressionParserTestMixin].
+ */
+@reflectiveTest
+class CollectionLiteralParserTest extends FastaParserTestCase {
+  Expression parseCollectionLiteral(String source,
+      {List<ErrorCode> codes,
+      List<ExpectedError> errors,
+      int expectedEndOffset,
+      bool inAsync = false}) {
+    return parseExpression(source,
+        codes: codes,
+        errors: errors,
+        expectedEndOffset: expectedEndOffset,
+        inAsync: inAsync,
+        parseSetLiterals: true,
+        parseSpreadCollections: true,
+        parseControlFlowCollections: true);
+  }
+
+  void test_listLiteral_for() {
+    ListLiteral2 list = parseCollectionLiteral(
+      '[1, await for (var x in list) 2]',
+      inAsync: true,
+    );
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    ForElement second = list.elements[1];
+    expect(second.awaitKeyword, isNotNull);
+    expect(second.forKeyword.isKeyword, isTrue);
+    expect(second.leftParenthesis.lexeme, '(');
+    expect(second.rightParenthesis.lexeme, ')');
+    ForEachPartsWithDeclaration forLoopParts = second.forLoopParts;
+    DeclaredIdentifier forLoopVar = forLoopParts.loopVariable;
+    expect(forLoopVar.identifier.name, 'x');
+    expect(forLoopParts.inKeyword, isNotNull);
+    SimpleIdentifier iterable = forLoopParts.iterable;
+    expect(iterable.name, 'list');
+  }
+
+  void test_listLiteral_forIf() {
+    ListLiteral2 list = parseCollectionLiteral(
+      '[1, await for (var x in list) if (c) 2]',
+      inAsync: true,
+    );
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    ForElement second = list.elements[1];
+    expect(second.awaitKeyword, isNotNull);
+    expect(second.forKeyword.isKeyword, isTrue);
+    expect(second.leftParenthesis.lexeme, '(');
+    expect(second.rightParenthesis.lexeme, ')');
+    ForEachPartsWithDeclaration forLoopParts = second.forLoopParts;
+    DeclaredIdentifier forLoopVar = forLoopParts.loopVariable;
+    expect(forLoopVar.identifier.name, 'x');
+    expect(forLoopParts.inKeyword, isNotNull);
+    SimpleIdentifier iterable = forLoopParts.iterable;
+    expect(iterable.name, 'list');
+
+    IfElement body = second.body;
+    SimpleIdentifier condition = body.condition;
+    expect(condition.name, 'c');
+    IntegerLiteral thenElement = body.thenElement;
+    expect(thenElement.value, 2);
+  }
+
+  void test_listLiteral_forSpread() {
+    ListLiteral2 list =
+        parseCollectionLiteral('[1, for (int x = 0; x < 10; ++x) ...[2]]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    ForElement second = list.elements[1];
+    expect(second.awaitKeyword, isNull);
+    expect(second.forKeyword.isKeyword, isTrue);
+    expect(second.leftParenthesis.lexeme, '(');
+    expect(second.rightParenthesis.lexeme, ')');
+    ForPartsWithDeclarations forLoopParts = second.forLoopParts;
+    VariableDeclaration forLoopVar = forLoopParts.variables.variables[0];
+    expect(forLoopVar.name.name, 'x');
+    BinaryExpression condition = forLoopParts.condition;
+    IntegerLiteral rightOperand = condition.rightOperand;
+    expect(rightOperand.value, 10);
+    PrefixExpression updater = forLoopParts.updaters[0];
+    SimpleIdentifier updaterOperand = updater.operand;
+    expect(updaterOperand.name, 'x');
+  }
+
+  void test_listLiteral_if() {
+    ListLiteral2 list = parseCollectionLiteral('[1, if (true) 2]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    IfElement second = list.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    IntegerLiteral thenElement = second.thenElement;
+    expect(thenElement.value, 2);
+    expect(second.elseElement, isNull);
+  }
+
+  void test_listLiteral_ifElse() {
+    ListLiteral2 list = parseCollectionLiteral('[1, if (true) 2 else 5]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    IfElement second = list.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    IntegerLiteral thenElement = second.thenElement;
+    expect(thenElement.value, 2);
+    IntegerLiteral elseElement = second.elseElement;
+    expect(elseElement.value, 5);
+  }
+
+  void test_listLiteral_ifElseFor() {
+    ListLiteral2 list =
+        parseCollectionLiteral('[1, if (true) 2 else for (a in b) 5]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    IfElement second = list.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    IntegerLiteral thenElement = second.thenElement;
+    expect(thenElement.value, 2);
+
+    ForElement elseElement = second.elseElement;
+    ForEachPartsWithIdentifier forLoopParts = elseElement.forLoopParts;
+    expect(forLoopParts.identifier.name, 'a');
+
+    IntegerLiteral forValue = elseElement.body;
+    expect(forValue.value, 5);
+  }
+
+  void test_listLiteral_ifElseSpread() {
+    ListLiteral2 list =
+        parseCollectionLiteral('[1, if (true) ...[2] else ...?[5]]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    IfElement second = list.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    SpreadElement thenElement = second.thenElement;
+    expect(thenElement.spreadOperator.lexeme, '...');
+    SpreadElement elseElement = second.elseElement;
+    expect(elseElement.spreadOperator.lexeme, '...?');
+  }
+
+  void test_listLiteral_ifFor() {
+    ListLiteral2 list = parseCollectionLiteral('[1, if (true) for (a in b) 2]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    IfElement second = list.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+
+    ForElement thenElement = second.thenElement;
+    ForEachPartsWithIdentifier forLoopParts = thenElement.forLoopParts;
+    expect(forLoopParts.identifier.name, 'a');
+
+    IntegerLiteral forValue = thenElement.body;
+    expect(forValue.value, 2);
+    expect(second.elseElement, isNull);
+  }
+
+  void test_listLiteral_ifSpread() {
+    ListLiteral2 list = parseCollectionLiteral('[1, if (true) ...[2]]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    IfElement second = list.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    SpreadElement thenElement = second.thenElement;
+    expect(thenElement.spreadOperator.lexeme, '...');
+    expect(second.elseElement, isNull);
+  }
+
+  void test_listLiteral_spread() {
+    ListLiteral2 list = parseCollectionLiteral('[1, ...[2]]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    SpreadElement element = list.elements[1];
+    expect(element.spreadOperator.lexeme, '...');
+    ListLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.elements, hasLength(1));
+  }
+
+  void test_listLiteral_spreadQ() {
+    ListLiteral2 list = parseCollectionLiteral('[1, ...?[2]]');
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+
+    SpreadElement element = list.elements[1];
+    expect(element.spreadOperator.lexeme, '...?');
+    ListLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.elements, hasLength(1));
+  }
+
+  void test_mapLiteral_for() {
+    MapLiteral2 map = parseCollectionLiteral('{1:7, await for (y in list) 2:3}',
+        inAsync: true);
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 7);
+
+    ForElement second = map.entries[1];
+    expect(second.awaitKeyword, isNotNull);
+    expect(second.forKeyword.isKeyword, isTrue);
+    expect(second.leftParenthesis.lexeme, '(');
+    expect(second.rightParenthesis.lexeme, ')');
+    ForEachPartsWithIdentifier forLoopParts = second.forLoopParts;
+    SimpleIdentifier forLoopVar = forLoopParts.identifier;
+    expect(forLoopVar.name, 'y');
+    expect(forLoopParts.inKeyword, isNotNull);
+    SimpleIdentifier iterable = forLoopParts.iterable;
+    expect(iterable.name, 'list');
+  }
+
+  void test_mapLiteral_forIf() {
+    MapLiteral2 map = parseCollectionLiteral(
+        '{1:7, await for (y in list) if (c) 2:3}',
+        inAsync: true);
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 7);
+
+    ForElement second = map.entries[1];
+    expect(second.awaitKeyword, isNotNull);
+    expect(second.forKeyword.isKeyword, isTrue);
+    expect(second.leftParenthesis.lexeme, '(');
+    expect(second.rightParenthesis.lexeme, ')');
+    ForEachPartsWithIdentifier forLoopParts = second.forLoopParts;
+    SimpleIdentifier forLoopVar = forLoopParts.identifier;
+    expect(forLoopVar.name, 'y');
+    expect(forLoopParts.inKeyword, isNotNull);
+    SimpleIdentifier iterable = forLoopParts.iterable;
+    expect(iterable.name, 'list');
+
+    IfElement body = second.body;
+    SimpleIdentifier condition = body.condition;
+    expect(condition.name, 'c');
+    MapLiteralEntry thenElement = body.thenElement;
+    IntegerLiteral thenValue = thenElement.value;
+    expect(thenValue.value, 3);
+  }
+
+  void test_mapLiteral_forSpread() {
+    MapLiteral2 map =
+        parseCollectionLiteral('{1:7, for (x = 0; x < 10; ++x) ...{2:3}}');
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 7);
+
+    ForElement second = map.entries[1];
+    expect(second.awaitKeyword, isNull);
+    expect(second.forKeyword.isKeyword, isTrue);
+    expect(second.leftParenthesis.lexeme, '(');
+    expect(second.rightParenthesis.lexeme, ')');
+    ForPartsWithExpression forLoopParts = second.forLoopParts;
+    AssignmentExpression forLoopInit = forLoopParts.initialization;
+    SimpleIdentifier forLoopVar = forLoopInit.leftHandSide;
+    expect(forLoopVar.name, 'x');
+    BinaryExpression condition = forLoopParts.condition;
+    IntegerLiteral rightOperand = condition.rightOperand;
+    expect(rightOperand.value, 10);
+    PrefixExpression updater = forLoopParts.updaters[0];
+    SimpleIdentifier updaterOperand = updater.operand;
+    expect(updaterOperand.name, 'x');
+  }
+
+  void test_mapLiteral_if() {
+    MapLiteral2 map = parseCollectionLiteral('{1:1, if (true) 2:4}');
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 1);
+
+    IfElement second = map.entries[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    MapLiteralEntry thenElement = second.thenElement;
+    IntegerLiteral thenElementValue = thenElement.value;
+    expect(thenElementValue.value, 4);
+    expect(second.elseElement, isNull);
+  }
+
+  void test_mapLiteral_ifElse() {
+    MapLiteral2 map = parseCollectionLiteral('{1:1, if (true) 2:4 else 5:6}');
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 1);
+
+    IfElement second = map.entries[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    MapLiteralEntry thenElement = second.thenElement;
+    IntegerLiteral thenElementValue = thenElement.value;
+    expect(thenElementValue.value, 4);
+    MapLiteralEntry elseElement = second.elseElement;
+    IntegerLiteral elseElementValue = elseElement.value;
+    expect(elseElementValue.value, 6);
+  }
+
+  void test_mapLiteral_ifElseFor() {
+    MapLiteral2 map =
+        parseCollectionLiteral('{1:1, if (true) 2:4 else for (c in d) 5:6}');
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 1);
+
+    IfElement second = map.entries[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    MapLiteralEntry thenElement = second.thenElement;
+    IntegerLiteral thenElementValue = thenElement.value;
+    expect(thenElementValue.value, 4);
+
+    ForElement elseElement = second.elseElement;
+    ForEachPartsWithIdentifier forLoopParts = elseElement.forLoopParts;
+    expect(forLoopParts.identifier.name, 'c');
+
+    MapLiteralEntry body = elseElement.body;
+    IntegerLiteral bodyValue = body.value;
+    expect(bodyValue.value, 6);
+  }
+
+  void test_mapLiteral_ifElseSpread() {
+    MapLiteral2 map =
+        parseCollectionLiteral('{1:7, if (true) ...{2:4} else ...?{5:6}}');
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 7);
+
+    IfElement second = map.entries[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    SpreadElement thenElement = second.thenElement;
+    expect(thenElement.spreadOperator.lexeme, '...');
+    SpreadElement elseElement = second.elseElement;
+    expect(elseElement.spreadOperator.lexeme, '...?');
+    MapLiteral2 elseElementExpression = elseElement.expression;
+    expect(elseElementExpression.entries, hasLength(1));
+    MapLiteralEntry entry = elseElementExpression.entries[0];
+    IntegerLiteral entryValue = entry.value;
+    expect(entryValue.value, 6);
+  }
+
+  void test_mapLiteral_ifFor() {
+    MapLiteral2 map =
+        parseCollectionLiteral('{1:1, if (true) for (a in b) 2:4}');
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 1);
+
+    IfElement second = map.entries[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+
+    ForElement thenElement = second.thenElement;
+    ForEachPartsWithIdentifier forLoopParts = thenElement.forLoopParts;
+    expect(forLoopParts.identifier.name, 'a');
+
+    MapLiteralEntry body = thenElement.body;
+    IntegerLiteral thenElementValue = body.value;
+    expect(thenElementValue.value, 4);
+    expect(second.elseElement, isNull);
+  }
+
+  void test_mapLiteral_ifSpread() {
+    MapLiteral2 map = parseCollectionLiteral('{1:1, if (true) ...{2:4}}');
+    expect(map.entries, hasLength(2));
+    MapLiteralEntry first = map.entries[0];
+    IntegerLiteral firstValue = first.value;
+    expect(firstValue.value, 1);
+
+    IfElement second = map.entries[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    SpreadElement thenElement = second.thenElement;
+    expect(thenElement.spreadOperator.lexeme, '...');
+    expect(second.elseElement, isNull);
+  }
+
+  void test_mapLiteral_spread() {
+    MapLiteral2 map = parseCollectionLiteral('{1: 2, ...{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(2));
+
+    SpreadElement element = map.entries[1];
+    expect(element.spreadOperator.lexeme, '...');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spread2_typed() {
+    MapLiteral2 map = parseCollectionLiteral('<int, int>{1: 2, ...{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(2));
+
+    SpreadElement element = map.entries[1];
+    expect(element.spreadOperator.lexeme, '...');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spread_typed() {
+    MapLiteral2 map = parseCollectionLiteral('<int, int>{...{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(1));
+
+    SpreadElement element = map.entries[0];
+    expect(element.spreadOperator.lexeme, '...');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spreadQ() {
+    MapLiteral2 map = parseCollectionLiteral('{1: 2, ...?{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(2));
+
+    SpreadElement element = map.entries[1];
+    expect(element.spreadOperator.lexeme, '...?');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spreadQ2_typed() {
+    MapLiteral2 map = parseCollectionLiteral('<int, int>{1: 2, ...?{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(2));
+
+    SpreadElement element = map.entries[1];
+    expect(element.spreadOperator.lexeme, '...?');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spreadQ_typed() {
+    MapLiteral2 map = parseCollectionLiteral('<int, int>{...?{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(1));
+
+    SpreadElement element = map.entries[0];
+    expect(element.spreadOperator.lexeme, '...?');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_setLiteral_if() {
+    SetLiteral2 setLiteral = parseCollectionLiteral('{1, if (true) 2}');
+    expect(setLiteral.elements, hasLength(2));
+    IntegerLiteral first = setLiteral.elements[0];
+    expect(first.value, 1);
+
+    IfElement second = setLiteral.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    IntegerLiteral thenElement = second.thenElement;
+    expect(thenElement.value, 2);
+    expect(second.elseElement, isNull);
+  }
+
+  void test_setLiteral_ifElse() {
+    SetLiteral2 setLiteral = parseCollectionLiteral('{1, if (true) 2 else 5}');
+    expect(setLiteral.elements, hasLength(2));
+    IntegerLiteral first = setLiteral.elements[0];
+    expect(first.value, 1);
+
+    IfElement second = setLiteral.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    IntegerLiteral thenElement = second.thenElement;
+    expect(thenElement.value, 2);
+    IntegerLiteral elseElement = second.elseElement;
+    expect(elseElement.value, 5);
+  }
+
+  void test_setLiteral_ifElseSpread() {
+    SetLiteral2 setLiteral =
+        parseCollectionLiteral('{1, if (true) ...{2} else ...?[5]}');
+    expect(setLiteral.elements, hasLength(2));
+    IntegerLiteral first = setLiteral.elements[0];
+    expect(first.value, 1);
+
+    IfElement second = setLiteral.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    SpreadElement thenElement = second.thenElement;
+    expect(thenElement.spreadOperator.lexeme, '...');
+    SetLiteral2 theExpression = thenElement.expression;
+    expect(theExpression.elements, hasLength(1));
+    SpreadElement elseElement = second.elseElement;
+    expect(elseElement.spreadOperator.lexeme, '...?');
+    ListLiteral2 elseExpression = elseElement.expression;
+    expect(elseExpression.elements, hasLength(1));
+  }
+
+  void test_setLiteral_ifSpread() {
+    SetLiteral2 setLiteral = parseCollectionLiteral('{1, if (true) ...[2]}');
+    expect(setLiteral.elements, hasLength(2));
+    IntegerLiteral first = setLiteral.elements[0];
+    expect(first.value, 1);
+
+    IfElement second = setLiteral.elements[1];
+    BooleanLiteral condition = second.condition;
+    expect(condition.value, isTrue);
+    SpreadElement thenElement = second.thenElement;
+    expect(thenElement.spreadOperator.lexeme, '...');
+    expect(second.elseElement, isNull);
+  }
+
+  void test_setLiteral_spread2() {
+    SetLiteral2 set = parseCollectionLiteral('{3, ...[4]}');
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+
+    SpreadElement element = set.elements[1];
+    expect(element.spreadOperator.lexeme, '...');
+    ListLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.elements, hasLength(1));
+  }
+
+  void test_setLiteral_spread2Q() {
+    SetLiteral2 set = parseCollectionLiteral('{3, ...?[4]}');
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+
+    SpreadElement element = set.elements[1];
+    expect(element.spreadOperator.lexeme, '...?');
+    ListLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.elements, hasLength(1));
+  }
+
+  void test_setLiteral_spread_typed() {
+    SetLiteral2 set = parseCollectionLiteral('<int>{...[3]}');
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNotNull);
+    expect(set.elements, hasLength(1));
+
+    SpreadElement element = set.elements[0];
+    expect(element.spreadOperator.lexeme, '...');
+    ListLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.elements, hasLength(1));
+  }
+
+  void test_setLiteral_spreadQ_typed() {
+    SetLiteral2 set = parseCollectionLiteral('<int>{...?[3]}');
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNotNull);
+    expect(set.elements, hasLength(1));
+
+    SpreadElement element = set.elements[0];
+    expect(element.spreadOperator.lexeme, '...?');
+    ListLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.elements, hasLength(1));
+  }
+
+  void test_setOrMapLiteral_spread() {
+    MapLiteral2 map = parseCollectionLiteral('{...{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+
+    SpreadElement element = map.entries[0];
+    expect(element.spreadOperator.lexeme, '...');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
+  }
+
+  void test_setOrMapLiteral_spreadQ() {
+    MapLiteral2 map = parseCollectionLiteral('{...?{3: 4}}');
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+
+    SpreadElement element = map.entries[0];
+    expect(element.spreadOperator.lexeme, '...?');
+    MapLiteral2 spreadExpression = element.expression;
+    expect(spreadExpression.entries, hasLength(1));
   }
 }
 
@@ -242,22 +864,28 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
-  @override
-  @failingTest
-  void test_parseUnaryExpression_decrement_super() {
-    // TODO(danrubel) Reports a different error and different token stream.
-    // Expected: TokenType:<MINUS>
-    //   Actual: TokenType:<MINUS_MINUS>
-    super.test_parseUnaryExpression_decrement_super();
+  void test_listLiteral_spread() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    ListLiteral list = parseExpression('[1, ...[2]]', errors: [
+      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 3),
+    ]);
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+    ListLiteral second = list.elements[1];
+    expect(second.elements, hasLength(1));
   }
 
-  @override
-  @failingTest
-  void test_parseUnaryExpression_decrement_super_withComment() {
-    // TODO(danrubel) Reports a different error and different token stream.
-    // Expected: TokenType:<MINUS>
-    //   Actual: TokenType:<MINUS_MINUS>
-    super.test_parseUnaryExpression_decrement_super_withComment();
+  void test_listLiteral_spreadQ() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    ListLiteral list = parseExpression('[1, ...?[2]]', errors: [
+      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 4),
+    ]);
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
+    expect(first.value, 1);
+    ListLiteral second = list.elements[1];
+    expect(second.elements, hasLength(1));
   }
 
   void test_mapLiteral() {
@@ -284,6 +912,127 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 6);
   }
 
+  void test_mapLiteral_invalid_set_entry() {
+    MapLiteral map =
+        parseExpression('<int, int>{1}', parseSetLiterals: true, errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 12, 1),
+    ]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(1));
+  }
+
+  @failingTest
+  void test_mapLiteral_invalid_too_many_type_arguments1() {
+    MapLiteral map =
+        parseExpression('<int, int, int>{}', parseSetLiterals: true, errors: [
+      // TODO(danrubel): Currently the resolver reports invalid number of
+      // type arguments, but the parser could report this.
+      expectedError(
+          /* ParserErrorCode.EXPECTED_ONE_OR_TWO_TYPE_VARIABLES */
+          ParserErrorCode.EXPECTED_TOKEN,
+          11,
+          3),
+    ]);
+    expect(map.constKeyword, isNull);
+    expect(map.entries, hasLength(0));
+  }
+
+  @failingTest
+  void test_mapLiteral_invalid_too_many_type_arguments2() {
+    MapLiteral map =
+        parseExpression('<int, int, int>{1}', parseSetLiterals: true, errors: [
+      // TODO(danrubel): Currently the resolver reports invalid number of
+      // type arguments, but the parser could report this.
+      expectedError(
+          /* ParserErrorCode.EXPECTED_ONE_OR_TWO_TYPE_VARIABLES */
+          ParserErrorCode.EXPECTED_TOKEN,
+          11,
+          3),
+    ]);
+    expect(map.constKeyword, isNull);
+    expect(map.entries, hasLength(0));
+  }
+
+  void test_mapLiteral_spread() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    MapLiteral map = parseExpression('{1: 2, ...{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 3)]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spread2_typed() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    MapLiteral map = parseExpression('<int, int>{1: 2, ...{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 17, 3)]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spread_typed() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    MapLiteral map = parseExpression('<int, int>{...{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 3)]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(0));
+  }
+
+  void test_mapLiteral_spreadQ() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    MapLiteral map = parseExpression('{1: 2, ...?{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 4)]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spreadQ2_typed() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    MapLiteral map = parseExpression('<int, int>{1: 2, ...?{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 17, 4)]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(1));
+  }
+
+  void test_mapLiteral_spreadQ_typed() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    MapLiteral map = parseExpression('<int, int>{...?{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 4)]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.entries, hasLength(0));
+  }
+
+  @override
+  @failingTest
+  void test_parseUnaryExpression_decrement_super() {
+    // TODO(danrubel) Reports a different error and different token stream.
+    // Expected: TokenType:<MINUS>
+    //   Actual: TokenType:<MINUS_MINUS>
+    super.test_parseUnaryExpression_decrement_super();
+  }
+
+  @override
+  @failingTest
+  void test_parseUnaryExpression_decrement_super_withComment() {
+    // TODO(danrubel) Reports a different error and different token stream.
+    // Expected: TokenType:<MINUS>
+    //   Actual: TokenType:<MINUS_MINUS>
+    super.test_parseUnaryExpression_decrement_super_withComment();
+  }
+
   void test_setLiteral() {
     SetLiteral set = parseExpression('{3}', parseSetLiterals: true);
     expect(set.constKeyword, isNull);
@@ -304,7 +1053,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value2.value, 6);
   }
 
-  void test_setLiteral_const_typeArgument() {
+  void test_setLiteral_const_typed() {
     SetLiteral set = parseExpression('const <int>{3}', parseSetLiterals: true);
     expect(set.constKeyword, isNotNull);
     expect(set.typeArguments.arguments, hasLength(1));
@@ -316,48 +1065,15 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_setLiteral_invalid_map_entry() {
-    parseExpression('<int>{1: 1}', parseSetLiterals: true, errors: [
+    SetLiteral set =
+        parseExpression('<int>{1: 1}', parseSetLiterals: true, errors: [
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
     ]);
-  }
-
-  @failingTest
-  void test_setLiteral_invalid_too_many_type_arguments1() {
-    parseExpression('<int, int, int>{}', parseSetLiterals: true, errors: [
-      // TODO(danrubel): Currently the resolver reports invalid number of
-      // type arguments, but the parser could report this.
-      expectedError(
-          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
-          ParserErrorCode.EXPECTED_TOKEN,
-          15,
-          1),
-    ]);
-  }
-
-  @failingTest
-  void test_setLiteral_invalid_too_many_type_arguments2() {
-    parseExpression('<int, int, int>{1}', parseSetLiterals: true, errors: [
-      // TODO(danrubel): Currently the resolver reports invalid number of
-      // type arguments, but the parser could report this.
-      expectedError(
-          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
-          ParserErrorCode.EXPECTED_TOKEN,
-          15,
-          1),
-    ]);
-  }
-
-  @failingTest
-  void test_setLiteral_invalid_too_many_type_arguments3() {
-    parseExpression('<int, int>{1}', parseSetLiterals: true, errors: [
-      // TODO(danrubel): Currently the resolver reports invalid number of
-      // type arguments, but the parser could report this.
-      expectedError(
-          /* ParserErrorCode.EXPECTED_ONE_TYPE_VARIABLE */
-          ParserErrorCode.EXPECTED_TOKEN,
-          10,
-          1),
-    ]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments.arguments, hasLength(1));
+    NamedType typeArg = set.typeArguments.arguments[0];
+    expect(typeArg.name.name, 'int');
+    expect(set.elements.length, 1);
   }
 
   void test_setLiteral_nested_typeArgument() {
@@ -376,7 +1092,59 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 3);
   }
 
-  void test_setLiteral_typeArgument() {
+  void test_setLiteral_spread2() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    SetLiteral set = parseExpression('{3, ...[4]}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 3)]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+    ListLiteral list = set.elements[1];
+    expect(list.elements, hasLength(1));
+  }
+
+  void test_setLiteral_spread2Q() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    SetLiteral set = parseExpression('{3, ...?[4]}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 4)]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value = set.elements[0];
+    expect(value.value, 3);
+    ListLiteral list = set.elements[1];
+    expect(list.elements, hasLength(1));
+  }
+
+  void test_setLiteral_spread_typed() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    SetLiteral set = parseExpression('<int>{...[3]}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 3)]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNotNull);
+    expect(set.elements, hasLength(1));
+    ListLiteral list = set.elements[0];
+    expect(list.elements, hasLength(1));
+  }
+
+  void test_setLiteral_spreadQ_typed() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    SetLiteral set = parseExpression('<int>{...?[3]}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 4)]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNotNull);
+    expect(set.elements, hasLength(1));
+    ListLiteral list = set.elements[0];
+    expect(list.elements, hasLength(1));
+  }
+
+  void test_setLiteral_typed() {
     SetLiteral set = parseExpression('<int>{3}', parseSetLiterals: true);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments.arguments, hasLength(1));
@@ -385,6 +1153,26 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(set.elements.length, 1);
     IntegerLiteral value = set.elements[0];
     expect(value.value, 3);
+  }
+
+  void test_setOrMapLiteral_spread() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    MapLiteral set = parseExpression('{...{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 1, 3)]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.entries, hasLength(0));
+  }
+
+  void test_setOrMapLiteral_spreadQ() {
+    // TODO(danrubel): Remove this once spread_collections is enabled by default
+    MapLiteral set = parseExpression('{...?{3: 4}}',
+        parseSetLiterals: true,
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 1, 4)]);
+    expect(set.constKeyword, isNull);
+    expect(set.typeArguments, isNull);
+    expect(set.entries, hasLength(0));
   }
 }
 
@@ -644,9 +1432,18 @@ class FastaParserTestCase
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
       int expectedEndOffset,
-      bool parseSetLiterals = false}) {
+      bool inAsync = false,
+      bool parseSetLiterals = false,
+      bool parseSpreadCollections = false,
+      bool parseControlFlowCollections = false}) {
     createParser(source, expectedEndOffset: expectedEndOffset);
     _parserProxy.fastaParser.enableSetLiterals = parseSetLiterals;
+    _parserProxy.astBuilder.enableSpreadCollections = parseSpreadCollections;
+    _parserProxy.astBuilder.enableControlFlowCollections =
+        parseControlFlowCollections;
+    if (inAsync) {
+      _parserProxy.fastaParser.asyncState = AsyncModifier.Async;
+    }
     Expression result = _parserProxy.parseExpression2();
     assertErrors(codes: codes, errors: errors);
     return result;
@@ -823,8 +1620,20 @@ class FastaParserTestCase
 
   @override
   Statement parseStatement(String source,
-      {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
+      {bool enableLazyAssignmentOperators,
+      int expectedEndOffset,
+      bool parseSetLiterals = false,
+      bool parseSpreadCollections = false,
+      bool parseControlFlowCollections = false,
+      bool inAsync = false}) {
     createParser(source, expectedEndOffset: expectedEndOffset);
+    _parserProxy.fastaParser.enableSetLiterals = parseSetLiterals;
+    _parserProxy.astBuilder.enableSpreadCollections = parseSpreadCollections;
+    _parserProxy.astBuilder.enableControlFlowCollections =
+        parseControlFlowCollections;
+    if (inAsync) {
+      _parserProxy.fastaParser.asyncState = AsyncModifier.Async;
+    }
     Statement statement = _parserProxy.parseStatement2();
     assertErrors(codes: NO_ERROR_COMPARISON);
     return statement;
@@ -893,6 +1702,172 @@ class FastaParserTestCase
 @reflectiveTest
 class FormalParameterParserTest_Fasta extends FastaParserTestCase
     with FormalParameterParserTestMixin {}
+
+/**
+ * Tests of the fasta parser based on [ComplexParserTestMixin].
+ */
+@reflectiveTest
+class NNBDParserTest_Fasta extends FastaParserTestCase {
+  CompilationUnit parseNNBDCompilationUnit(String code,
+      {List<ExpectedError> errors}) {
+    createParser('''
+@pragma('analyzer:non-nullable') library nnbd.parser.test;
+$code
+''');
+    _parserProxy.astBuilder.enableNonNullable = true;
+    CompilationUnit unit = _parserProxy.parseCompilationUnit2();
+    assertErrors(errors: errors);
+    return unit;
+  }
+
+  void test_assignment_complex() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x + bar(7); }');
+  }
+
+  void test_assignment_simple() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
+  }
+
+  void test_binary_expression_statement() {
+    final unit = parseNNBDCompilationUnit('D? foo(X? x) { X ?? x2; }');
+    FunctionDeclaration funct = unit.declarations[0];
+    BlockFunctionBody body = funct.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    BinaryExpression expression = statement.expression;
+    SimpleIdentifier lhs = expression.leftOperand;
+    expect(lhs.name, 'X');
+    expect(expression.operator.lexeme, '??');
+    SimpleIdentifier rhs = expression.rightOperand;
+    expect(rhs.name, 'x2');
+  }
+
+  void test_conditional() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X ? 7 : y; }');
+  }
+
+  void test_conditional_complex() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X ? x2 = x + bar(7) : y; }');
+  }
+
+  void test_conditional_error() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }',
+        errors: [
+          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 78, 1),
+          expectedError(ParserErrorCode.EXPECTED_TOKEN, 99, 1),
+          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 99, 1),
+        ]);
+  }
+
+  void test_conditional_simple() {
+    parseNNBDCompilationUnit('D? foo(X? x) { X ? x2 = x : y; }');
+  }
+
+  void test_enableNonNullable_false() {
+    parseCompilationUnit('main() { x is String? ? (x + y) : z; }',
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 20, 1)]);
+  }
+
+  void test_for() {
+    parseNNBDCompilationUnit('main() { for(int x = 0; x < 7; ++x) { } }');
+  }
+
+  void test_for_conditional() {
+    parseNNBDCompilationUnit(
+        'main() { for(x ? y = 7 : y = 8; y < 10; ++y) { } }');
+  }
+
+  void test_for_nullable() {
+    parseNNBDCompilationUnit('main() { for(int? x = 0; x < 7; ++x) { } }');
+  }
+
+  void test_foreach() {
+    parseNNBDCompilationUnit('main() { for(int x in [7]) { } }');
+  }
+
+  void test_foreach_nullable() {
+    parseNNBDCompilationUnit('main() { for(int? x in [7, null]) { } }');
+  }
+
+  void test_gft_nullable() {
+    parseNNBDCompilationUnit('main() { C? Function() x = 7; }');
+  }
+
+  void test_gft_nullable_1() {
+    parseNNBDCompilationUnit('main() { C Function()? x = 7; }');
+  }
+
+  void test_gft_nullable_2() {
+    parseNNBDCompilationUnit('main() { C? Function()? x = 7; }');
+  }
+
+  void test_gft_nullable_3() {
+    parseNNBDCompilationUnit('main() { C? Function()? Function()? x = 7; }');
+  }
+
+  void test_gft_nullable_prefixed() {
+    parseNNBDCompilationUnit('main() { C.a? Function()? x = 7; }');
+  }
+
+  void test_is_nullable() {
+    CompilationUnit unit =
+        parseNNBDCompilationUnit('main() { x is String? ? (x + y) : z; }');
+    FunctionDeclaration function = unit.declarations[0];
+    BlockFunctionBody body = function.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    ConditionalExpression expression = statement.expression;
+
+    IsExpression condition = expression.condition;
+    expect((condition.type as NamedType).question, isNotNull);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+  }
+
+  void test_is_nullable_parenthesis() {
+    CompilationUnit unit =
+        parseNNBDCompilationUnit('main() { (x is String?) ? (x + y) : z; }');
+    FunctionDeclaration function = unit.declarations[0];
+    BlockFunctionBody body = function.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    ConditionalExpression expression = statement.expression;
+
+    ParenthesizedExpression condition = expression.condition;
+    IsExpression isExpression = condition.expression;
+    expect((isExpression.type as NamedType).question, isNotNull);
+    Expression thenExpression = expression.thenExpression;
+    expect(thenExpression, isParenthesizedExpression);
+    Expression elseExpression = expression.elseExpression;
+    expect(elseExpression, isSimpleIdentifier);
+  }
+
+  void test_pragma_missing() {
+    createParser("library foo;");
+    _parserProxy.astBuilder.enableNonNullable = true;
+    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
+    expect(unit.hasPragmaAnalyzerNonNullable, false);
+  }
+
+  void test_pragma_non_nullable() {
+    createParser("@pragma('analyzer:non-nullable') library foo;");
+    _parserProxy.astBuilder.enableNonNullable = true;
+    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
+    expect(unit.hasPragmaAnalyzerNonNullable, true);
+  }
+
+  void test_pragma_non_nullable_not_enabled() {
+    createParser("@pragma('analyzer:non-nullable') library foo;");
+    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
+    expect(unit.hasPragmaAnalyzerNonNullable, false);
+  }
+
+  void test_pragma_other() {
+    createParser("@pragma('analyzer:foo') library foo;");
+    _parserProxy.astBuilder.enableNonNullable = true;
+    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
+    expect(unit.hasPragmaAnalyzerNonNullable, false);
+  }
+}
 
 /**
  * Proxy implementation of the analyzer parser, implemented in terms of the
@@ -1108,6 +2083,21 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
     ]);
   }
 
+  void test_incompleteForEach2() {
+    ForStatement2 statement = parseStatement('for (String item i) {}',
+        parseControlFlowCollections: true);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 4),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1)
+    ]);
+    expect(statement.toSource(), 'for (String item; i;) {}');
+    ForPartsWithDeclarations forLoopParts = statement.forLoopParts;
+    expect(forLoopParts.leftSeparator, isNotNull);
+    expect(forLoopParts.leftSeparator.type, TokenType.SEMICOLON);
+    expect(forLoopParts.rightSeparator, isNotNull);
+    expect(forLoopParts.rightSeparator.type, TokenType.SEMICOLON);
+  }
+
   void test_invalidTypeParameters_super() {
     parseCompilationUnit('class C<X super Y> {}', errors: [
       // TODO(danrubel): Improve recovery.
@@ -1209,6 +2199,304 @@ class StatementParserTest_Fasta extends FastaParserTestCase
       expect(next.previous, token);
       token = next;
     }
+  }
+
+  void test_parseForStatement_each_await2() {
+    ForStatement2 forStatement = parseStatement(
+      'await for (element in list) {}',
+      inAsync: true,
+      parseControlFlowCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNotNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForEachPartsWithIdentifier forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.identifier, isNotNull);
+    expect(forLoopParts.inKeyword, isNotNull);
+    expect(forLoopParts.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_each_genericFunctionType2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (void Function<T>(T) element in list) {}',
+      parseControlFlowCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.loopVariable, isNotNull);
+    expect(forLoopParts.inKeyword, isNotNull);
+    expect(forLoopParts.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_each_identifier2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (element in list) {}',
+      parseControlFlowCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForEachPartsWithIdentifier forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.identifier, isNotNull);
+    expect(forLoopParts.inKeyword, isNotNull);
+    expect(forLoopParts.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_each_noType_metadata2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (@A var element in list) {}',
+      parseControlFlowCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.loopVariable, isNotNull);
+    expect(forLoopParts.loopVariable.metadata, hasLength(1));
+    expect(forLoopParts.inKeyword, isNotNull);
+    expect(forLoopParts.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_each_type2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (A element in list) {}',
+      parseControlFlowCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.loopVariable, isNotNull);
+    expect(forLoopParts.inKeyword, isNotNull);
+    expect(forLoopParts.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_each_var2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (var element in list) {}',
+      parseControlFlowCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.loopVariable, isNotNull);
+    expect(forLoopParts.inKeyword, isNotNull);
+    expect(forLoopParts.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_loop_c2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (; i < count;) {}',
+      parseControlFlowCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForPartsWithExpression forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.initialization, isNull);
+    expect(forLoopParts.leftSeparator, isNotNull);
+    expect(forLoopParts.condition, isNotNull);
+    expect(forLoopParts.rightSeparator, isNotNull);
+    expect(forLoopParts.updaters, hasLength(0));
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_loop_cu2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (; i < count; i++) {}',
+      parseControlFlowCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForPartsWithExpression forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.initialization, isNull);
+    expect(forLoopParts.leftSeparator, isNotNull);
+    expect(forLoopParts.condition, isNotNull);
+    expect(forLoopParts.rightSeparator, isNotNull);
+    expect(forLoopParts.updaters, hasLength(1));
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_loop_ecu2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (i--; i < count; i++) {}',
+      parseSpreadCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForPartsWithExpression forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.initialization, isNotNull);
+    expect(forLoopParts.leftSeparator, isNotNull);
+    expect(forLoopParts.condition, isNotNull);
+    expect(forLoopParts.rightSeparator, isNotNull);
+    expect(forLoopParts.updaters, hasLength(1));
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_loop_i2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (var i = 0;;) {}',
+      parseSpreadCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForPartsWithDeclarations forLoopParts = forStatement.forLoopParts;
+    VariableDeclarationList variables = forLoopParts.variables;
+    expect(variables, isNotNull);
+    expect(variables.metadata, hasLength(0));
+    expect(variables.variables, hasLength(1));
+    expect(forLoopParts.leftSeparator, isNotNull);
+    expect(forLoopParts.condition, isNull);
+    expect(forLoopParts.rightSeparator, isNotNull);
+    expect(forLoopParts.updaters, hasLength(0));
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_loop_i_withMetadata2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (@A var i = 0;;) {}',
+      parseSpreadCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForPartsWithDeclarations forLoopParts = forStatement.forLoopParts;
+    VariableDeclarationList variables = forLoopParts.variables;
+    expect(variables, isNotNull);
+    expect(variables.metadata, hasLength(1));
+    expect(variables.variables, hasLength(1));
+    expect(forLoopParts.leftSeparator, isNotNull);
+    expect(forLoopParts.condition, isNull);
+    expect(forLoopParts.rightSeparator, isNotNull);
+    expect(forLoopParts.updaters, hasLength(0));
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_loop_ic2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (var i = 0; i < count;) {}',
+      parseSpreadCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForPartsWithDeclarations forLoopParts = forStatement.forLoopParts;
+    VariableDeclarationList variables = forLoopParts.variables;
+    expect(variables, isNotNull);
+    expect(variables.variables, hasLength(1));
+    expect(forLoopParts.leftSeparator, isNotNull);
+    expect(forLoopParts.condition, isNotNull);
+    expect(forLoopParts.rightSeparator, isNotNull);
+    expect(forLoopParts.updaters, hasLength(0));
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_loop_icu2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (var i = 0; i < count; i++) {}',
+      parseSpreadCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForPartsWithDeclarations forLoopParts = forStatement.forLoopParts;
+    VariableDeclarationList variables = forLoopParts.variables;
+    expect(variables, isNotNull);
+    expect(variables.variables, hasLength(1));
+    expect(forLoopParts.leftSeparator, isNotNull);
+    expect(forLoopParts.condition, isNotNull);
+    expect(forLoopParts.rightSeparator, isNotNull);
+    expect(forLoopParts.updaters, hasLength(1));
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_loop_iicuu2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (int i = 0, j = count; i < j; i++, j--) {}',
+      parseSpreadCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForPartsWithDeclarations forLoopParts = forStatement.forLoopParts;
+    VariableDeclarationList variables = forLoopParts.variables;
+    expect(variables, isNotNull);
+    expect(variables.variables, hasLength(2));
+    expect(forLoopParts.leftSeparator, isNotNull);
+    expect(forLoopParts.condition, isNotNull);
+    expect(forLoopParts.rightSeparator, isNotNull);
+    expect(forLoopParts.updaters, hasLength(2));
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_loop_iu2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (var i = 0;; i++) {}',
+      parseSpreadCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForPartsWithDeclarations forLoopParts = forStatement.forLoopParts;
+    VariableDeclarationList variables = forLoopParts.variables;
+    expect(variables, isNotNull);
+    expect(variables.variables, hasLength(1));
+    expect(forLoopParts.leftSeparator, isNotNull);
+    expect(forLoopParts.condition, isNull);
+    expect(forLoopParts.rightSeparator, isNotNull);
+    expect(forLoopParts.updaters, hasLength(1));
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_loop_u2() {
+    ForStatement2 forStatement = parseStatement(
+      'for (;; i++) {}',
+      parseSpreadCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForPartsWithExpression forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.initialization, isNull);
+    expect(forLoopParts.leftSeparator, isNotNull);
+    expect(forLoopParts.condition, isNull);
+    expect(forLoopParts.rightSeparator, isNotNull);
+    expect(forLoopParts.updaters, hasLength(1));
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
   }
 
   void test_partial_typeArg1_34850() {
@@ -1485,148 +2773,5 @@ mixin A {
     createParser('/// Doc\nmixin M {}');
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expectCommentText(declaration.documentationComment, '/// Doc');
-  }
-}
-
-/**
- * Tests of the fasta parser based on [ComplexParserTestMixin].
- */
-@reflectiveTest
-class NNBDParserTest_Fasta extends FastaParserTestCase {
-  parseNNBDCompilationUnit(String code, {List<ExpectedError> errors}) {
-    createParser('''
-@pragma('analyzer:non-nullable') library nnbd.parser.test;
-$code
-''');
-    _parserProxy.astBuilder.enableNonNullable = true;
-    CompilationUnit unit = _parserProxy.parseCompilationUnit2();
-    assertNoErrors();
-    return unit;
-  }
-
-  void test_assignment_complex() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x + bar(7); }');
-  }
-
-  void test_assignment_simple() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
-  }
-
-  void test_gft_nullable() {
-    parseNNBDCompilationUnit('main() { C? Function() x = 7; }');
-  }
-
-  void test_gft_nullable_1() {
-    parseNNBDCompilationUnit('main() { C Function()? x = 7; }');
-  }
-
-  void test_gft_nullable_2() {
-    parseNNBDCompilationUnit('main() { C? Function()? x = 7; }');
-  }
-
-  void test_gft_nullable_3() {
-    parseNNBDCompilationUnit('main() { C? Function()? Function()? x = 7; }');
-  }
-
-  void test_gft_nullable_prefixed() {
-    parseNNBDCompilationUnit('main() { C.a? Function()? x = 7; }');
-  }
-
-  void test_conditional() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X ? 7 : y; }');
-  }
-
-  void test_conditional_complex() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X ? x2 = x + bar(7) : y; }');
-  }
-
-  void test_conditional_simple() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X ? x2 = x : y; }');
-  }
-
-  void test_for() {
-    parseNNBDCompilationUnit('main() { for(int x = 0; x < 7; ++x) { } }');
-  }
-
-  void test_for_conditional() {
-    parseNNBDCompilationUnit(
-        'main() { for(x ? y = 7 : y = 8; y < 10; ++y) { } }');
-  }
-
-  void test_for_nullable() {
-    parseNNBDCompilationUnit('main() { for(int? x = 0; x < 7; ++x) { } }');
-  }
-
-  void test_foreach() {
-    parseNNBDCompilationUnit('main() { for(int x in [7]) { } }');
-  }
-
-  void test_foreach_nullable() {
-    parseNNBDCompilationUnit('main() { for(int? x in [7, null]) { } }');
-  }
-
-  void test_is_nullable() {
-    CompilationUnit unit =
-        parseNNBDCompilationUnit('main() { x is String? ? (x + y) : z; }');
-    FunctionDeclaration function = unit.declarations[0];
-    BlockFunctionBody body = function.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    ConditionalExpression expression = statement.expression;
-
-    IsExpression condition = expression.condition;
-    expect((condition.type as NamedType).question, isNotNull);
-    Expression thenExpression = expression.thenExpression;
-    expect(thenExpression, isParenthesizedExpression);
-    Expression elseExpression = expression.elseExpression;
-    expect(elseExpression, isSimpleIdentifier);
-  }
-
-  void test_is_nullable_parenthesis() {
-    CompilationUnit unit =
-        parseNNBDCompilationUnit('main() { (x is String?) ? (x + y) : z; }');
-    FunctionDeclaration function = unit.declarations[0];
-    BlockFunctionBody body = function.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    ConditionalExpression expression = statement.expression;
-
-    ParenthesizedExpression condition = expression.condition;
-    IsExpression isExpression = condition.expression;
-    expect((isExpression.type as NamedType).question, isNotNull);
-    Expression thenExpression = expression.thenExpression;
-    expect(thenExpression, isParenthesizedExpression);
-    Expression elseExpression = expression.elseExpression;
-    expect(elseExpression, isSimpleIdentifier);
-  }
-
-  void test_pragma_missing() {
-    createParser("library foo;");
-    _parserProxy.astBuilder.enableNonNullable = true;
-    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
-    expect(unit.hasPragmaAnalyzerNonNullable, false);
-  }
-
-  void test_pragma_non_nullable() {
-    createParser("@pragma('analyzer:non-nullable') library foo;");
-    _parserProxy.astBuilder.enableNonNullable = true;
-    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
-    expect(unit.hasPragmaAnalyzerNonNullable, true);
-  }
-
-  void test_pragma_non_nullable_not_enabled() {
-    createParser("@pragma('analyzer:non-nullable') library foo;");
-    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
-    expect(unit.hasPragmaAnalyzerNonNullable, false);
-  }
-
-  void test_pragma_other() {
-    createParser("@pragma('analyzer:foo') library foo;");
-    _parserProxy.astBuilder.enableNonNullable = true;
-    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
-    expect(unit.hasPragmaAnalyzerNonNullable, false);
-  }
-
-  void test_enableNonNullable_false() {
-    parseCompilationUnit('main() { x is String? ? (x + y) : z; }',
-        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 20, 1)]);
   }
 }

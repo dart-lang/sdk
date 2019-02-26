@@ -34,10 +34,10 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
     if (raw_obj->IsMarked()) {
       // Found marked object. Clear the mark bit and update swept bytes.
       raw_obj->ClearMarkBit();
-      obj_size = raw_obj->Size();
+      obj_size = raw_obj->HeapSize();
       used_in_bytes += obj_size;
     } else {
-      uword free_end = current + raw_obj->Size();
+      uword free_end = current + raw_obj->HeapSize();
       while (free_end < end) {
         RawObject* next_obj = RawObject::FromAddr(free_end);
         if (next_obj->IsMarked()) {
@@ -45,7 +45,7 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
           break;
         }
         // Expand the free block by the size of this object.
-        free_end += next_obj->Size();
+        free_end += next_obj->HeapSize();
       }
       obj_size = free_end - current;
       if (is_executable) {
@@ -86,17 +86,17 @@ intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
   ASSERT(HeapPage::Of(raw_obj) == page);
   if (raw_obj->IsMarked()) {
     raw_obj->ClearMarkBit();
-    words_to_end = (raw_obj->Size() >> kWordSizeLog2);
+    words_to_end = (raw_obj->HeapSize() >> kWordSizeLog2);
   }
 #ifdef DEBUG
   // String::MakeExternal and Array::MakeFixedLength create trailing filler
   // objects, but they are always unreachable. Verify that they are not marked.
-  uword current = RawObject::ToAddr(raw_obj) + raw_obj->Size();
+  uword current = RawObject::ToAddr(raw_obj) + raw_obj->HeapSize();
   uword end = page->object_end();
   while (current < end) {
     RawObject* cur_obj = RawObject::FromAddr(current);
     ASSERT(!cur_obj->IsMarked());
-    intptr_t obj_size = cur_obj->Size();
+    intptr_t obj_size = cur_obj->HeapSize();
     memset(reinterpret_cast<void*>(current), Heap::kZapByte, obj_size);
     current += obj_size;
   }
@@ -104,13 +104,13 @@ intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
   return words_to_end;
 }
 
-class SweeperTask : public ThreadPool::Task {
+class ConcurrentSweeperTask : public ThreadPool::Task {
  public:
-  SweeperTask(Isolate* isolate,
-              PageSpace* old_space,
-              HeapPage* first,
-              HeapPage* last,
-              FreeList* freelist)
+  ConcurrentSweeperTask(Isolate* isolate,
+                        PageSpace* old_space,
+                        HeapPage* first,
+                        HeapPage* last,
+                        FreeList* freelist)
       : task_isolate_(isolate),
         old_space_(old_space),
         first_(first),
@@ -132,7 +132,7 @@ class SweeperTask : public ThreadPool::Task {
     ASSERT(result);
     {
       Thread* thread = Thread::Current();
-      TIMELINE_FUNCTION_GC_DURATION(thread, "SweeperTask");
+      TIMELINE_FUNCTION_GC_DURATION(thread, "ConcurrentSweep");
       GCSweeper sweeper;
 
       HeapPage* page = first_;
@@ -182,10 +182,9 @@ void GCSweeper::SweepConcurrent(Isolate* isolate,
                                 HeapPage* first,
                                 HeapPage* last,
                                 FreeList* freelist) {
-  SweeperTask* task = new SweeperTask(isolate, isolate->heap()->old_space(),
-                                      first, last, freelist);
-  ThreadPool* pool = Dart::thread_pool();
-  pool->Run(task);
+  bool result = Dart::thread_pool()->Run(new ConcurrentSweeperTask(
+      isolate, isolate->heap()->old_space(), first, last, freelist));
+  ASSERT(result);
 }
 
 }  // namespace dart

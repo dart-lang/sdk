@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_ISOLATE_H_
 #define RUNTIME_VM_ISOLATE_H_
 
+#if defined(SHOULD_NOT_INCLUDE_RUNTIME)
+#error "Should not include runtime"
+#endif
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
@@ -139,8 +143,6 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 //
 #define ISOLATE_FLAG_LIST(V)                                                   \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
-  V(PRODUCT, use_bare_instructions, Bare, use_bare_instructions,               \
-    FLAG_use_bare_instructions)                                                \
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
   V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
@@ -374,7 +376,6 @@ class Isolate : public BaseIsolate {
     ASSERT(debugger_ != NULL);
     return debugger_;
   }
-#endif
 
   void set_single_step(bool value) { single_step_ = value; }
   bool single_step() const { return single_step_; }
@@ -382,7 +383,6 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, single_step_);
   }
 
-#if !defined(PRODUCT)
   bool ResumeRequest() const {
     return ResumeRequestBit::decode(isolate_flags_);
   }
@@ -885,7 +885,6 @@ class Isolate : public BaseIsolate {
   V(EnableAsserts)                                                             \
   V(ErrorOnBadType)                                                            \
   V(ErrorOnBadOverride)                                                        \
-  V(Bare)                                                                      \
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
   V(Obfuscate)                                                                 \

@@ -17,6 +17,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/parser.h"
+#include "vm/static_type_exactness_state.h"
 #include "vm/token_position.h"
 
 namespace dart {
@@ -43,6 +44,10 @@ class RangeAnalysis;
 class RangeBoundary;
 class UnboxIntegerInstr;
 class TypeUsageInfo;
+
+namespace compiler {
+class BlockBuilder;
+}
 
 class Value : public ZoneAllocated {
  public:
@@ -1869,6 +1874,14 @@ class Definition : public Instruction {
   // Postcondition: use lists and use values are still valid.
   void ReplaceUsesWith(Definition* other);
 
+  // Replace this definition with another instruction. Use the provided result
+  // definition to replace uses of the original definition. If replacing during
+  // iteration, pass the iterator so that the instruction can be replaced
+  // without affecting iteration order, otherwise pass a NULL iterator.
+  void ReplaceWithResult(Instruction* replacement,
+                         Definition* replacement_for_uses,
+                         ForwardInstructionIterator* iterator);
+
   // Replace this definition and all uses with another definition.  If
   // replacing during iteration, pass the iterator so that the instruction
   // can be replaced without affecting iteration order, otherwise pass a
@@ -2125,7 +2138,7 @@ class ParameterInstr : public Definition {
 //
 // This low-level instruction is non-inlinable since it makes assumptions about
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
-class StoreIndexedUnsafeInstr : public TemplateDefinition<2, NoThrow> {
+class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
  public:
   StoreIndexedUnsafeInstr(Value* index, Value* value, intptr_t offset)
       : offset_(offset) {
@@ -3090,12 +3103,10 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
   }
 
   RawString* Selector() {
-    // The Token::Kind we have does unfortunately not encode whether the call is
-    // a dyn: call or not.
     if (auto static_call = this->AsStaticCall()) {
-      return static_call->ic_data()->target_name();
+      return static_call->function().name();
     } else if (auto instance_call = this->AsInstanceCall()) {
-      return instance_call->ic_data()->target_name();
+      return instance_call->function_name().raw();
     } else {
       UNREACHABLE();
     }
@@ -4109,7 +4120,7 @@ enum StoreBarrierType { kNoStoreBarrier, kEmitStoreBarrier };
 // field initializers *must* be marked as initializing. Initializing stores
 // into unboxed fields are responsible for allocating the mutable box which
 // would be mutated by subsequent stores.
-class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
+class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
  public:
   enum class Kind {
     // Store is known to be the first store into a slot of an object after
@@ -4581,7 +4592,7 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
   DISALLOW_COPY_AND_ASSIGN(StringInterpolateInstr);
 };
 
-class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
+class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
  public:
   StoreIndexedInstr(Value* array,
                     Value* index,
@@ -7167,6 +7178,9 @@ class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  static void AddMetadataForRuntimeCall(CheckNullInstr* check_null,
+                                        FlowGraphCompiler* compiler);
+
  private:
   const TokenPosition token_pos_;
   const String& function_name_;
@@ -7824,7 +7838,7 @@ class Environment : public ZoneAllocated {
 
  private:
   friend class ShallowIterator;
-  friend class BlockBuilder;  // For Environment constructor.
+  friend class compiler::BlockBuilder;  // For Environment constructor.
 
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,

@@ -32,14 +32,22 @@ abstract class CommandHandler<P, R> with Handler<P, R> {
 mixin Handler<P, R> {
   LspAnalysisServer server;
 
-  ErrorOr<R> error<R>(ErrorCodes code, String message, Object data) =>
+  ErrorOr<R> error<R>(ErrorCodes code, String message, String data) =>
       new ErrorOr<R>.error(new ResponseError(code, message, data));
 
   ErrorOr<R> failure<R>(ErrorOr<dynamic> error) =>
       new ErrorOr<R>.error(error.error);
 
-  Future<ErrorOr<ResolvedUnitResult>> requireUnit(String path) async {
+  Future<ErrorOr<ResolvedUnitResult>> requireResolvedUnit(String path) async {
     final result = await server.getResolvedUnit(path);
+    if (result?.state != ResultState.VALID) {
+      return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
+    }
+    return success(result);
+  }
+
+  ErrorOr<ParsedUnitResult> requireUnresolvedUnit(String path) {
+    final result = server.getParsedUnit(path);
     if (result?.state != ResultState.VALID) {
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
     }
@@ -85,7 +93,7 @@ abstract class ServerStateMessageHandler {
   }
 
   ErrorOr<Object> failure<Object>(ErrorCodes code, String message,
-          [Object data]) =>
+          [String data]) =>
       new ErrorOr<Object>.error(new ResponseError(code, message, data));
 
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the

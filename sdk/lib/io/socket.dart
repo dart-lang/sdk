@@ -395,6 +395,109 @@ class SocketOption {
   const SocketOption._(this._value);
 }
 
+// Must be kept in sync with enum in socket.cc
+enum _RawSocketOptions {
+  SOL_SOCKET, // 0
+  IPPROTO_IP, // 1
+  IP_MULTICAST_IF, // 2
+  IPPROTO_IPV6, // 3
+  IPV6_MULTICAST_IF, // 4
+  IPPROTO_TCP, // 5
+  IPPROTO_UDP, // 6
+}
+
+/// The [RawSocketOption] is used as a parameter to [Socket.setRawOption] and
+/// [RawSocket.setRawOption] to set customize the behaviour of the underlying
+/// socket.
+///
+/// It allows for fine grained control of the socket options, and its values will
+/// be passed to the underlying platform's implementation of setsockopt and
+/// getsockopt.
+class RawSocketOption {
+  /// Creates a RawSocketOption for getRawOption andSetRawOption.
+  ///
+  /// All arguments are required and must not be null.
+  ///
+  /// The level and option arguments correspond to level and optname arguments
+  /// on the get/setsockopt native calls.
+  ///
+  /// The value argument and its length correspond to the optval and length
+  /// arguments on the native call.
+  ///
+  /// For a [getRawOption] call, the value parameter will be updated after a
+  /// successful call (although its length will not be changed).
+  ///
+  /// For a [setRawOption] call, the value parameter will be used set the
+  /// option.
+  const RawSocketOption(this.level, this.option, this.value);
+
+  /// Convenience constructor for creating an int based RawSocketOption.
+  factory RawSocketOption.fromInt(int level, int option, int value) {
+    if (value == null) {
+      value = 0;
+    }
+    final Uint8List list = Uint8List(4);
+    final buffer = ByteData.view(list.buffer);
+    buffer.setInt32(0, value);
+    return RawSocketOption(level, option, list);
+  }
+
+  /// Convenience constructor for creating a bool based RawSocketOption.
+  factory RawSocketOption.fromBool(int level, int option, bool value) =>
+      RawSocketOption.fromInt(level, option, value == true ? 1 : 0);
+
+  /// The level for the option to set or get.
+  ///
+  /// See also:
+  ///   * [RawSocketOption.levelSocket]
+  ///   * [RawSocketOption.levelIPv4]
+  ///   * [RawSocketOption.levelIPv6]
+  ///   * [RawSocketOption.levelTcp]
+  ///   * [RawSocketOption.levelUdp]
+  final int level;
+
+  /// The option to set or get.
+  final int option;
+
+  /// The raw data to set, or the array to write the current option value into.
+  ///
+  /// This list must be the correct length for the expected option. For most
+  /// options that take int or bool values, the length should be 4. For options
+  /// that expect a struct (such as an in_addr_t), the length should be the
+  /// correct length for that struct.
+  final Uint8List value;
+
+  /// Socket level option for SOL_SOCKET.
+  static int get levelSocket =>
+      _getOptionValue(_RawSocketOptions.SOL_SOCKET.index);
+
+  /// Socket level option for IPPROTO_IP.
+  static int get levelIPv4 =>
+      _getOptionValue(_RawSocketOptions.IPPROTO_IP.index);
+
+  /// Socket option for IP_MULTICAST_IF.
+  static int get IPv4MulticastInterface =>
+      _getOptionValue(_RawSocketOptions.IP_MULTICAST_IF.index);
+
+  /// Socket level option for IPPROTO_IPV6.
+  static int get levelIPv6 =>
+      _getOptionValue(_RawSocketOptions.IPPROTO_IPV6.index);
+
+  /// Socket option for IPV6_MULTICAST_IF.
+  static int get IPv6MulticastInterface =>
+      _getOptionValue(_RawSocketOptions.IPV6_MULTICAST_IF.index);
+
+  /// Socket level option for IPPROTO_TCP.
+  static int get levelTcp =>
+      _getOptionValue(_RawSocketOptions.IPPROTO_TCP.index);
+
+  /// Socket level option for IPPROTO_UDP.
+  static int get levelUdp =>
+      _getOptionValue(_RawSocketOptions.IPPROTO_UDP.index);
+
+  external static int _getOptionValue(int key);
+}
+
 /**
  * Events for the [RawSocket].
  */
@@ -573,6 +676,24 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * Returns [:true:] if the option was set successfully, false otherwise.
    */
   bool setOption(SocketOption option, bool enabled);
+
+  /**
+   * Use [getRawOption] to get low level information about the [RawSocket]. See
+   * [RawSocketOption] for available options.
+   *
+   * Returns the [RawSocketOption.value] on success.
+   *
+   * Throws an [OSError] on failure.
+   */
+  Uint8List getRawOption(RawSocketOption option);
+
+  /**
+   * Use [setRawOption] to customize the [RawSocket]. See [RawSocketOption] for
+   * available options.
+   *
+   * Throws an [OSError] on failure.
+   */
+  void setRawOption(RawSocketOption option);
 }
 
 /**
@@ -651,6 +772,24 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    * Returns [:true:] if the option was set successfully, false otherwise.
    */
   bool setOption(SocketOption option, bool enabled);
+
+  /**
+   * Use [getRawOption] to get low level information about the [RawSocket]. See
+   * [RawSocketOption] for available options.
+   *
+   * Returns the [RawSocketOption.value] on success.
+   *
+   * Throws an [OSError] on failure.
+   */
+  Uint8List getRawOption(RawSocketOption option);
+
+  /**
+   * Use [setRawOption] to customize the [RawSocket]. See [RawSocketOption] for
+   * available options.
+   *
+   * Throws an [OSError] on failure.
+   */
+  void setRawOption(RawSocketOption option);
 
   /**
    * Returns the port used by this socket.
@@ -739,6 +878,8 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    *
    * By default this value is `null`
    */
+  @Deprecated("This property is not implemented. Use getRawOption and "
+      "setRawOption instead.")
   NetworkInterface multicastInterface;
 
   /**
@@ -805,6 +946,24 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    * exception is thrown.
    */
   void leaveMulticast(InternetAddress group, [NetworkInterface interface]);
+
+  /**
+   * Use [getRawOption] to get low level information about the [RawSocket]. See
+   * [RawSocketOption] for available options.
+   *
+   * Returns [RawSocketOption.value] on success.
+   *
+   * Throws an [OSError] on failure.
+   */
+  Uint8List getRawOption(RawSocketOption option);
+
+  /**
+   * Use [setRawOption] to customize the [RawSocket]. See [RawSocketOption] for
+   * available options.
+   *
+   * Throws an [OSError] on failure.
+   */
+  void setRawOption(RawSocketOption option);
 }
 
 class SocketException implements IOException {

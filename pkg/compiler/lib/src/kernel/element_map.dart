@@ -56,13 +56,10 @@ abstract class KernelToElementMap {
   /// Returns the [CallStructure] corresponding to the [arguments].
   CallStructure getCallStructure(ir.Arguments arguments);
 
-  /// Returns the [Selector] corresponding to the invocation or getter/setter
-  /// access of [node].
-  Selector getSelector(ir.Expression node);
-
   /// Returns the [Selector] corresponding to the invocation of [name] with
   /// [arguments].
-  Selector getInvocationSelector(ir.Name name, ir.Arguments arguments);
+  Selector getInvocationSelector(ir.Name name, int positionalArguments,
+      List<String> namedArguments, int typeArguments);
 
   /// Returns the [MemberEntity] corresponding to the member [node].
   MemberEntity getMember(ir.Member node);

@@ -18,12 +18,14 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/dart/import_library_element.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:charcode/ascii.dart';
+import 'package:meta/meta.dart';
 
 /**
  * A [ChangeBuilder] used to build changes in Dart files.
@@ -1203,6 +1205,35 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
+  ImportLibraryElementResult importLibraryElement({
+    @required ResolvedLibraryResult targetLibrary,
+    @required String targetPath,
+    @required int targetOffset,
+    @required LibraryElement requestedLibrary,
+    @required String requestedName,
+  }) {
+    if (librariesToImport.isNotEmpty) {
+      throw StateError('Only one library can be safely imported.');
+    }
+
+    var request = importLibraryElementImpl(
+      targetResolvedLibrary: targetLibrary,
+      targetPath: targetPath,
+      targetOffset: targetOffset,
+      requestedLibrary: requestedLibrary,
+      requestedName: requestedName,
+    );
+
+    var prefix = request.prefix;
+    if (request.uri != null) {
+      var uriText = _getLibraryUriText(request.uri);
+      librariesToImport[request.uri] = _LibraryToImport(uriText, prefix);
+    }
+
+    return ImportLibraryElementResultImpl(prefix);
+  }
+
+  @override
   void replaceTypeWithFuture(
       TypeAnnotation typeAnnotation, TypeProvider typeProvider) {
     InterfaceType futureType = typeProvider.futureType;
@@ -1509,6 +1540,14 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
       }
     }
   }
+}
+
+/// Information about a library to import.
+class ImportLibraryElementResultImpl implements ImportLibraryElementResult {
+  @override
+  final String prefix;
+
+  ImportLibraryElementResultImpl(this.prefix);
 }
 
 class _EnclosingElementFinder {

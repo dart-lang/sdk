@@ -6420,6 +6420,43 @@ class CodeGenerator extends Object
   /// Unused, see [_defineClass].
   @override
   visitWithClause(node) => _unreachable(node);
+
+  @override
+  visitForElement(ForElement node) => _unreachable(node);
+
+  @override
+  visitIfElement(IfElement node) => _unreachable(node);
+
+  @override
+  visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
+      _unreachable(node);
+
+  @override
+  visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
+      _unreachable(node);
+
+  @override
+  visitForStatement2(ForStatement2 node) => _unreachable(node);
+
+  @override
+  visitListLiteral2(ListLiteral2 node) => _unreachable(node);
+
+  @override
+  visitMapLiteral2(MapLiteral2 node) => _unreachable(node);
+
+  @override
+  visitSetLiteral2(SetLiteral2 node) => _unreachable(node);
+
+  @override
+  visitSpreadElement(SpreadElement node) => _unreachable(node);
+
+  @override
+  visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
+      _unreachable(node);
+
+  @override
+  visitForPartsWithExpression(ForPartsWithExpression node) =>
+      _unreachable(node);
 }
 
 /// Choose a canonical name from the [library] element.
@@ -6439,14 +6476,11 @@ String jsLibraryName(String libraryRoot, LibraryElement library) {
     // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
     // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
     qualifiedPath = uri.pathSegments.skip(1).join(encodedSeparator);
-  } else if (path.isWithin(libraryRoot, uri.toFilePath())) {
+  } else {
     qualifiedPath = path
         .relative(uri.toFilePath(), from: libraryRoot)
-        .replaceAll(path.separator, encodedSeparator);
-  } else {
-    // We don't have a unique name.
-    throw 'Invalid library root. $libraryRoot does not contain '
-        '${uri.toFilePath()}';
+        .replaceAll(path.separator, encodedSeparator)
+        .replaceAll('..', encodedSeparator);
   }
   return pathToJSIdentifier(qualifiedPath);
 }
@@ -6458,10 +6492,6 @@ String jsLibraryDebuggerName(String libraryRoot, LibraryElement library) {
   if (uri.scheme == 'dart' || uri.scheme == 'package') return uri.toString();
 
   var filePath = uri.toFilePath();
-  if (!path.isWithin(libraryRoot, filePath)) {
-    throw 'Invalid library root. $libraryRoot does not contain '
-        '${uri.toFilePath()}';
-  }
   // Relative path to the library.
   return path.relative(filePath, from: libraryRoot);
 }

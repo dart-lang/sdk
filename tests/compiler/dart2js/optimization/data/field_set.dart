@@ -10,9 +10,13 @@ main() {
   method3(new Class3b());
   method4(new Class4a());
   method4(new Class4b());
+  method5(new Class5a());
+  method6(new Class6a());
+  method6(new Class6b());
 }
 
 class Class1a {
+  @pragma('dart2js:noElision')
   int field1;
 }
 
@@ -23,6 +27,7 @@ method1(Class1a c) {
 }
 
 class Class2a {
+  @pragma('dart2js:noElision')
   int field2 = 42;
 }
 
@@ -56,9 +61,29 @@ class Class4b implements Class4a {
   int field4;
 }
 
-// TODO(johnniwinther,sra): Maybe we should optimize cases like this to a direct
-// property write, because all targets are simple fields?
 @pragma('dart2js:noInline')
 method4(Class4a c) {
   c.field4 = 42;
+}
+
+class Class5a {
+  int field5;
+}
+
+/*element: method5:FieldSet=[removed=field5]*/
+@pragma('dart2js:noInline')
+method5(Class5a c) {
+  c.field5 = 42;
+}
+
+class Class6a {
+  int field6 = 42;
+}
+
+class Class6b extends Class6a {}
+
+/*element: method6:FieldSet=[removed=field6]*/
+@pragma('dart2js:noInline')
+method6(Class6a c) {
+  c.field6 = 42;
 }

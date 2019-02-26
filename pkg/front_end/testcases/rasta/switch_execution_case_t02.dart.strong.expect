@@ -1,32 +1,19 @@
-// Formatted problems:
-//
-// pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:35:5: Error: Switch case may fall through to the next case.
-//     case 2:  result = 2; /// static warning - case fall-through, see "Switch"
-//     ^
-//
-// pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:36:5: Error: Switch case may fall through to the next case.
-//     case 3:  result = 3; /// static warning - case fall-through, see "Switch"
-//     ^
-//
-// pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:46:5: Error: Switch case may fall through to the next case.
-//     case 1:
-//     ^
-
-// Unhandled errors:
-//
-// pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:35:5: Error: Switch case may fall through to the next case.
-//     case 2:  result = 2; /// static warning - case fall-through, see "Switch"
-//     ^
-//
-// pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:36:5: Error: Switch case may fall through to the next case.
-//     case 3:  result = 3; /// static warning - case fall-through, see "Switch"
-//     ^
-//
-// pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:46:5: Error: Switch case may fall through to the next case.
-//     case 1:
-//     ^
-
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:35:5: Error: Switch case may fall through to the next case.
+//     case 2:  result = 2; /// static warning - case fall-through, see "Switch"
+//     ^
+//
+// pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:36:5: Error: Switch case may fall through to the next case.
+//     case 3:  result = 3; /// static warning - case fall-through, see "Switch"
+//     ^
+//
+// pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:46:5: Error: Switch case may fall through to the next case.
+//     case 1:
+//     ^
+//
 import self as self;
 import "dart:core" as core;
 

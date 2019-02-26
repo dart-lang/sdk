@@ -512,6 +512,10 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
     _currentFrame.hasClosures = true;
+    if (_currentFrame.receiverVar != null) {
+      // Closure creation may load receiver to get instantiator type arguments.
+      _useThis();
+    }
     node.variable.accept(this);
     _visitFunction(node);
   }
@@ -519,6 +523,10 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   @override
   visitFunctionExpression(FunctionExpression node) {
     _currentFrame.hasClosures = true;
+    if (_currentFrame.receiverVar != null) {
+      // Closure creation may load receiver to get instantiator type arguments.
+      _useThis();
+    }
     _visitFunction(node);
   }
 

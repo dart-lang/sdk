@@ -1,0 +1,140 @@
+Object:
+  superclasses:
+  interfaces:
+  classMembers:
+    Object._haveSameRuntimeType
+    Object.toString
+    Object.runtimeType
+    Object._toString
+    Object._simpleInstanceOf
+    Object._hashCodeRnd
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._objectHashCode
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+Mixin:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Mixin.field
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+    Mixin.field
+
+Object with Mixin:
+  superclasses:
+    Object
+  interfaces: Mixin
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Mixin.field
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+    Mixin.field
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Mixin.field
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+    Mixin.field
+
+_A&Object&Mixin with Mixin:
+  superclasses:
+    Object
+      -> _A&Object&Mixin
+  interfaces: Mixin
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Mixin.field
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+    Mixin.field
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Mixin.field
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+    Mixin.field
+
+A:
+  superclasses:
+    Object
+      -> _A&Object&Mixin
+        -> _A&Object&Mixin&Mixin
+  interfaces: Mixin
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Mixin.field
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+    Mixin.field
+  interfaceMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Mixin.field
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+    Mixin.field

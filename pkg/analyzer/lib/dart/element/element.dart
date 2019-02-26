@@ -54,10 +54,6 @@ import 'package:analyzer/src/task/dart.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassElement
     implements TypeDefiningElement, TypeParameterizedElement {
-  /// An empty list of class elements.
-  @deprecated
-  static const List<ClassElement> EMPTY_LIST = const <ClassElement>[];
-
   /// Return a list containing all of the accessors (getters and setters)
   /// declared in this class.
   List<PropertyAccessorElement> get accessors;
@@ -365,11 +361,6 @@ abstract class ClassMemberElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class CompilationUnitElement implements Element, UriReferencedElement {
-  /// An empty list of compilation unit elements.
-  @deprecated
-  static const List<CompilationUnitElement> EMPTY_LIST =
-      const <CompilationUnitElement>[];
-
   /// Return a list containing all of the top-level accessors (getters and
   /// setters) contained in this compilation unit.
   List<PropertyAccessorElement> get accessors;
@@ -429,11 +420,6 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ConstructorElement
     implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget {
-  /// An empty list of constructor elements.
-  @deprecated
-  static const List<ConstructorElement> EMPTY_LIST =
-      const <ConstructorElement>[];
-
   /// Return `true` if this constructor is a const constructor.
   bool get isConst;
 
@@ -712,10 +698,6 @@ abstract class Element implements AnalysisTarget {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ElementAnnotation implements ConstantEvaluationTarget {
-  /// An empty list of annotations.
-  @deprecated
-  static const List<ElementAnnotation> EMPTY_LIST = const <ElementAnnotation>[];
-
   /// Return the errors that were produced while computing a value for this
   /// annotation, or `null` if no value has been computed. If a value has been
   /// produced but no errors were generated, then the list will be empty.
@@ -998,10 +980,6 @@ abstract class ElementVisitor<R> {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExecutableElement implements FunctionTypedElement {
-  /// An empty list of executable elements.
-  @deprecated
-  static const List<ExecutableElement> EMPTY_LIST = const <ExecutableElement>[];
-
   /// Return `true` if this executable element did not have an explicit return
   /// type specified for it in the original source. Note that if there was no
   /// explicit return type, and if the element model is fully populated, then
@@ -1044,10 +1022,6 @@ abstract class ExecutableElement implements FunctionTypedElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExportElement implements Element, UriReferencedElement {
-  /// An empty list of export elements.
-  @deprecated
-  static const List<ExportElement> EMPTY_LIST = const <ExportElement>[];
-
   /// Return a list containing the combinators that were specified as part of
   /// the export directive in the order in which they were specified.
   List<NamespaceCombinator> get combinators;
@@ -1062,10 +1036,6 @@ abstract class ExportElement implements Element, UriReferencedElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldElement
     implements ClassMemberElement, PropertyInducingElement {
-  /// An empty list of field elements.
-  @deprecated
-  static const List<FieldElement> EMPTY_LIST = const <FieldElement>[];
-
   /// Return `true` if this field was explicitly marked as being covariant.
   bool get isCovariant;
 
@@ -1096,10 +1066,6 @@ abstract class FieldFormalParameterElement implements ParameterElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionElement implements ExecutableElement, LocalElement {
-  /// An empty list of function elements.
-  @deprecated
-  static const List<FunctionElement> EMPTY_LIST = const <FunctionElement>[];
-
   /// The name of the method that can be implemented by a class to allow its
   /// instances to be invoked as if they were a function.
   static final String CALL_METHOD_NAME = "call";
@@ -1129,11 +1095,6 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypeAliasElement
     implements FunctionTypedElement, TypeDefiningElement {
-  /// An empty array of type alias elements.
-  @deprecated
-  static List<FunctionTypeAliasElement> EMPTY_LIST =
-      new List<FunctionTypeAliasElement>(0);
-
   @override
   CompilationUnitElement get enclosingElement;
 
@@ -1201,10 +1162,6 @@ abstract class HideElementCombinator implements NamespaceCombinator {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ImportElement implements Element, UriReferencedElement {
-  /// An empty list of import elements.
-  @deprecated
-  static const List<ImportElement> EMPTY_LIST = const <ImportElement>[];
-
   /// Return a list containing the combinators that were specified as part of
   /// the import directive in the order in which they were specified.
   List<NamespaceCombinator> get combinators;
@@ -1233,10 +1190,6 @@ abstract class ImportElement implements Element, UriReferencedElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LabelElement implements Element {
-  /// An empty list of label elements.
-  @deprecated
-  static const List<LabelElement> EMPTY_LIST = const <LabelElement>[];
-
   @override
   ExecutableElement get enclosingElement;
 }
@@ -1245,10 +1198,6 @@ abstract class LabelElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryElement implements Element {
-  /// An empty list of library elements.
-  @deprecated
-  static const List<LibraryElement> EMPTY_LIST = const <LibraryElement>[];
-
   /// Return the compilation unit that defines this library.
   CompilationUnitElement get definingCompilationUnit;
 
@@ -1367,21 +1316,12 @@ abstract class LocalElement implements Element {
 /// A local variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalVariableElement implements LocalElement, VariableElement {
-  /// An empty list of field elements.
-  @deprecated
-  static const List<LocalVariableElement> EMPTY_LIST =
-      const <LocalVariableElement>[];
-}
+abstract class LocalVariableElement implements LocalElement, VariableElement {}
 
 /// An element that represents a method defined within a type.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MethodElement implements ClassMemberElement, ExecutableElement {
-  /// An empty list of method elements.
-  @deprecated
-  static const List<MethodElement> EMPTY_LIST = const <MethodElement>[];
-
   @deprecated
   @override
   MethodDeclaration computeNode();
@@ -1424,22 +1364,13 @@ abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
 /// An object that controls how namespaces are combined.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class NamespaceCombinator {
-  /// An empty list of namespace combinators.
-  @deprecated
-  static const List<NamespaceCombinator> EMPTY_LIST =
-      const <NamespaceCombinator>[];
-}
+abstract class NamespaceCombinator {}
 
 /// A parameter defined within an executable element.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParameterElement
     implements LocalElement, VariableElement, ConstantEvaluationTarget {
-  /// An empty list of parameter elements.
-  @deprecated
-  static const List<ParameterElement> EMPTY_LIST = const <ParameterElement>[];
-
   /// Return the Dart code of the default value, or `null` if no default value.
   String get defaultValueCode;
 
@@ -1502,10 +1433,6 @@ abstract class ParameterElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixElement implements Element {
-  /// An empty list of prefix elements.
-  @deprecated
-  static const List<PrefixElement> EMPTY_LIST = const <PrefixElement>[];
-
   @override
   LibraryElement get enclosingElement;
 
@@ -1532,11 +1459,6 @@ abstract class PrefixElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyAccessorElement implements ExecutableElement {
-  /// An empty list of property accessor elements.
-  @deprecated
-  static const List<PropertyAccessorElement> EMPTY_LIST =
-      const <PropertyAccessorElement>[];
-
   /// Return the accessor representing the getter that corresponds to (has the
   /// same name as) this setter, or `null` if this accessor is not a setter or
   /// if there is no corresponding getter.
@@ -1577,11 +1499,6 @@ abstract class PropertyAccessorElement implements ExecutableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingElement implements VariableElement {
-  /// An empty list of elements.
-  @deprecated
-  static const List<PropertyInducingElement> EMPTY_LIST =
-      const <PropertyInducingElement>[];
-
   /// Return the getter associated with this variable. If this variable was
   /// explicitly defined (is not synthetic) then the getter associated with it
   /// will be synthetic.
@@ -1623,11 +1540,6 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TopLevelVariableElement implements PropertyInducingElement {
-  /// An empty list of top-level variable elements.
-  @deprecated
-  static const List<TopLevelVariableElement> EMPTY_LIST =
-      const <TopLevelVariableElement>[];
-
   @deprecated
   @override
   VariableDeclaration computeNode();
@@ -1645,11 +1557,6 @@ abstract class TypeDefiningElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeParameterElement implements TypeDefiningElement {
-  /// An empty list of type parameter elements.
-  @deprecated
-  static const List<TypeParameterElement> EMPTY_LIST =
-      const <TypeParameterElement>[];
-
   /// Return the type representing the bound associated with this parameter, or
   /// `null` if this parameter does not have an explicit bound.
   DartType get bound;
@@ -1709,10 +1616,6 @@ abstract class UriReferencedElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class VariableElement implements Element, ConstantEvaluationTarget {
-  /// An empty list of variable elements.
-  @deprecated
-  static const List<VariableElement> EMPTY_LIST = const <VariableElement>[];
-
   /// Return a representation of the value of this variable.
   ///
   /// Return `null` if either this variable was not declared with the 'const'

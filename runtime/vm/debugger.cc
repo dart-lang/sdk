@@ -2789,17 +2789,11 @@ bool Debugger::FindBestFit(const Script& script,
         if (!field.has_initializer()) {
           continue;
         }
-
-        bool has_func_literal_initializer = false;
-#ifndef DART_PRECOMPILED_RUNTIME
-        has_func_literal_initializer =
-            kernel::FieldHasFunctionLiteralInitializer(field, &start, &end);
-#endif  // !DART_PRECOMPILED_RUNTIME
-        if (has_func_literal_initializer) {
-          if ((start <= token_pos && token_pos <= end) ||
-              (token_pos <= start && start <= last_token_pos)) {
-            return true;
-          }
+        start = field.token_pos();
+        end = field.end_token_pos();
+        if ((start <= token_pos && token_pos <= end) ||
+            (token_pos <= start && start <= last_token_pos)) {
+          return true;
         }
       }
     }
@@ -3111,8 +3105,7 @@ void Debugger::Pause(ServiceEvent* event) {
   {
     Thread* thread = Thread::Current();
     DisableThreadInterruptsScope dtis(thread);
-    TimelineDurationScope tds(thread, Timeline::GetDebuggerStream(),
-                              "Debugger Pause");
+    TIMELINE_DURATION(thread, Debugger, "Debugger Pause");
 
     // Send the pause event.
     Service::HandleEvent(event);
@@ -3174,16 +3167,24 @@ void Debugger::RememberTopFrameAwaiter() {
   }
 }
 
-void Debugger::SetAsyncSteppingFramePointer() {
+void Debugger::SetAsyncSteppingFramePointer(DebuggerStackTrace* stack_trace) {
   if (!FLAG_async_debugger) {
     return;
   }
-  if ((stack_trace_->Length()) > 0 &&
-      (stack_trace_->FrameAt(0)->function().IsAsyncClosure() ||
-       stack_trace_->FrameAt(0)->function().IsAsyncGenClosure())) {
-    async_stepping_fp_ = stack_trace_->FrameAt(0)->fp();
+  if ((stack_trace->Length()) > 0 &&
+      (stack_trace->FrameAt(0)->function().IsAsyncClosure() ||
+       stack_trace->FrameAt(0)->function().IsAsyncGenClosure())) {
+    async_stepping_fp_ = stack_trace->FrameAt(0)->fp();
   } else {
     async_stepping_fp_ = 0;
+  }
+}
+
+void Debugger::SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace) {
+  if (stack_trace->Length() > 0) {
+    stepping_fp_ = stack_trace->FrameAt(0)->fp();
+  } else {
+    stepping_fp_ = 0;
   }
 }
 
@@ -3200,7 +3201,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     DeoptimizeWorld();
     isolate_->set_single_step(true);
     skip_next_step_ = skip_next_step;
-    SetAsyncSteppingFramePointer();
+    SetAsyncSteppingFramePointer(stack_trace);
     if (FLAG_verbose_debug) {
       OS::PrintErr("HandleSteppingRequest- kStepInto\n");
     }
@@ -3208,9 +3209,8 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     DeoptimizeWorld();
     isolate_->set_single_step(true);
     skip_next_step_ = skip_next_step;
-    ASSERT(stack_trace->Length() > 0);
-    stepping_fp_ = stack_trace->FrameAt(0)->fp();
-    SetAsyncSteppingFramePointer();
+    SetSyncSteppingFramePointer(stack_trace);
+    SetAsyncSteppingFramePointer(stack_trace);
     if (FLAG_verbose_debug) {
       OS::PrintErr("HandleSteppingRequest- kStepOver %" Px "\n", stepping_fp_);
     }

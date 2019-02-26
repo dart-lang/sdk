@@ -21,6 +21,22 @@ class OverrideContributorTest extends DartCompletionContributorTest {
     return new OverrideContributor();
   }
 
+  test_alreadyOverridden() async {
+    addTestSource('''
+class A {
+  void foo() {}
+  void bar() {}
+}
+
+class B implements A {
+  void bar() {}
+  f^
+}
+''');
+    await computeSuggestions();
+    _assertNoOverrideContaining('bar');
+  }
+
   test_fromMultipleSuperclasses() async {
     addTestSource(r'''
 class A {
@@ -152,6 +168,61 @@ class C extends B {
         selectionLength: 27);
   }
 
+  test_inClass_of_interface() async {
+    addTestSource('''
+class A {
+  void foo() {}
+}
+
+class B implements A {
+  f^
+}
+''');
+    await computeSuggestions();
+    _assertOverride('''
+@override
+  void foo() {
+    // TODO: implement foo
+  }''', displayText: 'foo() { … }', selectionOffset: 51, selectionLength: 0);
+  }
+
+  test_inMixin_of_interface() async {
+    addTestSource('''
+class A {
+  void foo() {}
+}
+
+mixin M implements A {
+  f^
+}
+''');
+    await computeSuggestions();
+    _assertOverride('''
+@override
+  void foo() {
+    // TODO: implement foo
+  }''', displayText: 'foo() { … }', selectionOffset: 51, selectionLength: 0);
+  }
+
+  test_inMixin_of_superclassConstraint() async {
+    addTestSource('''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  f^
+}
+''');
+    await computeSuggestions();
+    _assertOverride('''
+@override
+  void foo() {
+    // TODO: implement foo
+    super.foo();
+  }''', displayText: 'foo() { … }', selectionOffset: 56, selectionLength: 12);
+  }
+
   @failingTest
   test_insideBareClass() async {
     addTestSource('''
@@ -173,6 +244,21 @@ method() {
         displayText: 'method() { … }',
         selectionOffset: 45,
         selectionLength: 22);
+  }
+
+  test_outsideOfWorkspace() async {
+    testFile = convertPath('/home/other/lib/a.dart');
+    addTestSource('''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  f^
+}
+''');
+    await computeSuggestions();
+    _assertNoOverrideContaining('foo');
   }
 
   test_private_otherLibrary() async {
@@ -276,6 +362,14 @@ method() {
         displayText: 'method() { … }',
         selectionOffset: 45,
         selectionLength: 22);
+  }
+
+  void _assertNoOverrideContaining(String search) {
+    expect(
+        suggestions.where((c) =>
+            c.kind == CompletionSuggestionKind.OVERRIDE &&
+            c.completion.contains(search)),
+        isEmpty);
   }
 
   CompletionSuggestion _assertOverride(String completion,

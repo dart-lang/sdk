@@ -554,6 +554,7 @@ class Driver implements ServerStarter {
 
     final socketServer = new LspSocketServer(
       analysisServerOptions,
+      diagnosticServer,
       dartSdkManager,
       instrumentationService,
     );

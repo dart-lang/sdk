@@ -220,7 +220,7 @@ class InterfaceResolverTest {
     var field = makeField();
     var class_ = makeClass(fields: [field]);
     var candidate = getCandidate(class_, false);
-    expect(candidate, new isInstanceOf<SyntheticAccessor>());
+    expect(candidate, const TypeMatcher<SyntheticAccessor>());
     expect(candidate.parent, same(class_));
     expect(candidate.name, field.name);
     expect(candidate.kind, ProcedureKind.Getter);
@@ -233,7 +233,7 @@ class InterfaceResolverTest {
     var field = makeField();
     var class_ = makeClass(fields: [field]);
     var candidate = getCandidate(class_, true);
-    expect(candidate, new isInstanceOf<SyntheticAccessor>());
+    expect(candidate, const TypeMatcher<SyntheticAccessor>());
     expect(candidate.parent, same(class_));
     expect(candidate.name, field.name);
     expect(candidate.kind, ProcedureKind.Setter);

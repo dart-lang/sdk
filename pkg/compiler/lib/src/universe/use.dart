@@ -64,13 +64,7 @@ class DynamicUse {
       sb.write('>');
     }
     if (selector.isCall) {
-      sb.write('(');
-      sb.write(selector.callStructure.positionalArgumentCount);
-      if (selector.callStructure.namedArgumentCount > 0) {
-        sb.write(',');
-        sb.write(selector.callStructure.getOrderedNamedArguments().join(','));
-      }
-      sb.write(')');
+      sb.write(selector.callStructure.shortText);
     } else if (selector.isSetter) {
       sb.write('=');
     }
@@ -161,7 +155,6 @@ enum StaticUseKind {
   GET,
   SET,
   INIT,
-  REFLECT,
 }
 
 /// Statically known use of an [Entity].
@@ -249,6 +242,11 @@ class StaticUse {
             element,
             "Static invoke element $element must be a top-level "
             "or static method."));
+    assert(
+        callStructure != null,
+        failedAt(element,
+            "Not CallStructure for static invocation of element $element."));
+
     return new GenericStaticUse(element, StaticUseKind.INVOKE, callStructure,
         typeArguments, deferredImport);
   }
@@ -322,6 +320,10 @@ class StaticUse {
         element.isInstanceMember,
         failedAt(element,
             "Super invoke element $element must be an instance method."));
+    assert(
+        callStructure != null,
+        failedAt(element,
+            "Not CallStructure for super invocation of element $element."));
     return new GenericStaticUse(
         element, StaticUseKind.INVOKE, callStructure, typeArguments);
   }
@@ -380,6 +382,12 @@ class StaticUse {
             element,
             "Constructor invoke element $element must be a "
             "generative constructor."));
+    assert(
+        callStructure != null,
+        failedAt(
+            element,
+            "Not CallStructure for super constructor invocation of element "
+            "$element."));
     return new StaticUse.internal(element, StaticUseKind.INVOKE,
         callStructure: callStructure);
   }
@@ -388,6 +396,12 @@ class StaticUse {
   /// constructor call with the given [callStructure].
   factory StaticUse.constructorBodyInvoke(
       ConstructorBodyEntity element, CallStructure callStructure) {
+    assert(
+        callStructure != null,
+        failedAt(
+            element,
+            "Not CallStructure for constructor body invocation of element "
+            "$element."));
     return new StaticUse.internal(element, StaticUseKind.INVOKE,
         callStructure: callStructure);
   }
@@ -395,7 +409,8 @@ class StaticUse {
   /// Direct invocation of a generator (body) [element], as a static call or
   /// through a this or super constructor call.
   factory StaticUse.generatorBodyInvoke(FunctionEntity element) {
-    return new StaticUse.internal(element, StaticUseKind.INVOKE);
+    return new StaticUse.internal(element, StaticUseKind.INVOKE,
+        callStructure: CallStructure.NO_ARGS);
   }
 
   /// Direct invocation of a method [element] with the given [callStructure].
@@ -442,6 +457,12 @@ class StaticUse {
         element.isConstructor,
         failedAt(element,
             "Constructor invocation element $element must be a constructor."));
+    assert(
+        callStructure != null,
+        failedAt(
+            element,
+            "Not CallStructure for constructor invocation of element "
+            "$element."));
     return new StaticUse.internal(element, StaticUseKind.INVOKE,
         callStructure: callStructure);
   }
@@ -547,15 +568,11 @@ class StaticUse {
     return new StaticUse.internal(method, StaticUseKind.CALL_METHOD);
   }
 
-  /// Use of [element] through reflection.
-  factory StaticUse.mirrorUse(MemberEntity element) {
-    return new StaticUse.internal(element, StaticUseKind.REFLECT);
-  }
-
   /// Implicit method/constructor invocation of [element] created by the
   /// backend.
   factory StaticUse.implicitInvoke(FunctionEntity element) {
-    return new StaticUse.internal(element, StaticUseKind.INVOKE);
+    return new StaticUse.internal(element, StaticUseKind.INVOKE,
+        callStructure: element.parameterStructure.callStructure);
   }
 
   /// Inlining of [element].

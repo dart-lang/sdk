@@ -920,7 +920,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return new ParameterElementImpl.synthetic(
           p.name,
           newType,
-          // ignore: deprecated_member_use
+          // ignore: deprecated_member_use_from_same_package
           p.parameterKind);
     }
 
@@ -1493,6 +1493,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return false;
     }
     return element.name == "FutureOr" && element.library.isDartAsync;
+  }
+
+  @override
+  bool get isDartCoreBool {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "bool" && element.library.isDartCore;
   }
 
   @override
@@ -2735,6 +2744,9 @@ abstract class TypeImpl implements DartType {
   bool get isDartAsyncFutureOr => false;
 
   @override
+  bool get isDartCoreBool => false;
+
+  @override
   bool get isDartCoreFunction => false;
 
   @override
@@ -3717,7 +3729,7 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
       ParameterElement parameter = parameters[i];
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       if (parameter.parameterKind == kind) {
         TypeImpl type = parameter.type ?? DynamicTypeImpl.instance;
         if (typeArguments.length != 0 &&
@@ -3798,7 +3810,7 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
       return new ParameterElementImpl.synthetic(
           p.name,
           newType,
-          // ignore: deprecated_member_use
+          // ignore: deprecated_member_use_from_same_package
           p.parameterKind);
     }
 
@@ -3853,7 +3865,7 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
       return new ParameterElementImpl.synthetic(
           p.name,
           newType,
-          // ignore: deprecated_member_use
+          // ignore: deprecated_member_use_from_same_package
           p.parameterKind);
     }
 
@@ -3880,7 +3892,7 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
   void _forEachParameterType(
       ParameterKind kind, Function(String name, DartType type) callback) {
     for (var parameter in parameters) {
-      // ignore: deprecated_member_use
+      // ignore: deprecated_member_use_from_same_package
       if (parameter.parameterKind == kind) {
         callback(parameter.name, parameter.type);
       }

@@ -31,8 +31,7 @@ Future runTests() async {
 }
 
 void testTypes(TypeEnvironment env, DartType subtype, DartType supertype,
-    bool expectSubtype, bool expectMoreSpecific) {
-  if (expectMoreSpecific == null) expectMoreSpecific = expectSubtype;
+    bool expectSubtype) {
   Expect.equals(expectSubtype, env.isSubtype(subtype, supertype),
       '$subtype <: $supertype');
   if (expectSubtype) {
@@ -41,11 +40,11 @@ void testTypes(TypeEnvironment env, DartType subtype, DartType supertype,
   }
 }
 
-void testElementTypes(TypeEnvironment env, String subname, String supername,
-    bool expectSubtype, bool expectMoreSpecific) {
+void testElementTypes(
+    TypeEnvironment env, String subname, String supername, bool expectSubtype) {
   DartType subtype = env.getElementType(subname);
   DartType supertype = env.getElementType(supername);
-  testTypes(env, subtype, supertype, expectSubtype, expectMoreSpecific);
+  testTypes(env, subtype, supertype, expectSubtype);
 }
 
 Future testInterfaceSubtype() async {
@@ -60,9 +59,8 @@ Future testInterfaceSubtype() async {
         new C();
       }
       """, expectNoErrors: true).then((env) {
-    void expect(bool expectSubtype, DartType T, DartType S,
-        {bool expectMoreSpecific}) {
-      testTypes(env, T, S, expectSubtype, expectMoreSpecific);
+    void expect(bool expectSubtype, DartType T, DartType S) {
+      testTypes(env, T, S, expectSubtype);
     }
 
     ClassEntity A = env.getClass('A');
@@ -79,7 +77,7 @@ Future testInterfaceSubtype() async {
     expect(true, void_, void_);
     expect(true, void_, dynamic_);
     // Unsure about the next one, see dartbug.com/14933.
-    expect(true, dynamic_, void_, expectMoreSpecific: false);
+    expect(true, dynamic_, void_);
     expect(true, void_, Object_);
     expect(true, Object_, void_);
     expect(true, Null_, void_);
@@ -88,28 +86,28 @@ Future testInterfaceSubtype() async {
     expect(true, num_, Object_);
     expect(true, int_, Object_);
     expect(true, String_, Object_);
-    expect(true, dynamic_, Object_, expectMoreSpecific: false);
+    expect(true, dynamic_, Object_);
     expect(true, Null_, Object_);
 
     expect(false, Object_, num_);
     expect(true, num_, num_);
     expect(true, int_, num_);
     expect(false, String_, num_);
-    expect(false, dynamic_, num_, expectMoreSpecific: false);
+    expect(false, dynamic_, num_);
     expect(true, Null_, num_);
 
     expect(false, Object_, int_);
     expect(false, num_, int_);
     expect(true, int_, int_);
     expect(false, String_, int_);
-    expect(false, dynamic_, int_, expectMoreSpecific: false);
+    expect(false, dynamic_, int_);
     expect(true, Null_, int_);
 
     expect(false, Object_, String_);
     expect(false, num_, String_);
     expect(false, int_, String_);
     expect(true, String_, String_);
-    expect(false, dynamic_, String_, expectMoreSpecific: false);
+    expect(false, dynamic_, String_);
     expect(true, Null_, String_);
 
     expect(true, Object_, dynamic_);
@@ -123,7 +121,7 @@ Future testInterfaceSubtype() async {
     expect(false, num_, Null_);
     expect(false, int_, Null_);
     expect(false, String_, Null_);
-    expect(false, dynamic_, Null_, expectMoreSpecific: false);
+    expect(false, dynamic_, Null_);
     expect(true, Null_, Null_);
 
     DartType A_Object = instantiate(A, [Object_]);
@@ -144,28 +142,28 @@ Future testInterfaceSubtype() async {
     expect(true, A_num, A_Object);
     expect(true, A_int, A_Object);
     expect(true, A_String, A_Object);
-    expect(true, A_dynamic, A_Object, expectMoreSpecific: false);
+    expect(true, A_dynamic, A_Object);
     expect(true, A_Null, A_Object);
 
     expect(false, A_Object, A_num);
     expect(true, A_num, A_num);
     expect(true, A_int, A_num);
     expect(false, A_String, A_num);
-    expect(false, A_dynamic, A_num, expectMoreSpecific: false);
+    expect(false, A_dynamic, A_num);
     expect(true, A_Null, A_num);
 
     expect(false, A_Object, A_int);
     expect(false, A_num, A_int);
     expect(true, A_int, A_int);
     expect(false, A_String, A_int);
-    expect(false, A_dynamic, A_int, expectMoreSpecific: false);
+    expect(false, A_dynamic, A_int);
     expect(true, A_Null, A_int);
 
     expect(false, A_Object, A_String);
     expect(false, A_num, A_String);
     expect(false, A_int, A_String);
     expect(true, A_String, A_String);
-    expect(false, A_dynamic, A_String, expectMoreSpecific: false);
+    expect(false, A_dynamic, A_String);
     expect(true, A_Null, A_String);
 
     expect(true, A_Object, A_dynamic);
@@ -179,7 +177,7 @@ Future testInterfaceSubtype() async {
     expect(false, A_num, A_Null);
     expect(false, A_int, A_Null);
     expect(false, A_String, A_Null);
-    expect(false, A_dynamic, A_Null, expectMoreSpecific: false);
+    expect(false, A_dynamic, A_Null);
     expect(true, A_Null, A_Null);
 
     DartType B_Object_Object = instantiate(B, [Object_, Object_]);
@@ -210,10 +208,10 @@ Future testInterfaceSubtype() async {
     expect(true, B_int_num, A_dynamic);
 
     expect(true, B_dynamic_dynamic, Object_);
-    expect(true, B_dynamic_dynamic, A_Object, expectMoreSpecific: false);
-    expect(false, B_dynamic_dynamic, A_num, expectMoreSpecific: false);
-    expect(false, B_dynamic_dynamic, A_int, expectMoreSpecific: false);
-    expect(false, B_dynamic_dynamic, A_String, expectMoreSpecific: false);
+    expect(true, B_dynamic_dynamic, A_Object);
+    expect(false, B_dynamic_dynamic, A_num);
+    expect(false, B_dynamic_dynamic, A_int);
+    expect(false, B_dynamic_dynamic, A_String);
     expect(true, B_dynamic_dynamic, A_dynamic);
 
     expect(true, B_String_dynamic, Object_);
@@ -226,19 +224,19 @@ Future testInterfaceSubtype() async {
     expect(true, B_Object_Object, B_Object_Object);
     expect(true, B_num_num, B_Object_Object);
     expect(true, B_int_num, B_Object_Object);
-    expect(true, B_dynamic_dynamic, B_Object_Object, expectMoreSpecific: false);
-    expect(true, B_String_dynamic, B_Object_Object, expectMoreSpecific: false);
+    expect(true, B_dynamic_dynamic, B_Object_Object);
+    expect(true, B_String_dynamic, B_Object_Object);
 
     expect(false, B_Object_Object, B_num_num);
     expect(true, B_num_num, B_num_num);
     expect(true, B_int_num, B_num_num);
-    expect(false, B_dynamic_dynamic, B_num_num, expectMoreSpecific: false);
+    expect(false, B_dynamic_dynamic, B_num_num);
     expect(false, B_String_dynamic, B_num_num);
 
     expect(false, B_Object_Object, B_int_num);
     expect(false, B_num_num, B_int_num);
     expect(true, B_int_num, B_int_num);
-    expect(false, B_dynamic_dynamic, B_int_num, expectMoreSpecific: false);
+    expect(false, B_dynamic_dynamic, B_int_num);
     expect(false, B_String_dynamic, B_int_num);
 
     expect(true, B_Object_Object, B_dynamic_dynamic);
@@ -250,8 +248,7 @@ Future testInterfaceSubtype() async {
     expect(false, B_Object_Object, B_String_dynamic);
     expect(false, B_num_num, B_String_dynamic);
     expect(false, B_int_num, B_String_dynamic);
-    expect(false, B_dynamic_dynamic, B_String_dynamic,
-        expectMoreSpecific: false);
+    expect(false, B_dynamic_dynamic, B_String_dynamic);
     expect(true, B_String_dynamic, B_String_dynamic);
 
     DartType C_Object_Object = instantiate(C, [Object_, Object_]);
@@ -277,12 +274,11 @@ Future testInterfaceSubtype() async {
     expect(true, C_int_String, B_dynamic_dynamic);
     expect(true, C_int_String, B_String_dynamic);
 
-    expect(true, C_dynamic_dynamic, B_Object_Object, expectMoreSpecific: false);
-    expect(false, C_dynamic_dynamic, B_num_num, expectMoreSpecific: false);
-    expect(false, C_dynamic_dynamic, B_int_num, expectMoreSpecific: false);
+    expect(true, C_dynamic_dynamic, B_Object_Object);
+    expect(false, C_dynamic_dynamic, B_num_num);
+    expect(false, C_dynamic_dynamic, B_int_num);
     expect(true, C_dynamic_dynamic, B_dynamic_dynamic);
-    expect(false, C_dynamic_dynamic, B_String_dynamic,
-        expectMoreSpecific: false);
+    expect(false, C_dynamic_dynamic, B_String_dynamic);
 
     expect(false, C_int_String, A_int);
     expect(true, C_int_String, A_String);
@@ -319,9 +315,8 @@ Future testCallableSubtype() async {
         a.m5(null, null);
       }
       """, expectNoErrors: true).then((env) {
-    void expect(bool expectSubtype, DartType T, DartType S,
-        {bool expectMoreSpecific}) {
-      testTypes(env, T, S, expectSubtype, expectMoreSpecific);
+    void expect(bool expectSubtype, DartType T, DartType S) {
+      testTypes(env, T, S, expectSubtype);
     }
 
     ClassEntity classA = env.getClass('A');
@@ -338,7 +333,7 @@ Future testCallableSubtype() async {
     expect(false, A, call);
     expect(false, call, m1);
     expect(false, A, m1);
-    expect(false, A, m2, expectMoreSpecific: false);
+    expect(false, A, m2);
     expect(false, A, m3);
     expect(false, A, m4);
     expect(false, A, m5);
@@ -388,9 +383,8 @@ Future testTypedefSubtyping() async {
 }
 
 functionSubtypingHelper(TypeEnvironment env) {
-  void expect(bool expectSubtype, String sub, String sup,
-      {bool expectMoreSpecific}) {
-    testElementTypes(env, sub, sup, expectSubtype, expectMoreSpecific);
+  void expect(bool expectSubtype, String sub, String sup) {
+    testElementTypes(env, sub, sup, expectSubtype);
   }
 
   // () -> int <: Function
@@ -403,7 +397,7 @@ functionSubtypingHelper(TypeEnvironment env) {
   // () -> dynamic <: () -> void
   expect(true, '_', 'void_');
   // () -> void <: () -> dynamic
-  expect(true, 'void_', '_', expectMoreSpecific: false);
+  expect(true, 'void_', '_');
 
   // () -> int <: () -> void
   expect(true, 'int_', 'void_');
@@ -426,7 +420,7 @@ functionSubtypingHelper(TypeEnvironment env) {
   // (int) -> int <: (int) -> int
   expect(true, 'int__int', 'int__int2');
   // (Object) -> int <: (int) -> Object
-  expect(true, 'int__Object', 'Object__int', expectMoreSpecific: false);
+  expect(true, 'int__Object', 'Object__int');
   // (int) -> int <: (double) -> int
   expect(false, 'int__int', 'int__double');
   // () -> int <: (int) -> int
@@ -482,9 +476,8 @@ Future testTypedefSubtypingOptional() async {
 }
 
 functionSubtypingOptionalHelper(TypeEnvironment env) {
-  void expect(bool expectSubtype, String sub, String sup,
-      {bool expectMoreSpecific}) {
-    testElementTypes(env, sub, sup, expectSubtype, expectMoreSpecific);
+  void expect(bool expectSubtype, String sub, String sup) {
+    testElementTypes(env, sub, sup, expectSubtype);
   }
 
   // Test ([int])->void <: ()->void.
@@ -496,7 +489,7 @@ functionSubtypingOptionalHelper(TypeEnvironment env) {
   // Test ([int])->void <: ([int])->void.
   expect(true, 'void___int', 'void___int2');
   // Test ([Object])->void <: ([int])->void.
-  expect(true, 'void___Object', 'void___int', expectMoreSpecific: false);
+  expect(true, 'void___Object', 'void___int');
   // Test ([int])->void <: ([Object])->void.
   expect(false, 'void___int', 'void___Object');
   // Test (int,[int])->void <: (int)->void.
@@ -520,7 +513,7 @@ functionSubtypingOptionalHelper(TypeEnvironment env) {
   // Test ([int,int])->void <: ([int])->void.
   expect(true, 'void___int_int', 'void___int');
   // Test ([Object,int])->void <: ([int])->void.
-  expect(true, 'void___Object_int', 'void___int', expectMoreSpecific: false);
+  expect(true, 'void___Object_int', 'void___int');
 }
 
 const List<FunctionTypeData> namedFunctionTypesData = const <FunctionTypeData>[
@@ -564,9 +557,8 @@ Future testTypedefSubtypingNamed() async {
 }
 
 functionSubtypingNamedHelper(TypeEnvironment env) {
-  expect(bool expectSubtype, String sub, String sup,
-      {bool expectMoreSpecific}) {
-    testElementTypes(env, sub, sup, expectSubtype, expectMoreSpecific);
+  expect(bool expectSubtype, String sub, String sup) {
+    testElementTypes(env, sub, sup, expectSubtype);
   }
 
   // Test ({int a})->void <: ()->void.
@@ -580,7 +572,7 @@ functionSubtypingNamedHelper(TypeEnvironment env) {
   // Test ({int a})->void <: ({int b})->void.
   expect(false, 'void___a_int', 'void___b_int');
   // Test ({Object a})->void <: ({int a})->void.
-  expect(true, 'void___a_Object', 'void___a_int', expectMoreSpecific: false);
+  expect(true, 'void___a_Object', 'void___a_int');
   // Test ({int a})->void <: ({Object a})->void.
   expect(false, 'void___a_int', 'void___a_Object');
   // Test (int,{int a})->void <: (int,{int a})->void.
@@ -617,9 +609,8 @@ Future testTypeVariableSubtype() async {
         new F();
       }
       """, expectNoErrors: true).then((env) {
-    void expect(bool expectSubtype, DartType T, DartType S,
-        {bool expectMoreSpecific}) {
-      testTypes(env, T, S, expectSubtype, expectMoreSpecific);
+    void expect(bool expectSubtype, DartType T, DartType S) {
+      testTypes(env, T, S, expectSubtype);
     }
 
     TypeVariableType getTypeVariable(ClassEntity cls, int index) {

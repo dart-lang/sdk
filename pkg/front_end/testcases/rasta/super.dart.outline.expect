@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/rasta/super.dart:27:7: Error: 'n' is already declared in this scope.
 //   set n(_) {}
@@ -6,8 +8,7 @@
 // pkg/front_end/testcases/rasta/super.dart:26:8: Context: Previous declaration of 'n'.
 //   void n() {}
 //        ^
-
-library;
+//
 import self as self;
 import "dart:core" as core;
 

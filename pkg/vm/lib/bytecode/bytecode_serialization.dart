@@ -5,7 +5,7 @@
 library vm.bytecode.bytecode_serialization;
 
 import 'dart:io' show BytesBuilder;
-import 'dart:typed_data' show Uint8List, Uint16List;
+import 'dart:typed_data' show ByteData, Endian, Uint8List, Uint16List;
 
 abstract class StringWriter {
   int put(String string);
@@ -277,6 +277,7 @@ class StringTable implements StringWriter, StringReader {
   }
 
   void write(BufferedWriter writer) {
+    final start = writer.offset;
     writer.writeUInt32(_oneByteStrings.length);
     writer.writeUInt32(_twoByteStrings.length);
     int endOffset = 0;
@@ -301,6 +302,7 @@ class StringTable implements StringWriter, StringReader {
       }
     }
     _written = true;
+    BytecodeSizeStatistics.stringTableSize += (writer.offset - start);
   }
 
   StringTable.read(BufferedReader reader) {
@@ -356,5 +358,70 @@ class StringTable implements StringWriter, StringReader {
     }
     sb.writeln('}');
     return sb.toString();
+  }
+}
+
+int doubleToIntBits(double value) {
+  final buf = new ByteData(8);
+  buf.setFloat64(0, value, Endian.little);
+  return buf.getInt64(0, Endian.little);
+}
+
+double intBitsToDouble(int bits) {
+  final buf = new ByteData(8);
+  buf.setInt64(0, bits, Endian.little);
+  return buf.getFloat64(0, Endian.little);
+}
+
+class NamedEntryStatistics {
+  final String name;
+  int size = 0;
+  int count = 0;
+
+  NamedEntryStatistics(this.name);
+
+  String toString() => "${name.padRight(40)}:    ${size.toString().padLeft(10)}"
+      "  (count: ${count.toString().padLeft(8)})";
+}
+
+class BytecodeSizeStatistics {
+  static int componentSize = 0;
+  static int objectTableSize = 0;
+  static int objectTableEntriesCount = 0;
+  static int stringTableSize = 0;
+  static int membersSize = 0;
+  static int constantPoolSize = 0;
+  static int instructionsSize = 0;
+  static List<NamedEntryStatistics> constantPoolStats =
+      <NamedEntryStatistics>[];
+  static List<NamedEntryStatistics> objectTableStats = <NamedEntryStatistics>[];
+
+  static void reset() {
+    componentSize = 0;
+    objectTableSize = 0;
+    objectTableEntriesCount = 0;
+    stringTableSize = 0;
+    membersSize = 0;
+    constantPoolSize = 0;
+    instructionsSize = 0;
+    constantPoolStats = <NamedEntryStatistics>[];
+    objectTableStats = <NamedEntryStatistics>[];
+  }
+
+  static void dump() {
+    print("Bytecode size statistics:");
+    print("  Bytecode component:  $componentSize");
+    print(
+        "   - object table:     $objectTableSize   (count: $objectTableEntriesCount)");
+    for (var entry in objectTableStats) {
+      print("       - $entry");
+    }
+    print("   - string table:     $stringTableSize");
+    print("  Bytecode members:    $membersSize");
+    print("   - constant pool:    $constantPoolSize");
+    for (var entry in constantPoolStats) {
+      print("       - $entry");
+    }
+    print("   - instructions:     $instructionsSize");
   }
 }

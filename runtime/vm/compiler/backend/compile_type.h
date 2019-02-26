@@ -80,7 +80,13 @@ class CompileType : public ZoneAllocated {
   // abstract type. The pair is assumed to be coherent.
   static CompileType Create(intptr_t cid, const AbstractType& type);
 
-  CompileType CopyNonNullable() const {
+  // Return the non-nullable version of this type.
+  CompileType CopyNonNullable() {
+    if (IsNull()) {
+      // Represent a non-nullable null type (typically arising for
+      // unreachable values) as None.
+      return None();
+    }
     return CompileType(kNonNullable, kIllegalCid, type_);
   }
 

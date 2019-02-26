@@ -4,9 +4,11 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -28,8 +30,8 @@ const debugPrintCommunication = false;
 
 final beginningOfDocument = new Range(new Position(0, 0), new Position(0, 0));
 
-abstract class AbstractLspAnalysisServerTest
-    with ResourceProviderMixin, ClientCapabilitiesHelperMixin {
+mixin LspAnalysisServerTestMixin
+    implements ResourceProviderMixin, ClientCapabilitiesHelperMixin {
   static const positionMarker = '^';
   static const rangeMarkerStart = '[[';
   static const rangeMarkerEnd = ']]';
@@ -37,12 +39,45 @@ abstract class AbstractLspAnalysisServerTest
   static final allMarkersPattern =
       new RegExp(allMarkers.map(RegExp.escape).join('|'));
 
-  MockLspServerChannel channel;
-  LspAnalysisServer server;
-
   int _id = 0;
   String projectFolderPath, mainFilePath;
   Uri projectFolderUri, mainFileUri;
+
+  Stream<Message> get serverToClient;
+
+  /**
+   * A stream of [NotificationMessage]s from the server that may be errors.
+   */
+  Stream<NotificationMessage> get errorNotificationsFromServer {
+    return notificationsFromServer.where(_isErrorNotification);
+  }
+
+  /**
+   * A stream of [NotificationMessage]s from the server.
+   */
+  Stream<NotificationMessage> get notificationsFromServer {
+    return serverToClient
+        .where((m) => m is NotificationMessage)
+        .cast<NotificationMessage>();
+  }
+
+  /// Checks whether a notification is likely an error from the server (for
+  /// example a window/showMessage). This is useful for tests that want to
+  /// ensure no errors come from the server in response to notifications (which
+  /// don't have their own responses).
+  bool _isErrorNotification(NotificationMessage notification) {
+    return notification.method == Method.window_logMessage ||
+        notification.method == Method.window_showMessage;
+  }
+
+  /**
+   * A stream of [RequestMessage]s from the server.
+   */
+  Stream<RequestMessage> get requestsFromServer {
+    return serverToClient
+        .where((m) => m is RequestMessage)
+        .cast<RequestMessage>();
+  }
 
   void applyChanges(
     Map<String, String> fileContents,
@@ -55,13 +90,17 @@ abstract class AbstractLspAnalysisServerTest
   }
 
   void applyDocumentChanges(
-      Map<String, String> fileContents,
-      Either2<
-              List<TextDocumentEdit>,
-              List<
-                  Either4<TextDocumentEdit, CreateFile, RenameFile,
-                      DeleteFile>>>
-          documentChanges) {
+    Map<String, String> fileContents,
+    Either2<List<TextDocumentEdit>,
+            List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
+        documentChanges, {
+    Map<String, int> expectedVersions,
+  }) {
+    // If we were supplied with expected versions, ensure that all returned
+    // edits match the versions.
+    if (expectedVersions != null) {
+      expectDocumentVersions(documentChanges, expectedVersions);
+    }
     documentChanges.map(
       (edits) => applyTextDocumentEdits(fileContents, edits),
       (changes) => applyResourceChanges(fileContents, changes),
@@ -152,8 +191,7 @@ abstract class AbstractLspAnalysisServerTest
         changes,
       ),
     );
-    channel.sendNotificationToServer(notification);
-    await pumpEventQueue();
+    sendNotificationToServer(notification);
   }
 
   Future changeWorkspaceFolders({List<Uri> add, List<Uri> remove}) async {
@@ -166,8 +204,7 @@ abstract class AbstractLspAnalysisServerTest
         ),
       ),
     );
-    channel.sendNotificationToServer(notification);
-    await pumpEventQueue();
+    sendNotificationToServer(notification);
   }
 
   Future closeFile(Uri uri) async {
@@ -176,8 +213,7 @@ abstract class AbstractLspAnalysisServerTest
       new DidCloseTextDocumentParams(
           new TextDocumentIdentifier(uri.toString())),
     );
-    channel.sendNotificationToServer(notification);
-    await pumpEventQueue();
+    sendNotificationToServer(notification);
   }
 
   Future<Object> executeCommand(Command command) async {
@@ -191,11 +227,50 @@ abstract class AbstractLspAnalysisServerTest
     return expectSuccessfulResponseTo(request);
   }
 
+  void expectDocumentVersion(
+    TextDocumentEdit edit,
+    Map<String, int> expectedVersions,
+  ) {
+    final path = Uri.parse(edit.textDocument.uri).toFilePath();
+    final expectedVersion = expectedVersions[path];
+
+    if (edit.textDocument is VersionedTextDocumentIdentifier) {
+      expect(edit.textDocument.version, equals(expectedVersion));
+    } else {
+      throw 'Document identifier for $path was not versioned (expected version $expectedVersion)';
+    }
+  }
+
+  /// Validates the document versions for a set of edits match the versions in
+  /// the supplied map.
+  void expectDocumentVersions(
+    Either2<List<TextDocumentEdit>,
+            List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
+        documentChanges,
+    Map<String, int> expectedVersions,
+  ) {
+    documentChanges.map(
+      // Validate versions on simple doc edits
+      (edits) => edits
+          .forEach((edit) => expectDocumentVersion(edit, expectedVersions)),
+      // For resource changes, we only need to validate changes since
+      // creates/renames/deletes do not supply versions.
+      (changes) => changes.forEach((change) {
+            change.map(
+              (edit) => expectDocumentVersion(edit, expectedVersions),
+              (create) => {},
+              (rename) {},
+              (delete) {},
+            );
+          }),
+    );
+  }
+
   Future<T> expectErrorNotification<T>(
     FutureOr<void> f(), {
     Duration timeout = const Duration(seconds: 5),
   }) async {
-    final firstError = channel.errorNotificationsFromServer.first;
+    final firstError = errorNotificationsFromServer.first;
     await f();
 
     final notificationFromServer = await firstError.timeout(timeout);
@@ -211,7 +286,7 @@ abstract class AbstractLspAnalysisServerTest
     Duration timeout = const Duration(seconds: 5),
   }) async {
     final firstRequest =
-        channel.requestsFromServer.firstWhere((n) => n.method == method);
+        requestsFromServer.firstWhere((n) => n.method == method);
     await f();
 
     final requestFromServer = await firstRequest.timeout(timeout);
@@ -223,7 +298,7 @@ abstract class AbstractLspAnalysisServerTest
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
   Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
-    final resp = await channel.sendRequestToServer(request);
+    final resp = await sendRequestToServer(request);
     if (resp.error != null) {
       throw resp.error;
     } else {
@@ -298,6 +373,14 @@ abstract class AbstractLspAnalysisServerTest
     return expectSuccessfulResponseTo<List<Location>>(request);
   }
 
+  Future<DartDiagnosticServer> getDiagnosticServer() {
+    final request = makeRequest(
+      CustomMethods.DiagnosticServer,
+      null,
+    );
+    return expectSuccessfulResponseTo(request);
+  }
+
   Future<List<DocumentHighlight>> getDocumentHighlights(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_documentHighlight,
@@ -318,6 +401,22 @@ abstract class AbstractLspAnalysisServerTest
       ),
     );
     return expectSuccessfulResponseTo(request);
+  }
+
+  Future<List<SymbolInformation>> getWorkspaceSymbols(String query) {
+    final request = makeRequest(
+      Method.workspace_symbol,
+      new WorkspaceSymbolParams(query),
+    );
+    return expectSuccessfulResponseTo(request);
+  }
+
+  Future<List<FoldingRange>> getFoldingRegions(Uri uri) {
+    final request = makeRequest(
+      Method.textDocument_foldingRange,
+      new FoldingRangeParams(new TextDocumentIdentifier(uri.toString())),
+    );
+    return expectSuccessfulResponseTo<List<FoldingRange>>(request);
   }
 
   Future<Hover> getHover(Uri uri, Position pos) {
@@ -430,12 +529,12 @@ abstract class AbstractLspAnalysisServerTest
             ),
             null,
             workspaceFolders?.map(toWorkspaceFolder)?.toList()));
-    final response = await channel.sendRequestToServer(request);
+    final response = await sendRequestToServer(request);
     expect(response.id, equals(request.id));
 
     if (response.error == null) {
       final notification = makeNotification(Method.initialized, null);
-      channel.sendNotificationToServer(notification);
+      sendNotificationToServer(notification);
       await pumpEventQueue();
     }
 
@@ -469,7 +568,7 @@ abstract class AbstractLspAnalysisServerTest
       new DidOpenTextDocumentParams(new TextDocumentItem(
           uri.toString(), dartLanguageId, version, content)),
     );
-    channel.sendNotificationToServer(notification);
+    sendNotificationToServer(notification);
     await pumpEventQueue();
   }
 
@@ -560,7 +659,7 @@ abstract class AbstractLspAnalysisServerTest
     String newName,
   ) {
     final request = makeRenameRequest(version, uri, pos, newName);
-    return channel.sendRequestToServer(request);
+    return sendRequestToServer(request);
   }
 
   Future replaceFile(int newVersion, Uri uri, String content) {
@@ -574,8 +673,75 @@ abstract class AbstractLspAnalysisServerTest
   /// Sends [responseParams] to the server as a successful response to
   /// a server-initiated [request].
   void respondTo<T>(RequestMessage request, T responseParams) {
-    channel.sendResponseToServer(
+    sendResponseToServer(
         new ResponseMessage(request.id, responseParams, null, jsonRpcVersion));
+  }
+
+  Future<Null> sendShutdown() {
+    final request = makeRequest(Method.shutdown, null);
+    return expectSuccessfulResponseTo(request);
+  }
+
+  void sendExit() {
+    final request = makeRequest(Method.exit, null);
+    sendRequestToServer(request);
+  }
+
+  FutureOr<void> sendNotificationToServer(NotificationMessage notification);
+
+  Future<ResponseMessage> sendRequestToServer(RequestMessage request);
+
+  void sendResponseToServer(ResponseMessage response);
+
+  WorkspaceFolder toWorkspaceFolder(Uri uri) {
+    return WorkspaceFolder(uri.toString(), path.basename(uri.toFilePath()));
+  }
+
+  Future<List<Diagnostic>> waitForDiagnostics(Uri uri) async {
+    PublishDiagnosticsParams diagnosticParams;
+    await serverToClient.firstWhere((message) {
+      if (message is NotificationMessage &&
+          message.method == Method.textDocument_publishDiagnostics) {
+        diagnosticParams = message.params;
+
+        return diagnosticParams.uri == uri.toString();
+      }
+      return false;
+    });
+    return diagnosticParams.diagnostics;
+  }
+
+  /// Removes markers like `[[` and `]]` and `^` that are used for marking
+  /// positions/ranges in strings to avoid hard-coding positions in tests.
+  String withoutMarkers(String contents) =>
+      contents.replaceAll(allMarkersPattern, '');
+
+  /// Removes range markers from strings to give accurate position offsets.
+  String withoutRangeMarkers(String contents) =>
+      contents.replaceAll(rangeMarkerStart, '').replaceAll(rangeMarkerEnd, '');
+}
+
+abstract class AbstractLspAnalysisServerTest
+    with
+        ResourceProviderMixin,
+        ClientCapabilitiesHelperMixin,
+        LspAnalysisServerTestMixin {
+  MockLspServerChannel channel;
+  LspAnalysisServer server;
+
+  Stream<Message> get serverToClient => channel.serverToClient;
+
+  Future sendNotificationToServer(NotificationMessage notification) async {
+    channel.sendNotificationToServer(notification);
+    await pumpEventQueue();
+  }
+
+  Future<ResponseMessage> sendRequestToServer(RequestMessage request) {
+    return channel.sendRequestToServer(request);
+  }
+
+  void sendResponseToServer(ResponseMessage response) {
+    channel.sendResponseToServer(response);
   }
 
   void setUp() {
@@ -604,33 +770,6 @@ abstract class AbstractLspAnalysisServerTest
     channel.close();
     await server.shutdown();
   }
-
-  WorkspaceFolder toWorkspaceFolder(Uri uri) {
-    return WorkspaceFolder(uri.toString(), path.basename(uri.toFilePath()));
-  }
-
-  Future<List<Diagnostic>> waitForDiagnostics(Uri uri) async {
-    PublishDiagnosticsParams diagnosticParams;
-    await channel.serverToClient.firstWhere((message) {
-      if (message is NotificationMessage &&
-          message.method == Method.textDocument_publishDiagnostics) {
-        diagnosticParams = message.params;
-
-        return diagnosticParams.uri == uri.toString();
-      }
-      return false;
-    });
-    return diagnosticParams.diagnostics;
-  }
-
-  /// Removes markers like `[[` and `]]` and `^` that are used for marking
-  /// positions/ranges in strings to avoid hard-coding positions in tests.
-  String withoutMarkers(String contents) =>
-      contents.replaceAll(allMarkersPattern, '');
-
-  /// Removes range markers from strings to give accurate position offsets.
-  String withoutRangeMarkers(String contents) =>
-      contents.replaceAll(rangeMarkerStart, '').replaceAll(rangeMarkerEnd, '');
 }
 
 mixin ClientCapabilitiesHelperMixin {

@@ -4,6 +4,8 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 import "package:expect/expect.dart" as exp;
 
+import "package:expect/expect.dart";
+
 class T1 extends core::Object {
   synthetic constructor •() → self::T1
     : super core::Object::•()

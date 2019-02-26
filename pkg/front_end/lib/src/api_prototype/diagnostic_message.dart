@@ -4,7 +4,8 @@
 
 library front_end.diagnostic_message;
 
-import '../fasta/fasta_codes.dart' show Code, FormattedMessage;
+import '../fasta/fasta_codes.dart'
+    show Code, DiagnosticMessageFromJson, FormattedMessage;
 
 import '../fasta/severity.dart' show Severity;
 
@@ -38,7 +39,19 @@ abstract class DiagnosticMessage {
 
 /// This method is subject to change.
 Uri getMessageUri(DiagnosticMessage message) {
-  return message is FormattedMessage ? message.uri : null;
+  return message is FormattedMessage
+      ? message.uri
+      : message is DiagnosticMessageFromJson ? message.uri : null;
+}
+
+/// This method is subject to change.
+int getMessageCharOffset(DiagnosticMessage message) {
+  return message is FormattedMessage ? message.charOffset : null;
+}
+
+/// This method is subject to change.
+int getMessageLength(DiagnosticMessage message) {
+  return message is FormattedMessage ? message.length : null;
 }
 
 /// This method is subject to change.
@@ -59,4 +72,10 @@ int getMessageCode(DiagnosticMessage message) {
 /// This method is subject to change.
 Map<String, dynamic> getMessageArguments(DiagnosticMessage message) {
   return message is FormattedMessage ? message.arguments : null;
+}
+
+/// This method is subject to change.
+Iterable<DiagnosticMessage> getMessageRelatedInformation(
+    DiagnosticMessage message) {
+  return message is FormattedMessage ? message.relatedInformation : null;
 }

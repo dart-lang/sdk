@@ -7,6 +7,14 @@
 // suggestions in Dart code.
 //
 
+/// The relevance boost for available declarations with the matching tag.
+const int DART_RELEVANCE_BOOST_AVAILABLE_DECLARATION = 10;
+
+/// The relevance boost for available enum constants with the matching tag.
+///
+/// It is so large to move enum constants to the very top.
+const int DART_RELEVANCE_BOOST_AVAILABLE_ENUM = 1100;
+
 const int DART_RELEVANCE_BOOST_SUBTYPE = 100;
 const int DART_RELEVANCE_BOOST_TYPE = 200;
 const int DART_RELEVANCE_COMMON_USAGE = 1200;
@@ -26,3 +34,4 @@ const int DART_RELEVANCE_LOW = 500;
 const int DART_RELEVANCE_NAMED_PARAMETER = 1060;
 const int DART_RELEVANCE_NAMED_PARAMETER_REQUIRED = 1065;
 const int DART_RELEVANCE_PARAMETER = 1059;
+const int DART_RELEVANCE_TYPE_PARAMETER = 1058;

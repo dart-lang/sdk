@@ -181,3 +181,18 @@ void hotRestart() {
   JS('', '#.clear()', constantMaps);
   JS('', '#.clear()', _ignoreSubtypeCache);
 }
+
+/// Marks enqueuing an async operation.
+///
+/// This will be called by library code when enqueuing an async operation
+/// controlled by the JavaScript event handler.
+///
+/// It will also call [removeAsyncCallback] when Dart callback is about to be
+/// executed (note this is called *before* the callback executes, so more
+/// async operations could be added from that).
+void Function() addAsyncCallback = JS('', 'function() {}');
+
+/// Marks leaving a javascript async operation.
+///
+/// See [addAsyncCallback].
+void Function() removeAsyncCallback = JS('', 'function() {}');

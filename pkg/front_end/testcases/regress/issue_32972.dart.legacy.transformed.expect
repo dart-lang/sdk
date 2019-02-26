@@ -1,4 +1,28 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_32972.dart:22:3: Warning: Expected 1 type arguments.
+//   foo<String, String>("hello world");
+//   ^
+// pkg/front_end/testcases/regress/issue_32972.dart:5:6: Context: Found this candidate, but the arguments don't match.
+// void foo<X>(X i) {
+//      ^^^
+//
+// pkg/front_end/testcases/regress/issue_32972.dart:24:7: Warning: Expected 1 type arguments.
+//   Foo.foo<int, int>(42);
+//       ^
+// pkg/front_end/testcases/regress/issue_32972.dart:10:10: Context: Found this candidate, but the arguments don't match.
+//   static foo<X>(X i) {
+//          ^^^
+//
+// pkg/front_end/testcases/regress/issue_32972.dart:29:7: Warning: Expected 2 type arguments.
+//   new Bar<String>();
+//       ^
+// pkg/front_end/testcases/regress/issue_32972.dart:19:7: Context: The class 'Bar' has a constructor that takes no arguments.
+// class Bar<X, Y> {}
+//       ^
+//
 import self as self;
 import "dart:core" as core;
 

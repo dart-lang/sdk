@@ -669,7 +669,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void includeParts(Set<Uri> usedParts) {
     Set<Uri> seenParts = new Set<Uri>();
-    for (SourceLibraryBuilder<T, R> part in parts) {
+    for (int i = 0; i < parts.length; i++) {
+      SourceLibraryBuilder<T, R> part = parts[i];
+      int partOffset = partOffsets[i];
       if (part == this) {
         addProblem(messagePartOfSelf, -1, noLength, fileUri);
       } else if (seenParts.add(part.fileUri)) {
@@ -687,7 +689,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
           } else {
             usedParts.add(part.uri);
           }
-          includePart(part, usedParts);
+          includePart(part, usedParts, partOffset);
         }
       } else {
         addProblem(templatePartTwice.withArguments(part.fileUri), -1, noLength,
@@ -696,45 +698,53 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
-  void includePart(SourceLibraryBuilder<T, R> part, Set<Uri> usedParts) {
+  void includePart(
+      SourceLibraryBuilder<T, R> part, Set<Uri> usedParts, int partOffset) {
     if (part.partOfUri != null) {
       if (uriIsValid(part.partOfUri) && part.partOfUri != uri) {
-        // This is a warning, but the part is still included.
+        // This is an error, but the part is not removed from the list of parts,
+        // so that metadata annotations can be associated with it.
         addProblem(
             templatePartOfUriMismatch.withArguments(
                 part.fileUri, uri, part.partOfUri),
-            -1,
+            partOffset,
             noLength,
             fileUri);
+        return;
       }
     } else if (part.partOfName != null) {
       if (name != null) {
         if (part.partOfName != name) {
-          // This is a warning, but the part is still included.
+          // This is an error, but the part is not removed from the list of
+          // parts, so that metadata annotations can be associated with it.
           addProblem(
               templatePartOfLibraryNameMismatch.withArguments(
                   part.fileUri, name, part.partOfName),
-              -1,
+              partOffset,
               noLength,
               fileUri);
+          return;
         }
       } else {
-        // This is a warning, but the part is still included.
+        // This is an error, but the part is not removed from the list of parts,
+        // so that metadata annotations can be associated with it.
         addProblem(
             templatePartOfUseUri.withArguments(
                 part.fileUri, fileUri, part.partOfName),
-            -1,
+            partOffset,
             noLength,
             fileUri);
+        return;
       }
     } else {
-      // This is an error, but the part is still included, so that
-      // metadata annotations can be associated with it.
+      // This is an error, but the part is not removed from the list of parts,
+      // so that metadata annotations can be associated with it.
       assert(!part.isPart);
       if (uriIsValid(part.fileUri)) {
-        addProblem(templateMissingPartOf.withArguments(part.fileUri), -1,
-            noLength, fileUri);
+        addProblem(templateMissingPartOf.withArguments(part.fileUri),
+            partOffset, noLength, fileUri);
       }
+      return;
     }
     part.validatePart(this, usedParts);
     NameIterator partDeclarations = part.nameIterator;

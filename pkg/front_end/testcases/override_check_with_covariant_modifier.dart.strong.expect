@@ -1,4 +1,6 @@
-// Formatted problems:
+library;
+//
+// Problems in library:
 //
 // pkg/front_end/testcases/override_check_with_covariant_modifier.dart:25:69: Error: The parameter 'x' of the method 'D.f5' has type 'String', which does not match the corresponding type in the overridden method, 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/override_check_with_covariant_modifier.dart'.
@@ -18,23 +20,7 @@
 // pkg/front_end/testcases/override_check_with_covariant_modifier.dart:15:8: Context: This is the overridden method ('f4').
 //   void f4(A x) {}
 //        ^
-
-// Unhandled errors:
 //
-// pkg/front_end/testcases/override_check_with_covariant_modifier.dart:25:69: Error: The parameter 'x' of the method 'D.f5' has type 'String', which does not match the corresponding type in the overridden method, 'A'.
-//  - 'A' is from 'pkg/front_end/testcases/override_check_with_covariant_modifier.dart'.
-// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
-//   void f5(covariant String /*@error=OverrideTypeMismatchParameter*/ x) {}
-//                                                                     ^
-//
-// pkg/front_end/testcases/override_check_with_covariant_modifier.dart:24:54: Error: The parameter 'x' of the method 'D.f4' has type 'B', which does not match the corresponding type in the overridden method, 'A'.
-//  - 'B' is from 'pkg/front_end/testcases/override_check_with_covariant_modifier.dart'.
-//  - 'A' is from 'pkg/front_end/testcases/override_check_with_covariant_modifier.dart'.
-// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
-//   void f4(B /*@error=OverrideTypeMismatchParameter*/ x) {} // Not covariant
-//                                                      ^
-
-library;
 import self as self;
 import "dart:core" as core;
 

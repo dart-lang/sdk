@@ -271,6 +271,11 @@ namespace dart {
 //    SP[-(1+ArgC)], ..., SP[-1] and argument descriptor PP[D], which
 //    indicates whether the first argument is a type argument vector.
 //
+//  - DirectCall ArgC, D
+//
+//    Invoke the function PP[D] with arguments
+//    SP[-(ArgC-1)], ..., SP[0] and argument descriptor PP[D+1].
+//
 //  - InterfaceCall ArgC, D
 //
 //    Lookup and invoke method using ICData in PP[D]
@@ -478,7 +483,8 @@ namespace dart {
   V(CompareIntGt,                          0, ___, ___, ___)                   \
   V(CompareIntLt,                          0, ___, ___, ___)                   \
   V(CompareIntGe,                          0, ___, ___, ___)                   \
-  V(CompareIntLe,                          0, ___, ___, ___)
+  V(CompareIntLe,                          0, ___, ___, ___)                   \
+  V(DirectCall,                          A_D, num, num, ___)
 
 // clang-format on
 
@@ -607,6 +613,7 @@ class KernelBytecode {
       case KernelBytecode::kIndirectStaticCall:
       case KernelBytecode::kInterfaceCall:
       case KernelBytecode::kDynamicCall:
+      case KernelBytecode::kDirectCall:
         return true;
 
       default:

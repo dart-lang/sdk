@@ -47,9 +47,8 @@ class GCMarker {
  private:
   void Prologue();
   void Epilogue();
-  void IterateRoots(ObjectPointerVisitor* visitor,
-                    intptr_t slice_index,
-                    intptr_t num_slices);
+  void ResetRootSlices();
+  void IterateRoots(ObjectPointerVisitor* visitor);
   void IterateWeakRoots(HandleVisitor* visitor);
   template <class MarkingVisitorType>
   void IterateWeakReferences(MarkingVisitorType* visitor);
@@ -66,12 +65,16 @@ class GCMarker {
   MarkingStack deferred_marking_stack_;
   MarkingVisitorBase<true>** visitors_;
 
+  Monitor root_slices_monitor_;
+  intptr_t root_slices_not_started_;
+  intptr_t root_slices_not_finished_;
+
   Mutex stats_mutex_;
   uintptr_t marked_bytes_;
   int64_t marked_micros_;
 
   friend class ConcurrentMarkTask;
-  friend class MarkTask;
+  friend class ParallelMarkTask;
   DISALLOW_IMPLICIT_CONSTRUCTORS(GCMarker);
 };
 

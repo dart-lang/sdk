@@ -5,6 +5,8 @@ library kernel.ast_to_text;
 
 import 'dart:core' hide MapEntry;
 
+import 'dart:convert' show json;
+
 import '../ast.dart';
 import '../import_table.dart';
 
@@ -344,6 +346,32 @@ class Printer extends Visitor<Null> {
     }
   }
 
+  void writeComponentProblems(Component component) {
+    writeProblemsAsJson("Problems in component", component.problemsAsJson);
+  }
+
+  void writeProblemsAsJson(String header, List<String> problemsAsJson) {
+    if (problemsAsJson?.isEmpty == false) {
+      endLine("//");
+      write("// ");
+      write(header);
+      endLine(":");
+      endLine("//");
+      for (String s in problemsAsJson) {
+        Map<String, Object> decoded = json.decode(s);
+        List<Object> plainTextFormatted = decoded["plainTextFormatted"];
+        List<String> lines = plainTextFormatted.join("\n").split("\n");
+        for (int i = 0; i < lines.length; i++) {
+          write("//");
+          String trimmed = lines[i].trimRight();
+          if (trimmed.isNotEmpty) write(" ");
+          endLine(trimmed);
+        }
+        if (lines.isNotEmpty) endLine("//");
+      }
+    }
+  }
+
   void writeLibraryFile(Library library) {
     writeAnnotationList(library.annotations);
     writeWord('library');
@@ -351,7 +379,14 @@ class Printer extends Visitor<Null> {
       writeWord(library.name);
     }
     endLine(';');
-    var imports = new LibraryImportTable(library);
+
+    LibraryImportTable imports = new LibraryImportTable(library);
+    Printer inner = createInner(imports, library.enclosingComponent?.metadata);
+    inner.writeStandardLibraryContent(library,
+        outerPrinter: this, importsToPrint: imports);
+  }
+
+  void printLibraryImportTable(LibraryImportTable imports) {
     for (var library in imports.importedLibraries) {
       var importPath = imports.getImportPath(library);
       if (importPath == "") {
@@ -363,47 +398,63 @@ class Printer extends Visitor<Null> {
         endLine('import "$importPath" as $prefix;');
       }
     }
+  }
 
-    // TODO(scheglov): Do we want to print dependencies? dartbug.com/30224
-    if (library.additionalExports.isNotEmpty) {
-      write('additionalExports = (');
-      bool isFirst = true;
-      for (var reference in library.additionalExports) {
-        if (isFirst) {
-          isFirst = false;
-        } else {
-          write(', ');
-        }
-        var node = reference.node;
-        if (node is Class) {
-          Library nodeLibrary = node.enclosingLibrary;
-          String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-          write(prefix + '::' + node.name);
-        } else if (node is Field) {
-          Library nodeLibrary = node.enclosingLibrary;
-          String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-          write(prefix + '::' + node.name.name);
-        } else if (node is Procedure) {
-          Library nodeLibrary = node.enclosingLibrary;
-          String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-          write(prefix + '::' + node.name.name);
-        } else if (node is Typedef) {
-          Library nodeLibrary = node.enclosingLibrary;
-          String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-          write(prefix + '::' + node.name);
-        } else {
-          throw new UnimplementedError('${node.runtimeType}');
-        }
+  void writeStandardLibraryContent(Library library,
+      {Printer outerPrinter, LibraryImportTable importsToPrint}) {
+    outerPrinter ??= this;
+    outerPrinter.writeProblemsAsJson(
+        "Problems in library", library.problemsAsJson);
+
+    if (importsToPrint != null) {
+      outerPrinter.printLibraryImportTable(importsToPrint);
+    }
+
+    writeAdditionalExports(library.additionalExports);
+    endLine();
+    library.dependencies.forEach(writeNode);
+    if (library.dependencies.isNotEmpty) endLine();
+    library.parts.forEach(writeNode);
+    library.typedefs.forEach(writeNode);
+    library.classes.forEach(writeNode);
+    library.fields.forEach(writeNode);
+    library.procedures.forEach(writeNode);
+  }
+
+  void writeAdditionalExports(List<Reference> additionalExports) {
+    if (additionalExports.isEmpty) return;
+    write('additionalExports = (');
+    bool isFirst = true;
+    for (Reference reference in additionalExports) {
+      if (isFirst) {
+        isFirst = false;
+      } else {
+        write(', ');
+      }
+      var node = reference.node;
+      if (node is Class) {
+        Library nodeLibrary = node.enclosingLibrary;
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        write(prefix + '::' + node.name);
+      } else if (node is Field) {
+        Library nodeLibrary = node.enclosingLibrary;
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        write(prefix + '::' + node.name.name);
+      } else if (node is Procedure) {
+        Library nodeLibrary = node.enclosingLibrary;
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        write(prefix + '::' + node.name.name);
+      } else if (node is Typedef) {
+        Library nodeLibrary = node.enclosingLibrary;
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        write(prefix + '::' + node.name);
+      } else {
+        throw new UnimplementedError('${node.runtimeType}');
       }
       endLine(')');
     }
 
     endLine();
-    var inner = createInner(imports, library.enclosingComponent?.metadata);
-    library.typedefs.forEach(inner.writeNode);
-    library.classes.forEach(inner.writeNode);
-    library.fields.forEach(inner.writeNode);
-    library.procedures.forEach(inner.writeNode);
   }
 
   void writeComponentFile(Component component) {
@@ -416,6 +467,7 @@ class Printer extends Visitor<Null> {
     if (showMetadata) {
       inner.writeMetadata(component);
     }
+    writeComponentProblems(component);
     for (var library in component.libraries) {
       if (library.isExternal) {
         if (!showExternal) {
@@ -437,14 +489,18 @@ class Printer extends Visitor<Null> {
       writeWord(prefix);
       endLine(' {');
       ++inner.indentation;
-      library.dependencies.forEach(inner.writeNode);
-      library.typedefs.forEach(inner.writeNode);
-      library.classes.forEach(inner.writeNode);
-      library.fields.forEach(inner.writeNode);
-      library.procedures.forEach(inner.writeNode);
+
+      inner.writeStandardLibraryContent(library);
       --inner.indentation;
       endLine('}');
     }
+    writeConstantTable(component);
+  }
+
+  void writeConstantTable(Component component) {
+    if (syntheticNames.constants.map.isEmpty) return;
+    ImportTable imports = new ComponentImportTable(component);
+    var inner = createInner(imports, component.metadata);
     writeWord('constants ');
     endLine(' {');
     ++inner.indentation;
@@ -1359,6 +1415,14 @@ class Printer extends Visitor<Null> {
     state = WORD;
   }
 
+  visitLibraryPart(LibraryPart node) {
+    writeAnnotationList(node.annotations);
+    writeIndentation();
+    writeWord('part');
+    writeWord(node.partUri);
+    endLine(";");
+  }
+
   visitLibraryDependency(LibraryDependency node) {
     writeIndentation();
     writeWord(node.isImport ? 'import' : 'export');
@@ -1896,37 +1960,31 @@ class Printer extends Visitor<Null> {
     final String name = syntheticNames.nameConstant(node);
     write('  $name = ');
     final sb = new StringBuffer();
-    sb.write('${node.klass}');
-    if (!node.klass.typeParameters.isEmpty) {
+    sb.write('${node.classNode}');
+    if (!node.classNode.typeParameters.isEmpty) {
       sb.write('<');
       sb.write(node.typeArguments.map((type) => type.toString()).join(', '));
       sb.write('>');
     }
     sb.write(' {');
+    bool first = true;
     node.fieldValues.forEach((Reference fieldRef, Constant constant) {
       final String name = syntheticNames.nameConstant(constant);
-      sb.write('${fieldRef.asField.name}: $name, ');
+      if (!first) {
+        first = false;
+        sb.write(', ');
+      }
+      sb.write('${fieldRef.asField.name}: $name');
     });
     sb.write('}');
     endLine(sb.toString());
   }
 
-  visitEnvironmentBoolConstant(EnvironmentBoolConstant node) {
+  visitUnevaluatedConstant(UnevaluatedConstant node) {
     final String name = syntheticNames.nameConstant(node);
-    final String defaultValue = syntheticNames.nameConstant(node.defaultValue);
-    endLine('  $name = bool.fromEnvironment(${node.name}, ${defaultValue})');
-  }
-
-  visitEnvironmentIntConstant(EnvironmentIntConstant node) {
-    final String name = syntheticNames.nameConstant(node);
-    final String defaultValue = syntheticNames.nameConstant(node.defaultValue);
-    endLine('  $name = int.fromEnvironment(${node.name}, ${defaultValue})');
-  }
-
-  visitEnvironmentStringConstant(EnvironmentStringConstant node) {
-    final String name = syntheticNames.nameConstant(node);
-    final String defaultValue = syntheticNames.nameConstant(node.defaultValue);
-    endLine('  $name = String.fromEnvironment(${node.name}, ${defaultValue})');
+    write('  $name = ');
+    writeExpression(node.expression);
+    endLine();
   }
 
   defaultNode(Node node) {

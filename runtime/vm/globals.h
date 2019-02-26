@@ -73,16 +73,12 @@ const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 0;
 #define NOT_IN_PRECOMPILED(code) code
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(ARCH_IS_64_BIT)
-#define HASH_IN_OBJECT_HEADER 1
+#if !defined(PRODUCT) || defined(HOST_OS_FUCHSIA) || defined(TARGET_OS_FUCHSIA)
+#define SUPPORT_TIMELINE 1
 #endif
 
-// For checking deterministic graph generation, we can store instruction
-// tag in the ICData and check it when recreating the flow graph in
-// optimizing compiler. Enable it for other modes (product, release) if needed
-// for debugging.
-#if defined(DEBUG)
-#define TAG_IC_DATA
+#if defined(ARCH_IS_64_BIT)
+#define HASH_IN_OBJECT_HEADER 1
 #endif
 
 // The expression OFFSET_OF(type, field) computes the byte-offset of

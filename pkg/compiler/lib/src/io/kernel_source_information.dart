@@ -24,7 +24,10 @@ class KernelSourceInformationStrategy
   @override
   SourceInformationBuilder createBuilderForContext(MemberEntity member) {
     return new KernelSourceInformationBuilder(
-        _backendStrategy.elementMap, member);
+        _backendStrategy
+            // ignore:deprecated_member_use_from_same_package
+            .elementMap,
+        member);
   }
 }
 

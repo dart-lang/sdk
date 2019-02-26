@@ -24,11 +24,13 @@ uword RuntimeEntry::GetEntryPoint() const {
 //   RSP : points to the arguments and return value array.
 //   RBX : address of the runtime function to call.
 //   R10 : number of arguments to the call.
-void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
-  if (is_leaf()) {
-    ASSERT(argument_count == this->argument_count());
+void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
+                                Assembler* assembler,
+                                intptr_t argument_count) {
+  if (runtime_entry->is_leaf()) {
+    ASSERT(argument_count == runtime_entry->argument_count());
     COMPILE_ASSERT(CallingConventions::kVolatileCpuRegisters & (1 << RAX));
-    __ movq(RAX, Address(THR, Thread::OffsetFromThread(this)));
+    __ movq(RAX, Address(THR, Thread::OffsetFromThread(runtime_entry)));
     __ movq(Assembler::VMTagAddress(), RAX);
     __ CallCFunction(RAX);
     __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
@@ -37,7 +39,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
-    __ movq(RBX, Address(THR, Thread::OffsetFromThread(this)));
+    __ movq(RBX, Address(THR, Thread::OffsetFromThread(runtime_entry)));
     __ LoadImmediate(R10, Immediate(argument_count));
     __ CallToRuntime();
   }

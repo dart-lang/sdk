@@ -14,6 +14,22 @@ import 'package:analyzer/src/summary/flat_buffers.dart' as fb;
 
 import 'idl.dart' as idl;
 
+class _AvailableDeclarationKindReader
+    extends fb.Reader<idl.AvailableDeclarationKind> {
+  const _AvailableDeclarationKindReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.AvailableDeclarationKind read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
+    return index < idl.AvailableDeclarationKind.values.length
+        ? idl.AvailableDeclarationKind.values[index]
+        : idl.AvailableDeclarationKind.CLASS;
+  }
+}
+
 class _EntityRefKindReader extends fb.Reader<idl.EntityRefKind> {
   const _EntityRefKindReader() : super();
 
@@ -2089,6 +2105,1111 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
         "referencedNames": referencedNames,
         "subtypedNames": subtypedNames,
         "unit": unit,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class AvailableDeclarationBuilder extends Object
+    with _AvailableDeclarationMixin
+    implements idl.AvailableDeclaration {
+  String _docComplete;
+  String _docSummary;
+  int _fieldMask;
+  idl.AvailableDeclarationKind _kind;
+  bool _isAbstract;
+  bool _isConst;
+  bool _isDeprecated;
+  bool _isFinal;
+  String _name;
+  String _name2;
+  int _locationOffset;
+  int _locationStartColumn;
+  int _locationStartLine;
+  List<String> _parameterNames;
+  String _parameters;
+  List<String> _parameterTypes;
+  int _requiredParameterCount;
+  List<String> _relevanceTags;
+  String _returnType;
+  String _typeParameters;
+
+  @override
+  String get docComplete => _docComplete ??= '';
+
+  void set docComplete(String value) {
+    this._docComplete = value;
+  }
+
+  @override
+  String get docSummary => _docSummary ??= '';
+
+  void set docSummary(String value) {
+    this._docSummary = value;
+  }
+
+  @override
+  int get fieldMask => _fieldMask ??= 0;
+
+  void set fieldMask(int value) {
+    assert(value == null || value >= 0);
+    this._fieldMask = value;
+  }
+
+  @override
+  idl.AvailableDeclarationKind get kind =>
+      _kind ??= idl.AvailableDeclarationKind.CLASS;
+
+  /// The kind of the declaration.
+  void set kind(idl.AvailableDeclarationKind value) {
+    this._kind = value;
+  }
+
+  @override
+  bool get isAbstract => _isAbstract ??= false;
+
+  void set isAbstract(bool value) {
+    this._isAbstract = value;
+  }
+
+  @override
+  bool get isConst => _isConst ??= false;
+
+  void set isConst(bool value) {
+    this._isConst = value;
+  }
+
+  @override
+  bool get isDeprecated => _isDeprecated ??= false;
+
+  void set isDeprecated(bool value) {
+    this._isDeprecated = value;
+  }
+
+  @override
+  bool get isFinal => _isFinal ??= false;
+
+  void set isFinal(bool value) {
+    this._isFinal = value;
+  }
+
+  @override
+  String get name => _name ??= '';
+
+  /// The first part of the declaration name, usually the only one, for example
+  /// the name of a class like `MyClass`, or a function like `myFunction`.
+  void set name(String value) {
+    this._name = value;
+  }
+
+  @override
+  String get name2 => _name2 ??= '';
+
+  /// The second, optional, part of the declaration name.  For example enum
+  /// constants all have the same [name], but their own [name2].
+  void set name2(String value) {
+    this._name2 = value;
+  }
+
+  @override
+  int get locationOffset => _locationOffset ??= 0;
+
+  void set locationOffset(int value) {
+    assert(value == null || value >= 0);
+    this._locationOffset = value;
+  }
+
+  @override
+  int get locationStartColumn => _locationStartColumn ??= 0;
+
+  void set locationStartColumn(int value) {
+    assert(value == null || value >= 0);
+    this._locationStartColumn = value;
+  }
+
+  @override
+  int get locationStartLine => _locationStartLine ??= 0;
+
+  void set locationStartLine(int value) {
+    assert(value == null || value >= 0);
+    this._locationStartLine = value;
+  }
+
+  @override
+  List<String> get parameterNames => _parameterNames ??= <String>[];
+
+  void set parameterNames(List<String> value) {
+    this._parameterNames = value;
+  }
+
+  @override
+  String get parameters => _parameters ??= '';
+
+  void set parameters(String value) {
+    this._parameters = value;
+  }
+
+  @override
+  List<String> get parameterTypes => _parameterTypes ??= <String>[];
+
+  void set parameterTypes(List<String> value) {
+    this._parameterTypes = value;
+  }
+
+  @override
+  int get requiredParameterCount => _requiredParameterCount ??= 0;
+
+  void set requiredParameterCount(int value) {
+    assert(value == null || value >= 0);
+    this._requiredParameterCount = value;
+  }
+
+  @override
+  List<String> get relevanceTags => _relevanceTags ??= <String>[];
+
+  /// The partial list of relevance tags.  Not every declaration has one (for
+  /// example, function do not currently), and not every declaration has to
+  /// store one (for classes it can be computed when we know the library that
+  /// includes this file).
+  void set relevanceTags(List<String> value) {
+    this._relevanceTags = value;
+  }
+
+  @override
+  String get returnType => _returnType ??= '';
+
+  void set returnType(String value) {
+    this._returnType = value;
+  }
+
+  @override
+  String get typeParameters => _typeParameters ??= '';
+
+  void set typeParameters(String value) {
+    this._typeParameters = value;
+  }
+
+  AvailableDeclarationBuilder(
+      {String docComplete,
+      String docSummary,
+      int fieldMask,
+      idl.AvailableDeclarationKind kind,
+      bool isAbstract,
+      bool isConst,
+      bool isDeprecated,
+      bool isFinal,
+      String name,
+      String name2,
+      int locationOffset,
+      int locationStartColumn,
+      int locationStartLine,
+      List<String> parameterNames,
+      String parameters,
+      List<String> parameterTypes,
+      int requiredParameterCount,
+      List<String> relevanceTags,
+      String returnType,
+      String typeParameters})
+      : _docComplete = docComplete,
+        _docSummary = docSummary,
+        _fieldMask = fieldMask,
+        _kind = kind,
+        _isAbstract = isAbstract,
+        _isConst = isConst,
+        _isDeprecated = isDeprecated,
+        _isFinal = isFinal,
+        _name = name,
+        _name2 = name2,
+        _locationOffset = locationOffset,
+        _locationStartColumn = locationStartColumn,
+        _locationStartLine = locationStartLine,
+        _parameterNames = parameterNames,
+        _parameters = parameters,
+        _parameterTypes = parameterTypes,
+        _requiredParameterCount = requiredParameterCount,
+        _relevanceTags = relevanceTags,
+        _returnType = returnType,
+        _typeParameters = typeParameters;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {}
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._docComplete ?? '');
+    signature.addString(this._docSummary ?? '');
+    signature.addInt(this._fieldMask ?? 0);
+    signature.addInt(this._kind == null ? 0 : this._kind.index);
+    signature.addBool(this._isAbstract == true);
+    signature.addBool(this._isConst == true);
+    signature.addBool(this._isDeprecated == true);
+    signature.addBool(this._isFinal == true);
+    signature.addString(this._name ?? '');
+    signature.addString(this._name2 ?? '');
+    signature.addInt(this._locationOffset ?? 0);
+    signature.addInt(this._locationStartColumn ?? 0);
+    signature.addInt(this._locationStartLine ?? 0);
+    if (this._parameterNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parameterNames.length);
+      for (var x in this._parameterNames) {
+        signature.addString(x);
+      }
+    }
+    signature.addString(this._parameters ?? '');
+    if (this._parameterTypes == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parameterTypes.length);
+      for (var x in this._parameterTypes) {
+        signature.addString(x);
+      }
+    }
+    signature.addInt(this._requiredParameterCount ?? 0);
+    if (this._relevanceTags == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._relevanceTags.length);
+      for (var x in this._relevanceTags) {
+        signature.addString(x);
+      }
+    }
+    signature.addString(this._returnType ?? '');
+    signature.addString(this._typeParameters ?? '');
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_docComplete;
+    fb.Offset offset_docSummary;
+    fb.Offset offset_name;
+    fb.Offset offset_name2;
+    fb.Offset offset_parameterNames;
+    fb.Offset offset_parameters;
+    fb.Offset offset_parameterTypes;
+    fb.Offset offset_relevanceTags;
+    fb.Offset offset_returnType;
+    fb.Offset offset_typeParameters;
+    if (_docComplete != null) {
+      offset_docComplete = fbBuilder.writeString(_docComplete);
+    }
+    if (_docSummary != null) {
+      offset_docSummary = fbBuilder.writeString(_docSummary);
+    }
+    if (_name != null) {
+      offset_name = fbBuilder.writeString(_name);
+    }
+    if (_name2 != null) {
+      offset_name2 = fbBuilder.writeString(_name2);
+    }
+    if (!(_parameterNames == null || _parameterNames.isEmpty)) {
+      offset_parameterNames = fbBuilder.writeList(
+          _parameterNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (_parameters != null) {
+      offset_parameters = fbBuilder.writeString(_parameters);
+    }
+    if (!(_parameterTypes == null || _parameterTypes.isEmpty)) {
+      offset_parameterTypes = fbBuilder.writeList(
+          _parameterTypes.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_relevanceTags == null || _relevanceTags.isEmpty)) {
+      offset_relevanceTags = fbBuilder.writeList(
+          _relevanceTags.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (_returnType != null) {
+      offset_returnType = fbBuilder.writeString(_returnType);
+    }
+    if (_typeParameters != null) {
+      offset_typeParameters = fbBuilder.writeString(_typeParameters);
+    }
+    fbBuilder.startTable();
+    if (offset_docComplete != null) {
+      fbBuilder.addOffset(0, offset_docComplete);
+    }
+    if (offset_docSummary != null) {
+      fbBuilder.addOffset(1, offset_docSummary);
+    }
+    if (_fieldMask != null && _fieldMask != 0) {
+      fbBuilder.addUint32(2, _fieldMask);
+    }
+    if (_kind != null && _kind != idl.AvailableDeclarationKind.CLASS) {
+      fbBuilder.addUint8(3, _kind.index);
+    }
+    if (_isAbstract == true) {
+      fbBuilder.addBool(4, true);
+    }
+    if (_isConst == true) {
+      fbBuilder.addBool(5, true);
+    }
+    if (_isDeprecated == true) {
+      fbBuilder.addBool(6, true);
+    }
+    if (_isFinal == true) {
+      fbBuilder.addBool(7, true);
+    }
+    if (offset_name != null) {
+      fbBuilder.addOffset(8, offset_name);
+    }
+    if (offset_name2 != null) {
+      fbBuilder.addOffset(9, offset_name2);
+    }
+    if (_locationOffset != null && _locationOffset != 0) {
+      fbBuilder.addUint32(10, _locationOffset);
+    }
+    if (_locationStartColumn != null && _locationStartColumn != 0) {
+      fbBuilder.addUint32(11, _locationStartColumn);
+    }
+    if (_locationStartLine != null && _locationStartLine != 0) {
+      fbBuilder.addUint32(12, _locationStartLine);
+    }
+    if (offset_parameterNames != null) {
+      fbBuilder.addOffset(13, offset_parameterNames);
+    }
+    if (offset_parameters != null) {
+      fbBuilder.addOffset(14, offset_parameters);
+    }
+    if (offset_parameterTypes != null) {
+      fbBuilder.addOffset(15, offset_parameterTypes);
+    }
+    if (_requiredParameterCount != null && _requiredParameterCount != 0) {
+      fbBuilder.addUint32(16, _requiredParameterCount);
+    }
+    if (offset_relevanceTags != null) {
+      fbBuilder.addOffset(17, offset_relevanceTags);
+    }
+    if (offset_returnType != null) {
+      fbBuilder.addOffset(18, offset_returnType);
+    }
+    if (offset_typeParameters != null) {
+      fbBuilder.addOffset(19, offset_typeParameters);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _AvailableDeclarationReader
+    extends fb.TableReader<_AvailableDeclarationImpl> {
+  const _AvailableDeclarationReader();
+
+  @override
+  _AvailableDeclarationImpl createObject(fb.BufferContext bc, int offset) =>
+      new _AvailableDeclarationImpl(bc, offset);
+}
+
+class _AvailableDeclarationImpl extends Object
+    with _AvailableDeclarationMixin
+    implements idl.AvailableDeclaration {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AvailableDeclarationImpl(this._bc, this._bcOffset);
+
+  String _docComplete;
+  String _docSummary;
+  int _fieldMask;
+  idl.AvailableDeclarationKind _kind;
+  bool _isAbstract;
+  bool _isConst;
+  bool _isDeprecated;
+  bool _isFinal;
+  String _name;
+  String _name2;
+  int _locationOffset;
+  int _locationStartColumn;
+  int _locationStartLine;
+  List<String> _parameterNames;
+  String _parameters;
+  List<String> _parameterTypes;
+  int _requiredParameterCount;
+  List<String> _relevanceTags;
+  String _returnType;
+  String _typeParameters;
+
+  @override
+  String get docComplete {
+    _docComplete ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _docComplete;
+  }
+
+  @override
+  String get docSummary {
+    _docSummary ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _docSummary;
+  }
+
+  @override
+  int get fieldMask {
+    _fieldMask ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
+    return _fieldMask;
+  }
+
+  @override
+  idl.AvailableDeclarationKind get kind {
+    _kind ??= const _AvailableDeclarationKindReader()
+        .vTableGet(_bc, _bcOffset, 3, idl.AvailableDeclarationKind.CLASS);
+    return _kind;
+  }
+
+  @override
+  bool get isAbstract {
+    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
+    return _isAbstract;
+  }
+
+  @override
+  bool get isConst {
+    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
+    return _isConst;
+  }
+
+  @override
+  bool get isDeprecated {
+    _isDeprecated ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
+    return _isDeprecated;
+  }
+
+  @override
+  bool get isFinal {
+    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 7, false);
+    return _isFinal;
+  }
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 8, '');
+    return _name;
+  }
+
+  @override
+  String get name2 {
+    _name2 ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 9, '');
+    return _name2;
+  }
+
+  @override
+  int get locationOffset {
+    _locationOffset ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 10, 0);
+    return _locationOffset;
+  }
+
+  @override
+  int get locationStartColumn {
+    _locationStartColumn ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
+    return _locationStartColumn;
+  }
+
+  @override
+  int get locationStartLine {
+    _locationStartLine ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 12, 0);
+    return _locationStartLine;
+  }
+
+  @override
+  List<String> get parameterNames {
+    _parameterNames ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 13, const <String>[]);
+    return _parameterNames;
+  }
+
+  @override
+  String get parameters {
+    _parameters ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 14, '');
+    return _parameters;
+  }
+
+  @override
+  List<String> get parameterTypes {
+    _parameterTypes ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 15, const <String>[]);
+    return _parameterTypes;
+  }
+
+  @override
+  int get requiredParameterCount {
+    _requiredParameterCount ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 16, 0);
+    return _requiredParameterCount;
+  }
+
+  @override
+  List<String> get relevanceTags {
+    _relevanceTags ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 17, const <String>[]);
+    return _relevanceTags;
+  }
+
+  @override
+  String get returnType {
+    _returnType ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 18, '');
+    return _returnType;
+  }
+
+  @override
+  String get typeParameters {
+    _typeParameters ??=
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 19, '');
+    return _typeParameters;
+  }
+}
+
+abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (docComplete != '') _result["docComplete"] = docComplete;
+    if (docSummary != '') _result["docSummary"] = docSummary;
+    if (fieldMask != 0) _result["fieldMask"] = fieldMask;
+    if (kind != idl.AvailableDeclarationKind.CLASS)
+      _result["kind"] = kind.toString().split('.')[1];
+    if (isAbstract != false) _result["isAbstract"] = isAbstract;
+    if (isConst != false) _result["isConst"] = isConst;
+    if (isDeprecated != false) _result["isDeprecated"] = isDeprecated;
+    if (isFinal != false) _result["isFinal"] = isFinal;
+    if (name != '') _result["name"] = name;
+    if (name2 != '') _result["name2"] = name2;
+    if (locationOffset != 0) _result["locationOffset"] = locationOffset;
+    if (locationStartColumn != 0)
+      _result["locationStartColumn"] = locationStartColumn;
+    if (locationStartLine != 0)
+      _result["locationStartLine"] = locationStartLine;
+    if (parameterNames.isNotEmpty) _result["parameterNames"] = parameterNames;
+    if (parameters != '') _result["parameters"] = parameters;
+    if (parameterTypes.isNotEmpty) _result["parameterTypes"] = parameterTypes;
+    if (requiredParameterCount != 0)
+      _result["requiredParameterCount"] = requiredParameterCount;
+    if (relevanceTags.isNotEmpty) _result["relevanceTags"] = relevanceTags;
+    if (returnType != '') _result["returnType"] = returnType;
+    if (typeParameters != '') _result["typeParameters"] = typeParameters;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "docComplete": docComplete,
+        "docSummary": docSummary,
+        "fieldMask": fieldMask,
+        "kind": kind,
+        "isAbstract": isAbstract,
+        "isConst": isConst,
+        "isDeprecated": isDeprecated,
+        "isFinal": isFinal,
+        "name": name,
+        "name2": name2,
+        "locationOffset": locationOffset,
+        "locationStartColumn": locationStartColumn,
+        "locationStartLine": locationStartLine,
+        "parameterNames": parameterNames,
+        "parameters": parameters,
+        "parameterTypes": parameterTypes,
+        "requiredParameterCount": requiredParameterCount,
+        "relevanceTags": relevanceTags,
+        "returnType": returnType,
+        "typeParameters": typeParameters,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class AvailableFileBuilder extends Object
+    with _AvailableFileMixin
+    implements idl.AvailableFile {
+  List<AvailableDeclarationBuilder> _declarations;
+  List<AvailableFileExportBuilder> _exports;
+  bool _isLibrary;
+  bool _isLibraryDeprecated;
+  List<String> _parts;
+
+  @override
+  List<AvailableDeclarationBuilder> get declarations =>
+      _declarations ??= <AvailableDeclarationBuilder>[];
+
+  /// Declarations of the file.
+  void set declarations(List<AvailableDeclarationBuilder> value) {
+    this._declarations = value;
+  }
+
+  @override
+  List<AvailableFileExportBuilder> get exports =>
+      _exports ??= <AvailableFileExportBuilder>[];
+
+  /// Exports directives of the file.
+  void set exports(List<AvailableFileExportBuilder> value) {
+    this._exports = value;
+  }
+
+  @override
+  bool get isLibrary => _isLibrary ??= false;
+
+  /// Is `true` if this file is a library.
+  void set isLibrary(bool value) {
+    this._isLibrary = value;
+  }
+
+  @override
+  bool get isLibraryDeprecated => _isLibraryDeprecated ??= false;
+
+  /// Is `true` if this file is a library, and it is deprecated.
+  void set isLibraryDeprecated(bool value) {
+    this._isLibraryDeprecated = value;
+  }
+
+  @override
+  List<String> get parts => _parts ??= <String>[];
+
+  /// URIs of `part` directives.
+  void set parts(List<String> value) {
+    this._parts = value;
+  }
+
+  AvailableFileBuilder(
+      {List<AvailableDeclarationBuilder> declarations,
+      List<AvailableFileExportBuilder> exports,
+      bool isLibrary,
+      bool isLibraryDeprecated,
+      List<String> parts})
+      : _declarations = declarations,
+        _exports = exports,
+        _isLibrary = isLibrary,
+        _isLibraryDeprecated = isLibraryDeprecated,
+        _parts = parts;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _declarations?.forEach((b) => b.flushInformative());
+    _exports?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._declarations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._declarations.length);
+      for (var x in this._declarations) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._exports == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._exports.length);
+      for (var x in this._exports) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addBool(this._isLibrary == true);
+    signature.addBool(this._isLibraryDeprecated == true);
+    if (this._parts == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parts.length);
+      for (var x in this._parts) {
+        signature.addString(x);
+      }
+    }
+  }
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = new fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "UICF");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_declarations;
+    fb.Offset offset_exports;
+    fb.Offset offset_parts;
+    if (!(_declarations == null || _declarations.isEmpty)) {
+      offset_declarations = fbBuilder
+          .writeList(_declarations.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_exports == null || _exports.isEmpty)) {
+      offset_exports = fbBuilder
+          .writeList(_exports.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_parts == null || _parts.isEmpty)) {
+      offset_parts = fbBuilder
+          .writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_declarations != null) {
+      fbBuilder.addOffset(0, offset_declarations);
+    }
+    if (offset_exports != null) {
+      fbBuilder.addOffset(1, offset_exports);
+    }
+    if (_isLibrary == true) {
+      fbBuilder.addBool(2, true);
+    }
+    if (_isLibraryDeprecated == true) {
+      fbBuilder.addBool(3, true);
+    }
+    if (offset_parts != null) {
+      fbBuilder.addOffset(4, offset_parts);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.AvailableFile readAvailableFile(List<int> buffer) {
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _AvailableFileReader().read(rootRef, 0);
+}
+
+class _AvailableFileReader extends fb.TableReader<_AvailableFileImpl> {
+  const _AvailableFileReader();
+
+  @override
+  _AvailableFileImpl createObject(fb.BufferContext bc, int offset) =>
+      new _AvailableFileImpl(bc, offset);
+}
+
+class _AvailableFileImpl extends Object
+    with _AvailableFileMixin
+    implements idl.AvailableFile {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AvailableFileImpl(this._bc, this._bcOffset);
+
+  List<idl.AvailableDeclaration> _declarations;
+  List<idl.AvailableFileExport> _exports;
+  bool _isLibrary;
+  bool _isLibraryDeprecated;
+  List<String> _parts;
+
+  @override
+  List<idl.AvailableDeclaration> get declarations {
+    _declarations ??= const fb.ListReader<idl.AvailableDeclaration>(
+            const _AvailableDeclarationReader())
+        .vTableGet(_bc, _bcOffset, 0, const <idl.AvailableDeclaration>[]);
+    return _declarations;
+  }
+
+  @override
+  List<idl.AvailableFileExport> get exports {
+    _exports ??= const fb.ListReader<idl.AvailableFileExport>(
+            const _AvailableFileExportReader())
+        .vTableGet(_bc, _bcOffset, 1, const <idl.AvailableFileExport>[]);
+    return _exports;
+  }
+
+  @override
+  bool get isLibrary {
+    _isLibrary ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 2, false);
+    return _isLibrary;
+  }
+
+  @override
+  bool get isLibraryDeprecated {
+    _isLibraryDeprecated ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
+    return _isLibraryDeprecated;
+  }
+
+  @override
+  List<String> get parts {
+    _parts ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 4, const <String>[]);
+    return _parts;
+  }
+}
+
+abstract class _AvailableFileMixin implements idl.AvailableFile {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (declarations.isNotEmpty)
+      _result["declarations"] =
+          declarations.map((_value) => _value.toJson()).toList();
+    if (exports.isNotEmpty)
+      _result["exports"] = exports.map((_value) => _value.toJson()).toList();
+    if (isLibrary != false) _result["isLibrary"] = isLibrary;
+    if (isLibraryDeprecated != false)
+      _result["isLibraryDeprecated"] = isLibraryDeprecated;
+    if (parts.isNotEmpty) _result["parts"] = parts;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "declarations": declarations,
+        "exports": exports,
+        "isLibrary": isLibrary,
+        "isLibraryDeprecated": isLibraryDeprecated,
+        "parts": parts,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class AvailableFileExportBuilder extends Object
+    with _AvailableFileExportMixin
+    implements idl.AvailableFileExport {
+  List<AvailableFileExportCombinatorBuilder> _combinators;
+  String _uri;
+
+  @override
+  List<AvailableFileExportCombinatorBuilder> get combinators =>
+      _combinators ??= <AvailableFileExportCombinatorBuilder>[];
+
+  /// Combinators contained in this export directive.
+  void set combinators(List<AvailableFileExportCombinatorBuilder> value) {
+    this._combinators = value;
+  }
+
+  @override
+  String get uri => _uri ??= '';
+
+  /// URI of the exported library.
+  void set uri(String value) {
+    this._uri = value;
+  }
+
+  AvailableFileExportBuilder(
+      {List<AvailableFileExportCombinatorBuilder> combinators, String uri})
+      : _combinators = combinators,
+        _uri = uri;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _combinators?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._uri ?? '');
+    if (this._combinators == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._combinators.length);
+      for (var x in this._combinators) {
+        x?.collectApiSignature(signature);
+      }
+    }
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_combinators;
+    fb.Offset offset_uri;
+    if (!(_combinators == null || _combinators.isEmpty)) {
+      offset_combinators = fbBuilder
+          .writeList(_combinators.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_uri != null) {
+      offset_uri = fbBuilder.writeString(_uri);
+    }
+    fbBuilder.startTable();
+    if (offset_combinators != null) {
+      fbBuilder.addOffset(1, offset_combinators);
+    }
+    if (offset_uri != null) {
+      fbBuilder.addOffset(0, offset_uri);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _AvailableFileExportReader
+    extends fb.TableReader<_AvailableFileExportImpl> {
+  const _AvailableFileExportReader();
+
+  @override
+  _AvailableFileExportImpl createObject(fb.BufferContext bc, int offset) =>
+      new _AvailableFileExportImpl(bc, offset);
+}
+
+class _AvailableFileExportImpl extends Object
+    with _AvailableFileExportMixin
+    implements idl.AvailableFileExport {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AvailableFileExportImpl(this._bc, this._bcOffset);
+
+  List<idl.AvailableFileExportCombinator> _combinators;
+  String _uri;
+
+  @override
+  List<idl.AvailableFileExportCombinator> get combinators {
+    _combinators ??= const fb.ListReader<idl.AvailableFileExportCombinator>(
+            const _AvailableFileExportCombinatorReader())
+        .vTableGet(
+            _bc, _bcOffset, 1, const <idl.AvailableFileExportCombinator>[]);
+    return _combinators;
+  }
+
+  @override
+  String get uri {
+    _uri ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _uri;
+  }
+}
+
+abstract class _AvailableFileExportMixin implements idl.AvailableFileExport {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (combinators.isNotEmpty)
+      _result["combinators"] =
+          combinators.map((_value) => _value.toJson()).toList();
+    if (uri != '') _result["uri"] = uri;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "combinators": combinators,
+        "uri": uri,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class AvailableFileExportCombinatorBuilder extends Object
+    with _AvailableFileExportCombinatorMixin
+    implements idl.AvailableFileExportCombinator {
+  List<String> _hides;
+  List<String> _shows;
+
+  @override
+  List<String> get hides => _hides ??= <String>[];
+
+  /// List of names which are hidden.  Empty if this is a `show` combinator.
+  void set hides(List<String> value) {
+    this._hides = value;
+  }
+
+  @override
+  List<String> get shows => _shows ??= <String>[];
+
+  /// List of names which are shown.  Empty if this is a `hide` combinator.
+  void set shows(List<String> value) {
+    this._shows = value;
+  }
+
+  AvailableFileExportCombinatorBuilder({List<String> hides, List<String> shows})
+      : _hides = hides,
+        _shows = shows;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {}
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._shows == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._shows.length);
+      for (var x in this._shows) {
+        signature.addString(x);
+      }
+    }
+    if (this._hides == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._hides.length);
+      for (var x in this._hides) {
+        signature.addString(x);
+      }
+    }
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_hides;
+    fb.Offset offset_shows;
+    if (!(_hides == null || _hides.isEmpty)) {
+      offset_hides = fbBuilder
+          .writeList(_hides.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_shows == null || _shows.isEmpty)) {
+      offset_shows = fbBuilder
+          .writeList(_shows.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_hides != null) {
+      fbBuilder.addOffset(1, offset_hides);
+    }
+    if (offset_shows != null) {
+      fbBuilder.addOffset(0, offset_shows);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _AvailableFileExportCombinatorReader
+    extends fb.TableReader<_AvailableFileExportCombinatorImpl> {
+  const _AvailableFileExportCombinatorReader();
+
+  @override
+  _AvailableFileExportCombinatorImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      new _AvailableFileExportCombinatorImpl(bc, offset);
+}
+
+class _AvailableFileExportCombinatorImpl extends Object
+    with _AvailableFileExportCombinatorMixin
+    implements idl.AvailableFileExportCombinator {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AvailableFileExportCombinatorImpl(this._bc, this._bcOffset);
+
+  List<String> _hides;
+  List<String> _shows;
+
+  @override
+  List<String> get hides {
+    _hides ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    return _hides;
+  }
+
+  @override
+  List<String> get shows {
+    _shows ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 0, const <String>[]);
+    return _shows;
+  }
+}
+
+abstract class _AvailableFileExportCombinatorMixin
+    implements idl.AvailableFileExportCombinator {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (hides.isNotEmpty) _result["hides"] = hides;
+    if (shows.isNotEmpty) _result["shows"] = shows;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "hides": hides,
+        "shows": shows,
       };
 
   @override

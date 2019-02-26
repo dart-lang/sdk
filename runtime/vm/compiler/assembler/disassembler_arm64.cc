@@ -885,16 +885,6 @@ void ARM64Decoder::DecodeExceptionGen(Instr* instr) {
   } else if ((instr->Bits(0, 2) == 0) && (instr->Bits(2, 3) == 0) &&
              (instr->Bits(21, 3) == 1)) {
     Format(instr, "brk 'imm16");
-    if (instr->Imm16Field() == Instr::kStopMessageCode) {
-      const char* message = "Stop messages not enabled";
-      if (FLAG_print_stop_message) {
-        message = *reinterpret_cast<const char**>(
-            reinterpret_cast<intptr_t>(instr) - 2 * Instr::kInstrSize);
-      }
-      buffer_pos_ +=
-          Utils::SNPrint(current_position_in_buffer(),
-                         remaining_size_in_buffer(), " ; \"%s\"", message);
-    }
   } else if ((instr->Bits(0, 2) == 0) && (instr->Bits(2, 3) == 0) &&
              (instr->Bits(21, 3) == 2)) {
     Format(instr, "hlt 'imm16");

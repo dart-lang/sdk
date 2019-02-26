@@ -23,13 +23,13 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../src/dart/resolution/driver_resolution.dart';
 import 'analysis_context_factory.dart';
 import 'parser_test.dart';
 import 'resolver_test_case.dart';
@@ -45,9 +45,6 @@ main() {
     defineReflectiveTests(LibraryScopeTest);
     defineReflectiveTests(PrefixedNamespaceTest);
     defineReflectiveTests(ScopeTest);
-    defineReflectiveTests(StrictModeTest);
-    defineReflectiveTests(TypeOverrideManagerTest);
-    defineReflectiveTests(TypePropagationTest);
     defineReflectiveTests(TypeProviderImplTest);
     defineReflectiveTests(TypeResolverVisitorTest);
   });
@@ -167,9 +164,9 @@ class EnclosedScopeTest extends ResolverTestCase {
 }
 
 @reflectiveTest
-class ErrorResolverTest extends ResolverTestCase {
+class ErrorResolverTest extends DriverResolutionTest {
   test_breakLabelOnSwitchMember() async {
-    Source source = addSource(r'''
+    assertErrorsInCode(r'''
 class A {
   void m(int i) {
     switch (i) {
@@ -179,14 +176,11 @@ class A {
         break l;
     }
   }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER]);
-    verify([source]);
+}''', [ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER]);
   }
 
   test_continueLabelOnSwitch() async {
-    Source source = addSource(r'''
+    assertErrorsInCode(r'''
 class A {
   void m(int i) {
     l: switch (i) {
@@ -194,43 +188,24 @@ class A {
         continue l;
     }
   }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH]);
-    verify([source]);
+}''', [ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH]);
   }
 
   test_enclosingElement_invalidLocalFunction() async {
-    String code = r'''
+    addTestFile(r'''
 class C {
   C() {
     int get x => 0;
   }
-}''';
-    Source source = addSource(code);
-
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertErrors(source, [
+}''');
+    await resolveTestFile();
+    assertTestErrors([
       ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
       ParserErrorCode.EXPECTED_TOKEN
     ]);
 
-    CompilationUnitElement unit = analysisResult.unit.declaredElement;
-    LibraryElement library = unit.library;
-    expect(library, isNotNull);
-    expect(unit.enclosingElement, same(library));
-
-    var types = unit.types;
-    expect(types, hasLength(1));
-    var type = types[0];
-    expect(type, isNotNull);
-
-    var constructors = type.constructors;
-    expect(constructors, hasLength(1));
-    ConstructorElement constructor = constructors[0];
-    expect(constructor, isNotNull);
-
-    FunctionElement x = findElementsByName(analysisResult.unit, 'x').single;
+    var constructor = findElement.unnamedConstructor('C');
+    var x = findElement.localFunction('x');
     expect(x.enclosingElement, constructor);
   }
 }
@@ -596,8 +571,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
  * The class `StrictModeTest` contains tests to ensure that the correct errors and warnings
  * are reported when the analysis engine is run in strict mode.
  */
-@reflectiveTest
-class StrictModeTest extends ResolverTestCase {
+abstract class StrictModeTest extends ResolverTestCase {
   fail_for() async {
     Source source = addSource(r'''
 int f(List<int> list) {
@@ -748,70 +722,7 @@ int f() {
   }
 }
 
-@reflectiveTest
-class TypeOverrideManagerTest extends EngineTestCase {
-  void test_exitScope_noScopes() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    expect(() {
-      manager.exitScope();
-    }, throwsStateError);
-  }
-
-  void test_exitScope_oneScope() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    manager.enterScope();
-    manager.exitScope();
-    expect(() {
-      manager.exitScope();
-    }, throwsStateError);
-  }
-
-  void test_exitScope_twoScopes() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    manager.enterScope();
-    manager.exitScope();
-    manager.enterScope();
-    manager.exitScope();
-    expect(() {
-      manager.exitScope();
-    }, throwsStateError);
-  }
-
-  void test_getType_enclosedOverride() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    LocalVariableElementImpl element =
-        ElementFactory.localVariableElement2("v");
-    InterfaceType type = ElementFactory.classElement2("C").type;
-    manager.enterScope();
-    manager.setType(element, type);
-    manager.enterScope();
-    expect(manager.getType(element), same(type));
-  }
-
-  void test_getType_immediateOverride() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    LocalVariableElementImpl element =
-        ElementFactory.localVariableElement2("v");
-    InterfaceType type = ElementFactory.classElement2("C").type;
-    manager.enterScope();
-    manager.setType(element, type);
-    expect(manager.getType(element), same(type));
-  }
-
-  void test_getType_noOverride() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    manager.enterScope();
-    expect(manager.getType(ElementFactory.localVariableElement2("v")), isNull);
-  }
-
-  void test_getType_noScope() {
-    TypeOverrideManager manager = new TypeOverrideManager();
-    expect(manager.getType(ElementFactory.localVariableElement2("v")), isNull);
-  }
-}
-
-@reflectiveTest
-class TypePropagationTest extends ResolverTestCase {
+abstract class TypePropagationTest extends ResolverTestCase {
   fail_propagatedReturnType_functionExpression() async {
     // TODO(scheglov) disabled because we don't resolve function expression
     String code = r'''

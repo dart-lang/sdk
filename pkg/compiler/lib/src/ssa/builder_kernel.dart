@@ -31,7 +31,7 @@ import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
 import '../js_backend/backend.dart' show FunctionInlineCache, JavaScriptBackend;
 import '../js_backend/runtime_types.dart' show RuntimeTypesSubstitutions;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
-import '../js_model/locals.dart' show forEachOrderedParameter, JumpVisitor;
+import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
 import '../js_model/js_strategy.dart';
@@ -63,6 +63,8 @@ class StackFrame {
   final MemberEntity member;
   final AsyncMarker asyncMarker;
   final KernelToLocalsMap localsMap;
+  // [ir.Let] and [ir.LocalInitializer] bindings.
+  final Map<ir.VariableDeclaration, HInstruction> letBindings;
   final KernelToTypeInferenceMap typeInferenceMap;
   final SourceInformationBuilder sourceInformationBuilder;
   final StaticTypeProvider staticTypeProvider;
@@ -72,6 +74,7 @@ class StackFrame {
       this.member,
       this.asyncMarker,
       this.localsMap,
+      this.letBindings,
       this.typeInferenceMap,
       this.sourceInformationBuilder,
       this.staticTypeProvider);
@@ -115,10 +118,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   final NativeEmitter nativeEmitter;
 
-  // [ir.Let] and [ir.LocalInitializer] bindings.
-  final Map<ir.VariableDeclaration, HInstruction> letBindings =
-      <ir.VariableDeclaration, HInstruction>{};
-
   /// True if we are visiting the expression of a throw statement; we assume
   /// this is a slow path.
   bool _inExpressionOfThrow = false;
@@ -160,6 +159,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   KernelToLocalsMap get localsMap => _currentFrame.localsMap;
 
+  Map<ir.VariableDeclaration, HInstruction> get letBindings =>
+      _currentFrame.letBindings;
+
   JCommonElements get _commonElements => _elementMap.commonElements;
 
   KernelToTypeInferenceMap get _typeInferenceMap =>
@@ -192,6 +194,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         member,
         asyncMarker,
         closedWorld.globalLocalsMap.getLocalsMap(member),
+        {},
         new KernelToTypeInferenceMapImpl(member, globalInferenceResults),
         _currentFrame != null
             ? _currentFrame.sourceInformationBuilder
@@ -360,7 +363,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       graph.entry.addBefore(graph.entry.last, parameter);
       HInstruction value = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
           parameter, _getDartTypeIfValid(node.type));
-      add(new HFieldSet(abstractValueDomain, field, thisInstruction, value));
+      if (!closedWorld.elidedFields.contains(field)) {
+        add(new HFieldSet(abstractValueDomain, field, thisInstruction, value));
+      }
     } else {
       if (node.initializer != null) {
         node.initializer.accept(this);
@@ -438,25 +443,31 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void _addFunctionTypeVariablesIfNeeded(MemberEntity member) {
     if (member is! FunctionEntity) return;
 
+    FunctionEntity function = member;
     List<TypeVariableType> typeVariables =
-        _elementMap.elementEnvironment.getFunctionTypeVariables(member);
+        _elementMap.elementEnvironment.getFunctionTypeVariables(function);
     if (typeVariables.isEmpty) {
       return;
     }
-    bool needsTypeArguments = rtiNeed.methodNeedsTypeArguments(member);
-    typeVariables.forEach((TypeVariableType typeVariableType) {
+    bool needsTypeArguments = rtiNeed.methodNeedsTypeArguments(function);
+    bool elideTypeParameters = function.parameterStructure.typeParameters == 0;
+    for (TypeVariableType typeVariable
+        in _elementMap.elementEnvironment.getFunctionTypeVariables(function)) {
       HInstruction param;
-      if (needsTypeArguments) {
-        param = addParameter(
-            typeVariableType.element, abstractValueDomain.nonNullType);
+      if (elideTypeParameters) {
+        // Add elided type parameters.
+        param = _computeTypeArgumentDefaultValue(function, typeVariable);
+      } else if (needsTypeArguments) {
+        param =
+            addParameter(typeVariable.element, abstractValueDomain.nonNullType);
       } else {
         // Unused, so bind to `dynamic`.
         param = graph.addConstantNull(closedWorld);
       }
-      Local local = localsHandler.getTypeVariableAsLocal(typeVariableType);
+      Local local = localsHandler.getTypeVariableAsLocal(typeVariable);
       localsHandler.directLocals[local] = param;
       functionTypeParameterLocals.add(local);
-    });
+    }
   }
 
   List<Local> functionTypeParameterLocals = <Local>[];
@@ -495,7 +506,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     if (_inliningStack.isEmpty) {
       openFunction(constructor,
-          functionNode: node.function, checks: TargetChecks.none);
+          functionNode: node.function,
+          parameterStructure: constructor.parameterStructure,
+          checks: TargetChecks.none);
     }
 
     // [constructorData.fieldValues] accumulates the field initializer values,
@@ -511,7 +524,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     InterfaceType thisType = _elementMap.elementEnvironment.getThisType(cls);
     List<FieldEntity> fields = <FieldEntity>[];
     _worldBuilder.forEachInstanceField(cls,
-        (ClassEntity enclosingClass, FieldEntity member) {
+        (ClassEntity enclosingClass, FieldEntity member, {bool isElided}) {
       HInstruction value = constructorData.fieldValues[member];
       if (value == null) {
         assert(
@@ -520,11 +533,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
                 reporter.hasReportedError,
             'No initializer value for field ${member}');
       } else {
-        fields.add(member);
-        DartType type = _elementMap.elementEnvironment.getFieldType(member);
-        type = localsHandler.substInContext(type);
-        constructorArguments.add(
-            typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(value, type));
+        if (!isElided) {
+          fields.add(member);
+          DartType type = _elementMap.elementEnvironment.getFieldType(member);
+          type = localsHandler.substInContext(type);
+          constructorArguments.add(
+              typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(value, type));
+        }
       }
     });
 
@@ -602,7 +617,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       inlinedFrom(
           inlinedConstructor, _sourceInformationBuilder.buildCall(body, body),
           () {
-        void handleParameter(ir.VariableDeclaration node) {
+        ConstructorBodyEntity constructorBody =
+            _elementMap.getConstructorBody(body);
+
+        void handleParameter(ir.VariableDeclaration node, {bool isElided}) {
+          if (isElided) return;
+
           Local parameter = localsMap.getLocalVariable(node);
           // If [parameter] is boxed, it will be a field in the box passed as
           // the last parameter. So no need to directly pass it.
@@ -612,21 +632,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
         }
 
         // Provide the parameters to the generative constructor body.
-        body.function.positionalParameters.forEach(handleParameter);
-        body.function.namedParameters.toList()
-          ..sort(namedOrdering)
-          ..forEach(handleParameter);
+        forEachOrderedParameter(_elementMap, constructorBody, handleParameter);
 
         // If there are locals that escape (i.e. mutated in closures), we pass the
         // box to the constructor.
         CapturedScope scopeData =
-            closureDataLookup.getCapturedScope(inlinedConstructor);
+            closureDataLookup.getCapturedScope(constructorBody);
         if (scopeData.requiresContextBox) {
           bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
         }
 
         // Pass type arguments.
-        ClassEntity inlinedConstructorClass = inlinedConstructor.enclosingClass;
+        ClassEntity inlinedConstructorClass = constructorBody.enclosingClass;
         if (closedWorld.rtiNeed
             .classNeedsTypeArguments(inlinedConstructorClass)) {
           InterfaceType thisType = _elementMap.elementEnvironment
@@ -639,8 +656,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
           }
         }
 
-        ConstructorBodyEntity constructorBody =
-            _elementMap.getConstructorBody(body);
         if (!isCustomElement && // TODO(13836): Fix inlining.
             _tryInlineMethod(constructorBody, null, null, bodyCallInputs, null,
                 node, sourceInformation)) {
@@ -717,7 +732,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// [clazz].
   void _collectFieldValues(ir.Class clazz, ConstructorData constructorData) {
     ClassEntity cls = _elementMap.getClass(clazz);
-    _worldBuilder.forEachDirectInstanceField(cls, (FieldEntity field) {
+    _worldBuilder.forEachDirectInstanceField(cls, (FieldEntity field,
+        {bool isElided}) {
       _ensureTypeVariablesForInitializers(
           constructorData, field.enclosingClass);
 
@@ -990,8 +1006,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   /// Builds generative constructor body.
   void buildConstructorBody(ir.Constructor constructor) {
-    openFunction(_elementMap.getConstructorBody(constructor),
-        functionNode: constructor.function, checks: TargetChecks.none);
+    FunctionEntity constructorBody =
+        _elementMap.getConstructorBody(constructor);
+    openFunction(constructorBody,
+        functionNode: constructor.function,
+        parameterStructure: constructorBody.parameterStructure,
+        checks: TargetChecks.none);
     constructor.function.body.accept(this);
     closeFunction();
   }
@@ -1009,7 +1029,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // checks.
     // TODO(sra): Instance methods can be generated with reduced checks if
     // called only from non-dynamic call-sites.
-    openFunction(function, functionNode: functionNode);
+    openFunction(function,
+        functionNode: functionNode,
+        parameterStructure: function.parameterStructure);
 
     // If [functionNode] is `operator==` we explicitly add a null check at the
     // beginning of the method. This is to avoid having call sites do the null
@@ -1066,7 +1088,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// per-invocation checks and the body, which is later transformed, contains
   /// the re-entrant 'state machine' code.
   void buildGenerator(FunctionEntity function, ir.FunctionNode functionNode) {
-    openFunction(function, functionNode: functionNode);
+    openFunction(function,
+        functionNode: functionNode,
+        parameterStructure: function.parameterStructure);
 
     // Prepare to tail-call the body.
 
@@ -1082,7 +1106,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       inputs.add(graph.explicitReceiverParameter);
     }
     for (Local local in parameters.keys) {
-      inputs.add(localsHandler.readLocal(local));
+      if (!elidedParameters.contains(local)) {
+        inputs.add(localsHandler.readLocal(local));
+      }
     }
     for (Local local in functionTypeParameterLocals) {
       inputs.add(localsHandler.readLocal(local));
@@ -1130,7 +1156,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void buildGeneratorBody(
       JGeneratorBody function, ir.FunctionNode functionNode) {
     FunctionEntity entry = function.function;
-    openFunction(entry, functionNode: functionNode, checks: TargetChecks.none);
+    openFunction(entry,
+        functionNode: functionNode,
+        parameterStructure: function.parameterStructure,
+        checks: TargetChecks.none);
     graph.needsAsyncRewrite = true;
     if (!function.elementType.containsFreeTypeVariables) {
       // We can generate the element type in place
@@ -1178,6 +1207,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         return;
       }
       HInstruction newParameter = localsHandler.directLocals[local];
+      assert(newParameter != null, "No initial instruction for ${local}.");
       DartType type = _getDartTypeIfValid(variable.type);
 
       if (targetChecks.checkAllParameters ||
@@ -1225,7 +1255,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // TODO(johnniwinther): Non-js-interop external functions should
     // throw a runtime error.
     assert(functionNode.body == null);
-    openFunction(function, functionNode: functionNode);
+    openFunction(function,
+        functionNode: functionNode,
+        parameterStructure: function.parameterStructure);
 
     if (closedWorld.nativeData.isNativeMember(targetElement)) {
       nativeEmitter.nativeMethods.add(targetElement);
@@ -1246,7 +1278,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
                 _sourceInformationBuilder.buildGet(functionNode)));
       }
 
-      for (ir.VariableDeclaration param in functionNode.positionalParameters) {
+      void handleParameter(ir.VariableDeclaration param) {
         templateArguments.add('#');
         Local local = localsMap.getLocalVariable(param);
         // Convert Dart function to JavaScript function.
@@ -1263,6 +1295,23 @@ class KernelSsaGraphBuilder extends ir.Visitor
           argument = pop();
         }
         inputs.add(argument);
+      }
+
+      for (int position = 0;
+          position < function.parameterStructure.positionalParameters;
+          position++) {
+        handleParameter(functionNode.positionalParameters[position]);
+      }
+      if (functionNode.namedParameters.isNotEmpty) {
+        List<ir.VariableDeclaration> namedParameters = functionNode
+            .namedParameters
+            // Filter elided parameters.
+            .where((p) =>
+                function.parameterStructure.namedParameters.contains(p.name))
+            .toList();
+        // Sort by file offset to visit parameters in declaration order.
+        namedParameters.sort(nativeOrdering);
+        namedParameters.forEach(handleParameter);
       }
 
       String arguments = templateArguments.join(',');
@@ -1307,38 +1356,57 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   void openFunction(MemberEntity member,
-      {ir.FunctionNode functionNode, TargetChecks checks}) {
+      {ir.FunctionNode functionNode,
+      ParameterStructure parameterStructure,
+      TargetChecks checks}) {
     // TODO(sra): Pass from all sites.
     checks ??= TargetChecks.dynamicChecks;
 
-    Map<Local, AbstractValue> parameterMap = <Local, AbstractValue>{};
+    Map<Local, AbstractValue> parameterMap = {};
+    List<ir.VariableDeclaration> elidedParameters = [];
+    Set<Local> elidedParameterSet = new Set();
     if (functionNode != null) {
-      void handleParameter(ir.VariableDeclaration node) {
+      assert(parameterStructure != null);
+
+      void handleParameter(ir.VariableDeclaration node,
+          {bool isOptional, bool isElided}) {
         Local local = localsMap.getLocalVariable(node);
+        if (isElided) {
+          elidedParameters.add(node);
+          elidedParameterSet.add(local);
+        }
         parameterMap[local] =
             _typeInferenceMap.getInferredTypeOfParameter(local);
       }
 
-      functionNode.positionalParameters.forEach(handleParameter);
-      functionNode.namedParameters.toList()
-        ..sort(namedOrdering)
-        ..forEach(handleParameter);
+      forEachOrderedParameterByFunctionNode(
+          functionNode, parameterStructure, handleParameter);
+
       _returnType = _elementMap.getDartType(functionNode.returnType);
     }
 
     HBasicBlock block = graph.addNewBlock();
+    // Create `graph.entry` as an initially empty block. `graph.entry` is
+    // treated specially (holding parameters, local variables and constants)
+    // but cannot receive constants before it has been closed. By closing it
+    // here, we can use constants in the code that sets up the function.
     open(graph.entry);
+    close(new HGoto(abstractValueDomain)).addSuccessor(block);
+    open(block);
 
     localsHandler.startFunction(
         targetElement,
         closureDataLookup.getScopeInfo(targetElement),
         closureDataLookup.getCapturedScope(targetElement),
         parameterMap,
+        elidedParameterSet,
         _sourceInformationBuilder.buildDeclaration(targetElement),
         isGenerativeConstructorBody: targetElement is ConstructorBodyEntity);
-    close(new HGoto(abstractValueDomain)).addSuccessor(block);
 
-    open(block);
+    for (ir.VariableDeclaration node in elidedParameters) {
+      Local local = localsMap.getLocalVariable(node);
+      localsHandler.updateLocal(local, _defaultValueForParameter(node));
+    }
 
     _addClassTypeVariablesIfNeeded(member);
     _addFunctionTypeVariablesIfNeeded(member);
@@ -1855,8 +1923,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _sourceInformationBuilder.buildLoop(node));
 
     void finalizerFunction() {
-      _pushDynamicInvocation(node, null, Selectors.cancel, [streamIterator],
-          const <DartType>[], _sourceInformationBuilder.buildGeneric(node));
+      _pushDynamicInvocation(
+          node,
+          null,
+          Selectors.cancel,
+          [streamIterator],
+          const <DartType>[],
+          _sourceInformationBuilder
+              // ignore:deprecated_member_use_from_same_package
+              .buildGeneric(node));
       add(new HAwait(pop(), abstractValueDomain.dynamicType));
     }
 
@@ -2965,11 +3040,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
           sourceInformation: _sourceInformationBuilder.buildSet(node));
       pop();
     } else {
-      add(new HStaticStore(
-          abstractValueDomain,
-          _elementMap.getMember(staticTarget),
-          typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
-              value, _getDartTypeIfValid(staticTarget.setterType))));
+      MemberEntity target = _elementMap.getMember(staticTarget);
+      if (!closedWorld.elidedFields.contains(target)) {
+        add(new HStaticStore(
+            abstractValueDomain,
+            target,
+            typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
+                value, _getDartTypeIfValid(staticTarget.setterType))));
+      }
     }
     stack.add(value);
   }
@@ -3190,12 +3268,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
         // Visit named arguments in parameter-position order, selecting provided
         // or default value.
-        // TODO(sra): Ensure the stored order is canonical so we don't have to
-        // sort. The old builder uses CallStructure.makeArgumentList which
-        // depends on the old element model.
-        var namedParameters = target.namedParameters.toList()
-          ..sort((ir.VariableDeclaration a, ir.VariableDeclaration b) =>
-              a.name.compareTo(b.name));
+        var namedParameters = target.namedParameters.toList();
+        namedParameters.sort(nativeOrdering);
         for (ir.VariableDeclaration parameter in namedParameters) {
           HInstruction value = namedValues[parameter.name];
           values.add(value);
@@ -3259,20 +3333,21 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// filling in the default argument value.
   List<HInstruction> _visitArgumentsForStaticTarget(
       ir.FunctionNode target,
+      ParameterStructure parameterStructure,
       ir.Arguments arguments,
       List<DartType> typeArguments,
       SourceInformation sourceInformation) {
     // Visit arguments in source order, then re-order and fill in defaults.
-    var values = _visitPositionalArguments(arguments);
+    List<HInstruction> values = _visitPositionalArguments(arguments);
 
-    while (values.length < target.positionalParameters.length) {
+    while (values.length < parameterStructure.positionalParameters) {
       ir.VariableDeclaration parameter =
           target.positionalParameters[values.length];
       values.add(_defaultValueForParameter(parameter));
     }
 
-    if (target.namedParameters.isNotEmpty) {
-      var namedValues = <String, HInstruction>{};
+    if (parameterStructure.namedParameters.isNotEmpty) {
+      Map<String, HInstruction> namedValues = {};
       for (ir.NamedExpression argument in arguments.named) {
         argument.value.accept(this);
         namedValues[argument.name] = pop();
@@ -3283,9 +3358,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // TODO(sra): Ensure the stored order is canonical so we don't have to
       // sort. The old builder uses CallStructure.makeArgumentList which depends
       // on the old element model.
-      var namedParameters = target.namedParameters.toList()
-        ..sort((ir.VariableDeclaration a, ir.VariableDeclaration b) =>
-            a.name.compareTo(b.name));
+      List<ir.VariableDeclaration> namedParameters = target.namedParameters
+          // Filter elided parameters.
+          .where((p) => parameterStructure.namedParameters.contains(p.name))
+          .toList()
+            ..sort(namedOrdering);
       for (ir.VariableDeclaration parameter in namedParameters) {
         HInstruction value = namedValues[parameter.name];
         if (value == null) {
@@ -3344,7 +3421,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
             .isJsInteropMember(function)
         ? _visitArgumentsForNativeStaticTarget(target.function, node.arguments)
         : _visitArgumentsForStaticTarget(
-            target.function, node.arguments, typeArguments, sourceInformation);
+            target.function,
+            function.parameterStructure,
+            node.arguments,
+            typeArguments,
+            sourceInformation);
 
     // Error in the arguments provided. Do not process further.
     if (arguments == null) {
@@ -4280,12 +4361,22 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Factory constructor that is syntactic sugar for creating a JavaScript
       // object literal.
       ConstructorEntity constructor = element;
-      ParameterStructure params = constructor.parameterStructure;
       int i = 0;
       int positions = 0;
       var filteredArguments = <HInstruction>[];
       var parameterNameMap = new Map<String, js.Expression>();
-      params.namedParameters.forEach((String parameterName) {
+
+      // Note: we don't use `constructor.parameterStructure` here because
+      // we don't elide parameters to js-interop external static targets
+      // (including factory constructors.)
+      // TODO(johnniwinther): can we elide those parameters? This should be
+      // consistent with what we do with instance methods.
+      ir.Procedure node = _elementMap.getMemberDefinition(constructor).node;
+      List<ir.VariableDeclaration> namedParameters =
+          node.function.namedParameters.toList();
+      namedParameters.sort(nativeOrdering);
+      for (ir.VariableDeclaration variable in namedParameters) {
+        String parameterName = variable.name;
         // TODO(jacobr): consider throwing if parameter names do not match
         // names of properties in the class.
         HInstruction argument = arguments[i];
@@ -4295,7 +4386,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           parameterNameMap[jsName] = new js.InterpolatedExpression(positions++);
         }
         i++;
-      });
+      }
       var codeTemplate =
           new js.Template(null, js.objectLiteral(parameterNameMap));
 
@@ -4378,7 +4469,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     List<HInstruction> capturedVariables = <HInstruction>[];
     _worldBuilder.forEachInstanceField(closureClassEntity,
-        (_, FieldEntity field) {
+        (_, FieldEntity field, {bool isElided}) {
+      if (isElided) return;
       capturedVariables
           .add(localsHandler.readLocal(closureInfo.getLocalForField(field)));
     });
@@ -4615,8 +4707,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     MemberDefinition targetDefinition = _elementMap.getMemberDefinition(member);
     ir.Procedure target = targetDefinition.node;
+    FunctionEntity function = member;
     List<HInstruction> arguments = _visitArgumentsForStaticTarget(
-        target.function, node.arguments, typeArguments, sourceInformation);
+        target.function,
+        function.parameterStructure,
+        node.arguments,
+        typeArguments,
+        sourceInformation);
     _buildInvokeSuper(
         _elementMap.getSelector(node),
         _elementMap.getClass(_containingClass(node)),
@@ -4679,7 +4776,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
     arguments.addAll(closedWorld.nativeData.isJsInteropMember(constructor)
         ? _visitArgumentsForNativeStaticTarget(target.function, node.arguments)
         : _visitArgumentsForStaticTarget(
-            target.function, node.arguments, typeArguments, sourceInformation));
+            target.function,
+            constructor.parameterStructure,
+            node.arguments,
+            typeArguments,
+            sourceInformation));
     if (commonElements.isSymbolConstructor(constructor)) {
       constructor = commonElements.symbolValidatedConstructor;
     }
@@ -5044,7 +5145,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     bool heuristicSayGoodToGo() {
-      // Don't inline recursively
+      // Don't inline recursively,
       if (_inliningStack.any((entry) => entry.function == function)) {
         return false;
       }
@@ -5290,22 +5391,26 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // Pass type variable bounds as type arguments.
         for (TypeVariableType typeVariable in _elementMap.elementEnvironment
             .getFunctionTypeVariables(function)) {
-          DartType bound = _elementMap.elementEnvironment
-              .getTypeVariableDefaultType(typeVariable.element);
-          if (bound.containsTypeVariables) {
-            // TODO(33422): Support type variables in default
-            // types. Temporarily using the "any" type (encoded as -2) to
-            // avoid failing on bounds checks.
-            compiledArguments[compiledArgumentIndex++] =
-                graph.addConstantInt(-2, closedWorld);
-          } else {
-            compiledArguments[compiledArgumentIndex++] =
-                typeBuilder.analyzeTypeArgument(bound, function);
-          }
+          compiledArguments[compiledArgumentIndex++] =
+              _computeTypeArgumentDefaultValue(function, typeVariable);
         }
       }
     }
     return compiledArguments;
+  }
+
+  HInstruction _computeTypeArgumentDefaultValue(
+      FunctionEntity function, TypeVariableType typeVariable) {
+    DartType bound = _elementMap.elementEnvironment
+        .getTypeVariableDefaultType(typeVariable.element);
+    if (bound.containsTypeVariables) {
+      // TODO(33422): Support type variables in default
+      // types. Temporarily using the "any" type (encoded as -2) to
+      // avoid failing on bounds checks.
+      return graph.addConstantInt(-2, closedWorld);
+    } else {
+      return typeBuilder.analyzeTypeArgument(bound, function);
+    }
   }
 
   /// This method is invoked before inlining the body of [function] into this
@@ -5362,17 +5467,23 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     bool hasBox = false;
-    forEachOrderedParameter(closedWorld.globalLocalsMap, _elementMap, function,
-        (Local parameter) {
-      if (forGenerativeConstructorBody &&
-          scopeData.isBoxedVariable(parameter)) {
+    KernelToLocalsMap localsMap =
+        closedWorld.globalLocalsMap.getLocalsMap(function);
+    forEachOrderedParameter(_elementMap, function,
+        (ir.VariableDeclaration variable, {bool isElided}) {
+      Local local = localsMap.getLocalVariable(variable);
+      if (isElided) {
+        localsHandler.updateLocal(local, _defaultValueForParameter(variable));
+        return;
+      }
+      if (forGenerativeConstructorBody && scopeData.isBoxedVariable(local)) {
         // The parameter will be a field in the box passed as the last
         // parameter. So no need to have it.
         hasBox = true;
         return;
       }
       HInstruction argument = compiledArguments[argumentIndex++];
-      localsHandler.updateLocal(parameter, argument);
+      localsHandler.updateLocal(local, argument);
     });
 
     if (hasBox) {
@@ -5398,9 +5509,17 @@ class KernelSsaGraphBuilder extends ir.Visitor
       });
     }
     if (rtiNeed.methodNeedsTypeArguments(function)) {
+      bool inlineTypeParameters =
+          function.parameterStructure.typeParameters == 0;
       for (TypeVariableType typeVariable in _elementMap.elementEnvironment
           .getFunctionTypeVariables(function)) {
-        HInstruction argument = compiledArguments[argumentIndex++];
+        HInstruction argument;
+        if (inlineTypeParameters) {
+          // Add inlined type parameters.
+          argument = _computeTypeArgumentDefaultValue(function, typeVariable);
+        } else {
+          argument = compiledArguments[argumentIndex++];
+        }
         localsHandler.updateLocal(
             localsHandler.getTypeVariableAsLocal(typeVariable), argument);
       }
@@ -5524,8 +5643,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     KernelToLocalsMap localsMap =
         closedWorld.globalLocalsMap.getLocalsMap(function);
-    forEachOrderedParameter(closedWorld.globalLocalsMap, _elementMap, function,
-        (Local parameter) {
+    forEachOrderedParameter(_elementMap, function,
+        (ir.VariableDeclaration variable, {bool isElided}) {
+      Local parameter = localsMap.getLocalVariable(variable);
       HInstruction argument = localsHandler.readLocal(parameter);
       DartType type = localsMap.getLocalType(_elementMap, parameter);
       HInstruction checkedOrTrusted;

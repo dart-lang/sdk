@@ -2,6 +2,8 @@ library test;
 import self as self;
 import "dart:core" as core;
 
+import "dart:async";
+
 class A extends core::Object {
   synthetic constructor •() → self::A
     ;

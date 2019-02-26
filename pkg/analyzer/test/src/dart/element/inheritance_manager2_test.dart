@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -43,9 +44,10 @@ class X extends B {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getInherited('X', 'foo'),
-      same(findElement.method('foo', of: 'B')),
+    _assertGetInherited(
+      className: 'X',
+      name: 'foo',
+      expected: 'B.foo: () → void',
     );
   }
 
@@ -65,9 +67,10 @@ class X implements I, J {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getInherited('X', 'foo'),
-      same(findElement.method('foo', of: 'J')),
+    _assertGetInherited(
+      className: 'X',
+      name: 'foo',
+      expected: 'J.foo: () → void',
     );
   }
 
@@ -87,9 +90,10 @@ class X extends A with M {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getInherited('X', 'foo'),
-      same(findElement.method('foo', of: 'M')),
+    _assertGetInherited(
+      className: 'X',
+      name: 'foo',
+      expected: 'M.foo: () → void',
     );
   }
 
@@ -109,10 +113,591 @@ class X extends A implements I {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getInherited('X', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetInherited(
+      className: 'X',
+      name: 'foo',
+      expected: 'A.foo: () → void',
     );
+  }
+
+  test_getInheritedConcreteMap_accessor_extends() async {
+    addTestFile('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('B', r'''
+A.foo: () → int
+''');
+  }
+
+  test_getInheritedConcreteMap_accessor_implements() async {
+    addTestFile('''
+class A {
+  int get foo => 0;
+}
+
+abstract class B implements A {}
+''');
+    await resolveTestFile();
+    _assertInheritedConcreteMap('B', '');
+  }
+
+  test_getInheritedConcreteMap_accessor_with() async {
+    addTestFile('''
+mixin A {
+  int get foo => 0;
+}
+
+class B extends Object with A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('B', r'''
+A.foo: () → int
+''');
+  }
+
+  test_getInheritedConcreteMap_implicitExtends() async {
+    addTestFile('''
+class A {}
+''');
+    await resolveTestFile();
+    _assertInheritedConcreteMap('A', '');
+  }
+
+  test_getInheritedConcreteMap_method_extends() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class B extends A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('B', r'''
+A.foo: () → void
+''');
+  }
+
+  test_getInheritedConcreteMap_method_extends_abstract() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+
+class B extends A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('B', '');
+  }
+
+  test_getInheritedConcreteMap_method_extends_invalidForImplements() async {
+    addTestFile('''
+abstract class I {
+  void foo(int x, {int y});
+  void bar(String s);
+}
+
+class A {
+  void foo(int x) {}
+}
+
+class C extends A implements I {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('C', r'''
+A.foo: (int) → void
+''');
+  }
+
+  test_getInheritedConcreteMap_method_implements() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+abstract class B implements A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('B', '');
+  }
+
+  test_getInheritedConcreteMap_method_with() async {
+    addTestFile('''
+mixin A {
+  void foo() {}
+}
+
+class B extends Object with A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('B', r'''
+A.foo: () → void
+''');
+  }
+
+  test_getInheritedConcreteMap_method_with2() async {
+    addTestFile('''
+mixin A {
+  void foo() {}
+}
+
+mixin B {
+  void bar() {}
+}
+
+class C extends Object with A, B {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedConcreteMap('C', r'''
+A.foo: () → void
+B.bar: () → void
+''');
+  }
+
+  test_getInheritedMap_accessor_extends() async {
+    addTestFile('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → int
+''');
+  }
+
+  test_getInheritedMap_accessor_implements() async {
+    addTestFile('''
+class A {
+  int get foo => 0;
+}
+
+abstract class B implements A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → int
+''');
+  }
+
+  test_getInheritedMap_accessor_with() async {
+    addTestFile('''
+mixin A {
+  int get foo => 0;
+}
+
+class B extends Object with A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → int
+''');
+  }
+
+  test_getInheritedMap_closestSuper() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void foo() {}
+}
+
+class X extends B {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('X', r'''
+B.foo: () → void
+''');
+  }
+
+  test_getInheritedMap_field_extends() async {
+    addTestFile('''
+class A {
+  int foo;
+}
+
+class B extends A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → int
+A.foo=: (int) → void
+''');
+  }
+
+  test_getInheritedMap_field_implements() async {
+    addTestFile('''
+class A {
+  int foo;
+}
+
+abstract class B implements A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → int
+A.foo=: (int) → void
+''');
+  }
+
+  test_getInheritedMap_field_with() async {
+    addTestFile('''
+mixin A {
+  int foo;
+}
+
+class B extends Object with A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → int
+A.foo=: (int) → void
+''');
+  }
+
+  test_getInheritedMap_implicitExtendsObject() async {
+    addTestFile('''
+class A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', '');
+  }
+
+  test_getInheritedMap_method_extends() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class B extends A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → void
+''');
+  }
+
+  test_getInheritedMap_method_implements() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+abstract class B implements A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → void
+''');
+  }
+
+  test_getInheritedMap_method_with() async {
+    addTestFile('''
+mixin A {
+  void foo() {}
+}
+
+class B extends Object with A {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('B', r'''
+A.foo: () → void
+''');
+  }
+
+  test_getInheritedMap_preferImplemented() async {
+    addTestFile('''
+class A {
+  void foo() {}
+}
+
+class I {
+  void foo() {}
+}
+
+class X extends A implements I {
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('X', r'''
+A.foo: () → void
+''');
+  }
+
+  test_getInheritedMap_union_conflict() async {
+    addTestFile('''
+abstract class I {
+  int foo();
+  void bar();
+}
+
+abstract class J {
+  double foo();
+  void bar();
+}
+
+abstract class A implements I, J {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+J.bar: () → void
+''');
+  }
+
+  test_getInheritedMap_union_differentNames() async {
+    addTestFile('''
+abstract class I {
+  int foo();
+}
+
+abstract class J {
+  double bar();
+}
+
+abstract class A implements I, J {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+I.foo: () → int
+J.bar: () → double
+''');
+  }
+
+  test_getInheritedMap_union_multipleSubtypes_2_getters() async {
+    addTestFile('''
+abstract class I {
+  int get foo;
+}
+
+abstract class J {
+  int get foo;
+}
+
+abstract class A implements I, J {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+J.foo: () → int
+''');
+  }
+
+  test_getInheritedMap_union_multipleSubtypes_2_methods() async {
+    addTestFile('''
+abstract class I {
+  void foo();
+}
+
+abstract class J {
+  void foo();
+}
+
+abstract class A implements I, J {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+J.foo: () → void
+''');
+  }
+
+  test_getInheritedMap_union_multipleSubtypes_2_setters() async {
+    addTestFile('''
+abstract class I {
+  void set foo(num _);
+}
+
+abstract class J {
+  void set foo(int _);
+}
+
+abstract class A implements I, J {}
+abstract class B implements J, I {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+I.foo=: (num) → void
+''');
+
+    _assertInheritedMap('B', r'''
+I.foo=: (num) → void
+''');
+  }
+
+  test_getInheritedMap_union_multipleSubtypes_3_getters() async {
+    addTestFile('''
+class A {}
+class B extends A {}
+class C extends B {}
+
+abstract class I1 {
+  A get foo;
+}
+
+abstract class I2 {
+  B get foo;
+}
+
+abstract class I3 {
+  C get foo;
+}
+
+abstract class D implements I1, I2, I3 {}
+abstract class E implements I3, I2, I1 {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('D', r'''
+I3.foo: () → C
+''');
+
+    _assertInheritedMap('E', r'''
+I3.foo: () → C
+''');
+  }
+
+  test_getInheritedMap_union_multipleSubtypes_3_methods() async {
+    addTestFile('''
+class A {}
+class B extends A {}
+class C extends B {}
+
+abstract class I1 {
+  void foo(A _);
+}
+
+abstract class I2 {
+  void foo(B _);
+}
+
+abstract class I3 {
+  void foo(C _);
+}
+
+abstract class D implements I1, I2, I3 {}
+abstract class E implements I3, I2, I1 {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('D', r'''
+I1.foo: (A) → void
+''');
+  }
+
+  test_getInheritedMap_union_multipleSubtypes_3_setters() async {
+    addTestFile('''
+class A {}
+class B extends A {}
+class C extends B {}
+
+abstract class I1 {
+  set foo(A _);
+}
+
+abstract class I2 {
+  set foo(B _);
+}
+
+abstract class I3 {
+  set foo(C _);
+}
+
+abstract class D implements I1, I2, I3 {}
+abstract class E implements I3, I2, I1 {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('D', r'''
+I1.foo=: (A) → void
+''');
+
+    _assertInheritedMap('E', r'''
+I1.foo=: (A) → void
+''');
+  }
+
+  test_getInheritedMap_union_oneSubtype_2_methods() async {
+    addTestFile('''
+abstract class I1 {
+  int foo();
+}
+
+abstract class I2 {
+  int foo([int _]);
+}
+
+abstract class A implements I1, I2 {}
+abstract class B implements I2, I1 {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+I2.foo: ([int]) → int
+''');
+
+    _assertInheritedMap('B', r'''
+I2.foo: ([int]) → int
+''');
+  }
+
+  test_getInheritedMap_union_oneSubtype_3_methods() async {
+    addTestFile('''
+abstract class I1 {
+  int foo();
+}
+
+abstract class I2 {
+  int foo([int _]);
+}
+
+abstract class I3 {
+  int foo([int _, int __]);
+}
+
+abstract class A implements I1, I2, I3 {}
+abstract class B implements I3, I2, I1 {}
+''');
+    await resolveTestFile();
+
+    _assertInheritedMap('A', r'''
+I3.foo: ([int, int]) → int
+''');
+
+    _assertInheritedMap('B', r'''
+I3.foo: ([int, int]) → int
+''');
   }
 
   test_getMember() async {
@@ -129,11 +714,11 @@ abstract class C implements I1, I2 {}
 ''');
     await resolveTestFile();
 
-    var memberType = manager.getMember(
-      findElement.class_('C').type,
-      new Name(null, 'f'),
+    _assertGetMember(
+      className: 'C',
+      name: 'f',
+      expected: 'I2.f: (Object) → void',
     );
-    assertElementTypeString(memberType, '(Object) → void');
   }
 
   test_getMember_concrete() async {
@@ -144,9 +729,11 @@ class A {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('A', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'A',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -158,7 +745,11 @@ abstract class A {
 ''');
     await resolveTestFile();
 
-    expect(_getConcrete('A', 'foo'), isNull);
+    _assertGetMember(
+      className: 'A',
+      name: 'foo',
+      concrete: true,
+    );
   }
 
   test_getMember_concrete_fromMixedClass() async {
@@ -171,9 +762,11 @@ class X with A {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('X', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -189,9 +782,11 @@ class X with B {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('X', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -207,9 +802,11 @@ class X extends A with B {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('X', 'toString'),
-      same(findElement.method('toString', of: 'A')),
+    _assertGetMember(
+      className: 'X',
+      name: 'toString',
+      concrete: true,
+      expected: 'A.toString: () → String',
     );
   }
 
@@ -223,9 +820,11 @@ class X with M {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('X', 'foo'),
-      same(findElement.method('foo', of: 'M')),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      concrete: true,
+      expected: 'M.foo: () → void',
     );
   }
 
@@ -241,14 +840,18 @@ abstract class C extends B {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('B', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
 
-    expect(
-      _getConcrete('C', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'C',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -258,7 +861,11 @@ abstract class A {}
 ''');
     await resolveTestFile();
 
-    expect(_getConcrete('A', 'foo'), isNull);
+    _assertGetMember(
+      className: 'A',
+      name: 'foo',
+      concrete: true,
+    );
   }
 
   test_getMember_concrete_noSuchMethod() async {
@@ -275,14 +882,18 @@ abstract class C extends B {}
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('B', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
 
-    expect(
-      _getConcrete('C', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'C',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -300,7 +911,11 @@ abstract class B extends Object with A {}
 
     // noSuchMethod forwarders are not mixed-in.
     // https://github.com/dart-lang/sdk/issues/33553#issuecomment-424638320
-    expect(_getConcrete('B', 'foo'), isNull);
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      concrete: true,
+    );
   }
 
   test_getMember_concrete_noSuchMethod_moreSpecificSignature() async {
@@ -314,14 +929,16 @@ class B implements A {
 }
 
 class C extends B {
-  void foo([a]);
+  void foo([int a]);
 }
 ''');
     await resolveTestFile();
 
-    expect(
-      _getConcrete('C', 'foo'),
-      same(findElement.method('foo', of: 'C')),
+    _assertGetMember(
+      className: 'C',
+      name: 'foo',
+      concrete: true,
+      expected: 'C.foo: ([int]) → void',
     );
   }
 
@@ -347,11 +964,11 @@ class X extends A with M1, M2 implements I {}
 ''');
     await resolveTestFile();
 
-    var member = manager.getMember(
-      findElement.class_('X').type,
-      new Name(null, 'foo'),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'M2.foo: () → void',
     );
-    expect(member.element, findElement.method('foo', of: 'M2'));
   }
 
   test_getMember_preferLatest_superclass() async {
@@ -372,11 +989,11 @@ class X extends B implements I {}
 ''');
     await resolveTestFile();
 
-    var member = manager.getMember(
-      findElement.class_('X').type,
-      new Name(null, 'foo'),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'B.foo: () → void',
     );
-    expect(member.element, findElement.method('foo', of: 'B'));
   }
 
   test_getMember_preferLatest_this() async {
@@ -395,11 +1012,11 @@ class X extends A implements I {
 ''');
     await resolveTestFile();
 
-    var member = manager.getMember(
-      findElement.class_('X').type,
-      new Name(null, 'foo'),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'X.foo: () → void',
     );
-    expect(member.element, findElement.method('foo', of: 'X'));
   }
 
   test_getMember_super_abstract() async {
@@ -414,7 +1031,46 @@ class B extends A {
 ''');
     await resolveTestFile();
 
-    expect(_getSuper('B', 'foo'), isNull);
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      forSuper: true,
+    );
+  }
+
+  test_getMember_super_forMixin_interface() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+
+mixin M implements A {}
+''');
+    await resolveTestFile();
+
+    _assertGetMember(
+      className: 'M',
+      name: 'foo',
+      forSuper: true,
+    );
+  }
+
+  test_getMember_super_forMixin_superclassConstraint() async {
+    addTestFile('''
+abstract class A {
+  void foo();
+}
+
+mixin M on A {}
+''');
+    await resolveTestFile();
+
+    _assertGetMember(
+      className: 'M',
+      name: 'foo',
+      forSuper: true,
+      expected: 'A.foo: () → void',
+    );
   }
 
   test_getMember_super_fromMixin() async {
@@ -429,9 +1085,11 @@ class X extends Object with M {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getSuper('X', 'foo'),
-      same(findElement.method('foo', of: 'M')),
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      forSuper: true,
+      expected: 'M.foo: () → void',
     );
   }
 
@@ -447,9 +1105,11 @@ class B extends A {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getSuper('B', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      forSuper: true,
+      expected: 'A.foo: () → void',
     );
   }
 
@@ -461,7 +1121,11 @@ class B extends A {}
 ''');
     await resolveTestFile();
 
-    expect(_getSuper('B', 'foo'), isNull);
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      forSuper: true,
+    );
   }
 
   test_getMember_super_noSuchMember() async {
@@ -477,28 +1141,90 @@ class B extends A {
 ''');
     await resolveTestFile();
 
-    expect(
-      _getSuper('B', 'foo'),
-      same(findElement.method('foo', of: 'A')),
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      forSuper: true,
+      expected: 'A.foo: () → void',
     );
   }
 
-  ExecutableElement _getConcrete(String className, String name) {
-    var type = findElement.class_(className).type;
-    return manager
-        .getMember(type, new Name(null, name), concrete: true)
-        ?.element;
+  void _assertGetInherited({
+    @required String className,
+    @required String name,
+    String expected,
+  }) {
+    var interfaceType = findElement.classOrMixin(className).type;
+
+    var memberType = manager.getInherited(
+      interfaceType,
+      new Name(null, name),
+    );
+
+    _assertMemberType(memberType, expected);
   }
 
-  ExecutableElement _getInherited(String className, String name) {
-    var type = findElement.class_(className).type;
-    return manager.getInherited(type, new Name(null, name)).element;
+  void _assertGetMember({
+    @required String className,
+    @required String name,
+    String expected,
+    bool concrete = false,
+    bool forSuper = false,
+  }) {
+    var interfaceType = findElement.classOrMixin(className).type;
+
+    var memberType = manager.getMember(
+      interfaceType,
+      new Name(null, name),
+      concrete: concrete,
+      forSuper: forSuper,
+    );
+
+    _assertMemberType(memberType, expected);
   }
 
-  ExecutableElement _getSuper(String className, String name) {
+  void _assertInheritedConcreteMap(String className, String expected) {
     var type = findElement.class_(className).type;
-    return manager
-        .getMember(type, new Name(null, name), forSuper: true)
-        ?.element;
+    var map = manager.getInheritedConcreteMap(type);
+    _assertNameToFunctionTypeMap(map, expected);
+  }
+
+  void _assertInheritedMap(String className, String expected) {
+    var type = findElement.class_(className).type;
+    var map = manager.getInheritedMap(type);
+    _assertNameToFunctionTypeMap(map, expected);
+  }
+
+  void _assertMemberType(FunctionType type, String expected) {
+    if (expected != null) {
+      var element = type.element;
+      var enclosingElement = element.enclosingElement;
+      var actual = '${enclosingElement.name}.${element.name}: $type';
+      expect(actual, expected);
+    } else {
+      expect(type, isNull);
+    }
+  }
+
+  void _assertNameToFunctionTypeMap(
+      Map<Name, FunctionType> map, String expected) {
+    var lines = <String>[];
+    for (var name in map.keys) {
+      var type = map[name];
+      var element = type.element;
+
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement.name == 'Object') continue;
+
+      lines.add('${enclosingElement.name}.${element.name}: $type');
+    }
+
+    lines.sort();
+    var actual = lines.isNotEmpty ? lines.join('\n') + '\n' : '';
+
+    if (actual != expected) {
+      print(actual);
+    }
+    expect(actual, expected);
   }
 }

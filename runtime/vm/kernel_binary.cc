@@ -38,10 +38,11 @@ const char* kKernelInvalidSizeIndicated =
     "Invalid kernel binary: Indicated size is invalid";
 
 Program* Program::ReadFrom(Reader* reader, const char** error) {
-  if (reader->size() < 59) {
+  if (reader->size() < 60) {
     // A kernel file currently contains at least the following:
     //   * Magic number (32)
     //   * Kernel version (32)
+    //   * List of problems (8)
     //   * Length of source map (32)
     //   * Length of canonical name table (8)
     //   * Metadata length (32)
@@ -49,7 +50,7 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
     //   * Length of constant table (8)
     //   * Component index (10 * 32)
     //
-    // so is at least 59 bytes.
+    // so is at least 60 bytes.
     // (Technically it will also contain an empty entry in both source map and
     // string table, taking up another 8 bytes.)
     if (error != nullptr) {

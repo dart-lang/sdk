@@ -91,6 +91,11 @@ config("compiler") {
       ldflags += [ "-Wl,--fatal-warnings" ]
     }
 
+    # Enable mitigations for Cortex-A53 Erratum #843419 bug.
+    if (current_cpu == "arm64" && is_clang) {
+      ldflags += [ "-Wl,--fix-cortex-a53-843419" ]
+    }
+
     # Common options for AddressSanitizer, LeakSanitizer, ThreadSanitizer and
     # MemorySanitizer
     if (using_sanitizer) {

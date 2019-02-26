@@ -24,14 +24,14 @@ class FlutterRemoveWidgetTest extends AssistProcessorTest {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: <Widget>[
-      new Center(
-        child: new /*caret*/Padding(
+      Center(
+        child: /*caret*/Padding(
           padding: const EdgeInsets.all(8.0),
-          child: new Center(
+          child: Center(
             heightFactor: 0.5,
-            child: new Text('foo'),
+            child: Text('foo'),
           ),
         ),
       ),
@@ -42,12 +42,12 @@ main() {
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: <Widget>[
-      new Center(
-        child: new Center(
+      Center(
+        child: Center(
           heightFactor: 0.5,
-          child: new Text('foo'),
+          child: Text('foo'),
         ),
       ),
     ],
@@ -61,11 +61,11 @@ main() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  new Padding(
+  Padding(
     padding: const EdgeInsets.all(8.0),
-    child: new /*caret*/Center(
+    child: /*caret*/Center(
       heightFactor: 0.5,
-      child: new Text('foo'),
+      child: Text('foo'),
     ),
   );
 }
@@ -73,9 +73,9 @@ main() {
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 main() {
-  new Padding(
+  Padding(
     padding: const EdgeInsets.all(8.0),
-    child: new Text('foo'),
+    child: Text('foo'),
   );
 }
 ''');
@@ -86,17 +86,17 @@ main() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: <Widget>[
-      new Text('foo'),
-      new /*caret*/Center(
+      Text('foo'),
+      /*caret*/Center(
         heightFactor: 0.5,
-        child: new Padding(
+        child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: new Text('bar'),
+          child: Text('bar'),
         ),
       ),
-      new Text('baz'),
+      Text('baz'),
     ],
   );
 }
@@ -104,14 +104,14 @@ main() {
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: <Widget>[
-      new Text('foo'),
-      new Padding(
+      Text('foo'),
+      Padding(
         padding: const EdgeInsets.all(8.0),
-        child: new Text('bar'),
+        child: Text('bar'),
       ),
-      new Text('baz'),
+      Text('baz'),
     ],
   );
 }
@@ -123,11 +123,11 @@ main() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  new Center(
-    child: new /*caret*/Row(
+  Center(
+    child: /*caret*/Row(
       children: [
-        new Text('aaa'),
-        new Text('bbb'),
+        Text('aaa'),
+        Text('bbb'),
       ],
     ),
   );
@@ -141,10 +141,10 @@ main() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  new Center(
-    child: /*caret*/new Column(
+  Center(
+    child: /*caret*/Column(
       children: [
-        new Text('foo'),
+        Text('foo'),
       ],
     ),
   );
@@ -153,8 +153,8 @@ main() {
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 main() {
-  new Center(
-    child: /*caret*/new Text('foo'),
+  Center(
+    child: Text('foo'),
   );
 }
 ''');
@@ -165,9 +165,9 @@ main() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  return /*caret*/new Column(
+  return /*caret*/Column(
     children: [
-      new Text('foo'),
+      Text('foo'),
     ],
   );
 }
@@ -175,7 +175,7 @@ main() {
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 main() {
-  return /*caret*/new Text('foo');
+  return Text('foo');
 }
 ''');
   }
@@ -185,26 +185,26 @@ main() {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: <Widget>[
-      new Text('aaa'),
-      new /*caret*/Column(
+      Text('aaa'),
+      /*caret*/Column(
         children: [
-          new Row(
+          Row(
             children: [
-              new Text('bbb'),
-              new Text('ccc'),
+              Text('bbb'),
+              Text('ccc'),
             ],
           ),
-          new Row(
+          Row(
             children: [
-              new Text('ddd'),
-              new Text('eee'),
+              Text('ddd'),
+              Text('eee'),
             ],
           ),
         ],
       ),
-      new Text('fff'),
+      Text('fff'),
     ],
   );
 }
@@ -212,22 +212,22 @@ main() {
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 main() {
-  new Column(
+  Column(
     children: <Widget>[
-      new Text('aaa'),
-      new Row(
+      Text('aaa'),
+      Row(
         children: [
-          new Text('bbb'),
-          new Text('ccc'),
+          Text('bbb'),
+          Text('ccc'),
         ],
       ),
-      new Row(
+      Row(
         children: [
-          new Text('ddd'),
-          new Text('eee'),
+          Text('ddd'),
+          Text('eee'),
         ],
       ),
-      new Text('fff'),
+      Text('fff'),
     ],
   );
 }

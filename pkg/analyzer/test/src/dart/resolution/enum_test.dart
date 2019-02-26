@@ -8,12 +8,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
 import 'resolution.dart';
-import 'task_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EnumDriverResolutionTest);
-    defineReflectiveTests(EnumTaskResolutionTest);
   });
 }
 
@@ -60,7 +58,3 @@ enum E {
     expect(findElement.field('values').isConstantEvaluated, isTrue);
   }
 }
-
-@reflectiveTest
-class EnumTaskResolutionTest extends TaskResolutionTest
-    with EnumResolutionMixin {}

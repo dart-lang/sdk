@@ -247,9 +247,9 @@ class Precompiler : public ValueObject {
     return get_runtime_type_is_unique_;
   }
 
-  ObjectPoolWrapper* global_object_pool_wrapper() {
+  compiler::ObjectPoolBuilder* global_object_pool_builder() {
     ASSERT(FLAG_use_bare_instructions);
-    return &global_object_pool_wrapper_;
+    return &global_object_pool_builder_;
   }
 
   static Precompiler* Instance() { return singleton_; }
@@ -293,7 +293,6 @@ class Precompiler : public ValueObject {
   void TraceTypesFromRetainedClasses();
   void DropTypes();
   void DropTypeArguments();
-  void DropScriptData();
   void DropMetadata();
   void DropLibraryEntries();
   void DropClasses();
@@ -331,7 +330,7 @@ class Precompiler : public ValueObject {
   intptr_t dropped_type_count_;
   intptr_t dropped_library_count_;
 
-  ObjectPoolWrapper global_object_pool_wrapper_;
+  compiler::ObjectPoolBuilder global_object_pool_builder_;
   GrowableObjectArray& libraries_;
   const GrowableObjectArray& pending_functions_;
   SymbolSet sent_selectors_;

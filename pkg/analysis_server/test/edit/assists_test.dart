@@ -16,6 +16,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -66,6 +67,26 @@ class AssistsTest extends AbstractAnalysisTest {
     await waitForTasksFinished();
     await prepareAssists('in(');
     _assertHasChange(message, 'xmain() {}');
+  }
+
+  test_invalidFilePathFormat_notAbsolute() async {
+    var request = new EditGetAssistsParams('test.dart', 0, 0).toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
+  }
+
+  test_invalidFilePathFormat_notNormalized() async {
+    var request =
+        new EditGetAssistsParams(convertPath('/foo/../bar/test.dart'), 0, 0)
+            .toRequest('0');
+    var response = await waitResponse(request);
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+    );
   }
 
   test_removeTypeAnnotation() async {

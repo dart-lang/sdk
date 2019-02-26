@@ -24,11 +24,11 @@ class FlutterSwapWithChildTest extends AssistProcessorTest {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 build() {
-  return new Scaffold(
-    body: new /*caret*/GestureDetector(
+  return Scaffold(
+    body: /*caret*/GestureDetector(
       onTap: () => startResize(),
-      child: new Center(
-        child: new Container(
+      child: Center(
+        child: Container(
           width: 200.0,
           height: 300.0,
         ),
@@ -42,12 +42,12 @@ startResize() {}
     await assertHasAssist('''
 import 'package:flutter/material.dart';
 build() {
-  return new Scaffold(
-    body: new Center(
+  return Scaffold(
+    body: Center(
       key: null,
-      child: new /*caret*/GestureDetector(
+      child: GestureDetector(
         onTap: () => startResize(),
-        child: new Container(
+        child: Container(
           width: 200.0,
           height: 300.0,
         ),
@@ -66,16 +66,16 @@ import 'package:flutter/material.dart';
 
 class Foo extends StatefulWidget {
   @override
-  _State createState() => new _State();
+  _State createState() => _State();
 }
 
 class _State extends State<Foo> {
   @override
   Widget build(BuildContext context) {
-    return new /*caret*/Expanded(
+    return /*caret*/Expanded(
       flex: 2,
-      child: new GestureDetector(
-        child: new Text(
+      child: GestureDetector(
+        child: Text(
           'foo',
         ), onTap: () {
           print(42);
@@ -89,19 +89,19 @@ import 'package:flutter/material.dart';
 
 class Foo extends StatefulWidget {
   @override
-  _State createState() => new _State();
+  _State createState() => _State();
 }
 
 class _State extends State<Foo> {
   @override
   Widget build(BuildContext context) {
-    return new GestureDetector(
+    return GestureDetector(
       onTap: () {
         print(42);
     },
-      child: new /*caret*/Expanded(
+      child: Expanded(
         flex: 2,
-        child: new Text(
+        child: Text(
           'foo',
         ),
       ),

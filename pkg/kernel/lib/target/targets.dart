@@ -6,6 +6,7 @@ library kernel.target.targets;
 import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
+import '../transformations/constants.dart' show ConstantsBackend;
 import '../transformations/treeshaker.dart' show ProgramRoot;
 
 final List<String> targetNames = targets.keys.toList();
@@ -34,6 +35,11 @@ Target getTarget(String name, TargetFlags flags) {
   var builder = targets[name];
   if (builder == null) return null;
   return builder(flags);
+}
+
+abstract class DiagnosticReporter<M, C> {
+  void report(M message, int charOffset, int length, Uri fileUri,
+      {List<C> context});
 }
 
 /// A target provides backend-specific options for generating kernel IR.
@@ -94,8 +100,12 @@ abstract class Target {
   void performOutlineTransformations(Component component) {}
 
   /// Perform target-specific modular transformations on the given libraries.
-  void performModularTransformationsOnLibraries(Component component,
-      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+  void performModularTransformationsOnLibraries(
+      Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
       {void logger(String msg)});
 
   /// Perform target-specific modular transformations on the given program.
@@ -186,6 +196,8 @@ abstract class Target {
 
   Class concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
   Class concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
+
+  ConstantsBackend constantsBackend(CoreTypes coreTypes);
 }
 
 class NoneTarget extends Target {
@@ -196,8 +208,12 @@ class NoneTarget extends Target {
   bool get legacyMode => flags.legacyMode;
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
-  void performModularTransformationsOnLibraries(Component component,
-      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+  void performModularTransformationsOnLibraries(
+      Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {}
 
   @override
@@ -221,4 +237,8 @@ class NoneTarget extends Target {
       bool isTopLevel: false}) {
     return new InvalidExpression(null);
   }
+
+  @override
+  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
+      new ConstantsBackend();
 }
