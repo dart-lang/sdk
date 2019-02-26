@@ -4745,7 +4745,7 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
  *        'await'? 'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
  *      | 'await'? 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
  */
-class ForEachStatementImpl extends ForStatementBase
+class ForEachStatementImpl extends ForStatement2Impl
     implements ForEachStatement {
   /**
    * Initialize a newly created for-each statement whose loop control variable
@@ -5255,20 +5255,9 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 }
 
-class ForStatement2Impl extends ForStatementBase implements ForStatement2 {
-  /**
-   * Initialize a newly created for statement.
-   */
-  ForStatement2Impl(Token awaitKeyword, Token forKeyword, Token leftParenthesis,
-      ForLoopPartsImpl forLoopParts, Token rightParenthesis, StatementImpl body)
-      : super(awaitKeyword, forKeyword, leftParenthesis, forLoopParts,
-            rightParenthesis, body);
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement2(this);
-}
-
-abstract class ForStatementBase extends StatementImpl with ForMixin {
+class ForStatement2Impl extends StatementImpl
+    with ForMixin
+    implements ForStatement2 {
   /**
    * The body of the loop.
    */
@@ -5277,7 +5266,7 @@ abstract class ForStatementBase extends StatementImpl with ForMixin {
   /**
    * Initialize a newly created for statement.
    */
-  ForStatementBase(
+  ForStatement2Impl(
       Token awaitKeyword,
       Token forKeyword,
       Token leftParenthesis,
@@ -5307,6 +5296,9 @@ abstract class ForStatementBase extends StatementImpl with ForMixin {
   Token get endToken => _body.endToken;
 
   @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement2(this);
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _forLoopParts?.accept(visitor);
     _body?.accept(visitor);
@@ -5326,7 +5318,7 @@ abstract class ForStatementBase extends StatementImpl with ForMixin {
  *        [DefaultFormalParameter]
  *      | [Expression]?
  */
-class ForStatementImpl extends ForStatementBase implements ForStatement {
+class ForStatementImpl extends ForStatement2Impl implements ForStatement {
   /**
    * Initialize a newly created for statement. Either the [variableList] or the
    * [initialization] must be `null`. Either the [condition] and the list of

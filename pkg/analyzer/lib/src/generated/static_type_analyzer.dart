@@ -1763,7 +1763,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         iterable = parent.iterable;
       } else if (parent is ForEachPartsWithDeclaration) {
         AstNode parentParent = parent.parent;
-        if (parentParent is ForStatementBase) {
+        if (parentParent is ForStatement2Impl) {
           awaitKeyword = parentParent.awaitKeyword;
         } else if (parentParent is ForElement) {
           awaitKeyword = parentParent.awaitKeyword;
