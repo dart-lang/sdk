@@ -410,7 +410,7 @@ class CodeActionKind {
   final String _value;
 
   static bool canParse(Object obj) {
-    return obj is String;
+    return CodeActionKind.canParse(obj);
   }
 
   /// Base kind for quickfix actions: 'quickfix'
@@ -1314,7 +1314,7 @@ class CompletionContext implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('triggerKind') &&
-        obj['triggerKind'] is num;
+        CompletionTriggerKind.canParse(obj['triggerKind']);
   }
 
   @override
@@ -5105,7 +5105,7 @@ class MarkupContent implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('kind') &&
-        obj['kind'] is String &&
+        MarkupKind.canParse(obj['kind']) &&
         obj.containsKey('value') &&
         obj['value'] is String;
   }
@@ -8310,7 +8310,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('valueSet') &&
         (obj['valueSet'] is List &&
-            (obj['valueSet'].every((item) => item is String)));
+            (obj['valueSet'].every((item) => CodeActionKind.canParse(item))));
   }
 
   @override

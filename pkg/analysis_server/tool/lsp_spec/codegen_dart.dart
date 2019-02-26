@@ -603,7 +603,7 @@ void _writeType(IndentableStringBuffer buffer, AstNode type) {
 
 void _writeTypeCheckCondition(
     IndentableStringBuffer buffer, String valueCode, TypeBase type) {
-  type = resolveTypeAlias(type, resolveEnumClasses: true);
+  type = resolveTypeAlias(type);
 
   final resolvedDartType = type.dartTypeWithTypeArgs;
   if (resolvedDartType == 'dynamic') {

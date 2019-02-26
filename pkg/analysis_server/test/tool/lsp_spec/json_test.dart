@@ -99,6 +99,19 @@ main() {
       expect(jsonMap, isNot(contains('error')));
     });
 
+    test('canParse returns false for out-of-spec (restricted) enum values', () {
+      expect(MarkupKind.canParse('NotAMarkupKind'), isFalse);
+    });
+
+    test('canParse returns true for in-spec (restricted) enum values', () {
+      expect(MarkupKind.canParse('plaintext'), isTrue);
+    });
+
+    test('canParse returns true for out-of-spec (unrestricted) enum values',
+        () {
+      expect(SymbolKind.canParse(-1), isTrue);
+    });
+
     test('ResponseMessage can include a null result', () {
       final id = new Either2<num, String>.t1(1);
       final resp = new ResponseMessage(id, null, null, jsonRpcVersion);
