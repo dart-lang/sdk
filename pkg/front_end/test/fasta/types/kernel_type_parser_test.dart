@@ -111,6 +111,9 @@ class KernelSubtypeTest extends SubtypeTest<DartType, KernelEnvironment> {
 
   KernelSubtypeTest(this.coreTypes, this.hierarchy, this.environment);
 
+  @override
+  bool get skipFutureOrPromotion => true;
+
   DartType toType(String text, KernelEnvironment environment) {
     return environment.kernelFromParsedType(type_parser.parse(text).single);
   }

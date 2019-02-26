@@ -511,14 +511,63 @@ class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
   @override
   bool isFutureOrRelated(
       InterfaceType sFutureOr, InterfaceType tFutureOr, Types types) {
-    //return types.isSubtypeOfKernel(
-    //    sFutureOr.typeArguments.single, futureOr.typeArguments.single);
-    // TODO(ahe): Not tested yet.
-    return true;
+    // This follows from combining rules 7, 10, and 11.
+    return types.isSubtypeOfKernel(
+        sFutureOr.typeArguments.single, tFutureOr.typeArguments.single);
   }
 
-  // TODO(ahe): Remove this method.
-  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  @override
+  bool isDynamicRelated(DynamicType s, InterfaceType futureOr, Types types) {
+    // Rule 11.
+    return types.isSubtypeOfKernel(s, futureOr.typeArguments.single);
+  }
+
+  @override
+  bool isVoidRelated(VoidType s, InterfaceType futureOr, Types types) {
+    // Rule 11.
+    return types.isSubtypeOfKernel(s, futureOr.typeArguments.single);
+  }
+
+  @override
+  bool isTypeParameterRelated(
+      TypeParameterType s, InterfaceType futureOr, Types types) {
+    List<DartType> arguments = futureOr.typeArguments;
+    if (types.isSubtypeOfKernel(s, arguments.single)) {
+      // Rule 11.
+      return true;
+    }
+
+    if (types.isSubtypeOfKernel(s.parameter.bound, futureOr)) {
+      // Rule 13.
+      return true;
+    }
+
+    // Rule 10.
+    return types.isSubtypeOfKernel(
+        s, new InterfaceType(types.hierarchy.futureKernelClass, arguments));
+  }
+
+  @override
+  bool isFunctionRelated(FunctionType s, InterfaceType futureOr, Types types) {
+    // Rule 11.
+    return types.isSubtypeOfKernel(s, futureOr.typeArguments.single);
+  }
+
+  @override
+  bool isIntersectionRelated(
+      TypeParameterType intersection, InterfaceType futureOr, Types types) {
+    if (isTypeParameterRelated(intersection, futureOr, types)) {
+      // Rule 8.
+      return true;
+    }
+    // Rule 12.
+    return types.isSubtypeOfKernel(intersection.promotedBound, futureOr);
+  }
+
+  @override
+  bool isTypedefRelated(TypedefType s, InterfaceType futureOr, Types types) {
+    return types.isSubtypeOfKernel(s.unalias, futureOr);
+  }
 }
 
 class IsIntersectionSubtypeOf extends TypeRelation<TypeParameterType> {
