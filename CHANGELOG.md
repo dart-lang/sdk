@@ -53,6 +53,13 @@ Upgraded the linter to `0.1.82` which adds the following improvements:
 *   Stopped registering "default lints".
 *   Fixed `hash_and_equals` to respect `hashCode` fields.
 
+#### Pub client
+
+* Added a CHANGELOG validator that complains if you `pub publish` without mentioning the current
+  version.
+* Added support for `pub global activate`ing package from a custom pub URL.
+* Added subcommand: `pub logout`. Logs you out of the current session.
+
 #### dart2js
 
 *  `--dump-info=binary`

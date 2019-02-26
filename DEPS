@@ -112,7 +112,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_tag": "0.9.0",
-  "pub_rev": "9f00679ef47bc79cadc18e143720ade6c06c0100",
+  "pub_rev": "980fc947db32bca6ae7d07fbb4ad0fcdba0050ec",
   "pub_semver_tag": "1.4.2",
   "quiver_tag": "2.0.0+1",
   "resource_rev": "2.1.5",
