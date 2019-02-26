@@ -4723,7 +4723,7 @@ class ResolverVisitor extends ScopedVisitor {
     } else {
       InferenceContext.clearType(node);
     }
-    super.visitMapLiteral(node);
+    visitNode(node);
   }
 
   @override
@@ -4883,7 +4883,7 @@ class ResolverVisitor extends ScopedVisitor {
     } else {
       InferenceContext.clearType(node);
     }
-    super.visitSetLiteral(node);
+    visitNode(node);
   }
 
   @override

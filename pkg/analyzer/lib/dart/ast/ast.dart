@@ -2247,22 +2247,12 @@ abstract class ForEachPartsWithIdentifier implements ForEachParts {
 /// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ForEachStatement implements Statement {
-  /// Return the token representing the 'await' keyword, or `null` if there is
-  /// no 'await' keyword.
-  Token get awaitKeyword;
-
+abstract class ForEachStatement implements ForStatement2 {
   /// Set the token representing the 'await' keyword to the given [token].
   void set awaitKeyword(Token token);
 
-  /// Return the body of the loop.
-  Statement get body;
-
   /// Set the body of the loop to the given [statement].
   void set body(Statement statement);
-
-  /// Return the token representing the 'for' keyword.
-  Token get forKeyword;
 
   /// Set the token representing the 'for' keyword to the given [token].
   void set forKeyword(Token token);
@@ -2287,9 +2277,6 @@ abstract class ForEachStatement implements Statement {
   /// [expression].
   void set iterable(Expression expression);
 
-  /// Return the left parenthesis.
-  Token get leftParenthesis;
-
   /// Set the left parenthesis to the given [token].
   void set leftParenthesis(Token token);
 
@@ -2299,9 +2286,6 @@ abstract class ForEachStatement implements Statement {
 
   /// Set the declaration of the loop variable to the given [variable].
   void set loopVariable(DeclaredIdentifier variable);
-
-  /// Return the right parenthesis.
-  Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
   void set rightParenthesis(Token token);
@@ -2540,10 +2524,7 @@ abstract class ForPartsWithExpression implements ForParts {
 /// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ForStatement implements Statement {
-  /// Return the body of the loop.
-  Statement get body;
-
+abstract class ForStatement implements ForStatement2 {
   /// Set the body of the loop to the given [statement].
   void set body(Statement statement);
 
@@ -2555,9 +2536,6 @@ abstract class ForStatement implements Statement {
   /// given [expression].
   void set condition(Expression expression);
 
-  /// Return the token representing the 'for' keyword.
-  Token get forKeyword;
-
   /// Set the token representing the 'for' keyword to the given [token].
   void set forKeyword(Token token);
 
@@ -2568,9 +2546,6 @@ abstract class ForStatement implements Statement {
   /// Set the initialization expression to the given [expression].
   void set initialization(Expression initialization);
 
-  /// Return the left parenthesis.
-  Token get leftParenthesis;
-
   /// Set the left parenthesis to the given [token].
   void set leftParenthesis(Token token);
 
@@ -2580,9 +2555,6 @@ abstract class ForStatement implements Statement {
   /// Set the semicolon separating the initializer and the condition to the
   /// given [token].
   void set leftSeparator(Token token);
-
-  /// Return the right parenthesis.
-  Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
   void set rightParenthesis(Token token);
