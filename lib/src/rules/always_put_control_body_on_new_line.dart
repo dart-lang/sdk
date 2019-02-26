@@ -10,7 +10,7 @@ const _desc = r'Separate the control structure expression from its statement.';
 
 const _details = r'''
 
-From the [flutter style guide](https://flutter.io/style-guide/):
+From the [flutter style guide](https://flutter.dev/style-guide/):
 
 **DO** separate the control structure expression from its statement.
 
