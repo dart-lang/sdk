@@ -40,13 +40,9 @@ class ThreadStartData {
 static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   ThreadStartData* data = reinterpret_cast<ThreadStartData*>(data_ptr);
 
-  const char* name = data->name();
   Thread::ThreadStartFunction function = data->function();
   uword parameter = data->parameter();
   delete data;
-
-  // Set the thread name.
-  SetThreadDescription(GetCurrentThread(), reinterpret_cast<PCWSTR>(name));
 
   // Call the supplied thread start function handing it its parameters.
   function(parameter);
