@@ -118,10 +118,16 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
 
   void writeClasses() {
     Set<Class> writtenClasses = new Set<Class>();
-    for (TreeNode node in nodeNames.keys.toList()) {
-      if (node is Class) {
-        writeClass(node, writtenClasses);
+    int index = 0;
+    List<TreeNode> nodes = nodeNames.keys.toList();
+    while (index < nodes.length) {
+      for (; index < nodes.length; index++) {
+        TreeNode node = nodes[index];
+        if (node is Class) {
+          writeClass(node, writtenClasses);
+        }
       }
+      nodes = nodeNames.keys.toList();
     }
   }
 
