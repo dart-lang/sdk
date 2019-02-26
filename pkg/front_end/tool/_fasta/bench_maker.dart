@@ -88,10 +88,17 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
 
   void writeTypeParameter(TypeParameter parameter, StringBuffer sb) {
     sb.write(computeName(parameter));
-    if (parameter.defaultType is! DynamicType ||
-        parameter.bound is DynamicType) {
+    DartType bound = parameter.bound;
+    DartType defaultType = parameter.defaultType;
+    bool hasExplicitBound = true;
+    if (bound is InterfaceType && defaultType is DynamicType) {
+      if (bound.classNode.supertype == null) {
+        hasExplicitBound = false;
+      }
+    }
+    if (hasExplicitBound) {
       sb.write(" extends ");
-      parameter.bound.accept1(this, sb);
+      bound.accept1(this, sb);
     }
   }
 
