@@ -25,7 +25,7 @@ TranslationHelper::TranslationHelper(Thread* thread)
     : thread_(thread),
       zone_(thread->zone()),
       isolate_(thread->isolate()),
-      allocation_space_(thread->IsMutatorThread() ? Heap::kNew : Heap::kOld),
+      allocation_space_(Heap::kNew),
       string_offsets_(TypedData::Handle(Z)),
       string_data_(ExternalTypedData::Handle(Z)),
       canonical_names_(TypedData::Handle(Z)),
@@ -598,9 +598,9 @@ RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
     const Class& owner,
     StringIndex constructor_name) {
   GrowableHandlePtrArray<const String> pieces(Z, 3);
-  pieces.Add(DartString(String::Handle(owner.Name()).ToCString(), Heap::kOld));
+  pieces.Add(String::Handle(Z, owner.Name()));
   pieces.Add(Symbols::Dot());
-  String& name = DartString(constructor_name);
+  String& name = DartSymbolPlain(constructor_name);
   pieces.Add(ManglePrivateName(Library::Handle(owner.library()), &name));
 
   String& new_name =
