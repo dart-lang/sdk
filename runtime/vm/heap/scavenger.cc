@@ -135,14 +135,11 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       new_addr = ForwardedAddr(header);
     } else {
       intptr_t size = raw_obj->HeapSize();
-      NOT_IN_PRODUCT(intptr_t cid = raw_obj->GetClassId());
-      NOT_IN_PRODUCT(ClassTable* class_table = isolate()->class_table());
       // Check whether object should be promoted.
       if (scavenger_->survivor_end_ <= raw_addr) {
         // Not a survivor of a previous scavenge. Just copy the object into the
         // to space.
         new_addr = scavenger_->AllocateGC(size);
-        NOT_IN_PRODUCT(class_table->UpdateLiveNew(cid, size));
       } else {
         // TODO(iposva): Experiment with less aggressive promotion. For example
         // a coin toss determines if an object is promoted or whether it should
@@ -156,12 +153,10 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           // be traversed later.
           scavenger_->PushToPromotedStack(new_addr);
           bytes_promoted_ += size;
-          NOT_IN_PRODUCT(class_table->UpdateAllocatedOld(cid, size));
         } else {
           // Promotion did not succeed. Copy into the to space instead.
           scavenger_->failed_to_promote_ = true;
           new_addr = scavenger_->AllocateGC(size);
-          NOT_IN_PRODUCT(class_table->UpdateLiveNew(cid, size));
         }
       }
       // During a scavenge we always succeed to at least copy all of the
@@ -645,18 +640,22 @@ void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
 
 void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
   Thread* thread = Thread::Current();
+  NOT_IN_PRODUCT(ClassTable* class_table = thread->isolate()->class_table());
 
   // Iterate until all work has been drained.
   while ((resolved_top_ < top_) || PromotedStackHasMore()) {
     while (resolved_top_ < top_) {
       RawObject* raw_obj = RawObject::FromAddr(resolved_top_);
       intptr_t class_id = raw_obj->GetClassId();
+      intptr_t size;
       if (class_id != kWeakPropertyCid) {
-        resolved_top_ += raw_obj->VisitPointersNonvirtual(visitor);
+        size = raw_obj->VisitPointersNonvirtual(visitor);
       } else {
         RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
-        resolved_top_ += ProcessWeakProperty(raw_weak, visitor);
+        size = ProcessWeakProperty(raw_weak, visitor);
       }
+      NOT_IN_PRODUCT(class_table->UpdateLiveNewGC(class_id, size));
+      resolved_top_ += size;
     }
     {
       // Visit all the promoted objects and update/scavenge their internal
@@ -668,7 +667,12 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
         // objects to be resolved in the to space.
         ASSERT(!raw_object->IsRemembered());
         visitor->VisitingOldObject(raw_object);
-        raw_object->VisitPointersNonvirtual(visitor);
+        intptr_t size = raw_object->VisitPointersNonvirtual(visitor);
+#if defined(PRODUCT)
+        USE(size);
+#else
+        class_table->UpdateAllocatedOldGC(raw_object->GetClassId(), size);
+#endif
         if (raw_object->IsMarked()) {
           // Complete our promise from ScavengePointer. Note that marker cannot
           // visit this object until it pops a block from the mark stack, which

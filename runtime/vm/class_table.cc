@@ -443,6 +443,13 @@ void ClassTable::UpdateAllocatedOld(intptr_t cid, intptr_t size) {
   stats->recent.AddOld(size);
 }
 
+void ClassTable::UpdateAllocatedOldGC(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  ASSERT(stats != NULL);
+  ASSERT(size != 0);
+  stats->recent.AddOldGC(size);
+}
+
 void ClassTable::UpdateAllocatedExternalNew(intptr_t cid, intptr_t size) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
@@ -609,6 +616,13 @@ void ClassTable::UpdateLiveNew(intptr_t cid, intptr_t size) {
   ASSERT(stats != NULL);
   ASSERT(size >= 0);
   stats->post_gc.AddNew(size);
+}
+
+void ClassTable::UpdateLiveNewGC(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  ASSERT(stats != NULL);
+  ASSERT(size >= 0);
+  stats->post_gc.AddNewGC(size);
 }
 
 void ClassTable::UpdateLiveOldExternal(intptr_t cid, intptr_t size) {

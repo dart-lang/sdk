@@ -69,6 +69,11 @@ class AllocStats {
     AtomicOperations::IncrementBy(&new_size, size);
   }
 
+  void AddNewGC(T size) {
+    new_count += 1;
+    new_size += size;
+  }
+
   void AddNewExternal(T size) {
     AtomicOperations::IncrementBy(&new_external_size, size);
   }
@@ -83,6 +88,11 @@ class AllocStats {
   void AddOld(T size, T count = 1) {
     AtomicOperations::IncrementBy(&old_count, count);
     AtomicOperations::IncrementBy(&old_size, size);
+  }
+
+  void AddOldGC(T size, T count = 1) {
+    old_count += count;
+    old_size += size;
   }
 
   void AddOldExternal(T size) {
@@ -253,7 +263,7 @@ class ClassTable {
   // Called whenever a class is allocated in the runtime.
   void UpdateAllocatedNew(intptr_t cid, intptr_t size);
   void UpdateAllocatedOld(intptr_t cid, intptr_t size);
-
+  void UpdateAllocatedOldGC(intptr_t cid, intptr_t size);
   void UpdateAllocatedExternalNew(intptr_t cid, intptr_t size);
   void UpdateAllocatedExternalOld(intptr_t cid, intptr_t size);
 
@@ -295,7 +305,7 @@ class ClassTable {
  private:
   friend class GCMarker;
   friend class MarkingWeakVisitor;
-  friend class ScavengerVisitor;
+  friend class Scavenger;
   friend class ScavengerWeakVisitor;
   friend class ClassHeapStatsTestHelper;
   friend class HeapTestsHelper;
@@ -319,6 +329,7 @@ class ClassTable {
   ClassHeapStats* PreliminaryStatsAt(intptr_t cid);
   void UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count = 1);
   void UpdateLiveNew(intptr_t cid, intptr_t size);
+  void UpdateLiveNewGC(intptr_t cid, intptr_t size);
   void UpdateLiveOldExternal(intptr_t cid, intptr_t size);
   void UpdateLiveNewExternal(intptr_t cid, intptr_t size);
 #endif  // !PRODUCT
