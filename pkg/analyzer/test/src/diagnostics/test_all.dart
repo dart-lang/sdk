@@ -13,12 +13,17 @@ import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'division_optimization_test.dart' as division_optimization;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
+import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
+import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
 import 'invalid_override_different_default_values_named_test.dart'
     as invalid_override_different_default_values_named;
 import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
 import 'invalid_required_param_test.dart' as invalid_required_param;
+import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
+import 'must_be_immutable_test.dart' as must_be_immutable;
+import 'must_call_super_test.dart' as must_call_super;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
@@ -56,10 +61,15 @@ main() {
     division_optimization.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
+    invalid_immutable_annotation.main();
+    invalid_literal_annotation.main();
     invalid_override_different_default_values_named.main();
     invalid_override_different_default_values_positional.main();
     invalid_required_param.main();
+    invalid_sealed_annotation.main();
     mixin_on_sealed_class.main();
+    must_be_immutable.main();
+    must_call_super.main();
     subtype_of_sealed_class.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();
