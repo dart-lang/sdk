@@ -18,6 +18,8 @@ import 'invalid_override_different_default_values_named_test.dart'
 import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
 import 'invalid_required_param_test.dart' as invalid_required_param;
+import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
+import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
 import 'type_check_is_not_null_test.dart' as type_check_is_not_null;
@@ -57,6 +59,8 @@ main() {
     invalid_override_different_default_values_named.main();
     invalid_override_different_default_values_positional.main();
     invalid_required_param.main();
+    mixin_on_sealed_class.main();
+    subtype_of_sealed_class.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();
     type_check_is_not_null.main();

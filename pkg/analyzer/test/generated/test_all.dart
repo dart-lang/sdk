@@ -16,7 +16,6 @@ import 'element_resolver_test.dart' as element_resolver_test;
 import 'engine_test.dart' as engine_test;
 import 'error_suppression_driver_test.dart' as error_suppression_driver_test;
 import 'hint_code_driver_test.dart' as hint_code_driver_test;
-import 'hint_code_test.dart' as hint_code_test;
 import 'inheritance_manager_test.dart' as inheritance_manager_test;
 import 'invalid_code_driver_test.dart' as invalid_code_driver_test;
 import 'java_core_test.dart' as java_core_test;
@@ -55,7 +54,6 @@ main() {
     engine_test.main();
     error_suppression_driver_test.main();
     hint_code_driver_test.main();
-    hint_code_test.main();
     inheritance_manager_test.main();
     invalid_code_driver_test.main();
     java_core_test.main();
