@@ -7402,7 +7402,7 @@ class ToSourceVisitor
       _writer.print(keyword.lexeme);
       _writer.print(' ');
     }
-    _writer.print("=> ");
+    _writer.print('${node.functionDefinition?.lexeme} ');
     _visitNode(node.expression);
     if (node.semicolon != null) {
       _writer.print(';');
@@ -8676,7 +8676,7 @@ class ToSourceVisitor2
       sink.write(keyword.lexeme);
       sink.write(' ');
     }
-    sink.write("=> ");
+    sink.write('${node.functionDefinition?.lexeme} ');
     safelyVisitNode(node.expression);
     if (node.semicolon != null) {
       sink.write(';');

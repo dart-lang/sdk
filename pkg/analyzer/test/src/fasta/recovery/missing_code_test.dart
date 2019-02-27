@@ -211,6 +211,22 @@ f() => x ? _s_ : z;
     testUserDefinableOperatorWithSuper('==');
   }
 
+  void test_expressionBody_missingGt() {
+    testRecovery('''
+f(x) = x;
+''', [ParserErrorCode.MISSING_FUNCTION_BODY], '''
+f(x) => x;
+''');
+  }
+
+  void test_expressionBody_return() {
+    testRecovery('''
+f(x) return x;
+''', [ParserErrorCode.MISSING_FUNCTION_BODY], '''
+f(x) => x;
+''');
+  }
+
   void test_greaterThan() {
     testBinaryExpression('>');
   }

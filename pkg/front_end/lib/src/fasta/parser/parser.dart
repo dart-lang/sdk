@@ -3358,9 +3358,11 @@ class Parser {
     } else if (optional('=>', next)) {
       return parseExpressionFunctionBody(next, ofFunctionExpression);
     } else if (optional('=', next)) {
-      Token begin = next;
       // Recover from a bad factory method.
       reportRecoverableError(next, fasta.messageExpectedBody);
+      next = rewriter.insertToken(
+          next, new SyntheticToken(TokenType.FUNCTION, next.next.charOffset));
+      Token begin = next;
       token = parseExpression(next);
       if (!ofFunctionExpression) {
         token = ensureSemicolon(token);
