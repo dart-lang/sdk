@@ -1,8 +1,10 @@
 # Language Server Protocol
 
-## LSP Support Status
+[Language Server Protocol](https://microsoft.github.io/language-server-protocol/) (LSP) support is available in the Dart analysis server from version 2.2.0-dev of the SDK. The supported messages are detailed below (for the version of the SDK that matches this README).
 
-Support for [the Language Server Protocol](https://microsoft.github.io/language-server-protocol/) (LSP) is **not production ready** but available as a preview to allow testing/integration work.
+## Using the Dart LSP server in editors
+
+- [Using Dart LSP in Vim](README_vim.md)
 
 ## Running the Server
 
