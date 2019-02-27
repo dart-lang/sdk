@@ -61,8 +61,7 @@ typedef DirectChainedHashMap<RawCodeKeyValueTrait> RawCodeSet;
 
 static RawObject* AllocateUninitialized(PageSpace* old_space, intptr_t size) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  uword address =
-      old_space->TryAllocateDataBumpLocked(size, PageSpace::kForceGrowth);
+  uword address = old_space->TryAllocateDataBumpLocked(size);
   if (address == 0) {
     OUT_OF_MEMORY();
   }

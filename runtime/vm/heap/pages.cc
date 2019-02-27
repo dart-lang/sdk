@@ -1279,36 +1279,28 @@ void PageSpace::Compact(Thread* thread) {
   }
 }
 
-uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
-                                             GrowthPolicy growth_policy,
-                                             bool is_locked) {
+uword PageSpace::TryAllocateDataBumpLocked(intptr_t size) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   intptr_t remaining = bump_end_ - bump_top_;
-  if (remaining < size) {
+  if (UNLIKELY(remaining < size)) {
     // Checking this first would be logical, but needlessly slow.
     if (size >= kAllocatablePageSize) {
-      return is_locked ? TryAllocateDataLocked(size, growth_policy)
-                       : TryAllocate(size, HeapPage::kData, growth_policy);
+      return TryAllocateDataLocked(size, kForceGrowth);
     }
     FreeListElement* block =
-        is_locked ? freelist_[HeapPage::kData].TryAllocateLargeLocked(size)
-                  : freelist_[HeapPage::kData].TryAllocateLarge(size);
+        freelist_[HeapPage::kData].TryAllocateLargeLocked(size);
     if (block == NULL) {
       // Allocating from a new page (if growth policy allows) will have the
       // side-effect of populating the freelist with a large block. The next
       // bump allocation request will have a chance to consume that block.
       // TODO(koda): Could take freelist lock just once instead of twice.
-      return TryAllocateInFreshPage(size, HeapPage::kData, growth_policy,
-                                    is_locked);
+      return TryAllocateInFreshPage(size, HeapPage::kData, kForceGrowth,
+                                    true /* is_locked*/);
     }
     intptr_t block_size = block->HeapSize();
     if (remaining > 0) {
-      if (is_locked) {
-        freelist_[HeapPage::kData].FreeLocked(bump_top_, remaining);
-      } else {
-        freelist_[HeapPage::kData].Free(bump_top_, remaining);
-      }
+      freelist_[HeapPage::kData].FreeLocked(bump_top_, remaining);
     }
     bump_top_ = reinterpret_cast<uword>(block);
     bump_end_ = bump_top_ + block_size;
@@ -1317,8 +1309,11 @@ uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
   ASSERT(remaining >= size);
   uword result = bump_top_;
   bump_top_ += size;
-  AtomicOperations::IncrementBy(&(usage_.used_in_words),
-                                (size >> kWordSizeLog2));
+
+  // No need for atomic operation: This is either running during a scavenge or
+  // isolate snapshot loading.
+  usage_.used_in_words += (size >> kWordSizeLog2);
+
 // Note: Remaining block is unwalkable until MakeIterable is called.
 #ifdef DEBUG
   if (bump_top_ < bump_end_) {
@@ -1330,28 +1325,17 @@ uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
   return result;
 }
 
-uword PageSpace::TryAllocateDataBump(intptr_t size,
-                                     GrowthPolicy growth_policy) {
-  return TryAllocateDataBumpInternal(size, growth_policy, false);
-}
-
-uword PageSpace::TryAllocateDataBumpLocked(intptr_t size,
-                                           GrowthPolicy growth_policy) {
-  return TryAllocateDataBumpInternal(size, growth_policy, true);
-}
-
-uword PageSpace::TryAllocatePromoLocked(intptr_t size,
-                                        GrowthPolicy growth_policy) {
+uword PageSpace::TryAllocatePromoLocked(intptr_t size) {
   FreeList* freelist = &freelist_[HeapPage::kData];
   uword result = freelist->TryAllocateSmallLocked(size);
   if (result != 0) {
-    AtomicOperations::IncrementBy(&(usage_.used_in_words),
-                                  (size >> kWordSizeLog2));
+    // No need for atomic operation: we're at a safepoint.
+    usage_.used_in_words += (size >> kWordSizeLog2);
     return result;
   }
-  result = TryAllocateDataBumpLocked(size, growth_policy);
+  result = TryAllocateDataBumpLocked(size);
   if (result != 0) return result;
-  return TryAllocateDataLocked(size, growth_policy);
+  return TryAllocateDataLocked(size, PageSpace::kForceGrowth);
 }
 
 void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {

@@ -2100,8 +2100,7 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   // In a bump allocation scope, all allocations go into old space.
   if (thread->bump_allocate() && (space != Heap::kCode)) {
     DEBUG_ASSERT(heap->old_space()->CurrentThreadOwnsDataLock());
-    address = heap->old_space()->TryAllocateDataBumpLocked(
-        size, PageSpace::kForceGrowth);
+    address = heap->old_space()->TryAllocateDataBumpLocked(size);
   } else {
     address = heap->Allocate(size, space);
   }
