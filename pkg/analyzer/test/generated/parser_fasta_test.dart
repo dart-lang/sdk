@@ -1787,65 +1787,6 @@ $code
     parseNNBDCompilationUnit('main() { C.a? Function()? x = 7; }');
   }
 
-  void test_nullCheck() {
-    var unit = parseNNBDCompilationUnit('f(int? y) { var x = y!; }');
-    FunctionDeclaration function = unit.declarations[0];
-    BlockFunctionBody body = function.functionExpression.body;
-    VariableDeclarationStatement statement = body.block.statements[0];
-    PostfixExpression expression = statement.variables.variables[0].initializer;
-    SimpleIdentifier identifier = expression.operand;
-    expect(identifier.name, 'y');
-    expect(expression.operator.lexeme, '!');
-  }
-
-  void test_nullCheck_disabled() {
-    // TODO(danrubel): remove this once NNBD is enabled by default
-    var unit = parseCompilationUnit('f(int? y) { var x = y!; }', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
-    ]);
-    FunctionDeclaration function = unit.declarations[0];
-    BlockFunctionBody body = function.functionExpression.body;
-    VariableDeclarationStatement statement = body.block.statements[0];
-    SimpleIdentifier identifier = statement.variables.variables[0].initializer;
-    expect(identifier.name, 'y');
-  }
-
-  void test_nullCheckInExpression() {
-    parseNNBDCompilationUnit('f(int? y) { var x = y! + 7; }');
-  }
-
-  void test_nullCheckInExpression_disabled() {
-    // TODO(danrubel): remove this once NNBD is enabled by default
-    parseCompilationUnit('f(int? y) { var x = y! + 7; }', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
-    ]);
-  }
-
-  @failingTest
-  void test_nullCheckOnLiteral() {
-    // TODO(danrubel): Report error for null check on invalid target
-    parseNNBDCompilationUnit('f() { var x = 0!; }',
-        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 78, 1)]);
-  }
-
-  void test_nullCheckOnLiteral_disabled() {
-    // TODO(danrubel): remove this once NNBD is enabled by default
-    parseCompilationUnit('f() { var x = 0!; }',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)]);
-  }
-
-  void test_nullCheckOnValue() {
-    parseNNBDCompilationUnit('f(Point p) { var x = p.y! + 7; }');
-  }
-
-  void test_nullCheckOnValue_disabled() {
-    // TODO(danrubel): remove this once NNBD is enabled by default
-    parseCompilationUnit('f(Point p) { var x = p.y! + 7; }',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 24, 1)]);
-  }
-
   void test_is_nullable() {
     CompilationUnit unit =
         parseNNBDCompilationUnit('main() { x is String? ? (x + y) : z; }');
@@ -1877,6 +1818,146 @@ $code
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
+  }
+
+  void test_nullCheck() {
+    var unit = parseNNBDCompilationUnit('f(int? y) { var x = y!; }');
+    FunctionDeclaration function = unit.declarations[0];
+    BlockFunctionBody body = function.functionExpression.body;
+    VariableDeclarationStatement statement = body.block.statements[0];
+    PostfixExpression expression = statement.variables.variables[0].initializer;
+    SimpleIdentifier identifier = expression.operand;
+    expect(identifier.name, 'y');
+    expect(expression.operator.lexeme, '!');
+  }
+
+  void test_nullCheck_disabled() {
+    // TODO(danrubel): remove this once NNBD is enabled by default
+    var unit = parseCompilationUnit('f(int? y) { var x = y!; }', errors: [
+      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
+      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
+    ]);
+    FunctionDeclaration function = unit.declarations[0];
+    BlockFunctionBody body = function.functionExpression.body;
+    VariableDeclarationStatement statement = body.block.statements[0];
+    SimpleIdentifier identifier = statement.variables.variables[0].initializer;
+    expect(identifier.name, 'y');
+  }
+
+  void test_nullCheckFunctionResult() {
+    parseNNBDCompilationUnit('f() { var x = g()! + 7; }');
+  }
+
+  void test_nullCheckIndexedValue() {
+    parseNNBDCompilationUnit('f(int? y) { var x = y[0]! + 7; }');
+  }
+
+  void test_nullCheckIndexedValue2() {
+    parseNNBDCompilationUnit('f(int? y) { var x = super.y[0]! + 7; }');
+  }
+
+  void test_nullCheckInExpression() {
+    parseNNBDCompilationUnit('f(int? y) { var x = y! + 7; }');
+  }
+
+  void test_nullCheckInExpression_disabled() {
+    // TODO(danrubel): remove this once NNBD is enabled by default
+    parseCompilationUnit('f(int? y) { var x = y! + 7; }', errors: [
+      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
+      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
+    ]);
+  }
+
+  void test_nullCheckMethodResult() {
+    parseNNBDCompilationUnit('f() { var x = g.m()! + 7; }');
+  }
+
+  void test_nullCheckMethodResult2() {
+    parseNNBDCompilationUnit('f() { var x = g?.m()! + 7; }');
+  }
+
+  void test_nullCheckMethodResult3() {
+    parseNNBDCompilationUnit('f() { var x = super.m()! + 7; }');
+  }
+
+  void test_nullCheckOnConstConstructor() {
+    parseNNBDCompilationUnit('f() { var x = const Foo()!; }');
+  }
+
+  void test_nullCheckOnConstructor() {
+    parseNNBDCompilationUnit('f() { var x = new Foo()!; }');
+  }
+
+  void test_nullCheckOnLiteral_disabled() {
+    // TODO(danrubel): remove this once NNBD is enabled by default
+    parseCompilationUnit('f() { var x = 0!; }',
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)]);
+  }
+
+  void test_nullCheckOnLiteralDouble() {
+    // Issues like this should be caught during later analysis
+    parseNNBDCompilationUnit('f() { var x = 1.2!; }');
+  }
+
+  void test_nullCheckOnLiteralInt() {
+    // Issues like this should be caught during later analysis
+    parseNNBDCompilationUnit('f() { var x = 0!; }');
+  }
+
+  void test_nullCheckOnLiteralList() {
+    // Issues like this should be caught during later analysis
+    parseNNBDCompilationUnit('f() { var x = [1,2]!; }');
+  }
+
+  void test_nullCheckOnLiteralMap() {
+    // Issues like this should be caught during later analysis
+    parseNNBDCompilationUnit('f() { var x = {1:2}!; }');
+  }
+
+  void test_nullCheckOnLiteralSet() {
+    // Issues like this should be caught during later analysis
+    parseNNBDCompilationUnit('f() { var x = {1,2}!; }');
+  }
+
+  void test_nullCheckOnLiteralString() {
+    // Issues like this should be caught during later analysis
+    parseNNBDCompilationUnit('f() { var x = "seven"!; }');
+  }
+
+  void test_nullCheckOnNull() {
+    // Issues like this should be caught during later analysis
+    parseNNBDCompilationUnit('f() { var x = null!; }');
+  }
+
+  void test_nullCheckOnSymbol() {
+    // Issues like this should be caught during later analysis
+    parseNNBDCompilationUnit('f() { var x = #seven!; }');
+  }
+
+  void test_nullCheckOnValue() {
+    parseNNBDCompilationUnit('f(Point p) { var x = p.y! + 7; }');
+  }
+
+  void test_nullCheckOnValue_disabled() {
+    // TODO(danrubel): remove this once NNBD is enabled by default
+    parseCompilationUnit('f(Point p) { var x = p.y! + 7; }',
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 24, 1)]);
+  }
+
+  void test_nullCheckParenthesizedExpression() {
+    parseNNBDCompilationUnit('f(int? y) { var x = (y)! + 7; }');
+  }
+
+  void test_nullCheckPropertyAccess() {
+    parseNNBDCompilationUnit('f() { var x = g.p! + 7; }');
+  }
+
+  void test_nullCheckPropertyAccess2() {
+    parseNNBDCompilationUnit('f() { var x = g?.p! + 7; }');
+  }
+
+  void test_nullCheckPropertyAccess3() {
+    parseNNBDCompilationUnit('f() { var x = super.p! + 7; }');
   }
 
   void test_pragma_missing() {
