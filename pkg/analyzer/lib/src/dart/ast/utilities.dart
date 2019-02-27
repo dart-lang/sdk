@@ -4439,24 +4439,6 @@ class NodeReplacer with UiAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
   }
 
   @override
-  bool visitForEachStatement(ForEachStatement node) {
-    if (identical(node.loopVariable, _oldNode)) {
-      node.loopVariable = _newNode as DeclaredIdentifier;
-      return true;
-    } else if (identical(node.identifier, _oldNode)) {
-      node.identifier = _newNode as SimpleIdentifier;
-      return true;
-    } else if (identical(node.iterable, _oldNode)) {
-      node.iterable = _newNode as Expression;
-      return true;
-    } else if (identical(node.body, _oldNode)) {
-      node.body = _newNode as Statement;
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
   bool visitForElement(ForElement node) {
     if (identical(node.forLoopParts, _oldNode)) {
       (node as ForElementImpl).forLoopParts = _newNode as ForLoopParts;
@@ -4499,26 +4481,6 @@ class NodeReplacer with UiAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
       return true;
     } else if (identical(node.condition, _oldNode)) {
       (node as ForPartsWithExpressionImpl).condition = _newNode as Expression;
-      return true;
-    } else if (_replaceInList(node.updaters)) {
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
-  bool visitForStatement(ForStatement node) {
-    if (identical(node.variables, _oldNode)) {
-      node.variables = _newNode as VariableDeclarationList;
-      return true;
-    } else if (identical(node.initialization, _oldNode)) {
-      node.initialization = _newNode as Expression;
-      return true;
-    } else if (identical(node.condition, _oldNode)) {
-      node.condition = _newNode as Expression;
-      return true;
-    } else if (identical(node.body, _oldNode)) {
-      node.body = _newNode as Statement;
       return true;
     } else if (_replaceInList(node.updaters)) {
       return true;

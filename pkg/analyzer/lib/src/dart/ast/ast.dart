@@ -4197,6 +4197,18 @@ class ForEachStatementImpl extends ForStatement2Impl
             rightParenthesis,
             body);
 
+  /// Creates a for-each statement using a caller-provided "parts" data
+  /// structure.
+  ForEachStatementImpl.withParts(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForEachPartsImpl forLoopParts,
+      Token rightParenthesis,
+      Statement body)
+      : super(awaitKeyword, forKeyword, leftParenthesis, forLoopParts,
+            rightParenthesis, body);
+
   /// Initialize a newly created for-each statement whose loop control variable
   /// is declared outside the for loop. The [awaitKeyword] can be `null` if this
   /// is not an asynchronous for loop.
@@ -4646,7 +4658,7 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 }
 
-class ForStatement2Impl extends StatementImpl
+abstract class ForStatement2Impl extends StatementImpl
     with ForMixin
     implements ForStatement2 {
   /// The body of the loop.
@@ -4730,6 +4742,18 @@ class ForStatementImpl extends ForStatement2Impl implements ForStatement {
                     condition, rightSeparator, updaters),
             rightParenthesis,
             body);
+
+  /// Creates a for-each statement using a caller-provided "parts" data
+  /// structure.
+  ForStatementImpl.withParts(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForPartsImpl forLoopParts,
+      Token rightParenthesis,
+      Statement body)
+      : super(awaitKeyword, forKeyword, leftParenthesis, forLoopParts,
+            rightParenthesis, body);
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()

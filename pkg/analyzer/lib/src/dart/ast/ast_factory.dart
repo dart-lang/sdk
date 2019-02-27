@@ -69,6 +69,7 @@ class AstFactoryImpl extends AstFactory {
   BinaryExpression binaryExpression(
           Expression leftOperand, Token operator, Expression rightOperand) =>
       new BinaryExpressionImpl(leftOperand, operator, rightOperand);
+
   @override
   Block block(
           Token leftBracket, List<Statement> statements, Token rightBracket) =>
@@ -525,14 +526,22 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   ForStatement2 forStatement2(
-          {Token awaitKeyword,
-          Token forKeyword,
-          Token leftParenthesis,
-          ForLoopParts forLoopParts,
-          Token rightParenthesis,
-          Statement body}) =>
-      new ForStatement2Impl(awaitKeyword, forKeyword, leftParenthesis,
-          forLoopParts, rightParenthesis, body);
+      {Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopParts forLoopParts,
+      Token rightParenthesis,
+      Statement body}) {
+    if (forLoopParts is ForEachParts) {
+      return ForEachStatementImpl.withParts(awaitKeyword, forKeyword,
+          leftParenthesis, forLoopParts, rightParenthesis, body);
+    } else if (forLoopParts is ForParts) {
+      return ForStatementImpl.withParts(awaitKeyword, forKeyword,
+          leftParenthesis, forLoopParts, rightParenthesis, body);
+    } else {
+      throw new StateError('Unrecognized for loop parts');
+    }
+  }
 
   @override
   FunctionDeclaration functionDeclaration(
