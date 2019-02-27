@@ -599,20 +599,30 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    if (identical(entity, node.identifier)) {
+  visitForEachParts(ForEachParts node) {
+    if (node is ForEachPartsWithIdentifier &&
+        identical(entity, node.identifier)) {
       optype.includeTypeNameSuggestions = true;
     }
-    if (identical(entity, node.loopVariable)) {
+    if (node is ForEachPartsWithDeclaration &&
+        identical(entity, node.loopVariable)) {
       optype.includeTypeNameSuggestions = true;
     }
     if (identical(entity, node.inKeyword) && offset <= node.inKeyword.offset) {
-      if (node.identifier == null && node.loopVariable == null) {
+      if (!(node is ForEachPartsWithIdentifier && node.identifier != null ||
+          node is ForEachPartsWithDeclaration && node.loopVariable != null)) {
         optype.includeTypeNameSuggestions = true;
       }
     }
     if (identical(entity, node.iterable)) {
       optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  void visitForEachStatement(ForEachStatement node) {
+    if (identical(entity, node.forLoopParts)) {
       optype.includeTypeNameSuggestions = true;
     }
   }
@@ -655,7 +665,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitForStatement(ForStatement node) {
+  visitForParts(ForParts node) {
     var entity = this.entity;
     if (_isEntityPrevTokenSynthetic()) {
       // Actual: for (var v i^)
@@ -668,13 +678,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       //                    ^
       optype.includeVarNameSuggestions = true;
     } else {
-      // for (^) {}
-      // for (Str^ str = null;) {}
-      // In theory it is possible to specify any expression in initializer,
-      // but for any practical use we need only types.
-      if (entity == node.initialization || entity == node.variables) {
-        optype.includeTypeNameSuggestions = true;
-      }
       // for (; ^) {}
       if (entity == node.condition) {
         optype.includeTypeNameSuggestions = true;
@@ -686,6 +689,18 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         optype.includeReturnValueSuggestions = true;
         optype.includeVoidReturnSuggestions = true;
       }
+    }
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    var entity = this.entity;
+    // for (^) {}
+    // for (Str^ str = null;) {}
+    // In theory it is possible to specify any expression in initializer,
+    // but for any practical use we need only types.
+    if (entity == node.forLoopParts) {
+      optype.includeTypeNameSuggestions = true;
     }
   }
 

@@ -306,6 +306,27 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitForEachParts(ForEachParts node) {
+    if (entity == node.inKeyword) {
+      Token previous = node.findPrevious(node.inKeyword);
+      if (previous is SyntheticStringToken && previous.lexeme == 'in') {
+        previous = node.findPrevious(previous);
+      }
+      if (previous != null && previous.type == TokenType.EQ) {
+        _addSuggestions([
+          Keyword.CONST,
+          Keyword.FALSE,
+          Keyword.NEW,
+          Keyword.NULL,
+          Keyword.TRUE
+        ]);
+      } else {
+        _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
+      }
+    }
+  }
+
+  @override
   visitForEachStatement(ForEachStatement node) {
     if (entity == node.inKeyword) {
       Token previous = node.findPrevious(node.inKeyword);
@@ -344,23 +365,26 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForStatement(ForStatement node) {
-    // Actual: for (va^)
-    // Parsed: for (va^; ;)
-    if (node.initialization == entity && entity is SimpleIdentifier) {
-      if (_isNextTokenSynthetic(entity, TokenType.SEMICOLON)) {
-        _addSuggestion(Keyword.VAR, DART_RELEVANCE_HIGH);
-      }
-    }
+  visitForParts(ForParts node) {
     // Actual: for (int x i^)
     // Parsed: for (int x; i^;)
     // Handle the degenerate case while typing - for (int x i^)
     if (node.condition == entity &&
         entity is SimpleIdentifier &&
+        node is ForPartsWithDeclarations &&
         node.variables != null) {
       if (_isPreviousTokenSynthetic(entity, TokenType.SEMICOLON)) {
         _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
       }
+    }
+  }
+
+  @override
+  visitForStatement(ForStatement node) {
+    // Actual: for (va^)
+    // Parsed: for (va^; ;)
+    if (node.forLoopParts == entity) {
+      _addSuggestion(Keyword.VAR, DART_RELEVANCE_HIGH);
     }
   }
 
@@ -809,15 +833,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
           return statement is IfStatement && statement.elseStatement == null;
         }
       }
-    }
-    return false;
-  }
-
-  static bool _isNextTokenSynthetic(Object entity, TokenType type) {
-    if (entity is AstNode) {
-      Token token = entity.beginToken;
-      Token nextToken = token.next;
-      return nextToken.isSynthetic && nextToken.type == type;
     }
     return false;
   }

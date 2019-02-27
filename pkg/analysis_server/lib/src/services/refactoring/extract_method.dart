@@ -964,6 +964,12 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   }
 
   @override
+  Object visitForParts(ForParts node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   Object visitForStatement(ForStatement node) {
     super.visitForStatement(node);
     if (identical(node.variables, firstSelectedNode)) {

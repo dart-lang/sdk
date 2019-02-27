@@ -4230,18 +4230,6 @@ class ForEachStatementImpl extends ForStatement2Impl
             body);
 
   @override
-  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
-    ..add(awaitKeyword)
-    ..add(forKeyword)
-    ..add(leftParenthesis)
-    ..add(loopVariable)
-    ..add(identifier)
-    ..add(inKeyword)
-    ..add(iterable)
-    ..add(rightParenthesis)
-    ..add(_body);
-
-  @override
   SimpleIdentifier get identifier => forLoopParts is ForEachPartsWithIdentifier
       ? (forLoopParts as ForEachPartsWithIdentifier).identifier
       : null;
@@ -4279,14 +4267,6 @@ class ForEachStatementImpl extends ForStatement2Impl
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitForEachStatement(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    loopVariable?.accept(visitor);
-    identifier?.accept(visitor);
-    iterable?.accept(visitor);
-    _body?.accept(visitor);
-  }
 }
 
 class ForElementImpl extends CollectionElementImpl
@@ -4756,19 +4736,6 @@ class ForStatementImpl extends ForStatement2Impl implements ForStatement {
             rightParenthesis, body);
 
   @override
-  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
-    ..add(forKeyword)
-    ..add(leftParenthesis)
-    ..add(variables)
-    ..add(initialization)
-    ..add(leftSeparator)
-    ..add(condition)
-    ..add(rightSeparator)
-    ..addAll(updaters)
-    ..add(rightParenthesis)
-    ..add(_body);
-
-  @override
   Expression get condition => (forLoopParts as ForParts).condition;
 
   @override
@@ -4819,15 +4786,6 @@ class ForStatementImpl extends ForStatement2Impl implements ForStatement {
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    variables?.accept(visitor);
-    initialization?.accept(visitor);
-    condition?.accept(visitor);
-    updaters.accept(visitor);
-    _body?.accept(visitor);
-  }
 }
 
 /// A node representing the body of a function or method.
