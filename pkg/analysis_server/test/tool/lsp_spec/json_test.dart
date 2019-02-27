@@ -129,6 +129,14 @@ main() {
       expect(RenameFileOptions.canParse({'overwrite': 1}), isFalse);
     });
 
+    test('canParse ignores fields not in the spec', () {
+      expect(
+          RenameFileOptions.canParse({'overwrite': true, 'invalidField': true}),
+          isTrue);
+      expect(RenameFileOptions.canParse({'overwrite': 1, 'invalidField': true}),
+          isFalse);
+    });
+
     test('ResponseMessage can include a null result', () {
       final id = new Either2<num, String>.t1(1);
       final resp = new ResponseMessage(id, null, null, jsonRpcVersion);
@@ -198,6 +206,16 @@ main() {
       final params = TextDocumentPositionParams.fromJson(jsonDecode(input));
       expect(params.textDocument,
           const TypeMatcher<VersionedTextDocumentIdentifier>());
+    });
+
+    test('parses JSON with unknown fields', () {
+      final input =
+          '{"id":1,"invalidField":true,"method":"foo","jsonrpc":"test"}';
+      final message = RequestMessage.fromJson(jsonDecode(input));
+      expect(message.id.valueEquals(1), isTrue);
+      expect(message.method, equals(new Method("foo")));
+      expect(message.params, isNull);
+      expect(message.jsonrpc, equals("test"));
     });
   });
 
