@@ -30,7 +30,6 @@ import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/field_analysis.dart' show JFieldAnalysis;
 import '../js_backend/backend.dart' show FunctionInlineCache, JavaScriptBackend;
-import '../js_backend/runtime_types.dart' show RuntimeTypesSubstitutions;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
@@ -4963,12 +4962,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    if (RuntimeTypesSubstitutions.hasTypeArguments(typeValue)) {
-      InterfaceType interfaceType = typeValue;
+    if (typeValue is InterfaceType && !_canIgnoreTypeArguments(typeValue)) {
       HInstruction representations = typeBuilder
           .buildTypeArgumentRepresentations(typeValue, sourceElement);
       add(representations);
-      ClassEntity element = interfaceType.element;
+      ClassEntity element = typeValue.element;
       js.Name operator = namer.operatorIs(element);
       HInstruction isFieldName =
           graph.addConstantStringFromName(operator, closedWorld);
@@ -5006,6 +5004,24 @@ class KernelSsaGraphBuilder extends ir.Visitor
         abstractValueDomain.boolType,
         sourceInformation));
     return;
+  }
+
+  /// Whether an is-check for [type] can be done ignoring type-arguments.
+  /// This will be true if [type] is raw, or all its type-arguments match the
+  /// type-parameter bounds.
+  bool _canIgnoreTypeArguments(InterfaceType type) {
+    InterfaceType thisType =
+        _elementMap.elementEnvironment.getThisType(type.element);
+    List<DartType> bounds = thisType.typeArguments;
+    for (int i = 0; i < bounds.length; i++) {
+      DartType arg = type.typeArguments[i];
+      if (arg.treatAsDynamic) continue;
+      TypeVariableType typeVariable = bounds[i];
+      DartType bound = _elementMap.elementEnvironment
+          .getTypeVariableBound(typeVariable.element);
+      if (bound != arg) return false;
+    }
+    return true;
   }
 
   @override

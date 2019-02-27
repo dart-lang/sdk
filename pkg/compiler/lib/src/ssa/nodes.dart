@@ -2978,9 +2978,10 @@ class HIs extends HInstruction {
       HInterceptor interceptor,
       AbstractValue type,
       SourceInformation sourceInformation) {
-    assert(
-        (typeExpression.isFunctionType || typeExpression.isInterfaceType) &&
-            typeExpression.treatAsRaw,
+    // TODO(sigmund): re-add `&& typeExpression.treatAsRaw` or something
+    // equivalent (which started failing once we allowed typeExpressions that
+    // contain type parameters matching the original bounds of the type).
+    assert((typeExpression.isFunctionType || typeExpression.isInterfaceType),
         "Unexpected raw is-test type: $typeExpression");
     return new HIs.internal(typeExpression, [expression, interceptor],
         RAW_CHECK, type, sourceInformation);
