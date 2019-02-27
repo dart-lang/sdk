@@ -40,7 +40,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   test_initialize_onlyAllowedOnce() async {
     await initialize();
-    final response = await initialize();
+    final response = await initialize(throwOnFailure: false);
     expect(response, isNotNull);
     expect(response.result, isNull);
     expect(response.error, isNotNull);

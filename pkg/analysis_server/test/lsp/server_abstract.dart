@@ -500,6 +500,7 @@ mixin LspAnalysisServerTestMixin
     List<Uri> workspaceFolders,
     TextDocumentClientCapabilities textDocumentCapabilities,
     WorkspaceClientCapabilities workspaceCapabilities,
+    bool throwOnFailure = true,
   }) async {
     // Assume if none of the project options were set, that we want to default to
     // opening the test project folder.
@@ -527,6 +528,9 @@ mixin LspAnalysisServerTestMixin
       final notification = makeNotification(Method.initialized, null);
       sendNotificationToServer(notification);
       await pumpEventQueue();
+    } else if (throwOnFailure) {
+      throw 'Error during initialize request: '
+          '${response.error.code}: ${response.error.message}';
     }
 
     return response;
