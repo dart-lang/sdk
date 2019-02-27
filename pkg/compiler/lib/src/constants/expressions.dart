@@ -1064,10 +1064,30 @@ class BinaryConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(EvaluationEnvironment environment) {
     ConstantValue leftValue = left.evaluate(environment);
-    ConstantValue rightValue = right.evaluate(environment);
-    if (!leftValue.isConstant || !rightValue.isConstant) {
-      return new NonConstantValue();
+    if (!leftValue.isConstant) return new NonConstantValue();
+    ConstantValue rightValue;
+    // Short-circuit && and || operators.
+    switch (operator.kind) {
+      case BinaryOperatorKind.LOGICAL_AND:
+        if (leftValue.isBool && leftValue.isFalse) {
+          rightValue = new FalseConstantValue();
+        } else {
+          rightValue = right.evaluate(environment);
+        }
+        break;
+
+      case BinaryOperatorKind.LOGICAL_OR:
+        if (leftValue.isBool && leftValue.isTrue) {
+          rightValue = new TrueConstantValue();
+        } else {
+          rightValue = right.evaluate(environment);
+        }
+        break;
+      default:
+        rightValue = right.evaluate(environment);
     }
+
+    if (!rightValue.isConstant) return new NonConstantValue();
     bool isValid = true;
     switch (operator.kind) {
       case BinaryOperatorKind.EQ:
