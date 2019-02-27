@@ -71,6 +71,8 @@ import '../type_inference/type_schema_environment.dart'
 
 import 'body_builder.dart' show combineStatements;
 
+import 'collections.dart' show SpreadElement;
+
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 
 import 'kernel_builder.dart' show KernelLibraryBuilder;

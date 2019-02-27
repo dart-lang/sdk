@@ -188,6 +188,8 @@ abstract class Forest {
 
   Expression asExpression(Expression expression, DartType type, Token location);
 
+  Expression spreadElement(Expression expression, Token token);
+
   /// Return a representation of an assert that appears in a constructor's
   /// initializer list.
   Object assertInitializer(Token assertKeyword, Token leftParenthesis,

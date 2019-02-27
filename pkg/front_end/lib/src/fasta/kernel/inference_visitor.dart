@@ -11,14 +11,25 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
 
   @override
   void defaultExpression(Expression node, DartType typeContext) {
-    unhandled("${node.runtimeType}", "InferenceVistor", node.fileOffset,
+    if (node is SpreadElement) {
+      visitSpreadElement(node, typeContext);
+      return;
+    }
+    unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
   }
 
   @override
   void defaultStatement(Statement node, _) {
-    unhandled("${node.runtimeType}", "InferenceVistor", node.fileOffset,
+    unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
+  }
+
+  void visitSpreadElement(SpreadElement node, DartType typeContext) {
+    node.parent.replaceChild(
+        node,
+        InvalidExpression('unimplemented spread element')
+          ..fileOffset = node.fileOffset);
   }
 
   @override

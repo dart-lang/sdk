@@ -3708,16 +3708,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleSpreadExpression(Token spreadToken) {
     debugEvent("SpreadExpression");
-    // TODO(danrubel) implement spread expression support
-
-    pop(); // expression
-    // TODO(danrubel): Report a more user friendly error message
-    // when an experiment is not enabled
-    handleRecoverableError(
-        fasta.templateUnexpectedToken.withArguments(spreadToken),
-        spreadToken,
-        spreadToken);
-    push(invalidCollectionElement);
+    if (!library.loader.target.enableSpreadCollections) {
+      return handleRecoverableError(
+          fasta.templateUnexpectedToken.withArguments(spreadToken),
+          spreadToken,
+          spreadToken);
+    }
+    push(forest.spreadElement(popForValue(), spreadToken));
   }
 
   @override

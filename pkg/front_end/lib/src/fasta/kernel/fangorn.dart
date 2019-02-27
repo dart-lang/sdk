@@ -53,6 +53,8 @@ import '../scanner.dart' show Token;
 
 import 'body_builder.dart' show LabelTarget;
 
+import 'collections.dart' show SpreadElement;
+
 import 'kernel_expression_generator.dart'
     show
         KernelDeferredAccessGenerator,
@@ -272,6 +274,11 @@ class Fangorn extends Forest {
   Expression asExpression(Expression expression, DartType type, Token token) {
     return new AsExpression(expression, type)
       ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression spreadElement(Expression expression, Token token) {
+    return new SpreadElement(expression)..fileOffset = offsetForToken(token);
   }
 
   @override

@@ -18,6 +18,14 @@ library;
 //   final aMap = <int, int>{1: 1, ...{2: 2}, ...?{3: 3}};
 //                                            ^^^^
 //
+// pkg/front_end/testcases/spread_collection.dart:7:36: Error: Expected ':' after this.
+//   final aMap = <int, int>{1: 1, ...{2: 2}, ...?{3: 3}};
+//                                    ^
+//
+// pkg/front_end/testcases/spread_collection.dart:7:48: Error: Expected ':' after this.
+//   final aMap = <int, int>{1: 1, ...{2: 2}, ...?{3: 3}};
+//                                                ^
+//
 // pkg/front_end/testcases/spread_collection.dart:8:25: Error: Unexpected token '...'.
 //   final aSet = <int>{1, ...[2], ...?[3]};
 //                         ^^^
@@ -30,13 +38,17 @@ library;
 //   final aSetOrMap = {...foo()};
 //                      ^^^
 //
+// pkg/front_end/testcases/spread_collection.dart:9:25: Error: Expected ':' after this.
+//   final aSetOrMap = {...foo()};
+//                         ^
+//
 import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  final dynamic aList = <core::int>[1];
+  final dynamic aList = <core::int>[1, <dynamic>[2], <dynamic>[3]];
   final dynamic aMap = <core::int, core::int>{1: 1};
-  final dynamic aSet = <core::int>{1};
+  final dynamic aSet = <core::int>{1, <dynamic>[2], <dynamic>[3]};
   final dynamic aSetOrMap = <dynamic, dynamic>{};
   core::print(aList);
   core::print(aSet);
