@@ -902,34 +902,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         DartType type = _localsMap.getLocalType(_elementMap, local);
         _state.updateLocal(
             _inferrer, _capturedAndBoxed, local, receiverType, node, type,
-            isNullable: _appliesToNullWithoutThrow(selector));
+            isNullable: selector.appliesToNullWithoutThrow());
       }
     }
 
     return _inferrer.registerCalledSelector(callType, node, selector, mask,
         receiverType, _analyzedMember, arguments, _sideEffectsBuilder,
         inLoop: inLoop, isConditional: false);
-  }
-
-  /// Whether [selector] could be a valid selector on `Null` without throwing.
-  bool _appliesToNullWithoutThrow(Selector selector) {
-    var name = selector.name;
-    if (selector.isOperator && name == "==") return true;
-    // Known getters and valid tear-offs.
-    if (selector.isGetter &&
-        (name == "hashCode" ||
-            name == "runtimeType" ||
-            name == "toString" ||
-            name == "noSuchMethod")) return true;
-    // Calling toString always succeeds, calls to `noSuchMethod` (even well
-    // formed calls) always throw.
-    if (selector.isCall &&
-        name == "toString" &&
-        selector.positionalArgumentCount == 0 &&
-        selector.namedArgumentCount == 0) {
-      return true;
-    }
-    return false;
   }
 
   TypeInformation handleDynamicGet(ir.Node node, Selector selector,
