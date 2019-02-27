@@ -258,7 +258,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..indent();
   if (allowsAnyValue) {
     buffer.writeIndentedln('return ');
-    _writeTypeCheckCondition(buffer, 'obj', consts.first.type);
+    _writeTypeCheckCondition(buffer, 'obj', typeOfValues);
     buffer.writeln(';');
   } else {
     buffer

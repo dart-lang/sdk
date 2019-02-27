@@ -426,7 +426,7 @@ class CodeActionKind {
   final String _value;
 
   static bool canParse(Object obj) {
-    return CodeActionKind.canParse(obj);
+    return obj is String;
   }
 
   /// Base kind for quickfix actions: 'quickfix'
