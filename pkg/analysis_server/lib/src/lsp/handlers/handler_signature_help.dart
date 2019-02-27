@@ -17,8 +17,8 @@ class SignatureHelpHandler
   Method get handlesMessage => Method.textDocument_signatureHelp;
 
   @override
-  TextDocumentPositionParams convertParams(Map<String, dynamic> json) =>
-      TextDocumentPositionParams.fromJson(json);
+  LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
+      TextDocumentPositionParams.jsonHandler;
 
   Future<ErrorOr<SignatureHelp>> handle(
       TextDocumentPositionParams params) async {

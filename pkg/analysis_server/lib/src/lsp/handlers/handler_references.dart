@@ -24,8 +24,8 @@ class ReferencesHandler
   Method get handlesMessage => Method.textDocument_references;
 
   @override
-  ReferenceParams convertParams(Map<String, dynamic> json) =>
-      ReferenceParams.fromJson(json);
+  LspJsonHandler<ReferenceParams> get jsonHandler =>
+      ReferenceParams.jsonHandler;
 
   @override
   Future<ErrorOr<List<Location>>> handle(ReferenceParams params) async {

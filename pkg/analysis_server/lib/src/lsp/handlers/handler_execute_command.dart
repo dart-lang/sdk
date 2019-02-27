@@ -27,8 +27,8 @@ class ExecuteCommandHandler
   Method get handlesMessage => Method.workspace_executeCommand;
 
   @override
-  ExecuteCommandParams convertParams(Map<String, dynamic> json) =>
-      ExecuteCommandParams.fromJson(json);
+  LspJsonHandler<ExecuteCommandParams> get jsonHandler =>
+      ExecuteCommandParams.jsonHandler;
 
   Future<ErrorOr<Object>> handle(ExecuteCommandParams params) async {
     final handler = commandHandlers[params.command];

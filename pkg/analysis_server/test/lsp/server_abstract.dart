@@ -525,7 +525,8 @@ mixin LspAnalysisServerTestMixin
     expect(response.id, equals(request.id));
 
     if (response.error == null) {
-      final notification = makeNotification(Method.initialized, null);
+      final notification =
+          makeNotification(Method.initialized, new InitializedParams());
       sendNotificationToServer(notification);
       await pumpEventQueue();
     } else if (throwOnFailure) {

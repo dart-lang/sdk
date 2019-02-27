@@ -13,7 +13,7 @@ class ShutdownMessageHandler extends MessageHandler<void, void> {
   Method get handlesMessage => Method.shutdown;
 
   @override
-  void convertParams(Map<String, dynamic> json) => null;
+  LspJsonHandler<void> get jsonHandler => NullJsonHandler;
 
   @override
   ErrorOr<void> handle(void _) {

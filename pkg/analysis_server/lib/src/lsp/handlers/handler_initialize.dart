@@ -16,8 +16,8 @@ class InitializeMessageHandler
   Method get handlesMessage => Method.initialize;
 
   @override
-  InitializeParams convertParams(Map<String, dynamic> json) =>
-      InitializeParams.fromJson(json);
+  LspJsonHandler<InitializeParams> get jsonHandler =>
+      InitializeParams.jsonHandler;
 
   ErrorOr<InitializeResult> handle(InitializeParams params) {
     final openWorkspacePaths = <String>[];

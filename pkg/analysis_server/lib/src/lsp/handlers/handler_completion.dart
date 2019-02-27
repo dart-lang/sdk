@@ -45,8 +45,8 @@ class CompletionHandler
   Method get handlesMessage => Method.textDocument_completion;
 
   @override
-  CompletionParams convertParams(Map<String, dynamic> json) =>
-      CompletionParams.fromJson(json);
+  LspJsonHandler<CompletionParams> get jsonHandler =>
+      CompletionParams.jsonHandler;
 
   Future<ErrorOr<List<CompletionItem>>> handle(CompletionParams params) async {
     final completionCapabilities =

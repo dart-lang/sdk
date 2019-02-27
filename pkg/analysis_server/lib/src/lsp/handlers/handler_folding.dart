@@ -17,8 +17,8 @@ class FoldingHandler
   Method get handlesMessage => Method.textDocument_foldingRange;
 
   @override
-  FoldingRangeParams convertParams(Map<String, dynamic> json) =>
-      FoldingRangeParams.fromJson(json);
+  LspJsonHandler<FoldingRangeParams> get jsonHandler =>
+      FoldingRangeParams.jsonHandler;
 
   Future<ErrorOr<List<FoldingRange>>> handle(FoldingRangeParams params) async {
     final path = pathOfDoc(params.textDocument);

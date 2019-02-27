@@ -29,8 +29,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   Method get handlesMessage => Method.textDocument_codeAction;
 
   @override
-  CodeActionParams convertParams(Map<String, dynamic> json) =>
-      CodeActionParams.fromJson(json);
+  LspJsonHandler<CodeActionParams> get jsonHandler =>
+      CodeActionParams.jsonHandler;
 
   Future<ErrorOr<List<Either2<Command, CodeAction>>>> handle(
       CodeActionParams params) async {

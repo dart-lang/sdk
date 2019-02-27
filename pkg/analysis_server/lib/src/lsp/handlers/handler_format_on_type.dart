@@ -18,8 +18,8 @@ class FormatOnTypeHandler
   Method get handlesMessage => Method.textDocument_onTypeFormatting;
 
   @override
-  DocumentOnTypeFormattingParams convertParams(Map<String, dynamic> json) =>
-      DocumentOnTypeFormattingParams.fromJson(json);
+  LspJsonHandler<DocumentOnTypeFormattingParams> get jsonHandler =>
+      DocumentOnTypeFormattingParams.jsonHandler;
 
   ErrorOr<List<TextEdit>> formatFile(String path) {
     final file = server.resourceProvider.getFile(path);

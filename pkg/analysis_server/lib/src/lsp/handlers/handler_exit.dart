@@ -21,7 +21,7 @@ class ExitMessageHandler extends MessageHandler<void, void> {
   Method get handlesMessage => Method.exit;
 
   @override
-  void convertParams(Map<String, dynamic> json) => null;
+  LspJsonHandler<void> get jsonHandler => NullJsonHandler;
 
   @override
   Future<ErrorOr<void>> handle(void _) async {

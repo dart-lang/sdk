@@ -16,8 +16,8 @@ class TextDocumentChangeHandler
   Method get handlesMessage => Method.textDocument_didChange;
 
   @override
-  DidChangeTextDocumentParams convertParams(Map<String, dynamic> json) =>
-      DidChangeTextDocumentParams.fromJson(json);
+  LspJsonHandler<DidChangeTextDocumentParams> get jsonHandler =>
+      DidChangeTextDocumentParams.jsonHandler;
 
   ErrorOr<void> handle(DidChangeTextDocumentParams params) {
     final path = pathOfDoc(params.textDocument);
@@ -54,8 +54,8 @@ class TextDocumentCloseHandler
   Method get handlesMessage => Method.textDocument_didClose;
 
   @override
-  DidCloseTextDocumentParams convertParams(Map<String, dynamic> json) =>
-      DidCloseTextDocumentParams.fromJson(json);
+  LspJsonHandler<DidCloseTextDocumentParams> get jsonHandler =>
+      DidCloseTextDocumentParams.jsonHandler;
 
   ErrorOr<void> handle(DidCloseTextDocumentParams params) {
     final path = pathOfDoc(params.textDocument);
@@ -74,8 +74,8 @@ class TextDocumentOpenHandler
   Method get handlesMessage => Method.textDocument_didOpen;
 
   @override
-  DidOpenTextDocumentParams convertParams(Map<String, dynamic> json) =>
-      DidOpenTextDocumentParams.fromJson(json);
+  LspJsonHandler<DidOpenTextDocumentParams> get jsonHandler =>
+      DidOpenTextDocumentParams.jsonHandler;
 
   ErrorOr<void> handle(DidOpenTextDocumentParams params) {
     final doc = params.textDocument;

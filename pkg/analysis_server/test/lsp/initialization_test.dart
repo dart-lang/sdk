@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -36,6 +37,21 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       (_) =>
           throw 'Expected textDocumentSync capabilities to be a $TextDocumentSyncOptions',
     );
+  }
+
+  test_initialize_invalidParams() async {
+    final params = {'processId': 'invalid'};
+    final request = new RequestMessage(
+      Either2<num, String>.t1(1),
+      Method.initialize,
+      params,
+      jsonRpcVersion,
+    );
+    final response = await sendRequestToServer(request);
+    expect(response.id, equals(request.id));
+    expect(response.error, isNotNull);
+    expect(response.error.code, equals(ErrorCodes.InvalidParams));
+    expect(response.result, isNull);
   }
 
   test_initialize_onlyAllowedOnce() async {

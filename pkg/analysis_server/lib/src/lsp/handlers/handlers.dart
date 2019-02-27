@@ -66,7 +66,8 @@ abstract class MessageHandler<P, R> with Handler<P, R> {
   /// The method that this handler can handle.
   Method get handlesMessage;
 
-  P convertParams(Map<String, dynamic> json);
+  /// A handler that can parse and validate JSON params.
+  LspJsonHandler<P> get jsonHandler;
 
   FutureOr<ErrorOr<R>> handle(P params);
 
@@ -74,7 +75,12 @@ abstract class MessageHandler<P, R> with Handler<P, R> {
   /// return value will be sent back in a [ResponseMessage].
   /// [NotificationMessage]s are not expected to return results.
   FutureOr<ErrorOr<R>> handleMessage(IncomingMessage message) {
-    final params = convertParams(message.params);
+    if (!jsonHandler.validateParams(message.params)) {
+      return error(ErrorCodes.InvalidParams,
+          'Invalid params for ${message.method}', null);
+    }
+
+    final params = jsonHandler.convertParams(message.params);
     return handle(params);
   }
 }

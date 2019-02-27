@@ -13,8 +13,8 @@ class WorkspaceFoldersHandler
   Method get handlesMessage => Method.workspace_didChangeWorkspaceFolders;
 
   @override
-  DidChangeWorkspaceFoldersParams convertParams(Map<String, dynamic> json) =>
-      DidChangeWorkspaceFoldersParams.fromJson(json);
+  LspJsonHandler<DidChangeWorkspaceFoldersParams> get jsonHandler =>
+      DidChangeWorkspaceFoldersParams.jsonHandler;
 
   ErrorOr<void> handle(DidChangeWorkspaceFoldersParams params) {
     final added = params?.event?.added

@@ -223,6 +223,15 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
   }
 }
 
+void _writeJsonHandler(IndentableStringBuffer buffer, Interface interface) {
+  buffer
+    ..writeIndented('static const jsonHandler = ')
+    ..write('const LspJsonHandler(')
+    ..write('${interface.name}.canParse, ${interface.name}.fromJson')
+    ..writeln(');')
+    ..writeln();
+}
+
 void _writeDocCommentsAndAnnotations(
     IndentableStringBuffer buffer, AstNode node) {
   var comment = node.commentText?.trim();
@@ -481,6 +490,7 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeln('{')
     ..indent();
+  _writeJsonHandler(buffer, interface);
   _writeConstructor(buffer, interface);
   _writeFromJsonConstructor(buffer, interface);
   // Handle Consts and Fields separately, since we need to include superclass

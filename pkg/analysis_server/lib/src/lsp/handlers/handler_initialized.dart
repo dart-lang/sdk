@@ -15,8 +15,8 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
   Method get handlesMessage => Method.initialized;
 
   @override
-  InitializedParams convertParams(Map<String, dynamic> json) =>
-      InitializedParams.fromJson(json);
+  LspJsonHandler<InitializedParams> get jsonHandler =>
+      InitializedParams.jsonHandler;
 
   ErrorOr<void> handle(InitializedParams params) {
     server.messageHandler = new InitializedStateMessageHandler(server);
