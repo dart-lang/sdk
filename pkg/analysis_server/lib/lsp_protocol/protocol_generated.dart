@@ -52,6 +52,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
+        (obj['label'] == null || obj['label'] is String) &&
         obj.containsKey('edit') &&
         WorkspaceEdit.canParse(obj['edit']);
   }
@@ -208,7 +209,12 @@ class ClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['workspace'] == null ||
+            WorkspaceClientCapabilities.canParse(obj['workspace'])) &&
+        (obj['textDocument'] == null ||
+            TextDocumentClientCapabilities.canParse(obj['textDocument'])) &&
+        (obj['experimental'] == null || true);
   }
 
   @override
@@ -300,7 +306,14 @@ class CodeAction implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('title') &&
-        obj['title'] is String;
+        obj['title'] is String &&
+        (obj['kind'] == null || CodeActionKind.canParse(obj['kind'])) &&
+        (obj['diagnostics'] == null ||
+            (obj['diagnostics'] is List &&
+                (obj['diagnostics']
+                    .every((item) => Diagnostic.canParse(item))))) &&
+        (obj['edit'] == null || WorkspaceEdit.canParse(obj['edit'])) &&
+        (obj['command'] == null || Command.canParse(obj['command']));
   }
 
   @override
@@ -375,7 +388,10 @@ class CodeActionContext implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('diagnostics') &&
         (obj['diagnostics'] is List &&
-            (obj['diagnostics'].every((item) => Diagnostic.canParse(item))));
+            (obj['diagnostics'].every((item) => Diagnostic.canParse(item)))) &&
+        (obj['only'] == null ||
+            (obj['only'] is List &&
+                (obj['only'].every((item) => CodeActionKind.canParse(item)))));
   }
 
   @override
@@ -501,7 +517,11 @@ class CodeActionOptions implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['codeActionKinds'] == null ||
+            (obj['codeActionKinds'] is List &&
+                (obj['codeActionKinds']
+                    .every((item) => CodeActionKind.canParse(item)))));
   }
 
   @override
@@ -642,7 +662,11 @@ class CodeActionRegistrationOptions
         (obj['documentSelector'] == null ||
             (obj['documentSelector'] is List &&
                 (obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item)))));
+                    .every((item) => DocumentFilter.canParse(item))))) &&
+        (obj['codeActionKinds'] == null ||
+            (obj['codeActionKinds'] is List &&
+                (obj['codeActionKinds']
+                    .every((item) => CodeActionKind.canParse(item)))));
   }
 
   @override
@@ -714,7 +738,9 @@ class CodeLens implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('range') &&
-        Range.canParse(obj['range']);
+        Range.canParse(obj['range']) &&
+        (obj['command'] == null || Command.canParse(obj['command'])) &&
+        (obj['data'] == null || true);
   }
 
   @override
@@ -761,7 +787,8 @@ class CodeLensOptions implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['resolveProvider'] == null || obj['resolveProvider'] is bool);
   }
 
   @override
@@ -861,6 +888,7 @@ class CodeLensRegistrationOptions
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
+        (obj['resolveProvider'] == null || obj['resolveProvider'] is bool) &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] == null ||
             (obj['documentSelector'] is List &&
@@ -1076,7 +1104,12 @@ class ColorPresentation implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('label') &&
-        obj['label'] is String;
+        obj['label'] is String &&
+        (obj['textEdit'] == null || TextEdit.canParse(obj['textEdit'])) &&
+        (obj['additionalTextEdits'] == null ||
+            (obj['additionalTextEdits'] is List &&
+                (obj['additionalTextEdits']
+                    .every((item) => TextEdit.canParse(item)))));
   }
 
   @override
@@ -1252,7 +1285,10 @@ class Command implements ToJsonable {
         obj.containsKey('title') &&
         obj['title'] is String &&
         obj.containsKey('command') &&
-        obj['command'] is String;
+        obj['command'] is String &&
+        (obj['arguments'] == null ||
+            (obj['arguments'] is List &&
+                (obj['arguments'].every((item) => true))));
   }
 
   @override
@@ -1316,7 +1352,8 @@ class CompletionContext implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('triggerKind') &&
-        CompletionTriggerKind.canParse(obj['triggerKind']);
+        CompletionTriggerKind.canParse(obj['triggerKind']) &&
+        (obj['triggerCharacter'] == null || obj['triggerCharacter'] is String);
   }
 
   @override
@@ -1546,7 +1583,29 @@ class CompletionItem implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('label') &&
-        obj['label'] is String;
+        obj['label'] is String &&
+        (obj['kind'] == null || CompletionItemKind.canParse(obj['kind'])) &&
+        (obj['detail'] == null || obj['detail'] is String) &&
+        (obj['documentation'] == null ||
+            (obj['documentation'] is String ||
+                MarkupContent.canParse(obj['documentation']))) &&
+        (obj['deprecated'] == null || obj['deprecated'] is bool) &&
+        (obj['preselect'] == null || obj['preselect'] is bool) &&
+        (obj['sortText'] == null || obj['sortText'] is String) &&
+        (obj['filterText'] == null || obj['filterText'] is String) &&
+        (obj['insertText'] == null || obj['insertText'] is String) &&
+        (obj['insertTextFormat'] == null ||
+            InsertTextFormat.canParse(obj['insertTextFormat'])) &&
+        (obj['textEdit'] == null || TextEdit.canParse(obj['textEdit'])) &&
+        (obj['additionalTextEdits'] == null ||
+            (obj['additionalTextEdits'] is List &&
+                (obj['additionalTextEdits']
+                    .every((item) => TextEdit.canParse(item))))) &&
+        (obj['commitCharacters'] == null ||
+            (obj['commitCharacters'] is List &&
+                (obj['commitCharacters'].every((item) => item is String)))) &&
+        (obj['command'] == null || Command.canParse(obj['command'])) &&
+        (obj['data'] == null || true);
   }
 
   @override
@@ -1745,7 +1804,11 @@ class CompletionOptions implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['resolveProvider'] == null || obj['resolveProvider'] is bool) &&
+        (obj['triggerCharacters'] == null ||
+            (obj['triggerCharacters'] is List &&
+                (obj['triggerCharacters'].every((item) => item is String))));
   }
 
   @override
@@ -1817,6 +1880,8 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
+        (obj['context'] == null ||
+            CompletionContext.canParse(obj['context'])) &&
         obj.containsKey('textDocument') &&
         TextDocumentIdentifier.canParse(obj['textDocument']) &&
         obj.containsKey('position') &&
@@ -1899,6 +1964,10 @@ class CompletionRegistrationOptions
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
+        (obj['triggerCharacters'] == null ||
+            (obj['triggerCharacters'] is List &&
+                (obj['triggerCharacters'].every((item) => item is String)))) &&
+        (obj['resolveProvider'] == null || obj['resolveProvider'] is bool) &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] == null ||
             (obj['documentSelector'] is List &&
@@ -1997,7 +2066,9 @@ class ConfigurationItem implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['scopeUri'] == null || obj['scopeUri'] is String) &&
+        (obj['section'] == null || obj['section'] is String);
   }
 
   @override
@@ -2113,7 +2184,8 @@ class CreateFile implements ToJsonable {
         obj.containsKey('kind') &&
         obj['kind'] is String &&
         obj.containsKey('uri') &&
-        obj['uri'] is String;
+        obj['uri'] is String &&
+        (obj['options'] == null || CreateFileOptions.canParse(obj['options']));
   }
 
   @override
@@ -2167,7 +2239,9 @@ class CreateFileOptions implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['overwrite'] == null || obj['overwrite'] is bool) &&
+        (obj['ignoreIfExists'] == null || obj['ignoreIfExists'] is bool);
   }
 
   @override
@@ -2235,7 +2309,8 @@ class DeleteFile implements ToJsonable {
         obj.containsKey('kind') &&
         obj['kind'] is String &&
         obj.containsKey('uri') &&
-        obj['uri'] is String;
+        obj['uri'] is String &&
+        (obj['options'] == null || DeleteFileOptions.canParse(obj['options']));
   }
 
   @override
@@ -2289,7 +2364,9 @@ class DeleteFileOptions implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['recursive'] == null || obj['recursive'] is bool) &&
+        (obj['ignoreIfNotExists'] == null || obj['ignoreIfNotExists'] is bool);
   }
 
   @override
@@ -2386,8 +2463,16 @@ class Diagnostic implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('range') &&
         Range.canParse(obj['range']) &&
+        (obj['severity'] == null ||
+            DiagnosticSeverity.canParse(obj['severity'])) &&
+        (obj['code'] == null || obj['code'] is String) &&
+        (obj['source'] == null || obj['source'] is String) &&
         obj.containsKey('message') &&
-        obj['message'] is String;
+        obj['message'] is String &&
+        (obj['relatedInformation'] == null ||
+            (obj['relatedInformation'] is List &&
+                (obj['relatedInformation'].every(
+                    (item) => DiagnosticRelatedInformation.canParse(item)))));
   }
 
   @override
@@ -2922,7 +3007,8 @@ class DidSaveTextDocumentParams implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']);
+        TextDocumentIdentifier.canParse(obj['textDocument']) &&
+        (obj['text'] == null || obj['text'] is String);
   }
 
   @override
@@ -2990,7 +3076,10 @@ class DocumentFilter implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['language'] == null || obj['language'] is String) &&
+        (obj['scheme'] == null || obj['scheme'] is String) &&
+        (obj['pattern'] == null || obj['pattern'] is String);
   }
 
   @override
@@ -3116,7 +3205,8 @@ class DocumentHighlight implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('range') &&
-        Range.canParse(obj['range']);
+        Range.canParse(obj['range']) &&
+        (obj['kind'] == null || DocumentHighlightKind.canParse(obj['kind']));
   }
 
   @override
@@ -3210,7 +3300,9 @@ class DocumentLink implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('range') &&
-        Range.canParse(obj['range']);
+        Range.canParse(obj['range']) &&
+        (obj['target'] == null || obj['target'] is String) &&
+        (obj['data'] == null || true);
   }
 
   @override
@@ -3257,7 +3349,8 @@ class DocumentLinkOptions implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['resolveProvider'] == null || obj['resolveProvider'] is bool);
   }
 
   @override
@@ -3358,6 +3451,7 @@ class DocumentLinkRegistrationOptions
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
+        (obj['resolveProvider'] == null || obj['resolveProvider'] is bool) &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] == null ||
             (obj['documentSelector'] is List &&
@@ -3424,7 +3518,10 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('firstTriggerCharacter') &&
-        obj['firstTriggerCharacter'] is String;
+        obj['firstTriggerCharacter'] is String &&
+        (obj['moreTriggerCharacter'] == null ||
+            (obj['moreTriggerCharacter'] is List &&
+                (obj['moreTriggerCharacter'].every((item) => item is String))));
   }
 
   @override
@@ -3590,6 +3687,10 @@ class DocumentOnTypeFormattingRegistrationOptions
     return obj is Map<String, dynamic> &&
         obj.containsKey('firstTriggerCharacter') &&
         obj['firstTriggerCharacter'] is String &&
+        (obj['moreTriggerCharacter'] == null ||
+            (obj['moreTriggerCharacter'] is List &&
+                (obj['moreTriggerCharacter']
+                    .every((item) => item is String)))) &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] == null ||
             (obj['documentSelector'] is List &&
@@ -3786,12 +3887,18 @@ class DocumentSymbol implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('name') &&
         obj['name'] is String &&
+        (obj['detail'] == null || obj['detail'] is String) &&
         obj.containsKey('kind') &&
         SymbolKind.canParse(obj['kind']) &&
+        (obj['deprecated'] == null || obj['deprecated'] is bool) &&
         obj.containsKey('range') &&
         Range.canParse(obj['range']) &&
         obj.containsKey('selectionRange') &&
-        Range.canParse(obj['selectionRange']);
+        Range.canParse(obj['selectionRange']) &&
+        (obj['children'] == null ||
+            (obj['children'] is List &&
+                (obj['children']
+                    .every((item) => DocumentSymbol.canParse(item)))));
   }
 
   @override
@@ -3994,7 +4101,10 @@ class ExecuteCommandParams implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('command') &&
-        obj['command'] is String;
+        obj['command'] is String &&
+        (obj['arguments'] == null ||
+            (obj['arguments'] is List &&
+                (obj['arguments'].every((item) => true))));
   }
 
   @override
@@ -4250,7 +4360,8 @@ class FileSystemWatcher implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('globPattern') &&
-        obj['globPattern'] is String;
+        obj['globPattern'] is String &&
+        (obj['kind'] == null || WatchKind.canParse(obj['kind']));
   }
 
   @override
@@ -4337,8 +4448,11 @@ class FoldingRange implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('startLine') &&
         obj['startLine'] is num &&
+        (obj['startCharacter'] == null || obj['startCharacter'] is num) &&
         obj.containsKey('endLine') &&
-        obj['endLine'] is num;
+        obj['endLine'] is num &&
+        (obj['endCharacter'] == null || obj['endCharacter'] is num) &&
+        (obj['kind'] == null || FoldingRangeKind.canParse(obj['kind']));
   }
 
   @override
@@ -4581,7 +4695,9 @@ class Hover implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('contents') &&
-        (obj['contents'] is String || MarkupContent.canParse(obj['contents']));
+        (obj['contents'] is String ||
+            MarkupContent.canParse(obj['contents'])) &&
+        (obj['range'] == null || Range.canParse(obj['range']));
   }
 
   @override
@@ -4691,10 +4807,17 @@ class InitializeParams implements ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('processId') &&
         (obj['processId'] == null || obj['processId'] is num) &&
+        (obj['rootPath'] == null || obj['rootPath'] is String) &&
         obj.containsKey('rootUri') &&
         (obj['rootUri'] == null || obj['rootUri'] is String) &&
+        (obj['initializationOptions'] == null || true) &&
         obj.containsKey('capabilities') &&
-        ClientCapabilities.canParse(obj['capabilities']);
+        ClientCapabilities.canParse(obj['capabilities']) &&
+        (obj['trace'] == null || obj['trace'] is String) &&
+        (obj['workspaceFolders'] == null ||
+            (obj['workspaceFolders'] is List &&
+                (obj['workspaceFolders']
+                    .every((item) => WorkspaceFolder.canParse(item)))));
   }
 
   @override
@@ -4966,6 +5089,8 @@ class LocationLink implements ToJsonable {
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
+        (obj['originSelectionRange'] == null ||
+            Range.canParse(obj['originSelectionRange'])) &&
         obj.containsKey('targetUri') &&
         obj['targetUri'] is String &&
         obj.containsKey('targetRange') &&
@@ -5536,6 +5661,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('method') &&
         Method.canParse(obj['method']) &&
+        (obj['params'] == null || true) &&
         obj.containsKey('jsonrpc') &&
         obj['jsonrpc'] is String;
   }
@@ -5615,7 +5741,10 @@ class ParameterInformation implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('label') &&
-        obj['label'] is String;
+        obj['label'] is String &&
+        (obj['documentation'] == null ||
+            (obj['documentation'] is String ||
+                MarkupContent.canParse(obj['documentation'])));
   }
 
   @override
@@ -6042,7 +6171,8 @@ class Registration implements ToJsonable {
         obj.containsKey('id') &&
         obj['id'] is String &&
         obj.containsKey('method') &&
-        obj['method'] is String;
+        obj['method'] is String &&
+        (obj['registerOptions'] == null || true);
   }
 
   @override
@@ -6174,7 +6304,8 @@ class RenameFile implements ToJsonable {
         obj.containsKey('oldUri') &&
         obj['oldUri'] is String &&
         obj.containsKey('newUri') &&
-        obj['newUri'] is String;
+        obj['newUri'] is String &&
+        (obj['options'] == null || RenameFileOptions.canParse(obj['options']));
   }
 
   @override
@@ -6230,7 +6361,9 @@ class RenameFileOptions implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['overwrite'] == null || obj['overwrite'] is bool) &&
+        (obj['ignoreIfExists'] == null || obj['ignoreIfExists'] is bool);
   }
 
   @override
@@ -6275,7 +6408,8 @@ class RenameOptions implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['prepareProvider'] == null || obj['prepareProvider'] is bool);
   }
 
   @override
@@ -6404,6 +6538,7 @@ class RenameRegistrationOptions
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
+        (obj['prepareProvider'] == null || obj['prepareProvider'] is bool) &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] == null ||
             (obj['documentSelector'] is List &&
@@ -6486,6 +6621,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
         (obj['id'] is num || obj['id'] is String) &&
         obj.containsKey('method') &&
         Method.canParse(obj['method']) &&
+        (obj['params'] == null || true) &&
         obj.containsKey('jsonrpc') &&
         obj['jsonrpc'] is String;
   }
@@ -6595,7 +6731,8 @@ class ResponseError<D> implements ToJsonable {
         obj.containsKey('code') &&
         ErrorCodes.canParse(obj['code']) &&
         obj.containsKey('message') &&
-        obj['message'] is String;
+        obj['message'] is String &&
+        (obj['data'] == null || obj['data'] is String);
   }
 
   @override
@@ -6673,6 +6810,8 @@ class ResponseMessage implements Message, ToJsonable {
     return obj is Map<String, dynamic> &&
         obj.containsKey('id') &&
         (obj['id'] == null || (obj['id'] is num || obj['id'] is String)) &&
+        (obj['result'] == null || true) &&
+        (obj['error'] == null || ResponseError.canParse(obj['error'])) &&
         obj.containsKey('jsonrpc') &&
         obj['jsonrpc'] is String;
   }
@@ -6723,7 +6862,8 @@ class SaveOptions implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['includeText'] == null || obj['includeText'] is bool);
   }
 
   @override
@@ -7050,7 +7190,60 @@ class ServerCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['textDocumentSync'] == null ||
+            (TextDocumentSyncOptions.canParse(obj['textDocumentSync']) ||
+                obj['textDocumentSync'] is num)) &&
+        (obj['hoverProvider'] == null || obj['hoverProvider'] is bool) &&
+        (obj['completionProvider'] == null ||
+            CompletionOptions.canParse(obj['completionProvider'])) &&
+        (obj['signatureHelpProvider'] == null ||
+            SignatureHelpOptions.canParse(obj['signatureHelpProvider'])) &&
+        (obj['definitionProvider'] == null ||
+            obj['definitionProvider'] is bool) &&
+        (obj['typeDefinitionProvider'] == null ||
+            (obj['typeDefinitionProvider'] is bool || true)) &&
+        (obj['implementationProvider'] == null ||
+            (obj['implementationProvider'] is bool || true)) &&
+        (obj['referencesProvider'] == null ||
+            obj['referencesProvider'] is bool) &&
+        (obj['documentHighlightProvider'] == null ||
+            obj['documentHighlightProvider'] is bool) &&
+        (obj['documentSymbolProvider'] == null ||
+            obj['documentSymbolProvider'] is bool) &&
+        (obj['workspaceSymbolProvider'] == null ||
+            obj['workspaceSymbolProvider'] is bool) &&
+        (obj['codeActionProvider'] == null ||
+            (obj['codeActionProvider'] is bool ||
+                CodeActionOptions.canParse(obj['codeActionProvider']))) &&
+        (obj['codeLensProvider'] == null ||
+            CodeLensOptions.canParse(obj['codeLensProvider'])) &&
+        (obj['documentFormattingProvider'] == null ||
+            obj['documentFormattingProvider'] is bool) &&
+        (obj['documentRangeFormattingProvider'] == null ||
+            obj['documentRangeFormattingProvider'] is bool) &&
+        (obj['documentOnTypeFormattingProvider'] == null ||
+            DocumentOnTypeFormattingOptions.canParse(
+                obj['documentOnTypeFormattingProvider'])) &&
+        (obj['renameProvider'] == null ||
+            (obj['renameProvider'] is bool ||
+                RenameOptions.canParse(obj['renameProvider']))) &&
+        (obj['documentLinkProvider'] == null ||
+            DocumentLinkOptions.canParse(obj['documentLinkProvider'])) &&
+        (obj['colorProvider'] == null ||
+            (obj['colorProvider'] is bool ||
+                ColorProviderOptions.canParse(obj['colorProvider']) ||
+                true)) &&
+        (obj['foldingRangeProvider'] == null ||
+            (obj['foldingRangeProvider'] is bool ||
+                FoldingRangeProviderOptions.canParse(
+                    obj['foldingRangeProvider']) ||
+                true)) &&
+        (obj['executeCommandProvider'] == null ||
+            ExecuteCommandOptions.canParse(obj['executeCommandProvider'])) &&
+        (obj['workspace'] == null ||
+            ServerCapabilitiesWorkspace.canParse(obj['workspace'])) &&
+        (obj['experimental'] == null || true);
   }
 
   @override
@@ -7144,7 +7337,10 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['workspaceFolders'] == null ||
+            ServerCapabilitiesWorkspaceFolders.canParse(
+                obj['workspaceFolders']));
   }
 
   @override
@@ -7199,7 +7395,10 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['supported'] == null || obj['supported'] is bool) &&
+        (obj['changeNotifications'] == null ||
+            obj['changeNotifications'] is bool);
   }
 
   @override
@@ -7327,7 +7526,11 @@ class ShowMessageRequestParams implements ToJsonable {
         obj.containsKey('type') &&
         MessageType.canParse(obj['type']) &&
         obj.containsKey('message') &&
-        obj['message'] is String;
+        obj['message'] is String &&
+        (obj['actions'] == null ||
+            (obj['actions'] is List &&
+                (obj['actions']
+                    .every((item) => MessageActionItem.canParse(item)))));
   }
 
   @override
@@ -7411,7 +7614,9 @@ class SignatureHelp implements ToJsonable {
         obj.containsKey('signatures') &&
         (obj['signatures'] is List &&
             (obj['signatures']
-                .every((item) => SignatureInformation.canParse(item))));
+                .every((item) => SignatureInformation.canParse(item)))) &&
+        (obj['activeSignature'] == null || obj['activeSignature'] is num) &&
+        (obj['activeParameter'] == null || obj['activeParameter'] is num);
   }
 
   @override
@@ -7462,7 +7667,10 @@ class SignatureHelpOptions implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['triggerCharacters'] == null ||
+            (obj['triggerCharacters'] is List &&
+                (obj['triggerCharacters'].every((item) => item is String))));
   }
 
   @override
@@ -7521,6 +7729,9 @@ class SignatureHelpRegistrationOptions
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
+        (obj['triggerCharacters'] == null ||
+            (obj['triggerCharacters'] is List &&
+                (obj['triggerCharacters'].every((item) => item is String)))) &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] == null ||
             (obj['documentSelector'] is List &&
@@ -7604,7 +7815,14 @@ class SignatureInformation implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('label') &&
-        obj['label'] is String;
+        obj['label'] is String &&
+        (obj['documentation'] == null ||
+            (obj['documentation'] is String ||
+                MarkupContent.canParse(obj['documentation']))) &&
+        (obj['parameters'] == null ||
+            (obj['parameters'] is List &&
+                (obj['parameters']
+                    .every((item) => ParameterInformation.canParse(item)))));
   }
 
   @override
@@ -7653,7 +7871,8 @@ class StaticRegistrationOptions implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['id'] == null || obj['id'] is String);
   }
 
   @override
@@ -7749,8 +7968,10 @@ class SymbolInformation implements ToJsonable {
         obj['name'] is String &&
         obj.containsKey('kind') &&
         SymbolKind.canParse(obj['kind']) &&
+        (obj['deprecated'] == null || obj['deprecated'] is bool) &&
         obj.containsKey('location') &&
-        Location.canParse(obj['location']);
+        Location.canParse(obj['location']) &&
+        (obj['containerName'] == null || obj['containerName'] is String);
   }
 
   @override
@@ -8165,7 +8386,67 @@ class TextDocumentClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['synchronization'] == null ||
+            TextDocumentClientCapabilitiesSynchronization.canParse(
+                obj['synchronization'])) &&
+        (obj['completion'] == null ||
+            TextDocumentClientCapabilitiesCompletion.canParse(
+                obj['completion'])) &&
+        (obj['hover'] == null ||
+            TextDocumentClientCapabilitiesHover.canParse(obj['hover'])) &&
+        (obj['signatureHelp'] == null ||
+            TextDocumentClientCapabilitiesSignatureHelp.canParse(
+                obj['signatureHelp'])) &&
+        (obj['references'] == null ||
+            TextDocumentClientCapabilitiesReferences.canParse(
+                obj['references'])) &&
+        (obj['documentHighlight'] == null ||
+            TextDocumentClientCapabilitiesDocumentHighlight.canParse(
+                obj['documentHighlight'])) &&
+        (obj['documentSymbol'] == null ||
+            TextDocumentClientCapabilitiesDocumentSymbol.canParse(
+                obj['documentSymbol'])) &&
+        (obj['formatting'] == null ||
+            TextDocumentClientCapabilitiesFormatting.canParse(
+                obj['formatting'])) &&
+        (obj['rangeFormatting'] == null ||
+            TextDocumentClientCapabilitiesRangeFormatting.canParse(
+                obj['rangeFormatting'])) &&
+        (obj['onTypeFormatting'] == null ||
+            TextDocumentClientCapabilitiesOnTypeFormatting.canParse(
+                obj['onTypeFormatting'])) &&
+        (obj['declaration'] == null ||
+            TextDocumentClientCapabilitiesDeclaration.canParse(
+                obj['declaration'])) &&
+        (obj['definition'] == null ||
+            TextDocumentClientCapabilitiesDefinition.canParse(
+                obj['definition'])) &&
+        (obj['typeDefinition'] == null ||
+            TextDocumentClientCapabilitiesTypeDefinition.canParse(
+                obj['typeDefinition'])) &&
+        (obj['implementation'] == null ||
+            TextDocumentClientCapabilitiesImplementation.canParse(
+                obj['implementation'])) &&
+        (obj['codeAction'] == null ||
+            TextDocumentClientCapabilitiesCodeAction.canParse(
+                obj['codeAction'])) &&
+        (obj['codeLens'] == null ||
+            TextDocumentClientCapabilitiesCodeLens.canParse(obj['codeLens'])) &&
+        (obj['documentLink'] == null ||
+            TextDocumentClientCapabilitiesDocumentLink.canParse(
+                obj['documentLink'])) &&
+        (obj['colorProvider'] == null ||
+            TextDocumentClientCapabilitiesColorProvider.canParse(
+                obj['colorProvider'])) &&
+        (obj['rename'] == null ||
+            TextDocumentClientCapabilitiesRename.canParse(obj['rename'])) &&
+        (obj['publishDiagnostics'] == null ||
+            TextDocumentClientCapabilitiesPublishDiagnostics.canParse(
+                obj['publishDiagnostics'])) &&
+        (obj['foldingRange'] == null ||
+            TextDocumentClientCapabilitiesFoldingRange.canParse(
+                obj['foldingRange']));
   }
 
   @override
@@ -8264,7 +8545,12 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool) &&
+        (obj['codeActionLiteralSupport'] == null ||
+            TextDocumentClientCapabilitiesCodeActionLiteralSupport.canParse(
+                obj['codeActionLiteralSupport']));
   }
 
   @override
@@ -8417,7 +8703,9 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool);
   }
 
   @override
@@ -8462,7 +8750,9 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool);
   }
 
   @override
@@ -8532,7 +8822,16 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool) &&
+        (obj['completionItem'] == null ||
+            TextDocumentClientCapabilitiesCompletionItem.canParse(
+                obj['completionItem'])) &&
+        (obj['completionItemKind'] == null ||
+            TextDocumentClientCapabilitiesCompletionItemKind.canParse(
+                obj['completionItemKind'])) &&
+        (obj['contextSupport'] == null || obj['contextSupport'] is bool);
   }
 
   @override
@@ -8628,7 +8927,17 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['snippetSupport'] == null || obj['snippetSupport'] is bool) &&
+        (obj['commitCharactersSupport'] == null ||
+            obj['commitCharactersSupport'] is bool) &&
+        (obj['documentationFormat'] == null ||
+            (obj['documentationFormat'] is List &&
+                (obj['documentationFormat']
+                    .every((item) => MarkupKind.canParse(item))))) &&
+        (obj['deprecatedSupport'] == null ||
+            obj['deprecatedSupport'] is bool) &&
+        (obj['preselectSupport'] == null || obj['preselectSupport'] is bool);
   }
 
   @override
@@ -8689,7 +8998,11 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['valueSet'] == null ||
+            (obj['valueSet'] is List &&
+                (obj['valueSet']
+                    .every((item) => CompletionItemKind.canParse(item)))));
   }
 
   @override
@@ -8747,7 +9060,10 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool) &&
+        (obj['linkSupport'] == null || obj['linkSupport'] is bool);
   }
 
   @override
@@ -8801,7 +9117,10 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool) &&
+        (obj['linkSupport'] == null || obj['linkSupport'] is bool);
   }
 
   @override
@@ -8847,7 +9166,9 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool);
   }
 
   @override
@@ -8889,7 +9210,9 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool);
   }
 
   @override
@@ -8951,7 +9274,14 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool) &&
+        (obj['symbolKind'] == null ||
+            TextDocumentClientCapabilitiesSymbolKind.canParse(
+                obj['symbolKind'])) &&
+        (obj['hierarchicalDocumentSymbolSupport'] == null ||
+            obj['hierarchicalDocumentSymbolSupport'] is bool);
   }
 
   @override
@@ -9024,7 +9354,11 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool) &&
+        (obj['rangeLimit'] == null || obj['rangeLimit'] is num) &&
+        (obj['lineFoldingOnly'] == null || obj['lineFoldingOnly'] is bool);
   }
 
   @override
@@ -9071,7 +9405,9 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool);
   }
 
   @override
@@ -9126,7 +9462,13 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool) &&
+        (obj['contentFormat'] == null ||
+            (obj['contentFormat'] is List &&
+                (obj['contentFormat']
+                    .every((item) => MarkupKind.canParse(item)))));
   }
 
   @override
@@ -9186,7 +9528,10 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool) &&
+        (obj['linkSupport'] == null || obj['linkSupport'] is bool);
   }
 
   @override
@@ -9232,7 +9577,9 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool);
   }
 
   @override
@@ -9278,7 +9625,9 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['labelOffsetSupport'] == null ||
+            obj['labelOffsetSupport'] is bool);
   }
 
   @override
@@ -9321,7 +9670,9 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['relatedInformation'] == null ||
+            obj['relatedInformation'] is bool);
   }
 
   @override
@@ -9364,7 +9715,9 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool);
   }
 
   @override
@@ -9406,7 +9759,9 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool);
   }
 
   @override
@@ -9458,7 +9813,10 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool) &&
+        (obj['prepareSupport'] == null || obj['prepareSupport'] is bool);
   }
 
   @override
@@ -9516,7 +9874,12 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool) &&
+        (obj['signatureInformation'] == null ||
+            TextDocumentClientCapabilitiesSignatureInformation.canParse(
+                obj['signatureInformation']));
   }
 
   @override
@@ -9577,7 +9940,14 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['documentationFormat'] == null ||
+            (obj['documentationFormat'] is List &&
+                (obj['documentationFormat']
+                    .every((item) => MarkupKind.canParse(item))))) &&
+        (obj['parameterInformation'] == null ||
+            TextDocumentClientCapabilitiesParameterInformation.canParse(
+                obj['parameterInformation']));
   }
 
   @override
@@ -9631,7 +10001,10 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['valueSet'] == null ||
+            (obj['valueSet'] is List &&
+                (obj['valueSet'].every((item) => SymbolKind.canParse(item)))));
   }
 
   @override
@@ -9700,7 +10073,13 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool) &&
+        (obj['willSave'] == null || obj['willSave'] is bool) &&
+        (obj['willSaveWaitUntil'] == null ||
+            obj['willSaveWaitUntil'] is bool) &&
+        (obj['didSave'] == null || obj['didSave'] is bool);
   }
 
   @override
@@ -9763,7 +10142,10 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool) &&
+        (obj['linkSupport'] == null || obj['linkSupport'] is bool);
   }
 
   @override
@@ -9827,6 +10209,8 @@ class TextDocumentContentChangeEvent implements ToJsonable {
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
+        (obj['range'] == null || Range.canParse(obj['range'])) &&
+        (obj['rangeLength'] == null || obj['rangeLength'] is num) &&
         obj.containsKey('text') &&
         obj['text'] is String;
   }
@@ -10261,6 +10645,7 @@ class TextDocumentSaveRegistrationOptions
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
+        (obj['includeText'] == null || obj['includeText'] is bool) &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] == null ||
             (obj['documentSelector'] is List &&
@@ -10378,7 +10763,14 @@ class TextDocumentSyncOptions implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['openClose'] == null || obj['openClose'] is bool) &&
+        (obj['change'] == null ||
+            TextDocumentSyncKind.canParse(obj['change'])) &&
+        (obj['willSave'] == null || obj['willSave'] is bool) &&
+        (obj['willSaveWaitUntil'] == null ||
+            obj['willSaveWaitUntil'] is bool) &&
+        (obj['save'] == null || SaveOptions.canParse(obj['save']));
   }
 
   @override
@@ -10837,7 +11229,24 @@ class WorkspaceClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['applyEdit'] == null || obj['applyEdit'] is bool) &&
+        (obj['workspaceEdit'] == null ||
+            WorkspaceClientCapabilitiesWorkspaceEdit.canParse(
+                obj['workspaceEdit'])) &&
+        (obj['didChangeConfiguration'] == null ||
+            WorkspaceClientCapabilitiesDidChangeConfiguration.canParse(
+                obj['didChangeConfiguration'])) &&
+        (obj['didChangeWatchedFiles'] == null ||
+            WorkspaceClientCapabilitiesDidChangeWatchedFiles.canParse(
+                obj['didChangeWatchedFiles'])) &&
+        (obj['symbol'] == null ||
+            WorkspaceClientCapabilitiesSymbol.canParse(obj['symbol'])) &&
+        (obj['executeCommand'] == null ||
+            WorkspaceClientCapabilitiesExecuteCommand.canParse(
+                obj['executeCommand'])) &&
+        (obj['workspaceFolders'] == null || obj['workspaceFolders'] is bool) &&
+        (obj['configuration'] == null || obj['configuration'] is bool);
   }
 
   @override
@@ -10895,7 +11304,9 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool);
   }
 
   @override
@@ -10940,7 +11351,9 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool);
   }
 
   @override
@@ -10982,7 +11395,9 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool);
   }
 
   @override
@@ -11034,7 +11449,11 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['dynamicRegistration'] == null ||
+            obj['dynamicRegistration'] is bool) &&
+        (obj['symbolKind'] == null ||
+            WorkspaceClientCapabilitiesSymbolKind.canParse(obj['symbolKind']));
   }
 
   @override
@@ -11087,7 +11506,10 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['valueSet'] == null ||
+            (obj['valueSet'] is List &&
+                (obj['valueSet'].every((item) => SymbolKind.canParse(item)))));
   }
 
   @override
@@ -11155,7 +11577,14 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['documentChanges'] == null || obj['documentChanges'] is bool) &&
+        (obj['resourceOperations'] == null ||
+            (obj['resourceOperations'] is List &&
+                (obj['resourceOperations']
+                    .every((item) => ResourceOperationKind.canParse(item))))) &&
+        (obj['failureHandling'] == null ||
+            FailureHandlingKind.canParse(obj['failureHandling']));
   }
 
   @override
@@ -11247,7 +11676,23 @@ class WorkspaceEdit implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+    return obj is Map<String, dynamic> &&
+        (obj['changes'] == null ||
+            (obj['changes'] is Map &&
+                (obj['changes'].keys.every((item) =>
+                    item is String &&
+                    obj['changes'].values.every((item) => (item is List &&
+                        (item.every((item) => TextEdit.canParse(item))))))))) &&
+        (obj['documentChanges'] == null ||
+            ((obj['documentChanges'] is List &&
+                    (obj['documentChanges']
+                        .every((item) => TextDocumentEdit.canParse(item)))) ||
+                (obj['documentChanges'] is List &&
+                    (obj['documentChanges'].every((item) =>
+                        (TextDocumentEdit.canParse(item) ||
+                            CreateFile.canParse(item) ||
+                            RenameFile.canParse(item) ||
+                            DeleteFile.canParse(item)))))));
   }
 
   @override

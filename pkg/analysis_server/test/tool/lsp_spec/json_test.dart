@@ -123,6 +123,12 @@ main() {
       expect(canParse, isTrue);
     });
 
+    test('canParse validates optional fields', () {
+      expect(RenameFileOptions.canParse(<String, Object>{}), isTrue);
+      expect(RenameFileOptions.canParse({'overwrite': true}), isTrue);
+      expect(RenameFileOptions.canParse({'overwrite': 1}), isFalse);
+    });
+
     test('ResponseMessage can include a null result', () {
       final id = new Either2<num, String>.t1(1);
       final resp = new ResponseMessage(id, null, null, jsonRpcVersion);

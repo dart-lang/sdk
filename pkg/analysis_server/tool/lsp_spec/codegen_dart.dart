@@ -164,10 +164,14 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndented('return obj is Map<String, dynamic>');
   // In order to consider this valid for parsing, all fields that may not be
   // undefined must be present and also type check for the correct type.
-  final requiredFields =
-      _getAllFields(interface).where((f) => !f.allowsUndefined);
-  for (var field in requiredFields) {
-    buffer.write(" && obj.containsKey('${field.name}') && ");
+  // Any fields that are optional but present, must still type check.
+  final fields = _getAllFields(interface);
+  for (var field in fields) {
+    if (!field.allowsUndefined) {
+      buffer.write(" && obj.containsKey('${field.name}') && ");
+    } else {
+      buffer.write(" && ");
+    }
     if (field.allowsNull || field.allowsUndefined) {
       buffer.write("(obj['${field.name}'] == null || ");
     }
@@ -427,7 +431,7 @@ void _writeFromJsonConstructor(
   for (final subclassName in _subtypes[interface.name] ?? const <String>[]) {
     final subclass = _interfaces[subclassName];
     buffer
-      ..writeIndentedln('if (${subclass.nameWithTypeArgs}.canParse(json)) {')
+      ..writeIndentedln('if (${subclass.name}.canParse(json)) {')
       ..indent()
       ..writeln('return ${subclass.nameWithTypeArgs}.fromJson(json);')
       ..outdent()
@@ -452,13 +456,13 @@ void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('@override')
     ..writeIndentedln('int get hashCode {')
     ..indent()
-    ..writeIndented('int hash = 0;');
+    ..writeIndentedln('int hash = 0;');
   for (var field in _getAllFields(interface)) {
-    buffer
-        .write('hash = JenkinsSmiHash.combine(hash, ${field.name}.hashCode);');
+    buffer.writeIndentedln(
+        'hash = JenkinsSmiHash.combine(hash, ${field.name}.hashCode);');
   }
   buffer
-    ..writeln('return JenkinsSmiHash.finish(hash);')
+    ..writeIndentedln('return JenkinsSmiHash.finish(hash);')
     ..outdent()
     ..writeIndentedln('}');
 }
@@ -611,16 +615,17 @@ void _writeTypeCheckCondition(
     IndentableStringBuffer buffer, String valueCode, TypeBase type) {
   type = resolveTypeAlias(type);
 
-  final resolvedDartType = type.dartTypeWithTypeArgs;
-  if (resolvedDartType == 'dynamic') {
+  final dartType = type.dartType;
+  final fullDartType = type.dartTypeWithTypeArgs;
+  if (fullDartType == 'dynamic') {
     buffer.write('true');
   } else if (_isSimpleType(type)) {
-    buffer.write('$valueCode is $resolvedDartType');
+    buffer.write('$valueCode is $fullDartType');
   } else if (_isSpecType(type)) {
-    buffer.write('$resolvedDartType.canParse($valueCode)');
+    buffer.write('$dartType.canParse($valueCode)');
   } else if (type is ArrayType) {
     buffer.write('($valueCode is List');
-    if (resolvedDartType != 'dynamic') {
+    if (fullDartType != 'dynamic') {
       // TODO(dantup): If we're happy to assume we never have two lists in a union
       // we could skip this bit.
       buffer.write(' && ($valueCode.every((item) => ');
@@ -630,8 +635,8 @@ void _writeTypeCheckCondition(
     buffer.write(')');
   } else if (type is MapType) {
     buffer.write('($valueCode is Map');
-    if (resolvedDartType != 'dynamic') {
-      buffer..write(' && ((')..write('$valueCode.keys.every((item) => ');
+    if (fullDartType != 'dynamic') {
+      buffer..write(' && (')..write('$valueCode.keys.every((item) => ');
       _writeTypeCheckCondition(buffer, 'item', type.indexType);
       buffer..write('&& $valueCode.values.every((item) => ');
       _writeTypeCheckCondition(buffer, 'item', type.valueType);
@@ -649,7 +654,7 @@ void _writeTypeCheckCondition(
     }
     buffer.write(')');
   } else {
-    throw 'Unable to type check $valueCode against $resolvedDartType';
+    throw 'Unable to type check $valueCode against $fullDartType';
   }
 }
 
