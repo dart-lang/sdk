@@ -639,9 +639,10 @@ class CodeActionRegistrationOptions
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] is List &&
-            (obj['documentSelector']
-                .every((item) => DocumentFilter.canParse(item))));
+        (obj['documentSelector'] == null ||
+            (obj['documentSelector'] is List &&
+                (obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item)))));
   }
 
   @override
@@ -861,9 +862,10 @@ class CodeLensRegistrationOptions
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] is List &&
-            (obj['documentSelector']
-                .every((item) => DocumentFilter.canParse(item))));
+        (obj['documentSelector'] == null ||
+            (obj['documentSelector'] is List &&
+                (obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item)))));
   }
 
   @override
@@ -1898,9 +1900,10 @@ class CompletionRegistrationOptions
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] is List &&
-            (obj['documentSelector']
-                .every((item) => DocumentFilter.canParse(item))));
+        (obj['documentSelector'] == null ||
+            (obj['documentSelector'] is List &&
+                (obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item)))));
   }
 
   @override
@@ -2534,7 +2537,9 @@ class DidChangeConfigurationParams implements ToJsonable {
   }
 
   static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> && obj.containsKey('settings') && true;
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('settings') &&
+        (obj['settings'] == null || true);
   }
 
   @override
@@ -3354,9 +3359,10 @@ class DocumentLinkRegistrationOptions
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] is List &&
-            (obj['documentSelector']
-                .every((item) => DocumentFilter.canParse(item))));
+        (obj['documentSelector'] == null ||
+            (obj['documentSelector'] is List &&
+                (obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item)))));
   }
 
   @override
@@ -3585,9 +3591,10 @@ class DocumentOnTypeFormattingRegistrationOptions
         obj.containsKey('firstTriggerCharacter') &&
         obj['firstTriggerCharacter'] is String &&
         obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] is List &&
-            (obj['documentSelector']
-                .every((item) => DocumentFilter.canParse(item))));
+        (obj['documentSelector'] == null ||
+            (obj['documentSelector'] is List &&
+                (obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item)))));
   }
 
   @override
@@ -4683,9 +4690,9 @@ class InitializeParams implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('processId') &&
-        obj['processId'] is num &&
+        (obj['processId'] == null || obj['processId'] is num) &&
         obj.containsKey('rootUri') &&
-        obj['rootUri'] is String &&
+        (obj['rootUri'] == null || obj['rootUri'] is String) &&
         obj.containsKey('capabilities') &&
         ClientCapabilities.canParse(obj['capabilities']);
   }
@@ -6398,9 +6405,10 @@ class RenameRegistrationOptions
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] is List &&
-            (obj['documentSelector']
-                .every((item) => DocumentFilter.canParse(item))));
+        (obj['documentSelector'] == null ||
+            (obj['documentSelector'] is List &&
+                (obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item)))));
   }
 
   @override
@@ -6664,7 +6672,7 @@ class ResponseMessage implements Message, ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('id') &&
-        (obj['id'] is num || obj['id'] is String) &&
+        (obj['id'] == null || (obj['id'] is num || obj['id'] is String)) &&
         obj.containsKey('jsonrpc') &&
         obj['jsonrpc'] is String;
   }
@@ -7514,9 +7522,10 @@ class SignatureHelpRegistrationOptions
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] is List &&
-            (obj['documentSelector']
-                .every((item) => DocumentFilter.canParse(item))));
+        (obj['documentSelector'] == null ||
+            (obj['documentSelector'] is List &&
+                (obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item)))));
   }
 
   @override
@@ -7862,9 +7871,10 @@ class TextDocumentChangeRegistrationOptions
         obj.containsKey('syncKind') &&
         obj['syncKind'] is num &&
         obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] is List &&
-            (obj['documentSelector']
-                .every((item) => DocumentFilter.canParse(item))));
+        (obj['documentSelector'] == null ||
+            (obj['documentSelector'] is List &&
+                (obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item)))));
   }
 
   @override
@@ -10162,9 +10172,10 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] is List &&
-            (obj['documentSelector']
-                .every((item) => DocumentFilter.canParse(item))));
+        (obj['documentSelector'] == null ||
+            (obj['documentSelector'] is List &&
+                (obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item)))));
   }
 
   @override
@@ -10251,9 +10262,10 @@ class TextDocumentSaveRegistrationOptions
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] is List &&
-            (obj['documentSelector']
-                .every((item) => DocumentFilter.canParse(item))));
+        (obj['documentSelector'] == null ||
+            (obj['documentSelector'] is List &&
+                (obj['documentSelector']
+                    .every((item) => DocumentFilter.canParse(item)))));
   }
 
   @override
@@ -10601,7 +10613,7 @@ class VersionedTextDocumentIdentifier
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('version') &&
-        obj['version'] is num &&
+        (obj['version'] == null || obj['version'] is num) &&
         obj.containsKey('uri') &&
         obj['uri'] is String;
   }

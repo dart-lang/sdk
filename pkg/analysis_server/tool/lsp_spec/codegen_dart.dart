@@ -168,7 +168,13 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
       _getAllFields(interface).where((f) => !f.allowsUndefined);
   for (var field in requiredFields) {
     buffer.write(" && obj.containsKey('${field.name}') && ");
+    if (field.allowsNull || field.allowsUndefined) {
+      buffer.write("(obj['${field.name}'] == null || ");
+    }
     _writeTypeCheckCondition(buffer, "obj['${field.name}']", field.type);
+    if (field.allowsNull || field.allowsUndefined) {
+      buffer.write(")");
+    }
   }
   buffer
     ..writeln(';')

@@ -112,6 +112,17 @@ main() {
       expect(SymbolKind.canParse(-1), isTrue);
     });
 
+    test('canParse allows nulls in nullable and undefinable fields', () {
+      // The only required field in InitializeParams is capabilities, and all
+      // of the fields on that are optional.
+      final canParse = InitializeParams.canParse({
+        'processId': null,
+        'rootUri': null,
+        'capabilities': <String, Object>{}
+      });
+      expect(canParse, isTrue);
+    });
+
     test('ResponseMessage can include a null result', () {
       final id = new Either2<num, String>.t1(1);
       final resp = new ResponseMessage(id, null, null, jsonRpcVersion);
