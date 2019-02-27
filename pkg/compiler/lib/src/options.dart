@@ -66,6 +66,15 @@ class CompilerOptions implements DiagnosticOptions {
   /// [outputUri].
   bool cfeOnly = false;
 
+  /// Flag only meant for dart2js developers to iterate on global inference
+  /// changes.
+  ///
+  /// When working on large apps this flag allows to load serialized data for
+  /// the app (via --read-data), reuse its closed world, and rerun the global
+  /// inference phase (even though the serialized data already contains a global
+  /// inference result).
+  bool debugGlobalInference = false;
+
   /// Resolved constant "environment" values passed to the compiler via the `-D`
   /// flags.
   Map<String, String> environment = const <String, String>{};
@@ -369,7 +378,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
-      ..cfeOnly = _hasOption(options, Flags.cfeOnly);
+      ..cfeOnly = _hasOption(options, Flags.cfeOnly)
+      ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference);
   }
 
   void validate() {
