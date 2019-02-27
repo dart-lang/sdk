@@ -93,8 +93,8 @@ abstract class Iterable<E> {
    *
    * If [generator] is omitted, it defaults to an identity function
    * on integers `(int x) => x`, so it may only be omitted if the type
-   * parameter allows integer values. That is, if [E] is one of
-   * `int`, `num`, `Object` or `dynamic`.
+   * parameter allows integer values. That is, if [E] is a super-type
+   * of [int].
    *
    * As an `Iterable`, `new Iterable.generate(n, generator))` is equivalent to
    * `const [0, ..., n - 1].map(generator)`.

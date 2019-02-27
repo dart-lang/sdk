@@ -374,6 +374,22 @@ class Stopwatch {
 
   @patch
   static int _now() => Primitives.timerTicks();
+
+  @patch
+  int get elapsedMicroseconds {
+    int ticks = elapsedTicks;
+    if (_frequency == 1000000) return ticks;
+    assert(_frequency == 1000);
+    return ticks * 1000;
+  }
+
+  @patch
+  int get elapsedMilliseconds {
+    int ticks = elapsedTicks;
+    if (_frequency == 1000) return ticks;
+    assert(_frequency == 1000000);
+    return ticks ~/ 1000;
+  }
 }
 
 // Patch for List implementation.

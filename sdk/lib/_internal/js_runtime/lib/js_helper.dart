@@ -582,7 +582,7 @@ class Primitives {
     return "Instance of '$name'";
   }
 
-  static num dateNow() => JS('int', r'Date.now()');
+  static int dateNow() => JS('int', r'Date.now()');
 
   static void initTicker() {
     if (timerFrequency != null) return;
@@ -600,7 +600,7 @@ class Primitives {
   }
 
   static int timerFrequency;
-  static Function timerTicks;
+  static int Function() timerTicks;
 
   static String currentUri() {
     requiresPreamble();
