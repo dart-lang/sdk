@@ -190,7 +190,7 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
     return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
   }
 
-  void processMember(MemberEntity member, Map<Id, ActualData> actualMap) {
+  void processMember(MemberEntity member, Map<Id, ActualData<T>> actualMap) {
     if (member.isAbstract) {
       return;
     }
@@ -319,7 +319,7 @@ class CompiledData<T> {
   Map<int, List<String>> computeAnnotations(Uri uri) {
     Map<Id, ActualData<T>> thisMap = actualMaps[uri];
     Map<int, List<String>> annotations = <int, List<String>>{};
-    thisMap.forEach((Id id, ActualData data1) {
+    thisMap.forEach((Id id, ActualData<T> data1) {
       String value1 = '${data1.value}';
       annotations
           .putIfAbsent(data1.offset, () => [])
@@ -332,8 +332,8 @@ class CompiledData<T> {
       Map<Id, ActualData<T>> thisMap, Map<Id, ActualData<T>> otherMap, Uri uri,
       {bool includeMatches: false}) {
     Map<int, List<String>> annotations = <int, List<String>>{};
-    thisMap.forEach((Id id, ActualData data1) {
-      ActualData data2 = otherMap[id];
+    thisMap.forEach((Id id, ActualData<T> data1) {
+      ActualData<T> data2 = otherMap[id];
       String value1 = '${data1.value}';
       if (data1.value != data2?.value) {
         String value2 = '${data2?.value ?? '---'}';
@@ -346,7 +346,7 @@ class CompiledData<T> {
             .add(colorizeMatch(value1));
       }
     });
-    otherMap.forEach((Id id, ActualData data2) {
+    otherMap.forEach((Id id, ActualData<T> data2) {
       if (!thisMap.containsKey(id)) {
         String value1 = '---';
         String value2 = '${data2.value}';
@@ -398,11 +398,11 @@ class IdData<T> {
   Compiler get compiler => _compiledData.compiler;
   ElementEnvironment get elementEnvironment => _compiledData.elementEnvironment;
   Uri get mainUri => _compiledData.mainUri;
-  MemberAnnotations<ActualData> get actualMaps => _actualMaps;
+  MemberAnnotations<ActualData<T>> get actualMaps => _actualMaps;
 
   String actualCode(Uri uri) {
     Map<int, List<String>> annotations = <int, List<String>>{};
-    actualMaps[uri].forEach((Id id, ActualData data) {
+    actualMaps[uri].forEach((Id id, ActualData<T> data) {
       annotations
           .putIfAbsent(data.sourceSpan.begin, () => [])
           .add('${data.value}');
@@ -412,7 +412,7 @@ class IdData<T> {
 
   String diffCode(Uri uri, DataInterpreter<T> dataValidator) {
     Map<int, List<String>> annotations = <int, List<String>>{};
-    actualMaps[uri].forEach((Id id, ActualData data) {
+    actualMaps[uri].forEach((Id id, ActualData<T> data) {
       IdValue expectedValue = expectedMaps[uri][id];
       T actualValue = data.value;
       String unexpectedMessage =
@@ -856,13 +856,14 @@ Future<bool> checkCode<T>(
     }
   }
 
-  data.actualMaps.forEach((Uri uri, Map<Id, ActualData> actualMap) {
+  data.actualMaps.forEach((Uri uri, Map<Id, ActualData<T>> actualMap) {
     checkActualMap(actualMap, data.expectedMaps[uri], uri);
   });
   checkActualMap(data.actualMaps.globalData, data.expectedMaps.globalData);
 
   Set<Id> missingIds = new Set<Id>();
-  void checkMissing(Map<Id, IdValue> expectedMap, Map<Id, ActualData> actualMap,
+  void checkMissing(
+      Map<Id, IdValue> expectedMap, Map<Id, ActualData<T>> actualMap,
       [Uri uri]) {
     expectedMap.forEach((Id id, IdValue expected) {
       if (!actualMap.containsKey(id)) {
