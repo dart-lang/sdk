@@ -470,6 +470,12 @@ spread_collections/inference_test: CompileTimeError
 spread_collections/map_set_ambiguity_test: CompileTimeError
 spread_collections/spread_test: CompileTimeError
 spread_collections/syntax_test: CompileTimeError
+spread_collections/type_error_test/00: DartkCrash
+spread_collections/type_error_test/02: DartkCrash
+spread_collections/type_error_test/03: DartkCrash
+spread_collections/type_error_test/05: DartkCrash
+spread_collections/type_error_test/06: DartkCrash
+spread_collections/type_error_test/09: DartkCrash
 vm/bool_check_stack_traces_test/02: Pass
 vm/causal_async_exception_stack2_test: RuntimeError # Please triage
 vm/causal_async_exception_stack_test: RuntimeError # Please triage
