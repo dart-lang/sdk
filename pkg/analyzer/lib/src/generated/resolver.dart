@@ -37,6 +37,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/dart/constant/constant_verifier.dart';
@@ -1488,6 +1489,16 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       : this._typeSystem = typeSystem ?? new Dart2TypeSystem(null);
 
   @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    TokenType operatorType = node.operator.type;
+    if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
+      _checkForDeadNullCoalesce(
+          node.leftHandSide.staticType, node.rightHandSide);
+    }
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
   void visitBinaryExpression(BinaryExpression node) {
     Token operator = node.operator;
     bool isAmpAmp = operator.type == TokenType.AMPERSAND_AMPERSAND;
@@ -1539,22 +1550,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       _checkForDeadNullCoalesce(node.leftOperand.staticType, node.rightOperand);
     }
     super.visitBinaryExpression(node);
-  }
-
-  @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    TokenType operatorType = node.operator.type;
-    if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      _checkForDeadNullCoalesce(
-          node.leftHandSide.staticType, node.rightHandSide);
-    }
-    super.visitAssignmentExpression(node);
-  }
-
-  void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
-    if (lhsType.nullability == Nullability.nonNullable) {
-      _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, rhs, []);
-    }
   }
 
   /// For each block, this method reports and error on all statements between
@@ -1836,6 +1831,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
         _errorReporter
             .reportErrorForNode(hintCode, name, [library.identifier, nameStr]);
       }
+    }
+  }
+
+  void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
+    if (lhsType.nullability == Nullability.nonNullable) {
+      _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, rhs, []);
     }
   }
 
@@ -4682,9 +4683,8 @@ class ResolverVisitor extends ScopedVisitor {
       DartType elementType = listType.typeArguments[0];
       DartType iterableType =
           typeProvider.iterableType.instantiate([elementType]);
-      for (CollectionElement element in node.elements2) {
-        _pushCollectionTypesDown(element, elementType, iterableType);
-      }
+      _pushCollectionTypesDownToAll(node.elements2,
+          elementType: elementType, iterableType: iterableType);
       InferenceContext.setType(node, listType);
     } else {
       InferenceContext.clearType(node);
@@ -4932,30 +4932,13 @@ class ResolverVisitor extends ScopedVisitor {
         DartType elementType = literalType.typeArguments[0];
         DartType iterableType =
             typeProvider.iterableType.instantiate([elementType]);
-        for (CollectionElement element in node.elements2) {
-          _pushCollectionTypesDown(element, elementType, iterableType);
-        }
+        _pushCollectionTypesDownToAll(node.elements2,
+            elementType: elementType, iterableType: iterableType);
       } else if (typeArguments.length == 2) {
         DartType keyType = typeArguments[0];
         DartType valueType = typeArguments[1];
-
-        void pushTypesDown(CollectionElement element) {
-          if (element is ForElement) {
-            pushTypesDown(element.body);
-          } else if (element is IfElement) {
-            pushTypesDown(element.thenElement);
-            pushTypesDown(element.elseElement);
-          } else if (element is MapLiteralEntry) {
-            InferenceContext.setType(element.key, keyType);
-            InferenceContext.setType(element.value, valueType);
-          } else if (element is SpreadElement) {
-            InferenceContext.setType(element.expression, literalType);
-          }
-        }
-
-        for (CollectionElement element in node.elements2) {
-          pushTypesDown(element);
-        }
+        _pushCollectionTypesDownToAll(node.elements2,
+            iterableType: literalType, keyType: keyType, valueType: valueType);
       }
       InferenceContext.setType(node, literalType);
     } else {
@@ -5376,17 +5359,53 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
-  void _pushCollectionTypesDown(
-      CollectionElement element, DartType elementType, DartType iterableType) {
+  void _pushCollectionTypesDown(CollectionElement element,
+      {DartType elementType,
+      @required DartType iterableType,
+      DartType keyType,
+      DartType valueType}) {
     if (element is ForElement) {
-      _pushCollectionTypesDown(element.body, elementType, iterableType);
+      _pushCollectionTypesDown(element.body,
+          elementType: elementType,
+          iterableType: iterableType,
+          keyType: keyType,
+          valueType: valueType);
     } else if (element is IfElement) {
-      _pushCollectionTypesDown(element.thenElement, elementType, iterableType);
-      _pushCollectionTypesDown(element.elseElement, elementType, iterableType);
+      _pushCollectionTypesDown(element.thenElement,
+          elementType: elementType,
+          iterableType: iterableType,
+          keyType: keyType,
+          valueType: valueType);
+      _pushCollectionTypesDown(element.elseElement,
+          elementType: elementType,
+          iterableType: iterableType,
+          keyType: keyType,
+          valueType: valueType);
     } else if (element is Expression) {
-      InferenceContext.setType(element, elementType);
+      InferenceContext.setType(
+          element, elementType ?? typeProvider.undefinedType);
+    } else if (element is MapLiteralEntry) {
+      InferenceContext.setType(
+          element.key, keyType ?? typeProvider.undefinedType);
+      InferenceContext.setType(
+          element.value, valueType ?? typeProvider.undefinedType);
     } else if (element is SpreadElement) {
       InferenceContext.setType(element.expression, iterableType);
+    }
+  }
+
+  void _pushCollectionTypesDownToAll(List<CollectionElement> elements,
+      {DartType elementType,
+      @required DartType iterableType,
+      DartType keyType,
+      DartType valueType}) {
+    assert(iterableType != null);
+    for (CollectionElement element in elements) {
+      _pushCollectionTypesDown(element,
+          elementType: elementType,
+          iterableType: iterableType,
+          keyType: keyType,
+          valueType: valueType);
     }
   }
 
