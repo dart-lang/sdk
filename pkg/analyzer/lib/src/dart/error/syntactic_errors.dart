@@ -189,6 +189,8 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EXPECTED_TYPE_NAME =
       const ParserErrorCode('EXPECTED_TYPE_NAME', "Expected a type name.");
 
+  static const ParserErrorCode EXPERIMENT_NOT_ENABLED = _EXPERIMENT_NOT_ENABLED;
+
   static const ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
       _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE;
 

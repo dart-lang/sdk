@@ -173,6 +173,12 @@ Encoding:
   template: "Unable to decode bytes as UTF-8."
   bytes: [255]
 
+ExperimentNotEnabled:
+  index: 93
+  template: "This requires the --#string experiment to be enabled."
+  tip: "Try enabling this experiment by adding it to the command line when compiling and running."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
 EmptyNamedParameterList:
   template: "Named parameter lists cannot be empty."
   tip: "Try adding a named parameter to the list."

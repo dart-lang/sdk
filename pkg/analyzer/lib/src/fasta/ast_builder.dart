@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show
         ClassDeclarationImpl,
@@ -14,20 +15,6 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         MixinDeclarationImpl;
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/fasta/parser.dart'
-    show
-        Assert,
-        FormalParameterKind,
-        IdentifierContext,
-        MemberKind,
-        optional,
-        Parser;
-import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
-import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
-import 'package:front_end/src/scanner/token.dart'
-    show SyntheticStringToken, SyntheticToken;
-
-import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
     show
         LocatedMessage,
@@ -48,11 +35,25 @@ import 'package:front_end/src/fasta/messages.dart'
         templateDuplicateLabelInSwitchStatement,
         templateExpectedButGot,
         templateExpectedIdentifier,
+        templateExperimentNotEnabled,
         templateUnexpectedToken;
+import 'package:front_end/src/fasta/parser.dart'
+    show
+        Assert,
+        FormalParameterKind,
+        IdentifierContext,
+        MemberKind,
+        optional,
+        Parser;
+import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/quote.dart';
+import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart'
     show NullValue, StackListener;
+import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
+import 'package:front_end/src/scanner/token.dart'
+    show SyntheticStringToken, SyntheticToken;
 import 'package:kernel/ast.dart' show AsyncMarker;
 
 const _invalidCollectionElement = const _InvalidCollectionElement._();
@@ -328,10 +329,11 @@ class AstBuilder extends StackListener {
         elseElement: elseElement,
       ));
     } else {
-      // TODO(danrubel): Improve error message by indicating to the user
-      // that they need to enable this experiment.
       handleRecoverableError(
-          templateUnexpectedToken.withArguments(ifToken), ifToken, ifToken);
+          templateExperimentNotEnabled
+              .withArguments(EnableString.control_flow_collections),
+          ifToken,
+          ifToken);
       push(_invalidCollectionElement);
     }
   }
@@ -343,8 +345,11 @@ class AstBuilder extends StackListener {
       push(ast.spreadElement(
           spreadOperator: spreadToken, expression: expression));
     } else {
-      handleRecoverableError(templateUnexpectedToken.withArguments(spreadToken),
-          spreadToken, spreadToken);
+      handleRecoverableError(
+          templateExperimentNotEnabled
+              .withArguments(EnableString.spread_collections),
+          spreadToken,
+          spreadToken);
       push(_invalidCollectionElement);
     }
   }
@@ -951,7 +956,10 @@ class AstBuilder extends StackListener {
       ));
     } else {
       handleRecoverableError(
-          templateUnexpectedToken.withArguments(forToken), forToken, forToken);
+          templateExperimentNotEnabled
+              .withArguments(EnableString.control_flow_collections),
+          forToken,
+          forToken);
       push(_invalidCollectionElement);
     }
   }

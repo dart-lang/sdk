@@ -394,6 +394,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.EXPECTED_STRING_LITERAL,
   ParserErrorCode.EXPECTED_TOKEN,
   ParserErrorCode.EXPECTED_TYPE_NAME,
+  ParserErrorCode.EXPERIMENT_NOT_ENABLED,
   ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
   ParserErrorCode.EXTERNAL_AFTER_CONST,
   ParserErrorCode.EXTERNAL_AFTER_FACTORY,

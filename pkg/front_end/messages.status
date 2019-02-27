@@ -140,6 +140,7 @@ ExpectedToken/example: Fail
 ExpectedType/example: Fail
 ExpectedUri/analyzerCode: Fail
 ExpectedUri/example: Fail
+ExperimentNotEnabled/example: Fail
 ExportAfterPart/script1: Fail
 ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail

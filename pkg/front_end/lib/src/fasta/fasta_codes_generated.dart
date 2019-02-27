@@ -2975,6 +2975,34 @@ const MessageCode messageExpectedUri =
     const MessageCode("ExpectedUri", message: r"""Expected a URI.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateExperimentNotEnabled = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""This requires the --#string experiment to be enabled.""",
+    tipTemplate:
+        r"""Try enabling this experiment by adding it to the command line when compiling and running.""",
+    withArguments: _withArgumentsExperimentNotEnabled);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeExperimentNotEnabled =
+    const Code<Message Function(String string)>(
+        "ExperimentNotEnabled", templateExperimentNotEnabled,
+        index: 93);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentNotEnabled(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentNotEnabled,
+      message: """This requires the --${string} experiment to be enabled.""",
+      tip:
+          """Try enabling this experiment by adding it to the command line when compiling and running.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExportAfterPart = messageExportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
