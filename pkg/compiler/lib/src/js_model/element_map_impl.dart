@@ -36,6 +36,7 @@ import '../ir/static_type_base.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
+import '../js_backend/annotations.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_emitter/code_emitter_task.dart';
@@ -147,7 +148,8 @@ class JsKernelToElementMap
       this.reporter,
       Environment environment,
       KernelToElementMapImpl _elementMap,
-      Map<MemberEntity, MemberUsage> liveMemberUsage)
+      Map<MemberEntity, MemberUsage> liveMemberUsage,
+      AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = new JsElementEnvironment(this);
     _commonElements = new CommonElementsImpl(_elementEnvironment);
@@ -219,8 +221,8 @@ class JsKernelToElementMap
       LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
       ClassEntity newClass =
           oldClass != null ? classes.getEntity(oldClass.classIndex) : null;
-      IndexedMember newMember =
-          convertMember(newLibrary, newClass, oldMember, memberUsage);
+      IndexedMember newMember = convertMember(
+          newLibrary, newClass, oldMember, memberUsage, annotations);
       members.register(newMember, data.convert());
       assert(
           newMember.memberIndex == oldMember.memberIndex,
@@ -1531,8 +1533,12 @@ class JsKernelToElementMap
     return createTypedef(library, typedef.name);
   }
 
-  MemberEntity convertMember(LibraryEntity library, ClassEntity cls,
-      IndexedMember member, MemberUsage memberUsage) {
+  MemberEntity convertMember(
+      LibraryEntity library,
+      ClassEntity cls,
+      IndexedMember member,
+      MemberUsage memberUsage,
+      AnnotationsData annotations) {
     Name memberName = new Name(member.memberName.text, library,
         isSetter: member.memberName.isSetter);
     if (member.isField) {
@@ -1543,17 +1549,19 @@ class JsKernelToElementMap
           isConst: field.isConst);
     } else if (member.isConstructor) {
       IndexedConstructor constructor = member;
+      ParameterStructure parameterStructure =
+          annotations.hasNoElision(constructor)
+              ? constructor.parameterStructure
+              : memberUsage.invokedParameters;
       if (constructor.isFactoryConstructor) {
         // TODO(redemption): This should be a JFunction.
-        return createFactoryConstructor(
-            cls, memberName, memberUsage.invokedParameters,
+        return createFactoryConstructor(cls, memberName, parameterStructure,
             isExternal: constructor.isExternal,
             isConst: constructor.isConst,
             isFromEnvironmentConstructor:
                 constructor.isFromEnvironmentConstructor);
       } else {
-        return createGenerativeConstructor(
-            cls, memberName, memberUsage.invokedParameters,
+        return createGenerativeConstructor(cls, memberName, parameterStructure,
             isExternal: constructor.isExternal, isConst: constructor.isConst);
       }
     } else if (member.isGetter) {
@@ -1570,8 +1578,11 @@ class JsKernelToElementMap
           isAbstract: setter.isAbstract);
     } else {
       IndexedFunction function = member;
-      return createMethod(library, cls, memberName,
-          memberUsage.invokedParameters, function.asyncMarker,
+      ParameterStructure parameterStructure = annotations.hasNoElision(function)
+          ? function.parameterStructure
+          : memberUsage.invokedParameters;
+      return createMethod(
+          library, cls, memberName, parameterStructure, function.asyncMarker,
           isStatic: function.isStatic,
           isExternal: function.isExternal,
           isAbstract: function.isAbstract);

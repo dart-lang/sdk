@@ -279,7 +279,9 @@ class JFieldAnalysis implements FieldAnalysis {
                   closedWorld.liveMemberUsage[constructor];
               if (constructorUsage == null) return;
               ParameterStructure invokedParameters =
-                  constructorUsage.invokedParameters;
+                  closedWorld.annotationsData.hasNoElision(constructor)
+                      ? constructor.parameterStructure
+                      : constructorUsage.invokedParameters;
 
               Initializer initializer = data.initializers[constructor];
               if (initializer == null) {

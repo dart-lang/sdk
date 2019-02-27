@@ -63,9 +63,8 @@ class PragmaAnnotation {
       2, 'disableFinal',
       forFunctionsOnly: true, internalOnly: true);
 
-  static const PragmaAnnotation noElision = const PragmaAnnotation(
-      3, 'noElision',
-      forFieldsOnly: true, internalOnly: true);
+  static const PragmaAnnotation noElision =
+      const PragmaAnnotation(3, 'noElision');
 
   static const PragmaAnnotation noThrows = const PragmaAnnotation(4, 'noThrows',
       forFunctionsOnly: true, internalOnly: true);

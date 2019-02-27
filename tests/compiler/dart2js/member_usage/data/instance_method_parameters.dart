@@ -85,6 +85,14 @@ class Class {
   /*element: Class.method8d:invoke,read*/
   method8d(a, {b, c}) {}
 
+  /*element: Class.method9a:invoke=(0)*/
+  @pragma('dart2js:noElision')
+  method9a([a, b]) {}
+
+  /*element: Class.method9b:invoke=(0)*/
+  @pragma('dart2js:noElision')
+  method9b({a, b}) {}
+
   /*element: Class.test:invoke*/
   test() {
     method1();
@@ -125,6 +133,9 @@ class Class {
     method8b(null, b: null);
     method8c(null, c: null);
     method8d;
+
+    method9a();
+    method9b();
   }
 }
 
