@@ -106,6 +106,14 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
     label = '${declaration.name2}.${declaration.name}';
   }
 
+  List<String> relevanceTags;
+  if (declaration.relevanceTags == null) {
+    relevanceTags = null;
+  } else {
+    relevanceTags = List<String>.from(declaration.relevanceTags);
+    relevanceTags.add(declaration.name);
+  }
+
   return protocol.AvailableSuggestion(
     label,
     _protocolElement(declaration),
@@ -116,7 +124,7 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
     parameterNames: declaration.parameterNames,
     parameterTypes: declaration.parameterTypes,
     requiredParameterCount: declaration.requiredParameterCount,
-    relevanceTags: declaration.relevanceTags,
+    relevanceTags: relevanceTags,
   );
 }
 

@@ -72,7 +72,8 @@ class A {}
     "flags": 0
   },
   "relevanceTags": [
-    "package:test/a.dart::A"
+    "package:test/a.dart::A",
+    "A"
   ]
 }
 ''');
@@ -106,7 +107,8 @@ enum MyEnum {
     "flags": 0
   },
   "relevanceTags": [
-    "package:test/a.dart::MyEnum"
+    "package:test/a.dart::MyEnum",
+    "MyEnum"
   ]
 }
 ''');
@@ -126,7 +128,8 @@ enum MyEnum {
     "flags": 0
   },
   "relevanceTags": [
-    "package:test/a.dart::MyEnum"
+    "package:test/a.dart::MyEnum",
+    "aaa"
   ]
 }
 ''');
@@ -146,7 +149,8 @@ enum MyEnum {
     "flags": 0
   },
   "relevanceTags": [
-    "package:test/a.dart::MyEnum"
+    "package:test/a.dart::MyEnum",
+    "bbb"
   ]
 }
 ''');
@@ -181,7 +185,8 @@ var stringV = 'hi';
     "returnType": ""
   },
   "relevanceTags": [
-    "dart:core::bool"
+    "dart:core::bool",
+    "boolV"
   ]
 }
 ''');
@@ -202,7 +207,8 @@ var stringV = 'hi';
     "returnType": ""
   },
   "relevanceTags": [
-    "dart:core::int"
+    "dart:core::int",
+    "intV"
   ]
 }
 ''');
@@ -223,7 +229,8 @@ var stringV = 'hi';
     "returnType": ""
   },
   "relevanceTags": [
-    "dart:core::double"
+    "dart:core::double",
+    "doubleV"
   ]
 }
 ''');
@@ -244,7 +251,8 @@ var stringV = 'hi';
     "returnType": ""
   },
   "relevanceTags": [
-    "dart:core::String"
+    "dart:core::String",
+    "stringV"
   ]
 }
 ''');
