@@ -376,6 +376,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     }
   }
 
+  DART_FORCE_INLINE
   void MarkObject(RawObject* raw_obj) {
     // Fast exit if the raw object is immediate or in new space. No memory
     // access.
