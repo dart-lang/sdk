@@ -2693,12 +2693,11 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
   RawObject* result = interpreter->Call(function, argdesc, argc, argv, thread);
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
   if (RawObject::IsErrorClassId(result->GetClassIdMayBeSmi())) {
-    // Must not allocate handles in the caller's zone.
-    StackZone stack_zone(thread);
+    // Must not leak handles in the caller's zone.
+    HANDLESCOPE(thread);
     // Protect the result in a handle before transitioning, which may trigger
     // GC.
-    const Error& error =
-        Error::Handle(stack_zone.GetZone(), static_cast<RawError*>(result));
+    const Error& error = Error::Handle(Error::RawCast(result));
     // Propagating an error may cause allocation. Check if we need to block for
     // a safepoint by switching to "in VM" execution state.
     TransitionGeneratedToVM transition(thread);
