@@ -1206,6 +1206,16 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleNonNullAssertExpression(Token bang) {
+    debugEvent('NonNullAssertExpression');
+    if (!enableNonNullable) {
+      reportNonNullAssertExpressionNotEnabled(bang);
+    } else {
+      push(ast.postfixExpression(pop(), bang));
+    }
+  }
+
+  @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
       Token comma, Token semicolon) {
     assert(optional('assert', assertKeyword));

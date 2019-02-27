@@ -745,7 +745,7 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
     assertErrors(
-        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 1)]);
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 9, 1)]);
   }
 
   void test_conditionalExpression_precedence_nullableType_as3() {
@@ -761,7 +761,7 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
     assertErrors(
-        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 10, 1)]);
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 10, 1)]);
   }
 
   void test_conditionalExpression_precedence_nullableType_is2() {
@@ -776,7 +776,7 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
     assertErrors(
-        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 1)]);
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 1)]);
   }
 
   void test_conditionalExpression_precedence_nullableType_is3() {
@@ -792,7 +792,7 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
     assertErrors(
-        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 12, 1)]);
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 12, 1)]);
   }
 }
 
@@ -1743,7 +1743,7 @@ $code
 
   void test_enableNonNullable_false() {
     parseCompilationUnit('main() { x is String? ? (x + y) : z; }',
-        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 20, 1)]);
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 20, 1)]);
   }
 
   void test_for() {
@@ -1785,6 +1785,65 @@ $code
 
   void test_gft_nullable_prefixed() {
     parseNNBDCompilationUnit('main() { C.a? Function()? x = 7; }');
+  }
+
+  void test_nullCheck() {
+    var unit = parseNNBDCompilationUnit('f(int? y) { var x = y!; }');
+    FunctionDeclaration function = unit.declarations[0];
+    BlockFunctionBody body = function.functionExpression.body;
+    VariableDeclarationStatement statement = body.block.statements[0];
+    PostfixExpression expression = statement.variables.variables[0].initializer;
+    SimpleIdentifier identifier = expression.operand;
+    expect(identifier.name, 'y');
+    expect(expression.operator.lexeme, '!');
+  }
+
+  void test_nullCheck_disabled() {
+    // TODO(danrubel): remove this once NNBD is enabled by default
+    var unit = parseCompilationUnit('f(int? y) { var x = y!; }', errors: [
+      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
+      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
+    ]);
+    FunctionDeclaration function = unit.declarations[0];
+    BlockFunctionBody body = function.functionExpression.body;
+    VariableDeclarationStatement statement = body.block.statements[0];
+    SimpleIdentifier identifier = statement.variables.variables[0].initializer;
+    expect(identifier.name, 'y');
+  }
+
+  void test_nullCheckInExpression() {
+    parseNNBDCompilationUnit('f(int? y) { var x = y! + 7; }');
+  }
+
+  void test_nullCheckInExpression_disabled() {
+    // TODO(danrubel): remove this once NNBD is enabled by default
+    parseCompilationUnit('f(int? y) { var x = y! + 7; }', errors: [
+      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
+      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
+    ]);
+  }
+
+  @failingTest
+  void test_nullCheckOnLiteral() {
+    // TODO(danrubel): Report error for null check on invalid target
+    parseNNBDCompilationUnit('f() { var x = 0!; }',
+        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 78, 1)]);
+  }
+
+  void test_nullCheckOnLiteral_disabled() {
+    // TODO(danrubel): remove this once NNBD is enabled by default
+    parseCompilationUnit('f() { var x = 0!; }',
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)]);
+  }
+
+  void test_nullCheckOnValue() {
+    parseNNBDCompilationUnit('f(Point p) { var x = p.y! + 7; }');
+  }
+
+  void test_nullCheckOnValue_disabled() {
+    // TODO(danrubel): remove this once NNBD is enabled by default
+    parseCompilationUnit('f(Point p) { var x = p.y! + 7; }',
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 24, 1)]);
   }
 
   void test_is_nullable() {

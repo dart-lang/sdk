@@ -486,6 +486,11 @@ class MiniAstBuilder extends StackListener {
     push(new TypeName(name, typeArguments));
   }
 
+  @override
+  void handleNonNullAssertExpression(Token bang) {
+    reportNonNullAssertExpressionNotEnabled(bang);
+  }
+
   /// Calls [pop] and creates a list with the appropriate type parameter `T`
   /// from the resulting `List<dynamic>`.
   List<T> popTypedList<T>() {

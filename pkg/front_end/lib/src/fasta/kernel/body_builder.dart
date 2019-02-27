@@ -2636,6 +2636,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void handleNonNullAssertExpression(Token bang) {
+    reportNonNullAssertExpressionNotEnabled(bang);
+  }
+
+  @override
   void handleType(Token beginToken, Token questionMark) {
     // TODO(ahe): The scope is wrong for return types of generic functions.
     debugEvent("Type");

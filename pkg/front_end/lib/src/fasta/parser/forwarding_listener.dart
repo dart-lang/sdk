@@ -1262,6 +1262,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleNonNullAssertExpression(Token bang) {
+    listener?.handleNonNullAssertExpression(bang);
+  }
+
+  @override
   void handleNoName(Token token) {
     listener?.handleNoName(token);
   }
@@ -1443,6 +1448,11 @@ class ForwardingListener implements Listener {
   @override
   void reportErrorIfNullableType(Token questionMark) {
     listener?.reportErrorIfNullableType(questionMark);
+  }
+
+  @override
+  void reportNonNullAssertExpressionNotEnabled(Token bang) {
+    listener?.reportNonNullAssertExpressionNotEnabled(bang);
   }
 
   @override

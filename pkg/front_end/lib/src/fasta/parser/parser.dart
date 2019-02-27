@@ -18,6 +18,7 @@ import '../../scanner/token.dart'
         EQUALITY_PRECEDENCE,
         Keyword,
         POSTFIX_PRECEDENCE,
+        PREFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
         SELECTOR_PRECEDENCE,
         SyntheticBeginToken,
@@ -3770,6 +3771,13 @@ class Parser {
           if ((identical(type, TokenType.PLUS_PLUS)) ||
               (identical(type, TokenType.MINUS_MINUS))) {
             listener.handleUnaryPostfixAssignmentExpression(token.next);
+            token = next;
+          }
+        } else if (identical(tokenLevel, PREFIX_PRECEDENCE)) {
+          // The '!' has prefix precedence but here it's being used as a
+          // postfix operator to assert the expression has a non-null value.
+          if ((identical(type, TokenType.BANG))) {
+            listener.handleNonNullAssertExpression(token.next);
             token = next;
           }
         } else if (identical(tokenLevel, SELECTOR_PRECEDENCE)) {
