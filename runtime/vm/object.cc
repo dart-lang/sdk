@@ -6896,10 +6896,11 @@ RawFunction* Function::InstantiateSignatureFrom(
           }
           cls = type_param.parameterized_class();
           param_name = type_param.name();
+          const bool is_generic_covariant = type_param.IsGenericCovariantImpl();
           ASSERT(type_param.IsFinalized());
           type_param ^=
               TypeParameter::New(cls, sig, type_param.index(), param_name, type,
-                                 type_param.token_pos());
+                                 is_generic_covariant, type_param.token_pos());
           type_param.SetIsFinalized();
           if (instantiated_type_params.IsNull()) {
             instantiated_type_params = TypeArguments::New(type_params.Length());
@@ -17835,7 +17836,12 @@ const char* TypeRef::ToCString() const {
 
 void TypeParameter::SetIsFinalized() const {
   ASSERT(!IsFinalized());
-  set_type_state(RawTypeParameter::kFinalizedUninstantiated);
+  set_flags(RawTypeParameter::FinalizedBit::update(true, raw_ptr()->flags_));
+}
+
+void TypeParameter::SetGenericCovariantImpl(bool value) const {
+  set_flags(RawTypeParameter::GenericCovariantImplBit::update(
+      value, raw_ptr()->flags_));
 }
 
 bool TypeParameter::IsInstantiated(Genericity genericity,
@@ -18005,6 +18011,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
                                      intptr_t index,
                                      const String& name,
                                      const AbstractType& bound,
+                                     bool is_generic_covariant_impl,
                                      TokenPosition token_pos) {
   ASSERT(parameterized_class.IsNull() != parameterized_function.IsNull());
   Zone* Z = Thread::Current()->zone();
@@ -18014,10 +18021,10 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
   result.set_index(index);
   result.set_name(name);
   result.set_bound(bound);
+  result.set_flags(0);
+  result.SetGenericCovariantImpl(is_generic_covariant_impl);
   result.SetHash(0);
   result.set_token_pos(token_pos);
-  result.StoreNonPointer(&result.raw_ptr()->type_state_,
-                         RawTypeParameter::kAllocated);
 
   result.SetTypeTestingStub(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
@@ -18029,11 +18036,8 @@ void TypeParameter::set_token_pos(TokenPosition token_pos) const {
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
-void TypeParameter::set_type_state(int8_t state) const {
-  ASSERT((state == RawTypeParameter::kAllocated) ||
-         (state == RawTypeParameter::kBeingFinalized) ||
-         (state == RawTypeParameter::kFinalizedUninstantiated));
-  StoreNonPointer(&raw_ptr()->type_state_, state);
+void TypeParameter::set_flags(uint8_t flags) const {
+  StoreNonPointer(&raw_ptr()->flags_, flags);
 }
 
 const char* TypeParameter::ToCString() const {

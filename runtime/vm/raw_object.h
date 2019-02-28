@@ -1913,6 +1913,15 @@ class RawTypeRef : public RawAbstractType {
 };
 
 class RawTypeParameter : public RawAbstractType {
+ public:
+  enum {
+    kFinalizedBit = 0,
+    kGenericCovariantImplBit,
+  };
+  class FinalizedBit : public BitField<uint8_t, bool, kFinalizedBit, 1> {};
+  class GenericCovariantImplBit
+      : public BitField<uint8_t, bool, kGenericCovariantImplBit, 1> {};
+
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
@@ -1925,7 +1934,7 @@ class RawTypeParameter : public RawAbstractType {
   classid_t parameterized_class_id_;
   TokenPosition token_pos_;
   int16_t index_;
-  int8_t type_state_;
+  uint8_t flags_;
 
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 

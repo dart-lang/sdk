@@ -3053,7 +3053,8 @@ void TypeTranslator::LoadAndSetupTypeParameters(
           set_on_class ? *active_class->klass : Class::Handle(Z),
           parameterized_function, i,
           H.DartIdentifier(lib, helper.name_index_),  // read ith name index.
-          null_bound, TokenPosition::kNoSource);
+          null_bound, helper.IsGenericCovariantImpl(),
+          TokenPosition::kNoSource);
       type_parameters.SetTypeAt(i, parameter);
     }
   }

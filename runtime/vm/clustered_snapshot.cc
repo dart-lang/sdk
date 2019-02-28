@@ -3025,7 +3025,7 @@ class TypeParameterSerializationCluster : public SerializationCluster {
       s->Write<int32_t>(type->ptr()->parameterized_class_id_);
       s->WriteTokenPosition(type->ptr()->token_pos_);
       s->Write<int16_t>(type->ptr()->index_);
-      s->Write<int8_t>(type->ptr()->type_state_);
+      s->Write<uint8_t>(type->ptr()->flags_);
     }
   }
 
@@ -3061,7 +3061,7 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
       type->ptr()->parameterized_class_id_ = d->Read<int32_t>();
       type->ptr()->token_pos_ = d->ReadTokenPosition();
       type->ptr()->index_ = d->Read<int16_t>();
-      type->ptr()->type_state_ = d->Read<int8_t>();
+      type->ptr()->flags_ = d->Read<uint8_t>();
     }
   }
 

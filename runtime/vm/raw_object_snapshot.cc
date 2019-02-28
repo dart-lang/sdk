@@ -237,7 +237,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.set_token_pos(
       TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   type_parameter.set_index(reader->Read<int16_t>());
-  type_parameter.set_type_state(reader->Read<int8_t>());
+  type_parameter.set_flags(reader->Read<uint8_t>());
 
   // Read the code object for the type testing stub and set its entrypoint.
   reader->EnqueueTypePostprocessing(type_parameter);
@@ -266,7 +266,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Only finalized type parameters should be written to a snapshot.
-  ASSERT(ptr()->type_state_ == RawTypeParameter::kFinalizedUninstantiated);
+  ASSERT(FinalizedBit::decode(ptr()->flags_));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -278,7 +278,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   // Write out all the non object pointer fields.
   writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
   writer->Write<int16_t>(ptr()->index_);
-  writer->Write<int8_t>(ptr()->type_state_);
+  writer->Write<uint8_t>(ptr()->flags_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);

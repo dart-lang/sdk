@@ -6544,11 +6544,14 @@ class TypeRef : public AbstractType {
 class TypeParameter : public AbstractType {
  public:
   virtual bool IsFinalized() const {
-    ASSERT(raw_ptr()->type_state_ != RawTypeParameter::kFinalizedInstantiated);
-    return raw_ptr()->type_state_ == RawTypeParameter::kFinalizedUninstantiated;
+    return RawTypeParameter::FinalizedBit::decode(raw_ptr()->flags_);
   }
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const { return false; }
+  bool IsGenericCovariantImpl() const {
+    return RawTypeParameter::GenericCovariantImplBit::decode(raw_ptr()->flags_);
+  }
+  void SetGenericCovariantImpl(bool value) const;
   virtual bool HasTypeClass() const { return false; }
   virtual classid_t type_class_id() const { return kIllegalCid; }
   classid_t parameterized_class_id() const;
@@ -6600,6 +6603,7 @@ class TypeParameter : public AbstractType {
                                intptr_t index,
                                const String& name,
                                const AbstractType& bound,
+                               bool is_generic_covariant_impl,
                                TokenPosition token_pos);
 
  private:
@@ -6610,7 +6614,7 @@ class TypeParameter : public AbstractType {
   void set_parameterized_function(const Function& value) const;
   void set_name(const String& value) const;
   void set_token_pos(TokenPosition token_pos) const;
-  void set_type_state(int8_t state) const;
+  void set_flags(uint8_t flags) const;
 
   static RawTypeParameter* New();
 
