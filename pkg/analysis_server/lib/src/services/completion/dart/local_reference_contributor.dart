@@ -54,7 +54,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
 
         // Do not suggest loop variable of a ForEachStatement
         // when completing the expression of the ForEachStatement
-        if (node is ForEachStatement) {
+        if (node is ForStatement2 && node.forLoopParts is ForEachParts) {
           node = node.parent;
         } else if (node is ForEachParts) {
           node = node.parent.parent;

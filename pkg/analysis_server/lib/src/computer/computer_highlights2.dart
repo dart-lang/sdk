@@ -578,24 +578,10 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN);
-    computer._addRegion_token(node.forKeyword, HighlightRegionType.KEYWORD);
-    computer._addRegion_token(node.inKeyword, HighlightRegionType.KEYWORD);
-    super.visitForEachStatement(node);
-  }
-
-  @override
   void visitForElement(ForElement node) {
     computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.forKeyword, HighlightRegionType.KEYWORD);
     super.visitForElement(node);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    computer._addRegion_token(node.forKeyword, HighlightRegionType.KEYWORD);
-    super.visitForStatement(node);
   }
 
   @override
@@ -712,13 +698,6 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitMapLiteral(MapLiteral node) {
-    computer._addRegion_node(node, HighlightRegionType.LITERAL_MAP);
-    computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
-    super.visitMapLiteral(node);
-  }
-
-  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
@@ -780,13 +759,6 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<void> {
   void visitReturnStatement(ReturnStatement node) {
     computer._addRegion_token(node.returnKeyword, HighlightRegionType.KEYWORD);
     super.visitReturnStatement(node);
-  }
-
-  @override
-  void visitSetLiteral(SetLiteral node) {
-//    computer._addRegion_node(node, HighlightRegionType.LITERAL_SET);
-    computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
-    super.visitSetLiteral(node);
   }
 
   @override

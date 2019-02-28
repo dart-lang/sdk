@@ -327,27 +327,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForEachStatement(ForEachStatement node) {
-    if (entity == node.inKeyword) {
-      Token previous = node.findPrevious(node.inKeyword);
-      if (previous is SyntheticStringToken && previous.lexeme == 'in') {
-        previous = node.findPrevious(previous);
-      }
-      if (previous != null && previous.type == TokenType.EQ) {
-        _addSuggestions([
-          Keyword.CONST,
-          Keyword.FALSE,
-          Keyword.NEW,
-          Keyword.NULL,
-          Keyword.TRUE
-        ]);
-      } else {
-        _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
-      }
-    }
-  }
-
-  @override
   visitFormalParameterList(FormalParameterList node) {
     AstNode constructorDeclaration =
         node.thisOrAncestorOfType<ConstructorDeclaration>();
@@ -380,7 +359,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  visitForStatement2(ForStatement2 node) {
     // Actual: for (va^)
     // Parsed: for (va^; ;)
     if (node.forLoopParts == entity) {
@@ -800,9 +779,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       node.thisOrAncestorOfType<DoStatement>() != null;
 
   bool _inForLoop(AstNode node) =>
-      node.thisOrAncestorMatching(
-          (p) => p is ForStatement || p is ForEachStatement) !=
-      null;
+      node.thisOrAncestorMatching((p) => p is ForStatement2) != null;
 
   bool _inLoop(AstNode node) =>
       _inDoLoop(node) || _inForLoop(node) || _inWhileLoop(node);

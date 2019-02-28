@@ -221,12 +221,16 @@ class AssistProcessor {
     DeclaredIdentifier declaredIdentifier =
         node.thisOrAncestorOfType<DeclaredIdentifier>();
     if (declaredIdentifier == null) {
-      ForEachStatement forEach = node.thisOrAncestorOfType<ForEachStatement>();
+      ForStatement2 forEach = node.thisOrAncestorMatching(
+          (node) => node is ForStatement2 && node.forLoopParts is ForEachParts);
+      ForEachParts forEachParts = forEach?.forLoopParts;
       int offset = node.offset;
       if (forEach != null &&
-          forEach.iterable != null &&
-          offset < forEach.iterable.offset) {
-        declaredIdentifier = forEach.loopVariable;
+          forEachParts.iterable != null &&
+          offset < forEachParts.iterable.offset) {
+        declaredIdentifier = forEachParts is ForEachPartsWithDeclaration
+            ? forEachParts.loopVariable
+            : null;
       }
     }
     if (declaredIdentifier == null) {
@@ -1422,26 +1426,30 @@ class AssistProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // find enclosing ForEachStatement
-    ForEachStatement forEachStatement =
-        node.thisOrAncestorOfType<ForEachStatement>();
+    ForStatement2 forEachStatement = node.thisOrAncestorMatching(
+        (node) => node is ForStatement2 && node.forLoopParts is ForEachParts);
     if (forEachStatement == null) {
       _coverageMarker();
       return;
     }
+    ForEachParts forEachParts = forEachStatement.forLoopParts;
     if (selectionOffset < forEachStatement.offset ||
         forEachStatement.rightParenthesis.end < selectionOffset) {
       _coverageMarker();
       return;
     }
     // loop should declare variable
-    DeclaredIdentifier loopVariable = forEachStatement.loopVariable;
+    DeclaredIdentifier loopVariable =
+        forEachParts is ForEachPartsWithDeclaration
+            ? forEachParts.loopVariable
+            : null;
     if (loopVariable == null) {
       _coverageMarker();
       return;
     }
     // iterable should be VariableElement
     String listName;
-    Expression iterable = forEachStatement.iterable;
+    Expression iterable = forEachParts.iterable;
     if (iterable is SimpleIdentifier &&
         iterable.staticElement is VariableElement) {
       listName = iterable.name;
