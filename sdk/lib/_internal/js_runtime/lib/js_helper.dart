@@ -600,7 +600,7 @@ class Primitives {
   }
 
   static int timerFrequency;
-  static int Function() timerTicks;
+  static Function timerTicks;
 
   static String currentUri() {
     requiresPreamble();
