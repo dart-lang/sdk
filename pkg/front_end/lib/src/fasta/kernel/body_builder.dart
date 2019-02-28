@@ -6,6 +6,8 @@ library fasta.body_builder;
 
 import 'dart:core' hide MapEntry;
 
+import 'collections.dart' show SpreadElement, SpreadMapEntry;
+
 import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart' as fasta;
@@ -2559,12 +2561,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       valueType = implicitTypeArgument;
     }
 
-    // TODO(danrubel): Revise once spread collection entries are supported.
     List<MapEntry> entries = <MapEntry>[];
     if (setOrMapEntries != null) {
       for (var entry in setOrMapEntries) {
         if (entry is MapEntry) {
           entries.add(entry);
+        } else if (entry is SpreadElement) {
+          entries.add(new SpreadMapEntry(entry.expression));
         } else {
           addProblem(
             fasta.templateExpectedAfterButGot.withArguments(':'),

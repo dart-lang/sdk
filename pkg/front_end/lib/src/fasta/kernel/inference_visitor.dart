@@ -785,11 +785,19 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     List<Expression> cachedKeys = new List(node.entries.length);
     List<Expression> cachedValues = new List(node.entries.length);
     for (int i = 0; i < node.entries.length; i++) {
-      cachedKeys[i] = node.entries[i].key;
-      cachedValues[i] = node.entries[i].value;
+      MapEntry entry = node.entries[i];
+      if (entry is! SpreadMapEntry) {
+        cachedKeys[i] = node.entries[i].key;
+        cachedValues[i] = node.entries[i].value;
+      }
     }
     if (inferenceNeeded || typeChecksNeeded) {
       for (MapEntry entry in node.entries) {
+        if (entry is SpreadMapEntry) {
+          actualTypes.add(const BottomType());
+          actualTypes.add(inferrer.coreTypes.nullClass.rawType);
+          continue;
+        }
         Expression key = entry.key;
         inferrer.inferExpression(key, inferredKeyType, true,
             isVoidAllowed: true);
@@ -825,6 +833,13 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     if (typeChecksNeeded) {
       for (int i = 0; i < node.entries.length; ++i) {
         Expression keyJudgment = cachedKeys[i];
+        if (keyJudgment == null) {
+          node.entries[i] = new MapEntry(
+              new InvalidExpression('unimplemented spread entry')
+                ..fileOffset = node.fileOffset,
+              new NullLiteral()..parent = node);
+          continue;
+        }
         inferrer.ensureAssignable(node.keyType, actualTypes[2 * i], keyJudgment,
             keyJudgment.fileOffset,
             isVoidAllowed: node.keyType is VoidType);
