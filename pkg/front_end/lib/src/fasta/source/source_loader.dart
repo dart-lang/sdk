@@ -1111,6 +1111,9 @@ class SourceLoader extends Loader<Library> {
   KernelClassBuilder computeClassBuilderFromTargetClass(Class cls) {
     Library kernelLibrary = cls.enclosingLibrary;
     LibraryBuilder library = builders[kernelLibrary.importUri];
+    if (library == null) {
+      return target.dillTarget.loader.computeClassBuilderFromTargetClass(cls);
+    }
     return library[cls.name];
   }
 
