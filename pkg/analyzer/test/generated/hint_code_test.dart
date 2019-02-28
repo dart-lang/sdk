@@ -13,7 +13,11 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../src/util/yaml_test.dart';
 import 'resolver_test_case.dart';
 
-main() {}
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(HintCodeTest);
+  });
+}
 
 /// The contents of the 'meta' package. Code that uses this variable should be
 /// converted to use PackageMixin.addMetaPackage.
@@ -63,6 +67,9 @@ class _VisibleForTesting {
 
 @reflectiveTest
 class HintCodeTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   @override
   void reset() {
     super.resetWith(packages: [
