@@ -225,6 +225,14 @@ class Parser {
   @deprecated
   void set enableAssertInitializer(bool enable) {}
 
+  /// Enables or disables parsing of control flow collections.
+  void set enableControlFlowCollections(bool value) {
+    if (value) {
+      throw new UnimplementedError('control_flow_collections experiment'
+          ' not supported by analyzer parser');
+    }
+  }
+
   /// Enables or disables non-nullable by default.
   void set enableNonNullable(bool value) {
     if (value) {
@@ -254,14 +262,6 @@ class Parser {
     if (value) {
       throw new UnimplementedError(
           'spread_collections experiment not supported by analyzer parser');
-    }
-  }
-
-  /// Enables or disables parsing of control flow collections.
-  void set enableControlFlowCollections(bool value) {
-    if (value) {
-      throw new UnimplementedError('control_flow_collections experiment'
-          ' not supported by analyzer parser');
     }
   }
 
