@@ -9,21 +9,38 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
+typedef _InterfaceTypePredicate = bool Function(InterfaceType type);
+
+/// Returns a predicate which returns whether a given [InterfaceTypeDefinition]
+/// is equal to [definition].
 _InterfaceTypePredicate _buildImplementsDefinitionPredicate(
         InterfaceTypeDefinition definition) =>
     (InterfaceType interface) =>
         interface.name == definition.name &&
         interface.element.library.name == definition.library;
 
+/// Returns all implemented interfaces of [type].
+///
+/// This flattens all of the super-interfaces of [type] into one list.
 List<InterfaceType> _findImplementedInterfaces(InterfaceType type,
-        {List<InterfaceType> acc = const []}) =>
-    acc.contains(type)
-        ? acc
+        {List<InterfaceType> accumulator = const []}) =>
+    accumulator.contains(type)
+        ? accumulator
         : type.interfaces.fold(
             <InterfaceType>[type],
             (List<InterfaceType> acc, InterfaceType e) => new List.from(acc)
-              ..addAll(_findImplementedInterfaces(e, acc: acc)));
+              ..addAll(_findImplementedInterfaces(e, accumulator: acc)));
 
+/// Returns the first type argument on [definition], as implemented by [type].
+///
+/// In the simplest case, [type] is the same class as [definition]. For
+/// example, given the definition `List<E>` and the type `List<int>`,
+/// this function returns the DartType for `int`.
+///
+/// In a more complicated case, we must traverse [type]'s interfaces to find
+/// [definition]. For example, given the definition `Set<E>` and the type `A`
+/// where `A implements B<List, String>` and `B<E, F> implements Set<F>, C<E>`,
+/// this function returns the DartType for `String`.
 DartType _findIterableTypeArgument(
     InterfaceTypeDefinition definition, InterfaceType type,
     {List<InterfaceType> accumulator = const []}) {
@@ -56,20 +73,22 @@ bool _isParameterizedMethodInvocation(
     node.methodName.name == methodName &&
     node.argumentList.arguments.length == 1;
 
-typedef bool _InterfaceTypePredicate(InterfaceType type);
-
 /// Base class for visitor used in rules where we want to lint about invoking
-/// methods on generic classes where the parameter is unrelated to the parameter
-/// type of the class. Extending this visitor is as simple as knowing the method,
-/// class and library that uniquely define the target, i.e. implement only
-/// [definition] and [methodName].
+/// methods on generic classes where the type of the singular argument is
+/// unrelated to the singular type argument of the class. Extending this
+/// visitor is as simple as knowing the method, class and library that uniquely
+/// define the target, i.e. implement only [definition] and [methodName].
 abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   UnrelatedTypesProcessors(this.rule);
 
+  /// The type definition which this [UnrelatedTypesProcessors] is concerned
+  /// with.
   InterfaceTypeDefinition get definition;
 
+  /// The name of the method which this [UnrelatedTypesProcessors] is concerned
+  /// with.
   String get methodName;
 
   @override
@@ -78,28 +97,39 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
       return;
     }
 
-    DartType type;
+    // At this point, we know that [node] is an invocation of a method which
+    // has the same name as the method that this UnrelatedTypesProcessors] is
+    // concerned with, and that the method has a single parameter.
+    //
+    // We've completed the "cheap" checks, and must now continue with the
+    // arduous task of determining whether the method target implements
+    // [definition].
+
+    DartType targetType;
     if (node.target != null) {
-      type = node.target.staticType;
+      targetType = node.target.staticType;
     } else {
-      var classDeclaration =
+      final classDeclaration =
           node.thisOrAncestorOfType<ClassOrMixinDeclaration>();
       if (classDeclaration == null) {
-        type = null;
+        targetType = null;
       } else if (classDeclaration is ClassDeclaration) {
-        type = resolutionMap
+        targetType = resolutionMap
             .elementDeclaredByClassDeclaration(classDeclaration)
             ?.type;
       } else if (classDeclaration is MixinDeclaration) {
-        type = resolutionMap
+        targetType = resolutionMap
             .elementDeclaredByMixinDeclaration(classDeclaration)
             ?.type;
       }
     }
     Expression argument = node.argumentList.arguments.first;
-    if (type is InterfaceType &&
-        DartTypeUtilities.unrelatedTypes(
-            argument.staticType, _findIterableTypeArgument(definition, type))) {
+
+    // Finally, determine whether the type of the argument is related to the
+    // type of the method target.
+    if (targetType is InterfaceType &&
+        DartTypeUtilities.unrelatedTypes(argument.staticType,
+            _findIterableTypeArgument(definition, targetType))) {
       rule.reportLint(node);
     }
   }
