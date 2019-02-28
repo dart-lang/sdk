@@ -42,8 +42,8 @@ io/platform_resolved_executable_test/04: RuntimeError
 io/arguments_test: Fail # Test harness passes runtime arguments to the compiler
 io/test_runner_test: SkipByDesign # Is not relevant for AOT.
 
-[ $mode == product ]
-ffi/function_stress_test: SkipByDesign # Requires --verbose-gc, which isn't included in product.
+[ $mode == product || $compiler == dartkp ]
+ffi/function_stress_test: SkipByDesign # Requires --verbose-gc, which isn't included in product. FFI isn't supported on AOT yet.
 
 [ $fasta ]
 deferred_transitive_import_error_test: CompileTimeError
