@@ -64,7 +64,7 @@ void testLoopVariableInference() {
   Expect.listEquals(<int>[1], [for (int i in expectDynamic([1]))]);
 
   // Loop variable type is pushed into initializer.
-  Expect.listEquals(<int>[1], [for (int i = expectInt(1), i < 2; i++) i]);
+  Expect.listEquals(<int>[1], [for (int i = expectInt(1); i < 2; i++) i]);
 }
 
 void testTopDownInference() {
