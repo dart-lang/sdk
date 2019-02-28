@@ -36,17 +36,18 @@ class TestExit {
 }
 
 class TestLogger implements Logger {
+  final bool debug;
   final Ansi ansi;
   final stdoutBuffer = new StringBuffer();
   final stderrBuffer = new StringBuffer();
 
-  TestLogger() : this.ansi = new Ansi(false);
+  TestLogger({this.debug = false}) : this.ansi = new Ansi(false);
 
   @override
   void flush() {}
 
   @override
-  bool get isVerbose => false;
+  bool get isVerbose => debug;
 
   @override
   Progress progress(String message) {
@@ -64,7 +65,11 @@ class TestLogger implements Logger {
   }
 
   @override
-  void trace(String message) {}
+  void trace(String message) {
+    if (debug) {
+      stdoutBuffer.writeln(message);
+    }
+  }
 }
 
 void expectHasSuggestion(
