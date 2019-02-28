@@ -1561,7 +1561,7 @@ RedefinitionInstr* FlowGraph::EnsureRedefinition(Instruction* prev,
   RedefinitionInstr* redef = new RedefinitionInstr(new Value(original));
 
   // Don't set the constrained type when the type is None(), which denotes an
-  // unreachable value (e.g. using value null after an explicit null check).
+  // unreachable value (e.g. using value null after some form of null check).
   if (!compile_type.IsNone()) {
     redef->set_constrained_type(new CompileType(compile_type));
   }
@@ -1581,19 +1581,19 @@ void FlowGraph::RemoveRedefinitions(bool keep_checks) {
     for (ForwardInstructionIterator instr_it(block_it.Current());
          !instr_it.Done(); instr_it.Advance()) {
       Instruction* instruction = instr_it.Current();
-      if (instruction->IsRedefinition()) {
-        RedefinitionInstr* redef = instruction->AsRedefinition();
+      if (auto redef = instruction->AsRedefinition()) {
         redef->ReplaceUsesWith(redef->value()->definition());
         instr_it.RemoveCurrentFromGraph();
       } else if (keep_checks) {
         continue;
-      } else if (instruction->IsCheckArrayBound()) {
-        CheckArrayBoundInstr* check = instruction->AsCheckArrayBound();
+      } else if (auto check = instruction->AsCheckArrayBound()) {
         check->ReplaceUsesWith(check->index()->definition());
         check->ClearSSATempIndex();
-      } else if (instruction->IsGenericCheckBound()) {
-        GenericCheckBoundInstr* check = instruction->AsGenericCheckBound();
+      } else if (auto check = instruction->AsGenericCheckBound()) {
         check->ReplaceUsesWith(check->index()->definition());
+        check->ClearSSATempIndex();
+      } else if (auto check = instruction->AsCheckNull()) {
+        check->ReplaceUsesWith(check->value()->definition());
         check->ClearSSATempIndex();
       }
     }

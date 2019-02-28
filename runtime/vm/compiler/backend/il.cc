@@ -501,16 +501,19 @@ Object& Definition::constant_value() {
 
 Definition* Definition::OriginalDefinition() {
   Definition* defn = this;
-  while (defn->IsRedefinition() || defn->IsAssertAssignable() ||
-         defn->IsCheckArrayBound() || defn->IsGenericCheckBound()) {
-    if (defn->IsRedefinition()) {
-      defn = defn->AsRedefinition()->value()->definition();
-    } else if (defn->IsAssertAssignable()) {
-      defn = defn->AsAssertAssignable()->value()->definition();
-    } else if (defn->IsCheckArrayBound()) {
-      defn = defn->AsCheckArrayBound()->index()->definition();
+  while (true) {
+    if (auto redefinition = defn->AsRedefinition()) {
+      defn = redefinition->value()->definition();
+    } else if (auto assert_assignable = defn->AsAssertAssignable()) {
+      defn = assert_assignable->value()->definition();
+    } else if (auto check_array_bound = defn->AsCheckArrayBound()) {
+      defn = check_array_bound->index()->definition();
+    } else if (auto check_bound = defn->AsGenericCheckBound()) {
+      defn = check_bound->index()->definition();
+    } else if (auto check_null = defn->AsCheckNull()) {
+      defn = check_null->value()->definition();
     } else {
-      defn = defn->AsGenericCheckBound()->index()->definition();
+      break;
     }
   }
   return defn;
@@ -3455,8 +3458,8 @@ Instruction* CheckEitherNonSmiInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
-Instruction* CheckNullInstr::Canonicalize(FlowGraph* flow_graph) {
-  return (!value()->Type()->is_nullable()) ? NULL : this;
+Definition* CheckNullInstr::Canonicalize(FlowGraph* flow_graph) {
+  return (!value()->Type()->is_nullable()) ? value()->definition() : this;
 }
 
 BoxInstr* BoxInstr::Create(Representation from, Value* value) {

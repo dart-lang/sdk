@@ -443,6 +443,10 @@ void InductionVarAnalysis::ClassifyControl(LoopInfo* loop) {
     // on the intended use of this information, clients should still test
     // dominance on the test and the initial value of the induction variable.
     x->bounds_.Add(InductionVar::Bound(branch, y));
+    // Record control induction.
+    if (branch == loop->header_->last_instruction()) {
+      loop->control_ = x;
+    }
   }
 }
 
@@ -774,6 +778,7 @@ LoopInfo::LoopInfo(intptr_t id, BlockEntryInstr* header, BitVector* blocks)
       back_edges_(),
       induction_(),
       limit_(nullptr),
+      control_(nullptr),
       outer_(nullptr),
       inner_(nullptr),
       next_(nullptr) {}
@@ -790,6 +795,42 @@ bool LoopInfo::IsBackEdge(BlockEntryInstr* block) const {
   for (intptr_t i = 0, n = back_edges_.length(); i < n; i++) {
     if (back_edges_[i] == block) {
       return true;
+    }
+  }
+  return false;
+}
+
+bool LoopInfo::IsAlwaysTaken(BlockEntryInstr* block) const {
+  // The loop header is always executed when executing a loop (including
+  // loop body of a do-while). Reject any other loop body block that is
+  // not directly controlled by header.
+  if (block == header_) {
+    return true;
+  } else if (block->PredecessorCount() != 1 ||
+             block->PredecessorAt(0) != header_) {
+    return false;
+  }
+  // If the loop has a control induction, make sure the condition is such
+  // that the loop body is entered at least once from the header.
+  if (control_ != nullptr) {
+    InductionVar* limit = nullptr;
+    for (auto bound : control_->bounds()) {
+      if (bound.branch_ == header_->last_instruction()) {
+        limit = bound.limit_;
+        break;
+      }
+    }
+    // Control iterates at least once?
+    if (limit != nullptr) {
+      int64_t stride = 0;
+      int64_t begin = 0;
+      int64_t end = 0;
+      if (InductionVar::IsLinear(control_, &stride) &&
+          InductionVar::IsConstant(control_->initial(), &begin) &&
+          InductionVar::IsConstant(limit, &end) &&
+          ((stride == 1 && begin < end) || (stride == -1 && begin > end))) {
+        return true;
+      }
     }
   }
   return false;

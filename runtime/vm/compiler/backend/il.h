@@ -7156,13 +7156,13 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 // CheckNull instruction takes one input (`value`) and tests it for `null`.
 // If `value` is `null`, then `NoSuchMethodError` is thrown. Otherwise,
 // execution proceeds to the next instruction.
-class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
+class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
   CheckNullInstr(Value* value,
                  const String& function_name,
                  intptr_t deopt_id,
                  TokenPosition token_pos)
-      : TemplateInstruction(deopt_id),
+      : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         function_name_(function_name) {
     ASSERT(function_name.IsNotTemporaryScopedHandle());
@@ -7179,13 +7179,14 @@ class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
 
   DECLARE_INSTRUCTION(CheckNull)
 
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
+
   // CheckNull can implicitly call Dart code (NoSuchMethodError constructor),
   // so it can lazily deopt.
   virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
-
-  virtual bool HasUnknownSideEffects() const { return false; }
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
@@ -7250,6 +7251,9 @@ class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(CheckArrayBound)
 
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
+
   virtual bool ComputeCanDeoptimize() const { return true; }
 
   bool IsRedundant(const RangeBoundary& length);
@@ -7282,7 +7286,7 @@ class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
 // returns the "safe" index when
 //   0 <= index < length
 // or otherwise throws an out-of-bounds exception (viz. non-speculative).
-class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, NoCSE> {
+class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, Pure> {
  public:
   GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
       : TemplateDefinition(deopt_id) {
@@ -7293,9 +7297,12 @@ class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, NoCSE> {
   Value* length() const { return inputs_[kLengthPos]; }
   Value* index() const { return inputs_[kIndexPos]; }
 
-  virtual bool HasUnknownSideEffects() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   DECLARE_INSTRUCTION(GenericCheckBound)
+
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
 
   // GenericCheckBound can implicitly call Dart code (RangeError or
   // ArgumentError constructor), so it can lazily deopt.
@@ -7356,7 +7363,7 @@ class CheckConditionInstr : public Instruction {
   DISALLOW_COPY_AND_ASSIGN(CheckConditionInstr);
 };
 
-class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
+class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnboxedIntConverterInstr(Representation from,
                            Representation to,
@@ -7392,8 +7399,6 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
     ASSERT(idx == 0);
     return from();
   }
-
-  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
     ASSERT(other->IsUnboxedIntConverter());

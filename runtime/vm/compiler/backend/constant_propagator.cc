@@ -267,8 +267,6 @@ void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) {}
 
 void ConstantPropagator::VisitTailCall(TailCallInstr* instr) {}
 
-void ConstantPropagator::VisitCheckNull(CheckNullInstr* instr) {}
-
 void ConstantPropagator::VisitCheckEitherNonSmi(CheckEitherNonSmiInstr* instr) {
 }
 
@@ -350,6 +348,13 @@ void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) {
 void ConstantPropagator::VisitGenericCheckBound(GenericCheckBoundInstr* instr) {
   // Don't propagate constants through check, since it would eliminate
   // the data dependence between the bound check and the load/store.
+  // Graph finalization will expose the constant eventually.
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitCheckNull(CheckNullInstr* instr) {
+  // Don't propagate constants through check, since it would eliminate
+  // the data dependence between the null check and its use.
   // Graph finalization will expose the constant eventually.
   SetValue(instr, non_constant_);
 }

@@ -53,6 +53,9 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   // Mark definition as having given class id in all dominated instructions.
   void SetCid(Definition* value, intptr_t cid);
 
+  // Grow type array up to new index.
+  void GrowTypes(intptr_t up_to);
+
   // Ensures that redefinition with more accurate type is inserted after given
   // instruction.
   void EnsureMoreAccurateRedefinition(Instruction* prev,
