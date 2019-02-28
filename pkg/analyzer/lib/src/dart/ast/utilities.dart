@@ -31,7 +31,7 @@ typedef void ExceptionInDelegateHandler(
  * properties associated with the nodes.
  */
 class AstCloner
-    with UiAsCodeVisitorMixin<AstNode>
+    with UIAsCodeVisitorMixin<AstNode>
     implements AstVisitor<AstNode> {
   /**
    * A flag indicating whether tokens should be cloned while cloning an AST
@@ -1177,7 +1177,7 @@ class AstCloner
  * are equal.
  */
 class AstComparator
-    with UiAsCodeVisitorMixin<bool>
+    with UIAsCodeVisitorMixin<bool>
     implements AstVisitor<bool> {
   /**
    * The AST node with which the node being visited is to be compared. This is
@@ -2526,7 +2526,7 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
  */
 @deprecated
 class IncrementalAstCloner
-    with UiAsCodeVisitorMixin<AstNode>
+    with UIAsCodeVisitorMixin<AstNode>
     implements AstVisitor<AstNode> {
   /**
    * The node to be replaced during the cloning process.
@@ -3938,7 +3938,7 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
 /**
  * An object that will replace one child node in an AST node with another node.
  */
-class NodeReplacer with UiAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
+class NodeReplacer with UIAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
   /**
    * The node being replaced.
    */
@@ -5296,7 +5296,7 @@ class NodeReplacer with UiAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
  * nodes are the same.
  */
 class ResolutionCopier
-    with UiAsCodeVisitorMixin<bool>
+    with UIAsCodeVisitorMixin<bool>
     implements AstVisitor<bool> {
   /**
    * The AST node with which the node being visited is to be compared. This is
@@ -7079,7 +7079,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
  */
 @deprecated
 class ToSourceVisitor
-    with UiAsCodeVisitorMixin<void>
+    with UIAsCodeVisitorMixin<void>
     implements AstVisitor<void> {
   /**
    * The writer to which the source is to be written.
@@ -8227,7 +8227,7 @@ class ToSourceVisitor
  * all of it's children) to a sink.
  */
 class ToSourceVisitor2
-    with UiAsCodeVisitorMixin<void>
+    with UIAsCodeVisitorMixin<void>
     implements AstVisitor<void> {
   /**
    * The sink to which the source is to be written.
@@ -9407,7 +9407,7 @@ class ToSourceVisitor2
 ///
 /// This class will be removed when the above classes (and their corresponding
 /// visit methods) are removed.
-mixin UiAsCodeVisitorMixin<R> implements AstVisitor<R> {
+mixin UIAsCodeVisitorMixin<R> implements AstVisitor<R> {
   @override
   R visitForEachStatement(ForEachStatement node) {
     return visitForStatement2(node);
