@@ -28,12 +28,16 @@ main() {
     if (_debug) {
       args.add('-v');
     }
-    await driver.start(args, testContext: testContext, testLogger: testLogger);
-    if (_debug) {
-      print(testLogger.stderrBuffer.toString());
-      print(testLogger.stdoutBuffer.toString());
-      print('--- original example');
-      print(exampleSource);
+    try {
+      await driver.start(args,
+          testContext: testContext, testLogger: testLogger);
+    } finally {
+      if (_debug) {
+        print(testLogger.stderrBuffer.toString());
+        print(testLogger.stdoutBuffer.toString());
+        print('--- original example');
+        print(exampleSource);
+      }
     }
 
     final suggestions = driver.result.suggestions;
