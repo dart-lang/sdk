@@ -134,6 +134,9 @@ class KernelTarget extends TargetImplementation {
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
+  final Map<String, String> environmentDefines =
+      CompilerContext.current.options.environmentDefines;
+
   final List<Object> clonedFormals = <Object>[];
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
@@ -330,11 +333,8 @@ class KernelTarget extends TargetImplementation {
 
     this.uriToSource.forEach(copySource);
 
-    Component component = CompilerContext.current.options.target
-        .configureComponent(new Component(
-            nameRoot: nameRoot,
-            libraries: libraries,
-            uriToSource: uriToSource));
+    Component component = backendTarget.configureComponent(new Component(
+        nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));
     if (loader.first != null) {
       // TODO(sigmund): do only for full program
       Declaration declaration =
@@ -581,8 +581,8 @@ class KernelTarget extends TargetImplementation {
         libraries.add(library.target);
       }
     }
-    Component plaformLibraries = CompilerContext.current.options.target
-        .configureComponent(new Component());
+    Component plaformLibraries =
+        backendTarget.configureComponent(new Component());
     // Add libraries directly to prevent that their parents are changed.
     plaformLibraries.libraries.addAll(libraries);
     loader.computeCoreTypes(plaformLibraries);
@@ -754,8 +754,8 @@ class KernelTarget extends TargetImplementation {
           new TypeEnvironment(loader.coreTypes, loader.hierarchy);
       constants.transformLibraries(
           loader.libraries,
-          loader.target.backendTarget.constantsBackend(loader.coreTypes),
-          CompilerContext.current.options.environmentDefines,
+          backendTarget.constantsBackend(loader.coreTypes),
+          environmentDefines,
           environment,
           new KernelConstantErrorReporter(loader, environment));
       ticker.logMs("Evaluated constants");
