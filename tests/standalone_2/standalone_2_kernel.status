@@ -13,6 +13,7 @@ io/http_server_response_test: Fail # Issue 34724
 io/process_sync_test: Pass, Fail # https://github.com/dart-lang/sdk/issues/34724
 io/signals_test: Fail # Issue 34724
 io/test_extension_fail_test: Fail # Issue 32187
+ffi/negative_function_test: Skip # Issues 36033, 36034
 
 [ $compiler == app_jitk ]
 io/file_error_test: RuntimeError
