@@ -81,10 +81,9 @@ class WebSocketClient extends Client {
           socket.addUtf8Text(result.payload);
           break;
       }
-    } catch (e, st) {
-      serverPrint("Ignoring error posting over WebSocket.");
-      serverPrint(e.toString());
-      serverPrint(st.toString());
+    } on StateError catch (_) {
+      // VM has shutdown, do nothing.
+      return;
     }
   }
 
