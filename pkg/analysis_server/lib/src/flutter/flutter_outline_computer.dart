@@ -116,7 +116,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
         }
       } else if (argument is ListLiteral) {
         label = '[…]';
-      } else if (argument is SetOrMapLiteral && argument.isMap) {
+      } else if (argument is SetOrMapLiteral) {
         label = '{…}';
       }
       attributes.add(new protocol.FlutterOutlineAttribute(name, label));
