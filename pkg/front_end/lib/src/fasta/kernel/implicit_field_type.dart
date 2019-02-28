@@ -13,11 +13,11 @@ import '../problems.dart' show unsupported;
 
 import 'kernel_builder.dart' show MemberBuilder;
 
-class ImplicitType extends DartType {
+class ImplicitFieldType extends DartType {
   final MemberBuilder member;
   final Token initializerToken;
 
-  const ImplicitType(this.member, this.initializerToken);
+  const ImplicitFieldType(this.member, this.initializerToken);
 
   accept(DartTypeVisitor<Object> v) {
     unsupported("accept", member.charOffset, member.fileUri);

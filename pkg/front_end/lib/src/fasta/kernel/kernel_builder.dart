@@ -18,7 +18,7 @@ export '../builder/builder.dart';
 
 export 'class_hierarchy_builder.dart' show ClassHierarchyBuilder;
 
-export 'implicit_type.dart' show ImplicitType;
+export 'implicit_field_type.dart' show ImplicitFieldType;
 
 export 'kernel_class_builder.dart' show KernelClassBuilder;
 
