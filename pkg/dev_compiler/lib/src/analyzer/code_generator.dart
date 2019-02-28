@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
+import 'package:analyzer/src/dart/ast/utilities.dart' show UiAsCodeVisitorMixin;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -66,7 +67,10 @@ import 'type_utilities.dart';
 // expressions (which result in JS.Expression) and statements
 // (which result in (JS.Statement).
 class CodeGenerator extends Object
-    with NullableTypeInference, SharedCompiler<LibraryElement, ClassElement>
+    with
+        UiAsCodeVisitorMixin<JS.Node>,
+        NullableTypeInference,
+        SharedCompiler<LibraryElement, ClassElement>
     implements AstVisitor<JS.Node> {
   final SummaryDataStore summaryData;
 
@@ -5419,12 +5423,6 @@ class CodeGenerator extends Object
   }
 
   @override
-  JS.For visitForStatement(ForStatement node) {
-    return _emitFor(node.initialization, node.variables, node.condition,
-        node.updaters, node.body);
-  }
-
-  @override
   JS.While visitWhileStatement(WhileStatement node) {
     return JS.While(_visitTest(node.condition), _visitScope(node.body));
   }
@@ -5432,17 +5430,6 @@ class CodeGenerator extends Object
   @override
   JS.Do visitDoStatement(DoStatement node) {
     return JS.Do(_visitScope(node.body), _visitTest(node.condition));
-  }
-
-  @override
-  JS.Statement visitForEachStatement(ForEachStatement node) {
-    if (node.awaitKeyword != null) {
-      return _emitAwaitFor(
-          node.identifier, node.loopVariable, node.iterable, node.body);
-    }
-
-    return _emitForEach(
-        node.identifier, node.loopVariable, node.iterable, node.body);
   }
 
   JS.Statement _emitAwaitFor(SimpleIdentifier identifier,
@@ -5736,10 +5723,6 @@ class CodeGenerator extends Object
         _emitConstList(elementType, _visitExpressionList(node.elements2)));
   }
 
-  @override
-  JS.Expression visitSetLiteral(SetLiteral node) =>
-      _emitSetLiteral(node.elements, node);
-
   // TODO(nshahan) Cleanup after control flow collections experiments are removed.
   JS.Expression _emitSetLiteral(
       Iterable<CollectionElement> elements, SetOrMapLiteral node) {
@@ -5777,9 +5760,6 @@ class CodeGenerator extends Object
     var arrayType = _jsArray.type.instantiate([itemType]);
     return js.call('#.of(#)', [_emitType(arrayType), list]);
   }
-
-  @override
-  visitMapLiteral(MapLiteral node) => _emitMapLiteral(node.entries, node);
 
   JS.Expression _emitMapLiteral(
       Iterable<CollectionElement> elements, SetOrMapLiteral node) {
