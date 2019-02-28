@@ -38,7 +38,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   final CodegenWorldBuilder _worldBuilder;
   final RuntimeTypesNeed _rtiNeed;
   final RuntimeTypesEncoder _rtiEncoder;
-  final JFieldAnalysis _allocatorAnalysis;
+  final JFieldAnalysis _fieldAnalysis;
   final CodeEmitterTask _task;
   final _ConstantReferenceGenerator constantReferenceGenerator;
   final _ConstantListGenerator makeConstantList;
@@ -52,7 +52,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       this._worldBuilder,
       this._rtiNeed,
       this._rtiEncoder,
-      this._allocatorAnalysis,
+      this._fieldAnalysis,
       this._task,
       this.constantReferenceGenerator,
       this.makeConstantList);
@@ -352,7 +352,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     _worldBuilder.forEachInstanceField(element, (_, FieldEntity field,
         {bool isElided}) {
       if (isElided) return;
-      if (!_allocatorAnalysis.isInitializedInAllocator(field)) {
+      if (!_fieldAnalysis.getFieldData(field).isInitializedInAllocator) {
         fields.add(constantReferenceGenerator(constant.fields[field]));
       }
     });

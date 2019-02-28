@@ -21,6 +21,7 @@ main() {
   newFloat64List();
   newInt16List();
   newInt32List();
+  newInt32List2();
   newInt8List();
   newUint16List();
   newUint32List();
@@ -77,8 +78,21 @@ newInt16List() => new Int16List(9);
 /*element: _field1:[exact=JSUInt31]*/
 var _field1 = 10;
 
-/*element: newInt32List:Container([exact=NativeInt32List], element: [subclass=JSInt], length: null)*/
+/*element: newInt32List:Container([exact=NativeInt32List], element: [subclass=JSInt], length: 10)*/
 newInt32List() => new Int32List(_field1);
+
+////////////////////////////////////////////////////////////////////////////////
+// Create a Int32List using a changed non-final top-level field as length.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _field1b:[subclass=JSPositiveInt]*/
+var _field1b = 10;
+
+/*element: newInt32List2:Container([exact=NativeInt32List], element: [subclass=JSInt], length: null)*/
+newInt32List2() {
+  _field1b /*invoke: [subclass=JSPositiveInt]*/ ++;
+  return new Int32List(_field1b);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Create a Int8List using a final top-level field as length.

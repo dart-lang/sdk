@@ -712,9 +712,18 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
       Features expectedFeatures = Features.fromText(expectedData);
       Set<String> validatedFeatures = new Set<String>();
       expectedFeatures.forEach((String key, Object expectedValue) {
+        bool expectMatch = true;
+        if (key.startsWith('!')) {
+          key = key.substring(1);
+          expectMatch = false;
+        }
         validatedFeatures.add(key);
         Object actualValue = actualFeatures[key];
-        if (!actualFeatures.containsKey(key)) {
+        if (!expectMatch) {
+          if (actualFeatures.containsKey(key)) {
+            errorsFound.add('Unexpected data found for $key=$actualValue');
+          }
+        } else if (!actualFeatures.containsKey(key)) {
           errorsFound.add('No data found for $key');
         } else if (expectedValue == '') {
           if (actualValue != '') {

@@ -60,12 +60,6 @@ import 'locals.dart';
 
 /// Interface for kernel queries needed to implement the [CodegenWorldBuilder].
 abstract class JsToWorldBuilder implements JsToElementMap {
-  /// Returns `true` if [field] has a constant initializer.
-  bool hasConstantFieldInitializer(FieldEntity field);
-
-  /// Returns the constant initializer for [field].
-  ConstantValue getConstantFieldInitializer(FieldEntity field);
-
   /// Calls [f] for each parameter of [function] providing the type and name of
   /// the parameter and the [defaultValue] if the parameter is optional.
   void forEachParameter(FunctionEntity function,
@@ -1735,25 +1729,6 @@ class JsKernelToElementMap
   @override
   ClassDefinition getClassDefinition(ClassEntity cls) {
     return getClassDefinitionInternal(cls);
-  }
-
-  @override
-  ConstantValue getFieldConstantValue(covariant IndexedField field) {
-    assert(checkFamily(field));
-    JFieldData data = members.getData(field);
-    return data.getFieldConstantValue(this);
-  }
-
-  @override
-  bool hasConstantFieldInitializer(covariant IndexedField field) {
-    JFieldData data = members.getData(field);
-    return data.hasConstantFieldInitializer(this);
-  }
-
-  @override
-  ConstantValue getConstantFieldInitializer(covariant IndexedField field) {
-    JFieldData data = members.getData(field);
-    return data.getConstantFieldInitializer(this);
   }
 
   @override

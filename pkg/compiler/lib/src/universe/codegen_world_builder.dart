@@ -70,12 +70,6 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   void forEachInvokedSetter(
       f(String name, Map<Selector, SelectorConstraints> selectors));
 
-  /// Returns `true` if [field] has a constant initializer.
-  bool hasConstantFieldInitializer(covariant FieldEntity field);
-
-  /// Returns the constant initializer for [field].
-  ConstantValue getConstantFieldInitializer(covariant FieldEntity field);
-
   /// Returns `true` if [member] is invoked as a setter.
   bool hasInvokedSetter(MemberEntity member);
 
@@ -681,16 +675,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   }
 
   @override
-  bool hasConstantFieldInitializer(FieldEntity field) {
-    return _elementMap.hasConstantFieldInitializer(field);
-  }
-
-  @override
-  ConstantValue getConstantFieldInitializer(FieldEntity field) {
-    return _elementMap.getConstantFieldInitializer(field);
-  }
-
-  @override
   void forEachParameter(FunctionEntity function,
       void f(DartType type, String name, ConstantValue defaultValue)) {
     _elementMap.forEachParameter(function, f,
@@ -714,7 +698,8 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity declarer, MemberEntity member) {
       if (member.isField && member.isInstanceMember) {
-        f(declarer, member, isElided: _world.fieldAnalysis.isElided(member));
+        f(declarer, member,
+            isElided: _world.fieldAnalysis.getFieldData(member).isElided);
       }
     });
   }
@@ -730,7 +715,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       if (declarer != cls) return;
       if (!member.isField) return;
       if (!member.isInstanceMember) return;
-      f(member, isElided: _world.fieldAnalysis.isElided(member));
+      f(member, isElided: _world.fieldAnalysis.getFieldData(member).isElided);
     });
   }
 

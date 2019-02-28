@@ -25,6 +25,7 @@ import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'js_backend/field_analysis.dart';
 import 'universe/codegen_world_builder.dart';
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
@@ -140,9 +141,9 @@ class ElementInfoCollector {
         outputUnit: _unitInfoForMember(field),
         isConst: field.isConst);
     _entityToInfo[field] = info;
-    if (codegenWorldBuilder.hasConstantFieldInitializer(field)) {
-      info.initializer = _constantToInfo[
-          codegenWorldBuilder.getConstantFieldInitializer(field)];
+    FieldAnalysisData fieldData = closedWorld.fieldAnalysis.getFieldData(field);
+    if (fieldData.initialValue != null) {
+      info.initializer = _constantToInfo[fieldData.initialValue];
     }
 
     if (compiler.options.experimentCallInstrumentation) {

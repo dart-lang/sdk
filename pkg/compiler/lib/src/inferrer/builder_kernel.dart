@@ -17,6 +17,7 @@ import '../inferrer/types.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js_backend/backend.dart';
+import '../js_backend/field_analysis.dart';
 import '../js_model/element_map.dart';
 import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/js_world.dart';
@@ -1068,12 +1069,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       return firstArgument.value;
     } else if (firstArgument is ir.StaticGet) {
       MemberEntity member = _elementMap.getMember(firstArgument.target);
-      if (member.isField &&
-          (member.isStatic || member.isTopLevel) &&
-          _closedWorld.fieldNeverChanges(member)) {
-        ConstantValue value = _elementMap.getFieldConstantValue(member);
-        if (value != null && value.isInt) {
-          IntConstantValue intValue = value;
+      if (member.isField) {
+        FieldAnalysisData fieldData =
+            _closedWorld.fieldAnalysis.getFieldData(member);
+        if (fieldData.isEffectivelyConstant && fieldData.constantValue.isInt) {
+          IntConstantValue intValue = fieldData.constantValue;
           return intValue.intValue.toInt();
         }
       }

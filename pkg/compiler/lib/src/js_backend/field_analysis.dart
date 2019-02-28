@@ -38,6 +38,7 @@ class KFieldAnalysis implements FieldAnalysis {
   final KernelToElementMap _elementMap;
 
   final Map<KClass, ClassData> _classData = {};
+  final Map<KField, ConstantValue> _staticFieldInitializers = {};
 
   KFieldAnalysis(KernelFrontEndStrategy kernelStrategy)
       : _elementMap = kernelStrategy.elementMap;
@@ -115,8 +116,17 @@ class KFieldAnalysis implements FieldAnalysis {
         }
       }
     }
-
     _classData[class_] = new ClassData(constructors, fieldData);
+  }
+
+  void registerStaticField(KField field) {
+    ir.Field node = _elementMap.getMemberNode(field);
+    ir.Expression expression = node.initializer;
+    ConstantValue value = _elementMap.getConstantValue(expression,
+        requireConstant: node.isConst, implicitNull: true);
+    if (value != null && value.isConstant) {
+      _staticFieldInitializers[field] = value;
+    }
   }
 
   AllocatorData getFixedInitializerForTesting(KField field) {
@@ -193,43 +203,32 @@ class JFieldAnalysis implements FieldAnalysis {
   static const String tag = 'allocator-analysis';
 
   // --csp and --fast-startup have different constraints to the generated code.
-  final Map<FieldEntity, ConstantValue> _fixedInitializers;
 
-  final Map<FieldEntity, ConstantValue> _effectivelyConstantFields;
+  final Map<FieldEntity, FieldAnalysisData> _fieldData;
 
-  final Set<FieldEntity> _elidedFields;
-
-  JFieldAnalysis._(this._fixedInitializers, this._effectivelyConstantFields,
-      this._elidedFields);
+  JFieldAnalysis._(this._fieldData);
 
   /// Deserializes a [JFieldAnalysis] object from [source].
   factory JFieldAnalysis.readFromDataSource(
       DataSource source, CompilerOptions options) {
     source.begin(tag);
-    Map<FieldEntity, ConstantValue> fixedInitializers =
-        source.readMemberMap(source.readConstant);
-    Map<FieldEntity, ConstantValue> effectivelyConstantFields =
-        source.readMemberMap(source.readConstant);
-    Set<FieldEntity> elidedFields = source.readMembers<FieldEntity>().toSet();
+    Map<FieldEntity, FieldAnalysisData> fieldData = source
+        .readMemberMap(() => new FieldAnalysisData.fromDataSource(source));
     source.end(tag);
-    return new JFieldAnalysis._(
-        fixedInitializers, effectivelyConstantFields, elidedFields);
+    return new JFieldAnalysis._(fieldData);
   }
 
   /// Serializes this [JFieldAnalysis] to [sink].
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
-    sink.writeMemberMap(_fixedInitializers, sink.writeConstant);
-    sink.writeMemberMap(_effectivelyConstantFields, sink.writeConstant);
-    sink.writeMembers(_elidedFields);
+    sink.writeMemberMap(
+        _fieldData, (FieldAnalysisData data) => data.writeToDataSink(sink));
     sink.end(tag);
   }
 
   factory JFieldAnalysis.from(
       KClosedWorld closedWorld, JsToFrontendMap map, CompilerOptions options) {
-    Map<FieldEntity, ConstantValue> fixedInitializers = {};
-    Map<FieldEntity, ConstantValue> effectivelyConstantFields = {};
-    Set<FieldEntity> elidedFields = new Set();
+    Map<FieldEntity, FieldAnalysisData> fieldData = {};
 
     bool canBeElided(FieldEntity field) {
       return !closedWorld.annotationsData.hasNoElision(field) &&
@@ -250,11 +249,9 @@ class JFieldAnalysis implements FieldAnalysis {
         MemberUsage memberUsage = closedWorld.liveMemberUsage[kField];
         if (!memberUsage.hasRead) {
           if (canBeElided(kField)) {
-            elidedFields.add(jField);
+            fieldData[jField] = const FieldAnalysisData(isElided: true);
           }
         } else {
-          // TODO(johnniwinther): Use liveness of constructors and elided optional
-          // parameters to recognize more constant initializers.
           if (data.initialValue != null) {
             ConstantValue initialValue;
             bool isTooComplex = false;
@@ -318,10 +315,11 @@ class JFieldAnalysis implements FieldAnalysis {
             }
             if (!isTooComplex && initialValue != null) {
               ConstantValue value = map.toBackendConstant(initialValue);
+              bool isEffectivelyConstant = false;
+              bool isInitializedInAllocator = false;
               assert(value != null);
               if (!memberUsage.hasWrite && canBeElided(kField)) {
-                elidedFields.add(jField);
-                effectivelyConstantFields[jField] = value;
+                isEffectivelyConstant = true;
               } else if (value.isNull ||
                   value.isInt ||
                   value.isBool ||
@@ -329,8 +327,13 @@ class JFieldAnalysis implements FieldAnalysis {
                 // TODO(johnniwinther,sra): Support non-primitive constants in
                 // allocators when it does cause allocators to deoptimized
                 // because of deferred loading.
-                fixedInitializers[jField] = value;
+                isInitializedInAllocator = true;
               }
+              fieldData[jField] = new FieldAnalysisData(
+                  initialValue: value,
+                  isEffectivelyFinal: isEffectivelyConstant,
+                  isElided: isEffectivelyConstant,
+                  isInitializedInAllocator: isInitializedInAllocator);
             }
           }
         }
@@ -342,44 +345,85 @@ class JFieldAnalysis implements FieldAnalysis {
     closedWorld.liveMemberUsage
         .forEach((MemberEntity member, MemberUsage memberUsage) {
       if (member.isField && !member.isInstanceMember) {
+        JField jField = map.toBackendMember(member);
+        if (jField == null) return;
+
         if (!memberUsage.hasRead && canBeElided(member)) {
-          elidedFields.add(map.toBackendMember(member));
+          fieldData[jField] = const FieldAnalysisData(isElided: true);
+        } else {
+          bool isEffectivelyFinal = !memberUsage.hasWrite;
+          ConstantValue value = map.toBackendConstant(
+              closedWorld.fieldAnalysis._staticFieldInitializers[member],
+              allowNull: true);
+          bool isElided =
+              isEffectivelyFinal && value != null && canBeElided(member);
+          if (value != null || isEffectivelyFinal) {
+            fieldData[jField] = new FieldAnalysisData(
+                initialValue: value,
+                isEffectivelyFinal: isEffectivelyFinal,
+                isElided: isElided);
+          }
         }
       }
     });
 
-    return new JFieldAnalysis._(
-        fixedInitializers, effectivelyConstantFields, elidedFields);
+    return new JFieldAnalysis._(fieldData);
   }
 
   // TODO(sra): Add way to let injected fields be initialized to a constant in
   // allocator.
 
-  /// Returns `true` if [field] is always initialized to a constant.
-  bool isInitializedInAllocator(JField field) {
-    return _fixedInitializers[field] != null;
+  FieldAnalysisData getFieldData(JField field) {
+    return _fieldData[field] ?? const FieldAnalysisData();
+  }
+}
+
+// TODO(johnniwinther): Merge this into [FieldData].
+class FieldAnalysisData {
+  static const String tag = 'field-analysis-data';
+
+  final ConstantValue initialValue;
+  final bool isInitializedInAllocator;
+  final bool isEffectivelyFinal;
+  final bool isElided;
+
+  const FieldAnalysisData(
+      {this.initialValue,
+      this.isInitializedInAllocator: false,
+      this.isEffectivelyFinal: false,
+      this.isElided: false});
+
+  factory FieldAnalysisData.fromDataSource(DataSource source) {
+    source.begin(tag);
+
+    ConstantValue initialValue = source.readConstantOrNull();
+    bool isInitializedInAllocator = source.readBool();
+    bool isEffectivelyFinal = source.readBool();
+    bool isElided = source.readBool();
+    source.end(tag);
+    return new FieldAnalysisData(
+        initialValue: initialValue,
+        isInitializedInAllocator: isInitializedInAllocator,
+        isEffectivelyFinal: isEffectivelyFinal,
+        isElided: isElided);
   }
 
-  /// Return the constant for a field initialized in allocator. Returns `null`
-  /// for fields not initialized in allocator.
-  ConstantValue initializerValue(JField field) {
-    assert(isInitializedInAllocator(field));
-    return _fixedInitializers[field];
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeConstantOrNull(initialValue);
+    sink.writeBool(isInitializedInAllocator);
+    sink.writeBool(isEffectivelyFinal);
+    sink.writeBool(isElided);
+    sink.end(tag);
   }
 
-  /// Returns `true` if [field] can be elided from the output.
-  ///
-  /// This happens if a field is written to but never read.
-  bool isElided(JField field) => _elidedFields.contains(field);
+  bool get isEffectivelyConstant =>
+      isEffectivelyFinal && isElided && initialValue != null;
 
-  /// Returns `true` if [field] is effectively constant and therefore only
-  /// holds its [initializerValue].
-  bool isEffectivelyConstant(JField field) =>
-      _effectivelyConstantFields.containsKey(field);
+  ConstantValue get constantValue => isEffectivelyFinal ? initialValue : null;
 
-  /// Returns the [ConstantValue] for the effectively constant [field].
-  ConstantValue getConstantValue(JField field) {
-    assert(isEffectivelyConstant(field));
-    return _effectivelyConstantFields[field];
-  }
+  String toString() =>
+      'FieldAnalysisData(initialValue=${initialValue?.toStructuredText()},'
+      'isInitializedInAllocator=$isInitializedInAllocator,'
+      'isEffectivelyFinal=$isEffectivelyFinal,isElided=$isElided)';
 }

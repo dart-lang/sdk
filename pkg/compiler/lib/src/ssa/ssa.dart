@@ -6,11 +6,11 @@ library ssa;
 
 import '../common/codegen.dart' show CodegenWorkItem, CodegenRegistry;
 import '../common/tasks.dart' show CompilerTask, Measurer;
-import '../constants/values.dart';
-import '../elements/entities.dart' show FieldEntity, MemberEntity;
+import '../elements/entities.dart' show MemberEntity;
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
+import '../js_backend/field_analysis.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend, FunctionCompiler;
 import '../universe/call_structure.dart';
 import '../universe/use.dart';
@@ -38,7 +38,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
   }
 
   /// Generates JavaScript code for `work.element`.
-  /// Using the ssa builder, optimizer and codegenerator.
+  /// Using the ssa builder, optimizer and code generator.
   js.Fun compile(CodegenWorkItem work, JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults) {
     HGraph graph = _builder.build(work, closedWorld, globalInferenceResults);
@@ -98,8 +98,6 @@ class SsaBuilderTask extends CompilerTask {
 }
 
 abstract class SsaBuilderFieldMixin {
-  ConstantValue getFieldInitialConstantValue(covariant FieldEntity field);
-
   /// Handle field initializer of [element]. Returns `true` if no code
   /// is needed for the field.
   ///
@@ -112,10 +110,11 @@ abstract class SsaBuilderFieldMixin {
   bool handleConstantField(MemberEntity element, CodegenRegistry registry,
       JClosedWorld closedWorld) {
     if (element.isField) {
-      ConstantValue initialValue = getFieldInitialConstantValue(element);
-      if (initialValue != null) {
+      FieldAnalysisData fieldData =
+          closedWorld.fieldAnalysis.getFieldData(element);
+      if (fieldData.initialValue != null) {
         registry.worldImpact
-            .registerConstantUse(new ConstantUse.init(initialValue));
+            .registerConstantUse(new ConstantUse.init(fieldData.initialValue));
         // We don't need to generate code for static or top-level
         // variables. For instance variables, we may need to generate
         // the checked setter.

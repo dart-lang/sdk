@@ -837,7 +837,7 @@ class InferrerEngineImpl extends InferrerEngine {
   /// Returns the [ConstantValue] for the initial value of [field], or
   /// `null` if the initializer is not a constant value.
   ConstantValue getFieldConstant(FieldEntity field) {
-    return closedWorld.elementMap.getFieldConstantValue(field);
+    return closedWorld.fieldAnalysis.getFieldData(field).initialValue;
   }
 
   /// Returns `true` if [cls] has a 'call' method.

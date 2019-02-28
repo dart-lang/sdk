@@ -36,16 +36,16 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
       {bool verbose: false}) {
     if (member.isField && member.isInstanceMember) {
       JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
-      JFieldAnalysis allocatorAnalysis = closedWorld.fieldAnalysis;
+      JFieldAnalysis fieldAnalysis = closedWorld.fieldAnalysis;
       ir.Member node = closedWorld.elementMap.getMemberDefinition(member).node;
       Features features = new Features();
-      if (allocatorAnalysis.isInitializedInAllocator(member)) {
-        features[Tags.initialValue] =
-            allocatorAnalysis.initializerValue(member).toStructuredText();
+      FieldAnalysisData fieldData = fieldAnalysis.getFieldData(member);
+      if (fieldData.isInitializedInAllocator) {
+        features[Tags.initialValue] = fieldData.initialValue.toStructuredText();
       }
-      if (allocatorAnalysis.isEffectivelyConstant(member)) {
+      if (fieldData.isEffectivelyConstant) {
         features[Tags.constantValue] =
-            allocatorAnalysis.getConstantValue(member).toStructuredText();
+            fieldData.constantValue.toStructuredText();
       }
       Id id = computeEntityId(node);
       actualMap[id] = new ActualData<Features>(

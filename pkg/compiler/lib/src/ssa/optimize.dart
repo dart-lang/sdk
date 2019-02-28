@@ -14,7 +14,8 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
-import '../js_backend/field_analysis.dart' show JFieldAnalysis;
+import '../js_backend/field_analysis.dart'
+    show FieldAnalysisData, JFieldAnalysis;
 import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_backend/runtime_types.dart';
@@ -735,7 +736,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // Insertion point for the closure call.
         HInstruction insertionPoint = node;
         HInstruction load;
-        if (_closedWorld.fieldAnalysis.isEffectivelyConstant(field)) {
+        FieldAnalysisData fieldData =
+            _closedWorld.fieldAnalysis.getFieldData(field);
+        if (fieldData.isEffectivelyConstant) {
           // The field is elided and replace it with its constant value.
           if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
             // The receiver is potentially `null` so we insert a null receiver
@@ -752,8 +755,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             node.block.addBefore(node, dummyGet);
             insertionPoint = dummyGet;
           }
-          ConstantValue value =
-              _closedWorld.fieldAnalysis.getConstantValue(field);
+          ConstantValue value = fieldData.constantValue;
           load = _graph.addConstant(value, _closedWorld,
               sourceInformation: node.sourceInformation);
           _log?.registerConstantFieldCall(node, field, load);
@@ -1244,7 +1246,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
         ? node.element
         : findConcreteFieldForDynamicAccess(node, receiver);
     if (field != null) {
-      if (_closedWorld.fieldAnalysis.isEffectivelyConstant(field)) {
+      FieldAnalysisData fieldData =
+          _closedWorld.fieldAnalysis.getFieldData(field);
+      if (fieldData.isEffectivelyConstant) {
         // The field is elided and replace it with its constant value.
         if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
           // The receiver is potentially `null` so we insert a null receiver
@@ -1260,8 +1264,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           _log?.registerFieldGet(node, dummyGet);
           node.block.addBefore(node, dummyGet);
         }
-        ConstantValue constant =
-            _closedWorld.fieldAnalysis.getConstantValue(field);
+        ConstantValue constant = fieldData.constantValue;
         HConstant result = _graph.addConstant(constant, _closedWorld,
             sourceInformation: node.sourceInformation);
         _log?.registerConstantFieldGet(node, field, result);
@@ -1341,7 +1344,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         value = other;
       }
     }
-    if (_closedWorld.fieldAnalysis.isElided(field)) {
+    if (_closedWorld.fieldAnalysis.getFieldData(field).isElided) {
       _log?.registerFieldSet(node);
       return value;
     } else {
@@ -2881,7 +2884,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
   final JClosedWorld closedWorld;
-  final JFieldAnalysis _allocatorAnalysis;
+  final JFieldAnalysis _fieldAnalysis;
   final String name = "SsaLoadElimination";
   MemorySet memorySet;
   List<MemorySet> memories;
@@ -2889,7 +2892,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   HGraph _graph;
 
   SsaLoadElimination(this.compiler, this.closedWorld)
-      : _allocatorAnalysis = closedWorld.fieldAnalysis;
+      : _fieldAnalysis = closedWorld.fieldAnalysis;
 
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
@@ -3005,9 +3008,10 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
         if (compiler.elementHasCompileTimeError(
             // ignore: UNNECESSARY_CAST
             member as Entity)) return;
-        if (_allocatorAnalysis.isInitializedInAllocator(member)) {
+        FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(member);
+        if (fieldData.isInitializedInAllocator) {
           // TODO(sra): Can we avoid calling HGraph.addConstant?
-          ConstantValue value = _allocatorAnalysis.initializerValue(member);
+          ConstantValue value = fieldData.initialValue;
           HConstant constant = _graph.addConstant(value, closedWorld);
           memorySet.registerFieldValue(member, instruction, constant);
         } else {

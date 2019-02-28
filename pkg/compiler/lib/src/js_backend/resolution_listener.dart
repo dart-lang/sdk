@@ -43,7 +43,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final CustomElementsResolutionAnalysis _customElementsAnalysis;
 
   final NativeResolutionEnqueuer _nativeEnqueuer;
-  final KFieldAnalysis _allocatorAnalysis;
+  final KFieldAnalysis _fieldAnalysis;
 
   /// True when we enqueue the loadLibrary code.
   bool _isLoadLibraryFunctionResolved = false;
@@ -59,7 +59,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._noSuchMethodRegistry,
       this._customElementsAnalysis,
       this._nativeEnqueuer,
-      this._allocatorAnalysis,
+      this._fieldAnalysis,
       this._deferredLoadTask);
 
   void _registerBackendImpact(
@@ -278,6 +278,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
           worldImpact.addImpact(_registerComputeSignature());
         }
       }
+    } else if (member.isField && !member.isInstanceMember) {
+      _fieldAnalysis.registerStaticField(member);
     }
     _backendUsage.registerUsedMember(member);
 
@@ -409,7 +411,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   @override
   WorldImpact registerInstantiatedClass(ClassEntity cls) {
-    _allocatorAnalysis.registerInstantiatedClass(cls);
+    _fieldAnalysis.registerInstantiatedClass(cls);
     return _processClass(cls);
   }
 

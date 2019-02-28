@@ -73,6 +73,25 @@ method7(Class1 c) {
   return c.field4();
 }
 
+var field8;
+
+/*element: method8:!access,params=0*/
+@pragma('dart2js:noInline')
+method8() => field8;
+
+var field9 = 10;
+
+/*element: method9:!access,params=0*/
+@pragma('dart2js:noInline')
+method9() => field9;
+
+/*element: field10:emitted,lazy*/
+var field10 = method9() + 10;
+
+/*element: method10:calls=[$get$field10(0)],params=0*/
+@pragma('dart2js:noInline')
+method10() => field10;
+
 /*element: main:calls=*,params=0*/
 main() {
   Expect.equals(0, method1(new Class1()));
@@ -85,4 +104,7 @@ main() {
   Expect.throws(/*calls=[method6(1)],params=0*/ () => method6(null));
   Expect.equals(4, method7(new Class1()));
   Expect.throws(/*calls=[method7(1)],params=0*/ () => method7(null));
+  Expect.equals(null, method8());
+  Expect.equals(10, method9());
+  Expect.equals(20, method10());
 }

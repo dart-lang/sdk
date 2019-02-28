@@ -594,7 +594,7 @@ abstract class JsToFrontendMap {
 
   DartType toBackendType(DartType type, {bool allowFreeVariables: false});
 
-  ConstantValue toBackendConstant(ConstantValue value);
+  ConstantValue toBackendConstant(ConstantValue value, {bool allowNull: false});
 
   Set<LibraryEntity> toBackendLibrarySet(Iterable<LibraryEntity> set) {
     return set.map(toBackendLibrary).toSet();
@@ -716,7 +716,14 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
         .getEntity(indexedTypeVariable.typeVariableIndex);
   }
 
-  ConstantValue toBackendConstant(ConstantValue constant) {
+  ConstantValue toBackendConstant(ConstantValue constant,
+      {bool allowNull: false}) {
+    if (constant == null) {
+      if (!allowNull) {
+        throw new UnsupportedError('Null not allowed as constant value.');
+      }
+      return null;
+    }
     return constant.accept(new _ConstantConverter(toBackendEntity), null);
   }
 }

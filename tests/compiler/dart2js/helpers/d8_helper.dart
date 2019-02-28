@@ -68,7 +68,7 @@ Future<D8Result> runWithD8(
   if (printSteps) print('d8 output:');
   if (printSteps) print(out);
   if (expectedOutput != null) {
-    Expect.equals(0, runResult.exitCode);
+    Expect.equals(0, runResult.exitCode, "Unexpected exit code.");
     Expect.stringEquals(expectedOutput.trim(),
         runResult.stdout.replaceAll('\r\n', '\n').trim());
   }

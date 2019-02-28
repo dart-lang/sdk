@@ -202,7 +202,8 @@ class ModelIrComputer extends IrDataExtractor<Features> {
           String receiverName;
           if (receiver is js.VariableUse) {
             receiverName = receiver.name;
-            if (receiverName == receiverName.toUpperCase()) {
+            if (receiverName == receiverName.toUpperCase() &&
+                receiverName != r'$') {
               // Skip holder access.
               receiverName = null;
             }

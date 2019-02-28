@@ -144,10 +144,6 @@ abstract class JsToElementMap {
   js.Template getJsBuiltinTemplate(
       ConstantValue constant, CodeEmitterTask emitter);
 
-  /// Return the [ConstantValue] the initial value of [field] or `null` if
-  /// the initializer is not a constant expression.
-  ConstantValue getFieldConstantValue(FieldEntity field);
-
   /// Returns a [Spannable] for a message pointing to the IR [node] in the
   /// context of [member].
   Spannable getSpannable(MemberEntity member, ir.Node node);
