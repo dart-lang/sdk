@@ -147,6 +147,10 @@ class CompilerOptions {
   /// If not specified, the default target is the VM.
   Target target;
 
+  /// Whether asserts in initializers in const constructors are checked during
+  /// constant evaluation.
+  bool enableAsserts = false;
+
   /// Whether to show verbose messages (mainly for debugging and performance
   /// tracking).
   ///

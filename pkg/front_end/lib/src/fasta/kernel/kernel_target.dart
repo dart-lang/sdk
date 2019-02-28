@@ -137,6 +137,8 @@ class KernelTarget extends TargetImplementation {
   final Map<String, String> environmentDefines =
       CompilerContext.current.options.environmentDefines;
 
+  final bool enableAsserts = CompilerContext.current.options.enableAsserts;
+
   final List<Object> clonedFormals = <Object>[];
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
@@ -757,7 +759,8 @@ class KernelTarget extends TargetImplementation {
           backendTarget.constantsBackend(loader.coreTypes),
           environmentDefines,
           environment,
-          new KernelConstantErrorReporter(loader, environment));
+          new KernelConstantErrorReporter(loader, environment),
+          enableAsserts: enableAsserts);
       ticker.logMs("Evaluated constants");
     }
     backendTarget.performModularTransformationsOnLibraries(

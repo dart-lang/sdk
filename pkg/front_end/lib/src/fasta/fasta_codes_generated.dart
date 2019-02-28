@@ -3314,6 +3314,9 @@ const MessageCode messageFastaUsageLong =
   --target=dart2js|dart2js_server|dart_runner|flutter|flutter_runner|none|vm
     Specify the target configuration.
 
+  --enable-asserts
+    Check asserts in initializers during constant evaluation.
+
   --verify
     Check that the generated output is free of various problems. This is mostly
     useful for developers of this compiler or Kernel transformations.
