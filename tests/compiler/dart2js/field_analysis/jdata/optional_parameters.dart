@@ -41,7 +41,7 @@ class Class1a {
   /*element: Class1a.field2:*/
   var field2;
 
-  /*element: Class1a.field3:initial=IntConstant(3)*/
+  /*element: Class1a.field3:allocator,initial=IntConstant(3)*/
   var field3;
 
   Class1a(this.field1, [this.field2 = 2, this.field3 = 3]);
@@ -67,7 +67,7 @@ class Class2a {
   /*element: Class2a.field2:*/
   var field2;
 
-  /*element: Class2a.field3:initial=IntConstant(3)*/
+  /*element: Class2a.field3:allocator,initial=IntConstant(3)*/
   var field3;
 
   Class2a(this.field1, {this.field2 = 2, this.field3 = 3});

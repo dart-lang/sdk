@@ -23,6 +23,7 @@ main(List<String> args) {
 }
 
 class Tags {
+  static const String isInitializedInAllocator = 'allocator';
   static const String initialValue = 'initial';
   static const String constantValue = 'constant';
 }
@@ -34,18 +35,20 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
-    if (member.isField && member.isInstanceMember) {
+    if (member.isField) {
       JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
       JFieldAnalysis fieldAnalysis = closedWorld.fieldAnalysis;
       ir.Member node = closedWorld.elementMap.getMemberDefinition(member).node;
       Features features = new Features();
       FieldAnalysisData fieldData = fieldAnalysis.getFieldData(member);
-      if (fieldData.isInitializedInAllocator) {
-        features[Tags.initialValue] = fieldData.initialValue.toStructuredText();
-      }
       if (fieldData.isEffectivelyConstant) {
         features[Tags.constantValue] =
             fieldData.constantValue.toStructuredText();
+      } else if (fieldData.initialValue != null) {
+        features[Tags.initialValue] = fieldData.initialValue.toStructuredText();
+      }
+      if (fieldData.isInitializedInAllocator) {
+        features.add(Tags.isInitializedInAllocator);
       }
       Id id = computeEntityId(node);
       actualMap[id] = new ActualData<Features>(

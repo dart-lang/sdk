@@ -132,6 +132,10 @@ class KFieldAnalysis implements FieldAnalysis {
   AllocatorData getFixedInitializerForTesting(KField field) {
     return _classData[field.enclosingClass].fieldData[field];
   }
+
+  ConstantValue getStaticInitializerForTesting(KField field) {
+    return _staticFieldInitializers[field];
+  }
 }
 
 class ClassData {

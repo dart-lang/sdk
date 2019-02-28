@@ -7,6 +7,7 @@ main() {
   new Class2();
 }
 
+/*element: const1:initial=BoolConstant(true)*/
 const bool const1 = true;
 
 class Class1 {

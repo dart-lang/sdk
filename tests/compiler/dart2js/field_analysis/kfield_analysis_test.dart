@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/field_analysis.dart';
@@ -33,22 +34,30 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
-    if (member.isField && member.isInstanceMember) {
+    if (member.isField) {
       KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
       KFieldAnalysis allocatorAnalysis =
           compiler.backend.allocatorResolutionAnalysisForTesting;
       ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
-      AllocatorData data =
-          allocatorAnalysis.getFixedInitializerForTesting(member);
       Features features = new Features();
-      if (data != null) {
-        if (data.initialValue != null) {
-          features[Tags.initialValue] = data.initialValue.toStructuredText();
+      if (member.isInstanceMember) {
+        AllocatorData data =
+            allocatorAnalysis.getFixedInitializerForTesting(member);
+        if (data != null) {
+          if (data.initialValue != null) {
+            features[Tags.initialValue] = data.initialValue.toStructuredText();
+          }
+          data.initializers.forEach((constructor, value) {
+            features['${constructor.enclosingClass.name}.${constructor.name}'] =
+                value?.shortText;
+          });
         }
-        data.initializers.forEach((constructor, value) {
-          features['${constructor.enclosingClass.name}.${constructor.name}'] =
-              value?.shortText;
-        });
+      } else {
+        ConstantValue initialValue =
+            allocatorAnalysis.getStaticInitializerForTesting(member);
+        if (initialValue != null) {
+          features[Tags.initialValue] = initialValue.toStructuredText();
+        }
       }
       Id id = computeEntityId(node);
       actualMap[id] = new ActualData<Features>(
