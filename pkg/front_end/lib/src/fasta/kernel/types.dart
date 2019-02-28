@@ -272,7 +272,8 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
 
   @override
   bool isTypedefRelated(TypedefType s, InterfaceType t, Types types) {
-    return false;
+    // Rule 5.
+    return types.isSubtypeOfKernel(s.unalias, t);
   }
 
   @override
@@ -599,6 +600,28 @@ class IsIntersectionSubtypeOf extends TypeRelation<TypeParameterType> {
     return s.classNode == types.hierarchy.nullKernelClass; // Rule 4.
   }
 
-  // TODO(ahe): Remove this method.
-  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  bool isDynamicRelated(
+      DynamicType s, TypeParameterType intersection, Types types) {
+    return false;
+  }
+
+  bool isFunctionRelated(
+      FunctionType s, TypeParameterType intersection, Types types) {
+    return false;
+  }
+
+  bool isFutureOrRelated(
+      InterfaceType futureOr, TypeParameterType intersection, Types types) {
+    return false;
+  }
+
+  bool isTypedefRelated(
+      TypedefType s, TypeParameterType intersection, Types types) {
+    // Rule 5.
+    return types.isSubtypeOfKernel(s.unalias, intersection);
+  }
+
+  bool isVoidRelated(VoidType s, TypeParameterType intersection, Types types) {
+    return false;
+  }
 }

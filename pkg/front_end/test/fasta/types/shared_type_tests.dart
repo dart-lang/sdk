@@ -154,6 +154,7 @@ abstract class SubtypeTest<T, E> {
         typeParameters: 'T extends FutureOr<num>');
     isSubtype('Id<int>', 'FutureOr<num>');
     isNotSubtype('Id<num>', 'FutureOr<int>');
+    isSubtype('FutureOr<Object>', 'FutureOr<FutureOr<Object>>');
 
     // T & B <: T & A if B <: A
     isSubtype('T & int', 'T & int', typeParameters: 'T');
@@ -318,6 +319,18 @@ abstract class SubtypeTest<T, E> {
     isSubtype('T & (void) -> void', 'Id<(int) -> Object>', typeParameters: 'T');
 
     isNotSubtype('T & (void) -> void', 'Id<(int) -> int>', typeParameters: 'T');
+    isNotSubtype('dynamic', 'T & dynamic', typeParameters: 'T extends dynamic');
+    isNotSubtype('() -> T', 'T & () -> T', typeParameters: 'T');
+
+    isNotSubtype('FutureOr<T & String>', 'T & String', typeParameters: 'T');
+
+    isSubtype('Id<T & String>', 'T & String', typeParameters: 'T');
+    isSubtype('Id<T & String>', 'T', typeParameters: 'T');
+    isSubtype('Id<T & String>', 'String', typeParameters: 'T');
+    isNotSubtype('Id<T & String>', 'S & String', typeParameters: 'T, S');
+
+    isNotSubtype('void', 'T & void', typeParameters: 'T');
+    isNotSubtype('void', 'T & void', typeParameters: 'T extends void');
 
     isSubtype('T', 'Id<T>', typeParameters: 'T');
     isSubtype('T', 'Id<Object>', typeParameters: 'T');
