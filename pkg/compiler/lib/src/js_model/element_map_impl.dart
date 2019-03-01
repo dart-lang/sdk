@@ -1375,6 +1375,10 @@ class JsKernelToElementMap
 
   ConstantValue getConstantValue(ir.Expression node,
       {bool requireConstant: true, bool implicitNull: false}) {
+    if (node is ir.ConstantExpression) {
+      return node.constant.accept(new ConstantValuefier(this));
+    }
+
     ConstantExpression constant;
     if (node == null) {
       if (!implicitNull) {

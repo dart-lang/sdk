@@ -1418,12 +1418,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void defaultExpression(ir.Expression expression) {
-    // TODO(het): This is only to get tests working.
+    // TODO(johnniwinther): We should make this an internal error.
     _trap('Unhandled ir.${expression.runtimeType}  $expression');
   }
 
   @override
   void defaultStatement(ir.Statement statement) {
+    // TODO(johnniwinther): We should make this an internal error.
     _trap('Unhandled ir.${statement.runtimeType}  $statement');
     pop();
   }

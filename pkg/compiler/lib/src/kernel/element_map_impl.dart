@@ -994,6 +994,10 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       {bool requireConstant: true,
       bool implicitNull: false,
       bool checkCasts: true}) {
+    if (node is ir.ConstantExpression) {
+      return node.constant.accept(new ConstantValuefier(this));
+    }
+
     ConstantExpression constant;
     if (node == null) {
       if (!implicitNull) {

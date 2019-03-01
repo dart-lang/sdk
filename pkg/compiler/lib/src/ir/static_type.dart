@@ -1227,6 +1227,14 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     }
     handleVariableDeclaration(node);
   }
+
+  void handleConstantExpression(ir.ConstantExpression node) {}
+
+  @override
+  ir.DartType visitConstantExpression(ir.ConstantExpression node) {
+    handleConstantExpression(node);
+    return super.visitConstantExpression(node);
+  }
 }
 
 class ArgumentTypes {

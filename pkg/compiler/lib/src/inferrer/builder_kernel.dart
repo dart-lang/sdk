@@ -1762,6 +1762,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // TODO(johnniwinther): Maybe this should be [empty] instead?
     return _types.dynamicType;
   }
+
+  @override
+  TypeInformation visitConstantExpression(ir.ConstantExpression node) {
+    // TODO(johnniwinther,fishythefish): Compute the precise type information.
+    return _types.dynamicType;
+  }
 }
 
 class Refinement {

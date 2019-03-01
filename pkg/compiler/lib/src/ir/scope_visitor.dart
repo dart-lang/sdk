@@ -1008,6 +1008,11 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     return const InitializerComplexity.lazy();
   }
 
+  @override
+  InitializerComplexity visitConstantExpression(ir.ConstantExpression node) {
+    return const InitializerComplexity.constant();
+  }
+
   /// Returns true if the node is a field, or a constructor (factory or
   /// generative).
   bool _isFieldOrConstructor(ir.Node node) =>

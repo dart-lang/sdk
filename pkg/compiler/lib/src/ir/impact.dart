@@ -175,6 +175,8 @@ abstract class ImpactRegistry {
   void registerRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType);
 
+  void registerConstant(ir.ConstantExpression node);
+
   // TODO(johnniwinther): Remove these when CFE provides constants.
   void registerConstructorNode(ir.Constructor node);
   void registerFieldNode(ir.Field node);
@@ -644,6 +646,11 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   void handleRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType) {
     registerRuntimeTypeUse(node, kind, receiverType, argumentType);
+  }
+
+  @override
+  void handleConstantExpression(ir.ConstantExpression node) {
+    registerConstant(node);
   }
 }
 
