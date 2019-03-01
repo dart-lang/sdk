@@ -188,24 +188,11 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
   }
 
   @override
-  void visitMapLiteral(MapLiteral node) {
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
     if (node.isConst) {
       _find(node);
     } else {
-      // Values of keys are computed to check that they are unique.
-      for (var entry in node.entries) {
-        _find(entry.key);
-      }
-      super.visitMapLiteral(node);
-    }
-  }
-
-  @override
-  void visitSetLiteral(SetLiteral node) {
-    if (node.isConst) {
-      _find(node);
-    } else {
-      super.visitSetLiteral(node);
+      super.visitSetOrMapLiteral(node);
     }
   }
 

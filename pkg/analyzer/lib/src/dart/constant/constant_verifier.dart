@@ -162,62 +162,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitMapLiteral(MapLiteral node) {
-    super.visitMapLiteral(node);
-    bool isConst = node.isConst;
-    bool reportEqualKeys = true;
-    HashSet<DartObject> keys = new HashSet<DartObject>();
-    List<Expression> invalidKeys = new List<Expression>();
-    for (MapLiteralEntry entry in node.entries) {
-      if (!_validateMapLiteralEntry(entry, isConst, keys, invalidKeys)) {
-        reportEqualKeys = false;
-      }
-    }
-    if (reportEqualKeys) {
-      for (int i = 0; i < invalidKeys.length; i++) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.EQUAL_KEYS_IN_MAP, invalidKeys[i]);
-      }
-    }
-  }
-
-  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
     _validateDefaultValues(node.parameters);
-  }
-
-  @override
-  void visitSetLiteral(SetLiteral node) {
-    super.visitSetLiteral(node);
-    HashSet<DartObject> elements = new HashSet<DartObject>();
-    List<Expression> invalidElements = new List<Expression>();
-    if (node.isConst) {
-      for (Expression element in node.elements) {
-        DartObjectImpl result =
-            _validate(element, CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT);
-        if (result != null) {
-          _reportErrorIfFromDeferredLibrary(
-              element,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY);
-          if (!elements.add(result)) {
-            invalidElements.add(element);
-          }
-          DartType type = result.type;
-          if (_implementsEqualsWhenNotAllowed(type)) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-                element,
-                [type.displayName]);
-          }
-        }
-      }
-      for (var invalidElement in invalidElements) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.EQUAL_VALUES_IN_CONST_SET, invalidElement);
-      }
-    }
   }
 
   @override

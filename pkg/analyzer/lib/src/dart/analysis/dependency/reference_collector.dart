@@ -342,8 +342,6 @@ class ReferenceCollector {
       _visitTypeAnnotation(node.type);
     } else if (node is ListLiteral) {
       _visitListLiteral(node);
-    } else if (node is MapLiteral) {
-      _visitMapLiteral(node);
     } else if (node is MethodInvocation) {
       _visitMethodInvocation(node);
     } else if (node is NamedExpression) {
@@ -362,8 +360,6 @@ class ReferenceCollector {
       _visitPropertyAccess(node, get: get, set: set);
     } else if (node is RethrowExpression) {
       // no dependencies
-    } else if (node is SetLiteral) {
-      _visitSetLiteral(node);
     } else if (node is SetOrMapLiteral) {
       _visitSetOrMapLiteral(node);
     } else if (node is SimpleIdentifier) {
@@ -393,29 +389,6 @@ class ReferenceCollector {
     for (Expression node in nodes) {
       _visitExpression(node);
     }
-  }
-
-  void _visitForEachStatement(ForEachStatement node) {
-    var loopVariable = node.loopVariable;
-    if (loopVariable != null) {
-      _visitTypeAnnotation(loopVariable.type);
-    }
-
-    var loopIdentifier = node.identifier;
-    if (loopIdentifier != null) {
-      _visitExpression(loopIdentifier);
-    }
-
-    _visitExpression(node.iterable);
-
-    _localScopes.enter();
-    if (loopVariable != null) {
-      _localScopes.add(loopVariable.identifier.name);
-    }
-
-    _visitStatement(node.body);
-
-    _localScopes.exit();
   }
 
   void _visitForLoopParts(ForLoopParts node) {
@@ -489,23 +462,6 @@ class ReferenceCollector {
         _localScopes.add(parameter.identifier.name);
       }
     }
-  }
-
-  void _visitForStatement(ForStatement node) {
-    _localScopes.enter();
-
-    _visitVariableList(node.variables);
-    _visitExpression(node.initialization);
-    _visitExpression(node.condition);
-
-    var updaters = node.updaters;
-    for (var i = 0; i < updaters.length; i++) {
-      _visitExpression(updaters[i]);
-    }
-
-    _visitStatement(node.body);
-
-    _localScopes.exit();
   }
 
   void _visitForStatement2(ForStatement2 node) {
@@ -586,16 +542,6 @@ class ReferenceCollector {
     }
   }
 
-  void _visitMapLiteral(MapLiteral node) {
-    _visitTypeArguments(node.typeArguments);
-    var entries = node.entries;
-    for (var i = 0; i < entries.length; i++) {
-      var entry = entries[i];
-      _visitExpression(entry.key);
-      _visitExpression(entry.value);
-    }
-  }
-
   void _visitMethodInvocation(MethodInvocation node) {
     var realTarget = node.realTarget;
     if (realTarget == null) {
@@ -671,15 +617,6 @@ class ReferenceCollector {
     }
   }
 
-  void _visitSetLiteral(SetLiteral node) {
-    _visitTypeArguments(node.typeArguments);
-    var elements = node.elements;
-    for (var i = 0; i < elements.length; i++) {
-      var element = elements[i];
-      _visitExpression(element);
-    }
-  }
-
   void _visitSetOrMapLiteral(SetOrMapLiteral node) {
     _visitTypeArguments(node.typeArguments);
     var elements = node.elements2;
@@ -725,10 +662,6 @@ class ReferenceCollector {
       // nothing
     } else if (node is ExpressionStatement) {
       _visitExpression(node.expression);
-    } else if (node is ForEachStatement) {
-      _visitForEachStatement(node);
-    } else if (node is ForStatement) {
-      _visitForStatement(node);
     } else if (node is ForStatement2) {
       _visitForStatement2(node);
     } else if (node is FunctionDeclarationStatement) {
