@@ -2662,7 +2662,13 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&atan)));
 
 uword RuntimeEntry::InterpretCallEntry() {
-  return reinterpret_cast<uword>(RuntimeEntry::InterpretCall);
+  uword entry = reinterpret_cast<uword>(RuntimeEntry::InterpretCall);
+#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
+  // DBC does not use redirections unlike other simulators.
+  entry = Simulator::RedirectExternalReference(entry,
+                                               Simulator::kLeafRuntimeCall, 5);
+#endif
+  return entry;
 }
 
 // Interpret a function call. Should be called only for non-jitted functions.

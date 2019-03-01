@@ -166,11 +166,9 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 #endif
 
   if (FLAG_enable_interpreter) {
-#if defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
-    return strdup(
-        "--enable-interpreter is not supported when targeting "
-        "a sim* architecture.");
-#endif  // defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
+#if defined(TARGET_ARCH_DBC)
+    return strdup("--enable-interpreter is not supported with DBC");
+#endif  // defined(TARGET_ARCH_DBC)
 
     FLAG_use_field_guards = false;
   }

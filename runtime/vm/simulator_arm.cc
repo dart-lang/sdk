@@ -1365,7 +1365,8 @@ typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
 typedef int32_t (*SimulatorLeafRuntimeCall)(int32_t r0,
                                             int32_t r1,
                                             int32_t r2,
-                                            int32_t r3);
+                                            int32_t r3,
+                                            int32_t r4);
 
 // Calls to leaf float Dart runtime functions are based on this interface.
 typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
@@ -1401,14 +1402,15 @@ void Simulator::SupervisorCall(Instr* instr) {
           set_register(R1, icount_);
         } else if (redirection->call_kind() == kLeafRuntimeCall) {
           ASSERT((0 <= redirection->argument_count()) &&
-                 (redirection->argument_count() <= 4));
+                 (redirection->argument_count() <= 5));
           int32_t r0 = get_register(R0);
           int32_t r1 = get_register(R1);
           int32_t r2 = get_register(R2);
           int32_t r3 = get_register(R3);
+          int32_t r4 = *reinterpret_cast<int32_t*>(get_register(SP));
           SimulatorLeafRuntimeCall target =
               reinterpret_cast<SimulatorLeafRuntimeCall>(external);
-          r0 = target(r0, r1, r2, r3);
+          r0 = target(r0, r1, r2, r3, r4);
           set_register(R0, r0);       // Set returned result from function.
           set_register(R1, icount_);  // Zap unused result register.
         } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {

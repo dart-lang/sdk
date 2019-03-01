@@ -529,18 +529,6 @@ void Exceptions::JumpToFrame(Thread* thread,
   uword fp_for_clearing =
       (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
   ClearLazyDeopts(thread, fp_for_clearing);
-#if defined(USING_SIMULATOR)
-  // Unwinding of the C++ frames and destroying of their stack resources is done
-  // by the simulator, because the target stack_pointer is a simulated stack
-  // pointer and not the C++ stack pointer.
-
-  // Continue simulating at the given pc in the given frame after setting up the
-  // exception object in the kExceptionObjectReg register and the stacktrace
-  // object (may be raw null) in the kStackTraceObjectReg register.
-
-  Simulator::Current()->JumpToFrame(program_counter, stack_pointer,
-                                    frame_pointer, thread);
-#else
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // TODO(regis): We still possibly need to unwind interpreter frames if they
@@ -553,6 +541,19 @@ void Exceptions::JumpToFrame(Thread* thread,
     }
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#if defined(USING_SIMULATOR)
+  // Unwinding of the C++ frames and destroying of their stack resources is done
+  // by the simulator, because the target stack_pointer is a simulated stack
+  // pointer and not the C++ stack pointer.
+
+  // Continue simulating at the given pc in the given frame after setting up the
+  // exception object in the kExceptionObjectReg register and the stacktrace
+  // object (may be raw null) in the kStackTraceObjectReg register.
+
+  Simulator::Current()->JumpToFrame(program_counter, stack_pointer,
+                                    frame_pointer, thread);
+#else
 
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.

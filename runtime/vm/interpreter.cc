@@ -237,8 +237,8 @@ void LookupCache::Insert(intptr_t receiver_cid,
 
 Interpreter::Interpreter()
     : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL), lookup_cache_() {
-#if defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
-  FATAL("Interpreter is not supported when targeting a sim* architecture.\n");
+#if defined(TARGET_ARCH_DBC)
+  FATAL("Interpreter is not supported when targeting DBC\n");
 #endif  // defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
 
   // Setup interpreter support first. Some of this information is needed to
@@ -442,10 +442,6 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
                                                uint32_t** pc,
                                                RawObject*** FP,
                                                RawObject*** SP) {
-#if defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
-  // TODO(regis): Revisit.
-  UNIMPLEMENTED();
-#endif
   ASSERT(Function::HasCode(function));
   RawCode* volatile code = function->ptr()->code_;
   ASSERT(code != StubCode::LazyCompile().raw());
@@ -466,7 +462,19 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   {
     InterpreterSetjmpBuffer buffer(this);
     if (!setjmp(buffer.buffer_)) {
+#if defined(TARGET_ARCH_DBC)
+      USE(entrypoint);
+      UNIMPLEMENTED();
+#elif defined(USING_SIMULATOR)
+      result = bit_copy<RawObject*, int64_t>(
+          Simulator::Current()->Call(reinterpret_cast<intptr_t>(entrypoint),
+                                     reinterpret_cast<intptr_t>(code),
+                                     reinterpret_cast<intptr_t>(argdesc_),
+                                     reinterpret_cast<intptr_t>(call_base),
+                                     reinterpret_cast<intptr_t>(thread)));
+#else
       result = entrypoint(code, argdesc_, call_base, thread);
+#endif
       thread->set_top_exit_frame_info(0);
       ASSERT(thread->vm_tag() == VMTag::kDartInterpretedTagId);
       ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
