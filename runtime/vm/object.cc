@@ -2019,12 +2019,7 @@ RawError* Object::Init(Isolate* isolate,
 bool Object::InVMHeap() const {
   if (FLAG_verify_handles && raw()->IsVMHeapObject()) {
     Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-    uword addr = RawObject::ToAddr(raw());
-    if (!vm_isolate_heap->Contains(addr)) {
-      ASSERT(FLAG_write_protect_code);
-      addr = RawObject::ToAddr(HeapPage::ToWritable(raw()));
-      ASSERT(vm_isolate_heap->Contains(addr));
-    }
+    ASSERT(vm_isolate_heap->Contains(RawObject::ToAddr(raw())));
   }
   return raw()->IsVMHeapObject();
 }
@@ -2085,12 +2080,8 @@ void Object::CheckHandle() const {
       Isolate* isolate = Isolate::Current();
       Heap* isolate_heap = isolate->heap();
       Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-      uword addr = RawObject::ToAddr(raw_);
-      if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
-        ASSERT(FLAG_write_protect_code);
-        addr = RawObject::ToAddr(HeapPage::ToWritable(raw_));
-        ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
-      }
+      ASSERT(isolate_heap->Contains(RawObject::ToAddr(raw_)) ||
+             vm_isolate_heap->Contains(RawObject::ToAddr(raw_)));
     }
   }
 #endif
@@ -14578,24 +14569,6 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
                                object->raw());
     }
 
-    // Write protect instructions and, if supported by OS, use dual mapping
-    // for execution.
-    if (FLAG_write_protect_code) {
-      uword address = RawObject::ToAddr(instrs.raw());
-      // Check if a dual mapping exists.
-      instrs = Instructions::RawCast(HeapPage::ToExecutable(instrs.raw()));
-      uword exec_address = RawObject::ToAddr(instrs.raw());
-      if (exec_address != address) {
-        VirtualMemory::Protect(reinterpret_cast<void*>(address),
-                               instrs.raw()->HeapSize(),
-                               VirtualMemory::kReadOnly);
-        address = exec_address;
-      }
-      VirtualMemory::Protect(reinterpret_cast<void*>(address),
-                             instrs.raw()->HeapSize(),
-                             VirtualMemory::kReadExecute);
-    }
-
     // Hook up Code and Instructions objects.
     code.SetActiveInstructions(instrs);
     code.set_instructions(instrs);
@@ -14604,6 +14577,13 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
     // Set object pool in Instructions object.
     if (pool_attachment == PoolAttachment::kAttachPool) {
       code.set_object_pool(object_pool->raw());
+    }
+
+    if (FLAG_write_protect_code) {
+      uword address = RawObject::ToAddr(instrs.raw());
+      VirtualMemory::Protect(reinterpret_cast<void*>(address),
+                             instrs.raw()->HeapSize(),
+                             VirtualMemory::kReadExecute);
     }
 
 #if defined(DART_PRECOMPILER)

@@ -12,14 +12,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, write_protect_code, true, "Write protect jitted code");
 
-#if (defined(HOST_OS_LINUX) || defined(HOST_OS_FUCHSIA)) &&                    \
-    !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_DBC)
-DEFINE_FLAG(bool, dual_map_code, true, "Dual map jitted code, RW and RX");
-#else
-DEFINE_FLAG(bool, dual_map_code, false, "Dual map jitted code, RW and RX");
-#endif
-
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_DBC)
 WritableInstructionsScope::WritableInstructionsScope(uword address,
                                                      intptr_t size)
     : address_(address), size_(size) {
@@ -35,7 +27,6 @@ WritableInstructionsScope::~WritableInstructionsScope() {
                            VirtualMemory::kReadExecute);
   }
 }
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_DBC)
 
 bool MatchesPattern(uword end, const int16_t* pattern, intptr_t size) {
   // When breaking within generated code in GDB, it may overwrite individual

@@ -4,7 +4,6 @@
 
 cc/AllocGeneric_Overflow: Crash, Fail # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash, Fail # These tests are expected to crash on all platforms.
-cc/CodeExecutability: Crash, Fail # These tests are expected to crash on all platforms.
 cc/CodeImmutability: Crash, Fail # These tests are expected to crash on all platforms.
 cc/Dart2JSCompileAll: Fail, Crash # Issue 27369
 cc/Dart2JSCompilerStats: Fail, Crash # Issue 27369
@@ -29,7 +28,6 @@ dart/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
 
 [ $builder_tag == asan ]
-cc/CodeExecutability: Fail, OK # Address Sanitizer turns a crash into a failure.
 cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
 
 [ $builder_tag == optimization_counter_threshold ]

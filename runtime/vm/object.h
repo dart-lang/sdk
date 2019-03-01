@@ -4652,7 +4652,6 @@ class ExceptionHandlers : public Object {
 
 class Code : public Object {
  public:
-  // When dual mapping, this returns the executable view.
   RawInstructions* active_instructions() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
@@ -4662,7 +4661,6 @@ class Code : public Object {
 #endif
   }
 
-  // When dual mapping, these return the executable view.
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
   static RawInstructions* InstructionsOf(const RawCode* code) {
     return code->ptr()->instructions_;
@@ -5143,7 +5141,6 @@ class Code : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
-  friend class CodeTestHelper;
   friend class SnapshotWriter;
   friend class StubCode;     // for set_object_pool
   friend class Precompiler;  // for set_object_pool
@@ -9142,12 +9139,8 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
     Isolate* isolate = Isolate::Current();
     Heap* isolate_heap = isolate->heap();
     Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-    uword addr = RawObject::ToAddr(raw_);
-    if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
-      ASSERT(FLAG_write_protect_code);
-      addr = RawObject::ToAddr(HeapPage::ToWritable(raw_));
-      ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
-    }
+    ASSERT(isolate_heap->Contains(RawObject::ToAddr(raw_)) ||
+           vm_isolate_heap->Contains(RawObject::ToAddr(raw_)));
   }
 #endif
 }

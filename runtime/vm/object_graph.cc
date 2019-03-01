@@ -44,12 +44,7 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
         if (!include_vm_objects_ && !IsUserClass((*current)->GetClassId())) {
           continue;
         }
-        if (FLAG_write_protect_code && (*current)->IsInstructions()) {
-          // A non-writable alias mapping may exist for instruction pages.
-          HeapPage::ToWritable(*current)->SetGraphMarked();
-        } else {
-          (*current)->SetGraphMarked();
-        }
+        (*current)->SetGraphMarked();
         Node node;
         node.ptr = current;
         node.obj = *current;
