@@ -4,15 +4,8 @@
 
 // This file contains test functions for the dart:ffi test cases.
 
-// The tests which use this don't run on Windows yet.
-#if !defined(_WIN32)
-
 #include <stddef.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <iostream>
-#include <limits>
 
 #include "include/dart_api.h"
 
@@ -388,32 +381,4 @@ DART_EXPORT float InventFloatValue() {
   return retval;
 }
 
-// Functions for stress-testing GC by returning values that require boxing.
-
-DART_EXPORT int64_t MinInt64() {
-  return 0x8000000000000000;
-}
-
-DART_EXPORT int64_t MinInt32() {
-  return 0x80000000;
-}
-
-DART_EXPORT double SmallDouble() {
-  return 0x80000000 * -1.0;
-}
-
-DART_EXPORT void* SmallPointer() {
-  return reinterpret_cast<void*>(-0x80000000L);
-}
-
-DART_EXPORT int RedirectStderr() {
-  char filename[256];
-  snprintf(filename, sizeof(filename), "/tmp/captured_stderr_%d", getpid());
-  freopen(filename, "w", stderr);
-  printf("Got file %s\n", filename);
-  return getpid();
-}
-
 }  // namespace dart
-
-#endif

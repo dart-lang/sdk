@@ -13,7 +13,6 @@ io/http_server_response_test: Fail # Issue 34724
 io/process_sync_test: Pass, Fail # https://github.com/dart-lang/sdk/issues/34724
 io/signals_test: Fail # Issue 34724
 io/test_extension_fail_test: Fail # Issue 32187
-ffi/negative_function_test: Skip # Issues 36033, 36034
 
 [ $compiler == app_jitk ]
 io/file_error_test: RuntimeError
@@ -42,9 +41,6 @@ io/platform_resolved_executable_test/04: RuntimeError
 [ $compiler == dartkp ]
 io/arguments_test: Fail # Test harness passes runtime arguments to the compiler
 io/test_runner_test: SkipByDesign # Is not relevant for AOT.
-
-[ $mode == product || $compiler == dartkp ]
-ffi/function_stress_test: SkipByDesign # Requires --verbose-gc, which isn't included in product. FFI isn't supported on AOT yet.
 
 [ $fasta ]
 deferred_transitive_import_error_test: CompileTimeError
