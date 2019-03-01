@@ -114,13 +114,54 @@ class EnumDeclaration extends CompilationUnitMember {
 }
 
 /// "Mini AST" representation of an expression.
-class Expression {}
+class Expression {
+  String toCode() {
+    throw UnimplementedError('$runtimeType');
+  }
+}
 
 /// "Mini AST" representation of an integer literal.
 class IntegerLiteral extends Expression {
   final int value;
 
   IntegerLiteral(this.value);
+}
+
+/// "Mini AST" representation of a list literal.
+class ListLiteral extends Expression {
+  final Token leftBracket;
+  final List<Expression> elements;
+  final Token rightBracket;
+
+  ListLiteral(this.leftBracket, this.elements, this.rightBracket);
+
+  @override
+  String toCode() {
+    return '[' + elements.map((e) => e.toCode()).join(', ') + ']';
+  }
+}
+
+/// "Mini AST" representation of a named expression.
+class NamedExpression extends Expression {
+  final String name;
+  final Token colon;
+  final Expression expression;
+
+  NamedExpression(this.name, this.colon, this.expression);
+}
+
+/// "Mini AST" representation of a named expression.
+class PrefixedIdentifier extends Expression {
+  final String prefix;
+  final Token operator;
+  final String identifier;
+
+  PrefixedIdentifier(this.prefix, this.operator, this.identifier);
+
+  @override
+  String toCode() {
+    return '$prefix.$identifier';
+  }
 }
 
 /// "Mini AST" representation of a method declaration.
@@ -370,16 +411,46 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleSend(Token beginToken, Token endToken) {
     debugEvent("Send");
-    pop(); // Arguments
+
+    var arguments = pop();
     pop(); // Type arguments
-    pop(); // Receiver
-    push(new UnknownExpression());
+    if (arguments != null) {
+      pop(); // Receiver
+      push(new UnknownExpression());
+    } else {
+      // Property get.
+    }
   }
 
   @override
   void endShow(Token showKeyword) {
     debugEvent("Show");
     pop(); // Shown names
+  }
+
+  @override
+  void handleNamedArgument(Token colon) {
+    var expression = pop();
+    var name = pop();
+    push(NamedExpression(name, colon, expression));
+  }
+
+  @override
+  void handleLiteralList(
+      int count, Token leftBracket, Token constKeyword, Token rightBracket) {
+    debugEvent("LiteralList");
+
+    var elements = List<Object>(count);
+    popList(count, elements);
+    pop(); // type arguments
+
+    push(
+      ListLiteral(
+        leftBracket,
+        List<Expression>.from(elements),
+        rightBracket,
+      ),
+    );
   }
 
   @override
@@ -416,9 +487,20 @@ class MiniAstBuilder extends StackListener {
   @override
   void endBinaryExpression(Token token) {
     debugEvent("BinaryExpression");
-    pop(); // RHS
-    pop(); // LHS
-    push(new UnknownExpression());
+
+    if (identical('.', token.stringValue)) {
+      var rightOperand = pop();
+      var leftOperand = pop();
+      if (leftOperand is String && !leftOperand.contains('.')) {
+        push(PrefixedIdentifier(leftOperand, token, rightOperand));
+      } else {
+        push(new UnknownExpression());
+      }
+    } else {
+      pop(); // RHS
+      pop(); // LHS
+      push(new UnknownExpression());
+    }
   }
 
   @override

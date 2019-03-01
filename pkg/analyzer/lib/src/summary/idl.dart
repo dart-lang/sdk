@@ -42,7 +42,7 @@
 import 'package:analyzer/dart/element/element.dart';
 
 import 'base.dart' as base;
-import 'base.dart' show Id, TopLevel;
+import 'base.dart' show Id, TopLevel, Variant, VariantId;
 import 'format.dart' as generated;
 
 /// Annotation describing information which is not part of Dart semantics; in
