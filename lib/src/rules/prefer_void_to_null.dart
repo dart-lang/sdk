@@ -92,10 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         final literal = parent.parent;
         if (literal is ListLiteral && literal.elements.isEmpty) {
           return;
-        } else if (literal is SetOrMapLiteral &&
-            // todo (pq): should this apply to set literals as well?
-            literal.isMap &&
-            literal.elements2.isEmpty) {
+        } else if (literal is SetOrMapLiteral && literal.elements2.isEmpty) {
           return;
         }
       }

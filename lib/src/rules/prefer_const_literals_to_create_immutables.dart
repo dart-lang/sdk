@@ -79,10 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    // todo (pq): should this apply to set literals as well?
-    if (node.isMap) {
-      _visitTypedLiteral(node);
-    }
+    _visitTypedLiteral(node);
   }
 
   Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
@@ -119,7 +116,6 @@ class _Visitor extends SimpleAstVisitor<void> {
             node is ArgumentList ||
             node is ListLiteral ||
             node is SetOrMapLiteral ||
-            // todo (pq): check if this needs updating with the SetOrMapLiteral unification
             node is MapLiteralEntry ||
             node is NamedExpression)) {
       node = node.parent;

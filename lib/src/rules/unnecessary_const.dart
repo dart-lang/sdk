@@ -75,10 +75,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    // todo (pq): should this apply to SetLiterals as well?
-    if (node.isMap) {
-      _visitTypedLiteral(node);
-    }
+    _visitTypedLiteral(node);
   }
 
   _visitTypedLiteral(TypedLiteral node) {
