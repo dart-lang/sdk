@@ -530,29 +530,13 @@ class DefiniteAssignmentTracker {
     _current = _current.union(continueSet);
   }
 
-  void beginForEachStatement(ForEachStatement statement) {
-    // Not strongly necessary, because we discard everything anyway.
-    // Just for consistency, so that `break` is handled without `null`.
-    _statementToStackIndex[statement] = _stack.length;
-  }
-
-  void beginForEachStatementBody() {
-    _stack.add(_current);
-  }
-
-  void beginForStatement(ForStatement statement) {
-    // Not strongly necessary, because we discard everything anyway.
-    // Just for consistency, so that `break` is handled without `null`.
-    _statementToStackIndex[statement] = _stack.length;
-  }
-
   void beginForStatement2(ForStatement2 statement) {
     // Not strongly necessary, because we discard everything anyway.
     // Just for consistency, so that `break` is handled without `null`.
     _statementToStackIndex[statement] = _stack.length;
   }
 
-  void beginForStatementBody() {
+  void beginForStatement2Body() {
     _stack.add(_current); // break set
     _stack.add(_ElementSet.empty); // continue set
   }
@@ -624,11 +608,7 @@ class DefiniteAssignmentTracker {
     _current = _current.union(breakSet);
   }
 
-  void endForEachStatement() {
-    _current = _stack.removeLast();
-  }
-
-  void endForStatement() {
+  void endForStatement2() {
     _stack.removeLast(); // continue set
     _current = _stack.removeLast(); // break set, before body
   }

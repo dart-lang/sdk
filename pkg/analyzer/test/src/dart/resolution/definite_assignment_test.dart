@@ -1321,77 +1321,35 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    var iterable = node.iterable;
-    var body = node.body;
-
-    tracker.beginForEachStatement(node);
-    iterable.accept(this);
-
-    tracker.beginForEachStatementBody();
-    body.accept(this);
-
-    tracker.endForEachStatement();
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    var variables = node.variables;
-    var initialization = node.initialization;
-
-    var condition = node.condition;
-    var updaters = node.updaters;
-    var body = node.body;
-
-    tracker.beginForStatement(node);
-
-    variables?.accept(this);
-    initialization?.accept(this);
-    condition?.accept(this);
-
-    tracker.beginForStatementBody();
-    body?.accept(this);
-
-    tracker.beginForStatementUpdaters();
-    updaters?.accept(this);
-
-    tracker.endForStatement();
-  }
-
-  @override
   void visitForStatement2(ForStatement2 node) {
     var parts = node.forLoopParts;
-    VariableDeclarationList variables;
-    Expression initialization;
-    Expression condition;
-    Expression iterable;
-    NodeList<Expression> updaters;
-    if (parts is ForPartsWithDeclarations) {
-      variables = parts.variables;
-      condition = parts.condition;
-      updaters = parts.updaters;
-    } else if (parts is ForPartsWithExpression) {
-      initialization = parts.initialization;
-      condition = parts.condition;
-      updaters = parts.updaters;
-    } else if (parts is ForEachParts) {
-      iterable = parts.iterable;
-    }
 
     tracker.beginForStatement2(node);
 
-    variables?.accept(this);
-    initialization?.accept(this);
-    condition?.accept(this);
-    iterable?.accept(this);
+    if (parts is ForParts) {
+      if (parts is ForPartsWithDeclarations) {
+        parts.variables?.accept(this);
+      } else if (parts is ForPartsWithExpression) {
+        parts.initialization?.accept(this);
+      } else {
+        throw new StateError('Unrecognized for loop parts');
+      }
+      parts.condition?.accept(this);
+    } else if (parts is ForEachParts) {
+      parts.iterable.accept(this);
+    } else {
+      throw new StateError('Unrecognized for loop parts');
+    }
 
-    tracker.beginForStatementBody();
+    tracker.beginForStatement2Body();
     node.body?.accept(this);
 
-    tracker.beginForStatementUpdaters();
-    updaters?.accept(this);
+    if (parts is ForParts) {
+      tracker.beginForStatementUpdaters();
+      parts.updaters?.accept(this);
+    }
 
-    tracker.endForStatement();
+    tracker.endForStatement2();
   }
 
   @override

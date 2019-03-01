@@ -178,23 +178,6 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       _nodeExits(node.expression);
 
   @override
-  bool visitForEachStatement(ForEachStatement node) {
-    bool outerBreakValue = _enclosingBlockContainsBreak;
-    _enclosingBlockContainsBreak = false;
-    try {
-      bool iterableExits = _nodeExits(node.iterable);
-      // Discard whether the for-each body exits; since the for-each iterable
-      // may be empty, execution may never enter the body, so it doesn't matter
-      // if it exits or not.  We still must visit the body, to accurately
-      // manage `_enclosingBlockBreaksLabel`.
-      _nodeExits(node.body);
-      return iterableExits;
-    } finally {
-      _enclosingBlockContainsBreak = outerBreakValue;
-    }
-  }
-
-  @override
   bool visitForElement(ForElement node) {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
@@ -245,42 +228,6 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       _enclosingBlockContainsBreak = outerBreakValue;
     }
     return false;
-  }
-
-  @override
-  bool visitForStatement(ForStatement node) {
-    bool outerBreakValue = _enclosingBlockContainsBreak;
-    _enclosingBlockContainsBreak = false;
-    try {
-      if (node.variables != null &&
-          _visitVariableDeclarations(node.variables.variables)) {
-        return true;
-      }
-      if (node.initialization != null && _nodeExits(node.initialization)) {
-        return true;
-      }
-      Expression conditionExpression = node.condition;
-      if (conditionExpression != null && _nodeExits(conditionExpression)) {
-        return true;
-      }
-      if (_visitExpressions(node.updaters)) {
-        return true;
-      }
-      bool blockReturns = _nodeExits(node.body);
-      // TODO(jwren) Do we want to take all constant expressions into account?
-      // If for(; true; ) (or for(;;)), and the body doesn't return or the body
-      // doesn't have a break, then return true.
-      bool implicitOrExplictTrue = conditionExpression == null ||
-          (conditionExpression is BooleanLiteral && conditionExpression.value);
-      if (implicitOrExplictTrue) {
-        if (blockReturns || !_enclosingBlockContainsBreak) {
-          return true;
-        }
-      }
-      return false;
-    } finally {
-      _enclosingBlockContainsBreak = outerBreakValue;
-    }
   }
 
   @override
