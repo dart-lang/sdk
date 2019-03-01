@@ -65,15 +65,9 @@ static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   // TODO(abarth): Handle time zone changes.
   static const auto* tz_name = new std::string([] {
-#ifdef USE_STD_FOR_NON_NULLABLE_FIDL_FIELDS
     std::string result;
     tz->GetTimezoneId(&result);
     return result;
-#else
-    fidl::StringPtr result;
-    tz->GetTimezoneId(&result);
-    return *result;
-#endif
   }());
   return tz_name->c_str();
 }
