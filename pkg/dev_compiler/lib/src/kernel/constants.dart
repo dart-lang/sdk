@@ -173,7 +173,23 @@ class DevCompilerConstantsBackend extends ConstantsBackend {
   DevCompilerConstantsBackend();
 
   @override
-  NumberSemantics get numberSemantics => NumberSemantics.js;
+  Constant lowerConstant(Constant constant) {
+    // TODO(markzipan): Remove this lowering logic when we switch to
+    // front-end constant evaluation
+    if (constant is DoubleConstant) {
+      // Convert to an integer when possible (matching the runtime behavior
+      // of `is int`).
+      var d = constant.value;
+      if (d.isFinite) {
+        var i = d.toInt();
+        if (d == i.toDouble()) return IntConstant(i);
+      }
+    }
+    return constant;
+  }
+
+  // Use doubles to match JS number semantics.
+  num prepareNumericOperand(num operand) => operand.toDouble();
 }
 
 class _ErrorReporter extends SimpleErrorReporter {
