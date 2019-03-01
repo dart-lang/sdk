@@ -9,8 +9,10 @@ import 'scope_visitor.dart';
 class ScopeModel {
   final ClosureScopeModel closureScopeModel;
   final VariableScopeModel variableScopeModel;
+  final InitializerComplexity initializerComplexity;
 
-  ScopeModel(this.closureScopeModel, this.variableScopeModel);
+  ScopeModel(this.closureScopeModel, this.variableScopeModel,
+      this.initializerComplexity);
 
   /// Inspect members and mark if those members capture any state that needs to
   /// be marked as free variables.
@@ -31,20 +33,23 @@ class ScopeModel {
       hasThisLocal = true;
     }
     ClosureScopeModel closureScopeModel = new ClosureScopeModel();
-    ScopeModelBuilder translator =
+    ScopeModelBuilder builder =
         new ScopeModelBuilder(closureScopeModel, hasThisLocal: hasThisLocal);
+    InitializerComplexity initializerComplexity =
+        const InitializerComplexity.lazy();
     if (node is ir.Field) {
       if (node is ir.Field && node.initializer != null) {
-        node.accept(translator);
+        initializerComplexity = node.accept(builder);
       } else {
         assert(node.isInstanceMember);
         closureScopeModel.scopeInfo = new KernelScopeInfo(true);
       }
     } else {
       assert(node is ir.Procedure || node is ir.Constructor);
-      node.accept(translator);
+      node.accept(builder);
     }
-    return new ScopeModel(closureScopeModel, translator.variableScopeModel);
+    return new ScopeModel(
+        closureScopeModel, builder.variableScopeModel, initializerComplexity);
   }
 }
 

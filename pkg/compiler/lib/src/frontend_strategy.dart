@@ -85,7 +85,8 @@ abstract class FrontendStrategy {
       NativeDataBuilder nativeDataBuilder,
       AnnotationsDataBuilder annotationsDataBuilder,
       ImpactTransformer impactTransformer,
-      Map<Entity, WorldImpact> impactCache);
+      Map<Entity, WorldImpact> impactCache,
+      KFieldAnalysis fieldAnalysis);
 
   /// Computes the main function from [mainLibrary] adding additional world
   /// impact to [impactBuilder].

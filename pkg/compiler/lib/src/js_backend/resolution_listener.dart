@@ -278,8 +278,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
           worldImpact.addImpact(_registerComputeSignature());
         }
       }
-    } else if (member.isField && !member.isInstanceMember) {
-      _fieldAnalysis.registerStaticField(member);
     }
     _backendUsage.registerUsedMember(member);
 

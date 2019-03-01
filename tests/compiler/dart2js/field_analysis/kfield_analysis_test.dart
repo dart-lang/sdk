@@ -5,7 +5,6 @@
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/field_analysis.dart';
@@ -25,6 +24,7 @@ main(List<String> args) {
 
 class Tags {
   static const String initialValue = 'initial';
+  static const String complexity = 'complexity';
 }
 
 class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
@@ -37,12 +37,12 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
     if (member.isField) {
       KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
       KFieldAnalysis allocatorAnalysis =
-          compiler.backend.allocatorResolutionAnalysisForTesting;
+          compiler.backend.fieldAnalysisForTesting;
       ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
       Features features = new Features();
       if (member.isInstanceMember) {
         AllocatorData data =
-            allocatorAnalysis.getFixedInitializerForTesting(member);
+            allocatorAnalysis.getAllocatorDataForTesting(member);
         if (data != null) {
           if (data.initialValue != null) {
             features[Tags.initialValue] = data.initialValue.toStructuredText();
@@ -53,11 +53,13 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
           });
         }
       } else {
-        ConstantValue initialValue =
-            allocatorAnalysis.getStaticInitializerForTesting(member);
-        if (initialValue != null) {
-          features[Tags.initialValue] = initialValue.toStructuredText();
+        StaticFieldData staticFieldData =
+            allocatorAnalysis.getStaticFieldDataForTesting(member);
+        if (staticFieldData.initialValue != null) {
+          features[Tags.initialValue] =
+              staticFieldData.initialValue.toStructuredText();
         }
+        features[Tags.complexity] = staticFieldData.complexity.shortText;
       }
       Id id = computeEntityId(node);
       actualMap[id] = new ActualData<Features>(

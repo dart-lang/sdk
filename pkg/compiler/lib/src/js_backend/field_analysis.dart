@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../ir/scope_visitor.dart';
 import '../js_model/elements.dart' show JField;
 import '../js_model/js_world_builder.dart';
 import '../kernel/element_map.dart';
@@ -38,7 +39,7 @@ class KFieldAnalysis implements FieldAnalysis {
   final KernelToElementMap _elementMap;
 
   final Map<KClass, ClassData> _classData = {};
-  final Map<KField, ConstantValue> _staticFieldInitializers = {};
+  final Map<KField, StaticFieldData> _staticFieldData = {};
 
   KFieldAnalysis(KernelFrontEndStrategy kernelStrategy)
       : _elementMap = kernelStrategy.elementMap;
@@ -119,22 +120,25 @@ class KFieldAnalysis implements FieldAnalysis {
     _classData[class_] = new ClassData(constructors, fieldData);
   }
 
-  void registerStaticField(KField field) {
+  void registerStaticField(KField field, InitializerComplexity complexity) {
     ir.Field node = _elementMap.getMemberNode(field);
     ir.Expression expression = node.initializer;
     ConstantValue value = _elementMap.getConstantValue(expression,
         requireConstant: node.isConst, implicitNull: true);
-    if (value != null && value.isConstant) {
-      _staticFieldInitializers[field] = value;
+    if (value != null && !value.isConstant) {
+      value = null;
     }
+    // TODO(johnniwinther): Remove evaluation of constant when [complexity]
+    // holds the constant literal from CFE.
+    _staticFieldData[field] = new StaticFieldData(value, complexity);
   }
 
-  AllocatorData getFixedInitializerForTesting(KField field) {
+  AllocatorData getAllocatorDataForTesting(KField field) {
     return _classData[field.enclosingClass].fieldData[field];
   }
 
-  ConstantValue getStaticInitializerForTesting(KField field) {
-    return _staticFieldInitializers[field];
+  StaticFieldData getStaticFieldDataForTesting(KField field) {
+    return _staticFieldData[field];
   }
 }
 
@@ -143,6 +147,13 @@ class ClassData {
   final Map<KField, AllocatorData> fieldData;
 
   ClassData(this.constructors, this.fieldData);
+}
+
+class StaticFieldData {
+  final ConstantValue initialValue;
+  final InitializerComplexity complexity;
+
+  StaticFieldData(this.initialValue, this.complexity);
 }
 
 class AllocatorData {
@@ -344,8 +355,6 @@ class JFieldAnalysis implements FieldAnalysis {
       });
     });
 
-    // TODO(johnniwinther): Recognize effectively constant top level/static
-    // fields.
     closedWorld.liveMemberUsage
         .forEach((MemberEntity member, MemberUsage memberUsage) {
       if (member.isField && !member.isInstanceMember) {
@@ -356,11 +365,13 @@ class JFieldAnalysis implements FieldAnalysis {
           fieldData[jField] = const FieldAnalysisData(isElided: true);
         } else {
           bool isEffectivelyFinal = !memberUsage.hasWrite;
-          ConstantValue value = map.toBackendConstant(
-              closedWorld.fieldAnalysis._staticFieldInitializers[member],
-              allowNull: true);
+          StaticFieldData staticFieldData =
+              closedWorld.fieldAnalysis._staticFieldData[member];
+          ConstantValue value = map
+              .toBackendConstant(staticFieldData.initialValue, allowNull: true);
           bool isElided =
               isEffectivelyFinal && value != null && canBeElided(member);
+          // TODO(johnniwinther): Compute effective initializer complexity.
           if (value != null || isEffectivelyFinal) {
             fieldData[jField] = new FieldAnalysisData(
                 initialValue: value,
