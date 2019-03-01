@@ -181,20 +181,6 @@ cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
-cc/SourceReport_CallSites_PolymorphicCall: Fail
-cc/SourceReport_CallSites_SimpleCall: Fail
-cc/SourceReport_Coverage_AllFunctions: Fail
-cc/SourceReport_Coverage_AllFunctions_ForceCompile: Fail
-cc/SourceReport_Coverage_ForceCompile: Fail
-cc/SourceReport_Coverage_NestedFunctions: Fail
-cc/SourceReport_Coverage_NoCalls: Fail
-cc/SourceReport_Coverage_RestrictedRange: Fail
-cc/SourceReport_Coverage_SimpleCall: Fail
-cc/SourceReport_Coverage_UnusedClass_ForceCompile: Fail
-cc/SourceReport_Coverage_UnusedClass_ForceCompileError: Crash
-cc/SourceReport_Coverage_UnusedClass_NoForceCompile: Fail
-cc/SourceReport_MultipleReports: Fail
-cc/SourceReport_PossibleBreakpoints_Simple: Fail
 dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/spawn_shutdown_test: SkipSlow
 
