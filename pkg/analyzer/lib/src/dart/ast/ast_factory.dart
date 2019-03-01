@@ -420,46 +420,6 @@ class AstFactoryImpl extends AstFactory {
       new ForEachPartsWithIdentifierImpl(identifier, inKeyword, iterable);
 
   @override
-  ForEachStatement forEachStatementWithDeclaration(
-          Token awaitKeyword,
-          Token forKeyword,
-          Token leftParenthesis,
-          DeclaredIdentifier loopVariable,
-          Token inKeyword,
-          Expression iterator,
-          Token rightParenthesis,
-          Statement body) =>
-      new ForEachStatementImpl.withDeclaration(
-          awaitKeyword,
-          forKeyword,
-          leftParenthesis,
-          loopVariable,
-          inKeyword,
-          iterator,
-          rightParenthesis,
-          body);
-
-  @override
-  ForEachStatement forEachStatementWithReference(
-          Token awaitKeyword,
-          Token forKeyword,
-          Token leftParenthesis,
-          SimpleIdentifier identifier,
-          Token inKeyword,
-          Expression iterator,
-          Token rightParenthesis,
-          Statement body) =>
-      new ForEachStatementImpl.withReference(
-          awaitKeyword,
-          forKeyword,
-          leftParenthesis,
-          identifier,
-          inKeyword,
-          iterator,
-          rightParenthesis,
-          body);
-
-  @override
   ForElement forElement(
           {Token awaitKeyword,
           Token forKeyword,
@@ -499,30 +459,6 @@ class AstFactoryImpl extends AstFactory {
           List<Expression> updaters}) =>
       new ForPartsWithExpressionImpl(
           initialization, leftSeparator, condition, rightSeparator, updaters);
-
-  @override
-  ForStatement forStatement(
-          Token forKeyword,
-          Token leftParenthesis,
-          VariableDeclarationList variableList,
-          Expression initialization,
-          Token leftSeparator,
-          Expression condition,
-          Token rightSeparator,
-          List<Expression> updaters,
-          Token rightParenthesis,
-          Statement body) =>
-      new ForStatementImpl(
-          forKeyword,
-          leftParenthesis,
-          variableList,
-          initialization,
-          leftSeparator,
-          condition,
-          rightSeparator,
-          updaters,
-          rightParenthesis,
-          body);
 
   @override
   ForStatement2 forStatement2(

@@ -727,36 +727,14 @@ class AstBuilder extends StackListener {
     Token forToken = pop();
     Token awaitToken = pop(NullValue.AwaitToken);
 
-    if (enableControlFlowCollections || enableSpreadCollections) {
-      push(ast.forStatement2(
-        awaitKeyword: awaitToken,
-        forKeyword: forToken,
-        leftParenthesis: leftParenthesis,
-        forLoopParts: forLoopParts,
-        rightParenthesis: leftParenthesis.endGroup,
-        body: body,
-      ));
-    } else if (forLoopParts is ForEachPartsWithDeclaration) {
-      push(ast.forEachStatementWithDeclaration(
-          awaitToken,
-          forToken,
-          leftParenthesis,
-          forLoopParts.loopVariable,
-          forLoopParts.inKeyword,
-          forLoopParts.iterable,
-          leftParenthesis?.endGroup,
-          body));
-    } else {
-      push(ast.forEachStatementWithReference(
-          awaitToken,
-          forToken,
-          leftParenthesis,
-          (forLoopParts as ForEachPartsWithIdentifier).identifier,
-          forLoopParts.inKeyword,
-          forLoopParts.iterable,
-          leftParenthesis?.endGroup,
-          body));
-    }
+    push(ast.forStatement2(
+      awaitKeyword: awaitToken,
+      forKeyword: forToken,
+      leftParenthesis: leftParenthesis,
+      forLoopParts: forLoopParts,
+      rightParenthesis: leftParenthesis.endGroup,
+      body: body,
+    ));
   }
 
   @override
@@ -902,34 +880,13 @@ class AstBuilder extends StackListener {
     Token leftParen = pop();
     Token forToken = pop();
 
-    if (enableControlFlowCollections || enableSpreadCollections) {
-      push(ast.forStatement2(
-        forKeyword: forToken,
-        leftParenthesis: leftParen,
-        forLoopParts: forLoopParts,
-        rightParenthesis: leftParen.endGroup,
-        body: body,
-      ));
-    } else {
-      VariableDeclarationList variableList;
-      Expression initializer;
-      if (forLoopParts is ForPartsWithDeclarations) {
-        variableList = forLoopParts.variables;
-      } else {
-        initializer = (forLoopParts as ForPartsWithExpression).initialization;
-      }
-      push(ast.forStatement(
-          forToken,
-          leftParen,
-          variableList,
-          initializer,
-          forLoopParts.leftSeparator,
-          forLoopParts.condition,
-          forLoopParts.rightSeparator,
-          forLoopParts.updaters,
-          leftParen?.endGroup,
-          body));
-    }
+    push(ast.forStatement2(
+      forKeyword: forToken,
+      leftParenthesis: leftParen,
+      forLoopParts: forLoopParts,
+      rightParenthesis: leftParen.endGroup,
+      body: body,
+    ));
   }
 
   @override

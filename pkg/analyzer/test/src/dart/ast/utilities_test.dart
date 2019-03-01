@@ -1819,29 +1819,30 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForEachStatement_variable() {
     _assertSource(
         "for (a in b) {}",
-        astFactory.forEachStatementWithReference(
-            null,
-            TokenFactory.tokenFromKeyword(Keyword.FOR),
-            TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-            AstTestFactory.identifier3("a"),
-            TokenFactory.tokenFromKeyword(Keyword.IN),
-            AstTestFactory.identifier3("b"),
-            TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-            AstTestFactory.block()));
+        astFactory.forStatement2(
+            forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
+            leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+            forLoopParts: astFactory.forEachPartsWithIdentifier(
+                identifier: AstTestFactory.identifier3("a"),
+                inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
+                iterable: AstTestFactory.identifier3("b")),
+            rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+            body: AstTestFactory.block()));
   }
 
   void test_visitForEachStatement_variable_await() {
     _assertSource(
         "await for (a in b) {}",
-        astFactory.forEachStatementWithReference(
-            TokenFactory.tokenFromString("await"),
-            TokenFactory.tokenFromKeyword(Keyword.FOR),
-            TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-            AstTestFactory.identifier3("a"),
-            TokenFactory.tokenFromKeyword(Keyword.IN),
-            AstTestFactory.identifier3("b"),
-            TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-            AstTestFactory.block()));
+        astFactory.forStatement2(
+            awaitKeyword: TokenFactory.tokenFromString("await"),
+            forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
+            leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+            forLoopParts: astFactory.forEachPartsWithIdentifier(
+                identifier: AstTestFactory.identifier3("a"),
+                inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
+                iterable: AstTestFactory.identifier3("b")),
+            rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+            body: AstTestFactory.block()));
   }
 
   void test_visitForElement() {
@@ -4505,29 +4506,30 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitForEachStatement_variable() {
     _assertSource(
         "for (a in b) {}",
-        astFactory.forEachStatementWithReference(
-            null,
-            TokenFactory.tokenFromKeyword(Keyword.FOR),
-            TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-            AstTestFactory.identifier3("a"),
-            TokenFactory.tokenFromKeyword(Keyword.IN),
-            AstTestFactory.identifier3("b"),
-            TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-            AstTestFactory.block()));
+        astFactory.forStatement2(
+            forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
+            leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+            forLoopParts: astFactory.forEachPartsWithIdentifier(
+                identifier: AstTestFactory.identifier3("a"),
+                inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
+                iterable: AstTestFactory.identifier3("b")),
+            rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+            body: AstTestFactory.block()));
   }
 
   void test_visitForEachStatement_variable_await() {
     _assertSource(
         "await for (a in b) {}",
-        astFactory.forEachStatementWithReference(
-            TokenFactory.tokenFromString("await"),
-            TokenFactory.tokenFromKeyword(Keyword.FOR),
-            TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-            AstTestFactory.identifier3("a"),
-            TokenFactory.tokenFromKeyword(Keyword.IN),
-            AstTestFactory.identifier3("b"),
-            TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-            AstTestFactory.block()));
+        astFactory.forStatement2(
+            awaitKeyword: TokenFactory.tokenFromString("await"),
+            forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
+            leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+            forLoopParts: astFactory.forEachPartsWithIdentifier(
+                identifier: AstTestFactory.identifier3("a"),
+                inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
+                iterable: AstTestFactory.identifier3("b")),
+            rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+            body: AstTestFactory.block()));
   }
 
   void test_visitForElement() {

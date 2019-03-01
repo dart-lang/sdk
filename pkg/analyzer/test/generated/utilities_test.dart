@@ -471,6 +471,10 @@ library l;''');
     _assertCloneUnitMember('class C { C(A this.a); }');
   }
 
+  void test_visitForEachStatement_await() {
+    _assertCloneStatement('await for (var a in b) {}');
+  }
+
   void test_visitForEachStatement_declared() {
     _assertCloneStatement('for (var a in b) {}');
   }
@@ -1172,7 +1176,7 @@ library l;''');
   }
 
   Statement _parseStatement(String code) {
-    CompilationUnit unit = _parseUnit('main() { $code }');
+    CompilationUnit unit = _parseUnit('main() async { $code }');
     FunctionDeclaration main = unit.declarations.single;
     BlockFunctionBody body = main.functionExpression.body;
     return body.block.statements.single;

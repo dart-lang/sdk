@@ -489,31 +489,6 @@ class AstCloner
           iterable: cloneNode(node.iterable));
 
   @override
-  ForEachStatement visitForEachStatement(ForEachStatement node) {
-    DeclaredIdentifier loopVariable = node.loopVariable;
-    if (loopVariable == null) {
-      return astFactory.forEachStatementWithReference(
-          cloneToken(node.awaitKeyword),
-          cloneToken(node.forKeyword),
-          cloneToken(node.leftParenthesis),
-          cloneNode(node.identifier),
-          cloneToken(node.inKeyword),
-          cloneNode(node.iterable),
-          cloneToken(node.rightParenthesis),
-          cloneNode(node.body));
-    }
-    return astFactory.forEachStatementWithDeclaration(
-        cloneToken(node.awaitKeyword),
-        cloneToken(node.forKeyword),
-        cloneToken(node.leftParenthesis),
-        cloneNode(loopVariable),
-        cloneToken(node.inKeyword),
-        cloneNode(node.iterable),
-        cloneToken(node.rightParenthesis),
-        cloneNode(node.body));
-  }
-
-  @override
   ForElement visitForElement(ForElement node) => astFactory.forElement(
       forKeyword: cloneToken(node.forKeyword),
       leftParenthesis: cloneToken(node.leftParenthesis),
@@ -551,21 +526,9 @@ class AstCloner
           updaters: cloneNodeList(node.updaters));
 
   @override
-  ForStatement visitForStatement(ForStatement node) => astFactory.forStatement(
-      cloneToken(node.forKeyword),
-      cloneToken(node.leftParenthesis),
-      cloneNode(node.variables),
-      cloneNode(node.initialization),
-      cloneToken(node.leftSeparator),
-      cloneNode(node.condition),
-      cloneToken(node.rightSeparator),
-      cloneNodeList(node.updaters),
-      cloneToken(node.rightParenthesis),
-      cloneNode(node.body));
-
-  @override
   ForStatement2 visitForStatement2(ForStatement2 node) =>
       astFactory.forStatement2(
+          awaitKeyword: cloneToken(node.awaitKeyword),
           forKeyword: cloneToken(node.forKeyword),
           leftParenthesis: cloneToken(node.leftParenthesis),
           forLoopParts: cloneNode(node.forLoopParts),
@@ -2935,31 +2898,6 @@ class IncrementalAstCloner
           iterable: _cloneNode(node.iterable));
 
   @override
-  ForEachStatement visitForEachStatement(ForEachStatement node) {
-    DeclaredIdentifier loopVariable = node.loopVariable;
-    if (loopVariable == null) {
-      return astFactory.forEachStatementWithReference(
-          _mapToken(node.awaitKeyword),
-          _mapToken(node.forKeyword),
-          _mapToken(node.leftParenthesis),
-          _cloneNode(node.identifier),
-          _mapToken(node.inKeyword),
-          _cloneNode(node.iterable),
-          _mapToken(node.rightParenthesis),
-          _cloneNode(node.body));
-    }
-    return astFactory.forEachStatementWithDeclaration(
-        _mapToken(node.awaitKeyword),
-        _mapToken(node.forKeyword),
-        _mapToken(node.leftParenthesis),
-        _cloneNode(loopVariable),
-        _mapToken(node.inKeyword),
-        _cloneNode(node.iterable),
-        _mapToken(node.rightParenthesis),
-        _cloneNode(node.body));
-  }
-
-  @override
   ForElement visitForElement(ForElement node) => astFactory.forElement(
       forKeyword: _mapToken(node.forKeyword),
       leftParenthesis: _mapToken(node.leftParenthesis),
@@ -2995,19 +2933,6 @@ class IncrementalAstCloner
           condition: _cloneNode(node.condition),
           rightSeparator: _mapToken(node.rightSeparator),
           updaters: _cloneNodeList(node.updaters));
-
-  @override
-  ForStatement visitForStatement(ForStatement node) => astFactory.forStatement(
-      _mapToken(node.forKeyword),
-      _mapToken(node.leftParenthesis),
-      _cloneNode(node.variables),
-      _cloneNode(node.initialization),
-      _mapToken(node.leftSeparator),
-      _cloneNode(node.condition),
-      _mapToken(node.rightSeparator),
-      _cloneNodeList(node.updaters),
-      _mapToken(node.rightParenthesis),
-      _cloneNode(node.body));
 
   @override
   ForStatement2 visitForStatement2(ForStatement2 node) =>

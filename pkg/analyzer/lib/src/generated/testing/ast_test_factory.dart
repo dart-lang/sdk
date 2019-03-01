@@ -496,27 +496,27 @@ class AstTestFactory {
 
   static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable,
           Expression iterator, Statement body) =>
-      astFactory.forEachStatementWithDeclaration(
-          null,
-          TokenFactory.tokenFromKeyword(Keyword.FOR),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          loopVariable,
-          TokenFactory.tokenFromKeyword(Keyword.IN),
-          iterator,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          body);
+      astFactory.forStatement2(
+          forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
+          leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          forLoopParts: astFactory.forEachPartsWithDeclaration(
+              loopVariable: loopVariable,
+              inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
+              iterable: iterator),
+          rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          body: body);
 
   static ForEachStatement forEachStatement2(
           SimpleIdentifier identifier, Expression iterator, Statement body) =>
-      astFactory.forEachStatementWithReference(
-          null,
-          TokenFactory.tokenFromKeyword(Keyword.FOR),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          identifier,
-          TokenFactory.tokenFromKeyword(Keyword.IN),
-          iterator,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          body);
+      astFactory.forStatement2(
+          forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
+          leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          forLoopParts: astFactory.forEachPartsWithIdentifier(
+              identifier: identifier,
+              inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
+              iterable: iterator),
+          rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          body: body);
 
   static FormalParameterList formalParameterList(
           [List<FormalParameter> parameters]) =>
@@ -529,31 +529,31 @@ class AstTestFactory {
 
   static ForStatement forStatement(Expression initialization,
           Expression condition, List<Expression> updaters, Statement body) =>
-      astFactory.forStatement(
-          TokenFactory.tokenFromKeyword(Keyword.FOR),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          null,
-          initialization,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON),
-          condition,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON),
-          updaters,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          body);
+      astFactory.forStatement2(
+          forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
+          leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          forLoopParts: astFactory.forPartsWithExpression(
+              initialization: initialization,
+              leftSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+              condition: condition,
+              rightSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+              updaters: updaters),
+          rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          body: body);
 
   static ForStatement forStatement2(VariableDeclarationList variableList,
           Expression condition, List<Expression> updaters, Statement body) =>
-      astFactory.forStatement(
-          TokenFactory.tokenFromKeyword(Keyword.FOR),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          variableList,
-          null,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON),
-          condition,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON),
-          updaters,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          body);
+      astFactory.forStatement2(
+          forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
+          leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          forLoopParts: astFactory.forPartsWithDeclarations(
+              variables: variableList,
+              leftSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+              condition: condition,
+              rightSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+              updaters: updaters),
+          rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          body: body);
 
   static FunctionDeclaration functionDeclaration(
           TypeAnnotation type,

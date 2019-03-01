@@ -2950,26 +2950,24 @@ class Parser {
           Expression iterator = parseExpression2();
           Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
           Statement body = parseStatement2();
+          ForLoopParts forLoopParts;
           if (loopVariable == null) {
-            return astFactory.forEachStatementWithReference(
-                awaitKeyword,
-                forKeyword,
-                leftParenthesis,
-                identifier,
-                inKeyword,
-                iterator,
-                rightParenthesis,
-                body);
+            forLoopParts = astFactory.forEachPartsWithIdentifier(
+                identifier: identifier,
+                inKeyword: inKeyword,
+                iterable: iterator);
+          } else {
+            forLoopParts = astFactory.forEachPartsWithDeclaration(
+                loopVariable: loopVariable,
+                inKeyword: inKeyword,
+                iterable: iterator);
           }
-          return astFactory.forEachStatementWithDeclaration(
-              awaitKeyword,
-              forKeyword,
-              leftParenthesis,
-              loopVariable,
-              inKeyword,
-              iterator,
-              rightParenthesis,
-              body);
+          return astFactory.forStatement2(
+              forKeyword: forKeyword,
+              leftParenthesis: leftParenthesis,
+              forLoopParts: forLoopParts,
+              rightParenthesis: rightParenthesis,
+              body: body);
         }
       }
       if (awaitKeyword != null) {
@@ -2986,19 +2984,30 @@ class Parser {
       if (!_matches(TokenType.CLOSE_PAREN)) {
         updaters = parseExpressionList();
       }
+      ForLoopParts forLoopParts;
+      if (variableList != null) {
+        forLoopParts = astFactory.forPartsWithDeclarations(
+            variables: variableList,
+            leftSeparator: leftSeparator,
+            condition: condition,
+            rightSeparator: rightSeparator,
+            updaters: updaters);
+      } else {
+        forLoopParts = astFactory.forPartsWithExpression(
+            initialization: initialization,
+            leftSeparator: leftSeparator,
+            condition: condition,
+            rightSeparator: rightSeparator,
+            updaters: updaters);
+      }
       Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       Statement body = parseStatement2();
-      return astFactory.forStatement(
-          forKeyword,
-          leftParenthesis,
-          variableList,
-          initialization,
-          leftSeparator,
-          condition,
-          rightSeparator,
-          updaters,
-          rightParenthesis,
-          body);
+      return astFactory.forStatement2(
+          forKeyword: forKeyword,
+          leftParenthesis: leftParenthesis,
+          forLoopParts: forLoopParts,
+          rightParenthesis: rightParenthesis,
+          body: body);
     } finally {
       _inLoop = wasInLoop;
     }

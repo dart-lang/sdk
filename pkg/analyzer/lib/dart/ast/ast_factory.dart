@@ -488,36 +488,6 @@ abstract class AstFactory {
       {SimpleIdentifier identifier, Token inKeyword, Expression iterable});
 
   /**
-   * Returns a newly created for-each statement whose loop control variable
-   * is declared internally (in the for-loop part). The [awaitKeyword] can be
-   * `null` if this is not an asynchronous for loop.
-   */
-  ForEachStatement forEachStatementWithDeclaration(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      DeclaredIdentifier loopVariable,
-      Token inKeyword,
-      Expression iterator,
-      Token rightParenthesis,
-      Statement body);
-
-  /**
-   * Returns a newly created for-each statement whose loop control variable
-   * is declared outside the for loop. The [awaitKeyword] can be `null` if this
-   * is not an asynchronous for loop.
-   */
-  ForEachStatement forEachStatementWithReference(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      SimpleIdentifier identifier,
-      Token inKeyword,
-      Expression iterator,
-      Token rightParenthesis,
-      Statement body);
-
-  /**
    * Returns a newly created for element that can be part of a list, map or set
    * literal.
    */
@@ -560,24 +530,6 @@ abstract class AstFactory {
       Expression condition,
       Token rightSeparator,
       List<Expression> updaters});
-
-  /**
-   * Returns a newly created for statement. Either the [variableList] or the
-   * [initialization] must be `null`. Either the [condition] and the list of
-   * [updaters] can be `null` if the loop does not have the corresponding
-   * attribute.
-   */
-  ForStatement forStatement(
-      Token forKeyword,
-      Token leftParenthesis,
-      VariableDeclarationList variableList,
-      Expression initialization,
-      Token leftSeparator,
-      Expression condition,
-      Token rightSeparator,
-      List<Expression> updaters,
-      Token rightParenthesis,
-      Statement body);
 
   /**
    * Returns a newly created for statement.
