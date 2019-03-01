@@ -137,6 +137,218 @@ enum IndexSyntheticElementKind : byte {
   unit
 }
 
+/// Types of comments.
+enum LinkedNodeCommentType : byte {
+  block,
+
+  documentation,
+
+  endOfLine
+}
+
+/// Kinds of formal parameters.
+enum LinkedNodeFormalParameterKind : byte {
+  required,
+
+  optionalPositional,
+
+  optionalNamed
+}
+
+/// Kinds of [LinkedNode].
+enum LinkedNodeKind : byte {
+  adjacentStrings,
+
+  annotation,
+
+  argumentList,
+
+  asExpression,
+
+  assertStatement,
+
+  assignmentExpression,
+
+  binaryExpression,
+
+  block,
+
+  blockFunctionBody,
+
+  booleanLiteral,
+
+  breakStatement,
+
+  cascadeExpression,
+
+  catchClause,
+
+  classDeclaration,
+
+  comment,
+
+  compilationUnit,
+
+  conditionalExpression,
+
+  constructorDeclaration,
+
+  constructorFieldInitializer,
+
+  constructorName,
+
+  continueStatement,
+
+  declaredIdentifier,
+
+  defaultFormalParameter,
+
+  doubleLiteral,
+
+  emptyFunctionBody,
+
+  enumConstantDeclaration,
+
+  enumDeclaration,
+
+  exportDirective,
+
+  expressionFunctionBody,
+
+  expressionStatement,
+
+  extendsClause,
+
+  fieldDeclaration,
+
+  fieldFormalParameter,
+
+  formalParameterList,
+
+  forEachStatement,
+
+  forStatement,
+
+  functionDeclaration,
+
+  functionDeclarationStatement,
+
+  functionExpression,
+
+  functionTypeAlias,
+
+  functionTypedFormalParameter,
+
+  hideCombinator,
+
+  ifStatement,
+
+  implementsClause,
+
+  importDirective,
+
+  instanceCreationExpression,
+
+  indexExpression,
+
+  integerLiteral,
+
+  interpolationExpression,
+
+  interpolationString,
+
+  isExpression,
+
+  label,
+
+  listLiteral,
+
+  mapLiteral,
+
+  mapLiteralEntry,
+
+  methodDeclaration,
+
+  methodInvocation,
+
+  mixinDeclaration,
+
+  namedExpression,
+
+  nullLiteral,
+
+  parenthesizedExpression,
+
+  postfixExpression,
+
+  prefixExpression,
+
+  prefixedIdentifier,
+
+  propertyAccess,
+
+  redirectingConstructorInvocation,
+
+  returnStatement,
+
+  setLiteral,
+
+  showCombinator,
+
+  simpleFormalParameter,
+
+  simpleIdentifier,
+
+  simpleStringLiteral,
+
+  stringInterpolation,
+
+  superConstructorInvocation,
+
+  superExpression,
+
+  thisExpression,
+
+  throwExpression,
+
+  topLevelVariableDeclaration,
+
+  tryStatement,
+
+  typeArgumentList,
+
+  typeName,
+
+  typeParameter,
+
+  typeParameterList,
+
+  variableDeclaration,
+
+  variableDeclarationList,
+
+  variableDeclarationStatement,
+
+  whileStatement,
+
+  withClause
+}
+
+/// Kinds of [LinkedNodeType]s.
+enum LinkedNodeTypeKind : byte {
+  bottom,
+
+  dynamic_,
+
+  function,
+
+  interface,
+
+  typeParameter,
+
+  void_
+}
+
 /// Enum used to indicate the kind of entity referred to by a
 /// [LinkedReference].
 enum ReferenceKind : byte {
@@ -692,6 +904,292 @@ enum UnlinkedParamKind : byte {
   named
 }
 
+/// TODO(scheglov) document
+enum UnlinkedTokenKind : byte {
+  nothing,
+
+  comment,
+
+  keyword,
+
+  simple,
+
+  string
+}
+
+/// TODO(scheglov) document
+enum UnlinkedTokenType : byte {
+  NOTHING,
+
+  ABSTRACT,
+
+  AMPERSAND,
+
+  AMPERSAND_AMPERSAND,
+
+  AMPERSAND_EQ,
+
+  AS,
+
+  ASSERT,
+
+  ASYNC,
+
+  AT,
+
+  AWAIT,
+
+  BACKPING,
+
+  BACKSLASH,
+
+  BANG,
+
+  BANG_EQ,
+
+  BAR,
+
+  BAR_BAR,
+
+  BAR_EQ,
+
+  BREAK,
+
+  CARET,
+
+  CARET_EQ,
+
+  CASE,
+
+  CATCH,
+
+  CLASS,
+
+  CLOSE_CURLY_BRACKET,
+
+  CLOSE_PAREN,
+
+  CLOSE_SQUARE_BRACKET,
+
+  COLON,
+
+  COMMA,
+
+  CONST,
+
+  CONTINUE,
+
+  COVARIANT,
+
+  DEFAULT,
+
+  DEFERRED,
+
+  DO,
+
+  DOUBLE,
+
+  DYNAMIC,
+
+  ELSE,
+
+  ENUM,
+
+  EOF,
+
+  EQ,
+
+  EQ_EQ,
+
+  EXPORT,
+
+  EXTENDS,
+
+  EXTERNAL,
+
+  FACTORY,
+
+  FALSE,
+
+  FINAL,
+
+  FINALLY,
+
+  FOR,
+
+  FUNCTION,
+
+  FUNCTION_KEYWORD,
+
+  GET,
+
+  GT,
+
+  GT_EQ,
+
+  GT_GT,
+
+  GT_GT_EQ,
+
+  HASH,
+
+  HEXADECIMAL,
+
+  HIDE,
+
+  IDENTIFIER,
+
+  IF,
+
+  IMPLEMENTS,
+
+  IMPORT,
+
+  IN,
+
+  INDEX,
+
+  INDEX_EQ,
+
+  INT,
+
+  INTERFACE,
+
+  IS,
+
+  LIBRARY,
+
+  LT,
+
+  LT_EQ,
+
+  LT_LT,
+
+  LT_LT_EQ,
+
+  MINUS,
+
+  MINUS_EQ,
+
+  MINUS_MINUS,
+
+  MIXIN,
+
+  MULTI_LINE_COMMENT,
+
+  NATIVE,
+
+  NEW,
+
+  NULL,
+
+  OF,
+
+  ON,
+
+  OPEN_CURLY_BRACKET,
+
+  OPEN_PAREN,
+
+  OPEN_SQUARE_BRACKET,
+
+  OPERATOR,
+
+  PART,
+
+  PATCH,
+
+  PERCENT,
+
+  PERCENT_EQ,
+
+  PERIOD,
+
+  PERIOD_PERIOD,
+
+  PERIOD_PERIOD_PERIOD,
+
+  PERIOD_PERIOD_PERIOD_QUESTION,
+
+  PLUS,
+
+  PLUS_EQ,
+
+  PLUS_PLUS,
+
+  QUESTION,
+
+  QUESTION_PERIOD,
+
+  QUESTION_QUESTION,
+
+  QUESTION_QUESTION_EQ,
+
+  RETHROW,
+
+  RETURN,
+
+  SCRIPT_TAG,
+
+  SEMICOLON,
+
+  SET,
+
+  SHOW,
+
+  SINGLE_LINE_COMMENT,
+
+  SLASH,
+
+  SLASH_EQ,
+
+  SOURCE,
+
+  STAR,
+
+  STAR_EQ,
+
+  STATIC,
+
+  STRING,
+
+  STRING_INTERPOLATION_EXPRESSION,
+
+  STRING_INTERPOLATION_IDENTIFIER,
+
+  SUPER,
+
+  SWITCH,
+
+  SYNC,
+
+  THIS,
+
+  THROW,
+
+  TILDE,
+
+  TILDE_SLASH,
+
+  TILDE_SLASH_EQ,
+
+  TRUE,
+
+  TRY,
+
+  TYPEDEF,
+
+  VAR,
+
+  VOID,
+
+  WHILE,
+
+  WITH,
+
+  YIELD
+}
+
 /// Information about the context of an exception in analysis driver.
 table AnalysisDriverExceptionContext {
   /// The exception string.
@@ -1145,6 +1643,108 @@ table LinkedLibrary {
   /// followed by the summary of each part, in the order of the `part`
   /// declarations in the defining compilation unit.
   units:[LinkedUnit] (id: 3);
+}
+
+/// Information about a linked AST node.
+table LinkedNode {
+  variantField_2:[LinkedNode] (id: 2);
+
+  variantField_11:LinkedNode (id: 11);
+
+  variantField_4:[LinkedNode] (id: 4);
+
+  variantField_6:LinkedNode (id: 6);
+
+  variantField_15:uint (id: 15);
+
+  variantField_7:LinkedNode (id: 7);
+
+  variantField_8:LinkedNode (id: 8);
+
+  variantField_16:uint (id: 16);
+
+  variantField_17:uint (id: 17);
+
+  variantField_18:uint (id: 18);
+
+  variantField_19:uint (id: 19);
+
+  variantField_24:LinkedNodeType (id: 24);
+
+  variantField_27:bool (id: 27);
+
+  variantField_9:LinkedNode (id: 9);
+
+  variantField_12:LinkedNode (id: 12);
+
+  variantField_5:[LinkedNode] (id: 5);
+
+  variantField_13:LinkedNode (id: 13);
+
+  variantField_28:[uint] (id: 28);
+
+  variantField_29:LinkedNodeCommentType (id: 29);
+
+  variantField_3:[LinkedNode] (id: 3);
+
+  variantField_10:LinkedNode (id: 10);
+
+  variantField_21:double (id: 21);
+
+  variantField_25:LinkedNodeType (id: 25);
+
+  variantField_26:LinkedNodeFormalParameterKind (id: 26);
+
+  variantField_30:string (id: 30);
+
+  variantField_14:LinkedNode (id: 14);
+
+  isSynthetic:bool (id: 1);
+
+  kind:LinkedNodeKind (id: 0);
+
+  variantField_23:string (id: 23);
+
+  variantField_20:string (id: 20);
+
+  variantField_22:string (id: 22);
+}
+
+/// TODO(scheglov) extend to support multiple libraries of remove
+table LinkedNodeBundle {
+  node:LinkedNode (id: 2);
+
+  references:LinkedNodeReference (id: 1);
+
+  tokens:UnlinkedTokens (id: 0);
+}
+
+/// Flattened tree of declarations referenced from [LinkedNode]s.
+table LinkedNodeReference {
+  name:[string] (id: 1);
+
+  parent:[uint] (id: 0);
+}
+
+/// Information about a Dart type.
+table LinkedNodeType {
+  /// References to [LinkedNodeReference].
+  functionFormalParameters:[uint] (id: 0);
+
+  functionReturnType:LinkedNodeType (id: 1);
+
+  /// References to [LinkedNodeReference].
+  functionTypeParameters:[uint] (id: 2);
+
+  /// Reference to a [LinkedNodeReference].
+  interfaceClass:uint (id: 3);
+
+  interfaceTypeArguments:[LinkedNodeType] (id: 4);
+
+  kind:LinkedNodeTypeKind (id: 5);
+
+  /// Reference to a [LinkedNodeReference].
+  typeParameterParameter:uint (id: 6);
 }
 
 /// Information about the resolution of an [UnlinkedReference].
@@ -1990,6 +2590,38 @@ table UnlinkedReference {
   /// UnlinkedUnit.references[i].prefixReference != 0, then
   /// UnlinkedUnit.references[i].prefixReference < i.
   prefixReference:uint (id: 1);
+}
+
+/// TODO(scheglov) document
+table UnlinkedTokens {
+  /// The token that corresponds to this token, or `0` if this token is not
+  /// the first of a pair of matching tokens (such as parentheses).
+  endGroup:[uint] (id: 0);
+
+  /// Return `true` if this token is a synthetic token. A synthetic token is a
+  /// token that was introduced by the parser in order to recover from an error
+  /// in the code.
+  isSynthetic:[ubyte] (id: 1);
+
+  kind:[UnlinkedTokenKind] (id: 2);
+
+  length:[uint] (id: 3);
+
+  lexeme:[string] (id: 4);
+
+  /// The next token in the token stream, `0` for [UnlinkedTokenType.EOF] or
+  /// the last comment token.
+  next:[uint] (id: 5);
+
+  offset:[uint] (id: 6);
+
+  /// The first comment token in the list of comments that precede this token,
+  /// or `0` if there are no comments preceding this token. Additional comments
+  /// can be reached by following the token stream using [next] until `0` is
+  /// reached.
+  precedingComment:[uint] (id: 7);
+
+  type:[UnlinkedTokenType] (id: 8);
 }
 
 /// Unlinked summary information about a typedef declaration.

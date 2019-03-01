@@ -693,7 +693,7 @@ class _CodeGenerator {
               out('$typeStr get $logicalName {');
               indent(() {
                 out(_variantAssertStatement(cls, variants));
-                out('return _${field.name};');
+                out('return _${field.name}$defSuffix;');
               });
               out('}');
               out();

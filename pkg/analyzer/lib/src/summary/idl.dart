@@ -751,6 +751,1281 @@ abstract class LinkedLibrary extends base.SummaryClass {
   List<LinkedUnit> get units;
 }
 
+/// Information about a linked AST node.
+@Variant('kind')
+abstract class LinkedNode extends base.SummaryClass {
+  @VariantId(2, variant: LinkedNodeKind.adjacentStrings)
+  List<LinkedNode> get adjacentStrings_strings;
+
+  @VariantId(11, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.constructorDeclaration,
+    LinkedNodeKind.declaredIdentifier,
+    LinkedNodeKind.enumDeclaration,
+    LinkedNodeKind.enumConstantDeclaration,
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.fieldDeclaration,
+    LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.importDirective,
+    LinkedNodeKind.methodDeclaration,
+    LinkedNodeKind.topLevelVariableDeclaration,
+    LinkedNodeKind.typeParameter,
+    LinkedNodeKind.variableDeclaration,
+    LinkedNodeKind.variableDeclarationList,
+  ])
+  LinkedNode get annotatedNode_comment;
+
+  @VariantId(4, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.constructorDeclaration,
+    LinkedNodeKind.declaredIdentifier,
+    LinkedNodeKind.enumDeclaration,
+    LinkedNodeKind.enumConstantDeclaration,
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.fieldDeclaration,
+    LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.importDirective,
+    LinkedNodeKind.methodDeclaration,
+    LinkedNodeKind.topLevelVariableDeclaration,
+    LinkedNodeKind.typeParameter,
+    LinkedNodeKind.variableDeclaration,
+    LinkedNodeKind.variableDeclarationList,
+  ])
+  List<LinkedNode> get annotatedNode_metadata;
+
+  @VariantId(6, variant: LinkedNodeKind.annotation)
+  LinkedNode get annotation_arguments;
+
+  @VariantId(15, variant: LinkedNodeKind.annotation)
+  int get annotation_atSign;
+
+  @VariantId(7, variant: LinkedNodeKind.annotation)
+  LinkedNode get annotation_constructorName;
+
+  @VariantId(8, variant: LinkedNodeKind.annotation)
+  LinkedNode get annotation_name;
+
+  @VariantId(16, variant: LinkedNodeKind.annotation)
+  int get annotation_period;
+
+  @VariantId(2, variant: LinkedNodeKind.argumentList)
+  List<LinkedNode> get argumentList_arguments;
+
+  @VariantId(15, variant: LinkedNodeKind.argumentList)
+  int get argumentList_leftParenthesis;
+
+  @VariantId(16, variant: LinkedNodeKind.argumentList)
+  int get argumentList_rightParenthesis;
+
+  @VariantId(15, variant: LinkedNodeKind.asExpression)
+  int get asExpression_asOperator;
+
+  @VariantId(6, variant: LinkedNodeKind.asExpression)
+  LinkedNode get asExpression_expression;
+
+  @VariantId(7, variant: LinkedNodeKind.asExpression)
+  LinkedNode get asExpression_type;
+
+  @VariantId(15, variant: LinkedNodeKind.assertStatement)
+  int get assertStatement_assertKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.assertStatement)
+  int get assertStatement_comma;
+
+  @VariantId(6, variant: LinkedNodeKind.assertStatement)
+  LinkedNode get assertStatement_condition;
+
+  @VariantId(17, variant: LinkedNodeKind.assertStatement)
+  int get assertStatement_leftParenthesis;
+
+  @VariantId(7, variant: LinkedNodeKind.assertStatement)
+  LinkedNode get assertStatement_message;
+
+  @VariantId(18, variant: LinkedNodeKind.assertStatement)
+  int get assertStatement_rightParenthesis;
+
+  @VariantId(19, variant: LinkedNodeKind.assertStatement)
+  int get assertStatement_semicolon;
+
+  @VariantId(15, variant: LinkedNodeKind.assignmentExpression)
+  int get assignmentExpression_element;
+
+  @VariantId(6, variant: LinkedNodeKind.assignmentExpression)
+  LinkedNode get assignmentExpression_leftHandSide;
+
+  @VariantId(16, variant: LinkedNodeKind.assignmentExpression)
+  int get assignmentExpression_operator;
+
+  @VariantId(7, variant: LinkedNodeKind.assignmentExpression)
+  LinkedNode get assignmentExpression_rightHandSide;
+
+  @VariantId(15, variant: LinkedNodeKind.binaryExpression)
+  int get binaryExpression_element;
+
+  @VariantId(24, variant: LinkedNodeKind.binaryExpression)
+  LinkedNodeType get binaryExpression_invokeType;
+
+  @VariantId(6, variant: LinkedNodeKind.binaryExpression)
+  LinkedNode get binaryExpression_leftOperand;
+
+  @VariantId(16, variant: LinkedNodeKind.binaryExpression)
+  int get binaryExpression_operator;
+
+  @VariantId(7, variant: LinkedNodeKind.binaryExpression)
+  LinkedNode get binaryExpression_rightOperand;
+
+  @VariantId(15, variant: LinkedNodeKind.block)
+  int get block_leftBracket;
+
+  @VariantId(16, variant: LinkedNodeKind.block)
+  int get block_rightBracket;
+
+  @VariantId(2, variant: LinkedNodeKind.block)
+  List<LinkedNode> get block_statements;
+
+  @VariantId(6, variant: LinkedNodeKind.blockFunctionBody)
+  LinkedNode get blockFunctionBody_block;
+
+  @VariantId(15, variant: LinkedNodeKind.blockFunctionBody)
+  int get blockFunctionBody_keyword;
+
+  @VariantId(16, variant: LinkedNodeKind.blockFunctionBody)
+  int get blockFunctionBody_star;
+
+  @VariantId(15, variant: LinkedNodeKind.booleanLiteral)
+  int get booleanLiteral_literal;
+
+  @VariantId(27, variant: LinkedNodeKind.booleanLiteral)
+  bool get booleanLiteral_value;
+
+  @VariantId(15, variant: LinkedNodeKind.breakStatement)
+  int get breakStatement_breakKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.breakStatement)
+  LinkedNode get breakStatement_label;
+
+  @VariantId(16, variant: LinkedNodeKind.breakStatement)
+  int get breakStatement_semicolon;
+
+  @VariantId(2, variant: LinkedNodeKind.cascadeExpression)
+  List<LinkedNode> get cascadeExpression_sections;
+
+  @VariantId(6, variant: LinkedNodeKind.cascadeExpression)
+  LinkedNode get cascadeExpression_target;
+
+  @VariantId(6, variant: LinkedNodeKind.catchClause)
+  LinkedNode get catchClause_body;
+
+  @VariantId(15, variant: LinkedNodeKind.catchClause)
+  int get catchClause_catchKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.catchClause)
+  int get catchClause_comma;
+
+  @VariantId(7, variant: LinkedNodeKind.catchClause)
+  LinkedNode get catchClause_exceptionParameter;
+
+  @VariantId(8, variant: LinkedNodeKind.catchClause)
+  LinkedNode get catchClause_exceptionType;
+
+  @VariantId(17, variant: LinkedNodeKind.catchClause)
+  int get catchClause_leftParenthesis;
+
+  @VariantId(18, variant: LinkedNodeKind.catchClause)
+  int get catchClause_onKeyword;
+
+  @VariantId(19, variant: LinkedNodeKind.catchClause)
+  int get catchClause_rightParenthesis;
+
+  @VariantId(9, variant: LinkedNodeKind.catchClause)
+  LinkedNode get catchClause_stackTraceParameter;
+
+  @VariantId(15, variant: LinkedNodeKind.classDeclaration)
+  int get classDeclaration_abstractKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.classDeclaration)
+  int get classDeclaration_classKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.classDeclaration)
+  LinkedNode get classDeclaration_extendsClause;
+
+  @VariantId(7, variant: LinkedNodeKind.classDeclaration)
+  LinkedNode get classDeclaration_withClause;
+
+  @VariantId(12, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.mixinDeclaration,
+  ])
+  LinkedNode get classOrMixinDeclaration_implementsClause;
+
+  @VariantId(19, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.mixinDeclaration,
+  ])
+  int get classOrMixinDeclaration_leftBracket;
+
+  @VariantId(5, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.mixinDeclaration,
+  ])
+  List<LinkedNode> get classOrMixinDeclaration_members;
+
+  @VariantId(18, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.mixinDeclaration,
+  ])
+  int get classOrMixinDeclaration_rightBracket;
+
+  @VariantId(13, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.mixinDeclaration,
+  ])
+  LinkedNode get classOrMixinDeclaration_typeParameters;
+
+  @VariantId(19, variantList: [
+    LinkedNodeKind.hideCombinator,
+    LinkedNodeKind.showCombinator,
+  ])
+  int get combinator_keyword;
+
+  @VariantId(28, variant: LinkedNodeKind.comment)
+  List<int> get comment_tokens;
+
+  @VariantId(29, variant: LinkedNodeKind.comment)
+  LinkedNodeCommentType get comment_type;
+
+  @VariantId(15, variant: LinkedNodeKind.compilationUnit)
+  int get compilationUnit_beginToken;
+
+  @VariantId(2, variant: LinkedNodeKind.compilationUnit)
+  List<LinkedNode> get compilationUnit_declarations;
+
+  @VariantId(3, variant: LinkedNodeKind.compilationUnit)
+  List<LinkedNode> get compilationUnit_directives;
+
+  @VariantId(16, variant: LinkedNodeKind.compilationUnit)
+  int get compilationUnit_endToken;
+
+  @VariantId(6, variant: LinkedNodeKind.compilationUnit)
+  LinkedNode get compilationUnit_scriptTag;
+
+  @VariantId(15, variant: LinkedNodeKind.conditionalExpression)
+  int get conditionalExpression_colon;
+
+  @VariantId(6, variant: LinkedNodeKind.conditionalExpression)
+  LinkedNode get conditionalExpression_condition;
+
+  @VariantId(7, variant: LinkedNodeKind.conditionalExpression)
+  LinkedNode get conditionalExpression_elseExpression;
+
+  @VariantId(16, variant: LinkedNodeKind.conditionalExpression)
+  int get conditionalExpression_question;
+
+  @VariantId(8, variant: LinkedNodeKind.conditionalExpression)
+  LinkedNode get conditionalExpression_thenExpression;
+
+  @VariantId(6, variant: LinkedNodeKind.constructorDeclaration)
+  LinkedNode get constructorDeclaration_body;
+
+  @VariantId(15, variant: LinkedNodeKind.constructorDeclaration)
+  int get constructorDeclaration_constKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.constructorDeclaration)
+  int get constructorDeclaration_externalKeyword;
+
+  @VariantId(17, variant: LinkedNodeKind.constructorDeclaration)
+  int get constructorDeclaration_factoryKeyword;
+
+  @VariantId(2, variant: LinkedNodeKind.constructorDeclaration)
+  List<LinkedNode> get constructorDeclaration_initializers;
+
+  @VariantId(7, variant: LinkedNodeKind.constructorDeclaration)
+  LinkedNode get constructorDeclaration_name;
+
+  @VariantId(8, variant: LinkedNodeKind.constructorDeclaration)
+  LinkedNode get constructorDeclaration_parameters;
+
+  @VariantId(18, variant: LinkedNodeKind.constructorDeclaration)
+  int get constructorDeclaration_period;
+
+  @VariantId(9, variant: LinkedNodeKind.constructorDeclaration)
+  LinkedNode get constructorDeclaration_redirectedConstructor;
+
+  @VariantId(10, variant: LinkedNodeKind.constructorDeclaration)
+  LinkedNode get constructorDeclaration_returnType;
+
+  @VariantId(19, variant: LinkedNodeKind.constructorDeclaration)
+  int get constructorDeclaration_separator;
+
+  @VariantId(15, variant: LinkedNodeKind.constructorFieldInitializer)
+  int get constructorFieldInitializer_equals;
+
+  @VariantId(6, variant: LinkedNodeKind.constructorFieldInitializer)
+  LinkedNode get constructorFieldInitializer_expression;
+
+  @VariantId(7, variant: LinkedNodeKind.constructorFieldInitializer)
+  LinkedNode get constructorFieldInitializer_fieldName;
+
+  @VariantId(16, variant: LinkedNodeKind.constructorFieldInitializer)
+  int get constructorFieldInitializer_period;
+
+  @VariantId(17, variant: LinkedNodeKind.constructorFieldInitializer)
+  int get constructorFieldInitializer_thisKeyword;
+
+  @VariantId(15, variant: LinkedNodeKind.constructorName)
+  int get constructorName_element;
+
+  @VariantId(6, variant: LinkedNodeKind.constructorName)
+  LinkedNode get constructorName_name;
+
+  @VariantId(16, variant: LinkedNodeKind.constructorName)
+  int get constructorName_period;
+
+  @VariantId(7, variant: LinkedNodeKind.constructorName)
+  LinkedNode get constructorName_type;
+
+  @VariantId(15, variant: LinkedNodeKind.continueStatement)
+  int get continueStatement_continueKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.continueStatement)
+  LinkedNode get continueStatement_label;
+
+  @VariantId(16, variant: LinkedNodeKind.continueStatement)
+  int get continueStatement_semicolon;
+
+  @VariantId(6, variant: LinkedNodeKind.declaredIdentifier)
+  LinkedNode get declaredIdentifier_identifier;
+
+  @VariantId(15, variant: LinkedNodeKind.declaredIdentifier)
+  int get declaredIdentifier_keyword;
+
+  @VariantId(7, variant: LinkedNodeKind.declaredIdentifier)
+  LinkedNode get declaredIdentifier_type;
+
+  @VariantId(6, variant: LinkedNodeKind.defaultFormalParameter)
+  LinkedNode get defaultFormalParameter_defaultValue;
+
+  @VariantId(27, variant: LinkedNodeKind.defaultFormalParameter)
+  bool get defaultFormalParameter_isNamed;
+
+  @VariantId(7, variant: LinkedNodeKind.defaultFormalParameter)
+  LinkedNode get defaultFormalParameter_parameter;
+
+  @VariantId(15, variant: LinkedNodeKind.defaultFormalParameter)
+  int get defaultFormalParameter_separator;
+
+  @VariantId(17, variantList: [
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.importDirective,
+  ])
+  int get directive_keyword;
+
+  @VariantId(15, variant: LinkedNodeKind.doubleLiteral)
+  int get doubleLiteral_literal;
+
+  @VariantId(21, variant: LinkedNodeKind.doubleLiteral)
+  double get doubleLiteral_value;
+
+  @VariantId(15, variant: LinkedNodeKind.emptyFunctionBody)
+  int get emptyFunctionBody_semicolon;
+
+  @VariantId(6, variant: LinkedNodeKind.enumConstantDeclaration)
+  LinkedNode get enumConstantDeclaration_name;
+
+  @VariantId(2, variant: LinkedNodeKind.enumDeclaration)
+  List<LinkedNode> get enumDeclaration_constants;
+
+  @VariantId(15, variant: LinkedNodeKind.enumDeclaration)
+  int get enumDeclaration_enumKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.enumDeclaration)
+  int get enumDeclaration_leftBracket;
+
+  @VariantId(17, variant: LinkedNodeKind.enumDeclaration)
+  int get enumDeclaration_rightBracket;
+
+  @VariantId(25, variantList: [
+    LinkedNodeKind.assignmentExpression,
+    LinkedNodeKind.asExpression,
+    LinkedNodeKind.binaryExpression,
+    LinkedNodeKind.cascadeExpression,
+    LinkedNodeKind.conditionalExpression,
+    LinkedNodeKind.doubleLiteral,
+    LinkedNodeKind.indexExpression,
+    LinkedNodeKind.integerLiteral,
+    LinkedNodeKind.isExpression,
+    LinkedNodeKind.listLiteral,
+    LinkedNodeKind.mapLiteral,
+    LinkedNodeKind.methodInvocation,
+    LinkedNodeKind.nullLiteral,
+    LinkedNodeKind.parenthesizedExpression,
+    LinkedNodeKind.prefixExpression,
+    LinkedNodeKind.prefixedIdentifier,
+    LinkedNodeKind.propertyAccess,
+    LinkedNodeKind.postfixExpression,
+    LinkedNodeKind.setLiteral,
+    LinkedNodeKind.simpleIdentifier,
+    LinkedNodeKind.stringInterpolation,
+    LinkedNodeKind.thisExpression,
+    LinkedNodeKind.throwExpression,
+  ])
+  LinkedNodeType get expression_type;
+
+  @VariantId(15, variant: LinkedNodeKind.expressionFunctionBody)
+  int get expressionFunctionBody_arrow;
+
+  @VariantId(6, variant: LinkedNodeKind.expressionFunctionBody)
+  LinkedNode get expressionFunctionBody_expression;
+
+  @VariantId(16, variant: LinkedNodeKind.expressionFunctionBody)
+  int get expressionFunctionBody_keyword;
+
+  @VariantId(17, variant: LinkedNodeKind.expressionFunctionBody)
+  int get expressionFunctionBody_semicolon;
+
+  @VariantId(6, variant: LinkedNodeKind.expressionStatement)
+  LinkedNode get expressionStatement_expression;
+
+  @VariantId(15, variant: LinkedNodeKind.expressionStatement)
+  int get expressionStatement_semicolon;
+
+  @VariantId(15, variant: LinkedNodeKind.extendsClause)
+  int get extendsClause_extendsKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.extendsClause)
+  LinkedNode get extendsClause_superclass;
+
+  @VariantId(15, variant: LinkedNodeKind.fieldDeclaration)
+  int get fieldDeclaration_covariantKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.fieldDeclaration)
+  LinkedNode get fieldDeclaration_fields;
+
+  @VariantId(16, variant: LinkedNodeKind.fieldDeclaration)
+  int get fieldDeclaration_semicolon;
+
+  @VariantId(17, variant: LinkedNodeKind.fieldDeclaration)
+  int get fieldDeclaration_staticKeyword;
+
+  @VariantId(15, variant: LinkedNodeKind.fieldFormalParameter)
+  int get fieldFormalParameter_keyword;
+
+  @VariantId(16, variant: LinkedNodeKind.fieldFormalParameter)
+  int get fieldFormalParameter_period;
+
+  @VariantId(17, variant: LinkedNodeKind.fieldFormalParameter)
+  int get fieldFormalParameter_thisKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.fieldFormalParameter)
+  LinkedNode get fieldFormalParameter_type;
+
+  @VariantId(7, variant: LinkedNodeKind.fieldFormalParameter)
+  LinkedNode get fieldFormalParameter_typeParameters;
+
+  @VariantId(18, variant: LinkedNodeKind.forEachStatement)
+  int get forEachStatement_awaitKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.forEachStatement)
+  LinkedNode get forEachStatement_identifier;
+
+  @VariantId(15, variant: LinkedNodeKind.forEachStatement)
+  int get forEachStatement_inKeyword;
+
+  @VariantId(7, variant: LinkedNodeKind.forEachStatement)
+  LinkedNode get forEachStatement_iterable;
+
+  @VariantId(8, variant: LinkedNodeKind.forEachStatement)
+  LinkedNode get forEachStatement_loopVariable;
+
+  @VariantId(26, variantList: [
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.simpleFormalParameter,
+  ])
+  LinkedNodeFormalParameterKind get formalParameter_kind;
+
+  @VariantId(15, variant: LinkedNodeKind.formalParameterList)
+  int get formalParameterList_leftDelimiter;
+
+  @VariantId(16, variant: LinkedNodeKind.formalParameterList)
+  int get formalParameterList_leftParenthesis;
+
+  @VariantId(2, variant: LinkedNodeKind.formalParameterList)
+  List<LinkedNode> get formalParameterList_parameters;
+
+  @VariantId(17, variant: LinkedNodeKind.formalParameterList)
+  int get formalParameterList_rightDelimiter;
+
+  @VariantId(18, variant: LinkedNodeKind.formalParameterList)
+  int get formalParameterList_rightParenthesis;
+
+  @VariantId(10, variantList: [
+    LinkedNodeKind.forStatement,
+    LinkedNodeKind.forEachStatement,
+  ])
+  LinkedNode get forStatement_body;
+
+  @VariantId(7, variant: LinkedNodeKind.forStatement)
+  LinkedNode get forStatement_condition;
+
+  @VariantId(16, variantList: [
+    LinkedNodeKind.forStatement,
+    LinkedNodeKind.forEachStatement,
+  ])
+  int get forStatement_forKeyword;
+
+  @VariantId(8, variant: LinkedNodeKind.forStatement)
+  LinkedNode get forStatement_initialization;
+
+  @VariantId(17, variantList: [
+    LinkedNodeKind.forStatement,
+    LinkedNodeKind.forEachStatement,
+  ])
+  int get forStatement_leftParenthesis;
+
+  @VariantId(18, variant: LinkedNodeKind.forStatement)
+  int get forStatement_leftSeparator;
+
+  @VariantId(19, variantList: [
+    LinkedNodeKind.forStatement,
+    LinkedNodeKind.forEachStatement,
+  ])
+  int get forStatement_rightParenthesis;
+
+  @VariantId(15, variant: LinkedNodeKind.forStatement)
+  int get forStatement_rightSeparator;
+
+  @VariantId(2, variant: LinkedNodeKind.forStatement)
+  List<LinkedNode> get forStatement_updaters;
+
+  @VariantId(9, variant: LinkedNodeKind.forStatement)
+  LinkedNode get forStatement_variableList;
+
+  @VariantId(15, variant: LinkedNodeKind.functionDeclaration)
+  int get functionDeclaration_externalKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.functionDeclaration)
+  LinkedNode get functionDeclaration_functionExpression;
+
+  @VariantId(16, variant: LinkedNodeKind.functionDeclaration)
+  int get functionDeclaration_propertyKeyword;
+
+  @VariantId(7, variant: LinkedNodeKind.functionDeclaration)
+  LinkedNode get functionDeclaration_returnType;
+
+  @VariantId(6, variant: LinkedNodeKind.functionDeclarationStatement)
+  LinkedNode get functionDeclarationStatement_functionDeclaration;
+
+  @VariantId(6, variant: LinkedNodeKind.functionExpression)
+  LinkedNode get functionExpression_body;
+
+  @VariantId(7, variant: LinkedNodeKind.functionExpression)
+  LinkedNode get functionExpression_formalParameters;
+
+  @VariantId(8, variant: LinkedNodeKind.functionExpression)
+  LinkedNode get functionExpression_typeParameters;
+
+  @VariantId(6, variant: LinkedNodeKind.functionTypeAlias)
+  LinkedNode get functionTypeAlias_formalParameters;
+
+  @VariantId(7, variant: LinkedNodeKind.functionTypeAlias)
+  LinkedNode get functionTypeAlias_returnType;
+
+  @VariantId(8, variant: LinkedNodeKind.functionTypeAlias)
+  LinkedNode get functionTypeAlias_typeParameters;
+
+  @VariantId(6, variant: LinkedNodeKind.functionTypedFormalParameter)
+  LinkedNode get functionTypedFormalParameter_formalParameters;
+
+  @VariantId(7, variant: LinkedNodeKind.functionTypedFormalParameter)
+  LinkedNode get functionTypedFormalParameter_returnType;
+
+  @VariantId(8, variant: LinkedNodeKind.functionTypedFormalParameter)
+  LinkedNode get functionTypedFormalParameter_typeParameters;
+
+  @VariantId(2, variant: LinkedNodeKind.hideCombinator)
+  List<LinkedNode> get hideCombinator_hiddenNames;
+
+  @VariantId(6, variant: LinkedNodeKind.ifStatement)
+  LinkedNode get ifStatement_condition;
+
+  @VariantId(15, variant: LinkedNodeKind.ifStatement)
+  int get ifStatement_elseKeyword;
+
+  @VariantId(7, variant: LinkedNodeKind.ifStatement)
+  LinkedNode get ifStatement_elseStatement;
+
+  @VariantId(16, variant: LinkedNodeKind.ifStatement)
+  int get ifStatement_ifKeyword;
+
+  @VariantId(17, variant: LinkedNodeKind.ifStatement)
+  int get ifStatement_leftParenthesis;
+
+  @VariantId(18, variant: LinkedNodeKind.ifStatement)
+  int get ifStatement_rightParenthesis;
+
+  @VariantId(8, variant: LinkedNodeKind.ifStatement)
+  LinkedNode get ifStatement_thenStatement;
+
+  @VariantId(15, variant: LinkedNodeKind.implementsClause)
+  int get implementsClause_implementsKeyword;
+
+  @VariantId(2, variant: LinkedNodeKind.implementsClause)
+  List<LinkedNode> get implementsClause_interfaces;
+
+  @VariantId(15, variant: LinkedNodeKind.importDirective)
+  int get importDirective_asKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.importDirective)
+  int get importDirective_deferredKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.importDirective)
+  LinkedNode get importDirective_prefix;
+
+  @VariantId(15, variant: LinkedNodeKind.indexExpression)
+  int get indexExpression_element;
+
+  @VariantId(6, variant: LinkedNodeKind.indexExpression)
+  LinkedNode get indexExpression_index;
+
+  @VariantId(16, variant: LinkedNodeKind.indexExpression)
+  int get indexExpression_leftBracket;
+
+  @VariantId(17, variant: LinkedNodeKind.indexExpression)
+  int get indexExpression_rightBracket;
+
+  @VariantId(7, variant: LinkedNodeKind.indexExpression)
+  LinkedNode get indexExpression_target;
+
+  @VariantId(6, variant: LinkedNodeKind.instanceCreationExpression)
+  LinkedNode get instanceCreationExpression_arguments;
+
+  @VariantId(7, variant: LinkedNodeKind.instanceCreationExpression)
+  LinkedNode get instanceCreationExpression_constructorName;
+
+  @VariantId(15, variant: LinkedNodeKind.instanceCreationExpression)
+  int get instanceCreationExpression_keyword;
+
+  @VariantId(8, variant: LinkedNodeKind.instanceCreationExpression)
+  LinkedNode get instanceCreationExpression_typeArguments;
+
+  @VariantId(15, variant: LinkedNodeKind.integerLiteral)
+  int get integerLiteral_literal;
+
+  @VariantId(16, variant: LinkedNodeKind.integerLiteral)
+  int get integerLiteral_value;
+
+  @VariantId(6, variant: LinkedNodeKind.interpolationExpression)
+  LinkedNode get interpolationExpression_expression;
+
+  @VariantId(15, variant: LinkedNodeKind.interpolationExpression)
+  int get interpolationExpression_leftBracket;
+
+  @VariantId(16, variant: LinkedNodeKind.interpolationExpression)
+  int get interpolationExpression_rightBracket;
+
+  @VariantId(15, variant: LinkedNodeKind.interpolationString)
+  int get interpolationString_token;
+
+  @VariantId(30, variant: LinkedNodeKind.interpolationString)
+  String get interpolationString_value;
+
+  @VariantId(14, variantList: [
+    LinkedNodeKind.methodInvocation,
+  ])
+  LinkedNode get invocationExpression_arguments;
+
+  @VariantId(24, variantList: [
+    LinkedNodeKind.methodInvocation,
+  ])
+  LinkedNodeType get invocationExpression_invokeType;
+
+  @VariantId(12, variantList: [
+    LinkedNodeKind.methodInvocation,
+  ])
+  LinkedNode get invocationExpression_typeArguments;
+
+  @VariantId(6, variant: LinkedNodeKind.isExpression)
+  LinkedNode get isExpression_expression;
+
+  @VariantId(15, variant: LinkedNodeKind.isExpression)
+  int get isExpression_isOperator;
+
+  @VariantId(16, variant: LinkedNodeKind.isExpression)
+  int get isExpression_notOperator;
+
+  @VariantId(7, variant: LinkedNodeKind.isExpression)
+  LinkedNode get isExpression_type;
+
+  @Id(1)
+  bool get isSynthetic;
+
+  @Id(0)
+  LinkedNodeKind get kind;
+
+  @VariantId(15, variant: LinkedNodeKind.label)
+  int get label_colon;
+
+  @VariantId(6, variant: LinkedNodeKind.label)
+  LinkedNode get label_label;
+
+  @VariantId(2, variant: LinkedNodeKind.listLiteral)
+  List<LinkedNode> get listLiteral_elements;
+
+  @VariantId(15, variant: LinkedNodeKind.listLiteral)
+  int get listLiteral_leftBracket;
+
+  @VariantId(16, variant: LinkedNodeKind.listLiteral)
+  int get listLiteral_rightBracket;
+
+  @VariantId(2, variant: LinkedNodeKind.mapLiteral)
+  List<LinkedNode> get mapLiteral_entries;
+
+  @VariantId(15, variant: LinkedNodeKind.mapLiteral)
+  int get mapLiteral_leftBracket;
+
+  @VariantId(16, variant: LinkedNodeKind.mapLiteral)
+  int get mapLiteral_rightBracket;
+
+  @VariantId(6, variant: LinkedNodeKind.mapLiteralEntry)
+  LinkedNode get mapLiteralEntry_key;
+
+  @VariantId(15, variant: LinkedNodeKind.mapLiteralEntry)
+  int get mapLiteralEntry_separator;
+
+  @VariantId(7, variant: LinkedNodeKind.mapLiteralEntry)
+  LinkedNode get mapLiteralEntry_value;
+
+  @VariantId(6, variant: LinkedNodeKind.methodDeclaration)
+  LinkedNode get methodDeclaration_body;
+
+  @VariantId(15, variant: LinkedNodeKind.methodDeclaration)
+  int get methodDeclaration_externalKeyword;
+
+  @VariantId(7, variant: LinkedNodeKind.methodDeclaration)
+  LinkedNode get methodDeclaration_formalParameters;
+
+  @VariantId(16, variant: LinkedNodeKind.methodDeclaration)
+  int get methodDeclaration_modifierKeyword;
+
+  @VariantId(17, variant: LinkedNodeKind.methodDeclaration)
+  int get methodDeclaration_operatorKeyword;
+
+  @VariantId(18, variant: LinkedNodeKind.methodDeclaration)
+  int get methodDeclaration_propertyKeyword;
+
+  @VariantId(8, variant: LinkedNodeKind.methodDeclaration)
+  LinkedNode get methodDeclaration_returnType;
+
+  @VariantId(9, variant: LinkedNodeKind.methodDeclaration)
+  LinkedNode get methodDeclaration_typeParameters;
+
+  @VariantId(6, variant: LinkedNodeKind.methodInvocation)
+  LinkedNode get methodInvocation_methodName;
+
+  @VariantId(15, variant: LinkedNodeKind.methodInvocation)
+  int get methodInvocation_operator;
+
+  @VariantId(7, variant: LinkedNodeKind.methodInvocation)
+  LinkedNode get methodInvocation_target;
+
+  @VariantId(14, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.enumDeclaration,
+    LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.mixinDeclaration,
+  ])
+  LinkedNode get namedCompilationUnitMember_name;
+
+  @VariantId(6, variant: LinkedNodeKind.namedExpression)
+  LinkedNode get namedExpression_expression;
+
+  @VariantId(7, variant: LinkedNodeKind.namedExpression)
+  LinkedNode get namedExpression_name;
+
+  @VariantId(2, variantList: [
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.importDirective,
+  ])
+  List<LinkedNode> get namespaceDirective_combinators;
+
+  @VariantId(3, variantList: [
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.importDirective,
+  ])
+  List<LinkedNode> get namespaceDirective_configurations;
+
+  @VariantId(23, variantList: [
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.importDirective,
+  ])
+  String get namespaceDirective_selectedUriContent;
+
+  @VariantId(18, variantList: [
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.importDirective,
+  ])
+  int get namespaceDirective_semicolon;
+
+  @VariantId(14, variantList: [
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.simpleFormalParameter,
+  ])
+  LinkedNode get normalFormalParameter_comment;
+
+  @VariantId(19, variantList: [
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.simpleFormalParameter,
+  ])
+  int get normalFormalParameter_covariantKeyword;
+
+  @VariantId(12, variantList: [
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.simpleFormalParameter,
+  ])
+  LinkedNode get normalFormalParameter_identifier;
+
+  @VariantId(4, variantList: [
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.simpleFormalParameter,
+  ])
+  List<LinkedNode> get normalFormalParameter_metadata;
+
+  @VariantId(15, variant: LinkedNodeKind.nullLiteral)
+  int get nullLiteral_literal;
+
+  @VariantId(6, variant: LinkedNodeKind.parenthesizedExpression)
+  LinkedNode get parenthesizedExpression_expression;
+
+  @VariantId(15, variant: LinkedNodeKind.parenthesizedExpression)
+  int get parenthesizedExpression_leftParenthesis;
+
+  @VariantId(16, variant: LinkedNodeKind.parenthesizedExpression)
+  int get parenthesizedExpression_rightParenthesis;
+
+  @VariantId(15, variant: LinkedNodeKind.postfixExpression)
+  int get postfixExpression_element;
+
+  @VariantId(6, variant: LinkedNodeKind.postfixExpression)
+  LinkedNode get postfixExpression_operand;
+
+  @VariantId(16, variant: LinkedNodeKind.postfixExpression)
+  int get postfixExpression_operator;
+
+  @VariantId(6, variant: LinkedNodeKind.prefixedIdentifier)
+  LinkedNode get prefixedIdentifier_identifier;
+
+  @VariantId(15, variant: LinkedNodeKind.prefixedIdentifier)
+  int get prefixedIdentifier_period;
+
+  @VariantId(7, variant: LinkedNodeKind.prefixedIdentifier)
+  LinkedNode get prefixedIdentifier_prefix;
+
+  @VariantId(15, variant: LinkedNodeKind.prefixExpression)
+  int get prefixExpression_element;
+
+  @VariantId(6, variant: LinkedNodeKind.prefixExpression)
+  LinkedNode get prefixExpression_operand;
+
+  @VariantId(16, variant: LinkedNodeKind.prefixExpression)
+  int get prefixExpression_operator;
+
+  @VariantId(15, variant: LinkedNodeKind.propertyAccess)
+  int get propertyAccess_operator;
+
+  @VariantId(6, variant: LinkedNodeKind.propertyAccess)
+  LinkedNode get propertyAccess_propertyName;
+
+  @VariantId(7, variant: LinkedNodeKind.propertyAccess)
+  LinkedNode get propertyAccess_target;
+
+  @VariantId(6, variant: LinkedNodeKind.redirectingConstructorInvocation)
+  LinkedNode get redirectingConstructorInvocation_arguments;
+
+  @VariantId(7, variant: LinkedNodeKind.redirectingConstructorInvocation)
+  LinkedNode get redirectingConstructorInvocation_constructorName;
+
+  @VariantId(15, variant: LinkedNodeKind.redirectingConstructorInvocation)
+  int get redirectingConstructorInvocation_element;
+
+  @VariantId(16, variant: LinkedNodeKind.redirectingConstructorInvocation)
+  int get redirectingConstructorInvocation_period;
+
+  @VariantId(17, variant: LinkedNodeKind.redirectingConstructorInvocation)
+  int get redirectingConstructorInvocation_thisKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.returnStatement)
+  LinkedNode get returnStatement_expression;
+
+  @VariantId(15, variant: LinkedNodeKind.returnStatement)
+  int get returnStatement_returnKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.returnStatement)
+  int get returnStatement_semicolon;
+
+  @VariantId(2, variant: LinkedNodeKind.showCombinator)
+  List<LinkedNode> get showCombinator_shownNames;
+
+  @VariantId(15, variant: LinkedNodeKind.simpleFormalParameter)
+  int get simpleFormalParameter_keyword;
+
+  @VariantId(6, variant: LinkedNodeKind.simpleFormalParameter)
+  LinkedNode get simpleFormalParameter_type;
+
+  @VariantId(15, variant: LinkedNodeKind.simpleIdentifier)
+  int get simpleIdentifier_element;
+
+  @VariantId(16, variant: LinkedNodeKind.simpleIdentifier)
+  int get simpleIdentifier_token;
+
+  @VariantId(15, variant: LinkedNodeKind.simpleStringLiteral)
+  int get simpleStringLiteral_token;
+
+  @VariantId(20, variant: LinkedNodeKind.simpleStringLiteral)
+  String get simpleStringLiteral_value;
+
+  @VariantId(2, variant: LinkedNodeKind.stringInterpolation)
+  List<LinkedNode> get stringInterpolation_elements;
+
+  @VariantId(6, variant: LinkedNodeKind.superConstructorInvocation)
+  LinkedNode get superConstructorInvocation_arguments;
+
+  @VariantId(7, variant: LinkedNodeKind.superConstructorInvocation)
+  LinkedNode get superConstructorInvocation_constructorName;
+
+  @VariantId(15, variant: LinkedNodeKind.superConstructorInvocation)
+  int get superConstructorInvocation_element;
+
+  @VariantId(16, variant: LinkedNodeKind.superConstructorInvocation)
+  int get superConstructorInvocation_period;
+
+  @VariantId(17, variant: LinkedNodeKind.superConstructorInvocation)
+  int get superConstructorInvocation_superKeyword;
+
+  @VariantId(15, variant: LinkedNodeKind.superExpression)
+  int get superExpression_superKeyword;
+
+  @VariantId(15, variant: LinkedNodeKind.thisExpression)
+  int get thisExpression_thisKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.throwExpression)
+  LinkedNode get throwExpression_expression;
+
+  @VariantId(15, variant: LinkedNodeKind.throwExpression)
+  int get throwExpression_throwKeyword;
+
+  @VariantId(15, variant: LinkedNodeKind.topLevelVariableDeclaration)
+  int get topLevelVariableDeclaration_semicolon;
+
+  @VariantId(6, variant: LinkedNodeKind.topLevelVariableDeclaration)
+  LinkedNode get topLevelVariableDeclaration_variableList;
+
+  @VariantId(6, variant: LinkedNodeKind.tryStatement)
+  LinkedNode get tryStatement_body;
+
+  @VariantId(2, variant: LinkedNodeKind.tryStatement)
+  List<LinkedNode> get tryStatement_catchClauses;
+
+  @VariantId(7, variant: LinkedNodeKind.tryStatement)
+  LinkedNode get tryStatement_finallyBlock;
+
+  @VariantId(15, variant: LinkedNodeKind.tryStatement)
+  int get tryStatement_finallyKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.tryStatement)
+  int get tryStatement_tryKeyword;
+
+  @VariantId(19, variantList: [
+    LinkedNodeKind.functionTypeAlias,
+  ])
+  int get typeAlias_semicolon;
+
+  @VariantId(18, variantList: [
+    LinkedNodeKind.functionTypeAlias,
+  ])
+  int get typeAlias_typedefKeyword;
+
+  @VariantId(2, variant: LinkedNodeKind.typeArgumentList)
+  List<LinkedNode> get typeArgumentList_arguments;
+
+  @VariantId(15, variant: LinkedNodeKind.typeArgumentList)
+  int get typeArgumentList_leftBracket;
+
+  @VariantId(16, variant: LinkedNodeKind.typeArgumentList)
+  int get typeArgumentList_rightBracket;
+
+  @VariantId(19, variantList: [
+    LinkedNodeKind.listLiteral,
+    LinkedNodeKind.mapLiteral,
+    LinkedNodeKind.setLiteral,
+  ])
+  int get typedLiteral_constKeyword;
+
+  @VariantId(14, variantList: [
+    LinkedNodeKind.listLiteral,
+    LinkedNodeKind.mapLiteral,
+    LinkedNodeKind.setLiteral,
+  ])
+  LinkedNode get typedLiteral_typeArguments;
+
+  @VariantId(6, variant: LinkedNodeKind.typeName)
+  LinkedNode get typeName_name;
+
+  @VariantId(15, variant: LinkedNodeKind.typeName)
+  int get typeName_question;
+
+  @VariantId(24, variant: LinkedNodeKind.typeName)
+  LinkedNodeType get typeName_type;
+
+  @VariantId(7, variant: LinkedNodeKind.typeName)
+  LinkedNode get typeName_typeArguments;
+
+  @VariantId(6, variant: LinkedNodeKind.typeParameter)
+  LinkedNode get typeParameter_bound;
+
+  @VariantId(15, variant: LinkedNodeKind.typeParameter)
+  int get typeParameter_extendsKeyword;
+
+  @VariantId(7, variant: LinkedNodeKind.typeParameter)
+  LinkedNode get typeParameter_name;
+
+  @VariantId(15, variant: LinkedNodeKind.typeParameterList)
+  int get typeParameterList_leftBracket;
+
+  @VariantId(16, variant: LinkedNodeKind.typeParameterList)
+  int get typeParameterList_rightBracket;
+
+  @VariantId(2, variant: LinkedNodeKind.typeParameterList)
+  List<LinkedNode> get typeParameterList_typeParameters;
+
+  @VariantId(14, variantList: [
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.importDirective,
+  ])
+  LinkedNode get uriBasedDirective_uri;
+
+  @VariantId(22, variantList: [
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.importDirective,
+  ])
+  String get uriBasedDirective_uriContent;
+
+  @VariantId(19, variantList: [
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.importDirective,
+  ])
+  int get uriBasedDirective_uriElement;
+
+  @VariantId(15, variant: LinkedNodeKind.variableDeclaration)
+  int get variableDeclaration_equals;
+
+  @VariantId(6, variant: LinkedNodeKind.variableDeclaration)
+  LinkedNode get variableDeclaration_initializer;
+
+  @VariantId(7, variant: LinkedNodeKind.variableDeclaration)
+  LinkedNode get variableDeclaration_name;
+
+  @VariantId(15, variant: LinkedNodeKind.variableDeclarationList)
+  int get variableDeclarationList_keyword;
+
+  @VariantId(6, variant: LinkedNodeKind.variableDeclarationList)
+  LinkedNode get variableDeclarationList_type;
+
+  @VariantId(2, variant: LinkedNodeKind.variableDeclarationList)
+  List<LinkedNode> get variableDeclarationList_variables;
+
+  @VariantId(15, variant: LinkedNodeKind.variableDeclarationStatement)
+  int get variableDeclarationStatement_semicolon;
+
+  @VariantId(6, variant: LinkedNodeKind.variableDeclarationStatement)
+  LinkedNode get variableDeclarationStatement_variables;
+
+  @VariantId(6, variant: LinkedNodeKind.whileStatement)
+  LinkedNode get whileStatement_body;
+
+  @VariantId(7, variant: LinkedNodeKind.whileStatement)
+  LinkedNode get whileStatement_condition;
+
+  @VariantId(15, variant: LinkedNodeKind.whileStatement)
+  int get whileStatement_leftParenthesis;
+
+  @VariantId(16, variant: LinkedNodeKind.whileStatement)
+  int get whileStatement_rightParenthesis;
+
+  @VariantId(17, variant: LinkedNodeKind.whileStatement)
+  int get whileStatement_whileKeyword;
+}
+
+/// TODO(scheglov) extend to support multiple libraries of remove
+@TopLevel('LNBn')
+abstract class LinkedNodeBundle extends base.SummaryClass {
+  factory LinkedNodeBundle.fromBuffer(List<int> buffer) =>
+      generated.readLinkedNodeBundle(buffer);
+
+  @Id(2)
+  LinkedNode get node;
+
+  @Id(1)
+  LinkedNodeReference get references;
+
+  @Id(0)
+  UnlinkedTokens get tokens;
+}
+
+/// Types of comments.
+enum LinkedNodeCommentType { block, documentation, endOfLine }
+
+/// Kinds of formal parameters.
+enum LinkedNodeFormalParameterKind {
+  required,
+  optionalPositional,
+  optionalNamed
+}
+
+/// Kinds of [LinkedNode].
+enum LinkedNodeKind {
+  adjacentStrings,
+  annotation,
+  argumentList,
+  asExpression,
+  assertStatement,
+  assignmentExpression,
+  binaryExpression,
+  block,
+  blockFunctionBody,
+  booleanLiteral,
+  breakStatement,
+  cascadeExpression,
+  catchClause,
+  classDeclaration,
+  comment,
+  compilationUnit,
+  conditionalExpression,
+  constructorDeclaration,
+  constructorFieldInitializer,
+  constructorName,
+  continueStatement,
+  declaredIdentifier,
+  defaultFormalParameter,
+  doubleLiteral,
+  emptyFunctionBody,
+  enumConstantDeclaration,
+  enumDeclaration,
+  exportDirective,
+  expressionFunctionBody,
+  expressionStatement,
+  extendsClause,
+  fieldDeclaration,
+  fieldFormalParameter,
+  formalParameterList,
+  forEachStatement,
+  forStatement,
+  functionDeclaration,
+  functionDeclarationStatement,
+  functionExpression,
+  functionTypeAlias,
+  functionTypedFormalParameter,
+  hideCombinator,
+  ifStatement,
+  implementsClause,
+  importDirective,
+  instanceCreationExpression,
+  indexExpression,
+  integerLiteral,
+  interpolationExpression,
+  interpolationString,
+  isExpression,
+  label,
+  listLiteral,
+  mapLiteral,
+  mapLiteralEntry,
+  methodDeclaration,
+  methodInvocation,
+  mixinDeclaration,
+  namedExpression,
+  nullLiteral,
+  parenthesizedExpression,
+  postfixExpression,
+  prefixExpression,
+  prefixedIdentifier,
+  propertyAccess,
+  redirectingConstructorInvocation,
+  returnStatement,
+  setLiteral,
+  showCombinator,
+  simpleFormalParameter,
+  simpleIdentifier,
+  simpleStringLiteral,
+  stringInterpolation,
+  superConstructorInvocation,
+  superExpression,
+  thisExpression,
+  throwExpression,
+  topLevelVariableDeclaration,
+  tryStatement,
+  typeArgumentList,
+  typeName,
+  typeParameter,
+  typeParameterList,
+  variableDeclaration,
+  variableDeclarationList,
+  variableDeclarationStatement,
+  whileStatement,
+  withClause,
+}
+
+/// Flattened tree of declarations referenced from [LinkedNode]s.
+abstract class LinkedNodeReference extends base.SummaryClass {
+  @Id(1)
+  List<String> get name;
+
+  @Id(0)
+  List<int> get parent;
+}
+
+/// Information about a Dart type.
+abstract class LinkedNodeType extends base.SummaryClass {
+  /// References to [LinkedNodeReference].
+  @Id(0)
+  List<int> get functionFormalParameters;
+
+  @Id(1)
+  LinkedNodeType get functionReturnType;
+
+  /// References to [LinkedNodeReference].
+  @Id(2)
+  List<int> get functionTypeParameters;
+
+  /// Reference to a [LinkedNodeReference].
+  @Id(3)
+  int get interfaceClass;
+
+  @Id(4)
+  List<LinkedNodeType> get interfaceTypeArguments;
+
+  @Id(5)
+  LinkedNodeTypeKind get kind;
+
+  /// Reference to a [LinkedNodeReference].
+  @Id(6)
+  int get typeParameterParameter;
+}
+
+/// Kinds of [LinkedNodeType]s.
+enum LinkedNodeTypeKind {
+  bottom,
+  dynamic_,
+  function,
+  interface,
+  typeParameter,
+  void_
+}
+
 /// Information about the resolution of an [UnlinkedReference].
 abstract class LinkedReference extends base.SummaryClass {
   /// If this [LinkedReference] doesn't have an associated [UnlinkedReference],
@@ -2381,6 +3656,189 @@ abstract class UnlinkedReference extends base.SummaryClass {
   /// UnlinkedUnit.references[i].prefixReference < i.
   @Id(1)
   int get prefixReference;
+}
+
+/// TODO(scheglov) document
+enum UnlinkedTokenKind { nothing, comment, keyword, simple, string }
+
+/// TODO(scheglov) document
+abstract class UnlinkedTokens extends base.SummaryClass {
+  /// The token that corresponds to this token, or `0` if this token is not
+  /// the first of a pair of matching tokens (such as parentheses).
+  @Id(0)
+  List<int> get endGroup;
+
+  /// Return `true` if this token is a synthetic token. A synthetic token is a
+  /// token that was introduced by the parser in order to recover from an error
+  /// in the code.
+  @Id(1)
+  List<bool> get isSynthetic;
+
+  @Id(2)
+  List<UnlinkedTokenKind> get kind;
+
+  @Id(3)
+  List<int> get length;
+
+  @Id(4)
+  List<String> get lexeme;
+
+  /// The next token in the token stream, `0` for [UnlinkedTokenType.EOF] or
+  /// the last comment token.
+  @Id(5)
+  List<int> get next;
+
+  @Id(6)
+  List<int> get offset;
+
+  /// The first comment token in the list of comments that precede this token,
+  /// or `0` if there are no comments preceding this token. Additional comments
+  /// can be reached by following the token stream using [next] until `0` is
+  /// reached.
+  @Id(7)
+  List<int> get precedingComment;
+
+  @Id(8)
+  List<UnlinkedTokenType> get type;
+}
+
+/// TODO(scheglov) document
+enum UnlinkedTokenType {
+  NOTHING,
+  ABSTRACT,
+  AMPERSAND,
+  AMPERSAND_AMPERSAND,
+  AMPERSAND_EQ,
+  AS,
+  ASSERT,
+  ASYNC,
+  AT,
+  AWAIT,
+  BACKPING,
+  BACKSLASH,
+  BANG,
+  BANG_EQ,
+  BAR,
+  BAR_BAR,
+  BAR_EQ,
+  BREAK,
+  CARET,
+  CARET_EQ,
+  CASE,
+  CATCH,
+  CLASS,
+  CLOSE_CURLY_BRACKET,
+  CLOSE_PAREN,
+  CLOSE_SQUARE_BRACKET,
+  COLON,
+  COMMA,
+  CONST,
+  CONTINUE,
+  COVARIANT,
+  DEFAULT,
+  DEFERRED,
+  DO,
+  DOUBLE,
+  DYNAMIC,
+  ELSE,
+  ENUM,
+  EOF,
+  EQ,
+  EQ_EQ,
+  EXPORT,
+  EXTENDS,
+  EXTERNAL,
+  FACTORY,
+  FALSE,
+  FINAL,
+  FINALLY,
+  FOR,
+  FUNCTION,
+  FUNCTION_KEYWORD,
+  GET,
+  GT,
+  GT_EQ,
+  GT_GT,
+  GT_GT_EQ,
+  HASH,
+  HEXADECIMAL,
+  HIDE,
+  IDENTIFIER,
+  IF,
+  IMPLEMENTS,
+  IMPORT,
+  IN,
+  INDEX,
+  INDEX_EQ,
+  INT,
+  INTERFACE,
+  IS,
+  LIBRARY,
+  LT,
+  LT_EQ,
+  LT_LT,
+  LT_LT_EQ,
+  MINUS,
+  MINUS_EQ,
+  MINUS_MINUS,
+  MIXIN,
+  MULTI_LINE_COMMENT,
+  NATIVE,
+  NEW,
+  NULL,
+  OF,
+  ON,
+  OPEN_CURLY_BRACKET,
+  OPEN_PAREN,
+  OPEN_SQUARE_BRACKET,
+  OPERATOR,
+  PART,
+  PATCH,
+  PERCENT,
+  PERCENT_EQ,
+  PERIOD,
+  PERIOD_PERIOD,
+  PERIOD_PERIOD_PERIOD,
+  PERIOD_PERIOD_PERIOD_QUESTION,
+  PLUS,
+  PLUS_EQ,
+  PLUS_PLUS,
+  QUESTION,
+  QUESTION_PERIOD,
+  QUESTION_QUESTION,
+  QUESTION_QUESTION_EQ,
+  RETHROW,
+  RETURN,
+  SCRIPT_TAG,
+  SEMICOLON,
+  SET,
+  SHOW,
+  SINGLE_LINE_COMMENT,
+  SLASH,
+  SLASH_EQ,
+  SOURCE,
+  STAR,
+  STAR_EQ,
+  STATIC,
+  STRING,
+  STRING_INTERPOLATION_EXPRESSION,
+  STRING_INTERPOLATION_IDENTIFIER,
+  SUPER,
+  SWITCH,
+  SYNC,
+  THIS,
+  THROW,
+  TILDE,
+  TILDE_SLASH,
+  TILDE_SLASH_EQ,
+  TRUE,
+  TRY,
+  TYPEDEF,
+  VAR,
+  VOID,
+  WHILE,
+  WITH,
+  YIELD,
 }
 
 /// Unlinked summary information about a typedef declaration.
