@@ -221,78 +221,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    super.visitSetOrMapLiteral(node);
-    bool isConst = node.isConst;
-    HashSet<DartObject> keys = new HashSet<DartObject>();
-    List<Expression> invalidKeys = new List<Expression>();
-    if (node.isSet) {
-      HashSet<DartObject> elements = new HashSet<DartObject>();
-      List<Expression> invalidElements = new List<Expression>();
-      if (isConst) {
-        for (CollectionElement element in node.elements2) {
-          if (element is Expression) {
-            // TODO(mfairhurst): unify this with _validateCollectionElemet
-            DartObject result = _validate(
-                element, CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT);
-            if (result != null) {
-              _reportErrorIfFromDeferredLibrary(
-                  element,
-                  CompileTimeErrorCode
-                      .NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY);
-              if (!elements.add(result)) {
-                invalidElements.add(element);
-              }
-              DartType type = result.type;
-              if (_implementsEqualsWhenNotAllowed(type)) {
-                _errorReporter.reportErrorForNode(
-                    CompileTimeErrorCode
-                        .CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-                    element,
-                    [type.displayName]);
-              }
-            }
-          } else {
-            bool isValid = _validateCollectionElement(element, isConst, keys,
-                invalidKeys, CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT);
-            if (isValid) {
-              // TODO(mfairhurst) report deferred library error
-            }
-          }
-        }
-        for (var invalidElement in invalidElements) {
-          _errorReporter.reportErrorForNode(
-              StaticWarningCode.EQUAL_VALUES_IN_CONST_SET, invalidElement);
-        }
-      }
-    } else if (node.isMap) {
-      bool reportEqualKeys = true;
-      for (CollectionElement entry in node.elements2) {
-        if (entry is MapLiteralEntry) {
-          // TODO(mfairhurst): Change non-const error to a hint, and report
-          // duplicates in constant evaluator instead.
-          // TODO(mfairhurst): unify this with _validateCollectionElemet
-          if (!_validateMapLiteralEntry(entry, isConst, keys, invalidKeys)) {
-            reportEqualKeys = false;
-          }
-        } else {
-          bool isValid = _validateCollectionElement(entry, isConst, keys,
-              invalidKeys, CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT);
-          if (isValid) {
-            // TODO(mfarihurst): handle deferred library checks
-          }
-        }
-      }
-      if (reportEqualKeys) {
-        for (int i = 0; i < invalidKeys.length; i++) {
-          _errorReporter.reportErrorForNode(
-              StaticWarningCode.EQUAL_KEYS_IN_MAP, invalidKeys[i]);
-        }
-      }
-    }
-  }
-
-  @override
   void visitSwitchStatement(SwitchStatement node) {
     // TODO(paulberry): to minimize error messages, it would be nice to
     // compare all types with the most popular type rather than the first
@@ -512,17 +440,14 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       List<Expression> invalidKeys,
       ErrorCode errorCode) {
     if (element is Expression) {
-      return !isConst || _validate(element, errorCode) != null;
+      return _validate(element, errorCode) != null;
     } else if (element is ForElement) {
-      if (isConst) {
-        _errorReporter.reportErrorForNode(errorCode, element);
-        return false;
-      }
-      return true;
+      // TODO(brianwilkerson) Validate the forLoopParts.
+      return _validateCollectionElement(
+              element.body, isConst, keys, invalidKeys, errorCode) !=
+          null;
     } else if (element is IfElement) {
-      bool validCondition =
-          !isConst || _validate(element.condition, errorCode) != null;
-      return validCondition &&
+      return _validate(element.condition, errorCode) != null &&
           _validateCollectionElement(
                   element.thenElement, isConst, keys, invalidKeys, errorCode) !=
               null &&
@@ -532,7 +457,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     } else if (element is MapLiteralEntry) {
       return _validateMapLiteralEntry(element, isConst, keys, invalidKeys);
     } else if (element is SpreadElement) {
-      return !isConst || _validate(element.expression, errorCode) != null;
+      return _validate(element.expression, errorCode) != null;
     }
     return null;
   }

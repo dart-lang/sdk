@@ -216,7 +216,6 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
   CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
-  CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT,
   CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT,
   CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY,

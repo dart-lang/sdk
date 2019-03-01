@@ -11,7 +11,6 @@ import 'const_constructor_param_type_mismatch_test.dart'
 import 'dead_code_test.dart' as dead_code;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'division_optimization_test.dart' as division_optimization;
-import 'equal_keys_in_map_test.dart' as equal_keys_in_map;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
@@ -26,7 +25,6 @@ import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
-import 'non_constant_map_element_test.dart' as non_constant_map_element;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
 import 'type_check_is_not_null_test.dart' as type_check_is_not_null;
@@ -61,7 +59,6 @@ main() {
     dead_code.main();
     deprecated_member_use.main();
     division_optimization.main();
-    equal_keys_in_map.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
     invalid_immutable_annotation.main();
@@ -74,7 +71,6 @@ main() {
     must_be_immutable.main();
     must_call_super.main();
     subtype_of_sealed_class.main();
-    non_constant_map_element.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();
     type_check_is_not_null.main();

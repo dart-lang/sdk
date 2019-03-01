@@ -2146,15 +2146,6 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the keyword 'const' from the map literal.");
 
   /**
-   * 12.7 Maps: It is a compile time error if an element of a constant map
-   * literal is not a compile-time constant.
-   */
-  static const CompileTimeErrorCode NON_CONSTANT_MAP_ELEMENT =
-      const CompileTimeErrorCode('NON_CONSTANT_MAP_ELEMENT',
-          "The elements in a const map literal must be constant.",
-          correction: "Try removing the keyword 'const' from the map literal.");
-
-  /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an
    * entry in a constant map literal is not a compile-time constant.
    *
