@@ -76,6 +76,16 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
     let f = init;
     init = $throwCyclicInitializationError;
     if (f === init) f($name); // throw cycle error
+
+    // On the first (non-cyclic) execution, record the field so we can reset it
+    // later if needed (hot restart).
+    $_resetFields.push(() => {
+      init = initializer;
+      value = null;
+    });
+
+    // Try to evaluate the field, using try+catch to ensure we implement the
+    // correct Dart error semantics.
     try {
       value = f();
       init = null;
@@ -93,10 +103,6 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
       value = x;
     };
   }
-  $_resetFields.push(() => {
-    init = initializer;
-    value = null;
-  });
   return ${defineProperty(to, name, desc)};
 })()''');
 
