@@ -437,21 +437,6 @@ hooks = [
     ],
   },
   {
-    "name": "7zip",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--platform=win32",
-      "--extract",
-      "-s",
-      Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
-    ],
-  },
-  {
     "name": "front_end_benchmark_data",
     "pattern": ".",
     "action": [
@@ -511,3 +496,23 @@ hooks = [
     'action': ['python', 'sdk/build/vs_toolchain.py', 'update'],
   },
 ]
+
+hooks_os = {
+  "win": [
+    {
+      "name": "7zip",
+      "pattern": ".",
+      "action": [
+        "download_from_google_storage",
+        "--no_auth",
+        "--no_resume",
+        "--bucket",
+        "dart-dependencies",
+        "--platform=win32",
+        "--extract",
+        "-s",
+        Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
+      ],
+    },
+  ]
+}
