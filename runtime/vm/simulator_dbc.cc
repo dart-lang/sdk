@@ -810,7 +810,12 @@ void Simulator::InlineCacheMiss(int checked_args,
                                 RawObject** SP) {
   RawObject** result = top;
   top[0] = 0;  // Clean up result slot.
-  RawObject** miss_handler_args = top + 1;
+
+  // Save arguments descriptor as it may be clobbered by running Dart code
+  // during the call to miss handler (class finalization).
+  top[1] = argdesc_;
+
+  RawObject** miss_handler_args = top + 2;
   for (intptr_t i = 0; i < checked_args; i++) {
     miss_handler_args[i] = args[i];
   }
@@ -833,6 +838,8 @@ void Simulator::InlineCacheMiss(int checked_args,
   RawObject** exit_frame = miss_handler_args + miss_handler_argc;
   CallRuntime(thread, FP, exit_frame, pc, miss_handler_argc, miss_handler_args,
               result, reinterpret_cast<uword>(handler));
+
+  argdesc_ = Array::RawCast(top[1]);
 }
 
 DART_FORCE_INLINE void Simulator::InstanceCall1(Thread* thread,

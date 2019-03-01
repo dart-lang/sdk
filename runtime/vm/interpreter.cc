@@ -843,7 +843,12 @@ void Interpreter::InlineCacheMiss(int checked_args,
                                   RawObject** SP) {
   RawObject** result = top;
   top[0] = 0;  // Clean up result slot.
-  RawObject** miss_handler_args = top + 1;
+
+  // Save arguments descriptor as it may be clobbered by running Dart code
+  // during the call to miss handler (class finalization).
+  top[1] = argdesc_;
+
+  RawObject** miss_handler_args = top + 2;
   for (intptr_t i = 0; i < checked_args; i++) {
     miss_handler_args[i] = args[i];
   }
@@ -868,6 +873,8 @@ void Interpreter::InlineCacheMiss(int checked_args,
   NativeArguments native_args(thread, miss_handler_argc, miss_handler_args,
                               result);
   handler(native_args);
+
+  argdesc_ = Array::RawCast(top[1]);
 }
 
 DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
