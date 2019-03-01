@@ -180,28 +180,34 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitForEachStatement(ForEachStatement node) {
+  visitForStatement2(ForStatement2 node) {
     _addScope();
-    node.visitChildren(this);
-    _propagateUndefinedExpressions(_removeLastScope());
-  }
+    final loopParts = node.forLoopParts;
+    if (loopParts is ForParts) {
+      _addTrueCondition(loopParts.condition);
 
-  @override
-  visitForStatement(ForStatement node) {
-    _addScope();
-    _addTrueCondition(node.condition);
-    node.variables?.accept(this);
-    node.initialization?.accept(this);
-    visitCondition(node.condition);
-    node.condition?.accept(this);
-    _addTrueCondition(node.condition);
-    node.updaters.accept(this);
-    node.body?.accept(this);
-    _propagateUndefinedExpressions(_removeLastScope());
-    if (_isRelevantOutsideOfForStatement(node)) {
-      _addFalseCondition(node.condition);
+      if (loopParts is ForPartsWithDeclarations) {
+        loopParts.variables?.accept(this);
+      } else if (loopParts is ForPartsWithExpression) {
+        loopParts.initialization?.accept(this);
+      }
+
+      visitCondition(loopParts.condition);
+      loopParts.condition?.accept(this);
+      _addTrueCondition(loopParts.condition);
+      loopParts.updaters.accept(this);
+      node.body?.accept(this);
+      _propagateUndefinedExpressions(_removeLastScope());
+      if (_isRelevantOutsideOfForStatement(node)) {
+        _addFalseCondition(loopParts.condition);
+      }
+      breakScope.deleteBreaksWithTarget(node);
+    } else if (loopParts is ForEachParts) {
+      node.visitChildren(this);
+      _propagateUndefinedExpressions(_removeLastScope());
+    } else {
+      throw new StateError('unsupported loop parts type');
     }
-    breakScope.deleteBreaksWithTarget(node);
   }
 
   @override
@@ -326,24 +332,28 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
 
   /// If any of the variables is declared inside the for statement then it does
   /// not mean anything afterwards.
-  bool _isRelevantOutsideOfForStatement(ForStatement node) {
+  bool _isRelevantOutsideOfForStatement(ForStatement2 node) {
     if (breakScope.hasBreak(node)) {
       return false;
     }
 
-    if (node.condition == null) {
-      return false;
-    }
+    final loopParts = node.forLoopParts;
+    if (loopParts is ForParts) {
+      if (loopParts.condition == null) {
+        return false;
+      }
 
-    for (var ref in DartTypeUtilities.traverseNodesInDFS(node.condition)) {
-      if (ref is SimpleIdentifier) {
-        var element = ref.staticElement;
-        if (element == null) {
-          return false;
-        }
-        var refOffset = element.nameOffset;
-        if (refOffset > node.offset && refOffset < node.end) {
-          return false;
+      for (var ref
+          in DartTypeUtilities.traverseNodesInDFS(loopParts.condition)) {
+        if (ref is SimpleIdentifier) {
+          var element = ref.staticElement;
+          if (element == null) {
+            return false;
+          }
+          var refOffset = element.nameOffset;
+          if (refOffset > node.offset && refOffset < node.end) {
+            return false;
+          }
         }
       }
     }

@@ -55,8 +55,7 @@ class OmitLocalVariableTypes extends LintRule implements NodeLintRule {
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
     final visitor = new _Visitor(this);
-    registry.addForEachStatement(this, visitor);
-    registry.addForStatement(this, visitor);
+    registry.addForStatement2(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
   }
 }
@@ -67,27 +66,27 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    final staticType = node.loopVariable?.type;
-    if (staticType == null) {
-      return;
-    }
-    final iterableType = node.iterable.staticType;
-    if (iterableType is InterfaceType) {
-      final iterableInterfaces =
-          DartTypeUtilities.getImplementedInterfaces(iterableType).where(
-              (type) =>
-                  DartTypeUtilities.isInterface(type, 'Iterable', 'dart.core'));
-      if (iterableInterfaces.length == 1 &&
-          iterableInterfaces.first.typeArguments.first == staticType.type) {
-        rule.reportLint(staticType);
+  void visitForStatement2(ForStatement2 node) {
+    final loopParts = node.forLoopParts;
+    if (loopParts is ForPartsWithDeclarations) {
+      _visitVariableDeclarationList(loopParts.variables);
+    } else if (loopParts is ForEachPartsWithDeclaration) {
+      final staticType = loopParts.loopVariable.type;
+      if (staticType == null) {
+        return;
+      }
+      final iterableType = loopParts.iterable.staticType;
+      if (iterableType is InterfaceType) {
+        final iterableInterfaces = DartTypeUtilities.getImplementedInterfaces(
+                iterableType)
+            .where((type) =>
+                DartTypeUtilities.isInterface(type, 'Iterable', 'dart.core'));
+        if (iterableInterfaces.length == 1 &&
+            iterableInterfaces.first.typeArguments.first == staticType.type) {
+          rule.reportLint(staticType);
+        }
       }
     }
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    _visitVariableDeclarationList(node.variables);
   }
 
   @override
