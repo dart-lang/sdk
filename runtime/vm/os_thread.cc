@@ -52,6 +52,7 @@ OSThread::OSThread()
   ASSERT(stack_base_ > stack_limit_);
   ASSERT(stack_base_ > GetCurrentStackPointer());
   ASSERT(stack_limit_ < GetCurrentStackPointer());
+  RELEASE_ASSERT(HasStackHeadroom());
 }
 
 OSThread* OSThread::CreateOSThread() {
