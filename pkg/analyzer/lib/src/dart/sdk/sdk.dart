@@ -230,6 +230,16 @@ abstract class AbstractDartSdk implements DartSdk {
     return source;
   }
 
+  /**
+   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
+   */
+  Map<String, Object> debugInfo() {
+    return <String, Object>{
+      'runtimeType': '$runtimeType',
+      'libraryMap': libraryMap.debugInfo(),
+    };
+  }
+
   String _getPath(File file) {
     List<SdkLibrary> libraries = libraryMap.sdkLibraries;
     int length = libraries.length;
@@ -549,6 +559,16 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       }
     }
     return _sdkVersion;
+  }
+
+  /**
+   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
+   */
+  @override
+  Map<String, Object> debugInfo() {
+    var result = super.debugInfo();
+    result['directory'] = _sdkDirectory.path;
+    return result;
   }
 
   /**

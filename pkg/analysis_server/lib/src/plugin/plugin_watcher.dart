@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/src/context.dart';
 
@@ -98,7 +101,18 @@ class PluginWatcher implements DriverWatcher {
    * [driver].
    */
   String _getSdkPath(AnalysisDriver driver) {
-    String sdkRoot = driver.sourceFactory.forUri('dart:core').fullName;
+    var coreSource = driver.sourceFactory.forUri('dart:core');
+
+    // TODO(scheglov) Debug for https://github.com/dart-lang/sdk/issues/35226
+    if (coreSource == null) {
+      var sdk = driver.sourceFactory.dartSdk;
+      if (sdk is AbstractDartSdk) {
+        var sdkJson = JsonEncoder.withIndent('  ').convert(sdk.debugInfo());
+        throw StateError('No dart:core, sdk: $sdkJson');
+      }
+    }
+
+    String sdkRoot = coreSource.fullName;
     while (resourceProvider.pathContext.basename(sdkRoot) != 'lib') {
       String parent = resourceProvider.pathContext.dirname(sdkRoot);
       if (parent == sdkRoot) {

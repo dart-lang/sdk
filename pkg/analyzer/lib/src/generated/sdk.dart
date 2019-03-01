@@ -168,6 +168,21 @@ class LibraryMap {
   List<String> get uris => _libraryMap.keys.toList();
 
   /**
+   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
+   */
+  Map<String, Object> debugInfo() {
+    var map = <String, Object>{};
+    for (var uri in _libraryMap.keys) {
+      var lib = _libraryMap[uri];
+      map[uri] = <String, Object>{
+        'path': lib.path,
+        'shortName': lib.shortName,
+      };
+    }
+    return map;
+  }
+
+  /**
    * Return the library with the given 'dart:' [uri], or `null` if the URI does
    * not map to a library.
    */
