@@ -9141,7 +9141,6 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
     Smi& value = Smi::Handle(zone);
     intptr_t line_count = line_starts_data.Length();
-    ASSERT(line_count > 0);
     const Array& debug_positions_array = Array::Handle(debug_positions());
     intptr_t token_count = debug_positions_array.Length();
     int token_index = 0;

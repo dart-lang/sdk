@@ -154,7 +154,6 @@ dart/data_uri_import_test/wrongmime: Crash
 cc/Dart2JSCompileAll: SkipSlow # Timeout.
 
 [ ($compiler == dartk || $compiler == dartkb) && $mode == debug && $runtime == vm ]
-cc/PrintJSON: Crash
 cc/Service_TokenStream: Crash
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
