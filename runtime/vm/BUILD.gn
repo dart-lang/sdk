@@ -67,8 +67,6 @@ library_for_all_configs("libdart_vm") {
       "//garnet/public/lib/component/cpp",
       "//sdk/fidl/fuchsia.timezone",
 
-      # TODO(zra): When the platform-specific timeline code is moved out to
-      # the embedder, this can go away.
       "//zircon/public/lib/fbl",
       "//zircon/public/lib/trace-engine",
     ]
@@ -85,6 +83,12 @@ library_for_all_configs("libdart_vm") {
 
 library_for_all_configs("libdart_lib") {
   target_type = "source_set"
+  if (is_fuchsia) {
+    extra_deps = [
+      "//zircon/public/lib/fbl",
+      "//zircon/public/lib/trace-engine",
+    ]
+  }
   include_dirs = [ ".." ]
   allsources =
       async_runtime_sources + collection_runtime_sources +

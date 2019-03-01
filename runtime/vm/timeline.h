@@ -9,9 +9,15 @@
 
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
+#include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/os.h"
 #include "vm/os_thread.h"
+
+#if defined(HOST_OS_FUCHSIA)
+#include <trace-engine/context.h>
+#include <trace-engine/instrumentation.h>
+#endif
 
 namespace dart {
 
@@ -30,29 +36,34 @@ class TimelineStream;
 class VirtualMemory;
 class Zone;
 
-// (name, enabled by default for isolate).
+// (name, fuchsia_name).
 #define TIMELINE_STREAM_LIST(V)                                                \
-  V(API, false)                                                                \
-  V(Compiler, false)                                                           \
-  V(CompilerVerbose, false)                                                    \
-  V(Dart, false)                                                               \
-  V(Debugger, false)                                                           \
-  V(Embedder, false)                                                           \
-  V(GC, false)                                                                 \
-  V(Isolate, false)                                                            \
-  V(VM, false)
+  V(API, "dart:api")                                                           \
+  V(Compiler, "dart:compiler")                                                 \
+  V(CompilerVerbose, "dart:compiler.verbose")                                  \
+  V(Dart, "dart:dart")                                                         \
+  V(Debugger, "dart:debugger")                                                 \
+  V(Embedder, "dart:embedder")                                                 \
+  V(GC, "dart:gc")                                                             \
+  V(Isolate, "dart:isolate")                                                   \
+  V(VM, "dart:vm")
 
 // A stream of timeline events. A stream has a name and can be enabled or
 // disabled (globally and per isolate).
 class TimelineStream {
  public:
-  TimelineStream();
-
-  void Init(const char* name, bool enabled);
+  TimelineStream(const char* name, const char* fuchsia_name, bool enabled);
 
   const char* name() const { return name_; }
+  const char* fuchsia_name() const { return fuchsia_name_; }
 
-  bool enabled() const { return enabled_ != 0; }
+  bool enabled() {
+#if defined(HOST_OS_FUCHSIA)
+    return trace_is_category_enabled(fuchsia_name_);
+#else
+    return enabled_ != 0;
+#endif
+  }
 
   void set_enabled(bool enabled) { enabled_ = enabled ? 1 : 0; }
 
@@ -66,12 +77,21 @@ class TimelineStream {
     return OFFSET_OF(TimelineStream, enabled_);
   }
 
+#if defined(HOST_OS_FUCHSIA)
+  trace_site_t* trace_site() { return &trace_site_; }
+#endif
+
  private:
-  const char* name_;
+  const char* const name_;
+  const char* const fuchsia_name_;
 
   // This field is accessed by generated code (intrinsic) and expects to see
   // 0 or 1. If this becomes a BitField, the generated code must be updated.
   uintptr_t enabled_;
+
+#if defined(HOST_OS_FUCHSIA)
+  trace_site_t trace_site_ = {};
+#endif
 };
 
 class Timeline : public AllStatic {
@@ -95,12 +115,12 @@ class Timeline : public AllStatic {
   static void PrintFlagsToJSON(JSONStream* json);
 #endif
 
-#define TIMELINE_STREAM_ACCESSOR(name, not_used)                               \
+#define TIMELINE_STREAM_ACCESSOR(name, fuchsia_name)                           \
   static TimelineStream* Get##name##Stream() { return &stream_##name##_; }
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_ACCESSOR)
 #undef TIMELINE_STREAM_ACCESSOR
 
-#define TIMELINE_STREAM_FLAGS(name, not_used)                                  \
+#define TIMELINE_STREAM_FLAGS(name, fuchsia_name)                              \
   static void SetStream##name##Enabled(bool enabled) {                         \
     stream_##name##_.set_enabled(enabled);                                     \
   }
@@ -111,8 +131,7 @@ class Timeline : public AllStatic {
   static TimelineEventRecorder* recorder_;
   static MallocGrowableArray<char*>* enabled_streams_;
 
-#define TIMELINE_STREAM_DECLARE(name, not_used)                                \
-  static bool stream_##name##_enabled_;                                        \
+#define TIMELINE_STREAM_DECLARE(name, fuchsia_name)                            \
   static TimelineStream stream_##name##_;
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DECLARE)
 #undef TIMELINE_STREAM_DECLARE
@@ -358,7 +377,7 @@ class TimelineEvent {
   intptr_t arguments_length() const { return arguments_.length(); }
 
  private:
-  void StreamInit(TimelineStream* stream);
+  void StreamInit(TimelineStream* stream) { stream_ = stream; }
   void Init(EventType event_type, const char* label);
 
   void set_event_type(EventType event_type) {
@@ -415,7 +434,7 @@ class TimelineEvent {
   TimelineEventArguments arguments_;
   uword state_;
   const char* label_;
-  const char* category_;
+  TimelineStream* stream_;
   ThreadId thread_;
   Dart_Port isolate_id_;
 

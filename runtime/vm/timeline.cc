@@ -205,8 +205,8 @@ void Timeline::Init() {
   ASSERT(recorder_ != NULL);
   enabled_streams_ = GetEnabledByDefaultTimelineStreams();
 // Global overrides.
-#define TIMELINE_STREAM_FLAG_DEFAULT(name, not_used)                           \
-  stream_##name##_.Init(#name, HasStream(enabled_streams_, #name));
+#define TIMELINE_STREAM_FLAG_DEFAULT(name, fuchsia_name)                       \
+  stream_##name##_.set_enabled(HasStream(enabled_streams_, #name));
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAG_DEFAULT)
 #undef TIMELINE_STREAM_FLAG_DEFAULT
 }
@@ -221,7 +221,7 @@ void Timeline::Cleanup() {
 #endif
 
 // Disable global streams.
-#define TIMELINE_STREAM_DISABLE(name, not_used)                                \
+#define TIMELINE_STREAM_DISABLE(name, fuchsia_name)                            \
   Timeline::stream_##name##_.set_enabled(false);
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
@@ -270,13 +270,13 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
   }
   {
     JSONArray availableStreams(&obj, "availableStreams");
-#define ADD_STREAM_NAME(name, not_used) availableStreams.AddValue(#name);
+#define ADD_STREAM_NAME(name, fuchsia_name) availableStreams.AddValue(#name);
     TIMELINE_STREAM_LIST(ADD_STREAM_NAME);
 #undef ADD_STREAM_NAME
   }
   {
     JSONArray recordedStreams(&obj, "recordedStreams");
-#define ADD_RECORDED_STREAM_NAME(name, not_used)                               \
+#define ADD_RECORDED_STREAM_NAME(name, fuchsia_name)                           \
   if (stream_##name##_.enabled()) {                                            \
     recordedStreams.AddValue(#name);                                           \
   }
@@ -377,8 +377,8 @@ void TimelineEventArguments::Free() {
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
 
-#define TIMELINE_STREAM_DEFINE(name, enabled_by_default)                       \
-  TimelineStream Timeline::stream_##name##_;
+#define TIMELINE_STREAM_DEFINE(name, fuchsia_name)                             \
+  TimelineStream Timeline::stream_##name##_(#name, fuchsia_name, false);
 TIMELINE_STREAM_LIST(TIMELINE_STREAM_DEFINE)
 #undef TIMELINE_STREAM_DEFINE
 
@@ -389,7 +389,7 @@ TimelineEvent::TimelineEvent()
       thread_timestamp1_(-1),
       state_(0),
       label_(NULL),
-      category_(""),
+      stream_(NULL),
       thread_(OSThread::kInvalidThreadId),
       isolate_id_(ILLEGAL_PORT) {}
 
@@ -404,7 +404,7 @@ void TimelineEvent::Reset() {
   state_ = 0;
   thread_ = OSThread::kInvalidThreadId;
   isolate_id_ = ILLEGAL_PORT;
-  category_ = "";
+  stream_ = NULL;
   label_ = NULL;
   arguments_.Free();
   set_event_type(kNone);
@@ -546,14 +546,6 @@ void TimelineEvent::Complete() {
   }
 }
 
-void TimelineEvent::StreamInit(TimelineStream* stream) {
-  if (stream != NULL) {
-    category_ = stream->name();
-  } else {
-    category_ = "";
-  }
-}
-
 void TimelineEvent::Init(EventType event_type, const char* label) {
   ASSERT(label != NULL);
   state_ = 0;
@@ -607,7 +599,7 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
   int64_t pid = OS::ProcessId();
   int64_t tid = OSThread::ThreadIdToIntPtr(thread_);
   obj.AddProperty("name", label_);
-  obj.AddProperty("cat", category_);
+  obj.AddProperty("cat", stream_ != NULL ? stream_->name() : NULL);
   obj.AddProperty64("tid", tid);
   obj.AddProperty64("pid", pid);
   obj.AddPropertyTimeMicros("ts", TimeOrigin());
@@ -738,11 +730,16 @@ int64_t TimelineEvent::ThreadCPUTimeDuration() const {
   return thread_timestamp1_ - thread_timestamp0_;
 }
 
-TimelineStream::TimelineStream() : name_(NULL), enabled_(false) {}
-
-void TimelineStream::Init(const char* name, bool enabled) {
-  name_ = name;
-  enabled_ = enabled;
+TimelineStream::TimelineStream(const char* name,
+                               const char* fuchsia_name,
+                               bool enabled)
+    : name_(name),
+      fuchsia_name_(fuchsia_name),
+#if defined(HOST_OS_FUCHSIA)
+      enabled_(true) {  // For generated code.
+#else
+      enabled_(enabled) {
+#endif
 }
 
 TimelineEvent* TimelineStream::StartEvent() {
@@ -1111,10 +1108,13 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
 
 int64_t TimelineEventRecorder::GetNextAsyncId() {
   // TODO(johnmccutchan): Gracefully handle wrap around.
-  // TODO(rmacnak): Use TRACE_NONCE() on Fuchsia?
+#if defined(HOST_OS_FUCHSIA)
+  return trace_generate_nonce();
+#else
   uint32_t next =
       static_cast<uint32_t>(AtomicOperations::FetchAndIncrement(&async_id_));
   return static_cast<int64_t>(next);
+#endif
 }
 
 void TimelineEventRecorder::FinishBlock(TimelineEventBlock* block) {

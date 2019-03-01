@@ -221,6 +221,12 @@ library_for_all_configs("libdart") {
     "third_party/double-conversion/src:libdouble_conversion",
     ":generate_version_cc_file",
   ]
+  if (is_fuchsia) {
+    extra_deps += [
+      "//zircon/public/lib/fbl",
+      "//zircon/public/lib/trace-engine",
+    ]
+  }
   configurable_deps = [
     "platform:libdart_platform",
     "vm:libdart_lib",
