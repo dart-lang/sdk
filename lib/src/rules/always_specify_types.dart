@@ -93,7 +93,7 @@ class AlwaysSpecifyTypes extends LintRule implements NodeLintRule {
     final visitor = new _Visitor(this);
     registry.addDeclaredIdentifier(this, visitor);
     registry.addListLiteral(this, visitor);
-    registry.addMapLiteral(this, visitor);
+    registry.addSetOrMapLiteral(this, visitor);
     registry.addSimpleFormalParameter(this, visitor);
     registry.addTypeName(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
@@ -124,7 +124,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitMapLiteral(MapLiteral literal) {
+  void visitSetOrMapLiteral(SetOrMapLiteral literal) {
     checkLiteral(literal);
   }
 

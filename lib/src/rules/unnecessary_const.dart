@@ -47,7 +47,7 @@ class UnnecessaryConst extends LintRule implements NodeLintRule {
     final visitor = new _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addListLiteral(this, visitor);
-    registry.addMapLiteral(this, visitor);
+    registry.addSetOrMapLiteral(this, visitor);
   }
 }
 
@@ -74,7 +74,12 @@ class _Visitor extends SimpleAstVisitor {
   visitListLiteral(ListLiteral node) => _visitTypedLiteral(node);
 
   @override
-  visitMapLiteral(MapLiteral node) => _visitTypedLiteral(node);
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    // todo (pq): should this apply to SetLiterals as well?
+    if (node.isMap) {
+      _visitTypedLiteral(node);
+    }
+  }
 
   _visitTypedLiteral(TypedLiteral node) {
     if (node.constKeyword == null) return;

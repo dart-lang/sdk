@@ -63,7 +63,7 @@ class PreferConstLiteralsToCreateImmutables extends LintRule
       [LinterContext context]) {
     final visitor = new _Visitor(this, context);
     registry.addListLiteral(this, visitor);
-    registry.addMapLiteral(this, visitor);
+    registry.addSetOrMapLiteral(this, visitor);
   }
 }
 
@@ -78,7 +78,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitListLiteral(ListLiteral node) => _visitTypedLiteral(node);
 
   @override
-  void visitMapLiteral(MapLiteral node) => _visitTypedLiteral(node);
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    // todo (pq): should this apply to set literals as well?
+    if (node.isMap) {
+      _visitTypedLiteral(node);
+    }
+  }
 
   Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
     InterfaceType current = type;
@@ -113,7 +118,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         (node is ParenthesizedExpression ||
             node is ArgumentList ||
             node is ListLiteral ||
-            node is MapLiteral ||
+            node is SetOrMapLiteral ||
+            // todo (pq): check if this needs updating with the SetOrMapLiteral unification
             node is MapLiteralEntry ||
             node is NamedExpression)) {
       node = node.parent;

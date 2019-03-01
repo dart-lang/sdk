@@ -19,6 +19,7 @@ const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
 
 Map<String, String> map = {}; //LINT
 List<String> strings = []; //LINT
+Set<String> set = {}; //LINT
 
 List list; // LINT
 List<List> lists; //LINT
