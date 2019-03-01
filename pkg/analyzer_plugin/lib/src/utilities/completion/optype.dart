@@ -622,29 +622,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    var entity = this.entity;
-    var entity2 = entity; // Work around limitations of type promotion
-    if (entity2 is SyntacticEntity &&
-        entity2.offset >= node.forLoopParts.offset &&
-        entity2.end <= node.forLoopParts.end) {
-      // Older versions of the analyzer yield elements of `node.forLoopParts`
-      // when iterating through children of `ForEachStatement`.  Handle this
-      // situation by simulating the behavior of newer versions of the analyzer.
-      // TODO(paulberry): remove this case once we require a version of analyzer
-      // containing a1349ac52972a4c69e1b05079ed1662b3b0f8c3f
-      if (entity2.offset == node.forLoopParts.offset) {
-        entity = node.forLoopParts;
-      } else {
-        return node.forLoopParts.accept(this);
-      }
-    }
-    if (identical(entity, node.forLoopParts)) {
-      optype.includeTypeNameSuggestions = true;
-    }
-  }
-
-  @override
   void visitFormalParameterList(FormalParameterList node) {
     dynamic entity = this.entity;
     if (entity is Token) {
@@ -710,7 +687,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitForStatement(ForStatement node) {
+  void visitForStatement2(ForStatement2 node) {
     var entity = this.entity;
     var entity2 = entity; // Work around limitations of type promotion
     if (entity2 is SyntacticEntity &&

@@ -142,37 +142,12 @@ class SyntacticScopeNamesCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    if (!_isCoveredBy(node)) return;
-
-    if (node.loopVariable != null && _isCoveredBy(node.body)) {
-      _addName(node.loopVariable.identifier);
-    }
-
-    node.iterable?.accept(this);
-    node.body.accept(this);
-  }
-
-  @override
   void visitForElement(ForElement node) {
     if (!_isCoveredBy(node)) return;
 
     _addForLoopParts(node.forLoopParts, node.body);
 
     super.visitForElement(node);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    if (!_isCoveredBy(node)) return;
-
-    if (node.variables != null) {
-      _addVariables(node.variables);
-    }
-
-    node.condition?.accept(this);
-    node.updaters?.accept(this);
-    node.body.accept(this);
   }
 
   @override
