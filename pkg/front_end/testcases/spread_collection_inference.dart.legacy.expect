@@ -1,0 +1,53 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:15:62: Error: Unexpected token '...'.
+//   var /*@type=List<dynamic>*/ lhs10 = /*@typeArgs=dynamic*/ [...
+//                                                              ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:18:54: Error: Unexpected token '...'.
+//   var /*@type=List<int>*/ lhs20 = /*@typeArgs=int*/ [...spread];
+//                                                      ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:20:62: Error: Unexpected token '...'.
+//   var /*@type=List<dynamic>*/ lhs21 = /*@typeArgs=dynamic*/ [...(spread as
+//                                                              ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:23:40: Error: Unexpected token '...'.
+//   List<int> lhs22 = /*@typeArgs=int*/ [... /*@typeArgs=int*/ []];
+//                                        ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:25:52: Error: Unexpected token '...'.
+//   List<List<int>> lhs23 = /*@typeArgs=List<int>*/ [... /*@typeArgs=List<int>*/
+//                                                    ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:28:63: Error: Unexpected token '...'.
+//   int lhs30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ [...spread];
+//                                                               ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:30:62: Error: Unexpected token '...'.
+//   var /*@type=List<dynamic>*/ lhs40 = /*@typeArgs=dynamic*/ [...
+//                                                              ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:33:62: Error: Unexpected token '...'.
+//   var /*@type=List<dynamic>*/ lhs50 = /*@typeArgs=dynamic*/ [...
+//                                                              ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo() → dynamic {
+  core::List<core::int> spread = <core::int>[1, 2, 3];
+  core::int notSpreadInt = 42;
+  () → core::int notSpreadFunction = null;
+  dynamic lhs10 = <dynamic>[<dynamic>[]];
+  dynamic lhs20 = <dynamic>[spread];
+  dynamic lhs21 = <dynamic>[spread as dynamic];
+  core::List<core::int> lhs22 = <dynamic>[<dynamic>[]];
+  core::List<core::List<core::int>> lhs23 = <dynamic>[<dynamic>[<dynamic>[]]];
+  core::int lhs30 = <dynamic>[spread];
+  dynamic lhs40 = <dynamic>[notSpreadInt];
+  dynamic lhs50 = <dynamic>[notSpreadFunction];
+}
+static method main() → dynamic {}

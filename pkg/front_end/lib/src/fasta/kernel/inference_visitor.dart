@@ -675,13 +675,54 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     if (inferenceNeeded || typeChecksNeeded) {
       for (int i = 0; i < node.expressions.length; ++i) {
         Expression judgment = node.expressions[i];
-        inferrer.inferExpression(
-            judgment, inferredTypeArgument, inferenceNeeded || typeChecksNeeded,
-            isVoidAllowed: true);
-        if (inferenceNeeded) {
-          formalTypes.add(listType.typeArguments[0]);
+        if (judgment is SpreadElement) {
+          DartType spreadType = inferrer.inferExpression(
+              judgment.expression,
+              new InterfaceType(inferrer.coreTypes.iterableClass,
+                  <DartType>[inferredTypeArgument]),
+              inferenceNeeded || typeChecksNeeded,
+              isVoidAllowed: true);
+          if (inferenceNeeded) {
+            formalTypes.add(listType.typeArguments[0]);
+          }
+          if (spreadType is InterfaceType) {
+            InterfaceType iterableType = inferrer.typeSchemaEnvironment
+                .getTypeAsInstanceOf(
+                    spreadType, inferrer.coreTypes.iterableClass);
+            if (iterableType != null) {
+              actualTypes.add(iterableType.typeArguments[0]);
+            } else {
+              inferrer.helper.buildProblem(
+                  templateSpreadTypeMismatch.withArguments(spreadType),
+                  judgment.expression.fileOffset,
+                  1);
+              // Use 'dynamic' for error recovery.
+              actualTypes.add(const DynamicType());
+            }
+          } else if (spreadType is DynamicType) {
+            actualTypes.add(const DynamicType());
+          } else {
+            inferrer.helper.buildProblem(
+                templateSpreadTypeMismatch.withArguments(spreadType),
+                judgment.expression.fileOffset,
+                1);
+            // Use 'dynamic' for error recovery.
+            actualTypes.add(const DynamicType());
+          }
+
+          node.replaceChild(
+              judgment,
+              InvalidExpression('unimplemented spread element')
+                ..fileOffset = node.fileOffset);
+        } else {
+          inferrer.inferExpression(judgment, inferredTypeArgument,
+              inferenceNeeded || typeChecksNeeded,
+              isVoidAllowed: true);
+          if (inferenceNeeded) {
+            formalTypes.add(listType.typeArguments[0]);
+          }
+          actualTypes.add(getInferredType(judgment, inferrer));
         }
-        actualTypes.add(getInferredType(judgment, inferrer));
       }
     }
     if (inferenceNeeded) {

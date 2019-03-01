@@ -1,0 +1,39 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:28:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+//  - 'List' is from 'dart:core'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   int lhs30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ [...spread];
+//                                                              ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:31:35: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+//     /*@error=SpreadTypeMismatch*/ notSpreadInt];
+//                                   ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:34:35: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+//     /*@error=SpreadTypeMismatch*/ notSpreadFunction];
+//                                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo() → dynamic {
+  core::List<core::int> spread = <core::int>[1, 2, 3];
+  core::int notSpreadInt = 42;
+  () → core::int notSpreadFunction = null;
+  core::List<dynamic> lhs10 = <dynamic>[invalid-expression "unimplemented spread element"];
+  core::List<core::int> lhs20 = <core::int>[invalid-expression "unimplemented spread element"];
+  core::List<dynamic> lhs21 = <dynamic>[invalid-expression "unimplemented spread element"];
+  core::List<core::int> lhs22 = <core::int>[invalid-expression "unimplemented spread element"];
+  core::List<core::List<core::int>> lhs23 = <core::List<core::int>>[invalid-expression "unimplemented spread element"];
+  core::int lhs30 = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:28:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+ - 'List' is from 'dart:core'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  int lhs30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ [...spread];
+                                                             ^" in <core::int>[invalid-expression "unimplemented spread element"] as{TypeError} core::int;
+  core::List<dynamic> lhs40 = <dynamic>[invalid-expression "unimplemented spread element"];
+  core::List<dynamic> lhs50 = <dynamic>[invalid-expression "unimplemented spread element"];
+}
+static method main() → dynamic {}

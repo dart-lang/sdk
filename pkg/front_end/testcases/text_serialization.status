@@ -982,6 +982,7 @@ runtime_checks_new/stub_from_interface_covariant_from_super: TextSerializationFa
 sdk_diagnostic: TextSerializationFailure
 set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
 spread_collection: TextSerializationFailure # Should be fixed as part of implementing spread collection support
+spread_collection_inference: TextSerializationFailure # Should be fixed as part of implementing spread collection support
 statements: Crash
 static_setter: TextSerializationFailure # Was: Pass
 store_load: TextSerializationFailure # Was: Pass

@@ -8225,6 +8225,35 @@ ${num3} ms/compilation unit.""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType
+            _type)> templateSpreadTypeMismatch = const Template<
+        Message Function(DartType _type)>(
+    messageTemplate:
+        r"""Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable.""",
+    withArguments: _withArgumentsSpreadTypeMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)> codeSpreadTypeMismatch =
+    const Code<Message Function(DartType _type)>(
+  "SpreadTypeMismatch",
+  templateSpreadTypeMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadTypeMismatch(DartType _type) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeSpreadTypeMismatch,
+      message:
+          """Unexpected type '${type}' of a spread.  Expected 'dynamic' or an Iterable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStackOverflow = messageStackOverflow;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
