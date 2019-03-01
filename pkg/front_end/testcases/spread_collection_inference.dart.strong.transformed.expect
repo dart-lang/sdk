@@ -2,38 +2,65 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:28:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/spread_collection_inference.dart:40:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
 //  - 'List' is from 'dart:core'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   int lhs30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ [...spread];
 //                                                              ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:31:35: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+// pkg/front_end/testcases/spread_collection_inference.dart:42:62: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
+//  - 'Set' is from 'dart:core'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   int set30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ {...spread, 42};
+//                                                              ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:45:35: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
 //     /*@error=SpreadTypeMismatch*/ notSpreadInt];
 //                                   ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:34:35: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+// pkg/front_end/testcases/spread_collection_inference.dart:48:35: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+//     /*@error=SpreadTypeMismatch*/ notSpreadInt, 42};
+//                                   ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:51:35: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
 //     /*@error=SpreadTypeMismatch*/ notSpreadFunction];
+//                                   ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:54:35: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+//     /*@error=SpreadTypeMismatch*/ notSpreadFunction, 42};
 //                                   ^
 //
 import self as self;
 import "dart:core" as core;
+import "dart:collection" as col;
 
 static method foo() → dynamic {
   core::List<core::int> spread = <core::int>[1, 2, 3];
   core::int notSpreadInt = 42;
   () → core::int notSpreadFunction = null;
   core::List<dynamic> lhs10 = <dynamic>[invalid-expression "unimplemented spread element"];
+  core::Set<dynamic> set10 = let final core::Set<dynamic> #t1 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t2 = #t1.{core::Set::add}(invalid-expression "unimplemented spread element") in #t1;
   core::List<core::int> lhs20 = <core::int>[invalid-expression "unimplemented spread element"];
+  core::Set<core::int> set20 = let final core::Set<core::int> #t3 = col::LinkedHashSet::•<core::int>() in let final core::bool #t4 = #t3.{core::Set::add}(invalid-expression "unimplemented spread element") in let final core::bool #t5 = #t3.{core::Set::add}(42) in #t3;
   core::List<dynamic> lhs21 = <dynamic>[invalid-expression "unimplemented spread element"];
+  core::Set<dynamic> set21 = let final core::Set<dynamic> #t6 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t7 = #t6.{core::Set::add}(invalid-expression "unimplemented spread element") in let final core::bool #t8 = #t6.{core::Set::add}(42) in #t6;
   core::List<core::int> lhs22 = <core::int>[invalid-expression "unimplemented spread element"];
+  core::Set<core::int> set22 = let final core::Set<core::int> #t9 = col::LinkedHashSet::•<core::int>() in let final core::bool #t10 = #t9.{core::Set::add}(invalid-expression "unimplemented spread element") in let final core::bool #t11 = #t9.{core::Set::add}(42) in #t9;
   core::List<core::List<core::int>> lhs23 = <core::List<core::int>>[invalid-expression "unimplemented spread element"];
-  core::int lhs30 = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:28:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+  core::Set<core::List<core::int>> set23 = let final core::Set<core::List<core::int>> #t12 = col::LinkedHashSet::•<core::List<core::int>>() in let final core::bool #t13 = #t12.{core::Set::add}(invalid-expression "unimplemented spread element") in let final core::bool #t14 = #t12.{core::Set::add}(<core::int>[42]) in #t12;
+  core::int lhs30 = let final<BottomType> #t15 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:40:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
  - 'List' is from 'dart:core'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
   int lhs30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ [...spread];
                                                              ^" in <core::int>[invalid-expression "unimplemented spread element"] as{TypeError} core::int;
+  core::int set30 = let final<BottomType> #t16 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:42:62: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
+ - 'Set' is from 'dart:core'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  int set30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ {...spread, 42};
+                                                             ^" in (let final core::Set<core::int> #t17 = col::LinkedHashSet::•<core::int>() in let final core::bool #t18 = #t17.{core::Set::add}(invalid-expression "unimplemented spread element") in let final core::bool #t19 = #t17.{core::Set::add}(42) in #t17) as{TypeError} core::int;
   core::List<dynamic> lhs40 = <dynamic>[invalid-expression "unimplemented spread element"];
+  core::Set<dynamic> set40 = let final core::Set<dynamic> #t20 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t21 = #t20.{core::Set::add}(invalid-expression "unimplemented spread element") in let final core::bool #t22 = #t20.{core::Set::add}(42) in #t20;
   core::List<dynamic> lhs50 = <dynamic>[invalid-expression "unimplemented spread element"];
+  core::Set<dynamic> set50 = let final core::Set<dynamic> #t23 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t24 = #t23.{core::Set::add}(invalid-expression "unimplemented spread element") in let final core::bool #t25 = #t23.{core::Set::add}(42) in #t23;
 }
 static method main() → dynamic {}

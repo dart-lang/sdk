@@ -267,16 +267,10 @@ spread_collections/map_set_ambiguity_error_test/07: MissingCompileTimeError
 spread_collections/map_set_ambiguity_test: CompileTimeError
 spread_collections/spread_test: CompileTimeError
 spread_collections/syntax_test: CompileTimeError
-spread_collections/type_error_test/00: MissingCompileTimeError
 spread_collections/type_error_test/01: MissingCompileTimeError
-spread_collections/type_error_test/02: MissingCompileTimeError
-spread_collections/type_error_test/03: MissingCompileTimeError
 spread_collections/type_error_test/04: MissingCompileTimeError
-spread_collections/type_error_test/05: MissingCompileTimeError
-spread_collections/type_error_test/06: MissingCompileTimeError
 spread_collections/type_error_test/07: MissingCompileTimeError
 spread_collections/type_error_test/08: MissingCompileTimeError
-spread_collections/type_error_test/09: MissingCompileTimeError
 vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError
 vm/regress_33469_test/03: MissingCompileTimeError

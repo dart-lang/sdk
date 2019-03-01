@@ -6,33 +6,65 @@ library;
 //   var /*@type=List<dynamic>*/ lhs10 = /*@typeArgs=dynamic*/ [...
 //                                                              ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:18:54: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:18:48: Error: Unexpected token '...'.
+//   var /*@type=Set<dynamic>*/ set10 = <dynamic>{... /*@typeArgs=dynamic*/ []};
+//                                                ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:20:54: Error: Unexpected token '...'.
 //   var /*@type=List<int>*/ lhs20 = /*@typeArgs=int*/ [...spread];
 //                                                      ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:20:62: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:22:53: Error: Unexpected token '...'.
+//   var /*@type=Set<int>*/ set20 = /*@typeArgs=int*/ {...spread, 42};
+//                                                     ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:24:62: Error: Unexpected token '...'.
 //   var /*@type=List<dynamic>*/ lhs21 = /*@typeArgs=dynamic*/ [...(spread as
 //                                                              ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:23:40: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:27:61: Error: Unexpected token '...'.
+//   var /*@type=Set<dynamic>*/ set21 = /*@typeArgs=dynamic*/ {...(spread as
+//                                                             ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:30:40: Error: Unexpected token '...'.
 //   List<int> lhs22 = /*@typeArgs=int*/ [... /*@typeArgs=int*/ []];
 //                                        ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:25:52: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:32:39: Error: Unexpected token '...'.
+//   Set<int> set22 = /*@typeArgs=int*/ {... /*@typeArgs=int*/ [], 42};
+//                                       ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:34:52: Error: Unexpected token '...'.
 //   List<List<int>> lhs23 = /*@typeArgs=List<int>*/ [... /*@typeArgs=List<int>*/
 //                                                    ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:28:63: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:37:51: Error: Unexpected token '...'.
+//   Set<List<int>> set23 = /*@typeArgs=List<int>*/ {... /*@typeArgs=List<int>*/
+//                                                   ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:40:63: Error: Unexpected token '...'.
 //   int lhs30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ [...spread];
 //                                                               ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:30:62: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:42:63: Error: Unexpected token '...'.
+//   int set30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ {...spread, 42};
+//                                                               ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:44:62: Error: Unexpected token '...'.
 //   var /*@type=List<dynamic>*/ lhs40 = /*@typeArgs=dynamic*/ [...
 //                                                              ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:33:62: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:47:61: Error: Unexpected token '...'.
+//   var /*@type=Set<dynamic>*/ set40 = /*@typeArgs=dynamic*/ {...
+//                                                             ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:50:62: Error: Unexpected token '...'.
 //   var /*@type=List<dynamic>*/ lhs50 = /*@typeArgs=dynamic*/ [...
 //                                                              ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:53:61: Error: Unexpected token '...'.
+//   var /*@type=Set<dynamic>*/ set50 = /*@typeArgs=dynamic*/ {...
+//                                                             ^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -42,12 +74,20 @@ static method foo() → dynamic {
   core::int notSpreadInt = 42;
   () → core::int notSpreadFunction = null;
   dynamic lhs10 = <dynamic>[<dynamic>[]];
+  dynamic set10 = <dynamic>{<dynamic>[]};
   dynamic lhs20 = <dynamic>[spread];
+  dynamic set20 = <dynamic>{spread, 42};
   dynamic lhs21 = <dynamic>[spread as dynamic];
+  dynamic set21 = <dynamic>{spread as dynamic, 42};
   core::List<core::int> lhs22 = <dynamic>[<dynamic>[]];
+  core::Set<core::int> set22 = <dynamic>{<dynamic>[], 42};
   core::List<core::List<core::int>> lhs23 = <dynamic>[<dynamic>[<dynamic>[]]];
+  core::Set<core::List<core::int>> set23 = <dynamic>{<dynamic>[<dynamic>[]], <core::int>[42]};
   core::int lhs30 = <dynamic>[spread];
+  core::int set30 = <dynamic>{spread, 42};
   dynamic lhs40 = <dynamic>[notSpreadInt];
+  dynamic set40 = <dynamic>{notSpreadInt, 42};
   dynamic lhs50 = <dynamic>[notSpreadFunction];
+  dynamic set50 = <dynamic>{notSpreadFunction, 42};
 }
 static method main() → dynamic {}
