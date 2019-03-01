@@ -4888,53 +4888,18 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    // TODO(brianwilkerson) Replace this with the real implementation of type
-    //  inference. This keeps the tests working, but isn't correct.
-    InterfaceType literalType;
-
-    TypeArgumentList typeArguments = node.typeArguments;
-    if (typeArguments != null) {
-      if (typeArguments.length == 1) {
-        DartType elementType = typeArguments.arguments[0].type;
-        if (!elementType.isDynamic) {
-          literalType = typeProvider.setType.instantiate([elementType]);
-        }
-      } else if (typeArguments.length == 2) {
-        DartType keyType = typeArguments.arguments[0].type;
-        DartType valueType = typeArguments.arguments[1].type;
-        if (!keyType.isDynamic || !valueType.isDynamic) {
-          literalType = typeProvider.mapType.instantiate([keyType, valueType]);
-        }
-      }
-    } else {
-      if (node.isMap) {
-        literalType = typeAnalyzer.inferMapType3(node, downwards: true);
-        if (literalType != null &&
-            typeArguments == null &&
-            node.elements2.isEmpty &&
-            typeSystem.isAssignableTo(
-                typeProvider.iterableObjectType, literalType) &&
-            !typeSystem.isAssignableTo(
-                typeProvider.mapObjectObjectType, literalType)) {
-          // The node is really an empty set literal with no type arguments, so
-          // don't try to visit the replaced map literal.
-          return;
-        }
-      } else if (node.isSet) {
-        literalType = typeAnalyzer.inferSetType3(node, downwards: true);
-      } else {
-        throw new UnimplementedError();
-      }
-    }
+    InterfaceType literalType = _computeContextType(node);
     if (literalType != null) {
       List<DartType> typeArguments = literalType.typeArguments;
       if (typeArguments.length == 1) {
+        (node as SetOrMapLiteralImpl).becomeSet();
         DartType elementType = literalType.typeArguments[0];
         DartType iterableType =
             typeProvider.iterableType.instantiate([elementType]);
         _pushCollectionTypesDownToAll(node.elements2,
             elementType: elementType, iterableType: iterableType);
       } else if (typeArguments.length == 2) {
+        (node as SetOrMapLiteralImpl).becomeMap();
         DartType keyType = typeArguments[0];
         DartType valueType = typeArguments[1];
         _pushCollectionTypesDownToAll(node.elements2,
@@ -5107,6 +5072,59 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
+  /// Compute the context type for the given set or map [literal].
+  DartType _computeContextType(SetOrMapLiteral literal) {
+    _LiteralResolution typeArgumentsResolution =
+        _fromTypeArguments(literal.typeArguments);
+    DartType contextType = InferenceContext.getContext(literal);
+    _LiteralResolution contextResolution = _fromContextType(contextType);
+    _LeafElements elementCounts = new _LeafElements(literal.elements2);
+    _LiteralResolution elementResolution = elementCounts.resolution;
+
+    List<_LiteralResolution> unambiguousResolutions = [];
+    Set<_LiteralResolutionKind> kinds = new Set<_LiteralResolutionKind>();
+    if (typeArgumentsResolution.kind != _LiteralResolutionKind.ambiguous) {
+      unambiguousResolutions.add(typeArgumentsResolution);
+      kinds.add(typeArgumentsResolution.kind);
+    }
+    if (contextResolution.kind != _LiteralResolutionKind.ambiguous) {
+      unambiguousResolutions.add(contextResolution);
+      kinds.add(contextResolution.kind);
+    }
+    if (elementResolution.kind != _LiteralResolutionKind.ambiguous) {
+      unambiguousResolutions.add(elementResolution);
+      kinds.add(elementResolution.kind);
+    }
+
+    if (kinds.length == 2) {
+      // It looks like it needs to be both a map and a set. Attempt to recover.
+      if (elementResolution.kind == _LiteralResolutionKind.ambiguous &&
+          elementResolution.contextType != null) {
+        return elementResolution.contextType;
+      } else if (typeArgumentsResolution.kind !=
+              _LiteralResolutionKind.ambiguous &&
+          typeArgumentsResolution.contextType != null) {
+        return typeArgumentsResolution.contextType;
+      } else if (contextResolution.kind != _LiteralResolutionKind.ambiguous &&
+          contextResolution.contextType != null) {
+        return contextResolution.contextType;
+      }
+    } else if (unambiguousResolutions.length >= 2) {
+      // If there are three resolutions, the last resolution is guaranteed to be
+      // from the elements, which always has a context type of `null` (when it
+      // is not ambiguous). So, whether there are 2 or 3 resolutions only the
+      // first two are potentially interesting.
+      return unambiguousResolutions[0].contextType ??
+          unambiguousResolutions[1].contextType;
+    } else if (unambiguousResolutions.length == 1) {
+      return unambiguousResolutions[0].contextType;
+    } else if (literal.elements2.isEmpty) {
+      return typeProvider.mapType
+          .instantiate([typeProvider.dynamicType, typeProvider.dynamicType]);
+    }
+    return null;
+  }
+
   /// Given the declared return type of a function, compute the type of the
   /// values which should be returned or yielded as appropriate.  If a type
   /// cannot be computed from the declared return type, return null.
@@ -5151,6 +5169,61 @@ class ResolverVisitor extends ScopedVisitor {
       return type;
     }
     return typeProvider.futureOrType.instantiate([type]);
+  }
+
+  /// If [contextType] is defined and is a subtype of `Iterable<Object>` and
+  /// [contextType] is not a subtype of `Map<Object, Object>`, then *e* is a set
+  /// literal.
+  ///
+  /// If [contextType] is defined and is a subtype of `Map<Object, Object>` and
+  /// [contextType] is not a subtype of `Iterable<Object>` then *e* is a map
+  /// literal.
+  _LiteralResolution _fromContextType(DartType contextType) {
+    if (contextType != null) {
+      DartType unwrap(DartType type) {
+        if (type is InterfaceType &&
+            type.isDartAsyncFutureOr &&
+            type.typeArguments.length == 1) {
+          return unwrap(type.typeArguments[0]);
+        }
+        return type;
+      }
+
+      DartType unwrappedContextType = unwrap(contextType);
+      // TODO(brianwilkerson) Find out what the "greatest closure" is and use that
+      // where [unwrappedContextType] is used below.
+      if (typeSystem.isAssignableTo(
+              typeProvider.iterableObjectType, unwrappedContextType) &&
+          !typeSystem.isAssignableTo(
+              typeProvider.mapObjectObjectType, unwrappedContextType)) {
+        return _LiteralResolution(
+            _LiteralResolutionKind.set, unwrappedContextType);
+      } else if (typeSystem.isAssignableTo(
+              typeProvider.mapObjectObjectType, unwrappedContextType) &&
+          !typeSystem.isAssignableTo(
+              typeProvider.iterableObjectType, unwrappedContextType)) {
+        return _LiteralResolution(
+            _LiteralResolutionKind.map, unwrappedContextType);
+      }
+    }
+    return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
+  }
+
+  /// Return the resolution that is indicated by the given [typeArgumentList].
+  _LiteralResolution _fromTypeArguments(TypeArgumentList typeArgumentList) {
+    if (typeArgumentList != null) {
+      NodeList<TypeAnnotation> arguments = typeArgumentList.arguments;
+      if (arguments.length == 1) {
+        return _LiteralResolution(_LiteralResolutionKind.set,
+            typeProvider.setType.instantiate([arguments[0].type]));
+      } else if (arguments.length == 2) {
+        return _LiteralResolution(
+            _LiteralResolutionKind.map,
+            typeProvider.mapType
+                .instantiate([arguments[0].type, arguments[1].type]));
+      }
+    }
+    return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
   }
 
   /// Return `true` if the given [parameter] element of the AST being resolved
@@ -5382,13 +5455,10 @@ class ResolverVisitor extends ScopedVisitor {
           keyType: keyType,
           valueType: valueType);
     } else if (element is Expression) {
-      InferenceContext.setType(
-          element, elementType ?? typeProvider.undefinedType);
+      InferenceContext.setType(element, elementType);
     } else if (element is MapLiteralEntry) {
-      InferenceContext.setType(
-          element.key, keyType ?? typeProvider.undefinedType);
-      InferenceContext.setType(
-          element.value, valueType ?? typeProvider.undefinedType);
+      InferenceContext.setType(element.key, keyType);
+      InferenceContext.setType(element.value, valueType);
     } else if (element is SpreadElement) {
       InferenceContext.setType(element.expression, iterableType);
     }
@@ -8938,6 +9008,95 @@ class _LabelTracker {
     }
   }
 }
+
+/// A set of counts of the kinds of leaf elements in a collection, used to help
+/// disambiguate map and set literals.
+class _LeafElements {
+  /// The number of expressions found in the collection.
+  int expressionCount = 0;
+
+  /// The number of map entries found in the collection.
+  int mapEntryCount = 0;
+
+  /// The number of spread elements found in the collection.
+  int spreadElementCount = 0;
+
+  /// Initialize a newly created set of counts based on the given collection
+  /// [elements].
+  _LeafElements(List<CollectionElement> elements) {
+    for (CollectionElement element in elements) {
+      _count(element);
+    }
+  }
+
+  /// Return the resolution suggested by the set elements.
+  _LiteralResolution get resolution {
+    if (expressionCount > 0 && mapEntryCount == 0) {
+      return _LiteralResolution(_LiteralResolutionKind.set, null);
+    } else if (mapEntryCount > 0 && expressionCount == 0) {
+      return _LiteralResolution(_LiteralResolutionKind.map, null);
+    }
+    return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
+  }
+
+  /// Recursively add the given collection [element] to the counts.
+  void _count(CollectionElement element) {
+    if (element is ForElement) {
+      _count(element.body);
+    } else if (element is IfElement) {
+      _count(element.thenElement);
+      _count(element.elseElement);
+    } else if (element is Expression) {
+      if (_isComplete(element)) {
+        expressionCount++;
+      }
+    } else if (element is MapLiteralEntry) {
+      if (_isComplete(element)) {
+        mapEntryCount++;
+      }
+    } else if (element is SpreadElement) {
+      if (_isComplete(element)) {
+        spreadElementCount++;
+      }
+    }
+  }
+
+  /// Return `true` if the given collection [element] does not contain any
+  /// synthetic tokens.
+  bool _isComplete(CollectionElement element) {
+    Token token = element.beginToken;
+    int endOffset = element.endToken.offset;
+    while (token != null && token.offset <= endOffset) {
+      if (token.isSynthetic) {
+        return false;
+      }
+      token = token.next;
+    }
+    return true;
+  }
+}
+
+/// An indication of the way in which a set or map literal should be resolved to
+/// be either a set literal or a map literal.
+class _LiteralResolution {
+  /// The kind of collection that the literal should be.
+  final _LiteralResolutionKind kind;
+
+  /// The type that should be used as the inference context when performing type
+  /// inference for the literal.
+  DartType contextType;
+
+  /// Initialize a newly created resolution.
+  _LiteralResolution(this.kind, this.contextType);
+
+  @override
+  String toString() {
+    return '$kind ($contextType)';
+  }
+}
+
+/// The kind of literal to which an unknown literal should be resolved.
+enum _LiteralResolutionKind { ambiguous, map, set }
 
 class _ResolverVisitor_isVariableAccessedInClosure
     extends RecursiveAstVisitor<void> {

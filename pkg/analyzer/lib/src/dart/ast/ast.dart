@@ -9081,6 +9081,14 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitSetOrMapLiteral(this);
 
+  void becomeMap() {
+    _resolvedKind = _SetOrMapKind.map;
+  }
+
+  void becomeSet() {
+    _resolvedKind = _SetOrMapKind.set;
+  }
+
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);

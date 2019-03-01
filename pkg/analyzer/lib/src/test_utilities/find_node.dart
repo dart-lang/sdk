@@ -195,6 +195,10 @@ class FindNode {
     return _node(search, (n) => n is SetLiteral);
   }
 
+  SetOrMapLiteral setOrMapLiteral(String search) {
+    return _node(search, (n) => n is SetOrMapLiteral);
+  }
+
   SimpleIdentifier simple(String search) {
     return _node(search, (_) => true);
   }
