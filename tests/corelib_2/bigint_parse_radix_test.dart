@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Testing Bigints with and without intrinsics.
-// VMOptions=
-// VMOptions=--no_intrinsify
-// VMOptions=--optimization_counter_threshold=10 --no-background_compilation
+// VMOptions=--intrinsify --no-enable-asserts
+// VMOptions=--intrinsify --enable-asserts
+// VMOptions=--no-intrinsify --enable-asserts
+// VMOptions=--optimization-counter-threshold=5 --no-background-compilation
 
 import "package:expect/expect.dart";
 
