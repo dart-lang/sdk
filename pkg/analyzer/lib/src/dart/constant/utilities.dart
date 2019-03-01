@@ -215,7 +215,9 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
     node.statements.accept(this);
   }
 
-  void _find(Expression node) {
+  /// Add dependencies of a [CollectionElement] or [Expression] (which is a type
+  /// of [CollectionElement]).
+  void _find(CollectionElement node) {
     if (node != null) {
       ReferenceFinder referenceFinder = new ReferenceFinder(dependencies.add);
       node.accept(referenceFinder);
