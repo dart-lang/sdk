@@ -43,13 +43,15 @@ def GetMinidumpUtils():
 
 class Version(object):
   def __init__(self, channel, major, minor, patch, prerelease,
-               prerelease_patch):
+               prerelease_patch, abi_version, oldest_supported_abi_version):
     self.channel = channel
     self.major = major
     self.minor = minor
     self.patch = patch
     self.prerelease = prerelease
     self.prerelease_patch = prerelease_patch
+    self.abi_version = abi_version
+    self.oldest_supported_abi_version = oldest_supported_abi_version
 
 
 # Try to guess the host operating system.
@@ -385,6 +387,16 @@ def GetUserName():
   return os.environ.get(key, '')
 
 
+def GetAbiVersion():
+  version = ReadVersionFile()
+  return version.abi_version
+
+
+def GetOldestSupportedAbiVersion():
+  version = ReadVersionFile()
+  return version.oldest_supported_abi_version
+
+
 def ReadVersionFile():
   def match_against(pattern, file_content):
     match = re.search(pattern, file_content, flags=re.MULTILINE)
@@ -406,10 +418,15 @@ def ReadVersionFile():
   patch = match_against('^PATCH (\d+)$', content)
   prerelease = match_against('^PRERELEASE (\d+)$', content)
   prerelease_patch = match_against('^PRERELEASE_PATCH (\d+)$', content)
+  abi_version = match_against('^ABI_VERSION (\d+)$', content)
+  oldest_supported_abi_version = match_against(
+      '^OLDEST_SUPPORTED_ABI_VERSION (\d+)$', content)
 
-  if channel and major and minor and prerelease and prerelease_patch:
+  if channel and major and minor and prerelease and prerelease_patch and \
+      abi_version and oldest_supported_abi_version:
     return Version(
-        channel, major, minor, patch, prerelease, prerelease_patch)
+        channel, major, minor, patch, prerelease, prerelease_patch, abi_version,
+        oldest_supported_abi_version)
   else:
     print "Warning: VERSION file (%s) has wrong format" % VERSION_FILE
     return None
