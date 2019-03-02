@@ -906,7 +906,7 @@ class _FbUint8List extends _FbList<int> {
  */
 class _VTable {
   final List<int> fieldTails = <int>[];
-  final List<int> fieldOffsets = <int>[];
+  List<int> fieldOffsets;
 
   /**
    * The size of the table that uses this VTable.
@@ -950,10 +950,11 @@ class _VTable {
    * Fill the [fieldOffsets] field.
    */
   void computeFieldOffsets(int tableTail) {
-    assert(fieldOffsets.isEmpty);
-    for (int fieldTail in fieldTails) {
-      int fieldOffset = fieldTail == null ? 0 : tableTail - fieldTail;
-      fieldOffsets.add(fieldOffset);
+    assert(fieldOffsets == null);
+    fieldOffsets = List<int>(fieldTails.length);
+    for (int i = 0; i < fieldTails.length; ++i) {
+      int fieldTail = fieldTails[i];
+      fieldOffsets[i] = fieldTail == null ? 0 : tableTail - fieldTail;
     }
   }
 
