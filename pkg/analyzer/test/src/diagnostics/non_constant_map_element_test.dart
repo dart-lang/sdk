@@ -92,9 +92,7 @@ void main() {
 ''');
   }
 
-  @failingTest
   test_spreadElement_notConst() async {
-    // Failing because spread is not implemented
     await assertErrorsInCode('''
 void main() {
   var notConst = {};

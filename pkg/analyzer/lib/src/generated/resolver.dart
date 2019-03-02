@@ -9018,9 +9018,6 @@ class _LeafElements {
   /// The number of map entries found in the collection.
   int mapEntryCount = 0;
 
-  /// The number of spread elements found in the collection.
-  int spreadElementCount = 0;
-
   /// Initialize a newly created set of counts based on the given collection
   /// [elements].
   _LeafElements(List<CollectionElement> elements) {
@@ -9053,10 +9050,6 @@ class _LeafElements {
     } else if (element is MapLiteralEntry) {
       if (_isComplete(element)) {
         mapEntryCount++;
-      }
-    } else if (element is SpreadElement) {
-      if (_isComplete(element)) {
-        spreadElementCount++;
       }
     }
   }
