@@ -766,8 +766,14 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.fieldDeclaration,
     LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.genericTypeAlias,
     LinkedNodeKind.importDirective,
+    LinkedNodeKind.libraryDirective,
     LinkedNodeKind.methodDeclaration,
+    LinkedNodeKind.mixinDeclaration,
+    LinkedNodeKind.partDirective,
+    LinkedNodeKind.partOfDirective,
     LinkedNodeKind.topLevelVariableDeclaration,
     LinkedNodeKind.typeParameter,
     LinkedNodeKind.variableDeclaration,
@@ -784,8 +790,14 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.fieldDeclaration,
     LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.genericTypeAlias,
     LinkedNodeKind.importDirective,
+    LinkedNodeKind.libraryDirective,
     LinkedNodeKind.methodDeclaration,
+    LinkedNodeKind.mixinDeclaration,
+    LinkedNodeKind.partDirective,
+    LinkedNodeKind.partOfDirective,
     LinkedNodeKind.topLevelVariableDeclaration,
     LinkedNodeKind.typeParameter,
     LinkedNodeKind.variableDeclaration,
@@ -826,6 +838,24 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.asExpression)
   LinkedNode get asExpression_type;
 
+  @VariantId(15, variant: LinkedNodeKind.assertInitializer)
+  int get assertInitializer_assertKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.assertInitializer)
+  int get assertInitializer_comma;
+
+  @VariantId(6, variant: LinkedNodeKind.assertInitializer)
+  LinkedNode get assertInitializer_condition;
+
+  @VariantId(17, variant: LinkedNodeKind.assertInitializer)
+  int get assertInitializer_leftParenthesis;
+
+  @VariantId(7, variant: LinkedNodeKind.assertInitializer)
+  LinkedNode get assertInitializer_message;
+
+  @VariantId(18, variant: LinkedNodeKind.assertInitializer)
+  int get assertInitializer_rightParenthesis;
+
   @VariantId(15, variant: LinkedNodeKind.assertStatement)
   int get assertStatement_assertKeyword;
 
@@ -858,6 +888,12 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.assignmentExpression)
   LinkedNode get assignmentExpression_rightHandSide;
+
+  @VariantId(15, variant: LinkedNodeKind.awaitExpression)
+  int get awaitExpression_awaitKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.awaitExpression)
+  LinkedNode get awaitExpression_expression;
 
   @VariantId(15, variant: LinkedNodeKind.binaryExpression)
   int get binaryExpression_element;
@@ -1117,8 +1153,32 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(17, variantList: [
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
+    LinkedNodeKind.libraryDirective,
+    LinkedNodeKind.partDirective,
+    LinkedNodeKind.partOfDirective,
   ])
   int get directive_keyword;
+
+  @VariantId(6, variant: LinkedNodeKind.doStatement)
+  LinkedNode get doStatement_body;
+
+  @VariantId(7, variant: LinkedNodeKind.doStatement)
+  LinkedNode get doStatement_condition;
+
+  @VariantId(17, variant: LinkedNodeKind.doStatement)
+  int get doStatement_doKeyword;
+
+  @VariantId(15, variant: LinkedNodeKind.doStatement)
+  int get doStatement_leftParenthesis;
+
+  @VariantId(16, variant: LinkedNodeKind.doStatement)
+  int get doStatement_rightParenthesis;
+
+  @VariantId(18, variant: LinkedNodeKind.doStatement)
+  int get doStatement_semicolon;
+
+  @VariantId(19, variant: LinkedNodeKind.doStatement)
+  int get doStatement_whileKeyword;
 
   @VariantId(15, variant: LinkedNodeKind.doubleLiteral)
   int get doubleLiteral_literal;
@@ -1147,10 +1207,12 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(25, variantList: [
     LinkedNodeKind.assignmentExpression,
     LinkedNodeKind.asExpression,
+    LinkedNodeKind.awaitExpression,
     LinkedNodeKind.binaryExpression,
     LinkedNodeKind.cascadeExpression,
     LinkedNodeKind.conditionalExpression,
     LinkedNodeKind.doubleLiteral,
+    LinkedNodeKind.functionExpressionInvocation,
     LinkedNodeKind.indexExpression,
     LinkedNodeKind.integerLiteral,
     LinkedNodeKind.isExpression,
@@ -1163,9 +1225,11 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.prefixedIdentifier,
     LinkedNodeKind.propertyAccess,
     LinkedNodeKind.postfixExpression,
+    LinkedNodeKind.rethrowExpression,
     LinkedNodeKind.setLiteral,
     LinkedNodeKind.simpleIdentifier,
     LinkedNodeKind.stringInterpolation,
+    LinkedNodeKind.superExpression,
     LinkedNodeKind.thisExpression,
     LinkedNodeKind.throwExpression,
   ])
@@ -1325,6 +1389,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(8, variant: LinkedNodeKind.functionExpression)
   LinkedNode get functionExpression_typeParameters;
 
+  @VariantId(6, variant: LinkedNodeKind.functionExpressionInvocation)
+  LinkedNode get functionExpressionInvocation_function;
+
   @VariantId(6, variant: LinkedNodeKind.functionTypeAlias)
   LinkedNode get functionTypeAlias_formalParameters;
 
@@ -1342,6 +1409,30 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(8, variant: LinkedNodeKind.functionTypedFormalParameter)
   LinkedNode get functionTypedFormalParameter_typeParameters;
+
+  @VariantId(8, variant: LinkedNodeKind.genericFunctionType)
+  LinkedNode get genericFunctionType_formalParameters;
+
+  @VariantId(15, variant: LinkedNodeKind.genericFunctionType)
+  int get genericFunctionType_functionKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.genericFunctionType)
+  int get genericFunctionType_question;
+
+  @VariantId(7, variant: LinkedNodeKind.genericFunctionType)
+  LinkedNode get genericFunctionType_returnType;
+
+  @VariantId(6, variant: LinkedNodeKind.genericFunctionType)
+  LinkedNode get genericFunctionType_typeParameters;
+
+  @VariantId(16, variant: LinkedNodeKind.genericTypeAlias)
+  int get genericTypeAlias_equals;
+
+  @VariantId(7, variant: LinkedNodeKind.genericTypeAlias)
+  LinkedNode get genericTypeAlias_functionType;
+
+  @VariantId(6, variant: LinkedNodeKind.genericTypeAlias)
+  LinkedNode get genericTypeAlias_typeParameters;
 
   @VariantId(2, variant: LinkedNodeKind.hideCombinator)
   List<LinkedNode> get hideCombinator_hiddenNames;
@@ -1431,16 +1522,19 @@ abstract class LinkedNode extends base.SummaryClass {
   String get interpolationString_value;
 
   @VariantId(14, variantList: [
+    LinkedNodeKind.functionExpressionInvocation,
     LinkedNodeKind.methodInvocation,
   ])
   LinkedNode get invocationExpression_arguments;
 
   @VariantId(24, variantList: [
+    LinkedNodeKind.functionExpressionInvocation,
     LinkedNodeKind.methodInvocation,
   ])
   LinkedNodeType get invocationExpression_invokeType;
 
   @VariantId(12, variantList: [
+    LinkedNodeKind.functionExpressionInvocation,
     LinkedNodeKind.methodInvocation,
   ])
   LinkedNode get invocationExpression_typeArguments;
@@ -1468,6 +1562,12 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(6, variant: LinkedNodeKind.label)
   LinkedNode get label_label;
+
+  @VariantId(6, variant: LinkedNodeKind.libraryDirective)
+  LinkedNode get libraryDirective_name;
+
+  @VariantId(2, variant: LinkedNodeKind.libraryIdentifier)
+  List<LinkedNode> get libraryIdentifier_components;
 
   @VariantId(2, variant: LinkedNodeKind.listLiteral)
   List<LinkedNode> get listLiteral_elements;
@@ -1529,11 +1629,18 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.methodInvocation)
   LinkedNode get methodInvocation_target;
 
+  @VariantId(15, variant: LinkedNodeKind.mixinDeclaration)
+  int get mixinDeclaration_mixinKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.mixinDeclaration)
+  LinkedNode get mixinDeclaration_onClause;
+
   @VariantId(14, variantList: [
     LinkedNodeKind.classDeclaration,
     LinkedNodeKind.enumDeclaration,
     LinkedNodeKind.functionDeclaration,
     LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.genericTypeAlias,
     LinkedNodeKind.mixinDeclaration,
   ])
   LinkedNode get namedCompilationUnitMember_name;
@@ -1559,12 +1666,16 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(23, variantList: [
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
+    LinkedNodeKind.partDirective,
+    LinkedNodeKind.partOfDirective,
   ])
   String get namespaceDirective_selectedUriContent;
 
   @VariantId(18, variantList: [
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
+    LinkedNodeKind.libraryDirective,
+    LinkedNodeKind.partDirective,
   ])
   int get namespaceDirective_semicolon;
 
@@ -1599,6 +1710,12 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.nullLiteral)
   int get nullLiteral_literal;
 
+  @VariantId(15, variant: LinkedNodeKind.onClause)
+  int get onClause_onKeyword;
+
+  @VariantId(2, variant: LinkedNodeKind.onClause)
+  List<LinkedNode> get onClause_superclassConstraints;
+
   @VariantId(6, variant: LinkedNodeKind.parenthesizedExpression)
   LinkedNode get parenthesizedExpression_expression;
 
@@ -1607,6 +1724,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(16, variant: LinkedNodeKind.parenthesizedExpression)
   int get parenthesizedExpression_rightParenthesis;
+
+  @VariantId(15, variant: LinkedNodeKind.partOfDirective)
+  int get partOfDirective_semicolon;
 
   @VariantId(15, variant: LinkedNodeKind.postfixExpression)
   int get postfixExpression_element;
@@ -1659,6 +1779,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(17, variant: LinkedNodeKind.redirectingConstructorInvocation)
   int get redirectingConstructorInvocation_thisKeyword;
 
+  @VariantId(15, variant: LinkedNodeKind.rethrowExpression)
+  int get rethrowExpression_rethrowKeyword;
+
   @VariantId(6, variant: LinkedNodeKind.returnStatement)
   LinkedNode get returnStatement_expression;
 
@@ -1710,6 +1833,48 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.superExpression)
   int get superExpression_superKeyword;
 
+  @VariantId(6, variant: LinkedNodeKind.switchCase)
+  LinkedNode get switchCase_expression;
+
+  @VariantId(16, variantList: [
+    LinkedNodeKind.switchCase,
+    LinkedNodeKind.switchDefault,
+  ])
+  int get switchMember_colon;
+
+  @VariantId(15, variantList: [
+    LinkedNodeKind.switchCase,
+    LinkedNodeKind.switchDefault,
+  ])
+  int get switchMember_keyword;
+
+  @VariantId(3, variantList: [
+    LinkedNodeKind.switchCase,
+    LinkedNodeKind.switchDefault,
+  ])
+  List<LinkedNode> get switchMember_statements;
+
+  @VariantId(7, variant: LinkedNodeKind.switchStatement)
+  LinkedNode get switchStatement_expression;
+
+  @VariantId(18, variant: LinkedNodeKind.switchStatement)
+  int get switchStatement_leftBracket;
+
+  @VariantId(15, variant: LinkedNodeKind.switchStatement)
+  int get switchStatement_leftParenthesis;
+
+  @VariantId(2, variant: LinkedNodeKind.switchStatement)
+  List<LinkedNode> get switchStatement_members;
+
+  @VariantId(19, variant: LinkedNodeKind.switchStatement)
+  int get switchStatement_rightBracket;
+
+  @VariantId(16, variant: LinkedNodeKind.switchStatement)
+  int get switchStatement_rightParenthesis;
+
+  @VariantId(17, variant: LinkedNodeKind.switchStatement)
+  int get switchStatement_switchKeyword;
+
   @VariantId(15, variant: LinkedNodeKind.thisExpression)
   int get thisExpression_thisKeyword;
 
@@ -1742,11 +1907,13 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(19, variantList: [
     LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.genericTypeAlias,
   ])
   int get typeAlias_semicolon;
 
   @VariantId(18, variantList: [
     LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.genericTypeAlias,
   ])
   int get typeAlias_typedefKeyword;
 
@@ -1806,18 +1973,24 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(14, variantList: [
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
+    LinkedNodeKind.partDirective,
+    LinkedNodeKind.partOfDirective,
   ])
   LinkedNode get uriBasedDirective_uri;
 
   @VariantId(22, variantList: [
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
+    LinkedNodeKind.partDirective,
+    LinkedNodeKind.partOfDirective,
   ])
   String get uriBasedDirective_uriContent;
 
   @VariantId(19, variantList: [
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
+    LinkedNodeKind.partDirective,
+    LinkedNodeKind.partOfDirective,
   ])
   int get uriBasedDirective_uriElement;
 
@@ -1859,6 +2032,24 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(17, variant: LinkedNodeKind.whileStatement)
   int get whileStatement_whileKeyword;
+
+  @VariantId(2, variant: LinkedNodeKind.withClause)
+  List<LinkedNode> get withClause_mixinTypes;
+
+  @VariantId(15, variant: LinkedNodeKind.withClause)
+  int get withClause_withKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.yieldStatement)
+  LinkedNode get yieldStatement_expression;
+
+  @VariantId(17, variant: LinkedNodeKind.yieldStatement)
+  int get yieldStatement_semicolon;
+
+  @VariantId(16, variant: LinkedNodeKind.yieldStatement)
+  int get yieldStatement_star;
+
+  @VariantId(15, variant: LinkedNodeKind.yieldStatement)
+  int get yieldStatement_yieldKeyword;
 }
 
 /// TODO(scheglov) extend to support multiple libraries of remove
@@ -1893,8 +2084,10 @@ enum LinkedNodeKind {
   annotation,
   argumentList,
   asExpression,
+  assertInitializer,
   assertStatement,
   assignmentExpression,
+  awaitExpression,
   binaryExpression,
   block,
   blockFunctionBody,
@@ -1913,6 +2106,7 @@ enum LinkedNodeKind {
   declaredIdentifier,
   defaultFormalParameter,
   doubleLiteral,
+  doStatement,
   emptyFunctionBody,
   enumConstantDeclaration,
   enumDeclaration,
@@ -1928,8 +2122,11 @@ enum LinkedNodeKind {
   functionDeclaration,
   functionDeclarationStatement,
   functionExpression,
+  functionExpressionInvocation,
   functionTypeAlias,
   functionTypedFormalParameter,
+  genericFunctionType,
+  genericTypeAlias,
   hideCombinator,
   ifStatement,
   implementsClause,
@@ -1941,6 +2138,8 @@ enum LinkedNodeKind {
   interpolationString,
   isExpression,
   label,
+  libraryDirective,
+  libraryIdentifier,
   listLiteral,
   mapLiteral,
   mapLiteralEntry,
@@ -1949,12 +2148,16 @@ enum LinkedNodeKind {
   mixinDeclaration,
   namedExpression,
   nullLiteral,
+  onClause,
   parenthesizedExpression,
+  partDirective,
+  partOfDirective,
   postfixExpression,
   prefixExpression,
   prefixedIdentifier,
   propertyAccess,
   redirectingConstructorInvocation,
+  rethrowExpression,
   returnStatement,
   setLiteral,
   showCombinator,
@@ -1964,6 +2167,9 @@ enum LinkedNodeKind {
   stringInterpolation,
   superConstructorInvocation,
   superExpression,
+  switchCase,
+  switchDefault,
+  switchStatement,
   thisExpression,
   throwExpression,
   topLevelVariableDeclaration,
@@ -1977,6 +2183,7 @@ enum LinkedNodeKind {
   variableDeclarationStatement,
   whileStatement,
   withClause,
+  yieldStatement,
 }
 
 /// Flattened tree of declarations referenced from [LinkedNode]s.

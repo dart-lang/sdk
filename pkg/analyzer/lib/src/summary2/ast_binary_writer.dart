@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -75,6 +76,18 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
+  LinkedNodeBuilder visitAssertInitializer(AssertInitializer node) {
+    return LinkedNodeBuilder.assertInitializer(
+      assertInitializer_assertKeyword: _getToken(node.assertKeyword),
+      assertInitializer_comma: _getToken(node.comma),
+      assertInitializer_condition: node.condition.accept(this),
+      assertInitializer_leftParenthesis: _getToken(node.leftParenthesis),
+      assertInitializer_message: node.message?.accept(this),
+      assertInitializer_rightParenthesis: _getToken(node.rightParenthesis),
+    );
+  }
+
+  @override
   LinkedNodeBuilder visitAssertStatement(AssertStatement node) {
     var builder = LinkedNodeBuilder.assertStatement(
       assertStatement_assertKeyword: _getToken(node.assertKeyword),
@@ -96,6 +109,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       assignmentExpression_leftHandSide: node.leftHandSide.accept(this),
       assignmentExpression_operator: _getToken(node.operator),
       assignmentExpression_rightHandSide: node.rightHandSide.accept(this),
+      expression_type: _writeType(node.staticType),
+    );
+  }
+
+  @override
+  LinkedNodeBuilder visitAwaitExpression(AwaitExpression node) {
+    return LinkedNodeBuilder.awaitExpression(
+      awaitExpression_awaitKeyword: _getToken(node.awaitKeyword),
+      awaitExpression_expression: node.expression.accept(this),
       expression_type: _writeType(node.staticType),
     );
   }
@@ -175,21 +197,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitClassDeclaration(ClassDeclaration node) {
-    return LinkedNodeBuilder.classDeclaration(
+    var builder = LinkedNodeBuilder.classDeclaration(
       classDeclaration_abstractKeyword: _getToken(node.abstractKeyword),
       classDeclaration_classKeyword: _getToken(node.classKeyword),
-      annotatedNode_comment: node.documentationComment?.accept(this),
       classDeclaration_extendsClause: node.extendsClause?.accept(this),
-      classOrMixinDeclaration_implementsClause:
-          node.implementsClause?.accept(this),
-      classOrMixinDeclaration_leftBracket: _getToken(node.leftBracket),
-      classOrMixinDeclaration_members: _writeNodeList(node.members),
-      annotatedNode_metadata: _writeNodeList(node.metadata),
-      namedCompilationUnitMember_name: node.name.accept(this),
-      classOrMixinDeclaration_rightBracket: _getToken(node.rightBracket),
-      classOrMixinDeclaration_typeParameters: node.typeParameters?.accept(this),
       classDeclaration_withClause: node.withClause?.accept(this),
     );
+    _storeClassOrMixinDeclaration(builder, node);
+    return builder;
   }
 
   @override
@@ -310,6 +325,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
+  LinkedNodeBuilder visitDoStatement(DoStatement node) {
+    return LinkedNodeBuilder.doStatement(
+      doStatement_body: node.body.accept(this),
+      doStatement_condition: node.condition.accept(this),
+      doStatement_doKeyword: _getToken(node.doKeyword),
+      doStatement_leftParenthesis: _getToken(node.leftParenthesis),
+      doStatement_rightParenthesis: _getToken(node.rightParenthesis),
+      doStatement_semicolon: _getToken(node.whileKeyword),
+      doStatement_whileKeyword: _getToken(node.whileKeyword),
+    );
+  }
+
+  @override
   LinkedNodeBuilder visitDoubleLiteral(DoubleLiteral node) {
     return LinkedNodeBuilder.doubleLiteral(
       doubleLiteral_literal: _getToken(node.literal),
@@ -345,6 +373,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       enumDeclaration_rightBracket: _getToken(node.rightBracket),
     );
     _storeNamedCompilationUnitMember(builder, node);
+    return builder;
+  }
+
+  @override
+  LinkedNodeBuilder visitExportDirective(ExportDirective node) {
+    var builder = LinkedNodeBuilder.exportDirective();
+    _storeNamespaceDirective(builder, node);
     return builder;
   }
 
@@ -475,6 +510,16 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
+  LinkedNodeBuilder visitFunctionExpressionInvocation(
+      FunctionExpressionInvocation node) {
+    var builder = LinkedNodeBuilder.functionExpressionInvocation(
+      functionExpressionInvocation_function: node.function?.accept(this),
+    );
+    _storeInvocationExpression(builder, node);
+    return builder;
+  }
+
+  @override
   LinkedNodeBuilder visitFunctionTypeAlias(FunctionTypeAlias node) {
     var builder = LinkedNodeBuilder.functionTypeAlias(
       functionTypeAlias_formalParameters: node.parameters.accept(this),
@@ -496,6 +541,28 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
           node.typeParameters?.accept(this),
     );
     _storeNormalFormalParameter(builder, node);
+    return builder;
+  }
+
+  @override
+  LinkedNodeBuilder visitGenericFunctionType(GenericFunctionType node) {
+    return LinkedNodeBuilder.genericFunctionType(
+      genericFunctionType_formalParameters: node.parameters.accept(this),
+      genericFunctionType_functionKeyword: _getToken(node.functionKeyword),
+      genericFunctionType_question: _getToken(node.question),
+      genericFunctionType_returnType: node.returnType?.accept(this),
+      genericFunctionType_typeParameters: node.typeParameters?.accept(this),
+    );
+  }
+
+  @override
+  LinkedNodeBuilder visitGenericTypeAlias(GenericTypeAlias node) {
+    var builder = LinkedNodeBuilder.genericTypeAlias(
+      genericTypeAlias_equals: _getToken(node.equals),
+      genericTypeAlias_functionType: node.functionType.accept(this),
+      genericTypeAlias_typeParameters: node.typeParameters?.accept(this),
+    );
+    _storeTypeAlias(builder, node);
     return builder;
   }
 
@@ -613,6 +680,22 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
+  LinkedNodeBuilder visitLibraryDirective(LibraryDirective node) {
+    var builder = LinkedNodeBuilder.libraryDirective(
+      libraryDirective_name: node.name.accept(this),
+    );
+    _storeDirective(builder, node);
+    return builder;
+  }
+
+  @override
+  LinkedNodeBuilder visitLibraryIdentifier(LibraryIdentifier node) {
+    return LinkedNodeBuilder.libraryIdentifier(
+      libraryIdentifier_components: _writeNodeList(node.components),
+    );
+  }
+
+  @override
   LinkedNodeBuilder visitListLiteral(ListLiteral node) {
     var builder = LinkedNodeBuilder.listLiteral(
       listLiteral_elements: _writeNodeList(node.elements2),
@@ -669,6 +752,16 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
+  LinkedNodeBuilder visitMixinDeclaration(MixinDeclaration node) {
+    var builder = LinkedNodeBuilder.mixinDeclaration(
+      mixinDeclaration_mixinKeyword: _getToken(node.mixinKeyword),
+      mixinDeclaration_onClause: node.onClause?.accept(this),
+    );
+    _storeClassOrMixinDeclaration(builder, node);
+    return builder;
+  }
+
+  @override
   LinkedNodeBuilder visitNamedExpression(NamedExpression node) {
     return LinkedNodeBuilder.namedExpression(
       namedExpression_expression: node.expression.accept(this),
@@ -686,6 +779,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
+  LinkedNodeBuilder visitOnClause(OnClause node) {
+    return LinkedNodeBuilder.onClause(
+      onClause_onKeyword: _getToken(node.onKeyword),
+      onClause_superclassConstraints:
+          _writeNodeList(node.superclassConstraints),
+    );
+  }
+
+  @override
   LinkedNodeBuilder visitParenthesizedExpression(ParenthesizedExpression node) {
     var builder = LinkedNodeBuilder.parenthesizedExpression(
       parenthesizedExpression_expression: node.expression.accept(this),
@@ -694,6 +796,22 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
           _getToken(node.rightParenthesis),
     );
     _storeExpression(builder, node);
+    return builder;
+  }
+
+  @override
+  LinkedNodeBuilder visitPartDirective(PartDirective node) {
+    var builder = LinkedNodeBuilder.partDirective();
+    _storeUriBasedDirective(builder, node);
+    return builder;
+  }
+
+  @override
+  LinkedNodeBuilder visitPartOfDirective(PartOfDirective node) {
+    var builder = LinkedNodeBuilder.partOfDirective(
+      partOfDirective_semicolon: _getToken(node.semicolon),
+    );
+    _storeDirective(builder, node);
     return builder;
   }
 
@@ -752,6 +870,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       redirectingConstructorInvocation_thisKeyword: _getToken(node.thisKeyword),
     );
     _storeConstructorInitializer(builder, node);
+    return builder;
+  }
+
+  @override
+  LinkedNodeBuilder visitRethrowExpression(RethrowExpression node) {
+    var builder = LinkedNodeBuilder.rethrowExpression(
+      rethrowExpression_rethrowKeyword: _getToken(node.rethrowKeyword),
+    );
+    _storeExpression(builder, node);
     return builder;
   }
 
@@ -835,6 +962,35 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
     _storeExpression(builder, node);
     return builder;
+  }
+
+  @override
+  LinkedNodeBuilder visitSwitchCase(SwitchCase node) {
+    var builder = LinkedNodeBuilder.switchCase(
+      switchCase_expression: node.expression.accept(this),
+    );
+    _storeSwitchMember(builder, node);
+    return builder;
+  }
+
+  @override
+  LinkedNodeBuilder visitSwitchDefault(SwitchDefault node) {
+    var builder = LinkedNodeBuilder.switchDefault();
+    _storeSwitchMember(builder, node);
+    return builder;
+  }
+
+  @override
+  LinkedNodeBuilder visitSwitchStatement(SwitchStatement node) {
+    return LinkedNodeBuilder.switchStatement(
+      switchStatement_expression: node.expression.accept(this),
+      switchStatement_leftBracket: _getToken(node.leftBracket),
+      switchStatement_leftParenthesis: _getToken(node.leftParenthesis),
+      switchStatement_members: _writeNodeList(node.members),
+      switchStatement_rightBracket: _getToken(node.rightBracket),
+      switchStatement_rightParenthesis: _getToken(node.rightParenthesis),
+      switchStatement_switchKeyword: _getToken(node.switchKeyword),
+    );
   }
 
   @override
@@ -955,6 +1111,26 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
   }
 
+  @override
+  LinkedNodeBuilder visitWithClause(WithClause node) {
+    return LinkedNodeBuilder.withClause(
+      withClause_mixinTypes: _writeNodeList(node.mixinTypes),
+      withClause_withKeyword: _getToken(node.withKeyword),
+    );
+  }
+
+  @override
+  LinkedNodeBuilder visitYieldStatement(YieldStatement node) {
+    var builder = LinkedNodeBuilder.yieldStatement(
+      yieldStatement_yieldKeyword: _getToken(node.yieldKeyword),
+      yieldStatement_expression: node.expression.accept(this),
+      yieldStatement_semicolon: _getToken(node.semicolon),
+      yieldStatement_star: _getToken(node.star),
+    );
+    _storeStatement(builder, node);
+    return builder;
+  }
+
   LinkedNodeBuilder writeNode(AstNode node) {
     _writeTokens(node.beginToken, node.endToken);
     return node.accept(this);
@@ -1015,6 +1191,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       _ensureReferenceIndex(containerRef);
 
       result = containerRef.getChild(element.name);
+    } else if (element is DynamicElementImpl) {
+      result = _getReference(element.library).getChild('@dynamic');
     } else if (element is FieldElement) {
       var enclosingRef = _getReference(element.enclosingElement);
       var containerRef = enclosingRef.getChild('@field');
@@ -1026,9 +1204,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       _ensureReferenceIndex(containerRef);
 
       result = containerRef.getChild(element.name);
-    } else if (element is GenericFunctionTypeElement &&
-        element.enclosingElement is GenericTypeAliasElement) {
-      return _getReference(element.enclosingElement);
+    } else if (element is GenericFunctionTypeElement) {
+      if (element.enclosingElement is GenericTypeAliasElement) {
+        return _getReference(element.enclosingElement);
+      } else {
+        var libraryRef = _getReference(element.library);
+        var containerRef = libraryRef.getChild('@functionType');
+        _ensureReferenceIndex(containerRef);
+
+        // TODO(scheglov) do we need to store these elements at all?
+        result = containerRef.getChild('<unnamed>');
+      }
     } else if (element is GenericTypeAliasElement) {
       var containerRef = _getReference(element.library).getChild('@typeAlias');
       _ensureReferenceIndex(containerRef);
@@ -1066,7 +1252,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
       result = containerRef.getChild(element.name);
     } else if (element is PropertyAccessorElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
+      var enclosingRef = _getReference(element.library);
       var containerRef = enclosingRef.getChild(
         element.isGetter ? '@getter' : '@setter',
       );
@@ -1074,7 +1260,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
       result = containerRef.getChild(element.displayName);
     } else if (element is TopLevelVariableElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
+      var enclosingRef = _getReference(element.library);
       var containerRef = enclosingRef.getChild('@variable');
       _ensureReferenceIndex(containerRef);
 
@@ -1128,6 +1314,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   void _storeClassMember(LinkedNodeBuilder builder, ClassMember node) {
     _storeDeclaration(builder, node);
+  }
+
+  void _storeClassOrMixinDeclaration(
+      LinkedNodeBuilder builder, ClassOrMixinDeclaration node) {
+    builder
+      ..classOrMixinDeclaration_implementsClause =
+          node.implementsClause?.accept(this)
+      ..classOrMixinDeclaration_leftBracket = _getToken(node.leftBracket)
+      ..classOrMixinDeclaration_members = _writeNodeList(node.members)
+      ..classOrMixinDeclaration_rightBracket = _getToken(node.rightBracket)
+      ..classOrMixinDeclaration_typeParameters =
+          node.typeParameters?.accept(this);
+    _storeNamedCompilationUnitMember(builder, node);
   }
 
   void _storeCombinator(LinkedNodeBuilder builder, Combinator node) {
@@ -1202,10 +1401,16 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       ..normalFormalParameter_metadata = _writeNodeList(node.metadata)
       ..normalFormalParameter_covariantKeyword =
           _getToken(node.covariantKeyword)
-      ..normalFormalParameter_identifier = node.identifier.accept(this);
+      ..normalFormalParameter_identifier = node.identifier?.accept(this);
   }
 
   void _storeStatement(LinkedNodeBuilder builder, Statement node) {}
+
+  void _storeSwitchMember(LinkedNodeBuilder builder, SwitchMember node) {
+    builder.switchMember_keyword = _getToken(node.keyword);
+    builder.switchMember_colon = _getToken(node.colon);
+    builder.switchMember_statements = _writeNodeList(node.statements);
+  }
 
   void _storeTypeAlias(LinkedNodeBuilder builder, TypeAlias node) {
     _storeNamedCompilationUnitMember(builder, node);

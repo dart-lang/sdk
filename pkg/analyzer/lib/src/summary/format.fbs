@@ -165,9 +165,13 @@ enum LinkedNodeKind : byte {
 
   asExpression,
 
+  assertInitializer,
+
   assertStatement,
 
   assignmentExpression,
+
+  awaitExpression,
 
   binaryExpression,
 
@@ -205,6 +209,8 @@ enum LinkedNodeKind : byte {
 
   doubleLiteral,
 
+  doStatement,
+
   emptyFunctionBody,
 
   enumConstantDeclaration,
@@ -235,9 +241,15 @@ enum LinkedNodeKind : byte {
 
   functionExpression,
 
+  functionExpressionInvocation,
+
   functionTypeAlias,
 
   functionTypedFormalParameter,
+
+  genericFunctionType,
+
+  genericTypeAlias,
 
   hideCombinator,
 
@@ -261,6 +273,10 @@ enum LinkedNodeKind : byte {
 
   label,
 
+  libraryDirective,
+
+  libraryIdentifier,
+
   listLiteral,
 
   mapLiteral,
@@ -277,7 +293,13 @@ enum LinkedNodeKind : byte {
 
   nullLiteral,
 
+  onClause,
+
   parenthesizedExpression,
+
+  partDirective,
+
+  partOfDirective,
 
   postfixExpression,
 
@@ -288,6 +310,8 @@ enum LinkedNodeKind : byte {
   propertyAccess,
 
   redirectingConstructorInvocation,
+
+  rethrowExpression,
 
   returnStatement,
 
@@ -306,6 +330,12 @@ enum LinkedNodeKind : byte {
   superConstructorInvocation,
 
   superExpression,
+
+  switchCase,
+
+  switchDefault,
+
+  switchStatement,
 
   thisExpression,
 
@@ -331,7 +361,9 @@ enum LinkedNodeKind : byte {
 
   whileStatement,
 
-  withClause
+  withClause,
+
+  yieldStatement
 }
 
 /// Kinds of [LinkedNodeType]s.
