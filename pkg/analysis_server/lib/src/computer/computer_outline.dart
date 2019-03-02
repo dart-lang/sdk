@@ -229,10 +229,10 @@ class DartUnitOutlineComputer {
 
   Outline _newGenericTypeAliasOutline(GenericTypeAlias node) {
     var functionType = node.functionType;
-    TypeAnnotation returnType = functionType.returnType;
+    TypeAnnotation returnType = functionType?.returnType;
     SimpleIdentifier nameNode = node.name;
     String name = nameNode.name;
-    FormalParameterList parameters = functionType.parameters;
+    FormalParameterList parameters = functionType?.parameters;
     String parametersStr = _safeToSource(parameters);
     String returnTypeStr = _safeToSource(returnType);
     Element element = new Element(
