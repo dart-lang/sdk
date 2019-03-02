@@ -1000,6 +1000,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkTypeArgumentCount(typeArguments, 1,
           StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS);
     }
+    _checkForRawTypedLiteral(node);
     _checkForImplicitDynamicTypedLiteral(node);
     _checkForListElementTypeNotAssignable(node);
 
@@ -1020,6 +1021,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkTypeArgumentCount(typeArguments, 2,
           StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
     }
+    _checkForRawTypedLiteral(node);
     _checkForImplicitDynamicTypedLiteral(node);
     _checkForMapTypeNotAssignable(node);
     _checkForNonConstMapAsExpressionStatement(node);
@@ -1225,6 +1227,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkTypeArgumentCount(typeArguments, 1,
           StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
     }
+    _checkForRawTypedLiteral(node);
     _checkForImplicitDynamicTypedLiteral(node);
     _checkForSetElementTypeNotAssignable(node);
 
@@ -1246,6 +1249,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkTypeArgumentCount(typeArguments, 2,
             StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
       }
+      _checkForRawTypedLiteral(node);
       _checkForImplicitDynamicTypedLiteral(node);
       _checkForMapTypeNotAssignable3(node);
       _checkForNonConstMapAsExpressionStatement3(node);
@@ -1261,6 +1265,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkTypeArgumentCount(typeArguments, 1,
             StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
       }
+      _checkForRawTypedLiteral(node);
       _checkForImplicitDynamicTypedLiteral(node);
       _checkForSetElementTypeNotAssignable3(node);
     }
@@ -1358,6 +1363,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitTypeName(TypeName node) {
     _checkForTypeArgumentNotMatchingBounds(node);
+    _checkForRawTypeName(node);
     super.visitTypeName(node);
   }
 
@@ -4506,11 +4512,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     Map<LibraryElement, Map<String, String>> mixedInNames =
         <LibraryElement, Map<String, String>>{};
 
-    /**
-     * Report an error and return `true` if the given [name] is a private name
-     * (which is defined in the given [library]) and it conflicts with another
-     * definition of that name inherited from the superclass.
-     */
+    /// Report an error and return `true` if the given [name] is a private name
+    /// (which is defined in the given [library]) and it conflicts with another
+    /// definition of that name inherited from the superclass.
     bool isConflictingName(
         String name, LibraryElement library, TypeName typeName) {
       if (Identifier.isPrivateName(name)) {
@@ -4996,6 +5000,93 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, parameter);
+  }
+
+  /// Similar to [_checkForRawTypeName] but for list/map/set literals.
+  void _checkForRawTypedLiteral(TypedLiteral node) {
+    if (!_options.strictRawTypes || node == null) return;
+    if (node.typeArguments != null) {
+      // Type has explicit type arguments.
+      return;
+    }
+    var type = node.staticType;
+    return _checkForRawTypeErrors(node, type, type.element, node);
+  }
+
+  /// Given a [node] without type arguments that refers to [element], issues
+  /// an error if [type] is a generic type, and the type arguments were not
+  /// supplied from inference or a non-dynamic default instantiation.
+  ///
+  /// This function is used by other node-specific raw type checking functions
+  /// (for example [_checkForRawTypeName]), and should only be called when
+  /// we already know [AnalysisOptionsImpl.strictRawTypes] is true and [node]
+  /// has no explicit `typeArguments`.
+  ///
+  /// [inferenceContextNode] is the node that has the downwards context type,
+  /// if any. For example an [InstanceCreationExpression].
+  ///
+  /// The raw type error [HintCode.STRICT_RAW_TYPE] will *not* be reported when
+  /// any of the following are true:
+  ///
+  /// - [inferenceContextNode] has an inference context type that does not
+  ///   contain `?`
+  /// - [type] does not have any `dynamic` type arguments.
+  /// - the element is marked with `@optionalTypeArgs` from "package:meta".
+  void _checkForRawTypeErrors(AstNode node, DartType type, Element element,
+      Expression inferenceContextNode) {
+    assert(_options.strictRawTypes);
+    // Check if this type has type arguments and at least one is dynamic.
+    // If so, we may need to issue a strict-raw-types error.
+    if (type is ParameterizedType &&
+        type.typeArguments.any((t) => t.isDynamic)) {
+      // If we have an inference context node, check if the type was inferred
+      // from it. Some cases will not have a context type, such as the type
+      // annotation `List` in `List list;`
+      if (inferenceContextNode != null) {
+        var contextType = InferenceContext.getContext(inferenceContextNode);
+        if (contextType != null && UnknownInferredType.isKnown(contextType)) {
+          // Type was inferred from downwards context: not an error.
+          return;
+        }
+      }
+      if (element.metadata.isNotEmpty) {
+        for (var annotation in element.metadata) {
+          var e = annotation.element;
+          // TODO(jmesserly): similar "package:meta" annotations are added to
+          // the element as boolean getters, that may be worth considering.
+          if (e?.name == 'optionalTypeArgs' &&
+              e.librarySource.uri.toString() == 'package:meta/meta.dart') {
+            // Type is marked with `@optionalTypeArgs`: not an error.
+            return;
+          }
+        }
+      }
+      _errorReporter.reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [type]);
+    }
+  }
+
+  /// Checks a type annotation for a raw generic type, and reports the
+  /// appropriate error if [AnalysisOptionsImpl.strictRawTypes] is set.
+  ///
+  /// This checks if [node] refers to a generic type and does not have explicit
+  /// or inferred type arguments. When that happens, it reports error code
+  /// [StrongModeCode.STRICT_RAW_TYPE].
+  void _checkForRawTypeName(TypeName node) {
+    if (!_options.strictRawTypes || node == null) return;
+    if (node.typeArguments != null) {
+      // Type has explicit type arguments.
+      return;
+    }
+    var parent = node.parent;
+    InstanceCreationExpression inferenceContextNode;
+    if (parent is ConstructorName) {
+      var grandparent = parent.parent;
+      if (grandparent is InstanceCreationExpression) {
+        inferenceContextNode = grandparent;
+      }
+    }
+    return _checkForRawTypeErrors(
+        node, node.type, node.name.staticElement, inferenceContextNode);
   }
 
   /**

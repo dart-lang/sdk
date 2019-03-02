@@ -60,6 +60,7 @@ class AnalyzerOptions {
 
   // Language options (see AnalysisOptionsImpl for documentation).
   static const String strictInference = 'strict-inference';
+  static const String strictRawTypes = 'strict-raw-types';
 
   /// Ways to say `ignore`.
   static const List<String> ignoreSynonyms = const ['ignore', 'false'];
@@ -94,6 +95,7 @@ class AnalyzerOptions {
   /// Supported `analyzer` language options.
   static const List<String> languageOptions = const [
     strictInference,
+    strictRawTypes
   ];
 }
 
@@ -703,6 +705,9 @@ class _OptionsProcessor {
     if (boolValue != null) {
       if (feature == AnalyzerOptions.strictInference) {
         options.strictInference = boolValue;
+      }
+      if (feature == AnalyzerOptions.strictRawTypes) {
+        options.strictRawTypes = boolValue;
       }
     }
   }

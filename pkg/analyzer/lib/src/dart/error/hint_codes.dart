@@ -189,6 +189,14 @@ class HintCode extends ErrorCode {
           correction: "Try specifying the type of the variable.");
 
   /**
+   * When "strict-raw-types" is enabled, raw types must be inferred via the
+   * context type, or have type arguments other than dynamic.
+   */
+  static const HintCode STRICT_RAW_TYPE = HintCode('STRICT_RAW_TYPE',
+      "The generic type '{0}' should have explicit type arguments but doesn't.",
+      correction: "Use explicit type arguments for '{0}'.");
+
+  /**
    * This hint is generated anywhere a @factory annotation is associated with
    * anything other than a method.
    */

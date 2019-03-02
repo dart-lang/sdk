@@ -415,6 +415,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    resolveMetadata(node);
+    return null;
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     SimpleIdentifier prefixNode = node.prefix;
     if (prefixNode != null) {

@@ -4666,6 +4666,10 @@ class StaticWarningCode extends ErrorCode {
 
 /**
  * This class has Strong Mode specific error codes.
+ * 
+ * "Strong Mode" was the prototype for Dart 2's sound type system. Many of these
+ * errors became part of Dart 2. Some of them are optional flags, used for
+ * stricter checking.
  *
  * These error codes tend to use the same message across different severity
  * levels, so they are grouped for clarity.

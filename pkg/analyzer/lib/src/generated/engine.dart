@@ -1512,6 +1512,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool strictInference = false;
 
   /**
+   * Whether raw types (types without explicit type arguments, such as `List`)
+   * should be reported as potential problems.
+   * 
+   * Raw types are a common source of `dynamic` being introduced implicitly.
+   * This often leads to cast failures later on in the program.
+   */
+  bool strictRawTypes = false;
+
+  /**
    * Initialize a newly created set of analysis options to have their default
    * values.
    */
@@ -1542,6 +1551,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       implicitCasts = options.implicitCasts;
       implicitDynamic = options.implicitDynamic;
       strictInference = options.strictInference;
+      strictRawTypes = options.strictRawTypes;
     }
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
@@ -1717,6 +1727,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
       buffer.addBool(strictInference);
+      buffer.addBool(strictRawTypes);
       buffer.addBool(strongModeHints);
       buffer.addBool(useFastaParser);
 
@@ -1801,6 +1812,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     implicitCasts = true;
     implicitDynamic = true;
     strictInference = false;
+    strictRawTypes = false;
     lint = false;
     _lintRules = null;
     patchPaths = {};

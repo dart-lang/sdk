@@ -427,6 +427,9 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
   @override
   bool get strictInference => false;
 
+  @override
+  bool get strictRawTypes => false;
+
   @deprecated
   @override
   bool get previewDart2 => true;
