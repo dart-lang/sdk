@@ -10,6 +10,7 @@ description: >-
   This package is vended into the SDK, where it is plugged into the analyzer
   framework; it is not intended to be used directly.
 homepage: https://github.com/dart-lang/linter
+documentation: https://dart-lang.github.io/linter/lints
 
 environment:
   sdk: '>=2.1.0 <3.0.0'
