@@ -2957,27 +2957,34 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    var iterable = node.iterable;
-    var body = node.body;
+  void visitForStatement2(ForStatement2 node) {
+    var forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForParts) {
+      if (forLoopParts is ForPartsWithExpression) {
+        forLoopParts.initialization?.accept(this);
+      } else if (forLoopParts is ForPartsWithDeclarations) {
+        forLoopParts.variables?.accept(this);
+      } else {
+        throw new StateError('Unrecognized for loop parts');
+      }
 
-    iterable.accept(this);
+      assignedVariables.beginLoop();
+      forLoopParts.condition?.accept(this);
+      node.body.accept(this);
+      forLoopParts.updaters?.accept(this);
+      assignedVariables.endLoop(node);
+    } else if (forLoopParts is ForEachParts) {
+      var iterable = forLoopParts.iterable;
+      var body = node.body;
 
-    assignedVariables.beginLoop();
-    body.accept(this);
-    assignedVariables.endLoop(node);
-  }
+      iterable.accept(this);
 
-  @override
-  void visitForStatement(ForStatement node) {
-    node.initialization?.accept(this);
-    node.variables?.accept(this);
-
-    assignedVariables.beginLoop();
-    node.condition?.accept(this);
-    node.body.accept(this);
-    node.updaters?.accept(this);
-    assignedVariables.endLoop(node);
+      assignedVariables.beginLoop();
+      body.accept(this);
+      assignedVariables.endLoop(node);
+    } else {
+      throw new StateError('Unrecognized for loop parts');
+    }
   }
 
   @override
@@ -3222,46 +3229,6 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     condition.accept(this);
 
     flow.doStatement_end(node);
-  }
-
-  @override
-  void visitForEachStatement(ForEachStatement node) {
-    _checkUnreachableNode(node);
-
-    var iterable = node.iterable;
-    var body = node.body;
-
-    iterable.accept(this);
-    flow.forEachStatement_bodyBegin(assignedVariables[node]);
-
-    body.accept(this);
-
-    flow.forEachStatement_end();
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    _checkUnreachableNode(node);
-
-    var condition = node.condition;
-
-    node.initialization?.accept(this);
-    node.variables?.accept(this);
-
-    flow.forStatement_conditionBegin(assignedVariables[node]);
-    if (condition != null) {
-      condition.accept(this);
-    } else {
-      flow.trueLiteral(trueLiteral);
-    }
-
-    flow.forStatement_bodyBegin(node, condition ?? trueLiteral);
-    node.body.accept(this);
-
-    flow.forStatement_updaterBegin();
-    node.updaters?.accept(this);
-
-    flow.forStatement_end();
   }
 
   @override
@@ -3528,8 +3495,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
   AstNode _getLabelTarget(AstNode node, LabelElement element) {
     for (; node != null; node = node.parent) {
       if (node is DoStatement ||
-          node is ForEachStatement ||
-          node is ForStatement ||
+          node is ForStatement2 ||
           node is SwitchStatement ||
           node is WhileStatement) {
         if (element == null) {

@@ -587,10 +587,10 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitMapLiteral() {
-    MapLiteral fromNode = AstTestFactory.mapLiteral2();
+    SetOrMapLiteral fromNode = AstTestFactory.mapLiteral2();
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
-    MapLiteral toNode = AstTestFactory.mapLiteral2();
+    SetOrMapLiteral toNode = AstTestFactory.mapLiteral2();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.staticType, same(staticType));
   }

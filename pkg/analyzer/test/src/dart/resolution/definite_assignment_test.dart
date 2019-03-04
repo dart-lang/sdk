@@ -1498,8 +1498,7 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
   AstNode _getLabelTarget(AstNode node, LabelElement element) {
     for (; node != null; node = node.parent) {
       if (node is DoStatement ||
-          node is ForEachStatement ||
-          node is ForStatement ||
+          node is ForStatement2 ||
           node is SwitchStatement ||
           node is WhileStatement) {
         if (element == null) {

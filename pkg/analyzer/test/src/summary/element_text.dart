@@ -389,14 +389,15 @@ class _ElementWriter {
     } else if (e is Label) {
       writeExpression(e.label);
       buffer.write(': ');
-    } else if (e is MapLiteral) {
+    } else if (e is SetOrMapLiteral) {
       if (e.constKeyword != null) {
         buffer.write('const ');
       }
       if (e.typeArguments != null) {
         writeList('<', '>', e.typeArguments.arguments, ', ', writeExpression);
       }
-      writeList('{', '}', e.entries, ', ', writeExpression, includeEmpty: true);
+      writeList('{', '}', e.elements2, ', ', writeExpression,
+          includeEmpty: true);
     } else if (e is MapLiteralEntry) {
       writeExpression(e.key);
       buffer.write(': ');
