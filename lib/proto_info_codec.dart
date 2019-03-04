@@ -310,5 +310,5 @@ class Id {
 
   Id(this.kind, this.id);
 
-  String get serializedId => '$kind/$id';
+  String get serializedId => '${kindToString(kind)}/$id';
 }
