@@ -138,7 +138,6 @@ LibTest/isolate/ReceivePort/lastWhere_A01_t01: RuntimeError
 Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: Crash
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t04: Crash
 LanguageFeatures/Spread-collections/Ambiguity_A01_t05/01: MissingCompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A01_t05/02: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A03_t02/12: MissingCompileTimeError
@@ -158,35 +157,10 @@ LanguageFeatures/Spread-collections/NullAware_A01_t02: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t03: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t04: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A04_t01/04: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/01: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/02: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/03: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/05: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/06: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/07: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/08: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/09: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t02/01: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t02/02: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t02/03: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t02/06: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t02/07: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t02/08: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t02/09: MissingCompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/01: MissingCompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/02: MissingCompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/04: MissingCompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/05: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/01: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/010: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/02: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/03: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/04: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/05: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/06: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/07: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/08: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/09: MissingCompileTimeError
 
 [ $runtime == vm ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow # Does many calls
@@ -248,6 +222,8 @@ Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeEr
 Language/Expressions/Instance_Creation/Const/parameterized_type_t01: CompileTimeError
 Language/Expressions/Instance_Creation/Const/parameterized_type_t02: CompileTimeError
 Language/Expressions/Instance_Creation/New/syntax_t04: MissingCompileTimeError # Legal because of implicit new
+Language/Expressions/Instance_Creation/New/type_t08: CompileTimeError
+Language/Expressions/Instance_Creation/New/type_t09: CompileTimeError
 Language/Expressions/Lists/constant_list_t01: CompileTimeError
 Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Maps/constant_map_type_t01: CompileTimeError
@@ -270,13 +246,28 @@ Language/Expressions/Unary_Expressions/syntax_t10: CompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t27: CompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError # 32912
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError # 32912
-Language/Generics/syntax_t02: CompileTimeError
-Language/Generics/syntax_t03: CompileTimeError
+Language/Generics/class_A01_t02/none: CompileTimeError
+Language/Generics/syntax_t21: CompileTimeError
+Language/Generics/syntax_t23: CompileTimeError
+Language/Generics/syntax_t24: CompileTimeError
+Language/Generics/syntax_t25: CompileTimeError
+Language/Generics/syntax_t26: CompileTimeError
 Language/Libraries_and_Scripts/Imports/library_name_t01: MissingCompileTimeError # Expects an error, but this is a warning in Dart 2
-Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError # Issue 30273
+Language/Mixins/Mixin_Application/abstract_t09: Crash
+Language/Mixins/Mixin_Application/abstract_t10: Crash
+Language/Mixins/Mixin_Application/abstract_t11: Crash
+Language/Mixins/Mixin_Application/abstract_t12: Crash
+Language/Mixins/Mixin_Application/abstract_t13: Crash
+Language/Mixins/Mixin_Application/deferred_t03: Crash
+Language/Mixins/Mixin_Application/implicit_constructor_t03: Crash
+Language/Mixins/Mixin_Application/implicit_constructor_t04: Crash
+Language/Mixins/Mixin_Application/initializers_t04: Crash
+Language/Mixins/Mixin_Application/initializers_t05: Crash
+Language/Mixins/Mixin_Application/initializers_t06: Crash
+Language/Mixins/Mixin_Application/interfaces_t06: Crash
+Language/Mixins/Mixin_Application/interfaces_t07: Crash
 Language/Mixins/Mixin_Application/static_warning_t01: MissingCompileTimeError # Mixin super equirement
-Language/Mixins/Mixin_Application/superclass_t01: MissingCompileTimeError
-Language/Mixins/Mixin_Application/superclass_t02: MissingCompileTimeError
+Language/Mixins/Mixin_Application/superclass_t03: Crash
 Language/Mixins/Mixin_Application/superinterfaces_t07: MissingCompileTimeError
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Mixin constructor
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Mixin constructor
@@ -296,6 +287,14 @@ Language/Statements/Continue/control_transfer_t09: CompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError # Issue 34206
 Language/Statements/Try/catch_scope_t01: CompileTimeError
 Language/Types/Interface_Types/subtype_t30: CompileTimeError
+Language/Types/Type_Aliases/scope_t01: CompileTimeError
+Language/Types/Type_Aliases/scope_t02/none: CompileTimeError
+Language/Types/Type_Aliases/scope_t03: CompileTimeError
+Language/Types/Type_Aliases/scope_t04/none: CompileTimeError
+Language/Types/Type_Aliases/syntax_t01: CompileTimeError
+Language/Types/Type_Aliases/syntax_t02: CompileTimeError
+Language/Types/Type_Aliases/syntax_t03: CompileTimeError
+Language/Types/Type_Aliases/syntax_t04: CompileTimeError
 LanguageFeatures/Constant_update2018/CastOperator_A01_t01: CompileTimeError
 LanguageFeatures/Constant_update2018/CastOperator_A02_t01: CompileTimeError
 LanguageFeatures/Constant_update2018/CastOperator_A02_t02: CompileTimeError
@@ -304,39 +303,39 @@ LanguageFeatures/Constant_update2018/CastOperator_A04_t01/none: CompileTimeError
 LanguageFeatures/Constant_update2018/CastOperator_A04_t02/none: CompileTimeError
 LanguageFeatures/Constant_update2018/EqualityOperator_A01_t03/none: CompileTimeError
 LanguageFeatures/Constant_update2018/EqualityOperator_A01_t04/none: CompileTimeError
+LanguageFeatures/Constant_update2018/EqualityOperator_A01_t09: MissingCompileTimeError
+LanguageFeatures/Constant_update2018/EqualityOperator_A01_t10: MissingCompileTimeError
 LanguageFeatures/Constant_update2018/NewOperators_A01_t01: CompileTimeError
 LanguageFeatures/Constant_update2018/NewOperators_A01_t02: CompileTimeError
 LanguageFeatures/Constant_update2018/NewOperators_A02_t01: CompileTimeError
 LanguageFeatures/Constant_update2018/NewOperators_A02_t02: CompileTimeError
-LanguageFeatures/Constant_update2018/NewOperators_A02_t04: CompileTimeError
 LanguageFeatures/Constant_update2018/NewOperators_A02_t05: CompileTimeError
-LanguageFeatures/Constant_update2018/NewOperators_A02_t07: CompileTimeError
-LanguageFeatures/Constant_update2018/NewOperators_A02_t08: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t06: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t09: CompileTimeError
+LanguageFeatures/Constant_update2018/NewOperators_A02_t10: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t01: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t02/none: CompileTimeError
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t03: CompileTimeError
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t04: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t05/none: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t06/none: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A01_t07: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t01: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t02/none: CompileTimeError
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t03: CompileTimeError
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t04: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t05/none: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A02_t08: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t01: CompileTimeError
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t04: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t06: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t06/01: MissingCompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t07: MissingCompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t07/none: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t01: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t02/none: CompileTimeError
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t03: CompileTimeError
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t03/none: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t04/none: CompileTimeError
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t05: MissingCompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t05: CompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t06/none: CompileTimeError
-LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t07: MissingCompileTimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t08/none: CompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t09: MissingCompileTimeError
+LanguageFeatures/Constant_update2018/ShortCircuitOperators_A04_t11: MissingCompileTimeError
 LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: CompileTimeError
 LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: CompileTimeError
 LanguageFeatures/Constant_update2018/TypeTestOperator_A02_t01: CompileTimeError
@@ -418,6 +417,10 @@ LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t04/none: C
 LanguageFeatures/Instantiate-to-bound/class/static/class_l1_t04/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t03/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t04/none: CompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t08/01: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t08/02: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t08/03: MissingCompileTimeError
+LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t08/04: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_l3_t02/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t02/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t03/01: MissingCompileTimeError
@@ -661,41 +664,56 @@ LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t04/02: MissingCompileT
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t10: CompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A01_t01: CompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A01_t03: CompileTimeError
-LanguageFeatures/Spread-collections/Ambiguity_A01_t06: CompileTimeError
+LanguageFeatures/Spread-collections/Ambiguity_A01_t05: MissingCompileTimeError
+LanguageFeatures/Spread-collections/Ambiguity_A01_t06: MissingCompileTimeError
+LanguageFeatures/Spread-collections/Ambiguity_A01_t07: CompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A02_t01/01: MissingCompileTimeError
-LanguageFeatures/Spread-collections/Ambiguity_A02_t03: CompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A01_t02: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A05_t01/none: CompileTimeError
+LanguageFeatures/Spread-collections/ConstSpreads_A03_t02/12: MissingCompileTimeError
+LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/01: MissingCompileTimeError
+LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/02: MissingCompileTimeError
+LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/03: MissingCompileTimeError
+LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/04: MissingCompileTimeError
+LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/05: MissingCompileTimeError
+LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/06: MissingCompileTimeError
+LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/07: MissingCompileTimeError
+LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/08: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A06_t02: CompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A06_t03: CompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A07_t03: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t01: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t04: CompileTimeError
 LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t01: CompileTimeError
 LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t02: CompileTimeError
 LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t03: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t04: CompileTimeError
+LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t05: CompileTimeError
+LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t07: CompileTimeError
+LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t08: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A02_t02: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A02_t03: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A01_t02: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A01_t03: CompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A01_t05: CompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A01_t06: MissingCompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A02_t02: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A08_t01: CompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/none: CompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A05_t02/none: CompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/01: MissingCompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/02: MissingCompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/04: MissingCompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/05: MissingCompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/none: CompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A08_t01/none: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A01_t03: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t01: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t02: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A02_t03: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t04: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t06: CompileTimeError
+LanguageFeatures/Spread-collections/Syntax_A02_t08: CompileTimeError
+LanguageFeatures/Spread-collections/Syntax_A02_t09: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t10: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A02_t11: CompileTimeError
 LanguageFeatures/Spread-collections/TypeInference_A01_t01: CompileTimeError
 LanguageFeatures/Spread-collections/TypeInference_A01_t02: CompileTimeError
 LanguageFeatures/Spread-collections/TypeInference_A02_t01: CompileTimeError
-LanguageFeatures/Spread-collections/TypeInference_A02_t02: CompileTimeError
 LanguageFeatures/Spread-collections/TypeInference_A03_t01: CompileTimeError
-LanguageFeatures/Spread-collections/TypeInference_A04_t01: CompileTimeError
 LanguageFeatures/Super-mixins/covariance_t03: MissingCompileTimeError # Issue 35111
 LanguageFeatures/Super-mixins/covariance_t06: MissingCompileTimeError # Issue 35111
 LanguageFeatures/Super-mixins/covariance_t07: MissingCompileTimeError # Issue 35111
@@ -712,8 +730,6 @@ LanguageFeatures/Constant_update2018/NewOperators_A02_t01: Pass
 LanguageFeatures/Constant_update2018/NewOperators_A02_t02: Pass
 LanguageFeatures/Constant_update2018/NewOperators_A02_t04: Pass
 LanguageFeatures/Constant_update2018/NewOperators_A02_t05: Pass
-LanguageFeatures/Constant_update2018/NewOperators_A02_t07: Pass
-LanguageFeatures/Constant_update2018/NewOperators_A02_t08: Pass
 LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A02_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t02: CompileTimeError
@@ -1109,7 +1125,6 @@ LanguageFeatures/Constant_update2018/NewOperators_A02_t02: DartkCrash
 LanguageFeatures/Constant_update2018/NewOperators_A02_t04: Fail
 LanguageFeatures/Constant_update2018/NewOperators_A02_t05: DartkCrash
 LanguageFeatures/Constant_update2018/NewOperators_A02_t07: Fail
-LanguageFeatures/Constant_update2018/NewOperators_A02_t08: DartkCrash
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05: Pass
 LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t01: DartkCrash
 LanguageFeatures/Constant_update2018/TypeTestOperator_A01_t02: DartkCrash
@@ -1259,8 +1274,6 @@ Language/Metadata/before_param_t07: RuntimeError
 Language/Statements/Do/execution_t06: RuntimeError
 Language/Statements/For/For_Loop/execution_t11: RuntimeError
 Language/Statements/While/execution_t02: RuntimeError
-Language/Types/Type_Declarations/Typedef/self_reference_t08: DartkCrash
-Language/Types/Type_Declarations/Typedef/self_reference_t09: DartkCrash
 LibTest/collection/LinkedList/add_A01_t01: RuntimeError
 LibTest/collection/LinkedList/forEach_A01_t01: RuntimeError
 LibTest/collection/LinkedList/map_A01_t01: RuntimeError
@@ -1409,8 +1422,6 @@ Language/Expressions/Object_Identity/string_t01: RuntimeError
 Language/Expressions/Strings/adjacent_strings_t02: RuntimeError
 Language/Expressions/Type_Cast/syntax_t01: RuntimeError
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError
-Language/Generics/syntax_t02: DartkCrash
-Language/Generics/syntax_t03: DartkCrash
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError
 Language/Libraries_and_Scripts/Parts/compilation_t03: RuntimeError
 Language/Libraries_and_Scripts/Parts/compilation_t05: RuntimeError
@@ -1448,7 +1459,6 @@ Language/Types/Interface_Types/subtype_t21: RuntimeError
 Language/Types/Interface_Types/subtype_t22: RuntimeError
 Language/Types/Interface_Types/subtype_t23: RuntimeError
 Language/Types/Interface_Types/subtype_t26: RuntimeError
-Language/Types/Type_Declarations/Typedef/dynamic_param_type_t02: RuntimeError
 Language/Variables/constant_initialization_t03: RuntimeError
 Language/Variables/constant_variable_t09: RuntimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_typedef_l1_t02: RuntimeError
