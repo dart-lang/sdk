@@ -6,8 +6,6 @@ library fasta.body_builder;
 
 import 'dart:core' hide MapEntry;
 
-import 'collections.dart' show SpreadElement, SpreadMapEntry;
-
 import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart' as fasta;
@@ -67,6 +65,8 @@ import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import '../type_inference/type_promotion.dart'
     show TypePromoter, TypePromotionFact, TypePromotionScope;
 
+import 'collections.dart' show SpreadElement, SpreadMapEntry;
+
 import 'constness.dart' show Constness;
 
 import 'expression_generator.dart'
@@ -110,8 +110,6 @@ import 'redirecting_factory_body.dart'
         getRedirectingFactoryBody,
         getRedirectionTarget,
         isRedirectingFactory;
-
-import 'transform_set_literals.dart' show SetLiteralTransformer;
 
 import 'type_algorithms.dart' show calculateBounds;
 
@@ -209,6 +207,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   bool inCatchBlock = false;
 
   int functionNestingLevel = 0;
+
+  // Set when a spread element is encountered in a collection so the collection
+  // needs to be desugared after type inference.
+  bool transformCollections = false;
 
   // Set by type inference when a set literal is encountered that needs to be
   // transformed because the backend target does not support set literals.
@@ -456,14 +458,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void inferAnnotations(List<Expression> annotations) {
     if (annotations != null) {
       _typeInferrer?.inferMetadata(this, annotations);
-      if (transformSetLiterals) {
-        library.loader.setLiteralTransformer ??=
-            new SetLiteralTransformer(library.loader);
-        for (int i = 0; i < annotations.length; i++) {
-          annotations[i] =
-              annotations[i].accept(library.loader.setLiteralTransformer);
-        }
-      }
+      library.loader.transformListPostInference(
+          annotations, transformSetLiterals, transformCollections);
     }
   }
 
@@ -573,12 +569,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           field.initializer = initializer;
           _typeInferrer?.inferFieldInitializer(
               this, field.builtType, initializer);
-
-          if (transformSetLiterals) {
-            library.loader.setLiteralTransformer ??=
-                new SetLiteralTransformer(library.loader);
-            field.target.accept(library.loader.setLiteralTransformer);
-          }
+          library.loader.transformPostInference(
+              field.target, transformSetLiterals, transformCollections);
         }
       }
     }
@@ -761,22 +753,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           realParameter.initializer = initializer..parent = realParameter;
           _typeInferrer?.inferParameterInitializer(
               this, initializer, realParameter.type);
-          if (transformSetLiterals) {
-            library.loader.setLiteralTransformer ??=
-                new SetLiteralTransformer(library.loader);
-            realParameter.accept(library.loader.setLiteralTransformer);
-          }
+          library.loader.transformPostInference(
+              realParameter, transformSetLiterals, transformCollections);
         }
       }
     }
 
     _typeInferrer?.inferFunctionBody(
         this, _computeReturnTypeContext(member), asyncModifier, body);
-
-    if (transformSetLiterals) {
-      library.loader.setLiteralTransformer ??=
-          new SetLiteralTransformer(library.loader);
-      body?.accept(library.loader.setLiteralTransformer);
+    if (body != null) {
+      library.loader.transformPostInference(
+          body, transformSetLiterals, transformCollections);
     }
 
     // For async, async*, and sync* functions with declared return types, we
@@ -1182,14 +1169,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       constructor.initializers.add(initializer);
     }
     setParents(constructor.initializers, constructor);
-    if (transformSetLiterals) {
-      library.loader.setLiteralTransformer ??=
-          new SetLiteralTransformer(library.loader);
-      for (int i = 0; i < constructor.initializers.length; i++) {
-        constructor.initializers[i]
-            .accept(library.loader.setLiteralTransformer);
-      }
-    }
+    library.loader.transformListPostInference(
+        constructor.initializers, transformSetLiterals, transformCollections);
     if (constructor.function.body == null) {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
@@ -3722,6 +3703,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           spreadToken,
           spreadToken);
     }
+    transformCollections = true;
     push(forest.spreadElement(popForValue(), spreadToken));
   }
 

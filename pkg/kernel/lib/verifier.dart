@@ -339,7 +339,18 @@ class VerifyingVisitor extends RecursiveVisitor {
   }
 
   visitBlockExpression(BlockExpression node) {
-    visitWithLocalScope(node);
+    int stackHeight = enterLocalScope();
+    // Do not visit the block directly because the value expression needs to
+    // be in its scope.
+    TreeNode oldParent = enterParent(node);
+    enterParent(node.body);
+    for (int i = 0; i < node.body.statements.length; ++i) {
+      node.body.statements[i].accept(this);
+    }
+    exitParent(node);
+    node.value.accept(this);
+    exitParent(oldParent);
+    exitLocalScope(stackHeight);
   }
 
   visitCatch(Catch node) {

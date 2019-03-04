@@ -26,6 +26,10 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
   }
 
   void visitSpreadElement(SpreadElement node, DartType typeContext) {
+    if (node.parent is ListLiteral) {
+      inferrer.inferExpression(node.expression, const DynamicType(), true);
+      return;
+    }
     node.parent.replaceChild(
         node,
         InvalidExpression('unimplemented spread element')
@@ -755,6 +759,9 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
           node, inferrer.typeSchemaEnvironment,
           inferred: true);
     }
+
+    // Now, compile non-const list literals to block expressions if they
+    // contain any spread or control-flow elements.
     return null;
   }
 

@@ -23,7 +23,8 @@ import 'package:kernel/ast.dart'
         Library,
         LibraryDependency,
         ProcedureKind,
-        Supertype;
+        Supertype,
+        TreeNode;
 
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, HandleAmbiguousSupertypes;
@@ -91,6 +92,8 @@ import '../kernel/kernel_target.dart' show KernelTarget;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
+import '../kernel/transform_collections.dart' show CollectionTransformer;
+
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
 
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
@@ -141,6 +144,8 @@ class SourceLoader extends Loader<Library> {
   InterfaceResolver interfaceResolver;
 
   Instrumentation instrumentation;
+
+  CollectionTransformer collectionTransformer;
 
   SetLiteralTransformer setLiteralTransformer;
 
@@ -1007,6 +1012,34 @@ class SourceLoader extends Loader<Library> {
     hierarchy.onAmbiguousSupertypes = ignoreAmbiguousSupertypes;
     hierarchy.applyMemberChanges(changedClasses, findDescendants: true);
     ticker.logMs("Performed top level inference");
+  }
+
+  void transformPostInference(
+      TreeNode node, bool transformSetLiterals, bool transformCollections) {
+    if (transformSetLiterals) {
+      node.accept(setLiteralTransformer ??= new SetLiteralTransformer(this));
+    }
+    if (transformCollections) {
+      node.accept(collectionTransformer ??= new CollectionTransformer(this));
+    }
+  }
+
+  void transformListPostInference(List<TreeNode> list,
+      bool transformSetLiterals, bool transformCollections) {
+    if (transformSetLiterals) {
+      SetLiteralTransformer transformer =
+          setLiteralTransformer ??= new SetLiteralTransformer(this);
+      for (int i = 0; i < list.length; ++i) {
+        list[i] = list[i].accept(transformer);
+      }
+    }
+    if (transformCollections) {
+      CollectionTransformer transformer =
+          collectionTransformer ??= new CollectionTransformer(this);
+      for (int i = 0; i < list.length; ++i) {
+        list[i] = list[i].accept(transformer);
+      }
+    }
   }
 
   Expression instantiateInvocation(Expression receiver, String name,
