@@ -1508,6 +1508,32 @@
       </field>
     </result>
   </request>
+  <request method="listTokenDetails" experimental="true">
+    <p>
+      Inspect analysis server's knowledge about all of a file's tokens including
+      their lexeme, type, and what element kinds would have been appropriate for
+      the token's program location.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The path to the file from which tokens should be returned.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="tokens">
+        <list>
+          <ref>TokenDetails</ref>
+        </list>
+        <p>
+          A list of the file's scanned tokens including analysis information
+          about them.
+        </p>
+      </field>
+    </result>
+  </request>
   <notification event="results">
     <p>
       Reports the completion suggestions that should be presented
@@ -3866,6 +3892,33 @@
       <value><code>FUNCTION</code></value>
       <value><code>INTERFACE</code></value>
     </enum>
+  </type>
+  <type name="TokenDetails" experimental="true">
+    <p>
+      A scanned token along with its inferred type information.
+    </p>
+    <object>
+      <field name="lexeme">
+        <ref>String</ref>
+        <p>
+          The raw token text.
+        </p>
+      </field>
+      <field name="type">
+        <ref>String</ref>
+        <p>
+          The type of this token.
+        </p>
+      </field>
+      <field name="validElementKinds">
+        <list>
+          <ref>ElementKind</ref>
+        </list>
+        <p>
+          The kinds of elements which could validly replace this token.
+        </p>
+      </field>
+    </object>
   </type>
   <type name="ExecutionService">
     <p>

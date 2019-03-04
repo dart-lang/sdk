@@ -6283,6 +6283,184 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 }
 
 /**
+ * completion.listTokenDetails params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class CompletionListTokenDetailsParams implements RequestParams {
+  String _file;
+
+  /**
+   * The path to the file from which tokens should be returned.
+   */
+  String get file => _file;
+
+  /**
+   * The path to the file from which tokens should be returned.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  CompletionListTokenDetailsParams(String file) {
+    this.file = file;
+  }
+
+  factory CompletionListTokenDetailsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      return new CompletionListTokenDetailsParams(file);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "completion.listTokenDetails params", json);
+    }
+  }
+
+  factory CompletionListTokenDetailsParams.fromRequest(Request request) {
+    return new CompletionListTokenDetailsParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "completion.listTokenDetails", toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionListTokenDetailsParams) {
+      return file == other.file;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * completion.listTokenDetails result
+ *
+ * {
+ *   "tokens": List<TokenDetails>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class CompletionListTokenDetailsResult implements ResponseResult {
+  List<TokenDetails> _tokens;
+
+  /**
+   * A list of the file's scanned tokens including analysis information about
+   * them.
+   */
+  List<TokenDetails> get tokens => _tokens;
+
+  /**
+   * A list of the file's scanned tokens including analysis information about
+   * them.
+   */
+  void set tokens(List<TokenDetails> value) {
+    assert(value != null);
+    this._tokens = value;
+  }
+
+  CompletionListTokenDetailsResult(List<TokenDetails> tokens) {
+    this.tokens = tokens;
+  }
+
+  factory CompletionListTokenDetailsResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<TokenDetails> tokens;
+      if (json.containsKey("tokens")) {
+        tokens = jsonDecoder.decodeList(
+            jsonPath + ".tokens",
+            json["tokens"],
+            (String jsonPath, Object json) =>
+                new TokenDetails.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "tokens");
+      }
+      return new CompletionListTokenDetailsResult(tokens);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "completion.listTokenDetails result", json);
+    }
+  }
+
+  factory CompletionListTokenDetailsResult.fromResponse(Response response) {
+    return new CompletionListTokenDetailsResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["tokens"] =
+        tokens.map((TokenDetails value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionListTokenDetailsResult) {
+      return listEqual(
+          tokens, other.tokens, (TokenDetails a, TokenDetails b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, tokens.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * completion.registerLibraryPaths params
  *
  * {
@@ -21366,6 +21544,138 @@ class ServerStatusParams implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, analysis.hashCode);
     hash = JenkinsSmiHash.combine(hash, pub.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * TokenDetails
+ *
+ * {
+ *   "lexeme": String
+ *   "type": String
+ *   "validElementKinds": List<ElementKind>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class TokenDetails implements HasToJson {
+  String _lexeme;
+
+  String _type;
+
+  List<ElementKind> _validElementKinds;
+
+  /**
+   * The raw token text.
+   */
+  String get lexeme => _lexeme;
+
+  /**
+   * The raw token text.
+   */
+  void set lexeme(String value) {
+    assert(value != null);
+    this._lexeme = value;
+  }
+
+  /**
+   * The type of this token.
+   */
+  String get type => _type;
+
+  /**
+   * The type of this token.
+   */
+  void set type(String value) {
+    assert(value != null);
+    this._type = value;
+  }
+
+  /**
+   * The kinds of elements which could validly replace this token.
+   */
+  List<ElementKind> get validElementKinds => _validElementKinds;
+
+  /**
+   * The kinds of elements which could validly replace this token.
+   */
+  void set validElementKinds(List<ElementKind> value) {
+    assert(value != null);
+    this._validElementKinds = value;
+  }
+
+  TokenDetails(
+      String lexeme, String type, List<ElementKind> validElementKinds) {
+    this.lexeme = lexeme;
+    this.type = type;
+    this.validElementKinds = validElementKinds;
+  }
+
+  factory TokenDetails.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String lexeme;
+      if (json.containsKey("lexeme")) {
+        lexeme = jsonDecoder.decodeString(jsonPath + ".lexeme", json["lexeme"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "lexeme");
+      }
+      String type;
+      if (json.containsKey("type")) {
+        type = jsonDecoder.decodeString(jsonPath + ".type", json["type"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "type");
+      }
+      List<ElementKind> validElementKinds;
+      if (json.containsKey("validElementKinds")) {
+        validElementKinds = jsonDecoder.decodeList(
+            jsonPath + ".validElementKinds",
+            json["validElementKinds"],
+            (String jsonPath, Object json) =>
+                new ElementKind.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "validElementKinds");
+      }
+      return new TokenDetails(lexeme, type, validElementKinds);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "TokenDetails", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["lexeme"] = lexeme;
+    result["type"] = type;
+    result["validElementKinds"] =
+        validElementKinds.map((ElementKind value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is TokenDetails) {
+      return lexeme == other.lexeme &&
+          type == other.type &&
+          listEqual(validElementKinds, other.validElementKinds,
+              (ElementKind a, ElementKind b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, lexeme.hashCode);
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    hash = JenkinsSmiHash.combine(hash, validElementKinds.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
