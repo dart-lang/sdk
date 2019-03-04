@@ -1295,20 +1295,23 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.fieldFormalParameter)
   LinkedNode get fieldFormalParameter_typeParameters;
 
-  @VariantId(18, variant: LinkedNodeKind.forEachStatement)
-  int get forEachStatement_awaitKeyword;
+  @VariantId(15, variantList: [
+    LinkedNodeKind.forEachPartsWithDeclaration,
+    LinkedNodeKind.forEachPartsWithIdentifier,
+  ])
+  int get forEachParts_inKeyword;
 
-  @VariantId(6, variant: LinkedNodeKind.forEachStatement)
-  LinkedNode get forEachStatement_identifier;
+  @VariantId(6, variantList: [
+    LinkedNodeKind.forEachPartsWithDeclaration,
+    LinkedNodeKind.forEachPartsWithIdentifier,
+  ])
+  LinkedNode get forEachParts_iterable;
 
-  @VariantId(15, variant: LinkedNodeKind.forEachStatement)
-  int get forEachStatement_inKeyword;
+  @VariantId(7, variant: LinkedNodeKind.forEachPartsWithDeclaration)
+  LinkedNode get forEachPartsWithDeclaration_loopVariable;
 
-  @VariantId(7, variant: LinkedNodeKind.forEachStatement)
-  LinkedNode get forEachStatement_iterable;
-
-  @VariantId(8, variant: LinkedNodeKind.forEachStatement)
-  LinkedNode get forEachStatement_loopVariable;
+  @VariantId(7, variant: LinkedNodeKind.forEachPartsWithIdentifier)
+  LinkedNode get forEachPartsWithIdentifier_identifier;
 
   @VariantId(26, variantList: [
     LinkedNodeKind.fieldFormalParameter,
@@ -1332,47 +1335,53 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(18, variant: LinkedNodeKind.formalParameterList)
   int get formalParameterList_rightParenthesis;
 
-  @VariantId(10, variantList: [
-    LinkedNodeKind.forStatement,
-    LinkedNodeKind.forEachStatement,
+  @VariantId(6, variantList: [
+    LinkedNodeKind.forPartsWithDeclarations,
+    LinkedNodeKind.forPartsWithExpression,
   ])
-  LinkedNode get forStatement_body;
+  LinkedNode get forParts_condition;
 
-  @VariantId(7, variant: LinkedNodeKind.forStatement)
-  LinkedNode get forStatement_condition;
+  @VariantId(15, variantList: [
+    LinkedNodeKind.forPartsWithDeclarations,
+    LinkedNodeKind.forPartsWithExpression,
+  ])
+  int get forParts_leftSeparator;
 
   @VariantId(16, variantList: [
-    LinkedNodeKind.forStatement,
-    LinkedNodeKind.forEachStatement,
+    LinkedNodeKind.forPartsWithDeclarations,
+    LinkedNodeKind.forPartsWithExpression,
   ])
-  int get forStatement_forKeyword;
+  int get forParts_rightSeparator;
 
-  @VariantId(8, variant: LinkedNodeKind.forStatement)
-  LinkedNode get forStatement_initialization;
-
-  @VariantId(17, variantList: [
-    LinkedNodeKind.forStatement,
-    LinkedNodeKind.forEachStatement,
+  @VariantId(5, variantList: [
+    LinkedNodeKind.forPartsWithDeclarations,
+    LinkedNodeKind.forPartsWithExpression,
   ])
-  int get forStatement_leftParenthesis;
+  List<LinkedNode> get forParts_updaters;
 
-  @VariantId(18, variant: LinkedNodeKind.forStatement)
-  int get forStatement_leftSeparator;
+  @VariantId(7, variant: LinkedNodeKind.forPartsWithDeclarations)
+  LinkedNode get forPartsWithDeclarations_variables;
 
-  @VariantId(19, variantList: [
-    LinkedNodeKind.forStatement,
-    LinkedNodeKind.forEachStatement,
-  ])
-  int get forStatement_rightParenthesis;
+  @VariantId(7, variant: LinkedNodeKind.forPartsWithExpression)
+  LinkedNode get forPartsWithExpression_initialization;
 
   @VariantId(15, variant: LinkedNodeKind.forStatement)
-  int get forStatement_rightSeparator;
+  int get forStatement_awaitKeyword;
 
-  @VariantId(2, variant: LinkedNodeKind.forStatement)
-  List<LinkedNode> get forStatement_updaters;
+  @VariantId(7, variant: LinkedNodeKind.forStatement)
+  LinkedNode get forStatement_body;
 
-  @VariantId(9, variant: LinkedNodeKind.forStatement)
-  LinkedNode get forStatement_variableList;
+  @VariantId(16, variant: LinkedNodeKind.forStatement)
+  int get forStatement_forKeyword;
+
+  @VariantId(6, variant: LinkedNodeKind.forStatement)
+  LinkedNode get forStatement_forLoopParts;
+
+  @VariantId(17, variant: LinkedNodeKind.forStatement)
+  int get forStatement_leftParenthesis;
+
+  @VariantId(19, variant: LinkedNodeKind.forStatement)
+  int get forStatement_rightParenthesis;
 
   @VariantId(15, variant: LinkedNodeKind.functionDeclaration)
   int get functionDeclaration_externalKeyword;
@@ -2147,7 +2156,10 @@ enum LinkedNodeKind {
   fieldDeclaration,
   fieldFormalParameter,
   formalParameterList,
-  forEachStatement,
+  forEachPartsWithDeclaration,
+  forEachPartsWithIdentifier,
+  forPartsWithDeclarations,
+  forPartsWithExpression,
   forStatement,
   functionDeclaration,
   functionDeclarationStatement,

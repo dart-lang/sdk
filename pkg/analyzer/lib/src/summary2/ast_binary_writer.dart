@@ -436,18 +436,23 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
-  LinkedNodeBuilder visitForEachStatement(ForEachStatement node) {
-    return LinkedNodeBuilder.forEachStatement(
-      forEachStatement_awaitKeyword: _getToken(node.awaitKeyword),
-      forStatement_body: node.body.accept(this),
-      forStatement_forKeyword: _getToken(node.forKeyword),
-      forEachStatement_identifier: node.identifier?.accept(this),
-      forEachStatement_inKeyword: _getToken(node.inKeyword),
-      forEachStatement_iterable: node.iterable.accept(this),
-      forStatement_leftParenthesis: _getToken(node.leftParenthesis),
-      forEachStatement_loopVariable: node.loopVariable?.accept(this),
-      forStatement_rightParenthesis: _getToken(node.rightParenthesis),
+  LinkedNodeBuilder visitForEachPartsWithDeclaration(
+      ForEachPartsWithDeclaration node) {
+    var builder = LinkedNodeBuilder.forEachPartsWithDeclaration(
+      forEachPartsWithDeclaration_loopVariable: node.loopVariable.accept(this),
     );
+    _storeForEachParts(builder, node);
+    return builder;
+  }
+
+  @override
+  LinkedNodeBuilder visitForEachPartsWithIdentifier(
+      ForEachPartsWithIdentifier node) {
+    var builder = LinkedNodeBuilder.forEachPartsWithIdentifier(
+      forEachPartsWithIdentifier_identifier: node.identifier.accept(this),
+    );
+    _storeForEachParts(builder, node);
+    return builder;
   }
 
   @override
@@ -462,18 +467,33 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
-  LinkedNodeBuilder visitForStatement(ForStatement node) {
+  LinkedNodeBuilder visitForPartsWithDeclarations(
+      ForPartsWithDeclarations node) {
+    var builder = LinkedNodeBuilder.forPartsWithDeclarations(
+      forPartsWithDeclarations_variables: node.variables.accept(this),
+    );
+    _storeForParts(builder, node);
+    return builder;
+  }
+
+  @override
+  LinkedNodeBuilder visitForPartsWithExpression(ForPartsWithExpression node) {
+    var builder = LinkedNodeBuilder.forPartsWithExpression(
+      forPartsWithExpression_initialization: node.initialization?.accept(this),
+    );
+    _storeForParts(builder, node);
+    return builder;
+  }
+
+  @override
+  LinkedNodeBuilder visitForStatement2(ForStatement2 node) {
     return LinkedNodeBuilder.forStatement(
+      forStatement_awaitKeyword: _getToken(node.awaitKeyword),
       forStatement_body: node.body.accept(this),
-      forStatement_condition: node.condition?.accept(this),
       forStatement_forKeyword: _getToken(node.forKeyword),
-      forStatement_initialization: node.initialization?.accept(this),
+      forStatement_forLoopParts: node.forLoopParts?.accept(this),
       forStatement_leftParenthesis: _getToken(node.leftParenthesis),
-      forStatement_leftSeparator: _getToken(node.leftSeparator),
       forStatement_rightParenthesis: _getToken(node.rightParenthesis),
-      forStatement_rightSeparator: _getToken(node.rightSeparator),
-      forStatement_updaters: _writeNodeList(node.updaters),
-      forStatement_variableList: node.variables?.accept(this),
     );
   }
 
@@ -1375,6 +1395,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     builder.expression_type = _writeType(node.staticType);
   }
 
+  void _storeForEachParts(LinkedNodeBuilder builder, ForEachParts node) {
+    _storeForLoopParts(builder, node);
+    builder
+      ..forEachParts_inKeyword = _getToken(node.inKeyword)
+      ..forEachParts_iterable = node.iterable?.accept(this);
+  }
+
+  void _storeForLoopParts(LinkedNodeBuilder builder, ForLoopParts node) {}
+
   void _storeFormalParameter(LinkedNodeBuilder builder, FormalParameter node) {
     var kind = LinkedNodeFormalParameterKind.required;
     if (node.isNamed) {
@@ -1384,6 +1413,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     }
 
     builder.formalParameter_kind = kind;
+  }
+
+  void _storeForParts(LinkedNodeBuilder builder, ForParts node) {
+    _storeForLoopParts(builder, node);
+    builder
+      ..forParts_leftSeparator = _getToken(node.leftSeparator)
+      ..forParts_condition = node.condition?.accept(this)
+      ..forParts_rightSeparator = _getToken(node.rightSeparator)
+      ..forParts_updaters = _writeNodeList(node.updaters);
   }
 
   void _storeFunctionBody(LinkedNodeBuilder builder, FunctionBody node) {}

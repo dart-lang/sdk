@@ -231,7 +231,13 @@ enum LinkedNodeKind : byte {
 
   formalParameterList,
 
-  forEachStatement,
+  forEachPartsWithDeclaration,
+
+  forEachPartsWithIdentifier,
+
+  forPartsWithDeclarations,
+
+  forPartsWithExpression,
 
   forStatement,
 

@@ -102,8 +102,14 @@ class AstBinaryReader {
         return _read_fieldDeclaration(data);
       case LinkedNodeKind.fieldFormalParameter:
         return _read_fieldFormalParameter(data);
-      case LinkedNodeKind.forEachStatement:
-        return _read_forEachStatement(data);
+      case LinkedNodeKind.forEachPartsWithDeclaration:
+        return _read_forEachPartsWithDeclaration(data);
+      case LinkedNodeKind.forEachPartsWithIdentifier:
+        return _read_forEachPartsWithIdentifier(data);
+      case LinkedNodeKind.forPartsWithExpression:
+        return _read_forPartsWithExpression(data);
+      case LinkedNodeKind.forPartsWithDeclarations:
+        return _read_forPartsWithDeclarations(data);
       case LinkedNodeKind.forStatement:
         return _read_forStatement(data);
       case LinkedNodeKind.formalParameterList:
@@ -701,26 +707,20 @@ class AstBinaryReader {
     );
   }
 
-  ForEachStatement _read_forEachStatement(LinkedNode data) {
-    // TODO(scheglov) modernize IDL
-    var forLoopParts = data.forEachStatement_loopVariable != null
-        ? astFactory.forEachPartsWithDeclaration(
-            loopVariable: readNode(data.forEachStatement_loopVariable),
-            inKeyword: _getToken(data.forEachStatement_inKeyword),
-            iterable: readNode(data.forEachStatement_iterable),
-          )
-        : astFactory.forEachPartsWithIdentifier(
-            identifier: readNode(data.forEachStatement_identifier),
-            inKeyword: _getToken(data.forEachStatement_inKeyword),
-            iterable: readNode(data.forEachStatement_iterable),
-          );
-    return astFactory.forStatement2(
-      awaitKeyword: _getToken(data.forEachStatement_awaitKeyword),
-      forKeyword: _getToken(data.forStatement_forKeyword),
-      leftParenthesis: _getToken(data.forStatement_leftParenthesis),
-      forLoopParts: forLoopParts,
-      rightParenthesis: _getToken(data.forStatement_rightParenthesis),
-      body: readNode(data.forStatement_body),
+  ForEachPartsWithDeclaration _read_forEachPartsWithDeclaration(
+      LinkedNode data) {
+    return astFactory.forEachPartsWithDeclaration(
+      inKeyword: _getToken(data.forEachParts_inKeyword),
+      iterable: readNode(data.forEachParts_iterable),
+      loopVariable: readNode(data.forEachPartsWithDeclaration_loopVariable),
+    );
+  }
+
+  ForEachPartsWithIdentifier _read_forEachPartsWithIdentifier(LinkedNode data) {
+    return astFactory.forEachPartsWithIdentifier(
+      inKeyword: _getToken(data.forEachParts_inKeyword),
+      iterable: readNode(data.forEachParts_iterable),
+      identifier: readNode(data.forEachPartsWithIdentifier_identifier),
     );
   }
 
@@ -734,27 +734,31 @@ class AstBinaryReader {
     );
   }
 
-  ForStatement _read_forStatement(LinkedNode data) {
-    // TODO(scheglov) modernize IDL
-    var forLoopParts = data.forStatement_variableList != null
-        ? astFactory.forPartsWithDeclarations(
-            variables: readNode(data.forStatement_variableList),
-            leftSeparator: _getToken(data.forStatement_leftSeparator),
-            rightSeparator: _getToken(data.forStatement_rightSeparator),
-            condition: readNode(data.forStatement_condition),
-            updaters: _readNodeList(data.forStatement_updaters),
-          )
-        : astFactory.forPartsWithExpression(
-            initialization: readNode(data.forStatement_initialization),
-            leftSeparator: _getToken(data.forStatement_leftSeparator),
-            rightSeparator: _getToken(data.forStatement_rightSeparator),
-            condition: readNode(data.forStatement_condition),
-            updaters: _readNodeList(data.forStatement_updaters),
-          );
+  ForPartsWithDeclarations _read_forPartsWithDeclarations(LinkedNode data) {
+    return astFactory.forPartsWithDeclarations(
+      condition: readNode(data.forParts_condition),
+      leftSeparator: _getToken(data.forParts_leftSeparator),
+      rightSeparator: _getToken(data.forParts_rightSeparator),
+      updaters: _readNodeList(data.forParts_updaters),
+      variables: readNode(data.forPartsWithDeclarations_variables),
+    );
+  }
+
+  ForPartsWithExpression _read_forPartsWithExpression(LinkedNode data) {
+    return astFactory.forPartsWithExpression(
+      condition: readNode(data.forParts_condition),
+      initialization: readNode(data.forPartsWithExpression_initialization),
+      leftSeparator: _getToken(data.forParts_leftSeparator),
+      rightSeparator: _getToken(data.forParts_rightSeparator),
+      updaters: _readNodeList(data.forParts_updaters),
+    );
+  }
+
+  ForStatement2 _read_forStatement(LinkedNode data) {
     return astFactory.forStatement2(
       forKeyword: _getToken(data.forStatement_forKeyword),
       leftParenthesis: _getToken(data.forStatement_leftParenthesis),
-      forLoopParts: forLoopParts,
+      forLoopParts: readNode(data.forStatement_forLoopParts),
       rightParenthesis: _getToken(data.forStatement_rightParenthesis),
       body: readNode(data.forStatement_body),
     );
