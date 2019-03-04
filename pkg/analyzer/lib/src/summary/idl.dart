@@ -3358,6 +3358,8 @@ enum UnlinkedExprOperation {
   /// [UnlinkedExpr.ints]), interpret them as key/value pairs, place them in a
   /// [Map], and push the result back onto the stack.  The two type parameters
   /// for the [Map] are implicitly `dynamic`.
+  ///
+  /// To be replaced with [makeUntypedSetOrMap] for unified collections.
   makeUntypedMap,
 
   /// Pop the top n values from the stack (where n is obtained from
@@ -3370,6 +3372,10 @@ enum UnlinkedExprOperation {
   /// [UnlinkedExpr.ints]), interpret them as key/value pairs, place them in a
   /// [Map], and push the result back onto the stack.  The two type parameters
   /// for the [Map] are obtained from [UnlinkedExpr.references].
+  ///
+  /// To be replaced with [makeTypedMap2] for unified collections. This is not
+  /// forwards compatible with [makeTypedMap2] because it expects
+  /// [CollectionElement]s instead of pairs of [Expression]s.
   makeTypedMap,
 
   /// Pop the top 2 values from the stack, evaluate `v1 == v2`, and push the
@@ -3630,6 +3636,25 @@ enum UnlinkedExprOperation {
   /// onto the stack.  The type parameter for the [Set] is obtained from
   /// [UnlinkedExpr.references].
   makeTypedSet,
+
+  /// Pop the top n values from the stack (where n is obtained from
+  /// [UnlinkedExpr.ints]), which should be [CollectionElement]s, place them in
+  /// a [SetOrMap], and push the result back onto the stack.
+  makeUntypedSetOrMap,
+
+  /// Pop the top n values from the stack (where n is obtained from
+  /// [UnlinkedExpr.ints]), which should be [CollectionElement]s, place them in
+  /// a [Map], and push the result back onto the stack. The two type parameters
+  /// for the [Map] are obtained from [UnlinkedExpr.references].
+  ///
+  /// To replace [makeTypedMap] for unified collections. This is not backwards
+  /// compatible with [makeTypedMap] because it expects [CollectionElement]s
+  /// instead of pairs of [Expression]s.
+  makeTypedMap2,
+
+  /// Pop the top 2 values from the stack, place them in a [MapLiteralEntry],
+  /// and push the result back onto the stack.
+  makeMapLiteralEntry,
 }
 
 /// Unlinked summary information about an import declaration.

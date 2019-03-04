@@ -5204,6 +5204,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
         case UnlinkedExprOperation.makeUntypedList:
         case UnlinkedExprOperation.makeUntypedMap:
         case UnlinkedExprOperation.makeUntypedSet:
+        case UnlinkedExprOperation.makeUntypedSetOrMap:
           intPtr++;
           break;
         case UnlinkedExprOperation.makeTypedList:
@@ -5212,6 +5213,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           intPtr++;
           break;
         case UnlinkedExprOperation.makeTypedMap:
+        case UnlinkedExprOperation.makeTypedMap2:
           refPtr += 2;
           intPtr++;
           break;

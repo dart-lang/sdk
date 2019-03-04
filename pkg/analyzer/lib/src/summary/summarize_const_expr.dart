@@ -348,6 +348,8 @@ abstract class AbstractConstExprSerializer {
       _serializeMapLiteral(expr);
     } else if (expr is SetLiteral) {
       _serializeSetLiteral(expr);
+    } else if (expr is SetOrMapLiteral) {
+      _serializeSetOrMapLiteral(expr);
     } else if (expr is MethodInvocation) {
       _serializeMethodInvocation(expr);
     } else if (expr is BinaryExpression) {
@@ -539,6 +541,10 @@ abstract class AbstractConstExprSerializer {
   void _serializeCollectionElement(CollectionElement element) {
     if (element is Expression) {
       _serialize(element);
+    } else if (element is MapLiteralEntry) {
+      _serialize(element.key);
+      _serialize(element.value);
+      operations.add(UnlinkedExprOperation.makeMapLiteralEntry);
     } else {
       // TODO(paulberry): Implement serialization for spread and control flow
       //  elements.
@@ -676,6 +682,29 @@ abstract class AbstractConstExprSerializer {
       operations.add(UnlinkedExprOperation.makeTypedSet);
     } else {
       operations.add(UnlinkedExprOperation.makeUntypedSet);
+    }
+  }
+
+  void _serializeSetOrMapLiteral(SetOrMapLiteral expr) {
+    if (forConst || expr.typeArguments == null) {
+      for (CollectionElement element in expr.elements2) {
+        _serializeCollectionElement(element);
+      }
+      ints.add(expr.elements2.length);
+    } else {
+      ints.add(0);
+    }
+
+    List<TypeAnnotation> typeArguments = expr.typeArguments?.arguments;
+    if (typeArguments != null && typeArguments.length == 2) {
+      references.add(serializeType(typeArguments[0]));
+      references.add(serializeType(typeArguments[1]));
+      operations.add(UnlinkedExprOperation.makeTypedMap2);
+    } else if (typeArguments != null && typeArguments.length == 1) {
+      references.add(serializeType(typeArguments[0]));
+      operations.add(UnlinkedExprOperation.makeTypedSet);
+    } else {
+      operations.add(UnlinkedExprOperation.makeUntypedSetOrMap);
     }
   }
 

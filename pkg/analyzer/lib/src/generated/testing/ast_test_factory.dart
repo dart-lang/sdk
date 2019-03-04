@@ -1082,6 +1082,15 @@ class AstTestFactory {
           elements,
           TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
+  static SetOrMapLiteral setOrMapLiteral(
+          Keyword keyword, TypeArgumentList typeArguments,
+          [List<CollectionElement> elements]) =>
+      astFactory.setOrMapLiteral(
+          constKeyword:
+              keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+          typeArguments: typeArguments,
+          elements: elements);
+
   static ShowCombinator showCombinator(List<SimpleIdentifier> identifiers) =>
       astFactory.showCombinator(
           TokenFactory.tokenFromString("show"), identifiers);

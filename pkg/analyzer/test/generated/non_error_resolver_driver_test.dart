@@ -12,6 +12,7 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonErrorResolverTest_Driver);
+    defineReflectiveTests(NonErrorResolverTest_WithUiAsCode);
     defineReflectiveTests(NonConstantValueInInitializer);
   });
 }
@@ -71,4 +72,11 @@ class NonErrorResolverTest_Driver extends NonErrorResolverTestBase {
   test_null_callOperator() {
     return super.test_null_callOperator();
   }
+}
+
+@reflectiveTest
+class NonErrorResolverTest_WithUiAsCode extends NonErrorResolverTest_Driver {
+  @override
+  List<String> get enabledExperiments =>
+      [EnableString.spread_collections, EnableString.control_flow_collections];
 }

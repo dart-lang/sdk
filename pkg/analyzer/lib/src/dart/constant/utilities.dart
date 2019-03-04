@@ -192,6 +192,18 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
     if (node.isConst) {
       _find(node);
     } else {
+      if (node.isMap) {
+        // Values of keys are computed to check that they are unique.
+        for (var entry in node.elements2) {
+          // TODO(mfairhurst): How do if/for loops/spreads affect this?
+          _find(entry);
+        }
+      } else if (node.isSet) {
+        // values of sets are computed to check that they are unique.
+        for (var entry in node.elements2) {
+          _find(entry);
+        }
+      }
       super.visitSetOrMapLiteral(node);
     }
   }
