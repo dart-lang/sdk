@@ -2630,6 +2630,7 @@ Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
   // While translating the body of a finalizer we need to set the try-finally
   // block which is active when translating the body.
   while (B->try_finally_block_ != outer_finally) {
+    ASSERT(B->try_finally_block_ != nullptr);
     // Set correct try depth (in case there are nested try statements).
     B->try_depth_ = B->try_finally_block_->try_depth();
 
