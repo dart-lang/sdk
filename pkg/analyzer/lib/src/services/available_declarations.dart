@@ -739,10 +739,6 @@ class RelevanceTags {
       return const ['dart:core::String'];
     } else if (expression is ListLiteral) {
       return const ['dart:core::List'];
-    } else if (expression is MapLiteral) {
-      return const ['dart:core::Map'];
-    } else if (expression is SetLiteral) {
-      return const ['dart:core::Set'];
     } else if (expression is SetOrMapLiteral) {
       if (expression.isMap) {
         return const ['dart:core::Map'];
