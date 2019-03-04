@@ -5346,6 +5346,38 @@ class ListConstant extends Constant {
       types.literalListType(typeArgument);
 }
 
+class SetConstant extends Constant {
+  final DartType typeArgument;
+  final List<Constant> entries;
+
+  SetConstant(this.typeArgument, this.entries);
+
+  visitChildren(Visitor v) {
+    typeArgument.accept(v);
+    for (final Constant constant in entries) {
+      constant.acceptReference(v);
+    }
+  }
+
+  accept(ConstantVisitor v) => v.visitSetConstant(this);
+  acceptReference(Visitor v) => v.visitSetConstantReference(this);
+
+  String toString() => '${this.runtimeType}<$typeArgument>($entries)';
+
+  int _cachedHashCode;
+  int get hashCode {
+    return _cachedHashCode ??= typeArgument.hashCode ^ listHashCode(entries);
+  }
+
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SetConstant &&
+          other.typeArgument == typeArgument &&
+          listEquals(other.entries, entries));
+
+  DartType getType(TypeEnvironment types) => types.literalSetType(typeArgument);
+}
+
 class InstanceConstant extends Constant {
   final Reference classReference;
   final List<DartType> typeArguments;

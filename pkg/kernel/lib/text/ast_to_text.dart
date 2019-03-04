@@ -1948,6 +1948,15 @@ class Printer extends Visitor<Null> {
     endLine('${node.runtimeType}<${node.typeArgument}>($entries)');
   }
 
+  visitSetConstant(SetConstant node) {
+    final String name = syntheticNames.nameConstant(node);
+    write('  $name = ');
+    final String entries = node.entries.map((Constant constant) {
+      return syntheticNames.nameConstant(constant);
+    }).join(', ');
+    endLine('${node.runtimeType}<${node.typeArgument}>($entries)');
+  }
+
   visitMapConstant(MapConstant node) {
     final String name = syntheticNames.nameConstant(node);
     write('  $name = ');

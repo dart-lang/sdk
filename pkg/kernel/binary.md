@@ -137,7 +137,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 19;
+  UInt32 formatVersion = 20;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -913,6 +913,12 @@ type MapConstant extends Constant {
 
 type ListConstant extends Constant {
   Byte tag = 7;
+  DartType type;
+  List<ConstantReference> values;
+}
+
+type SetConstant extends Constant {
+  Byte tag = 13; // Note: tag is out of order.
   DartType type;
   List<ConstantReference> values;
 }

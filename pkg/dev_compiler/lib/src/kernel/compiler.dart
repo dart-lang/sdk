@@ -5150,6 +5150,14 @@ class ProgramCompiler extends Object
   }
 
   @override
+  visitSetConstant(node) {
+    // Set literals are currently desugared in the frontend.
+    // Implement this method before flipping the supportsSetLiterals flag
+    // in DevCompilerTarget to true.
+    throw "Set literal constants not supported.";
+  }
+
+  @override
   visitInstanceConstant(node) {
     entryToProperty(entry) {
       var field = entry.key.asField.name.name;

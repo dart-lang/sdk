@@ -20,7 +20,7 @@ static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
 static const uint32_t kMinSupportedKernelFormatVersion = 18;
-static const uint32_t kMaxSupportedKernelFormatVersion = 19;
+static const uint32_t kMaxSupportedKernelFormatVersion = 20;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -147,6 +147,7 @@ enum ConstantTag {
   kSymbolConstant = 5,
   kMapConstant = 6,
   kListConstant = 7,
+  kSetConstant = 13,
   kInstanceConstant = 8,
   kPartialInstantiationConstant = 9,
   kTearOffConstant = 10,

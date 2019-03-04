@@ -1205,6 +1205,11 @@ const Array& ConstantHelper::ReadConstantTable() {
         temp_instance_ = H.Canonicalize(temp_array_);
         break;
       }
+      case kSetConstant:
+        // Set literals are currently desugared in the frontend and will not
+        // reach the VM. See http://dartbug.com/35124 for discussion.
+        UNREACHABLE();
+        break;
       case kInstanceConstant: {
         const NameIndex index = helper_.ReadCanonicalNameReference();
         if (ShouldSkipConstant(index)) {

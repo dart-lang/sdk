@@ -288,6 +288,12 @@ class TextSerializationVerifier implements Visitor<void> {
   }
 
   @override
+  void visitSetConstantReference(SetConstant node) {
+    storeLastSeenUriAndOffset(node);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitMapConstantReference(MapConstant node) {
     storeLastSeenUriAndOffset(node);
     node.visitChildren(this);
@@ -367,6 +373,12 @@ class TextSerializationVerifier implements Visitor<void> {
 
   @override
   void visitListConstant(ListConstant node) {
+    storeLastSeenUriAndOffset(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitSetConstant(SetConstant node) {
     storeLastSeenUriAndOffset(node);
     node.visitChildren(this);
   }

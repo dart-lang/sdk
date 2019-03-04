@@ -717,6 +717,12 @@ class ConstantValuefier implements ir.ConstantVisitor<ConstantValue> {
   }
 
   @override
+  ConstantValue visitSetConstant(ir.SetConstant node) {
+    // TODO(johnniwinther, fishythefish): Create a set constant value.
+    throw new UnsupportedError("Set literal constants not implemented.");
+  }
+
+  @override
   ConstantValue visitMapConstant(ir.MapConstant node) {
     List<ConstantValue> keys = [];
     List<ConstantValue> values = [];

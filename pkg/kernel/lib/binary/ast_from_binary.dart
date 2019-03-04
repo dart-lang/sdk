@@ -239,6 +239,15 @@ class BinaryBuilder {
           entries[i] = readConstantReference();
         }
         return new ListConstant(typeArgument, entries);
+      case ConstantTag.SetConstant:
+        final DartType typeArgument = readDartType();
+        final int length = readUInt();
+        final List<Constant> entries =
+            new List<Constant>.filled(length, null, growable: true);
+        for (int i = 0; i < length; i++) {
+          entries[i] = readConstantReference();
+        }
+        return new SetConstant(typeArgument, entries);
       case ConstantTag.InstanceConstant:
         final Reference classReference = readClassReference();
         final int typeArgumentCount = readUInt();
