@@ -2238,18 +2238,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * parameters. The [expectedStaticType] is the expected static type of the
    * parameter. The [actualStaticType] is the actual static type of the
    * argument.
-   *
-   * This method corresponds to
-   * [BestPracticesVerifier.checkForArgumentTypeNotAssignable].
-   *
-   * See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE],
-   * [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
-   * [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
-   * [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE],
-   * [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE],
-   * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
-   * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE], and
-   * [StaticWarningCode.USE_OF_VOID_RESULT].
    */
   void _checkForArgumentTypeNotAssignable(
       Expression expression,
@@ -2285,6 +2273,52 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     DartType staticParameterType = staticParameterElement?.type;
     _checkForArgumentTypeNotAssignableWithExpectedTypes(argument,
         staticParameterType, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+  }
+
+  /**
+   * Verify that the type of the elements of the given [spreadExpression] (the
+   * [spreadExpressionType]) can be assigned to the element type of the
+   * enclosing collection (the [elementType]). If not, report an error with the
+   * given [errorCode].
+   */
+  void _checkForArgumentTypeNotAssignableInSpread(
+      Expression spreadExpression,
+      DartType elementType,
+      DartType spreadExpressionType,
+      ErrorCode errorCode) {
+    if (spreadExpressionType != null && elementType != null) {
+      if (!elementType.isVoid && _checkForUseOfVoidResult(spreadExpression)) {
+        return;
+      }
+      if (spreadExpressionType is InterfaceType) {
+        if (_typeSystem.isSubtypeOf(
+            spreadExpressionType, _typeProvider.iterableObjectType)) {
+          // TODO(brianwilkerson) Handle the following case (from code review):
+          //
+          // What if we have `class X<T> implements Iterable<int> {}`? Then the
+          // type argument to `X` does not matter, we need the type argument for
+          // `Iterable` in `X<T>`. Front-end has a nice method in ClassHierarchy
+          // for this:
+          //
+          //  /// Returns the instantiation of [superclass] that is implemented
+          //  /// by [type], or `null` if [type] does not implement [superclass]
+          //  /// at all.
+          //  InterfaceType getTypeAsInstanceOf(InterfaceType type,
+          //      Class superclass);
+          List<DartType> typeArguments = spreadExpressionType.typeArguments;
+          if (typeArguments.length == 1) {
+            _checkForAssignableExpressionAtType(
+                spreadExpression, typeArguments[0], elementType, errorCode);
+            return;
+          }
+        } else if (_typeSystem.isSubtypeOf(
+            spreadExpressionType, _typeProvider.mapObjectObjectType)) {
+          // TODO(brianwilkerson) Handle spreads involving maps.
+        }
+      }
+      _checkForAssignableExpressionAtType(
+          spreadExpression, spreadExpressionType, elementType, errorCode);
+    }
   }
 
   /**
@@ -2568,7 +2602,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           element, elementType, getStaticType(element), errorCode);
     } else if (element is SpreadElement) {
       Expression expression = element.expression;
-      _checkForArgumentTypeNotAssignable(
+      _checkForArgumentTypeNotAssignableInSpread(
           expression, elementType, getStaticType(expression), errorCode);
     }
   }
@@ -4173,7 +4207,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     for (CollectionElement entry in entries) {
       if (isConst) {
         // TODO(paulberry): this error should be based on the actual type of the
-        // list element, not the static type.  See dartbug.com/21119.
+        // map entries, not the static type.  See dartbug.com/21119.
         _checkForMapElementTypeNotAssignableWithKeyOrValueType(
             entry,
             keyType,
@@ -5426,7 +5460,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     DartType setElementType = typeArguments[0];
 
-    // Check every list element.
+    // Check every set element.
     bool isConst = literal.isConst;
     for (Expression element in literal.elements) {
       if (isConst) {
@@ -5450,7 +5484,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
    */
   void _checkForSetElementTypeNotAssignable3(SetOrMapLiteral literal) {
-    // Determine the list's element type. We base this on the static type and
+    // Determine the set's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
     // arguments may be inferred.
     DartType setType = literal.staticType;
@@ -5461,7 +5495,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     DartType setElementType = typeArguments[0];
 
-    // Check every list element.
+    // Check every set element.
     bool isConst = literal.isConst;
     for (CollectionElement element in literal.elements2) {
       if (isConst) {

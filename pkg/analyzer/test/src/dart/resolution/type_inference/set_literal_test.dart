@@ -192,7 +192,6 @@ var a = {if (c) 1 else 2};
     assertType(setLiteral('{'), 'Set<int>');
   }
 
-  @failingTest
   test_noContext_noTypeArgs_spread() async {
     addTestFile('''
 var c = [1, 2, 3];
@@ -202,7 +201,6 @@ var a = {...c};
     assertType(setLiteral('{...'), 'Set<int>');
   }
 
-  @failingTest
   test_noContext_noTypeArgs_spread_conflict() async {
     addTestFile('''
 var c = [1];
@@ -213,7 +211,6 @@ var a = {...b, ...c};
     assertType(setLiteral('{...'), 'Set<Object>');
   }
 
-  @failingTest
   test_noContext_noTypeArgs_spread_noConflict() async {
     addTestFile('''
 var c = [1];

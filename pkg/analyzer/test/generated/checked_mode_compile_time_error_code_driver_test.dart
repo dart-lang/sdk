@@ -13,6 +13,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CheckedModeCompileTimeErrorCodeTest_Driver);
     defineReflectiveTests(SetElementTypeNotAssignableTest);
+    defineReflectiveTests(SetElementTypeNotAssignableWithCodeAsUITest);
   });
 }
 
@@ -37,5 +38,45 @@ class SetElementTypeNotAssignableTest extends ResolverTestCase {
       StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
+  }
+}
+
+@reflectiveTest
+class SetElementTypeNotAssignableWithCodeAsUITest extends ResolverTestCase {
+  @override
+  List<String> get enabledExperiments => ['spread-collections'];
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_simple_const() async {
+    // TODO(brianwilkerson) This test is not dependent on the experiments and
+    //  should be moved when these tests are cleaned up.
+    Source source = addSource("var v = const <String>{42};");
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  test_simple_nonConst() async {
+    // TODO(brianwilkerson) This test is not dependent on the experiments and
+    //  should be moved when these tests are cleaned up.
+    Source source = addSource("var v = <String>{42};");
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  test_spread_valid_const() async {
+    await assertNoErrorsInCode('''
+var v = const <String>{...['a', 'b']};
+''');
+  }
+
+  test_spread_valid_nonConst() async {
+    await assertNoErrorsInCode('''
+var v = <String>{...['a', 'b']};
+''');
   }
 }

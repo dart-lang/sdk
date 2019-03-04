@@ -200,32 +200,38 @@ var a = {if (c) 1 : 3 else 2 : 4};
     assertType(mapLiteral('{'), 'Map<int, int>');
   }
 
-  @failingTest
   test_noContext_noTypeArgs_spread() async {
     addTestFile('''
-var c = {1 : 1, 2 : 2, 3 : 3};
+Map<int, int> c = {1 : 1, 2 : 2, 3 : 3};
 var a = {...c};
 ''');
     await resolveTestFile();
     assertType(mapLiteral('{...'), 'Map<int, int>');
   }
 
-  @failingTest
   test_noContext_noTypeArgs_spread_conflict() async {
     addTestFile('''
-var c = {1 : 2};
-var b = {'a' : 'b'};
+Map<int, int> c = {1 : 2};
+Map<String, String> b = {'a' : 'b'};
 var a = {...b, ...c};
 ''');
     await resolveTestFile();
     assertType(mapLiteral('{...'), 'Map<Object, Object>');
   }
 
-  @failingTest
+  test_noContext_noTypeArgs_spread_dynamic() async {
+    addTestFile('''
+var c = {1 : 1, 2 : 2, 3 : 3};
+var a = {...c};
+''');
+    await resolveTestFile();
+    assertType(mapLiteral('{...'), 'Map<dynamic, dynamic>');
+  }
+
   test_noContext_noTypeArgs_spread_noConflict() async {
     addTestFile('''
-var c = {1 : 3};
-var b = {2 : 4};
+Map<int, int> c = {1 : 3};
+Map<int, int> b = {2 : 4};
 var a = {...b, ...c};
 ''');
     await resolveTestFile();
