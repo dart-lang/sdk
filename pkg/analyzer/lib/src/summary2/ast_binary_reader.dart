@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -158,8 +159,6 @@ class AstBinaryReader {
         return _read_libraryIdentifier(data);
       case LinkedNodeKind.listLiteral:
         return _read_listLiteral(data);
-      case LinkedNodeKind.mapLiteral:
-        return _read_mapLiteral(data);
       case LinkedNodeKind.mapLiteralEntry:
         return _read_mapLiteralEntry(data);
       case LinkedNodeKind.methodDeclaration:
@@ -194,6 +193,8 @@ class AstBinaryReader {
         return _read_rethrowExpression(data);
       case LinkedNodeKind.returnStatement:
         return _read_returnStatement(data);
+      case LinkedNodeKind.setOrMapLiteral:
+        return _read_setOrMapLiteral(data);
       case LinkedNodeKind.showCombinator:
         return _read_showCombinator(data);
       case LinkedNodeKind.simpleFormalParameter:
@@ -975,16 +976,6 @@ class AstBinaryReader {
     )..staticType = _readType(data.expression_type);
   }
 
-  MapLiteral _read_mapLiteral(LinkedNode data) {
-    return astFactory.mapLiteral(
-      _getToken(data.typedLiteral_constKeyword),
-      readNode(data.typedLiteral_typeArguments),
-      _getToken(data.mapLiteral_leftBracket),
-      _readNodeList(data.mapLiteral_entries),
-      _getToken(data.mapLiteral_rightBracket),
-    )..staticType = _readType(data.expression_type);
-  }
-
   MapLiteralEntry _read_mapLiteralEntry(LinkedNode data) {
     return astFactory.mapLiteralEntry(
       readNode(data.mapLiteralEntry_key),
@@ -1141,6 +1132,22 @@ class AstBinaryReader {
       readNode(data.returnStatement_expression),
       _getToken(data.returnStatement_semicolon),
     );
+  }
+
+  SetOrMapLiteral _read_setOrMapLiteral(LinkedNode data) {
+    SetOrMapLiteralImpl node = astFactory.setOrMapLiteral(
+      constKeyword: _getToken(data.typedLiteral_constKeyword),
+      elements: _readNodeList(data.setOrMapLiteral_elements),
+      leftBracket: _getToken(data.setOrMapLiteral_leftBracket),
+      typeArguments: readNode(data.typedLiteral_typeArguments),
+      rightBracket: _getToken(data.setOrMapLiteral_leftBracket),
+    );
+    if (data.setOrMapLiteral_isMap) {
+      node.becomeMap();
+    } else if (data.setOrMapLiteral_isSet) {
+      node.becomeSet();
+    }
+    return node;
   }
 
   ShowCombinator _read_showCombinator(LinkedNode data) {

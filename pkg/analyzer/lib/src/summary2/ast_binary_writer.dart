@@ -726,17 +726,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
-  LinkedNodeBuilder visitMapLiteral(MapLiteral node) {
-    var builder = LinkedNodeBuilder.mapLiteral(
-      mapLiteral_entries: _writeNodeList(node.entries),
-      mapLiteral_leftBracket: _getToken(node.leftBracket),
-      mapLiteral_rightBracket: _getToken(node.rightBracket),
-    );
-    _storeTypedLiteral(builder, node);
-    return builder;
-  }
-
-  @override
   LinkedNodeBuilder visitMapLiteralEntry(MapLiteralEntry node) {
     return LinkedNodeBuilder.mapLiteralEntry(
       mapLiteralEntry_key: node.key.accept(this),
@@ -913,6 +902,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       returnStatement_returnKeyword: _getToken(node.returnKeyword),
       returnStatement_semicolon: _getToken(node.semicolon),
     );
+  }
+
+  @override
+  LinkedNodeBuilder visitSetOrMapLiteral(SetOrMapLiteral node) {
+    var builder = LinkedNodeBuilder.setOrMapLiteral(
+      setOrMapLiteral_elements: _writeNodeList(node.elements2),
+      setOrMapLiteral_isMap: node.isMap,
+      setOrMapLiteral_isSet: node.isSet,
+      setOrMapLiteral_leftBracket: _getToken(node.leftBracket),
+      setOrMapLiteral_rightBracket: _getToken(node.rightBracket),
+    );
+    _storeTypedLiteral(builder, node);
+    return builder;
   }
 
   @override

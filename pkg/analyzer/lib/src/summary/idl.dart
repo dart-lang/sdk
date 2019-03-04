@@ -1220,7 +1220,6 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.integerLiteral,
     LinkedNodeKind.isExpression,
     LinkedNodeKind.listLiteral,
-    LinkedNodeKind.mapLiteral,
     LinkedNodeKind.methodInvocation,
     LinkedNodeKind.namedExpression,
     LinkedNodeKind.nullLiteral,
@@ -1230,7 +1229,7 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.propertyAccess,
     LinkedNodeKind.postfixExpression,
     LinkedNodeKind.rethrowExpression,
-    LinkedNodeKind.setLiteral,
+    LinkedNodeKind.setOrMapLiteral,
     LinkedNodeKind.simpleIdentifier,
     LinkedNodeKind.simpleStringLiteral,
     LinkedNodeKind.stringInterpolation,
@@ -1596,15 +1595,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(16, variant: LinkedNodeKind.listLiteral)
   int get listLiteral_rightBracket;
 
-  @VariantId(2, variant: LinkedNodeKind.mapLiteral)
-  List<LinkedNode> get mapLiteral_entries;
-
-  @VariantId(15, variant: LinkedNodeKind.mapLiteral)
-  int get mapLiteral_leftBracket;
-
-  @VariantId(16, variant: LinkedNodeKind.mapLiteral)
-  int get mapLiteral_rightBracket;
-
   @VariantId(6, variant: LinkedNodeKind.mapLiteralEntry)
   LinkedNode get mapLiteralEntry_key;
 
@@ -1821,6 +1811,21 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(16, variant: LinkedNodeKind.returnStatement)
   int get returnStatement_semicolon;
 
+  @VariantId(2, variant: LinkedNodeKind.setOrMapLiteral)
+  List<LinkedNode> get setOrMapLiteral_elements;
+
+  @VariantId(27, variant: LinkedNodeKind.setOrMapLiteral)
+  bool get setOrMapLiteral_isMap;
+
+  @VariantId(31, variant: LinkedNodeKind.setOrMapLiteral)
+  bool get setOrMapLiteral_isSet;
+
+  @VariantId(15, variant: LinkedNodeKind.setOrMapLiteral)
+  int get setOrMapLiteral_leftBracket;
+
+  @VariantId(16, variant: LinkedNodeKind.setOrMapLiteral)
+  int get setOrMapLiteral_rightBracket;
+
   @VariantId(2, variant: LinkedNodeKind.showCombinator)
   List<LinkedNode> get showCombinator_shownNames;
 
@@ -1970,15 +1975,13 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(19, variantList: [
     LinkedNodeKind.listLiteral,
-    LinkedNodeKind.mapLiteral,
-    LinkedNodeKind.setLiteral,
+    LinkedNodeKind.setOrMapLiteral,
   ])
   int get typedLiteral_constKeyword;
 
   @VariantId(14, variantList: [
     LinkedNodeKind.listLiteral,
-    LinkedNodeKind.mapLiteral,
-    LinkedNodeKind.setLiteral,
+    LinkedNodeKind.setOrMapLiteral,
   ])
   LinkedNode get typedLiteral_typeArguments;
 
@@ -2183,7 +2186,6 @@ enum LinkedNodeKind {
   libraryDirective,
   libraryIdentifier,
   listLiteral,
-  mapLiteral,
   mapLiteralEntry,
   methodDeclaration,
   methodInvocation,
@@ -2201,7 +2203,7 @@ enum LinkedNodeKind {
   redirectingConstructorInvocation,
   rethrowExpression,
   returnStatement,
-  setLiteral,
+  setOrMapLiteral,
   showCombinator,
   simpleFormalParameter,
   simpleIdentifier,

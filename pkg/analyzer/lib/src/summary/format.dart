@@ -4568,6 +4568,7 @@ class LinkedNodeBuilder extends Object
   bool _isSynthetic;
   idl.LinkedNodeKind _kind;
   String _variantField_23;
+  bool _variantField_31;
   String _variantField_20;
   String _variantField_22;
 
@@ -4644,12 +4645,6 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
-  List<LinkedNodeBuilder> get mapLiteral_entries {
-    assert(kind == idl.LinkedNodeKind.mapLiteral);
-    return _variantField_2 ??= <LinkedNodeBuilder>[];
-  }
-
-  @override
   List<LinkedNodeBuilder> get namespaceDirective_combinators {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective);
@@ -4659,6 +4654,12 @@ class LinkedNodeBuilder extends Object
   @override
   List<LinkedNodeBuilder> get onClause_superclassConstraints {
     assert(kind == idl.LinkedNodeKind.onClause);
+    return _variantField_2 ??= <LinkedNodeBuilder>[];
+  }
+
+  @override
+  List<LinkedNodeBuilder> get setOrMapLiteral_elements {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     return _variantField_2 ??= <LinkedNodeBuilder>[];
   }
 
@@ -4770,11 +4771,6 @@ class LinkedNodeBuilder extends Object
     _variantField_2 = value;
   }
 
-  void set mapLiteral_entries(List<LinkedNodeBuilder> value) {
-    assert(kind == idl.LinkedNodeKind.mapLiteral);
-    _variantField_2 = value;
-  }
-
   void set namespaceDirective_combinators(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective);
@@ -4783,6 +4779,11 @@ class LinkedNodeBuilder extends Object
 
   void set onClause_superclassConstraints(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.onClause);
+    _variantField_2 = value;
+  }
+
+  void set setOrMapLiteral_elements(List<LinkedNodeBuilder> value) {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     _variantField_2 = value;
   }
 
@@ -6041,12 +6042,6 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
-  int get mapLiteral_leftBracket {
-    assert(kind == idl.LinkedNodeKind.mapLiteral);
-    return _variantField_15 ??= 0;
-  }
-
-  @override
   int get mapLiteralEntry_separator {
     assert(kind == idl.LinkedNodeKind.mapLiteralEntry);
     return _variantField_15 ??= 0;
@@ -6133,6 +6128,12 @@ class LinkedNodeBuilder extends Object
   @override
   int get returnStatement_returnKeyword {
     assert(kind == idl.LinkedNodeKind.returnStatement);
+    return _variantField_15 ??= 0;
+  }
+
+  @override
+  int get setOrMapLiteral_leftBracket {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     return _variantField_15 ??= 0;
   }
 
@@ -6559,12 +6560,6 @@ class LinkedNodeBuilder extends Object
     _variantField_15 = value;
   }
 
-  void set mapLiteral_leftBracket(int value) {
-    assert(kind == idl.LinkedNodeKind.mapLiteral);
-    assert(value == null || value >= 0);
-    _variantField_15 = value;
-  }
-
   void set mapLiteralEntry_separator(int value) {
     assert(kind == idl.LinkedNodeKind.mapLiteralEntry);
     assert(value == null || value >= 0);
@@ -6651,6 +6646,12 @@ class LinkedNodeBuilder extends Object
 
   void set returnStatement_returnKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.returnStatement);
+    assert(value == null || value >= 0);
+    _variantField_15 = value;
+  }
+
+  void set setOrMapLiteral_leftBracket(int value) {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
@@ -7640,12 +7641,6 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
-  int get mapLiteral_rightBracket {
-    assert(kind == idl.LinkedNodeKind.mapLiteral);
-    return _variantField_16 ??= 0;
-  }
-
-  @override
   int get methodDeclaration_modifierKeyword {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     return _variantField_16 ??= 0;
@@ -7684,6 +7679,12 @@ class LinkedNodeBuilder extends Object
   @override
   int get returnStatement_semicolon {
     assert(kind == idl.LinkedNodeKind.returnStatement);
+    return _variantField_16 ??= 0;
+  }
+
+  @override
+  int get setOrMapLiteral_rightBracket {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     return _variantField_16 ??= 0;
   }
 
@@ -7953,12 +7954,6 @@ class LinkedNodeBuilder extends Object
     _variantField_16 = value;
   }
 
-  void set mapLiteral_rightBracket(int value) {
-    assert(kind == idl.LinkedNodeKind.mapLiteral);
-    assert(value == null || value >= 0);
-    _variantField_16 = value;
-  }
-
   void set methodDeclaration_modifierKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     assert(value == null || value >= 0);
@@ -7997,6 +7992,12 @@ class LinkedNodeBuilder extends Object
 
   void set returnStatement_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.returnStatement);
+    assert(value == null || value >= 0);
+    _variantField_16 = value;
+  }
+
+  void set setOrMapLiteral_rightBracket(int value) {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
@@ -8538,8 +8539,7 @@ class LinkedNodeBuilder extends Object
   @override
   int get typedLiteral_constKeyword {
     assert(kind == idl.LinkedNodeKind.listLiteral ||
-        kind == idl.LinkedNodeKind.mapLiteral ||
-        kind == idl.LinkedNodeKind.setLiteral);
+        kind == idl.LinkedNodeKind.setOrMapLiteral);
     return _variantField_19 ??= 0;
   }
 
@@ -8618,8 +8618,7 @@ class LinkedNodeBuilder extends Object
 
   void set typedLiteral_constKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.listLiteral ||
-        kind == idl.LinkedNodeKind.mapLiteral ||
-        kind == idl.LinkedNodeKind.setLiteral);
+        kind == idl.LinkedNodeKind.setOrMapLiteral);
     assert(value == null || value >= 0);
     _variantField_19 = value;
   }
@@ -8679,6 +8678,12 @@ class LinkedNodeBuilder extends Object
     return _variantField_27 ??= false;
   }
 
+  @override
+  bool get setOrMapLiteral_isMap {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
+    return _variantField_27 ??= false;
+  }
+
   void set booleanLiteral_value(bool value) {
     assert(kind == idl.LinkedNodeKind.booleanLiteral);
     _variantField_27 = value;
@@ -8686,6 +8691,11 @@ class LinkedNodeBuilder extends Object
 
   void set defaultFormalParameter_isNamed(bool value) {
     assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
+    _variantField_27 = value;
+  }
+
+  void set setOrMapLiteral_isMap(bool value) {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     _variantField_27 = value;
   }
 
@@ -8925,7 +8935,6 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.integerLiteral ||
         kind == idl.LinkedNodeKind.isExpression ||
         kind == idl.LinkedNodeKind.listLiteral ||
-        kind == idl.LinkedNodeKind.mapLiteral ||
         kind == idl.LinkedNodeKind.methodInvocation ||
         kind == idl.LinkedNodeKind.namedExpression ||
         kind == idl.LinkedNodeKind.nullLiteral ||
@@ -8935,7 +8944,7 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.propertyAccess ||
         kind == idl.LinkedNodeKind.postfixExpression ||
         kind == idl.LinkedNodeKind.rethrowExpression ||
-        kind == idl.LinkedNodeKind.setLiteral ||
+        kind == idl.LinkedNodeKind.setOrMapLiteral ||
         kind == idl.LinkedNodeKind.simpleIdentifier ||
         kind == idl.LinkedNodeKind.simpleStringLiteral ||
         kind == idl.LinkedNodeKind.stringInterpolation ||
@@ -8962,7 +8971,6 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.integerLiteral ||
         kind == idl.LinkedNodeKind.isExpression ||
         kind == idl.LinkedNodeKind.listLiteral ||
-        kind == idl.LinkedNodeKind.mapLiteral ||
         kind == idl.LinkedNodeKind.methodInvocation ||
         kind == idl.LinkedNodeKind.namedExpression ||
         kind == idl.LinkedNodeKind.nullLiteral ||
@@ -8972,7 +8980,7 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.propertyAccess ||
         kind == idl.LinkedNodeKind.postfixExpression ||
         kind == idl.LinkedNodeKind.rethrowExpression ||
-        kind == idl.LinkedNodeKind.setLiteral ||
+        kind == idl.LinkedNodeKind.setOrMapLiteral ||
         kind == idl.LinkedNodeKind.simpleIdentifier ||
         kind == idl.LinkedNodeKind.simpleStringLiteral ||
         kind == idl.LinkedNodeKind.stringInterpolation ||
@@ -9038,8 +9046,7 @@ class LinkedNodeBuilder extends Object
   @override
   LinkedNodeBuilder get typedLiteral_typeArguments {
     assert(kind == idl.LinkedNodeKind.listLiteral ||
-        kind == idl.LinkedNodeKind.mapLiteral ||
-        kind == idl.LinkedNodeKind.setLiteral);
+        kind == idl.LinkedNodeKind.setOrMapLiteral);
     return _variantField_14;
   }
 
@@ -9076,8 +9083,7 @@ class LinkedNodeBuilder extends Object
 
   void set typedLiteral_typeArguments(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.listLiteral ||
-        kind == idl.LinkedNodeKind.mapLiteral ||
-        kind == idl.LinkedNodeKind.setLiteral);
+        kind == idl.LinkedNodeKind.setOrMapLiteral);
     _variantField_14 = value;
   }
 
@@ -9117,6 +9123,17 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.partDirective ||
         kind == idl.LinkedNodeKind.partOfDirective);
     _variantField_23 = value;
+  }
+
+  @override
+  bool get setOrMapLiteral_isSet {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
+    return _variantField_31 ??= false;
+  }
+
+  void set setOrMapLiteral_isSet(bool value) {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
+    _variantField_31 = value;
   }
 
   @override
@@ -9285,21 +9302,6 @@ class LinkedNodeBuilder extends Object
         _variantField_25 = expression_type,
         _variantField_14 = typedLiteral_typeArguments;
 
-  LinkedNodeBuilder.mapLiteral({
-    List<LinkedNodeBuilder> mapLiteral_entries,
-    int mapLiteral_leftBracket,
-    int mapLiteral_rightBracket,
-    int typedLiteral_constKeyword,
-    LinkedNodeTypeBuilder expression_type,
-    LinkedNodeBuilder typedLiteral_typeArguments,
-  })  : _kind = idl.LinkedNodeKind.mapLiteral,
-        _variantField_2 = mapLiteral_entries,
-        _variantField_15 = mapLiteral_leftBracket,
-        _variantField_16 = mapLiteral_rightBracket,
-        _variantField_19 = typedLiteral_constKeyword,
-        _variantField_25 = expression_type,
-        _variantField_14 = typedLiteral_typeArguments;
-
   LinkedNodeBuilder.exportDirective({
     List<LinkedNodeBuilder> namespaceDirective_combinators,
     LinkedNodeBuilder annotatedNode_comment,
@@ -9358,6 +9360,25 @@ class LinkedNodeBuilder extends Object
   })  : _kind = idl.LinkedNodeKind.onClause,
         _variantField_2 = onClause_superclassConstraints,
         _variantField_15 = onClause_onKeyword;
+
+  LinkedNodeBuilder.setOrMapLiteral({
+    List<LinkedNodeBuilder> setOrMapLiteral_elements,
+    int setOrMapLiteral_leftBracket,
+    int setOrMapLiteral_rightBracket,
+    int typedLiteral_constKeyword,
+    bool setOrMapLiteral_isMap,
+    LinkedNodeTypeBuilder expression_type,
+    LinkedNodeBuilder typedLiteral_typeArguments,
+    bool setOrMapLiteral_isSet,
+  })  : _kind = idl.LinkedNodeKind.setOrMapLiteral,
+        _variantField_2 = setOrMapLiteral_elements,
+        _variantField_15 = setOrMapLiteral_leftBracket,
+        _variantField_16 = setOrMapLiteral_rightBracket,
+        _variantField_19 = typedLiteral_constKeyword,
+        _variantField_27 = setOrMapLiteral_isMap,
+        _variantField_25 = expression_type,
+        _variantField_14 = typedLiteral_typeArguments,
+        _variantField_31 = setOrMapLiteral_isSet;
 
   LinkedNodeBuilder.showCombinator({
     List<LinkedNodeBuilder> showCombinator_shownNames,
@@ -10457,15 +10478,6 @@ class LinkedNodeBuilder extends Object
         _variantField_15 = thisExpression_thisKeyword,
         _variantField_25 = expression_type;
 
-  LinkedNodeBuilder.setLiteral({
-    int typedLiteral_constKeyword,
-    LinkedNodeTypeBuilder expression_type,
-    LinkedNodeBuilder typedLiteral_typeArguments,
-  })  : _kind = idl.LinkedNodeKind.setLiteral,
-        _variantField_19 = typedLiteral_constKeyword,
-        _variantField_25 = expression_type,
-        _variantField_14 = typedLiteral_typeArguments;
-
   LinkedNodeBuilder.comment({
     List<int> comment_tokens,
     idl.LinkedNodeCommentType comment_type,
@@ -10577,6 +10589,7 @@ class LinkedNodeBuilder extends Object
     signature.addInt(
         this._variantField_29 == null ? 0 : this._variantField_29.index);
     signature.addString(this._variantField_30 ?? '');
+    signature.addBool(this._variantField_31 == true);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -10754,6 +10767,9 @@ class LinkedNodeBuilder extends Object
     if (offset_variantField_23 != null) {
       fbBuilder.addOffset(23, offset_variantField_23);
     }
+    if (_variantField_31 == true) {
+      fbBuilder.addBool(31, true);
+    }
     if (offset_variantField_20 != null) {
       fbBuilder.addOffset(20, offset_variantField_20);
     }
@@ -10809,6 +10825,7 @@ class _LinkedNodeImpl extends Object
   bool _isSynthetic;
   idl.LinkedNodeKind _kind;
   String _variantField_23;
+  bool _variantField_31;
   String _variantField_20;
   String _variantField_22;
 
@@ -10921,15 +10938,6 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  List<idl.LinkedNode> get mapLiteral_entries {
-    assert(kind == idl.LinkedNodeKind.mapLiteral);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
-    return _variantField_2;
-  }
-
-  @override
   List<idl.LinkedNode> get namespaceDirective_combinators {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective);
@@ -10942,6 +10950,15 @@ class _LinkedNodeImpl extends Object
   @override
   List<idl.LinkedNode> get onClause_superclassConstraints {
     assert(kind == idl.LinkedNodeKind.onClause);
+    _variantField_2 ??=
+        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
+            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    return _variantField_2;
+  }
+
+  @override
+  List<idl.LinkedNode> get setOrMapLiteral_elements {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     _variantField_2 ??=
         const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
             .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
@@ -12061,14 +12078,6 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  int get mapLiteral_leftBracket {
-    assert(kind == idl.LinkedNodeKind.mapLiteral);
-    _variantField_15 ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
-    return _variantField_15;
-  }
-
-  @override
   int get mapLiteralEntry_separator {
     assert(kind == idl.LinkedNodeKind.mapLiteralEntry);
     _variantField_15 ??=
@@ -12183,6 +12192,14 @@ class _LinkedNodeImpl extends Object
   @override
   int get returnStatement_returnKeyword {
     assert(kind == idl.LinkedNodeKind.returnStatement);
+    _variantField_15 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
+    return _variantField_15;
+  }
+
+  @override
+  int get setOrMapLiteral_leftBracket {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     _variantField_15 ??=
         const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
     return _variantField_15;
@@ -13111,14 +13128,6 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  int get mapLiteral_rightBracket {
-    assert(kind == idl.LinkedNodeKind.mapLiteral);
-    _variantField_16 ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 16, 0);
-    return _variantField_16;
-  }
-
-  @override
   int get methodDeclaration_modifierKeyword {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     _variantField_16 ??=
@@ -13169,6 +13178,14 @@ class _LinkedNodeImpl extends Object
   @override
   int get returnStatement_semicolon {
     assert(kind == idl.LinkedNodeKind.returnStatement);
+    _variantField_16 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 16, 0);
+    return _variantField_16;
+  }
+
+  @override
+  int get setOrMapLiteral_rightBracket {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     _variantField_16 ??=
         const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 16, 0);
     return _variantField_16;
@@ -13608,8 +13625,7 @@ class _LinkedNodeImpl extends Object
   @override
   int get typedLiteral_constKeyword {
     assert(kind == idl.LinkedNodeKind.listLiteral ||
-        kind == idl.LinkedNodeKind.mapLiteral ||
-        kind == idl.LinkedNodeKind.setLiteral);
+        kind == idl.LinkedNodeKind.setOrMapLiteral);
     _variantField_19 ??=
         const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 19, 0);
     return _variantField_19;
@@ -13661,6 +13677,14 @@ class _LinkedNodeImpl extends Object
   @override
   bool get defaultFormalParameter_isNamed {
     assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
+    _variantField_27 ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 27, false);
+    return _variantField_27;
+  }
+
+  @override
+  bool get setOrMapLiteral_isMap {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     _variantField_27 ??=
         const fb.BoolReader().vTableGet(_bc, _bcOffset, 27, false);
     return _variantField_27;
@@ -13841,7 +13865,6 @@ class _LinkedNodeImpl extends Object
         kind == idl.LinkedNodeKind.integerLiteral ||
         kind == idl.LinkedNodeKind.isExpression ||
         kind == idl.LinkedNodeKind.listLiteral ||
-        kind == idl.LinkedNodeKind.mapLiteral ||
         kind == idl.LinkedNodeKind.methodInvocation ||
         kind == idl.LinkedNodeKind.namedExpression ||
         kind == idl.LinkedNodeKind.nullLiteral ||
@@ -13851,7 +13874,7 @@ class _LinkedNodeImpl extends Object
         kind == idl.LinkedNodeKind.propertyAccess ||
         kind == idl.LinkedNodeKind.postfixExpression ||
         kind == idl.LinkedNodeKind.rethrowExpression ||
-        kind == idl.LinkedNodeKind.setLiteral ||
+        kind == idl.LinkedNodeKind.setOrMapLiteral ||
         kind == idl.LinkedNodeKind.simpleIdentifier ||
         kind == idl.LinkedNodeKind.simpleStringLiteral ||
         kind == idl.LinkedNodeKind.stringInterpolation ||
@@ -13917,8 +13940,7 @@ class _LinkedNodeImpl extends Object
   @override
   idl.LinkedNode get typedLiteral_typeArguments {
     assert(kind == idl.LinkedNodeKind.listLiteral ||
-        kind == idl.LinkedNodeKind.mapLiteral ||
-        kind == idl.LinkedNodeKind.setLiteral);
+        kind == idl.LinkedNodeKind.setOrMapLiteral);
     _variantField_14 ??=
         const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 14, null);
     return _variantField_14;
@@ -13956,6 +13978,14 @@ class _LinkedNodeImpl extends Object
     _variantField_23 ??=
         const fb.StringReader().vTableGet(_bc, _bcOffset, 23, '');
     return _variantField_23;
+  }
+
+  @override
+  bool get setOrMapLiteral_isSet {
+    assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
+    _variantField_31 ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 31, false);
+    return _variantField_31;
   }
 
   @override
@@ -14156,22 +14186,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["typedLiteral_typeArguments"] =
             typedLiteral_typeArguments.toJson();
     }
-    if (kind == idl.LinkedNodeKind.mapLiteral) {
-      if (mapLiteral_entries.isNotEmpty)
-        _result["mapLiteral_entries"] =
-            mapLiteral_entries.map((_value) => _value.toJson()).toList();
-      if (mapLiteral_leftBracket != 0)
-        _result["mapLiteral_leftBracket"] = mapLiteral_leftBracket;
-      if (mapLiteral_rightBracket != 0)
-        _result["mapLiteral_rightBracket"] = mapLiteral_rightBracket;
-      if (typedLiteral_constKeyword != 0)
-        _result["typedLiteral_constKeyword"] = typedLiteral_constKeyword;
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-      if (typedLiteral_typeArguments != null)
-        _result["typedLiteral_typeArguments"] =
-            typedLiteral_typeArguments.toJson();
-    }
     if (kind == idl.LinkedNodeKind.exportDirective) {
       if (namespaceDirective_combinators.isNotEmpty)
         _result["namespaceDirective_combinators"] =
@@ -14247,6 +14261,26 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
                 .toList();
       if (onClause_onKeyword != 0)
         _result["onClause_onKeyword"] = onClause_onKeyword;
+    }
+    if (kind == idl.LinkedNodeKind.setOrMapLiteral) {
+      if (setOrMapLiteral_elements.isNotEmpty)
+        _result["setOrMapLiteral_elements"] =
+            setOrMapLiteral_elements.map((_value) => _value.toJson()).toList();
+      if (setOrMapLiteral_leftBracket != 0)
+        _result["setOrMapLiteral_leftBracket"] = setOrMapLiteral_leftBracket;
+      if (setOrMapLiteral_rightBracket != 0)
+        _result["setOrMapLiteral_rightBracket"] = setOrMapLiteral_rightBracket;
+      if (typedLiteral_constKeyword != 0)
+        _result["typedLiteral_constKeyword"] = typedLiteral_constKeyword;
+      if (setOrMapLiteral_isMap != false)
+        _result["setOrMapLiteral_isMap"] = setOrMapLiteral_isMap;
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+      if (typedLiteral_typeArguments != null)
+        _result["typedLiteral_typeArguments"] =
+            typedLiteral_typeArguments.toJson();
+      if (setOrMapLiteral_isSet != false)
+        _result["setOrMapLiteral_isSet"] = setOrMapLiteral_isSet;
     }
     if (kind == idl.LinkedNodeKind.showCombinator) {
       if (showCombinator_shownNames.isNotEmpty)
@@ -15479,15 +15513,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
     }
-    if (kind == idl.LinkedNodeKind.setLiteral) {
-      if (typedLiteral_constKeyword != 0)
-        _result["typedLiteral_constKeyword"] = typedLiteral_constKeyword;
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-      if (typedLiteral_typeArguments != null)
-        _result["typedLiteral_typeArguments"] =
-            typedLiteral_typeArguments.toJson();
-    }
     if (kind == idl.LinkedNodeKind.comment) {
       if (comment_tokens.isNotEmpty) _result["comment_tokens"] = comment_tokens;
       if (comment_type != idl.LinkedNodeCommentType.block)
@@ -15631,18 +15656,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "kind": kind,
       };
     }
-    if (kind == idl.LinkedNodeKind.mapLiteral) {
-      return {
-        "mapLiteral_entries": mapLiteral_entries,
-        "mapLiteral_leftBracket": mapLiteral_leftBracket,
-        "mapLiteral_rightBracket": mapLiteral_rightBracket,
-        "typedLiteral_constKeyword": typedLiteral_constKeyword,
-        "expression_type": expression_type,
-        "typedLiteral_typeArguments": typedLiteral_typeArguments,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
     if (kind == idl.LinkedNodeKind.exportDirective) {
       return {
         "namespaceDirective_combinators": namespaceDirective_combinators,
@@ -15686,6 +15699,20 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "onClause_onKeyword": onClause_onKeyword,
         "isSynthetic": isSynthetic,
         "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.setOrMapLiteral) {
+      return {
+        "setOrMapLiteral_elements": setOrMapLiteral_elements,
+        "setOrMapLiteral_leftBracket": setOrMapLiteral_leftBracket,
+        "setOrMapLiteral_rightBracket": setOrMapLiteral_rightBracket,
+        "typedLiteral_constKeyword": typedLiteral_constKeyword,
+        "setOrMapLiteral_isMap": setOrMapLiteral_isMap,
+        "expression_type": expression_type,
+        "typedLiteral_typeArguments": typedLiteral_typeArguments,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+        "setOrMapLiteral_isSet": setOrMapLiteral_isSet,
       };
     }
     if (kind == idl.LinkedNodeKind.showCombinator) {
@@ -16706,15 +16733,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       return {
         "thisExpression_thisKeyword": thisExpression_thisKeyword,
         "expression_type": expression_type,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.setLiteral) {
-      return {
-        "typedLiteral_constKeyword": typedLiteral_constKeyword,
-        "expression_type": expression_type,
-        "typedLiteral_typeArguments": typedLiteral_typeArguments,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };

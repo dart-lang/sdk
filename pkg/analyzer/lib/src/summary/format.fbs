@@ -285,8 +285,6 @@ enum LinkedNodeKind : byte {
 
   listLiteral,
 
-  mapLiteral,
-
   mapLiteralEntry,
 
   methodDeclaration,
@@ -321,7 +319,7 @@ enum LinkedNodeKind : byte {
 
   returnStatement,
 
-  setLiteral,
+  setOrMapLiteral,
 
   showCombinator,
 
@@ -1769,6 +1767,8 @@ table LinkedNode {
   kind:LinkedNodeKind (id: 0);
 
   variantField_23:string (id: 23);
+
+  variantField_31:bool (id: 31);
 
   variantField_20:string (id: 20);
 
