@@ -1706,75 +1706,83 @@ class Getter_NodeReplacerTest_test_fieldFormalParameter_2
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier
-    implements NodeReplacerTest_Getter<ForEachStatement, Statement> {
+    implements NodeReplacerTest_Getter<ForStatement2, Statement> {
   @override
-  Statement get(ForEachStatement node) => node.body;
+  Statement get(ForStatement2 node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier_2
-    implements NodeReplacerTest_Getter<ForEachStatement, SimpleIdentifier> {
+    implements NodeReplacerTest_Getter<ForStatement2, SimpleIdentifier> {
   @override
-  SimpleIdentifier get(ForEachStatement node) => node.identifier;
+  SimpleIdentifier get(ForStatement2 node) =>
+      (node.forLoopParts as ForEachPartsWithIdentifier).identifier;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier_3
-    implements NodeReplacerTest_Getter<ForEachStatement, Expression> {
+    implements NodeReplacerTest_Getter<ForStatement2, Expression> {
   @override
-  Expression get(ForEachStatement node) => node.iterable;
+  Expression get(ForStatement2 node) =>
+      (node.forLoopParts as ForEachParts).iterable;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable
-    implements NodeReplacerTest_Getter<ForEachStatement, Expression> {
+    implements NodeReplacerTest_Getter<ForStatement2, Expression> {
   @override
-  Expression get(ForEachStatement node) => node.iterable;
+  Expression get(ForStatement2 node) =>
+      (node.forLoopParts as ForEachParts).iterable;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable_2
-    implements NodeReplacerTest_Getter<ForEachStatement, DeclaredIdentifier> {
+    implements NodeReplacerTest_Getter<ForStatement2, DeclaredIdentifier> {
   @override
-  DeclaredIdentifier get(ForEachStatement node) => node.loopVariable;
+  DeclaredIdentifier get(ForStatement2 node) =>
+      (node.forLoopParts as ForEachPartsWithDeclaration).loopVariable;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable_3
-    implements NodeReplacerTest_Getter<ForEachStatement, Statement> {
+    implements NodeReplacerTest_Getter<ForStatement2, Statement> {
   @override
-  Statement get(ForEachStatement node) => node.body;
+  Statement get(ForStatement2 node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withInitialization
-    implements NodeReplacerTest_Getter<ForStatement, Statement> {
+    implements NodeReplacerTest_Getter<ForStatement2, Statement> {
   @override
-  Statement get(ForStatement node) => node.body;
+  Statement get(ForStatement2 node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withInitialization_2
-    implements NodeReplacerTest_Getter<ForStatement, Expression> {
+    implements NodeReplacerTest_Getter<ForStatement2, Expression> {
   @override
-  Expression get(ForStatement node) => node.condition;
+  Expression get(ForStatement2 node) =>
+      (node.forLoopParts as ForParts).condition;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withInitialization_3
-    implements NodeReplacerTest_Getter<ForStatement, Expression> {
+    implements NodeReplacerTest_Getter<ForStatement2, Expression> {
   @override
-  Expression get(ForStatement node) => node.initialization;
+  Expression get(ForStatement2 node) =>
+      (node.forLoopParts as ForPartsWithExpression).initialization;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withVariables
-    implements NodeReplacerTest_Getter<ForStatement, Statement> {
+    implements NodeReplacerTest_Getter<ForStatement2, Statement> {
   @override
-  Statement get(ForStatement node) => node.body;
+  Statement get(ForStatement2 node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withVariables_2
-    implements NodeReplacerTest_Getter<ForStatement, VariableDeclarationList> {
+    implements NodeReplacerTest_Getter<ForStatement2, VariableDeclarationList> {
   @override
-  VariableDeclarationList get(ForStatement node) => node.variables;
+  VariableDeclarationList get(ForStatement2 node) =>
+      (node.forLoopParts as ForPartsWithDeclarations).variables;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withVariables_3
-    implements NodeReplacerTest_Getter<ForStatement, Expression> {
+    implements NodeReplacerTest_Getter<ForStatement2, Expression> {
   @override
-  Expression get(ForStatement node) => node.condition;
+  Expression get(ForStatement2 node) =>
+      (node.forLoopParts as ForParts).condition;
 }
 
 class Getter_NodeReplacerTest_test_functionDeclaration
@@ -2418,21 +2426,23 @@ class ListGetter_NodeReplacerTest_test_formalParameterList
 }
 
 class ListGetter_NodeReplacerTest_test_forStatement_withInitialization
-    extends NodeReplacerTest_ListGetter<ForStatement, Expression> {
+    extends NodeReplacerTest_ListGetter<ForStatement2, Expression> {
   ListGetter_NodeReplacerTest_test_forStatement_withInitialization(int arg0)
       : super(arg0);
 
   @override
-  NodeList<Expression> getList(ForStatement node) => node.updaters;
+  NodeList<Expression> getList(ForStatement2 node) =>
+      (node.forLoopParts as ForParts).updaters;
 }
 
 class ListGetter_NodeReplacerTest_test_forStatement_withVariables
-    extends NodeReplacerTest_ListGetter<ForStatement, Expression> {
+    extends NodeReplacerTest_ListGetter<ForStatement2, Expression> {
   ListGetter_NodeReplacerTest_test_forStatement_withVariables(int arg0)
       : super(arg0);
 
   @override
-  NodeList<Expression> getList(ForStatement node) => node.updaters;
+  NodeList<Expression> getList(ForStatement2 node) =>
+      (node.forLoopParts as ForParts).updaters;
 }
 
 class ListGetter_NodeReplacerTest_test_hideCombinator
@@ -2476,11 +2486,11 @@ class ListGetter_NodeReplacerTest_test_listLiteral
 }
 
 class ListGetter_NodeReplacerTest_test_mapLiteral
-    extends NodeReplacerTest_ListGetter<MapLiteral, MapLiteralEntry> {
+    extends NodeReplacerTest_ListGetter<SetOrMapLiteral, MapLiteralEntry> {
   ListGetter_NodeReplacerTest_test_mapLiteral(int arg0) : super(arg0);
 
   @override
-  NodeList<MapLiteralEntry> getList(MapLiteral node) => node.entries;
+  NodeList<MapLiteralEntry> getList(SetOrMapLiteral node) => node.elements2;
 }
 
 class ListGetter_NodeReplacerTest_test_showCombinator
@@ -3055,7 +3065,7 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forEachStatement_withIdentifier() {
-    ForEachStatement node = AstTestFactory.forEachStatement2(
+    ForStatement2 node = AstTestFactory.forEachStatement2(
         AstTestFactory.identifier3("i"),
         AstTestFactory.identifier3("l"),
         AstTestFactory.block());
@@ -3068,7 +3078,7 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forEachStatement_withLoopVariable() {
-    ForEachStatement node = AstTestFactory.forEachStatement(
+    ForStatement2 node = AstTestFactory.forEachStatement(
         AstTestFactory.declaredIdentifier3("e"),
         AstTestFactory.identifier3("l"),
         AstTestFactory.block());
@@ -3312,7 +3322,7 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_mapLiteral() {
-    MapLiteral node = AstTestFactory.mapLiteral(
+    SetOrMapLiteral node = AstTestFactory.mapLiteral(
         null,
         AstTestFactory.typeArgumentList([AstTestFactory.typeName4("E")]),
         [AstTestFactory.mapLiteralEntry("k", AstTestFactory.identifier3("v"))]);

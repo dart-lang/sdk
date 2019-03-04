@@ -887,11 +887,11 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_mapLiteral() {
-    MapLiteral map = parseExpression('{3: 6}');
+    SetOrMapLiteral map = parseExpression('{3: 6}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.entries, hasLength(1));
-    MapLiteralEntry entry = map.entries[0];
+    expect(map.elements2, hasLength(1));
+    MapLiteralEntry entry = map.elements2[0];
     IntegerLiteral key = entry.key;
     expect(key.value, 3);
     IntegerLiteral value = entry.value;
@@ -899,11 +899,11 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_mapLiteral_const() {
-    MapLiteral map = parseExpression('const {3: 6}');
+    SetOrMapLiteral map = parseExpression('const {3: 6}');
     expect(map.constKeyword, isNotNull);
     expect(map.typeArguments, isNull);
-    expect(map.entries, hasLength(1));
-    MapLiteralEntry entry = map.entries[0];
+    expect(map.elements2, hasLength(1));
+    MapLiteralEntry entry = map.elements2[0];
     IntegerLiteral key = entry.key;
     expect(key.value, 3);
     IntegerLiteral value = entry.value;
@@ -911,18 +911,18 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_mapLiteral_invalid_set_entry() {
-    MapLiteral map = parseExpression('<int, int>{1}', errors: [
+    SetOrMapLiteral map = parseExpression('<int, int>{1}', errors: [
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 12, 1),
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.entries, hasLength(1));
+    expect(map.elements2, hasLength(1));
   }
 
   @failingTest
   void test_mapLiteral_invalid_too_many_type_arguments1() {
-    MapLiteral map = parseExpression('<int, int, int>{}', errors: [
+    SetOrMapLiteral map = parseExpression('<int, int, int>{}', errors: [
       // TODO(danrubel): Currently the resolver reports invalid number of
       // type arguments, but the parser could report this.
       expectedError(
@@ -932,12 +932,12 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
           3),
     ]);
     expect(map.constKeyword, isNull);
-    expect(map.entries, hasLength(0));
+    expect(map.elements2, hasLength(0));
   }
 
   @failingTest
   void test_mapLiteral_invalid_too_many_type_arguments2() {
-    MapLiteral map = parseExpression('<int, int, int>{1}', errors: [
+    SetOrMapLiteral map = parseExpression('<int, int, int>{1}', errors: [
       // TODO(danrubel): Currently the resolver reports invalid number of
       // type arguments, but the parser could report this.
       expectedError(
@@ -947,67 +947,69 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
           3),
     ]);
     expect(map.constKeyword, isNull);
-    expect(map.entries, hasLength(0));
+    expect(map.elements2, hasLength(0));
   }
 
   void test_mapLiteral_spread() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
-    MapLiteral map = parseExpression('{1: 2, ...{3: 4}}', errors: [
+    SetOrMapLiteral map = parseExpression('{1: 2, ...{3: 4}}', errors: [
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 7, 3),
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.entries, hasLength(1));
+    expect(map.elements2, hasLength(1));
   }
 
   void test_mapLiteral_spread2_typed() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
-    MapLiteral map = parseExpression('<int, int>{1: 2, ...{3: 4}}', errors: [
+    SetOrMapLiteral map =
+        parseExpression('<int, int>{1: 2, ...{3: 4}}', errors: [
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 3),
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.entries, hasLength(1));
+    expect(map.elements2, hasLength(1));
   }
 
   void test_mapLiteral_spread_typed() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
-    MapLiteral map = parseExpression('<int, int>{...{3: 4}}', errors: [
+    SetOrMapLiteral map = parseExpression('<int, int>{...{3: 4}}', errors: [
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 3),
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.entries, hasLength(0));
+    expect(map.elements2, hasLength(0));
   }
 
   void test_mapLiteral_spreadQ() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
-    MapLiteral map = parseExpression('{1: 2, ...?{3: 4}}', errors: [
+    SetOrMapLiteral map = parseExpression('{1: 2, ...?{3: 4}}', errors: [
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 7, 4),
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.entries, hasLength(1));
+    expect(map.elements2, hasLength(1));
   }
 
   void test_mapLiteral_spreadQ2_typed() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
-    MapLiteral map = parseExpression('<int, int>{1: 2, ...?{3: 4}}', errors: [
+    SetOrMapLiteral map =
+        parseExpression('<int, int>{1: 2, ...?{3: 4}}', errors: [
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 4),
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.entries, hasLength(1));
+    expect(map.elements2, hasLength(1));
   }
 
   void test_mapLiteral_spreadQ_typed() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
-    MapLiteral map = parseExpression('<int, int>{...?{3: 4}}', errors: [
+    SetOrMapLiteral map = parseExpression('<int, int>{...?{3: 4}}', errors: [
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 4),
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.entries, hasLength(0));
+    expect(map.elements2, hasLength(0));
   }
 
   @override
@@ -1029,49 +1031,49 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_setLiteral() {
-    SetLiteral set = parseExpression('{3}');
+    SetOrMapLiteral set = parseExpression('{3}');
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
-    expect(set.elements, hasLength(1));
-    IntegerLiteral value = set.elements[0];
+    expect(set.elements2, hasLength(1));
+    IntegerLiteral value = set.elements2[0];
     expect(value.value, 3);
   }
 
   void test_setLiteral_const() {
-    SetLiteral set = parseExpression('const {3, 6}');
+    SetOrMapLiteral set = parseExpression('const {3, 6}');
     expect(set.constKeyword, isNotNull);
     expect(set.typeArguments, isNull);
-    expect(set.elements, hasLength(2));
-    IntegerLiteral value1 = set.elements[0];
+    expect(set.elements2, hasLength(2));
+    IntegerLiteral value1 = set.elements2[0];
     expect(value1.value, 3);
-    IntegerLiteral value2 = set.elements[1];
+    IntegerLiteral value2 = set.elements2[1];
     expect(value2.value, 6);
   }
 
   void test_setLiteral_const_typed() {
-    SetLiteral set = parseExpression('const <int>{3}');
+    SetOrMapLiteral set = parseExpression('const <int>{3}');
     expect(set.constKeyword, isNotNull);
     expect(set.typeArguments.arguments, hasLength(1));
     NamedType typeArg = set.typeArguments.arguments[0];
     expect(typeArg.name.name, 'int');
-    expect(set.elements.length, 1);
-    IntegerLiteral value = set.elements[0];
+    expect(set.elements2.length, 1);
+    IntegerLiteral value = set.elements2[0];
     expect(value.value, 3);
   }
 
   void test_setLiteral_invalid_map_entry() {
-    SetLiteral set = parseExpression('<int>{1: 1}', errors: [
+    SetOrMapLiteral set = parseExpression('<int>{1: 1}', errors: [
       expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 1),
     ]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments.arguments, hasLength(1));
     NamedType typeArg = set.typeArguments.arguments[0];
     expect(typeArg.name.name, 'int');
-    expect(set.elements.length, 1);
+    expect(set.elements2.length, 1);
   }
 
   void test_setLiteral_nested_typeArgument() {
-    SetLiteral set = parseExpression('<Set<int>>{{3}}');
+    SetOrMapLiteral set = parseExpression('<Set<int>>{{3}}');
     expect(set.constKeyword, isNull);
     expect(set.typeArguments.arguments, hasLength(1));
     NamedType typeArg1 = set.typeArguments.arguments[0];
@@ -1079,80 +1081,80 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(typeArg1.typeArguments.arguments, hasLength(1));
     NamedType typeArg2 = typeArg1.typeArguments.arguments[0];
     expect(typeArg2.name.name, 'int');
-    expect(set.elements.length, 1);
-    SetLiteral intSet = set.elements[0];
-    expect(intSet.elements, hasLength(1));
-    IntegerLiteral value = intSet.elements[0];
+    expect(set.elements2.length, 1);
+    SetOrMapLiteral intSet = set.elements2[0];
+    expect(intSet.elements2, hasLength(1));
+    IntegerLiteral value = intSet.elements2[0];
     expect(value.value, 3);
   }
 
   void test_setLiteral_spread2() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetLiteral set = parseExpression('{3, ...[4]}',
+    SetOrMapLiteral set = parseExpression('{3, ...[4]}',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 3)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
-    expect(set.elements, hasLength(1));
-    IntegerLiteral value = set.elements[0];
+    expect(set.elements2, hasLength(1));
+    IntegerLiteral value = set.elements2[0];
     expect(value.value, 3);
   }
 
   void test_setLiteral_spread2Q() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetLiteral set = parseExpression('{3, ...?[4]}',
+    SetOrMapLiteral set = parseExpression('{3, ...?[4]}',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 4)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
-    expect(set.elements, hasLength(1));
-    IntegerLiteral value = set.elements[0];
+    expect(set.elements2, hasLength(1));
+    IntegerLiteral value = set.elements2[0];
     expect(value.value, 3);
   }
 
   void test_setLiteral_spread_typed() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetLiteral set = parseExpression('<int>{...[3]}',
+    SetOrMapLiteral set = parseExpression('<int>{...[3]}',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 6, 3)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
-    expect(set.elements, hasLength(0));
+    expect(set.elements2, hasLength(0));
   }
 
   void test_setLiteral_spreadQ_typed() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetLiteral set = parseExpression('<int>{...?[3]}',
+    SetOrMapLiteral set = parseExpression('<int>{...?[3]}',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 6, 4)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
-    expect(set.elements, hasLength(0));
+    expect(set.elements2, hasLength(0));
   }
 
   void test_setLiteral_typed() {
-    SetLiteral set = parseExpression('<int>{3}');
+    SetOrMapLiteral set = parseExpression('<int>{3}');
     expect(set.constKeyword, isNull);
     expect(set.typeArguments.arguments, hasLength(1));
     NamedType typeArg = set.typeArguments.arguments[0];
     expect(typeArg.name.name, 'int');
-    expect(set.elements.length, 1);
-    IntegerLiteral value = set.elements[0];
+    expect(set.elements2.length, 1);
+    IntegerLiteral value = set.elements2[0];
     expect(value.value, 3);
   }
 
   void test_setOrMapLiteral_spread() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
-    MapLiteral map = parseExpression('{...{3: 4}}',
+    SetOrMapLiteral map = parseExpression('{...{3: 4}}',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 1, 3)]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.entries, hasLength(0));
+    expect(map.elements2, hasLength(0));
   }
 
   void test_setOrMapLiteral_spreadQ() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
-    MapLiteral map = parseExpression('{...?{3: 4}}',
+    SetOrMapLiteral map = parseExpression('{...?{3: 4}}',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 1, 4)]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.entries, hasLength(0));
+    expect(map.elements2, hasLength(0));
   }
 }
 
@@ -1521,7 +1523,7 @@ class FastaParserTestCase
   }
 
   @override
-  MapLiteral parseMapLiteral(
+  SetOrMapLiteral parseMapLiteral(
       analyzer.Token token, String typeArgumentsCode, String code) {
     String sc = '';
     if (token != null) {
@@ -1531,13 +1533,13 @@ class FastaParserTestCase
       sc += typeArgumentsCode;
     }
     sc += code;
-    return parsePrimaryExpression(sc) as MapLiteral;
+    return parsePrimaryExpression(sc) as SetOrMapLiteral;
   }
 
   @override
   MapLiteralEntry parseMapLiteralEntry(String code) {
     var mapLiteral = parseMapLiteral(null, null, '{ $code }');
-    return mapLiteral.entries.single;
+    return mapLiteral.elements2.single;
   }
 
   @override
