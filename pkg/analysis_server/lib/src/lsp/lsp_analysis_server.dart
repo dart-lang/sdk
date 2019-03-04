@@ -252,14 +252,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         // requests we've sent) then show an error.
         final completer = completers[id];
         if (completer == null) {
-          showError('Response with ID $id was unexpected');
+          showErrorMessageToUser('Response with ID $id was unexpected');
         } else {
           completers.remove(id);
           completer.complete(message);
         }
       },
       (stringID) {
-        showError('Unexpected String ID for response $stringID');
+        showErrorMessageToUser('Unexpected String ID for response $stringID');
       },
     );
   }
@@ -288,7 +288,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
               sendErrorResponse(message, result.error);
             }
           } else {
-            showError('Unknown message type');
+            showErrorMessageToUser('Unknown message type');
           }
         } catch (error, stackTrace) {
           final errorMessage = message is ResponseMessage
@@ -349,11 +349,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     } else if (message is ResponseMessage) {
       // For bad response messages where we can't respond with an error, send it as
       // show instead of log.
-      showError(error.message);
+      showErrorMessageToUser(error.message);
     } else {
       // For notifications where we couldn't respond with an error, send it as
       // show instead of log.
-      showError(error.message);
+      showErrorMessageToUser(error.message);
     }
 
     // Handle fatal errors where the client/server state is out of sync and we
@@ -406,7 +406,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     message = exception == null ? message : '$message: $exception';
 
     // Show message (without stack) to the user.
-    showError(message);
+    showErrorMessageToUser(message);
 
     logException(message, exception, stackTrace);
   }
@@ -446,10 +446,14 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     return contextManager.isInAnalysisRoot(file);
   }
 
-  void showError(String message) {
+  void showErrorMessageToUser(String message) {
+    showMessageToUser(MessageType.Error, message);
+  }
+
+  void showMessageToUser(MessageType type, String message) {
     channel.sendNotification(new NotificationMessage(
       Method.window_showMessage,
-      new ShowMessageParams(MessageType.Error, message),
+      new ShowMessageParams(type, message),
       jsonRpcVersion,
     ));
   }

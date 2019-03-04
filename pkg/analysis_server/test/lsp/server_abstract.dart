@@ -279,6 +279,20 @@ mixin LspAnalysisServerTestMixin
     return notificationFromServer.params as T;
   }
 
+  Future<T> expectNotification<T>(
+    bool Function(NotificationMessage) test,
+    FutureOr<void> f(), {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    final firstError = notificationsFromServer.firstWhere(test);
+    await f();
+
+    final notificationFromServer = await firstError.timeout(timeout);
+
+    expect(notificationFromServer, isNotNull);
+    return notificationFromServer.params as T;
+  }
+
   /// Expects a [method] request from the server after executing [f].
   Future<RequestMessage> expectRequest(
     Method method,
@@ -500,6 +514,7 @@ mixin LspAnalysisServerTestMixin
     List<Uri> workspaceFolders,
     TextDocumentClientCapabilities textDocumentCapabilities,
     WorkspaceClientCapabilities workspaceCapabilities,
+    Map<String, Object> initializationOptions,
     bool throwOnFailure = true,
   }) async {
     // Assume if none of the project options were set, that we want to default to
@@ -513,7 +528,7 @@ mixin LspAnalysisServerTestMixin
             null,
             rootPath,
             rootUri?.toString(),
-            null,
+            initializationOptions,
             new ClientCapabilities(
               workspaceCapabilities,
               textDocumentCapabilities,

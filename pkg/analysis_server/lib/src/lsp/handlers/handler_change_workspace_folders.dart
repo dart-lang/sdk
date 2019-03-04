@@ -9,7 +9,12 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class WorkspaceFoldersHandler
     extends MessageHandler<DidChangeWorkspaceFoldersParams, void> {
-  WorkspaceFoldersHandler(LspAnalysisServer server) : super(server);
+  // Whether to update analysis roots based on the open workspace folders.
+  bool updateAnalysisRoots;
+
+  WorkspaceFoldersHandler(LspAnalysisServer server, this.updateAnalysisRoots)
+      : super(server);
+
   Method get handlesMessage => Method.workspace_didChangeWorkspaceFolders;
 
   @override
@@ -17,6 +22,11 @@ class WorkspaceFoldersHandler
       DidChangeWorkspaceFoldersParams.jsonHandler;
 
   ErrorOr<void> handle(DidChangeWorkspaceFoldersParams params) {
+    // Don't do anything if our analysis roots are not based on open workspaces.
+    if (!updateAnalysisRoots) {
+      return success();
+    }
+
     final added = params?.event?.added
         ?.map((wf) => Uri.parse(wf.uri).toFilePath())
         ?.toList();

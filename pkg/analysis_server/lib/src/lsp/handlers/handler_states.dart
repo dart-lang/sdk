@@ -47,16 +47,23 @@ class FailureStateMessageHandler extends ServerStateMessageHandler {
 }
 
 class InitializedStateMessageHandler extends ServerStateMessageHandler {
-  InitializedStateMessageHandler(LspAnalysisServer server) : super(server) {
+  InitializedStateMessageHandler(
+    LspAnalysisServer server,
+    bool onlyAnalyzeProjectsWithOpenFiles,
+  ) : super(server) {
     reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
     reject(Method.initialized, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
     registerHandler(new ShutdownMessageHandler(server));
     registerHandler(new ExitMessageHandler(server));
-    registerHandler(new TextDocumentOpenHandler(server));
+    registerHandler(
+      new TextDocumentOpenHandler(server, onlyAnalyzeProjectsWithOpenFiles),
+    );
     registerHandler(new TextDocumentChangeHandler(server));
-    registerHandler(new TextDocumentCloseHandler(server));
+    registerHandler(
+      new TextDocumentCloseHandler(server, onlyAnalyzeProjectsWithOpenFiles),
+    );
     registerHandler(new HoverHandler(server));
     registerHandler(new CompletionHandler(server));
     registerHandler(new SignatureHelpHandler(server));
@@ -68,7 +75,9 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(new DocumentSymbolHandler(server));
     registerHandler(new CodeActionHandler(server));
     registerHandler(new ExecuteCommandHandler(server));
-    registerHandler(new WorkspaceFoldersHandler(server));
+    registerHandler(
+      new WorkspaceFoldersHandler(server, !onlyAnalyzeProjectsWithOpenFiles),
+    );
     registerHandler(new PrepareRenameHandler(server));
     registerHandler(new RenameHandler(server));
     registerHandler(new FoldingHandler(server));
@@ -78,14 +87,15 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
 }
 
 class InitializingStateMessageHandler extends ServerStateMessageHandler {
-  InitializingStateMessageHandler(
-      LspAnalysisServer server, List<String> openWorkspacePaths)
+  InitializingStateMessageHandler(LspAnalysisServer server,
+      List<String> openWorkspacePaths, bool onlyAnalyzeProjectsWithOpenFiles)
       : super(server) {
     reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
     registerHandler(new ShutdownMessageHandler(server));
     registerHandler(new ExitMessageHandler(server));
-    registerHandler(new IntializedMessageHandler(server, openWorkspacePaths));
+    registerHandler(new IntializedMessageHandler(
+        server, openWorkspacePaths, onlyAnalyzeProjectsWithOpenFiles));
   }
 
   @override
