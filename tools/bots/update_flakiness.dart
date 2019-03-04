@@ -73,16 +73,14 @@ ${parser.usage}""");
       final lastSeen = testData.putIfAbsent("last_seen", newMap);
       lastSeen[result] = time;
       final matches = testData.putIfAbsent("matches", newMap);
-      matches[result] = resultObject["matches"];
       // TODO: Temporarily fill in the matches field for all other outcomes.
       // Remove this when all the builders have run at least once.
       for (final outcome in occurrences.keys) {
-        matches.putIfAbsent(
-            outcome,
-            () => resultObject["expectation"] == "Fail"
-                ? ["Fail", "CompileTimeError", "RuntimeError"].contains(outcome)
-                : resultObject["expectation"] == outcome);
+        matches[outcome] = resultObject["expected"] == "Fail"
+            ? ["Fail", "CompileTimeError", "RuntimeError"].contains(outcome)
+            : resultObject["expected"] == outcome;
       }
+      matches[result] = resultObject["matches"];
 
       if (options["build-id"] != null) {
         final buildIds = testData.putIfAbsent("build_ids", newMap);
