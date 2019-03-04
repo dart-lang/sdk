@@ -51,7 +51,8 @@ void testList() {
   // Does not deep flatten.
   var innerList = <int>[3];
   Expect.listEquals(
-      <int>[1, 2, innerList, 4], <int>[1, ...<int>[2, innerList, 4]]);
+      <Object>[1, 2, innerList, 4],
+      <Object>[1, ...<Object>[2, innerList, 4]]);
 
   // Downcast element.
   Expect.listEquals(list, <int>[...<num>[1, 2, 3, 4]]);
