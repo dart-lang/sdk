@@ -27,6 +27,7 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
 import '../frontend_strategy.dart';
+import '../ir/annotations.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/impact.dart';
@@ -1994,8 +1995,10 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
     } else {
       String name = _findJsNameFromAnnotation(element);
       if (name != null) {
-        failedAt(element,
-            '@JSName(...) annotation is not supported for static fields.');
+        failedAt(
+            element,
+            '@JSName(...) annotation is not supported for static fields: '
+            '$element.');
       }
     }
     return false;

@@ -17,6 +17,7 @@ import '../elements/types.dart';
 import '../enqueue.dart';
 import '../environment.dart' as env;
 import '../frontend_strategy.dart';
+import '../ir/annotations.dart';
 import '../ir/closure.dart' show ClosureScopeModel;
 import '../ir/scope.dart' show ScopeModel;
 import '../js_backend/annotations.dart';
@@ -46,7 +47,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   KernelToElementMapImpl _elementMap;
   RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder;
 
-  KernelAnnotationProcessor _annotationProcesser;
+  KernelAnnotationProcessor _annotationProcessor;
 
   final Map<MemberEntity, ClosureScopeModel> closureModels = {};
 
@@ -60,6 +61,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   @override
   void registerLoadedLibraries(KernelResult kernelResult) {
     _elementMap.addComponent(kernelResult.component);
+    _annotationProcessor = new KernelAnnotationProcessor(elementMap,
+        nativeBasicDataBuilder, processAnnotations(kernelResult.component));
   }
 
   @override
@@ -73,8 +76,11 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   KernelToElementMap get elementMap => _elementMap;
 
   @override
-  AnnotationProcessor get annotationProcesser => _annotationProcesser ??=
-      new KernelAnnotationProcessor(elementMap, nativeBasicDataBuilder);
+  AnnotationProcessor get annotationProcessor {
+    assert(_annotationProcessor != null,
+        "AnnotationProcessor has not been created.");
+    return _annotationProcessor;
+  }
 
   @override
   DeferredLoadTask createDeferredLoadTask(Compiler compiler) =>

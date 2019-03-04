@@ -519,7 +519,7 @@ class JavaScriptBackend {
 
   /// Called when the resolution queue has been closed.
   void onResolutionEnd() {
-    frontendStrategy.annotationProcesser.processJsInteropAnnotations(
+    frontendStrategy.annotationProcessor.processJsInteropAnnotations(
         frontendStrategy.nativeBasicData, nativeDataBuilder);
   }
 
@@ -726,7 +726,7 @@ class JavaScriptBackend {
   /// been loaded.
   void setAnnotations(LibraryEntity library) {
     AnnotationProcessor processor =
-        compiler.frontendStrategy.annotationProcesser;
+        compiler.frontendStrategy.annotationProcessor;
     if (maybeEnableNative(library.canonicalUri)) {
       processor.extractNativeAnnotations(library);
     }

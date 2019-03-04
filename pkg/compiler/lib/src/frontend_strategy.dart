@@ -45,7 +45,7 @@ abstract class FrontendStrategy {
   DartTypes get dartTypes;
 
   /// Returns the [AnnotationProcessor] for this strategy.
-  AnnotationProcessor get annotationProcesser;
+  AnnotationProcessor get annotationProcessor;
 
   NativeBasicData get nativeBasicData;
 
