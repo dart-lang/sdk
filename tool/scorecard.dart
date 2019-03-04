@@ -33,8 +33,7 @@ Iterable<LintRule> get registeredLints {
 
 main() async {
   var scorecard = await ScoreCard.calculate();
-
-  print(scorecard.asMarkdown([
+  var details = <Detail>[
     Detail.rule,
     Detail.linter,
     Detail.sdk,
@@ -44,12 +43,57 @@ main() async {
     Detail.flutterRepo,
     Detail.status,
     Detail.bugs,
-  ]));
+  ];
+
+  print(scorecard.asMarkdown(details));
+  var footer = buildFooter(scorecard, details);
+  print(footer);
+}
+
+StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
+  int pedanticLintCount = 0;
+  int flutterUserLintCount = 0;
+  int flutterRepoLintCount = 0;
+
+  for (var score in scorecard.scores) {
+    for (var ruleSet in score.ruleSets) {
+      if (ruleSet == 'pedantic') {
+        ++pedanticLintCount;
+      }
+      if (ruleSet == 'flutter') {
+        ++flutterUserLintCount;
+      }
+      if (ruleSet == 'flutter_repo') {
+        ++flutterRepoLintCount;
+      }
+    }
+  }
 
   var footer = new StringBuffer('\n_${scorecard.lintCount} lints');
-  footer.writeln('_');
 
-  print(footer);
+  var breakdowns = new StringBuffer();
+  if (details.contains(Detail.pedantic)) {
+    breakdowns.write('$pedanticLintCount pedantic');
+  }
+  if (details.contains(Detail.flutterUser)) {
+    if (breakdowns.isNotEmpty) {
+      breakdowns.write(', ');
+    }
+    breakdowns.write('$flutterUserLintCount flutter user');
+  }
+  if (details.contains(Detail.flutterRepo)) {
+    if (breakdowns.isNotEmpty) {
+      breakdowns.write(', ');
+    }
+    breakdowns.write('$flutterRepoLintCount flutter repo');
+  }
+
+  if (breakdowns.isNotEmpty) {
+    footer.write(': $breakdowns');
+  }
+
+  footer.writeln('_');
+  return footer;
 }
 
 class Header {
