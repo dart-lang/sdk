@@ -1205,20 +1205,24 @@ abstract class LinkedNode extends base.SummaryClass {
   int get enumDeclaration_rightBracket;
 
   @VariantId(25, variantList: [
+    LinkedNodeKind.adjacentStrings,
     LinkedNodeKind.assignmentExpression,
     LinkedNodeKind.asExpression,
     LinkedNodeKind.awaitExpression,
     LinkedNodeKind.binaryExpression,
+    LinkedNodeKind.booleanLiteral,
     LinkedNodeKind.cascadeExpression,
     LinkedNodeKind.conditionalExpression,
     LinkedNodeKind.doubleLiteral,
     LinkedNodeKind.functionExpressionInvocation,
     LinkedNodeKind.indexExpression,
+    LinkedNodeKind.instanceCreationExpression,
     LinkedNodeKind.integerLiteral,
     LinkedNodeKind.isExpression,
     LinkedNodeKind.listLiteral,
     LinkedNodeKind.mapLiteral,
     LinkedNodeKind.methodInvocation,
+    LinkedNodeKind.namedExpression,
     LinkedNodeKind.nullLiteral,
     LinkedNodeKind.parenthesizedExpression,
     LinkedNodeKind.prefixExpression,
@@ -1228,8 +1232,10 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.rethrowExpression,
     LinkedNodeKind.setLiteral,
     LinkedNodeKind.simpleIdentifier,
+    LinkedNodeKind.simpleStringLiteral,
     LinkedNodeKind.stringInterpolation,
     LinkedNodeKind.superExpression,
+    LinkedNodeKind.symbolLiteral,
     LinkedNodeKind.thisExpression,
     LinkedNodeKind.throwExpression,
   ])
@@ -1270,6 +1276,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(17, variant: LinkedNodeKind.fieldDeclaration)
   int get fieldDeclaration_staticKeyword;
+
+  @VariantId(8, variant: LinkedNodeKind.fieldFormalParameter)
+  LinkedNode get fieldFormalParameter_formalParameters;
 
   @VariantId(15, variant: LinkedNodeKind.fieldFormalParameter)
   int get fieldFormalParameter_keyword;
@@ -1608,6 +1617,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(16, variant: LinkedNodeKind.methodDeclaration)
   int get methodDeclaration_modifierKeyword;
 
+  @VariantId(10, variant: LinkedNodeKind.methodDeclaration)
+  LinkedNode get methodDeclaration_name;
+
   @VariantId(17, variant: LinkedNodeKind.methodDeclaration)
   int get methodDeclaration_operatorKeyword;
 
@@ -1725,8 +1737,17 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(16, variant: LinkedNodeKind.parenthesizedExpression)
   int get parenthesizedExpression_rightParenthesis;
 
+  @VariantId(6, variant: LinkedNodeKind.partOfDirective)
+  LinkedNode get partOfDirective_libraryName;
+
+  @VariantId(16, variant: LinkedNodeKind.partOfDirective)
+  int get partOfDirective_ofKeyword;
+
   @VariantId(15, variant: LinkedNodeKind.partOfDirective)
   int get partOfDirective_semicolon;
+
+  @VariantId(7, variant: LinkedNodeKind.partOfDirective)
+  LinkedNode get partOfDirective_uri;
 
   @VariantId(15, variant: LinkedNodeKind.postfixExpression)
   int get postfixExpression_element;
@@ -1852,6 +1873,12 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.switchCase,
     LinkedNodeKind.switchDefault,
   ])
+  List<LinkedNode> get switchMember_labels;
+
+  @VariantId(4, variantList: [
+    LinkedNodeKind.switchCase,
+    LinkedNodeKind.switchDefault,
+  ])
   List<LinkedNode> get switchMember_statements;
 
   @VariantId(7, variant: LinkedNodeKind.switchStatement)
@@ -1874,6 +1901,12 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(17, variant: LinkedNodeKind.switchStatement)
   int get switchStatement_switchKeyword;
+
+  @VariantId(28, variant: LinkedNodeKind.symbolLiteral)
+  List<int> get symbolLiteral_components;
+
+  @VariantId(15, variant: LinkedNodeKind.symbolLiteral)
+  int get symbolLiteral_poundSign;
 
   @VariantId(15, variant: LinkedNodeKind.thisExpression)
   int get thisExpression_thisKeyword;
@@ -1974,7 +2007,6 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
     LinkedNodeKind.partDirective,
-    LinkedNodeKind.partOfDirective,
   ])
   LinkedNode get uriBasedDirective_uri;
 
@@ -1982,7 +2014,6 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
     LinkedNodeKind.partDirective,
-    LinkedNodeKind.partOfDirective,
   ])
   String get uriBasedDirective_uriContent;
 
@@ -1990,7 +2021,6 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
     LinkedNodeKind.partDirective,
-    LinkedNodeKind.partOfDirective,
   ])
   int get uriBasedDirective_uriElement;
 
@@ -2052,7 +2082,7 @@ abstract class LinkedNode extends base.SummaryClass {
   int get yieldStatement_yieldKeyword;
 }
 
-/// TODO(scheglov) extend to support multiple libraries of remove
+/// TODO(scheglov) extend to support multiple libraries or remove
 @TopLevel('LNBn')
 abstract class LinkedNodeBundle extends base.SummaryClass {
   factory LinkedNodeBundle.fromBuffer(List<int> buffer) =>
@@ -2170,6 +2200,7 @@ enum LinkedNodeKind {
   switchCase,
   switchDefault,
   switchStatement,
+  symbolLiteral,
   thisExpression,
   throwExpression,
   topLevelVariableDeclaration,

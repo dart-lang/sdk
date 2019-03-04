@@ -423,9 +423,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitFieldFormalParameter(FieldFormalParameter node) {
-    // TODO(scheglov) parameters
     var builder = LinkedNodeBuilder.fieldFormalParameter(
-//      fieldFormalParameterFormal_parameters : node.parameters?.accept(this),
+      fieldFormalParameter_formalParameters: node.parameters?.accept(this),
       fieldFormalParameter_keyword: _getToken(node.keyword),
       fieldFormalParameter_period: _getToken(node.period),
       fieldFormalParameter_thisKeyword: _getToken(node.thisKeyword),
@@ -731,7 +730,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     var builder = LinkedNodeBuilder.methodDeclaration(
       methodDeclaration_body: node.body?.accept(this),
       methodDeclaration_externalKeyword: _getToken(node.externalKeyword),
+      methodDeclaration_formalParameters: node.parameters?.accept(this),
       methodDeclaration_modifierKeyword: _getToken(node.modifierKeyword),
+      methodDeclaration_name: node.name.accept(this),
       methodDeclaration_operatorKeyword: _getToken(node.operatorKeyword),
       methodDeclaration_propertyKeyword: _getToken(node.propertyKeyword),
       methodDeclaration_returnType: node.returnType?.accept(this),
@@ -809,7 +810,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitPartOfDirective(PartOfDirective node) {
     var builder = LinkedNodeBuilder.partOfDirective(
+      partOfDirective_libraryName: node.libraryName?.accept(this),
+      partOfDirective_ofKeyword: _getToken(node.ofKeyword),
       partOfDirective_semicolon: _getToken(node.semicolon),
+      partOfDirective_uri: node.uri?.accept(this),
     );
     _storeDirective(builder, node);
     return builder;
@@ -924,11 +928,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitSimpleStringLiteral(SimpleStringLiteral node) {
-    // TODO(scheglov) expression type
-    return LinkedNodeBuilder.simpleStringLiteral(
+    var builder = LinkedNodeBuilder.simpleStringLiteral(
       simpleStringLiteral_token: _getToken(node.literal),
       simpleStringLiteral_value: node.value,
     );
+    _storeExpression(builder, node);
+    return builder;
   }
 
   @override
@@ -991,6 +996,16 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       switchStatement_rightParenthesis: _getToken(node.rightParenthesis),
       switchStatement_switchKeyword: _getToken(node.switchKeyword),
     );
+  }
+
+  @override
+  LinkedNodeBuilder visitSymbolLiteral(SymbolLiteral node) {
+    var builder = LinkedNodeBuilder.symbolLiteral(
+      symbolLiteral_poundSign: _getToken(node.poundSign),
+      symbolLiteral_components: _getTokens(node.components),
+    );
+    _storeExpression(builder, node);
+    return builder;
   }
 
   @override
@@ -1203,6 +1218,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       var containerRef = _getReference(element.library).getChild('@function');
       _ensureReferenceIndex(containerRef);
 
+      result = containerRef.getChild(element.name ?? '');
+    } else if (element is FunctionTypeAliasElement) {
+      var libraryRef = _getReference(element.library);
+      var containerRef = libraryRef.getChild('@functionTypeAlias');
+      _ensureReferenceIndex(containerRef);
+
       result = containerRef.getChild(element.name);
     } else if (element is GenericFunctionTypeElement) {
       if (element.enclosingElement is GenericTypeAliasElement) {
@@ -1394,29 +1415,29 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   void _storeNormalFormalParameter(
       LinkedNodeBuilder builder, NormalFormalParameter node) {
-    // TODO(scheglov) don't store comment / metadata
     _storeFormalParameter(builder, node);
     builder
       ..normalFormalParameter_comment = node.documentationComment?.accept(this)
-      ..normalFormalParameter_metadata = _writeNodeList(node.metadata)
       ..normalFormalParameter_covariantKeyword =
           _getToken(node.covariantKeyword)
-      ..normalFormalParameter_identifier = node.identifier?.accept(this);
+      ..normalFormalParameter_identifier = node.identifier?.accept(this)
+      ..normalFormalParameter_metadata = _writeNodeList(node.metadata);
   }
 
   void _storeStatement(LinkedNodeBuilder builder, Statement node) {}
 
   void _storeSwitchMember(LinkedNodeBuilder builder, SwitchMember node) {
-    builder.switchMember_keyword = _getToken(node.keyword);
     builder.switchMember_colon = _getToken(node.colon);
+    builder.switchMember_keyword = _getToken(node.keyword);
+    builder.switchMember_labels = _writeNodeList(node.labels);
     builder.switchMember_statements = _writeNodeList(node.statements);
   }
 
   void _storeTypeAlias(LinkedNodeBuilder builder, TypeAlias node) {
     _storeNamedCompilationUnitMember(builder, node);
     builder
-      ..typeAlias_typedefKeyword = _getToken(node.typedefKeyword)
-      ..typeAlias_semicolon = _getToken(node.semicolon);
+      ..typeAlias_semicolon = _getToken(node.semicolon)
+      ..typeAlias_typedefKeyword = _getToken(node.typedefKeyword);
   }
 
   void _storeTypedLiteral(LinkedNodeBuilder builder, TypedLiteral node) {

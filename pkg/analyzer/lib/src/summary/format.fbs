@@ -337,6 +337,8 @@ enum LinkedNodeKind : byte {
 
   switchStatement,
 
+  symbolLiteral,
+
   thisExpression,
 
   throwExpression,
@@ -1742,7 +1744,7 @@ table LinkedNode {
   variantField_22:string (id: 22);
 }
 
-/// TODO(scheglov) extend to support multiple libraries of remove
+/// TODO(scheglov) extend to support multiple libraries or remove
 table LinkedNodeBundle {
   node:LinkedNode (id: 2);
 
