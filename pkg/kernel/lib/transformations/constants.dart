@@ -562,6 +562,29 @@ class ConstantEvaluator extends RecursiveVisitor {
     return canonicalize(new ListConstant(typeArgument, entries));
   }
 
+  visitSetLiteral(SetLiteral node) {
+    if (!node.isConst) {
+      throw new _AbortCurrentEvaluation(
+          errorReporter.nonConstLiteral(contextChain, node, 'Set'));
+    }
+    final List<Constant> entries = new List<Constant>(node.expressions.length);
+    for (int i = 0; i < node.expressions.length; ++i) {
+      entries[i] = _evaluateSubexpression(node.expressions[i]);
+    }
+    if (hasUnevaluatedChild(node)) {
+      final expressions = new List<Expression>(node.expressions.length);
+      for (int i = 0; i < node.expressions.length; ++i) {
+        expressions[i] = unique(entries[i].asExpression());
+      }
+      return unevaluated(
+          node,
+          new SetLiteral(expressions,
+              typeArgument: node.typeArgument, isConst: true));
+    }
+    final DartType typeArgument = evaluateDartType(node, node.typeArgument);
+    return canonicalize(new SetConstant(typeArgument, entries));
+  }
+
   visitMapLiteral(MapLiteral node) {
     if (!node.isConst) {
       throw new _AbortCurrentEvaluation(
