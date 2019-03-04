@@ -1937,56 +1937,169 @@ class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
   bool get enableAssertions => _elementMap.options.enableUserAssertions;
 }
 
-class KernelNativeMemberResolver extends NativeMemberResolverBase {
-  final KernelToElementMap elementMap;
-  final NativeBasicData nativeBasicData;
-  final NativeDataBuilder nativeDataBuilder;
+class KernelNativeMemberResolver implements NativeMemberResolver {
+  static final RegExp _identifier = new RegExp(r'^[a-zA-Z_$][a-zA-Z0-9_$]*$');
+
+  final KernelToElementMap _elementMap;
+  final NativeBasicData _nativeBasicData;
+  final NativeDataBuilder _nativeDataBuilder;
 
   KernelNativeMemberResolver(
-      this.elementMap, this.nativeBasicData, this.nativeDataBuilder);
+      this._elementMap, this._nativeBasicData, this._nativeDataBuilder);
+
+  KElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
+
+  CommonElements get _commonElements => _elementMap.commonElements;
 
   @override
-  KElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
-
-  @override
-  CommonElements get commonElements => elementMap.commonElements;
-
-  @override
-  NativeBehavior computeNativeFieldStoreBehavior(covariant KField field) {
-    ir.Field node = elementMap.getMemberNode(field);
-    return elementMap.getNativeBehaviorForFieldStore(node);
+  void resolveNativeMember(MemberEntity element) {
+    bool isJsInterop = _isJsInteropMember(element);
+    if (element.isFunction ||
+        element.isConstructor ||
+        element.isGetter ||
+        element.isSetter) {
+      FunctionEntity method = element;
+      bool isNative = _processMethodAnnotations(method);
+      if (isNative || isJsInterop) {
+        NativeBehavior behavior =
+            _computeNativeMethodBehavior(method, isJsInterop: isJsInterop);
+        _nativeDataBuilder.setNativeMethodBehavior(method, behavior);
+      }
+    } else if (element.isField) {
+      FieldEntity field = element;
+      bool isNative = _processFieldAnnotations(field);
+      if (isNative || isJsInterop) {
+        NativeBehavior fieldLoadBehavior =
+            _computeNativeFieldLoadBehavior(field, isJsInterop: isJsInterop);
+        NativeBehavior fieldStoreBehavior =
+            _computeNativeFieldStoreBehavior(field);
+        _nativeDataBuilder.setNativeFieldLoadBehavior(field, fieldLoadBehavior);
+        _nativeDataBuilder.setNativeFieldStoreBehavior(
+            field, fieldStoreBehavior);
+      }
+    }
   }
 
-  @override
-  NativeBehavior computeNativeFieldLoadBehavior(covariant KField field,
+  /// Process the potentially native [field]. Adds information from metadata
+  /// attributes. Returns `true` of [method] is native.
+  bool _processFieldAnnotations(covariant FieldEntity element) {
+    if (element.isInstanceMember &&
+        _nativeBasicData.isNativeClass(element.enclosingClass)) {
+      // Exclude non-instance (static) fields - they are not really native and
+      // are compiled as isolate globals.  Access of a property of a constructor
+      // function or a non-method property in the prototype chain, must be coded
+      // using a JS-call.
+      _setNativeName(element);
+      return true;
+    } else {
+      String name = _findJsNameFromAnnotation(element);
+      if (name != null) {
+        failedAt(element,
+            '@JSName(...) annotation is not supported for static fields.');
+      }
+    }
+    return false;
+  }
+
+  /// Process the potentially native [method]. Adds information from metadata
+  /// attributes. Returns `true` of [method] is native.
+  bool _processMethodAnnotations(covariant FunctionEntity method) {
+    if (_isNativeMethod(method)) {
+      if (method.isStatic) {
+        _setNativeNameForStaticMethod(method);
+      } else {
+        _setNativeName(method);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /// Sets the native name of [element], either from an annotation, or
+  /// defaulting to the Dart name.
+  void _setNativeName(MemberEntity element) {
+    String name = _findJsNameFromAnnotation(element);
+    if (name == null) name = element.name;
+    _nativeDataBuilder.setNativeMemberName(element, name);
+  }
+
+  /// Sets the native name of the static native method [element], using the
+  /// following rules:
+  /// 1. If [element] has a @JSName annotation that is an identifier, qualify
+  ///    that identifier to the @Native name of the enclosing class
+  /// 2. If [element] has a @JSName annotation that is not an identifier,
+  ///    use the declared @JSName as the expression
+  /// 3. If [element] does not have a @JSName annotation, qualify the name of
+  ///    the method with the @Native name of the enclosing class.
+  void _setNativeNameForStaticMethod(FunctionEntity element) {
+    String name = _findJsNameFromAnnotation(element);
+    if (name == null) name = element.name;
+    if (_isIdentifier(name)) {
+      List<String> nativeNames =
+          _nativeBasicData.getNativeTagsOfClass(element.enclosingClass);
+      if (nativeNames.length != 1) {
+        failedAt(
+            element,
+            'Unable to determine a native name for the enclosing class, '
+            'options: $nativeNames');
+      }
+      _nativeDataBuilder.setNativeMemberName(
+          element, '${nativeNames[0]}.$name');
+    } else {
+      _nativeDataBuilder.setNativeMemberName(element, name);
+    }
+  }
+
+  bool _isIdentifier(String s) => _identifier.hasMatch(s);
+
+  /// Returns the JSName annotation string or `null` if no JSName annotation is
+  /// present.
+  String _findJsNameFromAnnotation(MemberEntity element) {
+    String jsName = null;
+    for (ConstantValue value
+        in _elementEnvironment.getMemberMetadata(element)) {
+      String name = readAnnotationName(
+          element, value, _commonElements.annotationJSNameClass);
+      if (jsName == null) {
+        jsName = name;
+      } else if (name != null) {
+        failedAt(element, 'Too many JSName annotations: ${value.toDartText()}');
+      }
+    }
+    return jsName;
+  }
+
+  NativeBehavior _computeNativeFieldStoreBehavior(covariant KField field) {
+    ir.Field node = _elementMap.getMemberNode(field);
+    return _elementMap.getNativeBehaviorForFieldStore(node);
+  }
+
+  NativeBehavior _computeNativeFieldLoadBehavior(covariant KField field,
       {bool isJsInterop}) {
-    ir.Field node = elementMap.getMemberNode(field);
-    return elementMap.getNativeBehaviorForFieldLoad(node,
+    ir.Field node = _elementMap.getMemberNode(field);
+    return _elementMap.getNativeBehaviorForFieldLoad(node,
         isJsInterop: isJsInterop);
   }
 
-  @override
-  NativeBehavior computeNativeMethodBehavior(covariant KFunction function,
+  NativeBehavior _computeNativeMethodBehavior(covariant KFunction function,
       {bool isJsInterop}) {
-    ir.Member node = elementMap.getMemberNode(function);
-    return elementMap.getNativeBehaviorForMethod(node,
+    ir.Member node = _elementMap.getMemberNode(function);
+    return _elementMap.getNativeBehaviorForMethod(node,
         isJsInterop: isJsInterop);
   }
 
-  @override
-  bool isNativeMethod(covariant KFunction function) {
+  bool _isNativeMethod(covariant KFunction function) {
     if (!maybeEnableNative(function.library.canonicalUri)) return false;
-    ir.Member node = elementMap.getMemberNode(function);
+    ir.Member node = _elementMap.getMemberNode(function);
     return node.annotations.any((ir.Expression expression) {
       return expression is ir.ConstructorInvocation &&
-          elementMap.getInterfaceType(expression.constructedType) ==
-              commonElements.externalNameType;
+          _elementMap.getInterfaceType(expression.constructedType) ==
+              _commonElements.externalNameType;
     });
   }
 
-  @override
-  bool isJsInteropMember(MemberEntity element) {
-    return nativeBasicData.isJsInteropMember(element);
+  bool _isJsInteropMember(MemberEntity element) {
+    return _nativeBasicData.isJsInteropMember(element);
   }
 }
 
