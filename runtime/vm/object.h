@@ -7709,6 +7709,11 @@ class Array : public Instance {
   // architecture.
   static const intptr_t kHashBits = 30;
 
+  // Returns `true` if we use card marking for arrays of length [array_length].
+  static bool UseCardMarkingForAllocation(const intptr_t array_length) {
+    return Array::InstanceSize(array_length) > Heap::kNewAllocatableSize;
+  }
+
   intptr_t Length() const { return LengthOf(raw()); }
   static intptr_t LengthOf(const RawArray* array) {
     return Smi::Value(array->ptr()->length_);

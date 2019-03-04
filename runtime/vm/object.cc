@@ -20212,7 +20212,7 @@ uint32_t Array::CanonicalizeHash() const {
 RawArray* Array::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->array_class() != Class::null());
   RawArray* result = New(kClassId, len, space);
-  if (result->HeapSize() > Heap::kNewAllocatableSize) {
+  if (UseCardMarkingForAllocation(len)) {
     ASSERT(result->IsOldObject());
     result->SetCardRememberedBitUnsynchronized();
   }

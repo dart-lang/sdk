@@ -219,16 +219,15 @@ DEFINE_RUNTIME_ENTRY(IntegerDivisionByZeroException, 0) {
   Exceptions::ThrowByType(Exceptions::kIntegerDivisionByZeroException, args);
 }
 
-static void EnsureNewOrRemembered(Isolate* isolate,
-                                  Thread* thread,
-                                  const Object& result) {
+static void EnsureNewOrRemembered(Thread* thread, const Object& result) {
   // For write barrier elimination, we need to ensure that the allocation ends
   // up in the new space if Heap::IsGuaranteedNewSpaceAllocation is true for
   // this size or else the object needs to go into the store buffer.
-  if (!isolate->heap()->new_space()->Contains(
-          reinterpret_cast<uword>(result.raw()))) {
-    result.raw()->SetRememberedBit();
-    thread->StoreBufferAddObject(result.raw());
+  NoSafepointScope no_safepoint_scope;
+
+  RawObject* object = result.raw();
+  if (!object->IsNewObject()) {
+    object->AddToRememberedSet(thread);
   }
 }
 
@@ -250,7 +249,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   }
   if (length.IsSmi()) {
     const intptr_t len = Smi::Cast(length).Value();
-    if ((len >= 0) && (len <= Array::kMaxElements)) {
+    if (len >= 0 && len <= Array::kMaxElements) {
       const Array& array = Array::Handle(zone, Array::New(len, Heap::kNew));
       arguments.SetReturn(array);
       TypeArguments& element_type =
@@ -259,10 +258,13 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
       // vector may be longer than 1 due to a type optimization reusing the type
       // argument vector of the instantiator.
       ASSERT(element_type.IsNull() ||
-             ((element_type.Length() >= 1) && element_type.IsInstantiated()));
+             (element_type.Length() >= 1 && element_type.IsInstantiated()));
       array.SetTypeArguments(element_type);  // May be null.
+
+      ASSERT(Array::UseCardMarkingForAllocation(len) ==
+             array.raw()->IsCardRemembered());
       if (!array.raw()->IsCardRemembered()) {
-        EnsureNewOrRemembered(isolate, thread, array);
+        EnsureNewOrRemembered(thread, array);
       }
       return;
     }
@@ -298,20 +300,20 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
   if (cls.NumTypeArguments() == 0) {
     // No type arguments required for a non-parameterized type.
     ASSERT(Instance::CheckedHandle(zone, arguments.ArgAt(1)).IsNull());
-    return;
+  } else {
+    const auto& type_arguments =
+        TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
+    // Unless null (for a raw type), the type argument vector may be longer than
+    // necessary due to a type optimization reusing the type argument vector of
+    // the instantiator.
+    ASSERT(type_arguments.IsNull() ||
+           (type_arguments.IsInstantiated() &&
+            (type_arguments.Length() >= cls.NumTypeArguments())));
+    instance.SetTypeArguments(type_arguments);
   }
-  TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
-  // Unless null (for a raw type), the type argument vector may be longer than
-  // necessary due to a type optimization reusing the type argument vector of
-  // the instantiator.
-  ASSERT(type_arguments.IsNull() ||
-         (type_arguments.IsInstantiated() &&
-          (type_arguments.Length() >= cls.NumTypeArguments())));
-  instance.SetTypeArguments(type_arguments);
 
-  if (Heap::IsAllocatableInNewSpace(cls.instance_size())) {
-    EnsureNewOrRemembered(isolate, thread, instance);
+  if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
+    EnsureNewOrRemembered(thread, instance);
   }
 }
 
@@ -416,9 +418,13 @@ DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
   const Context& context =
       Context::Handle(zone, Context::New(num_variables.Value()));
   arguments.SetReturn(context);
-  if (Heap::IsAllocatableInNewSpace(
-          Context::InstanceSize(num_variables.Value()))) {
-    EnsureNewOrRemembered(isolate, thread, context);
+
+  const intptr_t num_context_variables = num_variables.Value();
+  if (AllocateContextInstr::WillAllocateNewOrRemembered(
+          num_context_variables) ||
+      AllocateUninitializedContextInstr::WillAllocateNewOrRemembered(
+          num_context_variables)) {
+    EnsureNewOrRemembered(thread, context);
   }
 }
 

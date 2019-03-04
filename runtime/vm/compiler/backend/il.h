@@ -4804,7 +4804,11 @@ class AllocateObjectInstr : public TemplateAllocation<0, NoThrow> {
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return Heap::IsAllocatableInNewSpace(cls().instance_size());
+    return WillAllocateNewOrRemembered(cls());
+  }
+
+  static bool WillAllocateNewOrRemembered(const Class& cls) {
+    return Heap::IsAllocatableInNewSpace(cls.instance_size());
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -4842,8 +4846,12 @@ class AllocateUninitializedContextInstr
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
+    return WillAllocateNewOrRemembered(num_context_variables_);
+  }
+
+  static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
     return Heap::IsAllocatableInNewSpace(
-        Context::InstanceSize(num_context_variables_));
+        Context::InstanceSize(num_context_variables));
   }
 
   virtual AliasIdentity Identity() const { return identity_; }
@@ -4996,9 +5004,9 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
     if (!num_elements()->BindsToConstant()) return false;
     const Object& length = num_elements()->BoundConstant();
     if (!length.IsSmi()) return false;
-    intptr_t raw_length = Smi::Cast(length).Value();
-    // Compare Array::New.
-    return (raw_length >= 0) && (raw_length < Array::kMaxNewSpaceElements);
+    const intptr_t value = Smi::Cast(length).Value();
+    if (value < 0) return false;
+    return !Array::UseCardMarkingForAllocation(value);
   }
 
  private:
@@ -5233,8 +5241,12 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
+    return WillAllocateNewOrRemembered(context_variables().length());
+  }
+
+  static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
     return Heap::IsAllocatableInNewSpace(
-        Context::InstanceSize(context_variables().length()));
+        Context::InstanceSize(num_context_variables));
   }
 
   PRINT_OPERANDS_TO_SUPPORT

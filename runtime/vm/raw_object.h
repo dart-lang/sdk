@@ -316,6 +316,13 @@ class RawObject {
     UpdateTagBit<OldAndNotRememberedBit>(true);
   }
 
+  DART_FORCE_INLINE
+  void AddToRememberedSet(Thread* thread) {
+    ASSERT(!this->IsRemembered());
+    this->SetRememberedBit();
+    thread->StoreBufferAddObject(this);
+  }
+
   bool IsCardRemembered() const {
     return CardRememberedBit::decode(ptr()->tags_);
   }
@@ -578,9 +585,7 @@ class RawObject {
       if (value->IsNewObject()) {
         // Generational barrier: record when a store creates an
         // old-and-not-remembered -> new reference.
-        ASSERT(!this->IsRemembered());
-        this->SetRememberedBit();
-        thread->StoreBufferAddObject(this);
+        AddToRememberedSet(thread);
       } else {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
