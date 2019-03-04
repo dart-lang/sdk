@@ -389,46 +389,6 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    var loopVariable = node.identifier ?? node.loopVariable?.identifier;
-
-    // Safely handle malformed statements.
-    if (loopVariable != null) {
-      // Find the element type of the sequence.
-      var sequenceInterface = node.awaitKeyword != null
-          ? typeProvider.streamType
-          : typeProvider.iterableType;
-      var iterableType = _getExpressionType(node.iterable);
-      var elementType =
-          rules.mostSpecificTypeArgument(iterableType, sequenceInterface);
-
-      // If the sequence is not an Iterable (or Stream for await for) but is a
-      // supertype of it, do an implicit downcast to Iterable<dynamic>. Then
-      // we'll do a separate cast of the dynamic element to the variable's type.
-      if (elementType == null) {
-        var sequenceType =
-            sequenceInterface.instantiate([DynamicTypeImpl.instance]);
-
-        if (rules.isSubtypeOf(sequenceType, iterableType)) {
-          _recordImplicitCast(node.iterable, sequenceType, from: iterableType);
-          elementType = DynamicTypeImpl.instance;
-        }
-      }
-
-      // If the sequence doesn't implement the interface at all, [ErrorVerifier]
-      // will report the error, so ignore it here.
-      if (elementType != null) {
-        // Insert a cast from the sequence's element type to the loop variable's
-        // if needed.
-        _checkImplicitCast(loopVariable, _getExpressionType(loopVariable),
-            from: elementType);
-      }
-    }
-
-    node.visitChildren(this);
-  }
-
-  @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     if (node.condition != null) {
       checkBoolean(node.condition);
@@ -438,14 +398,6 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitForPartsWithExpression(ForPartsWithExpression node) {
-    if (node.condition != null) {
-      checkBoolean(node.condition);
-    }
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
     if (node.condition != null) {
       checkBoolean(node.condition);
     }
@@ -522,41 +474,6 @@ class CodeChecker extends RecursiveAstVisitor {
       checkCollectionElement(elements[i], type);
     }
     super.visitListLiteral(node);
-  }
-
-  @override
-  void visitMapLiteral(MapLiteral node) {
-    DartType ktype = DynamicTypeImpl.instance;
-    DartType vtype = DynamicTypeImpl.instance;
-    if (node.typeArguments != null) {
-      NodeList<TypeAnnotation> targs = node.typeArguments.arguments;
-      if (targs.length > 0) {
-        ktype = targs[0].type;
-      }
-      if (targs.length > 1) {
-        vtype = targs[1].type;
-      }
-    } else {
-      DartType staticType = node.staticType;
-      if (staticType is InterfaceType) {
-        List<DartType> targs = staticType.typeArguments;
-        if (targs != null) {
-          if (targs.length > 0) {
-            ktype = targs[0];
-          }
-          if (targs.length > 1) {
-            vtype = targs[1];
-          }
-        }
-      }
-    }
-    NodeList<MapLiteralEntry> entries = node.entries;
-    for (int i = 0; i < entries.length; i++) {
-      MapLiteralEntry entry = entries[i];
-      checkArgument(entry.key, ktype);
-      checkArgument(entry.value, vtype);
-    }
-    super.visitMapLiteral(node);
   }
 
   @override
@@ -637,30 +554,6 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitReturnStatement(ReturnStatement node) {
     _checkReturnOrYield(node.expression, node);
     node.visitChildren(this);
-  }
-
-  @override
-  void visitSetLiteral(SetLiteral node) {
-    DartType type = DynamicTypeImpl.instance;
-    if (node.typeArguments != null) {
-      NodeList<TypeAnnotation> targs = node.typeArguments.arguments;
-      if (targs.length > 0) {
-        type = targs[0].type;
-      }
-    } else {
-      DartType staticType = node.staticType;
-      if (staticType is InterfaceType) {
-        List<DartType> typeArguments = staticType.typeArguments;
-        if (typeArguments != null && typeArguments.length > 0) {
-          type = typeArguments[0];
-        }
-      }
-    }
-    NodeList<Expression> elements = node.elements;
-    for (int i = 0; i < elements.length; i++) {
-      checkArgument(elements[i], type);
-    }
-    super.visitSetLiteral(node);
   }
 
   @override
@@ -1207,12 +1100,16 @@ class CodeChecker extends RecursiveAstVisitor {
       if (expr is ListLiteral) {
         _recordMessage(
             expr, StrongModeCode.INVALID_CAST_LITERAL_LIST, [from, to]);
-      } else if (expr is MapLiteral) {
-        _recordMessage(
-            expr, StrongModeCode.INVALID_CAST_LITERAL_MAP, [from, to]);
-      } else if (expr is SetLiteral) {
-        _recordMessage(
-            expr, StrongModeCode.INVALID_CAST_LITERAL_SET, [from, to]);
+      } else if (expr is SetOrMapLiteral) {
+        if (expr.isMap) {
+          _recordMessage(
+              expr, StrongModeCode.INVALID_CAST_LITERAL_MAP, [from, to]);
+        } else {
+          // Ambiguity should be resolved by now
+          assert(expr.isSet);
+          _recordMessage(
+              expr, StrongModeCode.INVALID_CAST_LITERAL_SET, [from, to]);
+        }
       } else {
         _recordMessage(
             expr, StrongModeCode.INVALID_CAST_LITERAL, [expr, from, to]);
@@ -1887,13 +1784,6 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
   }
 
   @override
-  visitMapLiteral(MapLiteral node) {
-    if (node.typeArguments == null) {
-      super.visitMapLiteral(node);
-    }
-  }
-
-  @override
   visitMethodInvocation(MethodInvocation node) {
     node.target?.accept(this);
     var method = node.methodName.staticElement;
@@ -1926,13 +1816,6 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
       // This operator gives 'bool', no need to validate operands.
     } else {
       node.operand.accept(this);
-    }
-  }
-
-  @override
-  visitSetLiteral(SetLiteral node) {
-    if (node.typeArguments == null) {
-      super.visitSetLiteral(node);
     }
   }
 
