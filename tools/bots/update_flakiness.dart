@@ -50,6 +50,7 @@ ${parser.usage}""");
       final Map<String, dynamic> testData = data.putIfAbsent(key, newMap);
       testData["configuration"] = configuration;
       testData["name"] = name;
+      testData["expected"] = resultObject["expected"];
       final outcomes = testData.putIfAbsent("outcomes", () => []);
       final time = DateTime.now().toIso8601String();
       if (!outcomes.contains(result)) {
@@ -71,6 +72,17 @@ ${parser.usage}""");
       firstSeen.putIfAbsent(result, () => time);
       final lastSeen = testData.putIfAbsent("last_seen", newMap);
       lastSeen[result] = time;
+      final matches = testData.putIfAbsent("matches", newMap);
+      matches[result] = resultObject["matches"];
+      // TODO: Temporarily fill in the matches field for all other outcomes.
+      // Remove this when all the builders have run at least once.
+      for (final outcome in occurrences.keys) {
+        matches.putIfAbsent(
+            outcome,
+            () => resultObject["expectation"] == "Fail"
+                ? ["Fail", "CompileTimeError", "RuntimeError"].contains(outcome)
+                : resultObject["expectation"] == outcome);
+      }
 
       if (options["build-id"] != null) {
         final buildIds = testData.putIfAbsent("build_ids", newMap);
@@ -92,6 +104,11 @@ ${parser.usage}""");
   for (final key in keys) {
     final testData = data[key];
     if (testData["outcomes"].length < 2) continue;
+    // TODO: Temporarily discard entries for old tests that don't run. Remove
+    // this when all the builders have run at least once.
+    if (!testData.containsKey("matches")) {
+      continue;
+    }
     // Forgive tests that have become deterministic again. If they flake less
     // than once in a 100 (p<1%), then if they flake again, the probability of
     // them getting past 5 runs of deflaking is 1%^5 = 0.00000001%.
