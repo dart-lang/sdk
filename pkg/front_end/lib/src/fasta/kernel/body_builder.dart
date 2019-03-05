@@ -1890,7 +1890,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       // Contains more than just \' or \".
       if (last.lexeme.length > 1) {
-        String value = unescapeLastStringPart(last.lexeme, quote, last, this);
+        String value = unescapeLastStringPart(
+            last.lexeme, quote, last, last.isSynthetic, this);
         if (value.isNotEmpty) {
           expressions.add(forest.literalString(value, last));
         }

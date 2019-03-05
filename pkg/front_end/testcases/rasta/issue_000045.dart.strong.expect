@@ -16,4 +16,4 @@ import self as self;
 
 static method main() → dynamic
   return "${1}
-";
+\"\"\"";

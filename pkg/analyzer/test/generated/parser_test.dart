@@ -3938,6 +3938,16 @@ class Wrong<T> {
     );
   }
 
+  void test_invalidInterpolation_missingClosingBrace_issue35900() {
+    parseCompilationUnit(r"main () { print('${x' '); }", errors: [
+      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 23, 1),
+      expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 26, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 3),
+      expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 23, 1),
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 27, 0),
+    ]);
+  }
+
   void test_invalidInterpolationIdentifier_startWithDigit() {
     StringLiteral literal = parseExpression("'\$1'", errors: [
       usingFastaParser

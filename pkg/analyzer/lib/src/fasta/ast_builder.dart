@@ -1233,7 +1233,9 @@ class AstBuilder extends StackListener {
         }
       }
       elements.add(ast.interpolationString(
-          last, unescapeLastStringPart(last.lexeme, quote, last, this)));
+          last,
+          unescapeLastStringPart(
+              last.lexeme, quote, last, last.isSynthetic, this)));
       push(ast.stringInterpolation(elements));
     }
   }

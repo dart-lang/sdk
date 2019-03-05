@@ -42,7 +42,7 @@ rasta/bad_continue: Fail
 rasta/bad_default_constructor: Fail # Compile-time error destroys program.
 rasta/bad_explicit_super_constructor: RuntimeError
 rasta/bad_implicit_super_constructor: RuntimeError
-rasta/bad_interpolation: Fail
+rasta/bad_interpolation: RuntimeError
 rasta/bad_redirection: Fail
 rasta/bad_setter_initializer: RuntimeError
 rasta/bad_unicode: Fail
@@ -68,7 +68,6 @@ rasta/issue_000041: RuntimeError
 rasta/issue_000042: Fail
 rasta/issue_000043: Fail
 rasta/issue_000044: Fail
-rasta/issue_000045: Fail
 rasta/issue_000046: RuntimeError
 rasta/issue_000047: Fail
 rasta/issue_000081: Fail

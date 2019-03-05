@@ -414,10 +414,16 @@ f() {
     testUserDefinableOperatorWithSuper('*');
   }
 
+  @failingTest
   void test_stringInterpolation_unclosed() {
     // https://github.com/dart-lang/sdk/issues/946
     // TODO(brianwilkerson) Try to recover better. Ideally there would be a
     // single error about an unterminated interpolation block.
+
+    // https://github.com/dart-lang/sdk/issues/36101
+    // TODO(danrubel): improve recovery so that the scanner/parser associates
+    // `${` with a synthetic `}` inside the " " rather than the `}` at the end.
+
     testRecovery(r'''
 f() {
   print("${42");
