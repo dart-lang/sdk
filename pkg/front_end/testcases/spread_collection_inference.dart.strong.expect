@@ -38,29 +38,53 @@ static method foo() → dynamic {
   core::List<core::int> spread = <core::int>[1, 2, 3];
   core::int notSpreadInt = 42;
   () → core::int notSpreadFunction = null;
-  core::List<dynamic> lhs10 = <dynamic>[invalid-expression "unimplemented spread element"];
-  core::Set<dynamic> set10 = let final core::Set<dynamic> #t1 = col::LinkedHashSet::•<dynamic>() in let final dynamic #t2 = #t1.{core::Set::add}(invalid-expression "unimplemented spread element") in #t1;
-  core::List<core::int> lhs20 = <core::int>[invalid-expression "unimplemented spread element"];
-  core::Set<core::int> set20 = let final core::Set<core::int> #t3 = col::LinkedHashSet::•<core::int>() in let final dynamic #t4 = #t3.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t5 = #t3.{core::Set::add}(42) in #t3;
-  core::List<dynamic> lhs21 = <dynamic>[invalid-expression "unimplemented spread element"];
-  core::Set<dynamic> set21 = let final core::Set<dynamic> #t6 = col::LinkedHashSet::•<dynamic>() in let final dynamic #t7 = #t6.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t8 = #t6.{core::Set::add}(42) in #t6;
-  core::List<core::int> lhs22 = <core::int>[invalid-expression "unimplemented spread element"];
-  core::Set<core::int> set22 = let final core::Set<core::int> #t9 = col::LinkedHashSet::•<core::int>() in let final dynamic #t10 = #t9.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t11 = #t9.{core::Set::add}(42) in #t9;
-  core::List<core::List<core::int>> lhs23 = <core::List<core::int>>[invalid-expression "unimplemented spread element"];
-  core::Set<core::List<core::int>> set23 = let final core::Set<core::List<core::int>> #t12 = col::LinkedHashSet::•<core::List<core::int>>() in let final dynamic #t13 = #t12.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t14 = #t12.{core::Set::add}(<core::int>[42]) in #t12;
-  core::int lhs30 = let final<BottomType> #t15 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:40:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+  core::List<dynamic> lhs10 = block {
+    final core::List<dynamic> #t1 = <dynamic>[];
+    #t1.{core::List::addAll}(<dynamic>[]);
+  } =>#t1;
+  core::Set<dynamic> set10 = let final core::Set<dynamic> #t2 = col::LinkedHashSet::•<dynamic>() in let final dynamic #t3 = #t2.{core::Set::add}(invalid-expression "unimplemented spread element") in #t2;
+  core::List<core::int> lhs20 = block {
+    final core::List<core::int> #t4 = <core::int>[];
+    #t4.{core::List::addAll}(spread);
+  } =>#t4;
+  core::Set<core::int> set20 = let final core::Set<core::int> #t5 = col::LinkedHashSet::•<core::int>() in let final dynamic #t6 = #t5.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t7 = #t5.{core::Set::add}(42) in #t5;
+  core::List<dynamic> lhs21 = block {
+    final core::List<dynamic> #t8 = <dynamic>[];
+    #t8.{core::List::addAll}(spread as dynamic);
+  } =>#t8;
+  core::Set<dynamic> set21 = let final core::Set<dynamic> #t9 = col::LinkedHashSet::•<dynamic>() in let final dynamic #t10 = #t9.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t11 = #t9.{core::Set::add}(42) in #t9;
+  core::List<core::int> lhs22 = block {
+    final core::List<core::int> #t12 = <core::int>[];
+    #t12.{core::List::addAll}(<core::int>[]);
+  } =>#t12;
+  core::Set<core::int> set22 = let final core::Set<core::int> #t13 = col::LinkedHashSet::•<core::int>() in let final dynamic #t14 = #t13.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t15 = #t13.{core::Set::add}(42) in #t13;
+  core::List<core::List<core::int>> lhs23 = block {
+    final core::List<core::List<core::int>> #t16 = <core::List<core::int>>[];
+    #t16.{core::List::addAll}(<core::List<core::int>>[<core::int>[]]);
+  } =>#t16;
+  core::Set<core::List<core::int>> set23 = let final core::Set<core::List<core::int>> #t17 = col::LinkedHashSet::•<core::List<core::int>>() in let final dynamic #t18 = #t17.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t19 = #t17.{core::Set::add}(<core::int>[42]) in #t17;
+  core::int lhs30 = let final<BottomType> #t20 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:40:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
  - 'List' is from 'dart:core'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
   int lhs30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ [...spread];
-                                                             ^" in <core::int>[invalid-expression "unimplemented spread element"] as{TypeError} core::int;
-  core::int set30 = let final<BottomType> #t16 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:42:62: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
+                                                             ^" in ( block {
+    final core::List<core::int> #t21 = <core::int>[];
+    #t21.{core::List::addAll}(spread);
+  } =>#t21) as{TypeError} core::int;
+  core::int set30 = let final<BottomType> #t22 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:42:62: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
  - 'Set' is from 'dart:core'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
   int set30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ {...spread, 42};
-                                                             ^" in (let final core::Set<core::int> #t17 = col::LinkedHashSet::•<core::int>() in let final dynamic #t18 = #t17.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t19 = #t17.{core::Set::add}(42) in #t17) as{TypeError} core::int;
-  core::List<dynamic> lhs40 = <dynamic>[invalid-expression "unimplemented spread element"];
-  core::Set<dynamic> set40 = let final core::Set<dynamic> #t20 = col::LinkedHashSet::•<dynamic>() in let final dynamic #t21 = #t20.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t22 = #t20.{core::Set::add}(42) in #t20;
-  core::List<dynamic> lhs50 = <dynamic>[invalid-expression "unimplemented spread element"];
-  core::Set<dynamic> set50 = let final core::Set<dynamic> #t23 = col::LinkedHashSet::•<dynamic>() in let final dynamic #t24 = #t23.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t25 = #t23.{core::Set::add}(42) in #t23;
+                                                             ^" in (let final core::Set<core::int> #t23 = col::LinkedHashSet::•<core::int>() in let final dynamic #t24 = #t23.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t25 = #t23.{core::Set::add}(42) in #t23) as{TypeError} core::int;
+  core::List<dynamic> lhs40 = block {
+    final core::List<dynamic> #t26 = <dynamic>[];
+    #t26.{core::List::addAll}(notSpreadInt);
+  } =>#t26;
+  core::Set<dynamic> set40 = let final core::Set<dynamic> #t27 = col::LinkedHashSet::•<dynamic>() in let final dynamic #t28 = #t27.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t29 = #t27.{core::Set::add}(42) in #t27;
+  core::List<dynamic> lhs50 = block {
+    final core::List<dynamic> #t30 = <dynamic>[];
+    #t30.{core::List::addAll}(notSpreadFunction);
+  } =>#t30;
+  core::Set<dynamic> set50 = let final core::Set<dynamic> #t31 = col::LinkedHashSet::•<dynamic>() in let final dynamic #t32 = #t31.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t33 = #t31.{core::Set::add}(42) in #t31;
 }
 static method main() → dynamic {}

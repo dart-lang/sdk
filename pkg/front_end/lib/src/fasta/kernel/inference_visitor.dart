@@ -713,11 +713,6 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
             // Use 'dynamic' for error recovery.
             actualTypes.add(const DynamicType());
           }
-
-          node.replaceChild(
-              judgment,
-              InvalidExpression('unimplemented spread element')
-                ..fileOffset = node.fileOffset);
         } else {
           inferrer.inferExpression(judgment, inferredTypeArgument,
               inferenceNeeded || typeChecksNeeded,

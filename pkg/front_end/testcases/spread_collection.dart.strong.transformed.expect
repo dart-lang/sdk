@@ -4,9 +4,14 @@ import "dart:core" as core;
 import "dart:collection" as col;
 
 static method main() → dynamic {
-  final core::List<core::int> aList = <core::int>[1, invalid-expression "unimplemented spread element", invalid-expression "unimplemented spread element"];
+  final core::List<core::int> aList = block {
+    final core::List<core::int> #t1 = <core::int>[];
+    #t1.{core::List::add}(1);
+    #t1.{core::List::addAll}(<core::int>[2]);
+    #t1.{core::List::addAll}(<core::int>[3]);
+  } =>#t1;
   final core::Map<core::int, core::int> aMap = <core::int, core::int>{1: 1, invalid-expression "unimplemented spread entry": null, invalid-expression "unimplemented spread entry": null};
-  final core::Set<core::int> aSet = let final core::Set<core::int> #t1 = col::LinkedHashSet::•<core::int>() in let final core::bool #t2 = #t1.{core::Set::add}(1) in let final core::bool #t3 = #t1.{core::Set::add}(invalid-expression "unimplemented spread element") in let final core::bool #t4 = #t1.{core::Set::add}(invalid-expression "unimplemented spread element") in #t1;
+  final core::Set<core::int> aSet = let final core::Set<core::int> #t2 = col::LinkedHashSet::•<core::int>() in let final core::bool #t3 = #t2.{core::Set::add}(1) in let final core::bool #t4 = #t2.{core::Set::add}(invalid-expression "unimplemented spread element") in let final core::bool #t5 = #t2.{core::Set::add}(invalid-expression "unimplemented spread element") in #t2;
   final core::Map<dynamic, dynamic> aSetOrMap = <dynamic, dynamic>{invalid-expression "unimplemented spread entry": null};
   core::print(aList);
   core::print(aSet);

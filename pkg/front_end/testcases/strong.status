@@ -147,6 +147,7 @@ runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
 set_literals/disambiguation_rule: RuntimeError
 spread_collection: RuntimeError
+spread_collection_inference: TypeCheckError
 statements: Crash
 type_variable_as_super: RuntimeError
 type_variable_prefix: RuntimeError
