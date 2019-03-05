@@ -112,8 +112,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     String path,
     ResolvedUnitResult unit,
   ) {
-    final computer =
-        new DartUnitOutlineComputer(path, unit.lineInfo, unit.unit);
+    final computer = new DartUnitOutlineComputer(unit);
     final outline = computer.compute();
 
     if (clientSupportsDocumentSymbol) {

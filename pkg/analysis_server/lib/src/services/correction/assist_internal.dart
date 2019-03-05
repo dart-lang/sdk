@@ -13,7 +13,7 @@ import 'package:analysis_server/src/services/correction/selection_analyzer.dart'
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -54,6 +54,7 @@ class AssistProcessor {
   final TypeProvider typeProvider;
   final String file;
   final CorrectionUtils utils;
+  final Flutter flutter;
 
   final List<Assist> assists = <Assist>[];
 
@@ -67,7 +68,8 @@ class AssistProcessor {
         sessionHelper = AnalysisSessionHelper(context.resolveResult.session),
         typeProvider = context.resolveResult.typeProvider,
         file = context.resolveResult.path,
-        utils = new CorrectionUtils(context.resolveResult);
+        utils = new CorrectionUtils(context.resolveResult),
+        flutter = Flutter.of(context.resolveResult.session);
 
   /**
    * Returns the EOL to use for this [CompilationUnit].
@@ -2209,9 +2211,13 @@ class AssistProcessor {
     }
 
     var statefulWidgetClass = await sessionHelper.getClass(
-        flutter.WIDGETS_LIBRARY_URI, 'StatefulWidget');
-    var stateClass =
-        await sessionHelper.getClass(flutter.WIDGETS_LIBRARY_URI, 'State');
+      flutter.widgetsUri,
+      'StatefulWidget',
+    );
+    var stateClass = await sessionHelper.getClass(
+      flutter.widgetsUri,
+      'State',
+    );
     if (statefulWidgetClass == null || stateClass == null) {
       return;
     }
@@ -2499,7 +2505,7 @@ class AssistProcessor {
     String widgetSrc = utils.getNodeText(widgetExpr);
 
     var streamBuilderElement = await sessionHelper.getClass(
-      flutter.WIDGETS_LIBRARY_URI,
+      flutter.widgetsUri,
       'StreamBuilder',
     );
     if (streamBuilderElement == null) {
@@ -2549,21 +2555,21 @@ class AssistProcessor {
     await _addProposal_flutterWrapWidgetImpl();
     await _addProposal_flutterWrapWidgetImpl(
         kind: DartAssistKind.FLUTTER_WRAP_CENTER,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentLibraryUri: flutter.widgetsUri,
         parentClassName: 'Center',
         widgetValidator: (expr) {
           return !flutter.isExactWidgetTypeCenter(expr.staticType);
         });
     await _addProposal_flutterWrapWidgetImpl(
         kind: DartAssistKind.FLUTTER_WRAP_CONTAINER,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentLibraryUri: flutter.widgetsUri,
         parentClassName: 'Container',
         widgetValidator: (expr) {
           return !flutter.isExactWidgetTypeContainer(expr.staticType);
         });
     await _addProposal_flutterWrapWidgetImpl(
         kind: DartAssistKind.FLUTTER_WRAP_PADDING,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentLibraryUri: flutter.widgetsUri,
         parentClassName: 'Padding',
         leadingLines: ['padding: const EdgeInsets.all(8.0),'],
         widgetValidator: (expr) {
@@ -2677,7 +2683,7 @@ class AssistProcessor {
       ClassElement parentClassElement =
           await sessionHelper.getClass(parentLibraryUri, parentClassName);
       ClassElement widgetClassElement =
-          await sessionHelper.getClass(flutter.WIDGETS_LIBRARY_URI, 'Widget');
+          await sessionHelper.getClass(flutter.widgetsUri, 'Widget');
       if (parentClassElement == null || widgetClassElement == null) {
         return;
       }
@@ -2719,11 +2725,11 @@ class AssistProcessor {
 
     await addAssist(
         kind: DartAssistKind.FLUTTER_WRAP_COLUMN,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentLibraryUri: flutter.widgetsUri,
         parentClassName: 'Column');
     await addAssist(
         kind: DartAssistKind.FLUTTER_WRAP_ROW,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentLibraryUri: flutter.widgetsUri,
         parentClassName: 'Row');
   }
 

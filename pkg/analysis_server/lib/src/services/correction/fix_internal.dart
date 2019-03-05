@@ -15,7 +15,7 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -175,6 +175,7 @@ class FixProcessor {
   final LibraryElement unitLibraryElement;
   final CompilationUnit unit;
   final CorrectionUtils utils;
+  final Flutter flutter;
 
   final AnalysisError error;
   final int errorOffset;
@@ -195,6 +196,7 @@ class FixProcessor {
         unitLibraryElement = context.resolveResult.libraryElement,
         unit = context.resolveResult.unit,
         utils = CorrectionUtils(context.resolveResult),
+        flutter = Flutter.of(context.resolveResult.session),
         error = context.error,
         errorOffset = context.error.offset,
         errorLength = context.error.length;
@@ -1391,7 +1393,7 @@ class FixProcessor {
         flutter.isExactlyStatefulWidgetType(superType)) {
       // Specialize for Flutter widgets.
       ClassElement keyClass =
-          await sessionHelper.getClass(flutter.WIDGETS_LIBRARY_URI, 'Key');
+          await sessionHelper.getClass(flutter.widgetsUri, 'Key');
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
           builder.write(targetLocation.prefix);

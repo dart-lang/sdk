@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -134,7 +134,8 @@ class InheritedReferenceContributor extends DartCompletionContributor
     }
     if (element is MethodElement &&
         element.name == 'setState' &&
-        flutter.isExactState(element.enclosingElement)) {
+        Flutter.of(request.result.session)
+            .isExactState(element.enclosingElement)) {
       // Find the line indentation.
       String content = request.result.content;
       int lineStartOffset = request.offset;

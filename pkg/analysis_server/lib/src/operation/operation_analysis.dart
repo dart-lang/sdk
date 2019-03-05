@@ -14,6 +14,7 @@ import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/domains/analysis/implemented_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -116,24 +117,28 @@ void sendAnalysisNotificationHighlights(
   });
 }
 
-void sendAnalysisNotificationOutline(AnalysisServer server, String file,
-    LineInfo lineInfo, SourceKind sourceKind, CompilationUnit dartUnit) {
+void sendAnalysisNotificationOutline(
+    AnalysisServer server, ResolvedUnitResult resolvedUnit) {
   _sendNotification(server, () {
-    // compute FileKind
-    protocol.FileKind fileKind = protocol.FileKind.LIBRARY;
-    if (sourceKind == SourceKind.LIBRARY) {
-      fileKind = protocol.FileKind.LIBRARY;
-    } else if (sourceKind == SourceKind.PART) {
+    protocol.FileKind fileKind;
+    if (resolvedUnit.unit.directives.any((d) => d is PartOfDirective)) {
       fileKind = protocol.FileKind.PART;
+    } else {
+      fileKind = protocol.FileKind.LIBRARY;
     }
+
     // compute library name
-    String libraryName = _computeLibraryName(dartUnit);
+    String libraryName = _computeLibraryName(resolvedUnit.unit);
+
     // compute Outline
-    var computer = new DartUnitOutlineComputer(file, lineInfo, dartUnit,
-        withBasicFlutter: true);
-    protocol.Outline outline = computer.compute();
+    protocol.Outline outline = new DartUnitOutlineComputer(
+      resolvedUnit,
+      withBasicFlutter: true,
+    ).compute();
+
     // send notification
-    var params = new protocol.AnalysisOutlineParams(file, fileKind, outline,
+    var params = new protocol.AnalysisOutlineParams(
+        resolvedUnit.path, fileKind, outline,
         libraryName: libraryName);
     server.sendNotification(params.toNotification());
   });
