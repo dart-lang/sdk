@@ -23,4 +23,9 @@ enum ConstantContext {
   /// This means that `Object()` and `[]` are equivalent to `const Object()` and
   /// `const []` respectively. `new Object()` is a compile-time error.
   inferred,
+
+  /// In a context where constant expressions are required, but `const` is not
+  /// inferred. This includes default values of optional parameters and
+  /// initializing expressions on fields in classes with a `const` constructor.
+  required,
 }

@@ -394,7 +394,6 @@ const_optional_args_test/01: MissingCompileTimeError
 compile_time_constant_c_test/02: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError # Issue 32983
 compile_time_constant_o_test/02: MissingCompileTimeError # Issue 32983
-const_constructor_nonconst_field_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError # Issue 32983
 const_syntax_test/05: MissingCompileTimeError
 identical_const_test/01: MissingCompileTimeError # Issue 32983

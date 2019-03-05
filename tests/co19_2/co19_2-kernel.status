@@ -45,7 +45,6 @@ LanguageFeatures/Spread-collections/Syntax_A02_t12: CompileTimeError
 
 [ $compiler == dartkp ]
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
-Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: DartkCrash
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError
 Language/Metadata/before_factory_t01: RuntimeError
 Language/Metadata/before_library_t01: RuntimeError
@@ -244,8 +243,6 @@ Language/Expressions/Relational_Expressions/syntax_t01: CompileTimeError
 Language/Expressions/Shift/syntax_t01: CompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t10: CompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t27: CompileTimeError
-Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError # 32912
-Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError # 32912
 Language/Generics/class_A01_t02/none: CompileTimeError
 Language/Generics/syntax_t21: CompileTimeError
 Language/Generics/syntax_t23: CompileTimeError
@@ -851,8 +848,6 @@ LanguageFeatures/Control-flow-collections/const_collections_A08_t01/29: DartkCra
 LanguageFeatures/Control-flow-collections/const_collections_A08_t01/30: DartkCrash
 
 [ $compiler != dart2js && $runtime != vm && $fasta ]
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError # Issue 34191
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError # Issue 34191
 Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t02: MissingCompileTimeError # Issue 34192
 Language/Expressions/Constants/exception_t01: MissingCompileTimeError # Issue 31936
 Language/Expressions/Constants/exception_t03: MissingCompileTimeError # Issue 31936
@@ -863,7 +858,6 @@ Language/Expressions/Instance_Creation/Const/exception_t01: MissingCompileTimeEr
 Language/Metadata/compilation_t03: MissingCompileTimeError # Issue 34205
 
 [ $compiler != dart2js && $fasta ]
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError # Issue 34191
 Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError # Issue 34192
 Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError # Issue 32557
 Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError # Issue 32557

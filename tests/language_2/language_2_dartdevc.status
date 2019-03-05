@@ -177,7 +177,6 @@ compile_time_constant_static5_test/23: CompileTimeError # Issue 31537
 config_import_test: RuntimeError
 const_cast1_test/02: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
-const_constructor_nonconst_field_test/01: MissingCompileTimeError
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
@@ -193,8 +192,6 @@ emit_const_fields_test: CompileTimeError # Issue 31533
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 function_propagation_test: RuntimeError
-function_type_parameter2_negative_test: Fail
-function_type_parameter_negative_test: Fail
 generic_function_bounds_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533

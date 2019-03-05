@@ -941,6 +941,8 @@ class DeclarationBuilder<T extends TypeBuilder> {
 
   List<TypeVariableBuilder> typeVariables;
 
+  bool hasConstConstructor = false;
+
   DeclarationBuilder(this.members, this.setters, this.constructors, this.name,
       this.charOffset, this.parent) {
     assert(name != null);

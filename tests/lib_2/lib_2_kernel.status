@@ -23,7 +23,6 @@ js/*: Skip # TODO(ahe): Make dart:js available.
 
 [ $fasta ]
 async/future_or_type_test: CompileTimeError # Issue 34626
-mirrors/deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
 mirrors/generic_f_bounded_mixin_application_test: CompileTimeError # Issue 34613
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
@@ -255,7 +254,6 @@ isolate/request_reply_test: Pass, Timeout
 isolate/stacktrace_message_test: RuntimeError
 mirrors/constructor_optional_args_test: RuntimeError
 mirrors/constructors_test: RuntimeError
-mirrors/deferred_constraints_constants_test/default_argument2: Pass
 mirrors/fake_function_with_call_test: RuntimeError
 mirrors/instance_members_easier_test: RuntimeError
 mirrors/instance_members_test: RuntimeError

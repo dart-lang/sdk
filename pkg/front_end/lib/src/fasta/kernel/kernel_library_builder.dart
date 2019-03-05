@@ -97,6 +97,7 @@ import '../loader.dart' show Loader;
 import '../modifier.dart'
     show
         abstractMask,
+        hasConstConstructorMask,
         hasInitializerMask,
         initializingFormalMask,
         mixinDeclarationMask,
@@ -293,6 +294,9 @@ class KernelLibraryBuilder
     if (modifiers & mixinDeclarationMask != 0) {
       isMixinDeclaration = true;
       modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
+    }
+    if (declaration.hasConstConstructor) {
+      modifiers |= hasConstConstructorMask;
     }
     ClassBuilder cls = new SourceClassBuilder(
         metadata,
@@ -682,6 +686,7 @@ class KernelLibraryBuilder
     if (nativeMethodName != null) {
       addNativeMethod(procedure);
     }
+    if (procedure.isConst) currentDeclaration?.hasConstConstructor = true;
   }
 
   void addProcedure(

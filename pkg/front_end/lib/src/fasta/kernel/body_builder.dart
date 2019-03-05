@@ -1675,8 +1675,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (context.inDeclaration) {
       if (context == IdentifierContext.topLevelVariableDeclaration ||
           context == IdentifierContext.fieldDeclaration) {
-        constantContext =
-            member.isConst ? ConstantContext.inferred : ConstantContext.none;
+        constantContext = member.isConst
+            ? ConstantContext.inferred
+            : !member.isStatic &&
+                    classBuilder != null &&
+                    classBuilder.hasConstConstructor
+                ? ConstantContext.required
+                : ConstantContext.none;
       }
     } else if (constantContext != ConstantContext.none &&
         !context.allowedInConstantExpression) {
@@ -2075,7 +2080,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleNoFieldInitializer(Token token) {
     debugEvent("NoFieldInitializer");
-    if (constantContext != ConstantContext.none) {
+    if (constantContext == ConstantContext.inferred) {
       // Creating a null value to prevent the Dart VM from crashing.
       push(forest.literalNull(token));
     } else {
@@ -2940,7 +2945,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginFormalParameterDefaultValueExpression() {
     super.push(constantContext);
-    constantContext = ConstantContext.none;
+    constantContext = ConstantContext.required;
   }
 
   @override
@@ -4921,7 +4926,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           addProblem(message.messageObject, message.charOffset, message.length);
           suppressMessage = true;
         }
-      } else if (constantContext != ConstantContext.none) {
+      } else if (constantContext == ConstantContext.inferred) {
         message = fasta.messageTypeVariableInConstantContext.withLocation(
             unresolved.fileUri,
             unresolved.charOffset,
