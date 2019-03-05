@@ -10,6 +10,7 @@ import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -802,6 +803,46 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
+  void test_await_missing_async_issue36048() {
+    parseCompilationUnit('''
+main() { // missing async
+  await foo();
+}
+''', errors: [
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 28, 5)
+    ]);
+  }
+
+  void test_await_missing_async2_issue36048() {
+    parseCompilationUnit('''
+main() { // missing async
+  await foo.bar();
+}
+''', errors: [
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 28, 5)
+    ]);
+  }
+
+  void test_await_missing_async3_issue36048() {
+    parseCompilationUnit('''
+main() { // missing async
+  (await foo);
+}
+''', errors: [
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 29, 5)
+    ]);
+  }
+
+  void test_await_missing_async4_issue36048() {
+    parseCompilationUnit('''
+main() { // missing async
+  [await foo];
+}
+''', errors: [
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 29, 5)
+    ]);
+  }
+
   @override
   void test_expectedListOrMapLiteral() {
     // The fasta parser returns an 'IntegerLiteralImpl' when parsing '1'.

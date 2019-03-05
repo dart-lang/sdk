@@ -40,6 +40,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, offset, length);
         return;
+      case "AWAIT_IN_WRONG_CONTEXT":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, offset, length);
+        return;
       case "BUILT_IN_IDENTIFIER_AS_TYPE":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,

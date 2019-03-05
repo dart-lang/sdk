@@ -52,10 +52,7 @@ foo() {}
 main() async {
   await foo();
 }
-''', errorFilter: (AnalysisError error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE;
-    });
+''');
   }
 
   test_blockFunctionBody_getter() async {
@@ -132,8 +129,7 @@ Future<int> main() async {
   return 42;
 }
 ''', errorFilter: (AnalysisError error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE;
+      return error.errorCode == CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT;
     });
   }
 
@@ -151,10 +147,7 @@ dynamic main() async {
   await foo();
   return 42;
 }
-''', errorFilter: (AnalysisError error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE;
-    });
+''');
   }
 
   test_returnFuture_nonFuture() async {
@@ -171,10 +164,7 @@ Future<int> main() async {
   await foo();
   return 42;
 }
-''', errorFilter: (AnalysisError error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE;
-    });
+''');
   }
 
   test_returnFuture_noType() async {
@@ -191,9 +181,6 @@ main() async {
   await foo();
   return 42;
 }
-''', errorFilter: (AnalysisError error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE;
-    });
+''');
   }
 }

@@ -3571,7 +3571,16 @@ class Parser {
       throw "Internal error: Unknown asyncState: '$asyncState'.";
     } else if (identical(value, 'const')) {
       return parseExpressionStatementOrConstDeclaration(token);
-    } else if (!inPlainSync && identical(value, 'await')) {
+    } else if (identical(value, 'await')) {
+      if (inPlainSync) {
+        if (!looksLikeAwaitExpression(token)) {
+          return parseExpressionStatementOrDeclaration(token);
+        }
+        // Recovery: looks like an expression preceded by `await`
+        // but not inside an async context.
+        // Fall through to parseExpressionStatement
+        // and parseAwaitExpression will report the error.
+      }
       return parseExpressionStatement(token);
     } else if (identical(value, 'set') && token.next.next.isIdentifier) {
       // Recovery: invalid use of `set`
@@ -3887,10 +3896,13 @@ class Parser {
     // Prefix:
     if (identical(value, 'await')) {
       if (inPlainSync) {
-        return parsePrimary(token, IdentifierContext.expression);
-      } else {
-        return parseAwaitExpression(token, allowCascades);
+        if (!looksLikeAwaitExpression(token)) {
+          return parsePrimary(token, IdentifierContext.expression);
+        }
+        // Recovery: Looks like an expression preceded by `await`.
+        // Fall through and let parseAwaitExpression report the error.
       }
+      return parseAwaitExpression(token, allowCascades);
     } else if (identical(value, '+')) {
       // Dart no longer allows prefix-plus.
       rewriteAndRecover(
@@ -5467,6 +5479,31 @@ class Parser {
     listener = originalListener;
     listener.handleInvalidTopLevelBlock(begin);
     return token;
+  }
+
+  /// Determine if the following tokens look like an 'await' expression
+  /// and not a local variable or local function declaration.
+  bool looksLikeAwaitExpression(Token token) {
+    token = token.next;
+    assert(optional('await', token));
+    token = token.next;
+
+    // TODO(danrubel): Consider parsing the potential expression following
+    // the `await` token once doing so does not modify the token stream.
+    // For now, use simple look ahead and ensure no false positives.
+
+    if (token.isIdentifier) {
+      token = token.next;
+      if (optional('(', token)) {
+        token = token.endGroup.next;
+        if (isOneOf(token, [';', '.', '..', '?', '?.'])) {
+          return true;
+        }
+      } else if (isOneOf(token, ['.', ')', ']'])) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// ```
