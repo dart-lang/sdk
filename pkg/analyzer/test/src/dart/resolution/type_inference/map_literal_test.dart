@@ -225,7 +225,7 @@ var c = {1 : 1, 2 : 2, 3 : 3};
 var a = {...c};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{...'), 'Map<dynamic, dynamic>');
+    assertType(mapLiteral('{...'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_spread_noConflict() async {

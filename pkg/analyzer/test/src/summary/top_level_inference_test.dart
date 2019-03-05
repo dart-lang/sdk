@@ -374,6 +374,12 @@ class TopLevelInferenceErrorsTestWithUiAsCode
   @override
   List<String> get enabledExperiments =>
       [EnableString.spread_collections, EnableString.control_flow_collections];
+
+  @failingTest
+  @override
+  test_initializer_untypedMap() async {
+    await super.test_initializer_untypedMap();
+  }
 }
 
 @reflectiveTest
