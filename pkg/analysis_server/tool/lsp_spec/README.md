@@ -1,6 +1,6 @@
 # Language Server Protocol
 
-[Language Server Protocol](https://microsoft.github.io/language-server-protocol/) (LSP) support is available in the Dart analysis server from version 2.2.0-dev of the SDK. The supported messages are detailed below (for the version of the SDK that matches this README).
+[Language Server Protocol](https://microsoft.github.io/language-server-protocol/) (LSP) support is available in the Dart analysis server from version 2.2.0 of the SDK (which was included in version 1.2.1 of Flutter). The supported messages are detailed below (for the version of the SDK that matches this README).
 
 ## Using the Dart LSP server in editors
 
