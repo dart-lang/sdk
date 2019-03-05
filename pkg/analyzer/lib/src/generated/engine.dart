@@ -33,12 +33,10 @@ import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/general.dart';
-import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/task/yaml.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
-import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
@@ -552,15 +550,6 @@ abstract class AnalysisContext {
   CompilationUnit parseCompilationUnit(Source source);
 
   /**
-   * Parse a single HTML [source] to produce a document model.
-   *
-   * Throws an [AnalysisException] if the analysis could not be performed
-   *
-   * <b>Note:</b> This method cannot be used in an async environment.
-   */
-  Document parseHtmlDocument(Source source);
-
-  /**
    * Perform the next unit of work required to keep the analysis results
    * up-to-date and return information about the consequent changes to the
    * analysis results. This method can be long running.
@@ -931,12 +920,6 @@ class AnalysisEngine {
     _taskManager.addTaskDescriptor(StrongModeVerifyUnitTask.DESCRIPTOR);
     _taskManager.addTaskDescriptor(VerifyUnitTask.DESCRIPTOR);
     //
-    // Register HTML tasks.
-    //
-    _taskManager.addTaskDescriptor(DartScriptsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(HtmlErrorsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ParseHtmlTask.DESCRIPTOR);
-    //
     // Register YAML tasks.
     //
     _taskManager.addTaskDescriptor(ParseYamlTask.DESCRIPTOR);
@@ -969,17 +952,6 @@ class AnalysisEngine {
     }
     String extension = FileNameUtilities.getExtension(fileName).toLowerCase();
     return extension == SUFFIX_DART;
-  }
-
-  /**
-   * Return `true` if the given [fileName] is assumed to contain HTML.
-   */
-  static bool isHtmlFileName(String fileName) {
-    if (fileName == null) {
-      return false;
-    }
-    String extension = FileNameUtilities.getExtension(fileName).toLowerCase();
-    return extension == SUFFIX_HTML || extension == SUFFIX_HTM;
   }
 }
 

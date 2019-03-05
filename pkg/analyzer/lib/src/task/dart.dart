@@ -24,7 +24,6 @@ import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/patch.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -48,7 +47,6 @@ import 'package:analyzer/src/task/api/general.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
-import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
@@ -5316,52 +5314,6 @@ class ScanDartTask extends SourceBasedAnalysisTask {
             source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [message]));
       }
     }
-    if (target is DartScript) {
-      DartScript script = target;
-      List<ScriptFragment> fragments = script.fragments;
-      if (fragments.length < 1) {
-        throw new AnalysisException('Cannot scan scripts with no fragments');
-      } else if (fragments.length > 1) {
-        throw new AnalysisException(
-            'Cannot scan scripts with multiple fragments');
-      }
-      ScriptFragment fragment = fragments[0];
-
-      Scanner scanner = new Scanner(
-          source,
-          new SubSequenceReader(fragment.content, fragment.offset),
-          errorListener);
-      scanner.setSourceStart(fragment.line, fragment.column);
-      scanner.preserveComments = context.analysisOptions.preserveComments;
-      scanner.scanLazyAssignmentOperators =
-          context.analysisOptions.enableLazyAssignmentOperators;
-
-      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-
-      outputs[TOKEN_STREAM] = scanner.tokenize();
-      outputs[LINE_INFO] = lineInfo;
-      outputs[IGNORE_INFO] =
-          IgnoreInfo.calculateIgnores(fragment.content, lineInfo);
-      outputs[SCAN_ERRORS] = getUniqueErrors(errorListener.errors);
-    } else if (target is Source) {
-      String content = getRequiredInput(CONTENT_INPUT_NAME);
-
-      Scanner scanner =
-          new Scanner(source, new CharSequenceReader(content), errorListener);
-      scanner.preserveComments = context.analysisOptions.preserveComments;
-      scanner.scanLazyAssignmentOperators =
-          context.analysisOptions.enableLazyAssignmentOperators;
-
-      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-
-      outputs[TOKEN_STREAM] = scanner.tokenize();
-      outputs[LINE_INFO] = lineInfo;
-      outputs[IGNORE_INFO] = IgnoreInfo.calculateIgnores(content, lineInfo);
-      outputs[SCAN_ERRORS] = getUniqueErrors(errorListener.errors);
-    } else {
-      throw new AnalysisException(
-          'Cannot scan Dart code from a ${target.runtimeType}');
-    }
   }
 
   /**
@@ -5374,15 +5326,6 @@ class ScanDartTask extends SourceBasedAnalysisTask {
       return <String, TaskInput>{
         CONTENT_INPUT_NAME: CONTENT.of(target, flushOnAccess: true),
         MODIFICATION_TIME_INPUT: MODIFICATION_TIME.of(target)
-      };
-    } else if (target is DartScript) {
-      // This task does not use the following input; it is included only to add
-      // a dependency between this value and the containing source so that when
-      // the containing source is modified these results will be invalidated.
-      Source source = target.source;
-      return <String, TaskInput>{
-        '-': DART_SCRIPTS.of(source),
-        MODIFICATION_TIME_INPUT: MODIFICATION_TIME.of(source)
       };
     }
     throw new AnalysisException(
@@ -5406,8 +5349,6 @@ class ScanDartTask extends SourceBasedAnalysisTask {
         return TaskSuitability.HIGHEST;
       }
       return TaskSuitability.LOWEST;
-    } else if (target is DartScript) {
-      return TaskSuitability.HIGHEST;
     }
     return TaskSuitability.NONE;
   }

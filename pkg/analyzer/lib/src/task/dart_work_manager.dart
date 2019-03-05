@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/src/task/html.dart';
 
 /**
  * The manager for Dart specific analysis.
@@ -168,7 +167,7 @@ class DartWorkManager implements WorkManager {
 
   @override
   List<AnalysisError> getErrors(Source source) {
-    if (!_isDartSource(source) && source is! DartScript) {
+    if (!_isDartSource(source)) {
       return AnalysisError.NO_ERRORS;
     }
     // If analysis is finished, use all the errors.

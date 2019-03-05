@@ -23,13 +23,11 @@ import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/plugin/task.dart';
 import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/general.dart';
-import 'package:analyzer/src/task/api/html.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/manager.dart';
-import 'package:html/dom.dart' show Document;
 
 /**
  * Type of callback functions used by PendingFuture. Functions of this type
@@ -590,10 +588,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<AnalysisError> computeErrors(Source source) {
-    String name = source.shortName;
-    if (AnalysisEngine.isHtmlFileName(name)) {
-      return computeResult(source, HTML_ERRORS);
-    }
     return computeResult(source, DART_ERRORS);
   }
 
@@ -610,8 +604,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     String name = source.shortName;
     if (AnalysisEngine.isDartFileName(name)) {
       return computeResult(source, SOURCE_KIND);
-    } else if (AnalysisEngine.isHtmlFileName(name)) {
-      return SourceKind.HTML;
     }
     return SourceKind.UNKNOWN;
   }
@@ -833,24 +825,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> getHtmlFilesReferencing(Source source) {
-    if (!AnalysisEngine.isDartFileName(source.shortName)) {
-      return const <Source>[];
-    }
-    List<Source> htmlSources = <Source>[];
-    List<Source> librarySources = getLibrariesContaining(source);
-    for (Source source in _cache.sources) {
-      if (AnalysisEngine.isHtmlFileName(source.shortName)) {
-        List<Source> referencedLibraries =
-            getResult(source, REFERENCED_LIBRARIES);
-        if (_containsAny(referencedLibraries, librarySources)) {
-          htmlSources.add(source);
-        }
-      }
-    }
-    if (htmlSources.isEmpty) {
-      return const <Source>[];
-    }
-    return htmlSources;
+    return const <Source>[];
   }
 
   @override
@@ -858,8 +833,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     String name = source.shortName;
     if (AnalysisEngine.isDartFileName(name)) {
       return getResult(source, SOURCE_KIND);
-    } else if (AnalysisEngine.isHtmlFileName(name)) {
-      return SourceKind.HTML;
     }
     return SourceKind.UNKNOWN;
   }
@@ -895,10 +868,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> getLibrariesReferencedFromHtml(Source htmlSource) {
-    CacheEntry entry = _cache.get(htmlSource);
-    if (entry != null) {
-      return entry.getValue(REFERENCED_LIBRARIES);
-    }
     return const <Source>[];
   }
 
@@ -1098,14 +1067,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           new CaughtException(exception, stackTrace));
     }
     return computeResult(source, PARSED_UNIT);
-  }
-
-  @override
-  Document parseHtmlDocument(Source source) {
-    if (!AnalysisEngine.isHtmlFileName(source.shortName)) {
-      return null;
-    }
-    return computeResult(source, HTML_DOCUMENT);
   }
 
   @override
@@ -1327,19 +1288,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return `true` if the given list of [sources] contains any of the given
-   * [targetSources].
-   */
-  bool _containsAny(List<Source> sources, List<Source> targetSources) {
-    for (Source targetSource in targetSources) {
-      if (_contains(sources, targetSource)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Set the contents of the given [source] to the given [contents] and mark the
    * source as having changed. The additional [offset], [oldLength] and
    * [newLength] information is used by the context to determine what reanalysis
@@ -1455,12 +1403,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       for (Source source in _cache.sources) {
         CacheEntry entry = _cache.get(source);
         if (entry.getValue(SOURCE_KIND) == kind) {
-          sources.add(source);
-        }
-      }
-    } else if (kind == SourceKind.HTML) {
-      for (Source source in _cache.sources) {
-        if (AnalysisEngine.isHtmlFileName(source.shortName)) {
           sources.add(source);
         }
       }

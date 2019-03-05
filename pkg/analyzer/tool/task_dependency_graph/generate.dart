@@ -176,7 +176,7 @@ $data
     List<UriResolver> uriResolvers = [
       new DartUriResolver(sdk),
       new PackageMapUriResolver(resourceProvider,
-          builder.convertPackagesToMap(builder.createPackageMap(''))),
+          builder.convertPackagesToMap(builder.createPackageMap(rootDir))),
       new ResourceUriResolver(resourceProvider)
     ];
 
