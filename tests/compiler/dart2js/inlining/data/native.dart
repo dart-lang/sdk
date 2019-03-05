@@ -4,9 +4,6 @@
 
 import 'dart:html';
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_helper';
-
 /*element: main:[]*/
 main() {
   document.createElement(CustomElement.tag);
@@ -22,13 +19,13 @@ main() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: newCustom:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 newCustom() {
   new CustomElement();
 }
 
 /*element: newCustomCreated:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 newCustomCreated() {
   new CustomElement.created();
 }
@@ -51,13 +48,13 @@ class CustomElement extends HtmlElement {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: newNormal:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 newNormal() {
   new NormalElement();
 }
 
 /*element: newNormalCreated:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 newNormalCreated() {
   new NormalElement.created();
 }

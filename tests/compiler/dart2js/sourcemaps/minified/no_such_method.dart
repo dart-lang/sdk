@@ -15,7 +15,7 @@ main() {
 }
 
 @AssumeDynamic()
-@NoInline()
+@pragma('dart2js:noInline')
 confuse(x) => x;
 
 class A {

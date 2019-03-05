@@ -16,7 +16,7 @@ class B {}
 /*class: C:checks=[],typeArgument*/
 class C {}
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is A<FutureOr<B>>;
 
 main() {

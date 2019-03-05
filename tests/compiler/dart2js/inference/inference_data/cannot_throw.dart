@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore: import_internal_library
-import 'dart:_js_helper';
-
 main() {
   noThrows();
   noInline();
@@ -13,13 +10,14 @@ main() {
 
 // We trust the annotation.
 /*element: noThrows:no-throw*/
-@NoThrows()
-@NoInline() // Required for the @NoThrows() annotation.
+@pragma('dart2js:noThrows')
+@pragma(
+    'dart2js:noInline') // Required for the @pragma('dart2js:noThrows') annotation.
 noThrows() => throw '';
 
-// Check that the @NoInline() annotation has no impact on its own.
+// Check that the @pragma('dart2js:noInline') annotation has no impact on its own.
 /*element: noInline:*/
-@NoInline()
+@pragma('dart2js:noInline')
 noInline() {}
 
 // TODO(johnniwinther): Should we infer this?

@@ -6,14 +6,14 @@ import 'package:expect/expect.dart';
 
 /*class: global#JsLinkedHashMap:checks=[],instance*/
 
-@NoInline()
+@pragma('dart2js:noInline')
 method<T>() {
   return
       /*checks=[],instance*/
       () => <T, int>{};
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is Map<int, int>;
 
 main() {

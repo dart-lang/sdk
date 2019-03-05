@@ -53,7 +53,8 @@ class JSNumber extends Interceptor implements double {
     return JS('num', r'# % #', this, b);
   }
 
-  @NoInline() // Use invoke_dynamic_specializer instead of inlining.
+  // Use invoke_dynamic_specializer instead of inlining.
+  @pragma('dart2js:noInline')
   JSNumber abs() => JS(
       'returns:num;effects:none;depends:none;throws:never;gvn:true',
       r'Math.abs(#)',
@@ -452,7 +453,8 @@ class JSInt extends JSNumber implements int {
   const JSInt();
 
   @override
-  @NoInline() // Use invoke_dynamic_specializer instead of inlining.
+  // Use invoke_dynamic_specializer instead of inlining.
+  @pragma('dart2js:noInline')
   JSInt abs() => JS(
       'returns:int;effects:none;depends:none;throws:never;gvn:true',
       r'Math.abs(#)',

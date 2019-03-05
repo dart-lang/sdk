@@ -10,7 +10,7 @@ import 'dart:async' show Zone;
 import 'dart:isolate';
 
 @patch
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool debugger({bool when: true, String message}) {
   if (when) {
     JS('', 'debugger');

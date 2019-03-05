@@ -525,7 +525,7 @@ class bool {
 
 @patch
 class RegExp {
-  @NoInline()
+  @pragma('dart2js:noInline')
   @patch
   factory RegExp(String source,
           {bool multiLine: false, bool caseSensitive: true}) =>
@@ -537,7 +537,8 @@ class RegExp {
 }
 
 // Patch for 'identical' function.
-@NoInline() // No inlining since we recognize the call in optimizer.
+@pragma(
+    'dart2js:noInline') // No inlining since we recognize the call in optimizer.
 @patch
 bool identical(Object a, Object b) {
   return JS('bool', '(# == null ? # == null : # === #)', a, b, a, b);
@@ -747,7 +748,7 @@ bool _hasErrorStackProperty = JS('bool', 'new Error().stack != void 0');
 @patch
 class StackTrace {
   @patch
-  @NoInline()
+  @pragma('dart2js:noInline')
   static StackTrace get current {
     if (_hasErrorStackProperty) {
       return getTraceFromException(JS('', 'new Error()'));

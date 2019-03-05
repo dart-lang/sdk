@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
-
 /*omit.class: A:*/
 /*strong.class: A:direct,explicit=[A.T],needsArgs*/
 class A<T> {
-  @NoInline()
+  @pragma('dart2js:noInline')
   m() {
     return /**/ (T t, String s) {};
   }
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is void Function(int);
 
 main() {

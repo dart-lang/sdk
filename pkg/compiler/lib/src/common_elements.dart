@@ -506,12 +506,6 @@ abstract class KCommonElements implements CommonElements {
 
   ClassEntity get jsAnonymousClass;
 
-  ClassEntity get noSideEffectsClass;
-
-  ClassEntity get noThrowsClass;
-
-  ClassEntity get noInlineClass;
-
   ClassEntity get forceInlineClass;
 
   ClassEntity get pragmaClass;
@@ -1390,18 +1384,6 @@ class CommonElementsImpl
   ClassEntity _typeVariableClass;
   ClassEntity get typeVariableClass =>
       _typeVariableClass ??= _findHelperClass('TypeVariable');
-
-  ClassEntity _noSideEffectsClass;
-  ClassEntity get noSideEffectsClass =>
-      _noSideEffectsClass ??= _findHelperClass('NoSideEffects');
-
-  ClassEntity _noThrowsClass;
-  ClassEntity get noThrowsClass =>
-      _noThrowsClass ??= _findHelperClass('NoThrows');
-
-  ClassEntity _noInlineClass;
-  ClassEntity get noInlineClass =>
-      _noInlineClass ??= _findHelperClass('NoInline');
 
   ClassEntity _forceInlineClass;
   ClassEntity get forceInlineClass =>

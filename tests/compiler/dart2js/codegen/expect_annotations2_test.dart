@@ -12,20 +12,20 @@ const MEMORY_SOURCE_FILES = const {
   'main.dart': '''
         import 'package:expect/expect.dart';
 
-        @NoInline()
+        @pragma('dart2js:noInline')
         foo(y) => 49912344 + y;
 
         class A {
           @pragma('dart2js:noElision')
           var field;
 
-          @NoInline()
+          @pragma('dart2js:noInline')
           A([this.field = 4711]);
 
-          @NoInline()
+          @pragma('dart2js:noInline')
           static bar(x) => x + 123455;
 
-          @NoInline()
+          @pragma('dart2js:noInline')
           gee(x, y) => x + y + 81234512;
         }
 

@@ -43,7 +43,7 @@ T method8<T>(num n) => null;
 /*omit.element: method9:*/
 num method9<T>(num n, T t) => null;
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is num Function(num);
 
 forceInstantiation(num Function(num) f) => f;

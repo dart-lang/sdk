@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_helper';
-
 /*element: main:[]*/
 main() {
   asyncMethod();
@@ -39,7 +36,7 @@ _multipleReturns(c) {
 }
 
 /*element: multipleReturns:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 multipleReturns() {
   _multipleReturns(true);
   _multipleReturns(false);
@@ -52,7 +49,7 @@ _codeAfterReturn(c) {
 }
 
 /*element: codeAfterReturn:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 codeAfterReturn() {
   _codeAfterReturn(true);
   _codeAfterReturn(false);
@@ -67,7 +64,7 @@ _multipleThrows(c) {
 }
 
 /*element: multipleThrows:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 multipleThrows() {
   _multipleThrows(true);
   _multipleThrows(false);
@@ -82,7 +79,7 @@ _returnAndThrow(c) {
 }
 
 /*element: returnAndThrow:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 returnAndThrow() {
   _returnAndThrow(true);
   _returnAndThrow(false);
@@ -177,7 +174,7 @@ class Class1 {
 }
 
 /*element: closureInInitializer:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 closureInInitializer() {
   new Class1();
 }

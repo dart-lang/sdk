@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_helper';
-
 /*element: main:[]*/
 main() {
   forceInlineConstructor();
@@ -19,12 +16,12 @@ main() {
 
 class Class1 {
   /*element: Class1.:[forceInlineConstructor:Class1]*/
-  @ForceInline()
+  @pragma('dart2js:tryInline')
   Class1();
 }
 
 /*element: forceInlineConstructor:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 forceInlineConstructor() {
   new Class1();
 }
@@ -35,14 +32,14 @@ forceInlineConstructor() {
 
 class Class2 {
   /*element: Class2.:[forceInlineConstructorBody+,forceInlineConstructorBody:Class2]*/
-  @ForceInline()
+  @pragma('dart2js:tryInline')
   Class2() {
     print('foo');
   }
 }
 
 /*element: forceInlineConstructorBody:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 forceInlineConstructorBody() {
   new Class2();
 }
@@ -53,12 +50,12 @@ forceInlineConstructorBody() {
 
 class Class3<T> {
   /*element: Class3.:[forceInlineGenericConstructor:Class3<int>]*/
-  @ForceInline()
+  @pragma('dart2js:tryInline')
   Class3();
 }
 
 /*element: forceInlineGenericConstructor:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 forceInlineGenericConstructor() {
   new Class3<int>();
 }
@@ -69,18 +66,18 @@ forceInlineGenericConstructor() {
 
 class Class4a<T> implements Class4b<T> {
   /*element: Class4a.:[forceInlineGenericFactory:Class4a<int>]*/
-  @ForceInline()
+  @pragma('dart2js:tryInline')
   Class4a();
 }
 
 class Class4b<T> {
   /*element: Class4b.:[forceInlineGenericFactory:Class4b<int>]*/
-  @ForceInline()
+  @pragma('dart2js:tryInline')
   factory Class4b() => new Class4a<T>();
 }
 
 /*element: forceInlineGenericFactory:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 forceInlineGenericFactory() {
   new Class4b<int>();
 }

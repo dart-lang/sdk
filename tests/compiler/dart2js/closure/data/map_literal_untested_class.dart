@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 /*element: A.:hasThis*/
 class A<T> {
   /*element: A.method:hasThis*/
-  @NoInline()
+  @pragma('dart2js:noInline')
   method() {
     /*omit.hasThis*/
     /*strong.fields=[this],free=[this],hasThis*/
@@ -16,7 +16,7 @@ class A<T> {
   }
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o == null;
 
 main() {

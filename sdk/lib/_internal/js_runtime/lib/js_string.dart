@@ -11,7 +11,7 @@ part of _interceptors;
 class JSString extends Interceptor implements String, JSIndexable {
   const JSString();
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   int codeUnitAt(int index) {
     if (index is! int) throw diagnoseIndexError(this, index);
     if (index < 0) throw diagnoseIndexError(this, index);

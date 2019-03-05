@@ -21,7 +21,7 @@ int method(String arg) => arg.length;
 @AssumeDynamic()
 int methodAssumeDynamic(String arg) => arg.length;
 
-@NoInline()
+@pragma('dart2js:noInline')
 int methodNoInline(String arg) => arg.length;
 
 void main(List<String> args) {
@@ -76,7 +76,7 @@ runTest() async {
     Expect.equals(
         expectNoInline,
         closedWorld.annotationsData.hasNoInline(method),
-        "Unexpected annotation of @NoInline() on '$method'.");
+        "Unexpected annotation of @pragma('dart2js:noInline') on '$method'.");
     Expect.equals(
         expectAssumeDynamic,
         closedWorld.annotationsData.hasAssumeDynamic(method),

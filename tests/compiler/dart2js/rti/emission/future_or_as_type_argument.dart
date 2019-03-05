@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:expect/expect.dart';
 
 /*class: global#Future:checks=[],typeArgument*/
 
@@ -16,7 +15,7 @@ class B {}
 /*class: C:checks=[],typeArgument*/
 class C {}
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o as A<FutureOr<B>>;
 
 main() {

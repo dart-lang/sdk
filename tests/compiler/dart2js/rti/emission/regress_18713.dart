@@ -19,7 +19,7 @@ class S<Y> {
 /*class: TS:checks=[$asS0,$asT],instance*/
 class TS<A, B> = T<A> with S<B>;
 
-@NoInline()
+@pragma('dart2js:noInline')
 @AssumeDynamic()
 dyn(x) => x;
 

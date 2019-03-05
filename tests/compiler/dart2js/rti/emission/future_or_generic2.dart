@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 
 /*class: A:checks=[],instance*/
 class A<T> {
-  @NoInline()
+  @pragma('dart2js:noInline')
   m(o) => o is FutureOr<B<T>>;
 }
 

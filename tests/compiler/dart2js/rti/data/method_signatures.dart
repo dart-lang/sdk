@@ -45,7 +45,7 @@ num method8(int n) => null;
 /*element: method9:*/
 Object method9(num n) => null;
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is num Function(num);
 
 main() {

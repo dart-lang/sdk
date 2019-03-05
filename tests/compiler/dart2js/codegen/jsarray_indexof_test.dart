@@ -22,7 +22,7 @@ import '../helpers/program_lookup.dart';
 const String source = '''
 import 'package:expect/expect.dart';
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o, a) => o.indexOf(a);
 main() {
   test([1, 2, 3], 2);

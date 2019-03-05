@@ -5,9 +5,6 @@
 // Tests for the heuristics on conditional expression whose condition is a
 // parameter for which the max, instead of the sum, of the branch sizes is used.
 
-// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_helper';
-
 /*element: main:[]*/
 main() {
   conditionalField();
@@ -32,7 +29,7 @@ _conditionalField() {
 }
 
 /*element: conditionalField:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 conditionalField() {
   _field1 = false;
   _conditionalField();
@@ -56,7 +53,7 @@ _conditionalParameter(bool o) {
 }
 
 /*element: conditionalParameter:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 conditionalParameter() {
   _conditionalParameter(true);
   _conditionalParameter(false);
