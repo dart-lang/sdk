@@ -20,7 +20,7 @@ namespace dart {
 DEFINE_FLAG(bool, trace_compilation_trace, false, "Trace compilation trace.");
 
 CompilationTraceSaver::CompilationTraceSaver(Zone* zone)
-    : buf_(zone, 4 * KB),
+    : buf_(zone, 1 * MB),
       func_name_(String::Handle(zone)),
       cls_(Class::Handle(zone)),
       cls_name_(String::Handle(zone)),
