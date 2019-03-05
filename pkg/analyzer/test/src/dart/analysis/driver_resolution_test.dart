@@ -5222,7 +5222,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var literal = findNode.mapLiteral('<bool, int, double>{}');
+    var literal = findNode.setOrMapLiteral('<bool, int, double>{}');
     assertType(literal, 'Map<dynamic, dynamic>');
 
     var boolRef = findNode.simple('bool, ');

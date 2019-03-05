@@ -18,14 +18,14 @@ main() {
 
 @reflectiveTest
 class MapLiteralTest extends DriverResolutionTest {
-  AstNode mapLiteral(String search) => findNode.mapLiteral(search);
+  AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_entry_conflict() async {
     addTestFile('''
 Map<int, int> a = {'a' : 1};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<int, int>');
+    assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
   test_context_noTypeArgs_entry_noConflict() async {
@@ -33,7 +33,7 @@ Map<int, int> a = {'a' : 1};
 Map<int, int> a = {1 : 2};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<int, int>');
+    assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
   test_context_noTypeArgs_noEntries() async {
@@ -41,7 +41,7 @@ Map<int, int> a = {1 : 2};
 Map<String, String> a = {};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<String, String>');
+    assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
   test_context_typeArgs_entry_conflict() async {
@@ -49,7 +49,7 @@ Map<String, String> a = {};
 Map<String, String> a = <String, String>{0 : 'a'};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<String, String>');
+    assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
   test_context_typeArgs_entry_noConflict() async {
@@ -57,7 +57,7 @@ Map<String, String> a = <String, String>{0 : 'a'};
 Map<String, String> a = <String, String>{'a' : 'b'};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<String, String>');
+    assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
   test_context_typeArgs_noEntries_conflict() async {
@@ -65,7 +65,7 @@ Map<String, String> a = <String, String>{'a' : 'b'};
 Map<String, String> a = <int, int>{};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<int, int>');
+    assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
   test_context_typeArgs_noEntries_noConflict() async {
@@ -73,7 +73,7 @@ Map<String, String> a = <int, int>{};
 Map<String, String> a = <String, String>{};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<String, String>');
+    assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
   test_noContext_noTypeArgs_expressions_conflict() async {
@@ -81,7 +81,7 @@ Map<String, String> a = <String, String>{};
 var a = {1 : '1', '2' : 2, 3 : '3'};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<Object, Object>');
+    assertType(setOrMapLiteral('{'), 'Map<Object, Object>');
   }
 
   test_noContext_noTypeArgs_expressions_noConflict() async {
@@ -89,7 +89,7 @@ var a = {1 : '1', '2' : 2, 3 : '3'};
 var a = {1 : 'a', 2 : 'b', 3 : 'c'};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<int, String>');
+    assertType(setOrMapLiteral('{'), 'Map<int, String>');
   }
 
   test_noContext_noTypeArgs_noEntries() async {
@@ -97,7 +97,7 @@ var a = {1 : 'a', 2 : 'b', 3 : 'c'};
 var a = {};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<dynamic, dynamic>');
+    assertType(setOrMapLiteral('{'), 'Map<dynamic, dynamic>');
   }
 
   test_noContext_typeArgs_entry_conflict() async {
@@ -105,7 +105,7 @@ var a = {};
 var a = <String, int>{'a' : 1};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<String, int>');
+    assertType(setOrMapLiteral('{'), 'Map<String, int>');
   }
 
   test_noContext_typeArgs_entry_noConflict() async {
@@ -113,7 +113,7 @@ var a = <String, int>{'a' : 1};
 var a = <int, int>{1 : 2};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<int, int>');
+    assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
   test_noContext_typeArgs_noEntries() async {
@@ -121,7 +121,7 @@ var a = <int, int>{1 : 2};
 var a = <num, String>{};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<num, String>');
+    assertType(setOrMapLiteral('{'), 'Map<num, String>');
   }
 }
 
@@ -135,7 +135,7 @@ class MapLiteralWithFlowControlAndSpreadCollectionsTest extends MapLiteralTest {
     ];
 
   @override
-  AstNode mapLiteral(String search) => findNode.setOrMapLiteral(search);
+  AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
     addTestFile('''
@@ -143,7 +143,7 @@ var c = [1, 2, 3];
 var a = {for (int e in c) e : e * 2};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{for'), 'Map<int, int>');
+    assertType(setOrMapLiteral('{for'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_forEachWithIdentifier() async {
@@ -153,7 +153,7 @@ int b;
 var a = {for (b in c) b * 2 : b};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{for'), 'Map<int, int>');
+    assertType(setOrMapLiteral('{for'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_forWithDeclaration() async {
@@ -161,7 +161,7 @@ var a = {for (b in c) b * 2 : b};
 var a = {for (var i = 0; i < 2; i++) i : i * 2};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{for'), 'Map<int, int>');
+    assertType(setOrMapLiteral('{for'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_forWithExpression() async {
@@ -170,7 +170,7 @@ int i;
 var a = {for (i = 0; i < 2; i++) i * 2 : i};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{for'), 'Map<int, int>');
+    assertType(setOrMapLiteral('{for'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_if() async {
@@ -179,7 +179,7 @@ var c = true;
 var a = {if (c) 1 : 2};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<int, int>');
+    assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_ifElse_conflict() async {
@@ -188,7 +188,7 @@ var c = true;
 var a = {if (c) 1 : '1' else '2': 2 };
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<Object, Object>');
+    assertType(setOrMapLiteral('{'), 'Map<Object, Object>');
   }
 
   test_noContext_noTypeArgs_ifElse_noConflict() async {
@@ -197,7 +197,7 @@ var c = true;
 var a = {if (c) 1 : 3 else 2 : 4};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{'), 'Map<int, int>');
+    assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_spread() async {
@@ -206,7 +206,7 @@ Map<int, int> c = {1 : 1, 2 : 2, 3 : 3};
 var a = {...c};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{...'), 'Map<int, int>');
+    assertType(setOrMapLiteral('{...'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_spread_conflict() async {
@@ -216,7 +216,7 @@ Map<String, String> b = {'a' : 'b'};
 var a = {...b, ...c};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{...'), 'Map<Object, Object>');
+    assertType(setOrMapLiteral('{...'), 'Map<Object, Object>');
   }
 
   test_noContext_noTypeArgs_spread_dynamic() async {
@@ -225,7 +225,7 @@ var c = {1 : 1, 2 : 2, 3 : 3};
 var a = {...c};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{...'), 'Map<int, int>');
+    assertType(setOrMapLiteral('{...'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_spread_noConflict() async {
@@ -235,6 +235,6 @@ Map<int, int> b = {2 : 4};
 var a = {...b, ...c};
 ''');
     await resolveTestFile();
-    assertType(mapLiteral('{...'), 'Map<int, int>');
+    assertType(setOrMapLiteral('{...'), 'Map<int, int>');
   }
 }

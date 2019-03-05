@@ -91,14 +91,8 @@ class FindNode {
     return _node(search, (n) => n is FieldFormalParameter);
   }
 
-  ForStatement2 forEachStatement(String search) {
-    return _node(
-        search, (n) => n is ForStatement2 && n.forLoopParts is ForEachParts);
-  }
-
-  ForStatement2 forStatement(String search) {
-    return _node(
-        search, (n) => n is ForStatement2 && n.forLoopParts is ForParts);
+  ForStatement2 forStatement2(String search) {
+    return _node(search, (n) => n is ForStatement2);
   }
 
   FunctionBody functionBody(String search) {
@@ -143,10 +137,6 @@ class FindNode {
 
   ListLiteral listLiteral(String search) {
     return _node(search, (n) => n is ListLiteral);
-  }
-
-  SetOrMapLiteral mapLiteral(String search) {
-    return _node(search, (n) => n is SetOrMapLiteral && n.isMap);
   }
 
   MethodDeclaration methodDeclaration(String search) {
