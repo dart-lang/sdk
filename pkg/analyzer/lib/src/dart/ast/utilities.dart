@@ -3174,7 +3174,7 @@ class IncrementalAstCloner
         _mapToken(node.constKeyword),
         _cloneNode(node.typeArguments),
         _mapToken(node.leftBracket),
-        _cloneNodeList(node.elements),
+        _cloneNodeList(node.elements2),
         _mapToken(node.rightBracket));
     copy.staticType = node.staticType;
     return copy;
