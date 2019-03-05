@@ -486,10 +486,6 @@ abstract class CommonElements {
 
   ClassEntity get jsGetNameEnum;
 
-  ClassEntity get expectNoInlineClass;
-
-  ClassEntity get expectAssumeDynamicClass;
-
   /// Returns `true` if [member] is a "foreign helper", that is, a member whose
   /// semantics is defined synthetically and not through Dart code.
   ///
@@ -1723,39 +1719,6 @@ class CommonElementsImpl
   ClassEntity get jsBuiltinEnum => _jsBuiltinEnum ??= _findClass(
       _env.lookupLibrary(Uris.dart__js_embedded_names, required: true),
       'JsBuiltin');
-
-  static final Uri PACKAGE_EXPECT =
-      new Uri(scheme: 'package', path: 'expect/expect.dart');
-
-  bool _expectAnnotationChecked = false;
-  ClassEntity _expectNoInlineClass;
-  ClassEntity _expectAssumeDynamicClass;
-
-  void _ensureExpectAnnotations() {
-    if (!_expectAnnotationChecked) {
-      _expectAnnotationChecked = true;
-      LibraryEntity library = _env.lookupLibrary(PACKAGE_EXPECT);
-      if (library != null) {
-        _expectNoInlineClass = _env.lookupClass(library, 'NoInline');
-        _expectAssumeDynamicClass = _env.lookupClass(library, 'AssumeDynamic');
-        if (_expectNoInlineClass == null || _expectAssumeDynamicClass == null) {
-          // This is not the package you're looking for.
-          _expectNoInlineClass = null;
-          _expectAssumeDynamicClass = null;
-        }
-      }
-    }
-  }
-
-  ClassEntity get expectNoInlineClass {
-    _ensureExpectAnnotations();
-    return _expectNoInlineClass;
-  }
-
-  ClassEntity get expectAssumeDynamicClass {
-    _ensureExpectAnnotations();
-    return _expectAssumeDynamicClass;
-  }
 
   static final Uri PACKAGE_META_DART2JS =
       new Uri(scheme: 'package', path: 'meta/dart2js.dart');

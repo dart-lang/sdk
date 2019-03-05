@@ -5,8 +5,8 @@
 // SharedOptions=--enable-null-aware-operators
 import "package:expect/expect.dart";
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 class A {

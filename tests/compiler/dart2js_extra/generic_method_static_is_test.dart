@@ -12,10 +12,10 @@ class C<T> {}
 
 class D {}
 
-@NoInline()
+@pragma('dart2js:noInline')
 m<T>() => new C<T>();
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is C<A>;
 
 main() {

@@ -4091,8 +4091,8 @@ List<List> panels = [
   [2364.4759911280776, 3842.7700224365044]
 ];
 
-@AssumeDynamic()
-@NoInline()
+@pragma('dart2js:assumeDynamic')
+@pragma('dart2js:noInline')
 confuse(x) => x;
 
 main() {

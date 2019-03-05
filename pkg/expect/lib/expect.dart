@@ -668,20 +668,6 @@ class ExpectException implements Exception {
   String toString() => message;
 }
 
-/// Annotation class for testing of dart2js. Use this as metadata on method
-/// declarations to disable inlining of the annotated method.
-class NoInline {
-  const NoInline();
-}
-
-/// Annotation class for testing of dart2js. Use this as metadata on method
-/// declarations to disable closed world assumptions on parameters, effectively
-/// assuming that the runtime arguments could be any value. Note that the
-/// constraints due to [TrustTypeAnnotations] still apply.
-class AssumeDynamic {
-  const AssumeDynamic();
-}
-
 /// Is true iff type assertions are enabled.
 // TODO(rnystrom): Remove this once all tests are no longer using it.
 final bool typeAssertionsEnabled = (() {

@@ -6,8 +6,8 @@
 // Used to fail when methods contain a name starting with `get`
 import 'package:expect/expect.dart';
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 class MA {

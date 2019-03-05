@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
-
 /*element: main:[null]*/
 main() {
   refineToClass();
@@ -98,7 +96,7 @@ _noRefinementUpdatedVariable(/*[null|exact=Class1]*/ o) {
 }
 
 /*element: _condition:Value([exact=JSBool], value: false)*/
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 get _condition => false;
 
 /*element: refineToClass:[null]*/

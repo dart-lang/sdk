@@ -12,7 +12,7 @@ class B {
   int field;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 assign(d) {
   d.field = 0;
 }

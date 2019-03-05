@@ -14,28 +14,6 @@ import '../options.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 
-/// Returns `true` if inference of parameter types is disabled for [element].
-bool _assumeDynamic(KElementEnvironment elementEnvironment,
-    KCommonElements commonElements, MemberEntity element) {
-  return _hasAnnotation(
-      elementEnvironment, element, commonElements.expectAssumeDynamicClass);
-}
-
-/// Returns `true` if [element] is annotated with [annotationClass].
-bool _hasAnnotation(KElementEnvironment elementEnvironment,
-    MemberEntity element, ClassEntity annotationClass) {
-  if (annotationClass == null) return false;
-  for (ConstantValue value in elementEnvironment.getMemberMetadata(element)) {
-    if (value.isConstructedObject) {
-      ConstructedConstantValue constructedConstant = value;
-      if (constructedConstant.type.element == annotationClass) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 class PragmaAnnotation {
   final int _index;
   final String name;
@@ -81,13 +59,12 @@ class PragmaAnnotation {
       5, 'noSideEffects',
       forFunctionsOnly: true, internalOnly: true);
 
-  // TODO(johnniwinther): Remove this.
-  static const PragmaAnnotation trustTypeAnnotations = const PragmaAnnotation(
-      6, 'trustTypeAnnotations',
-      forFunctionsOnly: true, internalOnly: true);
-
+  /// Use this as metadata on method declarations to disable closed world
+  /// assumptions on parameters, effectively assuming that the runtime arguments
+  /// could be any value. Note that the constraints due to static types still
+  /// apply.
   static const PragmaAnnotation assumeDynamic = const PragmaAnnotation(
-      7, 'assumeDynamic',
+      6, 'assumeDynamic',
       forFunctionsOnly: true, internalOnly: true);
 
   static const List<PragmaAnnotation> values = [
@@ -97,7 +74,6 @@ class PragmaAnnotation {
     noElision,
     noThrows,
     noSideEffects,
-    trustTypeAnnotations,
     assumeDynamic,
   ];
 }
@@ -110,10 +86,6 @@ Set<PragmaAnnotation> processMemberAnnotations(
     AnnotationsDataBuilder annotationsDataBuilder,
     MemberEntity element) {
   EnumSet<PragmaAnnotation> values = new EnumSet<PragmaAnnotation>();
-
-  if (_assumeDynamic(elementEnvironment, commonElements, element)) {
-    values.add(PragmaAnnotation.assumeDynamic);
-  }
 
   LibraryEntity library = element.library;
   bool platformAnnotationsAllowed = options.testMode ||
@@ -139,13 +111,7 @@ Set<PragmaAnnotation> processMemberAnnotations(
       }
     }
 
-    if (cls == commonElements.expectNoInlineClass) {
-      values.add(PragmaAnnotation.noInline);
-      if (element is! FunctionEntity) {
-        reporter.internalError(element,
-            "@pragma('dart2js:noInline') is only allowed in methods and constructors.");
-      }
-    } else if (cls == commonElements.metaNoInlineClass) {
+    if (cls == commonElements.metaNoInlineClass) {
       values.add(PragmaAnnotation.noInline);
       if (element is! FunctionEntity) {
         reporter.internalError(
@@ -237,7 +203,7 @@ abstract class AnnotationsData {
   /// Serializes this [AnnotationsData] to [sink].
   void writeToDataSink(DataSink sink);
 
-  /// Returns `true` if [member] has an `@AssumeDynamic()` annotation.
+  /// Returns `true` if [member] has an `@pragma('dart2js:assumeDynamic')` annotation.
   bool hasAssumeDynamic(MemberEntity member);
 
   /// Returns `true` if [member] has a `@noInline`, or

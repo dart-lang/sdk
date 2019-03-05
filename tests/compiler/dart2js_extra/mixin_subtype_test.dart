@@ -36,7 +36,7 @@ class D5 extends C with M5 {}
 
 class E5 extends D5 {}
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) {}
 
 main() {

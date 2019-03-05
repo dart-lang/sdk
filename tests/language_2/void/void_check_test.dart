@@ -23,7 +23,7 @@ class B extends A {
 // Makes the typing cleaner: the return type here is `dynamic` and we are
 // guaranteed that there won't be any warnings.
 // Dart2js can still infer the type by itself.
-@NoInline()
+@pragma('dart2js:noInline')
 callFoo(A a) => a.foo();
 
 main() {

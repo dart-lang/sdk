@@ -14,7 +14,7 @@ class D {
   foo<U, V>() => [U, V];
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(dynamic x) {
   dynamic typeArguments = x.foo<int, String>();
   Expect.equals(int, typeArguments[0]);

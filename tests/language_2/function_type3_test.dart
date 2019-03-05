@@ -5,10 +5,10 @@
 import "package:expect/expect.dart";
 
 class A<T> {
-  @NoInline()
+  @pragma('dart2js:noInline')
   A();
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   foo() => new B<T>();
 }
 

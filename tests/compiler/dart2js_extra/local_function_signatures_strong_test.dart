@@ -92,7 +92,7 @@ num Function(num) //# 01: continued
   return local;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is num Function(num);
 
 main() {

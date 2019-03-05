@@ -11,8 +11,8 @@ class NotAnInt {
   NotAnInt operator &(b) => this;
 }
 
-@AssumeDynamic()
-@NoInline()
+@pragma('dart2js:assumeDynamic')
+@pragma('dart2js:noInline')
 id(x) => x;
 
 main() {

@@ -45,7 +45,7 @@ class A extends HtmlElement {
 
   A.created() : super.created() {
     // This function must not be inlined otherwise there is no reference to the
-    // interceptor constant. The `@NoInline()` annotation does not seem reliable
+    // interceptor constant. The `@pragma('dart2js:noInline')` annotation does not seem reliable
     // on generative constructor bodies.
     try {
       uninlinedMethod();
@@ -57,7 +57,7 @@ class A extends HtmlElement {
       uninlinedMethod();
     }
   }
-  @NoInline()
+  @pragma('dart2js:noInline')
   uninlinedMethod() {}
 
   token() => 'AA';

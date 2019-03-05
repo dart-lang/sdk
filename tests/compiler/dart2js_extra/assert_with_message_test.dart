@@ -4,8 +4,8 @@
 
 import "package:expect/expect.dart";
 
-@AssumeDynamic()
-@NoInline()
+@pragma('dart2js:assumeDynamic')
+@pragma('dart2js:noInline')
 confuse(x) => x;
 
 testFalse(name, fault) {

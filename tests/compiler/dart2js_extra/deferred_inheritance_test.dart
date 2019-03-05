@@ -18,8 +18,8 @@ class B extends A {}
 /// If the check `y is A` is generated as `y.$isA` then the issue is not
 /// exposed. We use `AssumeDynamic` to ensure that we generate as `y instanceof
 /// A` in JS.
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 check(y) => Expect.isTrue(y is A);
 
 main() {

@@ -12,6 +12,6 @@ main() {
 }
 
 class Class {
-  @NoInline()
+  @pragma('dart2js:noInline')
   method<T extends num>() => null;
 }

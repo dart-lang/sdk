@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 class A {
   final x;
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   A({this.x: "foo"}) {
     Expect.equals("foo", x.toString());
   }

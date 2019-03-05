@@ -143,40 +143,6 @@ ExpectException:
     Object.==
   interfaceSetters:
 
-NoInline:
-  superclasses:
-    Object
-  interfaces:
-  classMembers:
-    Object.toString
-    Object.runtimeType
-    Object._simpleInstanceOf
-    Object._instanceOf
-    Object.noSuchMethod
-    Object._identityHashCode
-    Object.hashCode
-    Object._simpleInstanceOfFalse
-    Object._simpleInstanceOfTrue
-    Object.==
-  classSetters:
-
-AssumeDynamic:
-  superclasses:
-    Object
-  interfaces:
-  classMembers:
-    Object.toString
-    Object.runtimeType
-    Object._simpleInstanceOf
-    Object._instanceOf
-    Object.noSuchMethod
-    Object._identityHashCode
-    Object.hashCode
-    Object._simpleInstanceOfFalse
-    Object._simpleInstanceOfTrue
-    Object.==
-  classSetters:
-
 Immutable:
   superclasses:
     Object

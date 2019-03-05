@@ -6,7 +6,7 @@
 
 import "package:expect/expect.dart";
 
-@NoInline()
+@pragma('dart2js:noInline')
 num minusZero() => -0;
 
 void main() {

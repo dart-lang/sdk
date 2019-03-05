@@ -41,7 +41,7 @@ class Thing {
   var f50 = ++ii, f51 = ++ii, f52 = ++ii, f53 = ++ii, f54 = ++ii;
   var f55 = ++ii, f56 = ++ii, f57 = ++ii, f58 = ++ii, f59 = ++ii;
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   Thing(this._, this.$_);
   toString() {
     if (depth > 0) return 'recursion!';

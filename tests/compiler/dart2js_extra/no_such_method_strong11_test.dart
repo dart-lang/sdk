@@ -36,6 +36,6 @@ main() {
   Expect.equals(-1, (a._m4)());
 }
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;

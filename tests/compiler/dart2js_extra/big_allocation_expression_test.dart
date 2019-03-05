@@ -12,7 +12,7 @@ class A {
 
   factory A(a, x) = A.q;
 
-  // @NoInline()  // This annotation causes the test to compile on SSA backend.
+  // @pragma('dart2js:noInline')  // This annotation causes the test to compile on SSA backend.
   A.q(this.a, x) : b = x == null ? null : new W(x);
 }
 

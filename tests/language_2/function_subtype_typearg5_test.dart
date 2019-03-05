@@ -13,8 +13,8 @@ typedef B G<A, B>(B arg1, B arg2);
 
 typedef Set<A> FS<A>(Set<A> arg1, Set<A> arg2);
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 dyn(x) => x;
 
 class CheckEnv<X, Y> {

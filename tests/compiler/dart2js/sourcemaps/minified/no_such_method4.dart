@@ -6,8 +6,6 @@
 // Kind of minified name: instance
 // Expected deobfuscated name: g1=
 
-import 'package:expect/expect.dart';
-
 main() {
   try {
     confuse(new A());
@@ -18,7 +16,7 @@ main() {
   }
 }
 
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 @pragma('dart2js:noInline')
 confuse(x) => x;
 

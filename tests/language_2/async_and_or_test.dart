@@ -5,8 +5,8 @@ import "dart:async";
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) {
   return x;
 }
@@ -42,8 +42,8 @@ testEvaluation(Future<void> fn()) async {
 
 test2() async {
   await testEvaluation(() async {
-    Expect
-        .isFalse(await confuse(traceA(false)) && await confuse(traceB(false)));
+    Expect.isFalse(
+        await confuse(traceA(false)) && await confuse(traceB(false)));
     Expect.equals("a", trace);
   });
   await testEvaluation(() async {
@@ -60,8 +60,8 @@ test2() async {
   });
 
   await testEvaluation(() async {
-    Expect
-        .isFalse(await confuse(traceA(false)) || await confuse(traceB(false)));
+    Expect.isFalse(
+        await confuse(traceA(false)) || await confuse(traceB(false)));
     Expect.equals("ab", trace);
   });
   await testEvaluation(() async {

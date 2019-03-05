@@ -8,7 +8,7 @@
 import 'package:expect/expect.dart';
 
 class Mixin {
-  @NoInline()
+  @pragma('dart2js:noInline')
   get getter => 42;
 }
 
