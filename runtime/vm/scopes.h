@@ -148,6 +148,7 @@ class LocalVariable : public ZoneAllocated {
     return type_check_mode_ == kTypeCheckedByCaller;
   }
 
+  TypeCheckMode type_check_mode() const { return type_check_mode_; }
   void set_type_check_mode(TypeCheckMode mode) { type_check_mode_ = mode; }
 
   bool HasIndex() const { return index_.IsValid(); }

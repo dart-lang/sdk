@@ -51,7 +51,6 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
       code_(Code::Handle(zone(), function.unoptimized_code())),
       node_sequence_(NULL),
       regexp_compile_data_(NULL),
-      instantiator_(NULL),
       function_type_arguments_(NULL),
       parent_type_arguments_(NULL),
       current_context_var_(NULL),
@@ -216,16 +215,20 @@ void ParsedFunction::AllocateVariables() {
 
   raw_parameters_ = new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_params);
   for (intptr_t param = 0; param < num_params; ++param) {
-    LocalVariable* raw_parameter = scope->VariableAt(param);
-    if (raw_parameter->is_captured()) {
+    LocalVariable* variable = scope->VariableAt(param);
+    LocalVariable* raw_parameter = variable;
+    if (variable->is_captured()) {
       String& tmp = String::ZoneHandle(Z);
-      tmp = Symbols::FromConcat(T, Symbols::OriginalParam(),
-                                raw_parameter->name());
+      tmp = Symbols::FromConcat(T, Symbols::OriginalParam(), variable->name());
 
       RELEASE_ASSERT(scope->LocalLookupVariable(tmp) == NULL);
-      raw_parameter = new LocalVariable(raw_parameter->declaration_token_pos(),
-                                        raw_parameter->token_pos(), tmp,
-                                        raw_parameter->type());
+      raw_parameter =
+          new LocalVariable(variable->declaration_token_pos(),
+                            variable->token_pos(), tmp, variable->type());
+      if (variable->is_explicit_covariant_parameter()) {
+        raw_parameter->set_is_explicit_covariant_parameter();
+      }
+      raw_parameter->set_type_check_mode(variable->type_check_mode());
       if (function().HasOptionalParameters()) {
         bool ok = scope->AddVariable(raw_parameter);
         ASSERT(ok);

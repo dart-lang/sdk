@@ -325,6 +325,7 @@ Fragment BaseFlowGraphBuilder::LoadNativeField(const Slot& native_field) {
 }
 
 Fragment BaseFlowGraphBuilder::LoadLocal(LocalVariable* variable) {
+  ASSERT(!variable->is_captured());
   LoadLocalInstr* load =
       new (Z) LoadLocalInstr(*variable, TokenPosition::kNoSource);
   Push(load);
@@ -470,6 +471,7 @@ Fragment BaseFlowGraphBuilder::StoreLocal(TokenPosition position,
 
 Fragment BaseFlowGraphBuilder::StoreLocalRaw(TokenPosition position,
                                              LocalVariable* variable) {
+  ASSERT(!variable->is_captured());
   Value* value = Pop();
   StoreLocalInstr* store = new (Z) StoreLocalInstr(*variable, value, position);
   Fragment instructions(store);

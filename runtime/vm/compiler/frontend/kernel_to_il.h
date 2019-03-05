@@ -41,6 +41,12 @@ struct YieldContinuation {
   YieldContinuation() : entry(NULL), try_index(kInvalidTryIndex) {}
 };
 
+enum class TypeChecksToBuild {
+  kCheckAllTypeParameterBounds,
+  kCheckNonCovariantTypeParameterBounds,
+  kCheckCovariantTypeParameterBounds,
+};
+
 class FlowGraphBuilder : public BaseFlowGraphBuilder {
  public:
   FlowGraphBuilder(ParsedFunction* parsed_function,
@@ -167,6 +173,18 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment DebugStepCheck(TokenPosition position);
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
+
+  // Build argument type checks for the current function.
+  // ParsedFunction should have the following information:
+  //  - is_forwarding_stub()
+  //  - forwarding_stub_super_target()
+  // Scope should be populated with parameter variables including
+  //  - needs_type_check()
+  //  - is_explicit_covariant_parameter()
+  void BuildArgumentTypeChecks(TypeChecksToBuild mode,
+                               Fragment* explicit_checks,
+                               Fragment* implicit_checks,
+                               Fragment* implicit_redefinitions);
 
   TranslationHelper translation_helper_;
   Thread* thread_;

@@ -242,12 +242,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       bool use_unchecked_entry = false,
       const CallSiteAttributesMetadata* call_site_attrs = nullptr);
 
-  enum TypeChecksToBuild {
-    kCheckAllTypeParameterBounds,
-    kCheckNonCovariantTypeParameterBounds,
-    kCheckCovariantTypeParameterBounds,
-  };
-
   // Does not move the cursor.
   Fragment BuildDefaultTypeHandling(const Function& function,
                                     intptr_t type_parameters_offset);
@@ -258,11 +252,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
     Array& argument_names;
   };
   Fragment PushAllArguments(PushedArguments* pushed);
-
-  void BuildArgumentTypeChecks(TypeChecksToBuild mode,
-                               Fragment* explicit_checks,
-                               Fragment* implicit_checks,
-                               Fragment* implicit_redefinitions);
 
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();

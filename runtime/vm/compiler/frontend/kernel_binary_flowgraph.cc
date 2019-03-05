@@ -537,9 +537,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       // Tearoffs of static methods needs to perform arguments checks since
       // static methods they forward to don't do it themselves.
       AlternativeReadingScope _(&reader_);
-      BuildArgumentTypeChecks(kCheckAllTypeParameterBounds,
-                              &explicit_checks_unused, &implicit_checks,
-                              nullptr);
+      B->BuildArgumentTypeChecks(
+          TypeChecksToBuild::kCheckAllTypeParameterBounds,
+          &explicit_checks_unused, &implicit_checks, nullptr);
     } else {
       // Check if parent function was annotated with no-dynamic-invocations.
       if (MethodCanSkipTypeChecksForNonCovariantArguments(parent,
@@ -547,9 +547,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
         // If it was then we might need to build some checks in the
         // tear-off.
         AlternativeReadingScope _(&reader_);
-        BuildArgumentTypeChecks(kCheckNonCovariantTypeParameterBounds,
-                                &explicit_checks_unused, &implicit_checks,
-                                nullptr);
+        B->BuildArgumentTypeChecks(
+            TypeChecksToBuild::kCheckNonCovariantTypeParameterBounds,
+            &explicit_checks_unused, &implicit_checks, nullptr);
       }
     }
   }
@@ -709,8 +709,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 
   if (function.NeedsArgumentTypeChecks(I)) {
     AlternativeReadingScope _(&reader_);
-    BuildArgumentTypeChecks(kCheckAllTypeParameterBounds, &body, &body,
-                            nullptr);
+    B->BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
+                               &body, &body, nullptr);
   }
 
   function_node_helper.ReadUntilExcluding(
@@ -949,181 +949,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
                            B->last_used_block_id_, prologue_info);
 }
 
-void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
-    TypeChecksToBuild mode,
-    Fragment* explicit_checks,
-    Fragment* implicit_checks,
-    Fragment* implicit_redefinitions) {
-  if (!I->should_emit_strong_mode_checks()) return;
-
-  FunctionNodeHelper function_node_helper(this);
-  function_node_helper.SetNext(FunctionNodeHelper::kTypeParameters);
-  const Function& dart_function = parsed_function()->function();
-
-  const Function* forwarding_target = NULL;
-  if (parsed_function()->is_forwarding_stub()) {
-    NameIndex target_name = parsed_function()->forwarding_stub_super_target();
-    const String& name = dart_function.IsSetterFunction()
-                             ? H.DartSetterName(target_name)
-                             : H.DartProcedureName(target_name);
-    forwarding_target =
-        &Function::ZoneHandle(Z, H.LookupMethodByMember(target_name, name));
-    ASSERT(!forwarding_target->IsNull());
-  }
-
-  intptr_t num_type_params = ReadListLength();
-  TypeArguments& forwarding_params = TypeArguments::Handle(Z);
-  if (forwarding_target != NULL) {
-    forwarding_params = forwarding_target->type_parameters();
-    ASSERT(forwarding_params.Length() == num_type_params);
-  }
-
-  TypeParameter& forwarding_param = TypeParameter::Handle(Z);
-  Fragment check_bounds;
-  for (intptr_t i = 0; i < num_type_params; ++i) {
-    TypeParameterHelper helper(this);
-    helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
-    String& name = H.DartSymbolObfuscate(helper.name_index_);
-    AbstractType& bound = T.BuildType();  // read bound
-    helper.Finish();
-
-    if (forwarding_target != NULL) {
-      forwarding_param ^= forwarding_params.TypeAt(i);
-      bound = forwarding_param.bound();
-    }
-
-    if (bound.IsTopType()) {
-      continue;
-    }
-
-    switch (mode) {
-      case kCheckAllTypeParameterBounds:
-        break;
-      case kCheckCovariantTypeParameterBounds:
-        if (!helper.IsGenericCovariantImpl()) {
-          continue;
-        }
-        break;
-      case kCheckNonCovariantTypeParameterBounds:
-        if (helper.IsGenericCovariantImpl()) {
-          continue;
-        }
-        break;
-    }
-
-    TypeParameter& param = TypeParameter::Handle(Z);
-    if (dart_function.IsFactory()) {
-      param ^= TypeArguments::Handle(
-                   Class::Handle(dart_function.Owner()).type_parameters())
-                   .TypeAt(i);
-    } else {
-      param ^= TypeArguments::Handle(dart_function.type_parameters()).TypeAt(i);
-    }
-    ASSERT(param.IsFinalized());
-    check_bounds += CheckTypeArgumentBound(param, bound, name);
-  }
-
-  // Type arguments passed through partial instantiation are guaranteed to be
-  // bounds-checked at the point of partial instantiation, so we don't need to
-  // check them again at the call-site.
-  if (dart_function.IsClosureFunction() && !check_bounds.is_empty() &&
-      FLAG_eliminate_type_checks) {
-    LocalVariable* closure =
-        parsed_function()->node_sequence()->scope()->VariableAt(0);
-    *implicit_checks += B->TestDelayedTypeArgs(closure, /*present=*/{},
-                                               /*absent=*/check_bounds);
-  } else {
-    *implicit_checks += check_bounds;
-  }
-
-  function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
-  function_node_helper.ReadUntilExcluding(
-      FunctionNodeHelper::kPositionalParameters);
-
-  // Positional.
-  const intptr_t num_positional_params = ReadListLength();
-  const intptr_t kFirstParameterOffset = 1;
-  for (intptr_t i = 0; i < num_positional_params; ++i) {
-    // ith variable offset.
-    const intptr_t offset = ReaderOffset();
-    VariableDeclarationHelper helper(this);
-    helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
-
-    LocalVariable* param = LookupVariable(offset + data_program_offset_);
-    if (!param->needs_type_check()) {
-      continue;
-    }
-
-    const AbstractType* target_type = &param->type();
-    if (forwarding_target != NULL) {
-      // We add 1 to the parameter index to account for the receiver.
-      target_type = &AbstractType::ZoneHandle(
-          Z, forwarding_target->ParameterTypeAt(kFirstParameterOffset + i));
-    }
-
-    if (target_type->IsTopType()) continue;
-
-    Fragment* checks = helper.IsCovariant() ? explicit_checks : implicit_checks;
-
-    *checks += LoadLocal(param);
-    *checks += CheckArgumentType(param, *target_type);
-    *checks += Drop();
-
-    if (!helper.IsCovariant() && implicit_redefinitions != nullptr &&
-        B->optimizing_) {
-      // We generate slightly different code in optimized vs. un-optimized code,
-      // which is ok since we don't allocate any deopt ids.
-      AssertNoDeoptIdsAllocatedScope no_deopt_allocation(H.thread());
-
-      *implicit_redefinitions += LoadLocal(param);
-      *implicit_redefinitions += RedefinitionWithType(*target_type);
-      *implicit_redefinitions += StoreLocal(TokenPosition::kNoSource, param);
-      *implicit_redefinitions += Drop();
-    }
-  }
-
-  // Named.
-  const intptr_t num_named_params = ReadListLength();
-  for (intptr_t i = 0; i < num_named_params; ++i) {
-    // ith variable offset.
-    const intptr_t offset = ReaderOffset();
-    VariableDeclarationHelper helper(this);
-    helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
-
-    LocalVariable* param = LookupVariable(offset + data_program_offset_);
-    if (!param->needs_type_check()) {
-      continue;
-    }
-
-    const AbstractType* target_type = &param->type();
-    if (forwarding_target != NULL) {
-      // We add 1 to the parameter index to account for the receiver.
-      target_type = &AbstractType::ZoneHandle(
-          Z, forwarding_target->ParameterTypeAt(num_positional_params + i + 1));
-    }
-
-    if (target_type->IsTopType()) continue;
-
-    Fragment* checks = helper.IsCovariant() ? explicit_checks : implicit_checks;
-
-    *checks += LoadLocal(param);
-    *checks += CheckArgumentType(param, *target_type);
-    *checks += Drop();
-
-    if (!helper.IsCovariant() && implicit_redefinitions != nullptr &&
-        B->optimizing_) {
-      // We generate slightly different code in optimized vs. un-optimized code,
-      // which is ok since we don't allocate any deopt ids.
-      AssertNoDeoptIdsAllocatedScope no_deopt_allocation(H.thread());
-
-      *implicit_redefinitions += LoadLocal(param);
-      *implicit_redefinitions += RedefinitionWithType(*target_type);
-      *implicit_redefinitions += StoreLocal(TokenPosition::kNoSource, param);
-      *implicit_redefinitions += Drop();
-    }
-  }
-}
-
 Fragment StreamingFlowGraphBuilder::PushAllArguments(PushedArguments* pushed) {
   FunctionNodeHelper function_node_helper(this);
   function_node_helper.SetNext(FunctionNodeHelper::kTypeParameters);
@@ -1239,8 +1064,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder() {
   {
     AlternativeReadingScope alt(&reader_);
     SetOffset(type_parameters_offset);
-    BuildArgumentTypeChecks(kCheckNonCovariantTypeParameterBounds, &body, &body,
-                            nullptr);
+    B->BuildArgumentTypeChecks(
+        TypeChecksToBuild::kCheckNonCovariantTypeParameterBounds, &body, &body,
+        nullptr);
   }
 
   // Push all arguments and invoke the original method.
@@ -1524,10 +1350,10 @@ void StreamingFlowGraphBuilder::CheckArgumentTypesAsNecessary(
 
   AlternativeReadingScope _(&reader_);
   SetOffset(type_parameters_offset);
-  BuildArgumentTypeChecks(
+  B->BuildArgumentTypeChecks(
       MethodCanSkipTypeChecksForNonCovariantArguments(dart_function, attrs)
-          ? kCheckCovariantTypeParameterBounds
-          : kCheckAllTypeParameterBounds,
+          ? TypeChecksToBuild::kCheckCovariantTypeParameterBounds
+          : TypeChecksToBuild::kCheckAllTypeParameterBounds,
       explicit_checks, implicit_checks, implicit_redefinitions);
 }
 
@@ -1972,9 +1798,16 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
         procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
         if (procedure_helper.IsForwardingStub() &&
             !procedure_helper.IsAbstract()) {
-          ASSERT(procedure_helper.forwarding_stub_super_target_ != -1);
-          parsed_function()->MarkForwardingStub(
-              procedure_helper.forwarding_stub_super_target_);
+          const NameIndex target_name =
+              procedure_helper.forwarding_stub_super_target_;
+          ASSERT(target_name != NameIndex::kInvalidName);
+          const String& name = function.IsSetterFunction()
+                                   ? H.DartSetterName(target_name)
+                                   : H.DartProcedureName(target_name);
+          const Function* forwarding_target = &Function::ZoneHandle(
+              Z, H.LookupMethodByMember(target_name, name));
+          ASSERT(!forwarding_target->IsNull());
+          parsed_function()->MarkForwardingStub(forwarding_target);
         }
       }
       break;

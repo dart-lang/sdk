@@ -1116,6 +1116,117 @@ Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position,
   return instructions;
 }
 
+void FlowGraphBuilder::BuildArgumentTypeChecks(
+    TypeChecksToBuild mode,
+    Fragment* explicit_checks,
+    Fragment* implicit_checks,
+    Fragment* implicit_redefinitions) {
+  if (!I->should_emit_strong_mode_checks()) return;
+  const Function& dart_function = parsed_function_->function();
+
+  const Function* forwarding_target = nullptr;
+  if (parsed_function_->is_forwarding_stub()) {
+    forwarding_target = parsed_function_->forwarding_stub_super_target();
+    ASSERT(!forwarding_target->IsNull());
+  }
+
+  TypeArguments& type_parameters = TypeArguments::Handle(Z);
+  if (dart_function.IsFactory()) {
+    type_parameters = Class::Handle(Z, dart_function.Owner()).type_parameters();
+  } else {
+    type_parameters = dart_function.type_parameters();
+  }
+  intptr_t num_type_params = type_parameters.Length();
+  if (forwarding_target != nullptr) {
+    type_parameters = forwarding_target->type_parameters();
+    ASSERT(type_parameters.Length() == num_type_params);
+  }
+
+  TypeParameter& type_param = TypeParameter::Handle(Z);
+  String& name = String::Handle(Z);
+  AbstractType& bound = AbstractType::Handle(Z);
+  Fragment check_bounds;
+  for (intptr_t i = 0; i < num_type_params; ++i) {
+    type_param ^= type_parameters.TypeAt(i);
+    ASSERT(type_param.IsFinalized());
+
+    bound = type_param.bound();
+    if (bound.IsTopType()) {
+      continue;
+    }
+
+    switch (mode) {
+      case TypeChecksToBuild::kCheckAllTypeParameterBounds:
+        break;
+      case TypeChecksToBuild::kCheckCovariantTypeParameterBounds:
+        if (!type_param.IsGenericCovariantImpl()) {
+          continue;
+        }
+        break;
+      case TypeChecksToBuild::kCheckNonCovariantTypeParameterBounds:
+        if (type_param.IsGenericCovariantImpl()) {
+          continue;
+        }
+        break;
+    }
+
+    name = type_param.name();
+    check_bounds +=
+        AssertSubtype(TokenPosition::kNoSource, type_param, bound, name);
+  }
+
+  // Type arguments passed through partial instantiation are guaranteed to be
+  // bounds-checked at the point of partial instantiation, so we don't need to
+  // check them again at the call-site.
+  if (dart_function.IsClosureFunction() && !check_bounds.is_empty() &&
+      FLAG_eliminate_type_checks) {
+    LocalVariable* closure =
+        parsed_function_->node_sequence()->scope()->VariableAt(0);
+    *implicit_checks += TestDelayedTypeArgs(closure, /*present=*/{},
+                                            /*absent=*/check_bounds);
+  } else {
+    *implicit_checks += check_bounds;
+  }
+
+  const intptr_t num_params = dart_function.NumParameters();
+  for (intptr_t i = dart_function.NumImplicitParameters(); i < num_params;
+       ++i) {
+    LocalVariable* param =
+        parsed_function_->node_sequence()->scope()->VariableAt(i);
+    if (!param->needs_type_check()) {
+      continue;
+    }
+
+    const AbstractType* target_type = &param->type();
+    if (forwarding_target != NULL) {
+      // We add 1 to the parameter index to account for the receiver.
+      target_type =
+          &AbstractType::ZoneHandle(Z, forwarding_target->ParameterTypeAt(i));
+    }
+
+    if (target_type->IsTopType()) continue;
+
+    const bool is_covariant = param->is_explicit_covariant_parameter();
+    Fragment* checks = is_covariant ? explicit_checks : implicit_checks;
+
+    *checks += LoadLocal(param);
+    *checks += CheckAssignable(*target_type, param->name(),
+                               AssertAssignableInstr::kParameterCheck);
+    *checks += Drop();
+
+    if (!is_covariant && implicit_redefinitions != nullptr && optimizing_) {
+      // We generate slightly different code in optimized vs. un-optimized code,
+      // which is ok since we don't allocate any deopt ids.
+      AssertNoDeoptIdsAllocatedScope no_deopt_allocation(thread_);
+
+      *implicit_redefinitions += LoadLocal(param);
+      *implicit_redefinitions += RedefinitionWithType(*target_type);
+      *implicit_redefinitions += StoreLocal(TokenPosition::kNoSource, param);
+      *implicit_redefinitions += Drop();
+    }
+  }
+}
+
 BlockEntryInstr* FlowGraphBuilder::BuildPrologue(BlockEntryInstr* normal_entry,
                                                  PrologueInfo* prologue_info) {
   const bool compiling_for_osr = IsCompiledForOsr();
