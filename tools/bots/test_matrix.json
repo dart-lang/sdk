@@ -1254,6 +1254,15 @@
           "arguments": [ "api_docs" ],
           "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-linux"}
 
+        },
+        {
+          "name": "upload abi dills",
+          "script": "tools/upload_abi_dills.sh",
+          "arguments": [
+            "tools/VERSION",
+            "out/ReleaseX64"
+          ],
+          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-linux"}
         }
       ]
     },
