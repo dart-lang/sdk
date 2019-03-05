@@ -92,6 +92,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   final Uri initializeFromDillUri;
   final Component componentToInitializeFrom;
   bool initializedFromDill = false;
+  Uri previousPackagesUri;
   bool hasToCheckPackageUris = false;
   Map<Uri, List<DiagnosticMessageFromJson>> remainingComponentProblems =
       new Map<Uri, List<DiagnosticMessageFromJson>>();
@@ -116,7 +117,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       IncrementalCompilerData data = new IncrementalCompilerData();
 
       bool bypassCache = false;
-      if (this.invalidatedUris.contains(c.options.packagesUri)) {
+      if (!identical(previousPackagesUri, c.options.packagesUriRaw)) {
+        previousPackagesUri = c.options.packagesUriRaw;
+        bypassCache = true;
+      } else if (this.invalidatedUris.contains(c.options.packagesUri)) {
         bypassCache = true;
       }
       hasToCheckPackageUris = hasToCheckPackageUris || bypassCache;

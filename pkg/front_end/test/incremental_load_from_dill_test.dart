@@ -240,6 +240,9 @@ Future<Null> newWorldTest(bool strong, List worlds, bool omitPlatform) async {
       }
       fs.entityForUri(uri).writeAsStringSync(data);
     }
+    if (world["dotPackagesFile"] != null) {
+      packagesUri = base.resolve(world["dotPackagesFile"]);
+    }
 
     if (brandNewWorld) {
       options = getOptions(strong);
@@ -247,9 +250,9 @@ Future<Null> newWorldTest(bool strong, List worlds, bool omitPlatform) async {
       options.sdkRoot = null;
       options.sdkSummary = sdkSummary;
       options.omitPlatform = omitPlatform != false;
-      if (packagesUri != null) {
-        options.packagesFileUri = packagesUri;
-      }
+    }
+    if (packagesUri != null) {
+      options.packagesFileUri = packagesUri;
     }
     bool gotError = false;
     final Set<String> formattedErrors = Set<String>();
