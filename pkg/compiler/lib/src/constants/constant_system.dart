@@ -137,7 +137,13 @@ bool isSubtype(DartTypes types, DartType s, DartType t) {
 SetConstantValue createSet(CommonElements commonElements,
     InterfaceType sourceType, List<ConstantValue> values) {
   InterfaceType type = commonElements.getConstantSetTypeFor(sourceType);
-  return new JavaScriptSetConstant(commonElements, type, values);
+  DartType elementType = type.typeArguments.first;
+  InterfaceType mapType =
+      commonElements.mapType(elementType, commonElements.nullType);
+  List<NullConstantValue> nulls = new List<NullConstantValue>.filled(
+      values.length, const NullConstantValue());
+  MapConstantValue entries = createMap(commonElements, mapType, values, nulls);
+  return new JavaScriptSetConstant(type, entries);
 }
 
 MapConstantValue createMap(
@@ -964,16 +970,8 @@ class UnfoldedUnaryOperation implements UnaryOperation {
 class JavaScriptSetConstant extends SetConstantValue {
   final MapConstantValue entries;
 
-  JavaScriptSetConstant(CommonElements commonElements, InterfaceType type,
-      List<ConstantValue> values)
-      : entries = createMap(
-            commonElements,
-            commonElements.mapType(
-                type.typeArguments.first, commonElements.nullType),
-            values,
-            new List<NullConstantValue>.filled(
-                values.length, const NullConstantValue())),
-        super(type, values);
+  JavaScriptSetConstant(InterfaceType type, this.entries)
+      : super(type, entries.keys);
 
   @override
   List<ConstantValue> getDependencies() => [entries];

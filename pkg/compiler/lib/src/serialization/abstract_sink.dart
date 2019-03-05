@@ -396,9 +396,9 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
         writeConstants(constant.entries);
         break;
       case ConstantValueKind.SET:
-        SetConstantValue constant = value;
+        constant_system.JavaScriptSetConstant constant = value;
         writeDartType(constant.type);
-        writeConstants(constant.values);
+        writeConstant(constant.entries);
         break;
       case ConstantValueKind.MAP:
         constant_system.JavaScriptMapConstant constant = value;

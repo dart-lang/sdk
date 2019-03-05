@@ -858,13 +858,14 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   }
 
   @override
-  ConstantValue visitSet(SetConstantValue constant, _) {
+  ConstantValue visitSet(
+      covariant constant_system.JavaScriptSetConstant constant, _) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
-    List<ConstantValue> values = _handleValues(constant.values);
-    if (identical(values, constant.values) && type == constant.type) {
+    MapConstantValue entries = constant.entries.accept(this, null);
+    if (identical(entries, constant.entries) && type == constant.type) {
       return constant;
     }
-    return new SetConstantValue(type, values);
+    return new constant_system.JavaScriptSetConstant(type, entries);
   }
 
   ConstantValue visitMap(

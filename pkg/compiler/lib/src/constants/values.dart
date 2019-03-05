@@ -524,7 +524,7 @@ class ListConstantValue extends ObjectConstantValue {
   }
 }
 
-class SetConstantValue extends ObjectConstantValue {
+abstract class SetConstantValue extends ObjectConstantValue {
   final List<ConstantValue> values;
   final int hashCode;
 
