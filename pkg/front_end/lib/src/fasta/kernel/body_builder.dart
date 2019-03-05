@@ -1717,7 +1717,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         declaration.isInstanceMember &&
         inFieldInitializer &&
         !inInitializer) {
-      return new IncompleteErrorGenerator(this, token, declaration.target,
+      return new IncompleteErrorGenerator(this, token,
           fasta.templateThisAccessInFieldInitializer.withArguments(name));
     }
     if (declaration == null ||
@@ -1743,8 +1743,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if (constantContext != ConstantContext.none &&
           !declaration.isConst &&
           !member.isConstructor) {
-        addProblem(
-            fasta.messageNotAConstantExpression, charOffset, token.length);
+        return new IncompleteErrorGenerator(
+            this, token, fasta.messageNotAConstantExpression);
       }
       // An initializing formal parameter might be final without its
       // VariableDeclaration being final. See
@@ -3729,7 +3729,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           this, token, inInitializer, inFieldInitializer));
     } else {
       push(new IncompleteErrorGenerator(
-          this, token, null, fasta.messageThisAsIdentifier));
+          this, token, fasta.messageThisAsIdentifier));
     }
   }
 
@@ -3744,7 +3744,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           isSuper: true));
     } else {
       push(new IncompleteErrorGenerator(
-          this, token, null, fasta.messageSuperAsIdentifier));
+          this, token, fasta.messageSuperAsIdentifier));
     }
   }
 

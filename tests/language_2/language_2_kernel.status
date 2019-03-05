@@ -40,7 +40,7 @@ constructor12_test: RuntimeError
 control_flow_collections/for_inference_test: DartkCrash
 control_flow_collections/for_test: DartkCrash
 control_flow_collections/for_variable_test: DartkCrash
-control_flow_collections/if_const_test: DartkCrash
+control_flow_collections/if_const_test: CompileTimeError
 control_flow_collections/if_inference_test: CompileTimeError
 control_flow_collections/if_test: DartkCrash
 control_flow_collections/map_set_ambiguity_test: CompileTimeError
@@ -332,7 +332,7 @@ vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading k
 control_flow_collections/for_inference_test: DartkCrash
 control_flow_collections/for_test: DartkCrash
 control_flow_collections/for_variable_test: DartkCrash
-control_flow_collections/if_const_test: DartkCrash
+control_flow_collections/if_const_test: CompileTimeError
 control_flow_collections/if_inference_test: CompileTimeError
 control_flow_collections/if_test: DartkCrash
 control_flow_collections/map_set_ambiguity_test: CompileTimeError

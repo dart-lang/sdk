@@ -205,7 +205,7 @@ main() {
         "ThisAccessGenerator(offset: 4, isInitializer: false, isSuper: false)",
         new ThisAccessGenerator(helper, token, false, false));
     check("IncompleteErrorGenerator(offset: 4, message: Unspecified)",
-        new IncompleteErrorGenerator(helper, token, getter, message));
+        new IncompleteErrorGenerator(helper, token, message));
     check("SendAccessGenerator(offset: 4, name: bar, arguments: (\"arg\"))",
         new SendAccessGenerator(helper, token, name, arguments));
     check("IncompletePropertyAccessGenerator(offset: 4, name: bar)",
