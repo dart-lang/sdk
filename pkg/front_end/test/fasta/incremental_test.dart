@@ -153,7 +153,8 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
         return edits == 0 ? fail(test, "No sources found") : pass(test);
       }
       var compiler = context.compiler;
-      Component component = await compiler.computeDelta(entryPoint: entryPoint);
+      Component component =
+          await compiler.computeDelta(entryPoints: [entryPoint]);
       List<DiagnosticMessage> errors = context.takeErrors();
       if (test.expectations[edits].hasCompileTimeError) {
         if (errors.isEmpty) {

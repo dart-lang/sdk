@@ -99,7 +99,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
             new IncrementalKernelGenerator(getOptions(true), uri);
       }
       Component bulkCompiledComponent = await context.compiler
-          .computeDelta(entryPoint: uri, fullComponent: true);
+          .computeDelta(entryPoints: [uri], fullComponent: true);
       bulkSerialized = util.postProcess(bulkCompiledComponent);
     } catch (e) {
       bulkFailed = true;
@@ -115,7 +115,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
             new IncrementalKernelGenerator(getOptions(true), uri);
       }
       Component bulkCompiledComponent = await context.compiler
-          .computeDelta(entryPoint: uri, fullComponent: true);
+          .computeDelta(entryPoints: [uri], fullComponent: true);
       bulkSerialized2 = util.postProcess(bulkCompiledComponent);
     } catch (e) {
       bulk2Failed = true;

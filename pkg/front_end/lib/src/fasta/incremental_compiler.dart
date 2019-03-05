@@ -109,9 +109,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   @override
   Future<Component> computeDelta(
-      {Uri entryPoint, bool fullComponent: false}) async {
+      {List<Uri> entryPoints, bool fullComponent: false}) async {
     ticker.reset();
-    entryPoint ??= context.options.inputs.single;
+    entryPoints ??= context.options.inputs;
     return context.runInContext<Component>((CompilerContext c) async {
       IncrementalCompilerData data = new IncrementalCompilerData();
 
@@ -250,10 +250,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
-      entryPoint = userCode.setEntryPoints(<Uri>[entryPoint]).single;
+      entryPoints = userCode.setEntryPoints(entryPoints);
       if (userCode.loader.first == null &&
-          userCode.loader.builders[entryPoint] != null) {
-        userCode.loader.first = userCode.loader.builders[entryPoint];
+          userCode.loader.builders[entryPoints.first] != null) {
+        userCode.loader.first = userCode.loader.builders[entryPoints.first];
       }
       await userCode.buildOutlines();
 
@@ -279,7 +279,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Set<Library> allLibraries;
       if (data.component != null || fullComponent) {
         outputLibraries = computeTransitiveClosure(compiledLibraries,
-            entryPoint, reusedLibraries, hierarchy, uriTranslator);
+            entryPoints, reusedLibraries, hierarchy, uriTranslator);
         allLibraries = outputLibraries.toSet();
         if (!c.options.omitPlatform) {
           for (int i = 0; i < platformBuilders.length; i++) {
@@ -289,7 +289,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       } else {
         outputLibraries = new List<Library>();
-        allLibraries = computeTransitiveClosure(compiledLibraries, entryPoint,
+        allLibraries = computeTransitiveClosure(compiledLibraries, entryPoints,
                 reusedLibraries, hierarchy, uriTranslator, outputLibraries)
             .toSet();
       }
@@ -378,7 +378,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// any saved component problems for such builders.
   List<Library> computeTransitiveClosure(
       List<Library> inputLibraries,
-      Uri entry,
+      List<Uri> entries,
       List<LibraryBuilder> reusedLibraries,
       ClassHierarchy hierarchy,
       UriTranslator uriTranslator,
@@ -399,7 +399,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     List<Uri> worklist = new List<Uri>();
-    worklist.add(entry);
+    worklist.addAll(entries);
     for (LibraryBuilder library in reusedLibraries) {
       if (library.uri.scheme == "dart" && !library.isSynthetic) {
         continue;

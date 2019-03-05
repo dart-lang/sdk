@@ -72,12 +72,12 @@ test({bool sdkFromSource}) async {
 
   compiler.invalidate(helloDart);
 
-  component = await compiler.computeDelta(entryPoint: helloDart);
+  component = await compiler.computeDelta(entryPoints: [helloDart]);
   // Expect that the new component contains exactly hello.dart
   Expect.isTrue(
       component.libraries.length == 1, "${component.libraries.length} != 1");
 
-  component = await compiler.computeDelta(entryPoint: helloDart);
+  component = await compiler.computeDelta(entryPoints: [helloDart]);
   Expect.isTrue(component.libraries.isEmpty);
 }
 

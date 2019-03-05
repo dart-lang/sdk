@@ -43,8 +43,10 @@ class IncrementalCompiler {
   /// compilation. Otherwise, previously set entryPoint is used.
   Future<Component> compile({Uri entryPoint}) async {
     _entryPoint = entryPoint ?? _entryPoint;
+    List<Uri> entryPoints;
+    if (entryPoint != null) entryPoints = [entryPoint];
     Component component = await _generator.computeDelta(
-        entryPoint: entryPoint, fullComponent: fullComponent);
+        entryPoints: entryPoints, fullComponent: fullComponent);
     initialized = true;
     fullComponent = false;
     _pendingDeltas.add(component);
@@ -115,7 +117,7 @@ class IncrementalCompiler {
     // are processed in that known good state.
     _generator = new IncrementalKernelGenerator.fromComponent(
         _compilerOptions, _entryPoint, _lastKnownGood);
-    await _generator.computeDelta(entryPoint: _entryPoint);
+    await _generator.computeDelta(entryPoints: [_entryPoint]);
   }
 
   /// This tells incremental compiler that it needs rescan [uri] file during

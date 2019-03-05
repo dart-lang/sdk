@@ -348,7 +348,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 
       var sourceCompiler = new IncrementalCompiler(context.compilerContext);
       Component component =
-          await sourceCompiler.computeDelta(entryPoint: test.entryPoint);
+          await sourceCompiler.computeDelta(entryPoints: [test.entryPoint]);
       var errors = context.takeErrors();
       if (!errors.isEmpty) {
         return fail(tests, "Couldn't compile entry-point: $errors");
@@ -365,7 +365,8 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 
       var dillCompiler =
           new IncrementalCompiler(context.compilerContext, dillFileUri);
-      component = await dillCompiler.computeDelta(entryPoint: test.entryPoint);
+      component =
+          await dillCompiler.computeDelta(entryPoints: [test.entryPoint]);
       component.computeCanonicalNames();
       await dillFile.delete();
 

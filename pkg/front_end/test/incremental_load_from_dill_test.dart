@@ -276,13 +276,23 @@ Future<Null> newWorldTest(bool strong, List worlds, bool omitPlatform) async {
       }
     };
 
-    Uri entry = base.resolve(world["entry"]);
+    List<Uri> entries;
+    if (world["entry"] is String) {
+      entries = [base.resolve(world["entry"])];
+    } else {
+      entries = new List<Uri>();
+      List<dynamic> entryList = world["entry"];
+      for (String entry in entryList) {
+        entries.add(base.resolve(entry));
+      }
+    }
     if (brandNewWorld) {
       if (world["fromComponent"] == true) {
         compiler = new TestIncrementalCompiler.fromComponent(
-            options, entry, newestWholeComponent);
+            options, entries.first, newestWholeComponent);
       } else {
-        compiler = new TestIncrementalCompiler(options, entry, initializeFrom);
+        compiler =
+            new TestIncrementalCompiler(options, entries.first, initializeFrom);
       }
     }
 
@@ -297,6 +307,7 @@ Future<Null> newWorldTest(bool strong, List worlds, bool omitPlatform) async {
 
     Stopwatch stopwatch = new Stopwatch()..start();
     Component component = await compiler.computeDelta(
+        entryPoints: entries,
         fullComponent:
             brandNewWorld ? false : (noFullComponent ? false : true));
     performErrorAndWarningCheck(
@@ -339,12 +350,12 @@ Future<Null> newWorldTest(bool strong, List worlds, bool omitPlatform) async {
     }
     if (!noFullComponent) {
       List<Library> entryLib = component.libraries
-          .where(
-              (Library lib) => lib.importUri == entry || lib.fileUri == entry)
+          .where((Library lib) =>
+              entries.contains(lib.importUri) || entries.contains(lib.fileUri))
           .toList();
-      if (entryLib.length != 1) {
-        throw "Expected the entry to become a library. Got ${entryLib.length} "
-            "libraries for it.";
+      if (entryLib.length != entries.length) {
+        throw "Expected the entries to become libraries. Got ${entryLib.length} "
+            "libraries for the expected ${entries.length} entries.";
       }
     }
     if (compiler.initializedFromDill != expectInitializeFromDill) {
@@ -375,7 +386,8 @@ Future<Null> newWorldTest(bool strong, List worlds, bool omitPlatform) async {
       formattedErrors.clear();
       gotWarning = false;
       formattedWarnings.clear();
-      Component component2 = await compiler.computeDelta(fullComponent: true);
+      Component component2 = await compiler.computeDelta(
+          entryPoints: entries, fullComponent: true);
       performErrorAndWarningCheck(
           world, gotError, formattedErrors, gotWarning, formattedWarnings);
       List<int> thisWholeComponent = util.postProcess(component2);
@@ -634,9 +646,9 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 
   @override
   Future<Component> computeDelta(
-      {Uri entryPoint, bool fullComponent = false}) async {
+      {List<Uri> entryPoints, bool fullComponent = false}) async {
     Component result = await super
-        .computeDelta(entryPoint: entryPoint, fullComponent: fullComponent);
+        .computeDelta(entryPoints: entryPoints, fullComponent: fullComponent);
 
     // We should at least have the SDK builders available. Slight smoke test.
     if (!dillLoadedData.loader.builders.keys
