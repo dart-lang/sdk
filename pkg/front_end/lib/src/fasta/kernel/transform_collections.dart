@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         BlockExpression,
         Expression,
         ExpressionStatement,
+        ForInStatement,
         InterfaceType,
         InvalidExpression,
         ListLiteral,
@@ -33,13 +34,10 @@ import '../source/source_loader.dart' show SourceLoader;
 class CollectionTransformer extends Transformer {
   final CoreTypes coreTypes;
   final Procedure listAdd;
-  final Procedure listAddAll;
 
   CollectionTransformer(SourceLoader loader)
       : coreTypes = loader.coreTypes,
-        listAdd = loader.coreTypes.index.getMember('dart:core', 'List', 'add'),
-        listAddAll =
-            loader.coreTypes.index.getMember('dart:core', 'List', 'addAll');
+        listAdd = loader.coreTypes.index.getMember('dart:core', 'List', 'add');
 
   @override
   TreeNode visitListLiteral(ListLiteral node) {
@@ -67,7 +65,8 @@ class CollectionTransformer extends Transformer {
 
     VariableDeclaration list = new VariableDeclaration.forValue(
         new ListLiteral([], typeArgument: node.typeArgument),
-        type: new InterfaceType(coreTypes.listClass, [node.typeArgument]));
+        type: new InterfaceType(coreTypes.listClass, [node.typeArgument]),
+        isFinal: true);
     List<Statement> body = [list];
     for (int j = 0; j < i; ++j) {
       body.add(new ExpressionStatement(new MethodInvocation(
@@ -78,23 +77,24 @@ class CollectionTransformer extends Transformer {
     }
     for (; i < node.expressions.length; ++i) {
       Expression element = node.expressions[i];
-      String name;
-      Expression argument;
-      Procedure target;
       if (element is SpreadElement) {
-        name = 'addAll';
-        argument = element.expression.accept(this);
-        target = listAddAll;
+        VariableDeclaration elt = new VariableDeclaration(null,
+            type: node.typeArgument, isFinal: true);
+        body.add(new ForInStatement(
+            elt,
+            element.expression.accept(this),
+            new ExpressionStatement(new MethodInvocation(
+                new VariableGet(list),
+                new Name('add'),
+                new Arguments([new VariableGet(elt)]),
+                listAdd))));
       } else {
-        name = 'add';
-        argument = element.accept(this);
-        target = listAdd;
+        body.add(new ExpressionStatement(new MethodInvocation(
+            new VariableGet(list),
+            new Name('add'),
+            new Arguments([element.accept(this)]),
+            listAdd)));
       }
-      body.add(new ExpressionStatement(new MethodInvocation(
-          new VariableGet(list),
-          new Name(name),
-          new Arguments([argument]),
-          target)));
     }
 
     return new BlockExpression(new Block(body), new VariableGet(list));
