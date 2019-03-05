@@ -1854,7 +1854,9 @@ void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   // Get the state.
-  __ LoadObject(temp, Field::ZoneHandle(compiler->zone(), field().Original()));
+  const Field& original =
+      Field::ZoneHandle(compiler->zone(), field().Original());
+  __ LoadObject(temp, original);
   __ movsxb(temp,
             FieldAddress(temp, Field::static_type_exactness_state_offset()));
 
@@ -1883,7 +1885,7 @@ void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ j(EQUAL, &ok);
 
     __ Bind(&call_runtime);
-    __ PushObject(field());
+    __ PushObject(original);
     __ pushq(value_reg);
     __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
     __ Drop(2);
