@@ -8006,6 +8006,9 @@ const char* Function::ToCString() const {
     case RawFunction::kIrregexpFunction:
       kind_str = "irregexp-function";
       break;
+    case RawFunction::kFfiTrampoline:
+      kind_str = " ffi-trampoline-function";
+      break;
     default:
       UNREACHABLE();
   }
