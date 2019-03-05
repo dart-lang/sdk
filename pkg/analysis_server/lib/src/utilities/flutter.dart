@@ -23,6 +23,9 @@ class Flutter {
   static final mobile = Flutter._('flutter', 'package:flutter');
   static final web = Flutter._('flutter_web', 'package:flutter_web');
 
+  static final _uriFlutterWebWidgets =
+      Uri.parse('package:flutter_web/widgets.dart');
+
   final String packageName;
   final String widgetsUri;
 
@@ -34,7 +37,9 @@ class Flutter {
   final Uri _uriWidgetsText;
 
   factory Flutter.of(AnalysisSession session) {
-    // TODO(scheglov) actually identify
+    if (session.uriConverter.uriToPath(_uriFlutterWebWidgets) != null) {
+      return web;
+    }
     return mobile;
   }
 
