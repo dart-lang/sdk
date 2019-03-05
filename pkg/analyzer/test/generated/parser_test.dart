@@ -11145,6 +11145,7 @@ class C {
     MethodDeclaration method = declaration.members[0];
     expect(method.name.name, 'C');
     expect(method.isGetter, isTrue);
+    expect(method.parameters, isNull);
   }
 
   void test_issue_34610_initializers() {
@@ -11176,6 +11177,30 @@ class C {
   }
 
   void test_issue_34610_missing_param() {
+    final unit = parseCompilationUnit('class C { C => null; }',
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1)]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 18, 2),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 18, 2),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 18, 2),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 21, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 21, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 25, 1),
+              ]);
+    ClassDeclaration declaration = unit.declarations[0];
+    if (usingFastaParser) {
+      ConstructorDeclaration constructor = declaration.members[0];
+      expect(constructor.name, isNull);
+      expect(constructor.parameters, isNotNull);
+      expect(constructor.parameters.parameters, hasLength(0));
+    } else {
+      FieldDeclaration field = declaration.members[0];
+      expect(field.fields.type.toSource(), 'C');
+    }
+  }
+
+  void test_issue_34610_named_missing_param() {
     final unit = parseCompilationUnit('class C { C.named => null; }',
         errors: usingFastaParser
             ? [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1)]
@@ -11197,6 +11222,38 @@ class C {
       FieldDeclaration field = declaration.members[0];
       expect(field.fields.type.toSource(), 'C.named');
     }
+  }
+
+  void test_issue_34610_set() {
+    final unit = parseCompilationUnit('class C { set C.named => null; }',
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 14, 1),
+                expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
+                expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 16, 5),
+              ]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1),
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1),
+                expectedError(
+                    ParserErrorCode.STATIC_SETTER_WITHOUT_BODY, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 22, 2),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 22, 2),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 22, 2),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 25, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 25, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 29, 1),
+              ]);
+    ClassDeclaration declaration = unit.declarations[0];
+    MethodDeclaration method = declaration.members[0];
+    expect(method.name.name, 'C');
+    expect(method.isSetter, isTrue);
+    expect(method.parameters, isNotNull);
+    expect(method.parameters.parameters, hasLength(usingFastaParser ? 0 : 1));
   }
 
   void test_keywordInPlaceOfIdentifier() {
@@ -14593,7 +14650,7 @@ main() {
     String code = 'await for (element in list) {}';
     var forStatement = _parseAsyncStatement(code) as ForStatement2;
     assertNoErrors();
-    expect(forStatement.awaitKeyword, isNotNull);
+    expect(forStatement.awaitKeyword, usingFastaParser ? isNotNull : isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
     var forEachParts = forStatement.forLoopParts as ForEachPartsWithIdentifier;
