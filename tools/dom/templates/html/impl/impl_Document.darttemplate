@@ -41,7 +41,7 @@ $!MEMBERS
         registerElement2(tag, {'prototype': customElementClass, 'extends': extendsTag});
   }
 
-  @ForceInline() // Almost all call sites have one argument.
+  @pragma('dart2js:tryInline') // Almost all call sites have one argument.
   Element createElement(String tagName, [String typeExtension]) {
     return (typeExtension == null)
         ? _createElement_2(tagName)

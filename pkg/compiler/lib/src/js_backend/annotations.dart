@@ -35,6 +35,8 @@ class PragmaAnnotation {
   static const PragmaAnnotation noInline =
       const PragmaAnnotation(0, 'noInline', forFunctionsOnly: true);
 
+  /// Tells the optimizing compiler to always inline the annotated method, if
+  /// possible.
   static const PragmaAnnotation tryInline =
       const PragmaAnnotation(1, 'tryInline', forFunctionsOnly: true);
 
@@ -98,18 +100,6 @@ Set<PragmaAnnotation> processMemberAnnotations(
     ConstructedConstantValue value = constantValue;
     ClassEntity cls = value.type.element;
     assert(cls != null); // Unresolved classes null.
-
-    if (platformAnnotationsAllowed) {
-      if (cls == commonElements.forceInlineClass) {
-        values.add(PragmaAnnotation.tryInline);
-        if (element is! FunctionEntity) {
-          reporter.internalError(
-              element,
-              "@pragma('dart2js:noInline') is only allowed in methods "
-              "and constructors.");
-        }
-      }
-    }
 
     if (cls == commonElements.metaNoInlineClass) {
       values.add(PragmaAnnotation.noInline);

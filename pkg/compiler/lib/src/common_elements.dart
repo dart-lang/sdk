@@ -502,8 +502,6 @@ abstract class KCommonElements implements CommonElements {
 
   ClassEntity get jsAnonymousClass;
 
-  ClassEntity get forceInlineClass;
-
   ClassEntity get pragmaClass;
   FieldEntity get pragmaClassNameField;
   FieldEntity get pragmaClassOptionsField;
@@ -1380,10 +1378,6 @@ class CommonElementsImpl
   ClassEntity _typeVariableClass;
   ClassEntity get typeVariableClass =>
       _typeVariableClass ??= _findHelperClass('TypeVariable');
-
-  ClassEntity _forceInlineClass;
-  ClassEntity get forceInlineClass =>
-      _forceInlineClass ??= _findHelperClass('ForceInline');
 
   ClassEntity _pragmaClass;
   ClassEntity get pragmaClass =>

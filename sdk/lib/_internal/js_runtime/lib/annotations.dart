@@ -4,11 +4,6 @@
 
 part of _js_helper;
 
-/// Tells the optimizing compiler to always inline the annotated method.
-class ForceInline {
-  const ForceInline();
-}
-
 /// Marks a class as native and defines its JavaScript name(s).
 class Native {
   final String name;
