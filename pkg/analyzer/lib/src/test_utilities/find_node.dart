@@ -183,10 +183,6 @@ class FindNode {
     return _node(search, (n) => n is RethrowExpression);
   }
 
-  SetOrMapLiteral setLiteral(String search) {
-    return _node(search, (n) => n is SetOrMapLiteral && n.isSet);
-  }
-
   SetOrMapLiteral setOrMapLiteral(String search) {
     return _node(search, (n) => n is SetOrMapLiteral);
   }

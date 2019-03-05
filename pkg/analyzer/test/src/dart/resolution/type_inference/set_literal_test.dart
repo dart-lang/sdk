@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class SetLiteralTest extends DriverResolutionTest {
-  AstNode setLiteral(String search) => findNode.setLiteral(search);
+  AstNode setLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_expression_conflict() async {
     addTestFile('''

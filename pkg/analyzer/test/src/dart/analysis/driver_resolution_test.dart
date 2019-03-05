@@ -6729,7 +6729,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isEmpty);
 
-    var literal = findNode.setLiteral('<int>{}');
+    var literal = findNode.setOrMapLiteral('<int>{}');
     assertType(literal, 'Set<int>');
 
     var intRef = findNode.simple('int>{}');
