@@ -202,9 +202,7 @@ class ConstantsTransformer extends Transformer {
 
   visitFunctionNode(FunctionNode node) {
     final positionalParameterCount = node.positionalParameters.length;
-    for (int i = node.requiredParameterCount;
-        i < positionalParameterCount;
-        ++i) {
+    for (int i = 0; i < positionalParameterCount; ++i) {
       final VariableDeclaration variable = node.positionalParameters[i];
       transformAnnotations(variable.annotations, variable);
       if (variable.initializer != null) {
