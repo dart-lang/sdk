@@ -336,6 +336,7 @@ SourceBodySummary/analyzerCode: Fail
 SourceBodySummary/example: Fail
 SourceOutlineSummary/analyzerCode: Fail
 SourceOutlineSummary/example: Fail
+SpreadElementTypeMismatch/script: Fail # Can't be tested until 'spread-collections' flag is on.
 SpreadTypeMismatch/analyzerCode: Fail # There's not analyzer code for that error yet.
 SpreadTypeMismatch/script1: Fail # Can't be tested until 'spread-collections' flag is on.
 SpreadTypeMismatch/script2: Fail # Can't be tested until 'spread-collections' flag is on.

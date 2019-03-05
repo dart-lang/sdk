@@ -8227,6 +8227,39 @@ ${num3} ms/compilation unit.""",
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateSpreadElementTypeMismatch = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""Can't assign spread elements of type '#type' to collection elements of type '#type2'.""",
+    withArguments: _withArgumentsSpreadElementTypeMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeSpreadElementTypeMismatch =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "SpreadElementTypeMismatch", templateSpreadElementTypeMismatch,
+        analyzerCodes: <String>["LIST_ELEMENT_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadElementTypeMismatch(
+    DartType _type, DartType _type2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeSpreadElementTypeMismatch,
+      message:
+          """Can't assign spread elements of type '${type}' to collection elements of type '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         DartType
             _type)> templateSpreadTypeMismatch = const Template<
         Message Function(DartType _type)>(

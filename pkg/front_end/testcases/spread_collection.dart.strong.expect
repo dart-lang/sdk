@@ -7,11 +7,13 @@ static method main() → dynamic {
   final core::List<core::int> aList = block {
     final core::List<core::int> #t1 = <core::int>[];
     #t1.{core::List::add}(1);
-    #t1.{core::List::addAll}(<core::int>[2]);
-    #t1.{core::List::addAll}(<core::int>[3]);
+    for (final core::int #t2 in <core::int>[2])
+      #t1.{core::List::add}(#t2);
+    for (final core::int #t3 in <core::int>[3])
+      #t1.{core::List::add}(#t3);
   } =>#t1;
   final core::Map<core::int, core::int> aMap = <core::int, core::int>{1: 1, invalid-expression "unimplemented spread entry": null, invalid-expression "unimplemented spread entry": null};
-  final core::Set<core::int> aSet = let final core::Set<core::int> #t2 = col::LinkedHashSet::•<core::int>() in let final dynamic #t3 = #t2.{core::Set::add}(1) in let final dynamic #t4 = #t2.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t5 = #t2.{core::Set::add}(invalid-expression "unimplemented spread element") in #t2;
+  final core::Set<core::int> aSet = let final core::Set<core::int> #t4 = col::LinkedHashSet::•<core::int>() in let final dynamic #t5 = #t4.{core::Set::add}(1) in let final dynamic #t6 = #t4.{core::Set::add}(invalid-expression "unimplemented spread element") in let final dynamic #t7 = #t4.{core::Set::add}(invalid-expression "unimplemented spread element") in #t4;
   final core::Map<dynamic, dynamic> aSetOrMap = <dynamic, dynamic>{invalid-expression "unimplemented spread entry": null};
   core::print(aList);
   core::print(aSet);

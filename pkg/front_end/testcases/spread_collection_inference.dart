@@ -41,17 +41,22 @@ foo() {
 
   int set30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ {...spread, 42};
 
-  var /*@type=List<dynamic>*/ lhs40 = /*@typeArgs=dynamic*/ [...
-    /*@error=SpreadTypeMismatch*/ notSpreadInt];
+  List<dynamic> lhs40 = <dynamic>[... /*@error=SpreadTypeMismatch*/
+    notSpreadInt];
 
-  var /*@type=Set<dynamic>*/ set40 = /*@typeArgs=dynamic*/ {...
-    /*@error=SpreadTypeMismatch*/ notSpreadInt, 42};
+  Set<dynamic> set40 = <dynamic>{... /*@error=SpreadTypeMismatch*/
+    notSpreadInt};
 
-  var /*@type=List<dynamic>*/ lhs50 = /*@typeArgs=dynamic*/ [...
-    /*@error=SpreadTypeMismatch*/ notSpreadFunction];
+  List<dynamic> lhs50 = <dynamic> [... /*@error=SpreadTypeMismatch*/
+    notSpreadFunction];
 
-  var /*@type=Set<dynamic>*/ set50 = /*@typeArgs=dynamic*/ {...
-    /*@error=SpreadTypeMismatch*/ notSpreadFunction, 42};
+  Set<dynamic> set50 = <dynamic> {... /*@error=SpreadTypeMismatch*/
+    notSpreadFunction};
+
+  List<String> lhs60 = <String>[... /*@error=SpreadElementTypeMismatch*/
+    spread];
+
+  Set<String> set60 = <String>{... /*@error=SpreadElementTypeMismatch*/ spread};
 }
 
 main() {}

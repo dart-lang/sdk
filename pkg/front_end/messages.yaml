@@ -3484,3 +3484,12 @@ SpreadTypeMismatch:
         int Function() a = null;
         var b = [...a];
       }
+
+SpreadElementTypeMismatch:
+  template: "Can't assign spread elements of type '#type' to collection elements of type '#type2'."
+  analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+  script: >
+    main() {
+      List<String> a = <String>["foo"];
+      List<int> b = <int>[...a];
+    }
