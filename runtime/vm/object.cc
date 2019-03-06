@@ -20947,8 +20947,9 @@ RawPointer* Pointer::New(const AbstractType& type_arg,
 const char* Pointer::ToCString() const {
   TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
   String& type_args_name = String::Handle(type_args.UserVisibleName());
-  return OS::SCreate(Thread::Current()->zone(), "Pointer%s: address=%p",
-                     type_args_name.ToCString(), GetCMemoryAddress());
+  return OS::SCreate(Thread::Current()->zone(), "Pointer%s: address=0x%" Px,
+                     type_args_name.ToCString(),
+                     reinterpret_cast<uintptr_t>(GetCMemoryAddress()));
 }
 
 RawDynamicLibrary* DynamicLibrary::New(void* handle, Heap::Space space) {
@@ -20986,8 +20987,8 @@ bool Instance::IsPointer() const {
 }
 
 const char* DynamicLibrary::ToCString() const {
-  return OS::SCreate(Thread::Current()->zone(), "DynamicLibrary: handle=%p",
-                     GetHandle());
+  return OS::SCreate(Thread::Current()->zone(), "DynamicLibrary: handle=0x%" Px,
+                     reinterpret_cast<uintptr_t>(GetHandle()));
 }
 
 RawCapability* Capability::New(uint64_t id, Heap::Space space) {
