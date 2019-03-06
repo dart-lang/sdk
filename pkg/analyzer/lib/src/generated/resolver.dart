@@ -4893,8 +4893,10 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    InterfaceType literalType = _computeContextType(node);
-    if (literalType != null) {
+    DartType literalType = _computeContextType(node);
+    // TODO(brianwilkerson) Determine whether we need special handling for type
+    // parameter types. (E-mail sent.)
+    if (literalType is InterfaceType) {
       List<DartType> typeArguments = literalType.typeArguments;
       if (typeArguments.length == 1) {
         DartType elementType = literalType.typeArguments[0];

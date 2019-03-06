@@ -44,6 +44,16 @@ Set<String> a = {};
     assertType(setLiteral('{'), 'Set<String>');
   }
 
+  test_context_noTypeArgs_noElements_typeParameter() async {
+    addTestFile('''
+class A<E extends Set<int>> {
+  E a = {};
+}
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{}'), 'Set<dynamic>');
+  }
+
   test_context_typeArgs_expression_conflict() async {
     addTestFile('''
 Set<String> a = <String>{0};
@@ -128,6 +138,13 @@ class SetLiteralWithFlowControlAndSpreadCollectionsTest extends SetLiteralTest {
 
   @override
   AstNode setLiteral(String search) => findNode.setOrMapLiteral(search);
+
+  @failingTest
+  @override
+  test_context_noTypeArgs_noElements_typeParameter() async {
+    // Failing because Map<dynamic, dynamic> is being inferred.
+    await super.test_context_noTypeArgs_noElements_typeParameter();
+  }
 
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
     addTestFile('''
