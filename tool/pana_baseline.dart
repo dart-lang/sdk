@@ -8,17 +8,17 @@ import 'dart:io';
 const baseLinePath = 'tool/baseline/pana.json';
 
 main() async {
-  print('reading baseline...');
+  print('Reading baseline...');
   var contents = new File(baseLinePath).readAsStringSync();
   var baseline = jsonDecode(contents)['scores'];
   print(baseline);
 
-  print('installing pana...');
+  print('Installing pana...');
   var activate = await Process.run('pub', ['global', 'activate', 'pana']);
   expectOk(activate);
   print(activate.stdout);
 
-  print('running pana...');
+  print('Running pana...');
   var output = await Process.run('pub', [
     'global',
     'run',
@@ -33,7 +33,6 @@ main() async {
   print(output.stdout);
 
   var panaJson = jsonDecode(output.stdout);
-
   var health = panaJson['health'];
   print(health);
   var scores = panaJson['scores'];
@@ -55,10 +54,10 @@ main() async {
         'maintenance dropped from $baselineMaintenance to $currentMaintenance';
   }
   if (failureReport.isNotEmpty) {
-    print('baseline check failed: $failureReport');
+    print('Baseline check failed: $failureReport');
     exit(13);
   }
-  print('baseline check passed ✅');
+  print('Baseline check passed ✅');
 
   if (currentHealth != baselineHealth ||
       currentMaintenance != baselineMaintenance) {
