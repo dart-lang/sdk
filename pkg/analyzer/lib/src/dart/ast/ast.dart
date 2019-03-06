@@ -5644,6 +5644,7 @@ class IfElementImpl extends CollectionElementImpl
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..addAll(super.childEntities)
     ..add(_thenElement)
+    ..add(elseKeyword)
     ..add(_elseElement);
 
   @override
@@ -5694,8 +5695,7 @@ mixin IfMixin on AstNodeImpl {
     ..add(ifKeyword)
     ..add(leftParenthesis)
     ..add(_condition)
-    ..add(rightParenthesis)
-    ..add(elseKeyword);
+    ..add(rightParenthesis);
 
   Expression get condition => _condition;
 
@@ -5713,29 +5713,11 @@ mixin IfMixin on AstNodeImpl {
 ///
 ///    ifStatement ::=
 ///        'if' '(' [Expression] ')' [Statement] ('else' [Statement])?
-class IfStatementImpl extends StatementImpl implements IfStatement {
-  /// The token representing the 'if' keyword.
-  @override
-  Token ifKeyword;
-
-  /// The left parenthesis.
-  @override
-  Token leftParenthesis;
-
-  /// The condition used to determine which of the statements is executed next.
-  ExpressionImpl _condition;
-
-  /// The right parenthesis.
-  @override
-  Token rightParenthesis;
-
+class IfStatementImpl extends StatementImpl
+    with IfMixin
+    implements IfStatement {
   /// The statement that is executed if the condition evaluates to `true`.
   StatementImpl _thenStatement;
-
-  /// The token representing the 'else' keyword, or `null` if there is no else
-  /// statement.
-  @override
-  Token elseKeyword;
 
   /// The statement that is executed if the condition evaluates to `false`, or
   /// `null` if there is no else statement.
@@ -5744,15 +5726,19 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   /// Initialize a newly created if statement. The [elseKeyword] and
   /// [elseStatement] can be `null` if there is no else clause.
   IfStatementImpl(
-      this.ifKeyword,
-      this.leftParenthesis,
+      Token ifKeyword,
+      Token leftParenthesis,
       ExpressionImpl condition,
-      this.rightParenthesis,
+      Token rightParenthesis,
       StatementImpl thenStatement,
-      this.elseKeyword,
+      Token elseKeyword,
       StatementImpl elseStatement) {
+    this.ifKeyword = ifKeyword;
+    this.leftParenthesis = leftParenthesis;
     _condition = _becomeParentOf(condition);
+    this.rightParenthesis = rightParenthesis;
     _thenStatement = _becomeParentOf(thenStatement);
+    this.elseKeyword = elseKeyword;
     _elseStatement = _becomeParentOf(elseStatement);
   }
 
@@ -5761,21 +5747,10 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
-    ..add(ifKeyword)
-    ..add(leftParenthesis)
-    ..add(_condition)
-    ..add(rightParenthesis)
+    ..addAll(super.childEntities)
     ..add(_thenStatement)
     ..add(elseKeyword)
     ..add(_elseStatement);
-
-  @override
-  Expression get condition => _condition;
-
-  @override
-  void set condition(Expression expression) {
-    _condition = _becomeParentOf(expression as ExpressionImpl);
-  }
 
   @override
   Statement get elseStatement => _elseStatement;
