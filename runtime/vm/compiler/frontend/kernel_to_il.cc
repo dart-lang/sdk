@@ -1148,7 +1148,6 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
   Fragment check_bounds;
   for (intptr_t i = 0; i < num_type_params; ++i) {
     type_param ^= type_parameters.TypeAt(i);
-    ASSERT(type_param.IsFinalized());
 
     bound = type_param.bound();
     if (bound.IsTopType()) {
@@ -1171,6 +1170,8 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
     }
 
     name = type_param.name();
+
+    ASSERT(type_param.IsFinalized());
     check_bounds +=
         AssertSubtype(TokenPosition::kNoSource, type_param, bound, name);
   }
