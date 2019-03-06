@@ -23,6 +23,7 @@
 #include "vm/signal_handler.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
+#include "vm/version.h"
 
 namespace dart {
 
@@ -1117,9 +1118,9 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   ASSERT(os_thread != NULL);
   Isolate* isolate = Isolate::Current();
   const char* name = isolate == NULL ? NULL : isolate->name();
-  OS::PrintErr("thread=%" Pd ", isolate=%s(%p)\n",
-               OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name,
-               isolate);
+  OS::PrintErr(
+      "version=%s\nthread=%" Pd ", isolate=%s(%p)\n", Version::String(),
+      OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name, isolate);
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
     OS::PrintErr("Stack dump aborted because InitialRegisterCheck failed.\n");

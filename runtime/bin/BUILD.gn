@@ -179,6 +179,13 @@ template("build_gen_snapshot") {
       ]
     }
 
+    if (!is_win) {
+      # Adds all symbols to the dynamic symbol table, not just used ones.
+      # This is needed to make native extensions work. It is also needed to get
+      # symbols in VM-generated backtraces and profiles.
+      ldflags = [ "-rdynamic" ]
+    }
+
     if (is_win) {
       libs = [
         "iphlpapi.lib",
@@ -730,7 +737,8 @@ template("dart_executable") {
       ldflags = [ "/EXPORT:Dart_True" ]
     } else {
       # Adds all symbols to the dynamic symbol table, not just used ones.
-      # This is needed to make native extensions work.
+      # This is needed to make native extensions work. It is also needed to get
+      # symbols in VM-generated backtraces and profiles.
       ldflags = [ "-rdynamic" ]
     }
 
@@ -943,6 +951,9 @@ executable("run_vm_tests") {
             ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests
 
   if (!is_win) {
+    # Adds all symbols to the dynamic symbol table, not just used ones.
+    # This is needed to make native extensions work. It is also needed to get
+    # symbols in VM-generated backtraces and profiles.
     ldflags = [ "-rdynamic" ]
   }
 

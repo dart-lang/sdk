@@ -75,9 +75,8 @@ class PlatformWin {
          EXCEPTION_ILLEGAL_INSTRUCTION)) {
       Log::PrintErr(
           "\n===== CRASH =====\n"
-          "version=%s\n"
           "ExceptionCode=%d, ExceptionFlags=%d, ExceptionAddress=%p\n",
-          Dart_VersionString(), ExceptionInfo->ExceptionRecord->ExceptionCode,
+          ExceptionInfo->ExceptionRecord->ExceptionCode,
           ExceptionInfo->ExceptionRecord->ExceptionFlags,
           ExceptionInfo->ExceptionRecord->ExceptionAddress);
       Dart_DumpNativeStackTrace(ExceptionInfo->ContextRecord);
