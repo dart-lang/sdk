@@ -303,6 +303,8 @@ appropriate builders. If only a builder is specified, the default named
 configuration is used if the builder only has a single named configuration.
 Otherwise the available named configurations are listed.
 
+See the documentation at https://goto.google.com/dart-status-file-free-workflow
+
 ${parser.usage}""");
     return;
   }

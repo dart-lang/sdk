@@ -291,6 +291,8 @@ Usage: approve_results.dart [OPTION]...
 List tests whose results are different from the previously approved results, and
 ask whether to update the currently approved results, turning the bots green.
 
+See the documentation at https://goto.google.com/dart-status-file-free-workflow
+
 The options are as follows:
 
 ${parser.usage}""");
