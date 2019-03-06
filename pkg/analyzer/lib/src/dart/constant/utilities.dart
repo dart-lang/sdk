@@ -95,6 +95,7 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
+  @deprecated
   MapLiteral visitMapLiteral(MapLiteral node) {
     MapLiteral literal = super.visitMapLiteral(node);
     literal.staticType = node.staticType;
@@ -114,6 +115,7 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
+  @deprecated
   SetLiteral visitSetLiteral(SetLiteral node) {
     SetLiteral literal = super.visitSetLiteral(node);
     literal.staticType = node.staticType;

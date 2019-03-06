@@ -801,13 +801,14 @@ abstract class AstFactory {
    * the literal is not a constant. The [typeArguments] can be `null` if no type
    * arguments were declared. The [entries] can be `null` if the map is empty.
    */
+  @Deprecated('Use setOrMapLiteral')
   MapLiteral mapLiteral(Token constKeyword, TypeArgumentList typeArguments,
       Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket);
 
   /**
    * Returns a newly created map literal.
    */
-  @deprecated
+  @Deprecated('Use setOrMapLiteral')
   MapLiteral2 mapLiteral2(
       {Token constKeyword,
       TypeArgumentList typeArguments,
@@ -989,13 +990,14 @@ abstract class AstFactory {
    * type arguments were declared. The list of [elements] can be `null` if the
    * set is empty.
    */
+  @Deprecated('Use setOrMapLiteral')
   SetLiteral setLiteral(Token constKeyword, TypeArgumentList typeArguments,
       Token leftBracket, List<Expression> elements, Token rightBracket);
 
   /**
    * Returns a newly created set literal.
    */
-  @deprecated
+  @Deprecated('Use setOrMapLiteral')
   SetLiteral2 setLiteral2(
       {Token constKeyword,
       TypeArgumentList typeArguments,

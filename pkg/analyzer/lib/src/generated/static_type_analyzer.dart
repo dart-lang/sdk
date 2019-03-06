@@ -189,6 +189,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return inferred;
   }
 
+  @deprecated
   ParameterizedType inferMapType(MapLiteral node, {bool downwards: false}) {
     DartType contextType = InferenceContext.getContext(node);
     if (contextType != null && _experimentStatus.set_literals) {
@@ -254,6 +255,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return inferred;
   }
 
+  @deprecated
   DartType inferSetType(SetLiteral node, {bool downwards: false}) {
     DartType contextType = InferenceContext.getContext(node);
 
@@ -714,6 +716,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * <i>String</i>.</blockquote>
    */
   @override
+  @deprecated
   void visitMapLiteral(MapLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
 
@@ -1007,6 +1010,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitSetLiteral(SetLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
 
@@ -1640,6 +1644,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       AstNode parent = loopVariable.parent;
       Token awaitKeyword;
       Expression iterable;
+      // ignore: deprecated_member_use_from_same_package
       if (parent is ForEachStatement) {
         awaitKeyword = parent.awaitKeyword;
         iterable = parent.iterable;

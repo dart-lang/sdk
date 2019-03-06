@@ -830,6 +830,7 @@ class ExprBuilder {
           AstTestFactory.setOrMapLiteral(Keyword.CONST, typeArguments, entries)
             ..staticType = staticType);
     } else {
+      // ignore: deprecated_member_use_from_same_package
       _push(AstTestFactory.mapLiteral(Keyword.CONST, typeArguments, entries)
         ..staticType = staticType);
     }
@@ -856,6 +857,7 @@ class ExprBuilder {
     for (int i = 0; i < count; i++) {
       elements.insert(0, _pop());
     }
+    // ignore: deprecated_member_use_from_same_package
     _push(AstTestFactory.setLiteral(Keyword.CONST, typeArguments, elements));
   }
 

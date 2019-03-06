@@ -743,6 +743,7 @@ class SimpleIdentifierTest extends ParserTestCase {
     SimpleIdentifier identifier = AstTestFactory.identifier3("a");
     Expression iterator = AstTestFactory.listLiteral();
     Statement body = AstTestFactory.block();
+    // ignore: deprecated_member_use_from_same_package
     AstTestFactory.forEachStatement2(identifier, iterator, body);
     expect(identifier.inGetterContext(), isFalse);
   }
@@ -788,6 +789,7 @@ class SimpleIdentifierTest extends ParserTestCase {
     SimpleIdentifier identifier = AstTestFactory.identifier3("a");
     Expression iterator = AstTestFactory.listLiteral();
     Statement body = AstTestFactory.block();
+    // ignore: deprecated_member_use_from_same_package
     AstTestFactory.forEachStatement2(identifier, iterator, body);
     expect(identifier.inSetterContext(), isTrue);
   }

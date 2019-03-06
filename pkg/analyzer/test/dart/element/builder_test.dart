@@ -766,6 +766,7 @@ class C {
     String variableName = "v";
     DeclaredIdentifier variableIdentifier =
         AstTestFactory.declaredIdentifier3('v');
+    // ignore: deprecated_member_use_from_same_package
     Statement statement = AstTestFactory.forEachStatement(variableIdentifier,
         AstTestFactory.listLiteral(), AstTestFactory.block());
     _setNodeSourceRange(statement, 100, 110);

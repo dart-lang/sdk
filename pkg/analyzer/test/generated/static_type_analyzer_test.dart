@@ -1177,6 +1177,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 
   void test_visitMapLiteral_empty() {
     // {}
+    // ignore: deprecated_member_use_from_same_package
     Expression node = AstTestFactory.mapLiteral2();
     DartType resultType = _analyze(node);
     _assertType2(
@@ -1188,6 +1189,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 
   void test_visitMapLiteral_nonEmpty() {
     // {"k" : 0}
+    // ignore: deprecated_member_use_from_same_package
     Expression node = AstTestFactory.mapLiteral2(
         [AstTestFactory.mapLiteralEntry("k", _resolvedInteger(0))]);
     DartType resultType = _analyze(node);

@@ -3675,9 +3675,11 @@ class Parser {
   ///
   ///     mapLiteral ::=
   ///         'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
-  MapLiteral parseMapLiteral(Token modifier, TypeArgumentList typeArguments) {
+  MapLiteral // ignore: deprecated_member_use_from_same_package
+      parseMapLiteral(Token modifier, TypeArgumentList typeArguments) {
     Token leftBracket = getAndAdvance();
     if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
+      // ignore: deprecated_member_use_from_same_package
       return astFactory.mapLiteral(
           modifier, typeArguments, leftBracket, null, getAndAdvance());
     }
@@ -3687,12 +3689,14 @@ class Parser {
       List<MapLiteralEntry> entries = <MapLiteralEntry>[parseMapLiteralEntry()];
       while (_optional(TokenType.COMMA)) {
         if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
+          // ignore: deprecated_member_use_from_same_package
           return astFactory.mapLiteral(
               modifier, typeArguments, leftBracket, entries, getAndAdvance());
         }
         entries.add(parseMapLiteralEntry());
       }
       Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
+      // ignore: deprecated_member_use_from_same_package
       return astFactory.mapLiteral(
           modifier, typeArguments, leftBracket, entries, rightBracket);
     } finally {
@@ -4028,6 +4032,7 @@ class Parser {
         _tokenMatchesKeyword(_peek(), Keyword.FOR)) {
       Token awaitToken = _currentToken;
       Statement statement = parseForStatement();
+      // ignore: deprecated_member_use_from_same_package
       if (statement is! ForStatement) {
         _reportErrorForToken(
             CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, awaitToken);

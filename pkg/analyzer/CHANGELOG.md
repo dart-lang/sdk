@@ -1,3 +1,19 @@
+##
+* Deprecated AST structures that will no longer be used after the
+  control_flow_collections and spread_collections experiments are enabled.  The
+  following AST node types are deprecated:
+  * `ForEachStatement` (use `ForStatement2` instead)
+  * `ForStatement` (use `ForStatement2` instead)
+  * `MapLiteral` (use `SetOrMapLiteral` instead)
+  * `SetLiteral` (use `SetOrMapLiteral` instead)
+* Deprecated visit methods that will no longer be used after the
+  control_flow_collections and spread_collections experiments are enabled.  The
+  following visit methods are deprecated:
+  * `visitForEachStatement` (override `visitForStatement2` instead)
+  * `visitForStatement` (override `visitForStatement2` instead)
+  * `visitMapLiteral` (override `visitSetOrMapLiteral` instead)
+  * `visitSetLiteral` (override `visitSetOrMapLiteral` instead)
+
 ## 0.35.3
 * Further updates to the AST structure for the control_flow_collections and
   spread_collections experiments.  The following AST node types will be

@@ -344,9 +344,13 @@ abstract class AbstractConstExprSerializer {
           typeName.typeArguments != null);
     } else if (expr is ListLiteral) {
       _serializeListLiteral(expr);
+      // ignore: deprecated_member_use_from_same_package
     } else if (expr is MapLiteral) {
+      // ignore: deprecated_member_use_from_same_package
       _serializeMapLiteral(expr);
+      // ignore: deprecated_member_use_from_same_package
     } else if (expr is SetLiteral) {
+      // ignore: deprecated_member_use_from_same_package
       _serializeSetLiteral(expr);
     } else if (expr is SetOrMapLiteral) {
       _serializeSetOrMapLiteral(expr);
@@ -569,6 +573,7 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
+  @deprecated
   void _serializeMapLiteral(MapLiteral expr) {
     if (forConst || expr.typeArguments == null) {
       for (MapLiteralEntry entry in expr.entries) {
@@ -668,6 +673,7 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
+  @deprecated
   void _serializeSetLiteral(SetLiteral expr) {
     if (forConst || expr.typeArguments == null) {
       List<Expression> elements = expr.elements;

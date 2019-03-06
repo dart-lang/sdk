@@ -2540,6 +2540,7 @@ class AstBuilder extends StackListener {
             }
           }
         }
+        // ignore: deprecated_member_use_from_same_package
         push(ast.setLiteral(
             constKeyword, typeArguments, leftBrace, setEntries, rightBrace));
       } else {
@@ -2562,6 +2563,7 @@ class AstBuilder extends StackListener {
             }
           }
         }
+        // ignore: deprecated_member_use_from_same_package
         push(ast.mapLiteral(
             constKeyword, typeArguments, leftBrace, mapEntries, rightBrace));
       }

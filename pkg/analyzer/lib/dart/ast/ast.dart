@@ -507,6 +507,7 @@ abstract class AstVisitor<R> {
 
   R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node);
 
+  @Deprecated('Replaced by visitForStatement2')
   R visitForEachStatement(ForEachStatement node);
 
   R visitForElement(ForElement node);
@@ -517,6 +518,7 @@ abstract class AstVisitor<R> {
 
   R visitForPartsWithExpression(ForPartsWithExpression node);
 
+  @Deprecated('Replaced by visitForStatement2')
   R visitForStatement(ForStatement node);
 
   R visitForStatement2(ForStatement2 node);
@@ -572,6 +574,7 @@ abstract class AstVisitor<R> {
   @Deprecated('Replaced by visitListLiteral')
   R visitListLiteral2(ListLiteral2 node);
 
+  @Deprecated('Replaced by visitSetOrMapLiteral')
   R visitMapLiteral(MapLiteral node);
 
   @Deprecated('Replaced by visitSetOrMapLiteral')
@@ -618,6 +621,7 @@ abstract class AstVisitor<R> {
 
   R visitScriptTag(ScriptTag node);
 
+  @Deprecated('Replaced by visitSetOrMapLiteral')
   R visitSetLiteral(SetLiteral node);
 
   @Deprecated('Replaced by visitSetOrMapLiteral')
@@ -2247,6 +2251,7 @@ abstract class ForEachPartsWithIdentifier implements ForEachParts {
 /// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Replaced by ForStatement2')
 abstract class ForEachStatement implements ForStatement2 {
   /// Set the token representing the 'await' keyword to the given [token].
   void set awaitKeyword(Token token);
@@ -2524,6 +2529,7 @@ abstract class ForPartsWithExpression implements ForParts {
 /// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Replaced by ForStatement2')
 abstract class ForStatement implements ForStatement2 {
   /// Set the body of the loop to the given [statement].
   void set body(Statement statement);
@@ -2590,8 +2596,8 @@ abstract class ForStatement implements ForStatement2 {
 ///
 /// This is the class that is used to represent a for loop when either the
 /// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then either [ForStatement] or
-/// [ForEachStatement] will be used.
+/// If neither of those experiments are enabled, then either `ForStatement` or
+/// `ForEachStatement` will be used.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ForStatement2 implements Statement {
@@ -3767,6 +3773,7 @@ abstract class Literal implements Expression {}
 /// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Replaced by SetOrMapLiteral')
 abstract class MapLiteral implements SetOrMapLiteral {
   /// Return the entries in the map.
   NodeList<MapLiteralEntry> get entries;
@@ -4651,6 +4658,7 @@ abstract class ScriptTag implements AstNode {
 /// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Replaced by SetOrMapLiteral')
 abstract class SetLiteral implements SetOrMapLiteral {
   /// Return the expressions used to compute the elements of the set.
   NodeList<Expression> get elements;
@@ -4708,8 +4716,8 @@ abstract class SetLiteral2 implements TypedLiteral {
 ///
 /// This is the class that is used to represent either a map or set literal when
 /// either the 'control-flow-collections' or 'spread-collections' experiments
-/// are enabled. If neither of those experiments are enabled, then [MapLiteral]
-/// will be used to represent a map literal and [SetLiteral] will be used for
+/// are enabled. If neither of those experiments are enabled, then `MapLiteral`
+/// will be used to represent a map literal and `SetLiteral` will be used for
 /// set literals.
 ///
 /// Clients may not extend, implement or mix-in this class.

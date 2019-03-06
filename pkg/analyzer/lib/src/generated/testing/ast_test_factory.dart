@@ -494,6 +494,7 @@ class AstTestFactory {
   static FieldFormalParameter fieldFormalParameter2(String identifier) =>
       fieldFormalParameter(null, null, identifier);
 
+  @Deprecated('Use forStatement2')
   static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable,
           Expression iterator, Statement body) =>
       astFactory.forStatement2(
@@ -506,6 +507,7 @@ class AstTestFactory {
           rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           body: body);
 
+  @Deprecated('Use forStatement2')
   static ForEachStatement forEachStatement2(
           SimpleIdentifier identifier, Expression iterator, Statement body) =>
       astFactory.forStatement2(
@@ -527,6 +529,7 @@ class AstTestFactory {
           null,
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
 
+  @Deprecated('Use forStatement2')
   static ForStatement forStatement(Expression initialization,
           Expression condition, List<Expression> updaters, Statement body) =>
       astFactory.forStatement2(
@@ -541,19 +544,27 @@ class AstTestFactory {
           rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           body: body);
 
-  static ForStatement forStatement2(VariableDeclarationList variableList,
-          Expression condition, List<Expression> updaters, Statement body) =>
-      astFactory.forStatement2(
-          forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
-          leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          forLoopParts: astFactory.forPartsWithDeclarations(
-              variables: variableList,
-              leftSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-              condition: condition,
-              rightSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-              updaters: updaters),
-          rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          body: body);
+  static
+      // ignore: deprecated_member_use_from_same_package
+      ForStatement forStatement2(
+              VariableDeclarationList variableList,
+              Expression condition,
+              List<Expression> updaters,
+              Statement body) =>
+          astFactory.forStatement2(
+              forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
+              leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+              forLoopParts: astFactory.forPartsWithDeclarations(
+                  variables: variableList,
+                  leftSeparator:
+                      TokenFactory.tokenFromType(TokenType.SEMICOLON),
+                  condition: condition,
+                  rightSeparator:
+                      TokenFactory.tokenFromType(TokenType.SEMICOLON),
+                  updaters: updaters),
+              rightParenthesis:
+                  TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+              body: body);
 
   static FunctionDeclaration functionDeclaration(
           TypeAnnotation type,
@@ -822,6 +833,7 @@ class AstTestFactory {
           elements,
           TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
+  @Deprecated('Use setOrMapLiteral')
   static MapLiteral mapLiteral(Keyword keyword, TypeArgumentList typeArguments,
           [List<MapLiteralEntry> entries]) =>
       astFactory.mapLiteral(
@@ -831,6 +843,7 @@ class AstTestFactory {
           entries,
           TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
+  @Deprecated('Use setOrMapLiteral')
   static MapLiteral mapLiteral2([List<MapLiteralEntry> entries]) =>
       mapLiteral(null, null, entries);
 
@@ -1073,6 +1086,7 @@ class AstTestFactory {
   static ScriptTag scriptTag(String scriptTag) =>
       astFactory.scriptTag(TokenFactory.tokenFromString(scriptTag));
 
+  @Deprecated('Use setOrMapLiteral')
   static SetLiteral setLiteral(Keyword keyword, TypeArgumentList typeArguments,
           List<Expression> elements) =>
       astFactory.setLiteral(

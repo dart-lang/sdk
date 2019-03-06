@@ -278,6 +278,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   }
 
   @override
+  @deprecated
   Object visitMapLiteral(MapLiteral node) {
     Map<String, Object> map = new HashMap<String, Object>();
     for (MapLiteralEntry entry in node.entries) {

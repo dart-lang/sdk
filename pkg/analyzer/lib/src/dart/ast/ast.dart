@@ -4174,6 +4174,7 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 ///    forEachStatement ::=
 ///        'await'? 'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
 ///      | 'await'? 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
+@Deprecated('Use ForStatement2Impl')
 class ForEachStatementImpl extends ForStatement2Impl
     implements ForEachStatement {
   /// Initialize a newly created for-each statement whose loop control variable
@@ -4695,6 +4696,7 @@ abstract class ForStatement2Impl extends StatementImpl
 ///    forInitializerStatement ::=
 ///        [DefaultFormalParameter]
 ///      | [Expression]?
+@Deprecated('Use ForStatement2Impl')
 class ForStatementImpl extends ForStatement2Impl implements ForStatement {
   /// Initialize a newly created for statement. Either the [variableList] or the
   /// [initialization] must be `null`. Either the [condition] and the list of
@@ -7124,6 +7126,7 @@ class MapLiteralEntryImpl extends CollectionElementImpl
   }
 }
 
+@Deprecated('Use SetOrMapLiteral')
 class MapLiteralImpl extends SetOrMapLiteralImpl implements MapLiteral {
   /// Initialize a newly created map literal. The [constKeyword] can be `null`
   /// if the literal is not a constant. The [typeArguments] can be `null` if no
@@ -8956,6 +8959,7 @@ class SetLiteral2Impl extends SetOrMapLiteralImpl implements SetLiteral2 {
   E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral2(this);
 }
 
+@Deprecated('Use SetOrMapLiteralImpl')
 class SetLiteralImpl extends SetOrMapLiteralImpl implements SetLiteral {
   /// Initialize a newly created set literal. The [constKeyword] can be `null`
   /// if the literal is not a constant. The [typeArguments] can be `null` if no
@@ -9325,6 +9329,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
         return false;
       }
     }
+    // ignore: deprecated_member_use_from_same_package
     if (parent is ForEachStatement) {
       if (identical(parent.identifier, target)) {
         return false;
@@ -9373,6 +9378,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
       return identical(parent.leftHandSide, target);
     } else if (parent is ForEachPartsWithIdentifier) {
       return identical(parent.identifier, target);
+      // ignore: deprecated_member_use_from_same_package
     } else if (parent is ForEachStatement) {
       return identical(parent.identifier, target);
     }

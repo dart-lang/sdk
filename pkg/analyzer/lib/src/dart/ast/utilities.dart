@@ -739,6 +739,7 @@ class AstCloner
   }
 
   @override
+  @deprecated
   MapLiteral visitMapLiteral(MapLiteral node) => astFactory.mapLiteral(
       cloneToken(node.constKeyword),
       cloneNode(node.typeArguments),
@@ -887,6 +888,7 @@ class AstCloner
       astFactory.scriptTag(cloneToken(node.scriptTag));
 
   @override
+  @deprecated
   SetLiteral visitSetLiteral(SetLiteral node) => astFactory.setLiteral(
       cloneToken(node.constKeyword),
       cloneNode(node.typeArguments),
@@ -5731,6 +5733,7 @@ class ResolutionCopier
   }
 
   @override
+  @deprecated
   bool visitForEachStatement(ForEachStatement node) {
     ForEachStatement toNode = this._toNode as ForEachStatement;
     return _and(
@@ -5789,6 +5792,7 @@ class ResolutionCopier
   }
 
   @override
+  @deprecated
   bool visitForStatement(ForStatement node) {
     ForStatement toNode = this._toNode as ForStatement;
     return _and(
@@ -6113,6 +6117,7 @@ class ResolutionCopier
   }
 
   @override
+  @deprecated
   bool visitMapLiteral(MapLiteral node) {
     MapLiteral toNode = this._toNode as MapLiteral;
     if (_and(
@@ -6372,6 +6377,7 @@ class ResolutionCopier
   }
 
   @override
+  @deprecated
   bool visitSetLiteral(SetLiteral node) {
     SetLiteral toNode = this._toNode as SetLiteral;
     if (_and(
@@ -6867,6 +6873,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable != null) {
@@ -6882,6 +6889,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForStatement(ForStatement node) {
     if (!identical(_immediateChild, node.variables) && node.variables != null) {
       _addVariables(node.variables.variables);
@@ -9320,8 +9328,8 @@ class ToSourceVisitor2
 /// that will be deleted as part of the implementation of the "UI as code"
 /// feature.
 ///
-/// We will be removing the classes [ForEachStatement], [ForStatement],
-/// [MapLiteral], and [SetLiteral] as part of implementing the "UI as code"
+/// We will be removing the classes `ForEachStatement`, `ForStatement`,
+/// `MapLiteral`, and `SetLiteral` as part of implementing the "UI as code"
 /// feature.  In order to allow this change to be rolled out to clients in a
 /// staged fashion, we first update each visitor so that it forwards the old
 /// visit methods to their new counterparts; this will allow clients to begin
@@ -9334,21 +9342,25 @@ class ToSourceVisitor2
 /// visit methods) are removed.
 mixin UIAsCodeVisitorMixin<R> implements AstVisitor<R> {
   @override
+  @deprecated
   R visitForEachStatement(ForEachStatement node) {
     return visitForStatement2(node);
   }
 
   @override
+  @deprecated
   R visitForStatement(ForStatement node) {
     return visitForStatement2(node);
   }
 
   @override
+  @deprecated
   R visitMapLiteral(MapLiteral node) {
     return visitSetOrMapLiteral(node);
   }
 
   @override
+  @deprecated
   R visitSetLiteral(SetLiteral node) {
     return visitSetOrMapLiteral(node);
   }

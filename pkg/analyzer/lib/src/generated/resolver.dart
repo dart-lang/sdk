@@ -1136,6 +1136,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (parent is IfStatement && parent.condition == childOfParent ||
         parent is ForPartsWithDeclarations &&
             parent.condition == childOfParent ||
+        // ignore: deprecated_member_use_from_same_package
         parent is ForStatement && parent.condition == childOfParent ||
         parent is DoStatement && parent.condition == childOfParent ||
         parent is WhileStatement && parent.condition == childOfParent ||
@@ -4328,6 +4329,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  @deprecated
   void visitForEachStatementInScope(ForEachStatement node) {
     Expression iterable = node.iterable;
     DeclaredIdentifier loopVariable = node.loopVariable;
@@ -4484,6 +4486,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  @deprecated
   void visitForStatementInScope(ForStatement node) {
     node.variables?.accept(this);
     node.initialization?.accept(this);
@@ -4693,6 +4696,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  @deprecated
   void visitMapLiteral(MapLiteral node) {
     InterfaceType mapT;
     if (node.typeArguments != null) {
@@ -4860,6 +4864,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  @deprecated
   void visitSetLiteral(SetLiteral node) {
     InterfaceType setT;
 
@@ -5865,6 +5870,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForEachStatement(ForEachStatement node) {
     Scope outerNameScope = nameScope;
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
@@ -5883,6 +5889,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   /// intervene when type propagation is enabled.
   ///
   /// @param node the statement to be visited
+  @deprecated
   void visitForEachStatementInScope(ForEachStatement node) {
     //
     // We visit the iterator before the loop variable because the loop variable
@@ -5911,6 +5918,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForStatement(ForStatement node) {
     Scope outerNameScope = nameScope;
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
@@ -5953,6 +5961,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   /// intervene when type propagation is enabled.
   ///
   /// @param node the statement to be visited
+  @deprecated
   void visitForStatementInScope(ForStatement node) {
     node.variables?.accept(this);
     node.initialization?.accept(this);

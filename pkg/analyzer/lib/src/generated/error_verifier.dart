@@ -736,6 +736,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForEachStatement(ForEachStatement node) {
     _checkForInIterable(node);
     super.visitForEachStatement(node);
@@ -768,6 +769,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForStatement(ForStatement node) {
     if (node.condition != null) {
       _checkForNonBoolCondition(node.condition);
@@ -1008,6 +1010,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitMapLiteral(MapLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
     if (typeArguments != null) {
@@ -1214,6 +1217,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitSetLiteral(SetLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
     if (typeArguments != null) {
@@ -3792,6 +3796,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Check for a type mis-match between the iterable expression and the
    * assigned variable in a for-in statement.
    */
+  @deprecated
   void _checkForInIterable(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
 
@@ -4139,6 +4144,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
    * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
    */
+  @deprecated
   void _checkForMapTypeNotAssignable(MapLiteral literal) {
     // Determine the map's key and value types. We base this on the static type
     // and not the literal's type arguments because in strong mode, the type
@@ -4794,6 +4800,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * See [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT].
    */
+  @deprecated
   void _checkForNonConstMapAsExpressionStatement(MapLiteral literal) {
     // "const"
     if (literal.constKeyword != null) {
@@ -5453,6 +5460,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE], and
    * [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
    */
+  @deprecated
   void _checkForSetElementTypeNotAssignable(SetLiteral literal) {
     // Determine the list's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type

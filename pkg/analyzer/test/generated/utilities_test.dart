@@ -3065,6 +3065,7 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forEachStatement_withIdentifier() {
+    // ignore: deprecated_member_use_from_same_package
     ForStatement2 node = AstTestFactory.forEachStatement2(
         AstTestFactory.identifier3("i"),
         AstTestFactory.identifier3("l"),
@@ -3078,6 +3079,7 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forEachStatement_withLoopVariable() {
+    // ignore: deprecated_member_use_from_same_package
     ForStatement2 node = AstTestFactory.forEachStatement(
         AstTestFactory.declaredIdentifier3("e"),
         AstTestFactory.identifier3("l"),
@@ -3098,6 +3100,7 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forStatement_withInitialization() {
+    // ignore: deprecated_member_use_from_same_package
     ForStatement node = AstTestFactory.forStatement(
         AstTestFactory.identifier3("a"),
         AstTestFactory.booleanLiteral(true),
@@ -3116,6 +3119,7 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forStatement_withVariables() {
+    // ignore: deprecated_member_use_from_same_package
     ForStatement node = AstTestFactory.forStatement2(
         AstTestFactory.variableDeclarationList2(
             null, [AstTestFactory.variableDeclaration("i")]),
@@ -3322,6 +3326,7 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_mapLiteral() {
+    // ignore: deprecated_member_use_from_same_package
     SetOrMapLiteral node = AstTestFactory.mapLiteral(
         null,
         AstTestFactory.typeArgumentList([AstTestFactory.typeName4("E")]),

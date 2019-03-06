@@ -469,9 +469,11 @@ class AstFactoryImpl extends AstFactory {
       Token rightParenthesis,
       Statement body}) {
     if (forLoopParts is ForEachParts) {
+      // ignore: deprecated_member_use_from_same_package
       return ForEachStatementImpl.withParts(awaitKeyword, forKeyword,
           leftParenthesis, forLoopParts, rightParenthesis, body);
     } else if (forLoopParts is ForParts) {
+      // ignore: deprecated_member_use_from_same_package
       return ForStatementImpl.withParts(awaitKeyword, forKeyword,
           leftParenthesis, forLoopParts, rightParenthesis, body);
     } else {
@@ -703,6 +705,7 @@ class AstFactoryImpl extends AstFactory {
           constKeyword, typeArguments, leftBracket, elements, rightBracket);
 
   @override
+  @Deprecated('Use setOrMapLiteral')
   MapLiteral mapLiteral(
           Token constKeyword,
           TypeArgumentList typeArguments,
@@ -875,6 +878,7 @@ class AstFactoryImpl extends AstFactory {
   ScriptTag scriptTag(Token scriptTag) => new ScriptTagImpl(scriptTag);
 
   @override
+  @Deprecated('Use setOrMapLiteral')
   SetLiteral setLiteral(Token constKeyword, TypeArgumentList typeArguments,
           Token leftBracket, List<Expression> elements, Token rightBracket) =>
       new SetLiteralImpl(

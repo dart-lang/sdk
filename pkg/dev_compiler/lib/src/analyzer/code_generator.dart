@@ -6323,7 +6323,7 @@ class CodeGenerator extends Object
   @override
   visitRedirectingConstructorInvocation(node) => _unreachable(node);
 
-  /// Unused. Handled in [visitForEachStatement].
+  /// Unused. Handled in [visitForStatement2].
   @override
   visitDeclaredIdentifier(node) => _unreachable(node);
 
@@ -6387,7 +6387,7 @@ class CodeGenerator extends Object
   @override
   visitLibraryIdentifier(node) => _unreachable(node);
 
-  /// Unused, see [visitMapLiteral].
+  /// Unused, see [visitSetOrMapLiteral].
   @override
   visitMapLiteralEntry(node) => _unreachable(node);
 

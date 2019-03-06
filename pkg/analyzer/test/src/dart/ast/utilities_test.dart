@@ -587,9 +587,11 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitMapLiteral() {
+    // ignore: deprecated_member_use_from_same_package
     SetOrMapLiteral fromNode = AstTestFactory.mapLiteral2();
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
+    // ignore: deprecated_member_use_from_same_package
     SetOrMapLiteral toNode = AstTestFactory.mapLiteral2();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.staticType, same(staticType));
@@ -1812,6 +1814,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForEachStatement_declared() {
     _assertSource(
         "for (var a in b) {}",
+        // ignore: deprecated_member_use_from_same_package
         AstTestFactory.forEachStatement(AstTestFactory.declaredIdentifier3("a"),
             AstTestFactory.identifier3("b"), AstTestFactory.block()));
   }
@@ -2058,6 +2061,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForStatement_c() {
     _assertSource(
         "for (; c;) {}",
+        // ignore: deprecated_member_use_from_same_package
         AstTestFactory.forStatement(null, AstTestFactory.identifier3("c"), null,
             AstTestFactory.block()));
   }
@@ -2065,6 +2069,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForStatement_cu() {
     _assertSource(
         "for (; c; u) {}",
+        // ignore: deprecated_member_use_from_same_package
         AstTestFactory.forStatement(null, AstTestFactory.identifier3("c"),
             [AstTestFactory.identifier3("u")], AstTestFactory.block()));
   }
@@ -2072,6 +2077,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForStatement_e() {
     _assertSource(
         "for (e;;) {}",
+        // ignore: deprecated_member_use_from_same_package
         AstTestFactory.forStatement(AstTestFactory.identifier3("e"), null, null,
             AstTestFactory.block()));
   }
@@ -2079,6 +2085,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForStatement_ec() {
     _assertSource(
         "for (e; c;) {}",
+        // ignore: deprecated_member_use_from_same_package
         AstTestFactory.forStatement(AstTestFactory.identifier3("e"),
             AstTestFactory.identifier3("c"), null, AstTestFactory.block()));
   }
@@ -2086,6 +2093,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForStatement_ecu() {
     _assertSource(
         "for (e; c; u) {}",
+        // ignore: deprecated_member_use_from_same_package
         AstTestFactory.forStatement(
             AstTestFactory.identifier3("e"),
             AstTestFactory.identifier3("c"),
@@ -2096,6 +2104,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForStatement_eu() {
     _assertSource(
         "for (e;; u) {}",
+        // ignore: deprecated_member_use_from_same_package
         AstTestFactory.forStatement(AstTestFactory.identifier3("e"), null,
             [AstTestFactory.identifier3("u")], AstTestFactory.block()));
   }
@@ -2147,6 +2156,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForStatement_u() {
     _assertSource(
         "for (;; u) {}",
+        // ignore: deprecated_member_use_from_same_package
         AstTestFactory.forStatement(null, null,
             [AstTestFactory.identifier3("u")], AstTestFactory.block()));
   }
@@ -2705,16 +2715,19 @@ class ToSourceVisitor2Test extends EngineTestCase {
   }
 
   void test_visitMapLiteral_const() {
+    // ignore: deprecated_member_use_from_same_package
     _assertSource("const {}", AstTestFactory.mapLiteral(Keyword.CONST, null));
   }
 
   void test_visitMapLiteral_empty() {
+    // ignore: deprecated_member_use_from_same_package
     _assertSource("{}", AstTestFactory.mapLiteral2());
   }
 
   void test_visitMapLiteral_nonEmpty() {
     _assertSource(
         "{'a' : a, 'b' : b, 'c' : c}",
+        // ignore: deprecated_member_use_from_same_package
         AstTestFactory.mapLiteral2([
           AstTestFactory.mapLiteralEntry("a", AstTestFactory.identifier3("a")),
           AstTestFactory.mapLiteralEntry("b", AstTestFactory.identifier3("b")),
