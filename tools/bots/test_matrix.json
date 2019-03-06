@@ -754,7 +754,7 @@
           "name": "vm tests",
           "arguments": [
             "-napp_jitk-linux-${mode}-x64"],
-          "shards": 3,
+          "shards": 6,
           "fileset": "vm-kernel"
         }
       ]
