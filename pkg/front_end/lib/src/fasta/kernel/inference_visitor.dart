@@ -26,7 +26,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
   }
 
   void visitSpreadElement(SpreadElement node, DartType typeContext) {
-    if (node.parent is ListLiteral) {
+    if (node.parent is ListLiteral || node.parent is SetLiteral) {
       inferrer.inferExpression(node.expression, const DynamicType(), true);
       return;
     }
@@ -1221,10 +1221,6 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       for (int i = 0; i < node.expressions.length; i++) {
         Expression item = node.expressions[i];
         if (item is SpreadElement) {
-          // TODO(dmitrayas):  Remove this flag and all related uses of it
-          // when the desugaring is implemented.
-          bool replaced = false;
-
           DartType spreadType = spreadTypes[i];
           DartType spreadElementType = getSpreadElementType(spreadType);
           if (spreadElementType == null) {
@@ -1235,7 +1231,6 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
                         templateSpreadTypeMismatch.withArguments(spreadType),
                         item.expression.fileOffset,
                         1)));
-            replaced = true;
           } else if (spreadType is DynamicType) {
             inferrer.ensureAssignable(inferrer.coreTypes.iterableClass.rawType,
                 spreadType, item.expression, item.expression.fileOffset);
@@ -1254,16 +1249,8 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
                                 spreadElementType, node.typeArgument),
                             item.expression.fileOffset,
                             1)));
-                replaced = true;
               }
             }
-          }
-
-          if (!replaced) {
-            node.replaceChild(
-                node.expressions[i],
-                new InvalidExpression('unimplemented spread element')
-                  ..fileOffset = node.expressions[i].fileOffset);
           }
         } else {
           inferrer.ensureAssignable(node.typeArgument, actualTypes[i],

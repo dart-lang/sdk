@@ -1016,11 +1016,11 @@ class SourceLoader extends Loader<Library> {
 
   void transformPostInference(
       TreeNode node, bool transformSetLiterals, bool transformCollections) {
-    if (transformSetLiterals) {
-      node.accept(setLiteralTransformer ??= new SetLiteralTransformer(this));
-    }
     if (transformCollections) {
       node.accept(collectionTransformer ??= new CollectionTransformer(this));
+    }
+    if (transformSetLiterals) {
+      node.accept(setLiteralTransformer ??= new SetLiteralTransformer(this));
     }
   }
 
