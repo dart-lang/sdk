@@ -212,9 +212,6 @@ mirrors/typedef_reflected_type_test/none: RuntimeError
 mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
 
-[ $system == windows && ($compiler == dartk || $compiler == dartkb) ]
-isolate/ping_pause_test: Skip # Issues 32137 and 32138
-
 [ $fasta && !$strong ]
 isolate/isolate_import_test/01: MissingCompileTimeError
 isolate/isolate_stress_test: CompileTimeError
@@ -280,6 +277,9 @@ mirrors/library_uri_package_test: Skip # Timeout
 html/*: SkipByDesign
 isolate/browser/*: SkipByDesign
 js/*: SkipByDesign
+
+[ $compiler == dartk || $compiler == dartkb ]
+isolate/ping_pause_test: Skip # Issues 32137 and 32138
 
 [ $hot_reload || $hot_reload_rollback ]
 isolate/issue_6610_test: Skip # Sources are looked up on every reload request.
