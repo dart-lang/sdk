@@ -42,6 +42,9 @@ io/platform_resolved_executable_test/04: RuntimeError
 io/arguments_test: Fail # Test harness passes runtime arguments to the compiler
 io/test_runner_test: SkipByDesign # Is not relevant for AOT.
 
+[ $system == android ]
+entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
+
 [ $fasta ]
 deferred_transitive_import_error_test: CompileTimeError
 package/package1_test: CompileTimeError
@@ -49,9 +52,6 @@ package/package_test: CompileTimeError
 package/scenarios/invalid/invalid_utf8_test: CompileTimeError
 package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
 package/scenarios/invalid/same_package_twice_test: CompileTimeError
-
-[ $arch == arm && $compiler == dartkp && $mode == release && $system == android ]
-entrypoints_verification_test: Skip # https://github.com/dart-lang/sdk/issues/35957
 
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 io/file_lock_test: SkipSlow # Timeout
