@@ -1047,7 +1047,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (node.staticType == null) {
+    DartType staticType = node.staticType;
+    if (staticType == null) {
       DartType literalType = _inferSetOrMapLiteralType(node);
       if (literalType.element == _typeProvider.mapType.element) {
         (node as SetOrMapLiteralImpl).becomeMap();
@@ -1057,6 +1058,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       _resolver.inferenceContext.recordInference(node, literalType);
       _recordStaticType(node, literalType);
+    } else if (staticType is InterfaceType) {
+      List<DartType> typeArguments = staticType.typeArguments;
+      if (typeArguments.length == 1) {
+        (node as SetOrMapLiteralImpl).becomeSet();
+      } else if (typeArguments.length == 2) {
+        (node as SetOrMapLiteralImpl).becomeMap();
+      }
     }
   }
 
@@ -1948,12 +1956,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   DartType _inferSetOrMapLiteralType(SetOrMapLiteral literal) {
     DartType contextType = InferenceContext.getContext(literal);
+    NodeList<CollectionElement> elements = literal.elements2;
+    if (elements.length < 2 && contextType != null) {
+      return contextType;
+    }
     List<_InferredCollectionElementTypeInformation> inferredTypes = [];
     bool canBeAMap = true;
     bool mustBeAMap = false;
     bool canBeASet = true;
     bool mustBeASet = false;
-    for (CollectionElement element in literal.elements2) {
+    for (CollectionElement element in elements) {
       _InferredCollectionElementTypeInformation inferredType =
           _inferCollectionElementType(element);
       inferredTypes.add(inferredType);

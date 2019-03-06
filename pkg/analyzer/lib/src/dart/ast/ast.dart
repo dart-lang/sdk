@@ -8995,7 +8995,7 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
       this.leftBracket, List<CollectionElement> elements, this.rightBracket)
       : super(constKeyword, typeArguments) {
     _elements = new NodeListImpl<CollectionElement>(this, elements);
-    _resolvedKind = _computeResolvedKind(typeArguments, _elements);
+    _resolvedKind = _SetOrMapKind.unresolved;
   }
 
   /// Temporary constructor to support MapLiteral2Impl.
@@ -9072,49 +9072,6 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _elements.accept(visitor);
-  }
-
-  _SetOrMapKind _computeResolvedKind(TypeArgumentListImpl typeArguments,
-      NodeList<CollectionElement> elements) {
-    int argCount = typeArguments?.arguments?.length ?? 0;
-    if (argCount == 1) {
-      return _SetOrMapKind.set;
-    } else if (argCount == 2) {
-      return _SetOrMapKind.map;
-    }
-    _SetOrMapKind kind = _SetOrMapKind.unresolved;
-    for (var element in elements) {
-      _SetOrMapKind elementKind = _kindOf(element);
-      if (kind == _SetOrMapKind.unresolved) {
-        kind = elementKind;
-      } else if (elementKind != _SetOrMapKind.unresolved &&
-          elementKind != kind) {
-        return _SetOrMapKind.unresolved;
-      }
-    }
-    return kind;
-  }
-
-  _SetOrMapKind _kindOf(CollectionElement element) {
-    if (element is ForElement) {
-      return _kindOf(element.body);
-    } else if (element is IfElement) {
-      if (element.elseElement == null) {
-        return _kindOf(element.thenElement);
-      }
-      _SetOrMapKind thenKind = _kindOf(element.thenElement);
-      _SetOrMapKind elseKind = _kindOf(element.elseElement);
-      if (thenKind == _SetOrMapKind.unresolved || thenKind == elseKind) {
-        return elseKind;
-      } else if (elseKind == _SetOrMapKind.unresolved) {
-        return thenKind;
-      }
-    } else if (element is Expression) {
-      return _SetOrMapKind.set;
-    } else if (element is MapLiteralEntry) {
-      return _SetOrMapKind.map;
-    }
-    return _SetOrMapKind.unresolved;
   }
 }
 

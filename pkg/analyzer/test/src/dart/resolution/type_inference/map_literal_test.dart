@@ -116,6 +116,14 @@ var a = <int, int>{1 : 2};
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
+  test_noContext_typeArgs_expression_conflict() async {
+    addTestFile('''
+var a = <int, String>{1};
+''');
+    await resolveTestFile();
+    assertType(setOrMapLiteral('{'), 'Map<int, String>');
+  }
+
   test_noContext_typeArgs_noEntries() async {
     addTestFile('''
 var a = <num, String>{};

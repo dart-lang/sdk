@@ -4892,14 +4892,12 @@ class ResolverVisitor extends ScopedVisitor {
     if (literalType != null) {
       List<DartType> typeArguments = literalType.typeArguments;
       if (typeArguments.length == 1) {
-        (node as SetOrMapLiteralImpl).becomeSet();
         DartType elementType = literalType.typeArguments[0];
         DartType iterableType =
             typeProvider.iterableType.instantiate([elementType]);
         _pushCollectionTypesDownToAll(node.elements2,
             elementType: elementType, iterableType: iterableType);
       } else if (typeArguments.length == 2) {
-        (node as SetOrMapLiteralImpl).becomeMap();
         DartType keyType = typeArguments[0];
         DartType valueType = typeArguments[1];
         _pushCollectionTypesDownToAll(node.elements2,

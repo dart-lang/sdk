@@ -4198,29 +4198,34 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     assert(mapType is InterfaceTypeImpl);
 
     List<DartType> typeArguments = (mapType as InterfaceTypeImpl).typeArguments;
-    assert(typeArguments.length == 2);
-    DartType keyType = typeArguments[0];
-    DartType valueType = typeArguments[1];
+    // It is possible for the number of type arguments to be inconsistent when
+    // the literal is ambiguous and a non-map type was selected.
+    // TODO(brianwilkerson) Unify this and _checkForSetElementTypeNotAssignable3
+    //  to better handle recovery situations.
+    if (typeArguments.length == 2) {
+      DartType keyType = typeArguments[0];
+      DartType valueType = typeArguments[1];
 
-    bool isConst = literal.isConst;
-    NodeList<CollectionElement> entries = literal.elements2;
-    for (CollectionElement entry in entries) {
-      if (isConst) {
-        // TODO(paulberry): this error should be based on the actual type of the
-        // map entries, not the static type.  See dartbug.com/21119.
-        _checkForMapElementTypeNotAssignableWithKeyOrValueType(
-            entry,
-            keyType,
-            valueType,
-            CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-            CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
-      } else {
-        _checkForMapElementTypeNotAssignableWithKeyOrValueType(
-            entry,
-            keyType,
-            valueType,
-            StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-            StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
+      bool isConst = literal.isConst;
+      NodeList<CollectionElement> entries = literal.elements2;
+      for (CollectionElement entry in entries) {
+        if (isConst) {
+          // TODO(paulberry): this error should be based on the actual type of
+          //  the map entries, not the static type.  See dartbug.com/21119.
+          _checkForMapElementTypeNotAssignableWithKeyOrValueType(
+              entry,
+              keyType,
+              valueType,
+              CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+              CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
+        } else {
+          _checkForMapElementTypeNotAssignableWithKeyOrValueType(
+              entry,
+              keyType,
+              valueType,
+              StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+              StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
+        }
       }
     }
   }
@@ -5491,23 +5496,29 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     assert(setType is InterfaceTypeImpl);
 
     List<DartType> typeArguments = (setType as InterfaceTypeImpl).typeArguments;
-    assert(typeArguments.length == 1);
+    // It is possible for the number of type arguments to be inconsistent when
+    // the literal is ambiguous and a non-set type was selected.
+    // TODO(brianwilkerson) Unify this and _checkForMapTypeNotAssignable3 to
+    //  better handle recovery situations.
+    if (typeArguments.length == 1) {
+      DartType setElementType = typeArguments[0];
 
-    DartType setElementType = typeArguments[0];
-
-    // Check every set element.
-    bool isConst = literal.isConst;
-    for (CollectionElement element in literal.elements2) {
-      if (isConst) {
-        // TODO(paulberry): this error should be based on the actual type of the
-        // element, not the static type.  See dartbug.com/21119.
-        _checkForCollectionElementTypeNotAssignableWithElementType(
-            element,
-            setElementType,
-            CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
-      } else {
-        _checkForCollectionElementTypeNotAssignableWithElementType(element,
-            setElementType, StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
+      // Check every set element.
+      bool isConst = literal.isConst;
+      for (CollectionElement element in literal.elements2) {
+        if (isConst) {
+          // TODO(paulberry): this error should be based on the actual type of
+          //  the element, not the static type.  See dartbug.com/21119.
+          _checkForCollectionElementTypeNotAssignableWithElementType(
+              element,
+              setElementType,
+              CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
+        } else {
+          _checkForCollectionElementTypeNotAssignableWithElementType(
+              element,
+              setElementType,
+              StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
+        }
       }
     }
   }
