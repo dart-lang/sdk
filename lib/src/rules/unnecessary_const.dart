@@ -15,7 +15,7 @@ const _details = r'''
 
 **BAD:**
 ```
-class A() { const A(); }
+class A { const A(); }
 m(){
   const a = const A();
   final b = const [const A()];
@@ -24,7 +24,7 @@ m(){
 
 **GOOD:**
 ```
-class A() { const A(); }
+class A { const A(); }
 m(){
   const a = A();
   final b = const [A()];
