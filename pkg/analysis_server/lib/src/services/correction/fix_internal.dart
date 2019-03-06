@@ -610,6 +610,9 @@ class FixProcessor {
       if (name == LintNames.unnecessary_brace_in_string_interp) {
         await _addFix_removeInterpolationBraces();
       }
+      if (name == LintNames.unnecessary_const) {
+        await _addFix_removeConstKeyword();
+      }
       if (name == LintNames.unnecessary_lambdas) {
         await _addFix_replaceWithTearOff();
       }
@@ -2690,6 +2693,18 @@ class FixProcessor {
     }
   }
 
+  Future<void> _addFix_removeConstKeyword() async {
+    final instanceCreationExpression = node;
+    if (instanceCreationExpression is InstanceCreationExpression) {
+      final constToken = instanceCreationExpression.keyword;
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.startStart(constToken, constToken.next));
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNNECESSARY_CONST);
+    }
+  }
+
   Future<void> _addFix_removeDeadCode() async {
     AstNode coveringNode = this.coveredNode;
     if (coveringNode is Expression) {
@@ -4294,6 +4309,7 @@ class LintNames {
   static const String type_init_formals = 'type_init_formals';
   static const String unnecessary_brace_in_string_interp =
       'unnecessary_brace_in_string_interp';
+  static const String unnecessary_const = 'unnecessary_const';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
   static const String unnecessary_override = 'unnecessary_override';
   static const String unnecessary_this = 'unnecessary_this';

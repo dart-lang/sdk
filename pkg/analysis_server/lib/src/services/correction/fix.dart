@@ -79,6 +79,7 @@ bool hasFix(ErrorCode errorCode) =>
             errorCode.name == LintNames.prefer_conditional_assignment ||
             errorCode.name == LintNames.prefer_const_declarations ||
             errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
+            errorCode.name == LintNames.unnecessary_const ||
             errorCode.name == LintNames.unnecessary_lambdas ||
             errorCode.name == LintNames.unnecessary_this));
 
@@ -243,6 +244,8 @@ class DartFixKind {
   static const REMOVE_UNNECESSARY_CAST = const FixKind(
       'REMOVE_UNNECESSARY_CAST', 50, "Remove unnecessary cast",
       appliedTogetherMessage: "Remove all unnecessary casts in file");
+  static const REMOVE_UNNECESSARY_CONST = const FixKind(
+      'REMOVE_UNNECESSARY_CONST', 50, "Remove unnecessary const keyword");
   static const REMOVE_UNUSED_CATCH_CLAUSE = const FixKind(
       'REMOVE_UNUSED_CATCH_CLAUSE', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = const FixKind(
