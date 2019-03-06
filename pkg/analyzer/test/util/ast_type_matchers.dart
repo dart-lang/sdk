@@ -111,14 +111,14 @@ const isFieldDeclaration = const TypeMatcher<FieldDeclaration>();
 
 const isFieldFormalParameter = const TypeMatcher<FieldFormalParameter>();
 
-final Matcher isForEachStatement = predicate(
+final isForEachStatement = predicate(
     (Object o) => o is ForStatement2 && o.forLoopParts is ForEachParts);
 
 const isFormalParameter = const TypeMatcher<FormalParameter>();
 
 const isFormalParameterList = const TypeMatcher<FormalParameterList>();
 
-final Matcher isForStatement =
+final isForStatement =
     predicate((Object o) => o is ForStatement2 && o.forLoopParts is ForParts);
 
 const isFunctionBody = const TypeMatcher<FunctionBody>();
@@ -181,8 +181,7 @@ const isListLiteral = const TypeMatcher<ListLiteral>();
 
 const isLiteral = const TypeMatcher<Literal>();
 
-final Matcher isMapLiteral =
-    predicate((Object o) => o is SetOrMapLiteral && o.isMap);
+final isMapLiteral = predicate((Object o) => o is SetOrMapLiteral && o.isMap);
 
 const isMapLiteralEntry = const TypeMatcher<MapLiteralEntry>();
 
@@ -237,8 +236,7 @@ const isReturnStatement = const TypeMatcher<ReturnStatement>();
 
 const isScriptTag = const TypeMatcher<ScriptTag>();
 
-final Matcher isSetLiteral =
-    predicate((Object o) => o is SetOrMapLiteral && o.isSet);
+final isSetLiteral = predicate((Object o) => o is SetOrMapLiteral && o.isSet);
 
 const isShowCombinator = const TypeMatcher<ShowCombinator>();
 

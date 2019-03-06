@@ -2542,7 +2542,9 @@ class ExprTypeComputer {
     expression = container.expression;
     if (_linker.getAst != null) {
       expression.accept(_typeResolverVisitor);
-      expression.accept(_variableResolverVisitor);
+    }
+    expression.accept(_variableResolverVisitor);
+    if (_linker.getAst != null) {
       expression.accept(_partialResolverVisitor);
     }
     expression.accept(_resolverVisitor);

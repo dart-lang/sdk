@@ -907,6 +907,19 @@ class E {}''');
     expect(classC.documentationComment, isNotNull);
   }
 
+  test_closure_in_type_inferred_variable_in_other_lib() async {
+    Source source = addSource('''
+import 'other.dart';
+var x = y;
+    ''');
+    addNamedSource('/other.dart', '''
+var y = (Object x) => x is int && x.isEven;
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_concreteClassWithAbstractMember() async {
     Source source = addSource(r'''
 abstract class A {
