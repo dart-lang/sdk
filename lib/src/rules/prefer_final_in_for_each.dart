@@ -54,7 +54,7 @@ class PreferFinalInForEach extends LintRule implements NodeLintRule {
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
     final visitor = new _Visitor(this);
-    registry.addForEachStatement(this, visitor);
+    registry.addForStatement2(this, visitor);
   }
 }
 
@@ -64,14 +64,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    final loopVariable = node.loopVariable;
-    if (loopVariable == null) {
-      // This statement is something like `for(a in b) { ... }`. Notice `a` is
-      // not actually declared from within the loop. `a` is a variable declared
-      // outside the loop.
-      return;
-    }
+  void visitForStatement2(ForStatement2 node) {
+    var forLoopParts = node.forLoopParts;
+    // If the following `if` test fails, then either the statement is not a
+    // for-each loop, or it is something like `for(a in b) { ... }`.  In the
+    // second case, notice `a` is not actually declared from within the
+    // loop. `a` is a variable declared outside the loop.
+    if (forLoopParts is ForEachPartsWithDeclaration) {
+      final loopVariable = forLoopParts.loopVariable;
 
     if (loopVariable.isFinal) {
       return;
@@ -82,5 +82,6 @@ class _Visitor extends SimpleAstVisitor<void> {
         !function.isPotentiallyMutatedInScope(loopVariable.declaredElement)) {
       rule.reportLint(loopVariable.identifier);
     }
+  }
   }
 }
