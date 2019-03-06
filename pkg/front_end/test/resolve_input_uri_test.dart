@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart' show Expect;
 
-import 'resolve_input_uri.dart';
+import 'package:front_end/src/fasta/resolve_input_uri.dart';
 
 test() {
   // data URI scheme is supported by default'.

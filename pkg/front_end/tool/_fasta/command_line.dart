@@ -40,6 +40,9 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
 
 import 'package:front_end/src/fasta/problems.dart' show DebugAbort, unhandled;
 
+import 'package:front_end/src/fasta/resolve_input_uri.dart'
+    show resolveInputUri;
+
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:front_end/src/scheme_based_file_system.dart'
@@ -47,8 +50,6 @@ import 'package:front_end/src/scheme_based_file_system.dart'
 
 import 'package:kernel/target/targets.dart'
     show Target, getTarget, TargetFlags, targets;
-
-import 'resolve_input_uri.dart' show resolveInputUri;
 
 class CommandLineProblem {
   final Message message;
