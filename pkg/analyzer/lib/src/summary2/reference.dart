@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/summary/idl.dart';
 
 /// Indirection between a name and the corresponding [Element].
 ///
@@ -30,10 +31,13 @@ class Reference {
   /// The simple name of the reference in its [parent].
   final String name;
 
+  /// The corresponding [LinkedNode], or `null` if a named container.
+  LinkedNode node;
+
   /// The corresponding [Element], or `null` if a named container.
   Element element;
 
-  /// Temporary index used during serialization.
+  /// Temporary index used during serialization and linking.
   int index;
 
   Map<String, Reference> _children;
@@ -41,6 +45,8 @@ class Reference {
   Reference.root() : this._(null, '');
 
   Reference._(this.parent, this.name);
+
+  bool get isClass => parent != null && parent.name == '@class';
 
   /// Return the child with the given name, or `null` if does not exist.
   Reference operator [](String name) {

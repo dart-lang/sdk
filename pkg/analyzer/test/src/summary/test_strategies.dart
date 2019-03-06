@@ -33,7 +33,7 @@ String absUri(String path) {
   return posix.toUri(absolutePath).toString();
 }
 
-CompilationUnit _parseText(
+CompilationUnit parseText(
   String text, {
   ExperimentStatus experimentStatus,
 }) {
@@ -216,7 +216,7 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
         contents = '';
       }
 
-      CompilationUnit unit = _parseText(contents);
+      CompilationUnit unit = parseText(contents);
 
       UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
       bundleAssembler.addUnlinkedUnit(source, unlinkedUnit);
@@ -530,7 +530,7 @@ abstract class _SummaryBaseTestStrategyTwoPhase
 
   @override
   void addNamedSource(String filePath, String contents) {
-    CompilationUnit unit = _parseText(contents);
+    CompilationUnit unit = parseText(contents);
     UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
     _filesToLink.uriToUnit[absUri(filePath)] = unlinkedUnit;
   }
@@ -554,8 +554,7 @@ abstract class _SummaryBaseTestStrategyTwoPhase
   }
 
   UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text) =>
-      serializeAstUnlinked(
-          _parseText(text, experimentStatus: experimentStatus));
+      serializeAstUnlinked(parseText(text, experimentStatus: experimentStatus));
 
   _LinkerInputs _createLinkerInputs(String text,
       {String path: '/test.dart', String uri}) {

@@ -1635,7 +1635,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   List<LinkedNodeBuilder> _writeNodeList(List<AstNode> nodeList) {
-    var result = List<LinkedNodeBuilder>.filled(nodeList.length, null);
+    var result = List<LinkedNodeBuilder>.filled(
+      nodeList.length,
+      null,
+      growable: true,
+    );
     for (var i = 0; i < nodeList.length; ++i) {
       result[i] = nodeList[i].accept(this);
     }
