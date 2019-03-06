@@ -8,8 +8,8 @@
 #   $build_dir/vm_platform_strong.dill
 #   $build_dir/gen/kernel_service.dill
 #   $build_dir/gen_kernel_bytecode.dill
-# This script is a no-op unless $BUILDBOT_BUILDERNAME is "dart-sdk-linux-be".
-# It's also a no-op if dill files were already uploaded today.
+# This script is a no-op unless $BUILDBOT_BUILDERNAME is "dart-sdk-linux". It's
+# also a no-op if dill files were already uploaded today.
 set -e
 set -x
 
@@ -18,7 +18,7 @@ if [ -z "$2" ]; then
   exit 1
 fi
 
-if [ "$BUILDBOT_BUILDERNAME" != "dart-sdk-linux-be" ]; then
+if [ "$BUILDBOT_BUILDERNAME" != "dart-sdk-linux" ]; then
   echo "This script only works on the dart-sdk-linux buildbot"
   exit 0
 fi
