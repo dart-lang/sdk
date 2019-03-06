@@ -6,6 +6,7 @@ script: ./tool/travis.sh
 env:
   - LINTER_BOT=main
   - LINTER_BOT=benchmark
+  - LINTER_BOT=pana_baseline
 
 # Only building master means that we don't run two builds for each pull request.
 branches:
