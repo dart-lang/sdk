@@ -759,6 +759,7 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(11, variantList: [
     LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.classTypeAlias,
     LinkedNodeKind.constructorDeclaration,
     LinkedNodeKind.declaredIdentifier,
     LinkedNodeKind.enumDeclaration,
@@ -783,6 +784,7 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(4, variantList: [
     LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.classTypeAlias,
     LinkedNodeKind.constructorDeclaration,
     LinkedNodeKind.declaredIdentifier,
     LinkedNodeKind.enumDeclaration,
@@ -1018,6 +1020,24 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   LinkedNode get classOrMixinDeclaration_typeParameters;
 
+  @VariantId(15, variant: LinkedNodeKind.classTypeAlias)
+  int get classTypeAlias_abstractKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.classTypeAlias)
+  int get classTypeAlias_equals;
+
+  @VariantId(9, variant: LinkedNodeKind.classTypeAlias)
+  LinkedNode get classTypeAlias_implementsClause;
+
+  @VariantId(7, variant: LinkedNodeKind.classTypeAlias)
+  LinkedNode get classTypeAlias_superclass;
+
+  @VariantId(6, variant: LinkedNodeKind.classTypeAlias)
+  LinkedNode get classTypeAlias_typeParameters;
+
+  @VariantId(8, variant: LinkedNodeKind.classTypeAlias)
+  LinkedNode get classTypeAlias_withClause;
+
   @VariantId(19, variantList: [
     LinkedNodeKind.hideCombinator,
     LinkedNodeKind.showCombinator,
@@ -1059,6 +1079,27 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(8, variant: LinkedNodeKind.conditionalExpression)
   LinkedNode get conditionalExpression_thenExpression;
+
+  @VariantId(18, variant: LinkedNodeKind.configuration)
+  int get configuration_equalToken;
+
+  @VariantId(15, variant: LinkedNodeKind.configuration)
+  int get configuration_ifKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.configuration)
+  int get configuration_leftParenthesis;
+
+  @VariantId(6, variant: LinkedNodeKind.configuration)
+  LinkedNode get configuration_name;
+
+  @VariantId(17, variant: LinkedNodeKind.configuration)
+  int get configuration_rightParenthesis;
+
+  @VariantId(8, variant: LinkedNodeKind.configuration)
+  LinkedNode get configuration_uri;
+
+  @VariantId(7, variant: LinkedNodeKind.configuration)
+  LinkedNode get configuration_value;
 
   @VariantId(6, variant: LinkedNodeKind.constructorDeclaration)
   LinkedNode get constructorDeclaration_body;
@@ -1180,6 +1221,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(19, variant: LinkedNodeKind.doStatement)
   int get doStatement_whileKeyword;
 
+  @VariantId(2, variant: LinkedNodeKind.dottedName)
+  List<LinkedNode> get dottedName_components;
+
   @VariantId(15, variant: LinkedNodeKind.doubleLiteral)
   int get doubleLiteral_literal;
 
@@ -1188,6 +1232,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.emptyFunctionBody)
   int get emptyFunctionBody_semicolon;
+
+  @VariantId(15, variant: LinkedNodeKind.emptyStatement)
+  int get emptyStatement_semicolon;
 
   @VariantId(6, variant: LinkedNodeKind.enumConstantDeclaration)
   LinkedNode get enumConstantDeclaration_name;
@@ -1312,6 +1359,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.forEachPartsWithIdentifier)
   LinkedNode get forEachPartsWithIdentifier_identifier;
 
+  @VariantId(7, variant: LinkedNodeKind.forElement)
+  LinkedNode get forElement_body;
+
   @VariantId(26, variantList: [
     LinkedNodeKind.fieldFormalParameter,
     LinkedNodeKind.functionTypedFormalParameter,
@@ -1333,6 +1383,36 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(18, variant: LinkedNodeKind.formalParameterList)
   int get formalParameterList_rightParenthesis;
+
+  @VariantId(15, variantList: [
+    LinkedNodeKind.forElement,
+    LinkedNodeKind.forStatement,
+  ])
+  int get forMixin_awaitKeyword;
+
+  @VariantId(16, variantList: [
+    LinkedNodeKind.forElement,
+    LinkedNodeKind.forStatement,
+  ])
+  int get forMixin_forKeyword;
+
+  @VariantId(6, variantList: [
+    LinkedNodeKind.forElement,
+    LinkedNodeKind.forStatement,
+  ])
+  LinkedNode get forMixin_forLoopParts;
+
+  @VariantId(17, variantList: [
+    LinkedNodeKind.forElement,
+    LinkedNodeKind.forStatement,
+  ])
+  int get forMixin_leftParenthesis;
+
+  @VariantId(19, variantList: [
+    LinkedNodeKind.forElement,
+    LinkedNodeKind.forStatement,
+  ])
+  int get forMixin_rightParenthesis;
 
   @VariantId(6, variantList: [
     LinkedNodeKind.forPartsWithDeclarations,
@@ -1364,23 +1444,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.forPartsWithExpression)
   LinkedNode get forPartsWithExpression_initialization;
 
-  @VariantId(15, variant: LinkedNodeKind.forStatement)
-  int get forStatement_awaitKeyword;
-
   @VariantId(7, variant: LinkedNodeKind.forStatement)
   LinkedNode get forStatement_body;
-
-  @VariantId(16, variant: LinkedNodeKind.forStatement)
-  int get forStatement_forKeyword;
-
-  @VariantId(6, variant: LinkedNodeKind.forStatement)
-  LinkedNode get forStatement_forLoopParts;
-
-  @VariantId(17, variant: LinkedNodeKind.forStatement)
-  int get forStatement_leftParenthesis;
-
-  @VariantId(19, variant: LinkedNodeKind.forStatement)
-  int get forStatement_rightParenthesis;
 
   @VariantId(15, variant: LinkedNodeKind.functionDeclaration)
   int get functionDeclaration_externalKeyword;
@@ -1454,23 +1519,44 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(2, variant: LinkedNodeKind.hideCombinator)
   List<LinkedNode> get hideCombinator_hiddenNames;
 
-  @VariantId(6, variant: LinkedNodeKind.ifStatement)
-  LinkedNode get ifStatement_condition;
+  @VariantId(9, variant: LinkedNodeKind.ifElement)
+  LinkedNode get ifElement_elseElement;
 
-  @VariantId(15, variant: LinkedNodeKind.ifStatement)
-  int get ifStatement_elseKeyword;
+  @VariantId(8, variant: LinkedNodeKind.ifElement)
+  LinkedNode get ifElement_thenElement;
+
+  @VariantId(6, variantList: [
+    LinkedNodeKind.ifElement,
+    LinkedNodeKind.ifStatement,
+  ])
+  LinkedNode get ifMixin_condition;
+
+  @VariantId(15, variantList: [
+    LinkedNodeKind.ifElement,
+    LinkedNodeKind.ifStatement,
+  ])
+  int get ifMixin_elseKeyword;
+
+  @VariantId(16, variantList: [
+    LinkedNodeKind.ifElement,
+    LinkedNodeKind.ifStatement,
+  ])
+  int get ifMixin_ifKeyword;
+
+  @VariantId(17, variantList: [
+    LinkedNodeKind.ifElement,
+    LinkedNodeKind.ifStatement,
+  ])
+  int get ifMixin_leftParenthesis;
+
+  @VariantId(18, variantList: [
+    LinkedNodeKind.ifElement,
+    LinkedNodeKind.ifStatement,
+  ])
+  int get ifMixin_rightParenthesis;
 
   @VariantId(7, variant: LinkedNodeKind.ifStatement)
   LinkedNode get ifStatement_elseStatement;
-
-  @VariantId(16, variant: LinkedNodeKind.ifStatement)
-  int get ifStatement_ifKeyword;
-
-  @VariantId(17, variant: LinkedNodeKind.ifStatement)
-  int get ifStatement_leftParenthesis;
-
-  @VariantId(18, variant: LinkedNodeKind.ifStatement)
-  int get ifStatement_rightParenthesis;
 
   @VariantId(8, variant: LinkedNodeKind.ifStatement)
   LinkedNode get ifStatement_thenStatement;
@@ -1580,6 +1666,12 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.label)
   LinkedNode get label_label;
 
+  @VariantId(2, variant: LinkedNodeKind.labeledStatement)
+  List<LinkedNode> get labeledStatement_labels;
+
+  @VariantId(6, variant: LinkedNodeKind.labeledStatement)
+  LinkedNode get labeledStatement_statement;
+
   @VariantId(6, variant: LinkedNodeKind.libraryDirective)
   LinkedNode get libraryDirective_name;
 
@@ -1648,6 +1740,7 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(14, variantList: [
     LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.classTypeAlias,
     LinkedNodeKind.enumDeclaration,
     LinkedNodeKind.functionDeclaration,
     LinkedNodeKind.functionTypeAlias,
@@ -1811,6 +1904,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(16, variant: LinkedNodeKind.returnStatement)
   int get returnStatement_semicolon;
 
+  @VariantId(15, variant: LinkedNodeKind.scriptTag)
+  int get scriptTag_scriptTag;
+
   @VariantId(2, variant: LinkedNodeKind.setOrMapLiteral)
   List<LinkedNode> get setOrMapLiteral_elements;
 
@@ -1846,6 +1942,12 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(20, variant: LinkedNodeKind.simpleStringLiteral)
   String get simpleStringLiteral_value;
+
+  @VariantId(6, variant: LinkedNodeKind.spreadElement)
+  LinkedNode get spreadElement_expression;
+
+  @VariantId(15, variant: LinkedNodeKind.spreadElement)
+  int get spreadElement_spreadOperator;
 
   @VariantId(2, variant: LinkedNodeKind.stringInterpolation)
   List<LinkedNode> get stringInterpolation_elements;
@@ -1953,12 +2055,14 @@ abstract class LinkedNode extends base.SummaryClass {
   int get tryStatement_tryKeyword;
 
   @VariantId(19, variantList: [
+    LinkedNodeKind.classTypeAlias,
     LinkedNodeKind.functionTypeAlias,
     LinkedNodeKind.genericTypeAlias,
   ])
   int get typeAlias_semicolon;
 
   @VariantId(18, variantList: [
+    LinkedNodeKind.classTypeAlias,
     LinkedNodeKind.functionTypeAlias,
     LinkedNodeKind.genericTypeAlias,
   ])
@@ -2138,9 +2242,11 @@ enum LinkedNodeKind {
   cascadeExpression,
   catchClause,
   classDeclaration,
+  classTypeAlias,
   comment,
   compilationUnit,
   conditionalExpression,
+  configuration,
   constructorDeclaration,
   constructorFieldInitializer,
   constructorName,
@@ -2149,7 +2255,9 @@ enum LinkedNodeKind {
   defaultFormalParameter,
   doubleLiteral,
   doStatement,
+  dottedName,
   emptyFunctionBody,
+  emptyStatement,
   enumConstantDeclaration,
   enumDeclaration,
   exportDirective,
@@ -2161,6 +2269,7 @@ enum LinkedNodeKind {
   formalParameterList,
   forEachPartsWithDeclaration,
   forEachPartsWithIdentifier,
+  forElement,
   forPartsWithDeclarations,
   forPartsWithExpression,
   forStatement,
@@ -2173,6 +2282,7 @@ enum LinkedNodeKind {
   genericFunctionType,
   genericTypeAlias,
   hideCombinator,
+  ifElement,
   ifStatement,
   implementsClause,
   importDirective,
@@ -2183,6 +2293,7 @@ enum LinkedNodeKind {
   interpolationString,
   isExpression,
   label,
+  labeledStatement,
   libraryDirective,
   libraryIdentifier,
   listLiteral,
@@ -2203,11 +2314,13 @@ enum LinkedNodeKind {
   redirectingConstructorInvocation,
   rethrowExpression,
   returnStatement,
+  scriptTag,
   setOrMapLiteral,
   showCombinator,
   simpleFormalParameter,
   simpleIdentifier,
   simpleStringLiteral,
+  spreadElement,
   stringInterpolation,
   superConstructorInvocation,
   superExpression,

@@ -22,8 +22,72 @@ main() {
 @reflectiveTest
 class AstBinaryWriterTest extends DriverResolutionTest {
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.non_nullable,
+      EnableString.spread_collections,
+    ];
+
+  test_classTypeAlias() async {
+    _assertUnresolvedCode('''
+mixin M1 {}
+mixin M2 {}
+
+class I1 {}
+class I2 {}
+
+class X = Object with M1, M2 implements I1, I2;
+''');
+  }
+
+  test_configuration() async {
+    _assertUnresolvedCode('''
+import 'dart:math'
+  if (a.b.c == 'd1') 'e1'
+  if (a.b.c == 'd2') 'e2';
+''');
+  }
+
+  test_emptyStatement() async {
+    _assertUnresolvedCode('''
+main() {
+  if (true);
+}
+''');
+  }
+
+  test_forElement() async {
+    _assertUnresolvedCode('''
+main() {
+  return [1, for (var i = 0; i < 10; i++) i * i, 2];
+}
+''');
+  }
+
+  test_ifElement() async {
+    _assertUnresolvedCode('''
+main(bool b) {
+  return [1, if (b) 2 else 3, 4];
+}
+''');
+  }
+
+  test_labeledStatement() async {
+    _assertUnresolvedCode('''
+main() {
+  a: b: 42;
+}
+''');
+  }
+
+  test_scriptTag() async {
+    _assertUnresolvedCode('''
+#!/bin/dart
+
+main() {}
+''');
+  }
 
   test_simple() async {
     _assertUnresolvedCode('''
@@ -37,6 +101,15 @@ class B extends A<int> {}
 void f() { // ref
   1 + 2.0;
   <double>[1, 2];
+}
+''');
+  }
+
+  test_spreadElement() async {
+    _assertUnresolvedCode('''
+main() {
+var a = [1, 2, 3];
+  return [...a];
 }
 ''');
   }

@@ -189,11 +189,15 @@ enum LinkedNodeKind : byte {
 
   classDeclaration,
 
+  classTypeAlias,
+
   comment,
 
   compilationUnit,
 
   conditionalExpression,
+
+  configuration,
 
   constructorDeclaration,
 
@@ -211,7 +215,11 @@ enum LinkedNodeKind : byte {
 
   doStatement,
 
+  dottedName,
+
   emptyFunctionBody,
+
+  emptyStatement,
 
   enumConstantDeclaration,
 
@@ -234,6 +242,8 @@ enum LinkedNodeKind : byte {
   forEachPartsWithDeclaration,
 
   forEachPartsWithIdentifier,
+
+  forElement,
 
   forPartsWithDeclarations,
 
@@ -259,6 +269,8 @@ enum LinkedNodeKind : byte {
 
   hideCombinator,
 
+  ifElement,
+
   ifStatement,
 
   implementsClause,
@@ -278,6 +290,8 @@ enum LinkedNodeKind : byte {
   isExpression,
 
   label,
+
+  labeledStatement,
 
   libraryDirective,
 
@@ -319,6 +333,8 @@ enum LinkedNodeKind : byte {
 
   returnStatement,
 
+  scriptTag,
+
   setOrMapLiteral,
 
   showCombinator,
@@ -328,6 +344,8 @@ enum LinkedNodeKind : byte {
   simpleIdentifier,
 
   simpleStringLiteral,
+
+  spreadElement,
 
   stringInterpolation,
 

@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -63,12 +64,16 @@ class AstBinaryReader {
         return _read_catchClause(data);
       case LinkedNodeKind.classDeclaration:
         return _read_classDeclaration(data);
+      case LinkedNodeKind.classTypeAlias:
+        return _read_classTypeAlias(data);
       case LinkedNodeKind.comment:
         return _read_comment(data);
       case LinkedNodeKind.compilationUnit:
         return _read_compilationUnit(data);
       case LinkedNodeKind.conditionalExpression:
         return _read_conditionalExpression(data);
+      case LinkedNodeKind.configuration:
+        return _read_configuration(data);
       case LinkedNodeKind.constructorDeclaration:
         return _read_constructorDeclaration(data);
       case LinkedNodeKind.constructorFieldInitializer:
@@ -83,10 +88,14 @@ class AstBinaryReader {
         return _read_defaultFormalParameter(data);
       case LinkedNodeKind.doStatement:
         return _read_doStatement(data);
+      case LinkedNodeKind.dottedName:
+        return _read_dottedName(data);
       case LinkedNodeKind.doubleLiteral:
         return _read_doubleLiteral(data);
       case LinkedNodeKind.emptyFunctionBody:
         return _read_emptyFunctionBody(data);
+      case LinkedNodeKind.emptyStatement:
+        return _read_emptyStatement(data);
       case LinkedNodeKind.enumConstantDeclaration:
         return _read_enumConstantDeclaration(data);
       case LinkedNodeKind.enumDeclaration:
@@ -107,6 +116,8 @@ class AstBinaryReader {
         return _read_forEachPartsWithDeclaration(data);
       case LinkedNodeKind.forEachPartsWithIdentifier:
         return _read_forEachPartsWithIdentifier(data);
+      case LinkedNodeKind.forElement:
+        return _read_forElement(data);
       case LinkedNodeKind.forPartsWithExpression:
         return _read_forPartsWithExpression(data);
       case LinkedNodeKind.forPartsWithDeclarations:
@@ -133,6 +144,8 @@ class AstBinaryReader {
         return _read_genericTypeAlias(data);
       case LinkedNodeKind.hideCombinator:
         return _read_hideCombinator(data);
+      case LinkedNodeKind.ifElement:
+        return _read_ifElement(data);
       case LinkedNodeKind.ifStatement:
         return _read_ifStatement(data);
       case LinkedNodeKind.implementsClause:
@@ -153,6 +166,8 @@ class AstBinaryReader {
         return _read_isExpression(data);
       case LinkedNodeKind.label:
         return _read_label(data);
+      case LinkedNodeKind.labeledStatement:
+        return _read_labeledStatement(data);
       case LinkedNodeKind.libraryDirective:
         return _read_libraryDirective(data);
       case LinkedNodeKind.libraryIdentifier:
@@ -193,6 +208,8 @@ class AstBinaryReader {
         return _read_rethrowExpression(data);
       case LinkedNodeKind.returnStatement:
         return _read_returnStatement(data);
+      case LinkedNodeKind.scriptTag:
+        return _read_scriptTag(data);
       case LinkedNodeKind.setOrMapLiteral:
         return _read_setOrMapLiteral(data);
       case LinkedNodeKind.showCombinator:
@@ -203,6 +220,8 @@ class AstBinaryReader {
         return _read_simpleIdentifier(data);
       case LinkedNodeKind.simpleStringLiteral:
         return _read_simpleStringLiteral(data);
+      case LinkedNodeKind.spreadElement:
+        return _read_spreadElement(data);
       case LinkedNodeKind.stringInterpolation:
         return _read_stringInterpolation(data);
       case LinkedNodeKind.superConstructorInvocation:
@@ -495,6 +514,22 @@ class AstBinaryReader {
     );
   }
 
+  ClassTypeAlias _read_classTypeAlias(LinkedNode data) {
+    return astFactory.classTypeAlias(
+      readNode(data.annotatedNode_comment),
+      _readNodeList(data.annotatedNode_metadata),
+      _getToken(data.typeAlias_typedefKeyword),
+      readNode(data.namedCompilationUnitMember_name),
+      readNode(data.classTypeAlias_typeParameters),
+      _getToken(data.classTypeAlias_equals),
+      _getToken(data.classTypeAlias_abstractKeyword),
+      readNode(data.classTypeAlias_superclass),
+      readNode(data.classTypeAlias_withClause),
+      readNode(data.classTypeAlias_implementsClause),
+      _getToken(data.typeAlias_semicolon),
+    );
+  }
+
   Comment _read_comment(LinkedNode data) {
     var tokens = _getTokens(data.comment_tokens);
     switch (data.comment_type) {
@@ -534,6 +569,18 @@ class AstBinaryReader {
       _getToken(data.conditionalExpression_colon),
       readNode(data.conditionalExpression_elseExpression),
     )..staticType = _readType(data.expression_type);
+  }
+
+  Configuration _read_configuration(LinkedNode data) {
+    return astFactory.configuration(
+      _getToken(data.configuration_ifKeyword),
+      _getToken(data.configuration_leftParenthesis),
+      readNode(data.configuration_name),
+      _getToken(data.configuration_equalToken),
+      readNode(data.configuration_value),
+      _getToken(data.configuration_rightParenthesis),
+      readNode(data.configuration_uri),
+    );
   }
 
   ConstructorDeclaration _read_constructorDeclaration(LinkedNode data) {
@@ -614,6 +661,12 @@ class AstBinaryReader {
     );
   }
 
+  DottedName _read_dottedName(LinkedNode data) {
+    return astFactory.dottedName(
+      _readNodeList(data.dottedName_components),
+    );
+  }
+
   DoubleLiteral _read_doubleLiteral(LinkedNode data) {
     return astFactory.doubleLiteral(
       _getToken(data.doubleLiteral_literal),
@@ -624,6 +677,12 @@ class AstBinaryReader {
   EmptyFunctionBody _read_emptyFunctionBody(LinkedNode data) {
     return astFactory.emptyFunctionBody(
       _getToken(data.emptyFunctionBody_semicolon),
+    );
+  }
+
+  EmptyStatement _read_emptyStatement(LinkedNode data) {
+    return astFactory.emptyStatement(
+      _getToken(data.emptyStatement_semicolon),
     );
   }
 
@@ -725,6 +784,17 @@ class AstBinaryReader {
     );
   }
 
+  ForElement _read_forElement(LinkedNode data) {
+    return astFactory.forElement(
+      awaitKeyword: _getToken(data.forMixin_awaitKeyword),
+      body: readNode(data.forElement_body),
+      forKeyword: _getToken(data.forMixin_forKeyword),
+      forLoopParts: readNode(data.forMixin_forLoopParts),
+      leftParenthesis: _getToken(data.forMixin_leftParenthesis),
+      rightParenthesis: _getToken(data.forMixin_rightParenthesis),
+    );
+  }
+
   FormalParameterList _read_formalParameterList(LinkedNode data) {
     return astFactory.formalParameterList(
       _getToken(data.formalParameterList_leftParenthesis),
@@ -757,10 +827,10 @@ class AstBinaryReader {
 
   ForStatement2 _read_forStatement(LinkedNode data) {
     return astFactory.forStatement2(
-      forKeyword: _getToken(data.forStatement_forKeyword),
-      leftParenthesis: _getToken(data.forStatement_leftParenthesis),
-      forLoopParts: readNode(data.forStatement_forLoopParts),
-      rightParenthesis: _getToken(data.forStatement_rightParenthesis),
+      forKeyword: _getToken(data.forMixin_forKeyword),
+      leftParenthesis: _getToken(data.forMixin_leftParenthesis),
+      forLoopParts: readNode(data.forMixin_forLoopParts),
+      rightParenthesis: _getToken(data.forMixin_rightParenthesis),
       body: readNode(data.forStatement_body),
     );
   }
@@ -858,14 +928,26 @@ class AstBinaryReader {
     );
   }
 
+  IfElement _read_ifElement(LinkedNode data) {
+    return astFactory.ifElement(
+      condition: readNode(data.ifMixin_condition),
+      elseElement: readNode(data.ifElement_elseElement),
+      elseKeyword: _getToken(data.ifMixin_elseKeyword),
+      ifKeyword: _getToken(data.ifMixin_ifKeyword),
+      leftParenthesis: _getToken(data.ifMixin_leftParenthesis),
+      rightParenthesis: _getToken(data.ifMixin_rightParenthesis),
+      thenElement: readNode(data.ifElement_thenElement),
+    );
+  }
+
   IfStatement _read_ifStatement(LinkedNode data) {
     return astFactory.ifStatement(
-      _getToken(data.ifStatement_ifKeyword),
-      _getToken(data.ifStatement_leftParenthesis),
-      readNode(data.ifStatement_condition),
-      _getToken(data.ifStatement_rightParenthesis),
+      _getToken(data.ifMixin_ifKeyword),
+      _getToken(data.ifMixin_leftParenthesis),
+      readNode(data.ifMixin_condition),
+      _getToken(data.ifMixin_rightParenthesis),
       readNode(data.ifStatement_thenStatement),
-      _getToken(data.ifStatement_elseKeyword),
+      _getToken(data.ifMixin_elseKeyword),
       readNode(data.ifStatement_elseStatement),
     );
   }
@@ -947,6 +1029,13 @@ class AstBinaryReader {
     return astFactory.label(
       readNode(data.label_label),
       _getToken(data.label_colon),
+    );
+  }
+
+  LabeledStatement _read_labeledStatement(LinkedNode data) {
+    return astFactory.labeledStatement(
+      _readNodeList(data.labeledStatement_labels),
+      readNode(data.labeledStatement_statement),
     );
   }
 
@@ -1134,6 +1223,12 @@ class AstBinaryReader {
     );
   }
 
+  ScriptTag _read_scriptTag(LinkedNode data) {
+    return astFactory.scriptTag(
+      _getToken(data.scriptTag_scriptTag),
+    );
+  }
+
   SetOrMapLiteral _read_setOrMapLiteral(LinkedNode data) {
     SetOrMapLiteralImpl node = astFactory.setOrMapLiteral(
       constKeyword: _getToken(data.typedLiteral_constKeyword),
@@ -1181,6 +1276,13 @@ class AstBinaryReader {
       _getToken(data.simpleStringLiteral_token),
       data.simpleStringLiteral_value,
     )..staticType = _readType(data.expression_type);
+  }
+
+  SpreadElement _read_spreadElement(LinkedNode data) {
+    return astFactory.spreadElement(
+      spreadOperator: _getToken(data.spreadElement_spreadOperator),
+      expression: readNode(data.spreadElement_expression),
+    );
   }
 
   StringInterpolation _read_stringInterpolation(LinkedNode data) {
@@ -1398,6 +1500,8 @@ class AstBinaryReader {
         return DynamicTypeImpl.instance;
       case LinkedNodeTypeKind.typeParameter:
         var element = _getElement(data.typeParameterParameter);
+        // TODO(scheglov) Remove when references include all type parameters.
+        element ??= TypeParameterElementImpl('', -1);
         return TypeParameterTypeImpl(element);
       case LinkedNodeTypeKind.void_:
         return VoidTypeImpl.instance;
