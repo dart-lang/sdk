@@ -18,8 +18,6 @@ import 'package:kernel/visitor.dart'
         TreeVisitor,
         Visitor;
 
-import 'kernel_shadow_ast.dart' show ExpressionJudgment, InferenceVisitor;
-
 import '../problems.dart' show getFileUri, unsupported;
 
 /// A spread element in a list or set literal.
@@ -27,7 +25,7 @@ import '../problems.dart' show getFileUri, unsupported;
 /// Spread elements are not truly expressions and they cannot appear in
 /// arbitrary expression contexts in the Kernel program.  They can only appear
 /// as elements in list or set literals.
-class SpreadElement extends ExpressionJudgment {
+class SpreadElement extends Expression {
   final DartType inferredType = const BottomType();
   Expression expression;
 
@@ -46,9 +44,6 @@ class SpreadElement extends ExpressionJudgment {
 
   @override
   accept1(ExpressionVisitor1<Object, Object> v, arg) {
-    if (v is InferenceVisitor) {
-      return v.visitSpreadElement(this, arg);
-    }
     return unsupported("accept1", fileOffset, getFileUri(this));
   }
 
@@ -63,11 +58,6 @@ class SpreadElement extends ExpressionJudgment {
       expression = expression.accept(v);
       expression?.parent = this;
     }
-  }
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    visitor.visitSpreadElement(this, typeContext);
   }
 }
 
