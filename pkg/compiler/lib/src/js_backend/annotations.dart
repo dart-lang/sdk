@@ -105,13 +105,17 @@ Set<PragmaAnnotation> processMemberAnnotations(
       values.add(PragmaAnnotation.noInline);
       if (element is! FunctionEntity) {
         reporter.internalError(
-            element, "@noInline is only allowed in methods and constructors.");
+            element,
+            "@pragma('dart2js:noInline') is only allowed in methods "
+            "and constructors.");
       }
     } else if (cls == commonElements.metaTryInlineClass) {
       values.add(PragmaAnnotation.tryInline);
       if (element is! FunctionEntity) {
         reporter.internalError(
-            element, "@tryInline is only allowed in methods and constructors.");
+            element,
+            "@pragma('dart2js:tryInline') is only allowed in methods "
+            "and constructors.");
       }
     } else if (cls == commonElements.pragmaClass) {
       ConstantValue nameValue =
@@ -166,19 +170,25 @@ Set<PragmaAnnotation> processMemberAnnotations(
 
   if (values.contains(PragmaAnnotation.tryInline) &&
       values.contains(PragmaAnnotation.noInline)) {
-    reporter.reportErrorMessage(element, MessageKind.GENERIC,
-        {'text': '@tryInline must not be used with @noInline.'});
+    reporter.reportErrorMessage(element, MessageKind.GENERIC, {
+      'text': "@pragma('dart2js:tryInline') must not be used with "
+          "@pragma('dart2js:noInline')."
+    });
     values.remove(PragmaAnnotation.tryInline);
   }
   if (values.contains(PragmaAnnotation.noThrows) &&
       !values.contains(PragmaAnnotation.noInline)) {
     reporter.internalError(
-        element, "@NoThrows() should always be combined with @noInline.");
+        element,
+        "@pragma('dart2js:noThrows') should always be combined with "
+        "@pragma('dart2js:noInline').");
   }
   if (values.contains(PragmaAnnotation.noSideEffects) &&
       !values.contains(PragmaAnnotation.noInline)) {
     reporter.internalError(
-        element, "@NoSideEffects() should always be combined with @noInline.");
+        element,
+        "@pragma('dart2js:noSideEffects') should always be combined with "
+        "@pragma('dart2js:noInline').");
   }
   annotationsDataBuilder.registerPragmaAnnotations(element, values);
   return new Set<PragmaAnnotation>.from(
@@ -196,11 +206,11 @@ abstract class AnnotationsData {
   /// Returns `true` if [member] has an `@pragma('dart2js:assumeDynamic')` annotation.
   bool hasAssumeDynamic(MemberEntity member);
 
-  /// Returns `true` if [member] has a `@noInline`, or
+  /// Returns `true` if [member] has a `@pragma('dart2js:noInline')`, or
   /// `@pragma('dart2js:noInline')` annotation.
   bool hasNoInline(MemberEntity member);
 
-  /// Returns `true` if [member] has a `@tryInline`, or
+  /// Returns `true` if [member] has a `@pragma('dart2js:tryInline')`, or
   /// `@pragma('dart2js:tryInline')` annotation.
   bool hasTryInline(MemberEntity member);
 
@@ -218,11 +228,11 @@ abstract class AnnotationsData {
   /// Returns `true` if [member] has a `@NoSideEffects()` annotation.
   bool hasNoSideEffects(MemberEntity member);
 
-  /// Calls [f] for all functions with a `@noInline`, or
+  /// Calls [f] for all functions with a `@pragma('dart2js:noInline')`, or
   /// `@pragma('dart2js:noInline')` annotation.
   void forEachNoInline(void f(FunctionEntity function));
 
-  /// Calls [f] for all functions with a `@tryInline`, or
+  /// Calls [f] for all functions with a `@pragma('dart2js:tryInline')`, or
   /// `@pragma('dart2js:tryInline')` annotation.
   void forEachTryInline(void f(FunctionEntity function));
 

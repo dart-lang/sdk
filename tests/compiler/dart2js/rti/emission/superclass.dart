@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/dart2js.dart';
-
 /*class: B:checkedInstance,checks=[],indirectInstance,typeLiteral*/
 class B {}
 
 /*class: C:checks=[],instance*/
 class C extends B {}
 
-@noInline
+@pragma('dart2js:noInline')
 test(o) => o is B;
 
 main() {

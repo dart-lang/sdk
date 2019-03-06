@@ -8,22 +8,21 @@
 
 import 'dart:async';
 import 'package:expect/expect.dart';
-import 'package:meta/dart2js.dart';
 
 class A {
-  @noInline //# 01: ok
+  @pragma('dart2js:noInline') //# 01: ok
   Future<T> _foo<T>(FutureOr<T> Function() f) async {
     return await f();
   }
 
-  @noInline //# 01: continued
+  @pragma('dart2js:noInline') //# 01: continued
   Future<String> get m async => _foo(() => "a");
 }
 
 class M {}
 
 class B extends A with M {
-  @noInline //# 01: continued
+  @pragma('dart2js:noInline') //# 01: continued
   Future<T> _foo<T>(FutureOr<T> Function() f) => super._foo(f);
 }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/dart2js.dart';
-
 /*strong.class: I1:checkedInstance*/
 /*omit.class: I1:*/
 class I1 {}
@@ -22,10 +20,10 @@ class A implements I1, I2 {}
 /*omit.class: B:checks=[$isI2],instance*/
 class B implements I1, I2 {}
 
-@noInline
+@pragma('dart2js:noInline')
 void foo(I1 x) {}
 
-@noInline
+@pragma('dart2js:noInline')
 void bar(I2 x) {}
 
 main() {

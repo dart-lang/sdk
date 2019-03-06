@@ -6,7 +6,6 @@
 library lib;
 
 import 'package:js/js.dart';
-import 'package:meta/dart2js.dart';
 
 @JS()
 @anonymous
@@ -20,7 +19,7 @@ main() {
   method();
 }
 
-@tryInline
+@pragma('dart2js:tryInline')
 method() {
   new GenericClass().setter = 42;
 }
