@@ -61,8 +61,8 @@ main() async {
 
   if (currentHealth != baselineHealth ||
       currentMaintenance != baselineMaintenance) {
-    print('... you have a new baseline! 🎉 Update $baseLinePath to match.');
-    exit(67);
+    print(
+        '... you have a new baseline! 🎉 Consider updating $baseLinePath to match.');
   }
 }
 
