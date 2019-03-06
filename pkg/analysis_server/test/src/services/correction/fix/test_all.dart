@@ -75,6 +75,7 @@ import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
 import 'remove_unnecessary_cast_test.dart' as remove_unnecessary_cast;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
+import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'remove_unused_catch_clause_test.dart' as remove_unused_catch_clause;
 import 'remove_unused_catch_stack_test.dart' as remove_unused_catch_stack;
 import 'remove_unused_import_test.dart' as remove_unused_import;
@@ -161,6 +162,7 @@ main() {
     remove_type_arguments.main();
     remove_unnecessary_cast.main();
     remove_unnecessary_const.main();
+    remove_unnecessary_new.main();
     remove_unused_catch_clause.main();
     remove_unused_catch_stack.main();
     remove_unused_import.main();

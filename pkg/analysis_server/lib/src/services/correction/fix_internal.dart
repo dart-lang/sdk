@@ -616,6 +616,9 @@ class FixProcessor {
       if (name == LintNames.unnecessary_lambdas) {
         await _addFix_replaceWithTearOff();
       }
+      if (name == LintNames.unnecessary_new) {
+        await _addFix_removeNewKeyword();
+      }
       if (name == LintNames.unnecessary_override) {
         await _addFix_removeMethodDeclaration();
       }
@@ -2926,6 +2929,18 @@ class FixProcessor {
     }
   }
 
+  Future<void> _addFix_removeNewKeyword() async {
+    final instanceCreationExpression = node;
+    if (instanceCreationExpression is InstanceCreationExpression) {
+      final newToken = instanceCreationExpression.keyword;
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.startStart(newToken, newToken.next));
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNNECESSARY_NEW);
+    }
+  }
+
   Future<void> _addFix_removeParameters_inGetterDeclaration() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -4311,6 +4326,7 @@ class LintNames {
       'unnecessary_brace_in_string_interp';
   static const String unnecessary_const = 'unnecessary_const';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
+  static const String unnecessary_new = 'unnecessary_new';
   static const String unnecessary_override = 'unnecessary_override';
   static const String unnecessary_this = 'unnecessary_this';
 }

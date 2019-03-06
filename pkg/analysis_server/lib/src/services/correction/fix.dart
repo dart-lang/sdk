@@ -253,6 +253,8 @@ class DartFixKind {
   static const REMOVE_UNUSED_IMPORT = const FixKind(
       'REMOVE_UNUSED_IMPORT', 50, "Remove unused import",
       appliedTogetherMessage: "Remove all unused imports in this file");
+  static const REMOVE_UNNECESSARY_NEW = const FixKind(
+      'REMOVE_UNNECESSARY_NEW', 50, "Remove unnecessary new keyword");
   static const RENAME_TO_CAMEL_CASE =
       const FixKind('RENAME_TO_CAMEL_CASE', 50, "Rename to '{0}'");
   static const REPLACE_BOOLEAN_WITH_BOOL = const FixKind(
