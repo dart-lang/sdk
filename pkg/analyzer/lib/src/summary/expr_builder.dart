@@ -877,7 +877,12 @@ class ExprBuilder {
           : typeArguments.arguments[0].type;
       staticType = resynthesizer.typeProvider.setType.instantiate([valueType]);
     }
-    _push(AstTestFactory.setOrMapLiteral(Keyword.CONST, typeArguments, elements)
+    _push(astFactory.setOrMapLiteral(
+        constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
+        typeArguments: typeArguments,
+        leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+        elements: elements,
+        rightBracket: TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET))
       ..staticType = staticType);
   }
 
