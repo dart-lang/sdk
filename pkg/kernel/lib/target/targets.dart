@@ -231,5 +231,5 @@ class NoneTarget extends Target {
 
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      new ConstantsBackend();
+      const ConstantsBackend();
 }

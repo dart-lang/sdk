@@ -19,7 +19,7 @@ class DevCompilerConstants {
   DevCompilerConstants(
       TypeEnvironment types, Map<String, String> declaredVariables)
       : _visitor = _ConstantVisitor(types.coreTypes),
-        _evaluator = ConstantEvaluator(DevCompilerConstantsBackend(),
+        _evaluator = ConstantEvaluator(const DevCompilerConstantsBackend(),
             declaredVariables, types, false, const _ErrorReporter());
 
   /// Determines if an expression is constant.
@@ -170,26 +170,10 @@ class _ConstantVisitor extends ExpressionVisitor<bool> {
 
 /// Implement the class for compiler specific behavior.
 class DevCompilerConstantsBackend extends ConstantsBackend {
-  DevCompilerConstantsBackend();
+  const DevCompilerConstantsBackend();
 
   @override
-  Constant lowerConstant(Constant constant) {
-    // TODO(markzipan): Remove this lowering logic when we switch to
-    // front-end constant evaluation
-    if (constant is DoubleConstant) {
-      // Convert to an integer when possible (matching the runtime behavior
-      // of `is int`).
-      var d = constant.value;
-      if (d.isFinite) {
-        var i = d.toInt();
-        if (d == i.toDouble()) return IntConstant(i);
-      }
-    }
-    return constant;
-  }
-
-  // Use doubles to match JS number semantics.
-  num prepareNumericOperand(num operand) => operand.toDouble();
+  NumberSemantics get numberSemantics => NumberSemantics.js;
 }
 
 class _ErrorReporter extends SimpleErrorReporter {

@@ -146,7 +146,7 @@ class Dart2jsTarget extends Target {
   // TODO(askesc): Return specialized dart2js constants backend.
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      new ConstantsBackend();
+      const ConstantsBackend();
 }
 
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
