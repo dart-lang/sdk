@@ -8,16 +8,13 @@
 #include "vm/os.h"
 
 #include <errno.h>
+#include <fuchsia/timezone/cpp/fidl.h>
 #include <lib/fdio/util.h>
+#include <lib/sys/cpp/service_directory.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
 #include <zircon/types.h>
-
-#include <fuchsia/timezone/cpp/fidl.h>
-
-#include "lib/component/cpp/startup_context.h"
-#include "lib/svc/cpp/services.h"
 
 #include "platform/assert.h"
 #include "vm/zone.h"
@@ -256,10 +253,8 @@ void OS::PrintErr(const char* format, ...) {
 }
 
 void OS::Init() {
-  auto environment_services = std::make_shared<component::Services>();
-  auto env_service_root = component::subtle::CreateStaticServiceRootHandle();
-  environment_services->Bind(std::move(env_service_root));
-  environment_services->ConnectToService(tz.NewRequest());
+  auto services = sys::ServiceDirectory::CreateFromNamespace();
+  services->Connect(tz.NewRequest());
 }
 
 void OS::Cleanup() {}
