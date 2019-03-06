@@ -2250,12 +2250,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_localLabels_inConstructor() async {
-    await super.test_localLabels_inConstructor();
-  }
-
-  @override
-  @failingTest
   test_localLabels_inMethod() async {
     await super.test_localLabels_inMethod();
   }
