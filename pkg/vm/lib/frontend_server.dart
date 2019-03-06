@@ -431,7 +431,15 @@ class FrontendCompiler implements CompilerInterface {
         // Ignore errors that might be caused by non-file uris.
         continue nextUri;
       }
-      if (!await entity.exists()) {
+
+      bool exists;
+      try {
+        exists = await entity.exists();
+      } catch (e) {
+        exists = false;
+      }
+
+      if (!exists) {
         _generator.invalidate(uri);
         continue nextUri;
       }
