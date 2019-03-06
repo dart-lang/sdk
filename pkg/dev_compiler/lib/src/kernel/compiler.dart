@@ -5162,7 +5162,11 @@ class ProgramCompiler extends Object
     entryToProperty(entry) {
       var field = entry.key.asField.name.name;
       var constant = entry.value.accept(this);
-      return JS.Property(_emitMemberName(field), constant);
+      var member = entry.key.asField;
+      var prevLibrary = _currentLibrary;
+      _currentLibrary = member.enclosingLibrary;
+      return JS.Property(_emitMemberName(field, member: member), constant);
+      _currentLibrary = prevLibrary;
     }
 
     var type = visitInterfaceType(node.getType(types) as InterfaceType);
