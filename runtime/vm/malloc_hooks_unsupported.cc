@@ -4,8 +4,7 @@
 
 #include "platform/globals.h"
 
-#if (!defined(DART_USE_TCMALLOC) && !defined(DART_USE_JEMALLOC)) ||            \
-    defined(PRODUCT)
+#if defined(PRODUCT) || !defined(DART_USE_TCMALLOC)
 
 #include "vm/malloc_hooks.h"
 
