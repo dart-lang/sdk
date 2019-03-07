@@ -552,7 +552,7 @@ Simulator::Simulator() : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL) {
   // handling stack overflow exceptions. To be safe in potential
   // stack underflows we also add some underflow buffer space.
   stack_ = new uintptr_t[(OSThread::GetSpecifiedStackSize() +
-                          OSThread::kStackSizeBuffer +
+                          OSThread::kStackSizeBufferMax +
                           kSimulatorStackUnderflowSize) /
                          sizeof(uintptr_t)];
   // Low address.
@@ -560,7 +560,7 @@ Simulator::Simulator() : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL) {
   // Limit for StackOverflowError.
   overflow_stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
   // High address.
-  stack_limit_ = overflow_stack_limit_ + OSThread::kStackSizeBuffer;
+  stack_limit_ = overflow_stack_limit_ + OSThread::kStackSizeBufferMax;
 
   last_setjmp_buffer_ = NULL;
 
