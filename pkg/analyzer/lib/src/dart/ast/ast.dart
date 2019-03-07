@@ -2081,9 +2081,8 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   /// has not yet been performed.
   LocalVariableInfo localVariableInfo = new LocalVariableInfo();
 
-  /// Is `true` if the non-nullable feature is enabled, and this library
-  /// unit is annotated with `@pragma('analyzer:non-nullable')`.
-  bool hasPragmaAnalyzerNonNullable = false;
+  /// Is `true` if this unit has been parsed as non-nullable.
+  bool isNonNullable = false;
 
   /// Initialize a newly created compilation unit to have the given directives
   /// and declarations. The [scriptTag] can be `null` if there is no script tag

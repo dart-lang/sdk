@@ -109,8 +109,9 @@ class LibraryAnalyzer {
     for (FileState file in _library.libraryFiles) {
       units[file] = _parse(file);
     }
-    isNonNullableMigrated = (units.values.first as CompilationUnitImpl)
-        .hasPragmaAnalyzerNonNullable;
+    // TODO(danrubel): Verify that all units are either nullable or non-nullable
+    isNonNullableMigrated =
+        (units.values.first as CompilationUnitImpl).isNonNullable;
 
     // Resolve URIs in directives to corresponding sources.
     units.forEach((file, unit) {

@@ -277,6 +277,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// fixed.
   final bool disableConflictingGenericsCheck;
 
+  bool _isNonNullable;
+
   /**
    * Initialize a newly created error verifier.
    */
@@ -539,9 +541,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
+    _isNonNullable = (node as CompilationUnitImpl).isNonNullable;
     _checkDuplicateUnitMembers(node);
     _checkForDeferredPrefixCollisions(node);
     super.visitCompilationUnit(node);
+    _isNonNullable = null;
   }
 
   @override
@@ -4903,7 +4907,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   bool _checkForNullableDereference(Expression expression) {
     if (expression == null ||
-        !_options.experimentStatus.non_nullable ||
+        !_isNonNullable ||
         expression.staticType == null ||
         (expression.staticType as TypeImpl).nullability !=
             Nullability.nullable) {
@@ -5815,8 +5819,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForUnnecessaryNullAware(Expression target, Token operator) {
-    if (operator.type != TokenType.QUESTION_PERIOD ||
-        !_options.experimentStatus.non_nullable) {
+    if (operator.type != TokenType.QUESTION_PERIOD || !_isNonNullable) {
       return;
     }
 

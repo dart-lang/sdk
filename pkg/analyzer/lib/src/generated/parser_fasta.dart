@@ -185,8 +185,6 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser.parseUnit(currentToken);
     CompilationUnitImpl compilationUnit = astBuilder.pop();
     compilationUnit.localDeclarations = astBuilder.localDeclarations;
-    compilationUnit.hasPragmaAnalyzerNonNullable =
-        astBuilder.hasPragmaAnalyzerNonNullable;
     return compilationUnit;
   }
 

@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
     show
         ClassDeclarationImpl,
         ClassOrMixinDeclarationImpl,
+        CompilationUnitImpl,
         MixinDeclarationImpl;
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -109,10 +110,6 @@ class AstBuilder extends StackListener {
 
   /// `true` if control-flow-collections behavior is enabled
   bool enableControlFlowCollections = false;
-
-  /// Is `true` if [enableNonNullable] is enabled, and the library directive
-  /// is annotated with `@pragma('analyzer:non-nullable')`.
-  bool hasPragmaAnalyzerNonNullable = false;
 
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       [Uri uri])
@@ -470,8 +467,11 @@ class AstBuilder extends StackListener {
     Token beginToken = pop();
     checkEmpty(endToken.charOffset);
 
-    push(ast.compilationUnit(
-        beginToken, scriptTag, directives, declarations, endToken));
+    CompilationUnitImpl unit = ast.compilationUnit(
+            beginToken, scriptTag, directives, declarations, endToken)
+        as CompilationUnitImpl;
+    unit.isNonNullable = enableNonNullable;
+    push(unit);
   }
 
   void endConditionalExpression(Token question, Token colon) {
@@ -1182,23 +1182,6 @@ class AstBuilder extends StackListener {
     List<SimpleIdentifier> libraryName = pop();
     var name = ast.libraryIdentifier(libraryName);
     List<Annotation> metadata = pop();
-    if (enableNonNullable && metadata != null) {
-      for (Annotation annotation in metadata) {
-        Identifier pragma = annotation.name;
-        if (pragma is SimpleIdentifier && pragma.name == 'pragma') {
-          NodeList<Expression> arguments = annotation.arguments.arguments;
-          if (arguments.length == 1) {
-            Expression tag = arguments[0];
-            if (tag is StringLiteral) {
-              if (tag.stringValue == 'analyzer:non-nullable') {
-                hasPragmaAnalyzerNonNullable = true;
-                break;
-              }
-            }
-          }
-        }
-      }
-    }
     Comment comment = _findComment(metadata, libraryKeyword);
     directives.add(ast.libraryDirective(
         comment, metadata, libraryKeyword, name, semicolon));

@@ -1732,10 +1732,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 class NNBDParserTest_Fasta extends FastaParserTestCase {
   CompilationUnit parseNNBDCompilationUnit(String code,
       {List<ExpectedError> errors}) {
-    createParser('''
-@pragma('analyzer:non-nullable') library nnbd.parser.test;
-$code
-''');
+    createParser(code);
     _parserProxy.astBuilder.enableNonNullable = true;
     CompilationUnit unit = _parserProxy.parseCompilationUnit2();
     assertErrors(errors: errors);
@@ -1774,9 +1771,9 @@ $code
   void test_conditional_error() {
     parseNNBDCompilationUnit('D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }',
         errors: [
-          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 78, 1),
-          expectedError(ParserErrorCode.EXPECTED_TOKEN, 99, 1),
-          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 99, 1),
+          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
+          expectedError(ParserErrorCode.EXPECTED_TOKEN, 40, 1),
+          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 40, 1),
         ]);
   }
 
@@ -2001,33 +1998,6 @@ $code
 
   void test_nullCheckPropertyAccess3() {
     parseNNBDCompilationUnit('f() { var x = super.p! + 7; }');
-  }
-
-  void test_pragma_missing() {
-    createParser("library foo;");
-    _parserProxy.astBuilder.enableNonNullable = true;
-    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
-    expect(unit.hasPragmaAnalyzerNonNullable, false);
-  }
-
-  void test_pragma_non_nullable() {
-    createParser("@pragma('analyzer:non-nullable') library foo;");
-    _parserProxy.astBuilder.enableNonNullable = true;
-    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
-    expect(unit.hasPragmaAnalyzerNonNullable, true);
-  }
-
-  void test_pragma_non_nullable_not_enabled() {
-    createParser("@pragma('analyzer:non-nullable') library foo;");
-    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
-    expect(unit.hasPragmaAnalyzerNonNullable, false);
-  }
-
-  void test_pragma_other() {
-    createParser("@pragma('analyzer:foo') library foo;");
-    _parserProxy.astBuilder.enableNonNullable = true;
-    CompilationUnitImpl unit = _parserProxy.parseCompilationUnit2();
-    expect(unit.hasPragmaAnalyzerNonNullable, false);
   }
 }
 
