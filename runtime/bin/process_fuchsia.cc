@@ -12,7 +12,6 @@
 #include <lib/fdio/io.h>
 #include <lib/fdio/namespace.h>
 #include <lib/fdio/spawn.h>
-#include <lib/fdio/util.h>
 #include <poll.h>
 #include <pthread.h>
 #include <stdbool.h>

@@ -9,7 +9,6 @@
 
 #include <errno.h>
 #include <fuchsia/timezone/cpp/fidl.h>
-#include <lib/fdio/util.h>
 #include <lib/sys/cpp/service_directory.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
