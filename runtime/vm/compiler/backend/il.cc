@@ -260,7 +260,7 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
                                       bool use_subtype_test,
                                       bool include_abstract,
                                       bool exclude_null) {
-  if (dst_klass.InVMHeap()) {
+  if (dst_klass.IsReadOnly()) {
     BuildRangesFor(table, ranges, dst_klass, use_subtype_test, include_abstract,
                    exclude_null);
     return;

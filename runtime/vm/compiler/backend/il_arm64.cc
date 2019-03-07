@@ -2727,7 +2727,7 @@ class CheckStackOverflowSlowPath
               : object_store->stack_overflow_stub_without_fpu_regs_stub());
 
       if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-          using_shared_stub && !stub.InVMHeap()) {
+          using_shared_stub && !stub.IsReadOnly()) {
         compiler->AddPcRelativeCallStubTarget(stub);
         __ GenerateUnRelocatedPcRelativeCall();
 
@@ -4995,7 +4995,7 @@ void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
       live_fpu_regs ? object_store->null_error_stub_with_fpu_regs_stub()
                     : object_store->null_error_stub_without_fpu_regs_stub());
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-      using_shared_stub && !stub.InVMHeap()) {
+      using_shared_stub && !stub.IsReadOnly()) {
     compiler->AddPcRelativeCallStubTarget(stub);
     compiler->assembler()->GenerateUnRelocatedPcRelativeCall();
     return;

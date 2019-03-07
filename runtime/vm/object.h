@@ -307,9 +307,9 @@ class Object {
   bool IsNew() const { return raw()->IsNewObject(); }
   bool IsOld() const { return raw()->IsOldObject(); }
 #if defined(DEBUG)
-  bool InVMHeap() const;
+  bool IsReadOnly() const;
 #else
-  bool InVMHeap() const { return raw()->IsVMHeapObject(); }
+  bool IsReadOnly() const { return raw()->IsReadOnly(); }
 #endif  // DEBUG
 
   // Print the object on stdout for debugging.
@@ -637,10 +637,7 @@ class Object {
     return -kWordSize;
   }
 
-  static void InitializeObject(uword address,
-                               intptr_t id,
-                               intptr_t size,
-                               bool is_vm_object);
+  static void InitializeObject(uword address, intptr_t id, intptr_t size);
 
   static void RegisterClass(const Class& cls,
                             const String& name,

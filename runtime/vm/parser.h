@@ -84,7 +84,7 @@ class ParsedFunction : public ZoneAllocated {
 #if defined(DEBUG)
     if (list == NULL) return;
     for (intptr_t i = 0; i < list->length(); i++) {
-      ASSERT(list->At(i)->IsZoneHandle() || list->At(i)->InVMHeap());
+      ASSERT(list->At(i)->IsZoneHandle() || list->At(i)->IsReadOnly());
     }
 #endif
   }

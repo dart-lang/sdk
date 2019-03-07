@@ -1037,7 +1037,7 @@ bool ConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
   }
 
   bool is_present = false;
-  ASSERT(!script_.InVMHeap());
+  ASSERT(!script_.IsReadOnly());
   if (script_.compile_time_constants() == Array::null()) {
     return false;
   }
@@ -1067,7 +1067,7 @@ void ConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
     return;
   }
   const intptr_t kInitialConstMapSize = 16;
-  ASSERT(!script_.InVMHeap());
+  ASSERT(!script_.IsReadOnly());
   if (script_.compile_time_constants() == Array::null()) {
     const Array& array = Array::Handle(
         HashTables::New<KernelConstantsMap>(kInitialConstMapSize, Heap::kNew));

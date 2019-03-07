@@ -491,7 +491,6 @@ class Deserializer : public ThreadStackResource {
   static void InitializeHeader(RawObject* raw,
                                intptr_t cid,
                                intptr_t size,
-                               bool is_vm_isolate,
                                bool is_canonical = false);
 
   // Reads raw data (for basic types).

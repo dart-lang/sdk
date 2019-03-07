@@ -121,7 +121,7 @@ class RawObject {
     kOldBit = 3,                  // Incremental barrier source.
     kOldAndNotRememberedBit = 4,  // Generational barrier source.
     kCanonicalBit = 5,
-    kVMHeapObjectBit = 6,
+    kReadOnlyBit = 6,
     kGraphMarkedBit = 7,  // ObjectGraph needs to mark through new space.
 
     kSizeTagPos = 8,
@@ -190,13 +190,11 @@ class RawObject {
 
   class NewBit : public BitField<uint32_t, bool, kNewBit, 1> {};
 
-  class CanonicalObjectTag : public BitField<uint32_t, bool, kCanonicalBit, 1> {
-  };
+  class CanonicalBit : public BitField<uint32_t, bool, kCanonicalBit, 1> {};
 
   class GraphMarkedBit : public BitField<uint32_t, bool, kGraphMarkedBit, 1> {};
 
-  class VMHeapObjectTag : public BitField<uint32_t, bool, kVMHeapObjectBit, 1> {
-  };
+  class ReadOnlyBit : public BitField<uint32_t, bool, kReadOnlyBit, 1> {};
 
   class OldBit : public BitField<uint32_t, bool, kOldBit, 1> {};
 
@@ -250,7 +248,8 @@ class RawObject {
     return (addr & kObjectAlignmentMask) != kOldObjectBits;
   }
 
-  // Support for GC marking bit.
+  // Support for GC marking bit. Marked objects are either grey (not yet
+  // visited) or black (already visited).
   bool IsMarked() const {
     ASSERT(IsOldObject());
     return !OldAndNotMarkedBit::decode(ptr()->tags_);
@@ -278,25 +277,33 @@ class RawObject {
     return TryClearTagBit<OldAndNotMarkedBit>();
   }
 
-  // Support for object tags.
-  bool IsCanonical() const { return CanonicalObjectTag::decode(ptr()->tags_); }
-  void SetCanonical() { UpdateTagBit<CanonicalObjectTag>(true); }
-  void ClearCanonical() { UpdateTagBit<CanonicalObjectTag>(false); }
-  bool IsVMHeapObject() const { return VMHeapObjectTag::decode(ptr()->tags_); }
-  void SetVMHeapObject() { UpdateTagBit<VMHeapObjectTag>(true); }
+  // Canonical objects have the property that two canonical objects are
+  // logically equal iff they are the same object (pointer equal).
+  bool IsCanonical() const { return CanonicalBit::decode(ptr()->tags_); }
+  void SetCanonical() { UpdateTagBit<CanonicalBit>(true); }
+  void ClearCanonical() { UpdateTagBit<CanonicalBit>(false); }
 
-  // Support for ObjectGraph marking bit.
+  // Objects in the VM-isolate's heap or on an image page from an AppJIT or
+  // AppAOT snapshot are permanently read-only. They may never be modified
+  // again. In particular, they cannot be marked.
+  bool IsReadOnly() const { return ReadOnlyBit::decode(ptr()->tags_); }
+  void SetReadOnlyUnsynchronized() {
+    ptr()->tags_ = ReadOnlyBit::update(true, ptr()->tags_);
+  }
+
+  // Support for ObjectGraph marking bit, used by various tools provided by the
+  // VM-service.
   bool IsGraphMarked() const {
-    if (IsVMHeapObject()) return true;
+    if (IsReadOnly()) return true;
     return GraphMarkedBit::decode(ptr()->tags_);
   }
   void SetGraphMarked() {
-    ASSERT(!IsVMHeapObject());
+    ASSERT(!IsReadOnly());
     uint32_t tags = ptr()->tags_;
     ptr()->tags_ = GraphMarkedBit::update(true, tags);
   }
   void ClearGraphMarked() {
-    ASSERT(!IsVMHeapObject());
+    ASSERT(!IsReadOnly());
     uint32_t tags = ptr()->tags_;
     ptr()->tags_ = GraphMarkedBit::update(false, tags);
   }
@@ -463,12 +470,10 @@ class RawObject {
     return reinterpret_cast<uword>(raw_obj->ptr());
   }
 
-  static bool IsVMHeapObject(intptr_t value) {
-    return VMHeapObjectTag::decode(value);
-  }
+  static bool IsReadOnly(intptr_t value) { return ReadOnlyBit::decode(value); }
 
   static bool IsCanonical(intptr_t value) {
-    return CanonicalObjectTag::decode(value);
+    return CanonicalBit::decode(value);
   }
 
   // Class Id predicates.

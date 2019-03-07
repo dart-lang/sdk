@@ -532,7 +532,7 @@ class WritePointerVisitor : public ObjectPointerVisitor {
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; ++current) {
       RawObject* object = *current;
-      if (!object->IsHeapObject() || object->IsVMHeapObject()) {
+      if (!object->IsHeapObject() || object->IsReadOnly()) {
         // Ignore smis and objects in the VM isolate for now.
         // TODO(koda): To track which field each pointer corresponds to,
         // we'll need to encode which fields were omitted here.

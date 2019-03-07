@@ -456,7 +456,7 @@ void Object::InitNull(Isolate* isolate) {
     uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
     null_ = reinterpret_cast<RawInstance*>(address + kHeapObjectTag);
     // The call below is using 'null_' to initialize itself.
-    InitializeObject(address, kNullCid, Instance::InstanceSize(), true);
+    InitializeObject(address, kNullCid, Instance::InstanceSize());
   }
 }
 
@@ -502,7 +502,7 @@ void Object::Init(Isolate* isolate) {
     intptr_t size = Class::InstanceSize();
     uword address = heap->Allocate(size, Heap::kOld);
     class_class_ = reinterpret_cast<RawClass*>(address + kHeapObjectTag);
-    InitializeObject(address, Class::kClassId, size, true);
+    InitializeObject(address, Class::kClassId, size);
 
     Class fake;
     // Initialization from Class::New<Class>.
@@ -701,7 +701,7 @@ void Object::Init(Isolate* isolate) {
   // Allocate and initialize the empty_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(0), Heap::kOld);
-    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(0), true);
+    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(0));
     Array::initializeHandle(
         empty_array_, reinterpret_cast<RawArray*>(address + kHeapObjectTag));
     empty_array_->StoreSmi(&empty_array_->raw_ptr()->length_, Smi::New(0));
@@ -712,7 +712,7 @@ void Object::Init(Isolate* isolate) {
   // Allocate and initialize the zero_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(1), Heap::kOld);
-    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(1), true);
+    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(1));
     Array::initializeHandle(
         zero_array_, reinterpret_cast<RawArray*>(address + kHeapObjectTag));
     zero_array_->StoreSmi(&zero_array_->raw_ptr()->length_, Smi::New(1));
@@ -724,8 +724,7 @@ void Object::Init(Isolate* isolate) {
   // Allocate and initialize the canonical empty context scope object.
   {
     uword address = heap->Allocate(ContextScope::InstanceSize(0), Heap::kOld);
-    InitializeObject(address, kContextScopeCid, ContextScope::InstanceSize(0),
-                     true);
+    InitializeObject(address, kContextScopeCid, ContextScope::InstanceSize(0));
     ContextScope::initializeHandle(
         empty_context_scope_,
         reinterpret_cast<RawContextScope*>(address + kHeapObjectTag));
@@ -739,8 +738,7 @@ void Object::Init(Isolate* isolate) {
   // Allocate and initialize the canonical empty object pool object.
   {
     uword address = heap->Allocate(ObjectPool::InstanceSize(0), Heap::kOld);
-    InitializeObject(address, kObjectPoolCid, ObjectPool::InstanceSize(0),
-                     true);
+    InitializeObject(address, kObjectPoolCid, ObjectPool::InstanceSize(0));
     ObjectPool::initializeHandle(
         empty_object_pool_,
         reinterpret_cast<RawObjectPool*>(address + kHeapObjectTag));
@@ -752,8 +750,8 @@ void Object::Init(Isolate* isolate) {
   // Allocate and initialize the empty_descriptors instance.
   {
     uword address = heap->Allocate(PcDescriptors::InstanceSize(0), Heap::kOld);
-    InitializeObject(address, kPcDescriptorsCid, PcDescriptors::InstanceSize(0),
-                     true);
+    InitializeObject(address, kPcDescriptorsCid,
+                     PcDescriptors::InstanceSize(0));
     PcDescriptors::initializeHandle(
         empty_descriptors_,
         reinterpret_cast<RawPcDescriptors*>(address + kHeapObjectTag));
@@ -767,7 +765,7 @@ void Object::Init(Isolate* isolate) {
     uword address =
         heap->Allocate(LocalVarDescriptors::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kLocalVarDescriptorsCid,
-                     LocalVarDescriptors::InstanceSize(0), true);
+                     LocalVarDescriptors::InstanceSize(0));
     LocalVarDescriptors::initializeHandle(
         empty_var_descriptors_,
         reinterpret_cast<RawLocalVarDescriptors*>(address + kHeapObjectTag));
@@ -783,7 +781,7 @@ void Object::Init(Isolate* isolate) {
     uword address =
         heap->Allocate(ExceptionHandlers::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kExceptionHandlersCid,
-                     ExceptionHandlers::InstanceSize(0), true);
+                     ExceptionHandlers::InstanceSize(0));
     ExceptionHandlers::initializeHandle(
         empty_exception_handlers_,
         reinterpret_cast<RawExceptionHandlers*>(address + kHeapObjectTag));
@@ -795,8 +793,8 @@ void Object::Init(Isolate* isolate) {
   // Allocate and initialize the canonical empty type arguments object.
   {
     uword address = heap->Allocate(TypeArguments::InstanceSize(0), Heap::kOld);
-    InitializeObject(address, kTypeArgumentsCid, TypeArguments::InstanceSize(0),
-                     true);
+    InitializeObject(address, kTypeArgumentsCid,
+                     TypeArguments::InstanceSize(0));
     TypeArguments::initializeHandle(
         empty_type_arguments_,
         reinterpret_cast<RawTypeArguments*>(address + kHeapObjectTag));
@@ -1009,8 +1007,8 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
     // No forwarding corpses in the VM isolate.
     ASSERT(!obj->IsForwardingCorpse());
     if (!obj->IsFreeListElement()) {
-      ASSERT(obj->IsVMHeapObject());
       obj->SetMarkBitUnsynchronized();
+      obj->SetReadOnlyUnsynchronized();
       Object::FinalizeReadOnlyObject(obj);
 #if defined(HASH_IN_OBJECT_HEADER)
       // These objects end up in the read-only VM isolate which is shared
@@ -1200,8 +1198,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
           reinterpret_cast<RawTypedData*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      new_tags = RawObject::VMHeapObjectTag::update(obj.raw()->IsVMHeapObject(),
-                                                    new_tags);
+      new_tags = RawObject::ReadOnlyBit::update(false, new_tags);
       const bool is_old = obj.raw()->IsOldObject();
       new_tags = RawObject::OldBit::update(is_old, new_tags);
       new_tags = RawObject::OldAndNotMarkedBit::update(is_old, new_tags);
@@ -1232,8 +1229,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      new_tags = RawObject::VMHeapObjectTag::update(obj.raw()->IsVMHeapObject(),
-                                                    new_tags);
+      new_tags = RawObject::ReadOnlyBit::update(false, new_tags);
       const bool is_old = obj.raw()->IsOldObject();
       new_tags = RawObject::OldBit::update(is_old, new_tags);
       new_tags = RawObject::OldAndNotMarkedBit::update(is_old, new_tags);
@@ -2016,12 +2012,12 @@ RawError* Object::Init(Isolate* isolate,
 }
 
 #if defined(DEBUG)
-bool Object::InVMHeap() const {
-  if (FLAG_verify_handles && raw()->IsVMHeapObject()) {
+bool Object::IsReadOnly() const {
+  if (FLAG_verify_handles && raw()->IsReadOnly()) {
     Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
     ASSERT(vm_isolate_heap->Contains(RawObject::ToAddr(raw())));
   }
-  return raw()->IsVMHeapObject();
+  return raw()->IsReadOnly();
 }
 #endif  // DEBUG
 
@@ -2033,10 +2029,7 @@ RawString* Object::DictionaryName() const {
   return String::null();
 }
 
-void Object::InitializeObject(uword address,
-                              intptr_t class_id,
-                              intptr_t size,
-                              bool is_vm_object) {
+void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
   uword initial_value = (class_id == kInstructionsCid)
                             ? Assembler::GetBreakInstructionFiller()
                             : reinterpret_cast<uword>(null_);
@@ -2050,7 +2043,7 @@ void Object::InitializeObject(uword address,
   ASSERT(class_id != kIllegalCid);
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
-  tags = RawObject::VMHeapObjectTag::update(is_vm_object, tags);
+  tags = RawObject::ReadOnlyBit::update(false, tags);
   const bool is_old =
       (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
   tags = RawObject::OldBit::update(is_old, tags);
@@ -2061,7 +2054,6 @@ void Object::InitializeObject(uword address,
 #if defined(HASH_IN_OBJECT_HEADER)
   reinterpret_cast<RawObject*>(address)->hash_ = 0;
 #endif
-  ASSERT(is_vm_object == RawObject::IsVMHeapObject(tags));
 }
 
 void Object::CheckHandle() const {
@@ -2092,8 +2084,7 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   Thread* thread = Thread::Current();
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
   ASSERT(thread->no_callback_scope_depth() == 0);
-  Isolate* isolate = thread->isolate();
-  Heap* heap = isolate->heap();
+  Heap* heap = thread->heap();
 
   uword address;
 
@@ -2104,15 +2095,16 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   } else {
     address = heap->Allocate(size, space);
   }
-  if (address == 0) {
+  if (UNLIKELY(address == 0)) {
     // Use the preallocated out of memory exception to avoid calling
     // into dart code or allocating any code.
     const Instance& exception =
-        Instance::Handle(isolate->object_store()->out_of_memory());
+        Instance::Handle(thread->isolate()->object_store()->out_of_memory());
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
 #ifndef PRODUCT
+  Isolate* isolate = thread->isolate();
   ClassTable* class_table = isolate->class_table();
   if (space == Heap::kNew) {
     class_table->UpdateAllocatedNew(cls_id, size);
@@ -2125,7 +2117,7 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   }
 #endif  // !PRODUCT
   NoSafepointScope no_safepoint;
-  InitializeObject(address, cls_id, size, (isolate == Dart::vm_isolate()));
+  InitializeObject(address, cls_id, size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   ASSERT(cls_id == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
   if (raw_obj->IsOldObject() && thread->is_marking()) {
@@ -16076,7 +16068,7 @@ RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
       return result.raw();
     }
     if (IsNew()) {
-      ASSERT((isolate == Dart::vm_isolate()) || !InVMHeap());
+      ASSERT((isolate == Dart::vm_isolate()) || !IsReadOnly());
       // Create a canonical object in old space.
       result ^= Object::Clone(*this, Heap::kOld);
     } else {
@@ -17421,7 +17413,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     ASSERT(!IsFunctionType());
     Type& type = Type::Handle(zone, cls.declaration_type());
     if (type.IsNull()) {
-      ASSERT(!cls.raw()->IsVMHeapObject() || (isolate == Dart::vm_isolate()));
+      ASSERT(!cls.raw()->IsReadOnly() || (isolate == Dart::vm_isolate()));
       // Canonicalize the type arguments of the supertype, if any.
       TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
       type_args = type_args.Canonicalize(trail);

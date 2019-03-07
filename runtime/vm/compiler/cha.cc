@@ -39,7 +39,7 @@ bool CHA::HasSubclasses(const Class& cls) {
   // read-only.
   // TODO(fschneider): Enable tracking of CHA dependent code for VM heap
   // classes.
-  if (cls.InVMHeap()) return true;
+  if (cls.IsReadOnly()) return true;
 
   if (cls.IsObjectClass()) {
     // Class Object has subclasses, although we do not keep track of them.
@@ -58,7 +58,7 @@ bool CHA::HasSubclasses(intptr_t cid) const {
 
 bool CHA::ConcreteSubclasses(const Class& cls,
                              GrowableArray<intptr_t>* class_ids) {
-  if (cls.InVMHeap()) return false;
+  if (cls.IsReadOnly()) return false;
   if (cls.IsObjectClass()) return false;
 
   if (!cls.is_abstract()) {
@@ -87,7 +87,7 @@ bool CHA::IsImplemented(const Class& cls) {
   // read-only.
   // TODO(fschneider): Enable tracking of CHA dependent code for VM heap
   // classes.
-  if (cls.InVMHeap()) return true;
+  if (cls.IsReadOnly()) return true;
 
   return cls.is_implemented();
 }
@@ -129,7 +129,7 @@ bool CHA::HasOverride(const Class& cls,
   // read-only.
   // TODO(fschneider): Enable tracking of CHA dependent code for VM heap
   // classes.
-  if (cls.InVMHeap()) return true;
+  if (cls.IsReadOnly()) return true;
 
   // Subclasses of Object are not tracked by CHA. Safely assume that overrides
   // exist.
