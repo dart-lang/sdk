@@ -38,6 +38,7 @@
 #include "vm/os_thread.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
+#include "vm/profiler_service.h"
 #include "vm/program_visitor.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
@@ -1279,6 +1280,24 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   T->EnterSafepoint();
 }
 
+DART_EXPORT void Dart_StartProfiling() {
+#if !defined(PRODUCT)
+  if (!FLAG_profiler) {
+    FLAG_profiler = true;
+    Profiler::Init();
+  }
+#endif  // !defined(PRODUCT)
+}
+
+DART_EXPORT void Dart_StopProfiling() {
+#if !defined(PRODUCT)
+  if (FLAG_profiler) {
+    Profiler::Cleanup();
+    FLAG_profiler = false;
+  }
+#endif  // !defined(PRODUCT)
+}
+
 DART_EXPORT void Dart_ThreadDisableProfiling() {
   OSThread* os_thread = OSThread::Current();
   if (os_thread == NULL) {
@@ -1293,6 +1312,39 @@ DART_EXPORT void Dart_ThreadEnableProfiling() {
     return;
   }
   os_thread->EnableThreadInterrupts();
+}
+
+DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
+                                             char** error) {
+#if defined(PRODUCT)
+  return false;
+#else
+  if (!FLAG_profiler) {
+    if (error != NULL) {
+      *error = strdup("The profiler is not running.");
+    }
+    return false;
+  }
+
+  const intptr_t kBufferLength = 512;
+  char method[kBufferLength];
+  intptr_t method_length = snprintf(method, kBufferLength, "{"
+      "\"jsonrpc\": \"2.0\","
+      "\"method\": \"_writeCpuProfileTimeline\","
+      "\"id\": \"\","
+      "\"params\": {\"isolateId\": \"isolates/%" Pd64 "\"}"
+    "}", main_port);
+  ASSERT(method_length <= kBufferLength);
+
+  char* response = NULL;
+  intptr_t response_length;
+  bool success = Dart_InvokeVMServiceMethod(
+      reinterpret_cast<uint8_t*>(method), method_length,
+      reinterpret_cast<uint8_t**>(&response), &response_length,
+      error);
+  free(response);
+  return success;
+#endif
 }
 
 DART_EXPORT bool Dart_ShouldPauseOnStart() {

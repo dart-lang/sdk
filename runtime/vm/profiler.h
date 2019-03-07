@@ -732,6 +732,11 @@ class ProcessedSample : public ZoneAllocated {
     timeline_trie_ = trie;
   }
 
+  ProfileTrieNode* timeline_code_trie() const { return timeline_code_trie_; }
+  void set_timeline_code_trie(ProfileTrieNode* trie) {
+    timeline_code_trie_ = trie;
+  }
+
  private:
   void FixupCaller(const CodeLookupTable& clt,
                    uword pc_marker,
@@ -753,6 +758,7 @@ class ProcessedSample : public ZoneAllocated {
   uword native_allocation_address_;
   uintptr_t native_allocation_size_bytes_;
   ProfileTrieNode* timeline_trie_;
+  ProfileTrieNode* timeline_code_trie_;
 
   friend class SampleBuffer;
   DISALLOW_COPY_AND_ASSIGN(ProcessedSample);

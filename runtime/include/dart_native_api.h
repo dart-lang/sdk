@@ -122,7 +122,6 @@ DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message);
  * data references from the message are allocated by the caller and
  * will be reclaimed when returning to it.
  */
-
 typedef void (*Dart_NativeMessageHandler)(Dart_Port dest_port_id,
                                           Dart_CObject* message);
 

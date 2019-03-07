@@ -3806,6 +3806,11 @@ static const MethodParameter* get_cpu_profile_params[] = {
     NULL,
 };
 
+static const MethodParameter* write_cpu_profile_timeline_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
 // TODO(johnmccutchan): Rename this to GetCpuSamples.
 static bool GetCpuProfile(Thread* thread, JSONStream* js) {
   Profile::TagOrder tag_order =
@@ -3840,6 +3845,11 @@ static bool GetCpuProfileTimeline(Thread* thread, JSONStream* js) {
       UIntParameter::Parse(js->LookupParam("timeExtentMicros"));
   ProfilerService::PrintTimelineJSON(js, tag_order, time_origin_micros,
                                      time_extent_micros);
+  return true;
+}
+
+static bool WriteCpuProfileTimeline(Thread* thread, JSONStream* js) {
+  ProfilerService::AddToTimeline();
   return true;
 }
 
@@ -4841,6 +4851,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_cpu_profile_params },
   { "_getCpuProfileTimeline", GetCpuProfileTimeline,
     get_cpu_profile_timeline_params },
+  { "_writeCpuProfileTimeline", WriteCpuProfileTimeline,
+    write_cpu_profile_timeline_params },
   { "getFlagList", GetFlagList,
     get_flag_list_params },
   { "_getHeapMap", GetHeapMap,
