@@ -8,8 +8,8 @@
 #   $build_dir/vm_platform_strong.dill
 #   $build_dir/gen/kernel_service.dill
 #   $build_dir/gen_kernel_bytecode.dill
-# This script is a no-op unless $BUILDBOT_BUILDERNAME is "dart-sdk-linux". It's
-# also a no-op if dill files were already uploaded today.
+# This script is a no-op unless $BUILDBOT_BUILDERNAME is "dart-sdk-linux-be".
+# It's also a no-op if dill files were already uploaded today.
 set -e
 set -x
 
@@ -18,8 +18,8 @@ if [ -z "$2" ]; then
   exit 1
 fi
 
-if [ "$BUILDBOT_BUILDERNAME" != "dart-sdk-linux" ]; then
-  echo "This script only works on the dart-sdk-linux buildbot"
+if [ "$BUILDBOT_BUILDERNAME" != "dart-sdk-linux-be" ]; then
+  echo "This script only works on the dart-sdk-linux-be buildbot"
   exit 0
 fi
 
@@ -34,7 +34,9 @@ if [ ! -z "$search_results" ]; then
   exit 0
 fi
 
+sdk_dir=$(pwd)
 tmpdir=$(mktemp -d)
+chmod 755 $tmpdir
 cleanup() {
   rm -rf "$tmpdir"
 }
@@ -42,18 +44,17 @@ trap cleanup EXIT HUP INT QUIT TERM PIPE
 pushd "$tmpdir"
 
 mkdir abiversions
-cp "$2/vm_platform_strong.dill" "abiversions/vm_platform_strong.dill"
-cp "$2/gen/kernel_service.dill" "abiversions/kernel_service.dill"
-cp "$2/gen_kernel_bytecode.dill" "abiversions/gen_kernel_bytecode.dill"
+cp "$sdk_dir/$2/vm_platform_strong.dill" "abiversions/vm_platform_strong.dill"
+cp "$sdk_dir/$2/gen/kernel_service.dill" "abiversions/kernel_service.dill"
 
 cipd create \
-  -name dart/abiversions/$abi_version \
-  -in abiversions \
+  -name dart/abiversions/$abi_version \
+  -in abiversions \
   -install-mode copy \
   -tag version:$abi_version \
   -tag date:$current_date \
   -tag git_revision:$git_revision \
   -ref latest \
-  -ref version:$abi_version
+  -ref version_$abi_version
 
 popd
