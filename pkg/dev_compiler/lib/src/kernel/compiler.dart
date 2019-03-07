@@ -5165,8 +5165,10 @@ class ProgramCompiler extends Object
       var member = entry.key.asField;
       var prevLibrary = _currentLibrary;
       _currentLibrary = member.enclosingLibrary;
-      return JS.Property(_emitMemberName(field, member: member), constant);
+      var result =
+          JS.Property(_emitMemberName(field, member: member), constant);
       _currentLibrary = prevLibrary;
+      return result;
     }
 
     var type = visitInterfaceType(node.getType(types) as InterfaceType);
