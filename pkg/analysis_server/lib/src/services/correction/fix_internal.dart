@@ -586,6 +586,9 @@ class FixProcessor {
       if (name == LintNames.empty_statements) {
         await _addFix_removeEmptyStatement();
       }
+      if (name == LintNames.no_duplicate_case_values) {
+        await _addFix_removeCaseStatement();
+      }
       if (name == LintNames.non_constant_identifier_names) {
         await _addFix_renameToCamelCase();
       }
@@ -2699,6 +2702,16 @@ class FixProcessor {
     }
   }
 
+  Future<void> _addFix_removeCaseStatement() async {
+    if (coveredNode is SwitchCase) {
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(utils.getLinesRange(range.node(coveredNode)));
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_DUPLICATE_CASE);
+    }
+  }
+
   Future<void> _addFix_removeConstKeyword() async {
     final instanceCreationExpression = node;
     if (instanceCreationExpression is InstanceCreationExpression) {
@@ -4325,6 +4338,7 @@ class LintNames {
   static const String empty_catches = 'empty_catches';
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
   static const String empty_statements = 'empty_statements';
+  static const String no_duplicate_case_values = 'no_duplicate_case_values';
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';
   static const String prefer_collection_literals = 'prefer_collection_literals';

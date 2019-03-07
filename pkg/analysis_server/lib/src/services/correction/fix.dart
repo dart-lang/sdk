@@ -209,6 +209,8 @@ class DartFixKind {
   static const REMOVE_AWAIT = const FixKind('REMOVE_AWAIT', 50, "Remove await");
   static const REMOVE_DEAD_CODE =
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
+  static const REMOVE_DUPLICATE_CASE = const FixKind(
+      'REMOVE_DUPLICATE_CASE', 50, "Remove duplicate case statement");
   static const REMOVE_EMPTY_CATCH =
       const FixKind('REMOVE_EMPTY_CATCH', 50, "Remove empty catch clause");
   static const REMOVE_EMPTY_CONSTRUCTOR_BODY = const FixKind(
