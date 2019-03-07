@@ -71,7 +71,7 @@ void testList() {
   Expect.listEquals(list, <int>[if (true) for (var i in list) i]);
 
   // Nested for in else.
-  Expect.listEquals(list, <int>[if (false) 9 for (var i in list) i]);
+  Expect.listEquals(list, <int>[if (false) 9 else for (var i in list) i]);
 }
 
 void testMap() {
@@ -122,7 +122,7 @@ void testMap() {
   Expect.mapEquals(map, <int, int>{if (true) for (var i in list) i: i});
 
   // Nested for in else.
-  Expect.mapEquals(map, <int, int>{if (false) 9: 9 for (var i in list) i: i});
+  Expect.mapEquals(map, <int, int>{if (false) 9: 9 else for (var i in list) i: i});
 }
 
 void testSet() {
@@ -174,7 +174,7 @@ void testSet() {
   Expect.setEquals(set, <int>{if (true) for (var i in list) i});
 
   // Nested for in else.
-  Expect.setEquals(set, <int>{if (false) 9 for (var i in list) i});
+  Expect.setEquals(set, <int>{if (false) 9 else for (var i in list) i});
 }
 
 void testShortCircuit() {

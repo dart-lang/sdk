@@ -39,17 +39,17 @@ void testClosure() {
   Expect.equals(1, list[1]());
 
   // Close over variable in condition expression.
-  list = [for (var i = 0; capture(() => i++) < 2;) i];
+  var list2 = [for (var i = 0; capture(() => i++) < 2;) i];
   Expect.equals(1, closures[0]());
   Expect.equals(2, closures[1]());
-  Expect.listEquals([1, 2], list);
+  Expect.listEquals([1, 2], list2);
   reset();
 
   // Close over variable in increment expression.
-  list = [for (var i = 0; i < 2; capture(() => i++)) i];
+  var list3 = [for (var i = 0; i < 2; capture(() => i++)) i];
   Expect.equals(1, closures[0]());
   Expect.equals(2, closures[1]());
-  Expect.listEquals([0, 1], list);
+  Expect.listEquals([0, 1], list3);
   reset();
 }
 

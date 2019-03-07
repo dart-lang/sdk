@@ -109,7 +109,7 @@ void testMap() {
 
   // Spread inside for.
   Expect.mapEquals(map, <int, int>{
-    for (var i in <int>[0, 2]) ...<int>{1 + i: 1 + i, 2 + i: 2 + i}
+    for (var i in <int>[0, 2]) ...<int, int>{1 + i: 1 + i, 2 + i: 2 + i}
   });
 
   // If inside for.
@@ -132,9 +132,9 @@ void testMap() {
   Expect.mapEquals(map, <int, int>{for (num n in <num>[1, 2, 3, 4]) n: n});
 
   // Downcast condition.
-  Expect.mapEquals([1],
+  Expect.mapEquals({1 : 1},
       <int, int>{for (var i = 1; (i < 2) as dynamic; i++) i: i});
-  Expect.mapEquals([1],
+  Expect.mapEquals({1 : 1},
       <int, int>{for (var i = 1; (i < 2) as Object; i++) i: i});
 }
 

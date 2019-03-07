@@ -61,7 +61,7 @@ void testLoopVariableInference() {
   Expect.type<List<String>>([for (var i = 1; i < 2; i++) i.toRadixString(10)]);
 
   // Loop variable type is not pushed into iterable.
-  Expect.listEquals(<int>[1], [for (int i in expectDynamic([1]))]);
+  Expect.listEquals(<int>[1], [for (int i in expectDynamic([1])) i]);
 
   // Loop variable type is pushed into initializer.
   Expect.listEquals(<int>[1], [for (int i = expectInt(1); i < 2; i++) i]);
