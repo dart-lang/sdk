@@ -10,10 +10,6 @@ import 'package:linter/src/analyzer.dart';
 const _desc = r'Prefer putting asserts in initializer list.';
 
 const _details = r'''
-
-**WARNING** Putting asserts in initializer lists is only possible using an
-experimental language feature that might be removed.
-
 **DO** put asserts in initializer list for constructors with only asserts in
 their body.
 
