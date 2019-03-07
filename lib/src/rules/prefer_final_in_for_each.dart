@@ -73,15 +73,15 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (forLoopParts is ForEachPartsWithDeclaration) {
       final loopVariable = forLoopParts.loopVariable;
 
-    if (loopVariable.isFinal) {
-      return;
-    }
+      if (loopVariable.isFinal) {
+        return;
+      }
 
-    FunctionBody function = node.thisOrAncestorOfType<FunctionBody>();
-    if (function != null &&
-        !function.isPotentiallyMutatedInScope(loopVariable.declaredElement)) {
-      rule.reportLint(loopVariable.identifier);
+      FunctionBody function = node.thisOrAncestorOfType<FunctionBody>();
+      if (function != null &&
+          !function.isPotentiallyMutatedInScope(loopVariable.declaredElement)) {
+        rule.reportLint(loopVariable.identifier);
+      }
     }
-  }
   }
 }
