@@ -128,8 +128,11 @@ class _Visitor extends SimpleAstVisitor {
   _Visitor(this.rule);
 
   @override
-  visitForEachStatement(ForEachStatement node) {
-    final visitor = new _PreferForEachVisitor(rule);
-    node.accept(visitor);
+  visitForStatement2(ForStatement2 node) {
+    final loopParts = node.forLoopParts;
+    if (loopParts is ForEachParts) {
+      final visitor = new _PreferForEachVisitor(rule);
+      node.accept(visitor);
+    }
   }
 }
