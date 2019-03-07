@@ -3265,9 +3265,11 @@ class Field : public Object {
 
   DART_WARN_UNUSED_RESULT RawError* EvaluateInitializer() const;
 
-  RawFunction* Initializer() const { return raw_ptr()->initializer_; }
-  void SetInitializer(const Function& initializer) const;
-  bool HasInitializer() const;
+  RawFunction* InitializerFunction() const {
+    return raw_ptr()->initializer_function_;
+  }
+  void SetInitializerFunction(const Function& initializer) const;
+  bool HasInitializerFunction() const;
 
   // For static fields only. Constructs a closure that gets/sets the
   // field value.

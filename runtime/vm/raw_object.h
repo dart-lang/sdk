@@ -1051,7 +1051,7 @@ class RawField : public RawObject {
     RawInstance* static_value_;  // Value for static fields.
     RawSmi* offset_;             // Offset in words for instance fields.
   } value_;
-  RawFunction* initializer_;  // Static initializer function.
+  RawFunction* initializer_function_;  // Static initializer function.
   // When generating APPJIT snapshots after running the application it is
   // necessary to save the initial value of static fields so that we can
   // restore the value back to the original initial value.
@@ -1067,7 +1067,7 @@ class RawField : public RawObject {
       case Snapshot::kFullJIT:
         return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->initializer_);
+        return reinterpret_cast<RawObject**>(&ptr()->initializer_function_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:

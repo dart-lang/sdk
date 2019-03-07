@@ -1200,8 +1200,9 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
     ASSERT(thread->IsMutatorThread());
     NoOOBMessageScope no_msg_scope(thread);
     NoReloadScope no_reload_scope(thread->isolate(), thread);
-    if (field.HasInitializer()) {
-      const Function& initializer = Function::Handle(field.Initializer());
+    if (field.HasInitializerFunction()) {
+      const Function& initializer =
+          Function::Handle(field.InitializerFunction());
       return DartEntry::InvokeFunction(initializer, Object::empty_array());
     }
     {
@@ -1706,8 +1707,8 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 }
 
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
-  ASSERT(field.HasInitializer());
-  const Function& initializer = Function::Handle(field.Initializer());
+  ASSERT(field.HasInitializerFunction());
+  const Function& initializer = Function::Handle(field.InitializerFunction());
   return DartEntry::InvokeFunction(initializer, Object::empty_array());
 }
 

@@ -491,16 +491,12 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
 }
 
 void SourceReport::VisitField(JSONArray* jsarr, const Field& field) {
-  if (ShouldSkipField(field) || !field.has_initializer()) return;
-  const Function& func =
-      Function::Handle(zone(), GetInitializerFunction(field));
-  VisitFunction(jsarr, func);
-}
-
-RawFunction* SourceReport::GetInitializerFunction(const Field& field) {
+  if (ShouldSkipField(field) || !field.HasInitializerFunction()) return;
   Thread* const thread = Thread::Current();
-  // Create a function to evaluate the initializer
-  return kernel::CreateFieldInitializerFunction(thread, thread->zone(), field);
+  const Function& func = Function::Handle(
+      zone(),
+      kernel::CreateFieldInitializerFunction(thread, thread->zone(), field));
+  VisitFunction(jsarr, func);
 }
 
 void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {

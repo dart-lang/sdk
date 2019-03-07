@@ -8584,13 +8584,13 @@ bool Field::IsUninitialized() const {
   return value.raw() == Object::sentinel().raw();
 }
 
-void Field::SetInitializer(const Function& initializer) const {
+void Field::SetInitializerFunction(const Function& initializer) const {
   ASSERT(IsOriginal());
-  StorePointer(&raw_ptr()->initializer_, initializer.raw());
+  StorePointer(&raw_ptr()->initializer_function_, initializer.raw());
 }
 
-bool Field::HasInitializer() const {
-  return raw_ptr()->initializer_ != Function::null();
+bool Field::HasInitializerFunction() const {
+  return raw_ptr()->initializer_function_ != Function::null();
 }
 
 RawError* Field::EvaluateInitializer() const {

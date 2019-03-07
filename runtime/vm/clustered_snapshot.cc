@@ -866,7 +866,7 @@ class FieldSerializationCluster : public SerializationCluster {
       s->Push(field->ptr()->value_.offset_);
     }
     // Write out the initializer function
-    s->Push(field->ptr()->initializer_);
+    s->Push(field->ptr()->initializer_function_);
     if (kind != Snapshot::kFullAOT) {
       // Write out the saved initial value
       s->Push(field->ptr()->saved_initial_value_);
@@ -916,8 +916,8 @@ class FieldSerializationCluster : public SerializationCluster {
       } else {
         WriteField(field, value_.offset_);
       }
-      // Write out the initializer function or saved initial value.
-      WriteField(field, initializer_);
+      // Write out the initializer function and initial value if not in AOT.
+      WriteField(field, initializer_function_);
       if (kind != Snapshot::kFullAOT) {
         WriteField(field, saved_initial_value_);
       }

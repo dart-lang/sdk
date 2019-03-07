@@ -2209,8 +2209,8 @@ RawFunction::Kind KernelLoader::GetFunctionType(
 RawFunction* CreateFieldInitializerFunction(Thread* thread,
                                             Zone* zone,
                                             const Field& field) {
-  if (field.Initializer() != Function::null()) {
-    return field.Initializer();
+  if (field.InitializerFunction() != Function::null()) {
+    return field.InitializerFunction();
   }
   String& init_name = String::Handle(zone, field.name());
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
@@ -2248,7 +2248,7 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
   initializer_fun.set_is_inlinable(false);
   initializer_fun.set_token_pos(field.token_pos());
   initializer_fun.set_end_token_pos(field.end_token_pos());
-  field.SetInitializer(initializer_fun);
+  field.SetInitializerFunction(initializer_fun);
   return initializer_fun.raw();
 }
 

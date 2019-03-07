@@ -81,8 +81,8 @@ class ClassFunctionVisitor : public ClassVisitor {
     fields_ = cls.fields();
     for (intptr_t j = 0; j < fields_.Length(); j++) {
       field_ ^= fields_.At(j);
-      if (field_.is_static() && field_.HasInitializer()) {
-        function_ ^= field_.Initializer();
+      if (field_.is_static() && field_.HasInitializerFunction()) {
+        function_ ^= field_.InitializerFunction();
         visitor_->Visit(function_);
       }
     }

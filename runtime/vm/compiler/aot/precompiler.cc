@@ -864,8 +864,8 @@ void Precompiler::AddField(const Field& field) {
       // Should not be in the middle of initialization while precompiling.
       ASSERT(value.raw() != Object::transition_sentinel().raw());
 
-      if (!field.HasInitializer() ||
-          !Function::Handle(Z, field.Initializer()).HasCode()) {
+      if (!field.HasInitializerFunction() ||
+          !Function::Handle(Z, field.InitializerFunction()).HasCode()) {
         if (FLAG_trace_precompiler) {
           THR_Print("Precompiling initializer for %s\n", field.ToCString());
         }
@@ -877,7 +877,7 @@ void Precompiler::AddField(const Field& field) {
         const Function& initializer =
             Function::Handle(Z, CompileStaticInitializer(field));
         ASSERT(!initializer.IsNull());
-        field.SetInitializer(initializer);
+        field.SetInitializerFunction(initializer);
         AddCalleesOf(initializer, gop_offset);
       }
     }
