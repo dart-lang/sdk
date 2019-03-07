@@ -278,7 +278,8 @@ class Fangorn extends Forest {
 
   @override
   Expression spreadElement(Expression expression, Token token) {
-    return new SpreadElement(expression)..fileOffset = offsetForToken(token);
+    return new SpreadElement(expression, token.lexeme == '...?')
+      ..fileOffset = offsetForToken(token);
   }
 
   @override

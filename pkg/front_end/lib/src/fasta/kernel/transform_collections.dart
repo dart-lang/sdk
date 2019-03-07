@@ -10,14 +10,18 @@ import 'package:kernel/ast.dart'
         Block,
         BlockExpression,
         DartType,
+        DynamicType,
         Expression,
         ExpressionStatement,
         ForInStatement,
+        IfStatement,
         InterfaceType,
         InvalidExpression,
         ListLiteral,
         MethodInvocation,
         Name,
+        Not,
+        NullLiteral,
         Procedure,
         SetLiteral,
         Statement,
@@ -41,6 +45,7 @@ class CollectionTransformer extends Transformer {
   final Procedure listAdd;
   final Procedure setFactory;
   final Procedure setAdd;
+  final Procedure objectEquals;
 
   static Procedure _findSetFactory(CoreTypes coreTypes) {
     Procedure factory = coreTypes.index.getMember('dart:core', 'Set', '');
@@ -52,7 +57,9 @@ class CollectionTransformer extends Transformer {
       : coreTypes = loader.coreTypes,
         listAdd = loader.coreTypes.index.getMember('dart:core', 'List', 'add'),
         setFactory = _findSetFactory(loader.coreTypes),
-        setAdd = loader.coreTypes.index.getMember('dart:core', 'Set', 'add');
+        setAdd = loader.coreTypes.index.getMember('dart:core', 'Set', 'add'),
+        objectEquals =
+            loader.coreTypes.index.getMember('dart:core', 'Object', '==');
 
   TreeNode _translateListOrSet(
       Expression node, DartType elementType, List<Expression> elements,
@@ -83,9 +90,11 @@ class CollectionTransformer extends Transformer {
       return node;
     }
 
-    // Build a block expression and create an empty list.
+    // Build a block expression and create an empty list or set.
     VariableDeclaration result;
     if (isSet) {
+      // TODO(kmillikin): When all the back ends handle set literals we can use
+      // one here.
       result = new VariableDeclaration.forValue(
           new StaticInvocation(
               setFactory, new Arguments([], types: [elementType])),
@@ -110,16 +119,38 @@ class CollectionTransformer extends Transformer {
     for (; i < elements.length; ++i) {
       Expression element = elements[i];
       if (element is SpreadElement) {
+        Expression value = element.expression.accept(this);
+        // Null-aware spreads require testing the subexpression's value.
+        VariableDeclaration temp;
+        if (element.isNullAware) {
+          temp = new VariableDeclaration.forValue(value,
+              type: const DynamicType(), isFinal: true);
+          body.add(temp);
+          value = new VariableGet(temp);
+        }
+
         VariableDeclaration elt =
             new VariableDeclaration(null, type: elementType, isFinal: true);
-        body.add(new ForInStatement(
+        Statement statement = new ForInStatement(
             elt,
-            element.expression.accept(this),
+            value,
             new ExpressionStatement(new MethodInvocation(
                 new VariableGet(result),
                 new Name('add'),
                 new Arguments([new VariableGet(elt)]),
-                isSet ? setAdd : listAdd))));
+                isSet ? setAdd : listAdd)));
+
+        if (element.isNullAware) {
+          statement = new IfStatement(
+              new Not(new MethodInvocation(
+                  new VariableGet(temp),
+                  new Name('=='),
+                  new Arguments([new NullLiteral()]),
+                  objectEquals)),
+              statement,
+              null);
+        }
+        body.add(statement);
       } else {
         body.add(new ExpressionStatement(new MethodInvocation(
             new VariableGet(result),

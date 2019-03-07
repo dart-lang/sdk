@@ -28,8 +28,9 @@ import '../problems.dart' show getFileUri, unsupported;
 class SpreadElement extends Expression {
   final DartType inferredType = const BottomType();
   Expression expression;
+  bool isNullAware;
 
-  SpreadElement(this.expression) {
+  SpreadElement(this.expression, this.isNullAware) {
     expression?.parent = this;
   }
 

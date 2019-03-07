@@ -9,18 +9,22 @@ static method main() → dynamic {
     #t1.{core::List::add}(1);
     for (final core::int #t2 in <core::int>[2])
       #t1.{core::List::add}(#t2);
-    for (final core::int #t3 in <core::int>[3])
-      #t1.{core::List::add}(#t3);
+    final dynamic #t3 = <core::int>[3];
+    if(!#t3.{core::Object::==}(null))
+      for (final core::int #t4 in #t3)
+        #t1.{core::List::add}(#t4);
   } =>#t1;
   final core::Map<core::int, core::int> aMap = <core::int, core::int>{1: 1, invalid-expression "unimplemented spread entry": null, invalid-expression "unimplemented spread entry": null};
   final core::Set<core::int> aSet = block {
-    final core::Set<core::int> #t4 = col::LinkedHashSet::•<core::int>();
-    #t4.{core::Set::add}(1);
-    for (final core::int #t5 in <core::int>[2])
-      #t4.{core::Set::add}(#t5);
-    for (final core::int #t6 in <core::int>[3])
-      #t4.{core::Set::add}(#t6);
-  } =>#t4;
+    final core::Set<core::int> #t5 = col::LinkedHashSet::•<core::int>();
+    #t5.{core::Set::add}(1);
+    for (final core::int #t6 in <core::int>[2])
+      #t5.{core::Set::add}(#t6);
+    final dynamic #t7 = <core::int>[3];
+    if(!#t7.{core::Object::==}(null))
+      for (final core::int #t8 in #t7)
+        #t5.{core::Set::add}(#t8);
+  } =>#t5;
   final core::Map<dynamic, dynamic> aSetOrMap = <dynamic, dynamic>{invalid-expression "unimplemented spread entry": null};
   core::print(aList);
   core::print(aSet);
