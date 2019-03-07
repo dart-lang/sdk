@@ -1567,22 +1567,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       if (!isNull && expressionType is InterfaceType) {
         if (_typeSystem.isSubtypeOf(
             expressionType, _typeProvider.iterableObjectType)) {
-          // TODO(brianwilkerson) Handle the following case (from code review):
-          //
-          // What if we have `class X<T> implements Iterable<int> {}`? Then the
-          // type argument to `X` does not matter, we need the type argument for
-          // `Iterable` in `X<T>`. Front-end has a nice method in ClassHierarchy
-          // for this:
-          //
-          //  /// Returns the instantiation of [superclass] that is implemented
-          //  /// by [type], or `null` if [type] does not implement [superclass]
-          //  /// at all.
-          //  InterfaceType getTypeAsInstanceOf(InterfaceType type,
-          //      Class superclass);
-          List<DartType> typeArguments = expressionType.typeArguments;
-          if (typeArguments.length == 1) {
-            return _InferredCollectionElementTypeInformation(
-                elementType: typeArguments[0], keyType: null, valueType: null);
+          InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
+              .asInstanceOf(_typeProvider.iterableType.element);
+          if (iterableType != null) {
+            // The `iterableType` will be `null` when `expressionType` is
+            // `Null`. Fall through in that case to perform the default type
+            // check.
+            List<DartType> typeArguments = iterableType.typeArguments;
+            if (typeArguments.length == 1) {
+              return _InferredCollectionElementTypeInformation(
+                  elementType: typeArguments[0],
+                  keyType: null,
+                  valueType: null);
+            }
           }
           return _InferredCollectionElementTypeInformation(
               elementType: _typeProvider.dynamicType,
@@ -1590,24 +1587,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
               valueType: null);
         } else if (_typeSystem.isSubtypeOf(
             expressionType, _typeProvider.mapObjectObjectType)) {
-          // TODO(brianwilkerson) Handle the following case (from code review):
-          //
-          // What if we have `class X<T> implements Iterable<int> {}`? Then the
-          // type argument to `X` does not matter, we need the type argument for
-          // `Iterable` in `X<T>`. Front-end has a nice method in ClassHierarchy
-          // for this:
-          //
-          //  /// Returns the instantiation of [superclass] that is implemented
-          //  /// by [type], or `null` if [type] does not implement [superclass]
-          //  /// at all.
-          //  InterfaceType getTypeAsInstanceOf(InterfaceType type,
-          //      Class superclass);
-          List<DartType> typeArguments = expressionType.typeArguments;
-          if (typeArguments.length == 2) {
-            return _InferredCollectionElementTypeInformation(
-                elementType: null,
-                keyType: typeArguments[0],
-                valueType: typeArguments[1]);
+          InterfaceType mapType = (expressionType as InterfaceTypeImpl)
+              .asInstanceOf(_typeProvider.mapType.element);
+          if (mapType != null) {
+            // The `iterableType` will be `null` when `expressionType` is
+            // `Null`. Fall through in that case to perform the default type
+            // check.
+            List<DartType> typeArguments = mapType.typeArguments;
+            if (typeArguments.length == 2) {
+              return _InferredCollectionElementTypeInformation(
+                  elementType: null,
+                  keyType: typeArguments[0],
+                  valueType: typeArguments[1]);
+            }
           }
           DartType dynamicType = _typeProvider.dynamicType;
           return _InferredCollectionElementTypeInformation(

@@ -223,4 +223,26 @@ var a = [...b, ...c];
     await resolveTestFile();
     assertType(findNode.listLiteral('[...'), 'List<int>');
   }
+
+  test_noContext_noTypeArgs_spread_onlyNull() async {
+    addTestFile('''
+f() {
+  var futureNull = Future.value(null);
+  var a = [...?await futureNull];
+}
+''');
+    await resolveTestFile();
+    assertType(findNode.listLiteral('['), 'List<dynamic>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAndNotNull() async {
+    addTestFile('''
+f() {
+  var futureNull = Future.value(null);
+  var a = [1, ...?await futureNull, 2];
+}
+''');
+    await resolveTestFile();
+    assertType(findNode.listLiteral('['), 'List<int>');
+  }
 }

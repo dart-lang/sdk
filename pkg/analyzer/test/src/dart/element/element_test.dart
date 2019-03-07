@@ -2000,6 +2000,38 @@ class InterfaceTypeImplTest extends EngineTestCase {
     _typeProvider = new TestTypeProvider();
   }
 
+  test_asInstanceOf_explicitGeneric() {
+    // class A<E> {}
+    // class B implements A<C> {}
+    // class C {}
+    ClassElementImpl classA = ElementFactory.classElement2('A', ['E']);
+    ClassElementImpl classB = ElementFactory.classElement2('B');
+    ClassElementImpl classC = ElementFactory.classElement2('C');
+    classB.interfaces = <InterfaceType>[
+      classA.type.instantiate([classC.type])
+    ];
+
+    InterfaceTypeImpl targetType = classB.type as InterfaceTypeImpl;
+    InterfaceType result = targetType.asInstanceOf(classA);
+    expect(result, classA.type.instantiate([classC.type]));
+  }
+
+  test_asInstanceOf_passThroughGeneric() {
+    // class A<E> {}
+    // class B<E> implements A<E> {}
+    ClassElementImpl classA = ElementFactory.classElement2('A', ['E']);
+    ClassElementImpl classB = ElementFactory.classElement2('B', ['E']);
+    ClassElementImpl classC = ElementFactory.classElement2('C');
+    classB.interfaces = <InterfaceType>[
+      classA.type.instantiate([classB.typeParameters[0].type])
+    ];
+
+    InterfaceTypeImpl targetType =
+        classB.type.instantiate([classC.type]) as InterfaceTypeImpl;
+    InterfaceType result = targetType.asInstanceOf(classA);
+    expect(result, classA.type.instantiate([classC.type]));
+  }
+
   void test_computeLongestInheritancePathToObject_multipleInterfacePaths() {
     //
     //   Object

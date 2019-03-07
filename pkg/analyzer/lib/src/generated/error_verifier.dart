@@ -2291,8 +2291,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   void _checkForArgumentTypeNotAssignableInSpread(
       Expression spreadExpression,
-      DartType elementType,
       DartType spreadExpressionType,
+      DartType elementType,
       ErrorCode errorCode) {
     if (spreadExpressionType != null && elementType != null) {
       if (!elementType.isVoid && _checkForUseOfVoidResult(spreadExpression)) {
@@ -2301,27 +2301,38 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       if (spreadExpressionType is InterfaceType) {
         if (_typeSystem.isSubtypeOf(
             spreadExpressionType, _typeProvider.iterableObjectType)) {
-          // TODO(brianwilkerson) Handle the following case (from code review):
-          //
-          // What if we have `class X<T> implements Iterable<int> {}`? Then the
-          // type argument to `X` does not matter, we need the type argument for
-          // `Iterable` in `X<T>`. Front-end has a nice method in ClassHierarchy
-          // for this:
-          //
-          //  /// Returns the instantiation of [superclass] that is implemented
-          //  /// by [type], or `null` if [type] does not implement [superclass]
-          //  /// at all.
-          //  InterfaceType getTypeAsInstanceOf(InterfaceType type,
-          //      Class superclass);
-          List<DartType> typeArguments = spreadExpressionType.typeArguments;
-          if (typeArguments.length == 1) {
-            _checkForAssignableExpressionAtType(
-                spreadExpression, typeArguments[0], elementType, errorCode);
-            return;
+          InterfaceType iterableType =
+              (spreadExpressionType as InterfaceTypeImpl)
+                  .asInstanceOf(_typeProvider.iterableType.element);
+          if (iterableType != null) {
+            // The `iterableType` will be `null` when `spreadExpressionType` is
+            // `Null`. Fall through in that case to perform the default type
+            // check.
+            List<DartType> typeArguments = iterableType.typeArguments;
+            if (typeArguments.length == 1) {
+              _checkForAssignableExpressionAtType(
+                  spreadExpression, typeArguments[0], elementType, errorCode);
+              return;
+            }
           }
         } else if (_typeSystem.isSubtypeOf(
             spreadExpressionType, _typeProvider.mapObjectObjectType)) {
-          // TODO(brianwilkerson) Handle spreads involving maps.
+          // TODO(brianwilkerson) Handle spreads involving maps? This method
+          //  isn't currently called for maps, but might be if it's reworked as
+          //  expected.
+//          InterfaceType mapType =
+//              (spreadExpressionType as InterfaceTypeImpl)
+//                  .asInstanceOf(_typeProvider.mapType.element);
+//          if (mapType != null) {
+//            List<DartType> typeArguments = mapType.typeArguments;
+//            if (typeArguments.length == 2) {
+//              _checkForAssignableExpressionAtType(
+//                  spreadExpression, typeArguments[0], keyType, errorCode);
+//              _checkForAssignableExpressionAtType(
+//                  spreadExpression, typeArguments[1], valueType, errorCode);
+//              return;
+//            }
+//          }
         }
       }
       _checkForAssignableExpressionAtType(
@@ -2611,7 +2622,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else if (element is SpreadElement) {
       Expression expression = element.expression;
       _checkForArgumentTypeNotAssignableInSpread(
-          expression, elementType, getStaticType(expression), errorCode);
+          expression, getStaticType(expression), elementType, errorCode);
     }
   }
 
