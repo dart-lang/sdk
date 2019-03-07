@@ -89,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             _expressionStartsWithWhitespace(node.expression)) return;
       }
 
-      if (parent.precedence < node.expression.precedence) {
+      if (parent.precedence2 < node.expression.precedence2) {
         rule.reportLint(node);
         return;
       }
