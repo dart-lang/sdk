@@ -277,7 +277,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// fixed.
   final bool disableConflictingGenericsCheck;
 
-  bool _isNonNullable;
+  bool _isNonNullable = false;
 
   /**
    * Initialize a newly created error verifier.
@@ -545,7 +545,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkDuplicateUnitMembers(node);
     _checkForDeferredPrefixCollisions(node);
     super.visitCompilationUnit(node);
-    _isNonNullable = null;
+    _isNonNullable = false;
   }
 
   @override
