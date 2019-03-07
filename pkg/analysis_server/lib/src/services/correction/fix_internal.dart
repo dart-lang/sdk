@@ -622,7 +622,7 @@ class FixProcessor {
       if (name == LintNames.unnecessary_new) {
         await _addFix_removeNewKeyword();
       }
-      if (name == LintNames.unnecessary_override) {
+      if (name == LintNames.unnecessary_overrides) {
         await _addFix_removeMethodDeclaration();
       }
       if (name == LintNames.unnecessary_this) {
@@ -4354,7 +4354,7 @@ class LintNames {
   static const String unnecessary_const = 'unnecessary_const';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
   static const String unnecessary_new = 'unnecessary_new';
-  static const String unnecessary_override = 'unnecessary_override';
+  static const String unnecessary_overrides = 'unnecessary_overrides';
   static const String unnecessary_this = 'unnecessary_this';
   static const String use_rethrow_when_possible = 'use_rethrow_when_possible';
 }
