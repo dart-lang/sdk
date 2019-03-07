@@ -625,6 +625,9 @@ class FixProcessor {
       if (name == LintNames.unnecessary_this) {
         await _addFix_removeThisExpression();
       }
+      if (name == LintNames.use_rethrow_when_possible) {
+        await _addFix_replaceWithRethrow();
+      }
     }
     // done
     return fixes;
@@ -3224,6 +3227,16 @@ class FixProcessor {
     }
   }
 
+  Future<void> _addFix_replaceWithRethrow() async {
+    if (coveredNode is ThrowExpression) {
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleReplacement(range.node(coveredNode), 'rethrow');
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.USE_RETHROW);
+    }
+  }
+
   Future<void> _addFix_replaceWithIdentifier() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -4329,6 +4342,7 @@ class LintNames {
   static const String unnecessary_new = 'unnecessary_new';
   static const String unnecessary_override = 'unnecessary_override';
   static const String unnecessary_this = 'unnecessary_this';
+  static const String use_rethrow_when_possible = 'use_rethrow_when_possible';
 }
 
 /**

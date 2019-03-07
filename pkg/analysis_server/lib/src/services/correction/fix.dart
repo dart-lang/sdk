@@ -297,4 +297,6 @@ class DartFixKind {
       'USE_NOT_EQ_NULL', 50, "Use != null instead of 'is! Null'",
       appliedTogetherMessage:
           "Use != null instead of 'is! Null' everywhere in file");
+  static const USE_RETHROW =
+      const FixKind('USE_RETHROW', 50, "Replace throw with rethrow");
 }
