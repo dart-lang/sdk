@@ -6,7 +6,15 @@ library fasta.collections;
 import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart'
-    show BottomType, DartType, Expression, MapEntry, TreeNode;
+    show
+        DartType,
+        Expression,
+        MapEntry,
+        setParents,
+        transformList,
+        TreeNode,
+        VariableDeclaration,
+        visitList;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
@@ -20,21 +28,12 @@ import 'package:kernel/visitor.dart'
 
 import '../problems.dart' show getFileUri, unsupported;
 
-/// A spread element in a list or set literal.
-///
-/// Spread elements are not truly expressions and they cannot appear in
-/// arbitrary expression contexts in the Kernel program.  They can only appear
-/// as elements in list or set literals.
-class SpreadElement extends Expression {
-  final DartType inferredType = const BottomType();
-  Expression expression;
-  bool isNullAware;
-
-  SpreadElement(this.expression, this.isNullAware) {
-    expression?.parent = this;
-  }
-
-  /// Spread elements are not expressions and do not have a static type.
+/// Spread and control-flow elements are not truly expressions and they cannot
+/// appear in arbitrary expression contexts in the Kernel program.  They can
+/// only appear as elements in list or set literals.
+mixin _FakeExpressionMixin on Expression {
+  /// Spread and contol-flow elements are not expressions and do not have a
+  /// static type.
   @override
   DartType getStaticType(TypeEnvironment types) {
     return unsupported("getStaticType", fileOffset, getFileUri(this));
@@ -44,8 +43,17 @@ class SpreadElement extends Expression {
   accept(ExpressionVisitor<Object> v) => v.defaultExpression(this);
 
   @override
-  accept1(ExpressionVisitor1<Object, Object> v, arg) {
-    return unsupported("accept1", fileOffset, getFileUri(this));
+  accept1(ExpressionVisitor1<Object, Object> v, arg) =>
+      v.defaultExpression(this, arg);
+}
+
+/// A spread element in a list or set literal.
+class SpreadElement extends Expression with _FakeExpressionMixin {
+  Expression expression;
+  bool isNullAware;
+
+  SpreadElement(this.expression, this.isNullAware) {
+    expression?.parent = this;
   }
 
   @override
@@ -62,14 +70,115 @@ class SpreadElement extends Expression {
   }
 }
 
-/// A spread element in a map literal.
-class SpreadMapEntry extends TreeNode implements MapEntry {
-  Expression expression;
+/// An 'if' element in a list or set literal.
+class IfElement extends Expression with _FakeExpressionMixin {
+  Expression condition;
+  Expression then;
+  Expression otherwise;
 
-  SpreadMapEntry(this.expression) {
-    expression?.parent = this;
+  IfElement(this.condition, this.then, this.otherwise) {
+    condition?.parent = this;
+    then?.parent = this;
+    otherwise?.parent = this;
   }
 
+  @override
+  visitChildren(Visitor<Object> v) {
+    condition?.accept(v);
+    then?.accept(v);
+    otherwise?.accept(v);
+  }
+
+  @override
+  transformChildren(Transformer v) {
+    if (condition != null) {
+      condition = condition.accept(v);
+      condition?.parent = this;
+    }
+    if (then != null) {
+      then = then.accept(v);
+      then?.parent = this;
+    }
+    if (otherwise != null) {
+      otherwise = otherwise.accept(v);
+      otherwise?.parent = this;
+    }
+  }
+}
+
+/// A 'for' element in a list or set literal.
+class ForElement extends Expression with _FakeExpressionMixin {
+  final List<VariableDeclaration> variables; // May be empty, but not null.
+  Expression condition; // May be null.
+  final List<Expression> updates; // May be empty, but not null.
+  Expression body;
+
+  ForElement(this.variables, this.condition, this.updates, this.body) {
+    setParents(variables, this);
+    condition?.parent = this;
+    setParents(updates, this);
+    body?.parent = this;
+  }
+
+  @override
+  visitChildren(Visitor<Object> v) {
+    visitList(variables, v);
+    condition?.accept(v);
+    visitList(updates, v);
+    body?.accept(v);
+  }
+
+  @override
+  transformChildren(Transformer v) {
+    transformList(variables, v, this);
+    if (condition != null) {
+      condition = condition.accept(v);
+      condition?.parent = this;
+    }
+    transformList(updates, v, this);
+    if (body != null) {
+      body = body.accept(v);
+      body?.parent = this;
+    }
+  }
+}
+
+/// A 'for-in' element in a list or set literal.
+class ForInElement extends Expression with _FakeExpressionMixin {
+  VariableDeclaration variable; // Has no initializer.
+  Expression iterable;
+  Expression body;
+  bool isAsync; // True if this is an 'await for' loop.
+
+  ForInElement(this.variable, this.iterable, this.body, {this.isAsync: false}) {
+    variable?.parent = this;
+    iterable?.parent = this;
+    body?.parent = this;
+  }
+
+  visitChildren(Visitor<Object> v) {
+    variable?.accept(v);
+    iterable?.accept(v);
+    body?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept(v);
+      variable?.parent = this;
+    }
+    if (iterable != null) {
+      iterable = iterable.accept(v);
+      iterable?.parent = this;
+    }
+    if (body != null) {
+      body = body.accept(v);
+      body?.parent = this;
+    }
+  }
+}
+
+mixin _FakeMapEntryMixin implements MapEntry {
   @override
   Expression get key => throw UnsupportedError('SpreadMapEntry.key getter');
 
@@ -90,6 +199,15 @@ class SpreadMapEntry extends TreeNode implements MapEntry {
   accept(TreeVisitor<Object> v) {
     throw UnsupportedError('SpreadMapEntry.accept');
   }
+}
+
+/// A spread element in a map literal.
+class SpreadMapEntry extends TreeNode with _FakeMapEntryMixin {
+  Expression expression;
+
+  SpreadMapEntry(this.expression) {
+    expression?.parent = this;
+  }
 
   @override
   visitChildren(Visitor<Object> v) {
@@ -101,6 +219,115 @@ class SpreadMapEntry extends TreeNode implements MapEntry {
     if (expression != null) {
       expression = expression.accept(v);
       expression?.parent = this;
+    }
+  }
+}
+
+/// An 'if' element in a map literal.
+class IfMapEntry extends TreeNode with _FakeMapEntryMixin {
+  Expression condition;
+  MapEntry then;
+  MapEntry otherwise;
+
+  IfMapEntry(this.condition, this.then, this.otherwise) {
+    condition?.parent = this;
+    then?.parent = this;
+    otherwise?.parent = this;
+  }
+
+  @override
+  visitChildren(Visitor<Object> v) {
+    condition?.accept(v);
+    then?.accept(v);
+    otherwise?.accept(v);
+  }
+
+  @override
+  transformChildren(Transformer v) {
+    if (condition != null) {
+      condition = condition.accept(v);
+      condition?.parent = this;
+    }
+    if (then != null) {
+      then = then.accept(v);
+      then?.parent = this;
+    }
+    if (otherwise != null) {
+      otherwise = otherwise.accept(v);
+      otherwise?.parent = this;
+    }
+  }
+}
+
+/// A 'for' element in a map literal.
+class ForMapEntry extends TreeNode with _FakeMapEntryMixin {
+  final List<VariableDeclaration> variables; // May be empty, but not null.
+  Expression condition; // May be null.
+  final List<Expression> updates; // May be empty, but not null.
+  MapEntry body;
+
+  ForMapEntry(this.variables, this.condition, this.updates, this.body) {
+    setParents(variables, this);
+    condition?.parent = this;
+    setParents(updates, this);
+    body?.parent = this;
+  }
+
+  @override
+  visitChildren(Visitor<Object> v) {
+    visitList(variables, v);
+    condition?.accept(v);
+    visitList(updates, v);
+    body?.accept(v);
+  }
+
+  @override
+  transformChildren(Transformer v) {
+    transformList(variables, v, this);
+    if (condition != null) {
+      condition = condition.accept(v);
+      condition?.parent = this;
+    }
+    transformList(updates, v, this);
+    if (body != null) {
+      body = body.accept(v);
+      body?.parent = this;
+    }
+  }
+}
+
+/// A 'for-in' element in a map literal.
+class ForInMapEntry extends TreeNode with _FakeMapEntryMixin {
+  VariableDeclaration variable; // Has no initializer.
+  Expression iterable;
+  MapEntry body;
+  bool isAsync; // True if this is an 'await for' loop.
+
+  ForInMapEntry(this.variable, this.iterable, this.body,
+      {this.isAsync: false}) {
+    variable?.parent = this;
+    iterable?.parent = this;
+    body?.parent = this;
+  }
+
+  visitChildren(Visitor<Object> v) {
+    variable?.accept(v);
+    iterable?.accept(v);
+    body?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept(v);
+      variable?.parent = this;
+    }
+    if (iterable != null) {
+      iterable = iterable.accept(v);
+      iterable?.parent = this;
+    }
+    if (body != null) {
+      body = body.accept(v);
+      body?.parent = this;
     }
   }
 }
