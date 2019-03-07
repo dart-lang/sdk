@@ -31,6 +31,8 @@ Iterable<LintRule> get registeredLints {
   return _registeredLints;
 }
 
+Iterable<String> get registeredLintNames => registeredLints.map((r) => r.name);
+
 main() async {
   var scorecard = await ScoreCard.calculate();
   var details = <Detail>[
@@ -54,6 +56,7 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
   int pedanticLintCount = 0;
   int flutterUserLintCount = 0;
   int flutterRepoLintCount = 0;
+  int fixCount = 0;
 
   for (var score in scorecard.scores) {
     for (var ruleSet in score.ruleSets) {
@@ -66,6 +69,9 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
       if (ruleSet == 'flutter_repo') {
         ++flutterRepoLintCount;
       }
+    }
+    if (score.hasFix) {
+      ++fixCount;
     }
   }
 
@@ -87,6 +93,11 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
     }
     breakdowns.write('$flutterRepoLintCount flutter repo');
   }
+
+  if (breakdowns.isNotEmpty) {
+    breakdowns.write('; ');
+  }
+  breakdowns.write('$fixCount w/ fixes');
 
   if (breakdowns.isNotEmpty) {
     footer.write(': $breakdowns');
@@ -125,10 +136,28 @@ class _AssistCollector extends GeneralizingAstVisitor<void> {
   void visitNamedExpression(NamedExpression node) {
     if (node.name.toString() == 'associatedErrorCodes:') {
       ListLiteral list = node.expression;
-      for (var element in list.elements) {
+      for (var element in list.elements2) {
         var name =
             element.toString().substring(1, element.toString().length - 1);
         lintNames.add(name);
+        if (!registeredLintNames.contains(name)) {
+          print('WARNING: unrecognized lint in assists: $name');
+        }
+      }
+    }
+  }
+}
+
+class _FixCollector extends GeneralizingAstVisitor<void> {
+  final List<String> lintNames = <String>[];
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    for (var v in node.fields.variables) {
+      var name = v.name.name;
+      lintNames.add(name);
+      if (!registeredLintNames.contains(name)) {
+        print('WARNING: unrecognized lint in fixes: $name');
       }
     }
   }
@@ -164,17 +193,15 @@ class ScoreCard {
     var client = http.Client();
     var req = await client.get(
         'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/correction/fix_internal.dart');
-    var lintsWithFixes = <String>[];
-    for (var word in req.body.split(RegExp('\\s+'))) {
-      if (word.startsWith('LintNames.')) {
-        var lintName = word.substring(10);
-        if (lintName.endsWith(')')) {
-          lintName = lintName.substring(0, lintName.length - 1);
-        }
-        lintsWithFixes.add(lintName);
-      }
-    }
-    return lintsWithFixes;
+
+    var parser = new CompilationUnitParser();
+    var cu = parser.parse(contents: req.body, name: 'fix_internal.dart');
+    var lintNamesClass = cu.declarations
+        .firstWhere((m) => m is ClassDeclaration && m.name.name == 'LintNames');
+
+    var collector = new _FixCollector();
+    lintNamesClass.accept(collector);
+    return collector.lintNames;
   }
 
   static Future<List<String>> _getLintsWithAssists() async {
