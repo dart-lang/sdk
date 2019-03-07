@@ -27,7 +27,6 @@ class TestResult {
 
 /// Command runner.
 TestResult runCommand(List<String> cmd, Map<String, String> env) {
-  // TODO: use Dart API for some of the modes?
   ProcessResult res = Process.runSync(
       'timeout', ['-s', '$sigkill', '$timeout'] + cmd,
       environment: env);

@@ -4,7 +4,7 @@
 
 /// Class that represents some common Dart types.
 ///
-/// TODO(ajcbik): generalize
+/// TODO(ajcbik): generalize Dart types
 ///
 class DartType {
   final String name;
