@@ -229,7 +229,7 @@ io/socket_many_connections_test: Skip # Timeout
 io/web_socket_compression_test: Skip # Timeout
 io/web_socket_test: Skip # Timeout
 
-[ $arch != x64 || $compiler != dartk || $mode == product || $system != linux && $system != mac ]
+[ $arch != x64 || $compiler != dartk || $mode == product || $system != linux && $system != macos]
 ffi/function_stress_test: SkipByDesign # FFI must be supported. Also requires --verbose-gc, which isn't included in product.
 
 [ $mode == product || $mode != product ]
