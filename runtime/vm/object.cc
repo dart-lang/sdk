@@ -21503,7 +21503,7 @@ RawRegExp* RegExp::New(Heap::Space space) {
         Object::Allocate(RegExp::kClassId, RegExp::InstanceSize(), space);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.set_type(kUnitialized);
+    result.set_type(kUninitialized);
     result.set_flags(0);
     result.set_num_registers(-1);
   }

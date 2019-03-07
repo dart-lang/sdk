@@ -169,8 +169,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 #if defined(TARGET_ARCH_DBC)
     return strdup("--enable-interpreter is not supported with DBC");
 #endif  // defined(TARGET_ARCH_DBC)
-
-    FLAG_use_field_guards = false;
   }
 
   FrameLayout::Init();

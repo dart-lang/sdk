@@ -295,7 +295,7 @@ class LocalScope : public ZoneAllocated {
   // The context level is only set in a scope that is either the owner scope of
   // a captured variable or that is the owner scope of a context.
   bool HasContextLevel() const {
-    return context_level_ != kUnitializedContextLevel;
+    return context_level_ != kUninitializedContextLevel;
   }
   int context_level() const {
     ASSERT(HasContextLevel());
@@ -303,7 +303,7 @@ class LocalScope : public ZoneAllocated {
   }
   void set_context_level(int context_level) {
     ASSERT(!HasContextLevel());
-    ASSERT(context_level != kUnitializedContextLevel);
+    ASSERT(context_level != kUninitializedContextLevel);
     context_level_ = context_level;
   }
 
@@ -451,7 +451,7 @@ class LocalScope : public ZoneAllocated {
 
   NameReference* FindReference(const String& name) const;
 
-  static const int kUnitializedContextLevel = INT_MIN;
+  static const int kUninitializedContextLevel = INT_MIN;
   LocalScope* parent_;
   LocalScope* child_;
   LocalScope* sibling_;

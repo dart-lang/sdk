@@ -954,7 +954,7 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
     field.SetFieldType(type);
     if (track_exactness && IsPotentialExactGeneric(type)) {
       field.set_static_type_exactness_state(
-          StaticTypeExactnessState::Unitialized());
+          StaticTypeExactnessState::Uninitialized());
     }
   }
   // Finalize function signatures and check for conflicts in super classes and

@@ -162,6 +162,51 @@ class InterpreterHelpers {
     ASSERT(GetClassId(FP[kKBCPcMarkerSlotFromFp]) == kBytecodeCid);
     return static_cast<RawBytecode*>(FP[kKBCPcMarkerSlotFromFp]);
   }
+
+  DART_FORCE_INLINE static bool FieldNeedsGuardUpdate(RawField* field,
+                                                      RawObject* value) {
+    // The interpreter should never see a cloned field.
+    ASSERT(field->ptr()->owner_->GetClassId() != kFieldCid);
+
+    const classid_t guarded_cid = field->ptr()->guarded_cid_;
+
+    if (guarded_cid == kDynamicCid) {
+      // Field is not guarded.
+      return false;
+    }
+
+    const classid_t nullability_cid = field->ptr()->is_nullable_;
+    const classid_t value_cid = InterpreterHelpers::GetClassId(value);
+
+    if (nullability_cid == value_cid) {
+      // Storing null into a nullable field.
+      return false;
+    }
+
+    if (guarded_cid != value_cid) {
+      // First assignment (guarded_cid == kIllegalCid) or
+      // field no longer monomorphic or
+      // field has become nullable.
+      return true;
+    }
+
+    intptr_t guarded_list_length =
+        Smi::Value(field->ptr()->guarded_list_length_);
+
+    if (UNLIKELY(guarded_list_length >= Field::kUnknownFixedLength)) {
+      // Guarding length, check this in the runtime.
+      return true;
+    }
+
+    if (UNLIKELY(field->ptr()->static_type_exactness_state_ >=
+                 StaticTypeExactnessState::Uninitialized().Encode())) {
+      // Guarding "exactness", check this in the runtime.
+      return true;
+    }
+
+    // Everything matches.
+    return false;
+  }
 };
 
 DART_FORCE_INLINE static uint32_t* SavedCallerPC(RawObject** FP) {
@@ -609,35 +654,20 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
         instance = reinterpret_cast<RawInstance*>(call_base[0]);
         value = call_base[1];
       }
-      if (thread->isolate()->use_field_guards()) {
-        // Check value cid according to field.guarded_cid().
-        // The interpreter should never see a cloned field.
-        ASSERT(field->ptr()->owner_->GetClassId() != kFieldCid);
-        const classid_t field_guarded_cid = field->ptr()->guarded_cid_;
-        const classid_t field_nullability_cid = field->ptr()->is_nullable_;
-        const classid_t value_cid = InterpreterHelpers::GetClassId(value);
-        if (value_cid != field_guarded_cid &&
-            value_cid != field_nullability_cid) {
-          if (Smi::Value(field->ptr()->guarded_list_length_) <
-                  Field::kUnknownFixedLength &&
-              field_guarded_cid == kIllegalCid) {
-            field->ptr()->guarded_cid_ = value_cid;
-            field->ptr()->is_nullable_ = value_cid;
-          } else if (field_guarded_cid != kDynamicCid) {
-            call_top[1] = 0;  // Unused result of runtime call.
-            call_top[2] = field;
-            call_top[3] = value;
-            Exit(thread, *FP, call_top + 4, *pc);
-            NativeArguments native_args(thread, 2, call_top + 2, call_top + 1);
-            if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid, native_args)) {
-              *invoked = true;
-              return false;
-            }
-            // Reload objects after the call which may trigger GC.
-            instance = reinterpret_cast<RawInstance*>(call_base[0]);
-            value = call_base[1];
-          }
+      if (thread->isolate()->use_field_guards() &&
+          InterpreterHelpers::FieldNeedsGuardUpdate(field, value)) {
+        call_top[1] = 0;  // Unused result of runtime call.
+        call_top[2] = field;
+        call_top[3] = value;
+        Exit(thread, *FP, call_top + 4, *pc);
+        NativeArguments native_args(thread, 2, call_top + 2, call_top + 1);
+        if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid, native_args)) {
+          *invoked = true;
+          return false;
         }
+        // Reload objects after the call which may trigger GC.
+        instance = reinterpret_cast<RawInstance*>(call_base[0]);
+        value = call_base[1];
       }
       instance->StorePointer(
           reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
@@ -2197,14 +2227,28 @@ SwitchDispatch:
 
   {
     BYTECODE(StoreFieldTOS, __D);
-    const uword offset_in_words =
-        static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
+    RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
     RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
     RawObject* value = reinterpret_cast<RawObject*>(SP[0]);
     SP -= 2;  // Drop instance and value.
+    intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
 
-    // TODO(regis): Implement cid guard.
-    ASSERT(!thread->isolate()->use_field_guards());
+    if (thread->isolate()->use_field_guards() &&
+        InterpreterHelpers::FieldNeedsGuardUpdate(field, value)) {
+      SP[1] = instance;  // Preserve.
+      SP[2] = 0;         // Unused result of runtime call.
+      SP[3] = field;
+      SP[4] = value;
+      Exit(thread, FP, SP + 5, pc);
+      NativeArguments args(thread, 2, /* argv */ SP + 3, /* retval */ SP + 2);
+      if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid, args)) {
+        HANDLE_EXCEPTION;
+      }
+
+      // Reload objects after the call which may trigger GC.
+      instance = reinterpret_cast<RawInstance*>(SP[1]);
+      value = SP[4];
+    }
 
     instance->StorePointer(
         reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,

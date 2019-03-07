@@ -8884,7 +8884,7 @@ class RegExp : public Instance {
   // kSimple: A simple pattern to match against, using string indexOf operation.
   // kComplex: A complex pattern to match.
   enum RegExType {
-    kUnitialized = 0,
+    kUninitialized = 0,
     kSimple = 1,
     kComplex = 2,
   };
@@ -8908,7 +8908,7 @@ class RegExp : public Instance {
   class TypeBits : public BitField<int8_t, RegExType, kTypePos, kTypeSize> {};
   class FlagsBits : public BitField<int8_t, intptr_t, kFlagsPos, kFlagsSize> {};
 
-  bool is_initialized() const { return (type() != kUnitialized); }
+  bool is_initialized() const { return (type() != kUninitialized); }
   bool is_simple() const { return (type() == kSimple); }
   bool is_complex() const { return (type() == kComplex); }
 
