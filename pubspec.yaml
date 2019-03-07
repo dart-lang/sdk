@@ -13,7 +13,7 @@ homepage: https://github.com/dart-lang/linter
 documentation: https://dart-lang.github.io/linter/lints
 
 environment:
-  sdk: '>=2.1.0 <3.0.0'
+  sdk: '>=2.2.0 <3.0.0'
 
 dependencies:
   analyzer: ^0.35.3
