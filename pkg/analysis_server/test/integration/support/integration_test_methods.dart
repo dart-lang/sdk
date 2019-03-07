@@ -1221,15 +1221,11 @@ abstract class IntegrationTestMixin {
    *
    * includedSuggestionSets: List<IncludedSuggestionSet> (optional)
    *
-   *   This field is experimental.
-   *
    *   References to AvailableSuggestionSet objects previously sent to the
    *   client. The client can include applicable names from the referenced
    *   library in code completion suggestions.
    *
    * includedElementKinds: List<ElementKind> (optional)
-   *
-   *   This field is experimental.
    *
    *   The client is expected to check this list against the ElementKind sent
    *   in IncludedSuggestionSet to decide whether or not these symbols should
@@ -1237,8 +1233,6 @@ abstract class IntegrationTestMixin {
    *
    * includedSuggestionRelevanceTags: List<IncludedSuggestionRelevanceTag>
    * (optional)
-   *
-   *   This field is experimental.
    *
    *   The client is expected to check this list against the values of the
    *   field relevanceTags of AvailableSuggestion to decide if the suggestion

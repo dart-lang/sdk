@@ -6703,8 +6703,6 @@ class CompletionResultsParams implements HasToJson {
   }
 
   /**
-   * This field is experimental.
-   *
    * References to AvailableSuggestionSet objects previously sent to the
    * client. The client can include applicable names from the referenced
    * library in code completion suggestions.
@@ -6713,8 +6711,6 @@ class CompletionResultsParams implements HasToJson {
       _includedSuggestionSets;
 
   /**
-   * This field is experimental.
-   *
    * References to AvailableSuggestionSet objects previously sent to the
    * client. The client can include applicable names from the referenced
    * library in code completion suggestions.
@@ -6724,8 +6720,6 @@ class CompletionResultsParams implements HasToJson {
   }
 
   /**
-   * This field is experimental.
-   *
    * The client is expected to check this list against the ElementKind sent in
    * IncludedSuggestionSet to decide whether or not these symbols should should
    * be presented to the user.
@@ -6733,8 +6727,6 @@ class CompletionResultsParams implements HasToJson {
   List<ElementKind> get includedElementKinds => _includedElementKinds;
 
   /**
-   * This field is experimental.
-   *
    * The client is expected to check this list against the ElementKind sent in
    * IncludedSuggestionSet to decide whether or not these symbols should should
    * be presented to the user.
@@ -6744,8 +6736,6 @@ class CompletionResultsParams implements HasToJson {
   }
 
   /**
-   * This field is experimental.
-   *
    * The client is expected to check this list against the values of the field
    * relevanceTags of AvailableSuggestion to decide if the suggestion should be
    * given a different relevance than the IncludedSuggestionSet that contains
@@ -6759,8 +6749,6 @@ class CompletionResultsParams implements HasToJson {
       _includedSuggestionRelevanceTags;
 
   /**
-   * This field is experimental.
-   *
    * The client is expected to check this list against the values of the field
    * relevanceTags of AvailableSuggestion to decide if the suggestion should be
    * given a different relevance than the IncludedSuggestionSet that contains
