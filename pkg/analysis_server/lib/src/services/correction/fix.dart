@@ -78,7 +78,7 @@ bool hasFix(ErrorCode errorCode) =>
             errorCode.name == LintNames.prefer_collection_literals ||
             errorCode.name == LintNames.prefer_conditional_assignment ||
             errorCode.name == LintNames.prefer_const_declarations ||
-            errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
+            errorCode.name == LintNames.unnecessary_brace_in_string_interps ||
             errorCode.name == LintNames.unnecessary_const ||
             errorCode.name == LintNames.unnecessary_lambdas ||
             errorCode.name == LintNames.unnecessary_this));

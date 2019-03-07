@@ -610,7 +610,7 @@ class FixProcessor {
       if (name == LintNames.type_init_formals) {
         await _addFix_removeTypeAnnotation();
       }
-      if (name == LintNames.unnecessary_brace_in_string_interp) {
+      if (name == LintNames.unnecessary_brace_in_string_interps) {
         await _addFix_removeInterpolationBraces();
       }
       if (name == LintNames.unnecessary_const) {
@@ -4349,8 +4349,8 @@ class LintNames {
   static const String prefer_final_locals = 'prefer_final_locals';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
   static const String type_init_formals = 'type_init_formals';
-  static const String unnecessary_brace_in_string_interp =
-      'unnecessary_brace_in_string_interp';
+  static const String unnecessary_brace_in_string_interps =
+      'unnecessary_brace_in_string_interps';
   static const String unnecessary_const = 'unnecessary_const';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
   static const String unnecessary_new = 'unnecessary_new';
