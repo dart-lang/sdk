@@ -1825,10 +1825,13 @@ Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
   // Save the current position and restore it afterwards.
   AlternativeReadingScope alt(&reader_);
 
-  TryFinallyBlock* const saved_block = B->try_finally_block_;
+  // Save context.
+  TryFinallyBlock* const saved_finally_block = B->try_finally_block_;
   TryCatchBlock* const saved_try_catch_block = B->CurrentTryCatchBlock();
-  const intptr_t saved_depth = B->context_depth_;
-  const intptr_t saved_try_depth = B->try_depth_;
+  const intptr_t saved_context_depth = B->context_depth_;
+  const ProgramState state(B->breakable_block_, B->switch_block_,
+                           B->loop_depth_, B->for_in_depth_, B->try_depth_,
+                           B->catch_depth_);
 
   Fragment instructions;
 
@@ -1836,8 +1839,8 @@ Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
   // block which is active when translating the body.
   while (B->try_finally_block_ != outer_finally) {
     ASSERT(B->try_finally_block_ != nullptr);
-    // Set correct try depth (in case there are nested try statements).
-    B->try_depth_ = B->try_finally_block_->try_depth();
+    // Adjust program context to finalizer's position.
+    B->try_finally_block_->state().assignTo(B);
 
     // Potentially restore the context to what is expected for the finally
     // block.
@@ -1874,10 +1877,11 @@ Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
     instructions += B->AdjustContextTo(target_context_depth);
   }
 
-  B->try_finally_block_ = saved_block;
+  // Restore.
+  B->try_finally_block_ = saved_finally_block;
   B->SetCurrentTryCatchBlock(saved_try_catch_block);
-  B->context_depth_ = saved_depth;
-  B->try_depth_ = saved_try_depth;
+  B->context_depth_ = saved_context_depth;
+  state.assignTo(B);
 
   return instructions;
 }
@@ -4750,7 +4754,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally() {
   //
   //  a) 1/2/3th case: Special control flow going out of `node->body()`:
   //
-  //   * [BreakStatement] transfers control to a [LabledStatement]
+  //   * [BreakStatement] transfers control to a [LabeledStatement]
   //   * [ContinueSwitchStatement] transfers control to a [SwitchCase]
   //   * [ReturnStatement] returns a value
   //
