@@ -16,7 +16,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -1479,13 +1478,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// The object used to track the usage of labels within a given label scope.
   _LabelTracker labelTracker;
 
-  /// The experiments enabled for the analysis context which affect dead code.
-  final ExperimentStatus _experimentStatus;
+  /// Is `true` if this unit has been parsed as non-nullable.
+  final bool _isNonNullableUnit;
 
   /// Initialize a newly created dead code verifier that will report dead code
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
-  DeadCodeVerifier(this._errorReporter, this._experimentStatus,
+  DeadCodeVerifier(this._errorReporter, this._isNonNullableUnit,
       {TypeSystem typeSystem})
       : this._typeSystem = typeSystem ?? new Dart2TypeSystem(null);
 
@@ -1547,7 +1546,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 //                return null;
 //              }
 //            }
-    } else if (isQuestionQuestion && _experimentStatus.non_nullable) {
+    } else if (isQuestionQuestion && _isNonNullableUnit) {
       _checkForDeadNullCoalesce(node.leftOperand.staticType, node.rightOperand);
     }
     super.visitBinaryExpression(node);
@@ -6369,7 +6368,7 @@ class TypeNameResolver {
   final TypeSystem typeSystem;
   final DartType dynamicType;
   final DartType undefinedType;
-  final bool isNonNullableMigrated;
+  final bool isNonNullableUnit;
   final AnalysisOptionsImpl analysisOptions;
   final LibraryElement definingLibrary;
   final Source source;
@@ -6387,7 +6386,7 @@ class TypeNameResolver {
   TypeNameResolver(
       this.typeSystem,
       TypeProvider typeProvider,
-      this.isNonNullableMigrated,
+      this.isNonNullableUnit,
       this.definingLibrary,
       this.source,
       this.errorListener,
@@ -6754,13 +6753,11 @@ class TypeNameResolver {
 
   Nullability _getNullability(bool hasQuestion) {
     Nullability nullability;
-    if (analysisOptions.experimentStatus.non_nullable) {
+    if (isNonNullableUnit) {
       if (hasQuestion) {
         nullability = Nullability.nullable;
-      } else if (isNonNullableMigrated) {
-        nullability = Nullability.nonNullable;
       } else {
-        nullability = Nullability.indeterminate;
+        nullability = Nullability.nonNullable;
       }
     } else {
       nullability = Nullability.indeterminate;
@@ -7027,12 +7024,12 @@ class TypeParameterBoundsResolver {
 
   TypeParameterBoundsResolver(
       this.typeSystem, this.library, this.source, this.errorListener,
-      {bool isNonNullableMigrated = false})
+      {bool isNonNullableUnit = false})
       : libraryScope = new LibraryScope(library),
         typeNameResolver = new TypeNameResolver(
             typeSystem,
             typeSystem.typeProvider,
-            isNonNullableMigrated,
+            isNonNullableUnit,
             library,
             source,
             errorListener);
@@ -7679,8 +7676,8 @@ class TypeResolverVisitor extends ScopedVisitor {
   /// Type type system in use for this resolver pass.
   TypeSystem _typeSystem;
 
-  /// Whether the library migrated to non-nullable.
-  final bool isNonNullableMigrated;
+  /// Whether the compilation unit is non-nullable.
+  final bool isNonNullableUnit;
 
   /// The helper to resolve types.
   TypeNameResolver _typeNameResolver;
@@ -7717,7 +7714,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   TypeResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
       {Scope nameScope,
-      this.isNonNullableMigrated: false,
+      this.isNonNullableUnit: false,
       this.mode: TypeResolverMode.everything,
       bool shouldUseWithClauseInferredTypes: true,
       this.shouldSetElementSupertypes: false})
@@ -7727,7 +7724,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     _undefinedType = typeProvider.undefinedType;
     _typeSystem = TypeSystem.create(definingLibrary.context);
     _typeNameResolver = new TypeNameResolver(_typeSystem, typeProvider,
-        isNonNullableMigrated, definingLibrary, source, errorListener,
+        isNonNullableUnit, definingLibrary, source, errorListener,
         shouldUseWithClauseInferredTypes: shouldUseWithClauseInferredTypes);
   }
 

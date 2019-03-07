@@ -55,7 +55,7 @@ class LibraryAnalyzer {
   final TypeProvider _typeProvider;
 
   final TypeSystem _typeSystem;
-  bool isNonNullableMigrated = false;
+  bool isNonNullableLibrary = false;
   LibraryElement _libraryElement;
 
   LibraryScope _libraryScope;
@@ -110,7 +110,7 @@ class LibraryAnalyzer {
       units[file] = _parse(file);
     }
     // TODO(danrubel): Verify that all units are either nullable or non-nullable
-    isNonNullableMigrated =
+    isNonNullableLibrary =
         (units.values.first as CompilationUnitImpl).isNonNullable;
 
     // Resolve URIs in directives to corresponding sources.
@@ -230,8 +230,7 @@ class LibraryAnalyzer {
       errorListener.onError(pendingError.toAnalysisError());
     }
 
-    unit.accept(new DeadCodeVerifier(errorReporter,
-        (_context.analysisOptions as AnalysisOptionsImpl).experimentStatus,
+    unit.accept(new DeadCodeVerifier(errorReporter, isNonNullableLibrary,
         typeSystem: _context.typeSystem));
 
     // Dart2js analysis.
@@ -632,12 +631,12 @@ class LibraryAnalyzer {
 
     new TypeParameterBoundsResolver(
             _context.typeSystem, _libraryElement, source, errorListener,
-            isNonNullableMigrated: isNonNullableMigrated)
+            isNonNullableUnit: isNonNullableLibrary)
         .resolveTypeBounds(unit);
 
     unit.accept(new TypeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        isNonNullableMigrated: isNonNullableMigrated));
+        isNonNullableUnit: isNonNullableLibrary));
 
     unit.accept(new VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,

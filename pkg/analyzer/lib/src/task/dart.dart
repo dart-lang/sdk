@@ -18,7 +18,11 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
-    show NamespaceDirectiveImpl, UriBasedDirectiveImpl, UriValidationCode;
+    show
+        CompilationUnitImpl,
+        NamespaceDirectiveImpl,
+        UriBasedDirectiveImpl,
+        UriValidationCode;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
@@ -2835,8 +2839,8 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     //
     // Generate errors.
     //
-    unit.accept(new DeadCodeVerifier(errorReporter,
-        (analysisOptions as AnalysisOptionsImpl).experimentStatus,
+    unit.accept(new DeadCodeVerifier(
+        errorReporter, (unit as CompilationUnitImpl).isNonNullable,
         typeSystem: typeSystem));
     // Verify imports.
     {
