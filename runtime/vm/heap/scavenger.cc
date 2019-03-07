@@ -422,6 +422,7 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate) {
   NOT_IN_PRODUCT(isolate->class_table()->ResetCountersNew());
 
   isolate->ReleaseStoreBuffers();
+  AbandonAllTLABs(isolate);
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
@@ -846,7 +847,7 @@ void Scavenger::MakeAllTLABsIterable(Isolate* isolate) const {
     current = current->next();
   }
   Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+  if (mutator_thread != NULL) {
     heap_->MakeTLABIterable(mutator_thread);
   }
 }
@@ -870,7 +871,7 @@ void Scavenger::AbandonAllTLABs(Isolate* isolate) {
     current = current->next();
   }
   Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+  if (mutator_thread != NULL) {
     heap_->AbandonRemainingTLAB(mutator_thread);
   }
 }
@@ -975,13 +976,6 @@ void Scavenger::Scavenge() {
   int64_t safe_point = OS::GetCurrentMonotonicMicros();
   heap_->RecordTime(kSafePoint, safe_point - start);
 
-  AbandonAllTLABs(isolate);
-
-  Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (mutator_thread->HasActiveTLAB())) {
-    heap_->AbandonRemainingTLAB(mutator_thread);
-  }
-
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
     OS::PrintErr("Verifying before Scavenge...");
@@ -990,7 +984,6 @@ void Scavenger::Scavenge() {
   }
 
   // Prepare for a scavenge.
-  MakeNewSpaceIterable();
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
