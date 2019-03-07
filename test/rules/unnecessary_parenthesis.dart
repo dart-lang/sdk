@@ -6,7 +6,7 @@
 
 import 'dart:async';
 
-var a,b,c,d;
+var a, b, c, d;
 
 main() async {
   1; // OK
@@ -27,7 +27,8 @@ main() async {
   // than the cascade.
   (true ? [] : [])..add(''); // OK
   (a ?? true) ? true : true; // OK
-  true ? [] : []..add(''); // OK
+  true ? [] : []
+    ..add(''); // OK
   m(p: (1 + 3)); // LINT
 
   // OK because it is unobvious where cascades fall in precedence.
@@ -55,10 +56,24 @@ bool Function(dynamic) get fn => (x) => x is bool ? x : false;
 
 class ClassWithFunction {
   Function f;
+  int number;
+
+  ClassWithFunction.named(int a) : this.number = (a + 2); // LINT
+  // https://github.com/dart-lang/linter/issues/1473
+  ClassWithFunction.named2(Function value) : this.f = (value ?? (_) => 42); // OK
+}
+
+class ClassWithClassWithFunction {
+  ClassWithFunction c;
+
+  // https://github.com/dart-lang/linter/issues/1395
+  ClassWithClassWithFunction() : c = (ClassWithFunction()..f = () => 42); // OK
 }
 
 class UnnecessaryParenthesis {
-  final value;
-  //https://github.com/dart-lang/linter/issues/1395
-  UnnecessaryParenthesis() : value = (ClassWithFunction()..f = () => 42); // OK
+  ClassWithClassWithFunction c;
+
+  UnnecessaryParenthesis()
+      : c = (ClassWithClassWithFunction()
+          ..c = ClassWithFunction().f = () => 42); // OK
 }
