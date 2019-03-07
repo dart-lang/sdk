@@ -51,8 +51,8 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
   void* handle = dlib.GetHandle();
 
   dlerror();  // Clear any errors.
-  uint8_t* pointer =
-      reinterpret_cast<uint8_t*>(dlsym(handle, argSymbolName.ToCString()));
+  intptr_t pointer =
+      reinterpret_cast<intptr_t>(dlsym(handle, argSymbolName.ToCString()));
   char* error;
   if ((error = dlerror()) != NULL) {
     const String& msg = String::Handle(
@@ -62,7 +62,8 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
 
   // TODO(dacoharkes): should this return NULL if addres is 0?
   // https://github.com/dart-lang/sdk/issues/35756
-  RawPointer* result = Pointer::New(type_arg, pointer);
+  RawPointer* result =
+      Pointer::New(type_arg, Integer::Handle(zone, Integer::New(pointer)));
   return result;
 #endif
 }

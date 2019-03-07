@@ -231,7 +231,8 @@ static void GenerateMarshalPointer(Assembler* assembler, Register reg) {
 
   // If not null but a Pointer, load the address.
   __ Bind(&not_null);
-  __ movq(reg, FieldAddress(reg, Pointer::address_offset()));
+  __ movq(reg, FieldAddress(reg, Pointer::c_memory_address_offset()));
+  GenerateMarshalInt64(assembler, reg);
   __ Bind(&done);
 }
 
@@ -256,9 +257,9 @@ static void GenerateUnmarshalPointer(Assembler* assembler,
   __ LoadObject(RAX, Object::null_object());
   __ jmp(&done);
 
-  // Backup result value (to avoid GC).
   __ Bind(&not_null);
-  GenerateSaveInt64GCSafe(assembler, RAX);
+  GenerateUnmarshalInt64(assembler);
+  __ pushq(RAX);
 
   // Allocate object (can call into runtime).
   __ movq(TMP, closure_dart);
@@ -269,8 +270,8 @@ static void GenerateUnmarshalPointer(Assembler* assembler,
   __ popq(TMP);  // Pop type arguments.
 
   // Store the result value.
-  GenerateLoadInt64GCSafe(assembler, RDX);
-  __ movq(FieldAddress(RAX, Pointer::address_offset()), RDX);
+  __ popq(RDX);
+  __ movq(FieldAddress(RAX, Pointer::c_memory_address_offset()), RDX);
   __ Bind(&done);
 }
 

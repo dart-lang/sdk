@@ -8499,7 +8499,7 @@ class ByteBuffer : public AllStatic {
 class Pointer : public Instance {
  public:
   static RawPointer* New(const AbstractType& type_arg,
-                         uint8_t* c_memory_address,
+                         const Integer& c_memory_address,
                          intptr_t class_id = kFfiPointerCid,
                          Heap::Space space = Heap::kNew);
 
@@ -8509,20 +8509,17 @@ class Pointer : public Instance {
 
   static bool IsPointer(const Instance& obj);
 
-  uint8_t* GetCMemoryAddress() const {
-    ASSERT(!IsNull());
-    return raw_ptr()->c_memory_address_;
-  }
+  RawInteger* GetCMemoryAddress() const { return raw_ptr()->c_memory_address_; }
 
-  void SetCMemoryAddress(uint8_t* value) const {
-    StoreNonPointer(&raw_ptr()->c_memory_address_, value);
+  void SetCMemoryAddress(const Integer& value) const {
+    StorePointer(&raw_ptr()->c_memory_address_, value.raw());
   }
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawPointer, type_arguments_);
   }
 
-  static intptr_t address_offset() {
+  static intptr_t c_memory_address_offset() {
     return OFFSET_OF(RawPointer, c_memory_address_);
   }
 

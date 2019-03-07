@@ -231,6 +231,7 @@ io/web_socket_test: Skip # Timeout
 
 [ $arch != x64 || $compiler != dartk || $mode == product || $system != linux && $system != macos]
 ffi/function_stress_test: SkipByDesign # FFI must be supported. Also requires --verbose-gc, which isn't included in product.
+ffi/subtype_test: SkipByDesign # FFI must be supported. Also requires --verbose-gc, which isn't included in product.
 
 [ $mode == product || $mode != product ]
 ffi/negative_function_test: Skip # Issues 36033, 36034

@@ -7785,8 +7785,9 @@ RawString* Function::GetSource() const {
       uint16_t end_char = src.CharAt(end_token_pos().value());
       if ((end_char == ',') ||  // Case 1.
           (end_char == ')') ||  // Case 2.
-          (end_char == ';' && String::Handle(zone, name())
-                                  .Equals("<anonymous closure>"))) {  // Case 3.
+          (end_char == ';' &&
+           String::Handle(zone, name())
+               .Equals("<anonymous closure>"))) {  // Case 3.
         to_length = 0;
       }
     }
@@ -12738,28 +12739,25 @@ static int PrintVarInfo(char* buffer,
   const RawLocalVarDescriptors::VarInfoKind kind = info.kind();
   const int32_t index = info.index();
   if (kind == RawLocalVarDescriptors::kContextLevel) {
-    return Utils::SNPrint(buffer, len,
-                          "%2" Pd
-                          " %-13s level=%-3d"
-                          " begin=%-3d end=%d\n",
+    return Utils::SNPrint(buffer, len, "%2" Pd
+                                       " %-13s level=%-3d"
+                                       " begin=%-3d end=%d\n",
                           i, LocalVarDescriptors::KindToCString(kind), index,
                           static_cast<int>(info.begin_pos.value()),
                           static_cast<int>(info.end_pos.value()));
   } else if (kind == RawLocalVarDescriptors::kContextVar) {
     return Utils::SNPrint(
-        buffer, len,
-        "%2" Pd
-        " %-13s level=%-3d index=%-3d"
-        " begin=%-3d end=%-3d name=%s\n",
+        buffer, len, "%2" Pd
+                     " %-13s level=%-3d index=%-3d"
+                     " begin=%-3d end=%-3d name=%s\n",
         i, LocalVarDescriptors::KindToCString(kind), info.scope_id, index,
         static_cast<int>(info.begin_pos.Pos()),
         static_cast<int>(info.end_pos.Pos()), var_name.ToCString());
   } else {
     return Utils::SNPrint(
-        buffer, len,
-        "%2" Pd
-        " %-13s scope=%-3d index=%-3d"
-        " begin=%-3d end=%-3d name=%s\n",
+        buffer, len, "%2" Pd
+                     " %-13s scope=%-3d index=%-3d"
+                     " begin=%-3d end=%-3d name=%s\n",
         i, LocalVarDescriptors::KindToCString(kind), info.scope_id, index,
         static_cast<int>(info.begin_pos.Pos()),
         static_cast<int>(info.end_pos.Pos()), var_name.ToCString());
@@ -20914,7 +20912,7 @@ const char* ExternalTypedData::ToCString() const {
 }
 
 RawPointer* Pointer::New(const AbstractType& type_arg,
-                         uint8_t* c_memory_address,
+                         const Integer& c_memory_address,
                          intptr_t cid,
                          Heap::Space space) {
   Thread* thread = Thread::Current();
@@ -20941,7 +20939,8 @@ const char* Pointer::ToCString() const {
   String& type_args_name = String::Handle(type_args.UserVisibleName());
   return OS::SCreate(Thread::Current()->zone(), "Pointer%s: address=0x%" Px,
                      type_args_name.ToCString(),
-                     reinterpret_cast<uintptr_t>(GetCMemoryAddress()));
+                     static_cast<intptr_t>(
+                         Integer::Handle(GetCMemoryAddress()).AsInt64Value()));
 }
 
 RawDynamicLibrary* DynamicLibrary::New(void* handle, Heap::Space space) {
