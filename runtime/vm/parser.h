@@ -198,6 +198,14 @@ class ParsedFunction : public ZoneAllocated {
     return raw_parameters_->At(i);
   }
 
+  void SetDefaultFunctionTypeArguments(const TypeArguments& value) {
+    default_function_type_arguments_ = value.raw();
+  }
+
+  const TypeArguments& DefaultFunctionTypeArguments() const {
+    return default_function_type_arguments_;
+  }
+
  private:
   Thread* thread_;
   const Function& function_;
@@ -224,6 +232,8 @@ class ParsedFunction : public ZoneAllocated {
 
   const Function* forwarding_stub_super_target_ = nullptr;
   kernel::ScopeBuildingResult* kernel_scopes_;
+
+  TypeArguments& default_function_type_arguments_;
 
   friend class Parser;
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);

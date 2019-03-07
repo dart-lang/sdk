@@ -1389,7 +1389,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   ASSERT(!owner.IsNull());
   const String& field_name = String::Handle(Z, function.name());
   const String& getter_name = String::ZoneHandle(
-      Z, Symbols::New(H.thread(),
+      Z, Symbols::New(thread_,
                       String::Handle(Z, Field::GetterSymbol(field_name))));
 
   // Determine if this is `class Closure { get call => this; }`
@@ -1483,6 +1483,609 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   }
 
   body += Return(TokenPosition::kNoSource);
+
+  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                           prologue_info);
+}
+
+FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
+    const Function& function,
+    bool is_implicit_closure_function,
+    bool throw_no_such_method_error) {
+  graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
+
+  auto normal_entry = BuildFunctionEntry(graph_entry_);
+  graph_entry_->set_normal_entry(normal_entry);
+
+  PrologueInfo prologue_info(-1, -1);
+  BlockEntryInstr* instruction_cursor =
+      BuildPrologue(normal_entry, &prologue_info);
+
+  Fragment body(instruction_cursor);
+  body += CheckStackOverflowInPrologue(function.token_pos());
+
+  // If we are inside the tearoff wrapper function (implicit closure), we need
+  // to extract the receiver from the context. We just replace it directly on
+  // the stack to simplify the rest of the code.
+  if (is_implicit_closure_function && !function.is_static()) {
+    if (parsed_function_->has_arg_desc_var()) {
+      body += LoadArgDescriptor();
+      body += LoadNativeField(Slot::ArgumentsDescriptor_count());
+      body += LoadLocal(parsed_function_->current_context_var());
+      body += LoadNativeField(
+          Slot::GetContextVariableSlotFor(thread_, *scopes_->this_variable));
+      body += StoreFpRelativeSlot(
+          kWordSize * compiler::target::frame_layout.param_end_from_fp);
+    } else {
+      body += LoadLocal(parsed_function_->current_context_var());
+      body += LoadNativeField(
+          Slot::GetContextVariableSlotFor(thread_, *scopes_->this_variable));
+      body += StoreFpRelativeSlot(
+          kWordSize * (compiler::target::frame_layout.param_end_from_fp +
+                       function.NumParameters()));
+    }
+  }
+
+  if (function.NeedsArgumentTypeChecks(I)) {
+    BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
+                            &body, &body, nullptr);
+  }
+
+  body += MakeTemp();
+  LocalVariable* result = MakeTemporary();
+
+  // Do "++argument_count" if any type arguments were passed.
+  LocalVariable* argument_count_var = parsed_function_->expression_temp_var();
+  body += IntConstant(0);
+  body += StoreLocal(TokenPosition::kNoSource, argument_count_var);
+  body += Drop();
+  if (function.IsGeneric()) {
+    Fragment then;
+    Fragment otherwise;
+    otherwise += IntConstant(1);
+    otherwise += StoreLocal(TokenPosition::kNoSource, argument_count_var);
+    otherwise += Drop();
+    body += TestAnyTypeArgs(then, otherwise);
+  }
+
+  if (function.HasOptionalParameters()) {
+    body += LoadArgDescriptor();
+    body += LoadNativeField(Slot::ArgumentsDescriptor_count());
+  } else {
+    body += IntConstant(function.NumParameters());
+  }
+  body += LoadLocal(argument_count_var);
+  body += SmiBinaryOp(Token::kADD, /* truncate= */ true);
+  LocalVariable* argument_count = MakeTemporary();
+
+  // We are generating code like the following:
+  //
+  // var arguments = new Array<dynamic>(argument_count);
+  //
+  // int i = 0;
+  // if (any type arguments are passed) {
+  //   arguments[0] = function_type_arguments;
+  //   ++i;
+  // }
+  //
+  // for (; i < argument_count; ++i) {
+  //   arguments[i] = LoadFpRelativeSlot(
+  //       kWordSize * (frame_layout.param_end_from_fp + argument_count - i));
+  // }
+  body += Constant(TypeArguments::ZoneHandle(Z, TypeArguments::null()));
+  body += LoadLocal(argument_count);
+  body += CreateArray();
+  LocalVariable* arguments = MakeTemporary();
+
+  {
+    // int i = 0
+    LocalVariable* index = parsed_function_->expression_temp_var();
+    body += IntConstant(0);
+    body += StoreLocal(TokenPosition::kNoSource, index);
+    body += Drop();
+
+    // if (any type arguments are passed) {
+    //   arguments[0] = function_type_arguments;
+    //   i = 1;
+    // }
+    if (function.IsGeneric()) {
+      Fragment store;
+      store += LoadLocal(arguments);
+      store += IntConstant(0);
+      store += LoadFunctionTypeArguments();
+      store += StoreIndexed(kArrayCid);
+      store += IntConstant(1);
+      store += StoreLocal(TokenPosition::kNoSource, index);
+      store += Drop();
+      body += TestAnyTypeArgs(store, Fragment());
+    }
+
+    TargetEntryInstr* body_entry;
+    TargetEntryInstr* loop_exit;
+
+    Fragment condition;
+    // i < argument_count
+    condition += LoadLocal(index);
+    condition += LoadLocal(argument_count);
+    condition += SmiRelationalOp(Token::kLT);
+    condition += BranchIfTrue(&body_entry, &loop_exit, /*negate=*/false);
+
+    Fragment loop_body(body_entry);
+
+    // arguments[i] = LoadFpRelativeSlot(
+    //     kWordSize * (frame_layout.param_end_from_fp + argument_count - i));
+    loop_body += LoadLocal(arguments);
+    loop_body += LoadLocal(index);
+    loop_body += LoadLocal(argument_count);
+    loop_body += LoadLocal(index);
+    loop_body += SmiBinaryOp(Token::kSUB, /*truncate=*/true);
+    loop_body += LoadFpRelativeSlot(
+        kWordSize * compiler::target::frame_layout.param_end_from_fp);
+    loop_body += StoreIndexed(kArrayCid);
+
+    // ++i
+    loop_body += LoadLocal(index);
+    loop_body += IntConstant(1);
+    loop_body += SmiBinaryOp(Token::kADD, /*truncate=*/true);
+    loop_body += StoreLocal(TokenPosition::kNoSource, index);
+    loop_body += Drop();
+
+    JoinEntryInstr* join = BuildJoinEntry();
+    loop_body += Goto(join);
+
+    Fragment loop(join);
+    loop += condition;
+
+    Instruction* entry =
+        new (Z) GotoInstr(join, CompilerState::Current().GetNextDeoptId());
+    body += Fragment(entry, loop_exit);
+  }
+
+  // Load receiver.
+  if (is_implicit_closure_function) {
+    if (throw_no_such_method_error) {
+      const Function& parent =
+          Function::ZoneHandle(Z, function.parent_function());
+      const Class& owner = Class::ZoneHandle(Z, parent.Owner());
+      AbstractType& type = AbstractType::ZoneHandle(Z);
+      type ^= Type::New(owner, TypeArguments::Handle(Z), owner.token_pos(),
+                        Heap::kOld);
+      type ^= ClassFinalizer::FinalizeType(owner, type);
+      body += Constant(type);
+    } else {
+      body += LoadLocal(parsed_function_->current_context_var());
+      body += LoadNativeField(
+          Slot::GetContextVariableSlotFor(thread_, *scopes_->this_variable));
+    }
+  } else {
+    LocalScope* scope = parsed_function_->node_sequence()->scope();
+    body += LoadLocal(scope->VariableAt(0));
+  }
+  body += PushArgument();
+
+  body += Constant(String::ZoneHandle(Z, function.name()));
+  body += PushArgument();
+
+  if (!parsed_function_->has_arg_desc_var()) {
+    // If there is no variable for the arguments descriptor (this function's
+    // signature doesn't require it), then we need to create one.
+    Array& args_desc = Array::ZoneHandle(
+        Z, ArgumentsDescriptor::New(0, function.NumParameters()));
+    body += Constant(args_desc);
+  } else {
+    body += LoadArgDescriptor();
+  }
+  body += PushArgument();
+
+  body += LoadLocal(arguments);
+  body += PushArgument();
+
+  if (throw_no_such_method_error) {
+    const Function& parent =
+        Function::ZoneHandle(Z, function.parent_function());
+    const Class& owner = Class::ZoneHandle(Z, parent.Owner());
+    InvocationMirror::Level im_level = owner.IsTopLevel()
+                                           ? InvocationMirror::kTopLevel
+                                           : InvocationMirror::kStatic;
+    InvocationMirror::Kind im_kind;
+    if (function.IsImplicitGetterFunction() || function.IsGetterFunction()) {
+      im_kind = InvocationMirror::kGetter;
+    } else if (function.IsImplicitSetterFunction() ||
+               function.IsSetterFunction()) {
+      im_kind = InvocationMirror::kSetter;
+    } else {
+      im_kind = InvocationMirror::kMethod;
+    }
+    body += IntConstant(InvocationMirror::EncodeType(im_level, im_kind));
+  } else {
+    body += NullConstant();
+  }
+  body += PushArgument();
+
+  // Push the number of delayed type arguments.
+  if (function.IsClosureFunction()) {
+    LocalVariable* closure =
+        parsed_function_->node_sequence()->scope()->VariableAt(0);
+    Fragment then;
+    then += IntConstant(function.NumTypeParameters());
+    then += StoreLocal(TokenPosition::kNoSource, argument_count_var);
+    then += Drop();
+    Fragment otherwise;
+    otherwise += IntConstant(0);
+    otherwise += StoreLocal(TokenPosition::kNoSource, argument_count_var);
+    otherwise += Drop();
+    body += TestDelayedTypeArgs(closure, then, otherwise);
+    body += LoadLocal(argument_count_var);
+  } else {
+    body += IntConstant(0);
+  }
+  body += PushArgument();
+
+  const Class& mirror_class =
+      Class::Handle(Z, Library::LookupCoreClass(Symbols::InvocationMirror()));
+  ASSERT(!mirror_class.IsNull());
+  const Function& allocation_function = Function::ZoneHandle(
+      Z, mirror_class.LookupStaticFunction(Library::PrivateCoreLibName(
+             Symbols::AllocateInvocationMirrorForClosure())));
+  ASSERT(!allocation_function.IsNull());
+  body += StaticCall(TokenPosition::kMinSource, allocation_function,
+                     /* argument_count = */ 5, ICData::kStatic);
+  body += PushArgument();  // For the call to noSuchMethod.
+
+  if (throw_no_such_method_error) {
+    const Class& klass = Class::ZoneHandle(
+        Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
+    ASSERT(!klass.IsNull());
+    const Function& throw_function = Function::ZoneHandle(
+        Z,
+        klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNewInvocation()));
+    ASSERT(!throw_function.IsNull());
+    body += StaticCall(TokenPosition::kNoSource, throw_function, 2,
+                       ICData::kStatic);
+  } else {
+    body += InstanceCall(
+        TokenPosition::kNoSource, Symbols::NoSuchMethod(), Token::kILLEGAL,
+        /*type_args_len=*/0, /*argument_count=*/2, Array::null_array(),
+        /*checked_argument_count=*/1, Function::null_function());
+  }
+  body += StoreLocal(TokenPosition::kNoSource, result);
+  body += Drop();
+
+  body += Drop();  // arguments
+  body += Drop();  // argument count
+
+  AbstractType& return_type = AbstractType::Handle(function.result_type());
+  if (!return_type.IsDynamicType() && !return_type.IsVoidType() &&
+      !return_type.IsObjectType()) {
+    body += AssertAssignable(TokenPosition::kNoSource, return_type,
+                             Symbols::Empty());
+  }
+  body += Return(TokenPosition::kNoSource);
+
+  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                           prologue_info);
+}
+
+Fragment FlowGraphBuilder::BuildDefaultTypeHandling(const Function& function) {
+  if (function.IsGeneric()) {
+    const TypeArguments& default_types =
+        parsed_function_->DefaultFunctionTypeArguments();
+
+    if (!default_types.IsNull()) {
+      Fragment then;
+      Fragment otherwise;
+
+      otherwise += TranslateInstantiatedTypeArguments(default_types);
+      otherwise += StoreLocal(TokenPosition::kNoSource,
+                              parsed_function_->function_type_arguments());
+      otherwise += Drop();
+      return TestAnyTypeArgs(then, otherwise);
+    }
+  }
+  return Fragment();
+}
+
+// Pop the index of the current entry-point off the stack. If there is any
+// entrypoint-tracing hook registered in a pragma for the function, it is called
+// with the name of the current function and the current entry-point index.
+Fragment FlowGraphBuilder::BuildEntryPointsIntrospection() {
+  if (!FLAG_enable_testing_pragmas) return Drop();
+
+  auto& function = Function::Handle(Z, parsed_function_->function().raw());
+
+  if (function.IsImplicitClosureFunction()) {
+    const auto& parent = Function::Handle(Z, function.parent_function());
+    const auto& func_name = String::Handle(Z, parent.name());
+    const auto& owner = Class::Handle(Z, parent.Owner());
+    function = owner.LookupFunction(func_name);
+  }
+
+  auto& tmp = Object::Handle(Z);
+  tmp = function.Owner();
+  tmp = Class::Cast(tmp).library();
+  auto& library = Library::Cast(tmp);
+
+  Object& options = Object::Handle(Z);
+  if (!library.FindPragma(thread_, function, Symbols::vm_trace_entrypoints(),
+                          &options) ||
+      options.IsNull() || !options.IsClosure()) {
+    return Drop();
+  }
+  auto& closure = Closure::ZoneHandle(Z, Closure::Cast(options).raw());
+  LocalVariable* entry_point_num = MakeTemporary();
+
+  auto& function_name = String::ZoneHandle(
+      Z, String::New(function.ToLibNamePrefixedQualifiedCString(), Heap::kOld));
+  if (parsed_function_->function().IsImplicitClosureFunction()) {
+    function_name = String::Concat(
+        function_name, String::Handle(Z, String::New("#tearoff", Heap::kNew)),
+        Heap::kOld);
+  }
+
+  Fragment call_hook;
+  call_hook += Constant(closure);
+  call_hook += PushArgument();
+  call_hook += Constant(function_name);
+  call_hook += PushArgument();
+  call_hook += LoadLocal(entry_point_num);
+  call_hook += PushArgument();
+  call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
+  call_hook += ClosureCall(TokenPosition::kNoSource,
+                           /*type_args_len=*/0, /*argument_count=*/3,
+                           /*argument_names=*/Array::ZoneHandle(Z));
+  call_hook += Drop();  // result of closure call
+  call_hook += Drop();  // entrypoint number
+  return call_hook;
+}
+
+FunctionEntryInstr* FlowGraphBuilder::BuildSharedUncheckedEntryPoint(
+    Fragment shared_prologue_linked_in,
+    Fragment skippable_checks,
+    Fragment redefinitions_if_skipped,
+    Fragment body) {
+  ASSERT(shared_prologue_linked_in.entry == graph_entry_->normal_entry());
+  ASSERT(parsed_function_->has_entry_points_temp_var());
+  Instruction* prologue_start = shared_prologue_linked_in.entry->next();
+
+  auto* join_entry = BuildJoinEntry();
+
+  Fragment normal_entry(shared_prologue_linked_in.entry);
+  normal_entry +=
+      IntConstant(static_cast<intptr_t>(UncheckedEntryPointStyle::kNone));
+  normal_entry += StoreLocal(TokenPosition::kNoSource,
+                             parsed_function_->entry_points_temp_var());
+  normal_entry += Drop();
+  normal_entry += Goto(join_entry);
+
+  auto* extra_target_entry = BuildFunctionEntry(graph_entry_);
+  Fragment extra_entry(extra_target_entry);
+  extra_entry += IntConstant(
+      static_cast<intptr_t>(UncheckedEntryPointStyle::kSharedWithVariable));
+  extra_entry += StoreLocal(TokenPosition::kNoSource,
+                            parsed_function_->entry_points_temp_var());
+  extra_entry += Drop();
+  extra_entry += Goto(join_entry);
+
+  join_entry->LinkTo(prologue_start);
+
+  TargetEntryInstr *do_checks, *skip_checks;
+  shared_prologue_linked_in +=
+      LoadLocal(parsed_function_->entry_points_temp_var());
+  shared_prologue_linked_in += BuildEntryPointsIntrospection();
+  shared_prologue_linked_in +=
+      LoadLocal(parsed_function_->entry_points_temp_var());
+  shared_prologue_linked_in += IntConstant(
+      static_cast<intptr_t>(UncheckedEntryPointStyle::kSharedWithVariable));
+  shared_prologue_linked_in +=
+      BranchIfEqual(&skip_checks, &do_checks, /*negate=*/false);
+
+  JoinEntryInstr* rest_entry = BuildJoinEntry();
+
+  Fragment(do_checks) + skippable_checks + Goto(rest_entry);
+  Fragment(skip_checks) + redefinitions_if_skipped + Goto(rest_entry);
+  Fragment(rest_entry) + body;
+
+  return extra_target_entry;
+}
+
+FunctionEntryInstr* FlowGraphBuilder::BuildSeparateUncheckedEntryPoint(
+    BlockEntryInstr* normal_entry,
+    Fragment normal_prologue,
+    Fragment extra_prologue,
+    Fragment shared_prologue,
+    Fragment body) {
+  auto* join_entry = BuildJoinEntry();
+  auto* extra_entry = BuildFunctionEntry(graph_entry_);
+
+  Fragment normal(normal_entry);
+  normal += IntConstant(static_cast<intptr_t>(UncheckedEntryPointStyle::kNone));
+  normal += BuildEntryPointsIntrospection();
+  normal += normal_prologue;
+  normal += Goto(join_entry);
+
+  Fragment extra(extra_entry);
+  extra +=
+      IntConstant(static_cast<intptr_t>(UncheckedEntryPointStyle::kSeparate));
+  extra += BuildEntryPointsIntrospection();
+  extra += extra_prologue;
+  extra += Goto(join_entry);
+
+  Fragment(join_entry) + shared_prologue + body;
+  return extra_entry;
+}
+
+void FlowGraphBuilder::RecordUncheckedEntryPoint(
+    FunctionEntryInstr* extra_entry) {
+  // Closures always check all arguments on their checked entry-point, most
+  // call-sites are unchecked, and they're inlined less often, so it's very
+  // beneficial to build multiple entry-points for them. Regular methods however
+  // have fewer checks to begin with since they have dynamic invocation
+  // forwarders, so in AOT we implement a more conservative time-space tradeoff
+  // by only building the unchecked entry-point when inlining. We should
+  // reconsider this heuristic if we identify non-inlined type-checks in
+  // hotspots of new benchmarks.
+  if (!IsInlining() && (parsed_function_->function().IsClosureFunction() ||
+                        !FLAG_precompiled_mode)) {
+    graph_entry_->set_unchecked_entry(extra_entry);
+  } else if (InliningUncheckedEntry()) {
+    graph_entry_->set_normal_entry(extra_entry);
+  }
+}
+
+FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
+    const Function& function) {
+  const Function& parent = Function::ZoneHandle(Z, function.parent_function());
+  const String& func_name = String::ZoneHandle(Z, parent.name());
+  const Class& owner = Class::ZoneHandle(Z, parent.Owner());
+  Function& target = Function::ZoneHandle(Z, owner.LookupFunction(func_name));
+
+  if (!target.IsNull() && (target.raw() != parent.raw())) {
+    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
+    if ((target.is_static() != parent.is_static()) ||
+        (target.kind() != parent.kind())) {
+      target = Function::null();
+    }
+  }
+
+  if (target.IsNull() ||
+      (parent.num_fixed_parameters() != target.num_fixed_parameters())) {
+    return BuildGraphOfNoSuchMethodForwarder(function, true,
+                                             parent.is_static());
+  }
+
+  graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
+
+  auto normal_entry = BuildFunctionEntry(graph_entry_);
+  graph_entry_->set_normal_entry(normal_entry);
+
+  PrologueInfo prologue_info(-1, -1);
+  BlockEntryInstr* instruction_cursor =
+      BuildPrologue(normal_entry, &prologue_info);
+
+  const Fragment prologue = CheckStackOverflowInPrologue(function.token_pos());
+
+  const Fragment default_type_handling = BuildDefaultTypeHandling(function);
+
+  // We're going to throw away the explicit checks because the target will
+  // always check them.
+  Fragment implicit_checks;
+  if (function.NeedsArgumentTypeChecks(I)) {
+    Fragment explicit_checks_unused;
+    if (target.is_static()) {
+      // Tearoffs of static methods needs to perform arguments checks since
+      // static methods they forward to don't do it themselves.
+      BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
+                              &explicit_checks_unused, &implicit_checks,
+                              nullptr);
+    } else {
+      if (MethodCanSkipTypeChecksForNonCovariantArguments(
+              parent, ProcedureAttributesMetadata())) {
+        // Generate checks that are skipped inside a body of a function.
+        BuildArgumentTypeChecks(
+            TypeChecksToBuild::kCheckNonCovariantTypeParameterBounds,
+            &explicit_checks_unused, &implicit_checks, nullptr);
+      }
+    }
+  }
+
+  Fragment body;
+
+  intptr_t type_args_len = 0;
+  if (function.IsGeneric()) {
+    type_args_len = function.NumTypeParameters();
+    ASSERT(parsed_function_->function_type_arguments() != NULL);
+    body += LoadLocal(parsed_function_->function_type_arguments());
+    body += PushArgument();
+  }
+
+  // Load all the arguments.
+  auto scope = parsed_function_->node_sequence()->scope();
+
+  if (!target.is_static()) {
+    // The context has a fixed shape: a single variable which is the
+    // closed-over receiver.
+    body += LoadLocal(scope->VariableAt(0));
+    body += LoadNativeField(Slot::Closure_context());
+    body += LoadNativeField(
+        Slot::GetContextVariableSlotFor(thread_, *scopes_->this_variable));
+    body += PushArgument();
+  }
+
+  // Positional.
+  intptr_t arg_index = function.NumImplicitParameters();
+  const intptr_t named_argument_count = function.NumOptionalNamedParameters();
+  const intptr_t positional_argument_count = function.NumParameters() -
+                                             function.NumImplicitParameters() -
+                                             named_argument_count;
+  for (intptr_t i = 0; i < positional_argument_count; ++i, ++arg_index) {
+    body += LoadLocal(scope->VariableAt(arg_index));  // ith variable offset.
+    body += PushArgument();
+  }
+
+  // Named.
+  Array& argument_names = Array::ZoneHandle(Z);
+  if (named_argument_count > 0) {
+    argument_names = Array::New(named_argument_count, Heap::kOld);
+    String& name = String::Handle(Z);
+    for (intptr_t i = 0; i < named_argument_count; ++i, ++arg_index) {
+      body += LoadLocal(scope->VariableAt(arg_index));
+      body += PushArgument();
+
+      name = function.ParameterNameAt(arg_index);
+      argument_names.SetAt(i, name);
+    }
+  }
+
+  // Forward them to the parent.
+  intptr_t argument_count = positional_argument_count + named_argument_count;
+  if (!parent.is_static()) {
+    ++argument_count;
+  }
+  ASSERT(argument_count == target.NumParameters());
+  body += StaticCall(TokenPosition::kNoSource, target, argument_count,
+                     argument_names, ICData::kNoRebind,
+                     /* result_type = */ NULL, type_args_len);
+
+  // Return the result.
+  body += Return(function.end_token_pos());
+
+  // Setup multiple entrypoints if useful.
+  FunctionEntryInstr* extra_entry = nullptr;
+  if (function.MayHaveUncheckedEntryPoint(I)) {
+    // The prologue for a closure will always have context handling (e.g.
+    // setting up the 'this_variable'), but we don't need it on the unchecked
+    // entry because the only time we reference this is for loading the
+    // receiver, which we fetch directly from the context.
+    if (PrologueBuilder::PrologueSkippableOnUncheckedEntry(function)) {
+      // Use separate entry points since we can skip almost everything on the
+      // static entry.
+      extra_entry = BuildSeparateUncheckedEntryPoint(
+          /*normal_entry=*/instruction_cursor,
+          /*normal_prologue=*/prologue + default_type_handling +
+              implicit_checks,
+          /*extra_prologue=*/
+          CheckStackOverflowInPrologue(function.token_pos()),
+          /*shared_prologue=*/Fragment(),
+          /*body=*/body);
+    } else {
+      Fragment shared_prologue(normal_entry, instruction_cursor);
+      shared_prologue += prologue;
+      extra_entry = BuildSharedUncheckedEntryPoint(
+          /*shared_prologue_linked_in=*/shared_prologue,
+          /*skippable_checks=*/default_type_handling + implicit_checks,
+          /*redefinitions_if_skipped=*/Fragment(),
+          /*body=*/body);
+    }
+    RecordUncheckedEntryPoint(extra_entry);
+  } else {
+    Fragment function(instruction_cursor);
+    function += prologue;
+    function += default_type_handling;
+    function += implicit_checks;
+    function += body;
+  }
 
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);

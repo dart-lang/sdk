@@ -47,6 +47,32 @@ enum class TypeChecksToBuild {
   kCheckCovariantTypeParameterBounds,
 };
 
+// Indicates which form of the unchecked entrypoint we are compiling.
+//
+// kNone:
+//
+//   There is no unchecked entrypoint: the unchecked entry is set to NULL in
+//   the 'GraphEntryInstr'.
+//
+// kSeparate:
+//
+//   The normal and unchecked entrypoint each point to their own versions of
+//   the prologue, containing exactly those checks which need to be performed
+//   on either side. Both sides jump directly to the body after performing
+//   their prologue.
+//
+// kSharedWithVariable:
+//
+//   A temporary variable is allocated and initialized to 0 on normal entry
+//   and 2 on unchecked entry. Code which should be ommitted on the unchecked
+//   entrypoint is made conditional on this variable being equal to 0.
+//
+enum class UncheckedEntryPointStyle {
+  kNone = 0,
+  kSeparate = 1,
+  kSharedWithVariable = 2,
+};
+
 class FlowGraphBuilder : public BaseFlowGraphBuilder {
  public:
   FlowGraphBuilder(ParsedFunction* parsed_function,
@@ -185,6 +211,62 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                                Fragment* explicit_checks,
                                Fragment* implicit_checks,
                                Fragment* implicit_redefinitions);
+
+  // Builds flow graph for noSuchMethod forwarder.
+  //
+  // If throw_no_such_method_error is set to true, an
+  // instance of NoSuchMethodError is thrown. Otherwise, the instance
+  // noSuchMethod is called.
+  //
+  // ParsedFunction should have the following information:
+  //  - default_parameter_values()
+  //  - is_forwarding_stub()
+  //  - forwarding_stub_super_target()
+  //
+  // Scope should be populated with parameter variables including
+  //  - needs_type_check()
+  //  - is_explicit_covariant_parameter()
+  //
+  FlowGraph* BuildGraphOfNoSuchMethodForwarder(
+      const Function& function,
+      bool is_implicit_closure_function,
+      bool throw_no_such_method_error);
+
+  // If no type arguments are passed to a generic function, we need to fill the
+  // type arguments in with the default types stored on the TypeParameter nodes
+  // in Kernel.
+  //
+  // ParsedFunction should have the following information:
+  //  - DefaultFunctionTypeArguments()
+  //  - function_type_arguments()
+  Fragment BuildDefaultTypeHandling(const Function& function);
+
+  Fragment BuildEntryPointsIntrospection();
+  FunctionEntryInstr* BuildSharedUncheckedEntryPoint(
+      Fragment prologue_from_normal_entry,
+      Fragment skippable_checks,
+      Fragment redefinitions_if_skipped,
+      Fragment body);
+  FunctionEntryInstr* BuildSeparateUncheckedEntryPoint(
+      BlockEntryInstr* normal_entry,
+      Fragment normal_prologue,
+      Fragment extra_prologue,
+      Fragment shared_prologue,
+      Fragment body);
+  void RecordUncheckedEntryPoint(FunctionEntryInstr* extra_entry);
+
+  // Builds flow graph for implicit closure function (tear-off).
+  //
+  // ParsedFunction should have the following information:
+  //  - default_parameter_values()
+  //  - is_forwarding_stub()
+  //  - forwarding_stub_super_target()
+  //
+  // Scope should be populated with parameter variables including
+  //  - needs_type_check()
+  //  - is_explicit_covariant_parameter()
+  //
+  FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
 
   TranslationHelper translation_helper_;
   Thread* thread_;
