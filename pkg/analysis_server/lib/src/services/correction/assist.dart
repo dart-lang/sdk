@@ -105,7 +105,8 @@ class DartAssistKind {
       30,
       "Convert to normal parameter");
   static const CONVERT_TO_NULL_AWARE = const AssistKind(
-      'dart.assist.convert.toNullAware', 30, "Convert to use '?.'");
+      'dart.assist.convert.toNullAware', 30, "Convert to use '?.'",
+      associatedErrorCodes: <String>['prefer_null_aware_operators']);
   static const CONVERT_TO_SET_LITERAL = const AssistKind(
       'dart.assist.convert.toSetLiteral', 30, "Convert to set literal",
       // todo (brianwilkerson): unify w/ fix
