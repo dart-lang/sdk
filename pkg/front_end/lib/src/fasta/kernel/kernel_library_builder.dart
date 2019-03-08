@@ -97,6 +97,7 @@ import '../loader.dart' show Loader;
 import '../modifier.dart'
     show
         abstractMask,
+        hasConstConstructorMask,
         hasInitializerMask,
         initializingFormalMask,
         mixinDeclarationMask,
@@ -124,7 +125,7 @@ import 'kernel_builder.dart'
         DynamicTypeBuilder,
         EnumConstantInfo,
         FormalParameterBuilder,
-        ImplicitType,
+        ImplicitFieldType,
         InvalidTypeBuilder,
         KernelClassBuilder,
         KernelConstructorBuilder,
@@ -293,6 +294,9 @@ class KernelLibraryBuilder
     if (modifiers & mixinDeclarationMask != 0) {
       isMixinDeclaration = true;
       modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
+    }
+    if (declaration.hasConstConstructor) {
+      modifiers |= hasConstConstructorMask;
     }
     ClassBuilder cls = new SourceClassBuilder(
         metadata,
@@ -634,7 +638,8 @@ class KernelLibraryBuilder
     addBuilder(name, field, charOffset);
     if (initializerTokenForInference != null) {
       assert(type == null);
-      field.target.type = new ImplicitType(field, initializerTokenForInference);
+      field.target.type =
+          new ImplicitFieldType(field, initializerTokenForInference);
     }
     loader.target.metadataCollector
         ?.setDocumentationComment(field.target, documentationComment);
@@ -681,6 +686,7 @@ class KernelLibraryBuilder
     if (nativeMethodName != null) {
       addNativeMethod(procedure);
     }
+    if (procedure.isConst) currentDeclaration?.hasConstConstructor = true;
   }
 
   void addProcedure(

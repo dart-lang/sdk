@@ -55,7 +55,7 @@ class LibraryAnalyzer {
   final TypeProvider _typeProvider;
 
   final TypeSystem _typeSystem;
-  bool isNonNullableMigrated = false;
+  bool isNonNullableLibrary = false;
   LibraryElement _libraryElement;
 
   LibraryScope _libraryScope;
@@ -67,6 +67,13 @@ class LibraryAnalyzer {
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
+
+  /**
+   * Constants in the current library.
+   *
+   * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
+   */
+  final Set<ConstantEvaluationTarget> _libraryConstants = new Set();
 
   final Set<ConstantEvaluationTarget> _constants = new Set();
 
@@ -102,8 +109,9 @@ class LibraryAnalyzer {
     for (FileState file in _library.libraryFiles) {
       units[file] = _parse(file);
     }
-    isNonNullableMigrated = (units.values.first as CompilationUnitImpl)
-        .hasPragmaAnalyzerNonNullable;
+    // TODO(danrubel): Verify that all units are either nullable or non-nullable
+    isNonNullableLibrary =
+        (units.values.first as CompilationUnitImpl).isNonNullable;
 
     // Resolve URIs in directives to corresponding sources.
     units.forEach((file, unit) {
@@ -122,6 +130,7 @@ class LibraryAnalyzer {
     });
 
     units.values.forEach(_findConstants);
+    _clearConstantEvaluationResults();
     _computeConstants();
 
     PerformanceStatistics.errors.makeCurrentWhile(() {
@@ -172,6 +181,24 @@ class LibraryAnalyzer {
     return results;
   }
 
+  /**
+   * Clear evaluation results for all constants before computing them again.
+   * The reason is described in https://github.com/dart-lang/sdk/issues/35940
+   *
+   * Otherwise, we reuse results, including errors are recorded only when
+   * we evaluate constants resynthesized from summaries.
+   *
+   * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
+   */
+  void _clearConstantEvaluationResults() {
+    for (var constant in _libraryConstants) {
+      if (constant is ConstFieldElementImpl_ofEnum) continue;
+      if (constant is ConstVariableElement) {
+        constant.evaluationResult = null;
+      }
+    }
+  }
+
   void _computeConstantErrors(
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = new ConstantVerifier(
@@ -203,8 +230,8 @@ class LibraryAnalyzer {
       errorListener.onError(pendingError.toAnalysisError());
     }
 
-    unit.accept(
-        new DeadCodeVerifier(errorReporter, typeSystem: _context.typeSystem));
+    unit.accept(new DeadCodeVerifier(errorReporter, isNonNullableLibrary,
+        typeSystem: _context.typeSystem));
 
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {
@@ -379,6 +406,7 @@ class LibraryAnalyzer {
   void _findConstants(CompilationUnit unit) {
     ConstantFinder constantFinder = new ConstantFinder();
     unit.accept(constantFinder);
+    _libraryConstants.addAll(constantFinder.constantsToCompute);
     _constants.addAll(constantFinder.constantsToCompute);
 
     var dependenciesFinder = new ConstantExpressionsDependenciesFinder();
@@ -603,12 +631,12 @@ class LibraryAnalyzer {
 
     new TypeParameterBoundsResolver(
             _context.typeSystem, _libraryElement, source, errorListener,
-            isNonNullableMigrated: isNonNullableMigrated)
+            isNonNullableUnit: isNonNullableLibrary)
         .resolveTypeBounds(unit);
 
     unit.accept(new TypeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        isNonNullableMigrated: isNonNullableMigrated));
+        isNonNullableUnit: isNonNullableLibrary));
 
     unit.accept(new VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,

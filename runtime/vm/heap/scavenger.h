@@ -149,8 +149,6 @@ class Scavenger {
   uword TryAllocateInTLAB(Thread* thread, intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
     ASSERT(heap_ != Dart::vm_isolate()->heap());
-    ASSERT(thread->IsMutatorThread());
-    ASSERT(thread->isolate()->IsMutatorThreadScheduled());
     uword top = thread->top();
     uword end = thread->end();
     uword result = top;

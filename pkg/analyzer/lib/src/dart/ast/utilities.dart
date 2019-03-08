@@ -30,7 +30,9 @@ typedef void ExceptionInDelegateHandler(
  * will only clone the structure, it will not preserve any resolution results or
  * properties associated with the nodes.
  */
-class AstCloner implements AstVisitor<AstNode> {
+class AstCloner
+    with UIAsCodeVisitorMixin<AstNode>
+    implements AstVisitor<AstNode> {
   /**
    * A flag indicating whether tokens should be cloned while cloning an AST
    * structure.
@@ -487,31 +489,6 @@ class AstCloner implements AstVisitor<AstNode> {
           iterable: cloneNode(node.iterable));
 
   @override
-  ForEachStatement visitForEachStatement(ForEachStatement node) {
-    DeclaredIdentifier loopVariable = node.loopVariable;
-    if (loopVariable == null) {
-      return astFactory.forEachStatementWithReference(
-          cloneToken(node.awaitKeyword),
-          cloneToken(node.forKeyword),
-          cloneToken(node.leftParenthesis),
-          cloneNode(node.identifier),
-          cloneToken(node.inKeyword),
-          cloneNode(node.iterable),
-          cloneToken(node.rightParenthesis),
-          cloneNode(node.body));
-    }
-    return astFactory.forEachStatementWithDeclaration(
-        cloneToken(node.awaitKeyword),
-        cloneToken(node.forKeyword),
-        cloneToken(node.leftParenthesis),
-        cloneNode(loopVariable),
-        cloneToken(node.inKeyword),
-        cloneNode(node.iterable),
-        cloneToken(node.rightParenthesis),
-        cloneNode(node.body));
-  }
-
-  @override
   ForElement visitForElement(ForElement node) => astFactory.forElement(
       forKeyword: cloneToken(node.forKeyword),
       leftParenthesis: cloneToken(node.leftParenthesis),
@@ -549,21 +526,9 @@ class AstCloner implements AstVisitor<AstNode> {
           updaters: cloneNodeList(node.updaters));
 
   @override
-  ForStatement visitForStatement(ForStatement node) => astFactory.forStatement(
-      cloneToken(node.forKeyword),
-      cloneToken(node.leftParenthesis),
-      cloneNode(node.variables),
-      cloneNode(node.initialization),
-      cloneToken(node.leftSeparator),
-      cloneNode(node.condition),
-      cloneToken(node.rightSeparator),
-      cloneNodeList(node.updaters),
-      cloneToken(node.rightParenthesis),
-      cloneNode(node.body));
-
-  @override
   ForStatement2 visitForStatement2(ForStatement2 node) =>
       astFactory.forStatement2(
+          awaitKeyword: cloneToken(node.awaitKeyword),
           forKeyword: cloneToken(node.forKeyword),
           leftParenthesis: cloneToken(node.leftParenthesis),
           forLoopParts: cloneNode(node.forLoopParts),
@@ -764,18 +729,17 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneToken(node.constKeyword),
       cloneNode(node.typeArguments),
       cloneToken(node.leftBracket),
-      cloneNodeList(node.elements),
+      cloneNodeList(node.elements2),
       cloneToken(node.rightBracket));
 
+  @deprecated
   @override
-  ListLiteral2 visitListLiteral2(ListLiteral2 node) => astFactory.listLiteral2(
-      constKeyword: cloneToken(node.constKeyword),
-      typeArguments: cloneNode(node.typeArguments),
-      leftBracket: cloneToken(node.leftBracket),
-      elements: cloneNodeList(node.elements),
-      rightBracket: cloneToken(node.rightBracket));
+  ListLiteral2 visitListLiteral2(ListLiteral2 node) {
+    throw new UnsupportedError('Not supported');
+  }
 
   @override
+  @deprecated
   MapLiteral visitMapLiteral(MapLiteral node) => astFactory.mapLiteral(
       cloneToken(node.constKeyword),
       cloneNode(node.typeArguments),
@@ -783,13 +747,11 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneNodeList(node.entries),
       cloneToken(node.rightBracket));
 
+  @deprecated
   @override
-  MapLiteral2 visitMapLiteral2(MapLiteral2 node) => astFactory.mapLiteral2(
-      constKeyword: cloneToken(node.constKeyword),
-      typeArguments: cloneNode(node.typeArguments),
-      leftBracket: cloneToken(node.leftBracket),
-      entries: cloneNodeList(node.entries),
-      rightBracket: cloneToken(node.rightBracket));
+  MapLiteral2 visitMapLiteral2(MapLiteral2 node) {
+    throw new UnsupportedError('Not supported');
+  }
 
   @override
   MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) =>
@@ -926,6 +888,7 @@ class AstCloner implements AstVisitor<AstNode> {
       astFactory.scriptTag(cloneToken(node.scriptTag));
 
   @override
+  @deprecated
   SetLiteral visitSetLiteral(SetLiteral node) => astFactory.setLiteral(
       cloneToken(node.constKeyword),
       cloneNode(node.typeArguments),
@@ -933,13 +896,20 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneNodeList(node.elements),
       cloneToken(node.rightBracket));
 
+  @deprecated
   @override
-  SetLiteral2 visitSetLiteral2(SetLiteral2 node) => astFactory.setLiteral2(
-      constKeyword: cloneToken(node.constKeyword),
-      typeArguments: cloneNode(node.typeArguments),
-      leftBracket: cloneToken(node.leftBracket),
-      elements: cloneNodeList(node.elements),
-      rightBracket: cloneToken(node.rightBracket));
+  SetLiteral2 visitSetLiteral2(SetLiteral2 node) {
+    throw new UnsupportedError('Not supported');
+  }
+
+  @override
+  SetOrMapLiteral visitSetOrMapLiteral(SetOrMapLiteral node) =>
+      astFactory.setOrMapLiteral(
+          constKeyword: cloneToken(node.constKeyword),
+          typeArguments: cloneNode(node.typeArguments),
+          leftBracket: cloneToken(node.leftBracket),
+          elements: cloneNodeList(node.elements2),
+          rightBracket: cloneToken(node.rightBracket));
 
   @override
   ShowCombinator visitShowCombinator(ShowCombinator node) => astFactory
@@ -1171,7 +1141,9 @@ class AstCloner implements AstVisitor<AstNode> {
  * An AstVisitor that compares the structure of two AstNodes to see whether they
  * are equal.
  */
-class AstComparator implements AstVisitor<bool> {
+class AstComparator
+    with UIAsCodeVisitorMixin<bool>
+    implements AstVisitor<bool> {
   /**
    * The AST node with which the node being visited is to be compared. This is
    * only valid at the beginning of each visit method (until [isEqualNodes] is
@@ -1673,18 +1645,6 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitForEachStatement(ForEachStatement node) {
-    ForEachStatement other = _other as ForEachStatement;
-    return isEqualTokens(node.forKeyword, other.forKeyword) &&
-        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        isEqualNodes(node.loopVariable, other.loopVariable) &&
-        isEqualTokens(node.inKeyword, other.inKeyword) &&
-        isEqualNodes(node.iterable, other.iterable) &&
-        isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
-        isEqualNodes(node.body, other.body);
-  }
-
-  @override
   bool visitForElement(ForElement node) {
     ForElement other = _other as ForElement;
     return isEqualTokens(node.forKeyword, other.forKeyword) &&
@@ -1722,21 +1682,6 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.condition, other.condition) &&
         isEqualTokens(node.rightSeparator, other.rightSeparator) &&
         _isEqualNodeLists(node.updaters, other.updaters);
-  }
-
-  @override
-  bool visitForStatement(ForStatement node) {
-    ForStatement other = _other as ForStatement;
-    return isEqualTokens(node.forKeyword, other.forKeyword) &&
-        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        isEqualNodes(node.variables, other.variables) &&
-        isEqualNodes(node.initialization, other.initialization) &&
-        isEqualTokens(node.leftSeparator, other.leftSeparator) &&
-        isEqualNodes(node.condition, other.condition) &&
-        isEqualTokens(node.rightSeparator, other.rightSeparator) &&
-        _isEqualNodeLists(node.updaters, other.updaters) &&
-        isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
-        isEqualNodes(node.body, other.body);
   }
 
   @override
@@ -1969,38 +1914,20 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualTokens(node.constKeyword, other.constKeyword) &&
         isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.elements, other.elements) &&
+        _isEqualNodeLists(node.elements2, other.elements2) &&
         isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
+  @deprecated
   @override
   bool visitListLiteral2(ListLiteral2 node) {
-    ListLiteral2 other = _other as ListLiteral2;
-    return isEqualTokens(node.constKeyword, other.constKeyword) &&
-        isEqualNodes(node.typeArguments, other.typeArguments) &&
-        isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.elements, other.elements) &&
-        isEqualTokens(node.rightBracket, other.rightBracket);
+    throw new UnsupportedError('Not supported');
   }
 
-  @override
-  bool visitMapLiteral(MapLiteral node) {
-    MapLiteral other = _other as MapLiteral;
-    return isEqualTokens(node.constKeyword, other.constKeyword) &&
-        isEqualNodes(node.typeArguments, other.typeArguments) &&
-        isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.entries, other.entries) &&
-        isEqualTokens(node.rightBracket, other.rightBracket);
-  }
-
+  @deprecated
   @override
   bool visitMapLiteral2(MapLiteral2 node) {
-    MapLiteral2 other = _other as MapLiteral2;
-    return isEqualTokens(node.constKeyword, other.constKeyword) &&
-        isEqualNodes(node.typeArguments, other.typeArguments) &&
-        isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.entries, other.entries) &&
-        isEqualTokens(node.rightBracket, other.rightBracket);
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -2180,23 +2107,19 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualTokens(node.scriptTag, other.scriptTag);
   }
 
+  @deprecated
   @override
-  bool visitSetLiteral(SetLiteral node) {
-    SetLiteral other = _other as SetLiteral;
-    return isEqualTokens(node.constKeyword, other.constKeyword) &&
-        isEqualNodes(node.typeArguments, other.typeArguments) &&
-        isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.elements, other.elements) &&
-        isEqualTokens(node.rightBracket, other.rightBracket);
+  bool visitSetLiteral2(SetLiteral2 node) {
+    throw new UnsupportedError('Not supported');
   }
 
   @override
-  bool visitSetLiteral2(SetLiteral2 node) {
-    SetLiteral2 other = _other as SetLiteral2;
+  bool visitSetOrMapLiteral(SetOrMapLiteral node) {
+    SetOrMapLiteral other = _other as SetOrMapLiteral;
     return isEqualTokens(node.constKeyword, other.constKeyword) &&
         isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.elements, other.elements) &&
+        _isEqualNodeLists(node.elements2, other.elements2) &&
         isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
@@ -2567,7 +2490,9 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
  * results.
  */
 @deprecated
-class IncrementalAstCloner implements AstVisitor<AstNode> {
+class IncrementalAstCloner
+    with UIAsCodeVisitorMixin<AstNode>
+    implements AstVisitor<AstNode> {
   /**
    * The node to be replaced during the cloning process.
    */
@@ -2975,31 +2900,6 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           iterable: _cloneNode(node.iterable));
 
   @override
-  ForEachStatement visitForEachStatement(ForEachStatement node) {
-    DeclaredIdentifier loopVariable = node.loopVariable;
-    if (loopVariable == null) {
-      return astFactory.forEachStatementWithReference(
-          _mapToken(node.awaitKeyword),
-          _mapToken(node.forKeyword),
-          _mapToken(node.leftParenthesis),
-          _cloneNode(node.identifier),
-          _mapToken(node.inKeyword),
-          _cloneNode(node.iterable),
-          _mapToken(node.rightParenthesis),
-          _cloneNode(node.body));
-    }
-    return astFactory.forEachStatementWithDeclaration(
-        _mapToken(node.awaitKeyword),
-        _mapToken(node.forKeyword),
-        _mapToken(node.leftParenthesis),
-        _cloneNode(loopVariable),
-        _mapToken(node.inKeyword),
-        _cloneNode(node.iterable),
-        _mapToken(node.rightParenthesis),
-        _cloneNode(node.body));
-  }
-
-  @override
   ForElement visitForElement(ForElement node) => astFactory.forElement(
       forKeyword: _mapToken(node.forKeyword),
       leftParenthesis: _mapToken(node.leftParenthesis),
@@ -3035,19 +2935,6 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           condition: _cloneNode(node.condition),
           rightSeparator: _mapToken(node.rightSeparator),
           updaters: _cloneNodeList(node.updaters));
-
-  @override
-  ForStatement visitForStatement(ForStatement node) => astFactory.forStatement(
-      _mapToken(node.forKeyword),
-      _mapToken(node.leftParenthesis),
-      _cloneNode(node.variables),
-      _cloneNode(node.initialization),
-      _mapToken(node.leftSeparator),
-      _cloneNode(node.condition),
-      _mapToken(node.rightSeparator),
-      _cloneNodeList(node.updaters),
-      _mapToken(node.rightParenthesis),
-      _cloneNode(node.body));
 
   @override
   ForStatement2 visitForStatement2(ForStatement2 node) =>
@@ -3289,7 +3176,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
         _mapToken(node.constKeyword),
         _cloneNode(node.typeArguments),
         _mapToken(node.leftBracket),
-        _cloneNodeList(node.elements),
+        _cloneNodeList(node.elements2),
         _mapToken(node.rightBracket));
     copy.staticType = node.staticType;
     return copy;
@@ -3315,13 +3202,11 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
     return copy;
   }
 
+  @deprecated
   @override
-  MapLiteral2 visitMapLiteral2(MapLiteral2 node) => astFactory.mapLiteral2(
-      constKeyword: _mapToken(node.constKeyword),
-      typeArguments: _cloneNode(node.typeArguments),
-      leftBracket: _mapToken(node.leftBracket),
-      entries: _cloneNodeList(node.entries),
-      rightBracket: _mapToken(node.rightBracket));
+  MapLiteral2 visitMapLiteral2(MapLiteral2 node) {
+    throw new UnsupportedError('Not supported');
+  }
 
   @override
   MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) =>
@@ -3512,13 +3397,23 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
     return copy;
   }
 
+  @deprecated
   @override
-  SetLiteral2 visitSetLiteral2(SetLiteral2 node) => astFactory.setLiteral2(
-      constKeyword: _mapToken(node.constKeyword),
-      typeArguments: _cloneNode(node.typeArguments),
-      leftBracket: _mapToken(node.leftBracket),
-      elements: _cloneNodeList(node.elements),
-      rightBracket: _mapToken(node.rightBracket));
+  SetLiteral2 visitSetLiteral2(SetLiteral2 node) {
+    throw new UnsupportedError('Not supported');
+  }
+
+  @override
+  SetOrMapLiteral visitSetOrMapLiteral(SetOrMapLiteral node) {
+    SetOrMapLiteral copy = astFactory.setOrMapLiteral(
+        constKeyword: _mapToken(node.constKeyword),
+        typeArguments: _cloneNode(node.typeArguments),
+        leftBracket: _mapToken(node.leftBracket),
+        elements: _cloneNodeList(node.elements2),
+        rightBracket: _mapToken(node.rightBracket));
+    copy.staticType = node.staticType;
+    return copy;
+  }
 
   @override
   ShowCombinator visitShowCombinator(ShowCombinator node) => astFactory
@@ -3970,7 +3865,7 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
 /**
  * An object that will replace one child node in an AST node with another node.
  */
-class NodeReplacer implements AstVisitor<bool> {
+class NodeReplacer with UIAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
   /**
    * The node being replaced.
    */
@@ -4471,24 +4366,6 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
-  bool visitForEachStatement(ForEachStatement node) {
-    if (identical(node.loopVariable, _oldNode)) {
-      node.loopVariable = _newNode as DeclaredIdentifier;
-      return true;
-    } else if (identical(node.identifier, _oldNode)) {
-      node.identifier = _newNode as SimpleIdentifier;
-      return true;
-    } else if (identical(node.iterable, _oldNode)) {
-      node.iterable = _newNode as Expression;
-      return true;
-    } else if (identical(node.body, _oldNode)) {
-      node.body = _newNode as Statement;
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
   bool visitForElement(ForElement node) {
     if (identical(node.forLoopParts, _oldNode)) {
       (node as ForElementImpl).forLoopParts = _newNode as ForLoopParts;
@@ -4531,26 +4408,6 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     } else if (identical(node.condition, _oldNode)) {
       (node as ForPartsWithExpressionImpl).condition = _newNode as Expression;
-      return true;
-    } else if (_replaceInList(node.updaters)) {
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
-  bool visitForStatement(ForStatement node) {
-    if (identical(node.variables, _oldNode)) {
-      node.variables = _newNode as VariableDeclarationList;
-      return true;
-    } else if (identical(node.initialization, _oldNode)) {
-      node.initialization = _newNode as Expression;
-      return true;
-    } else if (identical(node.condition, _oldNode)) {
-      node.condition = _newNode as Expression;
-      return true;
-    } else if (identical(node.body, _oldNode)) {
-      node.body = _newNode as Statement;
       return true;
     } else if (_replaceInList(node.updaters)) {
       return true;
@@ -4825,40 +4682,22 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitListLiteral(ListLiteral node) {
-    if (_replaceInList(node.elements)) {
+    if (_replaceInList(node.elements2)) {
       return true;
     }
     return visitTypedLiteral(node);
   }
 
+  @deprecated
   @override
   bool visitListLiteral2(ListLiteral2 node) {
-    if (identical(node.typeArguments, _oldNode)) {
-      (node as ListLiteral2Impl).typeArguments = _newNode as TypeArgumentList;
-      return true;
-    } else if (_replaceInList(node.elements)) {
-      return true;
-    }
-    return visitNode(node);
+    throw new UnsupportedError('Not supported');
   }
 
-  @override
-  bool visitMapLiteral(MapLiteral node) {
-    if (_replaceInList(node.entries)) {
-      return true;
-    }
-    return visitTypedLiteral(node);
-  }
-
+  @deprecated
   @override
   bool visitMapLiteral2(MapLiteral2 node) {
-    if (identical(node.typeArguments, _oldNode)) {
-      (node as MapLiteral2Impl).typeArguments = _newNode as TypeArgumentList;
-      return true;
-    } else if (_replaceInList(node.entries)) {
-      return true;
-    }
-    return visitNode(node);
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -5089,23 +4928,18 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
 
+  @deprecated
   @override
-  bool visitSetLiteral(SetLiteral node) {
-    if (_replaceInList(node.elements)) {
-      return true;
-    }
-    return visitTypedLiteral(node);
+  bool visitSetLiteral2(SetLiteral2 node) {
+    throw new UnsupportedError('Not supported');
   }
 
   @override
-  bool visitSetLiteral2(SetLiteral2 node) {
-    if (identical(node.typeArguments, _oldNode)) {
-      (node as SetLiteral2Impl).typeArguments = _newNode as TypeArgumentList;
-      return true;
-    } else if (_replaceInList(node.elements)) {
+  bool visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (_replaceInList(node.elements2)) {
       return true;
     }
-    return visitNode(node);
+    return visitTypedLiteral(node);
   }
 
   @override
@@ -5388,7 +5222,9 @@ class NodeReplacer implements AstVisitor<bool> {
  * another as long as the structures of the corresponding children of a pair of
  * nodes are the same.
  */
-class ResolutionCopier implements AstVisitor<bool> {
+class ResolutionCopier
+    with UIAsCodeVisitorMixin<bool>
+    implements AstVisitor<bool> {
   /**
    * The AST node with which the node being visited is to be compared. This is
    * only valid at the beginning of each visit method (until [isEqualNodes] is
@@ -5897,6 +5733,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
+  @deprecated
   bool visitForEachStatement(ForEachStatement node) {
     ForEachStatement toNode = this._toNode as ForEachStatement;
     return _and(
@@ -5955,6 +5792,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
+  @deprecated
   bool visitForStatement(ForStatement node) {
     ForStatement toNode = this._toNode as ForStatement;
     return _and(
@@ -6264,7 +6102,7 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.constKeyword, toNode.constKeyword),
         _isEqualNodes(node.typeArguments, toNode.typeArguments),
         _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.elements, toNode.elements),
+        _isEqualNodeLists(node.elements2, toNode.elements2),
         _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
       toNode.staticType = node.staticType;
       return true;
@@ -6272,22 +6110,14 @@ class ResolutionCopier implements AstVisitor<bool> {
     return false;
   }
 
+  @deprecated
   @override
   bool visitListLiteral2(ListLiteral2 node) {
-    ListLiteral2 toNode = this._toNode as ListLiteral2;
-    if (_and(
-        _isEqualTokens(node.constKeyword, toNode.constKeyword),
-        _isEqualNodes(node.typeArguments, toNode.typeArguments),
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.elements, toNode.elements),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
+    throw new UnsupportedError('Not supported');
   }
 
   @override
+  @deprecated
   bool visitMapLiteral(MapLiteral node) {
     MapLiteral toNode = this._toNode as MapLiteral;
     if (_and(
@@ -6302,19 +6132,10 @@ class ResolutionCopier implements AstVisitor<bool> {
     return false;
   }
 
+  @deprecated
   @override
   bool visitMapLiteral2(MapLiteral2 node) {
-    MapLiteral2 toNode = this._toNode as MapLiteral2;
-    if (_and(
-        _isEqualTokens(node.constKeyword, toNode.constKeyword),
-        _isEqualNodes(node.typeArguments, toNode.typeArguments),
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.entries, toNode.entries),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -6556,6 +6377,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
+  @deprecated
   bool visitSetLiteral(SetLiteral node) {
     SetLiteral toNode = this._toNode as SetLiteral;
     if (_and(
@@ -6570,14 +6392,20 @@ class ResolutionCopier implements AstVisitor<bool> {
     return false;
   }
 
+  @deprecated
   @override
   bool visitSetLiteral2(SetLiteral2 node) {
-    SetLiteral2 toNode = this._toNode as SetLiteral2;
+    throw new UnsupportedError('Not supported');
+  }
+
+  @override
+  bool visitSetOrMapLiteral(SetOrMapLiteral node) {
+    SetOrMapLiteral toNode = this._toNode as SetOrMapLiteral;
     if (_and(
         _isEqualTokens(node.constKeyword, toNode.constKeyword),
         _isEqualNodes(node.typeArguments, toNode.typeArguments),
         _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.elements, toNode.elements),
+        _isEqualNodeLists(node.elements2, toNode.elements2),
         _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
       toNode.staticType = node.staticType;
       return true;
@@ -7045,6 +6873,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable != null) {
@@ -7060,6 +6889,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForStatement(ForStatement node) {
     if (!identical(_immediateChild, node.variables) && node.variables != null) {
       _addVariables(node.variables.variables);
@@ -7181,7 +7011,9 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
  * This class has been deprecated. Use the class ToSourceVisitor2 instead.
  */
 @deprecated
-class ToSourceVisitor implements AstVisitor<void> {
+class ToSourceVisitor
+    with UIAsCodeVisitorMixin<void>
+    implements AstVisitor<void> {
   /**
    * The writer to which the source is to be written.
    */
@@ -7503,7 +7335,7 @@ class ToSourceVisitor implements AstVisitor<void> {
       _writer.print(keyword.lexeme);
       _writer.print(' ');
     }
-    _writer.print("=> ");
+    _writer.print('${node.functionDefinition?.lexeme} ');
     _visitNode(node.expression);
     if (node.semicolon != null) {
       _writer.print(';');
@@ -7557,25 +7389,8 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    DeclaredIdentifier loopVariable = node.loopVariable;
-    if (node.awaitKeyword != null) {
-      _writer.print("await ");
-    }
-    _writer.print("for (");
-    if (loopVariable == null) {
-      _visitNode(node.identifier);
-    } else {
-      _visitNode(loopVariable);
-    }
-    _writer.print(" in ");
-    _visitNode(node.iterable);
-    _writer.print(") ");
-    _visitNode(node.body);
-  }
-
-  @override
   void visitForElement(ForElement node) {
+    _visitTokenWithSuffix(node.awaitKeyword, ' ');
     _writer.print('for (');
     _visitNode(node.forLoopParts);
     _writer.print(') ');
@@ -7629,24 +7444,10 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitForStatement(ForStatement node) {
-    Expression initialization = node.initialization;
-    _writer.print("for (");
-    if (initialization != null) {
-      _visitNode(initialization);
-    } else {
-      _visitNode(node.variables);
-    }
-    _writer.print(";");
-    _visitNodeWithPrefix(" ", node.condition);
-    _writer.print(";");
-    _visitNodeListWithSeparatorAndPrefix(" ", node.updaters, ", ");
-    _writer.print(") ");
-    _visitNode(node.body);
-  }
-
-  @override
   void visitForStatement2(ForStatement2 node) {
+    if (node.awaitKeyword != null) {
+      _writer.print('await ');
+    }
     _writer.print('for (');
     _visitNode(node.forLoopParts);
     _writer.print(') ');
@@ -7849,44 +7650,23 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    if (node.constKeyword != null) {
-      _writer.print(node.constKeyword.lexeme);
-      _writer.print(' ');
-    }
-    _visitNodeWithSuffix(node.typeArguments, " ");
-    _writer.print("[");
-    _visitNodeListWithSeparator(node.elements, ", ");
-    _writer.print("]");
-  }
-
-  @override
-  void visitListLiteral2(ListLiteral2 node) {
     _visitTokenWithSuffix(node.constKeyword, ' ');
     _visitNode(node.typeArguments);
     _writer.print('[');
-    _visitNodeListWithSeparator(node.elements, ', ');
+    _visitNodeListWithSeparator(node.elements2, ', ');
     _writer.print(']');
   }
 
+  @deprecated
   @override
-  void visitMapLiteral(MapLiteral node) {
-    if (node.constKeyword != null) {
-      _writer.print(node.constKeyword.lexeme);
-      _writer.print(' ');
-    }
-    _visitNodeWithSuffix(node.typeArguments, " ");
-    _writer.print("{");
-    _visitNodeListWithSeparator(node.entries, ", ");
-    _writer.print("}");
+  void visitListLiteral2(ListLiteral2 node) {
+    throw new UnsupportedError('Not supported');
   }
 
+  @deprecated
   @override
   void visitMapLiteral2(MapLiteral2 node) {
-    _visitTokenWithSuffix(node.constKeyword, ' ');
-    _visitNode(node.typeArguments);
-    _writer.print('{');
-    _visitNodeListWithSeparator(node.entries, ', ');
-    _writer.print('}');
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -8053,24 +7833,21 @@ class ToSourceVisitor implements AstVisitor<void> {
     _writer.print(node.scriptTag.lexeme);
   }
 
+  @deprecated
   @override
-  void visitSetLiteral(SetLiteral node) {
+  void visitSetLiteral2(SetLiteral2 node) {
+    throw new UnsupportedError('Not supported');
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
     if (node.constKeyword != null) {
       _writer.print(node.constKeyword.lexeme);
       _writer.print(' ');
     }
-    _visitNodeWithSuffix(node.typeArguments, " ");
-    _writer.print("{");
-    _visitNodeListWithSeparator(node.elements, ", ");
-    _writer.print("}");
-  }
-
-  @override
-  void visitSetLiteral2(SetLiteral2 node) {
-    _visitTokenWithSuffix(node.constKeyword, ' ');
     _visitNode(node.typeArguments);
     _writer.print('{');
-    _visitNodeListWithSeparator(node.elements, ', ');
+    _visitNodeListWithSeparator(node.elements2, ', ');
     _writer.print('}');
   }
 
@@ -8382,7 +8159,9 @@ class ToSourceVisitor implements AstVisitor<void> {
  * A visitor used to write a source representation of a visited AST node (and
  * all of it's children) to a sink.
  */
-class ToSourceVisitor2 implements AstVisitor<void> {
+class ToSourceVisitor2
+    with UIAsCodeVisitorMixin<void>
+    implements AstVisitor<void> {
   /**
    * The sink to which the source is to be written.
    */
@@ -8830,7 +8609,7 @@ class ToSourceVisitor2 implements AstVisitor<void> {
       sink.write(keyword.lexeme);
       sink.write(' ');
     }
-    sink.write("=> ");
+    sink.write('${node.functionDefinition?.lexeme} ');
     safelyVisitNode(node.expression);
     if (node.semicolon != null) {
       sink.write(';');
@@ -8884,25 +8663,8 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   }
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    DeclaredIdentifier loopVariable = node.loopVariable;
-    if (node.awaitKeyword != null) {
-      sink.write("await ");
-    }
-    sink.write("for (");
-    if (loopVariable == null) {
-      safelyVisitNode(node.identifier);
-    } else {
-      safelyVisitNode(loopVariable);
-    }
-    sink.write(" in ");
-    safelyVisitNode(node.iterable);
-    sink.write(") ");
-    safelyVisitNode(node.body);
-  }
-
-  @override
   void visitForElement(ForElement node) {
+    safelyVisitTokenWithSuffix(node.awaitKeyword, ' ');
     sink.write('for (');
     safelyVisitNode(node.forLoopParts);
     sink.write(') ');
@@ -8956,24 +8718,10 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   }
 
   @override
-  void visitForStatement(ForStatement node) {
-    Expression initialization = node.initialization;
-    sink.write("for (");
-    if (initialization != null) {
-      safelyVisitNode(initialization);
-    } else {
-      safelyVisitNode(node.variables);
-    }
-    sink.write(";");
-    safelyVisitNodeWithPrefix(" ", node.condition);
-    sink.write(";");
-    safelyVisitNodeListWithSeparatorAndPrefix(" ", node.updaters, ", ");
-    sink.write(") ");
-    safelyVisitNode(node.body);
-  }
-
-  @override
   void visitForStatement2(ForStatement2 node) {
+    if (node.awaitKeyword != null) {
+      sink.write('await ');
+    }
     sink.write('for (');
     safelyVisitNode(node.forLoopParts);
     sink.write(') ');
@@ -9177,37 +8925,22 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   @override
   void visitListLiteral(ListLiteral node) {
     safelyVisitTokenWithSuffix(node.constKeyword, ' ');
-    safelyVisitNodeWithSuffix(node.typeArguments, " ");
-    sink.write("[");
-    safelyVisitNodeListWithSeparator(node.elements, ", ");
-    sink.write("]");
-  }
-
-  @override
-  void visitListLiteral2(ListLiteral2 node) {
-    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
     safelyVisitNode(node.typeArguments);
     sink.write('[');
-    safelyVisitNodeListWithSeparator(node.elements, ', ');
+    safelyVisitNodeListWithSeparator(node.elements2, ', ');
     sink.write(']');
   }
 
+  @deprecated
   @override
-  void visitMapLiteral(MapLiteral node) {
-    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
-    safelyVisitNodeWithSuffix(node.typeArguments, " ");
-    sink.write("{");
-    safelyVisitNodeListWithSeparator(node.entries, ", ");
-    sink.write("}");
+  void visitListLiteral2(ListLiteral2 node) {
+    throw new UnsupportedError('Not supported');
   }
 
+  @deprecated
   @override
   void visitMapLiteral2(MapLiteral2 node) {
-    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
-    safelyVisitNode(node.typeArguments);
-    sink.write('{');
-    safelyVisitNodeListWithSeparator(node.entries, ', ');
-    sink.write('}');
+    throw new UnsupportedError('Not supported');
   }
 
   @override
@@ -9374,21 +9107,18 @@ class ToSourceVisitor2 implements AstVisitor<void> {
     sink.write(node.scriptTag.lexeme);
   }
 
+  @deprecated
   @override
-  void visitSetLiteral(SetLiteral node) {
-    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
-    safelyVisitNodeWithSuffix(node.typeArguments, " ");
-    sink.write("{");
-    safelyVisitNodeListWithSeparator(node.elements, ", ");
-    sink.write("}");
+  void visitSetLiteral2(SetLiteral2 node) {
+    throw new UnsupportedError('Not supported');
   }
 
   @override
-  void visitSetLiteral2(SetLiteral2 node) {
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
     safelyVisitTokenWithSuffix(node.constKeyword, ' ');
     safelyVisitNode(node.typeArguments);
     sink.write('{');
-    safelyVisitNodeListWithSeparator(node.elements, ', ');
+    safelyVisitNodeListWithSeparator(node.elements2, ', ');
     sink.write('}');
   }
 
@@ -9582,7 +9312,7 @@ class ToSourceVisitor2 implements AstVisitor<void> {
 
   void _writeOperand(Expression node, Expression operand) {
     if (operand != null) {
-      bool needsParenthesis = operand.precedence < node.precedence;
+      bool needsParenthesis = operand.precedence2 < node.precedence2;
       if (needsParenthesis) {
         sink.write('(');
       }
@@ -9591,5 +9321,47 @@ class ToSourceVisitor2 implements AstVisitor<void> {
         sink.write(')');
       }
     }
+  }
+}
+
+/// Mixin allowing visitor classes to forward visit methods for AST structures
+/// that will be deleted as part of the implementation of the "UI as code"
+/// feature.
+///
+/// We will be removing the classes `ForEachStatement`, `ForStatement`,
+/// `MapLiteral`, and `SetLiteral` as part of implementing the "UI as code"
+/// feature.  In order to allow this change to be rolled out to clients in a
+/// staged fashion, we first update each visitor so that it forwards the old
+/// visit methods to their new counterparts; this will allow clients to begin
+/// rewriting their visitors in terms of the new data structures now.
+///
+/// This mixin exists so that we don't have to duplicate the forwarding logic in
+/// every concrete visitor class.
+///
+/// This class will be removed when the above classes (and their corresponding
+/// visit methods) are removed.
+mixin UIAsCodeVisitorMixin<R> implements AstVisitor<R> {
+  @override
+  @deprecated
+  R visitForEachStatement(ForEachStatement node) {
+    return visitForStatement2(node);
+  }
+
+  @override
+  @deprecated
+  R visitForStatement(ForStatement node) {
+    return visitForStatement2(node);
+  }
+
+  @override
+  @deprecated
+  R visitMapLiteral(MapLiteral node) {
+    return visitSetOrMapLiteral(node);
+  }
+
+  @override
+  @deprecated
+  R visitSetLiteral(SetLiteral node) {
+    return visitSetOrMapLiteral(node);
   }
 }

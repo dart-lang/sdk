@@ -181,6 +181,7 @@ class BuilderTest {
       builder.addInt32(4, 40);
       builder.addUint32(5, 0x9ABCDEF0);
       builder.addUint8(6, 0x9A);
+      builder.addFloat64(7, -12.34);
       Offset offset = builder.endTable();
       byteList = builder.finish(offset);
     }
@@ -194,6 +195,7 @@ class BuilderTest {
     expect(const Int32Reader().vTableGet(buf, objectOffset, 4), 40);
     expect(const Uint32Reader().vTableGet(buf, objectOffset, 5), 0x9ABCDEF0);
     expect(const Uint8Reader().vTableGet(buf, objectOffset, 6), 0x9A);
+    expect(const Float64Reader().vTableGet(buf, objectOffset, 7), -12.34);
   }
 
   void test_writeList_of_Uint32() {

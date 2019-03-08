@@ -165,6 +165,8 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
       return true;
     } else if (element == _commonElements.listClass ||
         element == _commonElements.mapLiteralClass ||
+        element == _commonElements.setLiteralClass ||
+        element == _commonElements.unmodifiableSetClass ||
         element == _commonElements.functionClass ||
         element == _commonElements.stringClass) {
       // TODO(johnniwinther): Avoid these.

@@ -7,8 +7,8 @@ import "package:expect/expect.dart";
 // dart2js specific test to make sure hashCode on intercepted types behaves as
 // intended.
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 class Hasher {

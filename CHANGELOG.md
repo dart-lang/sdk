@@ -1,14 +1,53 @@
+## 2.2.1-dev.1.0
+
+### Tool Changes
+
+#### Pub client
+
+* Added a CHANGELOG validator that complains if you `pub publish` without mentioning the current
+  version.
+* Added support for `pub global activate`ing package from a custom pub URL.
+* Added subcommand: `pub logout`. Logs you out of the current session.
+
+#### dart2js
+
+*  `--dump-info=binary`
+
+   A binary format was added to dump-info. The old JSON format is still
+   available and provided by default, but we are starting to deprecate it.
+
+   The new binary format is more compact and cheaper to generate.  On some large
+   apps we tested, it was 4x faster to serialize and used 6x less memory.
+
+   To use it today, use `--dump-info=binary`, instead of `--dump-info`.
+
+   What to expect next?
+   * The [visualizer tool][visualizer] will not be updated to support this new
+     format, but you can find several command-line tools at
+     `package:dart2js_info` that provide similar features to those in the
+     visualizer.
+
+   * The command-line tools in `package:dart2js_info` also work with the old
+     JSON format, so you can start using it even before you enable the new
+     format.
+
+   * In a future release `--dump-info` will default to `--dump-info=binary`. At
+     that point, there will be an option to fallback to the JSON format, but the
+     visualizer tool will be deprecated.
+
+   * A release after that, the JSON format will no longer be available from
+     dart2js, but may be availabe from a command-line tool in
+     `package:dart2js_info`.
+
+[visualizer]: https://dart-lang.github.io/dump-info-visualizer/
+
 ## 2.2.1-dev.0.0
 
 * Cherry-pick 6f8415245d4dd298730facf83e03de69fc29bbd3 to dev
 * Cherry-pick e7d263b05f7f66d15f778df60ee60625e9a3c5f4 to dev
 * Cherry-pick dc8a56bc0ece296915c7016e0a8241c7068eca18 to dev
 
-## 2.2.0-dev.2.1
-
-* Cherry-pick 765e6338a803ee17472b1fa715ffcfbd4ea46bfb to dev
-
-## 2.2.0-dev.2.0
+## 2.2.0 - 2019-02-26
 
 ### Language
 

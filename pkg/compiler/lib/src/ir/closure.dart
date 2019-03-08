@@ -185,6 +185,9 @@ enum VariableUseKind {
   /// A type variable passed as the type argument of a list literal.
   listLiteral,
 
+  /// A type variable passed as the type argument of a set literal.
+  setLiteral,
+
   /// A type variable passed as the type argument of a map literal.
   mapLiteral,
 
@@ -306,6 +309,9 @@ class VariableUse {
 
   static const VariableUse listLiteral =
       const VariableUse._simple(VariableUseKind.listLiteral);
+
+  static const VariableUse setLiteral =
+      const VariableUse._simple(VariableUseKind.setLiteral);
 
   static const VariableUse mapLiteral =
       const VariableUse._simple(VariableUseKind.mapLiteral);

@@ -32,11 +32,9 @@ ffi/function_structs_test: Skip # https://github.com/dart-lang/sdk/issues/35934
 ffi/function_test: Skip # https://github.com/dart-lang/sdk/issues/35934
 
 [ $runtime == dart_precompiled ]
-ffi: RuntimeError # https://github.com/dart-lang/sdk/issues/35765
-ffi/static_checks_test: Skip # https://github.com/dart-lang/sdk/issues/35765
+ffi: Skip # https://github.com/dart-lang/sdk/issues/35765
 
 [ $runtime == vm ]
-ffi/enable_ffi_test: Fail # test designed to fail: --enable-ffi=false with import dart:ffi
 io/test_runner_test: Skip # Spawns a process which runs in Dart2 mode.
 
 [ $system == android ]

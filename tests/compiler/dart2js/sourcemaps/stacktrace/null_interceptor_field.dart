@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
-
 class MyType {
   get length => 3; // ensures we build an interceptor for `.length`
 }
@@ -16,5 +14,5 @@ main() {
   confuse(null). /*1:main*/ length; // called through the interceptor
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 confuse(x) => x;

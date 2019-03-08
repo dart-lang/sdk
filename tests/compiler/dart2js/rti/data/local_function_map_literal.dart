@@ -9,12 +9,12 @@ import 'package:expect/expect.dart';
 
 /*strong.element: method:implicit=[method.T],indirect,needsArgs*/
 /*omit.element: method:needsArgs*/
-@NoInline()
+@pragma('dart2js:noInline')
 method<T>() {
   return () => <T, int>{};
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is Map<int, int>;
 
 main() {

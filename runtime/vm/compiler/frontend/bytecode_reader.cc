@@ -308,8 +308,9 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
   for (intptr_t i = 0; i < num_type_params; ++i) {
     name ^= ReadObject();
     ASSERT(name.IsSymbol());
-    parameter = TypeParameter::New(parameterized_class, parameterized_function,
-                                   i, name, bound, TokenPosition::kNoSource);
+    parameter = TypeParameter::New(
+        parameterized_class, parameterized_function, i, name, bound,
+        /* is_generic_covariant_impl = */ false, TokenPosition::kNoSource);
     type_parameters.SetTypeAt(i, parameter);
   }
 

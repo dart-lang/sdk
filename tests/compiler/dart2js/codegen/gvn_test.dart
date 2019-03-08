@@ -46,13 +46,17 @@ void foo(a) {
 // Check that [HCheck] instructions do not prevent GVN.
 const String TEST_FIVE = r"""
 class A {
-  var foo = 21;
+  final int foo;
+  A(this.foo);
 }
 
 class B {}
 
 main() {
-  dynamic a = [new B(), new A()][0];
+  helper([new A(32), new A(21), new B(), null][0]);
+}
+
+helper(A a) {
   var b = a.foo;
   var c = a.foo;
   if (a is B) {
@@ -65,6 +69,7 @@ main() {
 // Check that a gvn'able instruction in the loop header gets hoisted.
 const String TEST_SIX = r"""
 class A {
+  @pragma('dart2js:noElision')
   final field = 54;
 }
 
@@ -106,7 +111,7 @@ main() {
 """;
 
 main() {
-  runTests() async {
+  asyncTest(() async {
     await compile(TEST_ONE, entry: 'foo', check: (String generated) {
       RegExp regexp = RegExp(r"1 \+ [a-z]+");
       checkNumberOfMatches(regexp.allMatches(generated).iterator, 1);
@@ -122,8 +127,9 @@ main() {
     });
 
     await compileAll(TEST_FIVE).then((generated) {
+      checkNumberOfMatches(RegExp(r"\.foo;").allMatches(generated).iterator, 1);
       checkNumberOfMatches(
-          RegExp(r"get\$foo\(").allMatches(generated).iterator, 1);
+          RegExp(r"get\$foo\(").allMatches(generated).iterator, 0);
     });
     await compileAll(TEST_SIX).then((generated) {
       Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
@@ -134,10 +140,5 @@ main() {
     await compileAll(TEST_EIGHT).then((generated) {
       Expect.isTrue(generated.contains('for (; i < t1; ++i)'));
     });
-  }
-
-  asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
-    await runTests();
   });
 }

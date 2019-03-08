@@ -54,8 +54,10 @@ class LocalReferenceContributor extends DartCompletionContributor {
 
         // Do not suggest loop variable of a ForEachStatement
         // when completing the expression of the ForEachStatement
-        if (node is ForEachStatement) {
+        if (node is ForStatement2 && node.forLoopParts is ForEachParts) {
           node = node.parent;
+        } else if (node is ForEachParts) {
+          node = node.parent.parent;
         }
 
         _LocalVisitor visitor = new _LocalVisitor(
@@ -295,6 +297,19 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  void declaredMixin(MixinDeclaration declaration) {
+    if (optype.includeTypeNameSuggestions) {
+      _addLocalSuggestion_includeTypeNameSuggestions(
+          declaration.documentationComment,
+          declaration.name,
+          NO_RETURN_TYPE,
+          protocol.ElementKind.MIXIN,
+          isAbstract: true,
+          isDeprecated: isDeprecated(declaration));
+    }
+  }
+
+  @override
   void declaredParam(SimpleIdentifier id, TypeAnnotation typeName) {
     if (optype.includeReturnValueSuggestions) {
       _addLocalSuggestion_includeReturnValueSuggestions(
@@ -358,7 +373,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           isDeprecated: isDeprecated,
           parameters: param?.toSource(),
           returnType: typeName);
-      suggestion.elementUri = request.source.toString();
       if ((elemKind == protocol.ElementKind.METHOD ||
               elemKind == protocol.ElementKind.FUNCTION) &&
           param != null) {
@@ -400,7 +414,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
             constantDeclaration.name.length,
             0,
             0));
-    suggestion.elementUri = request.source.uri.toString();
   }
 
   void _addLocalSuggestion_includeReturnValueSuggestions(

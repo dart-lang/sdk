@@ -8,6 +8,8 @@ library FfiTest;
 
 import 'dart:ffi' as ffi;
 
+import 'dylib_utils.dart';
+
 import "package:expect/expect.dart";
 
 import 'coordinate.dart';
@@ -24,7 +26,7 @@ void main() {
 }
 
 ffi.DynamicLibrary ffiTestFunctions =
-    ffi.DynamicLibrary.open("ffi_test_functions");
+    dlopenPlatformSpecific("ffi_test_functions");
 
 /// pass a pointer to a c function as an argument to a c function
 void testFunctionWithFunctionPointer() {

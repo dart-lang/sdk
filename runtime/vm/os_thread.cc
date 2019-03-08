@@ -40,6 +40,7 @@ OSThread::OSThread()
       log_(new class Log()),
       stack_base_(0),
       stack_limit_(0),
+      stack_headroom_(0),
       thread_(NULL) {
   // Try to get accurate stack bounds from pthreads, etc.
   if (!GetCurrentStackBounds(&stack_limit_, &stack_base_)) {
@@ -47,11 +48,14 @@ OSThread::OSThread()
     RefineStackBoundsFromSP(GetCurrentStackPointer());
   }
 
+  stack_headroom_ = CalculateHeadroom(stack_base_ - stack_limit_);
+
   ASSERT(stack_base_ != 0);
   ASSERT(stack_limit_ != 0);
   ASSERT(stack_base_ > stack_limit_);
   ASSERT(stack_base_ > GetCurrentStackPointer());
   ASSERT(stack_limit_ < GetCurrentStackPointer());
+  RELEASE_ASSERT(HasStackHeadroom());
 }
 
 OSThread* OSThread::CreateOSThread() {

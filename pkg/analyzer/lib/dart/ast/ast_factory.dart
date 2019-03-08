@@ -488,36 +488,6 @@ abstract class AstFactory {
       {SimpleIdentifier identifier, Token inKeyword, Expression iterable});
 
   /**
-   * Returns a newly created for-each statement whose loop control variable
-   * is declared internally (in the for-loop part). The [awaitKeyword] can be
-   * `null` if this is not an asynchronous for loop.
-   */
-  ForEachStatement forEachStatementWithDeclaration(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      DeclaredIdentifier loopVariable,
-      Token inKeyword,
-      Expression iterator,
-      Token rightParenthesis,
-      Statement body);
-
-  /**
-   * Returns a newly created for-each statement whose loop control variable
-   * is declared outside the for loop. The [awaitKeyword] can be `null` if this
-   * is not an asynchronous for loop.
-   */
-  ForEachStatement forEachStatementWithReference(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      SimpleIdentifier identifier,
-      Token inKeyword,
-      Expression iterator,
-      Token rightParenthesis,
-      Statement body);
-
-  /**
    * Returns a newly created for element that can be part of a list, map or set
    * literal.
    */
@@ -560,24 +530,6 @@ abstract class AstFactory {
       Expression condition,
       Token rightSeparator,
       List<Expression> updaters});
-
-  /**
-   * Returns a newly created for statement. Either the [variableList] or the
-   * [initialization] must be `null`. Either the [condition] and the list of
-   * [updaters] can be `null` if the loop does not have the corresponding
-   * attribute.
-   */
-  ForStatement forStatement(
-      Token forKeyword,
-      Token leftParenthesis,
-      VariableDeclarationList variableList,
-      Expression initialization,
-      Token leftSeparator,
-      Expression condition,
-      Token rightSeparator,
-      List<Expression> updaters,
-      Token rightParenthesis,
-      Statement body);
 
   /**
    * Returns a newly created for statement.
@@ -831,11 +783,12 @@ abstract class AstFactory {
    * list is empty.
    */
   ListLiteral listLiteral(Token constKeyword, TypeArgumentList typeArguments,
-      Token leftBracket, List<Expression> elements, Token rightBracket);
+      Token leftBracket, List<CollectionElement> elements, Token rightBracket);
 
   /**
    * Returns a newly created list literal.
    */
+  @Deprecated('Use listLiteral')
   ListLiteral2 listLiteral2(
       {Token constKeyword,
       TypeArgumentList typeArguments,
@@ -848,12 +801,14 @@ abstract class AstFactory {
    * the literal is not a constant. The [typeArguments] can be `null` if no type
    * arguments were declared. The [entries] can be `null` if the map is empty.
    */
+  @Deprecated('Use setOrMapLiteral')
   MapLiteral mapLiteral(Token constKeyword, TypeArgumentList typeArguments,
       Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket);
 
   /**
    * Returns a newly created map literal.
    */
+  @Deprecated('Use setOrMapLiteral')
   MapLiteral2 mapLiteral2(
       {Token constKeyword,
       TypeArgumentList typeArguments,
@@ -1035,13 +990,28 @@ abstract class AstFactory {
    * type arguments were declared. The list of [elements] can be `null` if the
    * set is empty.
    */
+  @Deprecated('Use setOrMapLiteral')
   SetLiteral setLiteral(Token constKeyword, TypeArgumentList typeArguments,
       Token leftBracket, List<Expression> elements, Token rightBracket);
 
   /**
    * Returns a newly created set literal.
    */
+  @Deprecated('Use setOrMapLiteral')
   SetLiteral2 setLiteral2(
+      {Token constKeyword,
+      TypeArgumentList typeArguments,
+      Token leftBracket,
+      List<CollectionElement> elements,
+      Token rightBracket});
+
+  /**
+   * Returns a newly created set or map literal. The [constKeyword] can be
+   * `null` if the literal is not a constant. The [typeArguments] can be `null`
+   * if no type arguments were declared. The list of [elements] can be `null` if
+   * the set or map is empty.
+   */
+  SetOrMapLiteral setOrMapLiteral(
       {Token constKeyword,
       TypeArgumentList typeArguments,
       Token leftBracket,

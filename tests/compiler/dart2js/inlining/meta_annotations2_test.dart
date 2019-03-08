@@ -7,6 +7,7 @@
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/commandline_options.dart';
 import '../helpers/memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
@@ -17,6 +18,7 @@ const MEMORY_SOURCE_FILES = const {
         foo(y) => 49912344 + y;
 
         class A {
+          @pragma('dart2js:noElision')
           var field;
 
           @noInline
@@ -41,7 +43,9 @@ void main() {
   runTests() async {
     OutputCollector collector = new OutputCollector();
     await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        outputProvider: collector,
+        options: [Flags.testMode]);
     // Simply check that the constants of the small functions are still in the
     // output, and that we don't see the result of constant folding.
     String jsOutput = collector.getOutput('', OutputType.js);

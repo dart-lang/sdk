@@ -331,9 +331,9 @@ void ImageWriter::WriteROData(WriteStream* stream) {
     uword start = reinterpret_cast<uword>(obj.raw()) - kHeapObjectTag;
     uword end = start + obj.raw()->HeapSize();
 
-    // Write object header with the mark and VM heap bits set.
+    // Write object header with the mark and read-only bits set.
     uword marked_tags = obj.raw()->ptr()->tags_;
-    marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
+    marked_tags = RawObject::ReadOnlyBit::update(true, marked_tags);
     marked_tags = RawObject::OldBit::update(true, marked_tags);
     marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
     marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
@@ -482,9 +482,9 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
       uword entry = beginning + Instructions::HeaderSize();
 
-      // Write Instructions with the mark and VM heap bits set.
+      // Write Instructions with the mark and read-only bits set.
       uword marked_tags = insns.raw_ptr()->tags_;
-      marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
+      marked_tags = RawObject::ReadOnlyBit::update(true, marked_tags);
       marked_tags = RawObject::OldBit::update(true, marked_tags);
       marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
       marked_tags =
@@ -732,9 +732,9 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     ASSERT(Utils::IsAligned(beginning, sizeof(uword)));
     ASSERT(Utils::IsAligned(entry, sizeof(uword)));
 
-    // Write Instructions with the mark and VM heap bits set.
+    // Write Instructions with the mark and read-only bits set.
     uword marked_tags = insns.raw_ptr()->tags_;
-    marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
+    marked_tags = RawObject::ReadOnlyBit::update(true, marked_tags);
     marked_tags = RawObject::OldBit::update(true, marked_tags);
     marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
     marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);

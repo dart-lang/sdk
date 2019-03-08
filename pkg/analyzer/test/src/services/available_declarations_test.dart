@@ -937,6 +937,8 @@ void e<T extends num, U>() {}
         requiredParameterCount: 0,
         returnType: 'void');
     _assertDeclaration(library, 'd', DeclarationKind.FUNCTION,
+        defaultArgumentListString: 'p1, p2',
+        defaultArgumentListTextRanges: [0, 2, 4, 2],
         parameters: '(Map<String, int> p1, int p2, {double p3})',
         parameterNames: ['p1', 'p2', 'p3'],
         parameterTypes: ['Map<String, int>', 'int', 'double'],
@@ -949,6 +951,53 @@ void e<T extends num, U>() {}
         requiredParameterCount: 0,
         returnType: 'void',
         typeParameters: '<T extends num, U>');
+  }
+
+  test_FUNCTION_defaultArgumentList() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+void a() {}
+
+void b(int a, double bb, String ccc) {}
+
+void c(int a, [double b, String c]) {}
+
+void d(int a, {int b, @required int c, @required int d, int e}) {}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(library, 'a', DeclarationKind.FUNCTION,
+        parameterNames: [],
+        parameters: '()',
+        parameterTypes: [],
+        requiredParameterCount: 0,
+        returnType: 'void');
+    _assertDeclaration(library, 'b', DeclarationKind.FUNCTION,
+        defaultArgumentListString: 'a, bb, ccc',
+        defaultArgumentListTextRanges: [0, 1, 3, 2, 7, 3],
+        parameters: '(int a, double bb, String ccc)',
+        parameterNames: ['a', 'bb', 'ccc'],
+        parameterTypes: ['int', 'double', 'String'],
+        requiredParameterCount: 3,
+        returnType: 'void');
+    _assertDeclaration(library, 'c', DeclarationKind.FUNCTION,
+        defaultArgumentListString: 'a',
+        defaultArgumentListTextRanges: [0, 1],
+        parameters: '(int a, [double b, String c])',
+        parameterNames: ['a', 'b', 'c'],
+        parameterTypes: ['int', 'double', 'String'],
+        requiredParameterCount: 1,
+        returnType: 'void');
+    _assertDeclaration(library, 'd', DeclarationKind.FUNCTION,
+        defaultArgumentListString: 'a, c: null, d: null',
+        defaultArgumentListTextRanges: [0, 1, 6, 4, 15, 4],
+        parameters: '(int a, {int b, @required int c, @required int d, int e})',
+        parameterNames: ['a', 'b', 'c', 'd', 'e'],
+        parameterTypes: ['int', 'int', 'int', 'int', 'int'],
+        requiredParameterCount: 1,
+        returnType: 'void');
   }
 
   test_FUNCTION_TYPE_ALIAS() async {
@@ -1155,6 +1204,28 @@ class _B {}
     _assertHasLibrary('package:test/test.dart', declarations: [
       _ExpectedDeclaration.class_('A'),
       _ExpectedDeclaration.class_('B'),
+    ]);
+  }
+
+  test_library_publicOnly_enum() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+part of 'test.dart';
+enum A {a, _a}
+enum _A {a, _a}
+''');
+    newFile('/home/test/lib/test.dart', content: r'''
+part 'a.dart';
+enum B {b, _b}
+enum _B {b, _b}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.enum_('A'),
+      _ExpectedDeclaration.enumConstant('a', 'A'),
+      _ExpectedDeclaration.enum_('B'),
+      _ExpectedDeclaration.enumConstant('b', 'B'),
     ]);
   }
 
@@ -2096,6 +2167,8 @@ class _Base extends AbstractContextTest {
     Library library,
     String name,
     DeclarationKind kind, {
+    String defaultArgumentListString,
+    List<int> defaultArgumentListTextRanges,
     String docComplete,
     String docSummary,
     bool isAbstract = false,
@@ -2116,6 +2189,11 @@ class _Base extends AbstractContextTest {
     String typeParameters,
   }) {
     var declaration = _getDeclaration(library, name);
+    expect(declaration.defaultArgumentListString, defaultArgumentListString);
+    expect(
+      declaration.defaultArgumentListTextRanges,
+      defaultArgumentListTextRanges,
+    );
     expect(declaration.docComplete, docComplete);
     expect(declaration.docSummary, docSummary);
     expect(declaration.name, name);

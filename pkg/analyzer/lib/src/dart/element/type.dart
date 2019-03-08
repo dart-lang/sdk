@@ -1505,6 +1505,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartCoreDouble {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "double" && element.library.isDartCore;
+  }
+
+  @override
   bool get isDartCoreFunction {
     ClassElement element = this.element;
     if (element == null) {
@@ -1637,6 +1646,26 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else {
       buffer.write('<recursive>');
     }
+  }
+
+  /**
+   * Return either this type or a supertype of this type that is defined by the
+   * [targetElement], or `null` if such a type does not exist. If this type
+   * inherits from the target element along multiple paths, then the returned type
+   * is arbitrary.
+   *
+   * For example, given the following definitions
+   * ```
+   * class A<E> {}
+   * class B<E> implements A<E> {}
+   * class C implements A<String> {}
+   * ```
+   * Asking the type `B<int>` for the type associated with `A` will return the
+   * type `A<int>`. Asking the type `C` for the type associated with `A` will
+   * return the type `A<String>`.
+   */
+  InterfaceType asInstanceOf(ClassElement targetElement) {
+    return _asInstanceOf(targetElement, new Set<ClassElement>());
   }
 
   @override
@@ -2261,6 +2290,43 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   /**
+   * Return  either this type or a supertype of this type that is defined by the
+   * [targetElement], or `null` if such a type does not exist. The set of
+   * [visitedClasses] is used to prevent infinite recursion.
+   */
+  InterfaceType _asInstanceOf(
+      ClassElement targetElement, Set<ClassElement> visitedClasses) {
+    ClassElement thisElement = element;
+    if (thisElement == targetElement) {
+      return this;
+    } else if (visitedClasses.add(thisElement)) {
+      InterfaceType type;
+      for (InterfaceType mixin in mixins) {
+        type = (mixin as InterfaceTypeImpl)
+            ._asInstanceOf(targetElement, visitedClasses);
+        if (type != null) {
+          return type;
+        }
+      }
+      if (superclass != null) {
+        type = (superclass as InterfaceTypeImpl)
+            ._asInstanceOf(targetElement, visitedClasses);
+        if (type != null) {
+          return type;
+        }
+      }
+      for (InterfaceType interface in interfaces) {
+        type = (interface as InterfaceTypeImpl)
+            ._asInstanceOf(targetElement, visitedClasses);
+        if (type != null) {
+          return type;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Flush cache members if the version of [element] for which members are
    * cached and the current version of the [element].
    */
@@ -2745,6 +2811,9 @@ abstract class TypeImpl implements DartType {
 
   @override
   bool get isDartCoreBool => false;
+
+  @override
+  bool get isDartCoreDouble => false;
 
   @override
   bool get isDartCoreFunction => false;

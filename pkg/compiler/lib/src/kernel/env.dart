@@ -827,20 +827,10 @@ abstract class KFieldData extends KMemberData {
 
   ConstantExpression getFieldConstantExpression(
       KernelToElementMapImpl elementMap);
-
-  /// Return the [ConstantValue] the initial value of [field] or `null` if
-  /// the initializer is not a constant expression.
-  ConstantValue getFieldConstantValue(KernelToElementMapImpl elementMap);
-
-  bool hasConstantFieldInitializer(KernelToElementMapImpl elementMap);
-
-  ConstantValue getConstantFieldInitializer(KernelToElementMapImpl elementMap);
 }
 
 class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   DartType _type;
-  bool _isConstantComputed = false;
-  ConstantValue _constantValue;
   ConstantExpression _constantExpression;
 
   KFieldDataImpl(ir.Field node) : super(node);
@@ -865,33 +855,6 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
       }
     }
     return _constantExpression;
-  }
-
-  @override
-  ConstantValue getFieldConstantValue(KernelToElementMapImpl elementMap) {
-    if (!_isConstantComputed) {
-      _constantValue = elementMap.getConstantValue(node.initializer,
-          requireConstant: node.isConst, implicitNull: !node.isConst);
-      _isConstantComputed = true;
-    }
-    return _constantValue;
-  }
-
-  @override
-  bool hasConstantFieldInitializer(KernelToElementMapImpl elementMap) {
-    return getFieldConstantValue(elementMap) != null;
-  }
-
-  @override
-  ConstantValue getConstantFieldInitializer(KernelToElementMapImpl elementMap) {
-    ConstantValue value = getFieldConstantValue(elementMap);
-    assert(
-        value != null,
-        failedAt(
-            computeSourceSpanFromTreeNode(node),
-            "Field ${node} doesn't have a "
-            "constant initial value."));
-    return value;
   }
 
   @override

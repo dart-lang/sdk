@@ -7,6 +7,7 @@ import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper'
     show
         fillLiteralMap,
+        fillLiteralSet,
         InternalMap,
         NoInline,
         NoSideEffects,
@@ -533,29 +534,29 @@ class LinkedHashMap<K, V> {
   factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>.es6;
 
   // Private factory constructor called by generated code for map literals.
-  @NoInline()
+  @pragma('dart2js:noInline')
   factory LinkedHashMap._literal(List keyValuePairs) {
     return fillLiteralMap(keyValuePairs, new JsLinkedHashMap<K, V>.es6());
   }
 
   // Private factory constructor called by generated code for map literals.
-  @NoThrows()
-  @NoInline()
-  @NoSideEffects()
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
+  @pragma('dart2js:noSideEffects')
   factory LinkedHashMap._empty() {
     return new JsLinkedHashMap<K, V>.es6();
   }
 
   // Private factory static function called by generated code for map literals.
   // This version is for map literals without type parameters.
-  @NoThrows()
-  @NoInline()
-  @NoSideEffects()
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
+  @pragma('dart2js:noSideEffects')
   static _makeEmpty() => new JsLinkedHashMap();
 
   // Private factory static function called by generated code for map literals.
   // This version is for map literals without type parameters.
-  @NoInline()
+  @pragma('dart2js:noInline')
   static _makeLiteral(keyValuePairs) =>
       fillLiteralMap(keyValuePairs, new JsLinkedHashMap());
 }
@@ -1239,6 +1240,30 @@ class LinkedHashSet<E> {
 
   @patch
   factory LinkedHashSet.identity() = _LinkedIdentityHashSet<E>;
+
+  // Private factory constructor called by generated code for set literals.
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
+  @pragma('dart2js:noSideEffects')
+  factory LinkedHashSet._empty() => new _LinkedHashSet<E>();
+
+  // Private factory constructor called by generated code for set literals.
+  @pragma('dart2js:noInline')
+  factory LinkedHashSet._literal(List values) =>
+      fillLiteralSet(values, new _LinkedHashSet<E>());
+
+  // Private factory static function called by generated code for set literals.
+  // This version is for set literals without type parameters.
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
+  @pragma('dart2js:noSideEffects')
+  static _makeEmpty() => new _LinkedHashSet();
+
+  // Private factory static function called by generated code for set literals.
+  // This version is for set literals without type parameters.
+  @pragma('dart2js:noInline')
+  static _makeLiteral(List values) =>
+      fillLiteralSet(values, new _LinkedHashSet());
 }
 
 class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {

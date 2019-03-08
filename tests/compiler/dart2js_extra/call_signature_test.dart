@@ -13,11 +13,11 @@ class A<T> {
 }
 
 class B<T> {
-  @NoInline()
+  @pragma('dart2js:noInline')
   m(f) => f is Function(T);
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 create() => new B<A<int>>();
 
 main() {

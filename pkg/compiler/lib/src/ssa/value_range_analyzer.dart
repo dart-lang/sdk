@@ -2,20 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../constant_system_dart.dart';
-import '../constants/constant_system.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
 
 class ValueRangeInfo {
-  final ConstantSystem constantSystem;
-
   IntValue intZero;
   IntValue intOne;
 
-  ValueRangeInfo(this.constantSystem) {
+  ValueRangeInfo() {
     intZero = newIntValue(BigInt.zero);
     intOne = newIntValue(BigInt.one);
   }
@@ -129,9 +126,9 @@ class IntValue extends Value {
   Value operator +(dynamic other) {
     if (other.isZero) return this;
     if (other is! IntValue) return other + this;
-    ConstantSystem constantSystem = info.constantSystem;
-    dynamic constant = constantSystem.add.fold(
-        constantSystem.createInt(value), constantSystem.createInt(other.value));
+    dynamic constant = constant_system.add.fold(
+        constant_system.createInt(value),
+        constant_system.createInt(other.value));
     if (!constant.isInt) return const UnknownValue();
     return info.newIntValue(constant.intValue);
   }
@@ -139,27 +136,26 @@ class IntValue extends Value {
   Value operator -(dynamic other) {
     if (other.isZero) return this;
     if (other is! IntValue) return -other + this;
-    ConstantSystem constantSystem = info.constantSystem;
-    dynamic constant = constantSystem.subtract.fold(
-        constantSystem.createInt(value), constantSystem.createInt(other.value));
+    dynamic constant = constant_system.subtract.fold(
+        constant_system.createInt(value),
+        constant_system.createInt(other.value));
     if (!constant.isInt) return const UnknownValue();
     return info.newIntValue(constant.intValue);
   }
 
   Value operator -() {
     if (isZero) return this;
-    ConstantSystem constantSystem = info.constantSystem;
     dynamic constant =
-        constantSystem.negate.fold(constantSystem.createInt(value));
+        constant_system.negate.fold(constant_system.createInt(value));
     if (!constant.isInt) return const UnknownValue();
     return info.newIntValue(constant.intValue);
   }
 
   Value operator &(dynamic other) {
     if (other is! IntValue) return const UnknownValue();
-    ConstantSystem constantSystem = info.constantSystem;
-    dynamic constant = constantSystem.bitAnd.fold(
-        constantSystem.createInt(value), constantSystem.createInt(other.value));
+    dynamic constant = constant_system.bitAnd.fold(
+        constant_system.createInt(value),
+        constant_system.createInt(other.value));
     return info.newIntValue(constant.intValue);
   }
 
@@ -579,10 +575,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   HGraph graph;
 
   SsaValueRangeAnalyzer(JClosedWorld closedWorld, this.optimizer)
-      : info = new ValueRangeInfo(closedWorld.constantSystem),
+      : info = new ValueRangeInfo(),
         this.closedWorld = closedWorld;
-
-  ConstantSystem get constantSystem => closedWorld.constantSystem;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -776,7 +770,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     if (right.isInteger(closedWorld.abstractValueDomain).isPotentiallyFalse) {
       return info.newUnboundRange();
     }
-    BinaryOperation operation = relational.operation(constantSystem);
+    constant_system.BinaryOperation operation = relational.operation();
     Range rightRange = ranges[relational.right];
     Range leftRange = ranges[relational.left];
 
@@ -881,7 +875,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       return info.newUnboundRange();
     }
     return instruction
-        .operation(constantSystem)
+        .operation()
         .apply(ranges[instruction.left], ranges[instruction.right]);
   }
 
@@ -943,46 +937,48 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     return newInstruction;
   }
 
-  static BinaryOperation negateOperation(BinaryOperation operation) {
-    if (operation == const LessOperation()) {
-      return const GreaterEqualOperation();
-    } else if (operation == const LessEqualOperation()) {
-      return const GreaterOperation();
-    } else if (operation == const GreaterOperation()) {
-      return const LessEqualOperation();
-    } else if (operation == const GreaterEqualOperation()) {
-      return const LessOperation();
+  static constant_system.BinaryOperation negateOperation(
+      constant_system.BinaryOperation operation) {
+    if (operation == const constant_system.LessOperation()) {
+      return const constant_system.GreaterEqualOperation();
+    } else if (operation == const constant_system.LessEqualOperation()) {
+      return const constant_system.GreaterOperation();
+    } else if (operation == const constant_system.GreaterOperation()) {
+      return const constant_system.LessEqualOperation();
+    } else if (operation == const constant_system.GreaterEqualOperation()) {
+      return const constant_system.LessOperation();
     } else {
       return null;
     }
   }
 
-  static BinaryOperation flipOperation(BinaryOperation operation) {
-    if (operation == const LessOperation()) {
-      return const GreaterOperation();
-    } else if (operation == const LessEqualOperation()) {
-      return const GreaterEqualOperation();
-    } else if (operation == const GreaterOperation()) {
-      return const LessOperation();
-    } else if (operation == const GreaterEqualOperation()) {
-      return const LessEqualOperation();
+  static constant_system.BinaryOperation flipOperation(
+      constant_system.BinaryOperation operation) {
+    if (operation == const constant_system.LessOperation()) {
+      return const constant_system.GreaterOperation();
+    } else if (operation == const constant_system.LessEqualOperation()) {
+      return const constant_system.GreaterEqualOperation();
+    } else if (operation == const constant_system.GreaterOperation()) {
+      return const constant_system.LessOperation();
+    } else if (operation == const constant_system.GreaterEqualOperation()) {
+      return const constant_system.LessEqualOperation();
     } else {
       return null;
     }
   }
 
-  Range computeConstrainedRange(
-      BinaryOperation operation, Range leftRange, Range rightRange) {
+  Range computeConstrainedRange(constant_system.BinaryOperation operation,
+      Range leftRange, Range rightRange) {
     Range range;
-    if (operation == const LessOperation()) {
+    if (operation == const constant_system.LessOperation()) {
       range = info.newNormalizedRange(
           const MinIntValue(), rightRange.upper - info.intOne);
-    } else if (operation == const LessEqualOperation()) {
+    } else if (operation == const constant_system.LessEqualOperation()) {
       range = info.newNormalizedRange(const MinIntValue(), rightRange.upper);
-    } else if (operation == const GreaterOperation()) {
+    } else if (operation == const constant_system.GreaterOperation()) {
       range = info.newNormalizedRange(
           rightRange.lower + info.intOne, const MaxIntValue());
-    } else if (operation == const GreaterEqualOperation()) {
+    } else if (operation == const constant_system.GreaterEqualOperation()) {
       range = info.newNormalizedRange(rightRange.lower, const MaxIntValue());
     } else {
       range = info.newUnboundRange();
@@ -1006,8 +1002,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
     Range rightRange = ranges[right];
     Range leftRange = ranges[left];
-    Operation operation = condition.operation(constantSystem);
-    Operation mirrorOp = flipOperation(operation);
+    constant_system.Operation operation = condition.operation();
+    constant_system.Operation mirrorOp = flipOperation(operation);
     // Only update the true branch if this block is the only
     // predecessor.
     if (branch.trueBranch.predecessors.length == 1) {
@@ -1033,8 +1029,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     // predecessor.
     if (branch.falseBranch.predecessors.length == 1) {
       assert(branch.falseBranch.predecessors[0] == branch.block);
-      Operation reverse = negateOperation(operation);
-      Operation reversedMirror = flipOperation(reverse);
+      constant_system.Operation reverse = negateOperation(operation);
+      constant_system.Operation reversedMirror = flipOperation(reverse);
       // Update the false branch to use narrower ranges for [left] and
       // [right].
       Range range = computeConstrainedRange(reverse, leftRange, rightRange);
@@ -1132,7 +1128,7 @@ class LoopUpdateRecognizer extends HBaseVisitor {
     Range leftRange = visit(instruction.left);
     Range rightRange = visit(instruction.right);
     if (leftRange == null || rightRange == null) return null;
-    BinaryOperation operation = instruction.operation(info.constantSystem);
+    constant_system.BinaryOperation operation = instruction.operation();
     return operation.apply(leftRange, rightRange);
   }
 }

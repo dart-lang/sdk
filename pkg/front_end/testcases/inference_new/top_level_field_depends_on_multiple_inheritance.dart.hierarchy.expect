@@ -127,6 +127,7 @@ F:
   classSetters:
 
 G:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: D, E, F
@@ -157,6 +158,7 @@ G:
   interfaceSetters:
 
 H:
+  Longest path to Object: 3
   superclasses:
     Object
       -> G

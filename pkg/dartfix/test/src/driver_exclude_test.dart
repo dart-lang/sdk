@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
-const _debug = false;
+const _debug = true;
 
 main() {
   File exampleFile;
@@ -21,16 +21,23 @@ main() {
 
     final driver = new Driver();
     final testContext = new TestContext();
-    final testLogger = new TestLogger();
+    final testLogger = new TestLogger(debug: _debug);
     String exampleSource = await exampleFile.readAsString();
 
-    await driver.start(['-xuse-mixin', exampleDir.path],
-        testContext: testContext, testLogger: testLogger);
+    var args = ['-xuse-mixin', exampleDir.path];
     if (_debug) {
-      print(testLogger.stderrBuffer.toString());
-      print(testLogger.stdoutBuffer.toString());
-      print('--- original example');
-      print(exampleSource);
+      args.add('-v');
+    }
+    try {
+      await driver.start(args,
+          testContext: testContext, testLogger: testLogger);
+    } finally {
+      if (_debug) {
+        print(testLogger.stderrBuffer.toString());
+        print(testLogger.stdoutBuffer.toString());
+        print('--- original example');
+        print(exampleSource);
+      }
     }
 
     final suggestions = driver.result.suggestions;

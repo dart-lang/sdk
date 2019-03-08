@@ -967,6 +967,20 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline);
 DART_EXPORT void Dart_NotifyLowMemory();
 
 /**
+ * Starts the CPU sampling profiler.
+ */
+DART_EXPORT void Dart_StartProfiling();
+
+/**
+ * Stops the CPU sampling profiler.
+ *
+ * Note that some profile samples might still be taken after this fucntion
+ * returns due to the asynchronous nature of the implementation on some
+ * platforms.
+ */
+DART_EXPORT void Dart_StopProfiling();
+
+/**
  * Notifies the VM that the current thread should not be profiled until a
  * matching call to Dart_ThreadEnableProfiling is made.
  *
@@ -3124,6 +3138,19 @@ Dart_CompileSourcesToKernel(const char* script_uri,
 
 DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies();
 
+/**
+ * Sets the kernel buffer which will be used to load Dart SDK sources
+ * dynamically at runtime.
+ *
+ * \param platform_kernel A buffer containing kernel which has sources for the
+ * Dart SDK populated. Note: The VM does not take ownership of this memory.
+ *
+ * \param platform_kernel_size The length of the platform_kernel buffer.
+ */
+DART_EXPORT void Dart_SetDartLibrarySourcesKernel(
+    const uint8_t* platform_kernel,
+    const intptr_t platform_kernel_size);
+
 #define DART_KERNEL_ISOLATE_NAME "kernel-service"
 
 /*
@@ -3150,6 +3177,20 @@ DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate);
  * isolate failed to startup or does not support load requests.
  */
 DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
+
+/**
+ * Writes the CPU profile to the timeline as a series of 'instant' events.
+ *
+ * Note that this is an expensive operation.
+ *
+ * \param main_port The main port of the Isolate whose profile samples to write.
+ * \param error An optional error, must be free()ed by caller.
+ *
+ * \return Returns true if the profile is successfully written and false
+ *         otherwise.
+ */
+DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
+                                             char** error);
 
 /*
  * ====================

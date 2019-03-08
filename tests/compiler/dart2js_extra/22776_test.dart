@@ -17,6 +17,6 @@ main() {
   }
 }
 
-@AssumeDynamic()
-@NoInline()
+@pragma('dart2js:assumeDynamic')
+@pragma('dart2js:noInline')
 id(x) => x;

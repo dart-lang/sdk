@@ -1,0 +1,141 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:40:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+//  - 'List' is from 'dart:core'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   int lhs30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ [...spread];
+//                                                              ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:42:62: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
+//  - 'Set' is from 'dart:core'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   int set30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ {...spread, 42};
+//                                                              ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:45:5: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+//     notSpreadInt];
+//     ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:48:5: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+//     notSpreadInt};
+//     ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:51:5: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+//     notSpreadFunction];
+//     ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:54:5: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+//     notSpreadFunction};
+//     ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:57:5: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
+//     spread];
+//     ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:59:73: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
+//   Set<String> set60 = <String>{... /*@error=SpreadElementTypeMismatch*/ spread};
+//                                                                         ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method foo() → dynamic {
+  core::List<core::int> spread = <core::int>[1, 2, 3];
+  core::int notSpreadInt = 42;
+  () → core::int notSpreadFunction = null;
+  core::List<dynamic> lhs10 = block {
+    final core::List<dynamic> #t1 = <dynamic>[];
+    for (final dynamic #t2 in <dynamic>[])
+      #t1.{core::List::add}(#t2);
+  } =>#t1;
+  core::Set<dynamic> set10 = block {
+    final core::Set<dynamic> #t3 = col::LinkedHashSet::•<dynamic>();
+    for (final dynamic #t4 in <dynamic>[])
+      #t3.{core::Set::add}(#t4);
+  } =>#t3;
+  core::List<core::int> lhs20 = block {
+    final core::List<core::int> #t5 = <core::int>[];
+    for (final core::int #t6 in spread)
+      #t5.{core::List::add}(#t6);
+  } =>#t5;
+  core::Set<core::int> set20 = block {
+    final core::Set<core::int> #t7 = col::LinkedHashSet::•<core::int>();
+    for (final core::int #t8 in spread)
+      #t7.{core::Set::add}(#t8);
+    #t7.{core::Set::add}(42);
+  } =>#t7;
+  core::List<dynamic> lhs21 = block {
+    final core::List<dynamic> #t9 = <dynamic>[];
+    for (final dynamic #t10 in (spread as dynamic) as{TypeError} core::Iterable<dynamic>)
+      #t9.{core::List::add}(#t10);
+  } =>#t9;
+  core::Set<dynamic> set21 = block {
+    final core::Set<dynamic> #t11 = col::LinkedHashSet::•<dynamic>();
+    for (final dynamic #t12 in (spread as dynamic) as{TypeError} core::Iterable<dynamic>)
+      #t11.{core::Set::add}(#t12);
+    #t11.{core::Set::add}(42);
+  } =>#t11;
+  core::List<core::int> lhs22 = block {
+    final core::List<core::int> #t13 = <core::int>[];
+    for (final core::int #t14 in <core::int>[])
+      #t13.{core::List::add}(#t14);
+  } =>#t13;
+  core::Set<core::int> set22 = block {
+    final core::Set<core::int> #t15 = col::LinkedHashSet::•<core::int>();
+    for (final core::int #t16 in <core::int>[])
+      #t15.{core::Set::add}(#t16);
+    #t15.{core::Set::add}(42);
+  } =>#t15;
+  core::List<core::List<core::int>> lhs23 = block {
+    final core::List<core::List<core::int>> #t17 = <core::List<core::int>>[];
+    for (final core::List<core::int> #t18 in <core::List<core::int>>[<core::int>[]])
+      #t17.{core::List::add}(#t18);
+  } =>#t17;
+  core::Set<core::List<core::int>> set23 = block {
+    final core::Set<core::List<core::int>> #t19 = col::LinkedHashSet::•<core::List<core::int>>();
+    for (final core::List<core::int> #t20 in <core::List<core::int>>[<core::int>[]])
+      #t19.{core::Set::add}(#t20);
+    #t19.{core::Set::add}(<core::int>[42]);
+  } =>#t19;
+  core::int lhs30 = let final<BottomType> #t21 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:40:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+ - 'List' is from 'dart:core'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  int lhs30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ [...spread];
+                                                             ^" in ( block {
+    final core::List<core::int> #t22 = <core::int>[];
+    for (final core::int #t23 in spread)
+      #t22.{core::List::add}(#t23);
+  } =>#t22) as{TypeError} core::int;
+  core::int set30 = let final<BottomType> #t24 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:42:62: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
+ - 'Set' is from 'dart:core'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  int set30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ {...spread, 42};
+                                                             ^" in ( block {
+    final core::Set<core::int> #t25 = col::LinkedHashSet::•<core::int>();
+    for (final core::int #t26 in spread)
+      #t25.{core::Set::add}(#t26);
+    #t25.{core::Set::add}(42);
+  } =>#t25) as{TypeError} core::int;
+  core::List<dynamic> lhs40 = <dynamic>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:45:5: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+    notSpreadInt];
+    ^"];
+  core::Set<dynamic> set40 = let final core::Set<dynamic> #t27 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t28 = #t27.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:48:5: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+    notSpreadInt};
+    ^") in #t27;
+  core::List<dynamic> lhs50 = <dynamic>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:51:5: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+    notSpreadFunction];
+    ^"];
+  core::Set<dynamic> set50 = let final core::Set<dynamic> #t29 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t30 = #t29.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:54:5: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+    notSpreadFunction};
+    ^") in #t29;
+  core::List<core::String> lhs60 = <core::String>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:57:5: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
+    spread];
+    ^"];
+  core::Set<core::String> set60 = let final core::Set<core::String> #t31 = col::LinkedHashSet::•<core::String>() in let final core::bool #t32 = #t31.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:59:73: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
+  Set<String> set60 = <String>{... /*@error=SpreadElementTypeMismatch*/ spread};
+                                                                        ^") in #t31;
+}
+static method main() → dynamic {}

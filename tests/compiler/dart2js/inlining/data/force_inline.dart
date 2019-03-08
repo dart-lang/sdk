@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_helper';
-
 /*element: main:[]*/
 main() {
   forceInlineOnce();
@@ -19,11 +16,11 @@ main() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _forceInlineOnce:[forceInlineOnce]*/
-@ForceInline()
+@pragma('dart2js:tryInline')
 _forceInlineOnce() {}
 
 /*element: forceInlineOnce:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 forceInlineOnce() {
   _forceInlineOnce();
 }
@@ -33,17 +30,17 @@ forceInlineOnce() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _forceInlineTwice:[forceInlineTwice1,forceInlineTwice2]*/
-@ForceInline()
+@pragma('dart2js:tryInline')
 _forceInlineTwice() {}
 
 /*element: forceInlineTwice1:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 forceInlineTwice1() {
   _forceInlineTwice();
 }
 
 /*element: forceInlineTwice2:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 forceInlineTwice2() {
   _forceInlineTwice();
 }
@@ -53,17 +50,17 @@ forceInlineTwice2() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _forceInlineNested1:[forceInlineNested]*/
-@ForceInline()
+@pragma('dart2js:tryInline')
 _forceInlineNested1() {}
 
 /*element: _forceInlineNested2:[forceInlineNested]*/
-@ForceInline()
+@pragma('dart2js:tryInline')
 _forceInlineNested2() {
   _forceInlineNested1();
 }
 
 /*element: forceInlineNested:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 forceInlineNested() {
   _forceInlineNested2();
 }
@@ -73,11 +70,11 @@ forceInlineNested() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _forceInlineOptional:[forceInlineOptional]*/
-@ForceInline()
+@pragma('dart2js:tryInline')
 _forceInlineOptional([x]) {}
 
 /*element: forceInlineOptional:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 forceInlineOptional() {
   _forceInlineOptional();
 }

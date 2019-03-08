@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/precedence.dart';
+
 /// Defines the AST model. The AST (Abstract Syntax Tree) model describes the
 /// syntactic (as opposed to semantic) structure of Dart code. The semantic
 /// structure of the code is modeled by the
@@ -505,6 +507,7 @@ abstract class AstVisitor<R> {
 
   R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node);
 
+  @Deprecated('Replaced by visitForStatement2')
   R visitForEachStatement(ForEachStatement node);
 
   R visitForElement(ForElement node);
@@ -515,6 +518,7 @@ abstract class AstVisitor<R> {
 
   R visitForPartsWithExpression(ForPartsWithExpression node);
 
+  @Deprecated('Replaced by visitForStatement2')
   R visitForStatement(ForStatement node);
 
   R visitForStatement2(ForStatement2 node);
@@ -567,10 +571,13 @@ abstract class AstVisitor<R> {
 
   R visitListLiteral(ListLiteral node);
 
+  @Deprecated('Replaced by visitListLiteral')
   R visitListLiteral2(ListLiteral2 node);
 
+  @Deprecated('Replaced by visitSetOrMapLiteral')
   R visitMapLiteral(MapLiteral node);
 
+  @Deprecated('Replaced by visitSetOrMapLiteral')
   R visitMapLiteral2(MapLiteral2 node);
 
   R visitMapLiteralEntry(MapLiteralEntry node);
@@ -614,9 +621,13 @@ abstract class AstVisitor<R> {
 
   R visitScriptTag(ScriptTag node);
 
+  @Deprecated('Replaced by visitSetOrMapLiteral')
   R visitSetLiteral(SetLiteral node);
 
+  @Deprecated('Replaced by visitSetOrMapLiteral')
   R visitSetLiteral2(SetLiteral2 node);
+
+  R visitSetOrMapLiteral(SetOrMapLiteral node);
 
   R visitShowCombinator(ShowCombinator node);
 
@@ -1972,11 +1983,15 @@ abstract class Expression implements CollectionElement {
   /// integer value that defines how the source code is parsed into an AST. For
   /// example `a * b + c` is parsed as `(a * b) + c` because the precedence of
   /// `*` is greater than the precedence of `+`.
-  ///
-  /// Clients should not assume that returned values will stay the same, they
-  /// might change as result of specification change. Only relative order should
-  /// be used.
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   int get precedence;
+
+  /// Return the precedence of this expression. The precedence is a positive
+  /// integer value that defines how the source code is parsed into an AST. For
+  /// example `a * b + c` is parsed as `(a * b) + c` because the precedence of
+  /// `*` is greater than the precedence of `+`.
+  Precedence get precedence2;
 
   /// If this expression is an argument to an invocation, and the AST structure
   /// has been resolved, and the function being invoked is known based on
@@ -2236,22 +2251,13 @@ abstract class ForEachPartsWithIdentifier implements ForEachParts {
 /// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ForEachStatement implements Statement {
-  /// Return the token representing the 'await' keyword, or `null` if there is
-  /// no 'await' keyword.
-  Token get awaitKeyword;
-
+@Deprecated('Replaced by ForStatement2')
+abstract class ForEachStatement implements ForStatement2 {
   /// Set the token representing the 'await' keyword to the given [token].
   void set awaitKeyword(Token token);
 
-  /// Return the body of the loop.
-  Statement get body;
-
   /// Set the body of the loop to the given [statement].
   void set body(Statement statement);
-
-  /// Return the token representing the 'for' keyword.
-  Token get forKeyword;
 
   /// Set the token representing the 'for' keyword to the given [token].
   void set forKeyword(Token token);
@@ -2276,9 +2282,6 @@ abstract class ForEachStatement implements Statement {
   /// [expression].
   void set iterable(Expression expression);
 
-  /// Return the left parenthesis.
-  Token get leftParenthesis;
-
   /// Set the left parenthesis to the given [token].
   void set leftParenthesis(Token token);
 
@@ -2288,9 +2291,6 @@ abstract class ForEachStatement implements Statement {
 
   /// Set the declaration of the loop variable to the given [variable].
   void set loopVariable(DeclaredIdentifier variable);
-
-  /// Return the right parenthesis.
-  Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
   void set rightParenthesis(Token token);
@@ -2529,10 +2529,8 @@ abstract class ForPartsWithExpression implements ForParts {
 /// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ForStatement implements Statement {
-  /// Return the body of the loop.
-  Statement get body;
-
+@Deprecated('Replaced by ForStatement2')
+abstract class ForStatement implements ForStatement2 {
   /// Set the body of the loop to the given [statement].
   void set body(Statement statement);
 
@@ -2544,9 +2542,6 @@ abstract class ForStatement implements Statement {
   /// given [expression].
   void set condition(Expression expression);
 
-  /// Return the token representing the 'for' keyword.
-  Token get forKeyword;
-
   /// Set the token representing the 'for' keyword to the given [token].
   void set forKeyword(Token token);
 
@@ -2557,9 +2552,6 @@ abstract class ForStatement implements Statement {
   /// Set the initialization expression to the given [expression].
   void set initialization(Expression initialization);
 
-  /// Return the left parenthesis.
-  Token get leftParenthesis;
-
   /// Set the left parenthesis to the given [token].
   void set leftParenthesis(Token token);
 
@@ -2569,9 +2561,6 @@ abstract class ForStatement implements Statement {
   /// Set the semicolon separating the initializer and the condition to the
   /// given [token].
   void set leftSeparator(Token token);
-
-  /// Return the right parenthesis.
-  Token get rightParenthesis;
 
   /// Set the right parenthesis to the given [token].
   void set rightParenthesis(Token token);
@@ -2607,8 +2596,8 @@ abstract class ForStatement implements Statement {
 ///
 /// This is the class that is used to represent a for loop when either the
 /// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then either [ForStatement] or
-/// [ForEachStatement] will be used.
+/// If neither of those experiments are enabled, then either `ForStatement` or
+/// `ForEachStatement` will be used.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ForStatement2 implements Statement {
@@ -3699,17 +3688,19 @@ abstract class LibraryIdentifier implements Identifier {
 /// A list literal.
 ///
 ///    listLiteral ::=
-///        'const'? ('<' [TypeAnnotation] '>')? '[' ([Expression] ','?)? ']'
+///        'const'? [TypeAnnotationList]? '[' elements? ']'
 ///
-/// This is the class that is used to represent a list literal when neither the
-/// 'control-flow-collections' nor 'spread-collections' experiments are enabled.
-/// If either of those experiments are enabled, then [ListLiteral2] will be
-/// used.
+///    elements ::=
+///        [CollectionElement] (',' [CollectionElement])* ','?
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ListLiteral implements TypedLiteral {
   /// Return the expressions used to compute the elements of the list.
+  @Deprecated('Use elements2')
   NodeList<Expression> get elements;
+
+  /// Return the syntactic elements used to compute the elements of the list.
+  NodeList<CollectionElement> get elements2;
 
   /// Return the left square bracket.
   Token get leftBracket;
@@ -3727,14 +3718,18 @@ abstract class ListLiteral implements TypedLiteral {
 /// A list literal.
 ///
 ///    listLiteral ::=
-///        'const'? ('<' [TypeAnnotation] '>')?
-///        '[' ([CollectionElement] ','?)? ']'
+///        'const'? [TypeAnnotationList]? '[' elements? ']'
+///
+///    elements ::=
+///        [CollectionElement] (',' [CollectionElement])* ','?
 ///
 /// This is the class that is used to represent a list literal when either the
 /// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then [ListLiteral] will be used.
+/// If neither of those experiments are enabled, then [ListLiteral] will be
+/// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Replaced by ListLiteral')
 abstract class ListLiteral2 implements TypedLiteral {
   /// Return the expressions used to compute the elements of the list.
   NodeList<CollectionElement> get elements;
@@ -3759,8 +3754,8 @@ abstract class ListLiteral2 implements TypedLiteral {
 ///      | [DoubleLiteral]
 ///      | [IntegerLiteral]
 ///      | [ListLiteral]
-///      | [MapLiteral]
 ///      | [NullLiteral]
+///      | [SetOrMapLiteral]
 ///      | [StringLiteral]
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -3774,10 +3769,12 @@ abstract class Literal implements Expression {}
 ///
 /// This is the class that is used to represent a map literal when neither the
 /// 'control-flow-collections' nor 'spread-collections' experiments are enabled.
-/// If either of those experiments are enabled, then [MapLiteral2] will be used.
+/// If either of those experiments are enabled, then [SetOrMapLiteral] will be
+/// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MapLiteral implements TypedLiteral {
+@Deprecated('Replaced by SetOrMapLiteral')
+abstract class MapLiteral implements SetOrMapLiteral {
   /// Return the entries in the map.
   NodeList<MapLiteralEntry> get entries;
 
@@ -3805,6 +3802,7 @@ abstract class MapLiteral implements TypedLiteral {
 /// If neither of those experiments are enabled, then [MapLiteral] will be used.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Replaced by SetOrMapLiteral')
 abstract class MapLiteral2 implements TypedLiteral {
   /// Return the entries in the map.
   NodeList<CollectionElement> get entries;
@@ -4656,10 +4654,12 @@ abstract class ScriptTag implements AstNode {
 ///
 /// This is the class that is used to represent a set literal when neither the
 /// 'control-flow-collections' nor 'spread-collections' experiments are enabled.
-/// If either of those experiments are enabled, then [SetLiteral2] will be used.
+/// If either of those experiments are enabled, then [SetOrMapLiteral] will be
+/// used.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class SetLiteral implements TypedLiteral {
+@Deprecated('Replaced by SetOrMapLiteral')
+abstract class SetLiteral implements SetOrMapLiteral {
   /// Return the expressions used to compute the elements of the set.
   NodeList<Expression> get elements;
 
@@ -4688,6 +4688,7 @@ abstract class SetLiteral implements TypedLiteral {
 /// If neither of those experiments are enabled, then [SetLiteral] will be used.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Replaced by SetOrMapLiteral')
 abstract class SetLiteral2 implements TypedLiteral {
   /// Return the expressions used to compute the elements of the set.
   NodeList<CollectionElement> get elements;
@@ -4703,6 +4704,51 @@ abstract class SetLiteral2 implements TypedLiteral {
 
   /// Set the right curly bracket to the given [token].
   void set rightBracket(Token token);
+}
+
+/// A set or map literal.
+///
+///    setOrMapLiteral ::=
+///        'const'? [TypeArgumentList]? '{' elements? '}'
+///
+///    elements ::=
+///        [CollectionElement] ( ',' [CollectionElement] )* ','?
+///
+/// This is the class that is used to represent either a map or set literal when
+/// either the 'control-flow-collections' or 'spread-collections' experiments
+/// are enabled. If neither of those experiments are enabled, then `MapLiteral`
+/// will be used to represent a map literal and `SetLiteral` will be used for
+/// set literals.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class SetOrMapLiteral implements TypedLiteral {
+  /// Return the syntactic elements used to compute the elements of the set or
+  /// map.
+  NodeList<CollectionElement> get elements2;
+
+  /// Return `true` if this literal represents a map literal.
+  ///
+  /// This getter will always return `false` if [isSet] returns `true`.
+  ///
+  /// However, this getter is _not_ the inverse of [isSet]. It is possible for
+  /// both getters to return `false` if the literal was either invalid or
+  /// ambiguous.
+  bool get isMap;
+
+  /// Return `true` if this literal represents a set literal.
+  ///
+  /// This getter will always return `false` if [isMap] returns `true`.
+  ///
+  /// However, this getter is _not_ the inverse of [isMap]. It is possible for
+  /// both getters to return `false` if the literal was either invalid or
+  /// ambiguous.
+  bool get isSet;
+
+  /// Return the left curly bracket.
+  Token get leftBracket;
+
+  /// Return the right curly bracket.
+  Token get rightBracket;
 }
 
 /// A combinator that restricts the names being imported to those in a given list.
@@ -5271,7 +5317,7 @@ abstract class TypeArgumentList implements AstNode {
 ///
 ///    typedLiteral ::=
 ///        [ListLiteral]
-///      | [MapLiteral]
+///      | [SetOrMapLiteral]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypedLiteral implements Literal {

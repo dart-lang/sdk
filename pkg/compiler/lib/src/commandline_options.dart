@@ -84,6 +84,7 @@ class Flags {
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
   static const String cfeOnly = '--cfe-only';
+  static const String debugGlobalInference = '--debug-global-inference';
 
   static const String serverMode = '--server-mode';
 

@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
@@ -37,6 +36,7 @@ main() {
     defineReflectiveTests(StaticTypeAnalyzerTest);
     defineReflectiveTests(StaticTypeAnalyzer3Test);
     defineReflectiveTests(StaticTypeAnalyzerWithSetLiteralsTest);
+    defineReflectiveTests(StaticTypeAnalyzerWithStrictInferenceTest);
   });
 }
 
@@ -51,9 +51,6 @@ void _fail(String message) {
 
 @reflectiveTest
 class SetLiteralsTest extends StaticTypeAnalyzer2TestShared {
-  @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
   @override
   bool get enableNewAnalysisDriver => true;
 
@@ -1180,6 +1177,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 
   void test_visitMapLiteral_empty() {
     // {}
+    // ignore: deprecated_member_use_from_same_package
     Expression node = AstTestFactory.mapLiteral2();
     DartType resultType = _analyze(node);
     _assertType2(
@@ -1191,6 +1189,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 
   void test_visitMapLiteral_nonEmpty() {
     // {"k" : 0}
+    // ignore: deprecated_member_use_from_same_package
     Expression node = AstTestFactory.mapLiteral2(
         [AstTestFactory.mapLiteralEntry("k", _resolvedInteger(0))]);
     DartType resultType = _analyze(node);
@@ -1664,8 +1663,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 class StaticTypeAnalyzerWithSetLiteralsTest
     extends StaticTypeAnalyzer2TestShared {
   @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
   bool get enableNewAnalysisDriver => true;
 
   test_emptySetLiteral_inferredFromLinkedHashSet() async {
@@ -1685,5 +1682,85 @@ Set<Set<int>> ints = {{}};
     await resolveTestUnit(code);
     expectExpressionType('{}', 'Set<int>');
     expectExpressionType('{{}}', 'Set<Set<int>>');
+  }
+}
+
+/**
+ * Tests of the static type analyzer with "strict-inference" enabled.
+ */
+@reflectiveTest
+class StaticTypeAnalyzerWithStrictInferenceTest
+    extends StaticTypeAnalyzer2TestShared {
+  @override
+  void setUp() {
+    super.setUp();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.strictInference = true;
+    resetWith(options: options);
+  }
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_topLevelVariable() async {
+    String code = r'''
+var a;
+''';
+    await resolveTestUnit(code, noErrors: false);
+    await assertErrorsInCode(
+        code, [HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE]);
+  }
+
+  test_topLevelVariable_withType() async {
+    String code = r'''
+int a;
+dynamic b;
+Object c;
+Null d;
+''';
+    await resolveTestUnit(code, noErrors: false);
+    await assertNoErrorsInCode(code);
+  }
+
+  test_topLevelVariable_withInitializer() async {
+    String code = r'''
+var a = 7;
+''';
+    await resolveTestUnit(code, noErrors: false);
+    await assertNoErrorsInCode(code);
+  }
+
+  test_localVariable() async {
+    String code = r'''
+f() {
+  var a;
+}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    await assertErrorsInCode(
+        code, [HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE]);
+  }
+
+  test_localVariable_withType() async {
+    String code = r'''
+f() {
+  int a;
+  dynamic b;
+  Object c;
+  Null d;
+}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    await assertNoErrorsInCode(code);
+  }
+
+  test_localVariable_withInitializer() async {
+    String code = r'''
+f() {
+  var a = 7;
+}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    await assertNoErrorsInCode(code);
   }
 }

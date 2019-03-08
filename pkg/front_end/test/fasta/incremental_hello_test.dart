@@ -37,6 +37,7 @@ test({bool sdkFromSource}) async {
     ..packagesFileUri = Uri.base.resolve(".packages")
     ..target = new VmTarget(new TargetFlags(legacyMode: true))
     ..legacyMode = true
+    ..omitPlatform = true
     ..onDiagnostic = diagnosticMessageHandler;
 
   if (sdkFromSource) {
@@ -71,12 +72,12 @@ test({bool sdkFromSource}) async {
 
   compiler.invalidate(helloDart);
 
-  component = await compiler.computeDelta(entryPoint: helloDart);
+  component = await compiler.computeDelta(entryPoints: [helloDart]);
   // Expect that the new component contains exactly hello.dart
   Expect.isTrue(
       component.libraries.length == 1, "${component.libraries.length} != 1");
 
-  component = await compiler.computeDelta(entryPoint: helloDart);
+  component = await compiler.computeDelta(entryPoints: [helloDart]);
   Expect.isTrue(component.libraries.isEmpty);
 }
 

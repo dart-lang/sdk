@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
+import 'package:analyzer/src/dart/ast/utilities.dart' show UIAsCodeVisitorMixin;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -66,7 +67,10 @@ import 'type_utilities.dart';
 // expressions (which result in JS.Expression) and statements
 // (which result in (JS.Statement).
 class CodeGenerator extends Object
-    with NullableTypeInference, SharedCompiler<LibraryElement, ClassElement>
+    with
+        UIAsCodeVisitorMixin<JS.Node>,
+        NullableTypeInference,
+        SharedCompiler<LibraryElement, ClassElement>
     implements AstVisitor<JS.Node> {
   final SummaryDataStore summaryData;
 
@@ -335,6 +339,9 @@ class CodeGenerator extends Object
     // This is done by forward declaring items.
     compilationUnits.forEach(visitCompilationUnit);
     assert(_deferredProperties.isEmpty);
+
+    moduleItems.addAll(afterClassDefItems);
+    afterClassDefItems.clear();
 
     // Visit directives (for exports)
     compilationUnits.forEach(_emitExportDirectives);
@@ -884,7 +891,7 @@ class CodeGenerator extends Object
       classDef = _defineClassTypeArguments(
           classElem, typeFormals, classDef, className, deferredSupertypes);
     } else {
-      body.addAll(deferredSupertypes);
+      afterClassDefItems.addAll(deferredSupertypes);
     }
 
     body = [classDef];
@@ -3359,8 +3366,8 @@ class CodeGenerator extends Object
   }
 
   /// Emits the raw type corresponding to the [element].
-  JS.Expression _emitTypeDefiningElement(TypeDefiningElement element) {
-    return _emitType(fillDynamicTypeArgsForElement(element));
+  JS.Expression _emitTypeDefiningElement(TypeDefiningElement e) {
+    return _emitType(instantiateElementTypeToBounds(rules, e));
   }
 
   JS.Expression _emitGenericClassType(
@@ -5416,21 +5423,6 @@ class CodeGenerator extends Object
   }
 
   @override
-  JS.For visitForStatement(ForStatement node) {
-    var init = _visitExpression(node.initialization) ??
-        visitVariableDeclarationList(node.variables);
-    var updaters = node.updaters;
-    JS.Expression update;
-    if (updaters != null && updaters.isNotEmpty) {
-      update =
-          JS.Expression.binary(updaters.map(_visitExpression).toList(), ',')
-              .toVoidExpression();
-    }
-    var condition = _visitTest(node.condition);
-    return JS.For(init, condition, update, _visitScope(node.body));
-  }
-
-  @override
   JS.While visitWhileStatement(WhileStatement node) {
     return JS.While(_visitTest(node.condition), _visitScope(node.body));
   }
@@ -5440,32 +5432,8 @@ class CodeGenerator extends Object
     return JS.Do(_visitScope(node.body), _visitTest(node.condition));
   }
 
-  @override
-  JS.Statement visitForEachStatement(ForEachStatement node) {
-    if (node.awaitKeyword != null) {
-      return _emitAwaitFor(node);
-    }
-
-    var init = _visitExpression(node.identifier);
-    var iterable = _visitExpression(node.iterable);
-
-    var body = _visitScope(node.body);
-    if (init == null) {
-      var id = _emitVariableDef(node.loopVariable.identifier);
-      init = js.call('let #', id);
-      if (_annotatedNullCheck(node.loopVariable.declaredElement)) {
-        body = JS.Block([_nullParameterCheck(JS.Identifier(id.name)), body]);
-      }
-      if (variableIsReferenced(id.name, iterable)) {
-        var temp = JS.TemporaryId('iter');
-        return JS.Block(
-            [iterable.toVariableDeclaration(temp), JS.ForOf(init, temp, body)]);
-      }
-    }
-    return JS.ForOf(init, iterable, body);
-  }
-
-  JS.Statement _emitAwaitFor(ForEachStatement node) {
+  JS.Statement _emitAwaitFor(SimpleIdentifier identifier,
+      DeclaredIdentifier loopVariable, Expression iterable, Statement body) {
     // Emits `await for (var value in stream) ...`, which desugars as:
     //
     // let iter = new StreamIterator(stream);
@@ -5488,10 +5456,10 @@ class CodeGenerator extends Object
     var createStreamIter = _emitInstanceCreationExpression(
         streamIterator.element.unnamedConstructor,
         streamIterator,
-        () => [_visitExpression(node.iterable)]);
+        () => [_visitExpression(iterable)]);
     var iter = JS.TemporaryId('iter');
-    var variable = node.identifier ?? node.loopVariable.identifier;
-    var init = _visitExpression(node.identifier);
+    var variable = identifier ?? loopVariable.identifier;
+    var init = _visitExpression(identifier);
     if (init == null) {
       init = js.call('let # = #.current', [_emitVariableDef(variable), iter]);
     } else {
@@ -5510,7 +5478,7 @@ class CodeGenerator extends Object
           JS.Yield(js.call('#.moveNext()', iter))
             ..sourceInformation = _nodeStart(variable),
           init,
-          _visitStatement(node.body),
+          _visitStatement(body),
           JS.Yield(js.call('#.cancel()', iter))
             ..sourceInformation = _nodeStart(variable)
         ]);
@@ -5525,6 +5493,34 @@ class CodeGenerator extends Object
   @override
   visitContinueStatement(ContinueStatement node) {
     var label = node.label;
+    if (node.label != null) {
+      var parent = node.parent;
+      if (parent is SwitchCase) {
+        // If this is the last statement in this case, and we're jumping to the
+        // next statement in the following case, just omit the continue.  JS
+        // will fall through.
+        if (parent.statements.last == node) {
+          var grandparent = parent.parent;
+          if (grandparent is SwitchStatement) {
+            var members = grandparent.members;
+            for (int i = 0; i < members.length; ++i) {
+              if (members[i] == parent) {
+                if (i < members.length - 1) {
+                  var next = members[i + 1];
+                  if (next is SwitchMember &&
+                      next.labels
+                          .map((l) => l.label.name)
+                          .contains(node.label.name)) {
+                    return js.comment('continue to next case');
+                  }
+                }
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
     return JS.Continue(label?.name);
   }
 
@@ -5721,26 +5717,27 @@ class CodeGenerator extends Object
   JS.Expression visitListLiteral(ListLiteral node) {
     var elementType = (node.staticType as InterfaceType).typeArguments[0];
     if (!node.isConst) {
-      return _emitList(elementType, _visitExpressionList(node.elements));
+      return _emitList(elementType, _visitExpressionList(node.elements2));
     }
-    return _cacheConst(
-        () => _emitConstList(elementType, _visitExpressionList(node.elements)));
+    return _cacheConst(() =>
+        _emitConstList(elementType, _visitExpressionList(node.elements2)));
   }
 
-  @override
-  JS.Expression visitSetLiteral(SetLiteral node) {
+  // TODO(nshahan) Cleanup after control flow collections experiments are removed.
+  JS.Expression _emitSetLiteral(
+      Iterable<CollectionElement> elements, SetOrMapLiteral node) {
     var type = node.staticType as InterfaceType;
     if (!node.isConst) {
       var setType = _emitType(type);
-      if (node.elements.isEmpty) {
+      if (elements.isEmpty) {
         return js.call('#.new()', [setType]);
       }
-      return js
-          .call('#.from([#])', [setType, _visitExpressionList(node.elements)]);
+      return js.call(
+          '#.from([#])', [setType, _visitCollectionElementList(elements)]);
     }
     return _cacheConst(() => runtimeCall('constSet(#, [#])', [
           _emitType((node.staticType as InterfaceType).typeArguments[0]),
-          _visitExpressionList(node.elements)
+          _visitCollectionElementList(elements)
         ]));
   }
 
@@ -5764,26 +5761,19 @@ class CodeGenerator extends Object
     return js.call('#.of(#)', [_emitType(arrayType), list]);
   }
 
-  @override
-  visitMapLiteral(MapLiteral node) {
-    emitEntries() {
-      var entries = <JS.Expression>[];
-      for (var e in node.entries) {
-        entries.add(_visitExpression(e.key));
-        entries.add(_visitExpression(e.value));
-      }
-      return entries;
-    }
-
+  JS.Expression _emitMapLiteral(
+      Iterable<CollectionElement> elements, SetOrMapLiteral node) {
     var type = node.staticType as InterfaceType;
     if (!node.isConst) {
       var mapType = _emitMapImplType(type);
-      if (node.entries.isEmpty) {
+      if (elements.isEmpty) {
         return js.call('new #.new()', [mapType]);
       }
-      return js.call('new #.from([#])', [mapType, emitEntries()]);
+      return js.call(
+          'new #.from([#])', [mapType, _visitCollectionElementList(elements)]);
     }
-    return _cacheConst(() => _emitConstMap(type, emitEntries()));
+    return _cacheConst(
+        () => _emitConstMap(type, _visitCollectionElementList(elements)));
   }
 
   JS.Expression _emitConstMap(InterfaceType type, List<JS.Expression> entries) {
@@ -5855,6 +5845,11 @@ class CodeGenerator extends Object
     return e;
   }
 
+  /// Visits [nodes] with [_visitExpression].
+  List<JS.Expression> _visitExpressionList(Iterable<AstNode> nodes) {
+    return nodes?.map(_visitExpression)?.toList();
+  }
+
   /// Visit a Dart [node] that produces a JS statement, and marks its source
   /// location for debugging.
   JS.Statement _visitStatement(AstNode node) {
@@ -5869,9 +5864,20 @@ class CodeGenerator extends Object
     return nodes?.map(_visitStatement)?.toList();
   }
 
-  /// Visits [nodes] with [_visitExpression].
-  List<JS.Expression> _visitExpressionList(Iterable<AstNode> nodes) {
-    return nodes?.map(_visitExpression)?.toList();
+  /// Visits [nodes] with [_visitColelctionElement].
+  List<JS.Expression> _visitCollectionElementList(
+      Iterable<CollectionElement> nodes) {
+    var expressions = <JS.Expression>[];
+    for (var node in nodes) {
+      //TODO(nshahan) Handle [IfElement] and [ForElement].
+      if (node is MapLiteralEntry) {
+        expressions.add(_visitExpression(node.key));
+        expressions.add(_visitExpression(node.value));
+      } else {
+        expressions.add(_visitExpression(node));
+      }
+    }
+    return expressions;
   }
 
   /// Gets the start position of [node] for use in source mapping.
@@ -6317,7 +6323,7 @@ class CodeGenerator extends Object
   @override
   visitRedirectingConstructorInvocation(node) => _unreachable(node);
 
-  /// Unused. Handled in [visitForEachStatement].
+  /// Unused. Handled in [visitForStatement2].
   @override
   visitDeclaredIdentifier(node) => _unreachable(node);
 
@@ -6381,7 +6387,7 @@ class CodeGenerator extends Object
   @override
   visitLibraryIdentifier(node) => _unreachable(node);
 
-  /// Unused, see [visitMapLiteral].
+  /// Unused, see [visitSetOrMapLiteral].
   @override
   visitMapLiteralEntry(node) => _unreachable(node);
 
@@ -6421,6 +6427,48 @@ class CodeGenerator extends Object
   @override
   visitWithClause(node) => _unreachable(node);
 
+  // TODO(nshahan) Simplify when control-flow-collections experiments are removed.
+  // Should just accept a ForParts as an arg with fewer casts.
+  JS.For _emitFor(Expression initialization, VariableDeclarationList variables,
+      Expression condition, Iterable<Expression> updaters, Statement body) {
+    var init = _visitExpression(initialization) ??
+        visitVariableDeclarationList(variables);
+    JS.Expression update;
+    if (updaters != null && updaters.isNotEmpty) {
+      update =
+          JS.Expression.binary(updaters.map(_visitExpression).toList(), ',')
+              .toVoidExpression();
+    }
+
+    return JS.For(init, _visitTest(condition), update, _visitScope(body));
+  }
+
+  // TODO(nshahan) Simplify when control-flow-collections experiments are removed.
+  // Should just accept a ForEachParts as an arg with fewer casts.
+  JS.Statement _emitForEach(SimpleIdentifier identifier,
+      DeclaredIdentifier loopVariable, Expression iterable, Statement body) {
+    var jsLeftExpression = _visitExpression(identifier);
+    var jsIterable = _visitExpression(iterable);
+
+    var jsBody = _visitScope(body);
+    if (jsLeftExpression == null) {
+      var id = _emitVariableDef(loopVariable.identifier);
+      jsLeftExpression = js.call('let #', id);
+      if (_annotatedNullCheck(loopVariable.declaredElement)) {
+        jsBody =
+            JS.Block([_nullParameterCheck(JS.Identifier(id.name)), jsBody]);
+      }
+      if (variableIsReferenced(id.name, jsIterable)) {
+        var temp = JS.TemporaryId('iter');
+        return JS.Block([
+          jsIterable.toVariableDeclaration(temp),
+          JS.ForOf(jsLeftExpression, temp, jsBody)
+        ]);
+      }
+    }
+    return JS.ForOf(jsLeftExpression, jsIterable, jsBody);
+  }
+
   @override
   visitForElement(ForElement node) => _unreachable(node);
 
@@ -6436,16 +6484,49 @@ class CodeGenerator extends Object
       _unreachable(node);
 
   @override
-  visitForStatement2(ForStatement2 node) => _unreachable(node);
+  JS.Statement visitForStatement2(ForStatement2 node) {
+    // TODO(nshahan) Simplify when control-flow-collections experiments are removed.
+    var forParts = node.forLoopParts;
+    if (forParts is ForPartsWithExpression) {
+      return _emitFor(forParts.initialization, null, forParts.condition,
+          forParts.updaters, node.body);
+    } else if (forParts is ForPartsWithDeclarations) {
+      return _emitFor(null, forParts.variables, forParts.condition,
+          forParts.updaters, node.body);
+    } else if (node.awaitKeyword == null) {
+      if (forParts is ForEachPartsWithIdentifier) {
+        return _emitForEach(
+            forParts.identifier, null, forParts.iterable, node.body);
+      } else if (forParts is ForEachPartsWithDeclaration) {
+        return _emitForEach(
+            null, forParts.loopVariable, forParts.iterable, node.body);
+      }
+    } else if (forParts is ForEachPartsWithIdentifier) {
+      return _emitAwaitFor(
+          forParts.identifier, null, forParts.iterable, node.body);
+    } else if (forParts is ForEachPartsWithDeclaration) {
+      return _emitAwaitFor(
+          null, forParts.loopVariable, forParts.iterable, node.body);
+    }
+    return _unreachable(node);
+  }
 
+  @deprecated
   @override
   visitListLiteral2(ListLiteral2 node) => _unreachable(node);
 
+  @deprecated
   @override
   visitMapLiteral2(MapLiteral2 node) => _unreachable(node);
 
+  @deprecated
   @override
   visitSetLiteral2(SetLiteral2 node) => _unreachable(node);
+
+  @override
+  visitSetOrMapLiteral(SetOrMapLiteral node) => node.isSet
+      ? _emitSetLiteral(node.elements2, node)
+      : _emitMapLiteral(node.elements2, node);
 
   @override
   visitSpreadElement(SpreadElement node) => _unreachable(node);

@@ -100,6 +100,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER,
   _STACK_OVERFLOW,
   _MISSING_CATCH_OR_FINALLY,
+  _EXPERIMENT_NOT_ENABLED,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -240,6 +241,12 @@ const ParserErrorCode _EQUALITY_CANNOT_BE_EQUALITY_OPERAND = const ParserErrorCo
 
 const ParserErrorCode _EXPECTED_INSTEAD = const ParserErrorCode(
     'EXPECTED_INSTEAD', r"Expected '#string' instead of this.");
+
+const ParserErrorCode _EXPERIMENT_NOT_ENABLED = const ParserErrorCode(
+    'EXPERIMENT_NOT_ENABLED',
+    r"This requires the --#string experiment to be enabled.",
+    correction:
+        "Try enabling this experiment by adding it to the command line when compiling and running.");
 
 const ParserErrorCode _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
     const ParserErrorCode('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',

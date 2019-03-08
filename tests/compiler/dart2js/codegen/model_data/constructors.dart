@@ -78,6 +78,16 @@ class Class {
   /*element: Class.constructor7c:params=2*/
   @pragma('dart2js:noInline')
   Class.constructor7c(a, {b, c}) {}
+
+  /*element: Class.constructor8a:params=2*/
+  @pragma('dart2js:noInline')
+  @pragma('dart2js:noElision')
+  Class.constructor8a([a, b]) {}
+
+  /*element: Class.constructor8b:params=2*/
+  @pragma('dart2js:noInline')
+  @pragma('dart2js:noElision')
+  Class.constructor8b({a, b}) {}
 }
 
 /*element: main:
@@ -104,7 +114,9 @@ class Class {
   Class$constructor6c(3),
   Class$constructor7a(1),
   Class$constructor7b(2),
-  Class$constructor7c(2)],
+  Class$constructor7c(2),
+  Class$constructor8a(2),
+  Class$constructor8b(2)],
  params=0
 */
 main() {
@@ -137,4 +149,7 @@ main() {
   new Class.constructor7a(null);
   new Class.constructor7b(null, b: null);
   new Class.constructor7c(null, c: null);
+
+  new Class.constructor8a();
+  new Class.constructor8b();
 }

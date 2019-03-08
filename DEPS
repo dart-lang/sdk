@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "31f7dc1e222910ce64ab57ffee286382b03446a4",
+  "co19_2_rev": "b54821029f62b5b5873925cfef6c01f1100d1982",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -65,7 +65,7 @@ vars = {
   "convert_tag": "2.0.2",
   "crypto_tag" : "2.0.6",
   "csslib_tag" : "0.14.4+1",
-  "dart2js_info_tag" : "0.5.15",
+  "dart2js_info_tag" : "0.6.0",
 
   # Note: updates to dart_style have to be coordinated carefully with
   # the infrastructure-team so that the internal formatter in
@@ -81,13 +81,13 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.2.2",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.28.1+2",
+  "dartdoc_tag" : "v0.28.2",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
-  "html_tag" : "0.13.3+2",
+  "html_tag" : "0.13.4+1",
   "http_io_rev": "57da05a66f5bf7df3dd7aebe7b7efe0dfc477baa",
   "http_multi_server_tag" : "2.0.5",
-  "http_parser_tag" : "3.1.1",
+  "http_parser_tag" : "3.1.3",
   "http_retry_tag": "0.1.1",
   "http_tag" : "0.12.0",
   "http_throttle_tag" : "1.0.2",
@@ -106,13 +106,13 @@ vars = {
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
   "package_config_tag": "1.0.5",
-  "package_resolver_tag": "1.0.4",
+  "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
   "plugin_tag": "f5b4b0e32d1406d62daccea030ba6457d14b1c47",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_tag": "0.9.0",
-  "pub_rev": "9f00679ef47bc79cadc18e143720ade6c06c0100",
+  "pub_rev": "3c060aae47985e9a248b850f1d0450304a5c97e3",
   "pub_semver_tag": "1.4.2",
   "quiver_tag": "2.0.0+1",
   "resource_rev": "2.1.5",
@@ -124,7 +124,7 @@ vars = {
   "source_map_stack_trace_tag": "1.1.5",
   "source_maps-0.9.4_rev": "38524",
   "source_maps_tag": "8af7cc1a1c3a193c1fba5993ce22a546a319c40e",
-  "source_span_tag": "1.4.1",
+  "source_span_tag": "1.5.5",
   "stack_trace_tag": "1.9.3",
   "stream_channel_tag": "1.6.8",
   "string_scanner_tag": "1.0.3",
@@ -157,7 +157,7 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.1.1-dev.1.0",
+          "version": "version:2.2.1-dev.0.0",
       }],
       "dep_type": "cipd",
   },
@@ -437,7 +437,7 @@ hooks = [
     ],
   },
   {
-    "name": "7zip",
+    "name": "front_end_benchmark_data",
     "pattern": ".",
     "action": [
       "download_from_google_storage",
@@ -445,10 +445,10 @@ hooks = [
       "--no_resume",
       "--bucket",
       "dart-dependencies",
-      "--platform=win32",
+      "--recursive",
       "--extract",
-      "-s",
-      Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
+      "--directory",
+      Var('dart_root') + "/pkg/front_end/test/fasta/types",
     ],
   },
   {
@@ -495,4 +495,30 @@ hooks = [
     'pattern': '.',
     'action': ['python', 'sdk/build/vs_toolchain.py', 'update'],
   },
+  {
+    # Download dill files for all supported ABI versions, if necessary.
+    'name': 'abiversions',
+    'pattern': '.',
+    'action': ['python', 'sdk/tools/download_abi_dills.py'],
+  },
 ]
+
+hooks_os = {
+  "win": [
+    {
+      "name": "7zip",
+      "pattern": ".",
+      "action": [
+        "download_from_google_storage",
+        "--no_auth",
+        "--no_resume",
+        "--bucket",
+        "dart-dependencies",
+        "--platform=win32",
+        "--extract",
+        "-s",
+        Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
+      ],
+    },
+  ]
+}

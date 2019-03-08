@@ -7,8 +7,8 @@
 
 import 'package:expect/expect.dart';
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 void find1(expected, thunk) {
@@ -20,8 +20,8 @@ void find1(expected, thunk) {
     exceptionText = '$e';
   }
   if (exceptionText == null) {
-    Expect
-        .fail('Expected exception containing "$expected", returned: $returned');
+    Expect.fail(
+        'Expected exception containing "$expected", returned: $returned');
   }
   Expect.isTrue(exceptionText.contains(expected),
       'Expected "$expected" in "$exceptionText"');

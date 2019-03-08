@@ -54,6 +54,7 @@ M0:
   classSetters:
 
 M1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: I<int>
@@ -83,6 +84,7 @@ M1:
   interfaceSetters:
 
 M1 with M0<int, String>:
+  Longest path to Object: 3
   superclasses:
     Object
       -> M1
@@ -113,6 +115,7 @@ M1 with M0<int, String>:
   interfaceSetters:
 
 A:
+  Longest path to Object: 4
   superclasses:
     Object
       -> M1

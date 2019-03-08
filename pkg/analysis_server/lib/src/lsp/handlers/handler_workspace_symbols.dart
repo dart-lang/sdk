@@ -20,8 +20,8 @@ class WorkspaceSymbolHandler
   Method get handlesMessage => Method.workspace_symbol;
 
   @override
-  WorkspaceSymbolParams convertParams(Map<String, dynamic> json) =>
-      WorkspaceSymbolParams.fromJson(json);
+  LspJsonHandler<WorkspaceSymbolParams> get jsonHandler =>
+      WorkspaceSymbolParams.jsonHandler;
 
   Future<ErrorOr<List<SymbolInformation>>> handle(
       WorkspaceSymbolParams params) async {

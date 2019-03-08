@@ -552,7 +552,7 @@ Simulator::Simulator() : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL) {
   // handling stack overflow exceptions. To be safe in potential
   // stack underflows we also add some underflow buffer space.
   stack_ = new uintptr_t[(OSThread::GetSpecifiedStackSize() +
-                          OSThread::kStackSizeBuffer +
+                          OSThread::kStackSizeBufferMax +
                           kSimulatorStackUnderflowSize) /
                          sizeof(uintptr_t)];
   // Low address.
@@ -560,7 +560,7 @@ Simulator::Simulator() : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL) {
   // Limit for StackOverflowError.
   overflow_stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
   // High address.
-  stack_limit_ = overflow_stack_limit_ + OSThread::kStackSizeBuffer;
+  stack_limit_ = overflow_stack_limit_ + OSThread::kStackSizeBufferMax;
 
   last_setjmp_buffer_ = NULL;
 
@@ -810,7 +810,12 @@ void Simulator::InlineCacheMiss(int checked_args,
                                 RawObject** SP) {
   RawObject** result = top;
   top[0] = 0;  // Clean up result slot.
-  RawObject** miss_handler_args = top + 1;
+
+  // Save arguments descriptor as it may be clobbered by running Dart code
+  // during the call to miss handler (class finalization).
+  top[1] = argdesc_;
+
+  RawObject** miss_handler_args = top + 2;
   for (intptr_t i = 0; i < checked_args; i++) {
     miss_handler_args[i] = args[i];
   }
@@ -833,6 +838,8 @@ void Simulator::InlineCacheMiss(int checked_args,
   RawObject** exit_frame = miss_handler_args + miss_handler_argc;
   CallRuntime(thread, FP, exit_frame, pc, miss_handler_argc, miss_handler_args,
               result, reinterpret_cast<uword>(handler));
+
+  argdesc_ = Array::RawCast(top[1]);
 }
 
 DART_FORCE_INLINE void Simulator::InstanceCall1(Thread* thread,

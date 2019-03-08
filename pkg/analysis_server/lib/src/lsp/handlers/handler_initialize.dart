@@ -16,30 +16,41 @@ class InitializeMessageHandler
   Method get handlesMessage => Method.initialize;
 
   @override
-  InitializeParams convertParams(Map<String, dynamic> json) =>
-      InitializeParams.fromJson(json);
+  LspJsonHandler<InitializeParams> get jsonHandler =>
+      InitializeParams.jsonHandler;
 
   ErrorOr<InitializeResult> handle(InitializeParams params) {
     final openWorkspacePaths = <String>[];
 
-    if (params.workspaceFolders != null) {
-      params.workspaceFolders.forEach((wf) {
-        openWorkspacePaths.add(Uri.parse(wf.uri).toFilePath());
-      });
-    }
-    if (params.rootUri != null) {
-      openWorkspacePaths.add(Uri.parse(params.rootUri).toFilePath());
-      // ignore: deprecated_member_use_from_same_package
-    } else if (params.rootPath != null) {
-      // This is deprecated according to LSP spec, but we still want to support
-      // it in case older clients send us it.
-      // ignore: deprecated_member_use_from_same_package
-      openWorkspacePaths.add(params.rootPath);
+    // The onlyAnalyzeProjectsWithOpenFiles flag allows opening huge folders
+    // without setting them as analysis roots. Instead, analysis roots will be
+    // based only on the open files.
+    final onlyAnalyzeProjectsWithOpenFiles = params.initializationOptions !=
+            null
+        ? params.initializationOptions['onlyAnalyzeProjectsWithOpenFiles'] ==
+            true
+        : false;
+
+    if (!onlyAnalyzeProjectsWithOpenFiles) {
+      if (params.workspaceFolders != null) {
+        params.workspaceFolders.forEach((wf) {
+          openWorkspacePaths.add(Uri.parse(wf.uri).toFilePath());
+        });
+      }
+      if (params.rootUri != null) {
+        openWorkspacePaths.add(Uri.parse(params.rootUri).toFilePath());
+        // ignore: deprecated_member_use_from_same_package
+      } else if (params.rootPath != null) {
+        // This is deprecated according to LSP spec, but we still want to support
+        // it in case older clients send us it.
+        // ignore: deprecated_member_use_from_same_package
+        openWorkspacePaths.add(params.rootPath);
+      }
     }
 
     server.handleClientConnection(params.capabilities);
-    server.messageHandler =
-        new InitializingStateMessageHandler(server, openWorkspacePaths);
+    server.messageHandler = new InitializingStateMessageHandler(
+        server, openWorkspacePaths, onlyAnalyzeProjectsWithOpenFiles);
 
     final codeActionLiteralSupport =
         params.capabilities.textDocument?.codeAction?.codeActionLiteralSupport;

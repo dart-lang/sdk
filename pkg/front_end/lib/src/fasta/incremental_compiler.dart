@@ -27,7 +27,6 @@ import 'package:kernel/kernel.dart'
         Procedure,
         ProcedureKind,
         ReturnStatement,
-        Source,
         TreeNode,
         TypeParameter;
 
@@ -91,8 +90,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   List<LibraryBuilder> platformBuilders;
   Map<Uri, LibraryBuilder> userBuilders;
   final Uri initializeFromDillUri;
-  Component componentToInitializeFrom;
+  final Component componentToInitializeFrom;
   bool initializedFromDill = false;
+  Uri previousPackagesUri;
   bool hasToCheckPackageUris = false;
   Map<Uri, List<DiagnosticMessageFromJson>> remainingComponentProblems =
       new Map<Uri, List<DiagnosticMessageFromJson>>();
@@ -110,14 +110,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   @override
   Future<Component> computeDelta(
-      {Uri entryPoint, bool fullComponent: false}) async {
+      {List<Uri> entryPoints, bool fullComponent: false}) async {
     ticker.reset();
-    entryPoint ??= context.options.inputs.single;
+    entryPoints ??= context.options.inputs;
     return context.runInContext<Component>((CompilerContext c) async {
       IncrementalCompilerData data = new IncrementalCompilerData();
 
       bool bypassCache = false;
-      if (this.invalidatedUris.contains(c.options.packagesUri)) {
+      if (!identical(previousPackagesUri, c.options.packagesUriRaw)) {
+        previousPackagesUri = c.options.packagesUriRaw;
+        bypassCache = true;
+      } else if (this.invalidatedUris.contains(c.options.packagesUri)) {
         bypassCache = true;
       }
       hasToCheckPackageUris = hasToCheckPackageUris || bypassCache;
@@ -126,56 +129,62 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ticker.logMs("Read packages file");
 
       if (dillLoadedData == null) {
-        List<int> summaryBytes = await c.options.loadSdkSummaryBytes();
-        int bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
-        if (initializeFromDillUri != null) {
-          try {
-            bytesLength += await initializeFromDill(uriTranslator, c, data);
-          } catch (e, st) {
-            // We might have loaded x out of y libraries into the component.
-            // To avoid any unforeseen problems start over.
-            bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
+        int bytesLength = 0;
+        if (componentToInitializeFrom != null) {
+          // If initializing from a component it has to include the sdk,
+          // so we explicitly don't load it here.
+          initializeFromComponent(uriTranslator, c, data);
+        } else {
+          List<int> summaryBytes = await c.options.loadSdkSummaryBytes();
+          bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
+          if (initializeFromDillUri != null) {
+            try {
+              bytesLength += await initializeFromDill(uriTranslator, c, data);
+            } catch (e, st) {
+              // We might have loaded x out of y libraries into the component.
+              // To avoid any unforeseen problems start over.
+              bytesLength =
+                  prepareSummary(summaryBytes, uriTranslator, c, data);
 
-            if (e is InvalidKernelVersionError || e is PackageChangedError) {
-              // Don't report any warning.
-            } else {
-              Uri gzInitializedFrom;
-              if (c.options.writeFileOnCrashReport) {
-                gzInitializedFrom = saveAsGzip(
-                    data.initializationBytes, "initialize_from.dill");
-                recordTemporaryFileForTesting(gzInitializedFrom);
-              }
-              if (e is CanonicalNameError) {
-                Message message = gzInitializedFrom != null
-                    ? templateInitializeFromDillNotSelfContained.withArguments(
-                        initializeFromDillUri.toString(), gzInitializedFrom)
-                    : templateInitializeFromDillNotSelfContainedNoDump
-                        .withArguments(initializeFromDillUri.toString());
-                dillLoadedData.loader
-                    .addProblem(message, TreeNode.noOffset, 1, null);
+              if (e is InvalidKernelVersionError || e is PackageChangedError) {
+                // Don't report any warning.
               } else {
-                // Unknown error: Report problem as such.
-                Message message = gzInitializedFrom != null
-                    ? templateInitializeFromDillUnknownProblem.withArguments(
-                        initializeFromDillUri.toString(),
-                        "$e",
-                        "$st",
-                        gzInitializedFrom)
-                    : templateInitializeFromDillUnknownProblemNoDump
-                        .withArguments(
-                            initializeFromDillUri.toString(), "$e", "$st");
-                dillLoadedData.loader
-                    .addProblem(message, TreeNode.noOffset, 1, null);
+                Uri gzInitializedFrom;
+                if (c.options.writeFileOnCrashReport) {
+                  gzInitializedFrom = saveAsGzip(
+                      data.initializationBytes, "initialize_from.dill");
+                  recordTemporaryFileForTesting(gzInitializedFrom);
+                }
+                if (e is CanonicalNameError) {
+                  Message message = gzInitializedFrom != null
+                      ? templateInitializeFromDillNotSelfContained
+                          .withArguments(initializeFromDillUri.toString(),
+                              gzInitializedFrom)
+                      : templateInitializeFromDillNotSelfContainedNoDump
+                          .withArguments(initializeFromDillUri.toString());
+                  dillLoadedData.loader
+                      .addProblem(message, TreeNode.noOffset, 1, null);
+                } else {
+                  // Unknown error: Report problem as such.
+                  Message message = gzInitializedFrom != null
+                      ? templateInitializeFromDillUnknownProblem.withArguments(
+                          initializeFromDillUri.toString(),
+                          "$e",
+                          "$st",
+                          gzInitializedFrom)
+                      : templateInitializeFromDillUnknownProblemNoDump
+                          .withArguments(
+                              initializeFromDillUri.toString(), "$e", "$st");
+                  dillLoadedData.loader
+                      .addProblem(message, TreeNode.noOffset, 1, null);
+                }
               }
             }
           }
-        } else if (componentToInitializeFrom != null) {
-          initializeFromComponent(uriTranslator, c, data);
         }
         appendLibraries(data, bytesLength);
 
         await dillLoadedData.buildOutlines();
-        summaryBytes = null;
         userBuilders = <Uri, LibraryBuilder>{};
         platformBuilders = <LibraryBuilder>[];
         dillLoadedData.loader.builders.forEach((uri, builder) {
@@ -190,19 +199,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       data.initializationBytes = null;
 
       Set<Uri> invalidatedUris = this.invalidatedUris.toSet();
-      if ((data.includeUserLoadedLibraries &&
-              componentToInitializeFrom ==
-                  null) // when loading state from component no need to invalidate anything
-          ||
-          fullComponent) {
-        invalidatedUris.add(entryPoint);
-      }
-      if (componentToInitializeFrom != null) {
-        // Once compiler was initialized from component, no need to skip logic
-        // above that adds entryPoint to invalidatedUris for successive
-        // [computeDelta] calls.
-        componentToInitializeFrom = null;
-      }
 
       ClassHierarchy hierarchy = userCode?.loader?.hierarchy;
       Set<LibraryBuilder> notReusedLibraries = new Set<LibraryBuilder>();
@@ -253,15 +249,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       for (LibraryBuilder library in reusedLibraries) {
         userCode.loader.builders[library.uri] = library;
-        if (entryPoint == library.uri) {
-          userCode.loader.first = library;
-        }
         if (library.uri.scheme == "dart" && library.uri.path == "core") {
           userCode.loader.coreLibrary = library;
         }
       }
 
-      entryPoint = userCode.setEntryPoints(<Uri>[entryPoint]).single;
+      entryPoints = userCode.setEntryPoints(entryPoints);
+      if (userCode.loader.first == null &&
+          userCode.loader.builders[entryPoints.first] != null) {
+        userCode.loader.first = userCode.loader.builders[entryPoints.first];
+      }
       await userCode.buildOutlines();
 
       // This is not the full component. It is the component including all
@@ -284,13 +281,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       List<Library> outputLibraries;
       Set<Library> allLibraries;
-      if (data.includeUserLoadedLibraries || fullComponent) {
+      if (data.component != null || fullComponent) {
         outputLibraries = computeTransitiveClosure(compiledLibraries,
-            entryPoint, reusedLibraries, hierarchy, uriTranslator);
+            entryPoints, reusedLibraries, hierarchy, uriTranslator);
         allLibraries = outputLibraries.toSet();
+        if (!c.options.omitPlatform) {
+          for (int i = 0; i < platformBuilders.length; i++) {
+            Library lib = platformBuilders[i].target;
+            outputLibraries.add(lib);
+          }
+        }
       } else {
         outputLibraries = new List<Library>();
-        allLibraries = computeTransitiveClosure(compiledLibraries, entryPoint,
+        allLibraries = computeTransitiveClosure(compiledLibraries, entryPoints,
                 reusedLibraries, hierarchy, uriTranslator, outputLibraries)
             .toSet();
       }
@@ -332,7 +335,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   List<String> reissueComponentProblems(Component componentWithDill) {
     // These problems have already been reported.
     Set<String> issuedProblems = new Set<String>();
-    if (componentWithDill.problemsAsJson != null) {
+    if (componentWithDill?.problemsAsJson != null) {
       issuedProblems.addAll(componentWithDill.problemsAsJson);
     }
 
@@ -348,7 +351,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     // Save any new component-problems.
-    if (componentWithDill.problemsAsJson != null) {
+    if (componentWithDill?.problemsAsJson != null) {
       for (String jsonString in componentWithDill.problemsAsJson) {
         DiagnosticMessageFromJson message =
             new DiagnosticMessageFromJson.fromJson(jsonString);
@@ -379,7 +382,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// any saved component problems for such builders.
   List<Library> computeTransitiveClosure(
       List<Library> inputLibraries,
-      Uri entry,
+      List<Uri> entries,
       List<LibraryBuilder> reusedLibraries,
       ClassHierarchy hierarchy,
       UriTranslator uriTranslator,
@@ -400,7 +403,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     List<Uri> worklist = new List<Uri>();
-    worklist.add(entry);
+    worklist.addAll(entries);
     for (LibraryBuilder library in reusedLibraries) {
       if (library.uri.scheme == "dart" && !library.isSynthetic) {
         continue;
@@ -506,7 +509,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         initializedFromDill = true;
         bytesLength += initializationBytes.length;
         data.userLoadedUriMain = data.component.mainMethod;
-        data.includeUserLoadedLibraries = true;
         saveComponentProblems(data);
       }
     }
@@ -529,36 +531,32 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   // This procedure will set up compiler from [componentToInitializeFrom].
   void initializeFromComponent(UriTranslator uriTranslator, CompilerContext c,
       IncrementalCompilerData data) {
-    ticker.logMs("Read initializeFromComponent");
+    ticker.logMs("About to initializeFromComponent");
 
-    // [libraries] and [uriToSource] from [componentToInitializeFrom] take
-    // precedence over what was already read into [data.component]. Assumption
-    // is that [data.component] is initialized with standard prebuilt various
-    // platform libraries.
-    List<Library> combinedLibs = <Library>[];
-    Set<Uri> readLibs =
-        componentToInitializeFrom.libraries.map((lib) => lib.fileUri).toSet();
-    combinedLibs.addAll(componentToInitializeFrom.libraries);
-    for (Library lib in data.component.libraries) {
-      if (!readLibs.contains(lib.fileUri)) {
-        combinedLibs.add(lib);
-      }
-    }
-    Map<Uri, Source> combinedMaps = new Map<Uri, Source>();
-    combinedMaps.addAll(componentToInitializeFrom.uriToSource);
-    Set<Uri> uris = combinedMaps.keys.toSet();
-    for (MapEntry<Uri, Source> entry in data.component.uriToSource.entries) {
-      if (!uris.contains(entry.key)) {
-        combinedMaps[entry.key] = entry.value;
-      }
-    }
-
-    data.component =
-        new Component(libraries: combinedLibs, uriToSource: combinedMaps)
-          ..mainMethod = componentToInitializeFrom.mainMethod;
-    data.userLoadedUriMain = data.component.mainMethod;
-    data.includeUserLoadedLibraries = true;
+    dillLoadedData = new DillTarget(ticker, uriTranslator, c.options.target);
+    data.component = new Component(
+        libraries: componentToInitializeFrom.libraries,
+        uriToSource: componentToInitializeFrom.uriToSource)
+      ..mainMethod = componentToInitializeFrom.mainMethod;
+    data.userLoadedUriMain = componentToInitializeFrom.mainMethod;
     saveComponentProblems(data);
+
+    bool foundDartCore = false;
+    for (int i = 0; i < data.component.libraries.length; i++) {
+      Library library = data.component.libraries[i];
+      if (library.importUri.scheme == "dart" &&
+          library.importUri.path == "core") {
+        foundDartCore = true;
+        break;
+      }
+    }
+
+    if (!foundDartCore) {
+      throw const InitializeFromComponentError("Did not find dart:core when "
+          "tried to initialize from component.");
+    }
+
+    ticker.logMs("Ran initializeFromComponent");
   }
 
   void appendLibraries(IncrementalCompilerData data, int bytesLength) {
@@ -806,8 +804,15 @@ class PackageChangedError {
   const PackageChangedError();
 }
 
+class InitializeFromComponentError {
+  final String message;
+
+  const InitializeFromComponentError(this.message);
+
+  String toString() => message;
+}
+
 class IncrementalCompilerData {
-  bool includeUserLoadedLibraries = false;
   Procedure userLoadedUriMain = null;
   Component component = null;
   List<int> initializationBytes = null;

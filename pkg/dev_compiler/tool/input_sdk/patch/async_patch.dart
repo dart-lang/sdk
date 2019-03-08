@@ -9,9 +9,6 @@ import 'dart:_isolate_helper' show TimerImpl;
 import 'dart:_foreign_helper' show JS, JSExportName;
 import 'dart:_runtime' as dart;
 
-typedef void _Callback();
-typedef void _TakeCallback(_Callback callback);
-
 /// This function adapts ES6 generators to implement Dart's async/await.
 ///
 /// It's designed to interact with Dart's Future and follow Dart async/await
@@ -135,77 +132,39 @@ _async<T>(Function() initGenerator) {
 @patch
 class _AsyncRun {
   @patch
-  static void _scheduleImmediate(void callback()) {
+  static void _scheduleImmediate(void Function() callback) {
     _scheduleImmediateClosure(callback);
   }
 
   // Lazily initialized.
-  static final _TakeCallback _scheduleImmediateClosure =
-      _initializeScheduleImmediate();
+  static final _scheduleImmediateClosure = _initializeScheduleImmediate();
 
-  static _TakeCallback _initializeScheduleImmediate() {
-    // TODO(rnystrom): Not needed by dev_compiler.
-    // requiresPreamble();
+  static void Function(void Function()) _initializeScheduleImmediate() {
+    // d8 support, see preambles/d8.js for the definiton of `scheduleImmediate`.
+    //
+    // TODO(jmesserly): do we need this? It's only for our d8 stack trace test.
     if (JS('', '#.scheduleImmediate', dart.global_) != null) {
-      return _scheduleImmediateJsOverride;
+      return _scheduleImmediateJSOverride;
     }
-    if (JS('', '#.MutationObserver', dart.global_) != null &&
-        JS('', '#.document', dart.global_) != null) {
-      // Use mutationObservers.
-      var div = JS('', '#.document.createElement("div")', dart.global_);
-      var span = JS('', '#.document.createElement("span")', dart.global_);
-      _Callback storedCallback;
-
-      internalCallback(_) {
-        var f = storedCallback;
-        storedCallback = null;
-        dart.removeAsyncCallback();
-        f();
-      }
-
-      var observer =
-          JS('', 'new #.MutationObserver(#)', dart.global_, internalCallback);
-      JS('', '#.observe(#, { childList: true })', observer, div);
-
-      return (void callback()) {
-        assert(storedCallback == null);
-        dart.addAsyncCallback();
-        storedCallback = callback;
-        // Because of a broken shadow-dom polyfill we have to change the
-        // children instead a cheap property.
-        // See https://github.com/Polymer/ShadowDOM/issues/468
-        JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)', div, div,
-            span, div, span);
-      };
-    } else if (JS('', '#.setImmediate', dart.global_) != null) {
-      return _scheduleImmediateWithSetImmediate;
-    }
-    // TODO(20055): We should use DOM promises when available.
-    return _scheduleImmediateWithTimer;
+    return _scheduleImmediateWithPromise;
   }
 
-  static void _scheduleImmediateJsOverride(void callback()) {
-    internalCallback() {
+  @ReifyFunctionTypes(false)
+  static void _scheduleImmediateJSOverride(void Function() callback) {
+    dart.addAsyncCallback();
+    JS('void', '#.scheduleImmediate(#)', dart.global_, () {
       dart.removeAsyncCallback();
       callback();
-    }
-
-    dart.addAsyncCallback();
-    JS('void', '#.scheduleImmediate(#)', dart.global_, internalCallback);
+    });
   }
 
-  static void _scheduleImmediateWithSetImmediate(void callback()) {
-    internalCallback() {
+  @ReifyFunctionTypes(false)
+  static Object _scheduleImmediateWithPromise(void Function() callback) {
+    dart.addAsyncCallback();
+    JS('', '#.Promise.resolve(null).then(#)', dart.global_, () {
       dart.removeAsyncCallback();
       callback();
-    }
-
-    dart.addAsyncCallback();
-    JS('void', '#.setImmediate(#)', dart.global_, internalCallback);
-  }
-
-  static void _scheduleImmediateWithTimer(void callback()) {
-    Timer._createTimer(Duration.zero, callback);
+    });
   }
 }
 

@@ -8,6 +8,8 @@ library FfiTest;
 
 import 'dart:ffi' as ffi;
 
+import 'dylib_utils.dart';
+
 import "package:expect/expect.dart";
 
 void main() {
@@ -26,10 +28,12 @@ void main() {
   testNullManyArgs();
   testNullPointers();
   testFloatRounding();
+  testVoidReturn();
+  testNoArgs();
 }
 
 ffi.DynamicLibrary ffiTestFunctions =
-    ffi.DynamicLibrary.open("ffi_test_functions");
+    dlopenPlatformSpecific("ffi_test_functions");
 
 typedef NativeBinaryOp = ffi.Int32 Function(ffi.Int32, ffi.Int32);
 typedef UnaryOp = int Function(int);
@@ -281,4 +285,29 @@ void testFloatRounding() {
   Expect.equals(1, result);
 
   p2.free();
+}
+
+typedef NativeFloatToVoid = ffi.Void Function(ffi.Float);
+typedef DoubleToVoid = void Function(double);
+
+void testVoidReturn() {
+  DoubleToVoid devNullFloat = ffiTestFunctions
+      .lookupFunction<NativeFloatToVoid, DoubleToVoid>("DevNullFloat");
+
+  devNullFloat(1337.0);
+
+  dynamic loseSignature = devNullFloat;
+  dynamic result = loseSignature(1337.0);
+  Expect.isNull(result);
+}
+
+typedef NativeVoidToFloat = ffi.Float Function();
+typedef VoidToDouble = double Function();
+
+void testNoArgs() {
+  VoidToDouble inventFloatValue = ffiTestFunctions
+      .lookupFunction<NativeVoidToFloat, VoidToDouble>("InventFloatValue");
+
+  double result = inventFloatValue();
+  Expect.approxEquals(1337.0, result);
 }

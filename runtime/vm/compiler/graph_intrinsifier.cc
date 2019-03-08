@@ -300,7 +300,7 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
     case kTypedDataFloat32ArrayCid:
       result = builder.AddDefinition(
           new FloatToDoubleInstr(new Value(result), DeoptId::kNone));
-    // Fall through.
+      FALL_THROUGH;
     case kTypedDataFloat64ArrayCid:
       result = builder.AddDefinition(
           BoxInstr::Create(kUnboxedDouble, new Value(result)));
@@ -369,7 +369,7 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
     case kTypedDataInt32ArrayCid:
     case kExternalTypedDataInt32ArrayCid:
     // Use same truncating unbox-instruction for int32 and uint32.
-    // Fall-through.
+    FALL_THROUGH;
     case kTypedDataUint32ArrayCid:
     case kExternalTypedDataUint32ArrayCid:
       // Supports smi and mint, slow-case for bigints.

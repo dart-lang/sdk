@@ -200,7 +200,7 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
   };
 
   let pendingCallbacks = 0;
-  let waitForDone = false;
+  let waitForDone = false, isDone = false;
 
   sdk.dart.addAsyncCallback = function() {
     pendingCallbacks++;
@@ -214,14 +214,30 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
 
   sdk.dart.removeAsyncCallback = function() {
     if (--pendingCallbacks <= 0) {
-      // We might be done with async callbacks. Schedule a microtask to check.
-      Promise.resolve().then(function() {
-        if (pendingCallbacks <= 0) dartPrint('unittest-suite-done');
-      });
+      // We might be done with async callbacks. Schedule a task to check.
+      // Note: can't use a Promise here, because the unhandled rejection event
+      // is fired as a task, rather than a microtask. `setTimeout` will create a
+      // task, giving an unhandled promise reject time to fire before this does.
+      setTimeout(() => {
+        if (pendingCallbacks <= 0 && !isDone) {
+          isDone = true;
+          dartPrint('unittest-suite-done');
+        }
+      }, 0);
     }
   };
-  
-  dartMainRunner($testId.$testId.main);
+
+  dartMainRunner(function testMainWrapper() {
+    // Some callbacks are not scheduled with timers/microtasks, so they don't
+    // go through our async tracking (e.g. DOM events). For those tests, check
+    // if the result of calling `main()` is a Future, and if so, wait for it.
+    let result = $testId.$testId.main();
+    if (sdk.async.Future.is(result)) {
+      sdk.dart.addAsyncCallback();
+      result.whenComplete(sdk.dart.removeAsyncCallback);
+    }
+    return result;
+  });
 });
 </script>
 </body>

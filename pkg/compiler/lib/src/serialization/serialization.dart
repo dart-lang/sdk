@@ -9,6 +9,7 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
 import '../closure.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/entities.dart';
@@ -314,6 +315,9 @@ abstract class DataSink {
 
   /// Writes the constant [value] to this data sink.
   void writeConstant(ConstantValue value);
+
+  /// Writes the potentially `null` constant [value] to this data sink.
+  void writeConstantOrNull(ConstantValue value);
 
   /// Writes constant [values] to this data sink. If [allowNull] is `true`,
   /// [values] is allowed to be `null`.
@@ -625,6 +629,9 @@ abstract class DataSource {
 
   /// Reads a constant value from this data source.
   ConstantValue readConstant();
+
+  /// Reads a potentially `null` constant value from this data source.
+  ConstantValue readConstantOrNull();
 
   /// Reads a double value from this data source.
   double readDoubleValue();

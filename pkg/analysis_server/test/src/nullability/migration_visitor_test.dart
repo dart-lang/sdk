@@ -107,11 +107,13 @@ Int f(Int i, Int j) => i + j;
 class Int {
   Int operator+(Int other) => this;
 }
-Int f(Int i, Int j) => i + j;
+Int f(Int i, Int j) => (i + j);
 ''');
 
-    assertConstraint([decoratedTypeAnnotation('Int operator+').nullable],
-        decoratedTypeAnnotation('Int f').nullable);
+    assertConstraint(
+        [decoratedTypeAnnotation('Int operator+').nullable],
+        _either(decoratedTypeAnnotation('Int f').nullable,
+            checkExpression('(i + j)').nullCheck));
   }
 
   test_binaryExpression_add_result_not_null() async {
@@ -136,11 +138,13 @@ int f(int i, int j) => i + j;
 class Int {
   Int operator+(Int other) => this;
 }
-Int f(Int i, Int j) => i + j;
+Int f(Int i, Int j) => i + j/*check*/;
 ''');
 
-    assertConstraint([decoratedTypeAnnotation('Int j').nullable],
-        decoratedTypeAnnotation('Int other').nullable);
+    assertConstraint(
+        [decoratedTypeAnnotation('Int j').nullable],
+        _either(decoratedTypeAnnotation('Int other').nullable,
+            checkExpression('j/*check*/').nullCheck));
   }
 
   test_binaryExpression_equal() async {
@@ -149,6 +153,15 @@ bool f(int i, int j) => i == j;
 ''');
 
     assertNoConstraints(decoratedTypeAnnotation('bool f').nullable);
+  }
+
+  test_boolLiteral() async {
+    await analyze('''
+bool f() {
+  return true;
+}
+''');
+    assertNoConstraints(decoratedTypeAnnotation('bool').nullable);
   }
 
   test_conditionalExpression_condition_check() async {
@@ -172,13 +185,14 @@ int f(bool b, int i, int j) {
 
     var nullable_i = decoratedTypeAnnotation('int i').nullable;
     var nullable_j = decoratedTypeAnnotation('int j').nullable;
-    var nullable_i_or_nullable_j = _mockOr(nullable_i, nullable_j);
+    var nullable_i_or_nullable_j = _either(nullable_i, nullable_j);
     var nullable_conditional = decoratedExpressionType('(b ?').nullable;
     var nullable_return = decoratedTypeAnnotation('int f').nullable;
     assertConstraint([nullable_i], nullable_conditional);
     assertConstraint([nullable_j], nullable_conditional);
     assertConstraint([nullable_conditional], nullable_i_or_nullable_j);
-    assertConstraint([nullable_conditional], nullable_return);
+    assertConstraint([nullable_conditional],
+        _either(nullable_return, checkExpression('(b ? i : j)').nullCheck));
   }
 
   test_conditionalExpression_left_non_null() async {
@@ -229,11 +243,13 @@ int f(bool b, int i) {
 
   test_functionDeclaration_expression_body() async {
     await analyze('''
-int/*1*/ f(int/*2*/ i) => i;
+int/*1*/ f(int/*2*/ i) => i/*3*/;
 ''');
 
-    assertConstraint([decoratedTypeAnnotation('int/*2*/').nullable],
-        decoratedTypeAnnotation('int/*1*/').nullable);
+    assertConstraint(
+        [decoratedTypeAnnotation('int/*2*/').nullable],
+        _either(decoratedTypeAnnotation('int/*1*/').nullable,
+            checkExpression('i/*3*/').nullCheck));
   }
 
   test_functionDeclaration_parameter_named_default_notNull() async {
@@ -339,28 +355,49 @@ void f([int i]) {}
     assertConstraint([], decoratedTypeAnnotation('int').nullable);
   }
 
+  test_functionDeclaration_resets_unconditional_control_flow() async {
+    await analyze('''
+void f(bool b, int i, int j) {
+  assert(i != null);
+  if (b) return;
+  assert(j != null);
+}
+void g(int k) {
+  assert(k != null);
+}
+''');
+    assertConstraint([], decoratedTypeAnnotation('int i').nonNullIntent);
+    assertNoConstraints(decoratedTypeAnnotation('int j').nonNullIntent);
+    assertConstraint([], decoratedTypeAnnotation('int k').nonNullIntent);
+  }
+
   test_functionInvocation_parameter_fromLocalParameter() async {
     await analyze('''
 void f(int/*1*/ i) {}
 void test(int/*2*/ i) {
-  f(i);
+  f(i/*3*/);
 }
 ''');
 
-    assertConstraint([decoratedTypeAnnotation('int/*2*/').nullable],
-        decoratedTypeAnnotation('int/*1*/').nullable);
+    var int_1 = decoratedTypeAnnotation('int/*1*/');
+    var int_2 = decoratedTypeAnnotation('int/*2*/');
+    var i_3 = checkExpression('i/*3*/');
+    assertConstraint([int_2.nullable], _either(int_1.nullable, i_3.nullCheck));
+    assertConstraint([int_2.nullable, int_1.nonNullIntent], i_3.nullCheck);
+    assertConstraint([int_1.nonNullIntent], int_2.nonNullIntent);
   }
 
   test_functionInvocation_parameter_named() async {
     await analyze('''
 void f({int i: 0}) {}
 void g(int j) {
-  f(i: j);
+  f(i: j/*check*/);
 }
 ''');
     var nullable_i = decoratedTypeAnnotation('int i').nullable;
     var nullable_j = decoratedTypeAnnotation('int j').nullable;
-    assertConstraint([nullable_j], nullable_i);
+    assertConstraint([nullable_j],
+        _either(nullable_i, checkExpression('j/*check*/').nullCheck));
   }
 
   test_functionInvocation_parameter_named_missing() async {
@@ -400,19 +437,23 @@ void test() {
 ''');
 
     assertConstraint(
-        [ConstraintVariable.always], decoratedTypeAnnotation('int').nullable);
+        [ConstraintVariable.always],
+        _either(decoratedTypeAnnotation('int').nullable,
+            checkExpression('null').nullCheck));
   }
 
   test_functionInvocation_return() async {
     await analyze('''
 int/*1*/ f() => 0;
 int/*2*/ g() {
-  return f();
+  return (f());
 }
 ''');
 
-    assertConstraint([decoratedTypeAnnotation('int/*1*/').nullable],
-        decoratedTypeAnnotation('int/*2*/').nullable);
+    assertConstraint(
+        [decoratedTypeAnnotation('int/*1*/').nullable],
+        _either(decoratedTypeAnnotation('int/*2*/').nullable,
+            checkExpression('(f())').nullCheck));
   }
 
   test_if_condition() async {
@@ -458,9 +499,9 @@ void f(bool b, int i) {
     await analyze('''
 int f(int i, int j, int k) {
   if (i == null) {
-    return j;
+    return j/*check*/;
   } else {
-    return k;
+    return k/*check*/;
   }
 }
 ''');
@@ -468,8 +509,10 @@ int f(int i, int j, int k) {
     var nullable_j = decoratedTypeAnnotation('int j').nullable;
     var nullable_k = decoratedTypeAnnotation('int k').nullable;
     var nullable_return = decoratedTypeAnnotation('int f').nullable;
-    assertConstraint([nullable_i, nullable_j], nullable_return);
-    assertConstraint([nullable_k], nullable_return);
+    assertConstraint([nullable_i, nullable_j],
+        _either(nullable_return, checkExpression('j/*check*/').nullCheck));
+    assertConstraint([nullable_k],
+        _either(nullable_return, checkExpression('k/*check*/').nullCheck));
     var discard = statementDiscard('if (i == null)');
     expect(discard.keepTrue, same(nullable_i));
     expect(discard.keepFalse, same(ConstraintVariable.always));
@@ -480,9 +523,9 @@ int f(int i, int j, int k) {
     await analyze('''
 int f(bool b, int i, int j) {
   if (b) {
-    return i;
+    return i/*check*/;
   } else {
-    return j;
+    return j/*check*/;
   }
 }
 ''');
@@ -490,15 +533,17 @@ int f(bool b, int i, int j) {
     var nullable_i = decoratedTypeAnnotation('int i').nullable;
     var nullable_j = decoratedTypeAnnotation('int j').nullable;
     var nullable_return = decoratedTypeAnnotation('int f').nullable;
-    assertConstraint([nullable_i], nullable_return);
-    assertConstraint([nullable_j], nullable_return);
+    assertConstraint([nullable_i],
+        _either(nullable_return, checkExpression('i/*check*/').nullCheck));
+    assertConstraint([nullable_j],
+        _either(nullable_return, checkExpression('j/*check*/').nullCheck));
   }
 
   test_if_without_else() async {
     await analyze('''
 int f(bool b, int i) {
   if (b) {
-    return i;
+    return i/*check*/;
   }
   return 0;
 }
@@ -506,7 +551,8 @@ int f(bool b, int i) {
 
     var nullable_i = decoratedTypeAnnotation('int i').nullable;
     var nullable_return = decoratedTypeAnnotation('int f').nullable;
-    assertConstraint([nullable_i], nullable_return);
+    assertConstraint([nullable_i],
+        _either(nullable_return, checkExpression('i/*check*/').nullCheck));
   }
 
   test_intLiteral() async {
@@ -518,13 +564,31 @@ int f() {
     assertNoConstraints(decoratedTypeAnnotation('int').nullable);
   }
 
+  test_methodDeclaration_resets_unconditional_control_flow() async {
+    await analyze('''
+class C {
+  void f(bool b, int i, int j) {
+    assert(i != null);
+    if (b) return;
+    assert(j != null);
+  }
+  void g(int k) {
+    assert(k != null);
+  }
+}
+''');
+    assertConstraint([], decoratedTypeAnnotation('int i').nonNullIntent);
+    assertNoConstraints(decoratedTypeAnnotation('int j').nonNullIntent);
+    assertConstraint([], decoratedTypeAnnotation('int k').nonNullIntent);
+  }
+
   test_methodInvocation_parameter_contravariant() async {
     await analyze('''
 class C<T> {
   void f(T t) {}
 }
 void g(C<int> c, int i) {
-  c.f(i);
+  c.f(i/*check*/);
 }
 ''');
 
@@ -532,8 +596,11 @@ void g(C<int> c, int i) {
     var nullable_c_t =
         decoratedTypeAnnotation('C<int>').typeArguments[0].nullable;
     var nullable_t = decoratedTypeAnnotation('T t').nullable;
-    var nullable_c_t_or_nullable_t = _mockOr(nullable_c_t, nullable_t);
-    assertConstraint([nullable_i], nullable_c_t_or_nullable_t);
+    var nullable_c_t_or_nullable_t = _either(nullable_c_t, nullable_t);
+    assertConstraint(
+        [nullable_i],
+        _either(nullable_c_t_or_nullable_t,
+            checkExpression('i/*check*/').nullCheck));
   }
 
   test_methodInvocation_parameter_generic() async {
@@ -541,14 +608,16 @@ void g(C<int> c, int i) {
 class C<T> {}
 void f(C<int/*1*/>/*2*/ c) {}
 void g(C<int/*3*/>/*4*/ c) {
-  f(c);
+  f(c/*check*/);
 }
 ''');
 
     assertConstraint([decoratedTypeAnnotation('int/*3*/').nullable],
         decoratedTypeAnnotation('int/*1*/').nullable);
-    assertConstraint([decoratedTypeAnnotation('C<int/*3*/>/*4*/').nullable],
-        decoratedTypeAnnotation('C<int/*1*/>/*2*/').nullable);
+    assertConstraint(
+        [decoratedTypeAnnotation('C<int/*3*/>/*4*/').nullable],
+        _either(decoratedTypeAnnotation('C<int/*1*/>/*2*/').nullable,
+            checkExpression('c/*check*/').nullCheck));
   }
 
   test_methodInvocation_parameter_named() async {
@@ -557,12 +626,13 @@ class C {
   void f({int i: 0}) {}
 }
 void g(C c, int j) {
-  c.f(i: j);
+  c.f(i: j/*check*/);
 }
 ''');
     var nullable_i = decoratedTypeAnnotation('int i').nullable;
     var nullable_j = decoratedTypeAnnotation('int j').nullable;
-    assertConstraint([nullable_j], nullable_i);
+    assertConstraint([nullable_j],
+        _either(nullable_i, checkExpression('j/*check*/').nullCheck));
   }
 
   test_methodInvocation_target_check() async {
@@ -579,6 +649,19 @@ void test(C c) {
         checkExpression('c.m').nullCheck);
   }
 
+  test_methodInvocation_target_demonstrates_non_null_intent() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(C c) {
+  c.m();
+}
+''');
+
+    assertConstraint([], decoratedTypeAnnotation('C c').nonNullIntent);
+  }
+
   test_parenthesizedExpression() async {
     await analyze('''
 int f() {
@@ -587,7 +670,9 @@ int f() {
 ''');
 
     assertConstraint(
-        [ConstraintVariable.always], decoratedTypeAnnotation('int').nullable);
+        [ConstraintVariable.always],
+        _either(decoratedTypeAnnotation('int').nullable,
+            checkExpression('(null)').nullCheck));
   }
 
   test_return_implicit_null() async {
@@ -610,7 +695,9 @@ int f() {
 ''');
 
     assertConstraint(
-        [ConstraintVariable.always], decoratedTypeAnnotation('int').nullable);
+        [ConstraintVariable.always],
+        _either(decoratedTypeAnnotation('int').nullable,
+            checkExpression('null').nullCheck));
   }
 
   test_stringLiteral() async {
@@ -655,7 +742,7 @@ Type f() {
   /// the purpose of inspecting constraint equations in unit tests.  No
   /// additional constraints will be recorded in [_constraints] as a consequence
   /// of creating this variable.
-  ConstraintVariable _mockOr(ConstraintVariable a, ConstraintVariable b) =>
+  ConstraintVariable _either(ConstraintVariable a, ConstraintVariable b) =>
       ConstraintVariable.or(_MockConstraints(), a, b);
 }
 
@@ -937,14 +1024,16 @@ class _Variables extends Variables {
     _decoratedExpressionTypes[_normalizeExpression(node)] = type;
   }
 
-  void recordDecoratedTypeAnnotation(TypeAnnotation node, DecoratedType type) {
-    super.recordDecoratedTypeAnnotation(node, type);
+  void recordDecoratedTypeAnnotation(
+      Source source, TypeAnnotation node, DecoratedType type) {
+    super.recordDecoratedTypeAnnotation(source, node, type);
     _decoratedTypeAnnotations[node] = type;
   }
 
   @override
-  void recordExpressionChecks(Expression expression, ExpressionChecks checks) {
-    super.recordExpressionChecks(expression, checks);
+  void recordExpressionChecks(
+      Source source, Expression expression, ExpressionChecks checks) {
+    super.recordExpressionChecks(source, expression, checks);
     _expressionChecks[_normalizeExpression(expression)] = checks;
   }
 

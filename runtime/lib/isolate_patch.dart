@@ -107,7 +107,7 @@ void _isolateScheduleImmediate(void callback()) {
   _pendingImmediateCallback = callback;
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 void _runPendingImmediateCallback() {
   if (_pendingImmediateCallback != null) {
     var callback = _pendingImmediateCallback;
@@ -124,7 +124,7 @@ _ImmediateCallback _removePendingImmediateCallback() {
 
 /// The embedder can execute this function to get hold of
 /// [_isolateScheduleImmediate] above.
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 Function _getIsolateScheduleImmediateClosure() {
   return _isolateScheduleImmediate;
 }
@@ -156,14 +156,14 @@ class _RawReceivePortImpl implements RawReceivePort {
   _get_sendport() native "RawReceivePortImpl_get_sendport";
 
   // Called from the VM to retrieve the handler for a message.
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   static _lookupHandler(int id) {
     var result = _handlerMap[id];
     return result;
   }
 
   // Called from the VM to dispatch to the handler.
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   static void _handleMessage(Function handler, var message) {
     // TODO(floitsch): this relies on the fact that any exception aborts the
     // VM. Once we have non-fatal global exceptions we need to catch errors
@@ -197,7 +197,7 @@ class _RawReceivePortImpl implements RawReceivePort {
 @pragma("vm:entry-point")
 class _SendPortImpl implements SendPort {
   /*--- public interface ---*/
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   void send(var message) {
     _sendInternal(message);
   }
@@ -227,7 +227,7 @@ typedef _BinaryFunction(Null args, Null message);
  * initial message.  Defers execution of the entry point until the
  * isolate is in the message loop.
  */
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 void _startMainIsolate(Function entryPoint, List<String> args) {
   _startIsolate(
       null, // no parent port
@@ -245,7 +245,7 @@ void _startMainIsolate(Function entryPoint, List<String> args) {
  * once support for @pragma("vm:entry_point", "get") as documented in
  * https://github.com/dart-lang/sdk/issues/35720 lands.
  */
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 Function _getStartMainIsolateFunction() {
   return _startMainIsolate;
 }
@@ -254,7 +254,7 @@ Function _getStartMainIsolateFunction() {
  * Takes the real entry point as argument and invokes it with the initial
  * message.
  */
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 void _startIsolate(
     SendPort parentPort,
     Function entryPoint,

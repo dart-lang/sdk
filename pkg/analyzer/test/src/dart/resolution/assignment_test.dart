@@ -160,7 +160,7 @@ main() {
     var cascade = findNode.cascade('<int, double>');
     assertType(cascade, 'Map<int, double>');
 
-    MapLiteral map = cascade.target;
+    SetOrMapLiteral map = cascade.target;
     assertType(map, 'Map<int, double>');
     assertTypeName(map.typeArguments.arguments[0], intElement, 'int');
     assertTypeName(map.typeArguments.arguments[1], doubleElement, 'double');

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library kernel.transformations.ffi_definitions;
+library vm.transformations.ffi_definitions;
 
 import 'dart:math' as math;
 
@@ -13,10 +13,10 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiTypeMismatch,
         templateFfiFieldInitializer;
 
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
+import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 
 import 'ffi.dart'
@@ -63,12 +63,18 @@ import 'ffi.dart'
 ///   static int sizeOf() => 24;
 /// }
 ReplacedMembers transformLibraries(
+    Component component,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter) {
-  final transformer =
-      new _FfiDefinitionTransformer(hierarchy, coreTypes, diagnosticReporter);
+  final index = new LibraryIndex(component, ["dart:ffi"]);
+  if (!index.containsLibrary("dart:ffi")) {
+    // if dart:ffi is not loaded, do not do the transformation
+    return ReplacedMembers({}, {});
+  }
+  final transformer = new _FfiDefinitionTransformer(
+      index, coreTypes, hierarchy, diagnosticReporter);
   libraries.forEach(transformer.visitLibrary);
   return ReplacedMembers(
       transformer.replacedGetters, transformer.replacedSetters);
@@ -79,9 +85,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   Map<Field, Procedure> replacedGetters = {};
   Map<Field, Procedure> replacedSetters = {};
 
-  _FfiDefinitionTransformer(ClassHierarchy hierarchy, CoreTypes coreTypes,
-      DiagnosticReporter diagnosticReporter)
-      : super(hierarchy, coreTypes, diagnosticReporter) {}
+  _FfiDefinitionTransformer(LibraryIndex index, CoreTypes coreTypes,
+      ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter)
+      : super(index, coreTypes, hierarchy, diagnosticReporter) {}
 
   @override
   visitClass(Class node) {

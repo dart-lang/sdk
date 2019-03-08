@@ -243,11 +243,12 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
     TransitionVMToNative transition(thread);
     lib = TestCase::LoadTestScript(kScript, NULL);
     EXPECT_VALID(lib);
-    vmlib ^= Api::UnwrapHandle(lib);
-    EXPECT(!vmlib.IsNull());
+    EXPECT(!Dart_IsNull(lib));
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
     EXPECT_VALID(result);
   }
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
   const Class& class_a = Class::Handle(GetClass(vmlib, "A"));
   EXPECT(!class_a.IsNull());
   const Function& function_c = Function::Handle(GetFunction(class_a, "c"));
@@ -264,9 +265,9 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
-  EXPECT_VALID(port);
   {
     TransitionVMToNative transition(thread);
+    EXPECT_VALID(port);
     EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
   }
 
@@ -367,11 +368,12 @@ ISOLATE_UNIT_TEST_CASE(Service_PcDescriptors) {
     TransitionVMToNative transition(thread);
     lib = TestCase::LoadTestScript(kScript, NULL);
     EXPECT_VALID(lib);
-    vmlib ^= Api::UnwrapHandle(lib);
-    EXPECT(!vmlib.IsNull());
+    EXPECT(!Dart_IsNull(lib));
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
     EXPECT_VALID(result);
   }
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
   const Class& class_a = Class::Handle(GetClass(vmlib, "A"));
   EXPECT(!class_a.IsNull());
   const Function& function_c = Function::Handle(GetFunction(class_a, "c"));
@@ -389,9 +391,9 @@ ISOLATE_UNIT_TEST_CASE(Service_PcDescriptors) {
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
-  EXPECT_VALID(port);
   {
     TransitionVMToNative transition(thread);
+    EXPECT_VALID(port);
     EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
   }
 
@@ -437,11 +439,12 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
     TransitionVMToNative transition(thread);
     lib = TestCase::LoadTestScript(kScript, NULL);
     EXPECT_VALID(lib);
-    vmlib ^= Api::UnwrapHandle(lib);
-    EXPECT(!vmlib.IsNull());
+    EXPECT(!Dart_IsNull(lib));
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
     EXPECT_VALID(result);
   }
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
   const Class& class_a = Class::Handle(GetClass(vmlib, "A"));
   EXPECT(!class_a.IsNull());
   const Function& function_c = Function::Handle(GetFunction(class_a, "c"));
@@ -459,9 +462,9 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
-  EXPECT_VALID(port);
   {
     TransitionVMToNative transition(thread);
+    EXPECT_VALID(port);
     EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
   }
 
@@ -522,9 +525,9 @@ ISOLATE_UNIT_TEST_CASE(Service_PersistentHandles) {
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
-  EXPECT_VALID(port);
   {
     TransitionVMToNative transition(thread);
+    EXPECT_VALID(port);
     EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
   }
 
@@ -579,9 +582,9 @@ ISOLATE_UNIT_TEST_CASE(Service_Address) {
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
-  EXPECT_VALID(port);
   {
     TransitionVMToNative transition(thread);
+    EXPECT_VALID(port);
     EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
   }
 
@@ -668,9 +671,9 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderRootHandler) {
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
-  EXPECT_VALID(port);
   {
     TransitionVMToNative transition(thread);
+    EXPECT_VALID(port);
     EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
   }
 
@@ -713,9 +716,9 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderIsolateHandler) {
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
-  EXPECT_VALID(port);
   {
     TransitionVMToNative transition(thread);
+    EXPECT_VALID(port);
     EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
   }
 
@@ -770,9 +773,9 @@ ISOLATE_UNIT_TEST_CASE(Service_Profile) {
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
-  EXPECT_VALID(port);
   {
     TransitionVMToNative transition(thread);
+    EXPECT_VALID(port);
     EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
   }
 

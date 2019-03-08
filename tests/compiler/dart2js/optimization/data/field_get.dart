@@ -10,9 +10,11 @@ main() {
   method3(new Class3b());
   method4(new Class4a());
   method4(new Class4b());
+  method5(new Class5a());
 }
 
 class Class1a {
+  @pragma('dart2js:noElision')
   int field1;
 }
 
@@ -23,6 +25,7 @@ method1(Class1a c) {
 }
 
 class Class2a {
+  @pragma('dart2js:noElision')
   int field2;
 }
 
@@ -59,4 +62,15 @@ class Class4b implements Class4a {
 @pragma('dart2js:noInline')
 method4(Class4a c) {
   return c.field4;
+}
+
+class Class5a {
+  @pragma('dart2js:noElision')
+  int Function() field5;
+}
+
+/*element: method5:FieldCall=[name=Class5a.field5]*/
+@pragma('dart2js:noInline')
+method5(Class5a c) {
+  return c.field5();
 }

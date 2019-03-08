@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -27,27 +28,21 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
-/**
- * Two or more string literals that are implicitly concatenated because of being
- * adjacent (separated only by whitespace).
- *
- * While the grammar only allows adjacent strings when all of the strings are of
- * the same kind (single line or multi-line), this class doesn't enforce that
- * restriction.
- *
- *    adjacentStrings ::=
- *        [StringLiteral] [StringLiteral]+
- */
+/// Two or more string literals that are implicitly concatenated because of
+/// being adjacent (separated only by whitespace).
+///
+/// While the grammar only allows adjacent strings when all of the strings are
+/// of the same kind (single line or multi-line), this class doesn't enforce
+/// that restriction.
+///
+///    adjacentStrings ::=
+///        [StringLiteral] [StringLiteral]+
 class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
-  /**
-   * The strings that are implicitly concatenated.
-   */
+  /// The strings that are implicitly concatenated.
   NodeList<StringLiteral> _strings;
 
-  /**
-   * Initialize a newly created list of adjacent strings. To be syntactically
-   * valid, the list of [strings] must contain at least two elements.
-   */
+  /// Initialize a newly created list of adjacent strings. To be syntactically
+  /// valid, the list of [strings] must contain at least two elements.
   AdjacentStringsImpl(List<StringLiteral> strings) {
     _strings = new NodeListImpl<StringLiteral>(this, strings);
   }
@@ -83,27 +78,19 @@ class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
   }
 }
 
-/**
- * An AST node that can be annotated with both a documentation comment and a
- * list of annotations.
- */
+/// An AST node that can be annotated with both a documentation comment and a
+/// list of annotations.
 abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
-  /**
-   * The documentation comment associated with this node, or `null` if this node
-   * does not have a documentation comment associated with it.
-   */
+  /// The documentation comment associated with this node, or `null` if this
+  /// node does not have a documentation comment associated with it.
   CommentImpl _comment;
 
-  /**
-   * The annotations associated with this node.
-   */
+  /// The annotations associated with this node.
   NodeList<Annotation> _metadata;
 
-  /**
-   * Initialize a newly created annotated node. Either or both of the [comment]
-   * and [metadata] can be `null` if the node does not have the corresponding
-   * attribute.
-   */
+  /// Initialize a newly created annotated node. Either or both of the [comment]
+  /// and [metadata] can be `null` if the node does not have the corresponding
+  /// attribute.
   AnnotatedNodeImpl(CommentImpl comment, List<Annotation> metadata) {
     _comment = _becomeParentOf(comment);
     _metadata = new NodeListImpl<Annotation>(this, metadata);
@@ -146,9 +133,7 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
       ..sort(AstNode.LEXICAL_ORDER);
   }
 
-  /**
-   * Return a holder of child entities that subclasses can add to.
-   */
+  /// Return a holder of child entities that subclasses can add to.
   ChildEntities get _childEntities {
     ChildEntities result = new ChildEntities();
     if (_commentIsBeforeAnnotations()) {
@@ -175,11 +160,9 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
     }
   }
 
-  /**
-   * Return `true` if there are no annotations before the comment. Note that a
-   * result of `true` does not imply that there is a comment, nor that there are
-   * annotations associated with this node.
-   */
+  /// Return `true` if there are no annotations before the comment. Note that a
+  /// result of `true` does not imply that there is a comment, nor that there
+  /// are annotations associated with this node.
   bool _commentIsBeforeAnnotations() {
     if (_comment == null || _metadata.isEmpty) {
       return true;
@@ -189,65 +172,48 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   }
 }
 
-/**
- * An annotation that can be associated with an AST node.
- *
- *    metadata ::=
- *        annotation*
- *
- *    annotation ::=
- *        '@' [Identifier] ('.' [SimpleIdentifier])? [ArgumentList]?
- */
+/// An annotation that can be associated with an AST node.
+///
+///    metadata ::=
+///        annotation*
+///
+///    annotation ::=
+///        '@' [Identifier] ('.' [SimpleIdentifier])? [ArgumentList]?
 class AnnotationImpl extends AstNodeImpl implements Annotation {
-  /**
-   * The at sign that introduced the annotation.
-   */
+  /// The at sign that introduced the annotation.
   @override
   Token atSign;
 
-  /**
-   * The name of the class defining the constructor that is being invoked or the
-   * name of the field that is being referenced.
-   */
+  /// The name of the class defining the constructor that is being invoked or
+  /// the name of the field that is being referenced.
   IdentifierImpl _name;
 
-  /**
-   * The period before the constructor name, or `null` if this annotation is not
-   * the invocation of a named constructor.
-   */
+  /// The period before the constructor name, or `null` if this annotation is
+  /// not the invocation of a named constructor.
   @override
   Token period;
 
-  /**
-   * The name of the constructor being invoked, or `null` if this annotation is
-   * not the invocation of a named constructor.
-   */
+  /// The name of the constructor being invoked, or `null` if this annotation is
+  /// not the invocation of a named constructor.
   SimpleIdentifierImpl _constructorName;
 
-  /**
-   * The arguments to the constructor being invoked, or `null` if this
-   * annotation is not the invocation of a constructor.
-   */
+  /// The arguments to the constructor being invoked, or `null` if this
+  /// annotation is not the invocation of a constructor.
   ArgumentListImpl _arguments;
 
-  /**
-   * The element associated with this annotation, or `null` if the AST structure
-   * has not been resolved or if this annotation could not be resolved.
-   */
+  /// The element associated with this annotation, or `null` if the AST
+  /// structure has not been resolved or if this annotation could not be
+  /// resolved.
   Element _element;
 
-  /**
-   * The element annotation representing this annotation in the element model.
-   */
+  /// The element annotation representing this annotation in the element model.
   @override
   ElementAnnotation elementAnnotation;
 
-  /**
-   * Initialize a newly created annotation. Both the [period] and the
-   * [constructorName] can be `null` if the annotation is not referencing a
-   * named constructor. The [arguments] can be `null` if the annotation is not
-   * referencing a constructor.
-   */
+  /// Initialize a newly created annotation. Both the [period] and the
+  /// [constructorName] can be `null` if the annotation is not referencing a
+  /// named constructor. The [arguments] can be `null` if the annotation is not
+  /// referencing a constructor.
   AnnotationImpl(this.atSign, IdentifierImpl name, this.period,
       SimpleIdentifierImpl constructorName, ArgumentListImpl arguments) {
     _name = _becomeParentOf(name);
@@ -326,49 +292,37 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   }
 }
 
-/**
- * A list of arguments in the invocation of an executable element (that is, a
- * function, method, or constructor).
- *
- *    argumentList ::=
- *        '(' arguments? ')'
- *
- *    arguments ::=
- *        [NamedExpression] (',' [NamedExpression])*
- *      | [Expression] (',' [Expression])* (',' [NamedExpression])*
- */
+/// A list of arguments in the invocation of an executable element (that is, a
+/// function, method, or constructor).
+///
+///    argumentList ::=
+///        '(' arguments? ')'
+///
+///    arguments ::=
+///        [NamedExpression] (',' [NamedExpression])*
+///      | [Expression] (',' [Expression])* (',' [NamedExpression])*
 class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
-  /**
-   * The left parenthesis.
-   */
+  /// The left parenthesis.
   @override
   Token leftParenthesis;
 
-  /**
-   * The expressions producing the values of the arguments.
-   */
+  /// The expressions producing the values of the arguments.
   NodeList<Expression> _arguments;
 
-  /**
-   * The right parenthesis.
-   */
+  /// The right parenthesis.
   @override
   Token rightParenthesis;
 
-  /**
-   * A list containing the elements representing the parameters corresponding to
-   * each of the arguments in this list, or `null` if the AST has not been
-   * resolved or if the function or method being invoked could not be determined
-   * based on static type information. The list must be the same length as the
-   * number of arguments, but can contain `null` entries if a given argument
-   * does not correspond to a formal parameter.
-   */
+  /// A list containing the elements representing the parameters corresponding
+  /// to each of the arguments in this list, or `null` if the AST has not been
+  /// resolved or if the function or method being invoked could not be
+  /// determined based on static type information. The list must be the same
+  /// length as the number of arguments, but can contain `null` entries if a
+  /// given argument does not correspond to a formal parameter.
   List<ParameterElement> _correspondingStaticParameters;
 
-  /**
-   * Initialize a newly created list of arguments. The list of [arguments] can
-   * be `null` if there are no arguments.
-   */
+  /// Initialize a newly created list of arguments. The list of [arguments] can
+  /// be `null` if there are no arguments.
   ArgumentListImpl(
       this.leftParenthesis, List<Expression> arguments, this.rightParenthesis) {
     _arguments = new NodeListImpl<Expression>(this, arguments);
@@ -423,16 +377,15 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     _arguments.accept(visitor);
   }
 
-  /**
-   * If
-   * * the given [expression] is a child of this list,
-   * * the AST structure has been resolved,
-   * * the function being invoked is known based on static type information, and
-   * * the expression corresponds to one of the parameters of the function being
-   *   invoked,
-   * then return the parameter element representing the parameter to which the
-   * value of the given expression will be bound. Otherwise, return `null`.
-   */
+  /// If
+  /// * the given [expression] is a child of this list,
+  /// * the AST structure has been resolved,
+  /// * the function being invoked is known based on static type information,
+  ///   and
+  /// * the expression corresponds to one of the parameters of the function
+  ///   being invoked,
+  /// then return the parameter element representing the parameter to which the
+  /// value of the given expression will be bound. Otherwise, return `null`.
   ParameterElement _getStaticParameterElementFor(Expression expression) {
     if (_correspondingStaticParameters == null ||
         _correspondingStaticParameters.length != _arguments.length) {
@@ -450,32 +403,22 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   }
 }
 
-/**
- * An as expression.
- *
- *    asExpression ::=
- *        [Expression] 'as' [TypeName]
- */
+/// An as expression.
+///
+///    asExpression ::=
+///        [Expression] 'as' [TypeName]
 class AsExpressionImpl extends ExpressionImpl implements AsExpression {
-  /**
-   * The expression used to compute the value being cast.
-   */
+  /// The expression used to compute the value being cast.
   ExpressionImpl _expression;
 
-  /**
-   * The 'as' operator.
-   */
+  /// The 'as' operator.
   @override
   Token asOperator;
 
-  /**
-   * The type being cast to.
-   */
+  /// The type being cast to.
   TypeAnnotationImpl _type;
 
-  /**
-   * Initialize a newly created as expression.
-   */
+  /// Initialize a newly created as expression.
   AsExpressionImpl(
       ExpressionImpl expression, this.asOperator, TypeAnnotationImpl type) {
     _expression = _becomeParentOf(expression);
@@ -500,8 +443,13 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 7;
+  int get precedence => RELATIONAL_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.relational;
 
   @override
   TypeAnnotation get type => _type;
@@ -521,12 +469,10 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   }
 }
 
-/**
- * An assert in the initializer list of a constructor.
- *
- *    assertInitializer ::=
- *        'assert' '(' [Expression] (',' [Expression])? ')'
- */
+/// An assert in the initializer list of a constructor.
+///
+///    assertInitializer ::=
+///        'assert' '(' [Expression] (',' [Expression])? ')'
 class AssertInitializerImpl extends ConstructorInitializerImpl
     implements AssertInitializer {
   @override
@@ -535,26 +481,20 @@ class AssertInitializerImpl extends ConstructorInitializerImpl
   @override
   Token leftParenthesis;
 
-  /**
-   * The condition that is being asserted to be `true`.
-   */
+  /// The condition that is being asserted to be `true`.
   ExpressionImpl _condition;
 
   @override
   Token comma;
 
-  /**
-   * The message to report if the assertion fails, or `null` if no message was
-   * supplied.
-   */
+  /// The message to report if the assertion fails, or `null` if no message was
+  /// supplied.
   ExpressionImpl _message;
 
   @override
   Token rightParenthesis;
 
-  /**
-   * Initialize a newly created assert initializer.
-   */
+  /// Initialize a newly created assert initializer.
   AssertInitializerImpl(
       this.assertKeyword,
       this.leftParenthesis,
@@ -607,12 +547,10 @@ class AssertInitializerImpl extends ConstructorInitializerImpl
   }
 }
 
-/**
- * An assert statement.
- *
- *    assertStatement ::=
- *        'assert' '(' [Expression] ')' ';'
- */
+/// An assert statement.
+///
+///    assertStatement ::=
+///        'assert' '(' [Expression] ')' ';'
 class AssertStatementImpl extends StatementImpl implements AssertStatement {
   @override
   Token assertKeyword;
@@ -620,18 +558,14 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
   @override
   Token leftParenthesis;
 
-  /**
-   * The condition that is being asserted to be `true`.
-   */
+  /// The condition that is being asserted to be `true`.
   ExpressionImpl _condition;
 
   @override
   Token comma;
 
-  /**
-   * The message to report if the assertion fails, or `null` if no message was
-   * supplied.
-   */
+  /// The message to report if the assertion fails, or `null` if no message was
+  /// supplied.
   ExpressionImpl _message;
 
   @override
@@ -640,9 +574,7 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
   @override
   Token semicolon;
 
-  /**
-   * Initialize a newly created assert statement.
-   */
+  /// Initialize a newly created assert statement.
   AssertStatementImpl(
       this.assertKeyword,
       this.leftParenthesis,
@@ -697,42 +629,30 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
   }
 }
 
-/**
- * An assignment expression.
- *
- *    assignmentExpression ::=
- *        [Expression] operator [Expression]
- */
+/// An assignment expression.
+///
+///    assignmentExpression ::=
+///        [Expression] operator [Expression]
 class AssignmentExpressionImpl extends ExpressionImpl
     implements AssignmentExpression {
-  /**
-   * The expression used to compute the left hand side.
-   */
+  /// The expression used to compute the left hand side.
   ExpressionImpl _leftHandSide;
 
-  /**
-   * The assignment operator being applied.
-   */
+  /// The assignment operator being applied.
   @override
   Token operator;
 
-  /**
-   * The expression used to compute the right hand side.
-   */
+  /// The expression used to compute the right hand side.
   ExpressionImpl _rightHandSide;
 
-  /**
-   * The element associated with the operator based on the static type of the
-   * left-hand-side, or `null` if the AST structure has not been resolved, if
-   * the operator is not a compound operator, or if the operator could not be
-   * resolved.
-   */
+  /// The element associated with the operator based on the static type of the
+  /// left-hand-side, or `null` if the AST structure has not been resolved, if
+  /// the operator is not a compound operator, or if the operator could not be
+  /// resolved.
   @override
   MethodElement staticElement;
 
-  /**
-   * Initialize a newly created assignment expression.
-   */
+  /// Initialize a newly created assignment expression.
   AssignmentExpressionImpl(ExpressionImpl leftHandSide, this.operator,
       ExpressionImpl rightHandSide) {
     if (leftHandSide == null || rightHandSide == null) {
@@ -777,8 +697,13 @@ class AssignmentExpressionImpl extends ExpressionImpl
     _leftHandSide = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 1;
+  int get precedence => ASSIGNMENT_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.assignment;
 
   @deprecated
   @override
@@ -796,12 +721,10 @@ class AssignmentExpressionImpl extends ExpressionImpl
     _rightHandSide = _becomeParentOf(expression as ExpressionImpl);
   }
 
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on static type information, then return the parameter element
-   * representing the parameter to which the value of the right operand will be
-   * bound. Otherwise, return `null`.
-   */
+  /// If the AST structure has been resolved, and the function being invoked is
+  /// known based on static type information, then return the parameter element
+  /// representing the parameter to which the value of the right operand will be
+  /// bound. Otherwise, return `null`.
   ParameterElement get _staticParameterElementForRightHandSide {
     ExecutableElement executableElement = null;
     if (staticElement != null) {
@@ -840,20 +763,14 @@ class AssignmentExpressionImpl extends ExpressionImpl
   }
 }
 
-/**
- * A node in the AST structure for a Dart program.
- */
+/// A node in the AST structure for a Dart program.
 abstract class AstNodeImpl implements AstNode {
-  /**
-   * The parent of the node, or `null` if the node is the root of an AST
-   * structure.
-   */
+  /// The parent of the node, or `null` if the node is the root of an AST
+  /// structure.
   AstNode _parent;
 
-  /**
-   * A table mapping the names of properties to their values, or `null` if this
-   * node does not have any properties associated with it.
-   */
+  /// A table mapping the names of properties to their values, or `null` if this
+  /// node does not have any properties associated with it.
   Map<String, Object> _propertyMap;
 
   @override
@@ -957,9 +874,8 @@ abstract class AstNodeImpl implements AstNode {
   @override
   String toString() => toSource();
 
-  /**
-   * Make this node the parent of the given [child] node. Return the child node.
-   */
+  /// Make this node the parent of the given [child] node. Return the child
+  /// node.
   T _becomeParentOf<T extends AstNodeImpl>(T child) {
     if (child != null) {
       child._parent = this;
@@ -968,27 +884,19 @@ abstract class AstNodeImpl implements AstNode {
   }
 }
 
-/**
- * An await expression.
- *
- *    awaitExpression ::=
- *        'await' [Expression]
- */
+/// An await expression.
+///
+///    awaitExpression ::=
+///        'await' [Expression]
 class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
-  /**
-   * The 'await' keyword.
-   */
+  /// The 'await' keyword.
   @override
   Token awaitKeyword;
 
-  /**
-   * The expression whose value is being waited on.
-   */
+  /// The expression whose value is being waited on.
   ExpressionImpl _expression;
 
-  /**
-   * Initialize a newly created await expression.
-   */
+  /// Initialize a newly created await expression.
   AwaitExpressionImpl(this.awaitKeyword, ExpressionImpl expression) {
     _expression = _becomeParentOf(expression);
   }
@@ -1016,8 +924,13 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 14;
+  int get precedence => PREFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.prefix;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
@@ -1028,43 +941,31 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   }
 }
 
-/**
- * A binary (infix) expression.
- *
- *    binaryExpression ::=
- *        [Expression] [Token] [Expression]
- */
+/// A binary (infix) expression.
+///
+///    binaryExpression ::=
+///        [Expression] [Token] [Expression]
 class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
-  /**
-   * The expression used to compute the left operand.
-   */
+  /// The expression used to compute the left operand.
   ExpressionImpl _leftOperand;
 
-  /**
-   * The binary operator being applied.
-   */
+  /// The binary operator being applied.
   @override
   Token operator;
 
-  /**
-   * The expression used to compute the right operand.
-   */
+  /// The expression used to compute the right operand.
   ExpressionImpl _rightOperand;
 
-  /**
-   * The element associated with the operator based on the static type of the
-   * left operand, or `null` if the AST structure has not been resolved, if the
-   * operator is not user definable, or if the operator could not be resolved.
-   */
+  /// The element associated with the operator based on the static type of the
+  /// left operand, or `null` if the AST structure has not been resolved, if the
+  /// operator is not user definable, or if the operator could not be resolved.
   @override
   MethodElement staticElement;
 
   @override
   FunctionType staticInvokeType;
 
-  /**
-   * Initialize a newly created binary expression.
-   */
+  /// Initialize a newly created binary expression.
   BinaryExpressionImpl(
       ExpressionImpl leftOperand, this.operator, ExpressionImpl rightOperand) {
     _leftOperand = _becomeParentOf(leftOperand);
@@ -1093,8 +994,13 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
     _leftOperand = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
   int get precedence => operator.type.precedence;
+
+  @override
+  Precedence get precedence2 => Precedence.forTokenType(operator.type);
 
   @deprecated
   @override
@@ -1122,39 +1028,29 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   }
 }
 
-/**
- * A function body that consists of a block of statements.
- *
- *    blockFunctionBody ::=
- *        ('async' | 'async' '*' | 'sync' '*')? [Block]
- */
+/// A function body that consists of a block of statements.
+///
+///    blockFunctionBody ::=
+///        ('async' | 'async' '*' | 'sync' '*')? [Block]
 class BlockFunctionBodyImpl extends FunctionBodyImpl
     implements BlockFunctionBody {
-  /**
-   * The token representing the 'async' or 'sync' keyword, or `null` if there is
-   * no such keyword.
-   */
+  /// The token representing the 'async' or 'sync' keyword, or `null` if there
+  /// is no such keyword.
   @override
   Token keyword;
 
-  /**
-   * The star optionally following the 'async' or 'sync' keyword, or `null` if
-   * there is wither no such keyword or no star.
-   */
+  /// The star optionally following the 'async' or 'sync' keyword, or `null` if
+  /// there is wither no such keyword or no star.
   @override
   Token star;
 
-  /**
-   * The block representing the body of the function.
-   */
+  /// The block representing the body of the function.
   BlockImpl _block;
 
-  /**
-   * Initialize a newly created function body consisting of a block of
-   * statements. The [keyword] can be `null` if there is no keyword specified
-   * for the block. The [star] can be `null` if there is no star following the
-   * keyword (and must be `null` if there is no keyword).
-   */
+  /// Initialize a newly created function body consisting of a block of
+  /// statements. The [keyword] can be `null` if there is no keyword specified
+  /// for the block. The [star] can be `null` if there is no star following the
+  /// keyword (and must be `null` if there is no keyword).
   BlockFunctionBodyImpl(this.keyword, this.star, BlockImpl block) {
     _block = _becomeParentOf(block);
   }
@@ -1200,33 +1096,23 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
   }
 }
 
-/**
- * A sequence of statements.
- *
- *    block ::=
- *        '{' statement* '}'
- */
+/// A sequence of statements.
+///
+///    block ::=
+///        '{' statement* '}'
 class BlockImpl extends StatementImpl implements Block {
-  /**
-   * The left curly bracket.
-   */
+  /// The left curly bracket.
   @override
   Token leftBracket;
 
-  /**
-   * The statements contained in the block.
-   */
+  /// The statements contained in the block.
   NodeList<Statement> _statements;
 
-  /**
-   * The right curly bracket.
-   */
+  /// The right curly bracket.
   @override
   Token rightBracket;
 
-  /**
-   * Initialize a newly created block of code.
-   */
+  /// Initialize a newly created block of code.
   BlockImpl(this.leftBracket, List<Statement> statements, this.rightBracket) {
     _statements = new NodeListImpl<Statement>(this, statements);
   }
@@ -1255,28 +1141,20 @@ class BlockImpl extends StatementImpl implements Block {
   }
 }
 
-/**
- * A boolean literal expression.
- *
- *    booleanLiteral ::=
- *        'false' | 'true'
- */
+/// A boolean literal expression.
+///
+///    booleanLiteral ::=
+///        'false' | 'true'
 class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
-  /**
-   * The token representing the literal.
-   */
+  /// The token representing the literal.
   @override
   Token literal;
 
-  /**
-   * The value of the literal.
-   */
+  /// The value of the literal.
   @override
   bool value = false;
 
-  /**
-   * Initialize a newly created boolean literal.
-   */
+  /// Initialize a newly created boolean literal.
   BooleanLiteralImpl(this.literal, this.value);
 
   @override
@@ -1301,46 +1179,34 @@ class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   }
 }
 
-/**
- * A break statement.
- *
- *    breakStatement ::=
- *        'break' [SimpleIdentifier]? ';'
- */
+/// A break statement.
+///
+///    breakStatement ::=
+///        'break' [SimpleIdentifier]? ';'
 class BreakStatementImpl extends StatementImpl implements BreakStatement {
-  /**
-   * The token representing the 'break' keyword.
-   */
+  /// The token representing the 'break' keyword.
   @override
   Token breakKeyword;
 
-  /**
-   * The label associated with the statement, or `null` if there is no label.
-   */
+  /// The label associated with the statement, or `null` if there is no label.
   SimpleIdentifierImpl _label;
 
-  /**
-   * The semicolon terminating the statement.
-   */
+  /// The semicolon terminating the statement.
   @override
   Token semicolon;
 
-  /**
-   * The AstNode which this break statement is breaking from.  This will be
-   * either a [Statement] (in the case of breaking out of a loop), a
-   * [SwitchMember] (in the case of a labeled break statement whose label
-   * matches a label on a switch case in an enclosing switch statement), or
-   * `null` if the AST has not yet been resolved or if the target could not be
-   * resolved. Note that if the source code has errors, the target might be
-   * invalid (e.g. trying to break to a switch case).
-   */
+  /// The AstNode which this break statement is breaking from.  This will be
+  /// either a [Statement] (in the case of breaking out of a loop), a
+  /// [SwitchMember] (in the case of a labeled break statement whose label
+  /// matches a label on a switch case in an enclosing switch statement), or
+  /// `null` if the AST has not yet been resolved or if the target could not be
+  /// resolved. Note that if the source code has errors, the target might be
+  /// invalid (e.g. trying to break to a switch case).
   @override
   AstNode target;
 
-  /**
-   * Initialize a newly created break statement. The [label] can be `null` if
-   * there is no label associated with the statement.
-   */
+  /// Initialize a newly created break statement. The [label] can be `null` if
+  /// there is no label associated with the statement.
   BreakStatementImpl(
       this.breakKeyword, SimpleIdentifierImpl label, this.semicolon) {
     _label = _becomeParentOf(label);
@@ -1373,38 +1239,30 @@ class BreakStatementImpl extends StatementImpl implements BreakStatement {
   }
 }
 
-/**
- * A sequence of cascaded expressions: expressions that share a common target.
- * There are three kinds of expressions that can be used in a cascade
- * expression: [IndexExpression], [MethodInvocation] and [PropertyAccess].
- *
- *    cascadeExpression ::=
- *        [Expression] cascadeSection*
- *
- *    cascadeSection ::=
- *        '..'  (cascadeSelector arguments*) (assignableSelector arguments*)*
- *        (assignmentOperator expressionWithoutCascade)?
- *
- *    cascadeSelector ::=
- *        '[ ' expression '] '
- *      | identifier
- */
+/// A sequence of cascaded expressions: expressions that share a common target.
+/// There are three kinds of expressions that can be used in a cascade
+/// expression: [IndexExpression], [MethodInvocation] and [PropertyAccess].
+///
+///    cascadeExpression ::=
+///        [Expression] cascadeSection*
+///
+///    cascadeSection ::=
+///        '..'  (cascadeSelector arguments*) (assignableSelector arguments*)*
+///        (assignmentOperator expressionWithoutCascade)?
+///
+///    cascadeSelector ::=
+///        '[ ' expression '] '
+///      | identifier
 class CascadeExpressionImpl extends ExpressionImpl
     implements CascadeExpression {
-  /**
-   * The target of the cascade sections.
-   */
+  /// The target of the cascade sections.
   ExpressionImpl _target;
 
-  /**
-   * The cascade sections sharing the common target.
-   */
+  /// The cascade sections sharing the common target.
   NodeList<Expression> _cascadeSections;
 
-  /**
-   * Initialize a newly created cascade expression. The list of
-   * [cascadeSections] must contain at least one element.
-   */
+  /// Initialize a newly created cascade expression. The list of
+  /// [cascadeSections] must contain at least one element.
   CascadeExpressionImpl(
       ExpressionImpl target, List<Expression> cascadeSections) {
     _target = _becomeParentOf(target);
@@ -1425,8 +1283,13 @@ class CascadeExpressionImpl extends ExpressionImpl
   @override
   Token get endToken => _cascadeSections.endToken;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 2;
+  int get precedence => CASCADE_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.cascade;
 
   @override
   Expression get target => _target;
@@ -1446,79 +1309,57 @@ class CascadeExpressionImpl extends ExpressionImpl
   }
 }
 
-/**
- * A catch clause within a try statement.
- *
- *    onPart ::=
- *        catchPart [Block]
- *      | 'on' type catchPart? [Block]
- *
- *    catchPart ::=
- *        'catch' '(' [SimpleIdentifier] (',' [SimpleIdentifier])? ')'
- */
+/// A catch clause within a try statement.
+///
+///    onPart ::=
+///        catchPart [Block]
+///      | 'on' type catchPart? [Block]
+///
+///    catchPart ::=
+///        'catch' '(' [SimpleIdentifier] (',' [SimpleIdentifier])? ')'
 class CatchClauseImpl extends AstNodeImpl implements CatchClause {
-  /**
-   * The token representing the 'on' keyword, or `null` if there is no 'on'
-   * keyword.
-   */
+  /// The token representing the 'on' keyword, or `null` if there is no 'on'
+  /// keyword.
   @override
   Token onKeyword;
 
-  /**
-   * The type of exceptions caught by this catch clause, or `null` if this catch
-   * clause catches every type of exception.
-   */
+  /// The type of exceptions caught by this catch clause, or `null` if this
+  /// catch clause catches every type of exception.
   TypeAnnotationImpl _exceptionType;
 
-  /**
-   * The token representing the 'catch' keyword, or `null` if there is no
-   * 'catch' keyword.
-   */
+  /// The token representing the 'catch' keyword, or `null` if there is no
+  /// 'catch' keyword.
   @override
   Token catchKeyword;
 
-  /**
-   * The left parenthesis, or `null` if there is no 'catch' keyword.
-   */
+  /// The left parenthesis, or `null` if there is no 'catch' keyword.
   @override
   Token leftParenthesis;
 
-  /**
-   * The parameter whose value will be the exception that was thrown, or `null`
-   * if there is no 'catch' keyword.
-   */
+  /// The parameter whose value will be the exception that was thrown, or `null`
+  /// if there is no 'catch' keyword.
   SimpleIdentifierImpl _exceptionParameter;
 
-  /**
-   * The comma separating the exception parameter from the stack trace
-   * parameter, or `null` if there is no stack trace parameter.
-   */
+  /// The comma separating the exception parameter from the stack trace
+  /// parameter, or `null` if there is no stack trace parameter.
   @override
   Token comma;
 
-  /**
-   * The parameter whose value will be the stack trace associated with the
-   * exception, or `null` if there is no stack trace parameter.
-   */
+  /// The parameter whose value will be the stack trace associated with the
+  /// exception, or `null` if there is no stack trace parameter.
   SimpleIdentifierImpl _stackTraceParameter;
 
-  /**
-   * The right parenthesis, or `null` if there is no 'catch' keyword.
-   */
+  /// The right parenthesis, or `null` if there is no 'catch' keyword.
   @override
   Token rightParenthesis;
 
-  /**
-   * The body of the catch block.
-   */
+  /// The body of the catch block.
   BlockImpl _body;
 
-  /**
-   * Initialize a newly created catch clause. The [onKeyword] and
-   * [exceptionType] can be `null` if the clause will catch all exceptions. The
-   * [comma] and [stackTraceParameter] can be `null` if the stack trace
-   * parameter is not defined.
-   */
+  /// Initialize a newly created catch clause. The [onKeyword] and
+  /// [exceptionType] can be `null` if the clause will catch all exceptions. The
+  /// [comma] and [stackTraceParameter] can be `null` if the stack trace
+  /// parameter is not defined.
   CatchClauseImpl(
       this.onKeyword,
       TypeAnnotationImpl exceptionType,
@@ -1602,32 +1443,24 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 }
 
-/**
- * Helper class to allow iteration of child entities of an AST node.
- */
+/// Helper class to allow iteration of child entities of an AST node.
 class ChildEntities
     with IterableMixin<SyntacticEntity>
     implements Iterable<SyntacticEntity> {
-  /**
-   * The list of child entities to be iterated over.
-   */
+  /// The list of child entities to be iterated over.
   List<SyntacticEntity> _entities = [];
 
   @override
   Iterator<SyntacticEntity> get iterator => _entities.iterator;
 
-  /**
-   * Add an AST node or token as the next child entity, if it is not null.
-   */
+  /// Add an AST node or token as the next child entity, if it is not null.
   void add(SyntacticEntity entity) {
     if (entity != null) {
       _entities.add(entity);
     }
   }
 
-  /**
-   * Add the given items as the next child entities, if [items] is not null.
-   */
+  /// Add the given items as the next child entities, if [items] is not null.
   void addAll(Iterable<SyntacticEntity> items) {
     if (items != null) {
       _entities.addAll(items);
@@ -1635,57 +1468,43 @@ class ChildEntities
   }
 }
 
-/**
- * The declaration of a class.
- *
- *    classDeclaration ::=
- *        'abstract'? 'class' [SimpleIdentifier] [TypeParameterList]?
- *        ([ExtendsClause] [WithClause]?)?
- *        [ImplementsClause]?
- *        '{' [ClassMember]* '}'
- */
+/// The declaration of a class.
+///
+///    classDeclaration ::=
+///        'abstract'? 'class' [SimpleIdentifier] [TypeParameterList]?
+///        ([ExtendsClause] [WithClause]?)?
+///        [ImplementsClause]?
+///        '{' [ClassMember]* '}'
 class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
     implements ClassDeclaration {
-  /**
-   * The 'abstract' keyword, or `null` if the keyword was absent.
-   */
+  /// The 'abstract' keyword, or `null` if the keyword was absent.
   @override
   Token abstractKeyword;
 
-  /**
-   * The token representing the 'class' keyword.
-   */
+  /// The token representing the 'class' keyword.
   @override
   Token classKeyword;
 
-  /**
-   * The extends clause for the class, or `null` if the class does not extend
-   * any other class.
-   */
+  /// The extends clause for the class, or `null` if the class does not extend
+  /// any other class.
   ExtendsClauseImpl _extendsClause;
 
-  /**
-   * The with clause for the class, or `null` if the class does not have a with
-   * clause.
-   */
+  /// The with clause for the class, or `null` if the class does not have a with
+  /// clause.
   WithClauseImpl _withClause;
 
-  /**
-   * The native clause for the class, or `null` if the class does not have a
-   * native clause.
-   */
+  /// The native clause for the class, or `null` if the class does not have a
+  /// native clause.
   NativeClauseImpl _nativeClause;
 
-  /**
-   * Initialize a newly created class declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the class does not have the
-   * corresponding attribute. The [abstractKeyword] can be `null` if the class
-   * is not abstract. The [typeParameters] can be `null` if the class does not
-   * have any type parameters. Any or all of the [extendsClause], [withClause],
-   * and [implementsClause] can be `null` if the class does not have the
-   * corresponding clause. The list of [members] can be `null` if the class does
-   * not have any members.
-   */
+  /// Initialize a newly created class declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the class does not have the
+  /// corresponding attribute. The [abstractKeyword] can be `null` if the class
+  /// is not abstract. The [typeParameters] can be `null` if the class does not
+  /// have any type parameters. Any or all of the [extendsClause], [withClause],
+  /// and [implementsClause] can be `null` if the class does not have the
+  /// corresponding clause. The list of [members] can be `null` if the class
+  /// does not have any members.
   ClassDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -1796,46 +1615,32 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   }
 }
 
-/**
- * A node that declares a name within the scope of a class.
- */
+/// A node that declares a name within the scope of a class.
 abstract class ClassMemberImpl extends DeclarationImpl implements ClassMember {
-  /**
-   * Initialize a newly created member of a class. Either or both of the
-   * [comment] and [metadata] can be `null` if the member does not have the
-   * corresponding attribute.
-   */
+  /// Initialize a newly created member of a class. Either or both of the
+  /// [comment] and [metadata] can be `null` if the member does not have the
+  /// corresponding attribute.
   ClassMemberImpl(CommentImpl comment, List<Annotation> metadata)
       : super(comment, metadata);
 }
 
 abstract class ClassOrMixinDeclarationImpl
     extends NamedCompilationUnitMemberImpl implements ClassOrMixinDeclaration {
-  /**
-   * The type parameters for the class or mixin,
-   * or `null` if the declaration does not have any type parameters.
-   */
+  /// The type parameters for the class or mixin,
+  /// or `null` if the declaration does not have any type parameters.
   TypeParameterListImpl _typeParameters;
 
-  /**
-   * The implements clause for the class or mixin,
-   * or `null` if the declaration does not implement any interfaces.
-   */
+  /// The implements clause for the class or mixin,
+  /// or `null` if the declaration does not implement any interfaces.
   ImplementsClauseImpl _implementsClause;
 
-  /**
-   * The left curly bracket.
-   */
+  /// The left curly bracket.
   Token leftBracket;
 
-  /**
-   * The members defined by the class or mixin.
-   */
+  /// The members defined by the class or mixin.
   NodeList<ClassMember> _members;
 
-  /**
-   * The right curly bracket.
-   */
+  /// The right curly bracket.
   Token rightBracket;
 
   ClassOrMixinDeclarationImpl(
@@ -1907,59 +1712,44 @@ abstract class ClassOrMixinDeclarationImpl
   }
 }
 
-/**
- * A class type alias.
- *
- *    classTypeAlias ::=
- *        [SimpleIdentifier] [TypeParameterList]? '=' 'abstract'? mixinApplication
- *
- *    mixinApplication ::=
- *        [TypeName] [WithClause] [ImplementsClause]? ';'
- */
+/// A class type alias.
+///
+///    classTypeAlias ::=
+///        [SimpleIdentifier] [TypeParameterList]? '=' 'abstract'?
+///        mixinApplication
+///
+///    mixinApplication ::=
+///        [TypeName] [WithClause] [ImplementsClause]? ';'
 class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
-  /**
-   * The type parameters for the class, or `null` if the class does not have any
-   * type parameters.
-   */
+  /// The type parameters for the class, or `null` if the class does not have
+  /// any type parameters.
   TypeParameterListImpl _typeParameters;
 
-  /**
-   * The token for the '=' separating the name from the definition.
-   */
+  /// The token for the '=' separating the name from the definition.
   @override
   Token equals;
 
-  /**
-   * The token for the 'abstract' keyword, or `null` if this is not defining an
-   * abstract class.
-   */
+  /// The token for the 'abstract' keyword, or `null` if this is not defining an
+  /// abstract class.
   @override
   Token abstractKeyword;
 
-  /**
-   * The name of the superclass of the class being declared.
-   */
+  /// The name of the superclass of the class being declared.
   TypeNameImpl _superclass;
 
-  /**
-   * The with clause for this class.
-   */
+  /// The with clause for this class.
   WithClauseImpl _withClause;
 
-  /**
-   * The implements clause for this class, or `null` if there is no implements
-   * clause.
-   */
+  /// The implements clause for this class, or `null` if there is no implements
+  /// clause.
   ImplementsClauseImpl _implementsClause;
 
-  /**
-   * Initialize a newly created class type alias. Either or both of the
-   * [comment] and [metadata] can be `null` if the class type alias does not
-   * have the corresponding attribute. The [typeParameters] can be `null` if the
-   * class does not have any type parameters. The [abstractKeyword] can be
-   * `null` if the class is not abstract. The [implementsClause] can be `null`
-   * if the class does not implement any interfaces.
-   */
+  /// Initialize a newly created class type alias. Either or both of the
+  /// [comment] and [metadata] can be `null` if the class type alias does not
+  /// have the corresponding attribute. The [typeParameters] can be `null` if
+  /// the class does not have any type parameters. The [abstractKeyword] can be
+  /// `null` if the class is not abstract. The [implementsClause] can be `null`
+  /// if the class does not implement any interfaces.
   ClassTypeAliasImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -2059,73 +1849,57 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 abstract class CollectionElementImpl extends AstNodeImpl
     implements CollectionElement {}
 
-/**
- * A combinator associated with an import or export directive.
- *
- *    combinator ::=
- *        [HideCombinator]
- *      | [ShowCombinator]
- */
+/// A combinator associated with an import or export directive.
+///
+///    combinator ::=
+///        [HideCombinator]
+///      | [ShowCombinator]
 abstract class CombinatorImpl extends AstNodeImpl implements Combinator {
-  /**
-   * The 'hide' or 'show' keyword specifying what kind of processing is to be
-   * done on the names.
-   */
+  /// The 'hide' or 'show' keyword specifying what kind of processing is to be
+  /// done on the names.
   @override
   Token keyword;
 
-  /**
-   * Initialize a newly created combinator.
-   */
+  /// Initialize a newly created combinator.
   CombinatorImpl(this.keyword);
 
   @override
   Token get beginToken => keyword;
 }
 
-/**
- * A comment within the source code.
- *
- *    comment ::=
- *        endOfLineComment
- *      | blockComment
- *      | documentationComment
- *
- *    endOfLineComment ::=
- *        '//' (CHARACTER - EOL)* EOL
- *
- *    blockComment ::=
- *        '/ *' CHARACTER* '&#42;/'
- *
- *    documentationComment ::=
- *        '/ **' (CHARACTER | [CommentReference])* '&#42;/'
- *      | ('///' (CHARACTER - EOL)* EOL)+
- */
+/// A comment within the source code.
+///
+///    comment ::=
+///        endOfLineComment
+///      | blockComment
+///      | documentationComment
+///
+///    endOfLineComment ::=
+///        '//' (CHARACTER - EOL)* EOL
+///
+///    blockComment ::=
+///        '/ *' CHARACTER* '&#42;/'
+///
+///    documentationComment ::=
+///        '/ **' (CHARACTER | [CommentReference])* '&#42;/'
+///      | ('///' (CHARACTER - EOL)* EOL)+
 class CommentImpl extends AstNodeImpl implements Comment {
-  /**
-   * The tokens representing the comment.
-   */
+  /// The tokens representing the comment.
   @override
   final List<Token> tokens;
 
-  /**
-   * The type of the comment.
-   */
+  /// The type of the comment.
   final CommentType _type;
 
-  /**
-   * The references embedded within the documentation comment. This list will be
-   * empty unless this is a documentation comment that has references embedded
-   * within it.
-   */
+  /// The references embedded within the documentation comment. This list will
+  /// be empty unless this is a documentation comment that has references embedded
+  /// within it.
   NodeList<CommentReference> _references;
 
-  /**
-   * Initialize a newly created comment. The list of [tokens] must contain at
-   * least one token. The [_type] is the type of the comment. The list of
-   * [references] can be empty if the comment does not contain any embedded
-   * references.
-   */
+  /// Initialize a newly created comment. The list of [tokens] must contain at
+  /// least one token. The [_type] is the type of the comment. The list of
+  /// [references] can be empty if the comment does not contain any embedded
+  /// references.
   CommentImpl(this.tokens, this._type, List<CommentReference> references) {
     _references = new NodeListImpl<CommentReference>(this, references);
   }
@@ -2160,57 +1934,41 @@ class CommentImpl extends AstNodeImpl implements Comment {
     _references.accept(visitor);
   }
 
-  /**
-   * Create a block comment consisting of the given [tokens].
-   */
+  /// Create a block comment consisting of the given [tokens].
   static Comment createBlockComment(List<Token> tokens) =>
       new CommentImpl(tokens, CommentType.BLOCK, null);
 
-  /**
-   * Create a documentation comment consisting of the given [tokens].
-   */
+  /// Create a documentation comment consisting of the given [tokens].
   static Comment createDocumentationComment(List<Token> tokens) =>
       new CommentImpl(
           tokens, CommentType.DOCUMENTATION, new List<CommentReference>());
 
-  /**
-   * Create a documentation comment consisting of the given [tokens] and having
-   * the given [references] embedded within it.
-   */
+  /// Create a documentation comment consisting of the given [tokens] and having
+  /// the given [references] embedded within it.
   static Comment createDocumentationCommentWithReferences(
           List<Token> tokens, List<CommentReference> references) =>
       new CommentImpl(tokens, CommentType.DOCUMENTATION, references);
 
-  /**
-   * Create an end-of-line comment consisting of the given [tokens].
-   */
+  /// Create an end-of-line comment consisting of the given [tokens].
   static Comment createEndOfLineComment(List<Token> tokens) =>
       new CommentImpl(tokens, CommentType.END_OF_LINE, null);
 }
 
-/**
- * A reference to a Dart element that is found within a documentation comment.
- *
- *    commentReference ::=
- *        '[' 'new'? [Identifier] ']'
- */
+/// A reference to a Dart element that is found within a documentation comment.
+///
+///    commentReference ::=
+///        '[' 'new'? [Identifier] ']'
 class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
-  /**
-   * The token representing the 'new' keyword, or `null` if there was no 'new'
-   * keyword.
-   */
+  /// The token representing the 'new' keyword, or `null` if there was no 'new'
+  /// keyword.
   @override
   Token newKeyword;
 
-  /**
-   * The identifier being referenced.
-   */
+  /// The identifier being referenced.
   IdentifierImpl _identifier;
 
-  /**
-   * Initialize a newly created reference to a Dart element. The [newKeyword]
-   * can be `null` if the reference is not to a constructor.
-   */
+  /// Initialize a newly created reference to a Dart element. The [newKeyword]
+  /// can be `null` if the reference is not to a constructor.
   CommentReferenceImpl(this.newKeyword, IdentifierImpl identifier) {
     _identifier = _becomeParentOf(identifier);
   }
@@ -2242,121 +2000,95 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
   }
 }
 
-/**
- * The possible types of comments that are recognized by the parser.
- */
+/// The possible types of comments that are recognized by the parser.
 class CommentType {
-  /**
-   * A block comment.
-   */
+  /// A block comment.
   static const CommentType BLOCK = const CommentType('BLOCK');
 
-  /**
-   * A documentation comment.
-   */
+  /// A documentation comment.
   static const CommentType DOCUMENTATION = const CommentType('DOCUMENTATION');
 
-  /**
-   * An end-of-line comment.
-   */
+  /// An end-of-line comment.
   static const CommentType END_OF_LINE = const CommentType('END_OF_LINE');
 
-  /**
-   * The name of the comment type.
-   */
+  /// The name of the comment type.
   final String name;
 
-  /**
-   * Initialize a newly created comment type to have the given [name].
-   */
+  /// Initialize a newly created comment type to have the given [name].
   const CommentType(this.name);
 
   @override
   String toString() => name;
 }
 
-/**
- * A compilation unit.
- *
- * While the grammar restricts the order of the directives and declarations
- * within a compilation unit, this class does not enforce those restrictions.
- * In particular, the children of a compilation unit will be visited in lexical
- * order even if lexical order does not conform to the restrictions of the
- * grammar.
- *
- *    compilationUnit ::=
- *        directives declarations
- *
- *    directives ::=
- *        [ScriptTag]? [LibraryDirective]? namespaceDirective* [PartDirective]*
- *      | [PartOfDirective]
- *
- *    namespaceDirective ::=
- *        [ImportDirective]
- *      | [ExportDirective]
- *
- *    declarations ::=
- *        [CompilationUnitMember]*
- */
+/// A compilation unit.
+///
+/// While the grammar restricts the order of the directives and declarations
+/// within a compilation unit, this class does not enforce those restrictions.
+/// In particular, the children of a compilation unit will be visited in lexical
+/// order even if lexical order does not conform to the restrictions of the
+/// grammar.
+///
+///    compilationUnit ::=
+///        directives declarations
+///
+///    directives ::=
+///        [ScriptTag]? [LibraryDirective]? namespaceDirective* [PartDirective]*
+///      | [PartOfDirective]
+///
+///    namespaceDirective ::=
+///        [ImportDirective]
+///      | [ExportDirective]
+///
+///    declarations ::=
+///        [CompilationUnitMember]*
 class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
-  /**
-   * The first token in the token stream that was parsed to form this
-   * compilation unit.
-   */
+  /// The first token in the token stream that was parsed to form this
+  /// compilation unit.
   @override
   Token beginToken;
 
-  /**
-   * The script tag at the beginning of the compilation unit, or `null` if there
-   * is no script tag in this compilation unit.
-   */
+  /// The script tag at the beginning of the compilation unit, or `null` if
+  /// there is no script tag in this compilation unit.
   ScriptTagImpl _scriptTag;
 
-  /**
-   * The directives contained in this compilation unit.
-   */
+  /// The directives contained in this compilation unit.
   NodeList<Directive> _directives;
 
-  /**
-   * The declarations contained in this compilation unit.
-   */
+  /// The declarations contained in this compilation unit.
   NodeList<CompilationUnitMember> _declarations;
 
-  /**
-   * The last token in the token stream that was parsed to form this compilation
-   * unit. This token should always have a type of [TokenType.EOF].
-   */
+  /// The last token in the token stream that was parsed to form this
+  /// compilation unit. This token should always have a type of [TokenType.EOF].
   @override
   Token endToken;
 
-  /**
-   * The element associated with this compilation unit, or `null` if the AST
-   * structure has not been resolved.
-   */
+  /// The element associated with this compilation unit, or `null` if the AST
+  /// structure has not been resolved.
   @override
   CompilationUnitElement declaredElement;
 
-  /**
-   * The line information for this compilation unit.
-   */
+  /// The line information for this compilation unit.
   @override
   LineInfo lineInfo;
 
+  /// ?
+  // TODO(brianwilkerson) Remove this field. It is never read, only written.
   Map<int, AstNode> localDeclarations;
 
-  /**
-   * Is `true` if the non-nullable feature is enabled, and this library
-   * unit is annotated with `@pragma('analyzer:non-nullable')`.
-   */
-  bool hasPragmaAnalyzerNonNullable = false;
+  /// Additional information about local variables that are declared within this
+  /// compilation unit but outside any function body, or `null` if resolution
+  /// has not yet been performed.
+  LocalVariableInfo localVariableInfo = new LocalVariableInfo();
 
-  /**
-   * Initialize a newly created compilation unit to have the given directives
-   * and declarations. The [scriptTag] can be `null` if there is no script tag
-   * in the compilation unit. The list of [directives] can be `null` if there
-   * are no directives in the compilation unit. The list of [declarations] can
-   * be `null` if there are no declarations in the compilation unit.
-   */
+  /// Is `true` if this unit has been parsed as non-nullable.
+  bool isNonNullable = false;
+
+  /// Initialize a newly created compilation unit to have the given directives
+  /// and declarations. The [scriptTag] can be `null` if there is no script tag
+  /// in the compilation unit. The list of [directives] can be `null` if there
+  /// are no directives in the compilation unit. The list of [declarations] can
+  /// be `null` if there are no declarations in the compilation unit.
   CompilationUnitImpl(
       this.beginToken,
       ScriptTagImpl scriptTag,
@@ -2422,10 +2154,8 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
       ..sort(AstNode.LEXICAL_ORDER);
   }
 
-  /**
-   * Return `true` if all of the directives are lexically before any
-   * declarations.
-   */
+  /// Return `true` if all of the directives are lexically before any
+  /// declarations.
   bool get _directivesAreBeforeDeclarations {
     if (_directives.isEmpty || _declarations.isEmpty) {
       return true;
@@ -2437,6 +2167,20 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitCompilationUnit(this);
+
+  bool isPotentiallyMutatedInClosure(VariableElement variable) {
+    if (localVariableInfo == null) {
+      throw new StateError('Resolution has not yet been performed');
+    }
+    return localVariableInfo.potentiallyMutatedInClosure.contains(variable);
+  }
+
+  bool isPotentiallyMutatedInScope(VariableElement variable) {
+    if (localVariableInfo == null) {
+      throw new StateError('Resolution has not yet been performed');
+    }
+    return localVariableInfo.potentiallyMutatedInScope.contains(variable);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -2455,67 +2199,49 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   }
 }
 
-/**
- * A node that declares one or more names within the scope of a compilation
- * unit.
- *
- *    compilationUnitMember ::=
- *        [ClassDeclaration]
- *      | [TypeAlias]
- *      | [FunctionDeclaration]
- *      | [MethodDeclaration]
- *      | [VariableDeclaration]
- *      | [VariableDeclaration]
- */
+/// A node that declares one or more names within the scope of a compilation
+/// unit.
+///
+///    compilationUnitMember ::=
+///        [ClassDeclaration]
+///      | [TypeAlias]
+///      | [FunctionDeclaration]
+///      | [MethodDeclaration]
+///      | [VariableDeclaration]
+///      | [VariableDeclaration]
 abstract class CompilationUnitMemberImpl extends DeclarationImpl
     implements CompilationUnitMember {
-  /**
-   * Initialize a newly created generic compilation unit member. Either or both
-   * of the [comment] and [metadata] can be `null` if the member does not have
-   * the corresponding attribute.
-   */
+  /// Initialize a newly created generic compilation unit member. Either or both
+  /// of the [comment] and [metadata] can be `null` if the member does not have
+  /// the corresponding attribute.
   CompilationUnitMemberImpl(CommentImpl comment, List<Annotation> metadata)
       : super(comment, metadata);
 }
 
-/**
- * A conditional expression.
- *
- *    conditionalExpression ::=
- *        [Expression] '?' [Expression] ':' [Expression]
- */
+/// A conditional expression.
+///
+///    conditionalExpression ::=
+///        [Expression] '?' [Expression] ':' [Expression]
 class ConditionalExpressionImpl extends ExpressionImpl
     implements ConditionalExpression {
-  /**
-   * The condition used to determine which of the expressions is executed next.
-   */
+  /// The condition used to determine which of the expressions is executed next.
   ExpressionImpl _condition;
 
-  /**
-   * The token used to separate the condition from the then expression.
-   */
+  /// The token used to separate the condition from the then expression.
   @override
   Token question;
 
-  /**
-   * The expression that is executed if the condition evaluates to `true`.
-   */
+  /// The expression that is executed if the condition evaluates to `true`.
   ExpressionImpl _thenExpression;
 
-  /**
-   * The token used to separate the then expression from the else expression.
-   */
+  /// The token used to separate the then expression from the else expression.
   @override
   Token colon;
 
-  /**
-   * The expression that is executed if the condition evaluates to `false`.
-   */
+  /// The expression that is executed if the condition evaluates to `false`.
   ExpressionImpl _elseExpression;
 
-  /**
-   * Initialize a newly created conditional expression.
-   */
+  /// Initialize a newly created conditional expression.
   ConditionalExpressionImpl(
       ExpressionImpl condition,
       this.question,
@@ -2557,8 +2283,13 @@ class ConditionalExpressionImpl extends ExpressionImpl
   @override
   Token get endToken => _elseExpression.endToken;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 3;
+  int get precedence => CONDITIONAL_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.conditional;
 
   @override
   Expression get thenExpression => _thenExpression;
@@ -2580,18 +2311,16 @@ class ConditionalExpressionImpl extends ExpressionImpl
   }
 }
 
-/**
- * A configuration in either an import or export directive.
- *
- *     configuration ::=
- *         'if' '(' test ')' uri
- *
- *     test ::=
- *         dottedName ('==' stringLiteral)?
- *
- *     dottedName ::=
- *         identifier ('.' identifier)*
- */
+/// A configuration in either an import or export directive.
+///
+///     configuration ::=
+///         'if' '(' test ')' uri
+///
+///     test ::=
+///         dottedName ('==' stringLiteral)?
+///
+///     dottedName ::=
+///         identifier ('.' identifier)*
 class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @override
   Token ifKeyword;
@@ -2688,15 +2417,11 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 }
 
-/**
- * An error listener that only records whether any constant related errors have
- * been reported.
- */
+/// An error listener that only records whether any constant related errors have
+/// been reported.
 class ConstantAnalysisErrorListener extends AnalysisErrorListener {
-  /**
-   * A flag indicating whether any constant related errors have been reported to
-   * this listener.
-   */
+  /// A flag indicating whether any constant related errors have been reported
+  /// to this listener.
   bool hasConstError = false;
 
   @override
@@ -2726,122 +2451,97 @@ class ConstantAnalysisErrorListener extends AnalysisErrorListener {
   }
 }
 
-/**
- * A constructor declaration.
- *
- *    constructorDeclaration ::=
- *        constructorSignature [FunctionBody]?
- *      | constructorName formalParameterList ':' 'this' ('.' [SimpleIdentifier])? arguments
- *
- *    constructorSignature ::=
- *        'external'? constructorName formalParameterList initializerList?
- *      | 'external'? 'factory' factoryName formalParameterList initializerList?
- *      | 'external'? 'const'  constructorName formalParameterList initializerList?
- *
- *    constructorName ::=
- *        [SimpleIdentifier] ('.' [SimpleIdentifier])?
- *
- *    factoryName ::=
- *        [Identifier] ('.' [SimpleIdentifier])?
- *
- *    initializerList ::=
- *        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
- */
+/// A constructor declaration.
+///
+///    constructorDeclaration ::=
+///        constructorSignature [FunctionBody]?
+///      | constructorName formalParameterList ':' 'this'
+///        ('.' [SimpleIdentifier])? arguments
+///
+///    constructorSignature ::=
+///        'external'? constructorName formalParameterList initializerList?
+///      | 'external'? 'factory' factoryName formalParameterList
+///        initializerList?
+///      | 'external'? 'const'  constructorName formalParameterList
+///        initializerList?
+///
+///    constructorName ::=
+///        [SimpleIdentifier] ('.' [SimpleIdentifier])?
+///
+///    factoryName ::=
+///        [Identifier] ('.' [SimpleIdentifier])?
+///
+///    initializerList ::=
+///        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
 class ConstructorDeclarationImpl extends ClassMemberImpl
     implements ConstructorDeclaration {
-  /**
-   * The token for the 'external' keyword, or `null` if the constructor is not
-   * external.
-   */
+  /// The token for the 'external' keyword, or `null` if the constructor is not
+  /// external.
   @override
   Token externalKeyword;
 
-  /**
-   * The token for the 'const' keyword, or `null` if the constructor is not a
-   * const constructor.
-   */
+  /// The token for the 'const' keyword, or `null` if the constructor is not a
+  /// const constructor.
   @override
   Token constKeyword;
 
-  /**
-   * The token for the 'factory' keyword, or `null` if the constructor is not a
-   * factory constructor.
-   */
+  /// The token for the 'factory' keyword, or `null` if the constructor is not a
+  /// factory constructor.
   @override
   Token factoryKeyword;
 
-  /**
-   * The type of object being created. This can be different than the type in
-   * which the constructor is being declared if the constructor is the
-   * implementation of a factory constructor.
-   */
+  /// The type of object being created. This can be different than the type in
+  /// which the constructor is being declared if the constructor is the
+  /// implementation of a factory constructor.
   IdentifierImpl _returnType;
 
-  /**
-   * The token for the period before the constructor name, or `null` if the
-   * constructor being declared is unnamed.
-   */
+  /// The token for the period before the constructor name, or `null` if the
+  /// constructor being declared is unnamed.
   @override
   Token period;
 
-  /**
-   * The name of the constructor, or `null` if the constructor being declared is
-   * unnamed.
-   */
+  /// The name of the constructor, or `null` if the constructor being declared
+  /// is unnamed.
   SimpleIdentifierImpl _name;
 
-  /**
-   * The parameters associated with the constructor.
-   */
+  /// The parameters associated with the constructor.
   FormalParameterListImpl _parameters;
 
-  /**
-   * The token for the separator (colon or equals) before the initializer list
-   * or redirection, or `null` if there are no initializers.
-   */
+  /// The token for the separator (colon or equals) before the initializer list
+  /// or redirection, or `null` if there are no initializers.
   @override
   Token separator;
 
-  /**
-   * The initializers associated with the constructor.
-   */
+  /// The initializers associated with the constructor.
   NodeList<ConstructorInitializer> _initializers;
 
-  /**
-   * The name of the constructor to which this constructor will be redirected,
-   * or `null` if this is not a redirecting factory constructor.
-   */
+  /// The name of the constructor to which this constructor will be redirected,
+  /// or `null` if this is not a redirecting factory constructor.
   ConstructorNameImpl _redirectedConstructor;
 
-  /**
-   * The body of the constructor, or `null` if the constructor does not have a
-   * body.
-   */
+  /// The body of the constructor, or `null` if the constructor does not have a
+  /// body.
   FunctionBodyImpl _body;
 
-  /**
-   * The element associated with this constructor, or `null` if the AST
-   * structure has not been resolved or if this constructor could not be
-   * resolved.
-   */
+  /// The element associated with this constructor, or `null` if the AST
+  /// structure has not been resolved or if this constructor could not be
+  /// resolved.
   @override
   ConstructorElement declaredElement;
 
-  /**
-   * Initialize a newly created constructor declaration. The [externalKeyword]
-   * can be `null` if the constructor is not external. Either or both of the
-   * [comment] and [metadata] can be `null` if the constructor does not have the
-   * corresponding attribute. The [constKeyword] can be `null` if the
-   * constructor cannot be used to create a constant. The [factoryKeyword] can
-   * be `null` if the constructor is not a factory. The [period] and [name] can
-   * both be `null` if the constructor is not a named constructor. The
-   * [separator] can be `null` if the constructor does not have any initializers
-   * and does not redirect to a different constructor. The list of
-   * [initializers] can be `null` if the constructor does not have any
-   * initializers. The [redirectedConstructor] can be `null` if the constructor
-   * does not redirect to a different constructor. The [body] can be `null` if
-   * the constructor does not have a body.
-   */
+  /// Initialize a newly created constructor declaration. The [externalKeyword]
+  /// can be `null` if the constructor is not external. Either or both of the
+  /// [comment] and [metadata] can be `null` if the constructor does not have
+  /// the corresponding attribute. The [constKeyword] can be `null` if the
+  /// constructor cannot be used to create a constant. The [factoryKeyword] can
+  /// be `null` if the constructor is not a factory. The [period] and [name] can
+  /// both be `null` if the constructor is not a named constructor. The
+  /// [separator] can be `null` if the constructor does not have any
+  /// initializers and does not redirect to a different constructor. The list of
+  /// [initializers] can be `null` if the constructor does not have any
+  /// initializers. The [redirectedConstructor] can be `null` if the constructor
+  /// does not redirect to a different constructor. The [body] can be `null` if
+  /// the constructor does not have a body.
   ConstructorDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -2970,48 +2670,34 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   }
 }
 
-/**
- * The initialization of a field within a constructor's initialization list.
- *
- *    fieldInitializer ::=
- *        ('this' '.')? [SimpleIdentifier] '=' [Expression]
- */
+/// The initialization of a field within a constructor's initialization list.
+///
+///    fieldInitializer ::=
+///        ('this' '.')? [SimpleIdentifier] '=' [Expression]
 class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     implements ConstructorFieldInitializer {
-  /**
-   * The token for the 'this' keyword, or `null` if there is no 'this' keyword.
-   */
+  /// The token for the 'this' keyword, or `null` if there is no 'this' keyword.
   @override
   Token thisKeyword;
 
-  /**
-   * The token for the period after the 'this' keyword, or `null` if there is no
-   * 'this' keyword.
-   */
+  /// The token for the period after the 'this' keyword, or `null` if there is
+  /// no'this' keyword.
   @override
   Token period;
 
-  /**
-   * The name of the field being initialized.
-   */
+  /// The name of the field being initialized.
   SimpleIdentifierImpl _fieldName;
 
-  /**
-   * The token for the equal sign between the field name and the expression.
-   */
+  /// The token for the equal sign between the field name and the expression.
   @override
   Token equals;
 
-  /**
-   * The expression computing the value to which the field will be initialized.
-   */
+  /// The expression computing the value to which the field will be initialized.
   ExpressionImpl _expression;
 
-  /**
-   * Initialize a newly created field initializer to initialize the field with
-   * the given name to the value of the given expression. The [thisKeyword] and
-   * [period] can be `null` if the 'this' keyword was not specified.
-   */
+  /// Initialize a newly created field initializer to initialize the field with
+  /// the given name to the value of the given expression. The [thisKeyword] and
+  /// [period] can be `null` if the 'this' keyword was not specified.
   ConstructorFieldInitializerImpl(this.thisKeyword, this.period,
       SimpleIdentifierImpl fieldName, this.equals, ExpressionImpl expression) {
     _fieldName = _becomeParentOf(fieldName);
@@ -3064,54 +2750,40 @@ class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   }
 }
 
-/**
- * A node that can occur in the initializer list of a constructor declaration.
- *
- *    constructorInitializer ::=
- *        [SuperConstructorInvocation]
- *      | [ConstructorFieldInitializer]
- *      | [RedirectingConstructorInvocation]
- */
+/// A node that can occur in the initializer list of a constructor declaration.
+///
+///    constructorInitializer ::=
+///        [SuperConstructorInvocation]
+///      | [ConstructorFieldInitializer]
+///      | [RedirectingConstructorInvocation]
 abstract class ConstructorInitializerImpl extends AstNodeImpl
     implements ConstructorInitializer {}
 
-/**
- * The name of the constructor.
- *
- *    constructorName ::=
- *        type ('.' identifier)?
- */
+/// The name of the constructor.
+///
+///    constructorName ::=
+///        type ('.' identifier)?
 class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
-  /**
-   * The name of the type defining the constructor.
-   */
+  /// The name of the type defining the constructor.
   TypeNameImpl _type;
 
-  /**
-   * The token for the period before the constructor name, or `null` if the
-   * specified constructor is the unnamed constructor.
-   */
+  /// The token for the period before the constructor name, or `null` if the
+  /// specified constructor is the unnamed constructor.
   @override
   Token period;
 
-  /**
-   * The name of the constructor, or `null` if the specified constructor is the
-   * unnamed constructor.
-   */
+  /// The name of the constructor, or `null` if the specified constructor is the
+  /// unnamed constructor.
   SimpleIdentifierImpl _name;
 
-  /**
-   * The element associated with this constructor name based on static type
-   * information, or `null` if the AST structure has not been resolved or if
-   * this constructor name could not be resolved.
-   */
+  /// The element associated with this constructor name based on static type
+  /// information, or `null` if the AST structure has not been resolved or if
+  /// this constructor name could not be resolved.
   @override
   ConstructorElement staticElement;
 
-  /**
-   * Initialize a newly created constructor name. The [period] and [name] can be
-   * `null` if the constructor being named is the unnamed constructor.
-   */
+  /// Initialize a newly created constructor name. The [period] and [name] can
+  /// be`null` if the constructor being named is the unnamed constructor.
   ConstructorNameImpl(
       TypeNameImpl type, this.period, SimpleIdentifierImpl name) {
     _type = _becomeParentOf(type);
@@ -3159,44 +2831,32 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   }
 }
 
-/**
- * A continue statement.
- *
- *    continueStatement ::=
- *        'continue' [SimpleIdentifier]? ';'
- */
+/// A continue statement.
+///
+///    continueStatement ::=
+///        'continue' [SimpleIdentifier]? ';'
 class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
-  /**
-   * The token representing the 'continue' keyword.
-   */
+  /// The token representing the 'continue' keyword.
   @override
   Token continueKeyword;
 
-  /**
-   * The label associated with the statement, or `null` if there is no label.
-   */
+  /// The label associated with the statement, or `null` if there is no label.
   SimpleIdentifierImpl _label;
 
-  /**
-   * The semicolon terminating the statement.
-   */
+  /// The semicolon terminating the statement.
   @override
   Token semicolon;
 
-  /**
-   * The AstNode which this continue statement is continuing to.  This will be
-   * either a Statement (in the case of continuing a loop) or a SwitchMember
-   * (in the case of continuing from one switch case to another).  Null if the
-   * AST has not yet been resolved or if the target could not be resolved.
-   * Note that if the source code has errors, the target may be invalid (e.g.
-   * the target may be in an enclosing function).
-   */
+  /// The AstNode which this continue statement is continuing to.  This will be
+  /// either a Statement (in the case of continuing a loop) or a SwitchMember
+  /// (in the case of continuing from one switch case to another).  Null if the
+  /// AST has not yet been resolved or if the target could not be resolved.
+  /// Note that if the source code has errors, the target may be invalid (e.g.
+  /// the target may be in an enclosing function).
   AstNode target;
 
-  /**
-   * Initialize a newly created continue statement. The [label] can be `null` if
-   * there is no label associated with the statement.
-   */
+  /// Initialize a newly created continue statement. The [label] can be `null`
+  /// if there is no label associated with the statement.
   ContinueStatementImpl(
       this.continueKeyword, SimpleIdentifierImpl label, this.semicolon) {
     _label = _becomeParentOf(label);
@@ -3229,53 +2889,39 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
   }
 }
 
-/**
- * A node that represents the declaration of one or more names. Each declared
- * name is visible within a name scope.
- */
+/// A node that represents the declaration of one or more names. Each declared
+/// name is visible within a name scope.
 abstract class DeclarationImpl extends AnnotatedNodeImpl
     implements Declaration {
-  /**
-   * Initialize a newly created declaration. Either or both of the [comment] and
-   * [metadata] can be `null` if the declaration does not have the corresponding
-   * attribute.
-   */
+  /// Initialize a newly created declaration. Either or both of the [comment]
+  /// and [metadata] can be `null` if the declaration does not have the
+  /// corresponding attribute.
   DeclarationImpl(CommentImpl comment, List<Annotation> metadata)
       : super(comment, metadata);
 }
 
-/**
- * The declaration of a single identifier.
- *
- *    declaredIdentifier ::=
- *        [Annotation] finalConstVarOrType [SimpleIdentifier]
- */
+/// The declaration of a single identifier.
+///
+///    declaredIdentifier ::=
+///        [Annotation] finalConstVarOrType [SimpleIdentifier]
 class DeclaredIdentifierImpl extends DeclarationImpl
     implements DeclaredIdentifier {
-  /**
-   * The token representing either the 'final', 'const' or 'var' keyword, or
-   * `null` if no keyword was used.
-   */
+  /// The token representing either the 'final', 'const' or 'var' keyword, or
+  /// `null` if no keyword was used.
   @override
   Token keyword;
 
-  /**
-   * The name of the declared type of the parameter, or `null` if the parameter
-   * does not have a declared type.
-   */
+  /// The name of the declared type of the parameter, or `null` if the parameter
+  /// does not have a declared type.
   TypeAnnotationImpl _type;
 
-  /**
-   * The name of the variable being declared.
-   */
+  /// The name of the variable being declared.
   SimpleIdentifierImpl _identifier;
 
-  /**
-   * Initialize a newly created formal parameter. Either or both of the
-   * [comment] and [metadata] can be `null` if the declaration does not have the
-   * corresponding attribute. The [keyword] can be `null` if a type name is
-   * given. The [type] must be `null` if the keyword is 'var'.
-   */
+  /// Initialize a newly created formal parameter. Either or both of the
+  /// [comment] and [metadata] can be `null` if the declaration does not have
+  /// the corresponding attribute. The [keyword] can be `null` if a type name is
+  /// given. The [type] must be `null` if the keyword is 'var'.
   DeclaredIdentifierImpl(CommentImpl comment, List<Annotation> metadata,
       this.keyword, TypeAnnotationImpl type, SimpleIdentifierImpl identifier)
       : super(comment, metadata) {
@@ -3344,9 +2990,7 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   }
 }
 
-/**
- * A simple identifier that declares a name.
- */
+/// A simple identifier that declares a name.
 // TODO(rnystrom): Consider making this distinct from [SimpleIdentifier] and
 // get rid of all of the:
 //
@@ -3362,47 +3006,35 @@ class DeclaredSimpleIdentifier extends SimpleIdentifierImpl {
   bool inDeclarationContext() => true;
 }
 
-/**
- * A formal parameter with a default value. There are two kinds of parameters
- * that are both represented by this class: named formal parameters and
- * positional formal parameters.
- *
- *    defaultFormalParameter ::=
- *        [NormalFormalParameter] ('=' [Expression])?
- *
- *    defaultNamedParameter ::=
- *        [NormalFormalParameter] (':' [Expression])?
- */
+/// A formal parameter with a default value. There are two kinds of parameters
+/// that are both represented by this class: named formal parameters and
+/// positional formal parameters.
+///
+///    defaultFormalParameter ::=
+///        [NormalFormalParameter] ('=' [Expression])?
+///
+///    defaultNamedParameter ::=
+///        [NormalFormalParameter] (':' [Expression])?
 class DefaultFormalParameterImpl extends FormalParameterImpl
     implements DefaultFormalParameter {
-  /**
-   * The formal parameter with which the default value is associated.
-   */
+  /// The formal parameter with which the default value is associated.
   NormalFormalParameterImpl _parameter;
 
-  /**
-   * The kind of this parameter.
-   */
+  /// The kind of this parameter.
   @override
   ParameterKind kind;
 
-  /**
-   * The token separating the parameter from the default value, or `null` if
-   * there is no default value.
-   */
+  /// The token separating the parameter from the default value, or `null` if
+  /// there is no default value.
   @override
   Token separator;
 
-  /**
-   * The expression computing the default value for the parameter, or `null` if
-   * there is no default value.
-   */
+  /// The expression computing the default value for the parameter, or `null` if
+  /// there is no default value.
   ExpressionImpl _defaultValue;
 
-  /**
-   * Initialize a newly created default formal parameter. The [separator] and
-   * [defaultValue] can be `null` if there is no default value.
-   */
+  /// Initialize a newly created default formal parameter. The [separator] and
+  /// [defaultValue] can be `null` if there is no default value.
   DefaultFormalParameterImpl(NormalFormalParameterImpl parameter, this.kind,
       this.separator, ExpressionImpl defaultValue) {
     _parameter = _becomeParentOf(parameter);
@@ -3466,91 +3098,65 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   }
 }
 
-/**
- * A node that represents a directive.
- *
- *    directive ::=
- *        [ExportDirective]
- *      | [ImportDirective]
- *      | [LibraryDirective]
- *      | [PartDirective]
- *      | [PartOfDirective]
- */
+/// A node that represents a directive.
+///
+///    directive ::=
+///        [ExportDirective]
+///      | [ImportDirective]
+///      | [LibraryDirective]
+///      | [PartDirective]
+///      | [PartOfDirective]
 abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
-  /**
-   * The element associated with this directive, or `null` if the AST structure
-   * has not been resolved or if this directive could not be resolved.
-   */
+  /// The element associated with this directive, or `null` if the AST structure
+  /// has not been resolved or if this directive could not be resolved.
   Element _element;
 
-  /**
-   * Initialize a newly create directive. Either or both of the [comment] and
-   * [metadata] can be `null` if the directive does not have the corresponding
-   * attribute.
-   */
+  /// Initialize a newly create directive. Either or both of the [comment] and
+  /// [metadata] can be `null` if the directive does not have the corresponding
+  /// attribute.
   DirectiveImpl(CommentImpl comment, List<Annotation> metadata)
       : super(comment, metadata);
 
   @override
   Element get element => _element;
 
-  /**
-   * Set the element associated with this directive to be the given [element].
-   */
+  /// Set the element associated with this directive to be the given [element].
   void set element(Element element) {
     _element = element;
   }
 }
 
-/**
- * A do statement.
- *
- *    doStatement ::=
- *        'do' [Statement] 'while' '(' [Expression] ')' ';'
- */
+/// A do statement.
+///
+///    doStatement ::=
+///        'do' [Statement] 'while' '(' [Expression] ')' ';'
 class DoStatementImpl extends StatementImpl implements DoStatement {
-  /**
-   * The token representing the 'do' keyword.
-   */
+  /// The token representing the 'do' keyword.
   @override
   Token doKeyword;
 
-  /**
-   * The body of the loop.
-   */
+  /// The body of the loop.
   StatementImpl _body;
 
-  /**
-   * The token representing the 'while' keyword.
-   */
+  /// The token representing the 'while' keyword.
   @override
   Token whileKeyword;
 
-  /**
-   * The left parenthesis.
-   */
+  /// The left parenthesis.
   Token leftParenthesis;
 
-  /**
-   * The condition that determines when the loop will terminate.
-   */
+  /// The condition that determines when the loop will terminate.
   ExpressionImpl _condition;
 
-  /**
-   * The right parenthesis.
-   */
+  /// The right parenthesis.
   @override
   Token rightParenthesis;
 
-  /**
-   * The semicolon terminating the statement.
-   */
+  /// The semicolon terminating the statement.
   @override
   Token semicolon;
 
-  /**
-   * Initialize a newly created do loop.
-   */
+  /// Initialize a newly created do loop.
   DoStatementImpl(
       this.doKeyword,
       StatementImpl body,
@@ -3605,21 +3211,15 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
   }
 }
 
-/**
- * A dotted name, used in a configuration within an import or export directive.
- *
- *    dottedName ::=
- *        [SimpleIdentifier] ('.' [SimpleIdentifier])*
- */
+/// A dotted name, used in a configuration within an import or export directive.
+///
+///    dottedName ::=
+///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
 class DottedNameImpl extends AstNodeImpl implements DottedName {
-  /**
-   * The components of the identifier.
-   */
+  /// The components of the identifier.
   NodeList<SimpleIdentifier> _components;
 
-  /**
-   * Initialize a newly created dotted name.
-   */
+  /// Initialize a newly created dotted name.
   DottedNameImpl(List<SimpleIdentifier> components) {
     _components = new NodeListImpl<SimpleIdentifier>(this, components);
   }
@@ -3647,32 +3247,24 @@ class DottedNameImpl extends AstNodeImpl implements DottedName {
   }
 }
 
-/**
- * A floating point literal expression.
- *
- *    doubleLiteral ::=
- *        decimalDigit+ ('.' decimalDigit*)? exponent?
- *      | '.' decimalDigit+ exponent?
- *
- *    exponent ::=
- *        ('e' | 'E') ('+' | '-')? decimalDigit+
- */
+/// A floating point literal expression.
+///
+///    doubleLiteral ::=
+///        decimalDigit+ ('.' decimalDigit*)? exponent?
+///      | '.' decimalDigit+ exponent?
+///
+///    exponent ::=
+///        ('e' | 'E') ('+' | '-')? decimalDigit+
 class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
-  /**
-   * The token representing the literal.
-   */
+  /// The token representing the literal.
   @override
   Token literal;
 
-  /**
-   * The value of the literal.
-   */
+  /// The value of the literal.
   @override
   double value;
 
-  /**
-   * Initialize a newly created floating point literal.
-   */
+  /// Initialize a newly created floating point literal.
   DoubleLiteralImpl(this.literal, this.value);
 
   @override
@@ -3694,25 +3286,19 @@ class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   }
 }
 
-/**
- * An empty function body, which can only appear in constructors or abstract
- * methods.
- *
- *    emptyFunctionBody ::=
- *        ';'
- */
+/// An empty function body, which can only appear in constructors or abstract
+/// methods.
+///
+///    emptyFunctionBody ::=
+///        ';'
 class EmptyFunctionBodyImpl extends FunctionBodyImpl
     implements EmptyFunctionBody {
-  /**
-   * The token representing the semicolon that marks the end of the function
-   * body.
-   */
+  /// The token representing the semicolon that marks the end of the function
+  /// body.
   @override
   Token semicolon;
 
-  /**
-   * Initialize a newly created function body.
-   */
+  /// Initialize a newly created function body.
   EmptyFunctionBodyImpl(this.semicolon);
 
   @override
@@ -3734,21 +3320,15 @@ class EmptyFunctionBodyImpl extends FunctionBodyImpl
   }
 }
 
-/**
- * An empty statement.
- *
- *    emptyStatement ::=
- *        ';'
- */
+/// An empty statement.
+///
+///    emptyStatement ::=
+///        ';'
 class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
-  /**
-   * The semicolon terminating the statement.
-   */
+  /// The semicolon terminating the statement.
   Token semicolon;
 
-  /**
-   * Initialize a newly created empty statement.
-   */
+  /// Initialize a newly created empty statement.
   EmptyStatementImpl(this.semicolon);
 
   @override
@@ -3773,22 +3353,16 @@ class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   }
 }
 
-/**
- * The declaration of an enum constant.
- */
+/// The declaration of an enum constant.
 class EnumConstantDeclarationImpl extends DeclarationImpl
     implements EnumConstantDeclaration {
-  /**
-   * The name of the constant.
-   */
+  /// The name of the constant.
   SimpleIdentifierImpl _name;
 
-  /**
-   * Initialize a newly created enum constant declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the constant does not have the
-   * corresponding attribute. (Technically, enum constants cannot have metadata,
-   * but we allow it for consistency.)
-   */
+  /// Initialize a newly created enum constant declaration. Either or both of
+  /// the [comment] and [metadata] can be `null` if the constant does not have
+  /// the corresponding attribute. (Technically, enum constants cannot have
+  /// metadata, but we allow it for consistency.)
   EnumConstantDeclarationImpl(
       CommentImpl comment, List<Annotation> metadata, SimpleIdentifierImpl name)
       : super(comment, metadata) {
@@ -3831,43 +3405,32 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   }
 }
 
-/**
- * The declaration of an enumeration.
- *
- *    enumType ::=
- *        metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier] (',' [SimpleIdentifier])* (',')? '}'
- */
+/// The declaration of an enumeration.
+///
+///    enumType ::=
+///        metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier]
+///        (',' [SimpleIdentifier])* (',')? '}'
 class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements EnumDeclaration {
-  /**
-   * The 'enum' keyword.
-   */
+  /// The 'enum' keyword.
   @override
   Token enumKeyword;
 
-  /**
-   * The left curly bracket.
-   */
+  /// The left curly bracket.
   @override
   Token leftBracket;
 
-  /**
-   * The enumeration constants being declared.
-   */
+  /// The enumeration constants being declared.
   NodeList<EnumConstantDeclaration> _constants;
 
-  /**
-   * The right curly bracket.
-   */
+  /// The right curly bracket.
   @override
   Token rightBracket;
 
-  /**
-   * Initialize a newly created enumeration declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the declaration does not have the
-   * corresponding attribute. The list of [constants] must contain at least one
-   * value.
-   */
+  /// Initialize a newly created enumeration declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the declaration does not have
+  /// the corresponding attribute. The list of [constants] must contain at least
+  /// one value.
   EnumDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -3916,10 +3479,8 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 }
 
-/**
- * Ephemeral identifiers are created as needed to mimic the presence of an empty
- * identifier.
- */
+/// Ephemeral identifiers are created as needed to mimic the presence of an
+/// empty identifier.
 class EphemeralIdentifier extends SimpleIdentifierImpl {
   EphemeralIdentifier(AstNode parent, int location)
       : super(new StringToken(TokenType.IDENTIFIER, "", location)) {
@@ -3927,20 +3488,16 @@ class EphemeralIdentifier extends SimpleIdentifierImpl {
   }
 }
 
-/**
- * An export directive.
- *
- *    exportDirective ::=
- *        [Annotation] 'export' [StringLiteral] [Combinator]* ';'
- */
+/// An export directive.
+///
+///    exportDirective ::=
+///        [Annotation] 'export' [StringLiteral] [Combinator]* ';'
 class ExportDirectiveImpl extends NamespaceDirectiveImpl
     implements ExportDirective {
-  /**
-   * Initialize a newly created export directive. Either or both of the
-   * [comment] and [metadata] can be `null` if the directive does not have the
-   * corresponding attribute. The list of [combinators] can be `null` if there
-   * are no combinators.
-   */
+  /// Initialize a newly created export directive. Either or both of the
+  /// [comment] and [metadata] can be `null` if the directive does not have the
+  /// corresponding attribute. The list of [combinators] can be `null` if there
+  /// are no combinators.
   ExportDirectiveImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -3979,44 +3536,32 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
   }
 }
 
-/**
- * A function body consisting of a single expression.
- *
- *    expressionFunctionBody ::=
- *        'async'? '=>' [Expression] ';'
- */
+/// A function body consisting of a single expression.
+///
+///    expressionFunctionBody ::=
+///        'async'? '=>' [Expression] ';'
 class ExpressionFunctionBodyImpl extends FunctionBodyImpl
     implements ExpressionFunctionBody {
-  /**
-   * The token representing the 'async' keyword, or `null` if there is no such
-   * keyword.
-   */
+  /// The token representing the 'async' keyword, or `null` if there is no such
+  /// keyword.
   @override
   Token keyword;
 
-  /**
-   * The token introducing the expression that represents the body of the
-   * function.
-   */
+  /// The token introducing the expression that represents the body of the
+  /// function.
   @override
   Token functionDefinition;
 
-  /**
-   * The expression representing the body of the function.
-   */
+  /// The expression representing the body of the function.
   ExpressionImpl _expression;
 
-  /**
-   * The semicolon terminating the statement.
-   */
+  /// The semicolon terminating the statement.
   @override
   Token semicolon;
 
-  /**
-   * Initialize a newly created function body consisting of a block of
-   * statements. The [keyword] can be `null` if the function body is not an
-   * async function body.
-   */
+  /// Initialize a newly created function body consisting of a block of
+  /// statements. The [keyword] can be `null` if the function body is not an
+  /// async function body.
   ExpressionFunctionBodyImpl(this.keyword, this.functionDefinition,
       ExpressionImpl expression, this.semicolon) {
     _expression = _becomeParentOf(expression);
@@ -4069,29 +3614,23 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 }
 
-/**
- * A node that represents an expression.
- *
- *    expression ::=
- *        [AssignmentExpression]
- *      | [ConditionalExpression] cascadeSection*
- *      | [ThrowExpression]
- */
+/// A node that represents an expression.
+///
+///    expression ::=
+///        [AssignmentExpression]
+///      | [ConditionalExpression] cascadeSection*
+///      | [ThrowExpression]
 abstract class ExpressionImpl extends AstNodeImpl
     implements CollectionElementImpl, Expression {
-  /**
-   * The static type of this expression, or `null` if the AST structure has not
-   * been resolved.
-   */
+  /// The static type of this expression, or `null` if the AST structure has not
+  /// been resolved.
   @override
   DartType staticType;
 
-  /**
-   * Return the best parameter element information available for this
-   * expression. If type propagation was able to find a better parameter element
-   * than static analysis, that type will be returned. Otherwise, the result of
-   * static analysis will be returned.
-   */
+  /// Return the best parameter element information available for this
+  /// expression. If type propagation was able to find a better parameter
+  /// element than static analysis, that type will be returned. Otherwise, the
+  /// result of static analysis will be returned.
   @override
   @deprecated
   ParameterElement get bestParameterElement => staticParameterElement;
@@ -4100,27 +3639,27 @@ abstract class ExpressionImpl extends AstNodeImpl
   @deprecated
   DartType get bestType => staticType ?? DynamicTypeImpl.instance;
 
-  /**
-   * An expression _e_ is said to _occur in a constant context_,
-   * * if _e_ is an element of a constant list literal, or a key or value of an
-   *   entry of a constant map literal.
-   * * if _e_ is an actual argument of a constant object expression or of a
-   *   metadata annotation.
-   * * if _e_ is the initializing expression of a constant variable declaration.
-   * * if _e_ is a switch case expression.
-   * * if _e_ is an immediate subexpression of an expression _e1_ which occurs
-   *   in a constant context, unless _e1_ is a `throw` expression or a function
-   *   literal.
-   *
-   * This roughly means that everything which is inside a syntactically constant
-   * expression is in a constant context. A `throw` expression is currently not
-   * allowed in a constant expression, but extensions affecting that status may
-   * be considered. A similar situation arises for function literals.
-   *
-   * Note that the default value of an optional formal parameter is _not_ a
-   * constant context. This choice reserves some freedom to modify the semantics
-   * of default values.
-   */
+  /// An expression _e_ is said to _occur in a constant context_,
+  /// * if _e_ is an element of a constant list literal, or a key or value of an
+  ///   entry of a constant map literal.
+  /// * if _e_ is an actual argument of a constant object expression or of a
+  ///   metadata annotation.
+  /// * if _e_ is the initializing expression of a constant variable
+  ///   declaration.
+  /// * if _e_ is a switch case expression.
+  /// * if _e_ is an immediate subexpression of an expression _e1_ which occurs
+  ///   in a constant context, unless _e1_ is a `throw` expression or a function
+  ///   literal.
+  ///
+  /// This roughly means that everything which is inside a syntactically
+  /// constant expression is in a constant context. A `throw` expression is
+  /// currently not allowed in a constant expression, but extensions affecting
+  /// that status may be considered. A similar situation arises for function
+  /// literals.
+  ///
+  /// Note that the default value of an optional formal parameter is _not_ a
+  /// constant context. This choice reserves some freedom to modify the
+  /// semantics of default values.
   bool get inConstantContext {
     AstNode child = this;
     while (child is Expression ||
@@ -4202,29 +3741,21 @@ abstract class ExpressionImpl extends AstNodeImpl
   Expression get unParenthesized => this;
 }
 
-/**
- * An expression used as a statement.
- *
- *    expressionStatement ::=
- *        [Expression]? ';'
- */
+/// An expression used as a statement.
+///
+///    expressionStatement ::=
+///        [Expression]? ';'
 class ExpressionStatementImpl extends StatementImpl
     implements ExpressionStatement {
-  /**
-   * The expression that comprises the statement.
-   */
+  /// The expression that comprises the statement.
   ExpressionImpl _expression;
 
-  /**
-   * The semicolon terminating the statement, or `null` if the expression is a
-   * function expression and therefore isn't followed by a semicolon.
-   */
+  /// The semicolon terminating the statement, or `null` if the expression is a
+  /// function expression and therefore isn't followed by a semicolon.
   @override
   Token semicolon;
 
-  /**
-   * Initialize a newly created expression statement.
-   */
+  /// Initialize a newly created expression statement.
   ExpressionStatementImpl(ExpressionImpl expression, this.semicolon) {
     _expression = _becomeParentOf(expression);
   }
@@ -4264,27 +3795,19 @@ class ExpressionStatementImpl extends StatementImpl
   }
 }
 
-/**
- * The "extends" clause in a class declaration.
- *
- *    extendsClause ::=
- *        'extends' [TypeName]
- */
+/// The "extends" clause in a class declaration.
+///
+///    extendsClause ::=
+///        'extends' [TypeName]
 class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
-  /**
-   * The token representing the 'extends' keyword.
-   */
+  /// The token representing the 'extends' keyword.
   @override
   Token extendsKeyword;
 
-  /**
-   * The name of the class that is being extended.
-   */
+  /// The name of the class that is being extended.
   TypeNameImpl _superclass;
 
-  /**
-   * Initialize a newly created extends clause.
-   */
+  /// Initialize a newly created extends clause.
   ExtendsClauseImpl(this.extendsKeyword, TypeNameImpl superclass) {
     _superclass = _becomeParentOf(superclass);
   }
@@ -4316,43 +3839,31 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   }
 }
 
-/**
- * The declaration of one or more fields of the same type.
- *
- *    fieldDeclaration ::=
- *        'static'? [VariableDeclarationList] ';'
- */
+/// The declaration of one or more fields of the same type.
+///
+///    fieldDeclaration ::=
+///        'static'? [VariableDeclarationList] ';'
 class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
-  /**
-   * The 'covariant' keyword, or `null` if the keyword was not used.
-   */
+  /// The 'covariant' keyword, or `null` if the keyword was not used.
   @override
   Token covariantKeyword;
 
-  /**
-   * The token representing the 'static' keyword, or `null` if the fields are
-   * not static.
-   */
+  /// The token representing the 'static' keyword, or `null` if the fields are
+  /// not static.
   @override
   Token staticKeyword;
 
-  /**
-   * The fields being declared.
-   */
+  /// The fields being declared.
   VariableDeclarationListImpl _fieldList;
 
-  /**
-   * The semicolon terminating the declaration.
-   */
+  /// The semicolon terminating the declaration.
   @override
   Token semicolon;
 
-  /**
-   * Initialize a newly created field declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the declaration does not have the
-   * corresponding attribute. The [staticKeyword] can be `null` if the field is
-   * not a static field.
-   */
+  /// Initialize a newly created field declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the declaration does not have
+  /// the corresponding attribute. The [staticKeyword] can be `null` if the
+  /// field is not a static field.
   FieldDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -4409,61 +3920,46 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   }
 }
 
-/**
- * A field formal parameter.
- *
- *    fieldFormalParameter ::=
- *        ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
- *        'this' '.' [SimpleIdentifier] ([TypeParameterList]? [FormalParameterList])?
- */
+/// A field formal parameter.
+///
+///    fieldFormalParameter ::=
+///        ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
+///        'this' '.' [SimpleIdentifier]
+///        ([TypeParameterList]? [FormalParameterList])?
 class FieldFormalParameterImpl extends NormalFormalParameterImpl
     implements FieldFormalParameter {
-  /**
-   * The token representing either the 'final', 'const' or 'var' keyword, or
-   * `null` if no keyword was used.
-   */
+  /// The token representing either the 'final', 'const' or 'var' keyword, or
+  /// `null` if no keyword was used.
   @override
   Token keyword;
 
-  /**
-   * The name of the declared type of the parameter, or `null` if the parameter
-   * does not have a declared type.
-   */
+  /// The name of the declared type of the parameter, or `null` if the parameter
+  /// does not have a declared type.
   TypeAnnotationImpl _type;
 
-  /**
-   * The token representing the 'this' keyword.
-   */
+  /// The token representing the 'this' keyword.
   @override
   Token thisKeyword;
 
-  /**
-   * The token representing the period.
-   */
+  /// The token representing the period.
   @override
   Token period;
 
-  /**
-   * The type parameters associated with the method, or `null` if the method is
-   * not a generic method.
-   */
+  /// The type parameters associated with the method, or `null` if the method is
+  /// not a generic method.
   TypeParameterListImpl _typeParameters;
 
-  /**
-   * The parameters of the function-typed parameter, or `null` if this is not a
-   * function-typed field formal parameter.
-   */
+  /// The parameters of the function-typed parameter, or `null` if this is not a
+  /// function-typed field formal parameter.
   FormalParameterListImpl _parameters;
 
-  /**
-   * Initialize a newly created formal parameter. Either or both of the
-   * [comment] and [metadata] can be `null` if the parameter does not have the
-   * corresponding attribute. The [keyword] can be `null` if there is a type.
-   * The [type] must be `null` if the keyword is 'var'. The [thisKeyword] and
-   * [period] can be `null` if the keyword 'this' was not provided.  The
-   * [parameters] can be `null` if this is not a function-typed field formal
-   * parameter.
-   */
+  /// Initialize a newly created formal parameter. Either or both of the
+  /// [comment] and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute. The [keyword] can be `null` if there is a type.
+  /// The [type] must be `null` if the keyword is 'var'. The [thisKeyword] and
+  /// [period] can be `null` if the keyword 'this' was not provided.  The
+  /// [parameters] can be `null` if this is not a function-typed field formal
+  /// parameter.
   FieldFormalParameterImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -4561,16 +4057,12 @@ abstract class ForEachPartsImpl extends ForLoopPartsImpl
   @override
   Token inKeyword;
 
-  /**
-   * The expression evaluated to produce the iterator.
-   */
+  /// The expression evaluated to produce the iterator.
   ExpressionImpl _iterable;
 
-  /**
-   * Initialize a newly created for-each statement whose loop control variable
-   * is declared internally (in the for-loop part). The [awaitKeyword] can be
-   * `null` if this is not an asynchronous for loop.
-   */
+  /// Initialize a newly created for-each statement whose loop control variable
+  /// is declared internally (in the for-loop part). The [awaitKeyword] can be
+  /// `null` if this is not an asynchronous for loop.
   ForEachPartsImpl(this.inKeyword, ExpressionImpl iterator) {
     _iterable = _becomeParentOf(iterator);
   }
@@ -4600,15 +4092,11 @@ abstract class ForEachPartsImpl extends ForLoopPartsImpl
 
 class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
     implements ForEachPartsWithDeclaration {
-  /**
-   * The declaration of the loop variable.
-   */
+  /// The declaration of the loop variable.
   DeclaredIdentifierImpl _loopVariable;
 
-  /**
-   * Initialize a newly created for-each statement whose loop control variable
-   * is declared internally (inside the for-loop part).
-   */
+  /// Initialize a newly created for-each statement whose loop control variable
+  /// is declared internally (inside the for-loop part).
   ForEachPartsWithDeclarationImpl(DeclaredIdentifierImpl loopVariable,
       Token inKeyword, ExpressionImpl iterator)
       : super(inKeyword, iterator) {
@@ -4643,15 +4131,11 @@ class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
 
 class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     implements ForEachPartsWithIdentifier {
-  /**
-   * The loop variable.
-   */
+  /// The loop variable.
   SimpleIdentifierImpl _identifier;
 
-  /**
-   * Initialize a newly created for-each statement whose loop control variable
-   * is declared externally (outside the for-loop part).
-   */
+  /// Initialize a newly created for-each statement whose loop control variable
+  /// is declared externally (outside the for-loop part).
   ForEachPartsWithIdentifierImpl(
       SimpleIdentifierImpl identifier, Token inKeyword, ExpressionImpl iterator)
       : super(inKeyword, iterator) {
@@ -4684,177 +4168,114 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 }
 
-/**
- * A for-each statement.
- *
- *    forEachStatement ::=
- *        'await'? 'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
- *      | 'await'? 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
- */
-class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
-  /**
-   * The token representing the 'await' keyword, or `null` if there is no
-   * 'await' keyword.
-   */
-  @override
-  Token awaitKeyword;
-
-  /**
-   * The token representing the 'for' keyword.
-   */
-  @override
-  Token forKeyword;
-
-  /**
-   * The left parenthesis.
-   */
-  @override
-  Token leftParenthesis;
-
-  /**
-   * The declaration of the loop variable, or `null` if the loop variable is a
-   * simple identifier.
-   */
-  DeclaredIdentifierImpl _loopVariable;
-
-  /**
-   * The loop variable, or `null` if the loop variable is declared in the 'for'.
-   */
-  SimpleIdentifierImpl _identifier;
-
-  /**
-   * The token representing the 'in' keyword.
-   */
-  @override
-  Token inKeyword;
-
-  /**
-   * The expression evaluated to produce the iterator.
-   */
-  ExpressionImpl _iterable;
-
-  /**
-   * The right parenthesis.
-   */
-  @override
-  Token rightParenthesis;
-
-  /**
-   * The body of the loop.
-   */
-  StatementImpl _body;
-
-  /**
-   * Initialize a newly created for-each statement whose loop control variable
-   * is declared internally (in the for-loop part). The [awaitKeyword] can be
-   * `null` if this is not an asynchronous for loop.
-   */
+/// A for-each statement.
+///
+///    forEachStatement ::=
+///        'await'? 'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
+///      | 'await'? 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
+@Deprecated('Use ForStatement2Impl')
+class ForEachStatementImpl extends ForStatement2Impl
+    implements ForEachStatement {
+  /// Initialize a newly created for-each statement whose loop control variable
+  /// is declared internally (in the for-loop part). The [awaitKeyword] can be
+  /// `null` if this is not an asynchronous for loop.
   ForEachStatementImpl.withDeclaration(
-      this.awaitKeyword,
-      this.forKeyword,
-      this.leftParenthesis,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
       DeclaredIdentifierImpl loopVariable,
-      this.inKeyword,
+      Token inKeyword,
       ExpressionImpl iterator,
-      this.rightParenthesis,
-      StatementImpl body) {
-    _loopVariable = _becomeParentOf(loopVariable);
-    _iterable = _becomeParentOf(iterator);
-    _body = _becomeParentOf(body);
-  }
+      Token rightParenthesis,
+      StatementImpl body)
+      : super(
+            awaitKeyword,
+            forKeyword,
+            leftParenthesis,
+            new ForEachPartsWithDeclarationImpl(
+                loopVariable, inKeyword, iterator),
+            rightParenthesis,
+            body);
 
-  /**
-   * Initialize a newly created for-each statement whose loop control variable
-   * is declared outside the for loop. The [awaitKeyword] can be `null` if this
-   * is not an asynchronous for loop.
-   */
+  /// Creates a for-each statement using a caller-provided "parts" data
+  /// structure.
+  ForEachStatementImpl.withParts(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForEachPartsImpl forLoopParts,
+      Token rightParenthesis,
+      Statement body)
+      : super(awaitKeyword, forKeyword, leftParenthesis, forLoopParts,
+            rightParenthesis, body);
+
+  /// Initialize a newly created for-each statement whose loop control variable
+  /// is declared outside the for loop. The [awaitKeyword] can be `null` if this
+  /// is not an asynchronous for loop.
   ForEachStatementImpl.withReference(
-      this.awaitKeyword,
-      this.forKeyword,
-      this.leftParenthesis,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
       SimpleIdentifierImpl identifier,
-      this.inKeyword,
+      Token inKeyword,
       ExpressionImpl iterator,
-      this.rightParenthesis,
-      StatementImpl body) {
-    _identifier = _becomeParentOf(identifier);
-    _iterable = _becomeParentOf(iterator);
-    _body = _becomeParentOf(body);
-  }
+      Token rightParenthesis,
+      StatementImpl body)
+      : super(
+            awaitKeyword,
+            forKeyword,
+            leftParenthesis,
+            new ForEachPartsWithIdentifierImpl(identifier, inKeyword, iterator),
+            rightParenthesis,
+            body);
 
   @override
-  Token get beginToken => awaitKeyword ?? forKeyword;
-
-  @override
-  Statement get body => _body;
-
-  @override
-  void set body(Statement statement) {
-    _body = _becomeParentOf(statement as StatementImpl);
-  }
-
-  @override
-  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
-    ..add(awaitKeyword)
-    ..add(forKeyword)
-    ..add(leftParenthesis)
-    ..add(_loopVariable)
-    ..add(_identifier)
-    ..add(inKeyword)
-    ..add(_iterable)
-    ..add(rightParenthesis)
-    ..add(_body);
-
-  @override
-  Token get endToken => _body.endToken;
-
-  @override
-  SimpleIdentifier get identifier => _identifier;
+  SimpleIdentifier get identifier => forLoopParts is ForEachPartsWithIdentifier
+      ? (forLoopParts as ForEachPartsWithIdentifier).identifier
+      : null;
 
   @override
   void set identifier(SimpleIdentifier identifier) {
-    _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl);
+    (forLoopParts as ForEachPartsWithIdentifierImpl).identifier = identifier;
   }
 
   @override
-  Expression get iterable => _iterable;
+  Token get inKeyword => (forLoopParts as ForEachParts).inKeyword;
+
+  @override
+  set inKeyword(Token keyword) =>
+      (forLoopParts as ForEachPartsImpl).inKeyword = keyword;
+
+  @override
+  Expression get iterable => (forLoopParts as ForEachParts).iterable;
 
   @override
   void set iterable(Expression expression) {
-    _iterable = _becomeParentOf(expression as ExpressionImpl);
+    (forLoopParts as ForEachPartsImpl).iterable = expression;
   }
 
   @override
-  DeclaredIdentifier get loopVariable => _loopVariable;
+  DeclaredIdentifier get loopVariable =>
+      forLoopParts is ForEachPartsWithDeclaration
+          ? (forLoopParts as ForEachPartsWithDeclaration).loopVariable
+          : null;
 
   @override
   void set loopVariable(DeclaredIdentifier variable) {
-    _loopVariable = _becomeParentOf(variable as DeclaredIdentifierImpl);
+    (forLoopParts as ForEachPartsWithDeclarationImpl).loopVariable = variable;
   }
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitForEachStatement(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    _loopVariable?.accept(visitor);
-    _identifier?.accept(visitor);
-    _iterable?.accept(visitor);
-    _body?.accept(visitor);
-  }
 }
 
 class ForElementImpl extends CollectionElementImpl
     with ForMixin
     implements ForElement {
-  /**
-   * The body of the loop.
-   */
+  /// The body of the loop.
   CollectionElementImpl _body;
 
-  /**
-   * Initialize a newly created for element.
-   */
+  /// Initialize a newly created for element.
   ForElementImpl(
       Token awaitKeyword,
       Token forKeyword,
@@ -4897,13 +4318,11 @@ class ForElementImpl extends CollectionElementImpl
 
 abstract class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
 
-/**
- * A node representing a parameter to a function.
- *
- *    formalParameter ::=
- *        [NormalFormalParameter]
- *      | [DefaultFormalParameter]
- */
+/// A node representing a parameter to a function.
+///
+///    formalParameter ::=
+///        [NormalFormalParameter]
+///      | [DefaultFormalParameter]
 abstract class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @override
@@ -4941,72 +4360,58 @@ abstract class FormalParameterImpl extends AstNodeImpl
   ParameterKind get kind;
 }
 
-/**
- * The formal parameter list of a method declaration, function declaration, or
- * function type alias.
- *
- * While the grammar requires all optional formal parameters to follow all of
- * the normal formal parameters and at most one grouping of optional formal
- * parameters, this class does not enforce those constraints. All parameters are
- * flattened into a single list, which can have any or all kinds of parameters
- * (normal, named, and positional) in any order.
- *
- *    formalParameterList ::=
- *        '(' ')'
- *      | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
- *      | '(' optionalFormalParameters ')'
- *
- *    normalFormalParameters ::=
- *        [NormalFormalParameter] (',' [NormalFormalParameter])*
- *
- *    optionalFormalParameters ::=
- *        optionalPositionalFormalParameters
- *      | namedFormalParameters
- *
- *    optionalPositionalFormalParameters ::=
- *        '[' [DefaultFormalParameter] (',' [DefaultFormalParameter])* ']'
- *
- *    namedFormalParameters ::=
- *        '{' [DefaultFormalParameter] (',' [DefaultFormalParameter])* '}'
- */
+/// The formal parameter list of a method declaration, function declaration, or
+/// function type alias.
+///
+/// While the grammar requires all optional formal parameters to follow all of
+/// the normal formal parameters and at most one grouping of optional formal
+/// parameters, this class does not enforce those constraints. All parameters
+/// are flattened into a single list, which can have any or all kinds of
+/// parameters (normal, named, and positional) in any order.
+///
+///    formalParameterList ::=
+///        '(' ')'
+///      | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
+///      | '(' optionalFormalParameters ')'
+///
+///    normalFormalParameters ::=
+///        [NormalFormalParameter] (',' [NormalFormalParameter])*
+///
+///    optionalFormalParameters ::=
+///        optionalPositionalFormalParameters
+///      | namedFormalParameters
+///
+///    optionalPositionalFormalParameters ::=
+///        '[' [DefaultFormalParameter] (',' [DefaultFormalParameter])* ']'
+///
+///    namedFormalParameters ::=
+///        '{' [DefaultFormalParameter] (',' [DefaultFormalParameter])* '}'
 class FormalParameterListImpl extends AstNodeImpl
     implements FormalParameterList {
-  /**
-   * The left parenthesis.
-   */
+  /// The left parenthesis.
   @override
   Token leftParenthesis;
 
-  /**
-   * The parameters associated with the method.
-   */
+  /// The parameters associated with the method.
   NodeList<FormalParameter> _parameters;
 
-  /**
-   * The left square bracket ('[') or left curly brace ('{') introducing the
-   * optional parameters, or `null` if there are no optional parameters.
-   */
+  /// The left square bracket ('[') or left curly brace ('{') introducing the
+  /// optional parameters, or `null` if there are no optional parameters.
   @override
   Token leftDelimiter;
 
-  /**
-   * The right square bracket (']') or right curly brace ('}') terminating the
-   * optional parameters, or `null` if there are no optional parameters.
-   */
+  /// The right square bracket (']') or right curly brace ('}') terminating the
+  /// optional parameters, or `null` if there are no optional parameters.
   @override
   Token rightDelimiter;
 
-  /**
-   * The right parenthesis.
-   */
+  /// The right parenthesis.
   @override
   Token rightParenthesis;
 
-  /**
-   * Initialize a newly created parameter list. The list of [parameters] can be
-   * `null` if there are no parameters. The [leftDelimiter] and [rightDelimiter]
-   * can be `null` if there are no optional parameters.
-   */
+  /// Initialize a newly created parameter list. The list of [parameters] can be
+  /// `null` if there are no parameters. The [leftDelimiter] and
+  /// [rightDelimiter] can be `null` if there are no optional parameters.
   FormalParameterListImpl(
       this.leftParenthesis,
       List<FormalParameter> parameters,
@@ -5094,26 +4499,20 @@ abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   @override
   Token leftSeparator;
 
-  /**
-   * The condition used to determine when to terminate the loop, or `null` if
-   * there is no condition.
-   */
+  /// The condition used to determine when to terminate the loop, or `null` if
+  /// there is no condition.
   ExpressionImpl _condition;
 
   @override
   Token rightSeparator;
 
-  /**
-   * The list of expressions run after each execution of the loop body.
-   */
+  /// The list of expressions run after each execution of the loop body.
   NodeList<Expression> _updaters;
 
-  /**
-   * Initialize a newly created for statement. Either the [variableList] or the
-   * [initialization] must be `null`. Either the [condition] and the list of
-   * [updaters] can be `null` if the loop does not have the corresponding
-   * attribute.
-   */
+  /// Initialize a newly created for statement. Either the [variableList] or the
+  /// [initialization] must be `null`. Either the [condition] and the list of
+  /// [updaters] can be `null` if the loop does not have the corresponding
+  /// attribute.
   ForPartsImpl(this.leftSeparator, ExpressionImpl condition,
       this.rightSeparator, List<Expression> updaters) {
     _condition = _becomeParentOf(condition);
@@ -5152,18 +4551,14 @@ abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
 
 class ForPartsWithDeclarationsImpl extends ForPartsImpl
     implements ForPartsWithDeclarations {
-  /**
-   * The declaration of the loop variables, or `null` if there are no variables.
-   * Note that a for statement cannot have both a variable list and an
-   * initialization expression, but can validly have neither.
-   */
+  /// The declaration of the loop variables, or `null` if there are no
+  /// variables.  Note that a for statement cannot have both a variable list and
+  /// an initialization expression, but can validly have neither.
   VariableDeclarationListImpl _variableList;
 
-  /**
-   * Initialize a newly created for statement. Both the [condition] and the list
-   * of [updaters] can be `null` if the loop does not have the corresponding
-   * attribute.
-   */
+  /// Initialize a newly created for statement. Both the [condition] and the
+  /// list of [updaters] can be `null` if the loop does not have the
+  /// corresponding attribute.
   ForPartsWithDeclarationsImpl(
       VariableDeclarationListImpl variableList,
       Token leftSeparator,
@@ -5203,18 +4598,14 @@ class ForPartsWithDeclarationsImpl extends ForPartsImpl
 
 class ForPartsWithExpressionImpl extends ForPartsImpl
     implements ForPartsWithExpression {
-  /**
-   * The initialization expression, or `null` if there is no initialization
-   * expression. Note that a for statement cannot have both a variable list and
-   * an initialization expression, but can validly have neither.
-   */
+  /// The initialization expression, or `null` if there is no initialization
+  /// expression. Note that a for statement cannot have both a variable list and
+  /// an initialization expression, but can validly have neither.
   ExpressionImpl _initialization;
 
-  /**
-   * Initialize a newly created for statement. Both the [condition] and the list
-   * of [updaters] can be `null` if the loop does not have the corresponding
-   * attribute.
-   */
+  /// Initialize a newly created for statement. Both the [condition] and the
+  /// list of [updaters] can be `null` if the loop does not have the
+  /// corresponding attribute.
   ForPartsWithExpressionImpl(ExpressionImpl initialization, Token leftSeparator,
       ExpressionImpl condition, Token rightSeparator, List<Expression> updaters)
       : super(leftSeparator, condition, rightSeparator, updaters) {
@@ -5247,17 +4638,13 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 }
 
-class ForStatement2Impl extends StatementImpl
+abstract class ForStatement2Impl extends StatementImpl
     with ForMixin
     implements ForStatement2 {
-  /**
-   * The body of the loop.
-   */
+  /// The body of the loop.
   StatementImpl _body;
 
-  /**
-   * Initialize a newly created for statement.
-   */
+  /// Initialize a newly created for statement.
   ForStatement2Impl(
       Token awaitKeyword,
       Token forKeyword,
@@ -5273,7 +4660,6 @@ class ForStatement2Impl extends StatementImpl
     _body = _becomeParentOf(body);
   }
 
-  @override
   Statement get body => _body;
 
   void set body(Statement statement) {
@@ -5298,217 +4684,142 @@ class ForStatement2Impl extends StatementImpl
   }
 }
 
-/**
- * A for statement.
- *
- *    forStatement ::=
- *        'for' '(' forLoopParts ')' [Statement]
- *
- *    forLoopParts ::=
- *        forInitializerStatement ';' [Expression]? ';' [Expression]?
- *
- *    forInitializerStatement ::=
- *        [DefaultFormalParameter]
- *      | [Expression]?
- */
-class ForStatementImpl extends StatementImpl implements ForStatement {
-  /**
-   * The token representing the 'for' keyword.
-   */
-  @override
-  Token forKeyword;
-
-  /**
-   * The left parenthesis.
-   */
-  @override
-  Token leftParenthesis;
-
-  /**
-   * The declaration of the loop variables, or `null` if there are no variables.
-   * Note that a for statement cannot have both a variable list and an
-   * initialization expression, but can validly have neither.
-   */
-  VariableDeclarationListImpl _variableList;
-
-  /**
-   * The initialization expression, or `null` if there is no initialization
-   * expression. Note that a for statement cannot have both a variable list and
-   * an initialization expression, but can validly have neither.
-   */
-  ExpressionImpl _initialization;
-
-  /**
-   * The semicolon separating the initializer and the condition.
-   */
-  @override
-  Token leftSeparator;
-
-  /**
-   * The condition used to determine when to terminate the loop, or `null` if
-   * there is no condition.
-   */
-  ExpressionImpl _condition;
-
-  /**
-   * The semicolon separating the condition and the updater.
-   */
-  @override
-  Token rightSeparator;
-
-  /**
-   * The list of expressions run after each execution of the loop body.
-   */
-  NodeList<Expression> _updaters;
-
-  /**
-   * The right parenthesis.
-   */
-  @override
-  Token rightParenthesis;
-
-  /**
-   * The body of the loop.
-   */
-  StatementImpl _body;
-
-  /**
-   * Initialize a newly created for statement. Either the [variableList] or the
-   * [initialization] must be `null`. Either the [condition] and the list of
-   * [updaters] can be `null` if the loop does not have the corresponding
-   * attribute.
-   */
+/// A for statement.
+///
+///    forStatement ::=
+///        'for' '(' forLoopParts ')' [Statement]
+///
+///    forLoopParts ::=
+///        forInitializerStatement ';' [Expression]? ';' [Expression]?
+///
+///    forInitializerStatement ::=
+///        [DefaultFormalParameter]
+///      | [Expression]?
+@Deprecated('Use ForStatement2Impl')
+class ForStatementImpl extends ForStatement2Impl implements ForStatement {
+  /// Initialize a newly created for statement. Either the [variableList] or the
+  /// [initialization] must be `null`. Either the [condition] and the list of
+  /// [updaters] can be `null` if the loop does not have the corresponding
+  /// attribute.
   ForStatementImpl(
-      this.forKeyword,
-      this.leftParenthesis,
+      Token forKeyword,
+      Token leftParenthesis,
       VariableDeclarationListImpl variableList,
       ExpressionImpl initialization,
-      this.leftSeparator,
+      Token leftSeparator,
       ExpressionImpl condition,
-      this.rightSeparator,
+      Token rightSeparator,
       List<Expression> updaters,
-      this.rightParenthesis,
-      StatementImpl body) {
-    _variableList = _becomeParentOf(variableList);
-    _initialization = _becomeParentOf(initialization);
-    _condition = _becomeParentOf(condition);
-    _updaters = new NodeListImpl<Expression>(this, updaters);
-    _body = _becomeParentOf(body);
-  }
+      Token rightParenthesis,
+      StatementImpl body)
+      : super(
+            null,
+            forKeyword,
+            leftParenthesis,
+            variableList == null
+                ? new ForPartsWithExpressionImpl(initialization, leftSeparator,
+                    condition, rightSeparator, updaters)
+                : new ForPartsWithDeclarationsImpl(variableList, leftSeparator,
+                    condition, rightSeparator, updaters),
+            rightParenthesis,
+            body);
+
+  /// Creates a for-each statement using a caller-provided "parts" data
+  /// structure.
+  ForStatementImpl.withParts(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForPartsImpl forLoopParts,
+      Token rightParenthesis,
+      Statement body)
+      : super(awaitKeyword, forKeyword, leftParenthesis, forLoopParts,
+            rightParenthesis, body);
 
   @override
-  Token get beginToken => forKeyword;
-
-  @override
-  Statement get body => _body;
-
-  @override
-  void set body(Statement statement) {
-    _body = _becomeParentOf(statement as StatementImpl);
-  }
-
-  @override
-  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
-    ..add(forKeyword)
-    ..add(leftParenthesis)
-    ..add(_variableList)
-    ..add(_initialization)
-    ..add(leftSeparator)
-    ..add(_condition)
-    ..add(rightSeparator)
-    ..addAll(_updaters)
-    ..add(rightParenthesis)
-    ..add(_body);
-
-  @override
-  Expression get condition => _condition;
+  Expression get condition => (forLoopParts as ForParts).condition;
 
   @override
   void set condition(Expression expression) {
-    _condition = _becomeParentOf(expression as ExpressionImpl);
+    (forLoopParts as ForPartsImpl).condition = expression;
   }
 
   @override
-  Token get endToken => _body.endToken;
-
-  @override
-  Expression get initialization => _initialization;
+  Expression get initialization => forLoopParts is ForPartsWithExpression
+      ? (forLoopParts as ForPartsWithExpression).initialization
+      : null;
 
   @override
   void set initialization(Expression initialization) {
-    _initialization = _becomeParentOf(initialization as ExpressionImpl);
+    if (forLoopParts is ForPartsWithExpressionImpl) {
+      (forLoopParts as ForPartsWithExpressionImpl).initialization =
+          initialization;
+    }
   }
 
   @override
-  NodeList<Expression> get updaters => _updaters;
+  Token get leftSeparator => (forLoopParts as ForParts).leftSeparator;
 
   @override
-  VariableDeclarationList get variables => _variableList;
+  set leftSeparator(Token separator) =>
+      (forLoopParts as ForPartsImpl).leftSeparator = separator;
+
+  @override
+  Token get rightSeparator => (forLoopParts as ForParts).rightSeparator;
+
+  @override
+  set rightSeparator(Token separator) =>
+      (forLoopParts as ForPartsImpl).rightSeparator = separator;
+
+  @override
+  NodeList<Expression> get updaters => (forLoopParts as ForParts).updaters;
+
+  @override
+  VariableDeclarationList get variables =>
+      forLoopParts is ForPartsWithDeclarations
+          ? (forLoopParts as ForPartsWithDeclarations).variables
+          : null;
 
   @override
   void set variables(VariableDeclarationList variableList) {
-    _variableList =
-        _becomeParentOf(variableList as VariableDeclarationListImpl);
+    (forLoopParts as ForPartsWithDeclarationsImpl).variables = variableList;
   }
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    _variableList?.accept(visitor);
-    _initialization?.accept(visitor);
-    _condition?.accept(visitor);
-    _updaters.accept(visitor);
-    _body?.accept(visitor);
-  }
 }
 
-/**
- * A node representing the body of a function or method.
- *
- *    functionBody ::=
- *        [BlockFunctionBody]
- *      | [EmptyFunctionBody]
- *      | [ExpressionFunctionBody]
- */
+/// A node representing the body of a function or method.
+///
+///    functionBody ::=
+///        [BlockFunctionBody]
+///      | [EmptyFunctionBody]
+///      | [ExpressionFunctionBody]
 abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
-  /**
-   * Additional information about local variables and parameters that are
-   * declared within this function body or any enclosing function body.  `null`
-   * if resolution has not yet been performed.
-   */
+  /// Additional information about local variables and parameters that are
+  /// declared within this function body or any enclosing function body.  `null`
+  /// if resolution has not yet been performed.
   LocalVariableInfo localVariableInfo;
 
-  /**
-   * Return `true` if this function body is asynchronous.
-   */
+  /// Return `true` if this function body is asynchronous.
   @override
   bool get isAsynchronous => false;
 
-  /**
-   * Return `true` if this function body is a generator.
-   */
+  /// Return `true` if this function body is a generator.
   @override
   bool get isGenerator => false;
 
-  /**
-   * Return `true` if this function body is synchronous.
-   */
+  /// Return `true` if this function body is synchronous.
   @override
   bool get isSynchronous => true;
 
-  /**
-   * Return the token representing the 'async' or 'sync' keyword, or `null` if
-   * there is no such keyword.
-   */
+  /// Return the token representing the 'async' or 'sync' keyword, or `null` if
+  /// there is no such keyword.
   @override
   Token get keyword => null;
 
-  /**
-   * Return the star following the 'async' or 'sync' keyword, or `null` if there
-   * is no star.
-   */
+  /// Return the star following the 'async' or 'sync' keyword, or `null` if
+  /// there is no star.
   @override
   Token get star => null;
 
@@ -5529,50 +4840,38 @@ abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   }
 }
 
-/**
- * A top-level declaration.
- *
- *    functionDeclaration ::=
- *        'external' functionSignature
- *      | functionSignature [FunctionBody]
- *
- *    functionSignature ::=
- *        [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
- */
+/// A top-level declaration.
+///
+///    functionDeclaration ::=
+///        'external' functionSignature
+///      | functionSignature [FunctionBody]
+///
+///    functionSignature ::=
+///        [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
 class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements FunctionDeclaration {
-  /**
-   * The token representing the 'external' keyword, or `null` if this is not an
-   * external function.
-   */
+  /// The token representing the 'external' keyword, or `null` if this is not an
+  /// external function.
   @override
   Token externalKeyword;
 
-  /**
-   * The return type of the function, or `null` if no return type was declared.
-   */
+  /// The return type of the function, or `null` if no return type was declared.
   TypeAnnotationImpl _returnType;
 
-  /**
-   * The token representing the 'get' or 'set' keyword, or `null` if this is a
-   * function declaration rather than a property declaration.
-   */
+  /// The token representing the 'get' or 'set' keyword, or `null` if this is a
+  /// function declaration rather than a property declaration.
   @override
   Token propertyKeyword;
 
-  /**
-   * The function expression being wrapped.
-   */
+  /// The function expression being wrapped.
   FunctionExpressionImpl _functionExpression;
 
-  /**
-   * Initialize a newly created function declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the function does not have the
-   * corresponding attribute. The [externalKeyword] can be `null` if the
-   * function is not an external function. The [returnType] can be `null` if no
-   * return type was specified. The [propertyKeyword] can be `null` if the
-   * function is neither a getter or a setter.
-   */
+  /// Initialize a newly created function declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the function does not have the
+  /// corresponding attribute. The [externalKeyword] can be `null` if the
+  /// function is not an external function. The [returnType] can be `null` if no
+  /// return type was specified. The [propertyKeyword] can be `null` if the
+  /// function is neither a getter or a setter.
   FunctionDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -5654,19 +4953,13 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 }
 
-/**
- * A [FunctionDeclaration] used as a statement.
- */
+/// A [FunctionDeclaration] used as a statement.
 class FunctionDeclarationStatementImpl extends StatementImpl
     implements FunctionDeclarationStatement {
-  /**
-   * The function declaration being wrapped.
-   */
+  /// The function declaration being wrapped.
   FunctionDeclarationImpl _functionDeclaration;
 
-  /**
-   * Initialize a newly created function declaration statement.
-   */
+  /// Initialize a newly created function declaration statement.
   FunctionDeclarationStatementImpl(
       FunctionDeclarationImpl functionDeclaration) {
     _functionDeclaration = _becomeParentOf(functionDeclaration);
@@ -5701,36 +4994,26 @@ class FunctionDeclarationStatementImpl extends StatementImpl
   }
 }
 
-/**
- * A function expression.
- *
- *    functionExpression ::=
- *        [TypeParameterList]? [FormalParameterList] [FunctionBody]
- */
+/// A function expression.
+///
+///    functionExpression ::=
+///        [TypeParameterList]? [FormalParameterList] [FunctionBody]
 class FunctionExpressionImpl extends ExpressionImpl
     implements FunctionExpression {
-  /**
-   * The type parameters associated with the method, or `null` if the method is
-   * not a generic method.
-   */
+  /// The type parameters associated with the method, or `null` if the method is
+  /// not a generic method.
   TypeParameterListImpl _typeParameters;
 
-  /**
-   * The parameters associated with the function.
-   */
+  /// The parameters associated with the function.
   FormalParameterListImpl _parameters;
 
-  /**
-   * The body of the function, or `null` if this is an external function.
-   */
+  /// The body of the function, or `null` if this is an external function.
   FunctionBodyImpl _body;
 
   @override
   ExecutableElement declaredElement;
 
-  /**
-   * Initialize a newly created function declaration.
-   */
+  /// Initialize a newly created function declaration.
   FunctionExpressionImpl(TypeParameterListImpl typeParameters,
       FormalParameterListImpl parameters, FunctionBodyImpl body) {
     _typeParameters = _becomeParentOf(typeParameters);
@@ -5794,8 +5077,13 @@ class FunctionExpressionImpl extends ExpressionImpl
     _parameters = _becomeParentOf(parameters as FormalParameterListImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 
   @override
   TypeParameterList get typeParameters => _typeParameters;
@@ -5816,33 +5104,25 @@ class FunctionExpressionImpl extends ExpressionImpl
   }
 }
 
-/**
- * The invocation of a function resulting from evaluating an expression.
- * Invocations of methods and other forms of functions are represented by
- * [MethodInvocation] nodes. Invocations of getters and setters are represented
- * by either [PrefixedIdentifier] or [PropertyAccess] nodes.
- *
- *    functionExpressionInvocation ::=
- *        [Expression] [TypeArgumentList]? [ArgumentList]
- */
+/// The invocation of a function resulting from evaluating an expression.
+/// Invocations of methods and other forms of functions are represented by
+/// [MethodInvocation] nodes. Invocations of getters and setters are represented
+/// by either [PrefixedIdentifier] or [PropertyAccess] nodes.
+///
+///    functionExpressionInvocation ::=
+///        [Expression] [TypeArgumentList]? [ArgumentList]
 class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     implements FunctionExpressionInvocation {
-  /**
-   * The expression producing the function being invoked.
-   */
+  /// The expression producing the function being invoked.
   ExpressionImpl _function;
 
-  /**
-   * The element associated with the function being invoked based on static type
-   * information, or `null` if the AST structure has not been resolved or the
-   * function could not be resolved.
-   */
+  /// The element associated with the function being invoked based on static
+  /// type information, or `null` if the AST structure has not been resolved or
+  /// the function could not be resolved.
   @override
   ExecutableElement staticElement;
 
-  /**
-   * Initialize a newly created function expression invocation.
-   */
+  /// Initialize a newly created function expression invocation.
   FunctionExpressionInvocationImpl(ExpressionImpl function,
       TypeArgumentListImpl typeArguments, ArgumentListImpl argumentList)
       : super(typeArguments, argumentList) {
@@ -5871,8 +5151,13 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     _function = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @deprecated
   @override
@@ -5894,40 +5179,30 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   }
 }
 
-/**
- * A function type alias.
- *
- *    functionTypeAlias ::=
- *        functionPrefix [TypeParameterList]? [FormalParameterList] ';'
- *
- *    functionPrefix ::=
- *        [TypeName]? [SimpleIdentifier]
- */
+/// A function type alias.
+///
+///    functionTypeAlias ::=
+///        functionPrefix [TypeParameterList]? [FormalParameterList] ';'
+///
+///    functionPrefix ::=
+///        [TypeName]? [SimpleIdentifier]
 class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
-  /**
-   * The name of the return type of the function type being defined, or `null`
-   * if no return type was given.
-   */
+  /// The name of the return type of the function type being defined, or `null`
+  /// if no return type was given.
   TypeAnnotationImpl _returnType;
 
-  /**
-   * The type parameters for the function type, or `null` if the function type
-   * does not have any type parameters.
-   */
+  /// The type parameters for the function type, or `null` if the function type
+  /// does not have any type parameters.
   TypeParameterListImpl _typeParameters;
 
-  /**
-   * The parameters associated with the function type.
-   */
+  /// The parameters associated with the function type.
   FormalParameterListImpl _parameters;
 
-  /**
-   * Initialize a newly created function type alias. Either or both of the
-   * [comment] and [metadata] can be `null` if the function does not have the
-   * corresponding attribute. The [returnType] can be `null` if no return type
-   * was specified. The [typeParameters] can be `null` if the function has no
-   * type parameters.
-   */
+  /// Initialize a newly created function type alias. Either or both of the
+  /// [comment] and [metadata] can be `null` if the function does not have the
+  /// corresponding attribute. The [returnType] can be `null` if no return type
+  /// was specified. The [typeParameters] can be `null` if the function has no
+  /// type parameters.
   FunctionTypeAliasImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -5997,37 +5272,28 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   }
 }
 
-/**
- * A function-typed formal parameter.
- *
- *    functionSignature ::=
- *        [TypeName]? [SimpleIdentifier] [TypeParameterList]? [FormalParameterList]
- */
+/// A function-typed formal parameter.
+///
+///    functionSignature ::=
+///        [TypeName]? [SimpleIdentifier] [TypeParameterList]?
+///        [FormalParameterList]
 class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     implements FunctionTypedFormalParameter {
-  /**
-   * The return type of the function, or `null` if the function does not have a
-   * return type.
-   */
+  /// The return type of the function, or `null` if the function does not have a
+  /// return type.
   TypeAnnotationImpl _returnType;
 
-  /**
-   * The type parameters associated with the function, or `null` if the function
-   * is not a generic function.
-   */
+  /// The type parameters associated with the function, or `null` if the
+  /// function is not a generic function.
   TypeParameterListImpl _typeParameters;
 
-  /**
-   * The parameters of the function-typed parameter.
-   */
+  /// The parameters of the function-typed parameter.
   FormalParameterListImpl _parameters;
 
-  /**
-   * Initialize a newly created formal parameter. Either or both of the
-   * [comment] and [metadata] can be `null` if the parameter does not have the
-   * corresponding attribute. The [returnType] can be `null` if no return type
-   * was specified.
-   */
+  /// Initialize a newly created formal parameter. Either or both of the
+  /// [comment] and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute. The [returnType] can be `null` if no return type
+  /// was specified.
   FunctionTypedFormalParameterImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -6100,55 +5366,48 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   }
 }
 
-/**
- * An anonymous function type.
- *
- *    functionType ::=
- *        [TypeAnnotation]? 'Function' [TypeParameterList]? [FormalParameterList]
- *
- * where the FormalParameterList is being used to represent the following
- * grammar, despite the fact that FormalParameterList can represent a much
- * larger grammar than the one below. This is done in order to simplify the
- * implementation.
- *
- *    parameterTypeList ::=
- *        () |
- *        ( normalParameterTypes ,? ) |
- *        ( normalParameterTypes , optionalParameterTypes ) |
- *        ( optionalParameterTypes )
- *    namedParameterTypes ::=
- *        { namedParameterType (, namedParameterType)* ,? }
- *    namedParameterType ::=
- *        [TypeAnnotation]? [SimpleIdentifier]
- *    normalParameterTypes ::=
- *        normalParameterType (, normalParameterType)*
- *    normalParameterType ::=
- *        [TypeAnnotation] [SimpleIdentifier]?
- *    optionalParameterTypes ::=
- *        optionalPositionalParameterTypes | namedParameterTypes
- *    optionalPositionalParameterTypes ::=
- *        [ normalParameterTypes ,? ]
- */
+/// An anonymous function type.
+///
+///    functionType ::=
+///        [TypeAnnotation]? 'Function' [TypeParameterList]?
+///        [FormalParameterList]
+///
+/// where the FormalParameterList is being used to represent the following
+/// grammar, despite the fact that FormalParameterList can represent a much
+/// larger grammar than the one below. This is done in order to simplify the
+/// implementation.
+///
+///    parameterTypeList ::=
+///        () |
+///        ( normalParameterTypes ,? ) |
+///        ( normalParameterTypes , optionalParameterTypes ) |
+///        ( optionalParameterTypes )
+///    namedParameterTypes ::=
+///        { namedParameterType (, namedParameterType)* ,? }
+///    namedParameterType ::=
+///        [TypeAnnotation]? [SimpleIdentifier]
+///    normalParameterTypes ::=
+///        normalParameterType (, normalParameterType)*
+///    normalParameterType ::=
+///        [TypeAnnotation] [SimpleIdentifier]?
+///    optionalParameterTypes ::=
+///        optionalPositionalParameterTypes | namedParameterTypes
+///    optionalPositionalParameterTypes ::=
+///        [ normalParameterTypes ,? ]
 class GenericFunctionTypeImpl extends TypeAnnotationImpl
     implements GenericFunctionType {
-  /**
-   * The name of the return type of the function type being defined, or
-   * `null` if no return type was given.
-   */
+  /// The name of the return type of the function type being defined, or
+  /// `null` if no return type was given.
   TypeAnnotationImpl _returnType;
 
   @override
   Token functionKeyword;
 
-  /**
-   * The type parameters for the function type, or `null` if the function type
-   * does not have any type parameters.
-   */
+  /// The type parameters for the function type, or `null` if the function type
+  /// does not have any type parameters.
   TypeParameterListImpl _typeParameters;
 
-  /**
-   * The parameters associated with the function type.
-   */
+  /// The parameters associated with the function type.
   FormalParameterListImpl _parameters;
 
   @override
@@ -6157,9 +5416,7 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   @override
   DartType type;
 
-  /**
-   * Initialize a newly created generic function type.
-   */
+  /// Initialize a newly created generic function type.
   GenericFunctionTypeImpl(TypeAnnotationImpl returnType, this.functionKeyword,
       TypeParameterListImpl typeParameters, FormalParameterListImpl parameters,
       {this.question}) {
@@ -6198,16 +5455,12 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
     _returnType = _becomeParentOf(type as TypeAnnotationImpl);
   }
 
-  /**
-   * Return the type parameters for the function type, or `null` if the function
-   * type does not have any type parameters.
-   */
+  /// Return the type parameters for the function type, or `null` if the
+  /// function type does not have any type parameters.
   TypeParameterList get typeParameters => _typeParameters;
 
-  /**
-   * Set the type parameters for the function type to the given list of
-   * [typeParameters].
-   */
+  /// Set the type parameters for the function type to the given list of
+  /// [typeParameters].
   void set typeParameters(TypeParameterList typeParameters) {
     _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl);
   }
@@ -6226,33 +5479,26 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   }
 }
 
-/**
- * A generic type alias.
- *
- *    functionTypeAlias ::=
- *        metadata 'typedef' [SimpleIdentifier] [TypeParameterList]? = [FunctionType] ';'
- */
+/// A generic type alias.
+///
+///    functionTypeAlias ::=
+///        metadata 'typedef' [SimpleIdentifier] [TypeParameterList]? =
+///        [FunctionType] ';'
 class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
-  /**
-   * The type parameters for the function type, or `null` if the function
-   * type does not have any type parameters.
-   */
+  /// The type parameters for the function type, or `null` if the function
+  /// type does not have any type parameters.
   TypeParameterListImpl _typeParameters;
 
   @override
   Token equals;
 
-  /**
-   * The type of function being defined by the alias.
-   */
+  /// The type of function being defined by the alias.
   GenericFunctionTypeImpl _functionType;
 
-  /**
-   * Returns a newly created generic type alias. Either or both of the
-   * [comment] and [metadata] can be `null` if the variable list does not have
-   * the corresponding attribute. The [typeParameters] can be `null` if there
-   * are no type parameters.
-   */
+  /// Returns a newly created generic type alias. Either or both of the
+  /// [comment] and [metadata] can be `null` if the variable list does not have
+  /// the corresponding attribute. The [typeParameters] can be `null` if there
+  /// are no type parameters.
   GenericTypeAliasImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -6313,22 +5559,16 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   }
 }
 
-/**
- * A combinator that restricts the names being imported to those that are not in
- * a given list.
- *
- *    hideCombinator ::=
- *        'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
- */
+/// A combinator that restricts the names being imported to those that are not
+/// in a given list.
+///
+///    hideCombinator ::=
+///        'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
 class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
-  /**
-   * The list of names from the library that are hidden by this combinator.
-   */
+  /// The list of names from the library that are hidden by this combinator.
   NodeList<SimpleIdentifier> _hiddenNames;
 
-  /**
-   * Initialize a newly created import show combinator.
-   */
+  /// Initialize a newly created import show combinator.
   HideCombinatorImpl(Token keyword, List<SimpleIdentifier> hiddenNames)
       : super(keyword) {
     _hiddenNames = new NodeListImpl<SimpleIdentifier>(this, hiddenNames);
@@ -6354,21 +5594,17 @@ class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
   }
 }
 
-/**
- * A node that represents an identifier.
- *
- *    identifier ::=
- *        [SimpleIdentifier]
- *      | [PrefixedIdentifier]
- */
+/// A node that represents an identifier.
+///
+///    identifier ::=
+///        [SimpleIdentifier]
+///      | [PrefixedIdentifier]
 abstract class IdentifierImpl extends ExpressionImpl implements Identifier {
-  /**
-   * Return the best element available for this operator. If resolution was able
-   * to find a better element based on type propagation, that element will be
-   * returned. Otherwise, the element found using the result of static analysis
-   * will be returned. If resolution has not been performed, then `null` will be
-   * returned.
-   */
+  /// Return the best element available for this operator. If resolution was
+  /// able to find a better element based on type propagation, that element will
+  /// be returned. Otherwise, the element found using the result of static
+  /// analysis will be returned. If resolution has not been performed, then `null` will
+  /// be returned.
   @override
   @deprecated
   Element get bestElement;
@@ -6380,20 +5616,14 @@ abstract class IdentifierImpl extends ExpressionImpl implements Identifier {
 class IfElementImpl extends CollectionElementImpl
     with IfMixin
     implements IfElement {
-  /**
-   * The element to be executed if the condition is `true`.
-   */
+  /// The element to be executed if the condition is `true`.
   CollectionElementImpl _thenElement;
 
-  /**
-   * The element to be executed if the condition is `false`, or `null` if there
-   * is no such element.
-   */
+  /// The element to be executed if the condition is `false`, or `null` if there
+  /// is no such element.
   CollectionElementImpl _elseElement;
 
-  /**
-   * Initialize a newly created for element.
-   */
+  /// Initialize a newly created for element.
   IfElementImpl(
       Token ifKeyword,
       Token leftParenthesis,
@@ -6415,6 +5645,7 @@ class IfElementImpl extends CollectionElementImpl
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..addAll(super.childEntities)
     ..add(_thenElement)
+    ..add(elseKeyword)
     ..add(_elseElement);
 
   @override
@@ -6450,9 +5681,7 @@ mixin IfMixin on AstNodeImpl {
 
   Token leftParenthesis;
 
-  /**
-   * The condition used to determine which of the branches is executed next.
-   */
+  /// The condition used to determine which of the branches is executed next.
   ExpressionImpl _condition;
 
   Token rightParenthesis;
@@ -6467,8 +5696,7 @@ mixin IfMixin on AstNodeImpl {
     ..add(ifKeyword)
     ..add(leftParenthesis)
     ..add(_condition)
-    ..add(rightParenthesis)
-    ..add(elseKeyword);
+    ..add(rightParenthesis);
 
   Expression get condition => _condition;
 
@@ -6482,68 +5710,36 @@ mixin IfMixin on AstNodeImpl {
   }
 }
 
-/**
- * An if statement.
- *
- *    ifStatement ::=
- *        'if' '(' [Expression] ')' [Statement] ('else' [Statement])?
- */
-class IfStatementImpl extends StatementImpl implements IfStatement {
-  /**
-   * The token representing the 'if' keyword.
-   */
-  @override
-  Token ifKeyword;
-
-  /**
-   * The left parenthesis.
-   */
-  @override
-  Token leftParenthesis;
-
-  /**
-   * The condition used to determine which of the statements is executed next.
-   */
-  ExpressionImpl _condition;
-
-  /**
-   * The right parenthesis.
-   */
-  @override
-  Token rightParenthesis;
-
-  /**
-   * The statement that is executed if the condition evaluates to `true`.
-   */
+/// An if statement.
+///
+///    ifStatement ::=
+///        'if' '(' [Expression] ')' [Statement] ('else' [Statement])?
+class IfStatementImpl extends StatementImpl
+    with IfMixin
+    implements IfStatement {
+  /// The statement that is executed if the condition evaluates to `true`.
   StatementImpl _thenStatement;
 
-  /**
-   * The token representing the 'else' keyword, or `null` if there is no else
-   * statement.
-   */
-  @override
-  Token elseKeyword;
-
-  /**
-   * The statement that is executed if the condition evaluates to `false`, or
-   * `null` if there is no else statement.
-   */
+  /// The statement that is executed if the condition evaluates to `false`, or
+  /// `null` if there is no else statement.
   StatementImpl _elseStatement;
 
-  /**
-   * Initialize a newly created if statement. The [elseKeyword] and
-   * [elseStatement] can be `null` if there is no else clause.
-   */
+  /// Initialize a newly created if statement. The [elseKeyword] and
+  /// [elseStatement] can be `null` if there is no else clause.
   IfStatementImpl(
-      this.ifKeyword,
-      this.leftParenthesis,
+      Token ifKeyword,
+      Token leftParenthesis,
       ExpressionImpl condition,
-      this.rightParenthesis,
+      Token rightParenthesis,
       StatementImpl thenStatement,
-      this.elseKeyword,
+      Token elseKeyword,
       StatementImpl elseStatement) {
+    this.ifKeyword = ifKeyword;
+    this.leftParenthesis = leftParenthesis;
     _condition = _becomeParentOf(condition);
+    this.rightParenthesis = rightParenthesis;
     _thenStatement = _becomeParentOf(thenStatement);
+    this.elseKeyword = elseKeyword;
     _elseStatement = _becomeParentOf(elseStatement);
   }
 
@@ -6552,21 +5748,10 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
-    ..add(ifKeyword)
-    ..add(leftParenthesis)
-    ..add(_condition)
-    ..add(rightParenthesis)
+    ..addAll(super.childEntities)
     ..add(_thenStatement)
     ..add(elseKeyword)
     ..add(_elseStatement);
-
-  @override
-  Expression get condition => _condition;
-
-  @override
-  void set condition(Expression expression) {
-    _condition = _becomeParentOf(expression as ExpressionImpl);
-  }
 
   @override
   Statement get elseStatement => _elseStatement;
@@ -6603,27 +5788,19 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   }
 }
 
-/**
- * The "implements" clause in an class declaration.
- *
- *    implementsClause ::=
- *        'implements' [TypeName] (',' [TypeName])*
- */
+/// The "implements" clause in an class declaration.
+///
+///    implementsClause ::=
+///        'implements' [TypeName] (',' [TypeName])*
 class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
-  /**
-   * The token representing the 'implements' keyword.
-   */
+  /// The token representing the 'implements' keyword.
   @override
   Token implementsKeyword;
 
-  /**
-   * The interfaces that are being implemented.
-   */
+  /// The interfaces that are being implemented.
   NodeList<TypeName> _interfaces;
 
-  /**
-   * Initialize a newly created implements clause.
-   */
+  /// Initialize a newly created implements clause.
   ImplementsClauseImpl(this.implementsKeyword, List<TypeName> interfaces) {
     _interfaces = new NodeListImpl<TypeName>(this, interfaces);
   }
@@ -6652,42 +5829,34 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   }
 }
 
-/**
- * An import directive.
- *
- *    importDirective ::=
- *        [Annotation] 'import' [StringLiteral] ('as' identifier)? [Combinator]* ';'
- *      | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier [Combinator]* ';'
- */
+/// An import directive.
+///
+///    importDirective ::=
+///        [Annotation] 'import' [StringLiteral] ('as' identifier)?
+//         [Combinator]* ';'
+///      | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier
+//         [Combinator]* ';'
 class ImportDirectiveImpl extends NamespaceDirectiveImpl
     implements ImportDirective {
-  /**
-   * The token representing the 'deferred' keyword, or `null` if the imported is
-   * not deferred.
-   */
+  /// The token representing the 'deferred' keyword, or `null` if the imported
+  /// is not deferred.
   Token deferredKeyword;
 
-  /**
-   * The token representing the 'as' keyword, or `null` if the imported names are
-   * not prefixed.
-   */
+  /// The token representing the 'as' keyword, or `null` if the imported names
+  /// are not prefixed.
   @override
   Token asKeyword;
 
-  /**
-   * The prefix to be used with the imported names, or `null` if the imported
-   * names are not prefixed.
-   */
+  /// The prefix to be used with the imported names, or `null` if the imported
+  /// names are not prefixed.
   SimpleIdentifierImpl _prefix;
 
-  /**
-   * Initialize a newly created import directive. Either or both of the
-   * [comment] and [metadata] can be `null` if the function does not have the
-   * corresponding attribute. The [deferredKeyword] can be `null` if the import
-   * is not deferred. The [asKeyword] and [prefix] can be `null` if the import
-   * does not specify a prefix. The list of [combinators] can be `null` if there
-   * are no combinators.
-   */
+  /// Initialize a newly created import directive. Either or both of the
+  /// [comment] and [metadata] can be `null` if the function does not have the
+  /// corresponding attribute. The [deferredKeyword] can be `null` if the import
+  /// is not deferred. The [asKeyword] and [prefix] can be `null` if the import
+  /// does not specify a prefix. The list of [combinators] can be `null` if
+  /// there are no combinators.
   ImportDirectiveImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -6744,69 +5913,49 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 }
 
-/**
- * An index expression.
- *
- *    indexExpression ::=
- *        [Expression] '[' [Expression] ']'
- */
+/// An index expression.
+///
+///    indexExpression ::=
+///        [Expression] '[' [Expression] ']'
 class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
-  /**
-   * The expression used to compute the object being indexed, or `null` if this
-   * index expression is part of a cascade expression.
-   */
+  /// The expression used to compute the object being indexed, or `null` if this
+  /// index expression is part of a cascade expression.
   ExpressionImpl _target;
 
-  /**
-   * The period ("..") before a cascaded index expression, or `null` if this
-   * index expression is not part of a cascade expression.
-   */
+  /// The period ("..") before a cascaded index expression, or `null` if this
+  /// index expression is not part of a cascade expression.
   @override
   Token period;
 
-  /**
-   * The left square bracket.
-   */
+  /// The left square bracket.
   @override
   Token leftBracket;
 
-  /**
-   * The expression used to compute the index.
-   */
+  /// The expression used to compute the index.
   ExpressionImpl _index;
 
-  /**
-   * The right square bracket.
-   */
+  /// The right square bracket.
   @override
   Token rightBracket;
 
-  /**
-   * The element associated with the operator based on the static type of the
-   * target, or `null` if the AST structure has not been resolved or if the
-   * operator could not be resolved.
-   */
+  /// The element associated with the operator based on the static type of the
+  /// target, or `null` if the AST structure has not been resolved or if the
+  /// operator could not be resolved.
   @override
   MethodElement staticElement;
 
-  /**
-   * If this expression is both in a getter and setter context, the
-   * [AuxiliaryElements] will be set to hold onto the static element from the
-   * getter context.
-   */
+  /// If this expression is both in a getter and setter context, the
+  /// [AuxiliaryElements] will be set to hold onto the static element from the
+  /// getter context.
   AuxiliaryElements auxiliaryElements = null;
 
-  /**
-   * Initialize a newly created index expression.
-   */
+  /// Initialize a newly created index expression.
   IndexExpressionImpl.forCascade(
       this.period, this.leftBracket, ExpressionImpl index, this.rightBracket) {
     _index = _becomeParentOf(index);
   }
 
-  /**
-   * Initialize a newly created index expression.
-   */
+  /// Initialize a newly created index expression.
   IndexExpressionImpl.forTarget(ExpressionImpl target, this.leftBracket,
       ExpressionImpl index, this.rightBracket) {
     _target = _becomeParentOf(target);
@@ -6850,8 +5999,13 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   @override
   bool get isCascaded => period != null;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @deprecated
   @override
@@ -6884,12 +6038,10 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
     _target = _becomeParentOf(expression as ExpressionImpl);
   }
 
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on static type information, then return the parameter element
-   * representing the parameter to which the value of the index expression will
-   * be bound. Otherwise, return `null`.
-   */
+  /// If the AST structure has been resolved, and the function being invoked is
+  /// known based on static type information, then return the parameter element
+  /// representing the parameter to which the value of the index expression will
+  /// be bound. Otherwise, return `null`.
   ParameterElement get _staticParameterElementForIndex {
     if (staticElement == null) {
       return null;
@@ -6939,54 +6091,41 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   }
 }
 
-/**
- * An instance creation expression.
- *
- *    newExpression ::=
- *        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
- */
+/// An instance creation expression.
+///
+///    newExpression ::=
+///        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])?
+///        [ArgumentList]
 class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
   // TODO(brianwilkerson) Consider making InstanceCreationExpressionImpl extend
   // InvocationExpressionImpl. This would probably be a breaking change, but is
   // also probably worth it.
 
-  /**
-   * The 'new' or 'const' keyword used to indicate how an object should be
-   * created, or `null` if the keyword is implicit.
-   */
+  /// The 'new' or 'const' keyword used to indicate how an object should be
+  /// created, or `null` if the keyword is implicit.
   @override
   Token keyword;
 
-  /**
-   * The name of the constructor to be invoked.
-   */
+  /// The name of the constructor to be invoked.
   ConstructorNameImpl _constructorName;
 
-  /**
-   * The type arguments associated with the constructor, rather than with the
-   * class in which the constructor is defined. It is always an error if there
-   * are type arguments because Dart doesn't currently support generic
-   * constructors, but we capture them in the AST in order to recover better.
-   */
+  /// The type arguments associated with the constructor, rather than with the
+  /// class in which the constructor is defined. It is always an error if there
+  /// are type arguments because Dart doesn't currently support generic
+  /// constructors, but we capture them in the AST in order to recover better.
   TypeArgumentListImpl _typeArguments;
 
-  /**
-   * The list of arguments to the constructor.
-   */
+  /// The list of arguments to the constructor.
   ArgumentListImpl _argumentList;
 
-  /**
-   * The element associated with the constructor based on static type
-   * information, or `null` if the AST structure has not been resolved or if the
-   * constructor could not be resolved.
-   */
+  /// The element associated with the constructor based on static type
+  /// information, or `null` if the AST structure has not been resolved or if
+  /// the constructor could not be resolved.
   @override
   ConstructorElement staticElement;
 
-  /**
-   * Initialize a newly created instance creation expression.
-   */
+  /// Initialize a newly created instance creation expression.
   InstanceCreationExpressionImpl(this.keyword,
       ConstructorNameImpl constructorName, ArgumentListImpl argumentList,
       {TypeArgumentListImpl typeArguments}) {
@@ -7033,28 +6172,27 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
     }
   }
 
-  /**
-   * Return `true` if this is an implicit constructor invocations.
-   */
+  /// Return `true` if this is an implicit constructor invocations.
   bool get isImplicit => keyword == null;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
 
-  /**
-   * Return the type arguments associated with the constructor, rather than with
-   * the class in which the constructor is defined. It is always an error if
-   * there are type arguments because Dart doesn't currently support generic
-   * constructors, but we capture them in the AST in order to recover better.
-   */
+  @override
+  Precedence get precedence2 => Precedence.primary;
+
+  /// Return the type arguments associated with the constructor, rather than
+  /// with the class in which the constructor is defined. It is always an error
+  /// if there are type arguments because Dart doesn't currently support generic
+  /// constructors, but we capture them in the AST in order to recover better.
   TypeArgumentList get typeArguments => _typeArguments;
 
-  /**
-   * Return the type arguments associated with the constructor, rather than with
-   * the class in which the constructor is defined. It is always an error if
-   * there are type arguments because Dart doesn't currently support generic
-   * constructors, but we capture them in the AST in order to recover better.
-   */
+  /// Return the type arguments associated with the constructor, rather than
+  /// with the class in which the constructor is defined. It is always an error
+  /// if there are type arguments because Dart doesn't currently support generic
+  /// constructors, but we capture them in the AST in order to recover better.
   void set typeArguments(TypeArgumentList typeArguments) {
     _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl);
   }
@@ -7063,23 +6201,21 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitInstanceCreationExpression(this);
 
-  /**
-   * Return `true` if it would be valid for this instance creation expression to
-   * have a keyword of `const`. It is valid if
-   *
-   * * the invoked constructor is a `const` constructor,
-   * * all of the arguments are, or could be, constant expressions, and
-   * * the evaluation of the constructor would not produce an exception.
-   *
-   * Note that this method will return `false` if the AST has not been resolved
-   * because without resolution it cannot be determined whether the constructor
-   * is a `const` constructor.
-   *
-   * Also note that this method can cause constant evaluation to occur, which
-   * can be computationally expensive.
-   * 
-   * Deprecated: Use `LinterContext.canBeConst` instead.
-   */
+  /// Return `true` if it would be valid for this instance creation expression
+  /// to have a keyword of `const`. It is valid if
+  ///
+  /// * the invoked constructor is a `const` constructor,
+  /// * all of the arguments are, or could be, constant expressions, and
+  /// * the evaluation of the constructor would not produce an exception.
+  ///
+  /// Note that this method will return `false` if the AST has not been resolved
+  /// because without resolution it cannot be determined whether the constructor
+  /// is a `const` constructor.
+  ///
+  /// Also note that this method can cause constant evaluation to occur, which
+  /// can be computationally expensive.
+  ///
+  /// Deprecated: Use `LinterContext.canBeConst` instead.
   @deprecated
   bool canBeConst() {
     //
@@ -7154,36 +6290,28 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 }
 
-/**
- * An integer literal expression.
- *
- *    integerLiteral ::=
- *        decimalIntegerLiteral
- *      | hexadecimalIntegerLiteral
- *
- *    decimalIntegerLiteral ::=
- *        decimalDigit+
- *
- *    hexadecimalIntegerLiteral ::=
- *        '0x' hexadecimalDigit+
- *      | '0X' hexadecimalDigit+
- */
+/// An integer literal expression.
+///
+///    integerLiteral ::=
+///        decimalIntegerLiteral
+///      | hexadecimalIntegerLiteral
+///
+///    decimalIntegerLiteral ::=
+///        decimalDigit+
+///
+///    hexadecimalIntegerLiteral ::=
+///        '0x' hexadecimalDigit+
+///      | '0X' hexadecimalDigit+
 class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
-  /**
-   * The token representing the literal.
-   */
+  /// The token representing the literal.
   @override
   Token literal;
 
-  /**
-   * The value of the literal.
-   */
+  /// The value of the literal.
   @override
   int value = 0;
 
-  /**
-   * Initialize a newly created integer literal.
-   */
+  /// Initialize a newly created integer literal.
   IntegerLiteralImpl(this.literal, this.value);
 
   @override
@@ -7196,14 +6324,12 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   @override
   Token get endToken => literal;
 
-  /**
-   * Returns whether this literal's [parent] is a [PrefixExpression] of unary
-   * negation.
-   *
-   * Note: this does *not* indicate that the value itself is negated, just that
-   * the literal is the child of a negation operation. The literal value itself
-   * will always be positive.
-   */
+  /// Returns whether this literal's [parent] is a [PrefixExpression] of unary
+  /// negation.
+  ///
+  /// Note: this does *not* indicate that the value itself is negated, just that
+  /// the literal is the child of a negation operation. The literal value itself
+  /// will always be positive.
   bool get immediatelyNegated {
     AstNode parent = this.parent; // Capture for type propagation.
     return parent is PrefixExpression &&
@@ -7249,11 +6375,9 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
     return fullPrecision & bottomMask == BigInt.zero;
   }
 
-  /**
-   * Return `true` if the given [lexeme] is a valid lexeme for an integer
-   * literal. The flag [isNegative] should be `true` if the lexeme is preceded
-   * by a unary negation operator.
-   */
+  /// Return `true` if the given [lexeme] is a valid lexeme for an integer
+  /// literal. The flag [isNegative] should be `true` if the lexeme is preceded
+  /// by a unary negation operator.
   static bool isValidAsInteger(String lexeme, bool isNegative) {
     // TODO(jmesserly): this depends on the platform int implementation, and
     // may not be accurate if run on dart4web.
@@ -7266,57 +6390,44 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
     return int.tryParse(lexeme) != null;
   }
 
-  /**
-   * Suggest the nearest valid double to a user. If the integer they wrote
-   * requires more than a 53 bit mantissa, or more than 10 exponent bits, do
-   * them the favor of suggesting the nearest integer that would work for them.
-   */
+  /// Suggest the nearest valid double to a user. If the integer they wrote
+  /// requires more than a 53 bit mantissa, or more than 10 exponent bits, do
+  /// them the favor of suggesting the nearest integer that would work for them.
   static double nearestValidDouble(String lexeme) =>
       math.min(double.maxFinite, BigInt.parse(lexeme).toDouble());
 }
 
-/**
- * A node within a [StringInterpolation].
- *
- *    interpolationElement ::=
- *        [InterpolationExpression]
- *      | [InterpolationString]
- */
+/// A node within a [StringInterpolation].
+///
+///    interpolationElement ::=
+///        [InterpolationExpression]
+///      | [InterpolationString]
 abstract class InterpolationElementImpl extends AstNodeImpl
     implements InterpolationElement {}
 
-/**
- * An expression embedded in a string interpolation.
- *
- *    interpolationExpression ::=
- *        '$' [SimpleIdentifier]
- *      | '$' '{' [Expression] '}'
- */
+/// An expression embedded in a string interpolation.
+///
+///    interpolationExpression ::=
+///        '$' [SimpleIdentifier]
+///      | '$' '{' [Expression] '}'
 class InterpolationExpressionImpl extends InterpolationElementImpl
     implements InterpolationExpression {
-  /**
-   * The token used to introduce the interpolation expression; either '$' if the
-   * expression is a simple identifier or '${' if the expression is a full
-   * expression.
-   */
+  /// The token used to introduce the interpolation expression; either '$' if
+  /// the expression is a simple identifier or '${' if the expression is a full
+  /// expression.
   @override
   Token leftBracket;
 
-  /**
-   * The expression to be evaluated for the value to be converted into a string.
-   */
+  /// The expression to be evaluated for the value to be converted into a
+  /// string.
   ExpressionImpl _expression;
 
-  /**
-   * The right curly bracket, or `null` if the expression is an identifier
-   * without brackets.
-   */
+  /// The right curly bracket, or `null` if the expression is an identifier
+  /// without brackets.
   @override
   Token rightBracket;
 
-  /**
-   * Initialize a newly created interpolation expression.
-   */
+  /// Initialize a newly created interpolation expression.
   InterpolationExpressionImpl(
       this.leftBracket, ExpressionImpl expression, this.rightBracket) {
     _expression = _becomeParentOf(expression);
@@ -7357,30 +6468,22 @@ class InterpolationExpressionImpl extends InterpolationElementImpl
   }
 }
 
-/**
- * A non-empty substring of an interpolated string.
- *
- *    interpolationString ::=
- *        characters
- */
+/// A non-empty substring of an interpolated string.
+///
+///    interpolationString ::=
+///        characters
 class InterpolationStringImpl extends InterpolationElementImpl
     implements InterpolationString {
-  /**
-   * The characters that will be added to the string.
-   */
+  /// The characters that will be added to the string.
   @override
   Token contents;
 
-  /**
-   * The value of the literal.
-   */
+  /// The value of the literal.
   @override
   String value;
 
-  /**
-   * Initialize a newly created string of characters that are part of a string
-   * interpolation.
-   */
+  /// Initialize a newly created string of characters that are part of a string
+  /// interpolation.
   InterpolationStringImpl(this.contents, this.value);
 
   @override
@@ -7413,29 +6516,21 @@ class InterpolationStringImpl extends InterpolationElementImpl
   void visitChildren(AstVisitor visitor) {}
 }
 
-/**
- * Common base class for [FunctionExpressionInvocationImpl] and
- * [MethodInvocationImpl].
- */
+/// Common base class for [FunctionExpressionInvocationImpl] and
+/// [MethodInvocationImpl].
 abstract class InvocationExpressionImpl extends ExpressionImpl
     implements InvocationExpression {
-  /**
-   * The list of arguments to the function.
-   */
+  /// The list of arguments to the function.
   ArgumentListImpl _argumentList;
 
-  /**
-   * The type arguments to be applied to the method being invoked, or `null` if
-   * no type arguments were provided.
-   */
+  /// The type arguments to be applied to the method being invoked, or `null` if
+  /// no type arguments were provided.
   TypeArgumentListImpl _typeArguments;
 
   @override
   DartType staticInvokeType;
 
-  /**
-   * Initialize a newly created invocation.
-   */
+  /// Initialize a newly created invocation.
   InvocationExpressionImpl(
       TypeArgumentListImpl typeArguments, ArgumentListImpl argumentList) {
     _typeArguments = _becomeParentOf(typeArguments);
@@ -7465,39 +6560,27 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
   }
 }
 
-/**
- * An is expression.
- *
- *    isExpression ::=
- *        [Expression] 'is' '!'? [TypeName]
- */
+/// An is expression.
+///
+///    isExpression ::=
+///        [Expression] 'is' '!'? [TypeName]
 class IsExpressionImpl extends ExpressionImpl implements IsExpression {
-  /**
-   * The expression used to compute the value whose type is being tested.
-   */
+  /// The expression used to compute the value whose type is being tested.
   ExpressionImpl _expression;
 
-  /**
-   * The is operator.
-   */
+  /// The is operator.
   @override
   Token isOperator;
 
-  /**
-   * The not operator, or `null` if the sense of the test is not negated.
-   */
+  /// The not operator, or `null` if the sense of the test is not negated.
   @override
   Token notOperator;
 
-  /**
-   * The name of the type being tested for.
-   */
+  /// The name of the type being tested for.
   TypeAnnotationImpl _type;
 
-  /**
-   * Initialize a newly created is expression. The [notOperator] can be `null`
-   * if the sense of the test is not negated.
-   */
+  /// Initialize a newly created is expression. The [notOperator] can be `null`
+  /// if the sense of the test is not negated.
   IsExpressionImpl(ExpressionImpl expression, this.isOperator, this.notOperator,
       TypeAnnotationImpl type) {
     _expression = _becomeParentOf(expression);
@@ -7525,8 +6608,13 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 7;
+  int get precedence => RELATIONAL_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.relational;
 
   @override
   TypeAnnotation get type => _type;
@@ -7546,26 +6634,18 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 }
 
-/**
- * A statement that has a label associated with them.
- *
- *    labeledStatement ::=
- *       [Label]+ [Statement]
- */
+/// A statement that has a label associated with them.
+///
+///    labeledStatement ::=
+///       [Label]+ [Statement]
 class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
-  /**
-   * The labels being associated with the statement.
-   */
+  /// The labels being associated with the statement.
   NodeList<Label> _labels;
 
-  /**
-   * The statement with which the labels are being associated.
-   */
+  /// The statement with which the labels are being associated.
   StatementImpl _statement;
 
-  /**
-   * Initialize a newly created labeled statement.
-   */
+  /// Initialize a newly created labeled statement.
   LabeledStatementImpl(List<Label> labels, StatementImpl statement) {
     _labels = new NodeListImpl<Label>(this, labels);
     _statement = _becomeParentOf(statement);
@@ -7611,27 +6691,19 @@ class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
   }
 }
 
-/**
- * A label on either a [LabeledStatement] or a [NamedExpression].
- *
- *    label ::=
- *        [SimpleIdentifier] ':'
- */
+/// A label on either a [LabeledStatement] or a [NamedExpression].
+///
+///    label ::=
+///        [SimpleIdentifier] ':'
 class LabelImpl extends AstNodeImpl implements Label {
-  /**
-   * The label being associated with the statement.
-   */
+  /// The label being associated with the statement.
   SimpleIdentifierImpl _label;
 
-  /**
-   * The colon that separates the label from the statement.
-   */
+  /// The colon that separates the label from the statement.
   @override
   Token colon;
 
-  /**
-   * Initialize a newly created label.
-   */
+  /// Initialize a newly created label.
   LabelImpl(SimpleIdentifierImpl label, this.colon) {
     _label = _becomeParentOf(label);
   }
@@ -7663,35 +6735,25 @@ class LabelImpl extends AstNodeImpl implements Label {
   }
 }
 
-/**
- * A library directive.
- *
- *    libraryDirective ::=
- *        [Annotation] 'library' [Identifier] ';'
- */
+/// A library directive.
+///
+///    libraryDirective ::=
+///        [Annotation] 'library' [Identifier] ';'
 class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
-  /**
-   * The token representing the 'library' keyword.
-   */
+  /// The token representing the 'library' keyword.
   @override
   Token libraryKeyword;
 
-  /**
-   * The name of the library being defined.
-   */
+  /// The name of the library being defined.
   LibraryIdentifierImpl _name;
 
-  /**
-   * The semicolon terminating the directive.
-   */
+  /// The semicolon terminating the directive.
   @override
   Token semicolon;
 
-  /**
-   * Initialize a newly created library directive. Either or both of the
-   * [comment] and [metadata] can be `null` if the directive does not have the
-   * corresponding attribute.
-   */
+  /// Initialize a newly created library directive. Either or both of the
+  /// [comment] and [metadata] can be `null` if the directive does not have the
+  /// corresponding attribute.
   LibraryDirectiveImpl(CommentImpl comment, List<Annotation> metadata,
       this.libraryKeyword, LibraryIdentifierImpl name, this.semicolon)
       : super(comment, metadata) {
@@ -7729,22 +6791,16 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   }
 }
 
-/**
- * The identifier for a library.
- *
- *    libraryIdentifier ::=
- *        [SimpleIdentifier] ('.' [SimpleIdentifier])*
- */
+/// The identifier for a library.
+///
+///    libraryIdentifier ::=
+///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
 class LibraryIdentifierImpl extends IdentifierImpl
     implements LibraryIdentifier {
-  /**
-   * The components of the identifier.
-   */
+  /// The components of the identifier.
   NodeList<SimpleIdentifier> _components;
 
-  /**
-   * Initialize a newly created prefixed identifier.
-   */
+  /// Initialize a newly created prefixed identifier.
   LibraryIdentifierImpl(List<SimpleIdentifier> components) {
     _components = new NodeListImpl<SimpleIdentifier>(this, components);
   }
@@ -7784,8 +6840,13 @@ class LibraryIdentifierImpl extends IdentifierImpl
     return buffer.toString();
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @deprecated
   @override
@@ -7803,35 +6864,31 @@ class LibraryIdentifierImpl extends IdentifierImpl
   }
 }
 
-/**
- * A list literal.
- *
- *    listLiteral ::=
- *        'const'? ('<' [TypeAnnotation] '>')?
- *        '[' ([CollectionLiteralElement] ','?)? ']'
- *
- * This is the class that is used to represent a list literal when either the
- * 'control-flow-collections' or 'spread-collections' experiments are enabled.
- * If neither of those experiments are enabled, then [ListLiteral] will be used.
- */
+/// A list literal.
+///
+///    listLiteral ::=
+///        'const'? ('<' [TypeAnnotation] '>')?
+///        '[' ([CollectionLiteralElement] ','?)? ']'
+///
+/// This is the class that is used to represent a list literal when either the
+/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
+/// If neither of those experiments are enabled, then [ListLiteral] will be
+/// used.
+@Deprecated('Replaced by ListLiteralImpl')
 class ListLiteral2Impl extends TypedLiteralImpl implements ListLiteral2 {
   @override
   Token leftBracket;
 
-  /**
-   * The elements used to compute the elements of the list.
-   */
+  /// The elements used to compute the elements of the list.
   NodeList<CollectionElement> _elements;
 
   @override
   Token rightBracket;
 
-  /**
-   * Initialize a newly created list literal. The [constKeyword] can be `null`
-   * if the literal is not a constant. The [typeArguments] can be `null` if no
-   * type arguments were declared. The list of [elements] can be `null` if the
-   * list is empty.
-   */
+  /// Initialize a newly created list literal. The [constKeyword] can be `null`
+  /// if the literal is not a constant. The [typeArguments] can be `null` if no
+  /// type arguments were declared. The list of [elements] can be `null` if the
+  /// list is empty.
   ListLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
       this.leftBracket, List<CollectionElement> elements, this.rightBracket)
       : super(constKeyword, typeArguments) {
@@ -7873,44 +6930,41 @@ class ListLiteral2Impl extends TypedLiteralImpl implements ListLiteral2 {
   }
 }
 
-/**
- * A list literal.
- *
- *    listLiteral ::=
- *        'const'? ('<' [TypeName] '>')? '[' ([Expression] ','?)? ']'
- *
- * This is the class that is used to represent a list literal when neither the
- * 'control-flow-collections' nor 'spread-collections' experiments are enabled.
- * If either of those experiments are enabled, then [ListLiteral2] will be used.
- */
 class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
-  /**
-   * The left square bracket.
-   */
+  /// The left square bracket.
   @override
   Token leftBracket;
 
-  /**
-   * The expressions used to compute the elements of the list.
-   */
-  NodeList<Expression> _elements;
+  /// The expressions used to compute the elements of the list.
+  NodeList<CollectionElement> _elements;
 
-  /**
-   * The right square bracket.
-   */
+  /// The right square bracket.
   @override
   Token rightBracket;
 
-  /**
-   * Initialize a newly created list literal. The [constKeyword] can be `null`
-   * if the literal is not a constant. The [typeArguments] can be `null` if no
-   * type arguments were declared. The list of [elements] can be `null` if the
-   * list is empty.
-   */
+  /// Initialize a newly created list literal. The [constKeyword] can be `null`
+  /// if the literal is not a constant. The [typeArguments] can be `null` if no
+  /// type arguments were declared. The list of [elements] can be `null` if the
+  /// list is empty.
   ListLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
       this.leftBracket, List<Expression> elements, this.rightBracket)
       : super(constKeyword, typeArguments) {
     _elements = new NodeListImpl<Expression>(this, elements);
+  }
+
+  /// Initialize a newly created list literal.
+  ///
+  /// The [constKeyword] can be `null` if the literal is not a constant. The
+  /// [typeArguments] can be `null` if no type arguments were declared. The list
+  /// of [elements] can be `null` if the list is empty.
+  ListLiteralImpl.experimental(
+      Token constKeyword,
+      TypeArgumentListImpl typeArguments,
+      this.leftBracket,
+      List<CollectionElement> elements,
+      this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _elements = new NodeListImpl<CollectionElement>(this, elements);
   }
 
   @override
@@ -7936,6 +6990,9 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   NodeList<Expression> get elements => _elements;
 
   @override
+  NodeList<CollectionElement> get elements2 => _elements;
+
+  @override
   Token get endToken => rightBracket;
 
   @override
@@ -7948,139 +7005,84 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   }
 }
 
-/**
- * A node that represents a literal expression.
- *
- *    literal ::=
- *        [BooleanLiteral]
- *      | [DoubleLiteral]
- *      | [IntegerLiteral]
- *      | [ListLiteral]
- *      | [MapLiteral]
- *      | [NullLiteral]
- *      | [StringLiteral]
- */
+/// A node that represents a literal expression.
+///
+///    literal ::=
+///        [BooleanLiteral]
+///      | [DoubleLiteral]
+///      | [IntegerLiteral]
+///      | [ListLiteral]
+///      | [MapLiteral]
+///      | [NullLiteral]
+///      | [StringLiteral]
 abstract class LiteralImpl extends ExpressionImpl implements Literal {
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 }
 
-/**
- * Additional information about local variables within a function or method
- * produced at resolution time.
- */
+/// Additional information about local variables within a function or method
+/// produced at resolution time.
 class LocalVariableInfo {
-  /**
-   * The set of local variables and parameters that are potentially mutated
-   * within a local function other than the function in which they are declared.
-   */
+  /// The set of local variables and parameters that are potentially mutated
+  /// within a local function other than the function in which they are
+  /// declared.
   final Set<VariableElement> potentiallyMutatedInClosure =
       new Set<VariableElement>();
 
-  /**
-   * The set of local variables and parameters that are potentially mutated
-   * within the scope of their declarations.
-   */
+  /// The set of local variables and parameters that are potentially mutated
+  /// within the scope of their declarations.
   final Set<VariableElement> potentiallyMutatedInScope =
       new Set<VariableElement>();
 }
 
-/**
- * A literal map.
- *
- *    mapLiteral ::=
- *        'const'? ('<' [TypeAnnotation] (',' [TypeAnnotation])* '>')?
- *        '{' ([MapElement] (',' [MapElement])* ','?)? '}'
- *
- * This is the class that is used to represent a map literal when either the
- * 'control-flow-collections' or 'spread-collections' experiments are enabled.
- * If neither of those experiments are enabled, then [MapLiteral] will be used.
- */
-class MapLiteral2Impl extends TypedLiteralImpl implements MapLiteral2 {
-  @override
-  Token leftBracket;
-
-  /**
-   * The entries in the map.
-   */
-  NodeList<CollectionElement> _entries;
-
-  @override
-  Token rightBracket;
-
-  /**
-   * Initialize a newly created map literal. The [constKeyword] can be `null` if
-   * the literal is not a constant. The [typeArguments] can be `null` if no type
-   * arguments were declared. The [entries] can be `null` if the map is empty.
-   */
+/// A literal map.
+///
+///    mapLiteral ::=
+///        'const'? ('<' [TypeAnnotation] (',' [TypeAnnotation])* '>')?
+///        '{' ([MapElement] (',' [MapElement])* ','?)? '}'
+///
+/// This is the class that is used to represent a map literal when either the
+/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
+/// If neither of those experiments are enabled, then [MapLiteral] will be used.
+@Deprecated('Replaced by SetOrMapLiteralImpl')
+class MapLiteral2Impl extends SetOrMapLiteralImpl implements MapLiteral2 {
+  /// Initialize a newly created map literal. The [constKeyword] can be `null`
+  /// if the literal is not a constant. The [typeArguments] can be `null` if no
+  /// type arguments were declared. The [entries] can be `null` if the map is
+  /// empty.
   MapLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      this.leftBracket, List<CollectionElement> entries, this.rightBracket)
-      : super(constKeyword, typeArguments) {
-    _entries = new NodeListImpl<CollectionElement>(this, entries);
-  }
+      Token leftBracket, List<CollectionElement> entries, Token rightBracket)
+      : super(constKeyword, typeArguments, leftBracket, entries, rightBracket);
 
   @override
-  Token get beginToken {
-    if (constKeyword != null) {
-      return constKeyword;
-    }
-    TypeArgumentList typeArguments = this.typeArguments;
-    if (typeArguments != null) {
-      return typeArguments.beginToken;
-    }
-    return leftBracket;
-  }
-
-  @override
-  // TODO(paulberry): add commas.
-  Iterable<SyntacticEntity> get childEntities => super._childEntities
-    ..add(leftBracket)
-    ..addAll(entries)
-    ..add(rightBracket);
-
-  @override
-  Token get endToken => rightBracket;
-
-  @override
-  NodeList<CollectionElement> get entries => _entries;
+  NodeList<CollectionElement> get entries => _elements;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral2(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _entries.accept(visitor);
-  }
 }
 
-/**
- * A single key/value pair in a map literal.
- *
- *    mapLiteralEntry ::=
- *        [Expression] ':' [Expression]
- */
+/// A single key/value pair in a map literal.
+///
+///    mapLiteralEntry ::=
+///        [Expression] ':' [Expression]
 class MapLiteralEntryImpl extends CollectionElementImpl
     implements MapLiteralEntry {
-  /**
-   * The expression computing the key with which the value will be associated.
-   */
+  /// The expression computing the key with which the value will be associated.
   ExpressionImpl _key;
 
-  /**
-   * The colon that separates the key from the value.
-   */
+  /// The colon that separates the key from the value.
   @override
   Token separator;
 
-  /**
-   * The expression computing the value that will be associated with the key.
-   */
+  /// The expression computing the value that will be associated with the key.
   ExpressionImpl _value;
 
-  /**
-   * Initialize a newly created map literal entry.
-   */
+  /// Initialize a newly created map literal entry.
   MapLiteralEntryImpl(
       ExpressionImpl key, this.separator, ExpressionImpl value) {
     _key = _becomeParentOf(key);
@@ -8123,159 +7125,84 @@ class MapLiteralEntryImpl extends CollectionElementImpl
   }
 }
 
-/**
- * A literal map.
- *
- *    mapLiteral ::=
- *        'const'? ('<' [TypeName] (',' [TypeName])* '>')?
- *        '{' ([MapLiteralEntry] (',' [MapLiteralEntry])* ','?)? '}'
- */
-class MapLiteralImpl extends TypedLiteralImpl implements MapLiteral {
-  /**
-   * The left curly bracket.
-   */
-  @override
-  Token leftBracket;
-
-  /**
-   * The entries in the map.
-   */
-  NodeList<MapLiteralEntry> _entries;
-
-  /**
-   * The right curly bracket.
-   */
-  @override
-  Token rightBracket;
-
-  /**
-   * Initialize a newly created map literal. The [constKeyword] can be `null` if
-   * the literal is not a constant. The [typeArguments] can be `null` if no type
-   * arguments were declared. The [entries] can be `null` if the map is empty.
-   */
+@Deprecated('Use SetOrMapLiteral')
+class MapLiteralImpl extends SetOrMapLiteralImpl implements MapLiteral {
+  /// Initialize a newly created map literal. The [constKeyword] can be `null`
+  /// if the literal is not a constant. The [typeArguments] can be `null` if no
+  /// type arguments were declared. The [entries] can be `null` if the map is
+  /// empty.
   MapLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      this.leftBracket, List<MapLiteralEntry> entries, this.rightBracket)
-      : super(constKeyword, typeArguments) {
-    _entries = new NodeListImpl<MapLiteralEntry>(this, entries);
-  }
+      Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket)
+      : super._map(
+            constKeyword, typeArguments, leftBracket, entries, rightBracket);
 
   @override
-  Token get beginToken {
-    if (constKeyword != null) {
-      return constKeyword;
-    }
-    TypeArgumentList typeArguments = this.typeArguments;
-    if (typeArguments != null) {
-      return typeArguments.beginToken;
-    }
-    return leftBracket;
-  }
-
-  @override
-  // TODO(paulberry): add commas.
-  Iterable<SyntacticEntity> get childEntities => super._childEntities
-    ..add(leftBracket)
-    ..addAll(entries)
-    ..add(rightBracket);
-
-  @override
-  Token get endToken => rightBracket;
-
-  @override
-  NodeList<MapLiteralEntry> get entries => _entries;
+  NodeList<MapLiteralEntry> get entries => _elements;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _entries.accept(visitor);
-  }
 }
 
-/**
- * A method declaration.
- *
- *    methodDeclaration ::=
- *        methodSignature [FunctionBody]
- *
- *    methodSignature ::=
- *        'external'? ('abstract' | 'static')? [Type]? ('get' | 'set')?
- *        methodName [TypeParameterList] [FormalParameterList]
- *
- *    methodName ::=
- *        [SimpleIdentifier]
- *      | 'operator' [SimpleIdentifier]
- */
+/// A method declaration.
+///
+///    methodDeclaration ::=
+///        methodSignature [FunctionBody]
+///
+///    methodSignature ::=
+///        'external'? ('abstract' | 'static')? [Type]? ('get' | 'set')?
+///        methodName [TypeParameterList] [FormalParameterList]
+///
+///    methodName ::=
+///        [SimpleIdentifier]
+///      | 'operator' [SimpleIdentifier]
 class MethodDeclarationImpl extends ClassMemberImpl
     implements MethodDeclaration {
-  /**
-   * The token for the 'external' keyword, or `null` if the constructor is not
-   * external.
-   */
+  /// The token for the 'external' keyword, or `null` if the constructor is not
+  /// external.
   @override
   Token externalKeyword;
 
-  /**
-   * The token representing the 'abstract' or 'static' keyword, or `null` if
-   * neither modifier was specified.
-   */
+  /// The token representing the 'abstract' or 'static' keyword, or `null` if
+  /// neither modifier was specified.
   @override
   Token modifierKeyword;
 
-  /**
-   * The return type of the method, or `null` if no return type was declared.
-   */
+  /// The return type of the method, or `null` if no return type was declared.
   TypeAnnotationImpl _returnType;
 
-  /**
-   * The token representing the 'get' or 'set' keyword, or `null` if this is a
-   * method declaration rather than a property declaration.
-   */
+  /// The token representing the 'get' or 'set' keyword, or `null` if this is a
+  /// method declaration rather than a property declaration.
   @override
   Token propertyKeyword;
 
-  /**
-   * The token representing the 'operator' keyword, or `null` if this method
-   * does not declare an operator.
-   */
+  /// The token representing the 'operator' keyword, or `null` if this method
+  /// does not declare an operator.
   @override
   Token operatorKeyword;
 
-  /**
-   * The name of the method.
-   */
+  /// The name of the method.
   SimpleIdentifierImpl _name;
 
-  /**
-   * The type parameters associated with the method, or `null` if the method is
-   * not a generic method.
-   */
+  /// The type parameters associated with the method, or `null` if the method is
+  /// not a generic method.
   TypeParameterListImpl _typeParameters;
 
-  /**
-   * The parameters associated with the method, or `null` if this method
-   * declares a getter.
-   */
+  /// The parameters associated with the method, or `null` if this method
+  /// declares a getter.
   FormalParameterListImpl _parameters;
 
-  /**
-   * The body of the method.
-   */
+  /// The body of the method.
   FunctionBodyImpl _body;
 
-  /**
-   * Initialize a newly created method declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the declaration does not have the
-   * corresponding attribute. The [externalKeyword] can be `null` if the method
-   * is not external. The [modifierKeyword] can be `null` if the method is
-   * neither abstract nor static. The [returnType] can be `null` if no return
-   * type was specified. The [propertyKeyword] can be `null` if the method is
-   * neither a getter or a setter. The [operatorKeyword] can be `null` if the
-   * method does not implement an operator. The [parameters] must be `null` if
-   * this method declares a getter.
-   */
+  /// Initialize a newly created method declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the declaration does not have
+  /// the corresponding attribute. The [externalKeyword] can be `null` if the
+  /// method is not external. The [modifierKeyword] can be `null` if the method
+  /// is neither abstract nor static. The [returnType] can be `null` if no
+  /// return type was specified. The [propertyKeyword] can be `null` if the
+  /// method is neither a getter or a setter. The [operatorKeyword] can be
+  /// `null` if the method does not implement an operator. The [parameters] must
+  /// be `null` if this method declares a getter.
   MethodDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -8315,13 +7242,11 @@ class MethodDeclarationImpl extends ClassMemberImpl
     ..add(_parameters)
     ..add(_body);
 
-  /**
-   * Return the element associated with this method, or `null` if the AST
-   * structure has not been resolved. The element can either be a
-   * [MethodElement], if this represents the declaration of a normal method, or
-   * a [PropertyAccessorElement] if this represents the declaration of either a
-   * getter or a setter.
-   */
+  /// Return the element associated with this method, or `null` if the AST
+  /// structure has not been resolved. The element can either be a
+  /// [MethodElement], if this represents the declaration of a normal method, or
+  /// a [PropertyAccessorElement] if this represents the declaration of either a
+  /// getter or a setter.
   @override
   ExecutableElement get declaredElement =>
       _name?.staticElement as ExecutableElement;
@@ -8414,47 +7339,36 @@ class MethodDeclarationImpl extends ClassMemberImpl
   }
 }
 
-/**
- * The invocation of either a function or a method. Invocations of functions
- * resulting from evaluating an expression are represented by
- * [FunctionExpressionInvocation] nodes. Invocations of getters and setters are
- * represented by either [PrefixedIdentifier] or [PropertyAccess] nodes.
- *
- *    methodInvocation ::=
- *        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
- */
+/// The invocation of either a function or a method. Invocations of functions
+/// resulting from evaluating an expression are represented by
+/// [FunctionExpressionInvocation] nodes. Invocations of getters and setters are
+/// represented by either [PrefixedIdentifier] or [PropertyAccess] nodes.
+///
+///    methodInvocation ::=
+///        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]?
+///        [ArgumentList]
 class MethodInvocationImpl extends InvocationExpressionImpl
     implements MethodInvocation {
-  /**
-   * The expression producing the object on which the method is defined, or
-   * `null` if there is no target (that is, the target is implicitly `this`).
-   */
+  /// The expression producing the object on which the method is defined, or
+  /// `null` if there is no target (that is, the target is implicitly `this`).
   ExpressionImpl _target;
 
-  /**
-   * The operator that separates the target from the method name, or `null`
-   * if there is no target. In an ordinary method invocation this will be a
-   * period ('.'). In a cascade section this will be the cascade operator
-   * ('..').
-   */
+  /// The operator that separates the target from the method name, or `null`
+  /// if there is no target. In an ordinary method invocation this will be a
+  /// period ('.'). In a cascade section this will be the cascade operator
+  /// ('..').
   @override
   Token operator;
 
-  /**
-   * The name of the method being invoked.
-   */
+  /// The name of the method being invoked.
   SimpleIdentifierImpl _methodName;
 
-  /**
-   * The invoke type of the [methodName] if the target element is a getter,
-   * or `null` otherwise.
-   */
+  /// The invoke type of the [methodName] if the target element is a getter,
+  /// or `null` otherwise.
   DartType _methodNameType;
 
-  /**
-   * Initialize a newly created method invocation. The [target] and [operator]
-   * can be `null` if there is no target.
-   */
+  /// Initialize a newly created method invocation. The [target] and [operator]
+  /// can be `null` if there is no target.
   MethodInvocationImpl(
       ExpressionImpl target,
       this.operator,
@@ -8501,28 +7415,29 @@ class MethodInvocationImpl extends InvocationExpressionImpl
     _methodName = _becomeParentOf(identifier as SimpleIdentifierImpl);
   }
 
-  /**
-   * The invoke type of the [methodName].
-   *
-   * If the target element is a [MethodElement], this is the same as the
-   * [staticInvokeType]. If the target element is a getter, presumably
-   * returning an [ExecutableElement] so that it can be invoked in this
-   * [MethodInvocation], then this type is the type of the getter, and the
-   * [staticInvokeType] is the invoked type of the returned element.
-   */
+  /// The invoke type of the [methodName].
+  ///
+  /// If the target element is a [MethodElement], this is the same as the
+  /// [staticInvokeType]. If the target element is a getter, presumably
+  /// returning an [ExecutableElement] so that it can be invoked in this
+  /// [MethodInvocation], then this type is the type of the getter, and the
+  /// [staticInvokeType] is the invoked type of the returned element.
   DartType get methodNameType => _methodNameType ?? staticInvokeType;
 
-  /**
-   * Set the [methodName] invoke type, only if the target element is a getter.
-   * Otherwise, the target element itself is invoked, [_methodNameType] is
-   * `null`, and the getter will return [staticInvokeType].
-   */
+  /// Set the [methodName] invoke type, only if the target element is a getter.
+  /// Otherwise, the target element itself is invoked, [_methodNameType] is
+  /// `null`, and the getter will return [staticInvokeType].
   set methodNameType(DartType methodNameType) {
     _methodNameType = methodNameType;
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @override
   Expression get realTarget {
@@ -8559,33 +7474,27 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   }
 }
 
-/**
- * The declaration of a mixin.
- *
- *    mixinDeclaration ::=
- *        metadata? 'mixin' [SimpleIdentifier] [TypeParameterList]?
- *        [RequiresClause]? [ImplementsClause]? '{' [ClassMember]* '}'
- */
+/// The declaration of a mixin.
+///
+///    mixinDeclaration ::=
+///        metadata? 'mixin' [SimpleIdentifier] [TypeParameterList]?
+///        [RequiresClause]? [ImplementsClause]? '{' [ClassMember]* '}'
 class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
     implements MixinDeclaration {
   @override
   Token mixinKeyword;
 
-  /**
-   * The on clause for the mixin, or `null` if the mixin does not have any
-   * super-class constraints.
-   */
+  /// The on clause for the mixin, or `null` if the mixin does not have any
+  /// super-class constraints.
   OnClauseImpl _onClause;
 
-  /**
-   * Initialize a newly created mixin declaration. Either or both of the
-   * [comment] and [metadata] can be `null` if the mixin does not have the
-   * corresponding attribute. The [typeParameters] can be `null` if the mixin does not
-   * have any type parameters. Either or both of the [onClause],
-   * and [implementsClause] can be `null` if the mixin does not have the
-   * corresponding clause. The list of [members] can be `null` if the mixin does
-   * not have any members.
-   */
+  /// Initialize a newly created mixin declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the mixin does not have the
+  /// corresponding attribute. The [typeParameters] can be `null` if the mixin
+  /// does not have any type parameters. Either or both of the [onClause],
+  /// and [implementsClause] can be `null` if the mixin does not have the
+  /// corresponding clause. The list of [members] can be `null` if the mixin
+  /// does not have any members.
   MixinDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -8664,21 +7573,15 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   }
 }
 
-/**
- * A node that declares a single name within the scope of a compilation unit.
- */
+/// A node that declares a single name within the scope of a compilation unit.
 abstract class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
     implements NamedCompilationUnitMember {
-  /**
-   * The name of the member being declared.
-   */
+  /// The name of the member being declared.
   SimpleIdentifierImpl _name;
 
-  /**
-   * Initialize a newly created compilation unit member with the given [name].
-   * Either or both of the [comment] and [metadata] can be `null` if the member
-   * does not have the corresponding attribute.
-   */
+  /// Initialize a newly created compilation unit member with the given [name].
+  /// Either or both of the [comment] and [metadata] can be `null` if the member
+  /// does not have the corresponding attribute.
   NamedCompilationUnitMemberImpl(
       CommentImpl comment, List<Annotation> metadata, SimpleIdentifierImpl name)
       : super(comment, metadata) {
@@ -8694,27 +7597,19 @@ abstract class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
   }
 }
 
-/**
- * An expression that has a name associated with it. They are used in method
- * invocations when there are named parameters.
- *
- *    namedExpression ::=
- *        [Label] [Expression]
- */
+/// An expression that has a name associated with it. They are used in method
+/// invocations when there are named parameters.
+///
+///    namedExpression ::=
+///        [Label] [Expression]
 class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
-  /**
-   * The name associated with the expression.
-   */
+  /// The name associated with the expression.
   LabelImpl _name;
 
-  /**
-   * The expression with which the name is associated.
-   */
+  /// The expression with which the name is associated.
   ExpressionImpl _expression;
 
-  /**
-   * Initialize a newly created named expression..
-   */
+  /// Initialize a newly created named expression..
   NamedExpressionImpl(LabelImpl name, ExpressionImpl expression) {
     _name = _becomeParentOf(name);
     _expression = _becomeParentOf(expression);
@@ -8755,8 +7650,13 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
     _name = _becomeParentOf(identifier as LabelImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 0;
+  int get precedence => NO_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.none;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitNamedExpression(this);
@@ -8768,35 +7668,25 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
   }
 }
 
-/**
- * A node that represents a directive that impacts the namespace of a library.
- *
- *    directive ::=
- *        [ExportDirective]
- *      | [ImportDirective]
- */
+/// A node that represents a directive that impacts the namespace of a library.
+///
+///    directive ::=
+///        [ExportDirective]
+///      | [ImportDirective]
 abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
     implements NamespaceDirective {
-  /**
-   * The token representing the 'import' or 'export' keyword.
-   */
+  /// The token representing the 'import' or 'export' keyword.
   @override
   Token keyword;
 
-  /**
-   * The configurations used to control which library will actually be loaded at
-   * run-time.
-   */
+  /// The configurations used to control which library will actually be loaded
+  /// at run-time.
   NodeList<Configuration> _configurations;
 
-  /**
-   * The combinators used to control which names are imported or exported.
-   */
+  /// The combinators used to control which names are imported or exported.
   NodeList<Combinator> _combinators;
 
-  /**
-   * The semicolon terminating the directive.
-   */
+  /// The semicolon terminating the directive.
   @override
   Token semicolon;
 
@@ -8806,12 +7696,10 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   @override
   Source selectedSource;
 
-  /**
-   * Initialize a newly created namespace directive. Either or both of the
-   * [comment] and [metadata] can be `null` if the directive does not have the
-   * corresponding attribute. The list of [combinators] can be `null` if there
-   * are no combinators.
-   */
+  /// Initialize a newly created namespace directive. Either or both of the
+  /// [comment] and [metadata] can be `null` if the directive does not have the
+  /// corresponding attribute. The list of [combinators] can be `null` if there
+  /// are no combinators.
   NamespaceDirectiveImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -8851,27 +7739,19 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   LibraryElement get uriElement;
 }
 
-/**
- * The "native" clause in an class declaration.
- *
- *    nativeClause ::=
- *        'native' [StringLiteral]
- */
+/// The "native" clause in an class declaration.
+///
+///    nativeClause ::=
+///        'native' [StringLiteral]
 class NativeClauseImpl extends AstNodeImpl implements NativeClause {
-  /**
-   * The token representing the 'native' keyword.
-   */
+  /// The token representing the 'native' keyword.
   @override
   Token nativeKeyword;
 
-  /**
-   * The name of the native object that implements the class.
-   */
+  /// The name of the native object that implements the class.
   StringLiteralImpl _name;
 
-  /**
-   * Initialize a newly created native clause.
-   */
+  /// Initialize a newly created native clause.
   NativeClauseImpl(this.nativeKeyword, StringLiteralImpl name) {
     _name = _becomeParentOf(name);
   }
@@ -8903,37 +7783,27 @@ class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   }
 }
 
-/**
- * A function body that consists of a native keyword followed by a string
- * literal.
- *
- *    nativeFunctionBody ::=
- *        'native' [SimpleStringLiteral] ';'
- */
+/// A function body that consists of a native keyword followed by a string
+/// literal.
+///
+///    nativeFunctionBody ::=
+///        'native' [SimpleStringLiteral] ';'
 class NativeFunctionBodyImpl extends FunctionBodyImpl
     implements NativeFunctionBody {
-  /**
-   * The token representing 'native' that marks the start of the function body.
-   */
+  /// The token representing 'native' that marks the start of the function body.
   @override
   Token nativeKeyword;
 
-  /**
-   * The string literal, after the 'native' token.
-   */
+  /// The string literal, after the 'native' token.
   StringLiteralImpl _stringLiteral;
 
-  /**
-   * The token representing the semicolon that marks the end of the function
-   * body.
-   */
+  /// The token representing the semicolon that marks the end of the function
+  /// body.
   @override
   Token semicolon;
 
-  /**
-   * Initialize a newly created function body consisting of the 'native' token,
-   * a string literal, and a semicolon.
-   */
+  /// Initialize a newly created function body consisting of the 'native' token,
+  /// a string literal, and a semicolon.
   NativeFunctionBodyImpl(
       this.nativeKeyword, StringLiteralImpl stringLiteral, this.semicolon) {
     _stringLiteral = _becomeParentOf(stringLiteral);
@@ -8968,25 +7838,17 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
   }
 }
 
-/**
- * A list of AST nodes that have a common parent.
- */
+/// A list of AST nodes that have a common parent.
 class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
-  /**
-   * The node that is the parent of each of the elements in the list.
-   */
+  /// The node that is the parent of each of the elements in the list.
   AstNodeImpl _owner;
 
-  /**
-   * The elements contained in the list.
-   */
+  /// The elements contained in the list.
   List<E> _elements = <E>[];
 
-  /**
-   * Initialize a newly created list of nodes such that all of the nodes that
-   * are added to the list will have their parent set to the given [owner]. The
-   * list will initially be populated with the given [elements].
-   */
+  /// Initialize a newly created list of nodes such that all of the nodes that
+  /// are added to the list will have their parent set to the given [owner]. The
+  /// list will initially be populated with the given [elements].
   NodeListImpl(this._owner, [List<E> elements]) {
     addAll(elements);
   }
@@ -9116,42 +7978,30 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   }
 }
 
-/**
- * A formal parameter that is required (is not optional).
- *
- *    normalFormalParameter ::=
- *        [FunctionTypedFormalParameter]
- *      | [FieldFormalParameter]
- *      | [SimpleFormalParameter]
- */
+/// A formal parameter that is required (is not optional).
+///
+///    normalFormalParameter ::=
+///        [FunctionTypedFormalParameter]
+///      | [FieldFormalParameter]
+///      | [SimpleFormalParameter]
 abstract class NormalFormalParameterImpl extends FormalParameterImpl
     implements NormalFormalParameter {
-  /**
-   * The documentation comment associated with this parameter, or `null` if this
-   * parameter does not have a documentation comment associated with it.
-   */
+  /// The documentation comment associated with this parameter, or `null` if
+  /// this parameter does not have a documentation comment associated with it.
   CommentImpl _comment;
 
-  /**
-   * The annotations associated with this parameter.
-   */
+  /// The annotations associated with this parameter.
   NodeList<Annotation> _metadata;
 
-  /**
-   * The 'covariant' keyword, or `null` if the keyword was not used.
-   */
+  /// The 'covariant' keyword, or `null` if the keyword was not used.
   Token covariantKeyword;
 
-  /**
-   * The name of the parameter being declared.
-   */
+  /// The name of the parameter being declared.
   SimpleIdentifierImpl _identifier;
 
-  /**
-   * Initialize a newly created formal parameter. Either or both of the
-   * [comment] and [metadata] can be `null` if the parameter does not have the
-   * corresponding attribute.
-   */
+  /// Initialize a newly created formal parameter. Either or both of the
+  /// [comment] and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute.
   NormalFormalParameterImpl(CommentImpl comment, List<Annotation> metadata,
       this.covariantKeyword, SimpleIdentifierImpl identifier) {
     _comment = _becomeParentOf(comment);
@@ -9235,9 +8085,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
     }
   }
 
-  /**
-   * Return `true` if the comment is lexically before any annotations.
-   */
+  /// Return `true` if the comment is lexically before any annotations.
   bool _commentIsBeforeAnnotations() {
     if (_comment == null || _metadata.isEmpty) {
       return true;
@@ -9247,21 +8095,15 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   }
 }
 
-/**
- * A null literal expression.
- *
- *    nullLiteral ::=
- *        'null'
- */
+/// A null literal expression.
+///
+///    nullLiteral ::=
+///        'null'
 class NullLiteralImpl extends LiteralImpl implements NullLiteral {
-  /**
-   * The token representing the literal.
-   */
+  /// The token representing the literal.
   Token literal;
 
-  /**
-   * Initialize a newly created null literal.
-   */
+  /// Initialize a newly created null literal.
   NullLiteralImpl(this.literal);
 
   @override
@@ -9283,24 +8125,18 @@ class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   }
 }
 
-/**
- * The "on" clause in a mixin declaration.
- *
- *    onClause ::=
- *        'on' [TypeName] (',' [TypeName])*
- */
+/// The "on" clause in a mixin declaration.
+///
+///    onClause ::=
+///        'on' [TypeName] (',' [TypeName])*
 class OnClauseImpl extends AstNodeImpl implements OnClause {
   @override
   Token onKeyword;
 
-  /**
-   * The classes are super-class constraints for the mixin.
-   */
+  /// The classes are super-class constraints for the mixin.
   NodeList<TypeName> _superclassConstraints;
 
-  /**
-   * Initialize a newly created on clause.
-   */
+  /// Initialize a newly created on clause.
   OnClauseImpl(this.onKeyword, List<TypeName> superclassConstraints) {
     _superclassConstraints =
         new NodeListImpl<TypeName>(this, superclassConstraints);
@@ -9330,32 +8166,22 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
   }
 }
 
-/**
- * A parenthesized expression.
- *
- *    parenthesizedExpression ::=
- *        '(' [Expression] ')'
- */
+/// A parenthesized expression.
+///
+///    parenthesizedExpression ::=
+///        '(' [Expression] ')'
 class ParenthesizedExpressionImpl extends ExpressionImpl
     implements ParenthesizedExpression {
-  /**
-   * The left parenthesis.
-   */
+  /// The left parenthesis.
   Token leftParenthesis;
 
-  /**
-   * The expression within the parentheses.
-   */
+  /// The expression within the parentheses.
   ExpressionImpl _expression;
 
-  /**
-   * The right parenthesis.
-   */
+  /// The right parenthesis.
   Token rightParenthesis;
 
-  /**
-   * Initialize a newly created parenthesized expression.
-   */
+  /// Initialize a newly created parenthesized expression.
   ParenthesizedExpressionImpl(
       this.leftParenthesis, ExpressionImpl expression, this.rightParenthesis) {
     _expression = _becomeParentOf(expression);
@@ -9381,8 +8207,13 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 15;
+  int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 
   @override
   Expression get unParenthesized {
@@ -9405,30 +8236,22 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 }
 
-/**
- * A part directive.
- *
- *    partDirective ::=
- *        [Annotation] 'part' [StringLiteral] ';'
- */
+/// A part directive.
+///
+///    partDirective ::=
+///        [Annotation] 'part' [StringLiteral] ';'
 class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
-  /**
-   * The token representing the 'part' keyword.
-   */
+  /// The token representing the 'part' keyword.
   @override
   Token partKeyword;
 
-  /**
-   * The semicolon terminating the directive.
-   */
+  /// The semicolon terminating the directive.
   @override
   Token semicolon;
 
-  /**
-   * Initialize a newly created part directive. Either or both of the [comment]
-   * and [metadata] can be `null` if the directive does not have the
-   * corresponding attribute.
-   */
+  /// Initialize a newly created part directive. Either or both of the [comment]
+  /// and [metadata] can be `null` if the directive does not have the
+  /// corresponding attribute.
   PartDirectiveImpl(CommentImpl comment, List<Annotation> metadata,
       this.partKeyword, StringLiteralImpl partUri, this.semicolon)
       : super(comment, metadata, partUri);
@@ -9453,47 +8276,34 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
   E accept<E>(AstVisitor<E> visitor) => visitor.visitPartDirective(this);
 }
 
-/**
- * A part-of directive.
- *
- *    partOfDirective ::=
- *        [Annotation] 'part' 'of' [Identifier] ';'
- */
+/// A part-of directive.
+///
+///    partOfDirective ::=
+///        [Annotation] 'part' 'of' [Identifier] ';'
 class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
-  /**
-   * The token representing the 'part' keyword.
-   */
+  /// The token representing the 'part' keyword.
   @override
   Token partKeyword;
 
-  /**
-   * The token representing the 'of' keyword.
-   */
+  /// The token representing the 'of' keyword.
   @override
   Token ofKeyword;
 
-  /**
-   * The URI of the library that the containing compilation unit is part of.
-   */
+  /// The URI of the library that the containing compilation unit is part of.
   StringLiteralImpl _uri;
 
-  /**
-   * The name of the library that the containing compilation unit is part of, or
-   * `null` if no name was given (typically because a library URI was provided).
-   */
+  /// The name of the library that the containing compilation unit is part of,
+  /// or `null` if no name was given (typically because a library URI was
+  /// provided).
   LibraryIdentifierImpl _libraryName;
 
-  /**
-   * The semicolon terminating the directive.
-   */
+  /// The semicolon terminating the directive.
   @override
   Token semicolon;
 
-  /**
-   * Initialize a newly created part-of directive. Either or both of the
-   * [comment] and [metadata] can be `null` if the directive does not have the
-   * corresponding attribute.
-   */
+  /// Initialize a newly created part-of directive. Either or both of the
+  /// [comment] and [metadata] can be `null` if the directive does not have the
+  /// corresponding attribute.
   PartOfDirectiveImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -9551,36 +8361,26 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   }
 }
 
-/**
- * A postfix unary expression.
- *
- *    postfixExpression ::=
- *        [Expression] [Token]
- */
+/// A postfix unary expression.
+///
+///    postfixExpression ::=
+///        [Expression] [Token]
 class PostfixExpressionImpl extends ExpressionImpl
     implements PostfixExpression {
-  /**
-   * The expression computing the operand for the operator.
-   */
+  /// The expression computing the operand for the operator.
   ExpressionImpl _operand;
 
-  /**
-   * The postfix operator being applied to the operand.
-   */
+  /// The postfix operator being applied to the operand.
   @override
   Token operator;
 
-  /**
-   * The element associated with the operator based on the static type of the
-   * operand, or `null` if the AST structure has not been resolved, if the
-   * operator is not user definable, or if the operator could not be resolved.
-   */
+  /// The element associated with the operator based on the static type of the
+  /// operand, or `null` if the AST structure has not been resolved, if the
+  /// operator is not user definable, or if the operator could not be resolved.
   @override
   MethodElement staticElement;
 
-  /**
-   * Initialize a newly created postfix expression.
-   */
+  /// Initialize a newly created postfix expression.
   PostfixExpressionImpl(ExpressionImpl operand, this.operator) {
     _operand = _becomeParentOf(operand);
   }
@@ -9607,8 +8407,13 @@ class PostfixExpressionImpl extends ExpressionImpl
     _operand = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @deprecated
   @override
@@ -9618,12 +8423,10 @@ class PostfixExpressionImpl extends ExpressionImpl
   @override
   set propagatedElement(MethodElement element) {}
 
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on static type information, then return the parameter element
-   * representing the parameter to which the value of the operand will be bound.
-   * Otherwise, return `null`.
-   */
+  /// If the AST structure has been resolved, and the function being invoked is
+  /// known based on static type information, then return the parameter element
+  /// representing the parameter to which the value of the operand will be
+  /// bound.  Otherwise, return `null`.
   ParameterElement get _staticParameterElementForOperand {
     if (staticElement == null) {
       return null;
@@ -9644,44 +8447,32 @@ class PostfixExpressionImpl extends ExpressionImpl
   }
 }
 
-/**
- * An identifier that is prefixed or an access to an object property where the
- * target of the property access is a simple identifier.
- *
- *    prefixedIdentifier ::=
- *        [SimpleIdentifier] '.' [SimpleIdentifier]
- */
+/// An identifier that is prefixed or an access to an object property where the
+/// target of the property access is a simple identifier.
+///
+///    prefixedIdentifier ::=
+///        [SimpleIdentifier] '.' [SimpleIdentifier]
 class PrefixedIdentifierImpl extends IdentifierImpl
     implements PrefixedIdentifier {
-  /**
-   * The prefix associated with the library in which the identifier is defined.
-   */
+  /// The prefix associated with the library in which the identifier is defined.
   SimpleIdentifierImpl _prefix;
 
-  /**
-   * The period used to separate the prefix from the identifier.
-   */
+  /// The period used to separate the prefix from the identifier.
   Token period;
 
-  /**
-   * The identifier being prefixed.
-   */
+  /// The identifier being prefixed.
   SimpleIdentifierImpl _identifier;
 
-  /**
-   * Initialize a newly created prefixed identifier.
-   */
+  /// Initialize a newly created prefixed identifier.
   PrefixedIdentifierImpl(SimpleIdentifierImpl prefix, this.period,
       SimpleIdentifierImpl identifier) {
     _prefix = _becomeParentOf(prefix);
     _identifier = _becomeParentOf(identifier);
   }
 
-  /**
-   * Initialize a newly created prefixed identifier that does not take ownership
-   * of the components. The resulting node is only for temporary use, such as by
-   * resolution.
-   */
+  /// Initialize a newly created prefixed identifier that does not take
+  /// ownership of the components. The resulting node is only for temporary use,
+  /// such as by resolution.
   PrefixedIdentifierImpl.temp(this._prefix, this._identifier) : period = null;
 
   @override
@@ -9728,8 +8519,13 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   String get name => "${_prefix.name}.${_identifier.name}";
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @override
   SimpleIdentifier get prefix => _prefix;
@@ -9761,33 +8557,23 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   }
 }
 
-/**
- * A prefix unary expression.
- *
- *    prefixExpression ::=
- *        [Token] [Expression]
- */
+/// A prefix unary expression.
+///
+///    prefixExpression ::=
+///        [Token] [Expression]
 class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
-  /**
-   * The prefix operator being applied to the operand.
-   */
+  /// The prefix operator being applied to the operand.
   Token operator;
 
-  /**
-   * The expression computing the operand for the operator.
-   */
+  /// The expression computing the operand for the operator.
   ExpressionImpl _operand;
 
-  /**
-   * The element associated with the operator based on the static type of the
-   * operand, or `null` if the AST structure has not been resolved, if the
-   * operator is not user definable, or if the operator could not be resolved.
-   */
+  /// The element associated with the operator based on the static type of the
+  /// operand, or `null` if the AST structure has not been resolved, if the
+  /// operator is not user definable, or if the operator could not be resolved.
   MethodElement staticElement;
 
-  /**
-   * Initialize a newly created prefix expression.
-   */
+  /// Initialize a newly created prefix expression.
   PrefixExpressionImpl(this.operator, ExpressionImpl operand) {
     _operand = _becomeParentOf(operand);
   }
@@ -9814,8 +8600,13 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
     _operand = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 14;
+  int get precedence => PREFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.prefix;
 
   @deprecated
   @override
@@ -9825,12 +8616,10 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   @override
   set propagatedElement(MethodElement element) {}
 
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on static type information, then return the parameter element
-   * representing the parameter to which the value of the operand will be bound.
-   * Otherwise, return `null`.
-   */
+  /// If the AST structure has been resolved, and the function being invoked is
+  /// known based on static type information, then return the parameter element
+  /// representing the parameter to which the value of the operand will be
+  /// bound.  Otherwise, return `null`.
   ParameterElement get _staticParameterElementForOperand {
     if (staticElement == null) {
       return null;
@@ -9851,35 +8640,25 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   }
 }
 
-/**
- * The access of a property of an object.
- *
- * Note, however, that accesses to properties of objects can also be represented
- * as [PrefixedIdentifier] nodes in cases where the target is also a simple
- * identifier.
- *
- *    propertyAccess ::=
- *        [Expression] '.' [SimpleIdentifier]
- */
+/// The access of a property of an object.
+///
+/// Note, however, that accesses to properties of objects can also be
+/// represented as [PrefixedIdentifier] nodes in cases where the target is also
+/// a simple identifier.
+///
+///    propertyAccess ::=
+///        [Expression] '.' [SimpleIdentifier]
 class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
-  /**
-   * The expression computing the object defining the property being accessed.
-   */
+  /// The expression computing the object defining the property being accessed.
   ExpressionImpl _target;
 
-  /**
-   * The property access operator.
-   */
+  /// The property access operator.
   Token operator;
 
-  /**
-   * The name of the property being accessed.
-   */
+  /// The name of the property being accessed.
   SimpleIdentifierImpl _propertyName;
 
-  /**
-   * Initialize a newly created property access expression.
-   */
+  /// Initialize a newly created property access expression.
   PropertyAccessImpl(
       ExpressionImpl target, this.operator, SimpleIdentifierImpl propertyName) {
     _target = _becomeParentOf(target);
@@ -9908,8 +8687,13 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
   bool get isCascaded =>
       operator != null && operator.type == TokenType.PERIOD_PERIOD;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 15;
+  int get precedence => POSTFIX_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.postfix;
 
   @override
   SimpleIdentifier get propertyName => _propertyName;
@@ -9952,49 +8736,36 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
   }
 }
 
-/**
- * The invocation of a constructor in the same class from within a constructor's
- * initialization list.
- *
- *    redirectingConstructorInvocation ::=
- *        'this' ('.' identifier)? arguments
- */
+/// The invocation of a constructor in the same class from within a
+/// constructor's initialization list.
+///
+///    redirectingConstructorInvocation ::=
+///        'this' ('.' identifier)? arguments
 class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
     implements RedirectingConstructorInvocation {
-  /**
-   * The token for the 'this' keyword.
-   */
+  /// The token for the 'this' keyword.
   Token thisKeyword;
 
-  /**
-   * The token for the period before the name of the constructor that is being
-   * invoked, or `null` if the unnamed constructor is being invoked.
-   */
+  /// The token for the period before the name of the constructor that is being
+  /// invoked, or `null` if the unnamed constructor is being invoked.
   Token period;
 
-  /**
-   * The name of the constructor that is being invoked, or `null` if the unnamed
-   * constructor is being invoked.
-   */
+  /// The name of the constructor that is being invoked, or `null` if the
+  /// unnamed constructor is being invoked.
   SimpleIdentifierImpl _constructorName;
 
-  /**
-   * The list of arguments to the constructor.
-   */
+  /// The list of arguments to the constructor.
   ArgumentListImpl _argumentList;
 
-  /**
-   * The element associated with the constructor based on static type
-   * information, or `null` if the AST structure has not been resolved or if the
-   * constructor could not be resolved.
-   */
+  /// The element associated with the constructor based on static type
+  /// information, or `null` if the AST structure has not been resolved or if
+  /// the constructor could not be resolved.
   ConstructorElement staticElement;
 
-  /**
-   * Initialize a newly created redirecting invocation to invoke the constructor
-   * with the given name with the given arguments. The [constructorName] can be
-   * `null` if the constructor being invoked is the unnamed constructor.
-   */
+  /// Initialize a newly created redirecting invocation to invoke the
+  /// constructor with the given name with the given arguments. The
+  /// [constructorName] can be `null` if the constructor being invoked is the
+  /// unnamed constructor.
   RedirectingConstructorInvocationImpl(this.thisKeyword, this.period,
       SimpleIdentifierImpl constructorName, ArgumentListImpl argumentList) {
     _constructorName = _becomeParentOf(constructorName);
@@ -10041,22 +8812,16 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
   }
 }
 
-/**
- * A rethrow expression.
- *
- *    rethrowExpression ::=
- *        'rethrow'
- */
+/// A rethrow expression.
+///
+///    rethrowExpression ::=
+///        'rethrow'
 class RethrowExpressionImpl extends ExpressionImpl
     implements RethrowExpression {
-  /**
-   * The token representing the 'rethrow' keyword.
-   */
+  /// The token representing the 'rethrow' keyword.
   Token rethrowKeyword;
 
-  /**
-   * Initialize a newly created rethrow expression.
-   */
+  /// Initialize a newly created rethrow expression.
   RethrowExpressionImpl(this.rethrowKeyword);
 
   @override
@@ -10069,8 +8834,13 @@ class RethrowExpressionImpl extends ExpressionImpl
   @override
   Token get endToken => rethrowKeyword;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 0;
+  int get precedence => ASSIGNMENT_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.assignment;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitRethrowExpression(this);
@@ -10081,33 +8851,23 @@ class RethrowExpressionImpl extends ExpressionImpl
   }
 }
 
-/**
- * A return statement.
- *
- *    returnStatement ::=
- *        'return' [Expression]? ';'
- */
+/// A return statement.
+///
+///    returnStatement ::=
+///        'return' [Expression]? ';'
 class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
-  /**
-   * The token representing the 'return' keyword.
-   */
+  /// The token representing the 'return' keyword.
   Token returnKeyword;
 
-  /**
-   * The expression computing the value to be returned, or `null` if no explicit
-   * value was provided.
-   */
+  /// The expression computing the value to be returned, or `null` if no
+  /// explicit value was provided.
   ExpressionImpl _expression;
 
-  /**
-   * The semicolon terminating the statement.
-   */
+  /// The semicolon terminating the statement.
   Token semicolon;
 
-  /**
-   * Initialize a newly created return statement. The [expression] can be `null`
-   * if no explicit value was provided.
-   */
+  /// Initialize a newly created return statement. The [expression] can be
+  /// `null` if no explicit value was provided.
   ReturnStatementImpl(
       this.returnKeyword, ExpressionImpl expression, this.semicolon) {
     _expression = _becomeParentOf(expression);
@@ -10140,21 +8900,16 @@ class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
   }
 }
 
-/**
- * A script tag that can optionally occur at the beginning of a compilation unit.
- *
- *    scriptTag ::=
- *        '#!' (~NEWLINE)* NEWLINE
- */
+/// A script tag that can optionally occur at the beginning of a compilation
+/// unit.
+///
+///    scriptTag ::=
+///        '#!' (~NEWLINE)* NEWLINE
 class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
-  /**
-   * The token representing this script tag.
-   */
+  /// The token representing this script tag.
   Token scriptTag;
 
-  /**
-   * Initialize a newly created script tag.
-   */
+  /// Initialize a newly created script tag.
   ScriptTagImpl(this.scriptTag);
 
   @override
@@ -10176,115 +8931,98 @@ class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   }
 }
 
-/**
- * A literal set.
- *
- *    setLiteral ::=
- *        'const'? ('<' [TypeAnnotation] '>')?
- *        '{' [CollectionElement] (',' [Expression])* ','? '}'
- *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
- *
- * This is the class that is used to represent a set literal when either the
- * 'control-flow-collections' or 'spread-collections' experiments are enabled.
- * If neither of those experiments are enabled, then [SetLiteral] will be used.
- */
-class SetLiteral2Impl extends TypedLiteralImpl implements SetLiteral2 {
-  @override
-  Token leftBracket;
-
-  /**
-   * The elements in the set.
-   */
-  NodeList<CollectionElement> _elements;
-
-  @override
-  Token rightBracket;
-
-  /**
-   * Initialize a newly created set literal. The [constKeyword] can be `null` if
-   * the literal is not a constant. The [typeArguments] can be `null` if no type
-   * arguments were declared. The [elements] can be `null` if the set is empty.
-   */
+/// A literal set.
+///
+///    setLiteral ::=
+///        'const'? ('<' [TypeAnnotation] '>')?
+///        '{' [CollectionElement] (',' [Expression])* ','? '}'
+///      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
+///
+/// This is the class that is used to represent a set literal when either the
+/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
+/// If neither of those experiments are enabled, then [SetLiteral] will be used.
+@Deprecated('Replaced by SetOrMapLiteralImpl')
+class SetLiteral2Impl extends SetOrMapLiteralImpl implements SetLiteral2 {
+  /// Initialize a newly created set literal. The [constKeyword] can be `null`
+  /// if the literal is not a constant. The [typeArguments] can be `null` if no
+  /// type arguments were declared. The [elements] can be `null` if the set is
+  /// empty.
   SetLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      this.leftBracket, List<CollectionElement> elements, this.rightBracket)
-      : super(constKeyword, typeArguments) {
-    _elements = new NodeListImpl<CollectionElement>(this, elements);
-  }
-
-  @override
-  Token get beginToken {
-    if (constKeyword != null) {
-      return constKeyword;
-    }
-    TypeArgumentList typeArguments = this.typeArguments;
-    if (typeArguments != null) {
-      return typeArguments.beginToken;
-    }
-    return leftBracket;
-  }
-
-  @override
-  // TODO(paulberry): add commas.
-  Iterable<SyntacticEntity> get childEntities => super._childEntities
-    ..add(leftBracket)
-    ..addAll(elements)
-    ..add(rightBracket);
+      Token leftBracket, List<CollectionElement> elements, Token rightBracket)
+      : super(constKeyword, typeArguments, leftBracket, elements, rightBracket);
 
   @override
   NodeList<CollectionElement> get elements => _elements;
 
   @override
-  Token get endToken => rightBracket;
-
-  @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral2(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _elements.accept(visitor);
-  }
 }
 
-/**
- * A literal set.
- *
- *    setLiteral ::=
- *        'const'? ('<' [TypeAnnotation] '>')?
- *        '{' [Expression] (',' [Expression])* ','? '}'
- *      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
- *
- * This is the class that is used to represent a set literal when neither the
- * 'control-flow-collections' nor 'spread-collections' experiments are enabled.
- * If either of those experiments are enabled, then [SetLiteral2] will be used.
- */
-class SetLiteralImpl extends TypedLiteralImpl implements SetLiteral {
-  /**
-   * The left curly bracket.
-   */
+@Deprecated('Use SetOrMapLiteralImpl')
+class SetLiteralImpl extends SetOrMapLiteralImpl implements SetLiteral {
+  /// Initialize a newly created set literal. The [constKeyword] can be `null`
+  /// if the literal is not a constant. The [typeArguments] can be `null` if no
+  /// type arguments were declared. The [elements] can be `null` if the set is
+  /// empty.
+  SetLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      Token leftBracket, List<Expression> elements, Token rightBracket)
+      : super._set(
+            constKeyword, typeArguments, leftBracket, elements, rightBracket);
+
+  @override
+  NodeList<Expression> get elements => _elements;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral(this);
+}
+
+class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   @override
   Token leftBracket;
 
-  /**
-   * The elements in the set.
-   */
-  NodeList<Expression> _elements;
+  /// The syntactic elements in the set.
+  NodeList<CollectionElement> _elements;
 
-  /**
-   * The right curly bracket.
-   */
   @override
   Token rightBracket;
 
-  /**
-   * Initialize a newly created set literal. The [constKeyword] can be `null` if
-   * the literal is not a constant. The [typeArguments] can be `null` if no type
-   * arguments were declared. The [elements] can be `null` if the set is empty.
-   */
-  SetLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      this.leftBracket, List<Expression> elements, this.rightBracket)
+  /// A representation of whether this literal represents a map or a set, or
+  /// whether the kind has not or cannot be determined.
+  _SetOrMapKind _resolvedKind;
+
+  /// Initialize a newly created set or map literal. The [constKeyword] can be
+  /// `null` if the literal is not a constant. The [typeArguments] can be `null`
+  /// if no type arguments were declared. The [elements] can be `null` if the
+  /// set is empty.
+  SetOrMapLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
+      this.leftBracket, List<CollectionElement> elements, this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _elements = new NodeListImpl<CollectionElement>(this, elements);
+    _resolvedKind = _SetOrMapKind.unresolved;
+  }
+
+  /// Temporary constructor to support MapLiteral2Impl.
+  SetOrMapLiteralImpl._map(
+      Token constKeyword,
+      TypeArgumentListImpl typeArguments,
+      this.leftBracket,
+      List<MapLiteralEntry> elements,
+      this.rightBracket)
+      : super(constKeyword, typeArguments) {
+    _elements = new NodeListImpl<MapLiteralEntry>(this, elements);
+    _resolvedKind = _SetOrMapKind.map;
+  }
+
+  /// Temporary constructor to support SetLiteral2Impl.
+  SetOrMapLiteralImpl._set(
+      Token constKeyword,
+      TypeArgumentListImpl typeArguments,
+      this.leftBracket,
+      List<Expression> elements,
+      this.rightBracket)
       : super(constKeyword, typeArguments) {
     _elements = new NodeListImpl<Expression>(this, elements);
+    _resolvedKind = _SetOrMapKind.set;
   }
 
   @override
@@ -10303,17 +9041,35 @@ class SetLiteralImpl extends TypedLiteralImpl implements SetLiteral {
   // TODO(paulberry): add commas.
   Iterable<SyntacticEntity> get childEntities => super._childEntities
     ..add(leftBracket)
-    ..addAll(elements)
+    ..addAll(elements2)
     ..add(rightBracket);
 
   @override
-  NodeList<Expression> get elements => _elements;
+  NodeList<CollectionElement> get elements2 => _elements;
 
   @override
   Token get endToken => rightBracket;
 
   @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral(this);
+  bool get isMap => _resolvedKind == _SetOrMapKind.map;
+
+  @override
+  bool get isSet => _resolvedKind == _SetOrMapKind.set;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetOrMapLiteral(this);
+
+  void becomeMap() {
+    assert(_resolvedKind == _SetOrMapKind.unresolved ||
+        _resolvedKind == _SetOrMapKind.map);
+    _resolvedKind = _SetOrMapKind.map;
+  }
+
+  void becomeSet() {
+    assert(_resolvedKind == _SetOrMapKind.unresolved ||
+        _resolvedKind == _SetOrMapKind.set);
+    _resolvedKind = _SetOrMapKind.set;
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10322,21 +9078,17 @@ class SetLiteralImpl extends TypedLiteralImpl implements SetLiteral {
   }
 }
 
-/**
- * A combinator that restricts the names being imported to those in a given list.
- *
- *    showCombinator ::=
- *        'show' [SimpleIdentifier] (',' [SimpleIdentifier])*
- */
+/// A combinator that restricts the names being imported to those in a given
+/// list.
+///
+///    showCombinator ::=
+///        'show' [SimpleIdentifier] (',' [SimpleIdentifier])*
 class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
-  /**
-   * The list of names from the library that are made visible by this combinator.
-   */
+  /// The list of names from the library that are made visible by this
+  /// combinator.
   NodeList<SimpleIdentifier> _shownNames;
 
-  /**
-   * Initialize a newly created import show combinator.
-   */
+  /// Initialize a newly created import show combinator.
   ShowCombinatorImpl(Token keyword, List<SimpleIdentifier> shownNames)
       : super(keyword) {
     _shownNames = new NodeListImpl<SimpleIdentifier>(this, shownNames);
@@ -10363,24 +9115,18 @@ class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
   }
 }
 
-/**
- * A simple formal parameter.
- *
- *    simpleFormalParameter ::=
- *        ('final' [TypeName] | 'var' | [TypeName])? [SimpleIdentifier]
- */
+/// A simple formal parameter.
+///
+///    simpleFormalParameter ::=
+///        ('final' [TypeName] | 'var' | [TypeName])? [SimpleIdentifier]
 class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     implements SimpleFormalParameter {
-  /**
-   * The token representing either the 'final', 'const' or 'var' keyword, or
-   * `null` if no keyword was used.
-   */
+  /// The token representing either the 'final', 'const' or 'var' keyword, or
+  /// `null` if no keyword was used.
   Token keyword;
 
-  /**
-   * The name of the declared type of the parameter, or `null` if the parameter
-   * does not have a declared type.
-   */
+  /// The name of the declared type of the parameter, or `null` if the parameter
+  /// does not have a declared type.
   TypeAnnotationImpl _type;
 
   @override
@@ -10389,12 +9135,10 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   // corresponding inherited setter. This seems inconsistent and error prone.
   ParameterElement declaredElement;
 
-  /**
-   * Initialize a newly created formal parameter. Either or both of the
-   * [comment] and [metadata] can be `null` if the parameter does not have the
-   * corresponding attribute. The [keyword] can be `null` if a type was
-   * specified. The [type] must be `null` if the keyword is 'var'.
-   */
+  /// Initialize a newly created formal parameter. Either or both of the
+  /// [comment] and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute. The [keyword] can be `null` if a type was
+  /// specified. The [type] must be `null` if the keyword is 'var'.
   SimpleFormalParameterImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -10454,39 +9198,29 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   }
 }
 
-/**
- * A simple identifier.
- *
- *    simpleIdentifier ::=
- *        initialCharacter internalCharacter*
- *
- *    initialCharacter ::= '_' | '$' | letter
- *
- *    internalCharacter ::= '_' | '$' | letter | digit
- */
+/// A simple identifier.
+///
+///    simpleIdentifier ::=
+///        initialCharacter internalCharacter*
+///
+///    initialCharacter ::= '_' | '$' | letter
+///
+///    internalCharacter ::= '_' | '$' | letter | digit
 class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
-  /**
-   * The token representing the identifier.
-   */
+  /// The token representing the identifier.
   Token token;
 
-  /**
-   * The element associated with this identifier based on static type
-   * information, or `null` if the AST structure has not been resolved or if
-   * this identifier could not be resolved.
-   */
+  /// The element associated with this identifier based on static type
+  /// information, or `null` if the AST structure has not been resolved or if
+  /// this identifier could not be resolved.
   Element _staticElement;
 
-  /**
-   * If this expression is both in a getter and setter context, the
-   * [AuxiliaryElements] will be set to hold onto the static element from the
-   * getter context.
-   */
+  /// If this expression is both in a getter and setter context, the
+  /// [AuxiliaryElements] will be set to hold onto the static element from the
+  /// getter context.
   AuxiliaryElements auxiliaryElements = null;
 
-  /**
-   * Initialize a newly created identifier.
-   */
+  /// Initialize a newly created identifier.
   SimpleIdentifierImpl(this.token);
 
   @override
@@ -10524,8 +9258,13 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   @override
   String get name => token.lexeme;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 
   @deprecated
   @override
@@ -10584,6 +9323,12 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
         identical(parent.fieldName, target)) {
       return false;
     }
+    if (parent is ForEachPartsWithIdentifier) {
+      if (identical(parent.identifier, target)) {
+        return false;
+      }
+    }
+    // ignore: deprecated_member_use_from_same_package
     if (parent is ForEachStatement) {
       if (identical(parent.identifier, target)) {
         return false;
@@ -10630,6 +9375,9 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
       return true;
     } else if (parent is AssignmentExpression) {
       return identical(parent.leftHandSide, target);
+    } else if (parent is ForEachPartsWithIdentifier) {
+      return identical(parent.identifier, target);
+      // ignore: deprecated_member_use_from_same_package
     } else if (parent is ForEachStatement) {
       return identical(parent.identifier, target);
     }
@@ -10642,43 +9390,35 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   }
 }
 
-/**
- * A string literal expression that does not contain any interpolations.
- *
- *    simpleStringLiteral ::=
- *        rawStringLiteral
- *      | basicStringLiteral
- *
- *    rawStringLiteral ::=
- *        'r' basicStringLiteral
- *
- *    simpleStringLiteral ::=
- *        multiLineStringLiteral
- *      | singleLineStringLiteral
- *
- *    multiLineStringLiteral ::=
- *        "'''" characters "'''"
- *      | '"""' characters '"""'
- *
- *    singleLineStringLiteral ::=
- *        "'" characters "'"
- *      | '"' characters '"'
- */
+/// A string literal expression that does not contain any interpolations.
+///
+///    simpleStringLiteral ::=
+///        rawStringLiteral
+///      | basicStringLiteral
+///
+///    rawStringLiteral ::=
+///        'r' basicStringLiteral
+///
+///    simpleStringLiteral ::=
+///        multiLineStringLiteral
+///      | singleLineStringLiteral
+///
+///    multiLineStringLiteral ::=
+///        "'''" characters "'''"
+///      | '"""' characters '"""'
+///
+///    singleLineStringLiteral ::=
+///        "'" characters "'"
+///      | '"' characters '"'
 class SimpleStringLiteralImpl extends SingleStringLiteralImpl
     implements SimpleStringLiteral {
-  /**
-   * The token representing the literal.
-   */
+  /// The token representing the literal.
   Token literal;
 
-  /**
-   * The value of the literal.
-   */
+  /// The value of the literal.
   String _value;
 
-  /**
-   * Initialize a newly created simple string literal.
-   */
+  /// Initialize a newly created simple string literal.
   SimpleStringLiteralImpl(this.literal, String value) {
     _value = StringUtilities.intern(value);
   }
@@ -10737,13 +9477,11 @@ class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   }
 }
 
-/**
- * A single string literal expression.
- *
- *    singleStringLiteral ::=
- *        [SimpleStringLiteral]
- *      | [StringInterpolation]
- */
+/// A single string literal expression.
+///
+///    singleStringLiteral ::=
+///        [SimpleStringLiteral]
+///      | [StringInterpolation]
 abstract class SingleStringLiteralImpl extends StringLiteralImpl
     implements SingleStringLiteral {}
 
@@ -10785,47 +9523,39 @@ class SpreadElementImpl extends AstNodeImpl
   }
 }
 
-/**
- * A node that represents a statement.
- *
- *    statement ::=
- *        [Block]
- *      | [VariableDeclarationStatement]
- *      | [ForStatement]
- *      | [ForEachStatement]
- *      | [WhileStatement]
- *      | [DoStatement]
- *      | [SwitchStatement]
- *      | [IfStatement]
- *      | [TryStatement]
- *      | [BreakStatement]
- *      | [ContinueStatement]
- *      | [ReturnStatement]
- *      | [ExpressionStatement]
- *      | [FunctionDeclarationStatement]
- */
+/// A node that represents a statement.
+///
+///    statement ::=
+///        [Block]
+///      | [VariableDeclarationStatement]
+///      | [ForStatement]
+///      | [ForEachStatement]
+///      | [WhileStatement]
+///      | [DoStatement]
+///      | [SwitchStatement]
+///      | [IfStatement]
+///      | [TryStatement]
+///      | [BreakStatement]
+///      | [ContinueStatement]
+///      | [ReturnStatement]
+///      | [ExpressionStatement]
+///      | [FunctionDeclarationStatement]
 abstract class StatementImpl extends AstNodeImpl implements Statement {
   @override
   Statement get unlabeled => this;
 }
 
-/**
- * A string interpolation literal.
- *
- *    stringInterpolation ::=
- *        ''' [InterpolationElement]* '''
- *      | '"' [InterpolationElement]* '"'
- */
+/// A string interpolation literal.
+///
+///    stringInterpolation ::=
+///        ''' [InterpolationElement]* '''
+///      | '"' [InterpolationElement]* '"'
 class StringInterpolationImpl extends SingleStringLiteralImpl
     implements StringInterpolation {
-  /**
-   * The elements that will be composed to produce the resulting string.
-   */
+  /// The elements that will be composed to produce the resulting string.
   NodeList<InterpolationElement> _elements;
 
-  /**
-   * Initialize a newly created string interpolation expression.
-   */
+  /// Initialize a newly created string interpolation expression.
   StringInterpolationImpl(List<InterpolationElement> elements) {
     _elements = new NodeListImpl<InterpolationElement>(this, elements);
   }
@@ -10849,9 +9579,7 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
     return element.contentsOffset;
   }
 
-  /**
-   * Return the elements that will be composed to produce the resulting string.
-   */
+  /// Return the elements that will be composed to produce the resulting string.
   NodeList<InterpolationElement> get elements => _elements;
 
   @override
@@ -10886,9 +9614,7 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
   }
 }
 
-/**
- * A helper for analyzing string lexemes.
- */
+/// A helper for analyzing string lexemes.
 class StringLexemeHelper {
   final String lexeme;
   final bool isFirst;
@@ -10940,15 +9666,13 @@ class StringLexemeHelper {
     }
   }
 
-  /**
-   * Given the [lexeme] for a multi-line string whose content begins at the
-   * given [start] index, return the index of the first character that is
-   * included in the value of the string. According to the specification:
-   *
-   * If the first line of a multiline string consists solely of the whitespace
-   * characters defined by the production WHITESPACE 20.1), possibly prefixed
-   * by \, then that line is ignored, including the new line at its end.
-   */
+  /// Given the [lexeme] for a multi-line string whose content begins at the
+  /// given [start] index, return the index of the first character that is
+  /// included in the value of the string. According to the specification:
+  ///
+  /// If the first line of a multiline string consists solely of the whitespace
+  /// characters defined by the production WHITESPACE 20.1), possibly prefixed
+  /// by \, then that line is ignored, including the new line at its end.
   int _trimInitialWhitespace(int start) {
     int length = lexeme.length;
     int index = start;
@@ -10981,14 +9705,12 @@ class StringLexemeHelper {
   }
 }
 
-/**
- * A string literal expression.
- *
- *    stringLiteral ::=
- *        [SimpleStringLiteral]
- *      | [AdjacentStrings]
- *      | [StringInterpolation]
- */
+/// A string literal expression.
+///
+///    stringLiteral ::=
+///        [SimpleStringLiteral]
+///      | [AdjacentStrings]
+///      | [StringInterpolation]
 abstract class StringLiteralImpl extends LiteralImpl implements StringLiteral {
   @override
   String get stringValue {
@@ -11001,58 +9723,42 @@ abstract class StringLiteralImpl extends LiteralImpl implements StringLiteral {
     return buffer.toString();
   }
 
-  /**
-   * Append the value of this string literal to the given [buffer]. Throw an
-   * [ArgumentError] if the string is not a constant string without any
-   * string interpolation.
-   */
+  /// Append the value of this string literal to the given [buffer]. Throw an
+  /// [ArgumentError] if the string is not a constant string without any
+  /// string interpolation.
   void _appendStringValue(StringBuffer buffer);
 }
 
-/**
- * The invocation of a superclass' constructor from within a constructor's
- * initialization list.
- *
- *    superInvocation ::=
- *        'super' ('.' [SimpleIdentifier])? [ArgumentList]
- */
+/// The invocation of a superclass' constructor from within a constructor's
+/// initialization list.
+///
+///    superInvocation ::=
+///        'super' ('.' [SimpleIdentifier])? [ArgumentList]
 class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     implements SuperConstructorInvocation {
-  /**
-   * The token for the 'super' keyword.
-   */
+  /// The token for the 'super' keyword.
   Token superKeyword;
 
-  /**
-   * The token for the period before the name of the constructor that is being
-   * invoked, or `null` if the unnamed constructor is being invoked.
-   */
+  /// The token for the period before the name of the constructor that is being
+  /// invoked, or `null` if the unnamed constructor is being invoked.
   Token period;
 
-  /**
-   * The name of the constructor that is being invoked, or `null` if the unnamed
-   * constructor is being invoked.
-   */
+  /// The name of the constructor that is being invoked, or `null` if the
+  /// unnamed constructor is being invoked.
   SimpleIdentifierImpl _constructorName;
 
-  /**
-   * The list of arguments to the constructor.
-   */
+  /// The list of arguments to the constructor.
   ArgumentListImpl _argumentList;
 
-  /**
-   * The element associated with the constructor based on static type
-   * information, or `null` if the AST structure has not been resolved or if the
-   * constructor could not be resolved.
-   */
+  /// The element associated with the constructor based on static type
+  /// information, or `null` if the AST structure has not been resolved or if
+  /// the constructor could not be resolved.
   ConstructorElement staticElement;
 
-  /**
-   * Initialize a newly created super invocation to invoke the inherited
-   * constructor with the given name with the given arguments. The [period] and
-   * [constructorName] can be `null` if the constructor being invoked is the
-   * unnamed constructor.
-   */
+  /// Initialize a newly created super invocation to invoke the inherited
+  /// constructor with the given name with the given arguments. The [period] and
+  /// [constructorName] can be `null` if the constructor being invoked is the
+  /// unnamed constructor.
   SuperConstructorInvocationImpl(this.superKeyword, this.period,
       SimpleIdentifierImpl constructorName, ArgumentListImpl argumentList) {
     _constructorName = _becomeParentOf(constructorName);
@@ -11099,21 +9805,15 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   }
 }
 
-/**
- * A super expression.
- *
- *    superExpression ::=
- *        'super'
- */
+/// A super expression.
+///
+///    superExpression ::=
+///        'super'
 class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
-  /**
-   * The token representing the 'super' keyword.
-   */
+  /// The token representing the 'super' keyword.
   Token superKeyword;
 
-  /**
-   * Initialize a newly created super expression.
-   */
+  /// Initialize a newly created super expression.
   SuperExpressionImpl(this.superKeyword);
 
   @override
@@ -11126,8 +9826,13 @@ class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
   @override
   Token get endToken => superKeyword;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitSuperExpression(this);
@@ -11138,22 +9843,16 @@ class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
   }
 }
 
-/**
- * A case in a switch statement.
- *
- *    switchCase ::=
- *        [SimpleIdentifier]* 'case' [Expression] ':' [Statement]*
- */
+/// A case in a switch statement.
+///
+///    switchCase ::=
+///        [SimpleIdentifier]* 'case' [Expression] ':' [Statement]*
 class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
-  /**
-   * The expression controlling whether the statements will be executed.
-   */
+  /// The expression controlling whether the statements will be executed.
   ExpressionImpl _expression;
 
-  /**
-   * Initialize a newly created switch case. The list of [labels] can be `null`
-   * if there are no labels.
-   */
+  /// Initialize a newly created switch case. The list of [labels] can be `null`
+  /// if there are no labels.
   SwitchCaseImpl(List<Label> labels, Token keyword, ExpressionImpl expression,
       Token colon, List<Statement> statements)
       : super(labels, keyword, colon, statements) {
@@ -11187,17 +9886,13 @@ class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   }
 }
 
-/**
- * The default case in a switch statement.
- *
- *    switchDefault ::=
- *        [SimpleIdentifier]* 'default' ':' [Statement]*
- */
+/// The default case in a switch statement.
+///
+///    switchDefault ::=
+///        [SimpleIdentifier]* 'default' ':' [Statement]*
 class SwitchDefaultImpl extends SwitchMemberImpl implements SwitchDefault {
-  /**
-   * Initialize a newly created switch default. The list of [labels] can be
-   * `null` if there are no labels.
-   */
+  /// Initialize a newly created switch default. The list of [labels] can be
+  /// `null` if there are no labels.
   SwitchDefaultImpl(List<Label> labels, Token keyword, Token colon,
       List<Statement> statements)
       : super(labels, keyword, colon, statements);
@@ -11219,38 +9914,26 @@ class SwitchDefaultImpl extends SwitchMemberImpl implements SwitchDefault {
   }
 }
 
-/**
- * An element within a switch statement.
- *
- *    switchMember ::=
- *        switchCase
- *      | switchDefault
- */
+/// An element within a switch statement.
+///
+///    switchMember ::=
+///        switchCase
+///      | switchDefault
 abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
-  /**
-   * The labels associated with the switch member.
-   */
+  /// The labels associated with the switch member.
   NodeList<Label> _labels;
 
-  /**
-   * The token representing the 'case' or 'default' keyword.
-   */
+  /// The token representing the 'case' or 'default' keyword.
   Token keyword;
 
-  /**
-   * The colon separating the keyword or the expression from the statements.
-   */
+  /// The colon separating the keyword or the expression from the statements.
   Token colon;
 
-  /**
-   * The statements that will be executed if this switch member is selected.
-   */
+  /// The statements that will be executed if this switch member is selected.
   NodeList<Statement> _statements;
 
-  /**
-   * Initialize a newly created switch member. The list of [labels] can be
-   * `null` if there are no labels.
-   */
+  /// Initialize a newly created switch member. The list of [labels] can be
+  /// `null` if there are no labels.
   SwitchMemberImpl(List<Label> labels, this.keyword, this.colon,
       List<Statement> statements) {
     _labels = new NodeListImpl<Label>(this, labels);
@@ -11280,53 +9963,35 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
   NodeList<Statement> get statements => _statements;
 }
 
-/**
- * A switch statement.
- *
- *    switchStatement ::=
- *        'switch' '(' [Expression] ')' '{' [SwitchCase]* [SwitchDefault]? '}'
- */
+/// A switch statement.
+///
+///    switchStatement ::=
+///        'switch' '(' [Expression] ')' '{' [SwitchCase]* [SwitchDefault]? '}'
 class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
-  /**
-   * The token representing the 'switch' keyword.
-   */
+  /// The token representing the 'switch' keyword.
   Token switchKeyword;
 
-  /**
-   * The left parenthesis.
-   */
+  /// The left parenthesis.
   Token leftParenthesis;
 
-  /**
-   * The expression used to determine which of the switch members will be
-   * selected.
-   */
+  /// The expression used to determine which of the switch members will be
+  /// selected.
   ExpressionImpl _expression;
 
-  /**
-   * The right parenthesis.
-   */
+  /// The right parenthesis.
   Token rightParenthesis;
 
-  /**
-   * The left curly bracket.
-   */
+  /// The left curly bracket.
   Token leftBracket;
 
-  /**
-   * The switch members that can be selected by the expression.
-   */
+  /// The switch members that can be selected by the expression.
   NodeList<SwitchMember> _members;
 
-  /**
-   * The right curly bracket.
-   */
+  /// The right curly bracket.
   Token rightBracket;
 
-  /**
-   * Initialize a newly created switch statement. The list of [members] can be
-   * `null` if there are no switch members.
-   */
+  /// Initialize a newly created switch statement. The list of [members] can be
+  /// `null` if there are no switch members.
   SwitchStatementImpl(
       this.switchKeyword,
       this.leftParenthesis,
@@ -11376,26 +10041,18 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
   }
 }
 
-/**
- * A symbol literal expression.
- *
- *    symbolLiteral ::=
- *        '#' (operator | (identifier ('.' identifier)*))
- */
+/// A symbol literal expression.
+///
+///    symbolLiteral ::=
+///        '#' (operator | (identifier ('.' identifier)*))
 class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
-  /**
-   * The token introducing the literal.
-   */
+  /// The token introducing the literal.
   Token poundSign;
 
-  /**
-   * The components of the literal.
-   */
+  /// The components of the literal.
   final List<Token> components;
 
-  /**
-   * Initialize a newly created symbol literal.
-   */
+  /// Initialize a newly created symbol literal.
   SymbolLiteralImpl(this.poundSign, this.components);
 
   @override
@@ -11419,21 +10076,15 @@ class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   }
 }
 
-/**
- * A this expression.
- *
- *    thisExpression ::=
- *        'this'
- */
+/// A this expression.
+///
+///    thisExpression ::=
+///        'this'
 class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
-  /**
-   * The token representing the 'this' keyword.
-   */
+  /// The token representing the 'this' keyword.
   Token thisKeyword;
 
-  /**
-   * Initialize a newly created this expression.
-   */
+  /// Initialize a newly created this expression.
   ThisExpressionImpl(this.thisKeyword);
 
   @override
@@ -11446,8 +10097,13 @@ class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
   @override
   Token get endToken => thisKeyword;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitThisExpression(this);
@@ -11458,26 +10114,18 @@ class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
   }
 }
 
-/**
- * A throw expression.
- *
- *    throwExpression ::=
- *        'throw' [Expression]
- */
+/// A throw expression.
+///
+///    throwExpression ::=
+///        'throw' [Expression]
 class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
-  /**
-   * The token representing the 'throw' keyword.
-   */
+  /// The token representing the 'throw' keyword.
   Token throwKeyword;
 
-  /**
-   * The expression computing the exception to be thrown.
-   */
+  /// The expression computing the exception to be thrown.
   ExpressionImpl _expression;
 
-  /**
-   * Initialize a newly created throw expression.
-   */
+  /// Initialize a newly created throw expression.
   ThrowExpressionImpl(this.throwKeyword, ExpressionImpl expression) {
     _expression = _becomeParentOf(expression);
   }
@@ -11505,8 +10153,13 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 0;
+  int get precedence => ASSIGNMENT_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.assignment;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitThrowExpression(this);
@@ -11517,30 +10170,22 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
   }
 }
 
-/**
- * The declaration of one or more top-level variables of the same type.
- *
- *    topLevelVariableDeclaration ::=
- *        ('final' | 'const') type? staticFinalDeclarationList ';'
- *      | variableDeclaration ';'
- */
+/// The declaration of one or more top-level variables of the same type.
+///
+///    topLevelVariableDeclaration ::=
+///        ('final' | 'const') type? staticFinalDeclarationList ';'
+///      | variableDeclaration ';'
 class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     implements TopLevelVariableDeclaration {
-  /**
-   * The top-level variables being declared.
-   */
+  /// The top-level variables being declared.
   VariableDeclarationListImpl _variableList;
 
-  /**
-   * The semicolon terminating the declaration.
-   */
+  /// The semicolon terminating the declaration.
   Token semicolon;
 
-  /**
-   * Initialize a newly created top-level variable declaration. Either or both
-   * of the [comment] and [metadata] can be `null` if the variable does not have
-   * the corresponding attribute.
-   */
+  /// Initialize a newly created top-level variable declaration. Either or both
+  /// of the [comment] and [metadata] can be `null` if the variable does not
+  /// have the corresponding attribute.
   TopLevelVariableDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -11586,48 +10231,34 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   }
 }
 
-/**
- * A try statement.
- *
- *    tryStatement ::=
- *        'try' [Block] ([CatchClause]+ finallyClause? | finallyClause)
- *
- *    finallyClause ::=
- *        'finally' [Block]
- */
+/// A try statement.
+///
+///    tryStatement ::=
+///        'try' [Block] ([CatchClause]+ finallyClause? | finallyClause)
+///
+///    finallyClause ::=
+///        'finally' [Block]
 class TryStatementImpl extends StatementImpl implements TryStatement {
-  /**
-   * The token representing the 'try' keyword.
-   */
+  /// The token representing the 'try' keyword.
   Token tryKeyword;
 
-  /**
-   * The body of the statement.
-   */
+  /// The body of the statement.
   BlockImpl _body;
 
-  /**
-   * The catch clauses contained in the try statement.
-   */
+  /// The catch clauses contained in the try statement.
   NodeList<CatchClause> _catchClauses;
 
-  /**
-   * The token representing the 'finally' keyword, or `null` if the statement
-   * does not contain a finally clause.
-   */
+  /// The token representing the 'finally' keyword, or `null` if the statement
+  /// does not contain a finally clause.
   Token finallyKeyword;
 
-  /**
-   * The finally block contained in the try statement, or `null` if the
-   * statement does not contain a finally clause.
-   */
+  /// The finally block contained in the try statement, or `null` if the
+  /// statement does not contain a finally clause.
   BlockImpl _finallyBlock;
 
-  /**
-   * Initialize a newly created try statement. The list of [catchClauses] can be
-   * `null` if there are no catch clauses. The [finallyKeyword] and
-   * [finallyBlock] can be `null` if there is no finally clause.
-   */
+  /// Initialize a newly created try statement. The list of [catchClauses] can
+  /// be`null` if there are no catch clauses. The [finallyKeyword] and
+  /// [finallyBlock] can be `null` if there is no finally clause.
   TryStatementImpl(
       this.tryKeyword,
       BlockImpl body,
@@ -11692,33 +10323,25 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
   }
 }
 
-/**
- * The declaration of a type alias.
- *
- *    typeAlias ::=
- *        'typedef' typeAliasBody
- *
- *    typeAliasBody ::=
- *        classTypeAlias
- *      | functionTypeAlias
- */
+/// The declaration of a type alias.
+///
+///    typeAlias ::=
+///        'typedef' typeAliasBody
+///
+///    typeAliasBody ::=
+///        classTypeAlias
+///      | functionTypeAlias
 abstract class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     implements TypeAlias {
-  /**
-   * The token representing the 'typedef' keyword.
-   */
+  /// The token representing the 'typedef' keyword.
   Token typedefKeyword;
 
-  /**
-   * The semicolon terminating the declaration.
-   */
+  /// The semicolon terminating the declaration.
   Token semicolon;
 
-  /**
-   * Initialize a newly created type alias. Either or both of the [comment] and
-   * [metadata] can be `null` if the declaration does not have the corresponding
-   * attribute.
-   */
+  /// Initialize a newly created type alias. Either or both of the [comment] and
+  /// [metadata] can be `null` if the declaration does not have the
+  /// corresponding attribute.
   TypeAliasImpl(CommentImpl comment, List<Annotation> metadata,
       this.typedefKeyword, SimpleIdentifierImpl name, this.semicolon)
       : super(comment, metadata, name);
@@ -11730,41 +10353,29 @@ abstract class TypeAliasImpl extends NamedCompilationUnitMemberImpl
   Token get firstTokenAfterCommentAndMetadata => typedefKeyword;
 }
 
-/**
- * A type annotation.
- *
- *    type ::=
- *        [NamedType]
- *      | [GenericFunctionType]
- */
+/// A type annotation.
+///
+///    type ::=
+///        [NamedType]
+///      | [GenericFunctionType]
 abstract class TypeAnnotationImpl extends AstNodeImpl
     implements TypeAnnotation {}
 
-/**
- * A list of type arguments.
- *
- *    typeArguments ::=
- *        '<' typeName (',' typeName)* '>'
- */
+/// A list of type arguments.
+///
+///    typeArguments ::=
+///        '<' typeName (',' typeName)* '>'
 class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
-  /**
-   * The left bracket.
-   */
+  /// The left bracket.
   Token leftBracket;
 
-  /**
-   * The type arguments associated with the type.
-   */
+  /// The type arguments associated with the type.
   NodeList<TypeAnnotation> _arguments;
 
-  /**
-   * The right bracket.
-   */
+  /// The right bracket.
   Token rightBracket;
 
-  /**
-   * Initialize a newly created list of type arguments.
-   */
+  /// Initialize a newly created list of type arguments.
   TypeArgumentListImpl(
       this.leftBracket, List<TypeAnnotation> arguments, this.rightBracket) {
     _arguments = new NodeListImpl<TypeAnnotation>(this, arguments);
@@ -11795,31 +10406,23 @@ class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
   }
 }
 
-/**
- * A literal that has a type associated with it.
- *
- *    typedLiteral ::=
- *        [ListLiteral]
- *      | [MapLiteral]
- */
+/// A literal that has a type associated with it.
+///
+///    typedLiteral ::=
+///        [ListLiteral]
+///      | [MapLiteral]
 abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
-  /**
-   * The token representing the 'const' keyword, or `null` if the literal is not
-   * a constant.
-   */
+  /// The token representing the 'const' keyword, or `null` if the literal is
+  /// not a constant.
   Token constKeyword;
 
-  /**
-   * The type argument associated with this literal, or `null` if no type
-   * arguments were declared.
-   */
+  /// The type argument associated with this literal, or `null` if no type
+  /// arguments were declared.
   TypeArgumentListImpl _typeArguments;
 
-  /**
-   * Initialize a newly created typed literal. The [constKeyword] can be `null`\
-   * if the literal is not a constant. The [typeArguments] can be `null` if no
-   * type arguments were declared.
-   */
+  /// Initialize a newly created typed literal. The [constKeyword] can be
+  /// `null` if the literal is not a constant. The [typeArguments] can be `null`
+  /// if no type arguments were declared.
   TypedLiteralImpl(this.constKeyword, TypeArgumentListImpl typeArguments) {
     _typeArguments = _becomeParentOf(typeArguments);
   }
@@ -11846,36 +10449,27 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   }
 }
 
-/**
- * The name of a type, which can optionally include type arguments.
- *
- *    typeName ::=
- *        [Identifier] typeArguments? '?'?
- */
+/// The name of a type, which can optionally include type arguments.
+///
+///    typeName ::=
+///        [Identifier] typeArguments? '?'?
 class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
-  /**
-   * The name of the type.
-   */
+  /// The name of the type.
   IdentifierImpl _name;
 
-  /**
-   * The type arguments associated with the type, or `null` if there are no type
-   * arguments.
-   */
+  /// The type arguments associated with the type, or `null` if there are no
+  /// type arguments.
   TypeArgumentListImpl _typeArguments;
 
   @override
   Token question;
 
-  /**
-   * The type being named, or `null` if the AST structure has not been resolved.
-   */
+  /// The type being named, or `null` if the AST structure has not been
+  /// resolved.
   DartType type;
 
-  /**
-   * Initialize a newly created type name. The [typeArguments] can be `null` if
-   * there are no type arguments.
-   */
+  /// Initialize a newly created type name. The [typeArguments] can be `null` if
+  /// there are no type arguments.
   TypeNameImpl(IdentifierImpl name, TypeArgumentListImpl typeArguments,
       {this.question}) {
     _name = _becomeParentOf(name);
@@ -11930,36 +10524,26 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
   }
 }
 
-/**
- * A type parameter.
- *
- *    typeParameter ::=
- *        [SimpleIdentifier] ('extends' [TypeName])?
- */
+/// A type parameter.
+///
+///    typeParameter ::=
+///        [SimpleIdentifier] ('extends' [TypeName])?
 class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
-  /**
-   * The name of the type parameter.
-   */
+  /// The name of the type parameter.
   SimpleIdentifierImpl _name;
 
-  /**
-   * The token representing the 'extends' keyword, or `null` if there is no
-   * explicit upper bound.
-   */
+  /// The token representing the 'extends' keyword, or `null` if there is no
+  /// explicit upper bound.
   Token extendsKeyword;
 
-  /**
-   * The name of the upper bound for legal arguments, or `null` if there is no
-   * explicit upper bound.
-   */
+  /// The name of the upper bound for legal arguments, or `null` if there is no
+  /// explicit upper bound.
   TypeAnnotationImpl _bound;
 
-  /**
-   * Initialize a newly created type parameter. Either or both of the [comment]
-   * and [metadata] can be `null` if the parameter does not have the
-   * corresponding attribute. The [extendsKeyword] and [bound] can be `null` if
-   * the parameter does not have an upper bound.
-   */
+  /// Initialize a newly created type parameter. Either or both of the [comment]
+  /// and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute. The [extendsKeyword] and [bound] can be `null` if
+  /// the parameter does not have an upper bound.
   TypeParameterImpl(CommentImpl comment, List<Annotation> metadata,
       SimpleIdentifierImpl name, this.extendsKeyword, TypeAnnotationImpl bound)
       : super(comment, metadata) {
@@ -12017,31 +10601,21 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   }
 }
 
-/**
- * Type parameters within a declaration.
- *
- *    typeParameterList ::=
- *        '<' [TypeParameter] (',' [TypeParameter])* '>'
- */
+/// Type parameters within a declaration.
+///
+///    typeParameterList ::=
+///        '<' [TypeParameter] (',' [TypeParameter])* '>'
 class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
-  /**
-   * The left angle bracket.
-   */
+  /// The left angle bracket.
   final Token leftBracket;
 
-  /**
-   * The type parameters in the list.
-   */
+  /// The type parameters in the list.
   NodeList<TypeParameter> _typeParameters;
 
-  /**
-   * The right angle bracket.
-   */
+  /// The right angle bracket.
   final Token rightBracket;
 
-  /**
-   * Initialize a newly created list of type parameters.
-   */
+  /// Initialize a newly created list of type parameters.
   TypeParameterListImpl(
       this.leftBracket, List<TypeParameter> typeParameters, this.rightBracket) {
     _typeParameters = new NodeListImpl<TypeParameter>(this, typeParameters);
@@ -12071,25 +10645,19 @@ class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
   }
 }
 
-/**
- * A directive that references a URI.
- *
- *    uriBasedDirective ::=
- *        [ExportDirective]
- *      | [ImportDirective]
- *      | [PartDirective]
- */
+/// A directive that references a URI.
+///
+///    uriBasedDirective ::=
+///        [ExportDirective]
+///      | [ImportDirective]
+///      | [PartDirective]
 abstract class UriBasedDirectiveImpl extends DirectiveImpl
     implements UriBasedDirective {
-  /**
-   * The prefix of a URI using the `dart-ext` scheme to reference a native code
-   * library.
-   */
+  /// The prefix of a URI using the `dart-ext` scheme to reference a native code
+  /// library.
   static String _DART_EXT_SCHEME = "dart-ext:";
 
-  /**
-   * The URI referenced by this directive.
-   */
+  /// The URI referenced by this directive.
   StringLiteralImpl _uri;
 
   @override
@@ -12098,11 +10666,9 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
   @override
   Source uriSource;
 
-  /**
-   * Initialize a newly create URI-based directive. Either or both of the
-   * [comment] and [metadata] can be `null` if the directive does not have the
-   * corresponding attribute.
-   */
+  /// Initialize a newly create URI-based directive. Either or both of the
+  /// [comment] and [metadata] can be `null` if the directive does not have the
+  /// corresponding attribute.
   UriBasedDirectiveImpl(
       CommentImpl comment, List<Annotation> metadata, StringLiteralImpl uri)
       : super(comment, metadata) {
@@ -12137,10 +10703,8 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     _uri?.accept(visitor);
   }
 
-  /**
-   * Validate this directive, but do not check for existence. Return a code
-   * indicating the problem if there is one, or `null` no problem.
-   */
+  /// Validate this directive, but do not check for existence. Return a code
+  /// indicating the problem if there is one, or `null` no problem.
   static UriValidationCode validateUri(
       bool isImport, StringLiteral uriLiteral, String uriContent) {
     if (uriLiteral is StringInterpolation) {
@@ -12165,9 +10729,7 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
   }
 }
 
-/**
- * Validation codes returned by [UriBasedDirective.validate].
- */
+/// Validation codes returned by [UriBasedDirective.validate].
 class UriValidationCode {
   static const UriValidationCode INVALID_URI =
       const UriValidationCode('INVALID_URI');
@@ -12178,55 +10740,41 @@ class UriValidationCode {
   static const UriValidationCode URI_WITH_DART_EXT_SCHEME =
       const UriValidationCode('URI_WITH_DART_EXT_SCHEME');
 
-  /**
-   * The name of the validation code.
-   */
+  /// The name of the validation code.
   final String name;
 
-  /**
-   * Initialize a newly created validation code to have the given [name].
-   */
+  /// Initialize a newly created validation code to have the given [name].
   const UriValidationCode(this.name);
 
   @override
   String toString() => name;
 }
 
-/**
- * An identifier that has an initial value associated with it. Instances of this
- * class are always children of the class [VariableDeclarationList].
- *
- *    variableDeclaration ::=
- *        [SimpleIdentifier] ('=' [Expression])?
- *
- * TODO(paulberry): the grammar does not allow metadata to be associated with
- * a VariableDeclaration, and currently we don't record comments for it either.
- * Consider changing the class hierarchy so that [VariableDeclaration] does not
- * extend [Declaration].
- */
+/// An identifier that has an initial value associated with it. Instances of
+/// this class are always children of the class [VariableDeclarationList].
+///
+///    variableDeclaration ::=
+///        [SimpleIdentifier] ('=' [Expression])?
+///
+/// TODO(paulberry): the grammar does not allow metadata to be associated with
+/// a VariableDeclaration, and currently we don't record comments for it either.
+/// Consider changing the class hierarchy so that [VariableDeclaration] does not
+/// extend [Declaration].
 class VariableDeclarationImpl extends DeclarationImpl
     implements VariableDeclaration {
-  /**
-   * The name of the variable being declared.
-   */
+  /// The name of the variable being declared.
   SimpleIdentifierImpl _name;
 
-  /**
-   * The equal sign separating the variable name from the initial value, or
-   * `null` if the initial value was not specified.
-   */
+  /// The equal sign separating the variable name from the initial value, or
+  /// `null` if the initial value was not specified.
   Token equals;
 
-  /**
-   * The expression used to compute the initial value for the variable, or
-   * `null` if the initial value was not specified.
-   */
+  /// The expression used to compute the initial value for the variable, or
+  /// `null` if the initial value was not specified.
   ExpressionImpl _initializer;
 
-  /**
-   * Initialize a newly created variable declaration. The [equals] and
-   * [initializer] can be `null` if there is no initializer.
-   */
+  /// Initialize a newly created variable declaration. The [equals] and
+  /// [initializer] can be `null` if there is no initializer.
   VariableDeclarationImpl(
       SimpleIdentifierImpl name, this.equals, ExpressionImpl initializer)
       : super(null, null) {
@@ -12242,11 +10790,9 @@ class VariableDeclarationImpl extends DeclarationImpl
   VariableElement get declaredElement =>
       _name?.staticElement as VariableElement;
 
-  /**
-   * This overridden implementation of [documentationComment] looks in the
-   * grandparent node for Dartdoc comments if no documentation is specifically
-   * available on the node.
-   */
+  /// This overridden implementation of [documentationComment] looks in the
+  /// grandparent node for Dartdoc comments if no documentation is specifically
+  /// available on the node.
   @override
   Comment get documentationComment {
     Comment comment = super.documentationComment;
@@ -12313,42 +10859,34 @@ class VariableDeclarationImpl extends DeclarationImpl
   }
 }
 
-/**
- * The declaration of one or more variables of the same type.
- *
- *    variableDeclarationList ::=
- *        finalConstVarOrType [VariableDeclaration] (',' [VariableDeclaration])*
- *
- *    finalConstVarOrType ::=
- *      | 'final' [TypeName]?
- *      | 'const' [TypeName]?
- *      | 'var'
- *      | [TypeName]
- */
+/// The declaration of one or more variables of the same type.
+///
+///    variableDeclarationList ::=
+///        finalConstVarOrType [VariableDeclaration]
+///        (',' [VariableDeclaration])*
+///
+///    finalConstVarOrType ::=
+///      | 'final' [TypeName]?
+///      | 'const' [TypeName]?
+///      | 'var'
+///      | [TypeName]
 class VariableDeclarationListImpl extends AnnotatedNodeImpl
     implements VariableDeclarationList {
-  /**
-   * The token representing the 'final', 'const' or 'var' keyword, or `null` if
-   * no keyword was included.
-   */
+  /// The token representing the 'final', 'const' or 'var' keyword, or `null` if
+  /// no keyword was included.
   Token keyword;
 
-  /**
-   * The type of the variables being declared, or `null` if no type was provided.
-   */
+  /// The type of the variables being declared, or `null` if no type was
+  /// provided.
   TypeAnnotationImpl _type;
 
-  /**
-   * A list containing the individual variables being declared.
-   */
+  /// A list containing the individual variables being declared.
   NodeList<VariableDeclaration> _variables;
 
-  /**
-   * Initialize a newly created variable declaration list. Either or both of the
-   * [comment] and [metadata] can be `null` if the variable list does not have
-   * the corresponding attribute. The [keyword] can be `null` if a type was
-   * specified. The [type] must be `null` if the keyword is 'var'.
-   */
+  /// Initialize a newly created variable declaration list. Either or both of
+  /// the [comment] and [metadata] can be `null` if the variable list does not
+  /// have the corresponding attribute. The [keyword] can be `null` if a type
+  /// was specified. The [type] must be `null` if the keyword is 'var'.
   VariableDeclarationListImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -12409,28 +10947,20 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   }
 }
 
-/**
- * A list of variables that are being declared in a context where a statement is
- * required.
- *
- *    variableDeclarationStatement ::=
- *        [VariableDeclarationList] ';'
- */
+/// A list of variables that are being declared in a context where a statement
+/// is required.
+///
+///    variableDeclarationStatement ::=
+///        [VariableDeclarationList] ';'
 class VariableDeclarationStatementImpl extends StatementImpl
     implements VariableDeclarationStatement {
-  /**
-   * The variables being declared.
-   */
+  /// The variables being declared.
   VariableDeclarationListImpl _variableList;
 
-  /**
-   * The semicolon terminating the statement.
-   */
+  /// The semicolon terminating the statement.
   Token semicolon;
 
-  /**
-   * Initialize a newly created variable declaration statement.
-   */
+  /// Initialize a newly created variable declaration statement.
   VariableDeclarationStatementImpl(
       VariableDeclarationListImpl variableList, this.semicolon) {
     _variableList = _becomeParentOf(variableList);
@@ -12464,41 +10994,27 @@ class VariableDeclarationStatementImpl extends StatementImpl
   }
 }
 
-/**
- * A while statement.
- *
- *    whileStatement ::=
- *        'while' '(' [Expression] ')' [Statement]
- */
+/// A while statement.
+///
+///    whileStatement ::=
+///        'while' '(' [Expression] ')' [Statement]
 class WhileStatementImpl extends StatementImpl implements WhileStatement {
-  /**
-   * The token representing the 'while' keyword.
-   */
+  /// The token representing the 'while' keyword.
   Token whileKeyword;
 
-  /**
-   * The left parenthesis.
-   */
+  /// The left parenthesis.
   Token leftParenthesis;
 
-  /**
-   * The expression used to determine whether to execute the body of the loop.
-   */
+  /// The expression used to determine whether to execute the body of the loop.
   ExpressionImpl _condition;
 
-  /**
-   * The right parenthesis.
-   */
+  /// The right parenthesis.
   Token rightParenthesis;
 
-  /**
-   * The body of the loop.
-   */
+  /// The body of the loop.
   StatementImpl _body;
 
-  /**
-   * Initialize a newly created while statement.
-   */
+  /// Initialize a newly created while statement.
   WhileStatementImpl(this.whileKeyword, this.leftParenthesis,
       ExpressionImpl condition, this.rightParenthesis, StatementImpl body) {
     _condition = _becomeParentOf(condition);
@@ -12545,26 +11061,18 @@ class WhileStatementImpl extends StatementImpl implements WhileStatement {
   }
 }
 
-/**
- * The with clause in a class declaration.
- *
- *    withClause ::=
- *        'with' [TypeName] (',' [TypeName])*
- */
+/// The with clause in a class declaration.
+///
+///    withClause ::=
+///        'with' [TypeName] (',' [TypeName])*
 class WithClauseImpl extends AstNodeImpl implements WithClause {
-  /**
-   * The token representing the 'with' keyword.
-   */
+  /// The token representing the 'with' keyword.
   Token withKeyword;
 
-  /**
-   * The names of the mixins that were specified.
-   */
+  /// The names of the mixins that were specified.
   NodeList<TypeName> _mixinTypes;
 
-  /**
-   * Initialize a newly created with clause.
-   */
+  /// Initialize a newly created with clause.
   WithClauseImpl(this.withKeyword, List<TypeName> mixinTypes) {
     _mixinTypes = new NodeListImpl<TypeName>(this, mixinTypes);
   }
@@ -12593,37 +11101,25 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   }
 }
 
-/**
- * A yield statement.
- *
- *    yieldStatement ::=
- *        'yield' '*'? [Expression] ‘;’
- */
+/// A yield statement.
+///
+///    yieldStatement ::=
+///        'yield' '*'? [Expression] ‘;’
 class YieldStatementImpl extends StatementImpl implements YieldStatement {
-  /**
-   * The 'yield' keyword.
-   */
+  /// The 'yield' keyword.
   Token yieldKeyword;
 
-  /**
-   * The star optionally following the 'yield' keyword.
-   */
+  /// The star optionally following the 'yield' keyword.
   Token star;
 
-  /**
-   * The expression whose value will be yielded.
-   */
+  /// The expression whose value will be yielded.
   ExpressionImpl _expression;
 
-  /**
-   * The semicolon following the expression.
-   */
+  /// The semicolon following the expression.
   Token semicolon;
 
-  /**
-   * Initialize a newly created yield expression. The [star] can be `null` if no
-   * star was provided.
-   */
+  /// Initialize a newly created yield expression. The [star] can be `null` if
+  /// no star was provided.
   YieldStatementImpl(
       this.yieldKeyword, this.star, ExpressionImpl expression, this.semicolon) {
     _expression = _becomeParentOf(expression);
@@ -12667,4 +11163,20 @@ class YieldStatementImpl extends StatementImpl implements YieldStatement {
   void visitChildren(AstVisitor visitor) {
     _expression?.accept(visitor);
   }
+}
+
+/// An indication of the resolved kind of a [SetOrMapLiteral].
+enum _SetOrMapKind {
+  /// Indicates that the literal represents a map.
+  map,
+
+  /// Indicates that the literal represents a set.
+  set,
+
+  /// Indicates that either
+  /// - the literal is syntactically ambiguous and resolution has not yet been
+  ///   performed, or
+  /// - the literal is invalid because resolution was not able to resolve the
+  ///   ambiguity.
+  unresolved
 }

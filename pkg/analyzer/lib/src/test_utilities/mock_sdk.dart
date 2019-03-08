@@ -218,6 +218,8 @@ abstract class int extends num {
 
   int operator ~();
 
+  int gcd(int other);
+
   external static int parse(String source,
       {int radix, int onError(String source)});
 }
@@ -266,9 +268,9 @@ class List<E> implements Iterable<E> {
 }
 
 class Map<K, V> {
-  factory Map() => {}
+  factory Map() => null;
   factory Map.fromIterable(Iterable iterable,
-      {K key(element), V value(element)}) => {}
+      {K key(element), V value(element)}) => null;
   Iterable<K> get keys => null;
   int get length => 0;
   Iterable<V> get values => null;

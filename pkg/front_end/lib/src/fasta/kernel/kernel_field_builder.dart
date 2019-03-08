@@ -19,7 +19,7 @@ import 'kernel_body_builder.dart' show KernelBodyBuilder;
 import 'kernel_builder.dart'
     show
         Declaration,
-        ImplicitType,
+        ImplicitFieldType,
         FieldBuilder,
         KernelLibraryBuilder,
         KernelTypeBuilder,
@@ -83,12 +83,12 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
         .createTopLevelTypeInferrer(
             field.enclosingClass?.thisType, field, null);
     if (hasInitializer) {
-      if (field.type is! ImplicitType) {
+      if (field.type is! ImplicitFieldType) {
         unsupported(
             "$name has unexpected type ${field.type}", charOffset, fileUri);
         return;
       }
-      ImplicitType type = field.type;
+      ImplicitFieldType type = field.type;
       field.type = const DynamicType();
       initializer = new KernelBodyBuilder.forField(this, typeInferrer)
           .parseFieldInitializer(type.initializerToken);

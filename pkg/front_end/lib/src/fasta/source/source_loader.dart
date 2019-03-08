@@ -23,7 +23,8 @@ import 'package:kernel/ast.dart'
         Library,
         LibraryDependency,
         ProcedureKind,
-        Supertype;
+        Supertype,
+        TreeNode;
 
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, HandleAmbiguousSupertypes;
@@ -91,6 +92,8 @@ import '../kernel/kernel_target.dart' show KernelTarget;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
+import '../kernel/transform_collections.dart' show CollectionTransformer;
+
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
 
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
@@ -108,9 +111,6 @@ import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
 import '../severity.dart' show Severity;
 
 import '../type_inference/interface_resolver.dart' show InterfaceResolver;
-
-import '../type_inference/type_inferrer.dart'
-    show KernelHierarchyMixinInferrerCallback;
 
 import 'diet_listener.dart' show DietListener;
 
@@ -144,6 +144,8 @@ class SourceLoader extends Loader<Library> {
   InterfaceResolver interfaceResolver;
 
   Instrumentation instrumentation;
+
+  CollectionTransformer collectionTransformer;
 
   SetLiteralTransformer setLiteralTransformer;
 
@@ -771,7 +773,9 @@ class SourceLoader extends Loader<Library> {
     List<Library> workList = <Library>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (!library.isPatch &&
-          (library.loader == this || library.uri.scheme == "dart")) {
+          (library.loader == this ||
+              library.uri.scheme == "dart" ||
+              library == this.first)) {
         if (libraries.add(library.target)) {
           workList.add(library.target);
         }
@@ -798,13 +802,9 @@ class SourceLoader extends Loader<Library> {
     };
     if (hierarchy == null) {
       hierarchy = new ClassHierarchy(computeFullComponent(),
-          onAmbiguousSupertypes: onAmbiguousSupertypes,
-          mixinInferrer: new KernelHierarchyMixinInferrerCallback(
-              this, target.legacyMode));
+          onAmbiguousSupertypes: onAmbiguousSupertypes);
     } else {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
-      hierarchy.mixinInferrer =
-          new KernelHierarchyMixinInferrerCallback(this, target.legacyMode);
       Component component = computeFullComponent();
       hierarchy.applyTreeChanges(const [], component.libraries,
           reissueAmbiguousSupertypesFor: component);
@@ -1014,6 +1014,34 @@ class SourceLoader extends Loader<Library> {
     ticker.logMs("Performed top level inference");
   }
 
+  void transformPostInference(
+      TreeNode node, bool transformSetLiterals, bool transformCollections) {
+    if (transformCollections) {
+      node.accept(collectionTransformer ??= new CollectionTransformer(this));
+    }
+    if (transformSetLiterals) {
+      node.accept(setLiteralTransformer ??= new SetLiteralTransformer(this));
+    }
+  }
+
+  void transformListPostInference(List<TreeNode> list,
+      bool transformSetLiterals, bool transformCollections) {
+    if (transformSetLiterals) {
+      SetLiteralTransformer transformer =
+          setLiteralTransformer ??= new SetLiteralTransformer(this);
+      for (int i = 0; i < list.length; ++i) {
+        list[i] = list[i].accept(transformer);
+      }
+    }
+    if (transformCollections) {
+      CollectionTransformer transformer =
+          collectionTransformer ??= new CollectionTransformer(this);
+      for (int i = 0; i < list.length; ++i) {
+        list[i] = list[i].accept(transformer);
+      }
+    }
+  }
+
   Expression instantiateInvocation(Expression receiver, String name,
       Arguments arguments, int offset, bool isSuper) {
     return target.backendTarget.instantiateInvocation(
@@ -1116,6 +1144,9 @@ class SourceLoader extends Loader<Library> {
   KernelClassBuilder computeClassBuilderFromTargetClass(Class cls) {
     Library kernelLibrary = cls.enclosingLibrary;
     LibraryBuilder library = builders[kernelLibrary.importUri];
+    if (library == null) {
+      return target.dillTarget.loader.computeClassBuilderFromTargetClass(cls);
+    }
     return library[cls.name];
   }
 

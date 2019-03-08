@@ -44,7 +44,7 @@ class Object {
   static String _toString(obj) native "Object_toString";
 
   @patch
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   dynamic noSuchMethod(Invocation invocation) {
     // TODO(regis): Remove temp constructor identifier 'withInvocation'.
     throw new NoSuchMethodError.withInvocation(this, invocation);
@@ -54,21 +54,21 @@ class Object {
   @pragma("vm:exact-result-type", "dart:core#_Type")
   Type get runtimeType native "Object_runtimeType";
 
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   @pragma("vm:exact-result-type", bool)
   static bool _haveSameRuntimeType(a, b) native "Object_haveSameRuntimeType";
 
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   bool _instanceOf(instantiatorTypeArguments, functionTypeArguments, type)
       native "Object_instanceOf";
 
   // Group of functions for implementing fast simple instance of.
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   bool _simpleInstanceOf(type) native "Object_simpleInstanceOf";
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   bool _simpleInstanceOfTrue(type) => true;
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   bool _simpleInstanceOfFalse(type) => false;
 }

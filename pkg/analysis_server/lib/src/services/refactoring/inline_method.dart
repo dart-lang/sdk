@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
@@ -66,7 +67,7 @@ String _getMethodSourceForInvocation(
       argument = (argument as NamedExpression).expression;
     }
     // prepare argument properties
-    int argumentPrecedence;
+    Precedence argumentPrecedence;
     String argumentSource;
     if (argument != null) {
       argumentPrecedence = getExpressionPrecedence(argument);
@@ -79,7 +80,7 @@ String _getMethodSourceForInvocation(
         return;
       }
       // an optional parameter
-      argumentPrecedence = -1000;
+      argumentPrecedence = Precedence.none;
       argumentSource = parameter.defaultValueCode;
       if (argumentSource == null) {
         argumentSource = 'null';
@@ -414,8 +415,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 }
 
 class _ParameterOccurrence {
-  final int parentPrecedence;
+  final Precedence parentPrecedence;
   final SourceRange range;
+
   _ParameterOccurrence(this.parentPrecedence, this.range);
 }
 
@@ -735,8 +737,8 @@ class _SourcePart {
     _implicitThisOffsets.add(offset - _base);
   }
 
-  void addParameterOccurrence(
-      ParameterElement parameter, SourceRange identifierRange, int precedence) {
+  void addParameterOccurrence(ParameterElement parameter,
+      SourceRange identifierRange, Precedence precedence) {
     if (parameter != null) {
       List<_ParameterOccurrence> occurrences = _parameters[parameter];
       if (occurrences == null) {
@@ -846,7 +848,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
     }
     // OK, add occurrence
     SourceRange nodeRange = range.node(node);
-    int parentPrecedence = getExpressionParentPrecedence(node);
+    Precedence parentPrecedence = getExpressionParentPrecedence(node);
     result.addParameterOccurrence(
         parameterElement, nodeRange, parentPrecedence);
   }

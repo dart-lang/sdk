@@ -273,8 +273,9 @@ class Collector {
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
         _worldBuilder.allReferencedStaticFields.where((FieldEntity field) {
-      return field.isAssignable &&
-          _worldBuilder.hasConstantFieldInitializer(field);
+      FieldAnalysisData fieldData =
+          _closedWorld.fieldAnalysis.getFieldData(field);
+      return !fieldData.isEffectivelyFinal && fieldData.initialValue != null;
     });
 
     _sorter.sortMembers(fields).forEach((MemberEntity e) => addToOutputUnit(e));

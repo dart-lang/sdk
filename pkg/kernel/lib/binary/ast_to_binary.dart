@@ -219,6 +219,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeDartType(constant.typeArgument);
       writeUInt30(constant.entries.length);
       constant.entries.forEach(writeConstantReference);
+    } else if (constant is SetConstant) {
+      writeByte(ConstantTag.SetConstant);
+      writeDartType(constant.typeArgument);
+      writeUInt30(constant.entries.length);
+      constant.entries.forEach(writeConstantReference);
     } else if (constant is InstanceConstant) {
       writeByte(ConstantTag.InstanceConstant);
       writeClassReference(constant.classNode);
@@ -1614,6 +1619,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitBlockExpression(BlockExpression node) {
+    writeByte(Tag.BlockExpression);
+    _variableIndexer ??= new VariableIndexer();
+    _variableIndexer.pushScope();
+    writeNodeList(node.body.statements);
+    writeNode(node.value);
+    _variableIndexer.popScope();
+  }
+
+  @override
   void visitInstantiation(Instantiation node) {
     writeByte(Tag.Instantiation);
     writeNode(node.expression);
@@ -2107,6 +2122,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitListConstantReference(ListConstant node) {
     throw new UnsupportedError('serialization of ListConstant references');
+  }
+
+  @override
+  void visitSetConstant(SetConstant node) {
+    throw new UnsupportedError('serialization of SetConstants');
+  }
+
+  @override
+  void visitSetConstantReference(SetConstant node) {
+    throw new UnsupportedError('serialization of SetConstant references');
   }
 
   @override

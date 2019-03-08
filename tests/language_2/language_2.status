@@ -76,8 +76,6 @@ type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
 # errors aren't detected by fasta, but reported by back ends as compile-time
 # errors.
 [ $compiler != dart2analyzer && $compiler != dart2js && $runtime != dart_precompiled && $runtime != vm && $fasta ]
-function_type_parameter2_negative_test: Fail
-function_type_parameter_negative_test: Fail
 implicit_creation/implicit_const_not_default_values_test/e12: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e15: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e18: MissingCompileTimeError

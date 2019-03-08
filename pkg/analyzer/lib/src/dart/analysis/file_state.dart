@@ -331,6 +331,9 @@ class FileState {
       for (UnlinkedEnum type in unlinked.enums) {
         addDeclaration(TopLevelDeclarationKind.type, type.name);
       }
+      for (UnlinkedClass type in unlinked.mixins) {
+        addDeclaration(TopLevelDeclarationKind.type, type.name);
+      }
       for (UnlinkedTypedef type in unlinked.typedefs) {
         addDeclaration(TopLevelDeclarationKind.type, type.name);
       }
@@ -702,7 +705,6 @@ class FileState {
     bool useFasta = analysisOptions.useFastaParser;
     Parser parser = new Parser(source, errorListener, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
-    parser.enableSetLiterals = experimentStatus.set_literals;
     parser.enableNonNullable = experimentStatus.non_nullable;
     parser.enableSpreadCollections = experimentStatus.spread_collections;
     parser.enableControlFlowCollections =

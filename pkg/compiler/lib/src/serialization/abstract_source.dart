@@ -457,11 +457,18 @@ abstract class AbstractDataSource extends DataSourceMixin
         DartType type = readDartType();
         List<ConstantValue> entries = readConstants();
         return new ListConstantValue(type, entries);
+      case ConstantValueKind.SET:
+        DartType type = readDartType();
+        MapConstantValue entries = readConstant();
+        return new constant_system.JavaScriptSetConstant(type, entries);
       case ConstantValueKind.MAP:
         DartType type = readDartType();
-        List<ConstantValue> keys = readConstants();
+        ListConstantValue keyList = readConstant();
         List<ConstantValue> values = readConstants();
-        return new MapConstantValue(type, keys, values);
+        ConstantValue protoValue = readConstantOrNull();
+        bool onlyStringKeys = readBool();
+        return new constant_system.JavaScriptMapConstant(
+            type, keyList, values, protoValue, onlyStringKeys);
       case ConstantValueKind.CONSTRUCTED:
         InterfaceType type = readDartType();
         Map<FieldEntity, ConstantValue> fields =

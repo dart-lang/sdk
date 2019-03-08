@@ -303,6 +303,7 @@ options. Used to be able to make sane updates to the status files.''',
     new _Option(
         'dart2js_options', 'Extra options for dart2js compilation step.',
         hide: true),
+    new _Option('shared_options', 'Extra shared options.', hide: true),
     new _Option(
         'suite_dir', 'Additional directory to add to the testing matrix.',
         hide: true),
@@ -344,6 +345,7 @@ compiler.''',
     'local_ip',
     'output_directory',
     'progress',
+    'repeat',
     'report',
     'safari',
     'shard',
@@ -351,6 +353,7 @@ compiler.''',
     'silent_failures',
     'step_name',
     'tasks',
+    'tests',
     'time',
     'verbose',
     'write_debug_log',
@@ -606,6 +609,7 @@ compiler.''',
 
     var dart2jsOptions = listOption("dart2js_options");
     var vmOptions = listOption("vm_options");
+    var sharedOptions = listOption("shared_options");
 
     // JSON reporting implies listing and reporting.
     if (data['report_in_json'] as bool) {
@@ -731,6 +735,7 @@ compiler.''',
                 testDriverErrorPort: data["test_driver_error_port"] as int,
                 localIP: data["local_ip"] as String,
                 dart2jsOptions: dart2jsOptions,
+                sharedOptions: sharedOptions,
                 packages: data["packages"] as String,
                 packageRoot: data["package_root"] as String,
                 suiteDirectory: data["suite_dir"] as String,

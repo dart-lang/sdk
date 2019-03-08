@@ -267,8 +267,6 @@ void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) {}
 
 void ConstantPropagator::VisitTailCall(TailCallInstr* instr) {}
 
-void ConstantPropagator::VisitCheckNull(CheckNullInstr* instr) {}
-
 void ConstantPropagator::VisitCheckEitherNonSmi(CheckEitherNonSmiInstr* instr) {
 }
 
@@ -354,12 +352,34 @@ void ConstantPropagator::VisitGenericCheckBound(GenericCheckBoundInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitCheckNull(CheckNullInstr* instr) {
+  // Don't propagate constants through check, since it would eliminate
+  // the data dependence between the null check and its use.
+  // Graph finalization will expose the constant eventually.
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitParameter(ParameterInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
 void ConstantPropagator::VisitPushArgument(PushArgumentInstr* instr) {
-  SetValue(instr, instr->value()->definition()->constant_value());
+  if (SetValue(instr, instr->value()->definition()->constant_value())) {
+    // The worklist implementation breaks down around push arguments,
+    // since these instructions do not have a direct use-link to the
+    // corresponding call. This is remedied by visiting all calls in
+    // the enviroment use list each time a push argument changes its
+    // value. Currently, this only needs to be done for static calls
+    // (the only calls involved in constant propagation).
+    // TODO(ajcbik): calls with multiple arguments may be revisited
+    //               several times; a direct use-link would be better
+    for (Value* use = instr->env_use_list(); use != nullptr;
+         use = use->next_use()) {
+      if (use->instruction()->IsStaticCall()) {
+        use->instruction()->Accept(this);
+      }
+    }
+  }
 }
 
 void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
@@ -410,8 +430,8 @@ void ConstantPropagator::VisitPolymorphicInstanceCall(
 }
 
 void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
-  const Function& function = instr->function();
-  switch (MethodRecognizer::RecognizeKind(function)) {
+  const auto kind = MethodRecognizer::RecognizeKind(instr->function());
+  switch (kind) {
     case MethodRecognizer::kOneByteString_equality:
     case MethodRecognizer::kTwoByteString_equality: {
       ASSERT(instr->FirstArgIndex() == 0);
@@ -421,10 +441,32 @@ void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
         SetValue(instr, Bool::True());
         return;
       }
+      // Otherwise evaluate string compare with propagated constants.
+      const Object& o1 = instr->ArgumentAt(0)->constant_value();
+      const Object& o2 = instr->ArgumentAt(1)->constant_value();
+      if (IsConstant(o1) && IsConstant(o2) && o1.IsString() && o2.IsString()) {
+        SetValue(instr, Bool::Get(String::Cast(o1).Equals(String::Cast(o2))));
+        return;
+      }
+      break;
+    }
+    case MethodRecognizer::kStringBaseLength:
+    case MethodRecognizer::kStringBaseIsEmpty: {
+      ASSERT(instr->FirstArgIndex() == 0);
+      // Otherwise evaluate string length with propagated constants.
+      const Object& o = instr->ArgumentAt(0)->constant_value();
+      if (IsConstant(o) && o.IsString()) {
+        const auto& str = String::Cast(o);
+        if (kind == MethodRecognizer::kStringBaseLength) {
+          SetValue(instr, Integer::ZoneHandle(Z, Integer::New(str.Length())));
+        } else {
+          SetValue(instr, Bool::Get(str.Length() == 0));
+        }
+        return;
+      }
       break;
     }
     default:
-      // TODO(ajcbik): consider more cases
       break;
   }
   SetValue(instr, non_constant_);
@@ -1288,10 +1330,9 @@ void ConstantPropagator::Analyze() {
     if (block_worklist_.is_empty()) {
       if (definition_worklist_.IsEmpty()) break;
       Definition* definition = definition_worklist_.RemoveLast();
-      Value* use = definition->input_use_list();
-      while (use != NULL) {
+      for (Value* use = definition->input_use_list(); use != nullptr;
+           use = use->next_use()) {
         use->instruction()->Accept(this);
-        use = use->next_use();
       }
     } else {
       BlockEntryInstr* block = block_worklist_.RemoveLast();
@@ -1378,7 +1419,7 @@ void ConstantPropagator::EliminateRedundantBranches() {
 static void RemovePushArguments(StaticCallInstr* call) {
   for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
     PushArgumentInstr* push = call->PushArgumentAt(i);
-    push->ReplaceUsesWith(push->value()->definition());
+    ASSERT(push->input_use_list() == nullptr);
     push->RemoveFromGraph();
   }
 }

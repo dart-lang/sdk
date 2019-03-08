@@ -20,10 +20,8 @@ import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
 import 'package:kernel/transformations/method_call.dart' as method_call;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
-import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
 import 'package:kernel/transformations/coq.dart' as coq;
 import 'package:kernel/vm/constants_native_effects.dart';
-import 'package:kernel/src/tool/command_line_util.dart';
 
 ArgParser parser = new ArgParser()
   ..addOption('format',
@@ -38,9 +36,6 @@ ArgParser parser = new ArgParser()
       help: 'Be verbose (e.g. prints transformed main library).',
       defaultsTo: false)
   ..addMultiOption('define', abbr: 'D', splitCommas: false)
-  ..addMultiOption('embedder-entry-points-manifest',
-      help: 'A path to a file describing entrypoints '
-          '(lines of the form `<library>,<class>,<member>`).')
   ..addOption('transformation',
       abbr: 't',
       help: 'The transformation to apply.',
@@ -89,11 +84,6 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     output = '${input.substring(0, input.lastIndexOf('.'))}.transformed.dill';
   }
 
-  List<String> embedderEntryPointManifests =
-      options['embedder-entry-points-manifest'] as List<String>;
-  List<treeshaker.ProgramRoot> programRoots =
-      parseProgramRoots(embedderEntryPointManifests);
-
   var component = loadComponentFromBinary(input);
 
   final coreTypes = new CoreTypes(component);
@@ -113,10 +103,6 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
       component = constants.transformComponent(
           component, backend, defines, const constants.SimpleErrorReporter());
-      break;
-    case 'treeshake':
-      component = treeshaker.transformComponent(coreTypes, hierarchy, component,
-          programRoots: programRoots, legacyMode: true);
       break;
     case 'methodcall':
       component =

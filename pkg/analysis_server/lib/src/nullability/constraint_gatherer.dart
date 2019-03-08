@@ -181,6 +181,11 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitBooleanLiteral(BooleanLiteral node) {
+    return DecoratedType(node.staticType, null);
+  }
+
+  @override
   DecoratedType visitClassDeclaration(ClassDeclaration node) {
     node.members.accept(this);
     return null;
@@ -217,7 +222,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       }
     } else {
       _handleAssignment(
-          getOrComputeElementType(node.declaredElement), defaultValue);
+          getOrComputeElementType(node.declaredElement), defaultValue,
+          canInsertChecks: false);
     }
     return null;
   }
@@ -234,8 +240,12 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(_currentFunctionType == null);
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);
-    node.functionExpression.body.accept(this);
-    _currentFunctionType = null;
+    _inConditionalControlFlow = false;
+    try {
+      node.functionExpression.body.accept(this);
+    } finally {
+      _currentFunctionType = null;
+    }
     return null;
   }
 
@@ -259,16 +269,22 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     if (trueGuard != null) {
       _guards.add(trueGuard);
     }
-    node.thenStatement.accept(this);
-    if (trueGuard != null) {
-      _guards.removeLast();
+    try {
+      node.thenStatement.accept(this);
+    } finally {
+      if (trueGuard != null) {
+        _guards.removeLast();
+      }
     }
     if (falseGuard != null) {
       _guards.add(falseGuard);
     }
-    node.elseStatement?.accept(this);
-    if (falseGuard != null) {
-      _guards.removeLast();
+    try {
+      node.elseStatement?.accept(this);
+    } finally {
+      if (falseGuard != null) {
+        _guards.removeLast();
+      }
     }
     return null;
   }
@@ -284,8 +300,12 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(_currentFunctionType == null);
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);
-    node.body.accept(this);
-    _currentFunctionType = null;
+    _inConditionalControlFlow = false;
+    try {
+      node.body.accept(this);
+    } finally {
+      _currentFunctionType = null;
+    }
     return null;
   }
 
@@ -400,14 +420,37 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   void _checkAssignment(DecoratedType destinationType, DecoratedType sourceType,
       Expression expression) {
     if (sourceType.nullable != null) {
-      if (destinationType.nullable != null) {
-        _recordConstraint(sourceType.nullable, destinationType.nullable);
-      } else {
-        assert(expression != null); // TODO(paulberry)
-        var checkNotNull = CheckExpression(expression);
-        _recordConstraint(sourceType.nullable, checkNotNull);
-        _variables.recordExpressionChecks(
-            expression, ExpressionChecks(_source, checkNotNull));
+      _guards.add(sourceType.nullable);
+      var destinationNonNullIntent = destinationType.nonNullIntent;
+      try {
+        CheckExpression checkNotNull;
+        if (expression != null) {
+          checkNotNull = CheckExpression(expression);
+          _variables.recordExpressionChecks(
+              _source, expression, ExpressionChecks(checkNotNull));
+        }
+        // nullable_src => nullable_dst | check_expr
+        _recordFact(ConstraintVariable.or(
+            _constraints, destinationType.nullable, checkNotNull));
+        if (checkNotNull != null) {
+          // nullable_src & nonNullIntent_dst => check_expr
+          if (destinationNonNullIntent != null) {
+            _recordConstraint(destinationNonNullIntent, checkNotNull);
+          }
+        }
+      } finally {
+        _guards.removeLast();
+      }
+      var sourceNonNullIntent = sourceType.nonNullIntent;
+      if (!_inConditionalControlFlow && sourceNonNullIntent != null) {
+        if (destinationType.nullable == null) {
+          // The destination type can never be nullable so this demonstrates
+          // non-null intent.
+          _recordFact(sourceNonNullIntent);
+        } else if (destinationNonNullIntent != null) {
+          // Propagate non-null intent from the destination to the source.
+          _recordConstraint(destinationNonNullIntent, sourceNonNullIntent);
+        }
       }
     }
     // TODO(paulberry): it's a cheat to pass in expression=null for the
@@ -449,9 +492,11 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// Creates the necessary constraint(s) for an assignment of the given
   /// [expression] to a destination whose type is [destinationType].
   DecoratedType _handleAssignment(
-      DecoratedType destinationType, Expression expression) {
+      DecoratedType destinationType, Expression expression,
+      {bool canInsertChecks = true}) {
     var sourceType = expression.accept(this);
-    _checkAssignment(destinationType, sourceType, expression);
+    _checkAssignment(
+        destinationType, sourceType, canInsertChecks ? expression : null);
     return sourceType;
   }
 
@@ -491,13 +536,17 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   void _recordConstraint(
       ConstraintVariable condition, ConstraintVariable consequence) {
     _guards.add(condition);
-    _recordFact(consequence);
-    _guards.removeLast();
+    try {
+      _recordFact(consequence);
+    } finally {
+      _guards.removeLast();
+    }
   }
 
   /// Records a constraint having [consequence] as its right hand side.  Any
   /// [_guards] are used as the right hand side.
   void _recordFact(ConstraintVariable consequence) {
+    assert(consequence != null);
     _constraints.record(_guards, consequence);
   }
 }

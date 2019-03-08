@@ -60,12 +60,6 @@ public class CompletionSuggestion {
   private final String displayText;
 
   /**
-   * The URI of the element corresponding to this suggestion. It will be set whenever analysis server
-   * is able to compute it.
-   */
-  private final String elementUri;
-
-  /**
    * The offset, relative to the beginning of the completion, of where the selection should be placed
    * after insertion.
    */
@@ -167,20 +161,13 @@ public class CompletionSuggestion {
   private final String parameterType;
 
   /**
-   * The import to be added if the suggestion is out of scope and needs an import to be added to be
-   * in scope.
-   */
-  private final String importUri;
-
-  /**
    * Constructor for {@link CompletionSuggestion}.
    */
-  public CompletionSuggestion(String kind, int relevance, String completion, String displayText, String elementUri, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String defaultArgumentListString, int[] defaultArgumentListTextRanges, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType, String importUri) {
+  public CompletionSuggestion(String kind, int relevance, String completion, String displayText, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String defaultArgumentListString, int[] defaultArgumentListTextRanges, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
     this.displayText = displayText;
-    this.elementUri = elementUri;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
     this.isDeprecated = isDeprecated;
@@ -198,7 +185,6 @@ public class CompletionSuggestion {
     this.hasNamedParameters = hasNamedParameters;
     this.parameterName = parameterName;
     this.parameterType = parameterType;
-    this.importUri = importUri;
   }
 
   @Override
@@ -210,7 +196,6 @@ public class CompletionSuggestion {
         other.relevance == relevance &&
         ObjectUtilities.equals(other.completion, completion) &&
         ObjectUtilities.equals(other.displayText, displayText) &&
-        ObjectUtilities.equals(other.elementUri, elementUri) &&
         other.selectionOffset == selectionOffset &&
         other.selectionLength == selectionLength &&
         other.isDeprecated == isDeprecated &&
@@ -227,8 +212,7 @@ public class CompletionSuggestion {
         ObjectUtilities.equals(other.requiredParameterCount, requiredParameterCount) &&
         ObjectUtilities.equals(other.hasNamedParameters, hasNamedParameters) &&
         ObjectUtilities.equals(other.parameterName, parameterName) &&
-        ObjectUtilities.equals(other.parameterType, parameterType) &&
-        ObjectUtilities.equals(other.importUri, importUri);
+        ObjectUtilities.equals(other.parameterType, parameterType);
     }
     return false;
   }
@@ -238,7 +222,6 @@ public class CompletionSuggestion {
     int relevance = jsonObject.get("relevance").getAsInt();
     String completion = jsonObject.get("completion").getAsString();
     String displayText = jsonObject.get("displayText") == null ? null : jsonObject.get("displayText").getAsString();
-    String elementUri = jsonObject.get("elementUri") == null ? null : jsonObject.get("elementUri").getAsString();
     int selectionOffset = jsonObject.get("selectionOffset").getAsInt();
     int selectionLength = jsonObject.get("selectionLength").getAsInt();
     boolean isDeprecated = jsonObject.get("isDeprecated").getAsBoolean();
@@ -256,8 +239,7 @@ public class CompletionSuggestion {
     Boolean hasNamedParameters = jsonObject.get("hasNamedParameters") == null ? null : jsonObject.get("hasNamedParameters").getAsBoolean();
     String parameterName = jsonObject.get("parameterName") == null ? null : jsonObject.get("parameterName").getAsString();
     String parameterType = jsonObject.get("parameterType") == null ? null : jsonObject.get("parameterType").getAsString();
-    String importUri = jsonObject.get("importUri") == null ? null : jsonObject.get("importUri").getAsString();
-    return new CompletionSuggestion(kind, relevance, completion, displayText, elementUri, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, defaultArgumentListString, defaultArgumentListTextRanges, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType, importUri);
+    return new CompletionSuggestion(kind, relevance, completion, displayText, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, defaultArgumentListString, defaultArgumentListTextRanges, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType);
   }
 
   public static List<CompletionSuggestion> fromJsonArray(JsonArray jsonArray) {
@@ -339,27 +321,11 @@ public class CompletionSuggestion {
   }
 
   /**
-   * The URI of the element corresponding to this suggestion. It will be set whenever analysis server
-   * is able to compute it.
-   */
-  public String getElementUri() {
-    return elementUri;
-  }
-
-  /**
    * True if the function or method being suggested has at least one named parameter. This field is
    * omitted if the parameterNames field is omitted.
    */
   public Boolean getHasNamedParameters() {
     return hasNamedParameters;
-  }
-
-  /**
-   * The import to be added if the suggestion is out of scope and needs an import to be added to be
-   * in scope.
-   */
-  public String getImportUri() {
-    return importUri;
   }
 
   /**
@@ -461,7 +427,6 @@ public class CompletionSuggestion {
     builder.append(relevance);
     builder.append(completion);
     builder.append(displayText);
-    builder.append(elementUri);
     builder.append(selectionOffset);
     builder.append(selectionLength);
     builder.append(isDeprecated);
@@ -479,7 +444,6 @@ public class CompletionSuggestion {
     builder.append(hasNamedParameters);
     builder.append(parameterName);
     builder.append(parameterType);
-    builder.append(importUri);
     return builder.toHashCode();
   }
 
@@ -490,9 +454,6 @@ public class CompletionSuggestion {
     jsonObject.addProperty("completion", completion);
     if (displayText != null) {
       jsonObject.addProperty("displayText", displayText);
-    }
-    if (elementUri != null) {
-      jsonObject.addProperty("elementUri", elementUri);
     }
     jsonObject.addProperty("selectionOffset", selectionOffset);
     jsonObject.addProperty("selectionLength", selectionLength);
@@ -549,9 +510,6 @@ public class CompletionSuggestion {
     if (parameterType != null) {
       jsonObject.addProperty("parameterType", parameterType);
     }
-    if (importUri != null) {
-      jsonObject.addProperty("importUri", importUri);
-    }
     return jsonObject;
   }
 
@@ -567,8 +525,6 @@ public class CompletionSuggestion {
     builder.append(completion + ", ");
     builder.append("displayText=");
     builder.append(displayText + ", ");
-    builder.append("elementUri=");
-    builder.append(elementUri + ", ");
     builder.append("selectionOffset=");
     builder.append(selectionOffset + ", ");
     builder.append("selectionLength=");
@@ -602,9 +558,7 @@ public class CompletionSuggestion {
     builder.append("parameterName=");
     builder.append(parameterName + ", ");
     builder.append("parameterType=");
-    builder.append(parameterType + ", ");
-    builder.append("importUri=");
-    builder.append(importUri);
+    builder.append(parameterType);
     builder.append("]");
     return builder.toString();
   }

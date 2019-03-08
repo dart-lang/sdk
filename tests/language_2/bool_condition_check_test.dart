@@ -7,7 +7,7 @@
 
 import 'package:expect/expect.dart';
 
-@NoInline()
+@pragma('dart2js:noInline')
 String check({bool a, bool b}) {
   String aString = a ? 'a' : '';
   String bString = b ? 'b' : '';

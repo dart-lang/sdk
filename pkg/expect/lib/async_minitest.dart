@@ -56,7 +56,7 @@ void test(String name, body()) {
   _popName(oldName);
 }
 
-void expect(Object value, Object matcher) {
+void expect(Object value, Object matcher, {String reason}) {
   Matcher m;
   if (matcher is _Matcher) {
     m = matcher.call;
@@ -258,6 +258,10 @@ void isMap(Object o) {
 
 void isList(Object o) {
   Expect.type<List>(o);
+}
+
+void isNotNull(Object o) {
+  Expect.isNotNull(o);
 }
 
 abstract class _Matcher {

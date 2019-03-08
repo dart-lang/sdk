@@ -424,6 +424,12 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
   @override
   bool get implicitCasts => true;
 
+  @override
+  bool get strictInference => false;
+
+  @override
+  bool get strictRawTypes => false;
+
   @deprecated
   @override
   bool get previewDart2 => true;
@@ -2536,7 +2542,9 @@ class ExprTypeComputer {
     expression = container.expression;
     if (_linker.getAst != null) {
       expression.accept(_typeResolverVisitor);
-      expression.accept(_variableResolverVisitor);
+    }
+    expression.accept(_variableResolverVisitor);
+    if (_linker.getAst != null) {
       expression.accept(_partialResolverVisitor);
     }
     expression.accept(_resolverVisitor);
@@ -5198,6 +5206,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
         case UnlinkedExprOperation.makeUntypedList:
         case UnlinkedExprOperation.makeUntypedMap:
         case UnlinkedExprOperation.makeUntypedSet:
+        case UnlinkedExprOperation.makeUntypedSetOrMap:
           intPtr++;
           break;
         case UnlinkedExprOperation.makeTypedList:
@@ -5206,6 +5215,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           intPtr++;
           break;
         case UnlinkedExprOperation.makeTypedMap:
+        case UnlinkedExprOperation.makeTypedMap2:
           refPtr += 2;
           intPtr++;
           break;

@@ -17,6 +17,7 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
   final String name;
   EnumSet<Feature> _features;
   Setlet<MapLiteralUse> _mapLiterals;
+  Setlet<SetLiteralUse> _setLiterals;
   Setlet<ListLiteralUse> _listLiterals;
   Setlet<String> _constSymbolNames;
   Setlet<ConstantExpression> _constantLiterals;
@@ -40,6 +41,16 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
   Iterable<MapLiteralUse> get mapLiterals {
     return _mapLiterals != null ? _mapLiterals : const <MapLiteralUse>[];
   }
+
+  void registerSetLiteral(SetLiteralUse setLiteralUse) {
+    assert(setLiteralUse != null);
+    _setLiterals ??= new Setlet<SetLiteralUse>();
+    _setLiterals.add(setLiteralUse);
+  }
+
+  @override
+  Iterable<SetLiteralUse> get setLiterals =>
+      _setLiterals ?? const <SetLiteralUse>[];
 
   void registerListLiteral(ListLiteralUse listLiteralUse) {
     assert(listLiteralUse != null);
@@ -142,6 +153,12 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
     if (_mapLiterals != null) {
       sb.write('\n map-literals:');
       for (MapLiteralUse use in _mapLiterals) {
+        sb.write('\n  $use');
+      }
+    }
+    if (_setLiterals != null) {
+      sb.write('\n set-literals:');
+      for (SetLiteralUse use in _setLiterals) {
         sb.write('\n  $use');
       }
     }

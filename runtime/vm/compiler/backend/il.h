@@ -190,8 +190,9 @@ class HierarchyInfo : public ThreadStackResource {
  public:
   explicit HierarchyInfo(Thread* thread)
       : ThreadStackResource(thread),
-        cid_subtype_ranges_(NULL),
-        cid_subtype_ranges_abstract_(NULL),
+        cid_subtype_ranges_nullable_(NULL),
+        cid_subtype_ranges_abstract_nullable_(NULL),
+        cid_subtype_ranges_nonnullable_(NULL),
         cid_subclass_ranges_(NULL) {
     thread->set_hierarchy_info(this);
   }
@@ -199,18 +200,22 @@ class HierarchyInfo : public ThreadStackResource {
   ~HierarchyInfo() {
     thread()->set_hierarchy_info(NULL);
 
-    delete[] cid_subtype_ranges_;
-    cid_subtype_ranges_ = NULL;
+    delete[] cid_subtype_ranges_nullable_;
+    cid_subtype_ranges_nullable_ = NULL;
 
-    delete[] cid_subtype_ranges_abstract_;
-    cid_subtype_ranges_abstract_ = NULL;
+    delete[] cid_subtype_ranges_abstract_nullable_;
+    cid_subtype_ranges_abstract_nullable_ = NULL;
+
+    delete[] cid_subtype_ranges_nonnullable_;
+    cid_subtype_ranges_nonnullable_ = NULL;
 
     delete[] cid_subclass_ranges_;
     cid_subclass_ranges_ = NULL;
   }
 
   const CidRangeVector& SubtypeRangesForClass(const Class& klass,
-                                              bool include_abstract = false);
+                                              bool include_abstract,
+                                              bool exclude_null);
   const CidRangeVector& SubclassRangesForClass(const Class& klass);
 
   bool InstanceOfHasClassRange(const AbstractType& type,
@@ -237,12 +242,16 @@ class HierarchyInfo : public ThreadStackResource {
 
  private:
   // Does not use any hierarchy information available in the system but computes
-  // it via O(n) class table traversal.
+  // it via O(n) class table traversal. The boolean parameters denote:
+  //   use_subtype_test : if set, IsSubtypeOf() is used to compute inclusion
+  //   include_abstract : if set, include abstract types (don't care otherwise)
+  //   exclude_null     : if set, exclude null types (don't care otherwise)
   void BuildRangesFor(ClassTable* table,
                       CidRangeVector* ranges,
                       const Class& klass,
                       bool use_subtype_test,
-                      bool include_abstract = false);
+                      bool include_abstract,
+                      bool exclude_null);
 
   // In JIT mode we use hierarchy information stored in the [RawClass]s
   // direct_subclasses_/direct_implementors_ arrays.
@@ -250,10 +259,12 @@ class HierarchyInfo : public ThreadStackResource {
                          CidRangeVector* ranges,
                          const Class& klass,
                          bool use_subtype_test,
-                         bool include_abstract = false);
+                         bool include_abstract,
+                         bool exclude_null);
 
-  CidRangeVector* cid_subtype_ranges_;
-  CidRangeVector* cid_subtype_ranges_abstract_;
+  CidRangeVector* cid_subtype_ranges_nullable_;
+  CidRangeVector* cid_subtype_ranges_abstract_nullable_;
+  CidRangeVector* cid_subtype_ranges_nonnullable_;
   CidRangeVector* cid_subclass_ranges_;
 };
 
@@ -3099,7 +3110,7 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
         argument_names_(argument_names),
         arguments_(arguments),
         token_pos_(token_pos) {
-    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
+    ASSERT(argument_names.IsZoneHandle() || argument_names.IsReadOnly());
   }
 
   RawString* Selector() {
@@ -4793,7 +4804,11 @@ class AllocateObjectInstr : public TemplateAllocation<0, NoThrow> {
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return Heap::IsAllocatableInNewSpace(cls().instance_size());
+    return WillAllocateNewOrRemembered(cls());
+  }
+
+  static bool WillAllocateNewOrRemembered(const Class& cls) {
+    return Heap::IsAllocatableInNewSpace(cls.instance_size());
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -4831,8 +4846,12 @@ class AllocateUninitializedContextInstr
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
+    return WillAllocateNewOrRemembered(num_context_variables_);
+  }
+
+  static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
     return Heap::IsAllocatableInNewSpace(
-        Context::InstanceSize(num_context_variables_));
+        Context::InstanceSize(num_context_variables));
   }
 
   virtual AliasIdentity Identity() const { return identity_; }
@@ -4985,9 +5004,9 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
     if (!num_elements()->BindsToConstant()) return false;
     const Object& length = num_elements()->BoundConstant();
     if (!length.IsSmi()) return false;
-    intptr_t raw_length = Smi::Cast(length).Value();
-    // Compare Array::New.
-    return (raw_length >= 0) && (raw_length < Array::kMaxNewSpaceElements);
+    const intptr_t value = Smi::Cast(length).Value();
+    if (value < 0) return false;
+    return !Array::UseCardMarkingForAllocation(value);
   }
 
  private:
@@ -5222,8 +5241,12 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
+    return WillAllocateNewOrRemembered(context_variables().length());
+  }
+
+  static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
     return Heap::IsAllocatableInNewSpace(
-        Context::InstanceSize(context_variables().length()));
+        Context::InstanceSize(num_context_variables));
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -7145,13 +7168,13 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 // CheckNull instruction takes one input (`value`) and tests it for `null`.
 // If `value` is `null`, then `NoSuchMethodError` is thrown. Otherwise,
 // execution proceeds to the next instruction.
-class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
+class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
   CheckNullInstr(Value* value,
                  const String& function_name,
                  intptr_t deopt_id,
                  TokenPosition token_pos)
-      : TemplateInstruction(deopt_id),
+      : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         function_name_(function_name) {
     ASSERT(function_name.IsNotTemporaryScopedHandle());
@@ -7168,13 +7191,14 @@ class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
 
   DECLARE_INSTRUCTION(CheckNull)
 
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
+
   // CheckNull can implicitly call Dart code (NoSuchMethodError constructor),
   // so it can lazily deopt.
   virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
-
-  virtual bool HasUnknownSideEffects() const { return false; }
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
@@ -7239,6 +7263,9 @@ class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(CheckArrayBound)
 
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
+
   virtual bool ComputeCanDeoptimize() const { return true; }
 
   bool IsRedundant(const RangeBoundary& length);
@@ -7271,7 +7298,7 @@ class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
 // returns the "safe" index when
 //   0 <= index < length
 // or otherwise throws an out-of-bounds exception (viz. non-speculative).
-class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, NoCSE> {
+class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, Pure> {
  public:
   GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
       : TemplateDefinition(deopt_id) {
@@ -7282,9 +7309,12 @@ class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, NoCSE> {
   Value* length() const { return inputs_[kLengthPos]; }
   Value* index() const { return inputs_[kIndexPos]; }
 
-  virtual bool HasUnknownSideEffects() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   DECLARE_INSTRUCTION(GenericCheckBound)
+
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
 
   // GenericCheckBound can implicitly call Dart code (RangeError or
   // ArgumentError constructor), so it can lazily deopt.
@@ -7345,7 +7375,7 @@ class CheckConditionInstr : public Instruction {
   DISALLOW_COPY_AND_ASSIGN(CheckConditionInstr);
 };
 
-class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
+class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnboxedIntConverterInstr(Representation from,
                            Representation to,
@@ -7381,8 +7411,6 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
     ASSERT(idx == 0);
     return from();
   }
-
-  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
     ASSERT(other->IsUnboxedIntConverter());

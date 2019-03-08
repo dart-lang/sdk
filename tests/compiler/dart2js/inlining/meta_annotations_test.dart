@@ -50,11 +50,11 @@ main() {
       Expect.equals(
           expectNoInline,
           closedWorld.annotationsData.hasNoInline(method),
-          "Unexpected annotation of @noInline on '$method'.");
+          "Unexpected annotation of @pragma('dart2js:noInline') on '$method'.");
       Expect.equals(
           expectTryInline,
           closedWorld.annotationsData.hasTryInline(method),
-          "Unexpected annotation of @tryInline on '$method'.");
+          "Unexpected annotation of @pragma('dart2js:tryInline') on '$method'.");
     }
 
     test('method');

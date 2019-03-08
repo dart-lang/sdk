@@ -39,3 +39,9 @@ class GW implements Z, GD {}
 class GU extends GW {}
 
 class GV extends GU implements GW {}
+
+class ARO<S> {}
+
+class ARQ<T> extends Object implements ARO<T> {}
+
+class ARN extends ARQ<A> {}

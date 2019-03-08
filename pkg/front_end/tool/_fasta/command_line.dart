@@ -40,6 +40,9 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
 
 import 'package:front_end/src/fasta/problems.dart' show DebugAbort, unhandled;
 
+import 'package:front_end/src/fasta/resolve_input_uri.dart'
+    show resolveInputUri;
+
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:front_end/src/scheme_based_file_system.dart'
@@ -47,8 +50,6 @@ import 'package:front_end/src/scheme_based_file_system.dart'
 
 import 'package:kernel/target/targets.dart'
     show Target, getTarget, TargetFlags, targets;
-
-import 'resolve_input_uri.dart' show resolveInputUri;
 
 class CommandLineProblem {
   final Message message;
@@ -258,6 +259,7 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--single-root-scheme": String,
   "--supermixin": true,
   "--target": String,
+  "--enable-asserts": false,
   "--verbose": false,
   "--verify": false,
   "-D": "<define>",
@@ -307,6 +309,8 @@ ProcessedOptions analyzeCommandLine(
         "Target '${targetName}' not recognized. "
         "Valid targets are:\n  ${targets.keys.join("\n  ")}");
   }
+
+  final bool enableAsserts = options["--enable-asserts"];
 
   final bool verify = options["--verify"];
 
@@ -371,6 +375,7 @@ ProcessedOptions analyzeCommandLine(
           ..packagesFileUri = packages
           ..legacyMode = legacyMode
           ..target = target
+          ..enableAsserts = enableAsserts
           ..throwOnErrorsForDebugging = errorsAreFatal
           ..throwOnWarningsForDebugging = warningsAreFatal
           ..embedSourceText = !excludeSource
@@ -407,6 +412,7 @@ ProcessedOptions analyzeCommandLine(
     ..packagesFileUri = packages
     ..legacyMode = legacyMode
     ..target = target
+    ..enableAsserts = enableAsserts
     ..throwOnErrorsForDebugging = errorsAreFatal
     ..throwOnWarningsForDebugging = warningsAreFatal
     ..embedSourceText = !excludeSource

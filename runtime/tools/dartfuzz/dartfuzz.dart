@@ -12,10 +12,10 @@ import 'dartfuzz_values.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.3';
+const String version = '1.4';
 
 // Restriction on statement and expression depths.
-const int stmtDepth = 5;
+const int stmtDepth = 2;
 const int exprDepth = 2;
 
 // Naming conventions.
@@ -33,6 +33,7 @@ class DartFuzz {
     // Initialize program variables.
     rand = new Random(seed);
     indent = 0;
+    nest = 0;
     currentClass = null;
     currentMethod = null;
     // Setup the types.
@@ -52,6 +53,7 @@ class DartFuzz {
     assert(currentClass == null);
     assert(currentMethod == null);
     assert(indent == 0);
+    assert(nest == 0);
     assert(localVars.length == 0);
   }
 
@@ -223,6 +225,15 @@ class DartFuzz {
     return false;
   }
 
+  // Emit a throw statement.
+  bool emitThrow() {
+    DartType tp = getType();
+    emitLn('throw ', newline: false);
+    emitExpr(0, tp);
+    emit(';', newline: true);
+    return false;
+  }
+
   // Emit a one-way if statement.
   bool emitIf1(int depth) {
     emitLn('if (', newline: false);
@@ -258,12 +269,113 @@ class DartFuzz {
     emitSmallPositiveInt();
     emit('; $localName$i++) {', newline: true);
     indent += 2;
+    nest++;
     localVars.add(DartType.INT);
-    bool b = emitStatements(depth + 1);
+    emitStatements(depth + 1);
     localVars.removeLast();
+    nest--;
     indent -= 2;
     emitLn('}');
-    return b;
+    return true;
+  }
+
+  // Emit a simple membership for-in-loop.
+  bool emitForIn(int depth) {
+    int i = localVars.length;
+    emitLn('for (var $localName$i in ', newline: false);
+    emitExpr(0, DartType.INT_LIST);
+    emit(') {', newline: true);
+    indent += 2;
+    nest++;
+    localVars.add(DartType.INT);
+    emitStatements(depth + 1);
+    localVars.removeLast();
+    nest--;
+    indent -= 2;
+    emitLn('}');
+    return true;
+  }
+
+  // Emit a while-loop.
+  bool emitWhile(int depth) {
+    int i = localVars.length;
+    emitLn('{ int $localName$i = ', newline: false);
+    emitSmallPositiveInt();
+    emit(';', newline: true);
+    indent += 2;
+    emitLn('while (--$localName$i > 0) {');
+    indent += 2;
+    nest++;
+    localVars.add(DartType.INT);
+    emitStatements(depth + 1);
+    localVars.removeLast();
+    nest--;
+    indent -= 2;
+    emitLn('}');
+    indent -= 2;
+    emitLn('}');
+    return true;
+  }
+
+  // Emit a do-while-loop.
+  bool emitDoWhile(int depth) {
+    int i = localVars.length;
+    emitLn('{ int $localName$i = 0;');
+    indent += 2;
+    emitLn('do {');
+    indent += 2;
+    nest++;
+    localVars.add(DartType.INT);
+    emitStatements(depth + 1);
+    localVars.removeLast();
+    nest--;
+    indent -= 2;
+    emitLn('} while (++$localName$i < ', newline: false);
+    emitSmallPositiveInt();
+    emit(');', newline: true);
+    indent -= 2;
+    emitLn('}');
+    return true;
+  }
+
+  // Emit a break/continue when inside iteration.
+  bool emitBreakOrContinue(int depth) {
+    if (nest > 0) {
+      switch (rand.nextInt(2)) {
+        case 0:
+          emitLn('continue;');
+          return false;
+        default:
+          emitLn('break;');
+          return false;
+      }
+    }
+    return emitAssign(); // resort to assignment
+  }
+
+  // Emit a switch statement.
+  bool emitSwitch(int depth) {
+    emitLn('switch (', newline: false);
+    emitExpr(0, DartType.INT);
+    emit(') {', newline: true);
+    int start = rand.nextInt(1 << 32);
+    int step = 1 + rand.nextInt(10);
+    for (int i = 0; i < 2; i++, start += step) {
+      indent += 2;
+      if (i == 2) {
+        emitLn('default: {');
+      } else {
+        emitLn('case $start: {');
+      }
+      indent += 2;
+      emitStatements(depth + 1);
+      indent -= 2;
+      emitLn('}');
+      emitLn('break;'); // always generate, avoid FE complaints
+      indent -= 2;
+    }
+    emitLn('}');
+    return true;
   }
 
   // Emit a new program scope that introduces a new local variable.
@@ -278,11 +390,31 @@ class DartFuzz {
     localVars.removeLast();
     indent -= 2;
     emitLn('}');
-    return b;
+    return true;
   }
 
-  // Emit a statement. Returns true if code may fall-through.
-  // TODO: add many more constructs
+  // Emit try/catch/finally.
+  bool emitTryCatch(int depth) {
+    emitLn('try {');
+    indent += 2;
+    emitStatements(depth + 1);
+    indent -= 2;
+    emitLn('} catch (e) {');
+    indent += 2;
+    emitStatements(depth + 1);
+    indent -= 2;
+    if (rand.nextInt(2) == 0) {
+      emitLn('} finally {');
+      indent += 2;
+      emitStatements(depth + 1);
+      indent -= 2;
+    }
+    emitLn('}');
+    return true;
+  }
+
+  // Emit a statement. Returns true if code *may* fall-through
+  // (not made too advanced to avoid FE complaints).
   bool emitStatement(int depth) {
     // Throw in a comment every once in a while.
     if (rand.nextInt(10) == 0) {
@@ -293,20 +425,34 @@ class DartFuzz {
       return emitAssign();
     }
     // Possibly nested statement.
-    switch (rand.nextInt(8)) {
+    switch (rand.nextInt(16)) {
       // Favors assignment.
       case 0:
-        return emitIf1(depth);
-      case 1:
-        return emitIf2(depth);
-      case 2:
-        return emitFor(depth);
-      case 3:
-        return emitScope(depth);
-      case 4:
         return emitPrint();
-      case 5:
+      case 1:
         return emitReturn();
+      case 2:
+        return emitThrow();
+      case 3:
+        return emitIf1(depth);
+      case 4:
+        return emitIf2(depth);
+      case 5:
+        return emitFor(depth);
+      case 6:
+        return emitForIn(depth);
+      case 7:
+        return emitWhile(depth);
+      case 8:
+        return emitDoWhile(depth);
+      case 9:
+        return emitBreakOrContinue(depth);
+      case 10:
+        return emitSwitch(depth);
+      case 11:
+        return emitScope(depth);
+      case 12:
+        return emitTryCatch(depth);
       default:
         return emitAssign();
     }
@@ -908,6 +1054,7 @@ class DartFuzz {
   // Program variables.
   Random rand;
   int indent;
+  int nest;
   int currentClass;
   int currentMethod;
 

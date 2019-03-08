@@ -14,19 +14,19 @@ void main() {
 }
 
 // Wrappers for testing.
-Expression readExpression(String input, DeserializationState state) {
+Statement readStatement(String input, DeserializationState state) {
   TextIterator stream = new TextIterator(input, 0);
   stream.moveNext();
-  Expression result = expressionSerializer.readFrom(stream, state);
+  Statement result = statementSerializer.readFrom(stream, state);
   if (stream.moveNext()) {
     throw StateError("extra cruft in basic literal");
   }
   return result;
 }
 
-String writeExpression(Expression expression, SerializationState state) {
+String writeStatement(Statement statement, SerializationState state) {
   StringBuffer buffer = new StringBuffer();
-  expressionSerializer.writeTo(buffer, expression, state);
+  statementSerializer.writeTo(buffer, statement, state);
   return buffer.toString();
 }
 
@@ -53,54 +53,59 @@ void test() {
   List<String> failures = [];
   List<TestCase> tests = <TestCase>[
     new TestCase(
-        name: "let dynamic x = 42 in x",
+        name: "let dynamic x = 42 in x;",
         node: () {
           VariableDeclaration x = new VariableDeclaration("x",
               type: const DynamicType(), initializer: new IntLiteral(42));
-          return new Let(x, new VariableGet(x));
-        }(),
-        expectation:
-            "(let (var \"x^0\" (dynamic) (int 42) ()) (get-var \"x^0\" _))"),
-    new TestCase(
-        name: "let dynamic x = 42 in let Bottom x^0 = null in x",
-        node: () {
-          VariableDeclaration outterLetVar = new VariableDeclaration("x",
-              type: const DynamicType(), initializer: new IntLiteral(42));
-          VariableDeclaration innerLetVar = new VariableDeclaration("x",
-              type: const BottomType(), initializer: new NullLiteral());
-          return new Let(outterLetVar,
-              new Let(innerLetVar, new VariableGet(outterLetVar)));
+          return new ExpressionStatement(new Let(x, new VariableGet(x)));
         }(),
         expectation: ""
-            "(let (var \"x^0\" (dynamic) (int 42) ())"
-            " (let (var \"x^1\" (bottom) (null) ())"
+            "(expr (let (var \"x^0\" (dynamic) (int 42) ())"
             " (get-var \"x^0\" _)))"),
     new TestCase(
-        name: "let dynamic x = 42 in let Bottom x^0 = null in x^0",
+        name: "let dynamic x = 42 in let Bottom x^0 = null in x;",
         node: () {
           VariableDeclaration outterLetVar = new VariableDeclaration("x",
               type: const DynamicType(), initializer: new IntLiteral(42));
           VariableDeclaration innerLetVar = new VariableDeclaration("x",
               type: const BottomType(), initializer: new NullLiteral());
-          return new Let(
-              outterLetVar, new Let(innerLetVar, new VariableGet(innerLetVar)));
+          return new ExpressionStatement(new Let(outterLetVar,
+              new Let(innerLetVar, new VariableGet(outterLetVar))));
         }(),
         expectation: ""
-            "(let (var \"x^0\" (dynamic) (int 42) ())"
+            "(expr (let (var \"x^0\" (dynamic) (int 42) ())"
             " (let (var \"x^1\" (bottom) (null) ())"
-            " (get-var \"x^1\" _)))"),
+            " (get-var \"x^0\" _))))"),
+    new TestCase(
+        name: "let dynamic x = 42 in let Bottom x^0 = null in x^0;",
+        node: () {
+          VariableDeclaration outterLetVar = new VariableDeclaration("x",
+              type: const DynamicType(), initializer: new IntLiteral(42));
+          VariableDeclaration innerLetVar = new VariableDeclaration("x",
+              type: const BottomType(), initializer: new NullLiteral());
+          return new ExpressionStatement(new Let(outterLetVar,
+              new Let(innerLetVar, new VariableGet(innerLetVar))));
+        }(),
+        expectation: ""
+            "(expr (let (var \"x^0\" (dynamic) (int 42) ())"
+            " (let (var \"x^1\" (bottom) (null) ())"
+            " (get-var \"x^1\" _))))"),
     () {
       VariableDeclaration x =
           new VariableDeclaration("x", type: const DynamicType());
       return new TestCase(
-          name: "/* suppose: dynamic x; */ x = 42",
-          node: new VariableSet(x, new IntLiteral(42)),
-          expectation: "(set-var \"x^0\" (int 42))",
+          name: "/* suppose: dynamic x; */ x = 42;",
+          node: new ExpressionStatement(new VariableSet(x, new IntLiteral(42))),
+          expectation: "(expr (set-var \"x^0\" (int 42)))",
           serializationState: new SerializationState(
-            new SerializationEnvironment(null)..add(x, "x^0"),
+            new SerializationEnvironment(null)
+              ..addBinder(x, "x^0")
+              ..close(),
           ),
           deserializationState: new DeserializationState(
-              new DeserializationEnvironment(null)..add("x^0", x),
+              new DeserializationEnvironment(null)
+                ..addBinder("x^0", x)
+                ..close(),
               new CanonicalName.root()));
     }(),
     () {
@@ -111,9 +116,10 @@ void test() {
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase(
-          name: "/* suppose top-level: dynamic field; */ field",
-          node: new StaticGet(field),
-          expectation: "(get-static \"package:foo/bar.dart::@fields::field\")",
+          name: "/* suppose top-level: dynamic field; */ field;",
+          node: new ExpressionStatement(new StaticGet(field)),
+          expectation: ""
+              "(expr (get-static \"package:foo/bar.dart::@fields::field\"))",
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
@@ -125,10 +131,12 @@ void test() {
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase(
-          name: "/* suppose top-level: dynamic field; */ field = 1",
-          node: new StaticSet(field, new IntLiteral(1)),
-          expectation:
-              "(set-static \"package:foo/bar.dart::@fields::field\" (int 1))",
+          name: "/* suppose top-level: dynamic field; */ field = 1;",
+          node:
+              new ExpressionStatement(new StaticSet(field, new IntLiteral(1))),
+          expectation: ""
+              "(expr"
+              " (set-static \"package:foo/bar.dart::@fields::field\" (int 1)))",
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
@@ -146,13 +154,14 @@ void test() {
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase(
-          name: "/* suppose top-level: foo(dynamic x) {...}; */ foo(42)",
-          node: new StaticInvocation.byReference(topLevelProcedure.reference,
+          name: "/* suppose top-level: foo(dynamic x) {...}; */ foo(42);",
+          node: new ExpressionStatement(new StaticInvocation.byReference(
+              topLevelProcedure.reference,
               new Arguments(<Expression>[new IntLiteral(42)]),
-              isConst: false),
+              isConst: false)),
           expectation: ""
-              "(invoke-static \"package:foo/bar.dart::@methods::foo\""
-              " () ((int 42)) ())",
+              "(expr (invoke-static \"package:foo/bar.dart::@methods::foo\""
+              " () ((int 42)) ()))",
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
@@ -170,14 +179,14 @@ void test() {
       return new TestCase(
           name: ""
               "/* suppose A { const A(); const factory A.foo() = A; } */"
-              " const A.foo()",
-          node: new StaticInvocation.byReference(
+              " const A.foo();",
+          node: new ExpressionStatement(new StaticInvocation.byReference(
               factoryConstructor.reference, new Arguments([]),
-              isConst: true),
+              isConst: true)),
           expectation: ""
-              "(invoke-const-static"
+              "(expr (invoke-const-static"
               " \"package:foo/bar.dart::A::@factories::foo\""
-              " () () ())",
+              " () () ()))",
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
@@ -193,16 +202,20 @@ void test() {
       VariableDeclaration x =
           new VariableDeclaration("x", type: const DynamicType());
       return new TestCase(
-          name: "/* suppose A {dynamic field;} A x; */ x.{A::field}",
-          node: new DirectPropertyGet.byReference(
-              new VariableGet(x), field.reference),
+          name: "/* suppose A {dynamic field;} A x; */ x.{A::field};",
+          node: new ExpressionStatement(new DirectPropertyGet.byReference(
+              new VariableGet(x), field.reference)),
           expectation: ""
-              "(get-direct-prop (get-var \"x^0\" _)"
-              " \"package:foo/bar.dart::A::@fields::field\")",
-          serializationState: new SerializationState(
-              new SerializationEnvironment(null)..add(x, "x^0")),
+              "(expr (get-direct-prop (get-var \"x^0\" _)"
+              " \"package:foo/bar.dart::A::@fields::field\"))",
+          serializationState:
+              new SerializationState(new SerializationEnvironment(null)
+                ..addBinder(x, "x^0")
+                ..close()),
           deserializationState: new DeserializationState(
-              new DeserializationEnvironment(null)..add("x^0", x),
+              new DeserializationEnvironment(null)
+                ..addBinder("x^0", x)
+                ..close(),
               component.root));
     }(),
     () {
@@ -217,16 +230,20 @@ void test() {
       VariableDeclaration x =
           new VariableDeclaration("x", type: const DynamicType());
       return new TestCase(
-          name: "/* suppose A {dynamic field;} A x; */ x.{A::field} = 42",
-          node: new DirectPropertySet.byReference(
-              new VariableGet(x), field.reference, new IntLiteral(42)),
+          name: "/* suppose A {dynamic field;} A x; */ x.{A::field} = 42;",
+          node: new ExpressionStatement(new DirectPropertySet.byReference(
+              new VariableGet(x), field.reference, new IntLiteral(42))),
           expectation: ""
-              "(set-direct-prop (get-var \"x^0\" _)"
-              " \"package:foo/bar.dart::A::@fields::field\" (int 42))",
-          serializationState: new SerializationState(
-              new SerializationEnvironment(null)..add(x, "x^0")),
+              "(expr (set-direct-prop (get-var \"x^0\" _)"
+              " \"package:foo/bar.dart::A::@fields::field\" (int 42)))",
+          serializationState:
+              new SerializationState(new SerializationEnvironment(null)
+                ..addBinder(x, "x^0")
+                ..close()),
           deserializationState: new DeserializationState(
-              new DeserializationEnvironment(null)..add("x^0", x),
+              new DeserializationEnvironment(null)
+                ..addBinder("x^0", x)
+                ..close(),
               component.root));
     }(),
     () {
@@ -243,17 +260,21 @@ void test() {
       VariableDeclaration x =
           new VariableDeclaration("x", type: const DynamicType());
       return new TestCase(
-          name: "/* suppose A {foo() {...}} A x; */ x.{A::foo}()",
-          node: new DirectMethodInvocation.byReference(
-              new VariableGet(x), method.reference, new Arguments([])),
+          name: "/* suppose A {foo() {...}} A x; */ x.{A::foo}();",
+          node: new ExpressionStatement(new DirectMethodInvocation.byReference(
+              new VariableGet(x), method.reference, new Arguments([]))),
           expectation: ""
-              "(invoke-direct-method (get-var \"x^0\" _)"
+              "(expr (invoke-direct-method (get-var \"x^0\" _)"
               " \"package:foo/bar.dart::A::@methods::foo\""
-              " () () ())",
-          serializationState: new SerializationState(
-              new SerializationEnvironment(null)..add(x, "x^0")),
+              " () () ()))",
+          serializationState:
+              new SerializationState(new SerializationEnvironment(null)
+                ..addBinder(x, "x^0")
+                ..close()),
           deserializationState: new DeserializationState(
-              new DeserializationEnvironment(null)..add("x^0", x),
+              new DeserializationEnvironment(null)
+                ..addBinder("x^0", x)
+                ..close(),
               component.root));
     }(),
     () {
@@ -267,13 +288,13 @@ void test() {
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase(
-          name: "/* suppose A {A.foo();} */ new A()",
-          node: new ConstructorInvocation.byReference(
-              constructor.reference, new Arguments([])),
+          name: "/* suppose A {A.foo();} */ new A();",
+          node: new ExpressionStatement(new ConstructorInvocation.byReference(
+              constructor.reference, new Arguments([]))),
           expectation: ""
-              "(invoke-constructor"
+              "(expr (invoke-constructor"
               " \"package:foo/bar.dart::A::@constructors::foo\""
-              " () () ())",
+              " () () ()))",
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
@@ -288,21 +309,44 @@ void test() {
       Component component = new Component(libraries: <Library>[library]);
       component.computeCanonicalNames();
       return new TestCase(
-          name: "/* suppose A {const A.foo();} */ const A()",
-          node: new ConstructorInvocation.byReference(
+          name: "/* suppose A {const A.foo();} */ const A();",
+          node: new ExpressionStatement(new ConstructorInvocation.byReference(
               constructor.reference, new Arguments([]),
-              isConst: true),
+              isConst: true)),
           expectation: ""
-              "(invoke-const-constructor"
+              "(expr (invoke-const-constructor"
               " \"package:foo/bar.dart::A::@constructors::foo\""
-              " () () ())",
+              " () () ()))",
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
+    }(),
+    () {
+      TypeParameter outterParam =
+          new TypeParameter("T", const DynamicType(), const DynamicType());
+      TypeParameter innerParam =
+          new TypeParameter("T", const DynamicType(), const DynamicType());
+      return new TestCase(
+          name: "/* T Function<T>(T Function<T>()); */",
+          node: new ExpressionStatement(new TypeLiteral(new FunctionType(
+              [
+                new FunctionType([], new TypeParameterType(innerParam),
+                    typeParameters: [innerParam])
+              ],
+              new TypeParameterType(outterParam),
+              typeParameters: [outterParam]))),
+          expectation: ""
+              "(expr (type (-> (\"T^0\") ((dynamic)) ((dynamic)) "
+              "((-> (\"T^1\") ((dynamic)) ((dynamic)) () () () "
+              "(par \"T^1\" _))) () () (par \"T^0\" _))))",
+          serializationState:
+              new SerializationState(new SerializationEnvironment(null)),
+          deserializationState: new DeserializationState(
+              new DeserializationEnvironment(null), null));
     }(),
   ];
   for (TestCase testCase in tests) {
     String roundTripInput =
-        writeExpression(testCase.node, testCase.serializationState);
+        writeStatement(testCase.node, testCase.serializationState);
     if (roundTripInput != testCase.expectation) {
       failures.add(''
           '* initial serialization for test "${testCase.name}"'
@@ -310,9 +354,9 @@ void test() {
     }
 
     TreeNode deserialized =
-        readExpression(roundTripInput, testCase.deserializationState);
+        readStatement(roundTripInput, testCase.deserializationState);
     String roundTripOutput =
-        writeExpression(deserialized, testCase.serializationState);
+        writeStatement(deserialized, testCase.serializationState);
     if (roundTripOutput != roundTripInput) {
       failures.add(''
           '* input "${testCase.name}" gave output "${roundTripOutput}"');

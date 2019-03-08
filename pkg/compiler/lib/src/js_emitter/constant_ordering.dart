@@ -113,6 +113,13 @@ class _ConstantOrdering
     return compareDartTypes(a.type, b.type);
   }
 
+  @override
+  int visitSet(SetConstantValue a, SetConstantValue b) {
+    int r = compareLists(compareValues, a.values, b.values);
+    if (r != 0) return r;
+    return compareDartTypes(a.type, b.type);
+  }
+
   int visitMap(MapConstantValue a, MapConstantValue b) {
     int r = compareLists(compareValues, a.keys, b.keys);
     if (r != 0) return r;
@@ -201,14 +208,15 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   static const int BOOL = 5;
   static const int STRING = 6;
   static const int LIST = 7;
-  static const int MAP = 8;
-  static const int CONSTRUCTED = 9;
-  static const int TYPE = 10;
-  static const int INTERCEPTOR = 11;
-  static const int SYNTHETIC = 12;
-  static const int DEFERRED_GLOBAL = 13;
-  static const int NONCONSTANT = 14;
-  static const int INSTANTIATION = 15;
+  static const int SET = 8;
+  static const int MAP = 9;
+  static const int CONSTRUCTED = 10;
+  static const int TYPE = 11;
+  static const int INTERCEPTOR = 12;
+  static const int SYNTHETIC = 13;
+  static const int DEFERRED_GLOBAL = 14;
+  static const int NONCONSTANT = 15;
+  static const int INSTANTIATION = 16;
 
   static int kind(ConstantValue constant) =>
       constant.accept(const _KindVisitor(), null);
@@ -221,6 +229,7 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   int visitBool(BoolConstantValue a, _) => BOOL;
   int visitString(StringConstantValue a, _) => STRING;
   int visitList(ListConstantValue a, _) => LIST;
+  int visitSet(SetConstantValue a, _) => SET;
   int visitMap(MapConstantValue a, _) => MAP;
   int visitConstructed(ConstructedConstantValue a, _) => CONSTRUCTED;
   int visitType(TypeConstantValue a, _) => TYPE;

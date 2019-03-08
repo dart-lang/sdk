@@ -360,6 +360,7 @@ class PageSpace {
   }
 
   void AllocateExternal(intptr_t cid, intptr_t size);
+  void PromoteExternal(intptr_t cid, intptr_t size);
   void FreeExternal(intptr_t size);
 
   // Bulk data allocation.
@@ -391,10 +392,9 @@ class PageSpace {
   void set_phase(Phase val) { phase_ = val; }
 
   // Attempt to allocate from bump block rather than normal freelist.
-  uword TryAllocateDataBump(intptr_t size, GrowthPolicy growth_policy);
-  uword TryAllocateDataBumpLocked(intptr_t size, GrowthPolicy growth_policy);
+  uword TryAllocateDataBumpLocked(intptr_t size);
   // Prefer small freelist blocks, then chip away at the bump block.
-  uword TryAllocatePromoLocked(intptr_t size, GrowthPolicy growth_policy);
+  uword TryAllocatePromoLocked(intptr_t size);
 
   void SetupImagePage(void* pointer, uword size, bool is_executable);
 
@@ -436,9 +436,6 @@ class PageSpace {
                                HeapPage::PageType type,
                                GrowthPolicy growth_policy,
                                bool is_locked);
-  uword TryAllocateDataBumpInternal(intptr_t size,
-                                    GrowthPolicy growth_policy,
-                                    bool is_locked);
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
   HeapPage* AllocatePage(HeapPage::PageType type, bool link = true);

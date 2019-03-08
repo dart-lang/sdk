@@ -178,17 +178,17 @@ abstract class double extends num {
    * optionally followed by a decimal point and optionally more digits. The
    * (optional) exponent part consists of the character "e" or "E", an optional
    * sign, and one or more digits.
+   * The [source] must not be `null`.
    *
    * Leading and trailing whitespace is ignored.
    *
-   * If the [source] is not a valid double literal, the [onError]
+   * If the [source] string is not a valid double literal, the [onError]
    * is called with the [source] as argument, and its return value is
    * used instead. If no `onError` is provided, a [FormatException]
    * is thrown instead.
    *
    * The [onError] function is only invoked if [source] is a [String] with an
-   * invalid format. It is not invoked if the [source] is invalid for some
-   * other reason, for example by being `null`.
+   * invalid format. It is not invoked if [source] is `null`.
    *
    * Examples of accepted strings:
    *
@@ -212,7 +212,7 @@ abstract class double extends num {
    * Parse [source] as an double literal and return its value.
    *
    * Like [parse] except that this function returns `null` for invalid inputs
-   * instead of throwing.
+   * instead of throwing, and the [source] must still not be `null`.
    */
   external static double tryParse(String source);
 }

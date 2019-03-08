@@ -353,6 +353,14 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
+  if (Options::gen_snapshot_kind() == kAppJIT) {
+    // If we sort, we must do it for all isolates, not just the main isolate,
+    // otherwise isolates related by spawnFunction will disagree on CIDs and
+    // cannot correctly send each other messages.
+    result = Dart_SortClasses();
+    CHECK_RESULT(result);
+  }
+
   // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();
   Dart_ExitIsolate();
@@ -872,8 +880,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     }
 
     if (Options::gen_snapshot_kind() == kAppJIT) {
-      result = Dart_SortClasses();
-      CHECK_RESULT(result);
       LoadBytecode();
     }
 

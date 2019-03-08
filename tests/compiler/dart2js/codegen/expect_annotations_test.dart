@@ -5,6 +5,7 @@
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/inferrer/types.dart';
@@ -18,10 +19,10 @@ import 'package:expect/expect.dart';
 
 int method(String arg) => arg.length;
 
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 int methodAssumeDynamic(String arg) => arg.length;
 
-@NoInline()
+@pragma('dart2js:noInline')
 int methodNoInline(String arg) => arg.length;
 
 void main(List<String> args) {
@@ -39,15 +40,11 @@ main() {
 }
 
 runTest() async {
-  CompilationResult result =
-      await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+  CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES, options: [Flags.testMode]);
   Compiler compiler = result.compiler;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
-  Expect.isNotNull(closedWorld.commonElements.expectNoInlineClass,
-      'NoInlineClass is unresolved.');
-  Expect.isNotNull(closedWorld.commonElements.expectAssumeDynamicClass,
-      'AssumeDynamicClass is unresolved.');
 
   void testTypeMatch(FunctionEntity function, TypeMask expectedParameterType,
       TypeMask expectedReturnType, GlobalTypeInferenceResults results) {
@@ -76,11 +73,12 @@ runTest() async {
     Expect.equals(
         expectNoInline,
         closedWorld.annotationsData.hasNoInline(method),
-        "Unexpected annotation of @NoInline() on '$method'.");
+        "Unexpected annotation of @pragma('dart2js:noInline') on '$method'.");
     Expect.equals(
         expectAssumeDynamic,
         closedWorld.annotationsData.hasAssumeDynamic(method),
-        "Unexpected annotation of @AssumeDynamic() on '$method'.");
+        "Unexpected annotation of @pragma('dart2js:assumeDynamic') on "
+        "'$method'.");
     GlobalTypeInferenceResults results =
         compiler.globalInference.resultsForTesting;
     if (expectAssumeDynamic) {

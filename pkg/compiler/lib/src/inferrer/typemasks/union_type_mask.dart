@@ -227,6 +227,7 @@ class UnionTypeMask implements TypeMask {
   bool get isExact => false;
   bool get isUnion => true;
   bool get isContainer => false;
+  bool get isSet => false;
   bool get isMap => false;
   bool get isDictionary => false;
   bool get isForwarding => false;

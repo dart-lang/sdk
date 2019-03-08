@@ -50,7 +50,8 @@ void testList() {
 
   // Does not deep flatten.
   Expect.identical(
-      const <int>[1, 2, <int>[3], 4], const <int>[1, ...<int>[2, <int>[3], 4]]);
+      const <Object>[1, 2, <int>[3], 4],
+      const <Object>[1, ...<Object>[2, <int>[3], 4]]);
 
   // Establishes const context.
   Expect.identical(const <Symbol>[Symbol("sym")],

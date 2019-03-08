@@ -386,8 +386,8 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
   Code& code = Code::Handle(Code::FinalizeCode(
-      function, graph_compiler, assembler, Code::PoolAttachment::kAttachPool,
-      optimized(), /*stats=*/nullptr));
+      graph_compiler, assembler, Code::PoolAttachment::kAttachPool, optimized(),
+      /*stats=*/nullptr));
   code.set_is_optimized(optimized());
   code.set_owner(function);
 #if !defined(PRODUCT)
@@ -702,6 +702,10 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                 FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
           }
         }
+
+        // We notify code observers after finalizing the code in order to be
+        // outside a [SafepointOperationScope].
+        Code::NotifyCodeObservers(function, *result, optimized());
       }
       if (!result->IsNull()) {
 #if !defined(PRODUCT)
@@ -968,8 +972,8 @@ RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
            Function::KindToCString(function.kind()));
   }
 
-#if !defined(PRODUCT)
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
+#if defined(SUPPORT_TIMELINE)
   const char* event_name;
   if (IsBackgroundCompilation()) {
     event_name = "CompileFunctionUnoptimizedBackground";
@@ -977,7 +981,7 @@ RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
     event_name = "CompileFunction";
   }
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
-#endif  // !defined(PRODUCT)
+#endif  // defined(SUPPORT_TIMELINE)
 
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
@@ -987,12 +991,10 @@ RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
 }
 
 RawError* Compiler::ParseFunction(Thread* thread, const Function& function) {
-  Isolate* isolate = thread->isolate();
-#if !defined(PRODUCT)
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "ParseFunction", function);
-#endif  // !defined(PRODUCT)
 
+  Isolate* isolate = thread->isolate();
   if (!isolate->compilation_allowed()) {
     FATAL3("Precompilation missed function %s (%s, %s)\n",
            function.ToLibNamePrefixedQualifiedCString(),
@@ -1041,8 +1043,8 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
 RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
                                               const Function& function,
                                               intptr_t osr_id) {
-#if !defined(PRODUCT)
   VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
+#if defined(SUPPORT_TIMELINE)
   const char* event_name;
   if (osr_id != kNoOSRDeoptId) {
     event_name = "CompileFunctionOptimizedOSR";
@@ -1052,7 +1054,7 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
     event_name = "CompileFunctionOptimized";
   }
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
-#endif  // !defined(PRODUCT)
+#endif  // defined(SUPPORT_TIMELINE)
 
   ASSERT(function.ShouldCompilerOptimize());
 
@@ -1198,20 +1200,21 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
     ASSERT(thread->IsMutatorThread());
     NoOOBMessageScope no_msg_scope(thread);
     NoReloadScope no_reload_scope(thread->isolate(), thread);
-    if (field.HasInitializer()) {
-      const Function& initializer = Function::Handle(field.Initializer());
+    if (field.HasInitializerFunction()) {
+      const Function& initializer =
+          Function::Handle(field.InitializerFunction());
       return DartEntry::InvokeFunction(initializer, Object::empty_array());
     }
     {
-#if defined(SUPPORT_TIMELINE)
       VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
+#if defined(SUPPORT_TIMELINE)
       TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
                                 "CompileStaticInitializer");
       if (tds.enabled()) {
         tds.SetNumArguments(1);
         tds.CopyArgument(0, "field", field.ToCString());
       }
-#endif  // !defined(PRODUCT)
+#endif  // defined(SUPPORT_TIMELINE)
 
       StackZone stack_zone(thread);
       Zone* zone = stack_zone.GetZone();
@@ -1704,8 +1707,8 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 }
 
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
-  ASSERT(field.HasInitializer());
-  const Function& initializer = Function::Handle(field.Initializer());
+  ASSERT(field.HasInitializerFunction());
+  const Function& initializer = Function::Handle(field.InitializerFunction());
   return DartEntry::InvokeFunction(initializer, Object::empty_array());
 }
 

@@ -147,6 +147,10 @@ class CompilerOptions {
   /// If not specified, the default target is the VM.
   Target target;
 
+  /// Whether asserts in initializers in const constructors are checked during
+  /// constant evaluation.
+  bool enableAsserts = false;
+
   /// Whether to show verbose messages (mainly for debugging and performance
   /// tracking).
   ///
@@ -223,7 +227,9 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
     if (flag == null) {
       onError("Unknown experiment: " + experiment);
     } else if (flags.containsKey(flag)) {
-      onError("Experiment mentioned more than once: " + experiment);
+      if (flags[flag] != value) {
+        onError("Experiment specified with conflicting values: " + experiment);
+      }
     } else {
       flags[flag] = value;
     }

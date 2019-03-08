@@ -189,7 +189,7 @@ class CodeEmitterTask extends CompilerTask {
           namer,
           this,
           closedWorld,
-          closedWorld.allocatorAnalysis,
+          closedWorld.fieldAnalysis,
           inferredData,
           backend.sourceInformationStrategy,
           closedWorld.sorter,

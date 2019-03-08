@@ -224,8 +224,8 @@ TEST_CASE(GuardFieldConstructorTest) {
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  TransitionNativeToVM transition(thread);
   EXPECT_VALID(result);
+  TransitionNativeToVM transition(thread);
   Field& f1 = Field::ZoneHandle(LookupField(lib, "A", "f1"));
   Field& f2 = Field::ZoneHandle(LookupField(lib, "A", "f2"));
   Field& f3 = Field::ZoneHandle(LookupField(lib, "A", "f3"));

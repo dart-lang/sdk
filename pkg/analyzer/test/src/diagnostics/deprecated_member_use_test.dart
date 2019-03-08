@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/resolver_test_case.dart';
@@ -82,10 +84,15 @@ class A {}
 ''');
 
     newPubPackage('/pkg1');
-    assertErrorsInCode(r'''
+    Source source = addNamedSource('/pkg1/lib/lib1.dart', r'''
 import 'package:foo/foo.dart';
 f(A a) {}
-''', [HintCode.DEPRECATED_MEMBER_USE], sourceName: '/pkg1/lib/lib1.dart');
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    this.verify([source]);
+    TestAnalysisResult result = analysisResults[source];
+    expect(result.errors[0].message, contains('package:foo/foo.dart'));
   }
 
   test_basicWorkspace() async {

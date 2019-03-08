@@ -6,11 +6,11 @@ import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /// Computer for Flutter specific outlines.
@@ -28,11 +28,8 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
 }
 ''';
 
-  final String file;
-  final String content;
-  final LineInfo lineInfo;
-  final CompilationUnit unit;
-  final TypeProvider typeProvider;
+  final ResolvedUnitResult resolvedUnit;
+  Flutter flutter;
 
   final List<protocol.FlutterOutline> _depthFirstOrder = [];
 
@@ -45,18 +42,20 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
   final List<protocol.SourceEdit> instrumentationEdits = [];
   String instrumentedCode;
 
-  FlutterOutlineComputer(
-      this.file, this.content, this.lineInfo, this.unit, this.typeProvider);
+  FlutterOutlineComputer(this.resolvedUnit);
 
   protocol.FlutterOutline compute() {
     protocol.Outline dartOutline = new DartUnitOutlineComputer(
-            file, lineInfo, unit,
-            withBasicFlutter: false)
-        .compute();
+      resolvedUnit,
+      withBasicFlutter: false,
+    ).compute();
+
+    flutter = Flutter.of(resolvedUnit.session);
 
     // Find widget classes.
     // IDEA plugin only supports rendering widgets in libraries.
-    if (unit.declaredElement.source == unit.declaredElement.librarySource) {
+    var unitElement = resolvedUnit.unit.declaredElement;
+    if (unitElement.source == unitElement.librarySource) {
       _findWidgets();
     }
 
@@ -64,14 +63,16 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
     var flutterDartOutline = _convert(dartOutline);
 
     // Create outlines for widgets.
-    unit.accept(new _FlutterOutlineBuilder(this));
+    resolvedUnit.unit.accept(new _FlutterOutlineBuilder(this));
 
     // Compute instrumented code.
     if (widgets.values.any((w) => w.hasDesignTimeConstructor)) {
       _rewriteRelativeDirectives();
       instrumentationEdits.sort((a, b) => b.offset - a.offset);
-      instrumentedCode =
-          SourceEdit.applySequence(content, instrumentationEdits);
+      instrumentedCode = SourceEdit.applySequence(
+        resolvedUnit.content,
+        instrumentationEdits,
+      );
       instrumentedCode += RENDER_APPEND;
     }
 
@@ -91,7 +92,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
 
     String name = parameter.displayName;
 
-    String label = content.substring(argument.offset, argument.end);
+    var label = resolvedUnit.content.substring(argument.offset, argument.end);
     if (label.contains('\n')) {
       label = '…';
     }
@@ -116,7 +117,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
         }
       } else if (argument is ListLiteral) {
         label = '[…]';
-      } else if (argument is MapLiteral) {
+      } else if (argument is SetOrMapLiteral) {
         label = '{…}';
       }
       attributes.add(new protocol.FlutterOutlineAttribute(name, label));
@@ -167,7 +168,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
   /// a widget reference outline item.
   protocol.FlutterOutline _createOutline(Expression node, bool withGeneric) {
     DartType type = node.staticType;
-    if (!isWidgetType(type)) {
+    if (!flutter.isWidgetType(type)) {
       return null;
     }
     String className = type.element.displayName;
@@ -178,8 +179,9 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
       var attributes = <protocol.FlutterOutlineAttribute>[];
       var children = <protocol.FlutterOutline>[];
       for (var argument in node.argumentList.arguments) {
-        bool isWidgetArgument = isWidgetType(argument.staticType);
-        bool isWidgetListArgument = isListOfWidgetsType(argument.staticType);
+        bool isWidgetArgument = flutter.isWidgetType(argument.staticType);
+        bool isWidgetListArgument =
+            flutter.isListOfWidgetsType(argument.staticType);
 
         String parentAssociationLabel;
         Expression childrenExpression;
@@ -199,7 +201,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
           }
         } else if (isWidgetListArgument) {
           if (childrenExpression is ListLiteral) {
-            for (var element in childrenExpression.elements) {
+            for (var element in childrenExpression.elements2) {
               var child = _createOutline(element, true);
               if (child != null) {
                 children.add(child);
@@ -284,13 +286,13 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
     }
 
     ClassElement stateElement;
-    if (stateType is InterfaceType && isState(stateType.element)) {
+    if (stateType is InterfaceType && flutter.isState(stateType.element)) {
       stateElement = stateType.element;
     } else {
       return null;
     }
 
-    for (var stateNode in unit.declarations) {
+    for (var stateNode in resolvedUnit.unit.declarations) {
       if (stateNode is ClassDeclaration &&
           stateNode.declaredElement == stateElement) {
         return stateNode;
@@ -302,7 +304,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
 
   /// Fill [widgets] with information about classes that can be rendered.
   void _findWidgets() {
-    for (var widget in unit.declarations) {
+    for (var widget in resolvedUnit.unit.declarations) {
       if (widget is ClassDeclaration) {
         int nameOffset = widget.name.offset;
 
@@ -310,10 +312,10 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
         bool hasDesignTimeConstructor = designTimeConstructor != null;
 
         InterfaceType superType = widget.declaredElement.supertype;
-        if (isExactlyStatelessWidgetType(superType)) {
+        if (flutter.isExactlyStatelessWidgetType(superType)) {
           widgets[nameOffset] =
               new _WidgetClass(nameOffset, hasDesignTimeConstructor);
-        } else if (isExactlyStatefulWidgetType(superType)) {
+        } else if (flutter.isExactlyStatefulWidgetType(superType)) {
           ClassDeclaration state = _findState(widget);
           if (state != null) {
             widgets[nameOffset] =
@@ -349,7 +351,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
   /// The instrumented code is put into a temporary directory for Dart VM to
   /// run. So, any relative URIs must be changed to corresponding absolute URIs.
   void _rewriteRelativeDirectives() {
-    for (var directive in unit.directives) {
+    for (var directive in resolvedUnit.unit.directives) {
       if (directive is UriBasedDirective) {
         String uriContent = directive.uriContent;
         Source source = directive.uriSource;

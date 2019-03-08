@@ -9,8 +9,10 @@ import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
+import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/operators.dart';
@@ -208,6 +210,22 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     }
     return new MapConstantExpression(
         _commonElements.mapType(keyType, valueType), keys, values);
+  }
+
+  @override
+  ConstantExpression visitSetLiteral(ir.SetLiteral node) {
+    if (!node.isConst) {
+      return defaultExpression(node);
+    }
+    DartType elementType = elementMap.getDartType(node.typeArgument);
+    List<ConstantExpression> values = <ConstantExpression>[];
+    for (ir.Expression expression in node.expressions) {
+      ConstantExpression value = visit(expression);
+      if (value == null) return null;
+      values.add(value);
+    }
+    return new SetConstantExpression(
+        _commonElements.setType(elementType), values);
   }
 
   @override
@@ -632,5 +650,120 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   @override
   DartType visitBottomType(ir.BottomType node) {
     return elementMap.commonElements.nullType;
+  }
+}
+
+class ConstantValuefier implements ir.ConstantVisitor<ConstantValue> {
+  final IrToElementMap elementMap;
+
+  ConstantValuefier(this.elementMap);
+
+  @override
+  ConstantValue defaultConstant(ir.Constant node) {
+    throw new UnsupportedError(
+        "Unexpected constant $node (${node.runtimeType}).");
+  }
+
+  @override
+  ConstantValue visitUnevaluatedConstant(ir.UnevaluatedConstant node) {
+    throw new UnsupportedError("Unexpected unevaluated constant $node.");
+  }
+
+  @override
+  ConstantValue visitTypeLiteralConstant(ir.TypeLiteralConstant node) {
+    return constant_system.createType(
+        elementMap.commonElements, elementMap.getDartType(node.type));
+  }
+
+  @override
+  ConstantValue visitTearOffConstant(ir.TearOffConstant node) {
+    FunctionEntity function = elementMap.getMethod(node.procedure);
+    DartType type = elementMap.getFunctionType(node.procedure.function);
+    return new FunctionConstantValue(function, type);
+  }
+
+  @override
+  ConstantValue visitPartialInstantiationConstant(
+      ir.PartialInstantiationConstant node) {
+    List<DartType> typeArguments = [];
+    for (ir.DartType type in node.types) {
+      typeArguments.add(elementMap.getDartType(type));
+    }
+    FunctionConstantValue function = node.accept(this);
+    return new InstantiationConstantValue(typeArguments, function);
+  }
+
+  @override
+  ConstantValue visitInstanceConstant(ir.InstanceConstant node) {
+    InterfaceType type =
+        elementMap.createInterfaceType(node.classNode, node.typeArguments);
+    Map<FieldEntity, ConstantValue> fields = {};
+    node.fieldValues.forEach((ir.Reference reference, ir.Constant value) {
+      FieldEntity field = elementMap.getField(reference.asField);
+      fields[field] = value.accept(this);
+    });
+    return new ConstructedConstantValue(type, fields);
+  }
+
+  @override
+  ConstantValue visitListConstant(ir.ListConstant node) {
+    List<ConstantValue> elements = [];
+    for (ir.Constant element in node.entries) {
+      elements.add(element.accept(this));
+    }
+    DartType type = elementMap.commonElements
+        .listType(elementMap.getDartType(node.typeArgument));
+    return constant_system.createList(type, elements);
+  }
+
+  @override
+  ConstantValue visitSetConstant(ir.SetConstant node) {
+    // TODO(johnniwinther, fishythefish): Create a set constant value.
+    throw new UnsupportedError("Set literal constants not implemented.");
+  }
+
+  @override
+  ConstantValue visitMapConstant(ir.MapConstant node) {
+    List<ConstantValue> keys = [];
+    List<ConstantValue> values = [];
+    for (ir.ConstantMapEntry element in node.entries) {
+      keys.add(element.key.accept(this));
+      values.add(element.value.accept(this));
+    }
+    DartType type = elementMap.commonElements.mapType(
+        elementMap.getDartType(node.keyType),
+        elementMap.getDartType(node.valueType));
+    return constant_system.createMap(
+        elementMap.commonElements, type, keys, values);
+  }
+
+  @override
+  ConstantValue visitSymbolConstant(ir.SymbolConstant node) {
+    return constant_system.createSymbol(elementMap.commonElements, node.name);
+  }
+
+  @override
+  ConstantValue visitStringConstant(ir.StringConstant node) {
+    return constant_system.createString(node.value);
+  }
+
+  @override
+  ConstantValue visitDoubleConstant(ir.DoubleConstant node) {
+    return constant_system.createDouble(node.value);
+  }
+
+  @override
+  ConstantValue visitIntConstant(ir.IntConstant node) {
+    return constant_system.createIntFromInt(node.value);
+  }
+
+  @override
+  ConstantValue visitBoolConstant(ir.BoolConstant node) {
+    return constant_system.createBool(node.value);
+  }
+
+  @override
+  ConstantValue visitNullConstant(ir.NullConstant node) {
+    return constant_system.createNull();
   }
 }

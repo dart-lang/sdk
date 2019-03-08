@@ -78,7 +78,8 @@ bool hasFix(ErrorCode errorCode) =>
             errorCode.name == LintNames.prefer_collection_literals ||
             errorCode.name == LintNames.prefer_conditional_assignment ||
             errorCode.name == LintNames.prefer_const_declarations ||
-            errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
+            errorCode.name == LintNames.unnecessary_brace_in_string_interps ||
+            errorCode.name == LintNames.unnecessary_const ||
             errorCode.name == LintNames.unnecessary_lambdas ||
             errorCode.name == LintNames.unnecessary_this));
 
@@ -131,6 +132,8 @@ class DartFixKind {
       'ADD_SUPER_CONSTRUCTOR_INVOCATION',
       50,
       "Add super constructor {0} invocation");
+  static const CHANGE_ARGUMENT_NAME =
+      const FixKind('CHANGE_ARGUMENT_NAME', 60, "Change to '{0}'");
   static const CHANGE_TO = const FixKind('CHANGE_TO', 51, "Change to '{0}'");
   static const CHANGE_TO_NEAREST_PRECISE_VALUE = const FixKind(
       'CHANGE_TO_NEAREST_PRECISE_VALUE',
@@ -206,6 +209,8 @@ class DartFixKind {
   static const REMOVE_AWAIT = const FixKind('REMOVE_AWAIT', 50, "Remove await");
   static const REMOVE_DEAD_CODE =
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
+  static const REMOVE_DUPLICATE_CASE = const FixKind(
+      'REMOVE_DUPLICATE_CASE', 50, "Remove duplicate case statement");
   static const REMOVE_EMPTY_CATCH =
       const FixKind('REMOVE_EMPTY_CATCH', 50, "Remove empty catch clause");
   static const REMOVE_EMPTY_CONSTRUCTOR_BODY = const FixKind(
@@ -241,6 +246,8 @@ class DartFixKind {
   static const REMOVE_UNNECESSARY_CAST = const FixKind(
       'REMOVE_UNNECESSARY_CAST', 50, "Remove unnecessary cast",
       appliedTogetherMessage: "Remove all unnecessary casts in file");
+  static const REMOVE_UNNECESSARY_CONST = const FixKind(
+      'REMOVE_UNNECESSARY_CONST', 50, "Remove unnecessary const keyword");
   static const REMOVE_UNUSED_CATCH_CLAUSE = const FixKind(
       'REMOVE_UNUSED_CATCH_CLAUSE', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = const FixKind(
@@ -248,6 +255,8 @@ class DartFixKind {
   static const REMOVE_UNUSED_IMPORT = const FixKind(
       'REMOVE_UNUSED_IMPORT', 50, "Remove unused import",
       appliedTogetherMessage: "Remove all unused imports in this file");
+  static const REMOVE_UNNECESSARY_NEW = const FixKind(
+      'REMOVE_UNNECESSARY_NEW', 50, "Remove unnecessary new keyword");
   static const RENAME_TO_CAMEL_CASE =
       const FixKind('RENAME_TO_CAMEL_CASE', 50, "Rename to '{0}'");
   static const REPLACE_BOOLEAN_WITH_BOOL = const FixKind(
@@ -290,4 +299,6 @@ class DartFixKind {
       'USE_NOT_EQ_NULL', 50, "Use != null instead of 'is! Null'",
       appliedTogetherMessage:
           "Use != null instead of 'is! Null' everywhere in file");
+  static const USE_RETHROW =
+      const FixKind('USE_RETHROW', 50, "Replace throw with rethrow");
 }

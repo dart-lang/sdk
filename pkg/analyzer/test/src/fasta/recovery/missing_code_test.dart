@@ -13,6 +13,7 @@ main() {
     defineReflectiveTests(MapLiteralTest);
     defineReflectiveTests(MissingCodeTest);
     defineReflectiveTests(ParameterListTest);
+    defineReflectiveTests(TypedefTest);
   });
 }
 
@@ -210,6 +211,22 @@ f() => x ? _s_ : z;
     testUserDefinableOperatorWithSuper('==');
   }
 
+  void test_expressionBody_missingGt() {
+    testRecovery('''
+f(x) = x;
+''', [ParserErrorCode.MISSING_FUNCTION_BODY], '''
+f(x) => x;
+''');
+  }
+
+  void test_expressionBody_return() {
+    testRecovery('''
+f(x) return x;
+''', [ParserErrorCode.MISSING_FUNCTION_BODY], '''
+f(x) => x;
+''');
+  }
+
   void test_greaterThan() {
     testBinaryExpression('>');
   }
@@ -397,10 +414,16 @@ f() {
     testUserDefinableOperatorWithSuper('*');
   }
 
+  @failingTest
   void test_stringInterpolation_unclosed() {
     // https://github.com/dart-lang/sdk/issues/946
     // TODO(brianwilkerson) Try to recover better. Ideally there would be a
     // single error about an unterminated interpolation block.
+
+    // https://github.com/dart-lang/sdk/issues/36101
+    // TODO(danrubel): improve recovery so that the scanner/parser associates
+    // `${` with a synthetic `}` inside the " " rather than the `}` at the end.
+
     testRecovery(r'''
 f() {
   print("${42");
@@ -709,6 +732,21 @@ f({a: 0}) {}
 f(a = 0) {}
 ''', [ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP], '''
 f([a = 0]) {}
+''');
+  }
+}
+
+/**
+ * Test how well the parser recovers when tokens are missing in a typedef.
+ */
+@reflectiveTest
+class TypedefTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_missingFunction() {
+    testRecovery('''
+typedef Predicate = bool <E>(E element);
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+typedef Predicate = bool Function<E>(E element);
 ''');
   }
 }

@@ -29,7 +29,7 @@ Type f8<T>() => new TypeValue<List<T>>().value;
 bool f9<T>(Object o) => o is Map<T, String>;
 
 class IsMap<A> {
-  @NoInline()
+  @pragma('dart2js:noInline')
   bool check<B>(o) => o is Map<A, B>;
 }
 

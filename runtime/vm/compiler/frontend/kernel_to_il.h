@@ -41,6 +41,38 @@ struct YieldContinuation {
   YieldContinuation() : entry(NULL), try_index(kInvalidTryIndex) {}
 };
 
+enum class TypeChecksToBuild {
+  kCheckAllTypeParameterBounds,
+  kCheckNonCovariantTypeParameterBounds,
+  kCheckCovariantTypeParameterBounds,
+};
+
+// Indicates which form of the unchecked entrypoint we are compiling.
+//
+// kNone:
+//
+//   There is no unchecked entrypoint: the unchecked entry is set to NULL in
+//   the 'GraphEntryInstr'.
+//
+// kSeparate:
+//
+//   The normal and unchecked entrypoint each point to their own versions of
+//   the prologue, containing exactly those checks which need to be performed
+//   on either side. Both sides jump directly to the body after performing
+//   their prologue.
+//
+// kSharedWithVariable:
+//
+//   A temporary variable is allocated and initialized to 0 on normal entry
+//   and 2 on unchecked entry. Code which should be ommitted on the unchecked
+//   entrypoint is made conditional on this variable being equal to 0.
+//
+enum class UncheckedEntryPointStyle {
+  kNone = 0,
+  kSeparate = 1,
+  kSharedWithVariable = 2,
+};
+
 class FlowGraphBuilder : public BaseFlowGraphBuilder {
  public:
   FlowGraphBuilder(ParsedFunction* parsed_function,
@@ -168,6 +200,74 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 
+  // Build argument type checks for the current function.
+  // ParsedFunction should have the following information:
+  //  - is_forwarding_stub()
+  //  - forwarding_stub_super_target()
+  // Scope should be populated with parameter variables including
+  //  - needs_type_check()
+  //  - is_explicit_covariant_parameter()
+  void BuildArgumentTypeChecks(TypeChecksToBuild mode,
+                               Fragment* explicit_checks,
+                               Fragment* implicit_checks,
+                               Fragment* implicit_redefinitions);
+
+  // Builds flow graph for noSuchMethod forwarder.
+  //
+  // If throw_no_such_method_error is set to true, an
+  // instance of NoSuchMethodError is thrown. Otherwise, the instance
+  // noSuchMethod is called.
+  //
+  // ParsedFunction should have the following information:
+  //  - default_parameter_values()
+  //  - is_forwarding_stub()
+  //  - forwarding_stub_super_target()
+  //
+  // Scope should be populated with parameter variables including
+  //  - needs_type_check()
+  //  - is_explicit_covariant_parameter()
+  //
+  FlowGraph* BuildGraphOfNoSuchMethodForwarder(
+      const Function& function,
+      bool is_implicit_closure_function,
+      bool throw_no_such_method_error);
+
+  // If no type arguments are passed to a generic function, we need to fill the
+  // type arguments in with the default types stored on the TypeParameter nodes
+  // in Kernel.
+  //
+  // ParsedFunction should have the following information:
+  //  - DefaultFunctionTypeArguments()
+  //  - function_type_arguments()
+  Fragment BuildDefaultTypeHandling(const Function& function);
+
+  Fragment BuildEntryPointsIntrospection();
+  FunctionEntryInstr* BuildSharedUncheckedEntryPoint(
+      Fragment prologue_from_normal_entry,
+      Fragment skippable_checks,
+      Fragment redefinitions_if_skipped,
+      Fragment body);
+  FunctionEntryInstr* BuildSeparateUncheckedEntryPoint(
+      BlockEntryInstr* normal_entry,
+      Fragment normal_prologue,
+      Fragment extra_prologue,
+      Fragment shared_prologue,
+      Fragment body);
+  void RecordUncheckedEntryPoint(FunctionEntryInstr* extra_entry);
+
+  // Builds flow graph for implicit closure function (tear-off).
+  //
+  // ParsedFunction should have the following information:
+  //  - default_parameter_values()
+  //  - is_forwarding_stub()
+  //  - forwarding_stub_super_target()
+  //
+  // Scope should be populated with parameter variables including
+  //  - needs_type_check()
+  //  - is_explicit_covariant_parameter()
+  //
+  FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
+
   TranslationHelper translation_helper_;
   Thread* thread_;
   Zone* zone_;
@@ -235,12 +335,50 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   friend class BreakableBlock;
   friend class CatchBlock;
   friend class ConstantEvaluator;
+  friend class ProgramState;
   friend class StreamingFlowGraphBuilder;
   friend class SwitchBlock;
   friend class TryCatchBlock;
   friend class TryFinallyBlock;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphBuilder);
+};
+
+// Convenience class to save/restore program state.
+// This snapshot denotes a partial state of the flow
+// grap builder that is needed when recursing into
+// the statements and expressions of a finalizer block.
+class ProgramState {
+ public:
+  ProgramState(BreakableBlock* breakable_block,
+               SwitchBlock* switch_block,
+               intptr_t loop_depth,
+               intptr_t for_in_depth,
+               intptr_t try_depth,
+               intptr_t catch_depth)
+      : breakable_block_(breakable_block),
+        switch_block_(switch_block),
+        loop_depth_(loop_depth),
+        for_in_depth_(for_in_depth),
+        try_depth_(try_depth),
+        catch_depth_(catch_depth) {}
+
+  void assignTo(FlowGraphBuilder* builder) const {
+    builder->breakable_block_ = breakable_block_;
+    builder->switch_block_ = switch_block_;
+    builder->loop_depth_ = loop_depth_;
+    builder->for_in_depth_ = for_in_depth_;
+    builder->try_depth_ = try_depth_;
+    builder->catch_depth_ = catch_depth_;
+  }
+
+ private:
+  BreakableBlock* const breakable_block_;
+  SwitchBlock* const switch_block_;
+  const intptr_t loop_depth_;
+  const intptr_t for_in_depth_;
+  const intptr_t try_depth_;
+  const intptr_t catch_depth_;
 };
 
 class SwitchBlock {
@@ -266,14 +404,17 @@ class SwitchBlock {
   }
 
   // Get destination via absolute target number (i.e. the correct destination
-  // is not not necessarily in this block.
+  // is not necessarily in this block).
   JoinEntryInstr* Destination(intptr_t target_index,
                               TryFinallyBlock** outer_finally = NULL,
                               intptr_t* context_depth = NULL) {
-    // Find corresponding [SwitchStatement].
+    // Verify consistency of program state.
+    ASSERT(builder_->switch_block_ == this);
+    // Find corresponding destination.
     SwitchBlock* block = this;
     while (block->depth_ > target_index) {
       block = block->outer_;
+      ASSERT(block != nullptr);
     }
 
     // Set the outer finally block.
@@ -355,28 +496,33 @@ class TryFinallyBlock {
         outer_(builder->try_finally_block_),
         finalizer_kernel_offset_(finalizer_kernel_offset),
         context_depth_(builder->context_depth_),
+        try_index_(builder_->CurrentTryIndex()),
         // Finalizers are executed outside of the try block hence
         // try depth of finalizers are one less than current try
-        // depth.
-        try_depth_(builder->try_depth_ - 1),
-        try_index_(builder_->CurrentTryIndex()) {
+        // depth. For others, program state is snapshot of current.
+        state_(builder_->breakable_block_,
+               builder_->switch_block_,
+               builder_->loop_depth_,
+               builder_->for_in_depth_,
+               builder_->try_depth_ - 1,
+               builder_->catch_depth_) {
     builder_->try_finally_block_ = this;
   }
   ~TryFinallyBlock() { builder_->try_finally_block_ = outer_; }
 
+  TryFinallyBlock* outer() const { return outer_; }
   intptr_t finalizer_kernel_offset() const { return finalizer_kernel_offset_; }
   intptr_t context_depth() const { return context_depth_; }
-  intptr_t try_depth() const { return try_depth_; }
   intptr_t try_index() const { return try_index_; }
-  TryFinallyBlock* outer() const { return outer_; }
+  const ProgramState& state() const { return state_; }
 
  private:
   FlowGraphBuilder* const builder_;
   TryFinallyBlock* const outer_;
-  intptr_t finalizer_kernel_offset_;
+  const intptr_t finalizer_kernel_offset_;
   const intptr_t context_depth_;
-  const intptr_t try_depth_;
   const intptr_t try_index_;
+  const ProgramState state_;
 
   DISALLOW_COPY_AND_ASSIGN(TryFinallyBlock);
 };
@@ -406,11 +552,14 @@ class BreakableBlock {
   JoinEntryInstr* BreakDestination(intptr_t label_index,
                                    TryFinallyBlock** outer_finally,
                                    intptr_t* context_depth) {
-    BreakableBlock* block = builder_->breakable_block_;
+    // Verify consistency of program state.
+    ASSERT(builder_->breakable_block_ == this);
+    // Find corresponding destination.
+    BreakableBlock* block = this;
     while (block->index_ != label_index) {
       block = block->outer_;
+      ASSERT(block != nullptr);
     }
-    ASSERT(block != NULL);
     *outer_finally = block->outer_finally_;
     *context_depth = block->context_depth_;
     return block->EnsureDestination();

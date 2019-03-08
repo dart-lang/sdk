@@ -251,6 +251,10 @@ abstract class Compiler {
     if (options.readDataUri != null) {
       GlobalTypeInferenceResults results =
           await serializationTask.deserialize();
+      if (options.debugGlobalInference) {
+        performGlobalTypeInference(results.closedWorld);
+        return;
+      }
       generateJavaScriptCode(results);
     } else {
       KernelResult result = await kernelLoader.load(uri);

@@ -910,4 +910,56 @@ ISOLATE_UNIT_TEST_CASE(HelperAllocAndGC) {
   }
 }
 
+class AllocateGlobsOfMemoryTask : public ThreadPool::Task {
+ public:
+  AllocateGlobsOfMemoryTask(Isolate* isolate, Monitor* done_monitor, bool* done)
+      : isolate_(isolate), done_monitor_(done_monitor), done_(done) {}
+
+  virtual void Run() {
+    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+    {
+      Thread* thread = Thread::Current();
+      StackZone stack_zone(thread);
+      Zone* zone = stack_zone.GetZone();
+      HANDLESCOPE(thread);
+      int count = 100 * 1000;
+      while (count-- > 0) {
+        String::Handle(zone, String::New("abc"));
+      }
+    }
+    Thread::ExitIsolateAsHelper();
+    // Tell main thread that we are ready.
+    {
+      MonitorLocker ml(done_monitor_);
+      ASSERT(!*done_);
+      *done_ = true;
+      ml.Notify();
+    }
+  }
+
+ private:
+  Isolate* isolate_;
+  Monitor* done_monitor_;
+  bool* done_;
+};
+
+ISOLATE_UNIT_TEST_CASE(ExerciseTLABs) {
+  const int NUMBER_TEST_THREADS = 10;
+  Monitor done_monitor[NUMBER_TEST_THREADS];
+  bool done[NUMBER_TEST_THREADS];
+  Isolate* isolate = thread->isolate();
+  for (int i = 0; i < NUMBER_TEST_THREADS; i++) {
+    done[i] = false;
+    Dart::thread_pool()->Run(
+        new AllocateGlobsOfMemoryTask(isolate, &done_monitor[i], &done[i]));
+  }
+
+  for (int i = 0; i < NUMBER_TEST_THREADS; i++) {
+    MonitorLocker ml(&done_monitor[i]);
+    while (!done[i]) {
+      ml.WaitWithSafepointCheck(thread);
+    }
+  }
+}
+
 }  // namespace dart

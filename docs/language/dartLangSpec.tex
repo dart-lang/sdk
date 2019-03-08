@@ -173,6 +173,9 @@
 % - Integrate generalized-void.md. Introduces syntactic support for using
 %   `void` in many new locations, including variable type annotations and
 %   actual type arguments; also adds errors for using values of type `void`.
+% - Integrate implicit_creation.md, specifying how some constant expressions
+%   can be written without `const`, and all occurrences of `new` can be
+%   omitted.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -419,24 +422,85 @@ When the specification refers to a
 \IndexCustom{fresh variable}{variable!fresh},
 it means a variable with a name that doesn't occur anywhere
 in the current program.
-When the specification introduces a fresh variable bound to a value, the fresh variable is implicitly bound in a surrounding scope.
+When the specification introduces a fresh variable bound to an object,
+the fresh variable is implicitly bound in a surrounding scope.
 
 \LMHash{}%
-References to otherwise unspecified names of program entities (such as classes or functions) are interpreted as the names of members of the Dart core library.
+References to otherwise unspecified names of program entities
+(such as classes or functions)
+are interpreted as the names of members of the Dart core library.
 
-\commentary{
-Examples would be the classes \code{Object} and \code{Type} representing the root of the class hierarchy and the reification of run-time types respectively.
+\commentary{%
+Examples would be the classes \code{Object} and \code{Type}
+representing, respectively, the root of the class hierarchy and
+the reification of run-time types.
+%
+It would be possible to declare, e.g.,
+a local variable named \code{Object},
+so it is generally incorrect to assume that
+the name \code{Object} will actually resolve to said core class.
+However, we will generally omit mentioning this, for brevity.%
 }
+
+%% TODO(eernst): We need to get rid of the concept of `is equivalent to`,
+%% cf. language issue https://github.com/dart-lang/language/issues/227.
+%% In this CL the phrase `treated as` has been introduced in a few places,
+%% and the above-mentioned issue 227 will give rise to a complete revision
+%% of this aspect of this document. In particular, the next paragraph will
+%% be deleted.
 
 \LMHash{}%
 When the specification says that one piece of syntax \Index{is equivalent to}
 another piece of syntax, it means that it is equivalent in all ways,
 and the former syntax should generate the same compile-time errors
 and have the same run-time behavior as the latter, if any.
-\commentary{
-Error messages, if any, should always refer to the original syntax.
+\commentary{%
+Error messages, if any, should always refer to the original syntax.%
 }
-If execution or evaluation of a construct is said to be equivalent to execution or evaluation of another construct, then only the run-time behavior is equivalent, and compile-time errors apply only for the original syntax.
+If execution or evaluation of a construct is said to be
+equivalent to execution or evaluation of another construct,
+then only the run-time behavior is equivalent,
+and compile-time errors apply only for the original syntax.
+
+\LMHash{}%
+When the specification says that one piece of syntax $s$ is
+\Index{treated as}
+another piece of syntax $s'$,
+it means that the static analysis of $s$ is the static analysis of $s'$
+(\commentary{in particular, exactly the same compile-time errors occur}).
+Moreover, if $s$ has no compile-time errors then
+the behavior of $s$ at run time is exactly the behavior of $s'$.
+
+\rationale{%
+Error \emph{messages}, if any, should always refer to the original syntax $s$.%
+}
+
+\commentary{%
+In short, whenever $s$ is treated as $s'$,
+the reader should immediately switch to the section about $s'$
+in order to get any further information about
+the static analysis and dynamic semantics of $s$.%
+}
+
+\rationale{%
+The notion of being `treated as' is similar to the notion of syntactic sugar:
+``$s$ is treated as $s'$''
+could as well have been worded
+``$s$ is desugared into $s'$''.
+Of course, it should then actually be called ``semantic sugar'',
+because the applicability of the transformation and the construction of $s'$
+may rely on information from static analysis.
+
+The point is that we only specify the static analysis and dynamic semantics
+of a core language which is a subset of Dart
+(just slightly smaller than Dart),
+and desugaring transforms any given Dart program to
+a program in that core language.
+This helps keeping the language specification consistent and comprehensible,
+because it shows directly
+that some language features are introducing essential semantics,
+and others are better described as mere abbreviations of existing constructs.%
+}
 
 
 \section{Overview}
@@ -851,6 +915,12 @@ It is a compile-time error to preface a top-level variable declaration with the 
 A \IndexCustom{constant variable}{variable!constant}
 is a variable whose declaration includes the modifier \CONST{}.
 A constant variable must be initialized to a constant expression (\ref{constants}) or a compile-time error occurs.
+
+\commentary{%
+An initializing expression of a constant variable occurs in a constant context
+(\ref{constantContexts}),
+which means that \CONST{} modifiers need not be specified explicitly.%
+}
 
 \LMHash{}%
 A \IndexCustom{final variable}{variable!final}
@@ -3056,7 +3126,7 @@ So we need to specify the order.
 
 \LMHash{}%
 Then if any instance variable of $i$ declared by the immediately enclosing class
-is not yet bound to a value,
+is not yet bound to an object,
 all such variables are initialized with the null object (\ref{null}).
 
 \LMHash{}%
@@ -4588,13 +4658,13 @@ has the same effect as a class declaration
 
 \begin{normativeDartCode}
 $m$ \CLASS{} $E$ \{
-  \FINAL{} int index;
-  \CONST{} $E$(\THIS{}.index);
-  $m_0$ \STATIC{} \CONST{} $E$ $\id_0$ = \CONST{} $E$(0);
-  $\ldots$
-  $m_{n-1}$ \STATIC{} \CONST{} $E$ $\id_{n-1}$ = const $E$(n - 1);
-  \STATIC{} \CONST{} List<$E$> values = const <$E$>[\id$_0, \ldots, $ \id$_{n-1}$];
-  String toString() => \{ 0: `$E$.\id$_0$', $\ldots$, n-1: `$E$.\id$_{n-1}$'\}[index]
+\ \ \FINAL{} int index;
+\ \ \CONST{} $E$(\THIS{}.index);
+\ \ $m_0$ \STATIC{} \CONST{} $E$ $\id_0$ = \CONST{} $E$(0);
+\ \ $\ldots$
+\ \ $m_{n-1}$ \STATIC{} \CONST{} $E$ $\id_{n-1}$ = const $E$(n - 1);
+\ \ \STATIC{} \CONST{} List<$E$> values = const <$E$>[\id$_0, \ldots, $ \id$_{n-1}$];
+\ \ String toString() => \{ 0: `$E$.\id$_0$', $\ldots$, n-1: `$E$.\id$_{n-1}$'\}[index]
 \}
 \end{normativeDartCode}
 
@@ -5720,82 +5790,91 @@ also when they are deeply nested.%
 Dart supports metadata which is used to attach user defined annotations to program structures.
 
 \begin{grammar}
-<metadata> ::= (`@' <qualified> (`.' <identifier>)? (<arguments>)?)*
+<metadata> ::= (`@' <qualified> (`.' <identifier>)? <arguments>?)*
 \end{grammar}
 
 \LMHash{}%
-Metadata consists of a series of annotations, each of which begin with the character @, followed by a constant expression that starts with an identifier.
-It is a compile-time error if the expression is not one of the following:
+Metadata consists of a series of annotations,
+each of which begin with the character \lit{@},
+followed by a constant expression $e$ derivable from
+\syntax{<qualified> (`.' <identifier>)? <arguments>?}.
+It is a compile-time error if $e$ is not one of the following:
 \begin{itemize}
 \item A reference to a constant variable.
 \item A call to a constant constructor.
 \end{itemize}
 
+\commentary{%
+The expression $e$ occurs in a constant context
+(\ref{constantContexts}),
+which means that \CONST{} modifiers need not be specified explicitly.
+}
+
 \LMHash{}%
-Metadata is associated with the abstract syntax tree of the program construct $p$ that immediately follows the metadata, assuming $p$ is not itself metadata or a comment.
-Metadata can be retrieved at run time via a reflective call, provided the annotated program construct $p$ is accessible via reflection.
+Metadata is associated with the abstract syntax tree
+of the program construct $p$ that immediately follows the metadata,
+and which is not itself metadata or a comment.
+Metadata can be retrieved at run time via a reflective call,
+provided the annotated program construct $p$ is accessible via reflection.
 
 \commentary{
-Obviously, metadata can also be retrieved statically by parsing the program and evaluating the constants via a suitable interpreter.
-In fact many if not most uses of metadata are entirely static.
+Obviously, metadata can also be retrieved statically by
+parsing the program and evaluating the constants via a suitable interpreter.
+In fact, many if not most uses of metadata are entirely static.
 }
 
 \rationale{
-It is important that no run-time overhead be incurred by the introduction of metadata that is not actually used.
-Because metadata only involves constants, the time at which it is computed is irrelevant so that implementations may skip the metadata during ordinary parsing and execution and evaluate it lazily.
+It is important that no run-time overhead be incurred by
+the introduction of metadata that is not actually used.
+Because metadata only involves constants,
+the time at which it is computed is irrelevant.
+So implementations may skip the metadata during ordinary parsing and execution,
+and evaluate it lazily.
 }
 
 \commentary{
-It is possible to associate metadata with constructs that may not be accessible via reflection, such as local variables (though it is conceivable that in the future, richer reflective libraries might provide access to these as well).
+It is possible to associate metadata with constructs
+that may not be accessible via reflection,
+such as local variables
+(though it is conceivable that in the future,
+richer reflective libraries might provide access to these as well).
 This is not as useless as it might seem.
 As noted above, the data can be retrieved statically if source code is available.
 }
 
 \LMHash{}%
-Metadata can appear before a library, part header, class, typedef, type parameter, constructor, factory, function, parameter, or variable declaration and before an import, export or part directive.
+Metadata can appear before a library, part header, class,
+typedef, type parameter, constructor, factory, function,
+parameter, or variable declaration,
+and before an import, export, or part directive.
 
 \LMHash{}%
-The constant expression given in an annotation is type checked and evaluated in the scope surrounding the declaration being annotated.
+The constant expression given in an annotation is type checked and evaluated
+in the scope surrounding the declaration being annotated.
 
 
 \section{Expressions}
 \LMLabel{expressions}
 
 \LMHash{}%
-\label{evaluation}
-An \Index{expression} is a fragment of Dart code that can be evaluated at run time.
-Evaluating an expression either
-\IndexCustom{produces a value}{expression!produces a value}
-(an object),
-or it
-\IndexCustom{throws}{expression!throws}
-an exception object and an associated stack trace.
-In the former case, we also say that the expression
-\NoIndex{evaluates to a value}.
+An \Index{expression} is a fragment of Dart code
+that can be evaluated at run time.
 
 \LMHash{}%
 Every expression has an associated static type (\ref{staticTypes}) and
-may have an associated static context type.
-\commentary{The static context type represents
-the type expectation of the surrounding context,
-the expression or statement that the expression itself is part of.
-Some contexts may not introduce any static context type.}
-The static context type may affect the static type and evaluation
-of the expression.
+may have an associated static context type
+%% TODO(eernst): This ref is undefined until CL 92782 is landed.
+%% (\ref{contextTypes}),
+which may affect the static type and evaluation of the expression.
 Every value has an associated dynamic type (\ref{dynamicTypeSystem}).
-
-\LMHash{}%
-If evaluation of one expression, $e$, is defined in terms of evaluation of another expression, typically a subexpression of $e$,
-and the evaluation of the other expression throws an exception and a stack trace,
-the evaluation of $e$ stops at that point and throws the same exception object and stack trace.
 
 \begin{grammar}
 <expression> ::= <assignableExpression> <assignmentOperator> <expression>
   \alt <conditionalExpression> <cascadeSection>*
   \alt <throwExpression>
 
-<expressionWithoutCascade> ::= <assignableExpression> <assignmentOperator>
-  \gnewline{} <expressionWithoutCascade>
+<expressionWithoutCascade> ::= \gnewline{}
+  <assignableExpression> <assignmentOperator> <expressionWithoutCascade>
   \alt <conditionalExpression>
   \alt <throwExpressionWithoutCascade>
 
@@ -5815,9 +5894,48 @@ the evaluation of $e$ stops at that point and throws the same exception object a
 An expression $e$ may always be enclosed in parentheses, but this never has any semantic effect on $e$.
 
 \commentary{
-Sadly, it may have an effect on the surrounding expression.
-Given a class $C$ with static method $m => 42$, $C.m()$ returns 42, but $(C).m()$ produces a \code{NoSuchMethodError}.
+However, it may have an effect on the surrounding expression.
+For instance, given a class \code{C} with a static method
+\code{m() => 42}, \code{C.m()} returns 42,
+but \code{(C).m()} is a compile-time error.
+%
+The point is that the meaning of \code{C.m()}
+is specified in terms of several parts,
+rather than being specified in a strictly compositional manner.
+Concretely, the meaning of \code{C} and \code{(C)} as expressions is the same,
+but the meaning of \code{C.m()} is not defined in terms of
+the meaning of \code{C} as an expression,
+and it differs from the meaning of \code{(C).m()}.
+% A strictly compositional evaluation would always evaluate every subexpression
+% using the same rules (`evaluation` is always the same thing), and then it
+% would combine the evaluation results into the result of the whole expression.
+% We won't expand on that here, and in particular we won't discuss whether
+% compositional evaluation is even meaningful in the context of side-effects.
+% But it's still useful to keep in mind that we have these "highly
+% non-compositional" elements in the semantics, such as static method
+% lookups.
 }
+
+
+\subsection{Expression Evaluation}
+\LMLabel{expressionEvaluation}
+
+\LMHash{}%
+Evaluation of an expression either
+\IndexCustom{produces an object}{expression!produces an object}
+or it
+\IndexCustom{throws}{expression!throws}
+an exception object and an associated stack trace.
+In the former case, we also say that the expression
+\NoIndex{evaluates to an object}.
+
+\LMHash{}%
+If evaluation of one expression, $e$,
+is defined in terms of evaluation of another expression $e_1$,
+typically a subexpression of $e$,
+and the evaluation of $e_1$ throws an exception and a stack trace,
+the evaluation of $e$ stops at that point
+and throws the same exception object and stack trace.
 
 
 \subsection{Object Identity}
@@ -5865,7 +5983,8 @@ The rules for identity make it impossible for a Dart programmer to observe wheth
 All usages of the word 'constant' in Dart are associated with compile time.
 A potentially constant expression is an expression that will generally yield
 a constant value when the value of certain parameters is given.
-The constant expressions is a subset of the potentially constant expressions that \emph{can} be evaluated entirely at compile time.
+The constant expressions is a subset of the potentially constant expressions
+that \emph{can} be evaluated entirely at compile time.
 }
 
 \rationale{
@@ -5884,11 +6003,17 @@ are the following:
 \begin{itemize}
 \item A literal boolean, \TRUE{} or \FALSE{} (\ref{booleans}), is a potentially constant and constant expression.
 
-\item A literal number (\ref{numbers}) is a potentially constant and constant expression if it evaluates to a value of type \code{int} or \code{double}.
-% A too-large integer literal does not evaluate to a value.
+\item A literal number (\ref{numbers}) is a potentially constant and constant expression
+  if it evaluates to an instance of type \code{int} or \code{double}.
+  % A too-large integer literal does not evaluate to an object.
 
-\item A literal string (\ref{strings}) with string interpolations (\ref{stringInterpolation} with expressions $e_1$, \ldots{}, $e_n$ is a potentially constant expression if $e_1$, \ldots{}, $e_n$ are potentially constant expressions.
-The literal is further a constant expression if $e_1$, \ldots{}, $e_n$ are constant expressions evaluating to values that are instances of \code{int}, \code{double} \code{String}, \code{bool} or \code{Null}.
+\item A literal string (\ref{strings}) with string interpolations
+  (\ref{stringInterpolation})
+  with expressions $e_1$, \ldots{}, $e_n$ is a potentially constant expression
+  if $e_1$, \ldots{}, $e_n$ are potentially constant expressions.
+  The literal is further a constant expression
+  if $e_1$, \ldots{}, $e_n$ are constant expressions
+  evaluating to instances of \code{int}, \code{double} \code{String}, \code{bool} or \code{Null}.
 \commentary{These requirements hold trivially if there are no interpolations in the string}.
 \rationale{It would be tempting to allow string interpolation where the
 interpolated value is any compile-time constant. However, this would require
@@ -5921,7 +6046,7 @@ For example, if $C$ is the name of a class or type alias, the expression \code{$
 \code{\CONST{} $C$<$T_1,\ \ldots,\ T_k$>(\metavar{arguments})} or
 \code{\CONST{} $C$<$T_1,\ \ldots,\ T_k$>.\id(\metavar{arguments})},
 or either expression without the leading \CONST{} that occurs in a constant context, is a potentially constant expression.
-It is further a constant expression if the invocation evaluates to a value.
+It is further a constant expression if the invocation evaluates to an object.
 % \ref{const} requires each actual argument to be a constant expression,
 % but here we also catch errors during evaluation, e.g., `C(1, 0)` where
 % `C(double x, double y): z = x / y;`.
@@ -5932,19 +6057,19 @@ not a constant expression (\ref{const}).
 \code{\CONST{} <$T$>[$e_1$, \ldots{}, $e_n$]}, or
 \code{<$T$>[$e_1$, \ldots{}, $e_n$]}
 that occurs in a constant context, is a potentially constant expression if $T$ is a constant type expression, and $e_1$, \ldots{} , $e_n$ are constant expressions.
-It is further a constant expression if the list literal evaluates to a value.
+It is further a constant expression if the list literal evaluates to an object.
 
 \item A constant set literal (\ref{set}),
 \code{\CONST{} <$T$>\{$e_1$, \ldots{}, $e_n$\}}, or
 \code{<$T$>\{$e_1$, \ldots{}, $e_n$\}}
 that occurs in a constant context, is a potentially constant expression if $T$ is a constant type expression, and $e_1$, \ldots{} , $e_n$ are constant expressions.
-It is further a constant expression if the list literal evaluates to a value.
+It is further a constant expression if the list literal evaluates to an object.
 
 \item A constant map literal (\ref{maps}),
 \code{\CONST{} <$K$, $V$>\{$k_1$: $v_1$, \ldots{}, $k_n$: $v_n$\}}, or
 \code{<$K$, $V$>\{$k_1$: $v_1$, \ldots{}, $k_n$: $v_n$\}} that occurs in a constant context,
 is a potentially constant expression.
-It is further a constant expression if the map literal evaluates to a value.
+It is further a constant expression if the map literal evaluates to an object.
 
 \item A parenthesized expression \code{($e$)} is a potentially constant expression if $e$ is a potentially constant expression. It is further a constant expression if $e$ is a constant expression.
 
@@ -5952,66 +6077,108 @@ It is further a constant expression if the map literal evaluates to a value.
 
 \item An expression of the form \code{$e_1$\,!=\,$e_2$} is equivalent to \code{!($e_1$\,==\,$e_2$)} in every way, including whether it is potentially constant or constant.
 
-\item An expression of the form \code{$e_1$\,==\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if both $e_1$ and $e_2$ are constant and either $e_1$ evaluates to a value that is an instance of \code{int}, \code{double}, \code{String}, \code{bool} or \code{Null}, or if $e_2$ evaluates to the null object (\ref{null}).
-%TODO: Consider adding enum instances here.
+\item An expression of the form \code{$e_1$\,==\,$e_2$} is potentially constant
+  if $e_1$ and $e_2$ are both potentially constant expressions.
+  It is further constant if both $e_1$ and $e_2$ are constant and
+  either $e_1$ evaluates to an object that is an instance of
+  \code{int}, \code{double}, \code{String}, \code{bool} or \code{Null},
+  or if $e_2$ evaluates to the null object (\ref{null}).
+  %TODO: Consider adding enum instances here.
 
-\item An expression of the form \code{!$e_1$} is potentially constant if $e_1$ is potentially constant. It is further constant if $e_1$ is a constant expression that evaluates to a value of type \code{bool}.
+\item An expression of the form \code{!$e_1$} is potentially constant if $e_1$ is potentially constant. It is further constant if $e_1$ is a constant expression that evaluates to an instance of type \code{bool}.
 
 \item An expression of the form \code{$e_1$\,\&\&\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if $e_1$ is a constant expression and either
 \begin{enumerate}
 \item $e_1$ evaluates to \FALSE{}, or
-\item $e_1$ evaluates to \TRUE{} and $e_2$ is a constant expression that evaluates to a value of type \code{bool}.
+\item $e_1$ evaluates to \TRUE{} and $e_2$ is a constant expression that evaluates to an instance of type \code{bool}.
 \end{enumerate}
 
 \item An expression of the form \code{$e_1$\,||\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if $e_1$ is a constant expression and either
 \begin{enumerate}
 \item $e_1$ evaluates to \TRUE{}, or
-\item $e_1$ evaluates to \FALSE{} and $e_2$ is a constant expression that evaluates to a value of type \code{bool}.
+\item $e_1$ evaluates to \FALSE{} and $e_2$ is a constant expression that evaluates to an instance of type \code{bool}.
 \end{enumerate}
 
-\item An expression of the form \code{\~{}$e_1$} is a potentially constant expression if $e_1$ is a potentially constant expression. It is further a constant expression if $e_1$ is a constant expression that evaluates to a value of type \code{int}.
+\item An expression of the form \code{\~{}$e_1$} is a potentially constant expression if $e_1$ is a potentially constant expression. It is further a constant expression if $e_1$ is a constant expression that evaluates to an instance of type \code{int}.
 
-\item An expression of one of the forms \code{$e_1$\,\&\,$e_2$}, \code{$e_1$\,|\,$e_2$}, or \code{$e_1$\,\^\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if both $e_1$ and $e_2$ are constant expressions that both evaluate to values that are both instances of \code{int}, or that are both instances of \code{bool}.
-% The bool case is new in 2.1.
+\item An expression of one of the forms \code{$e_1$\,\&\,$e_2$},
+  \code{$e_1$\,|\,$e_2$}, or \code{$e_1$\,\^\,$e_2$} is potentially constant
+  if $e_1$ and $e_2$ are both potentially constant expressions.
+  It is further constant if both $e_1$ and $e_2$ are constant expressions that
+  both evaluate to instances of \code{int}, or both to instances of \code{bool}.
+  % The bool case is new in 2.1.
 
-\item An expression of one of the forms \code{$e_1$\,\~{}/\,$e_2$}, \code{$e_1$\,\gtgt\,$e_2$}, \code{$e_1$\,\gtgtgt\,$e_2$}, or \code{$e_1$\,\ltlt\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if both $e_1$ and $e_2$ are constant expressions that evaluate to values that are instances of \code{int}.
+\item An expression of one of the forms \code{$e_1$\,\~{}/\,$e_2$},
+  \code{$e_1$\,\gtgt\,$e_2$}, \code{$e_1$\,\gtgtgt\,$e_2$},
+  or \code{$e_1$\,\ltlt\,$e_2$} is potentially constant
+  if $e_1$ and $e_2$ are both potentially constant expressions.
+  It is further constant if both $e_1$ and $e_2$ are constant expressions that
+  both evaluate to an instance of \code{int}.
 
-\item An expression of the form \code{$e_1$\,+\,$e_2$} is a potentially constant expression if $e_1$ and $e_2$ are both potentially constant expressions. It is further a constant expression if both $e_1$ and $e_2$ are constant expressions and either both evaluate to values that are instances of \code{int} or \code{double}, or both evaluate to values of type \code{String}.
+\item An expression of the form \code{$e_1$\,+\,$e_2$} is
+  a potentially constant expression if $e_1$ and $e_2$
+  are both potentially constant expressions.
+  It is further a constant expression if both $e_1$ and $e_2$ are constant expressions
+  and either both evaluate to an instance of \code{int} or \code{double},
+  or both evaluate to an instance of \code{String}.
 
-\item An expression of the form \code{-$e_1$} is a potentially constant expression if $e_1$ is a potentially constant expression. It is further a constant expression if $e_1$ is a constant expression that evaluates to a value that is an instance of \code{int} or \code{double}.
+\item An expression of the form \code{-$e_1$} is a potentially constant expression
+  if $e_1$ is a potentially constant expression.
+  It is further a constant expression if $e_1$ is a constant expression that
+  evaluates to an instance of type \code{int} or \code{double}.
 
-\item An expression of the form \code{$e_1$\,-\,$e_2$}, \code{$e_1$\,*\,$e_2$}, \code{$e_1$\,/\,$e_2$}, \code{$e_1$\,\%\,$e_2$}, \code{$e_1$\,<\,$e_2$}, \code{$e_1$\,<=\,$e_2$}, \code{$e_1$\,>\,$e_2$}, or \code{$e_1$\,>=\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if both $e_1$ and $e_2$ are constant expressions that evaluate to values that are instances of \code{int} or \code{double}.
+\item An expression of the form \code{$e_1$\,-\,$e_2$}, \code{$e_1$\,*\,$e_2$},
+  \code{$e_1$\,/\,$e_2$}, \code{$e_1$\,\%\,$e_2$}, \code{$e_1$\,<\,$e_2$},
+  \code{$e_1$\,<=\,$e_2$}, \code{$e_1$\,>\,$e_2$}, or \code{$e_1$\,>=\,$e_2$}
+  is potentially constant
+  if $e_1$ and $e_2$ are both potentially constant expressions.
+  It is further constant if both $e_1$ and $e_2$ are constant expressions that
+  evaluate to instances of \code{int} or \code{double}.
 
-\item An expression of the form \code{$e_1$\,?\,$e_2$\,:\,$e_3$} is potentially constant if $e_1$, $e_2$, and $e_3$ are all potentially constant expressions. It is constant if $e_1$ is a constant expression and either
+\item An expression of the form \code{$e_1$\,?\,$e_2$\,:\,$e_3$}
+  is potentially constant if $e_1$, $e_2$, and $e_3$
+  are all potentially constant expressions.
+  It is constant if $e_1$ is a constant expression and either
 \begin{enumerate}
 \item $e_1$ evaluates to \TRUE{} and $e_2$ is a constant expression, or
 \item $e_1$ evaluates to \FALSE{} and $e_3$ is a constant expression.
 \end{enumerate}
 
-\item An expression of the form \code{$e_1$\,??\,$e_2$} is potentially constant if $e_1$ and $e_2$ are both potentially constant expressions. It is further constant if $e_1$ is a constant expression and either
+\item An expression of the form \code{$e_1$\,??\,$e_2$} is potentially constant
+  if $e_1$ and $e_2$ are both potentially constant expressions.
+  It is further constant if $e_1$ is a constant expression and either
 \begin{enumerate}
-\item $e_1$ evaluates to a non-\NULL{} value, or
-\item $e_1$ evaluates to \NULL{} and $e_2$ is a constant expression.
+\item $e_1$ evaluates to an object which is not the null object, or
+\item $e_1$ evaluates to the null object, and $e_2$ is a constant expression.
 \end{enumerate}
 
-\item An expression of the form \code{$e$.length} is potentially constant if $e$ is a potentially constant expression. It is further constant if $e$ is a constant expression that evaluates to a \code{String}.
+\item An expression of the form \code{$e$.length} is potentially constant
+  if $e$ is a potentially constant expression.
+  It is further constant if $e$ is a constant expression that
+  evaluates to an instance of \code{String}.
 
 % New in 2.1.
-\item An expression of the form \code{$e$ as $T$} is potentially constant if $e$ is a potentially constant expression and $T$ is a constant type expression, and it is further constant if $e$ is constant.
+\item An expression of the form \code{$e$ as $T$} is potentially constant
+  if $e$ is a potentially constant expression
+  and $T$ is a constant type expression,
+  and it is further constant if $e$ is constant.
 \commentary{
 It is a compile-time error to evaluate the constant expression
 if the cast operation would throw, that is,
-if the value the $e$ evaluates to is not \NULL{} and not of type $T$.
+if $e$ evaluates to an object which is not the null object and not of type $T$.
 }
 
 % New in 2.1.
-\item An expression of the form \code{$e$ is $T$} is potentially constant if $e$ is a potentially constant expression and $T$ is a constant type expression, and it is further constant if $e$ is constant.
+\item An expression of the form \code{$e$ is $T$} is potentially constant
+  if $e$ is a potentially constant expression
+  and $T$ is a constant type expression,
+  and it is further constant if $e$ is constant.
 
 % New in 2.1.
 \item{}
-An expression of the form \code{$e$ is! $T$} is equivalent to \code{!($e$ is $T$)} in every way,
-including whether it's potentially constant or constant.
-
+  An expression of the form \code{$e$ is! $T$}
+  is equivalent to \code{!($e$ is $T$)} in every way,
+  including whether it's potentially constant or constant.
 \end{itemize}
 
 \LMHash{}%
@@ -6060,7 +6227,12 @@ It is a compile-time error if an assertion is evaluated as part of a constant ob
 
 \commentary{
 Note that there is no requirement that every constant expression evaluate correctly.
-Only when a constant expression is required (e.g., to initialize a constant variable, or as a default value of a formal parameter, or as metadata) do we insist that a constant expression actually be evaluated successfully at compile time.
+Only when a constant expression is required
+(e.g., to initialize a constant variable,
+or as a default value of a formal parameter,
+or as metadata)
+do we insist that a constant expression actually
+be evaluated successfully at compile time.
 
 The above is not dependent on program control-flow.
 The mere presence of a required compile-time constant whose evaluation would fail within a program is an error.
@@ -6147,6 +6319,48 @@ As an example, consider:
   \alt <setOrMapLiteral>
   \alt <listLiteral>
 \end{grammar}
+
+
+\subsubsection{Constant Contexts}
+\LMLabel{constantContexts}
+
+\LMHash{}%
+Let $e$ be an expression; $e$ occurs in a
+\Index{constant context}
+if{}f one of the following applies:
+
+% We avoid the circularity "constant context depends on constant list literal,
+% etc., which depends on constant context" by mentioning the \CONST{} modifier
+% explicitly here. So 'constant context' is consistently a lower-level concept
+% based on syntax, and 'constant X expressions' (like 'constant list literal')
+% are built on top of this.
+
+\begin{itemize}
+\item $e$ is an element of a list or set literal whose first token is \CONST,
+  or $e$ is a key or a value of an entry
+  of a map literal whose first token is \CONST.
+\item $e$ occurs as \code{@$e$} in a construct derived from \synt{metadata}.
+\item $e$ is an actual argument in an expression derived from
+  \synt{constObjectExpression}.
+\item $e$ is the initializing expression of a constant variable declaration
+  (\ref{variables}).
+\item $e$ is a switch case expression
+  (\ref{switch}).
+\item $e$ is an immediate subexpression of
+  an expression $e_0$ which occurs in a constant context,
+  where $e_0$ is
+  %% May be added later:
+  %% not a \THROW{} expression (\ref{throw}) and
+  not a function literal
+  (\ref{functionExpressions}).
+\end{itemize}
+
+\rationale{%
+A constant context is introduced in situations where
+an expression is required to be constant.
+This is used to allow the \CONST{} modifier to be omitted
+in cases where it does not contribute any new information.%
+}
 
 
 \subsection{Null}
@@ -6668,9 +6882,14 @@ It is a dynamic error to attempt to access a list
 using an index that is not a member of its set of indices.
 
 \LMHash{}%
-If a list literal begins with the reserved word \CONST{}, it is a
-\IndexCustom{constant list literal}{literal!list!constant}
-which is a constant expression (\ref{constants}) and therefore evaluated at compile time.
+If a list literal $\ell$ begins with the reserved word \CONST{}
+or $\ell$ occurs in a constant context
+(\ref{constantContexts}),
+it is a
+\IndexCustom{constant list literal}{literal!list!constant},
+which is a constant expression
+(\ref{constants})
+and therefore evaluated at compile time.
 Otherwise, it is a
 \IndexCustom{run-time list literal}{literal!list!run-time}
 and it is evaluated at run time.
@@ -6679,35 +6898,57 @@ after they are created.
 % This error can occur because being constant is a dynamic property, here.
 Attempting to mutate a constant list literal will result in a dynamic error.
 
+\commentary{%
+% The following is true either directly or indirectly: There is a \CONST{}
+% modifier on the literal list, or we use the "immediate subexpression" rule
+% about constant contexts.
+Note that the element expressions of a constant list literal
+occur in a constant context
+(\ref{constantContexts}),
+which means that \CONST{} modifiers need not be specified explicitly.%
+}
+
 \LMHash{}%
-It is a compile-time error if an element of a constant list literal is not a constant expression.
-It is a compile-time error if the type argument of a constant list literal is
-not a constant type expression.
-\rationale{
-The binding of a type parameter is not known at compile time, so we cannot use type parameters inside constant expressions.
+It is a compile-time error if an element of a constant list literal
+is not a constant expression.
+It is a compile-time error if the type argument of a constant list literal
+is not a constant type expression.
+
+\rationale{%
+The binding of a formal type parameter is not known at compile time,
+so we cannot use type parameters inside constant expressions.%
 }
 
 \LMHash{}%
 The value of a constant list literal
-\code{\CONST{} <$E$>[$e_1, \ldots, e_n$]}
+\code{\CONST?\,\,<$E$>[$e_1, \ldots, e_n$]}
 is an object $a$ whose class implements the built-in class
 \code{List<$E$>}.
-The $i$th element of $a$ is $v_{i+1}$, where $v_i$ is the value of the compile-time expression $e_i$.
+Let $v_i$ be the value of the constant expression $e_i$, $i \in 1 .. n$.
+The $i$th element of $a$ (at index $i - 1$) is $v_i$.
+%
+%% TODO(eernst): If inference is specified to provide all type arguments,
+%% we should delete the following.
 The value of a constant list literal
-\code{\CONST{} [$e_1, \ldots, e_n$]}
+\code{\CONST?\,\,[$e_1, \ldots, e_n$]}
 is defined as the value of the constant list literal
-\code{\CONST{} <\DYNAMIC{}>[$e_1, \ldots, e_n$]}.
+% For a constant list literal, it is never an error to have the \CONST, even if
+% it was omitted above. So we remove the `?`, making the next line well-defined.
+\code{\CONST\,\,<\DYNAMIC>[$e_1, \ldots, e_n$]}.
 
 \LMHash{}%
 Let
-$list_1 =$ \code{\CONST{} <$V$>[$e_{11}, \ldots, e_{1n}$]}
+$list_1 =$ \code{\CONST?\,\,<$V$>[$e_{11}, \ldots, e_{1n}$]}
 and
-$list_2 =$ \code{\CONST{} <$U$>[$e_{21}, \ldots, e_{2n}$]}
-be two constant list literals and let the elements of $list_1$ and $list_2$ evaluate to $o_{11}, \ldots, o_{1n}$ and $o_{21}, \ldots, o_{2n}$ respectively.
-If{}f \code{identical($o_{1i}$, $o_{2i}$)} for $i \in 1 .. n$ and $V = U$ then \code{identical($list_1$, $list_2$)}.
+$list_2 =$ \code{\CONST?\,\,<$U$>[$e_{21}, \ldots, e_{2n}$]}
+be two constant list literals and
+let the elements of $list_1$ and $list_2$ evaluate to
+$o_{11}, \ldots, o_{1n}$ and $o_{21}, \ldots, o_{2n}$ respectively.
+If{}f \code{identical($o_{1i}$, $o_{2i}$)} for $i \in 1 .. n$ and $V == U$
+then \code{identical($list_1$, $list_2$)}.
 
-\commentary{
-In other words, constant list literals are canonicalized.
+\commentary{%
+In other words, constant list literals are canonicalized.%
 }
 
 \LMHash{}%
@@ -6746,10 +6987,12 @@ a dynamic type error will occur when $a[i]$ is assigned $o_{i-1}$.
 }
 
 \LMHash{}%
+%% TODO(eernst): If inference is specified to provide all type arguments,
+%% we should delete the following.
 A run-time list literal
 \code{[$e_1, \ldots, e_n$]}
 is evaluated as
-\code{<\DYNAMIC{}>[$e_1, \ldots, e_n$]}.
+\code{<\DYNAMIC>[$e_1, \ldots, e_n$]}.
 
 \commentary{
 There is no restriction precluding nesting of list literals.
@@ -6761,15 +7004,18 @@ containing two lists with type parameter \code{int}.
 
 \LMHash{}%
 The static type of a list literal of the form
-\code{\CONST{} <$E$>[$e_1, \ldots, e_n$]}
+\code{\CONST\,\,<$E$>[$e_1, \ldots, e_n$]}
 or the form
 \code{<$E$>[$e_1, \ldots, e_n$]}
 is \code{List<$E$>}.
+%
+%% TODO(eernst): If inference is specified to provide all type arguments,
+%% we should delete the following.
 The static type of a list literal of the form
-\code{\CONST{} [$e_1, \ldots, e_n$]}
+\code{\CONST\,\,[$e_1, \ldots, e_n$]}
 or the form
 \code{[$e_1, \ldots, e_n$]}
-is \code{List<\DYNAMIC{}>}.
+is \code{List<\DYNAMIC>}.
 
 
 \subsection{Maps}
@@ -6811,15 +7057,30 @@ It is a compile-time error if a map literal has one type argument,
 or more than two type arguments.
 
 \LMHash{}%
-If a map literal begins with the reserved word \CONST{}, it is a
+If a map literal $\ell$ begins with the reserved word \CONST{},
+or if $\ell$ occurs in a constant context
+(\ref{constantContexts}),
+it is a
 \IndexCustom{constant map literal}{literal!map!constant}
-which is a constant expression (\ref{constants}) and therefore evaluated at compile time.
+which is a constant expression
+(\ref{constants})
+and therefore evaluated at compile time.
 Otherwise, it is a
 \IndexCustom{run-time map literal}{literal!map!run-time}
 and it is evaluated at run time.
 Only run-time map literals can be mutated after they are created.
 % This error can occur because being constant is a dynamic property, here.
 Attempting to mutate a constant map literal will result in a dynamic error.
+
+\commentary{%
+% The following is true either directly or indirectly: There is a \CONST{}
+% modifier on the literal map, or we use the "immediate subexpression" rule
+% about constant contexts.
+Note that the key and value expressions of a constant list literal
+occur in a constant context
+(\ref{constantContexts}),
+which means that \CONST{} modifiers need not be specified explicitly.%
+}
 
 \LMHash{}%
 It is a compile-time error if
@@ -6835,26 +7096,38 @@ is not a constant type expression
 
 \LMHash{}%
 The value of a constant map literal
-\code{\CONST{} <$K, V$>\{$k_1:e_1, \ldots, k_n:e_n$\}}
+\code{\CONST?\,\,<$K, V$>\{$k_1:e_1, \ldots, k_n:e_n$\}}
 is an object $m$ whose class implements the built-in class
 \code{Map<$K, V$>}.
-The entries of $m$ are $u_i:v_i, i \in 1 .. n$, where $u_i$ is the value of the compile-time expression $k_i$ and $v_i$ is the value of the compile-time expression $e_i$.
+The entries of $m$ are $u_i:v_i, i \in 1 .. n$,
+where $u_i$ is the value of the compile-time expression $k_i$,
+and $v_i$ is the value of the compile-time expression $e_i$.
+%
+%% TODO(eernst): If inference is specified to provide all type arguments,
+%% we should delete the following.
 The value of a constant map literal
-\code{\CONST{} \{$k_1:e_1, \ldots, k_n:e_n$\}}
-is defined as the value of a constant map literal
-\code{\CONST{} <\DYNAMIC{}, \DYNAMIC{}>\{$k_1:e_1, \ldots, k_n:e_n$\}}.
+\code{\CONST?\,\,\{$k_1:e_1, \ldots, k_n:e_n$\}}
+is defined as the value of the constant map literal
+% For a constant map literal, it is never an error to have the \CONST, even if
+% it was omitted above. So we remove the `?`, making the next line well-defined.
+\code{\CONST\,\,<\DYNAMIC, \DYNAMIC>\{$k_1:e_1, \ldots, k_n:e_n$\}}.
 
 \LMHash{}%
-Let
-$map_1 =$ \code{\CONST{} <$K, V$>\{$k_{11}:e_{11}, \ldots, k_{1n}:e_{1n}$\}}
-and
-$map_2 =$ \code{\CONST{} <$J, U$>\{$k_{21}:e_{21}, \ldots, k_{2n}:e_{2n}$\}}
-be two constant map literals.
-Let the keys of $map_1$ and $map_2$ evaluate to $s_{11}, \ldots, s_{1n}$ and $s_{21}, \ldots, s_{2n}$ respectively, and let the elements of $map_1$ and $map_2$ evaluate to $o_{11}, \ldots, o_{1n}$ and $o_{21}, \ldots, o_{2n}$ respectively.
-If{}f \code{identical($o_{1i}$, $o_{2i}$)} and \code{identical($s_{1i}$, $s_{2i}$)} for $i \in 1 .. n$, and $K = J, V = U$ then \code{identical($map_1$, $map_2$)}.
+Let $map_1$ be a constant map literal of the form
+\code{\CONST?\,\,<$K, V$>\{$k_{11}:e_{11}, \ldots, k_{1n}:e_{1n}$\}}
+and $map_2$ a constant map literal of the form
+\code{\CONST?\,\,<$J, U$>\{$k_{21}:e_{21}, \ldots, k_{2n}:e_{2n}$\}}.
+Let the keys of $map_1$ and $map_2$ evaluate to
+$s_{11}, \ldots, s_{1n}$ and $s_{21}, \ldots, s_{2n}$, respectively,
+and let the elements of $map_1$ and $map_2$ evaluate to
+$o_{11}, \ldots, o_{1n}$ and $o_{21}, \ldots, o_{2n}$, respectively.
+If{}f
+\code{identical($o_{1i}$, $o_{2i}$)} and
+\code{identical($s_{1i}$, $s_{2i}$)}
+for $i \in 1 .. n$, and $K == J, V == U$, then \code{identical($map_1$, $map_2$)}.
 
-\commentary{
-In other words, constant map literals are canonicalized.
+\commentary{%
+In other words, constant map literals are canonicalized.%
 }
 
 \LMHash{}%
@@ -6888,11 +7161,13 @@ The objects created by map literals do not override
 the \lit{==} operator inherited from the \code{Object} class.
 
 \LMHash{}%
+%% TODO(eernst): If inference is specified to provide all type arguments,
+%% we should delete the following.
 A run-time map literal
 \code{\{$k_1:e_1, \ldots, k_n:e_n$\}}
 is evaluated as
 
-\code{<\DYNAMIC{}, \DYNAMIC{}>\{$k_1:e_1, \ldots, k_n:e_n$\}}.
+\code{<\DYNAMIC, \DYNAMIC>\{$k_1:e_1, \ldots, k_n:e_n$\}}.
 
 \LMHash{}%
 A map literal is ordered:
@@ -6911,11 +7186,14 @@ or the form
 \code{<$K, V$>\{$k_1:e_1, \ldots, k_n:e_n$\}}
 is
 \code{Map<$K, V$>}.
+%
+%% TODO(eernst): If inference is specified to provide all type arguments,
+%% we should delete the following.
 The static type of a map literal of the form
 \code{\CONST{} \{$k_1:e_1, \ldots, k_n:e_n$\}}
 or the form
 \code{\{$k_1:e_1, \ldots, k_n:e_n$\}} is
-\code{Map<\DYNAMIC{}, \DYNAMIC{}>}.
+\code{Map<\DYNAMIC, \DYNAMIC>}.
 
 
 \subsection{Sets}
@@ -6930,7 +7208,8 @@ A \IndexCustom{set literal}{literal!set} denotes a set object.
 \end{grammar}
 
 \LMHash{}%
-A \synt{setOrMapLiteral} is either set literal or a map literal (\ref {maps}).
+A \synt{setOrMapLiteral} is either a set literal or a map literal
+(\ref{maps}).
 A set literal derived from \synt{setOrMapLiteral}
 is treated the same way as one derived from \synt{setLiteral},
 as described below.
@@ -6939,23 +7218,37 @@ as described below.
 A set literal consists of zero or more element expressions.
 It is a compile-time error if a set literal has more than one type argument.
 
-\LMHash{}%
-\rationale{
+\rationale{%
 A set literal with no type argument is always converted to a literal
 with a type argument by type inference (\ref{overview}), so the following
-section only address the behavior of literals with type arguments.}
+section only address the behavior of literals with type arguments.%
+}
 
 \LMHash{}%
-If a set literal begins with the reserved word \CONST{},
-or if it occurs in a constant context, then it is a
+If a set literal $\ell$ begins with the reserved word \CONST{}
+or $\ell$ occurs in a constant context
+(\ref{constantContexts}),
+it is a
 \IndexCustom{constant set literal}{literal!set!constant}
-which is a constant expression (\ref{constants}) and therefore evaluated at compile time.
+which is a constant expression
+(\ref{constants})
+and therefore evaluated at compile time.
 Otherwise, it is a
 \IndexCustom{run-time set literal}{literal!set!run-time}
 and it is evaluated at run time.
 Only run-time set literals can be mutated after they are created.
 % This error can occur because being constant is a dynamic property, here.
 Attempting to mutate a constant set literal will result in a dynamic error.
+
+\commentary{%
+% The following is true either directly or indirectly: There is a \CONST{}
+% modifier on the literal set, or we use the "immediate subexpression" rule
+% about constant contexts.
+Note that the element expressions of a constant set literal
+occur in a constant context
+(\ref{constantContexts}),
+which means that \CONST{} modifiers need not be specified explicitly.%
+}
 
 \LMHash{}%
 It is a compile-time error if an element expression in a constant set literal
@@ -6972,11 +7265,21 @@ according to their \lit{==} operator
 (\ref{equality}).
 
 \LMHash{}%
-The value of a constant set literal with element expressions
-$e_1, \dots, e_n$ and type argument $E$
+The value of a constant set literal
+\code{\CONST?\,\,<$E$>\{$e_1, \ldots, e_n$\}}
 is an object $s$ whose class implements the built-in class
 \code{Set<$E$>}.
-The elements of $m$ are $v_i, i \in 1 .. n$, where $v_i$ is the value of the constant expression $e_i$.
+The elements of $m$ are $v_i, i \in 1 .. n$,
+where $v_i$ is the value of the constant expression $e_i$.
+%
+%% TODO(eernst): If inference is specified to provide all type arguments,
+%% we should delete the following.
+The value of a constant set literal
+\code{\CONST?\,\,\{$e_1, \ldots, e_n$\}}
+is defined as the value of the constant set literal
+% For a constant set literal, it is never an error to have the \CONST, even if
+% it was omitted above. So we remove the `?`, making the next line well-defined.
+\code{\CONST\,\,<\DYNAMIC>\{$e_1, \ldots, e_n$\}}.
 
 \LMHash{}%
 Let $set_1$ be a constant set literal with type argument $E$
@@ -6988,12 +7291,13 @@ to values $v_{21}, \ldots, v_{2n}$.
 If{}f \code{identical($v_{1i}$, $v_{2i}$)}
 for $i \in 1 .. n$, and $E$ and $F$ is the same type,
 then \code{identical($set_1$, $set_2$)}.
-\commentary{
+
+\commentary{%
 In other words, constant set literals are canonicalized if they have
 the same type and the same values in the same order.
+Two constant set literals are never identical
+if they have a different number of elements.%
 }
-Two constant set literals are never identical if they have different numbers
-of elements.
 
 \LMHash{}%
 A run-time set literal with element expressions $e_1, \ldots, e_n$
@@ -7024,12 +7328,28 @@ If a value repeats, the order is defined by first occurrence, but the value is d
 }
 
 \LMHash{}%
+%% TODO(eernst): If inference is specified to provide all type arguments,
+%% we should delete the following.
+A run-time set literal
+\code{\{$e_1, \ldots, e_n$\}}
+is evaluated as
+\code{<\DYNAMIC>\{$e_1, \ldots, e_n$\}}.
+
+\LMHash{}%
 The static type of a set literal of the form
-\code{\CONST{} <$E$>\{$e_1, \ldots, e_n$\}}
+\code{\CONST\,\,<$E$>\{$e_1, \ldots, e_n$\}}
 or the form
 \code{<$E$>\{$e_1, \ldots, e_n$\}}
 is
 \code{Set<$E$>}.
+%
+%% TODO(eernst): If inference is specified to provide all type arguments,
+%% we should delete the following.
+The static type of a list literal of the form
+\code{\CONST\,\,\{$e_1, \ldots, e_n$\}}
+or the form
+\code{\{$e_1, \ldots, e_n$\}}
+is \code{Set<\DYNAMIC>}.
 
 
 \subsection{Throw}
@@ -7048,7 +7368,8 @@ The \Index{throw expression} is used to throw an exception.
 Evaluation of a throw expression of the form \code{\THROW{} $e$;} proceeds as follows:
 
 \LMHash{}%
-The expression $e$ is evaluated to a value $v$ (\ref{evaluation}).
+The expression $e$ is evaluated to an object $v$
+(\ref{expressionEvaluation}).
 
 \commentary{
 There is no requirement that the expression $e$ must evaluate to any special kind of object.
@@ -7058,7 +7379,7 @@ There is no requirement that the expression $e$ must evaluate to any special kin
 If $v$ is the null object (\ref{null}), then a \code{NullThrownError} is thrown.
 Otherwise let $t$ be a stack trace corresponding to the current execution state,
 and the \THROW{} statement throws with $v$ as exception object
-and $t$ as stack trace (\ref{evaluation}).
+and $t$ as stack trace (\ref{expressionEvaluation}).
 
 \LMHash{}%
 If $v$ is an instance of class \code{Error} or a subclass thereof,
@@ -7553,7 +7874,7 @@ with its type parameters bound to $u_1, \ldots, u_m$.
 If execution of $q$ completes normally (\ref{statementCompletion}), $e$ evaluates to $i$.
 Otherwise execution of $q$ throws an exception object $x$ and stack trace $t$,
 and then evaluation of $e$ also throws exception object $x$ and stack trace $t$
-(\ref{evaluation}).
+(\ref{expressionEvaluation}).
 \EndCase
 
 \LMHash{}%
@@ -7586,7 +7907,8 @@ then $e$ evaluates to the returned value.
 Otherwise, if the execution completes normally or returns with no value,
 then $e$ evaluates to the null object (\ref{null}).
 Otherwise the execution throws an exception $x$ and stack trace $t$,
-and then evaluation of $e$ also throws $x$ and $t$ (\ref{evaluation}).
+and then evaluation of $e$ also throws $x$ and $t$
+(\ref{expressionEvaluation}).
 
 \rationale{
 A factory constructor can be declared in an abstract class and used safely,
@@ -7760,8 +8082,8 @@ To see how such situations might arise, consider the following examples:
 %% TODO(eernst): Delete some \CONST{} when integrating implicit-creation.md
 \begin{dartCode}
 \CLASS{} A \{
-   \FINAL{} x;
-   \CONST{} A(p): x = p * 10;
+  \FINAL{} x;
+  \CONST{} A(p): x = p * 10;
 \}
 \\
 \CLASS{} IntPair \{
@@ -7830,13 +8152,20 @@ Execution a body of the form \code{\ASYNC{} => $e$} is equivalent to executing a
 If $f$ is synchronous and is not a generator (\ref{functions}) then execution of the body of $f$ begins immediately.
 If the execution of the body of $f$ returns a value, $v$, (\ref{statementCompletion}), the invocation evaluates to $v$.
 If the execution completes normally or it returns without a value, the invocation evaluates to the null object (\ref{null}).
-If the execution throws an exception object and stack trace, the invocation throws the same exception object and stack trace (\ref{evaluation}).
+If the execution throws an exception object and stack trace,
+the invocation throws the same exception object and stack trace
+(\ref{expressionEvaluation}).
 
-\commentary{
+\commentary{%
 A complete function body can never break or continue (\ref{statementCompletion})
-because a \BREAK{} or \CONTINUE{} statement must always occur inside the statement that is the target of the \BREAK{} or \CONTINUE{}.
+because a \BREAK{} or \CONTINUE{} statement must always occur inside
+the statement that is the target of the \BREAK{} or \CONTINUE{}.
 This means that a function body can only either complete normally, throw, or return.
-Completing normally or returning without a value is treated the same as returning the null object (\ref{null}), so the result of executing a function body can always be used as the result of evaluating an expression, either by evaluating to a value or by the evaluation throwing.
+Completing normally or returning without a value is treated
+the same as returning the null object (\ref{null}),
+so the result of executing a function body can always be used as
+the result of evaluating an expression,
+either by evaluating to an object, or by the evaluation throwing.%
 }
 
 \LMHash{}%
@@ -8348,6 +8677,7 @@ of $q_j$ is not a supertype of the dynamic type of $o_{m+j}, j \in 1 .. l$.
 \LMHash{}%
 An unqualified function invocation $i$ has the form
 
+\noindent
 \code{\id<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
 
 \noindent
@@ -8365,37 +8695,46 @@ and there is no lexically visible declaration named \id{} in scope.
 
 \LMHash{}%
 If there exists a lexically visible declaration named \id,
-let $f_{id}$ be the innermost such declaration.
+let $D_{id}$ be the innermost such declaration.
 Then:
 \begin{itemize}
-\item It is a compile-time error if $f_{id}$ denotes a type
-  (\commentary{that is, if \id{} is a type literal or type variable}),
-  unless \id{} denotes a constructor.
-\item It is a compile-time error if $f_{id}$ is an import directive
-  where \id{} is declared to be a library prefix.
-\item
-If $f_{id}$ is
-a local function,
-a library function,
-a library or static getter or a variable,
-$i$ is interpreted as a function expression invocation
-(\ref{functionExpressionInvocation}).
-\item
-Otherwise, if $f_{id}$ is a static method of the enclosing class $C$,
-$i$ is equivalent to
-\code{$C$.\id<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
+\item Consider the situation where $D_{id}$ is a type declaration.
+  If $D_{id}$ is a declaration of a class $C$
+  that has a constructor named $C$
+  then the meaning of $i$ depends on the context:
+  If $i$ occurs in a constant context
+  (\ref{constantContexts}),
+  then $i$ is equivalent to \code{\CONST\,\,$i$};
+  if $i$ does not occur in a constant context
+  then $i$ is equivalent to \code{\NEW\,\,$i$}.
+  Otherwise a compile-time error occurs
+  (\commentary{that is, if $D_{id}$ does not declare a class,
+    or it declares a class that has no constructor named $C$}).
+\item Otherwise, if $D_{id}$ is an import directive
+  where \id{} is declared to be a library prefix,
+  a compile-time error occurs.
+\item Otherwise, if $D_{id}$ declares
+  a local function,
+  a library function, or
+  a library or static getter, or a variable,
+  then $i$ is treated as a function expression invocation
+  (\ref{functionExpressionInvocation}).
+\item Otherwise, if $D_{id}$ is a static method of the enclosing class $C$,
+  $i$ is equivalent to
+  \code{$C$.\id<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
 \item Otherwise, if $i$ occurs in an instance method body,
-$i$ is equivalent to the ordinary method invocation
+  $i$ is equivalent to the ordinary method invocation
 
-\code{\THIS{}.\id<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
+  \code{\THIS{}.\id<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
 \end{itemize}
 
-\commentary{
-Otherwise $i$ must occur inside a top-level or static function
+\commentary{%
+Otherwise \id{} is not in scope, and
+$i$ must occur inside a top-level or static function
 (be it function, method, getter, or setter)
 or a top-level or static variable initializer,
-in which case a compile-time error occurs
-(\ref{unqualifiedInvocation}).
+in which case a compile-time error occurs,
+as specified earlier in this section.%
 }
 
 
@@ -8405,6 +8744,7 @@ in which case a compile-time error occurs
 \LMHash{}%
 A function expression invocation $i$ has the form
 
+\noindent
 \code{$e_f$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
 
 \noindent
@@ -8415,38 +8755,69 @@ Note that the type argument list is omitted when $r = 0$ (\ref{generics}).
 }
 
 \LMHash{}%
-If $e_f$ is an identifier \id, then \id{} must necessarily denote
-a local function, a library function, a library or static getter or a variable as described above,
-or $i$ is not considered a function expression invocation.
-It is a compile-time error if $e_f$ is a type literal,
-unless $e_f$ denotes a constructor.
+Consider the situation where $e_f$ denotes a class $C$
+that contains a declaration of a constructor named $C$,
+or it is of the form \code{$e'_f$.\id} where
+$e'_f$ denotes a class $C$ that contains a declaration of
+a constructor named \code{$C$.\id}.
+If $i$ occurs in a constant context
+(\ref{constantContexts})
+then $i$ is treated as \code{\CONST\,\,$i$},
+and if $i$ does not occur in a constant context
+then $i$ is treated as \code{\NEW\,\,$i$}.
 
-\commentary{
-This error was already specified elsewhere
-(\ref{unqualifiedInvocation})
-for the case where $e_f$ is an identifier,
-but $e_f$ may also have other forms, e.g., \code{p.C}.
+\commentary{%
+When $i$ is treated as another construct $i'$,
+both the static analysis and the dynamic semantics
+is specified in the section about $i'$
+(\ref{notation}).%
 }
 
 \LMHash{}%
-If $e_f$ is a property extraction expression (\ref{propertyExtraction}),
-then $i$ isn't a function expression invocation and is instead recognized as an ordinary method invocation (\ref{ordinaryInvocation}).
+Otherwise, it is a compile-time error if $e_f$ is a type literal.
 
-\commentary{
-\code{$a.b(x)$} is parsed as a method invocation of method \code{$b()$} on object \code{$a$}, not as an invocation of getter \code{$b$} on \code{$a$} followed by a function call \code{$(a.b)(x)$}.
+\commentary{%
+This error was already specified elsewhere
+(\ref{unqualifiedInvocation})
+for the case where $e_f$ is an identifier,
+but $e_f$ may also have other forms, e.g., \code{p.C}.%
+}
+
+\LMHash{}%
+Otherwise, if $e_f$ is an identifier \id, then \id{} must necessarily denote
+a local function, a library function, a library or static getter,
+or a variable as described above,
+or $i$ would not have been treated as a function expression invocation.
+
+\LMHash{}%
+If $e_f$ is a property extraction expression
+(\ref{propertyExtraction})
+then $i$ treated as an ordinary method invocation
+(\ref{ordinaryInvocation}).
+
+\commentary{%
+\code{$a.b(x)$} is treated as a method invocation of method
+\code{$b()$} on object \code{$a$},
+not as an invocation of getter \code{$b$} on \code{$a$}
+followed by a function call \code{$(a.b)(x)$}.
 If a method or getter \code{$b$} exists, the two will be equivalent.
-However, if \code{$b$} is not defined on \code{$a$}, the resulting invocation of \code{noSuchMethod()} would differ.
-The \code{Invocation} passed to \code{noSuchMethod()} would describe a call to a method \code{$b$} with argument \code{$x$} in the former case, and a call to a getter \code{$b$} (with no arguments) in the latter.
+However, if \code{$b$} is not defined on \code{$a$},
+the resulting invocation of \code{noSuchMethod()} would differ.
+The \code{Invocation} passed to \code{noSuchMethod()} would describe
+a call to a method \code{$b$} with argument \code{$x$} in the former case,
+and a call to a getter \code{$b$} (with no arguments) in the latter.%
 }
 
 \LMHash{}%
 Let $F$ be the static type of $e_f$.
 The static analysis of $i$ is performed as specified in Section~\ref{bindingActualsToFormals},
+using $F$ as the static type of the invoked function,
 and the static type of $i$ is as specified there.
 
 \LMHash{}%
 Evaluation of a function expression invocation
 
+\noindent
 \code{$e_f$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
 
 \noindent
@@ -8454,8 +8825,10 @@ proceeds to evaluate $e_f$, yielding an object $o$.
 Let $f$ be a fresh variable bound to $o$.
 If $o$ is a function object then the function invocation
 
-\code{$f$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
+\noindent
+\code{$f$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
 
+\noindent
 is evaluated by binding actuals to formals as specified in Section~\ref{bindingActualsToFormals},
 and executing the body of $f$ with those bindings;
 the returned result is then the result of evaluating $i$.
@@ -8466,6 +8839,7 @@ If $o$ has a method named \CALL{}
 the following ordinary method invocation is evaluated,
 and its result is then the result of evaluating $i$:
 
+\noindent
 \code{$f$.call<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
 
 \LMHash{}%
@@ -8495,7 +8869,9 @@ The situation where \code{noSuchMethod} is invoked can only arise
 when the static type of $e_f$ is \DYNAMIC{}.
 The run-time semantics ensures that
 a function invocation may amount to an invocation of the instance method \CALL{}.
-However, an interface type with a method named \CALL{} is not itself a subtype of any function type.
+However, an interface type with a method named \CALL{}
+is not itself a subtype of any function type
+(\ref{subtypeRules}).
 }
 
 
@@ -8915,7 +9291,7 @@ Otherwise, evaluate $e$ to an object $o$.
 If $o$ is the null object, $i$ evaluates to the null object (\ref{null}).
 Otherwise let $v$ be a fresh variable bound to $o$ and evaluate
 \code{$v$.$m$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
-to a value $r$.
+to an object $r$.
 Then $e$ evaluates to $r$.
 \EndCase
 
@@ -8986,7 +9362,7 @@ Evaluation of an unconditional ordinary method invocation $i$ of the form
 proceeds as follows:
 
 \LMHash{}%
-First, the expression $e$ is evaluated to a value $o$.
+First, the expression $e$ is evaluated to an object $o$.
 Let $f$ be the result of looking up
 (\ref{lookup})
 method $m$ in $o$ with respect to the current library $L$.
@@ -8998,7 +9374,7 @@ as specified in Section~\ref{bindingActualsToFormals}.
 The body of $f$ is then executed with respect to the bindings
 that resulted from the evaluation of the argument list,
 and with \THIS{} bound to $o$.
-The value of $i$ is the value returned by the execution of $f$'s body.
+The value of $i$ is the object returned by the execution of $f$'s body.
 
 \LMHash{}%
 If the method lookup failed,
@@ -9238,7 +9614,7 @@ evaluation of $i$ amounts to evaluation of \code{$e$.\id}.
 Otherwise evaluate $e$ to an object $o$.
 If $o$ is the null object, $i$ evaluates to the null object (\ref{null}).
 Otherwise let $x$ be a fresh variable bound to $o$
-and evaluate \code{$x$.\id} to a value $r$.
+and evaluate \code{$x$.\id} to an object $r$.
 Then $i$ evaluates to $r$.
 \EndCase
 
@@ -10176,7 +10552,7 @@ Evaluation of a compound assignment $a$ of the form \code{$v$ ??= $e$}
 proceeds as follows:
 Evaluate $v$ to an object $o$.
 If $o$ is not the null object (\ref{null}), $a$ evaluates to $o$.
-Otherwise evaluate \code{$v$ = $e$} to a value $r$,
+Otherwise evaluate \code{$v$ = $e$} to an object $r$,
 and then $a$ evaluates to $r$.
 \EndCase
 
@@ -10195,7 +10571,7 @@ Evaluation of a compound assignment $a$ of the form \code{$C$.$v$ ??= $e$}
 where $C$ is a type literal proceeds as follow:
 Evaluate \code{$C$.$v$} to an object $o$.
 If $o$ is not the null object (\ref{null}), $a$ evaluates to $o$.
-Otherwise evaluate \code{$C$.$v$ = $e$} to a value $r$,
+Otherwise evaluate \code{$C$.$v$ = $e$} to an object $r$,
 and then $a$ evaluates to $r$.
 \EndCase
 
@@ -10451,7 +10827,8 @@ The logical boolean expressions combine boolean objects using the boolean conjun
 A \Index{logical boolean expression} is either an equality expression (\ref{equality}), or an invocation of a logical boolean operator on an expression $e_1$ with argument $e_2$.
 
 \LMHash{}%
-Evaluation of a logical boolean expression $b$ of the form $e_1 || e_2$ causes the evaluation of $e_1$ to a value $o_1$.
+Evaluation of a logical boolean expression $b$ of the form $e_1 || e_2$ causes
+the evaluation of $e_1$ to an object $o_1$.
 % This error can occur due to implicit casts and null.
 It is a dynamic error if the run-time type of $o_1$ is not \code{bool}.
 If $o_1$ is \TRUE, the result of evaluating $b$ is \TRUE, otherwise $e_2$ is evaluated to an object $o_2$.
@@ -10806,7 +11183,9 @@ Then, if $o$ is not an instance of \code{Future}, then let $f$ be the result of 
 Next, the stream associated with the innermost enclosing asynchronous for loop (\ref{asynchronousFor-in}), if any, is paused.
 The current invocation of the function body immediately enclosing $a$ is suspended until after $f$ completes.
 At some time after $f$ is completed, control returns to the current invocation.
-If $f$ has completed with an error $x$ and stack trace $t$, $a$ throws $x$ and $t$ (\ref{evaluation}).
+If $f$ has completed with an error $x$ and stack trace $t$,
+$a$ throws $x$ and $t$
+(\ref{expressionEvaluation}).
 If $f$ completes with a value $v$, $a$ evaluates to $v$.
 
 %Otherwise, the value of $a$ is the value of $e$. If evaluation of $e$ raises an exception $x$, $a$ raises $x$.
@@ -10843,9 +11222,13 @@ Postfix expressions invoke the postfix operators on objects.
 
 \begin{grammar}
 <postfixExpression> ::= <assignableExpression> <postfixOperator>
+  \alt <constructorInvocation> <selector>*
   \alt <primary> <selector>*
 
 <postfixOperator> ::= <incrementOperator>
+
+<constructorInvocation> ::= \gnewline{}
+  <typeName> <typeArguments> `.' <identifier> <arguments>
 
 <selector> ::= <assignableSelector>
   \alt <argumentPart>
@@ -10855,153 +11238,182 @@ Postfix expressions invoke the postfix operators on objects.
 \end{grammar}
 
 \LMHash{}%
-A \Index{postfix expression} is either a primary expression, a function, method or getter invocation, or an invocation of a postfix operator on an expression $e$.
+A \Index{postfix expression} is either a primary expression;
+a function, method or getter invocation;
+an invocation of a named constructor;
+or an invocation of a postfix operator on an expression $e$.
+All but the latter two are specified elsewhere.
 
 \LMHash{}%
-Evaluation of a postfix expression $e$ of the form \code{$v$++}, where $v$ is an identifier, proceeds as follows:
+\Case{Constructor Invocations}
+Consider a \synt{constructorInvocation} $e$ of the form
+\code{$n$<\metavar{typeArguments}>.\id(\metavar{arguments})}.
+If $n$ does not denote a class $C$
+that declares a constructor named \code{$C$.\id},
+a compile-time error occurs.
 
 \LMHash{}%
-Evaluate $v$ to an object $r$ and let $y$ be a fresh variable bound to $r$.
-Evaluate \code{$v$ = $y$ + 1}.
-Then $e$ evaluates to $r$.
+Otherwise, if $e$ occurs in a constant context
+(\ref{constantContexts})
+then $e$ is treated as \code{\CONST\,\,$e$},
+and if $e$ does not occur in a constant context
+then $e$ is treated as \code{\NEW\,\,$e$}.
 
-\LMHash{}%
-The static type of such an expression is the static type of $v$.
-
-\rationale{
-The above ensures that if $v$ is a variable, the getter gets called exactly once.
-Likewise in the cases below.
+% We might add support for passing type arguments to static methods,
+% but that is not a feature which is coming any time soon.
+\commentary{%
+Note that $e$ cannot be anything other than an instance creation
+(constant or not)
+because $e$ provides actual type arguments to $n$,
+which is not supported if $n$ denotes a library prefix,
+nor if $e$ is a static method invocation.
 }
+\EndCase
 
 \LMHash{}%
-Evaluation of a postfix expression $e$ of the form \code{$C$.$v$++}
+\Case{\code{$v$++}, \code{$v$-{}-}}
+Consider a postfix expression $e$ of the form \code{$v$\,\op},
+where $v$ is an identifier and \op{} is either \lit{++} or \lit{-{}-}.
+A compile-time error occurs unless $v$ denotes a variable,
+or $v$ denotes a getter and there is an associated setter \code{$v$=}.
+Let $T$ be the static type of the variable $v$ or the return type of the getter.
+A compile-time error occurs if $T$ is not \DYNAMIC{}
+and $T$ does not have an operator \lit{+} (when \op{} is \lit{++})
+or operator \lit{-} (when \op{} is \lit{-{}-}),
+or if the return type of this operator is not assignable to
+the variable respectively the argument type of the setter.
+A compile-time error occurs if \code{int} is not assignable to
+the parameter type of said operator.
+The static type of $e$ is $T$.
+
+\LMHash{}%
+Evaluation of a postfix expression $e$
+of the form \code{$v$++} respectively \code{$v$-{}-},
+where $v$ is an identifier, proceeds as follows:
+Evaluate $v$ to an object $r$ and let $y$ be a fresh variable bound to $r$.
+%% TODO(eernst): In order to eliminate syntactic sugar, we should probably
+%% rewrite this to specify the effect directly (cases to remember: `v` is a
+%% local variable/parameter, instance/static/global/imported getter).
+Evaluate \code{$v$ = $y$ + 1} respectively \code{$v$ = $y$ - 1}.
+Then $e$ evaluates to $r$.
+
+\rationale{%
+The above ensures that if the evaluation involves a getter,
+it gets called exactly once.
+Likewise in the cases below.%
+}
+\EndCase
+
+\LMHash{}%
+\Case{\code{$C$.$v$++}, \code{$C$.$v$-{}-}}
+Consider a postfix expression $e$ of the form \code{$C$.$v$\,\op},
+where $C$ is a type literal and \op{} is either \lit{++} or \lit{-{}-}.
+A compile-time error occurs unless \code{$C$.$v$} denotes a static getter
+and there is an associated static setter \code{$v$=}
+(\commentary{possibly implicitly induced by a static variable}).
+Let $T$ be the return type of said getter.
+A compile-time error occurs if $T$ is not \DYNAMIC{}
+and $T$ does not have an operator \lit{+} (when \op{} is \lit{++})
+or operator \lit{-} (when \op{} is \lit{-{}-}),
+or if the return type of this operator is not assignable to
+the argument type of the setter.
+A compile-time error occurs if \code{int} is not assignable to
+the parameter type of said operator.
+The static type of $e$ is $T$.
+
+\LMHash{}%
+Evaluation of a postfix expression $e$
+of the form \code{$C$.$v$++} respectively \code{$C$.$v$-{}-}
 where $C$ is a type literal proceeds as follows:
-
-\LMHash{}%
-Evaluate \code{$C$.$v$} to a value $r$
+Evaluate \code{$C$.$v$} to an object $r$
 and let $y$ be a fresh variable bound to $r$.
-Evaluate \code{$C$.$v$ = $y$ + 1}.
+Evaluate \code{$C$.$v$ = $y$ + 1} respectively \code{$C$.$v$ = $y$ - 1}.
 Then $e$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
-The static type of such an expression is the static type of \code{$C$.$v$}.
+\Case{\code{$e_1$.$v$++}, \code{$e_1$.$v$-{}-}}
+Consider a postfix expression $e$ of the form \code{$e_1$.$v$\,\op}
+where \op{} is either \lit{++} or \lit{-{}-}.
+Let $S$ be the static type of $e_1$.
+A compile-time error occurs unless $S$ has
+a getter named $v$ and a setter named \code{$v$=}
+(\commentary{possibly implicitly induced by an instance variable}).
+Let $T$ be the return type of said getter.
+A compile-time error occurs if $T$ is not \DYNAMIC{}
+and $T$ does not have an operator \lit{+} (when \op{} is \lit{++})
+or operator \lit{-} (when \op{} is \lit{-{}-}),
+or if the return type of this operator is not assignable to
+the argument type of the setter.
+A compile-time error occurs if \code{int} is not assignable to
+the parameter type of said operator.
+The static type of $e$ is $T$.
 
 \LMHash{}%
-Evaluation of a postfix expression $e$ of the form \code{$e_1$.$v$++}
+Evaluation of a postfix expression $e$
+of the form \code{$e_1$.$v$++} respectively \code{$e_1$.$v$-{}-}
 proceeds as follows:
-
-\LMHash{}%
 Evaluate $e_1$ to an object $u$ and let $x$ be a fresh variable bound to $u$.
-Evaluate \code{$x$.$v$} to a value $r$
+Evaluate \code{$x$.$v$} to an object $r$
 and let $y$ be a fresh variable bound to $r$.
-Evaluate \code{$x$.$v$ = $y$ + 1}.
+Evaluate \code{$x$.$v$ = $y$ + 1} respectively \code{$x$.$v$ = $y$ - 1}.
 Then $e$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
-The static type of such an expression is the static type of \code{$e_1$.$v$}.
+\Case{\code{$e_1$[$e_2$]++}, \code{$e_1$[$e_2$]-{}-}}
+Consider a postfix expression $e$ of the form \code{$e_1$[$e_2$]\,\op}
+where \op{} is either \lit{++} or \lit{-{}-}.
+Let $S_1$ be the static type of $e_1$
+and $S_2$ be the static type of $e_2$.
+A compile-time error occurs unless $S_1$ has
+an operator \lit{[]} and an operator \lit{[]=}.
+Let $T$ be the return type of the former.
+A compile-time error occurs unless $S_2$ is assignable to
+the first parameter type of said operator \lit{[]=}.
+A compile-time error occurs if $T$ is not \DYNAMIC{}
+and $T$ does not have an operator \lit{+} (when \op{} is \lit{++})
+or operator \lit{-} (when \op{} is \lit{-{}-}),
+or if the return type of this operator is not assignable to
+the second argument type of said operator \lit{[]=}.
+% We allow `e1[e2]++;` also when the entry has static type double,
+% so we can't just say 'assignable'.
+A compile-time error occurs if passing the integer literal \code{1}
+as an argument to said operator \lit{+} or \lit{-} would be an error.
+The static type of $e$ is $T$.
 
 \LMHash{}%
-Evaluation of a postfix expression $e$ of the form \code{$e_1$[$e_2$]++}
+Evaluation of a postfix expression $e$
+of the form \code{$e_1$[$e_2$]++} respectively \code{$e_1$[$e_2$]-{}-}
 proceeds as follows:
-
-\LMHash{}%
 Evaluate $e_1$ to an object $u$ and $e_2$ to an object $v$.
 Let $a$ and $i$ be fresh variables bound to $u$ and $v$ respectively.
 Evaluate \code{$a$[$i$]} to an object $r$
 and let $y$ be a fresh variable bound to $r$.
-Evaluate \code{$a$[$i$] = $y$ + 1}.
+Evaluate \code{$a$[$i$] = $y$ + 1} respectively \code{$a$[$i$] = $y$ - 1}.
 Then $e$ evaluates to $r$.
+\EndCase
 
 \LMHash{}%
-The static type of such an expression is the static type of \code{$e_1$[$e_2$]}.
+\Case{\code{$e_1$?.$v$++}, \code{$e_1$?.$v$-{}-}}
+Consider a postfix expression $e$ of the form \code{$e_1$?.$v$\,\op}
+where \op{} is either \lit{++} or \lit{-{}-}.
+Exactly the same compile-time errors that would be caused by \code{$e_1$.$v$\,\op}
+are also generated in the case of \code{$e_1$?.$v$\,\op}.
+The static type of $e$ is the static type of \code{$e_1$.$v$}.
 
 \LMHash{}%
-Evaluation of a postfix expression $e$ of the form \code{$v$-{}-}, where $v$ is an identifier, proceeds as follows:
-
-\LMHash{}%
-Evaluate the expression $v$ to an object $r$
-and let $y$ be a fresh variable bound to $r$.
-Evaluate \code{$v$ = $y$ - 1}.
-Then $e$ evaluates to $r$.
-
-\LMHash{}%
-The static type of such an expression is the static type of $v$.
-
-\LMHash{}%
-Evaluation of a postfix expression $e$ of the form \code{$C$.$v$-{}-}
+Evaluation of a postfix expression $e$
+of the form \code{$e_1$?.$v$++} respectively \code{$e_1$?.$v$-{}-}
 proceeds as follows:
-
-\LMHash{}%
-Evaluate \code{$C$.$v$} to a value $r$
-and let $y$ be a fresh variable bound to $r$.
-Evaluate \code{$C$.$v$ = $y$ - 1}.
-Then $e$ evaluates to $r$.
-
-\LMHash{}%
-The static type of such an expression is the static type of \code{$C$.$v$}.
-
-\LMHash{}%
-Evaluation of a postfix expression of the form \code{$e_1$.$v$-{}-}
-proceeds as follows:
-
-\LMHash{}%
-Evaluate $e_1$ to an object $u$ and let $x$ be a fresh variable bound to $u$.
-Evaluate \code{$x$.$v$} to a value $r$
-and let $y$ be a fresh variable bound to $r$.
-Evaluate \code{$x$.$v$ = $y$ - 1}.
-Then $e$ evaluates to $r$.
-
-\LMHash{}%
-The static type of such an expression is the static type of \code{$e_1$.$v$}.
-
-\LMHash{}%
-Evaluation of a postfix expression $e$ of the form \code{$e_1$[$e_2$]-{}-}
-proceeds as follows:
-
-\LMHash{}%
-Evaluate $e_1$ to an object $u$ and $e_2$ to an object $v$.
-Let $a$ and $i$ be fresh variables bound to $u$ and $v$ respectively.
-Evaluate \code{$a$[$i$]} to an object $r$
-and let $y$ be a fresh variable bound to $r$.
-Evaluate \code{$a$[$i$] = $y$ - 1}.
-Then $e$ evaluates to $r$.
-
-\LMHash{}%
-The static type of such an expression is the static type of \code{$e_1$[$e_2$]}.
-
-\LMHash{}%
-Evaluation of a postfix expression $e$ of the form \code{$e_1$?.$v$++}
-proceeds as follows:
-
-\LMHash{}%
 If $e_1$ is a type literal, evaluation of $e$ is equivalent to
-evaluation of \code{$e_1$.$v$++}.
-
-\LMHash{}%
+evaluation of \code{$e_1$.$v$++} respectively \code{$e_1$.$v$-{}-}.
 Otherwise evaluate $e_1$ to an object $u$.
 if $u$ is the null object, $e$ evaluates to the null object (\ref{null}).
 Otherwise let $x$ be a fresh variable bound to $u$.
-Evaluate \code{$x$.$v$++} to an object $o$.
+Evaluate \code{$x$.$v$++} respectively \code{$x$.$v$-{}-} to an object $o$.
 Then $e$ evaluates to $o$.
-
-\LMHash{}%
-The static type of such an expression is the static type of \code{$e_1$.$v$}.
-
-\LMHash{}%
-Evaluation of a postfix expression $e$ of the form \code{$e_1$?.$v$-{}-}
-proceeds as follows:
-
-If $e_1$ is a type literal, evaluation of $e$ is equivalent to
-evaluation of \code{$e_1$.$v$-{}-}.
-
-Otherwise evaluate $e_1$ to an object $u$.
-If $u$ is the null object, $e$ evaluates to the null object (\ref{null}).
-Otherwise let $x$ be a fresh variable bound to $u$.
-Evaluate \code{$x$.$v$-{}-} to an object $o$.
-Then $e$ evaluates to $o$.
-
-\LMHash{}%
-The static type of such an expression is the static type of \code{$e_1$.$v$}.
+\EndCase
 
 
 \subsection{Assignable Expressions}
@@ -11017,9 +11429,12 @@ However, assignable expressions can be subexpressions of other expressions and t
 }
 
 \begin{grammar}
-<assignableExpression> ::= <primary> (<argumentPart>* <assignableSelector>)+
+<assignableExpression> ::= <primary> <assignableSelectorPart>+
   \alt \SUPER{} <unconditionalAssignableSelector>
+  \alt <constructorInvocation> <assignableSelectorPart>+
   <identifier>
+
+<assignableSelectorPart> ::= <argumentPart>* <assignableSelector>
 
 <unconditionalAssignableSelector> ::= `[' <expression> `]'
   \alt `.' <identifier>
@@ -11213,7 +11628,7 @@ The \Index{is-expression} tests if an object is a member of a type.
 Evaluation of the is-expression \code{$e$ \IS{} $T$} proceeds as follows:
 
 \LMHash{}%
-The expression $e$ is evaluated to a value $v$.
+The expression $e$ is evaluated to an object $v$.
 If the dynamic type of $v$ is a subtype of $T$,
 the is-expression evaluates to \TRUE.
 Otherwise it evaluates to \FALSE.
@@ -11281,7 +11696,7 @@ The \Index{cast expression} ensures that an object is a member of a type.
  Evaluation of the cast expression \code{$e$ \AS{} $T$} proceeds as follows:
 
 \LMHash{}%
-The expression $e$ is evaluated to a value $v$.
+The expression $e$ is evaluated to an object $v$.
 % This error can occur, by design of `as`.
 It is a dynamic type error if $o$ is not the null object (\ref{null}),
 and the dynamic type of $o$ is not a subtype of $T$.
@@ -11296,7 +11711,8 @@ The static type of a cast expression \code{$e$ \AS{} $T$} is $T$.
 
 \LMHash{}%
 A \Index{statement} is a fragment of Dart code that can be executed at run time.
-Statements, unlike expressions, do not evaluate to a value, but are instead executed for their effect on the program state and control flow.
+Statements, unlike expressions, do not evaluate to an object,
+but are instead executed for their effect on the program state and control flow.
 
 \begin{grammar}
 <statements> ::= <statement>*
@@ -11422,8 +11838,8 @@ before deciding that it is parsing a block statement.
 
 \LMHash{}%
 Execution of an expression statement \code{$e$;} proceeds by evaluating $e$.
-If the expression evaluates to a value, then the value is ignored
-and the execution completes normally.
+If the expression evaluates to an object,
+then the object is ignored and the execution completes normally.
 
 
 \subsection{Local Variable Declaration}
@@ -11560,9 +11976,9 @@ single namespace for types, functions and variables.
 \begin{dartCode}
 \CLASS{} C \{\}
 perverse() \{
-   \VAR{} v = \NEW{} C(); // \comment{compile-time error}
-   C aC; // \comment{compile-time error}
-   \VAR{} C = 10;
+  \VAR{} v = \NEW{} C(); // \comment{compile-time error}
+  C aC; // \comment{compile-time error}
+  \VAR{} C = 10;
 \}
 \end{dartCode}
 
@@ -11765,7 +12181,7 @@ Then:
 If this is the first iteration of the for loop, let $v'$ be $v$.
 Otherwise, let $v'$ be the variable $v''$ created in the previous execution of step \ref{allocateFreshVar}.
 \item
-The expression $[v'/v]c$ is evaluated to a value $o$.
+The expression $[v'/v]c$ is evaluated to an object $o$.
 % This error can occur due to implicit casts and null.
 It is a dynamic error if the run-time type of $o$ is not \code{bool}.
 If $o$ is \FALSE{}, the for loop completes normally.
@@ -11825,8 +12241,8 @@ A for statement of the form \code{\FOR{} ($D$ \id{} \IN{} $e$) $s$} is equivalen
 \begin{normativeDartCode}
 \VAR{} $n0$ = $e$.iterator;
 \WHILE{} ($n0$.moveNext()) \{
-   $D$ \id{} = $n0$.current;
-   $s$
+\ \ $D$ \id{} = $n0$.current;
+\ \ $s$
 \}
 \end{normativeDartCode}
 
@@ -12004,33 +12420,41 @@ The \Index{switch statement} supports dispatching control among a large number o
 \end{grammar}
 
 \LMHash{}%
- Given a switch statement of the form
+Consider a switch statement of the form
 
 \begin{normativeDartCode}
 \SWITCH{} ($e$) \{
-   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
-   $\ldots$
-   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
-   $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
+\ \ $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+\ \ $\ldots$
+\ \ $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+\ \ $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
 \end{normativeDartCode}
 
+\noindent
 or the form
 
 \begin{normativeDartCode}
 \SWITCH{} ($e$) \{
-   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
-   $\ldots$
-   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+\ \ $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+\ \ $\ldots$
+\ \ $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
 \end{normativeDartCode}
 
-it is a compile-time error unless the expressions $e_k$ are constant expressions for all $k \in 1 .. n$.
-It is a compile-time error if the values of the expressions $e_k$ are not either:
+\commentary{%
+Note that each expression $e_j, j \in 1 .. n$ occurs in a constant context
+(\ref{constantContexts}),
+which means that \CONST{} modifiers need not be specified explicitly.%
+}
+
+\LMHash{}%
+It is a compile-time error unless each expression $e_j, j \in 1 .. n$ is constant.
+It is a compile-time error if the value of the expressions $e_j, j \in 1 .. n$ are not either:
 \begin{itemize}
-\item instances of the same class $C$, for all $k \in 1 .. n$, or
-\item instances of a class that implements \code{int}, for all $k \in 1 .. n$, or
-\item instances of a class that implements \code{String}, for all $k \in 1 .. n$.
+\item instances of the same class $C$, for all $j \in 1 .. n$, or
+\item instances of a class that implements \code{int}, for all $j \in 1 .. n$, or
+\item instances of a class that implements \code{String}, for all $j \in 1 .. n$.
 \end{itemize}
 
 \commentary{
@@ -12067,10 +12491,10 @@ Execution of a switch statement of the form
 
 \begin{normativeDartCode}
 \SWITCH{} ($e$) \{
-   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
-   $\ldots$
-   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
-   $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
+\ \ $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+\ \ $\ldots$
+\ \ $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+\ \ $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
 \end{normativeDartCode}
 
@@ -12078,9 +12502,9 @@ or the form
 
 \begin{normativeDartCode}
 \SWITCH{} ($e$) \{
-   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
-   $\ldots$
-   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+\ \ $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+\ \ $\ldots$
+\ \ $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
 \end{normativeDartCode}
 
@@ -12106,10 +12530,10 @@ Matching of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a switch statement
 
 \begin{normativeDartCode}
 \SWITCH{} ($e$) \{
-   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
-   $\ldots$
-   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
-   $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
+\ \ $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+\ \ $\ldots$
+\ \ $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+\ \ $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
 \end{normativeDartCode}
 
@@ -12129,9 +12553,9 @@ Matching of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a switch statement
 
 \begin{normativeDartCode}
 \SWITCH{} ($e$) \{
-   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
-   $\ldots$
-   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+\ \ $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+\ \ $\ldots$
+\ \ $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
 \end{normativeDartCode}
 
@@ -12200,9 +12624,9 @@ Execution of the case statements $s_h$ of a switch statement
 
 \begin{normativeDartCode}
 \SWITCH{} ($e$) \{
-   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
-   $\ldots$
-   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+\ \ $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+\ \ $\ldots$
+\ \ $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
 \end{normativeDartCode}
 
@@ -12210,10 +12634,10 @@ or a switch statement
 
 \begin{normativeDartCode}
 \SWITCH{} ($e$) \{
-   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
-   $\ldots$
-   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
-   $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
+\ \ $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+\ \ $\ldots$
+\ \ $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+\ \ $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
 \end{normativeDartCode}
 
@@ -12785,7 +13209,7 @@ If the immediately enclosing function $m$ is marked \code{\SYNC*} (\ref{function
 \item
   The getter \code{current} is invoked on $i$.
   If the invocation throws
-  (\ref{evaluation}),
+  (\ref{expressionEvaluation}),
   execution of $s$ throws the same exception object and stack trace
   (\ref{statementCompletion}).
   Otherwise, the result $x$ of the getter invocation is added to

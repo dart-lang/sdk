@@ -7,7 +7,7 @@ import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const String TEST_ONE = r"""
-foo(a) {
+foo(List<int> a) {
   a.add(42);
   a.removeLast();
   return a.length;
@@ -15,17 +15,12 @@ foo(a) {
 """;
 
 main() {
-  test() async {
+  asyncTest(() async {
     await compile(TEST_ONE, entry: 'foo', check: (String generated) {
       Expect.isTrue(generated.contains(r'.add$1('));
       Expect.isTrue(generated.contains(r'.removeLast$0('));
       Expect.isTrue(generated.contains(r'.length'),
           "Unexpected code to contain '.length':\n$generated");
     });
-  }
-
-  asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
-    await test();
   });
 }

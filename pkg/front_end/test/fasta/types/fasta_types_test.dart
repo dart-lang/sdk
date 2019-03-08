@@ -36,7 +36,7 @@ import "shared_type_tests.dart" show SubtypeTest;
 import "type_parser.dart" as type_parser show parse, parseTypeVariables;
 
 main() {
-  final Ticker ticker = Ticker();
+  final Ticker ticker = new Ticker(isVerbose: false);
   final CompilerContext context = new CompilerContext(new ProcessedOptions(
       options: new CompilerOptions()
         ..packagesFileUri = Uri.base.resolve(".packages")));

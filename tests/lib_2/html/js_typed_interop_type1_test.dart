@@ -18,12 +18,12 @@ class F {
   F(this.foo);
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 testA(A o) {
   return o.foo;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 testF(F o) {
   return o.foo;
 }

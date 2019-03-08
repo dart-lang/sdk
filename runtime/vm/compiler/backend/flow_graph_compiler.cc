@@ -2059,7 +2059,10 @@ bool FlowGraphCompiler::GenerateSubtypeRangeCheck(Register class_id_reg,
                                                   Label* is_subtype) {
   HierarchyInfo* hi = Thread::Current()->hierarchy_info();
   if (hi != NULL) {
-    const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
+    const CidRangeVector& ranges =
+        hi->SubtypeRangesForClass(type_class,
+                                  /*include_abstract=*/false,
+                                  /*exclude_null=*/false);
     if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
       GenerateCidRangesCheck(assembler(), class_id_reg, ranges, is_subtype);
       return true;
@@ -2161,7 +2164,10 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
       const bool can_use_simple_cid_range_test =
           hi->CanUseSubtypeRangeCheckFor(dst_type);
       if (can_use_simple_cid_range_test) {
-        const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
+        const CidRangeVector& ranges =
+            hi->SubtypeRangesForClass(type_class,
+                                      /*include_abstract=*/false,
+                                      /*exclude_null=*/false);
         if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
           if (is_non_smi) {
             __ LoadClassId(scratch_reg, instance_reg);

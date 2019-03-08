@@ -29,7 +29,7 @@ void setup() {
 })()""");
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 staticTests() {
   A a = makeA();
   Expect.equals(null, a.returnNull());
@@ -43,7 +43,7 @@ staticTests() {
   Expect.equals(0, a.returnZero());
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 dynamicTests() {
   A a = makeA();
   Expect.equals(null, confuse(a).returnNull());

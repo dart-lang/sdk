@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
-
 /*element: Class.:[exact=Class]*/
 class Class {
   /*element: Class.field:[exact=JSUInt31]*/
@@ -34,10 +32,10 @@ main() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: statementOrderFieldAccess:[null]*/
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 statementOrderFieldAccess(/*[null|subclass=Object]*/ o) {
   o.field;
-  o. /*[exact=Class]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -45,10 +43,10 @@ statementOrderFieldAccess(/*[null|subclass=Object]*/ o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: statementOrderFieldUpdate:[null]*/
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 statementOrderFieldUpdate(/*[null|subclass=Object]*/ o) {
   o.field = 42;
-  o. /*update: [exact=Class]*/ field = 42;
+  o. /*update: [subclass=Object]*/ field = 42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,10 +54,10 @@ statementOrderFieldUpdate(/*[null|subclass=Object]*/ o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: statementOrderInvocation:[null]*/
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 statementOrderInvocation(/*[null|subclass=Object]*/ o) {
   o.method(null);
-  o. /*invoke: [exact=Class]*/ method(null);
+  o. /*invoke: [subclass=Object]*/ method(null);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,11 +65,11 @@ statementOrderInvocation(/*[null|subclass=Object]*/ o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: receiverVsArgument:[null]*/
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 receiverVsArgument(/*[null|subclass=Object]*/ o) {
   // TODO(johnniwinther): The arguments should refine the receiver.
   o.method(o.field);
-  o. /*[exact=Class]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -79,11 +77,11 @@ receiverVsArgument(/*[null|subclass=Object]*/ o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: argumentsOrder:[null]*/
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 argumentsOrder(/*[null|subclass=Object]*/ o) {
   // TODO(johnniwinther): The arguments should refine the receiver.
-  o.method(o.field, o. /*[exact=Class]*/ field);
-  o. /*[exact=Class]*/ field;
+  o.method(o.field, o. /*[subclass=Object]*/ field);
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -91,10 +89,10 @@ argumentsOrder(/*[null|subclass=Object]*/ o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: operatorOrder:[null]*/
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 operatorOrder(/*[null|subclass=Object]*/ o) {
-  o.field /*invoke: [exact=JSUInt31]*/ < o. /*[exact=Class]*/ field;
-  o. /*[exact=Class]*/ field;
+  o.field /*invoke: [exact=JSUInt31]*/ < o. /*[subclass=Object]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -102,12 +100,12 @@ operatorOrder(/*[null|subclass=Object]*/ o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: updateVsRhs:[null]*/
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 updateVsRhs(/*[null|subclass=Object]*/ o) {
   // TODO(johnniwinther): The right-hand side should refine the left-hand side
   // receiver.
   o.field = o.field;
-  o. /*[exact=Class]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -115,10 +113,10 @@ updateVsRhs(/*[null|subclass=Object]*/ o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: logicalOr:[null]*/
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 logicalOr(/*[null|subclass=Object]*/ o) {
-  o.field || o. /*[exact=Class]*/ field;
-  o. /*[exact=Class]*/ field;
+  o.field || o. /*[subclass=Object]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -126,10 +124,10 @@ logicalOr(/*[null|subclass=Object]*/ o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: conditionalCondition:[null]*/
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 conditionalCondition(/*[null|subclass=Object]*/ o) {
-  o.field ? o. /*[exact=Class]*/ field : o. /*[exact=Class]*/ field;
-  o. /*[exact=Class]*/ field;
+  o.field ? o. /*[subclass=Object]*/ field : o. /*[subclass=Object]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -137,11 +135,11 @@ conditionalCondition(/*[null|subclass=Object]*/ o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: conditionalBothBranches:[null]*/
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 conditionalBothBranches(/*[null|subclass=Object]*/ o) {
   // ignore: DEAD_CODE
   true ? o.field : o.field;
-  o. /*[exact=Class]*/ field;
+  o. /*[subclass=Object]*/ field;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -149,10 +147,10 @@ conditionalBothBranches(/*[null|subclass=Object]*/ o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: conditionalOneBranchOnly:[null]*/
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 conditionalOneBranchOnly(/*[null|subclass=Object]*/ o) {
   // ignore: DEAD_CODE
   true ? o.field : null;
   o.field;
-  o. /*[exact=Class]*/ field;
+  o. /*[subclass=Object]*/ field;
 }

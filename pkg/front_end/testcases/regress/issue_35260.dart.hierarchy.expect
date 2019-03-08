@@ -38,6 +38,7 @@ Supertype:
     Supertype._redirecting#
 
 X:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Supertype

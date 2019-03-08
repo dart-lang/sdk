@@ -75,6 +75,7 @@ Interface3:
   classSetters:
 
 A:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Interface1, Interface2, Interface3
@@ -118,6 +119,7 @@ A:
     A.property2
 
 B:
+  Longest path to Object: 3
   superclasses:
     Object
       -> A
@@ -166,6 +168,7 @@ B:
     A.property2
 
 MyClass:
+  Longest path to Object: 4
   superclasses:
     Object
       -> A
@@ -221,6 +224,7 @@ MyClass:
     MyClass.property2
 
 MyMock1:
+  Longest path to Object: 4
   superclasses:
     Object
       -> A
@@ -270,6 +274,7 @@ MyMock1:
     A.property2
 
 MyMock2:
+  Longest path to Object: 5
   superclasses:
     Object
       -> A
@@ -320,6 +325,7 @@ MyMock2:
     A.property2
 
 MyMock3:
+  Longest path to Object: 4
   superclasses:
     Object
       -> A

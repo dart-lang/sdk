@@ -283,6 +283,24 @@ void KernelLoader::index_programs(
   subprogram_file_starts->Reverse();
 }
 
+RawString* KernelLoader::FindSourceForScript(const uint8_t* kernel_buffer,
+                                             intptr_t kernel_buffer_length,
+                                             const String& uri) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  TranslationHelper translation_helper(thread);
+  KernelReaderHelper reader(zone, &translation_helper, kernel_buffer,
+                            kernel_buffer_length, 0);
+  intptr_t source_table_size = reader.SourceTableSize();
+  for (intptr_t i = 0; i < source_table_size; ++i) {
+    const String& source_uri = reader.SourceTableUriFor(i);
+    if (source_uri.EndsWith(uri)) {
+      return reader.GetSourceFor(i).raw();
+    }
+  }
+  return String::null();
+}
+
 void KernelLoader::InitializeFields() {
   const intptr_t source_table_size = helper_.SourceTableSize();
   const Array& scripts =
@@ -572,7 +590,9 @@ void KernelLoader::LoadNativeExtensionLibraries(
   Instance& constant = Instance::Handle(Z);
   String& uri_path = String::Handle(Z);
   Library& library = Library::Handle(Z);
+#if !defined(DART_PRECOMPILER)
   Object& result = Object::Handle(Z);
+#endif
 
   for (intptr_t i = 0; i < length; ++i) {
     library ^= potential_extension_libraries_.At(i);
@@ -603,6 +623,7 @@ void KernelLoader::LoadNativeExtensionLibraries(
 
       if (uri_path.IsNull()) continue;
 
+#if !defined(DART_PRECOMPILER)
       if (!I->HasTagHandler()) {
         H.ReportError("no library handler registered.");
       }
@@ -614,6 +635,16 @@ void KernelLoader::LoadNativeExtensionLibraries(
       if (result.IsError()) {
         H.ReportError(Error::Cast(result), "library handler failed");
       }
+#endif
+
+      // Create a dummy library and add it as an import to the current library.
+      // This allows later to discover and reload this native extension, e.g.
+      // when running from an app-jit snapshot.
+      // See Loader::ReloadNativeExtensions(...) which relies on
+      // Dart_GetImportsOfScheme('dart-ext').
+      const auto& native_library = Library::Handle(Library::New(uri_path));
+      library.AddImport(Namespace::Handle(Namespace::New(
+          native_library, Array::null_array(), Array::null_array())));
     }
   }
   potential_extension_libraries_ = GrowableObjectArray::null();
@@ -914,11 +945,12 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
     loading_native_wrappers_library_ = false;
     library.SetLoadInProgress();
   }
+
   StringIndex import_uri_index =
       H.CanonicalNameString(library_helper.canonical_name_);
   library_helper.ReadUntilIncluding(LibraryHelper::kSourceUriIndex);
   const Script& script = Script::Handle(
-      Z, ScriptAt(library_helper.source_uri_index_, import_uri_index));
+      Z, ScriptAt(library_helper.source_uri_index_, library, import_uri_index));
 
   library_helper.ReadUntilExcluding(LibraryHelper::kAnnotations);
   intptr_t annotations_kernel_offset =
@@ -1299,10 +1331,10 @@ void KernelLoader::FixCoreLibraryScriptUri(const Library& library,
       String& tmp = String::Handle(zone_);
       url = String::SubString(url, pos + 1);
       if (inside_runtime_lib) {
-        tmp = String::New("runtime/lib", Heap::kNew);
+        tmp = String::New(kRuntimeLib, Heap::kNew);
         url = String::Concat(tmp, url);
       } else if (inside_runtime_bin) {
-        tmp = String::New("runtime/bin", Heap::kNew);
+        tmp = String::New(kRuntimeBin, Heap::kNew);
         url = String::Concat(tmp, url);
       }
       tmp = library.url();
@@ -1925,14 +1957,18 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
   return script.raw();
 }
 
-RawScript* KernelLoader::ScriptAt(intptr_t index, StringIndex import_uri) {
-  if (import_uri != -1) {
-    const Script& script =
-        Script::Handle(Z, kernel_program_info_.ScriptAt(index));
+RawScript* KernelLoader::ScriptAt(intptr_t index,
+                                  const Library& library,
+                                  StringIndex import_uri) {
+  ASSERT(!library.IsNull());
+  const Script& script =
+      Script::Handle(Z, kernel_program_info_.ScriptAt(index));
+  if (library.is_dart_scheme()) {
+    FixCoreLibraryScriptUri(library, script);
+  } else if (import_uri != -1) {
     script.set_url(H.DartString(import_uri, Heap::kOld));
-    return script.raw();
   }
-  return kernel_program_info_.ScriptAt(index);
+  return script.raw();
 }
 
 void KernelLoader::GenerateFieldAccessors(const Class& klass,
@@ -2173,8 +2209,8 @@ RawFunction::Kind KernelLoader::GetFunctionType(
 RawFunction* CreateFieldInitializerFunction(Thread* thread,
                                             Zone* zone,
                                             const Field& field) {
-  if (field.Initializer() != Function::null()) {
-    return field.Initializer();
+  if (field.InitializerFunction() != Function::null()) {
+    return field.InitializerFunction();
   }
   String& init_name = String::Handle(zone, field.name());
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
@@ -2212,7 +2248,7 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
   initializer_fun.set_is_inlinable(false);
   initializer_fun.set_token_pos(field.token_pos());
   initializer_fun.set_end_token_pos(field.end_token_pos());
-  field.SetInitializer(initializer_fun);
+  field.SetInitializerFunction(initializer_fun);
   return initializer_fun.raw();
 }
 

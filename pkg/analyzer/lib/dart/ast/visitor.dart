@@ -24,6 +24,7 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart' show UIAsCodeVisitorMixin;
 
 /**
  * An AST visitor that will recursively visit all of the nodes in an AST
@@ -147,7 +148,9 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
  *
  * Clients may extend this class.
  */
-class GeneralizingAstVisitor<R> implements AstVisitor<R> {
+class GeneralizingAstVisitor<R>
+    with UIAsCodeVisitorMixin<R>
+    implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => visitStringLiteral(node);
 
@@ -311,9 +314,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitForEachParts(node);
 
   @override
-  R visitForEachStatement(ForEachStatement node) => visitStatement(node);
-
-  @override
   R visitForElement(ForElement node) => visitCollectionElement(node);
 
   R visitFormalParameter(FormalParameter node) => visitNode(node);
@@ -330,9 +330,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitForPartsWithExpression(ForPartsWithExpression node) =>
       visitForParts(node);
-
-  @override
-  R visitForStatement(ForStatement node) => visitStatement(node);
 
   @override
   R visitForStatement2(ForStatement2 node) => visitStatement(node);
@@ -426,14 +423,13 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitListLiteral(ListLiteral node) => visitTypedLiteral(node);
 
+  @deprecated
   @override
   R visitListLiteral2(ListLiteral2 node) => visitTypedLiteral(node);
 
   R visitLiteral(Literal node) => visitExpression(node);
 
-  @override
-  R visitMapLiteral(MapLiteral node) => visitTypedLiteral(node);
-
+  @deprecated
   @override
   R visitMapLiteral2(MapLiteral2 node) => visitTypedLiteral(node);
 
@@ -516,11 +512,12 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
 
-  @override
-  R visitSetLiteral(SetLiteral node) => visitTypedLiteral(node);
-
+  @deprecated
   @override
   R visitSetLiteral2(SetLiteral2 node) => visitTypedLiteral(node);
+
+  @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) => visitTypedLiteral(node);
 
   @override
   R visitShowCombinator(ShowCombinator node) => visitCombinator(node);
@@ -638,7 +635,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
  *
  * Clients may extend this class.
  */
-class RecursiveAstVisitor<R> implements AstVisitor<R> {
+class RecursiveAstVisitor<R>
+    with UIAsCodeVisitorMixin<R>
+    implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) {
     node.visitChildren(this);
@@ -898,12 +897,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R visitForEachStatement(ForEachStatement node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
   R visitForElement(ForElement node) {
     node.visitChildren(this);
     return null;
@@ -923,12 +916,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitForPartsWithExpression(ForPartsWithExpression node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R visitForStatement(ForStatement node) {
     node.visitChildren(this);
     return null;
   }
@@ -1083,18 +1070,14 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
+  @deprecated
   @override
   R visitListLiteral2(ListLiteral2 node) {
     node.visitChildren(this);
     return null;
   }
 
-  @override
-  R visitMapLiteral(MapLiteral node) {
-    node.visitChildren(this);
-    return null;
-  }
-
+  @deprecated
   @override
   R visitMapLiteral2(MapLiteral2 node) {
     node.visitChildren(this);
@@ -1222,14 +1205,15 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
+  @deprecated
   @override
-  R visitSetLiteral(SetLiteral node) {
+  R visitSetLiteral2(SetLiteral2 node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitSetLiteral2(SetLiteral2 node) {
+  R visitSetOrMapLiteral(SetOrMapLiteral node) {
     node.visitChildren(this);
     return null;
   }
@@ -1399,7 +1383,9 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
  *
  * Clients may extend this class.
  */
-class SimpleAstVisitor<R> implements AstVisitor<R> {
+class SimpleAstVisitor<R>
+    with UIAsCodeVisitorMixin<R>
+    implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => null;
 
@@ -1530,9 +1516,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) => null;
 
   @override
-  R visitForEachStatement(ForEachStatement node) => null;
-
-  @override
   R visitForElement(ForElement node) => null;
 
   @override
@@ -1543,9 +1526,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitForPartsWithExpression(ForPartsWithExpression node) => null;
-
-  @override
-  R visitForStatement(ForStatement node) => null;
 
   @override
   R visitForStatement2(ForStatement2 node) => null;
@@ -1625,12 +1605,11 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitListLiteral(ListLiteral node) => null;
 
+  @deprecated
   @override
   R visitListLiteral2(ListLiteral2 node) => null;
 
-  @override
-  R visitMapLiteral(MapLiteral node) => null;
-
+  @deprecated
   @override
   R visitMapLiteral2(MapLiteral2 node) => null;
 
@@ -1696,11 +1675,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitScriptTag(ScriptTag node) => null;
 
-  @override
-  R visitSetLiteral(SetLiteral node) => null;
-
+  @deprecated
   @override
   R visitSetLiteral2(SetLiteral2 node) => null;
+
+  @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) => null;
 
   @override
   R visitShowCombinator(ShowCombinator node) => null;
@@ -1791,7 +1771,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
  *
  * Clients may extend this class.
  */
-class ThrowingAstVisitor<R> implements AstVisitor<R> {
+class ThrowingAstVisitor<R>
+    with UIAsCodeVisitorMixin<R>
+    implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => _throw(node);
 
@@ -1925,9 +1907,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
       _throw(node);
 
   @override
-  R visitForEachStatement(ForEachStatement node) => _throw(node);
-
-  @override
   R visitForElement(ForElement node) => _throw(node);
 
   @override
@@ -1939,9 +1918,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitForPartsWithExpression(ForPartsWithExpression node) => _throw(node);
-
-  @override
-  R visitForStatement(ForStatement node) => _throw(node);
 
   @override
   R visitForStatement2(ForStatement2 node) => _throw(node);
@@ -2022,12 +1998,11 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitListLiteral(ListLiteral node) => _throw(node);
 
+  @deprecated
   @override
   R visitListLiteral2(ListLiteral2 node) => _throw(node);
 
-  @override
-  R visitMapLiteral(MapLiteral node) => _throw(node);
-
+  @deprecated
   @override
   R visitMapLiteral2(MapLiteral2 node) => _throw(node);
 
@@ -2093,11 +2068,12 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitScriptTag(ScriptTag node) => _throw(node);
 
-  @override
-  R visitSetLiteral(SetLiteral node) => _throw(node);
-
+  @deprecated
   @override
   R visitSetLiteral2(SetLiteral2 node) => _throw(node);
+
+  @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) => _throw(node);
 
   @override
   R visitShowCombinator(ShowCombinator node) => _throw(node);
@@ -2176,6 +2152,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitWithClause(WithClause node) => _throw(node);
+
   @override
   R visitYieldStatement(YieldStatement node) => _throw(node);
 
@@ -2189,7 +2166,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class TimedAstVisitor<T> implements AstVisitor<T> {
+class TimedAstVisitor<T> with UIAsCodeVisitorMixin<T> implements AstVisitor<T> {
   /**
    * The base visitor whose visit methods will be timed.
    */
@@ -2552,14 +2529,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T visitForEachStatement(ForEachStatement node) {
-    stopwatch.start();
-    T result = _baseVisitor.visitForEachStatement(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T visitForElement(ForElement node) {
     stopwatch.start();
     T result = _baseVisitor.visitForElement(node);
@@ -2587,14 +2556,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T visitForPartsWithExpression(ForPartsWithExpression node) {
     stopwatch.start();
     T result = _baseVisitor.visitForPartsWithExpression(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T visitForStatement(ForStatement node) {
-    stopwatch.start();
-    T result = _baseVisitor.visitForStatement(node);
     stopwatch.stop();
     return result;
   }
@@ -2799,6 +2760,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
+  @deprecated
   @override
   T visitListLiteral2(ListLiteral2 node) {
     stopwatch.start();
@@ -2807,14 +2769,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
-  @override
-  T visitMapLiteral(MapLiteral node) {
-    stopwatch.start();
-    T result = _baseVisitor.visitMapLiteral(node);
-    stopwatch.stop();
-    return result;
-  }
-
+  @deprecated
   @override
   T visitMapLiteral2(MapLiteral2 node) {
     stopwatch.start();
@@ -2984,18 +2939,19 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
+  @deprecated
   @override
-  T visitSetLiteral(SetLiteral node) {
+  T visitSetLiteral2(SetLiteral2 node) {
     stopwatch.start();
-    T result = _baseVisitor.visitSetLiteral(node);
+    T result = _baseVisitor.visitSetLiteral2(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitSetLiteral2(SetLiteral2 node) {
+  T visitSetOrMapLiteral(SetOrMapLiteral node) {
     stopwatch.start();
-    T result = _baseVisitor.visitSetLiteral2(node);
+    T result = _baseVisitor.visitSetOrMapLiteral(node);
     stopwatch.stop();
     return result;
   }
@@ -3221,7 +3177,9 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
  *
  * Clients may extend this class.
  */
-class UnifyingAstVisitor<R> implements AstVisitor<R> {
+class UnifyingAstVisitor<R>
+    with UIAsCodeVisitorMixin<R>
+    implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
 
@@ -3356,9 +3314,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
       visitNode(node);
 
   @override
-  R visitForEachStatement(ForEachStatement node) => visitNode(node);
-
-  @override
   R visitForElement(ForElement node) => visitNode(node);
 
   @override
@@ -3370,9 +3325,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitForPartsWithExpression(ForPartsWithExpression node) => visitNode(node);
-
-  @override
-  R visitForStatement(ForStatement node) => visitNode(node);
 
   @override
   R visitForStatement2(ForStatement2 node) => visitNode(node);
@@ -3454,12 +3406,11 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitListLiteral(ListLiteral node) => visitNode(node);
 
+  @deprecated
   @override
   R visitListLiteral2(ListLiteral2 node) => visitNode(node);
 
-  @override
-  R visitMapLiteral(MapLiteral node) => visitNode(node);
-
+  @deprecated
   @override
   R visitMapLiteral2(MapLiteral2 node) => visitNode(node);
 
@@ -3531,11 +3482,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
 
-  @override
-  R visitSetLiteral(SetLiteral node) => visitNode(node);
-
+  @deprecated
   @override
   R visitSetLiteral2(SetLiteral2 node) => visitNode(node);
+
+  @override
+  R visitSetOrMapLiteral(SetOrMapLiteral node) => visitNode(node);
 
   @override
   R visitShowCombinator(ShowCombinator node) => visitNode(node);

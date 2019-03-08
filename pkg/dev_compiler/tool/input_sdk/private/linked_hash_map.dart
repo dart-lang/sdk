@@ -153,7 +153,8 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
       }
       return null;
     }
-    return JS('', '#.get(#)', _map, key);
+    V value = JS('', '#.get(#)', _map, key);
+    return value == null ? null : value; // coerce undefined to null.
   }
 
   void operator []=(K key, V value) {
@@ -195,6 +196,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
       return JS('', '#.get(#)', map, key);
     }
     V value = ifAbsent();
+    if (value == null) value = null; // coerce undefined to null.
     JS('', '#.set(#, #)', map, key, value);
     _modifications = (_modifications + 1) & 0x3ffffff;
     return value;
@@ -229,7 +231,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
     if (JS('bool', '#.delete(#)', map, key)) {
       _modifications = (_modifications + 1) & 0x3ffffff;
     }
-    return value;
+    return value == null ? null : value; // coerce undefined to null.
   }
 
   void clear() {

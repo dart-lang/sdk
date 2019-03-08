@@ -7,14 +7,15 @@ import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart' show Selectors;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
-import '../constants/constant_system.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../common_elements.dart' show JCommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
-import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
+import '../js_backend/field_analysis.dart'
+    show FieldAnalysisData, JFieldAnalysis;
 import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_backend/runtime_types.dart';
@@ -203,8 +204,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
       this._rtiSubstitutions, this._closedWorld, this._registry, this._log);
 
   JCommonElements get commonElements => _closedWorld.commonElements;
-
-  ConstantSystem get constantSystem => _closedWorld.constantSystem;
 
   AbstractValueDomain get _abstractValueDomain =>
       _closedWorld.abstractValueDomain;
@@ -478,12 +477,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitInvokeUnary(HInvokeUnary node) {
-    HInstruction folded =
-        foldUnary(node.operation(constantSystem), node.operand);
+    HInstruction folded = foldUnary(node.operation(), node.operand);
     return folded != null ? folded : node;
   }
 
-  HInstruction foldUnary(UnaryOperation operation, HInstruction operand) {
+  HInstruction foldUnary(
+      constant_system.UnaryOperation operation, HInstruction operand) {
     if (operand is HConstant) {
       HConstant receiver = operand;
       ConstantValue folded = operation.fold(receiver.constant);
@@ -533,7 +532,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction handleInterceptedCall(HInvokeDynamic node) {
     // Try constant folding the instruction.
-    Operation operation = node.specializer.operation(constantSystem);
+    constant_system.Operation operation = node.specializer.operation();
     if (operation != null) {
       HInstruction instruction = node.inputs.length == 2
           ? foldUnary(operation, node.inputs[1])
@@ -696,8 +695,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (folded != node) return folded;
     }
 
-    AbstractValue receiverType =
-        node.getDartReceiver(_closedWorld).instructionType;
+    HInstruction receiver = node.getDartReceiver(_closedWorld);
+    AbstractValue receiverType = receiver.instructionType;
     MemberEntity element =
         _closedWorld.locateSingleMember(node.selector, receiverType);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
@@ -734,20 +733,47 @@ class SsaInstructionSimplifier extends HBaseVisitor
       FieldEntity field = element;
       if (!_nativeData.isNativeMember(field) &&
           !node.isCallOnInterceptor(_closedWorld)) {
-        HInstruction receiver = node.getDartReceiver(_closedWorld);
-        AbstractValue type = AbstractValueFactory.inferredTypeForMember(
-            // ignore: UNNECESSARY_CAST
-            field as Entity,
-            _globalInferenceResults);
-        HInstruction load = new HFieldGet(field, receiver, type);
-        node.block.addBefore(node, load);
+        // Insertion point for the closure call.
+        HInstruction insertionPoint = node;
+        HInstruction load;
+        FieldAnalysisData fieldData =
+            _closedWorld.fieldAnalysis.getFieldData(field);
+        if (fieldData.isEffectivelyConstant) {
+          // The field is elided and replace it with its constant value.
+          if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
+            // The receiver is potentially `null` so we insert a null receiver
+            // guard to trigger a null pointer exception.
+            //
+            // This could be inserted unconditionally and removed by later
+            // optimizations if unnecessary, but performance we do it
+            // conditionally here.
+            // TODO(35996): Replace with null receiver guard instruction.
+            HInstruction dummyGet = new HFieldGet(null, receiver,
+                _abstractValueDomain.dynamicType, node.sourceInformation,
+                isAssignable: false);
+            _log?.registerFieldCall(node, dummyGet);
+            node.block.addBefore(node, dummyGet);
+            insertionPoint = dummyGet;
+          }
+          ConstantValue value = fieldData.constantValue;
+          load = _graph.addConstant(value, _closedWorld,
+              sourceInformation: node.sourceInformation);
+          _log?.registerConstantFieldCall(node, field, load);
+        } else {
+          AbstractValue type = AbstractValueFactory.inferredTypeForMember(
+              field, _globalInferenceResults);
+          load = new HFieldGet(field, receiver, type, node.sourceInformation);
+          _log?.registerFieldCall(node, load);
+          node.block.addBefore(node, load);
+          insertionPoint = load;
+        }
         Selector callSelector = new Selector.callClosureFrom(node.selector);
         List<HInstruction> inputs = <HInstruction>[load]
           ..addAll(node.inputs.skip(node.isInterceptedCall ? 2 : 1));
         HInstruction closureCall = new HInvokeClosure(
             callSelector, inputs, node.instructionType, node.typeArguments)
           ..sourceInformation = node.sourceInformation;
-        node.block.addAfter(load, closureCall);
+        node.block.addAfter(insertionPoint, closureCall);
         return closureCall;
       }
     }
@@ -831,7 +857,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (index.isConstant()) {
       HConstant constantInstruction = index;
       assert(!constantInstruction.constant.isInt);
-      if (!constantSystem.isInt(constantInstruction.constant)) {
+      if (!constant_system.isInt(constantInstruction.constant)) {
         // -0.0 is a double but will pass the runtime integer check.
         node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
       }
@@ -839,8 +865,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return node;
   }
 
-  HInstruction foldBinary(
-      BinaryOperation operation, HInstruction left, HInstruction right) {
+  HInstruction foldBinary(constant_system.BinaryOperation operation,
+      HInstruction left, HInstruction right) {
     if (left is HConstant && right is HConstant) {
       HConstant op1 = left;
       HConstant op2 = right;
@@ -877,7 +903,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitInvokeBinary(HInvokeBinary node) {
     HInstruction left = node.left;
     HInstruction right = node.right;
-    BinaryOperation operation = node.operation(constantSystem);
+    constant_system.BinaryOperation operation = node.operation();
     HConstant folded = foldBinary(operation, left, right);
     if (folded != null) return folded;
     return node;
@@ -1215,17 +1241,43 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (folded != node) return folded;
     }
     HInstruction receiver = node.getDartReceiver(_closedWorld);
+    AbstractValue receiverType = receiver.instructionType;
     FieldEntity field = node.element is FieldEntity
         ? node.element
         : findConcreteFieldForDynamicAccess(node, receiver);
     if (field != null) {
-      HFieldGet result = _directFieldGet(receiver, field, node);
-      _log?.registerFieldGet(node, result);
-      return result;
+      FieldAnalysisData fieldData =
+          _closedWorld.fieldAnalysis.getFieldData(field);
+      if (fieldData.isEffectivelyConstant) {
+        // The field is elided and replace it with its constant value.
+        if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
+          // The receiver is potentially `null` so we insert a null receiver
+          // guard to trigger a null pointer exception.
+          //
+          // This could be inserted unconditionally and removed by later
+          // optimizations if unnecessary, but performance we do it
+          // conditionally here.
+          // TODO(35996): Replace with null receiver guard instruction.
+          HInstruction dummyGet = new HFieldGet(null, receiver,
+              _abstractValueDomain.dynamicType, node.sourceInformation,
+              isAssignable: false);
+          _log?.registerFieldGet(node, dummyGet);
+          node.block.addBefore(node, dummyGet);
+        }
+        ConstantValue constant = fieldData.constantValue;
+        HConstant result = _graph.addConstant(constant, _closedWorld,
+            sourceInformation: node.sourceInformation);
+        _log?.registerConstantFieldGet(node, field, result);
+        return result;
+      } else {
+        HFieldGet result = _directFieldGet(receiver, field, node);
+        _log?.registerFieldGet(node, result);
+        return result;
+      }
     }
 
-    node.element ??= _closedWorld.locateSingleMember(
-        node.selector, receiver.instructionType);
+    node.element ??=
+        _closedWorld.locateSingleMember(node.selector, receiverType);
     if (node.element != null &&
         node.element.name == node.selector.name &&
         node.element.isFunction) {
@@ -1256,8 +1308,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
           field, _globalInferenceResults);
     }
 
-    return new HFieldGet(field, receiver, type, isAssignable: isAssignable)
-      ..sourceInformation = node.sourceInformation;
+    return new HFieldGet(field, receiver, type, node.sourceInformation,
+        isAssignable: isAssignable);
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -1292,7 +1344,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         value = other;
       }
     }
-    if (_closedWorld.elidedFields.contains(field)) {
+    if (_closedWorld.fieldAnalysis.getFieldData(field).isElided) {
       _log?.registerFieldSet(node);
       return value;
     } else {
@@ -1466,7 +1518,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction folded = _graph.addConstant(
-        constantSystem
+        constant_system
             .createString(leftString.stringValue + rightString.stringValue),
         _closedWorld);
     if (prefix == null) return folded;
@@ -1480,7 +1532,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction asString(String string) =>
-        _graph.addConstant(constantSystem.createString(string), _closedWorld);
+        _graph.addConstant(constant_system.createString(string), _closedWorld);
 
     HInstruction tryConstant() {
       if (!input.isConstant()) return null;
@@ -2832,7 +2884,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
   final JClosedWorld closedWorld;
-  final JAllocatorAnalysis _allocatorAnalysis;
+  final JFieldAnalysis _fieldAnalysis;
   final String name = "SsaLoadElimination";
   MemorySet memorySet;
   List<MemorySet> memories;
@@ -2840,7 +2892,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   HGraph _graph;
 
   SsaLoadElimination(this.compiler, this.closedWorld)
-      : _allocatorAnalysis = closedWorld.allocatorAnalysis;
+      : _fieldAnalysis = closedWorld.fieldAnalysis;
 
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
@@ -2956,9 +3008,10 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
         if (compiler.elementHasCompileTimeError(
             // ignore: UNNECESSARY_CAST
             member as Entity)) return;
-        if (_allocatorAnalysis.isInitializedInAllocator(member)) {
+        FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(member);
+        if (fieldData.isInitializedInAllocator) {
           // TODO(sra): Can we avoid calling HGraph.addConstant?
-          ConstantValue value = _allocatorAnalysis.initializerValue(member);
+          ConstantValue value = fieldData.initialValue;
           HConstant constant = _graph.addConstant(value, closedWorld);
           memorySet.registerFieldValue(member, instruction, constant);
         } else {

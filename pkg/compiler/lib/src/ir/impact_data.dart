@@ -405,6 +405,12 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
+  void registerConstant(ir.ConstantExpression node) {
+    _data._constants ??= [];
+    _data._constants.add(node);
+  }
+
+  @override
   void registerConstructorNode(ir.Constructor node) {
     _data._constructorNodes ??= [];
     _data._constructorNodes.add(node);
@@ -488,6 +494,7 @@ class ImpactDataImpl implements ImpactData {
   List<double> _doubleLiterals;
   List<int> _intLiterals;
   List<_RuntimeTypeUse> _runtimeTypeUses;
+  List<ir.ConstantExpression> _constants;
 
   // TODO(johnniwinther): Remove these when CFE provides constants.
   List<ir.Constructor> _constructorNodes;

@@ -133,7 +133,7 @@ class _LazyReflectiveNamesMap {
   }
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 List extractKeys(victim) {
   var result = JS('', '# ? Object.keys(#) : []', victim, victim);
   return new JSArray.markFixed(result);

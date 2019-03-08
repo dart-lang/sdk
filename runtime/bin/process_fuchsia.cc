@@ -12,7 +12,6 @@
 #include <lib/fdio/io.h>
 #include <lib/fdio/namespace.h>
 #include <lib/fdio/spawn.h>
-#include <lib/fdio/util.h>
 #include <poll.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -167,7 +166,8 @@ class ExitCodeHandler {
     }
 
     // Start thread that handles process exits when wait returns.
-    intptr_t result = Thread::Start(ExitCodeHandlerEntry, 0);
+    intptr_t result =
+        Thread::Start("dart:io Process.start", ExitCodeHandlerEntry, 0);
     if (result != 0) {
       FATAL1("Failed to start exit code handler worker thread %ld", result);
     }
@@ -580,7 +580,7 @@ class ProcessStarter {
         TEMP_FAILURE_RETRY(openat(ns.fd(), ns.path(), O_RDONLY));
     zx_handle_t vmo = ZX_HANDLE_INVALID;
     zx_status_t status = fdio_get_vmo_clone(pathfd, &vmo);
-    VOID_TEMP_FAILURE_RETRY(close(pathfd));
+    close(pathfd);
     if (status != ZX_OK) {
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);

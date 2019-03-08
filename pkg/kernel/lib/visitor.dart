@@ -57,6 +57,7 @@ abstract class ExpressionVisitor<R> {
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
+  R visitBlockExpression(BlockExpression node) => defaultExpression(node);
   R visitInstantiation(Instantiation node) => defaultExpression(node);
   R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
@@ -179,6 +180,7 @@ class TreeVisitor<R>
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
+  R visitBlockExpression(BlockExpression node) => defaultExpression(node);
   R visitInstantiation(Instantiation node) => defaultExpression(node);
   R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
@@ -290,6 +292,7 @@ class ConstantVisitor<R> {
   R visitSymbolConstant(SymbolConstant node) => defaultConstant(node);
   R visitMapConstant(MapConstant node) => defaultConstant(node);
   R visitListConstant(ListConstant node) => defaultConstant(node);
+  R visitSetConstant(SetConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
   R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
       defaultConstant(node);
@@ -344,6 +347,7 @@ class Visitor<R> extends TreeVisitor<R>
   R visitSymbolConstant(SymbolConstant node) => defaultConstant(node);
   R visitMapConstant(MapConstant node) => defaultConstant(node);
   R visitListConstant(ListConstant node) => defaultConstant(node);
+  R visitSetConstant(SetConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
   R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
       defaultConstant(node);
@@ -372,6 +376,8 @@ class Visitor<R> extends TreeVisitor<R>
   R visitMapConstantReference(MapConstant node) =>
       defaultConstantReference(node);
   R visitListConstantReference(ListConstant node) =>
+      defaultConstantReference(node);
+  R visitSetConstantReference(SetConstant node) =>
       defaultConstantReference(node);
   R visitInstanceConstantReference(InstanceConstant node) =>
       defaultConstantReference(node);
@@ -516,6 +522,8 @@ abstract class ExpressionVisitor1<R, T> {
   R visitBoolLiteral(BoolLiteral node, T arg) => defaultBasicLiteral(node, arg);
   R visitNullLiteral(NullLiteral node, T arg) => defaultBasicLiteral(node, arg);
   R visitLet(Let node, T arg) => defaultExpression(node, arg);
+  R visitBlockExpression(BlockExpression node, T arg) =>
+      defaultExpression(node, arg);
   R visitInstantiation(Instantiation node, T arg) =>
       defaultExpression(node, arg);
   R visitLoadLibrary(LoadLibrary node, T arg) => defaultExpression(node, arg);

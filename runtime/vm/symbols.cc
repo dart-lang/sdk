@@ -303,48 +303,6 @@ void Symbols::SetupSymbolTable(Isolate* isolate) {
   isolate->object_store()->set_symbol_table(array);
 }
 
-RawArray* Symbols::UnifiedSymbolTable() {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-
-  ASSERT(thread->IsMutatorThread());
-
-  SymbolTable vm_table(zone,
-                       Dart::vm_isolate()->object_store()->symbol_table());
-  SymbolTable table(zone, isolate->object_store()->symbol_table());
-  intptr_t unified_size = vm_table.NumOccupied() + table.NumOccupied();
-  SymbolTable unified_table(
-      zone, HashTables::New<SymbolTable>(unified_size, Heap::kOld));
-  String& symbol = String::Handle(zone);
-
-  SymbolTable::Iterator vm_iter(&vm_table);
-  while (vm_iter.MoveNext()) {
-    symbol ^= vm_table.GetKey(vm_iter.Current());
-    ASSERT(!symbol.IsNull());
-    bool present = unified_table.Insert(symbol);
-    ASSERT(!present);
-  }
-  vm_table.Release();
-
-  SymbolTable::Iterator iter(&table);
-  while (iter.MoveNext()) {
-    symbol ^= table.GetKey(iter.Current());
-    ASSERT(!symbol.IsNull());
-    bool present = unified_table.Insert(symbol);
-    ASSERT(!present);
-  }
-  table.Release();
-
-  // TODO(30378): The default load factor of 0.75 / 2 burns ~100KB, but
-  // increasing the load factor regresses Flutter's hot restart time.
-  // const double kMinLoad = 0.90;
-  // const double kMaxLoad = 0.90;
-  // HashTables::EnsureLoadFactor(kMinLoad, kMaxLoad, unified_table);
-
-  return unified_table.Release().raw();
-}
-
 void Symbols::Compact() {
   Thread* thread = Thread::Current();
   ASSERT(thread->isolate() != Dart::vm_isolate());

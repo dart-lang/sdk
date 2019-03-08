@@ -37,6 +37,7 @@ C:
     C.x
 
 B:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: C
@@ -68,6 +69,7 @@ B:
     B.x
 
 A:
+  Longest path to Object: 3
   superclasses:
     Object
   interfaces: B, C

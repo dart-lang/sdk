@@ -185,8 +185,7 @@ class StatementCompletionProcessor {
     if (node is Statement) {
       if (errors.isEmpty) {
         if (_complete_ifStatement() ||
-            _complete_forStatement() ||
-            _complete_forEachStatement() ||
+            _complete_forStatement2() ||
             _complete_whileStatement() ||
             _complete_controlFlowBlock()) {
           return completion;
@@ -194,8 +193,7 @@ class StatementCompletionProcessor {
       } else {
         if (_complete_ifStatement() ||
             _complete_doStatement() ||
-            _complete_forStatement() ||
-            _complete_forEachStatement() ||
+            _complete_forStatement2() ||
             _complete_functionDeclarationStatement() ||
             _complete_switchStatement() ||
             _complete_tryStatement() ||
@@ -395,8 +393,7 @@ class StatementCompletionProcessor {
     }
     AstNode outer = node.parent.parent;
     if (!(outer is DoStatement ||
-        outer is ForStatement ||
-        outer is ForEachStatement ||
+        outer is ForStatement2 ||
         outer is IfStatement ||
         outer is WhileStatement)) {
       return false;
@@ -523,17 +520,22 @@ class StatementCompletionProcessor {
     return true;
   }
 
-  bool _complete_forEachStatement() {
-    if (node is! ForEachStatement) {
-      return false;
+  bool _complete_forEachStatement(
+      ForStatement2 forNode, ForEachParts forEachParts) {
+    AstNode name;
+    if (forEachParts is ForEachPartsWithIdentifier) {
+      name = forEachParts.identifier;
+    } else if (forEachParts is ForEachPartsWithDeclaration) {
+      name = forEachParts.loopVariable;
+    } else {
+      throw new StateError('Unrecognized for loop parts');
     }
-    ForEachStatement forNode = node;
     return _complete_forEachStatementRest(
         forNode.forKeyword,
         forNode.leftParenthesis,
-        forNode.identifier ?? forNode.loopVariable,
-        forNode.inKeyword,
-        forNode.iterable,
+        name,
+        forEachParts.inKeyword,
+        forEachParts.iterable,
         forNode.rightParenthesis,
         forNode.body);
   }
@@ -584,11 +586,7 @@ class StatementCompletionProcessor {
     return true;
   }
 
-  bool _complete_forStatement() {
-    if (node is! ForStatement) {
-      return false;
-    }
-    ForStatement forNode = node;
+  bool _complete_forStatement(ForStatement2 forNode, ForParts forParts) {
     SourceBuilder sb;
     int replacementLength = 0;
     if (forNode.leftParenthesis.isSynthetic) {
@@ -601,21 +599,21 @@ class StatementCompletionProcessor {
       sb.setExitOffset();
       sb.append(')');
     } else {
-      if (!forNode.rightSeparator.isSynthetic) {
+      if (!forParts.rightSeparator.isSynthetic) {
         // Fully-defined init, cond, updaters so nothing more needed here.
         // emptyParts, noError
         sb = new SourceBuilder(file, forNode.rightParenthesis.offset + 1);
-      } else if (!forNode.leftSeparator.isSynthetic) {
-        if (_isSyntheticExpression(forNode.condition)) {
+      } else if (!forParts.leftSeparator.isSynthetic) {
+        if (_isSyntheticExpression(forParts.condition)) {
           String text = utils
               .getNodeText(forNode)
-              .substring(forNode.leftSeparator.offset - forNode.offset);
+              .substring(forParts.leftSeparator.offset - forNode.offset);
           Match match =
               new RegExp(r';\s*(/\*.*\*/\s*)?\)[ \t]*').matchAsPrefix(text);
           if (match != null) {
             // emptyCondition, emptyInitializersEmptyCondition
             replacementLength = match.end - match.start;
-            sb = new SourceBuilder(file, forNode.leftSeparator.offset);
+            sb = new SourceBuilder(file, forParts.leftSeparator.offset);
             sb.append('; ${match.group(1) == null ? '' : match.group(1)}; )');
             String suffix = text.substring(match.end);
             if (suffix.trim().isNotEmpty) {
@@ -627,7 +625,7 @@ class StatementCompletionProcessor {
                 replacementLength -= eol.length;
               }
             }
-            exitPosition = _newPosition(forNode.leftSeparator.offset + 2);
+            exitPosition = _newPosition(forParts.leftSeparator.offset + 2);
           } else {
             return false; // Line comment in condition
           }
@@ -636,25 +634,27 @@ class StatementCompletionProcessor {
           sb = new SourceBuilder(file, forNode.rightParenthesis.offset);
           replacementLength = 1;
           sb.append('; )');
-          exitPosition = _newPosition(forNode.rightSeparator.offset + 2);
+          exitPosition = _newPosition(forParts.rightSeparator.offset + 2);
         }
-      } else if (_isSyntheticExpression(forNode.initialization)) {
+      } else if (forParts is ForPartsWithExpression &&
+          _isSyntheticExpression(forParts.initialization)) {
         // emptyInitializers
         exitPosition = _newPosition(forNode.rightParenthesis.offset);
         sb = new SourceBuilder(file, forNode.rightParenthesis.offset);
-      } else if (forNode.initialization is SimpleIdentifier &&
-          forNode.initialization.beginToken.lexeme == 'in') {
+      } else if (forParts is ForPartsWithExpression &&
+          forParts.initialization is SimpleIdentifier &&
+          forParts.initialization.beginToken.lexeme == 'in') {
         // looks like a for/each statement missing the loop variable
         return _complete_forEachStatementRest(
             forNode.forKeyword,
             forNode.leftParenthesis,
             null,
-            forNode.initialization.beginToken,
+            forParts.initialization.beginToken,
             null,
             forNode.rightParenthesis,
             forNode.body);
       } else {
-        int start = forNode.condition.offset + forNode.condition.length;
+        int start = forParts.condition.offset + forParts.condition.length;
         String text =
             utils.getNodeText(forNode).substring(start - forNode.offset);
         if (text.startsWith(new RegExp(r'\s*\)'))) {
@@ -685,6 +685,19 @@ class StatementCompletionProcessor {
     _insertBuilder(sb, replacementLength);
     _setCompletion(DartStatementCompletion.COMPLETE_FOR_STMT);
     return true;
+  }
+
+  bool _complete_forStatement2() {
+    var node = this.node;
+    if (node is ForStatement2) {
+      var forLoopParts = node.forLoopParts;
+      if (forLoopParts is ForParts) {
+        return _complete_forStatement(node, forLoopParts);
+      } else if (forLoopParts is ForEachParts) {
+        return _complete_forEachStatement(node, forLoopParts);
+      }
+    }
+    return false;
   }
 
   bool _complete_functionDeclaration() {
@@ -1141,7 +1154,9 @@ class StatementCompletionProcessor {
       return true;
     }
     AstNode p = n.parent;
-    return p is! Statement && p?.parent is! Statement;
+    return p is! Statement &&
+        p?.parent is! Statement &&
+        p?.parent?.parent is! Statement;
   }
 
   bool _isSyntheticExpression(Expression expr) {

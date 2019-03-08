@@ -1,12 +1,30 @@
 # Garbage Collection
 
+The Dart VM has a generational garbage collector with two generations. The new generation is collected by a stop-the-world semispace [scavenger](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/scavenger.h). The old generation is collected by concurrent-[mark](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/marker.h)-concurrent-[sweep](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/sweeper.h) or by concurrent-mark-parallel-[compact](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/compactor.h).
+
 ## Object representation
 
+Object pointers refer either to immediate objects or heap objects, distinguished by a tag in the low bits of the pointer. The Dart VM has only one kind of immediate object, Smis (small integers), whose pointers have a tag of 0. Heap objects have a pointer tag of 1. The upper bits of a Smi pointer are its value, and the upper bits of a heap object pointer are the most signficant bits of its address (the least significant bit is always 0 because heap objects always have greater than 2-byte alignment).
+
+A tag of 0 allows many operations to be performed on Smis without untagging and retagging. It also allows hiding aligned addresses to the C heap from the GC.
+
+A tag of 1 has no penalty on heap object access because removing the tag can be folded into the offset used by load and store instructions.
+
+Heap objects are always allocated in double-word increments. Objects in old-space are kept at double-word alignment, and objects in new-space are kept offset from double-word alignment. This allows checking an object's age without comparing to a boundry address, avoiding restrictions on heap placement and avoiding loading the boundry from thread-local storage. Additionally, the scavenger can quickly skip over both immediates and old objects with a single branch.
+
+Heap objects have a single-word header, which encodes the object's class, size, and some status flags.
+
+On 64-bit architectures, the header of heap objects also contains a 32-bit identity hash field. On 32-bit architectures, the identity hash for heap objects is kept in a side table.
+
 ## Scavenge
+
+See [Cheney's algorithm](https://dl.acm.org/citation.cfm?doid=362790.362798).
 
 ## Mark-Sweep
 
 ## Mark-Compact
+
+The Dart VM includes a sliding compactor. The forwarding table is compactly represented by dividing the heap into blocks and for each block recording its target address and the bitvector for each surviving double-word. The table is accessed in constant time by keeping heap pages aligned so the page header of any object can be accessed by masking the object.
 
 ## Concurrent Marking
 
@@ -85,7 +103,7 @@ done:
 
 ### Data races
 
-Operations on headers and slots use (relaxed ordering)[https://en.cppreference.com/w/cpp/atomic/memory_order] and do not provide synchronization.
+Operations on headers and slots use [relaxed ordering](https://en.cppreference.com/w/cpp/atomic/memory_order) and do not provide synchronization.
 
 The concurrent marker starts with an acquire-release operation, so all writes by the mutator up to the time that marking starts are visible to the marker.
 

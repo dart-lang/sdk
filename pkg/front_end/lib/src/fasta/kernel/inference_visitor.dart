@@ -11,13 +11,13 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
 
   @override
   void defaultExpression(Expression node, DartType typeContext) {
-    unhandled("${node.runtimeType}", "InferenceVistor", node.fileOffset,
+    unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
   }
 
   @override
   void defaultStatement(Statement node, _) {
-    unhandled("${node.runtimeType}", "InferenceVistor", node.fileOffset,
+    unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
   }
 
@@ -638,6 +638,17 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     inferrer.inferStatement(node.body);
   }
 
+  DartType getSpreadElementType(DartType spreadType) {
+    if (spreadType is InterfaceType) {
+      InterfaceType supertype = inferrer.typeSchemaEnvironment
+          .getTypeAsInstanceOf(spreadType, inferrer.coreTypes.iterableClass);
+      if (supertype == null) return null;
+      return supertype.typeArguments[0];
+    }
+    if (spreadType is DynamicType) return const DynamicType();
+    return null;
+  }
+
   void visitListLiteralJudgment(
       ListLiteralJudgment node, DartType typeContext) {
     var listClass = inferrer.coreTypes.listClass;
@@ -661,16 +672,36 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     } else {
       inferredTypeArgument = node.typeArgument;
     }
+    List<DartType> spreadTypes =
+        typeChecksNeeded ? new List<DartType>(node.expressions.length) : null;
     if (inferenceNeeded || typeChecksNeeded) {
       for (int i = 0; i < node.expressions.length; ++i) {
         Expression judgment = node.expressions[i];
-        inferrer.inferExpression(
-            judgment, inferredTypeArgument, inferenceNeeded || typeChecksNeeded,
-            isVoidAllowed: true);
-        if (inferenceNeeded) {
-          formalTypes.add(listType.typeArguments[0]);
+        if (judgment is SpreadElement) {
+          DartType spreadType = inferrer.inferExpression(
+              judgment.expression,
+              new InterfaceType(inferrer.coreTypes.iterableClass,
+                  <DartType>[inferredTypeArgument]),
+              inferenceNeeded || typeChecksNeeded,
+              isVoidAllowed: true);
+          if (inferenceNeeded) {
+            formalTypes.add(listType.typeArguments[0]);
+          }
+          if (typeChecksNeeded) {
+            spreadTypes[i] = spreadType;
+          }
+          // Use 'dynamic' for error recovery.
+          actualTypes
+              .add(getSpreadElementType(spreadType) ?? const DynamicType());
+        } else {
+          inferrer.inferExpression(judgment, inferredTypeArgument,
+              inferenceNeeded || typeChecksNeeded,
+              isVoidAllowed: true);
+          if (inferenceNeeded) {
+            formalTypes.add(listType.typeArguments[0]);
+          }
+          actualTypes.add(getInferredType(judgment, inferrer));
         }
-        actualTypes.add(getInferredType(judgment, inferrer));
       }
     }
     if (inferenceNeeded) {
@@ -691,9 +722,44 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     }
     if (typeChecksNeeded) {
       for (int i = 0; i < node.expressions.length; i++) {
-        inferrer.ensureAssignable(node.typeArgument, actualTypes[i],
-            node.expressions[i], node.expressions[i].fileOffset,
-            isVoidAllowed: node.typeArgument is VoidType);
+        Expression item = node.expressions[i];
+        if (item is SpreadElement) {
+          DartType spreadType = spreadTypes[i];
+          DartType spreadElementType = getSpreadElementType(spreadType);
+          if (spreadElementType == null) {
+            node.replaceChild(
+                node.expressions[i],
+                inferrer.helper.desugarSyntheticExpression(inferrer.helper
+                    .buildProblem(
+                        templateSpreadTypeMismatch.withArguments(spreadType),
+                        item.expression.fileOffset,
+                        1)));
+          } else if (spreadType is DynamicType) {
+            inferrer.ensureAssignable(inferrer.coreTypes.iterableClass.rawType,
+                spreadType, item.expression, item.expression.fileOffset);
+          } else if (spreadType is InterfaceType) {
+            if (spreadType.classNode == inferrer.coreTypes.nullClass) {
+              // TODO(dmitryas):  Handle this case when null-aware spreads are
+              // supported by the parser.
+            } else {
+              if (!inferrer.isAssignable(
+                  node.typeArgument, spreadElementType)) {
+                node.replaceChild(
+                    node.expressions[i],
+                    inferrer.helper.desugarSyntheticExpression(inferrer.helper
+                        .buildProblem(
+                            templateSpreadElementTypeMismatch.withArguments(
+                                spreadElementType, node.typeArgument),
+                            item.expression.fileOffset,
+                            1)));
+              }
+            }
+          }
+        } else {
+          inferrer.ensureAssignable(
+              node.typeArgument, actualTypes[i], item, item.fileOffset,
+              isVoidAllowed: node.typeArgument is VoidType);
+        }
       }
     }
     node.inferredType = new InterfaceType(listClass, [inferredTypeArgument]);
@@ -703,6 +769,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
           node, inferrer.typeSchemaEnvironment,
           inferred: true);
     }
+
     return null;
   }
 
@@ -774,11 +841,19 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     List<Expression> cachedKeys = new List(node.entries.length);
     List<Expression> cachedValues = new List(node.entries.length);
     for (int i = 0; i < node.entries.length; i++) {
-      cachedKeys[i] = node.entries[i].key;
-      cachedValues[i] = node.entries[i].value;
+      MapEntry entry = node.entries[i];
+      if (entry is! SpreadMapEntry) {
+        cachedKeys[i] = node.entries[i].key;
+        cachedValues[i] = node.entries[i].value;
+      }
     }
     if (inferenceNeeded || typeChecksNeeded) {
       for (MapEntry entry in node.entries) {
+        if (entry is SpreadMapEntry) {
+          actualTypes.add(const BottomType());
+          actualTypes.add(inferrer.coreTypes.nullClass.rawType);
+          continue;
+        }
         Expression key = entry.key;
         inferrer.inferExpression(key, inferredKeyType, true,
             isVoidAllowed: true);
@@ -814,6 +889,13 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     if (typeChecksNeeded) {
       for (int i = 0; i < node.entries.length; ++i) {
         Expression keyJudgment = cachedKeys[i];
+        if (keyJudgment == null) {
+          node.entries[i] = new MapEntry(
+              new InvalidExpression('unimplemented spread entry')
+                ..fileOffset = node.fileOffset,
+              new NullLiteral()..parent = node);
+          continue;
+        }
         inferrer.ensureAssignable(node.keyType, actualTypes[2 * i], keyJudgment,
             keyJudgment.fileOffset,
             isVoidAllowed: node.keyType is VoidType);
@@ -1072,16 +1154,36 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     } else {
       inferredTypeArgument = node.typeArgument;
     }
+    List<DartType> spreadTypes =
+        typeChecksNeeded ? new List<DartType>(node.expressions.length) : null;
     if (inferenceNeeded || typeChecksNeeded) {
       for (int i = 0; i < node.expressions.length; ++i) {
         Expression judgment = node.expressions[i];
-        inferrer.inferExpression(
-            judgment, inferredTypeArgument, inferenceNeeded || typeChecksNeeded,
-            isVoidAllowed: true);
-        if (inferenceNeeded) {
-          formalTypes.add(setType.typeArguments[0]);
+        if (judgment is SpreadElement) {
+          DartType spreadType = inferrer.inferExpression(
+              judgment.expression,
+              new InterfaceType(inferrer.coreTypes.iterableClass,
+                  <DartType>[inferredTypeArgument]),
+              inferenceNeeded || typeChecksNeeded,
+              isVoidAllowed: true);
+          if (inferenceNeeded) {
+            formalTypes.add(setType.typeArguments[0]);
+          }
+          if (typeChecksNeeded) {
+            spreadTypes[i] = spreadType;
+          }
+          // Use 'dynamic' for error recovery.
+          actualTypes
+              .add(getSpreadElementType(spreadType) ?? const DynamicType());
+        } else {
+          inferrer.inferExpression(judgment, inferredTypeArgument,
+              inferenceNeeded || typeChecksNeeded,
+              isVoidAllowed: true);
+          if (inferenceNeeded) {
+            formalTypes.add(setType.typeArguments[0]);
+          }
+          actualTypes.add(getInferredType(judgment, inferrer));
         }
-        actualTypes.add(getInferredType(judgment, inferrer));
       }
     }
     if (inferenceNeeded) {
@@ -1102,9 +1204,44 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     }
     if (typeChecksNeeded) {
       for (int i = 0; i < node.expressions.length; i++) {
-        inferrer.ensureAssignable(node.typeArgument, actualTypes[i],
-            node.expressions[i], node.expressions[i].fileOffset,
-            isVoidAllowed: node.typeArgument is VoidType);
+        Expression item = node.expressions[i];
+        if (item is SpreadElement) {
+          DartType spreadType = spreadTypes[i];
+          DartType spreadElementType = getSpreadElementType(spreadType);
+          if (spreadElementType == null) {
+            node.replaceChild(
+                node.expressions[i],
+                inferrer.helper.desugarSyntheticExpression(inferrer.helper
+                    .buildProblem(
+                        templateSpreadTypeMismatch.withArguments(spreadType),
+                        item.expression.fileOffset,
+                        1)));
+          } else if (spreadType is DynamicType) {
+            inferrer.ensureAssignable(inferrer.coreTypes.iterableClass.rawType,
+                spreadType, item.expression, item.expression.fileOffset);
+          } else if (spreadType is InterfaceType) {
+            if (spreadType.classNode == inferrer.coreTypes.nullClass) {
+              // TODO(dmitryas):  Handle this case when null-aware spreads are
+              // supported by the parser.
+            } else {
+              if (!inferrer.isAssignable(
+                  node.typeArgument, spreadElementType)) {
+                node.replaceChild(
+                    node.expressions[i],
+                    inferrer.helper.desugarSyntheticExpression(inferrer.helper
+                        .buildProblem(
+                            templateSpreadElementTypeMismatch.withArguments(
+                                spreadElementType, node.typeArgument),
+                            item.expression.fileOffset,
+                            1)));
+              }
+            }
+          }
+        } else {
+          inferrer.ensureAssignable(node.typeArgument, actualTypes[i],
+              node.expressions[i], node.expressions[i].fileOffset,
+              isVoidAllowed: node.typeArgument is VoidType);
+        }
       }
     }
     node.inferredType = new InterfaceType(setClass, [inferredTypeArgument]);

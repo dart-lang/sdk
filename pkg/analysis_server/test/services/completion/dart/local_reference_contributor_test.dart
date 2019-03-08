@@ -82,11 +82,10 @@ bool hasLength(int a, bool b) => false;
 void main() {h^}''');
     await computeSuggestions();
 
-    CompletionSuggestion cs = assertSuggestFunction('hasLength', 'bool',
+    assertSuggestFunction('hasLength', 'bool',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION,
         defaultArgListString: 'a, b',
         defaultArgumentListTextRanges: [0, 1, 3, 1]);
-    expect(cs.elementUri, equals(convertPath('/home/test/lib/test.dart')));
   }
 
   test_ArgDefaults_function_none() async {
@@ -2408,6 +2407,20 @@ class A {
     assertNotSuggested('U');
   }
 
+  test_expression_typeParameter_mixinDeclaration() async {
+    addTestSource('''
+mixin M<T> {
+  void m() {
+    ^
+  }
+}
+class B<U> {}
+''');
+    await computeSuggestions();
+    assertSuggestTypeParameter('T');
+    assertNotSuggested('U');
+  }
+
   test_ExpressionStatement_identifier() async {
     // SimpleIdentifier  ExpressionStatement  Block
     addSource('/home/test/lib/a.dart', '''
@@ -2448,6 +2461,17 @@ class C {foo(){^} void bar() {}}''');
     await computeSuggestions();
 
     assertNoSuggestions();
+  }
+
+  test_extendsClause() async {
+    addTestSource('''
+class A {}
+mixin M {}
+class B extends ^
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('M');
   }
 
   test_FieldDeclaration_name_typed() async {
@@ -2988,6 +3012,17 @@ main() {var a; if (a.^) something}''');
     await computeSuggestions();
     assertSuggestClass('MyClass');
     assertNotSuggested('MC');
+  }
+
+  test_implementsClause() async {
+    addTestSource('''
+class A {}
+mixin M {}
+class B implements ^
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertSuggestMixin('M');
   }
 
   test_ImportDirective_dart() async {
@@ -4847,5 +4882,15 @@ class C {bar(){var f; {var x;} var e = ^ var g}}''');
     assertSuggestLocalVariable('f', null);
     assertNotSuggested('x');
     assertNotSuggested('e');
+  }
+
+  test_withClause_mixin() async {
+    addTestSource('''
+class A {}
+mixin M {}
+class B extends A with ^
+''');
+    await computeSuggestions();
+    assertSuggestMixin('M');
   }
 }

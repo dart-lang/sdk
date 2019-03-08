@@ -93,6 +93,12 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void> {
   }
 
   @override
+  void visitSetLiteral(ir.SetLiteral node) {
+    registerNode(node);
+    super.visitSetLiteral(node);
+  }
+
+  @override
   void visitMapLiteral(ir.MapLiteral node) {
     registerNode(node);
     super.visitMapLiteral(node);

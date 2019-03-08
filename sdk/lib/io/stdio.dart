@@ -394,7 +394,7 @@ int _stdinFD = 0;
 int _stdoutFD = 1;
 int _stderrFD = 2;
 
-@pragma('vm:entry-point')
+@pragma('vm:entry-point', 'call')
 void _setStdioFDs(int stdin, int stdout, int stderr) {
   _stdinFD = stdin;
   _stdoutFD = stdout;

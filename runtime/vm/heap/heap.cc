@@ -83,8 +83,6 @@ void Heap::AbandonRemainingTLAB(Thread* thread) {
 
 uword Heap::AllocateNew(intptr_t size) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
-  // Currently, only the Dart thread may allocate in new space.
-  isolate()->AssertCurrentThreadIsMutator();
   Thread* thread = Thread::Current();
   uword addr = new_space_.TryAllocateInTLAB(thread, size);
   if (addr != 0) {
@@ -210,7 +208,7 @@ void Heap::FreeExternal(intptr_t size, Space space) {
 
 void Heap::PromoteExternal(intptr_t cid, intptr_t size) {
   new_space_.FreeExternal(size);
-  old_space_.AllocateExternal(cid, size);
+  old_space_.PromoteExternal(cid, size);
 }
 
 bool Heap::Contains(uword addr) const {

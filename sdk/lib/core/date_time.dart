@@ -223,7 +223,8 @@ class DateTime implements Comparable<DateTime> {
   /**
    * Constructs a new [DateTime] instance based on [formattedString].
    *
-   * Throws a [FormatException] if the input cannot be parsed.
+   * The [formattedString] must not be `null`.
+   * Throws a [FormatException] if the input string cannot be parsed.
    *
    * The function parses a subset of ISO 8601
    * which includes the subset accepted by RFC 3339.
@@ -336,6 +337,12 @@ class DateTime implements Comparable<DateTime> {
     }
   }
 
+  /**
+   * Constructs a new [DateTime] instance based on [formattedString].
+   *
+   * Works like [parse] except that this function returns `null`
+   * where [parse] would throw a [FormatException].
+   */
   static DateTime tryParse(String formattedString) {
     // TODO: Optimize to avoid throwing.
     try {

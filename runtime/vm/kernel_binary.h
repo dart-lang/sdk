@@ -17,7 +17,10 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kBinaryFormatVersion = 18;
+
+// Both version numbers are inclusive.
+static const uint32_t kMinSupportedKernelFormatVersion = 18;
+static const uint32_t kMaxSupportedKernelFormatVersion = 20;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -77,6 +80,7 @@ static const uint32_t kBinaryFormatVersion = 18;
   V(AwaitExpression, 51)                                                       \
   V(FunctionExpression, 52)                                                    \
   V(Let, 53)                                                                   \
+  V(BlockExpression, 82)                                                       \
   V(Instantiation, 54)                                                         \
   V(PositiveIntLiteral, 55)                                                    \
   V(NegativeIntLiteral, 56)                                                    \
@@ -143,6 +147,7 @@ enum ConstantTag {
   kSymbolConstant = 5,
   kMapConstant = 6,
   kListConstant = 7,
+  kSetConstant = 13,
   kInstanceConstant = 8,
   kPartialInstantiationConstant = 9,
   kTearOffConstant = 10,

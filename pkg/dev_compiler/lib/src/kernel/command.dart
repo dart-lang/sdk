@@ -67,10 +67,11 @@ Future<CompilerResult> _compile(List<String> args,
         abbr: 'h', help: 'Display this message.', negatable: false)
     ..addOption('out', abbr: 'o', help: 'Output file (required).')
     ..addOption('packages', help: 'The package spec file to use.')
-    // TODO(jmesserly): should default to `false` and be hidden.
-    // For now this is very helpful in debugging the compiler.
+    // TODO(jmesserly): is this still useful for us, or can we remove it now?
     ..addFlag('summarize-text',
-        help: 'emit API summary in a .js.txt file', defaultsTo: true)
+        help: 'emit API summary in a .js.txt file',
+        defaultsTo: false,
+        hide: true)
     // TODO(jmesserly): add verbose help to show hidden options
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
@@ -246,9 +247,9 @@ Future<CompilerResult> _compile(List<String> args,
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
   if (argResults['summarize-text'] as bool) {
-    var sink = File(output + '.txt').openWrite();
-    kernel.Printer(sink, showExternal: false).writeComponentFile(component);
-    outFiles.add(sink.flush().then((_) => sink.close()));
+    StringBuffer sb = new StringBuffer();
+    kernel.Printer(sb, showExternal: false).writeComponentFile(component);
+    outFiles.add(File(output + '.txt').writeAsString(sb.toString()));
   }
   var target = compilerState.options.target as DevCompilerTarget;
   var compiler =

@@ -1,0 +1,167 @@
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'assist_processor.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToNormalParameterTest);
+  });
+}
+
+@reflectiveTest
+class ConvertToNormalParameterTest extends AssistProcessorTest {
+  @override
+  AssistKind get kind => DartAssistKind.CONVERT_TO_NULL_AWARE;
+
+  test_equal_differentTarget() async {
+    await resolveTestUnit('''
+abstract class A {
+  int m();
+}
+int f(A a1, A a2) => a1 == null ? null : a2.m();
+''');
+    await assertNoAssistAt('?');
+  }
+
+  test_equal_notComparedToNull() async {
+    await resolveTestUnit('''
+abstract class A {
+  int m();
+}
+int f(A a1, A a2) => a1 == a2 ? a2.m() : a1.m();
+''');
+    await assertNoAssistAt('?');
+  }
+
+  test_equal_notIdentifier() async {
+    await resolveTestUnit('''
+abstract class A {
+  int m();
+}
+int f(A a) => a.m() == null ? 0 : a.m();
+''');
+    await assertNoAssistAt('?');
+  }
+
+  test_equal_notInvocation() async {
+    await resolveTestUnit('''
+abstract class A {
+  int m();
+  int operator +(A a);
+}
+int f(A a1) => a1 == null ? null : a1 + a1;
+''');
+    await assertNoAssistAt('?');
+  }
+
+  test_equal_notNullPreserving() async {
+    await resolveTestUnit('''
+abstract class A {
+  int m();
+}
+int f(A a1, A a2) => a1 == null ? a2.m() : a1.m();
+''');
+    await assertNoAssistAt('?');
+  }
+
+  test_equal_notPeriod() async {
+    await resolveTestUnit('''
+abstract class A {
+  int m();
+}
+int f(A a1) => a1 == null ? null : a1?.m();
+''');
+    await assertNoAssistAt('? ');
+  }
+
+  test_equal_nullOnLeft() async {
+    await resolveTestUnit('''
+abstract class A {
+  int m();
+}
+int f(A a) => null == a ? null : a.m();
+''');
+    await assertHasAssistAt('?', '''
+abstract class A {
+  int m();
+}
+int f(A a) => a?.m();
+''');
+  }
+
+  test_equal_nullOnRight() async {
+    await resolveTestUnit('''
+abstract class A {
+  int m();
+}
+int f(A a) => a == null ? null : a.m();
+''');
+    await assertHasAssistAt('?', '''
+abstract class A {
+  int m();
+}
+int f(A a) => a?.m();
+''');
+  }
+
+  test_equal_prefixedIdentifier() async {
+    await resolveTestUnit('''
+class A {
+  int p;
+}
+int f(A a) => null == a ? null : a.p;
+''');
+    await assertHasAssistAt('?', '''
+class A {
+  int p;
+}
+int f(A a) => a?.p;
+''');
+  }
+
+  test_notEqual_notNullPreserving() async {
+    await resolveTestUnit('''
+abstract class A {
+  int m();
+}
+int f(A a1, A a2) => a1 != null ? a1.m() : a2.m();
+''');
+    await assertNoAssistAt('?');
+  }
+
+  test_notEqual_nullOnLeft() async {
+    await resolveTestUnit('''
+abstract class A {
+  int m();
+}
+int f(A a) => null != a ? a.m() : null;
+''');
+    await assertHasAssistAt('?', '''
+abstract class A {
+  int m();
+}
+int f(A a) => a?.m();
+''');
+  }
+
+  test_notEqual_nullOnRight() async {
+    await resolveTestUnit('''
+abstract class A {
+  int m();
+}
+int f(A a) => a != null ? a.m() : null;
+''');
+    await assertHasAssistAt('?', '''
+abstract class A {
+  int m();
+}
+int f(A a) => a?.m();
+''');
+  }
+}

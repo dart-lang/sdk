@@ -11,7 +11,7 @@ method1() {
   return local;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is S Function<S>(S);
 
 main() {

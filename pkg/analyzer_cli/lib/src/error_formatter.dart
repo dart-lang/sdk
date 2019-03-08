@@ -312,6 +312,7 @@ class MachineErrorFormatter extends ErrorFormatter {
   static final int _slashCodeUnit = '\\'.codeUnitAt(0);
   static final int _newline = '\n'.codeUnitAt(0);
   static final int _return = '\r'.codeUnitAt(0);
+  final Set<AnalysisError> _seenErrors = <AnalysisError>{};
 
   MachineErrorFormatter(
       StringSink out, CommandLineOptions options, AnalysisStats stats,
@@ -322,6 +323,10 @@ class MachineErrorFormatter extends ErrorFormatter {
 
   void formatError(
       Map<AnalysisError, LineInfo> errorToLine, AnalysisError error) {
+    // Ensure we don't over-report (#36062).
+    if (!_seenErrors.add(error)) {
+      return;
+    }
     Source source = error.source;
     var location = errorToLine[error].getLocation(error.offset);
     int length = error.length;

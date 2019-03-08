@@ -221,6 +221,7 @@ class ObjectPointerVisitor;
   V(_GrowableListWithData, "_GrowableList.withData")                           \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_LinkedHashMap, "_InternalLinkedHashMap")                                  \
+  V(_LinkedHashSet, "_CompactLinkedHashSet")                                   \
   V(_rehashObjects, "_rehashObjects")                                          \
   V(_String, "String")                                                         \
   V(OneByteString, "_OneByteString")                                           \
@@ -368,6 +369,7 @@ class ObjectPointerVisitor;
   V(Index, "index")                                                            \
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \
+  V(DartExtensionScheme, "dart-ext:")                                          \
   V(DartInternalPackage, "package:dart_internal/")                             \
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
   V(DartNativeWrappersLibName, "nativewrappers")                               \
@@ -626,8 +628,6 @@ class Symbols : public AllStatic {
 
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);
-
-  static RawArray* UnifiedSymbolTable();
 
   // Treat the symbol table as weak and collect garbage.
   static void Compact();

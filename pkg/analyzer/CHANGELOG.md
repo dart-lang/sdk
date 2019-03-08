@@ -1,3 +1,45 @@
+##
+* Deprecated AST structures that will no longer be used after the
+  control_flow_collections and spread_collections experiments are enabled.  The
+  following AST node types are deprecated:
+  * `ForEachStatement` (use `ForStatement2` instead)
+  * `ForStatement` (use `ForStatement2` instead)
+  * `MapLiteral` (use `SetOrMapLiteral` instead)
+  * `SetLiteral` (use `SetOrMapLiteral` instead)
+* Deprecated visit methods that will no longer be used after the
+  control_flow_collections and spread_collections experiments are enabled.  The
+  following visit methods are deprecated:
+  * `visitForEachStatement` (override `visitForStatement2` instead)
+  * `visitForStatement` (override `visitForStatement2` instead)
+  * `visitMapLiteral` (override `visitSetOrMapLiteral` instead)
+  * `visitSetLiteral` (override `visitSetOrMapLiteral` instead)
+
+## 0.35.3
+* Further updates to the AST structure for the control_flow_collections and
+  spread_collections experiments.  The following AST node types will be
+  deprecated soon:
+  * `ForEachStatement` (use `ForStatement2` instead)
+  * `ForStatement` (use `ForStatement2` instead)
+  * `MapLiteral` (use `SetOrMapLiteral` instead)
+  * `SetLiteral` (use `SetOrMapLiteral` instead)
+* Deprecated `Expression.precedence`.  In analyzer version 0.36.0, its return
+  type will be changed to `Precedence`.  Clients that wish to prepare for the
+  change can switch to `Expression.precedence2`.
+* Bug fixes: #35908, #35993 (workaround).
+
+## 0.35.2
+* Updated support in the AST structure for the control_flow_collections and
+  spread_collections experiments.  The following methods are now deprecated:
+  * `AstFactory.mapLiteral2` and `AstFactory.setLiteral2` (replaced by
+    `AstFactory.setOrMapLiteral`).
+  * `AstVisitor.visitListLiteral2` (clients should not need to override this
+    anymore).
+  * `AstVisitor.visitMapLiteral2 and AstVisitor.visitSetLiteral2` (replaced by
+    `AstVisitor.visitSetOrMapLiteral`).
+* Started to add support for strict-inference as an analysis option.
+* Bug fixes: #35870, #35922, #35936, #35940,
+  https://github.com/flutter/flutter-intellij/issues/3204
+
 ## 0.35.1
 * The new "set literals" language feature is now enabled by default.
 * The dev_dependency analysis_tool was created so that clients do not have to

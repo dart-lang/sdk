@@ -708,8 +708,8 @@ void AssemblerTest::Assemble() {
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction, true, false,
                     false, false, false, cls, TokenPosition::kMinSource));
-  code_ = Code::FinalizeCode(function, nullptr, assembler_,
-                             Code::PoolAttachment::kAttachPool);
+  code_ = Code::FinalizeCodeAndNotify(function, nullptr, assembler_,
+                                      Code::PoolAttachment::kAttachPool);
   code_.set_owner(function);
   code_.set_exception_handlers(Object::empty_exception_handlers());
 #ifndef PRODUCT

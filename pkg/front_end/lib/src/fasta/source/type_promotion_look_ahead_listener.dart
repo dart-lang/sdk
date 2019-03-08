@@ -871,24 +871,15 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void handleLiteralSet(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
-    debugEvent("LiteralSet", leftBrace);
-    state.discard(count);
-    state.pushNull("{}", leftBrace);
-  }
-
-  @override
-  void handleLiteralMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
-    debugEvent("LiteralMap", leftBrace);
-    state.discard(count);
-    state.pushNull("{}", leftBrace);
-  }
-
-  @override
   void handleLiteralSetOrMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    int count,
+    Token leftBrace,
+    Token constKeyword,
+    Token rightBrace,
+    // TODO(danrubel): hasSetEntry parameter exists for replicating existing
+    // behavior and will be removed once unified collection has been enabled
+    bool hasSetEntry,
+  ) {
     debugEvent("LiteralSetOrMap", leftBrace);
     state.discard(count);
     state.pushNull("{}", leftBrace);

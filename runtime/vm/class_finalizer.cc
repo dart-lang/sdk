@@ -954,7 +954,7 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
     field.SetFieldType(type);
     if (track_exactness && IsPotentialExactGeneric(type)) {
       field.set_static_type_exactness_state(
-          StaticTypeExactnessState::Unitialized());
+          StaticTypeExactnessState::Uninitialized());
     }
   }
   // Finalize function signatures and check for conflicts in super classes and
@@ -1532,6 +1532,7 @@ void ClassFinalizer::SortClasses() {
   RemapClassIds(old_to_new_cid);
   delete[] old_to_new_cid;
   RehashTypes();  // Types use cid's as part of their hashes.
+  I->RehashConstants();  // Const objects use cid's as part of their hashes.
 }
 
 class CidRewriteVisitor : public ObjectVisitor {

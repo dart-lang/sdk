@@ -291,7 +291,7 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
 
 void SocketBase::Close(intptr_t fd) {
   ASSERT(fd >= 0);
-  VOID_TEMP_FAILURE_RETRY(close(fd));
+  close(fd);
 }
 
 bool SocketBase::GetNoDelay(intptr_t fd, bool* enabled) {

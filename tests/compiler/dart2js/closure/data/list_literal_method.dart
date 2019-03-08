@@ -4,13 +4,13 @@
 
 import 'package:expect/expect.dart';
 
-@NoInline()
+@pragma('dart2js:noInline')
 method<T>() {
   /*fields=[T],free=[T]*/ dynamic local() => <T>[];
   return local;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is List<int>;
 
 main() {

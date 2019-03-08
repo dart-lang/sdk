@@ -64,12 +64,6 @@ class ParsedFunction : public ZoneAllocated {
   }
   void SetRegExpCompileData(RegExpCompileData* regexp_compile_data);
 
-  LocalVariable* instantiator() const { return instantiator_; }
-  void set_instantiator(LocalVariable* instantiator) {
-    ASSERT(instantiator != NULL);
-    instantiator_ = instantiator;
-  }
-
   LocalVariable* function_type_arguments() const {
     return function_type_arguments_;
   }
@@ -90,7 +84,7 @@ class ParsedFunction : public ZoneAllocated {
 #if defined(DEBUG)
     if (list == NULL) return;
     for (intptr_t i = 0; i < list->length(); i++) {
-      ASSERT(list->At(i)->IsZoneHandle() || list->At(i)->InVMHeap());
+      ASSERT(list->At(i)->IsZoneHandle() || list->At(i)->IsReadOnly());
     }
 #endif
   }
@@ -167,13 +161,13 @@ class ParsedFunction : public ZoneAllocated {
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
   bool is_forwarding_stub() const {
-    return forwarding_stub_super_target_ != -1;
+    return forwarding_stub_super_target_ != nullptr;
   }
-  kernel::NameIndex forwarding_stub_super_target() const {
+  const Function* forwarding_stub_super_target() const {
     return forwarding_stub_super_target_;
   }
-  void MarkForwardingStub(kernel::NameIndex target) {
-    forwarding_stub_super_target_ = target;
+  void MarkForwardingStub(const Function* forwarding_target) {
+    forwarding_stub_super_target_ = forwarding_target;
   }
 
   Thread* thread() const { return thread_; }
@@ -204,13 +198,20 @@ class ParsedFunction : public ZoneAllocated {
     return raw_parameters_->At(i);
   }
 
+  void SetDefaultFunctionTypeArguments(const TypeArguments& value) {
+    default_function_type_arguments_ = value.raw();
+  }
+
+  const TypeArguments& DefaultFunctionTypeArguments() const {
+    return default_function_type_arguments_;
+  }
+
  private:
   Thread* thread_;
   const Function& function_;
   Code& code_;
   SequenceNode* node_sequence_;
   RegExpCompileData* regexp_compile_data_;
-  LocalVariable* instantiator_;
   LocalVariable* function_type_arguments_;
   LocalVariable* parent_type_arguments_;
   LocalVariable* current_context_var_;
@@ -229,8 +230,10 @@ class ParsedFunction : public ZoneAllocated {
   int num_stack_locals_;
   bool have_seen_await_expr_;
 
-  kernel::NameIndex forwarding_stub_super_target_;
+  const Function* forwarding_stub_super_target_ = nullptr;
   kernel::ScopeBuildingResult* kernel_scopes_;
+
+  TypeArguments& default_function_type_arguments_;
 
   friend class Parser;
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);

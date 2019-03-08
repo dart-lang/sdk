@@ -817,6 +817,7 @@ class Z implements C, D {}
 class C {}
 typedef F();
 enum E {E1, E2}
+mixin M {}
 void f() {}
 var V1;
 get V2 => null;
@@ -827,6 +828,7 @@ set V4(_) {}
 class _C {}
 typedef _F();
 enum _E {E1, E2}
+mixin _M {}
 void _f() {}
 var _V1;
 get _V2 => null;
@@ -840,11 +842,14 @@ set _V3(_) {}
       expect(declarations[name]?.kind, kind);
     }
 
-    expect(declarations.keys,
-        unorderedEquals(['C', 'F', 'E', 'f', 'V1', 'V2', 'V3', 'V4']));
+    expect(
+      declarations.keys,
+      unorderedEquals(['C', 'F', 'E', 'M', 'f', 'V1', 'V2', 'V3', 'V4']),
+    );
     assertHas('C', TopLevelDeclarationKind.type);
     assertHas('F', TopLevelDeclarationKind.type);
     assertHas('E', TopLevelDeclarationKind.type);
+    assertHas('M', TopLevelDeclarationKind.type);
     assertHas('f', TopLevelDeclarationKind.function);
     assertHas('V1', TopLevelDeclarationKind.variable);
     assertHas('V2', TopLevelDeclarationKind.variable);

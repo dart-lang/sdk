@@ -28,6 +28,8 @@ import 'package:yaml/yaml.dart';
 
 /// A top-level public declaration.
 class Declaration {
+  final String defaultArgumentListString;
+  final List<int> defaultArgumentListTextRanges;
   final String docComplete;
   final String docSummary;
   final bool isAbstract;
@@ -39,8 +41,15 @@ class Declaration {
   final String locationPath;
   final int locationStartColumn;
   final int locationStartLine;
+
+  /// The name of the declaration.
+  /// For enum constants, the name of the constant.
   final String name;
+
+  /// Usually `null`.
+  /// For enum constants, the name of the enum.
   final String name2;
+
   final String parameters;
   final List<String> parameterNames;
   final List<String> parameterTypes;
@@ -51,6 +60,8 @@ class Declaration {
   List<String> _relevanceTags;
 
   Declaration({
+    @required this.defaultArgumentListString,
+    @required this.defaultArgumentListTextRanges,
     @required this.docComplete,
     @required this.docSummary,
     @required this.isAbstract,
@@ -718,19 +729,22 @@ class RelevanceTags {
   }
 
   static List<String> _forExpression(Expression expression) {
-    if (expression is BooleanLiteral) return const ['dart:core::bool'];
-    if (expression is DoubleLiteral) return const ['dart:core::double'];
-    if (expression is IntegerLiteral) return const ['dart:core::int'];
-    if (expression is StringLiteral) return const ['dart:core::String'];
-
-    if (expression is ListLiteral || expression is ListLiteral2) {
+    if (expression is BooleanLiteral) {
+      return const ['dart:core::bool'];
+    } else if (expression is DoubleLiteral) {
+      return const ['dart:core::double'];
+    } else if (expression is IntegerLiteral) {
+      return const ['dart:core::int'];
+    } else if (expression is StringLiteral) {
+      return const ['dart:core::String'];
+    } else if (expression is ListLiteral) {
       return const ['dart:core::List'];
-    }
-    if (expression is MapLiteral || expression is MapLiteral2) {
-      return const ['dart:core::Map'];
-    }
-    if (expression is SetLiteral || expression is SetLiteral2) {
-      return const ['dart:core::Set'];
+    } else if (expression is SetOrMapLiteral) {
+      if (expression.isMap) {
+        return const ['dart:core::Map'];
+      } else if (expression.isSet) {
+        return const ['dart:core::Set'];
+      }
     }
 
     return null;
@@ -760,6 +774,12 @@ class _DeclarationStorage {
     }
 
     return Declaration(
+      defaultArgumentListString: d.defaultArgumentListString.isNotEmpty
+          ? d.defaultArgumentListString
+          : null,
+      defaultArgumentListTextRanges: d.defaultArgumentListTextRanges.isNotEmpty
+          ? d.defaultArgumentListTextRanges
+          : null,
       docComplete: hasDoc ? d.docComplete : null,
       docSummary: hasDoc ? d.docSummary : null,
       isAbstract: d.isAbstract,
@@ -857,6 +877,8 @@ class _DeclarationStorage {
 
     var idlKind = kindToIdl(d.kind);
     return idl.AvailableDeclarationBuilder(
+      defaultArgumentListString: d.defaultArgumentListString,
+      defaultArgumentListTextRanges: d.defaultArgumentListTextRanges,
       docComplete: d.docComplete,
       docSummary: d.docSummary,
       fieldMask: fieldMask,
@@ -879,6 +901,13 @@ class _DeclarationStorage {
       typeParameters: d.typeParameters,
     );
   }
+}
+
+class _DefaultArguments {
+  final String text;
+  final List<int> ranges;
+
+  _DefaultArguments(this.text, this.ranges);
 }
 
 class _Export {
@@ -914,7 +943,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 5;
+  static const int DATA_VERSION = 8;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -1089,6 +1118,8 @@ class _File {
     }
 
     void addDeclaration({
+      String defaultArgumentListString,
+      List<int> defaultArgumentListTextRanges,
       bool isAbstract = false,
       bool isConst = false,
       bool isDeprecated = false,
@@ -1104,32 +1135,37 @@ class _File {
       String returnType,
       String typeParameters,
     }) {
-      if (!Identifier.isPrivateName(name.name)) {
-        var locationOffset = name.offset;
-        var lineLocation = lineInfo.getLocation(locationOffset);
-        fileDeclarations.add(Declaration(
-          docComplete: docComplete,
-          docSummary: docSummary,
-          isAbstract: isAbstract,
-          isConst: isConst,
-          isDeprecated: isDeprecated,
-          isFinal: isFinal,
-          kind: kind,
-          locationOffset: locationOffset,
-          locationPath: path,
-          name: name.name,
-          name2: name2?.name,
-          locationStartColumn: lineLocation.columnNumber,
-          locationStartLine: lineLocation.lineNumber,
-          parameters: parameters,
-          parameterNames: parameterNames,
-          parameterTypes: parameterTypes,
-          relevanceTags: relevanceTags,
-          requiredParameterCount: requiredParameterCount,
-          returnType: returnType,
-          typeParameters: typeParameters,
-        ));
+      if (Identifier.isPrivateName(name.name) ||
+          name2 != null && Identifier.isPrivateName(name2.name)) {
+        return;
       }
+
+      var locationOffset = name.offset;
+      var lineLocation = lineInfo.getLocation(locationOffset);
+      fileDeclarations.add(Declaration(
+        defaultArgumentListString: defaultArgumentListString,
+        defaultArgumentListTextRanges: defaultArgumentListTextRanges,
+        docComplete: docComplete,
+        docSummary: docSummary,
+        isAbstract: isAbstract,
+        isConst: isConst,
+        isDeprecated: isDeprecated,
+        isFinal: isFinal,
+        kind: kind,
+        locationOffset: locationOffset,
+        locationPath: path,
+        name: name.name,
+        name2: name2?.name,
+        locationStartColumn: lineLocation.columnNumber,
+        locationStartLine: lineLocation.lineNumber,
+        parameters: parameters,
+        parameterNames: parameterNames,
+        parameterTypes: parameterTypes,
+        relevanceTags: relevanceTags,
+        requiredParameterCount: requiredParameterCount,
+        returnType: returnType,
+        typeParameters: typeParameters,
+      ));
     }
 
     for (var node in unit.declarations) {
@@ -1187,7 +1223,10 @@ class _File {
                 _getFormalParameterRequiredCount(parameters),
           );
         } else {
+          var defaultArguments = _computeDefaultArguments(parameters);
           addDeclaration(
+            defaultArgumentListString: defaultArguments?.text,
+            defaultArgumentListTextRanges: defaultArguments?.ranges,
             isDeprecated: isDeprecated,
             kind: DeclarationKind.FUNCTION,
             name: node.name,
@@ -1298,6 +1337,39 @@ class _File {
     }).toList();
   }
 
+  static _DefaultArguments _computeDefaultArguments(
+      FormalParameterList parameters) {
+    var buffer = StringBuffer();
+    var ranges = <int>[];
+    for (var parameter in parameters.parameters) {
+      if (parameter.isRequired) {
+        if (buffer.isNotEmpty) {
+          buffer.write(', ');
+        }
+        var valueOffset = buffer.length;
+        buffer.write(parameter.identifier.name);
+        var valueLength = buffer.length - valueOffset;
+        ranges.add(valueOffset);
+        ranges.add(valueLength);
+      } else if (parameter.isNamed && _hasRequiredAnnotation(parameter)) {
+        if (buffer.isNotEmpty) {
+          buffer.write(', ');
+        }
+        buffer.write(parameter.identifier.name);
+        buffer.write(': ');
+
+        var valueOffset = buffer.length;
+        buffer.write('null');
+        var valueLength = buffer.length - valueOffset;
+
+        ranges.add(valueOffset);
+        ranges.add(valueLength);
+      }
+    }
+    if (buffer.isEmpty) return null;
+    return _DefaultArguments(buffer.toString(), ranges);
+  }
+
   static List<String> _getFormalParameterNames(FormalParameterList parameters) {
     if (parameters == null) return const <String>[];
 
@@ -1349,6 +1421,19 @@ class _File {
       var name = annotation.name;
       if (name is SimpleIdentifier) {
         if (name.name == 'deprecated' || name.name == 'Deprecated') {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Return `true` if the [node] probably has `@required` annotation.
+  static bool _hasRequiredAnnotation(FormalParameter node) {
+    for (var annotation in node.metadata) {
+      var name = annotation.name;
+      if (name is SimpleIdentifier) {
+        if (name.name == 'required') {
           return true;
         }
       }

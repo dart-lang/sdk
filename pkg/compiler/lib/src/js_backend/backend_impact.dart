@@ -298,6 +298,15 @@ class BackendImpacts {
     ]);
   }
 
+  BackendImpact _constantSetLiteral;
+
+  BackendImpact get constantSetLiteral =>
+      _constantSetLiteral ??= new BackendImpact(instantiatedClasses: [
+        _commonElements.constSetLiteralClass,
+      ], otherImpacts: [
+        constantMapLiteral
+      ]);
+
   BackendImpact _symbolConstructor;
 
   BackendImpact get symbolConstructor {
@@ -570,6 +579,15 @@ class BackendImpacts {
         ]);
   }
 
+  BackendImpact _setClass;
+
+  BackendImpact get setClass => _setClass ??= new BackendImpact(globalClasses: [
+        // The backend will use a literal list to initialize the entries
+        // of the set.
+        _commonElements.listClass,
+        _commonElements.setLiteralClass,
+      ]);
+
   BackendImpact _boundClosureClass;
 
   BackendImpact get boundClosureClass {
@@ -600,6 +618,16 @@ class BackendImpacts {
       _commonElements.mapLiteralUntypedEmptyMaker
     ]);
   }
+
+  BackendImpact _setLiteralClass;
+
+  BackendImpact get setLiteralClass =>
+      _setLiteralClass ??= new BackendImpact(globalUses: [
+        _commonElements.setLiteralConstructor,
+        _commonElements.setLiteralConstructorEmpty,
+        _commonElements.setLiteralUntypedMaker,
+        _commonElements.setLiteralUntypedEmptyMaker,
+      ]);
 
   BackendImpact _closureClass;
 

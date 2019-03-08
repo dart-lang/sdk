@@ -1,0 +1,13 @@
+diff --git a/DEPS b/DEPS
+index 2af26b012..cd98d79f0 100644
+--- a/DEPS
++++ b/DEPS
+@@ -47,7 +47,7 @@ vars = {
+   'dart_convert_tag': '2.0.2',
+   'dart_crypto_tag': '2.0.6',
+   'dart_csslib_tag': '0.14.4+1',
+-  'dart_dart2js_info_tag': '0.5.15',
++  'dart_dart2js_info_tag': '0.6.0',
+   'dart_dart_style_tag': '1.2.2',
+   'dart_dartdoc_tag': 'v0.28.1+2',
+   'dart_fixnum_tag': '0.10.9',

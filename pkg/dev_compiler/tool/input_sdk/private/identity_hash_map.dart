@@ -55,7 +55,8 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
   }
 
   V operator [](Object key) {
-    return JS('', '#.get(#)', _map, key);
+    V value = JS('', '#.get(#)', _map, key);
+    return value == null ? null : value; // coerce undefined to null.
   }
 
   void operator []=(K key, V value) {
@@ -70,6 +71,7 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
   V putIfAbsent(K key, V ifAbsent()) {
     if (JS('bool', '#.has(#)', _map, key)) return JS('', '#.get(#)', _map, key);
     V value = ifAbsent();
+    if (value == null) value = null; // coerce undefined to null.
     JS('', '#.set(#, #)', _map, key, value);
     _modifications = (_modifications + 1) & 0x3ffffff;
     return value;
@@ -80,7 +82,7 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
     if (JS('bool', '#.delete(#)', _map, key)) {
       _modifications = (_modifications + 1) & 0x3ffffff;
     }
-    return value;
+    return value == null ? null : value; // coerce undefined to null.
   }
 
   void clear() {

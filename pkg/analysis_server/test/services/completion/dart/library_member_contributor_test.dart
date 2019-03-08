@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,8 +26,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('import "dart:async" as bar; foo() {bar.^}');
     await computeSuggestions();
-    CompletionSuggestion cs = assertSuggestClass('Future');
-    expect(cs.elementUri, equals('dart:async'));
+    assertSuggestClass('Future');
     assertNotSuggested('loadLibrary');
   }
 

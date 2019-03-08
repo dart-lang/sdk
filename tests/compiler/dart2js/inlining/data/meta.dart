@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/dart2js.dart';
-
 /*element: main:[]*/
 main() {
   tryInlineOnce();
@@ -16,11 +14,11 @@ main() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _tryInlineOnce:[tryInlineOnce]*/
-@tryInline
+@pragma('dart2js:tryInline')
 _tryInlineOnce() {}
 
 /*element: tryInlineOnce:[]*/
-@noInline
+@pragma('dart2js:noInline')
 tryInlineOnce() {
   _tryInlineOnce();
 }
@@ -30,17 +28,17 @@ tryInlineOnce() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _tryInlineTwice:[tryInlineTwice1,tryInlineTwice2]*/
-@tryInline
+@pragma('dart2js:tryInline')
 _tryInlineTwice() {}
 
 /*element: tryInlineTwice1:[]*/
-@noInline
+@pragma('dart2js:noInline')
 tryInlineTwice1() {
   _tryInlineTwice();
 }
 
 /*element: tryInlineTwice2:[]*/
-@noInline
+@pragma('dart2js:noInline')
 tryInlineTwice2() {
   _tryInlineTwice();
 }

@@ -11,47 +11,45 @@ import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
 
 const String code = r'''
-import 'package:meta/dart2js.dart';
-
 class Class1 {
-  @noInline
+  @pragma('dart2js:noInline')
   method1<T>() {}
 
-  @noInline
+  @pragma('dart2js:noInline')
   method2<T>() => T;
 
-  @noInline
+  @pragma('dart2js:noInline')
   method3<T>() => T;
 
-  @noInline
+  @pragma('dart2js:noInline')
   method4<T>() => T;
 
-  @noInline
+  @pragma('dart2js:noInline')
   method5<T>() => T;
 
-  @noInline
+  @pragma('dart2js:noInline')
   method6<T>() {}
 }
 
 class Class2 {}
 
 class Class3 implements Class1 {
-  @noInline
+  @pragma('dart2js:noInline')
   method1<T>() {}
 
-  @noInline
+  @pragma('dart2js:noInline')
   method2<T>() {}
 
-  @noInline
+  @pragma('dart2js:noInline')
   method3<T>() {}
 
-  @noInline
+  @pragma('dart2js:noInline')
   method4<T>() {}
 
-  @noInline
+  @pragma('dart2js:noInline')
   method5<T>() {}
 
-  @noInline
+  @pragma('dart2js:noInline')
   method6<T>() {}
 }
 

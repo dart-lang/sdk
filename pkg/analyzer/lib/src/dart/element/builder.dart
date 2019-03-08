@@ -1181,10 +1181,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     element.metadata = _createElementAnnotations(node.metadata);
 
     var parent = node.parent;
-    if (parent is ForEachStatement) {
-      var statement = parent;
-      element.setVisibleRange(statement.offset, statement.length);
-    } else if (parent is ForEachPartsWithDeclaration) {
+    if (parent is ForEachPartsWithDeclaration) {
       var statement = parent.parent;
       element.setVisibleRange(statement.offset, statement.length);
     }
@@ -1351,8 +1348,8 @@ class LocalElementBuilder extends _BaseElementBuilder {
       LocalVariableElementImpl element, VariableDeclaration node) {
     AstNode scopeNode;
     AstNode parent2 = node.parent.parent;
-    if (parent2 is ForStatement) {
-      scopeNode = parent2;
+    if (parent2 is ForPartsWithDeclarations) {
+      scopeNode = parent2.parent;
     } else {
       scopeNode = node.thisOrAncestorOfType<Block>();
     }

@@ -5,9 +5,16 @@
 #include "vm/version.h"
 
 #include "vm/cpu.h"
+#include "vm/flags.h"
 #include "vm/os.h"
 
 namespace dart {
+
+DEFINE_FLAG(int,
+            use_abi_version,
+            Version::CurrentAbiVersion(),
+            "ABI version to use. Valid values are "
+            "{{OLDEST_SUPPORTED_ABI_VERSION}} to {{ABI_VERSION}}.");
 
 // TODO(iposva): Avoid racy initialization.
 static const char* formatted_version = NULL;
@@ -27,6 +34,22 @@ const char* Version::SnapshotString() {
 
 const char* Version::CommitString() {
   return commit_;
+}
+
+int Version::TargetAbiVersion() {
+  int ver = FLAG_use_abi_version;
+  if (ver < OldestSupportedAbiVersion() || ver > CurrentAbiVersion()) {
+    ver = CurrentAbiVersion();
+  }
+  return ver;
+}
+
+int Version::CurrentAbiVersion() {
+  return {{ABI_VERSION}};
+}
+
+int Version::OldestSupportedAbiVersion() {
+  return {{OLDEST_SUPPORTED_ABI_VERSION}};
 }
 
 const char* Version::snapshot_hash_ = "{{SNAPSHOT_HASH}}";

@@ -307,9 +307,9 @@ class Object {
   bool IsNew() const { return raw()->IsNewObject(); }
   bool IsOld() const { return raw()->IsOldObject(); }
 #if defined(DEBUG)
-  bool InVMHeap() const;
+  bool IsReadOnly() const;
 #else
-  bool InVMHeap() const { return raw()->IsVMHeapObject(); }
+  bool IsReadOnly() const { return raw()->IsReadOnly(); }
 #endif  // DEBUG
 
   // Print the object on stdout for debugging.
@@ -637,10 +637,7 @@ class Object {
     return -kWordSize;
   }
 
-  static void InitializeObject(uword address,
-                               intptr_t id,
-                               intptr_t size,
-                               bool is_vm_object);
+  static void InitializeObject(uword address, intptr_t id, intptr_t size);
 
   static void RegisterClass(const Class& cls,
                             const String& name,
@@ -2606,7 +2603,10 @@ class Function : public Object {
   }
 
   DART_WARN_UNUSED_RESULT
-  RawError* VerifyEntryPoint() const;
+  RawError* VerifyCallEntryPoint() const;
+
+  DART_WARN_UNUSED_RESULT
+  RawError* VerifyClosurizedEntryPoint() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawFunction));
@@ -2970,7 +2970,13 @@ class RedirectionData : public Object {
   friend class HeapProfiler;
 };
 
-enum class EntryPointPragma { kAlways, kNever, kGetterOnly, kSetterOnly };
+enum class EntryPointPragma {
+  kAlways,
+  kNever,
+  kGetterOnly,
+  kSetterOnly,
+  kCallOnly
+};
 
 class FfiTrampolineData : public Object {
  public:
@@ -3259,9 +3265,11 @@ class Field : public Object {
 
   DART_WARN_UNUSED_RESULT RawError* EvaluateInitializer() const;
 
-  RawFunction* Initializer() const { return raw_ptr()->initializer_; }
-  void SetInitializer(const Function& initializer) const;
-  bool HasInitializer() const;
+  RawFunction* InitializerFunction() const {
+    return raw_ptr()->initializer_function_;
+  }
+  void SetInitializerFunction(const Function& initializer) const;
+  bool HasInitializerFunction() const;
 
   // For static fields only. Constructs a closure that gets/sets the
   // field value.
@@ -3376,6 +3384,8 @@ class Script : public Object {
   RawString* resolved_url() const { return raw_ptr()->resolved_url_; }
   bool HasSource() const;
   RawString* Source() const;
+  bool IsPartOfDartColonLibrary() const;
+
   RawGrowableObjectArray* GenerateLineNumberArray() const;
   RawScript::Kind kind() const {
     return static_cast<RawScript::Kind>(raw_ptr()->kind_);
@@ -3451,6 +3461,11 @@ class Script : public Object {
                         const String& resolved_url,
                         const String& source,
                         RawScript::Kind kind);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void LoadSourceFromKernel(const uint8_t* kernel_buffer,
+                            intptr_t kernel_buffer_len) const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
  private:
   void set_resolved_url(const String& value) const;
@@ -4970,18 +4985,34 @@ class Code : public Object {
   // then a new [ObjectPool] will be attached to the code object as well.
   // Otherwise the caller is responsible for doing this via
   // `Object::set_object_pool()`.
-  static RawCode* FinalizeCode(const Function& function,
-                               FlowGraphCompiler* compiler,
-                               compiler::Assembler* assembler,
-                               PoolAttachment pool_attachment,
-                               bool optimized = false,
-                               CodeStatistics* stats = nullptr);
-  static RawCode* FinalizeCode(const char* name,
-                               FlowGraphCompiler* compiler,
+  static RawCode* FinalizeCode(FlowGraphCompiler* compiler,
                                compiler::Assembler* assembler,
                                PoolAttachment pool_attachment,
                                bool optimized,
-                               CodeStatistics* stats = nullptr);
+                               CodeStatistics* stats);
+
+  // Notifies all active [CodeObserver]s.
+  static void NotifyCodeObservers(const Function& function,
+                                  const Code& code,
+                                  bool optimized);
+  static void NotifyCodeObservers(const char* name,
+                                  const Code& code,
+                                  bool optimized);
+
+  // Calls [FinalizeCode] and also notifies [CodeObserver]s.
+  static RawCode* FinalizeCodeAndNotify(const Function& function,
+                                        FlowGraphCompiler* compiler,
+                                        compiler::Assembler* assembler,
+                                        PoolAttachment pool_attachment,
+                                        bool optimized = false,
+                                        CodeStatistics* stats = nullptr);
+  static RawCode* FinalizeCodeAndNotify(const char* name,
+                                        FlowGraphCompiler* compiler,
+                                        compiler::Assembler* assembler,
+                                        PoolAttachment pool_attachment,
+                                        bool optimized = false,
+                                        CodeStatistics* stats = nullptr);
+
 #endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);
@@ -6512,11 +6543,14 @@ class TypeRef : public AbstractType {
 class TypeParameter : public AbstractType {
  public:
   virtual bool IsFinalized() const {
-    ASSERT(raw_ptr()->type_state_ != RawTypeParameter::kFinalizedInstantiated);
-    return raw_ptr()->type_state_ == RawTypeParameter::kFinalizedUninstantiated;
+    return RawTypeParameter::FinalizedBit::decode(raw_ptr()->flags_);
   }
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const { return false; }
+  bool IsGenericCovariantImpl() const {
+    return RawTypeParameter::GenericCovariantImplBit::decode(raw_ptr()->flags_);
+  }
+  void SetGenericCovariantImpl(bool value) const;
   virtual bool HasTypeClass() const { return false; }
   virtual classid_t type_class_id() const { return kIllegalCid; }
   classid_t parameterized_class_id() const;
@@ -6568,6 +6602,7 @@ class TypeParameter : public AbstractType {
                                intptr_t index,
                                const String& name,
                                const AbstractType& bound,
+                               bool is_generic_covariant_impl,
                                TokenPosition token_pos);
 
  private:
@@ -6578,7 +6613,7 @@ class TypeParameter : public AbstractType {
   void set_parameterized_function(const Function& value) const;
   void set_name(const String& value) const;
   void set_token_pos(TokenPosition token_pos) const;
-  void set_type_state(int8_t state) const;
+  void set_flags(uint8_t flags) const;
 
   static RawTypeParameter* New();
 
@@ -6981,6 +7016,7 @@ class String : public Instance {
   intptr_t CompareTo(const String& other) const;
 
   bool StartsWith(const String& other) const;
+  bool EndsWith(const String& other) const;
 
   // Strings are canonicalized using the symbol table.
   virtual RawInstance* CheckAndCanonicalize(Thread* thread,
@@ -7671,6 +7707,11 @@ class Array : public Instance {
   // 64-bit architecture stay in Smi range when loaded on a 32-bit
   // architecture.
   static const intptr_t kHashBits = 30;
+
+  // Returns `true` if we use card marking for arrays of length [array_length].
+  static bool UseCardMarkingForAllocation(const intptr_t array_length) {
+    return Array::InstanceSize(array_length) > Heap::kNewAllocatableSize;
+  }
 
   intptr_t Length() const { return LengthOf(raw()); }
   static intptr_t LengthOf(const RawArray* array) {
@@ -8458,7 +8499,7 @@ class ByteBuffer : public AllStatic {
 class Pointer : public Instance {
  public:
   static RawPointer* New(const AbstractType& type_arg,
-                         uint8_t* c_memory_address,
+                         const Integer& c_memory_address,
                          intptr_t class_id = kFfiPointerCid,
                          Heap::Space space = Heap::kNew);
 
@@ -8468,20 +8509,17 @@ class Pointer : public Instance {
 
   static bool IsPointer(const Instance& obj);
 
-  uint8_t* GetCMemoryAddress() const {
-    ASSERT(!IsNull());
-    return raw_ptr()->c_memory_address_;
-  }
+  RawInteger* GetCMemoryAddress() const { return raw_ptr()->c_memory_address_; }
 
-  void SetCMemoryAddress(uint8_t* value) const {
-    StoreNonPointer(&raw_ptr()->c_memory_address_, value);
+  void SetCMemoryAddress(const Integer& value) const {
+    StorePointer(&raw_ptr()->c_memory_address_, value.raw());
   }
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawPointer, type_arguments_);
   }
 
-  static intptr_t address_offset() {
+  static intptr_t c_memory_address_offset() {
     return OFFSET_OF(RawPointer, c_memory_address_);
   }
 
@@ -8842,7 +8880,7 @@ class RegExp : public Instance {
   // kSimple: A simple pattern to match against, using string indexOf operation.
   // kComplex: A complex pattern to match.
   enum RegExType {
-    kUnitialized = 0,
+    kUninitialized = 0,
     kSimple = 1,
     kComplex = 2,
   };
@@ -8866,7 +8904,7 @@ class RegExp : public Instance {
   class TypeBits : public BitField<int8_t, RegExType, kTypePos, kTypeSize> {};
   class FlagsBits : public BitField<int8_t, intptr_t, kFlagsPos, kFlagsSize> {};
 
-  bool is_initialized() const { return (type() != kUnitialized); }
+  bool is_initialized() const { return (type() != kUninitialized); }
   bool is_simple() const { return (type() == kSimple); }
   bool is_complex() const { return (type() == kComplex); }
 
@@ -9414,7 +9452,7 @@ EntryPointPragma FindEntryPointPragma(Isolate* I,
                                       Object* reusable_object_handle);
 
 DART_WARN_UNUSED_RESULT
-RawError* EntryPointClosurizationError(const String& getter_name);
+RawError* EntryPointFieldInvocationError(const String& getter_name);
 
 }  // namespace dart
 

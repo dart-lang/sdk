@@ -94,7 +94,7 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
   print('-- ${minified ? 'minified' : 'not-minified'}:');
   D8Result result = await runWithD8(
       memorySourceFiles: {'main.dart': test.code},
-      options: minified ? [Flags.minify] : []);
+      options: minified ? [Flags.minify, Flags.testMode] : [Flags.testMode]);
   String stdout = result.runResult.stdout;
   String error = _extractError(stdout);
   print('   error: $error');

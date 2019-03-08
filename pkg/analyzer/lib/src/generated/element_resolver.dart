@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -414,6 +415,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    resolveMetadata(node);
+    return null;
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     SimpleIdentifier prefixNode = node.prefix;
     if (prefixNode != null) {
@@ -580,13 +587,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
         return;
       }
       if (element == null) {
-        if (identifier.inSetterContext()) {
-          _resolver.errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.UNDEFINED_SETTER,
-              identifier,
-              [identifier.name, prefixElement.name]);
-          return;
-        }
         AstNode parent = node.parent;
         if (parent is Annotation) {
           _resolver.errorReporter.reportErrorForNode(
@@ -595,7 +595,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               [identifier.name]);
         } else {
           _resolver.errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.UNDEFINED_GETTER,
+              StaticTypeWarningCode.UNDEFINED_PREFIXED_NAME,
               identifier,
               [identifier.name, prefixElement.name]);
         }
@@ -1877,8 +1877,13 @@ class SyntheticIdentifier extends IdentifierImpl {
   @override
   int get offset => targetIdentifier.offset;
 
+  @Deprecated('In the next major release, type will change to `Precedence`.  '
+      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => 16;
+  int get precedence => SELECTOR_PRECEDENCE;
+
+  @override
+  Precedence get precedence2 => Precedence.primary;
 
   @deprecated
   @override

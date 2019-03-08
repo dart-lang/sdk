@@ -131,18 +131,23 @@ RawFunction* ObjectStore::PrivateObjectLookup(const String& name) {
 }
 
 void ObjectStore::InitKnownObjects() {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Class& cls = Class::Handle(zone);
+  const Library& collection_lib = Library::Handle(collection_library());
+  cls = collection_lib.LookupClassAllowPrivate(Symbols::_LinkedHashSet());
+  ASSERT(!cls.IsNull());
+  set_linked_hash_set_class(cls);
+
 #ifdef DART_PRECOMPILED_RUNTIME
   // These objects are only needed for code generation.
   return;
 #else
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL && isolate->object_store() == this);
 
   const Library& async_lib = Library::Handle(async_library());
   ASSERT(!async_lib.IsNull());
-  Class& cls = Class::Handle(zone);
   cls = async_lib.LookupClass(Symbols::Future());
   ASSERT(!cls.IsNull());
   set_future_class(cls);

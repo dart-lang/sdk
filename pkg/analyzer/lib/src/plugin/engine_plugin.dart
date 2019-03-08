@@ -9,8 +9,6 @@ import 'package:analyzer/src/plugin/task.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
-import 'package:analyzer/src/task/html.dart';
-import 'package:analyzer/src/task/html_work_manager.dart';
 import 'package:analyzer/src/task/options_work_manager.dart';
 import 'package:plugin/plugin.dart';
 
@@ -141,7 +139,6 @@ class EnginePlugin implements Plugin {
     _registerWorkManagerFactoryExtensions(registerExtension);
     _registerDartErrorsForSource(registerExtension);
     _registerDartErrorsForUnit(registerExtension);
-    _registerHtmlErrors(registerExtension);
   }
 
   void _registerDartErrorsForSource(RegisterExtension registerExtension) {
@@ -154,17 +151,11 @@ class EnginePlugin implements Plugin {
         DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID, LIBRARY_UNIT_ERRORS);
   }
 
-  void _registerHtmlErrors(RegisterExtension registerExtension) {
-    registerExtension(HTML_ERRORS_EXTENSION_POINT_ID, HTML_DOCUMENT_ERRORS);
-  }
-
   void _registerWorkManagerFactoryExtensions(
       RegisterExtension registerExtension) {
     String taskId = WORK_MANAGER_EXTENSION_POINT_ID;
     registerExtension(taskId,
         (InternalAnalysisContext context) => new DartWorkManager(context));
-    registerExtension(taskId,
-        (InternalAnalysisContext context) => new HtmlWorkManager(context));
     registerExtension(taskId,
         (InternalAnalysisContext context) => new OptionsWorkManager(context));
   }

@@ -4,6 +4,8 @@
 
 import 'dart:ffi' as ffi;
 
+import 'dylib_utils.dart';
+
 typedef NativeUnaryOp = ffi.Int32 Function(ffi.Int32);
 typedef NativeBinaryOp = ffi.Int32 Function(ffi.Int32, ffi.Int32);
 typedef UnaryOp = int Function(int);
@@ -93,7 +95,7 @@ main(List<String> arguments) {
   print('start main');
 
   ffi.DynamicLibrary ffiTestFunctions =
-      ffi.DynamicLibrary.open("ffi_test_functions");
+      dlopenPlatformSpecific("ffi_test_functions");
 
   {
     // int32 bin op

@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/analysis/base.dart';
@@ -16,6 +18,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelInferenceTest);
     defineReflectiveTests(TopLevelInferenceErrorsTest);
+    defineReflectiveTests(TopLevelInferenceTestWithSpread);
+    defineReflectiveTests(TopLevelInferenceErrorsTestWithUiAsCode);
 //    defineReflectiveTests(ApplyCheckElementTextReplacements);
   });
 }
@@ -361,6 +365,20 @@ class C implements A, B {
       code += 'var t$i = (a = 1) $operator (a = 2);\n';
     }
     await checkFile(code);
+  }
+}
+
+@reflectiveTest
+class TopLevelInferenceErrorsTestWithUiAsCode
+    extends TopLevelInferenceErrorsTest {
+  @override
+  List<String> get enabledExperiments =>
+      [EnableString.spread_collections, EnableString.control_flow_collections];
+
+  @failingTest
+  @override
+  test_initializer_untypedMap() async {
+    await super.test_initializer_untypedMap();
   }
 }
 
@@ -2627,5 +2645,17 @@ class C extends A implements B {
     newFile(path, content: text);
     UnitElementResult result = await driver.getUnitElement(path);
     return result.element.library;
+  }
+}
+
+@reflectiveTest
+class TopLevelInferenceTestWithSpread extends TopLevelInferenceTest {
+  @override
+  List<String> get enabledExperiments => [EnableString.spread_collections];
+
+  @override
+  @failingTest
+  test_initializer_literal_map_untyped_empty() async {
+    fail('times out.');
   }
 }

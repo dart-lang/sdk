@@ -404,6 +404,8 @@ void testToString() {
   Expect.stringEquals(
       "Pointer<Int16>: address=0x", p.toString().substring(0, 26));
   p.free();
+  ffi.Pointer<ffi.Int64> p2 = ffi.fromAddress(0x123abc);
+  Expect.stringEquals("Pointer<Int64>: address=0x123abc", p2.toString());
 }
 
 void testEquality() {

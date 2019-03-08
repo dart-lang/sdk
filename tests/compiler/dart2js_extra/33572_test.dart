@@ -5,7 +5,6 @@
 // Regression test for issue 32853.
 
 import "package:expect/expect.dart";
-import "package:meta/dart2js.dart" show noInline;
 
 class A {
   final x = null;
@@ -20,7 +19,7 @@ main() {
   test(a2, null, 2);
 }
 
-@noInline
+@pragma('dart2js:noInline')
 test(a, expectedX, expectedY) {
   Expect.equals(expectedX, a.x);
   Expect.equals(expectedY, a.y);

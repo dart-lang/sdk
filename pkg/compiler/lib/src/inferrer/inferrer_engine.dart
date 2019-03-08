@@ -33,6 +33,7 @@ import 'debug.dart' as debug;
 import 'locals_handler.dart';
 import 'list_tracer.dart';
 import 'map_tracer.dart';
+import 'set_tracer.dart';
 import 'type_graph_dump.dart';
 import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
@@ -78,6 +79,7 @@ abstract class InferrerEngine {
 
   void analyze(MemberEntity member);
   void analyzeListAndEnqueue(ListTypeInformation info);
+  void analyzeSetAndEnqueue(SetTypeInformation info);
   void analyzeMapAndEnqueue(MapTypeInformation info);
 
   /// Notifies to the inferrer that [analyzedElement] can have return type
@@ -441,6 +443,23 @@ class InferrerEngineImpl extends InferrerEngine {
     workQueue.add(info.elementType);
   }
 
+  void analyzeSetAndEnqueue(SetTypeInformation info) {
+    if (info.analyzed) return;
+    info.analyzed = true;
+
+    SetTracerVisitor tracer = new SetTracerVisitor(info, this);
+    bool succeeded = tracer.run();
+    if (!succeeded) return;
+
+    info.bailedOut = false;
+    info.elementType.inferred = true;
+
+    tracer.assignments.forEach(info.elementType.addAssignment);
+    // Enqueue the set for later refinement.
+    workQueue.add(info);
+    workQueue.add(info.elementType);
+  }
+
   void analyzeMapAndEnqueue(MapTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
@@ -478,6 +497,11 @@ class InferrerEngineImpl extends InferrerEngine {
     // Try to infer element types of lists and compute their escape information.
     types.allocatedLists.values.forEach((TypeInformation info) {
       analyzeListAndEnqueue(info);
+    });
+
+    // Try to infer element types of sets and compute their escape information.
+    types.allocatedSets.values.forEach((TypeInformation info) {
+      analyzeSetAndEnqueue(info);
     });
 
     // Try to infer the key and value types for maps and compute the values'
@@ -585,6 +609,13 @@ class InferrerEngineImpl extends InferrerEngine {
         print('${info.type} '
             'for ${abstractValueDomain.getAllocationNode(info.originalType)} '
             'at ${abstractValueDomain.getAllocationElement(info.originalType)}'
+            'after ${info.refineCount}');
+      });
+      types.allocatedSets.values.forEach((_info) {
+        SetTypeInformation info = _info;
+        print('${info.type} '
+            'for ${abstractValueDomain.getAllocationNode(info.originalType)} '
+            'at ${abstractValueDomain.getAllocationElement(info.originalType)} '
             'after ${info.refineCount}');
       });
       types.allocatedMaps.values.forEach((_info) {
@@ -806,7 +837,7 @@ class InferrerEngineImpl extends InferrerEngine {
   /// Returns the [ConstantValue] for the initial value of [field], or
   /// `null` if the initializer is not a constant value.
   ConstantValue getFieldConstant(FieldEntity field) {
-    return closedWorld.elementMap.getFieldConstantValue(field);
+    return closedWorld.fieldAnalysis.getFieldData(field).initialValue;
   }
 
   /// Returns `true` if [cls] has a 'call' method.
@@ -1176,6 +1207,7 @@ class InferrerEngineImpl extends InferrerEngine {
     generativeConstructorsExposingThis.clear();
 
     types.allocatedMaps.values.forEach(cleanup);
+    types.allocatedSets.values.forEach(cleanup);
     types.allocatedLists.values.forEach(cleanup);
 
     _memberData.clear();
@@ -1259,6 +1291,9 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
 
   @override
   bool checkMapNode(ir.Node node) => true;
+
+  @override
+  bool checkSetNode(ir.Node node) => true;
 
   @override
   bool checkListNode(ir.Node node) => true;

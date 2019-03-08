@@ -346,9 +346,10 @@ class LocalsHandler {
       AbstractValue type = local is BoxLocal
           ? _abstractValueDomain.nonNullType
           : getTypeOfCapturedVariable(redirect);
-      HInstruction fieldGet = new HFieldGet(redirect, receiver, type);
+      HInstruction fieldGet =
+          new HFieldGet(redirect, receiver, type, sourceInformation);
       builder.add(fieldGet);
-      return fieldGet..sourceInformation = sourceInformation;
+      return fieldGet;
     } else if (isBoxed(local)) {
       FieldEntity redirect = redirectionMapping[local];
       BoxLocal localBox;
@@ -363,10 +364,10 @@ class LocalsHandler {
       assert(localBox != null);
 
       HInstruction box = readLocal(localBox);
-      HInstruction lookup =
-          new HFieldGet(redirect, box, getTypeOfCapturedVariable(redirect));
+      HInstruction lookup = new HFieldGet(redirect, box,
+          getTypeOfCapturedVariable(redirect), sourceInformation);
       builder.add(lookup);
-      return lookup..sourceInformation = sourceInformation;
+      return lookup;
     } else {
       assert(_isUsedInTryOrGenerator(local));
       HLocalValue localValue = getLocal(local);

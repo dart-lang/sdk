@@ -2975,6 +2975,34 @@ const MessageCode messageExpectedUri =
     const MessageCode("ExpectedUri", message: r"""Expected a URI.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateExperimentNotEnabled = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""This requires the --#string experiment to be enabled.""",
+    tipTemplate:
+        r"""Try enabling this experiment by adding it to the command line when compiling and running.""",
+    withArguments: _withArgumentsExperimentNotEnabled);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeExperimentNotEnabled =
+    const Code<Message Function(String string)>(
+        "ExperimentNotEnabled", templateExperimentNotEnabled,
+        index: 93);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentNotEnabled(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentNotEnabled,
+      message: """This requires the --${string} experiment to be enabled.""",
+      tip:
+          """Try enabling this experiment by adding it to the command line when compiling and running.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExportAfterPart = messageExportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3285,6 +3313,9 @@ const MessageCode messageFastaUsageLong =
 
   --target=dart2js|dart2js_server|dart_runner|flutter|flutter_runner|none|vm
     Specify the target configuration.
+
+  --enable-asserts
+    Check asserts in initializers during constant evaluation.
 
   --verify
     Check that the generated output is free of various problems. This is mostly
@@ -8191,6 +8222,68 @@ ${num3} ms/compilation unit.""",
         'num2': _num2,
         'num3': _num3
       });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateSpreadElementTypeMismatch = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""Can't assign spread elements of type '#type' to collection elements of type '#type2'.""",
+    withArguments: _withArgumentsSpreadElementTypeMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeSpreadElementTypeMismatch =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "SpreadElementTypeMismatch", templateSpreadElementTypeMismatch,
+        analyzerCodes: <String>["LIST_ELEMENT_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadElementTypeMismatch(
+    DartType _type, DartType _type2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeSpreadElementTypeMismatch,
+      message:
+          """Can't assign spread elements of type '${type}' to collection elements of type '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType
+            _type)> templateSpreadTypeMismatch = const Template<
+        Message Function(DartType _type)>(
+    messageTemplate:
+        r"""Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable.""",
+    withArguments: _withArgumentsSpreadTypeMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)> codeSpreadTypeMismatch =
+    const Code<Message Function(DartType _type)>(
+  "SpreadTypeMismatch",
+  templateSpreadTypeMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadTypeMismatch(DartType _type) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeSpreadTypeMismatch,
+      message:
+          """Unexpected type '${type}' of a spread.  Expected 'dynamic' or an Iterable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

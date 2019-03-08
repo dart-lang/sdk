@@ -94,6 +94,22 @@ Future<String> loadLog(String id, String step) async {
   return contents;
 }
 
+/// TODO(https://github.com/dart-lang/sdk/issues/36015): The step name changed
+/// incompatibly, allow both temporarily to reduce the user breakage. Remove
+/// this 2019-03-25.
+Future<String> todoFallbackLoadLog(
+    String id, String primary, String secondary) async {
+  try {
+    return await loadLog(id, primary);
+  } catch (e) {
+    if (e.toString().startsWith("Exception: The log at ") &&
+        e.toString().endsWith(" doesn't exist")) {
+      return await loadLog(id, secondary);
+    }
+    rethrow;
+  }
+}
+
 /// Loads the results from the bot.
 Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
     Map<String, dynamic> changelistBuild) async {
@@ -106,8 +122,14 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
     // The 'latest' file contains the name of the latest build that we
     // should download. When preapproving a changelist, we instead find out
     // which build the commit queue was rebased on.
+    /// TODO(https://github.com/dart-lang/sdk/issues/36015): The step name
+    /// changed incompatibly, allow both temporarily to reduce the user
+    /// breakage. Remove this 2019-03-25.
     final build = (changelistBuild != null
-            ? await loadLog(changelistBuild["id"],
+            ? await todoFallbackLoadLog(
+                changelistBuild["id"],
+                "download_previous_results/0/steps/gsutil_find_latest_build/0/logs/"
+                "raw_io.output_text_latest_/0",
                 "gsutil_find_latest_build/0/logs/raw_io.output_text_latest_/0")
             : await readFile(bot, "latest"))
         .trim();
@@ -268,6 +290,8 @@ main(List<String> args) async {
 Usage: approve_results.dart [OPTION]...
 List tests whose results are different from the previously approved results, and
 ask whether to update the currently approved results, turning the bots green.
+
+See the documentation at https://goto.google.com/dart-status-file-free-workflow
 
 The options are as follows:
 

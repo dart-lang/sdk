@@ -18,7 +18,6 @@ import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
-import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/new_notifications.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
@@ -62,8 +61,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
@@ -295,15 +292,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     analysisDriverScheduler.notify(null);
   }
 
-  /// Notify the declarations tracker that the file with the given [path] was
-  /// changed - added, updated, or removed.  Schedule processing of the file.
-  void notifyDeclarationsTracker(String path) {
-    if (declarationsTracker != null) {
-      declarationsTracker.changeFile(path);
-      analysisDriverScheduler.notify(null);
-    }
-  }
-
   void disposeDeclarationsTracker() {
     declarationsTracker = null;
     analysisDriverScheduler.outOfBandWorker = null;
@@ -396,6 +384,15 @@ class AnalysisServer extends AbstractAnalysisServer {
   bool isValidFilePath(String path) {
     return resourceProvider.pathContext.isAbsolute(path) &&
         resourceProvider.pathContext.normalize(path) == path;
+  }
+
+  /// Notify the declarations tracker that the file with the given [path] was
+  /// changed - added, updated, or removed.  Schedule processing of the file.
+  void notifyDeclarationsTracker(String path) {
+    if (declarationsTracker != null) {
+      declarationsTracker.changeFile(path);
+      analysisDriverScheduler.notify(null);
+    }
   }
 
   /// Read all files, resolve all URIs, and perform required analysis in
@@ -605,9 +602,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       });
     }
 
-    if (options.enableUXExperiment2) {
-      detachableFileSystemManager?.dispose();
-    }
+    detachableFileSystemManager?.dispose();
 
     // Defer closing the channel and shutting down the instrumentation server so
     // that the shutdown response can be sent and logged.
@@ -777,15 +772,6 @@ class AnalysisServerOptions {
 
   /// Whether to enable parsing via the Fasta parser.
   bool useFastaParser = true;
-
-  /// User Experience, Experiment #1. This experiment changes the notion of
-  /// what analysis roots are and priority files: the analysis root is set to be
-  /// the priority files' containing directory.
-  bool enableUXExperiment1 = false;
-
-  /// User Experience, Experiment #2. This experiment introduces the notion of
-  /// an intermittent file system.
-  bool enableUXExperiment2 = false;
 }
 
 class ServerContextManagerCallbacks extends ContextManagerCallbacks {
@@ -898,12 +884,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.OUTLINE, path)) {
           _runDelayed(() {
-            SourceKind sourceKind =
-                unit.directives.any((d) => d is PartOfDirective)
-                    ? SourceKind.PART
-                    : SourceKind.LIBRARY;
-            sendAnalysisNotificationOutline(
-                analysisServer, path, result.lineInfo, sourceKind, unit);
+            sendAnalysisNotificationOutline(analysisServer, result);
           });
         }
         if (analysisServer._hasAnalysisServiceSubscription(
@@ -915,8 +896,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         if (analysisServer._hasFlutterServiceSubscription(
             FlutterService.OUTLINE, path)) {
           _runDelayed(() {
-            sendFlutterNotificationOutline(analysisServer, path, result.content,
-                result.lineInfo, unit, result.typeProvider);
+            sendFlutterNotificationOutline(analysisServer, result);
           });
         }
         // TODO(scheglov) Implement notifications for AnalysisService.IMPLEMENTED.
@@ -1014,20 +994,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     }
   }
 
-  String _computeLibraryName(CompilationUnit unit) {
-    for (Directive directive in unit.directives) {
-      if (directive is LibraryDirective && directive.name != null) {
-        return directive.name.name;
-      }
-    }
-    for (Directive directive in unit.directives) {
-      if (directive is PartOfDirective && directive.libraryName != null) {
-        return directive.libraryName.name;
-      }
-    }
-    return null;
-  }
-
   server.AnalysisNavigationParams _computeNavigationParams(
       String path, CompilationUnit unit) {
     NavigationCollectorImpl collector = new NavigationCollectorImpl();
@@ -1041,29 +1007,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     OccurrencesCollectorImpl collector = new OccurrencesCollectorImpl();
     addDartOccurrences(collector, unit);
     return collector.allOccurrences;
-  }
-
-  // ignore: unused_element
-  server.AnalysisOutlineParams _computeOutlineParams(
-      String path, CompilationUnit unit, LineInfo lineInfo) {
-    // compute FileKind
-    SourceKind sourceKind = unit.directives.any((d) => d is PartOfDirective)
-        ? SourceKind.PART
-        : SourceKind.LIBRARY;
-    server.FileKind fileKind = server.FileKind.LIBRARY;
-    if (sourceKind == SourceKind.LIBRARY) {
-      fileKind = server.FileKind.LIBRARY;
-    } else if (sourceKind == SourceKind.PART) {
-      fileKind = server.FileKind.PART;
-    }
-    // compute library name
-    String libraryName = _computeLibraryName(unit);
-    // compute Outline
-    DartUnitOutlineComputer computer =
-        new DartUnitOutlineComputer(path, lineInfo, unit);
-    server.Outline outline = computer.compute();
-    return new server.AnalysisOutlineParams(path, fileKind, outline,
-        libraryName: libraryName);
   }
 
   /// Run [f] in a new [Future].

@@ -60,8 +60,13 @@ Component transformComponent(
       matcher: matcher);
 
   Procedure main = component.mainMethod;
-  final Selector mainSelector = new DirectSelector(main);
-  typeFlowAnalysis.addRawCall(mainSelector);
+
+  // `main` can be null, roots can also come from @pragma("vm:entry-point").
+  if (main != null) {
+    final Selector mainSelector = new DirectSelector(main);
+    typeFlowAnalysis.addRawCall(mainSelector);
+  }
+
   typeFlowAnalysis.process();
 
   analysisStopWatch.stop();

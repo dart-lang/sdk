@@ -121,7 +121,7 @@ class RawObject {
     kOldBit = 3,                  // Incremental barrier source.
     kOldAndNotRememberedBit = 4,  // Generational barrier source.
     kCanonicalBit = 5,
-    kVMHeapObjectBit = 6,
+    kReadOnlyBit = 6,
     kGraphMarkedBit = 7,  // ObjectGraph needs to mark through new space.
 
     kSizeTagPos = 8,
@@ -190,13 +190,11 @@ class RawObject {
 
   class NewBit : public BitField<uint32_t, bool, kNewBit, 1> {};
 
-  class CanonicalObjectTag : public BitField<uint32_t, bool, kCanonicalBit, 1> {
-  };
+  class CanonicalBit : public BitField<uint32_t, bool, kCanonicalBit, 1> {};
 
   class GraphMarkedBit : public BitField<uint32_t, bool, kGraphMarkedBit, 1> {};
 
-  class VMHeapObjectTag : public BitField<uint32_t, bool, kVMHeapObjectBit, 1> {
-  };
+  class ReadOnlyBit : public BitField<uint32_t, bool, kReadOnlyBit, 1> {};
 
   class OldBit : public BitField<uint32_t, bool, kOldBit, 1> {};
 
@@ -250,7 +248,8 @@ class RawObject {
     return (addr & kObjectAlignmentMask) != kOldObjectBits;
   }
 
-  // Support for GC marking bit.
+  // Support for GC marking bit. Marked objects are either grey (not yet
+  // visited) or black (already visited).
   bool IsMarked() const {
     ASSERT(IsOldObject());
     return !OldAndNotMarkedBit::decode(ptr()->tags_);
@@ -278,25 +277,33 @@ class RawObject {
     return TryClearTagBit<OldAndNotMarkedBit>();
   }
 
-  // Support for object tags.
-  bool IsCanonical() const { return CanonicalObjectTag::decode(ptr()->tags_); }
-  void SetCanonical() { UpdateTagBit<CanonicalObjectTag>(true); }
-  void ClearCanonical() { UpdateTagBit<CanonicalObjectTag>(false); }
-  bool IsVMHeapObject() const { return VMHeapObjectTag::decode(ptr()->tags_); }
-  void SetVMHeapObject() { UpdateTagBit<VMHeapObjectTag>(true); }
+  // Canonical objects have the property that two canonical objects are
+  // logically equal iff they are the same object (pointer equal).
+  bool IsCanonical() const { return CanonicalBit::decode(ptr()->tags_); }
+  void SetCanonical() { UpdateTagBit<CanonicalBit>(true); }
+  void ClearCanonical() { UpdateTagBit<CanonicalBit>(false); }
 
-  // Support for ObjectGraph marking bit.
+  // Objects in the VM-isolate's heap or on an image page from an AppJIT or
+  // AppAOT snapshot are permanently read-only. They may never be modified
+  // again. In particular, they cannot be marked.
+  bool IsReadOnly() const { return ReadOnlyBit::decode(ptr()->tags_); }
+  void SetReadOnlyUnsynchronized() {
+    ptr()->tags_ = ReadOnlyBit::update(true, ptr()->tags_);
+  }
+
+  // Support for ObjectGraph marking bit, used by various tools provided by the
+  // VM-service.
   bool IsGraphMarked() const {
-    if (IsVMHeapObject()) return true;
+    if (IsReadOnly()) return true;
     return GraphMarkedBit::decode(ptr()->tags_);
   }
   void SetGraphMarked() {
-    ASSERT(!IsVMHeapObject());
+    ASSERT(!IsReadOnly());
     uint32_t tags = ptr()->tags_;
     ptr()->tags_ = GraphMarkedBit::update(true, tags);
   }
   void ClearGraphMarked() {
-    ASSERT(!IsVMHeapObject());
+    ASSERT(!IsReadOnly());
     uint32_t tags = ptr()->tags_;
     ptr()->tags_ = GraphMarkedBit::update(false, tags);
   }
@@ -314,6 +321,13 @@ class RawObject {
   void ClearRememberedBit() {
     ASSERT(IsOldObject());
     UpdateTagBit<OldAndNotRememberedBit>(true);
+  }
+
+  DART_FORCE_INLINE
+  void AddToRememberedSet(Thread* thread) {
+    ASSERT(!this->IsRemembered());
+    this->SetRememberedBit();
+    thread->StoreBufferAddObject(this);
   }
 
   bool IsCardRemembered() const {
@@ -456,12 +470,10 @@ class RawObject {
     return reinterpret_cast<uword>(raw_obj->ptr());
   }
 
-  static bool IsVMHeapObject(intptr_t value) {
-    return VMHeapObjectTag::decode(value);
-  }
+  static bool IsReadOnly(intptr_t value) { return ReadOnlyBit::decode(value); }
 
   static bool IsCanonical(intptr_t value) {
-    return CanonicalObjectTag::decode(value);
+    return CanonicalBit::decode(value);
   }
 
   // Class Id predicates.
@@ -578,9 +590,7 @@ class RawObject {
       if (value->IsNewObject()) {
         // Generational barrier: record when a store creates an
         // old-and-not-remembered -> new reference.
-        ASSERT(!this->IsRemembered());
-        this->SetRememberedBit();
-        thread->StoreBufferAddObject(this);
+        AddToRememberedSet(thread);
       } else {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
@@ -907,7 +917,8 @@ class RawFunction : public RawObject {
   RawArray* parameter_types_;
   RawArray* parameter_names_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
-  RawObject* data_;  // Additional data specific to the function kind.
+  RawObject* data_;  // Additional data specific to the function kind. See
+                     // Function::set_data() for details.
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
@@ -1040,7 +1051,7 @@ class RawField : public RawObject {
     RawInstance* static_value_;  // Value for static fields.
     RawSmi* offset_;             // Offset in words for instance fields.
   } value_;
-  RawFunction* initializer_;  // Static initializer function.
+  RawFunction* initializer_function_;  // Static initializer function.
   // When generating APPJIT snapshots after running the application it is
   // necessary to save the initial value of static fields so that we can
   // restore the value back to the original initial value.
@@ -1056,7 +1067,7 @@ class RawField : public RawObject {
       case Snapshot::kFullJIT:
         return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->initializer_);
+        return reinterpret_cast<RawObject**>(&ptr()->initializer_function_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1912,6 +1923,15 @@ class RawTypeRef : public RawAbstractType {
 };
 
 class RawTypeParameter : public RawAbstractType {
+ public:
+  enum {
+    kFinalizedBit = 0,
+    kGenericCovariantImplBit,
+  };
+  class FinalizedBit : public BitField<uint8_t, bool, kFinalizedBit, 1> {};
+  class GenericCovariantImplBit
+      : public BitField<uint8_t, bool, kGenericCovariantImplBit, 1> {};
+
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
@@ -1924,7 +1944,7 @@ class RawTypeParameter : public RawAbstractType {
   classid_t parameterized_class_id_;
   TokenPosition token_pos_;
   int16_t index_;
-  int8_t type_state_;
+  uint8_t flags_;
 
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
@@ -2243,8 +2263,8 @@ class RawPointer : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
   VISIT_FROM(RawCompressed, type_arguments_)
   RawTypeArguments* type_arguments_;
-  VISIT_TO(RawCompressed, type_arguments_)
-  uint8_t* c_memory_address_;
+  RawInteger* c_memory_address_;
+  VISIT_TO(RawCompressed, c_memory_address_)
 
   friend class Pointer;
 };

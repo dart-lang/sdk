@@ -36,6 +36,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/dart/constant/constant_verifier.dart';
@@ -764,6 +765,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         if (!element.displayName.isEmpty) {
           displayName = "$displayName.${element.displayName}";
         }
+      } else if (element is LibraryElement) {
+        displayName = element.definingCompilationUnit.source.uri.toString();
       } else if (displayName == FunctionElement.CALL_METHOD_NAME &&
           node is MethodInvocation &&
           node.staticInvokeType is InterfaceType) {
@@ -1130,6 +1133,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     // NULL_AWARE_IN_CONDITION
     if (parent is IfStatement && parent.condition == childOfParent ||
+        parent is ForPartsWithDeclarations &&
+            parent.condition == childOfParent ||
+        // ignore: deprecated_member_use_from_same_package
         parent is ForStatement && parent.condition == childOfParent ||
         parent is DoStatement && parent.condition == childOfParent ||
         parent is WhileStatement && parent.condition == childOfParent ||
@@ -1472,17 +1478,32 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// The object used to track the usage of labels within a given label scope.
   _LabelTracker labelTracker;
 
+  /// Is `true` if this unit has been parsed as non-nullable.
+  final bool _isNonNullableUnit;
+
   /// Initialize a newly created dead code verifier that will report dead code
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
-  DeadCodeVerifier(this._errorReporter, {TypeSystem typeSystem})
+  DeadCodeVerifier(this._errorReporter, this._isNonNullableUnit,
+      {TypeSystem typeSystem})
       : this._typeSystem = typeSystem ?? new Dart2TypeSystem(null);
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    TokenType operatorType = node.operator.type;
+    if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
+      _checkForDeadNullCoalesce(
+          node.leftHandSide.staticType, node.rightHandSide);
+    }
+    super.visitAssignmentExpression(node);
+  }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
     Token operator = node.operator;
     bool isAmpAmp = operator.type == TokenType.AMPERSAND_AMPERSAND;
     bool isBarBar = operator.type == TokenType.BAR_BAR;
+    bool isQuestionQuestion = operator.type == TokenType.QUESTION_QUESTION;
     if (isAmpAmp || isBarBar) {
       Expression lhsCondition = node.leftOperand;
       if (!_isDebugConstant(lhsCondition)) {
@@ -1525,6 +1546,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 //                return null;
 //              }
 //            }
+    } else if (isQuestionQuestion && _isNonNullableUnit) {
+      _checkForDeadNullCoalesce(node.leftOperand.staticType, node.rightOperand);
     }
     super.visitBinaryExpression(node);
   }
@@ -1811,6 +1834,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
+    if (lhsType.nullability == Nullability.nonNullable) {
+      _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, rhs, []);
+    }
+  }
+
   /// Given some list of [statements], loop through the list searching for dead
   /// statements. If [allowMandated] is true, then allow dead statements that
   /// are mandated by the language spec. This allows for a final break,
@@ -1862,6 +1891,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
             new DartObjectImpl(null, BoolState.from(false)));
       }
     }
+
     // Don't consider situations where we could evaluate to a constant boolean
     // expression with the ConstantVisitor
     // else {
@@ -4298,6 +4328,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  @deprecated
   void visitForEachStatementInScope(ForEachStatement node) {
     Expression iterable = node.iterable;
     DeclaredIdentifier loopVariable = node.loopVariable;
@@ -4454,6 +4485,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  @deprecated
   void visitForStatementInScope(ForStatement node) {
     node.variables?.accept(this);
     node.initialization?.accept(this);
@@ -4636,22 +4668,26 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    InterfaceType listT;
+    InterfaceType listType;
 
-    if (node.typeArguments != null) {
-      var targs = node.typeArguments.arguments.map((t) => t.type).toList();
-      if (targs.length == 1 && !targs[0].isDynamic) {
-        listT = typeProvider.listType.instantiate([targs[0]]);
+    TypeArgumentList typeArguments = node.typeArguments;
+    if (typeArguments != null) {
+      if (typeArguments.arguments.length == 1) {
+        DartType elementType = typeArguments.arguments[0].type;
+        if (!elementType.isDynamic) {
+          listType = typeProvider.listType.instantiate([elementType]);
+        }
       }
     } else {
-      listT = typeAnalyzer.inferListType(node, downwards: true);
+      listType = typeAnalyzer.inferListType(node, downwards: true);
     }
-    if (listT != null) {
-      DartType eType = listT.typeArguments[0];
-      for (Expression child in node.elements) {
-        InferenceContext.setType(child, eType);
-      }
-      InferenceContext.setType(node, listT);
+    if (listType != null) {
+      DartType elementType = listType.typeArguments[0];
+      DartType iterableType =
+          typeProvider.iterableType.instantiate([elementType]);
+      _pushCollectionTypesDownToAll(node.elements2,
+          elementType: elementType, iterableType: iterableType);
+      InferenceContext.setType(node, listType);
     } else {
       InferenceContext.clearType(node);
     }
@@ -4659,29 +4695,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitListLiteral2(ListLiteral2 node) {
-    InterfaceType listT;
-
-    if (node.typeArguments != null) {
-      var targs = node.typeArguments.arguments.map((t) => t.type).toList();
-      if (targs.length == 1 && !targs[0].isDynamic) {
-        listT = typeProvider.listType.instantiate([targs[0]]);
-      }
-    } else {
-      listT = typeAnalyzer.inferListType2(node, downwards: true);
-    }
-    if (listT != null) {
-      for (CollectionElement element in node.elements) {
-        _pushCollectionTypesDown(element, listT);
-      }
-      InferenceContext.setType(node, listT);
-    } else {
-      InferenceContext.clearType(node);
-    }
-    super.visitListLiteral2(node);
-  }
-
-  @override
+  @deprecated
   void visitMapLiteral(MapLiteral node) {
     InterfaceType mapT;
     if (node.typeArguments != null) {
@@ -4712,55 +4726,7 @@ class ResolverVisitor extends ScopedVisitor {
     } else {
       InferenceContext.clearType(node);
     }
-    super.visitMapLiteral(node);
-  }
-
-  @override
-  void visitMapLiteral2(MapLiteral2 node) {
-    InterfaceType mapT;
-    if (node.typeArguments != null) {
-      var targs = node.typeArguments.arguments.map((t) => t.type).toList();
-      if (targs.length == 2 && targs.any((t) => !t.isDynamic)) {
-        mapT = typeProvider.mapType.instantiate([targs[0], targs[1]]);
-      }
-    } else {
-      mapT = typeAnalyzer.inferMapType2(node, downwards: true);
-      if (mapT != null &&
-          node.typeArguments == null &&
-          node.entries.isEmpty &&
-          typeSystem.isAssignableTo(typeProvider.iterableObjectType, mapT) &&
-          !typeSystem.isAssignableTo(typeProvider.mapObjectObjectType, mapT)) {
-        // The node is really an empty set literal with no type arguments, so
-        // don't try to visit the replaced map literal.
-        return;
-      }
-    }
-    if (mapT != null) {
-      DartType kType = mapT.typeArguments[0];
-      DartType vType = mapT.typeArguments[1];
-
-      void pushTypesDown(CollectionElement element) {
-        if (element is ForElement) {
-          pushTypesDown(element.body);
-        } else if (element is IfElement) {
-          pushTypesDown(element.thenElement);
-          pushTypesDown(element.elseElement);
-        } else if (element is MapLiteralEntry) {
-          InferenceContext.setType(element.key, kType);
-          InferenceContext.setType(element.value, vType);
-        } else if (element is SpreadElement) {
-          InferenceContext.setType(element.expression, mapT);
-        }
-      }
-
-      for (CollectionElement element in node.entries) {
-        pushTypesDown(element);
-      }
-      InferenceContext.setType(node, mapT);
-    } else {
-      InferenceContext.clearType(node);
-    }
-    super.visitMapLiteral2(node);
+    visitNode(node);
   }
 
   @override
@@ -4897,6 +4863,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  @deprecated
   void visitSetLiteral(SetLiteral node) {
     InterfaceType setT;
 
@@ -4920,33 +4887,33 @@ class ResolverVisitor extends ScopedVisitor {
     } else {
       InferenceContext.clearType(node);
     }
-    super.visitSetLiteral(node);
+    visitNode(node);
   }
 
   @override
-  void visitSetLiteral2(SetLiteral2 node) {
-    InterfaceType setT;
-
-    TypeArgumentList typeArguments = node.typeArguments;
-    if (typeArguments != null) {
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    DartType literalType = _computeContextType(node);
+    // TODO(brianwilkerson) Determine whether we need special handling for type
+    // parameter types. (E-mail sent.)
+    if (literalType is InterfaceType) {
+      List<DartType> typeArguments = literalType.typeArguments;
       if (typeArguments.length == 1) {
-        DartType elementType = typeArguments.arguments[0].type;
-        if (!elementType.isDynamic) {
-          setT = typeProvider.setType.instantiate([elementType]);
-        }
+        DartType elementType = literalType.typeArguments[0];
+        DartType iterableType =
+            typeProvider.iterableType.instantiate([elementType]);
+        _pushCollectionTypesDownToAll(node.elements2,
+            elementType: elementType, iterableType: iterableType);
+      } else if (typeArguments.length == 2) {
+        DartType keyType = typeArguments[0];
+        DartType valueType = typeArguments[1];
+        _pushCollectionTypesDownToAll(node.elements2,
+            iterableType: literalType, keyType: keyType, valueType: valueType);
       }
-    } else {
-      setT = typeAnalyzer.inferSetType2(node, downwards: true);
-    }
-    if (setT != null) {
-      for (CollectionElement element in node.elements) {
-        _pushCollectionTypesDown(element, setT);
-      }
-      InferenceContext.setType(node, setT);
+      InferenceContext.setType(node, literalType);
     } else {
       InferenceContext.clearType(node);
     }
-    super.visitSetLiteral2(node);
+    super.visitSetOrMapLiteral(node);
   }
 
   @override
@@ -5109,6 +5076,59 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
+  /// Compute the context type for the given set or map [literal].
+  DartType _computeContextType(SetOrMapLiteral literal) {
+    _LiteralResolution typeArgumentsResolution =
+        _fromTypeArguments(literal.typeArguments);
+    DartType contextType = InferenceContext.getContext(literal);
+    _LiteralResolution contextResolution = _fromContextType(contextType);
+    _LeafElements elementCounts = new _LeafElements(literal.elements2);
+    _LiteralResolution elementResolution = elementCounts.resolution;
+
+    List<_LiteralResolution> unambiguousResolutions = [];
+    Set<_LiteralResolutionKind> kinds = new Set<_LiteralResolutionKind>();
+    if (typeArgumentsResolution.kind != _LiteralResolutionKind.ambiguous) {
+      unambiguousResolutions.add(typeArgumentsResolution);
+      kinds.add(typeArgumentsResolution.kind);
+    }
+    if (contextResolution.kind != _LiteralResolutionKind.ambiguous) {
+      unambiguousResolutions.add(contextResolution);
+      kinds.add(contextResolution.kind);
+    }
+    if (elementResolution.kind != _LiteralResolutionKind.ambiguous) {
+      unambiguousResolutions.add(elementResolution);
+      kinds.add(elementResolution.kind);
+    }
+
+    if (kinds.length == 2) {
+      // It looks like it needs to be both a map and a set. Attempt to recover.
+      if (elementResolution.kind == _LiteralResolutionKind.ambiguous &&
+          elementResolution.contextType != null) {
+        return elementResolution.contextType;
+      } else if (typeArgumentsResolution.kind !=
+              _LiteralResolutionKind.ambiguous &&
+          typeArgumentsResolution.contextType != null) {
+        return typeArgumentsResolution.contextType;
+      } else if (contextResolution.kind != _LiteralResolutionKind.ambiguous &&
+          contextResolution.contextType != null) {
+        return contextResolution.contextType;
+      }
+    } else if (unambiguousResolutions.length >= 2) {
+      // If there are three resolutions, the last resolution is guaranteed to be
+      // from the elements, which always has a context type of `null` (when it
+      // is not ambiguous). So, whether there are 2 or 3 resolutions only the
+      // first two are potentially interesting.
+      return unambiguousResolutions[0].contextType ??
+          unambiguousResolutions[1].contextType;
+    } else if (unambiguousResolutions.length == 1) {
+      return unambiguousResolutions[0].contextType;
+    } else if (literal.elements2.isEmpty) {
+      return typeProvider.mapType
+          .instantiate([typeProvider.dynamicType, typeProvider.dynamicType]);
+    }
+    return null;
+  }
+
   /// Given the declared return type of a function, compute the type of the
   /// values which should be returned or yielded as appropriate.  If a type
   /// cannot be computed from the declared return type, return null.
@@ -5153,6 +5173,61 @@ class ResolverVisitor extends ScopedVisitor {
       return type;
     }
     return typeProvider.futureOrType.instantiate([type]);
+  }
+
+  /// If [contextType] is defined and is a subtype of `Iterable<Object>` and
+  /// [contextType] is not a subtype of `Map<Object, Object>`, then *e* is a set
+  /// literal.
+  ///
+  /// If [contextType] is defined and is a subtype of `Map<Object, Object>` and
+  /// [contextType] is not a subtype of `Iterable<Object>` then *e* is a map
+  /// literal.
+  _LiteralResolution _fromContextType(DartType contextType) {
+    if (contextType != null) {
+      DartType unwrap(DartType type) {
+        if (type is InterfaceType &&
+            type.isDartAsyncFutureOr &&
+            type.typeArguments.length == 1) {
+          return unwrap(type.typeArguments[0]);
+        }
+        return type;
+      }
+
+      DartType unwrappedContextType = unwrap(contextType);
+      // TODO(brianwilkerson) Find out what the "greatest closure" is and use that
+      // where [unwrappedContextType] is used below.
+      if (typeSystem.isAssignableTo(
+              typeProvider.iterableObjectType, unwrappedContextType) &&
+          !typeSystem.isAssignableTo(
+              typeProvider.mapObjectObjectType, unwrappedContextType)) {
+        return _LiteralResolution(
+            _LiteralResolutionKind.set, unwrappedContextType);
+      } else if (typeSystem.isAssignableTo(
+              typeProvider.mapObjectObjectType, unwrappedContextType) &&
+          !typeSystem.isAssignableTo(
+              typeProvider.iterableObjectType, unwrappedContextType)) {
+        return _LiteralResolution(
+            _LiteralResolutionKind.map, unwrappedContextType);
+      }
+    }
+    return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
+  }
+
+  /// Return the resolution that is indicated by the given [typeArgumentList].
+  _LiteralResolution _fromTypeArguments(TypeArgumentList typeArgumentList) {
+    if (typeArgumentList != null) {
+      NodeList<TypeAnnotation> arguments = typeArgumentList.arguments;
+      if (arguments.length == 1) {
+        return _LiteralResolution(_LiteralResolutionKind.set,
+            typeProvider.setType.instantiate([arguments[0].type]));
+      } else if (arguments.length == 2) {
+        return _LiteralResolution(
+            _LiteralResolutionKind.map,
+            typeProvider.mapType
+                .instantiate([arguments[0].type, arguments[1].type]));
+      }
+    }
+    return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
   }
 
   /// Return `true` if the given [parameter] element of the AST being resolved
@@ -5361,17 +5436,50 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
-  void _pushCollectionTypesDown(
-      CollectionElement element, ParameterizedType collectionType) {
+  void _pushCollectionTypesDown(CollectionElement element,
+      {DartType elementType,
+      @required DartType iterableType,
+      DartType keyType,
+      DartType valueType}) {
     if (element is ForElement) {
-      _pushCollectionTypesDown(element.body, collectionType);
+      _pushCollectionTypesDown(element.body,
+          elementType: elementType,
+          iterableType: iterableType,
+          keyType: keyType,
+          valueType: valueType);
     } else if (element is IfElement) {
-      _pushCollectionTypesDown(element.thenElement, collectionType);
-      _pushCollectionTypesDown(element.elseElement, collectionType);
+      _pushCollectionTypesDown(element.thenElement,
+          elementType: elementType,
+          iterableType: iterableType,
+          keyType: keyType,
+          valueType: valueType);
+      _pushCollectionTypesDown(element.elseElement,
+          elementType: elementType,
+          iterableType: iterableType,
+          keyType: keyType,
+          valueType: valueType);
     } else if (element is Expression) {
-      InferenceContext.setType(element, collectionType.typeArguments[0]);
+      InferenceContext.setType(element, elementType);
+    } else if (element is MapLiteralEntry) {
+      InferenceContext.setType(element.key, keyType);
+      InferenceContext.setType(element.value, valueType);
     } else if (element is SpreadElement) {
-      InferenceContext.setType(element.expression, collectionType);
+      InferenceContext.setType(element.expression, iterableType);
+    }
+  }
+
+  void _pushCollectionTypesDownToAll(List<CollectionElement> elements,
+      {DartType elementType,
+      @required DartType iterableType,
+      DartType keyType,
+      DartType valueType}) {
+    assert(iterableType != null);
+    for (CollectionElement element in elements) {
+      _pushCollectionTypesDown(element,
+          elementType: elementType,
+          iterableType: iterableType,
+          keyType: keyType,
+          valueType: valueType);
     }
   }
 
@@ -5763,6 +5871,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForEachStatement(ForEachStatement node) {
     Scope outerNameScope = nameScope;
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
@@ -5781,6 +5890,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   /// intervene when type propagation is enabled.
   ///
   /// @param node the statement to be visited
+  @deprecated
   void visitForEachStatementInScope(ForEachStatement node) {
     //
     // We visit the iterator before the loop variable because the loop variable
@@ -5809,6 +5919,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForStatement(ForStatement node) {
     Scope outerNameScope = nameScope;
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
@@ -5851,6 +5962,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   /// intervene when type propagation is enabled.
   ///
   /// @param node the statement to be visited
+  @deprecated
   void visitForStatementInScope(ForStatement node) {
     node.variables?.accept(this);
     node.initialization?.accept(this);
@@ -6256,7 +6368,7 @@ class TypeNameResolver {
   final TypeSystem typeSystem;
   final DartType dynamicType;
   final DartType undefinedType;
-  final bool isNonNullableMigrated;
+  final bool isNonNullableUnit;
   final AnalysisOptionsImpl analysisOptions;
   final LibraryElement definingLibrary;
   final Source source;
@@ -6274,7 +6386,7 @@ class TypeNameResolver {
   TypeNameResolver(
       this.typeSystem,
       TypeProvider typeProvider,
-      this.isNonNullableMigrated,
+      this.isNonNullableUnit,
       this.definingLibrary,
       this.source,
       this.errorListener,
@@ -6641,13 +6753,11 @@ class TypeNameResolver {
 
   Nullability _getNullability(bool hasQuestion) {
     Nullability nullability;
-    if (analysisOptions.experimentStatus.non_nullable) {
+    if (isNonNullableUnit) {
       if (hasQuestion) {
         nullability = Nullability.nullable;
-      } else if (isNonNullableMigrated) {
-        nullability = Nullability.nonNullable;
       } else {
-        nullability = Nullability.indeterminate;
+        nullability = Nullability.nonNullable;
       }
     } else {
       nullability = Nullability.indeterminate;
@@ -6914,12 +7024,12 @@ class TypeParameterBoundsResolver {
 
   TypeParameterBoundsResolver(
       this.typeSystem, this.library, this.source, this.errorListener,
-      {bool isNonNullableMigrated = false})
+      {bool isNonNullableUnit = false})
       : libraryScope = new LibraryScope(library),
         typeNameResolver = new TypeNameResolver(
             typeSystem,
             typeSystem.typeProvider,
-            isNonNullableMigrated,
+            isNonNullableUnit,
             library,
             source,
             errorListener);
@@ -7566,8 +7676,8 @@ class TypeResolverVisitor extends ScopedVisitor {
   /// Type type system in use for this resolver pass.
   TypeSystem _typeSystem;
 
-  /// Whether the library migrated to non-nullable.
-  final bool isNonNullableMigrated;
+  /// Whether the compilation unit is non-nullable.
+  final bool isNonNullableUnit;
 
   /// The helper to resolve types.
   TypeNameResolver _typeNameResolver;
@@ -7604,7 +7714,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   TypeResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
       {Scope nameScope,
-      this.isNonNullableMigrated: false,
+      this.isNonNullableUnit: false,
       this.mode: TypeResolverMode.everything,
       bool shouldUseWithClauseInferredTypes: true,
       this.shouldSetElementSupertypes: false})
@@ -7614,7 +7724,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     _undefinedType = typeProvider.undefinedType;
     _typeSystem = TypeSystem.create(definingLibrary.context);
     _typeNameResolver = new TypeNameResolver(_typeSystem, typeProvider,
-        isNonNullableMigrated, definingLibrary, source, errorListener,
+        isNonNullableUnit, definingLibrary, source, errorListener,
         shouldUseWithClauseInferredTypes: shouldUseWithClauseInferredTypes);
   }
 
@@ -8559,6 +8669,12 @@ class VariableResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitCompilationUnit(CompilationUnit node) {
+    _localVariableInfo = (node as CompilationUnitImpl).localVariableInfo;
+    super.visitCompilationUnit(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
@@ -8898,6 +9014,88 @@ class _LabelTracker {
     }
   }
 }
+
+/// A set of counts of the kinds of leaf elements in a collection, used to help
+/// disambiguate map and set literals.
+class _LeafElements {
+  /// The number of expressions found in the collection.
+  int expressionCount = 0;
+
+  /// The number of map entries found in the collection.
+  int mapEntryCount = 0;
+
+  /// Initialize a newly created set of counts based on the given collection
+  /// [elements].
+  _LeafElements(List<CollectionElement> elements) {
+    for (CollectionElement element in elements) {
+      _count(element);
+    }
+  }
+
+  /// Return the resolution suggested by the set elements.
+  _LiteralResolution get resolution {
+    if (expressionCount > 0 && mapEntryCount == 0) {
+      return _LiteralResolution(_LiteralResolutionKind.set, null);
+    } else if (mapEntryCount > 0 && expressionCount == 0) {
+      return _LiteralResolution(_LiteralResolutionKind.map, null);
+    }
+    return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
+  }
+
+  /// Recursively add the given collection [element] to the counts.
+  void _count(CollectionElement element) {
+    if (element is ForElement) {
+      _count(element.body);
+    } else if (element is IfElement) {
+      _count(element.thenElement);
+      _count(element.elseElement);
+    } else if (element is Expression) {
+      if (_isComplete(element)) {
+        expressionCount++;
+      }
+    } else if (element is MapLiteralEntry) {
+      if (_isComplete(element)) {
+        mapEntryCount++;
+      }
+    }
+  }
+
+  /// Return `true` if the given collection [element] does not contain any
+  /// synthetic tokens.
+  bool _isComplete(CollectionElement element) {
+    Token token = element.beginToken;
+    int endOffset = element.endToken.offset;
+    while (token != null && token.offset <= endOffset) {
+      if (token.isSynthetic) {
+        return false;
+      }
+      token = token.next;
+    }
+    return true;
+  }
+}
+
+/// An indication of the way in which a set or map literal should be resolved to
+/// be either a set literal or a map literal.
+class _LiteralResolution {
+  /// The kind of collection that the literal should be.
+  final _LiteralResolutionKind kind;
+
+  /// The type that should be used as the inference context when performing type
+  /// inference for the literal.
+  DartType contextType;
+
+  /// Initialize a newly created resolution.
+  _LiteralResolution(this.kind, this.contextType);
+
+  @override
+  String toString() {
+    return '$kind ($contextType)';
+  }
+}
+
+/// The kind of literal to which an unknown literal should be resolved.
+enum _LiteralResolutionKind { ambiguous, map, set }
 
 class _ResolverVisitor_isVariableAccessedInClosure
     extends RecursiveAstVisitor<void> {

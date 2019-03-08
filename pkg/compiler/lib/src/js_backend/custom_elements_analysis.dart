@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common_elements.dart';
-import '../constants/constant_system.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -84,13 +84,12 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
   final CustomElementsAnalysisJoin join;
 
   CustomElementsResolutionAnalysis(
-      ConstantSystem constantSystem,
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
       NativeBasicData nativeData,
       BackendUsageBuilder backendUsageBuilder)
       : join = new CustomElementsAnalysisJoin(
-            constantSystem, elementEnvironment, commonElements, nativeData,
+            elementEnvironment, commonElements, nativeData,
             backendUsageBuilder: backendUsageBuilder),
         super(elementEnvironment, commonElements, nativeData) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
@@ -120,13 +119,10 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
 class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
   final CustomElementsAnalysisJoin join;
 
-  CustomElementsCodegenAnalysis(
-      ConstantSystem constantSystem,
-      CommonElements commonElements,
-      ElementEnvironment elementEnvironment,
-      NativeBasicData nativeData)
+  CustomElementsCodegenAnalysis(CommonElements commonElements,
+      ElementEnvironment elementEnvironment, NativeBasicData nativeData)
       : join = new CustomElementsAnalysisJoin(
-            constantSystem, elementEnvironment, commonElements, nativeData),
+            elementEnvironment, commonElements, nativeData),
         super(elementEnvironment, commonElements, nativeData) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
@@ -149,7 +145,6 @@ class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
 }
 
 class CustomElementsAnalysisJoin {
-  final ConstantSystem _constantSystem;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final NativeBasicData _nativeData;
@@ -175,8 +170,8 @@ class CustomElementsAnalysisJoin {
   // ClassesOutput: classes requiring metadata.
   final Set<ClassEntity> activeClasses = new Set<ClassEntity>();
 
-  CustomElementsAnalysisJoin(this._constantSystem, this._elementEnvironment,
-      this._commonElements, this._nativeData,
+  CustomElementsAnalysisJoin(
+      this._elementEnvironment, this._commonElements, this._nativeData,
       {BackendUsageBuilder backendUsageBuilder})
       : this._backendUsageBuilder = backendUsageBuilder,
         this.forResolution = backendUsageBuilder != null;
@@ -217,7 +212,7 @@ class CustomElementsAnalysisJoin {
 
   TypeConstantValue _makeTypeConstant(ClassEntity cls) {
     DartType type = _elementEnvironment.getRawType(cls);
-    return _constantSystem.createType(_commonElements, type);
+    return constant_system.createType(_commonElements, type);
   }
 
   List<ConstructorEntity> computeEscapingConstructors(ClassEntity cls) {

@@ -14,10 +14,11 @@ main() {
 
 class Class1a {
   /*element: Class1a.field1:emitted*/
+  @pragma('dart2js:noElision')
   int field1;
 }
 
-/*element: method1:params=1*/
+/*element: method1:access=[field1],params=1*/
 @pragma('dart2js:noInline')
 method1(dynamic c) {
   return c.field1;
@@ -25,10 +26,11 @@ method1(dynamic c) {
 
 class Class2a<T> {
   /*element: Class2a.field2:emitted*/
+  @pragma('dart2js:noElision')
   T field2;
 }
 
-/*element: method2:params=1*/
+/*element: method2:access=[field2],params=1*/
 @pragma('dart2js:noInline')
 method2(dynamic c) {
   return c.field2;
@@ -36,11 +38,13 @@ method2(dynamic c) {
 
 class Class3a {
   /*element: Class3a.field3:emitted,get=simple*/
+  @pragma('dart2js:noElision')
   int field3;
 }
 
 class Class3b {
   /*element: Class3b.field3:emitted,get=simple*/
+  @pragma('dart2js:noElision')
   int field3;
 }
 
@@ -52,11 +56,13 @@ method3(dynamic c) {
 
 class Class4a {
   /*element: Class4a.field4:emitted,get=simple*/
+  @pragma('dart2js:noElision')
   int field4;
 }
 
 class Class4b implements Class4a {
   /*element: Class4b.field4:emitted,get=simple*/
+  @pragma('dart2js:noElision')
   int field4;
 }
 

@@ -15,8 +15,8 @@ import 'dart:core';
 import 'dart:core' as core;
 import 'package:expect/expect.dart';
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(f) => f;
 
 typedef F0<T> = Function Function([int x]);
@@ -410,8 +410,8 @@ class U57<T> {
     }
 
     Expect.isTrue(m7 is F7<T>);
-    Expect
-        .isTrue(m7 is Function Function(int x2, [Function x3]) Function(int x));
+    Expect.isTrue(
+        m7 is Function Function(int x2, [Function x3]) Function(int x));
     Expect.isTrue(confuse(m7) is F7<T>);
     // In checked mode, verifies the type.
     x7 = m7;
@@ -509,8 +509,8 @@ class U57<T> {
     }
 
     Expect.isTrue(m11 is F11<T>);
-    Expect
-        .isTrue(m11 is core.List<core.int> Function([int x1]) Function(int x));
+    Expect.isTrue(
+        m11 is core.List<core.int> Function([int x1]) Function(int x));
     Expect.isTrue(confuse(m11) is F11<T>);
     // In checked mode, verifies the type.
     x11 = m11;

@@ -422,22 +422,10 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     AbstractValue receiverType = receiver.instructionType;
     instruction.mask = receiverType;
 
-    // Try to specialize the receiver after this call by inserting a refinement
-    // node (HTypeKnown). There are two potentially expensive tests - are there
-    // any uses of the receiver dominated by and following this call?, and what
-    // is the refined type? The first is expensive if the receiver has many
-    // uses, the second is expensive if many classes implement the selector. So
-    // we try to do the least expensive test first.
-    const int _MAX_QUICK_USERS = 50;
-    if (!instruction.selector.isClosureCall) {
-      AbstractValue newType;
-      AbstractValue computeNewType() {
-        newType = closedWorld.computeReceiverType(
-            instruction.selector, instruction.mask);
-        newType = abstractValueDomain.intersection(newType, receiverType);
-        return newType;
-      }
-
+    // Try to refine that the receiver is not null after this call by inserting
+    // a refinement node (HTypeKnown).
+    var selector = instruction.selector;
+    if (!selector.isClosureCall && !selector.appliesToNullWithoutThrow()) {
       var next = instruction.next;
       if (next is HTypeKnown && next.checkedInput == receiver) {
         // On a previous pass or iteration we already refined [receiver] by
@@ -445,23 +433,18 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         // uses with the refinement. We update the type of the [HTypeKnown]
         // instruction because it may have been refined with a correct type at
         // the time, but incorrect now.
-        if (next.instructionType != computeNewType()) {
+        AbstractValue newType = abstractValueDomain.excludeNull(receiverType);
+        if (next.instructionType != newType) {
           next.knownType = next.instructionType = newType;
           addDependentInstructionsToWorkList(next);
         }
-      } else {
-        DominatedUses uses;
-        bool hasCandidates() {
-          uses =
-              DominatedUses.of(receiver, instruction, excludeDominator: true);
-          return uses.isNotEmpty;
-        }
-
-        if ((receiver.usedBy.length <= _MAX_QUICK_USERS)
-            ? (hasCandidates() && computeNewType() != receiverType)
-            : (computeNewType() != receiverType && hasCandidates())) {
+      } else if (abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
+        DominatedUses uses =
+            DominatedUses.of(receiver, instruction, excludeDominator: true);
+        if (uses.isNotEmpty) {
           // Insert a refinement node after the call and update all users
           // dominated by the call to use that node instead of [receiver].
+          AbstractValue newType = abstractValueDomain.excludeNull(receiverType);
           HTypeKnown converted =
               new HTypeKnown.witnessed(newType, receiver, instruction);
           instruction.block.addBefore(instruction.next, converted);

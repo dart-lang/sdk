@@ -19,8 +19,8 @@ class DefinitionHandler
   Method get handlesMessage => Method.textDocument_definition;
 
   @override
-  TextDocumentPositionParams convertParams(Map<String, dynamic> json) =>
-      TextDocumentPositionParams.fromJson(json);
+  LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
+      TextDocumentPositionParams.jsonHandler;
 
   Future<ErrorOr<List<Location>>> handle(
       TextDocumentPositionParams params) async {

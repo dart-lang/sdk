@@ -505,6 +505,10 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateVariableDeclarationFingerprint();  // read variable declaration.
       CalculateExpressionFingerprint();           // read expression.
       return;
+    case kBlockExpression: {
+      UNIMPLEMENTED();
+      return;
+    }
     case kInstantiation:
       CalculateExpressionFingerprint();       // read expression.
       CalculateListOfDartTypesFingerprint();  // read type arguments.

@@ -77,6 +77,11 @@ def MakeFile(quiet, output_file, input_file, no_git_hash, custom_for_pub):
     version_time = "Unknown timestamp"
   version_cc_text = version_cc_text.replace("{{COMMIT_TIME}}",
                                             version_time)
+  abi_version = utils.GetAbiVersion()
+  version_cc_text = version_cc_text.replace("{{ABI_VERSION}}", abi_version)
+  oldest_supported_abi_version = utils.GetOldestSupportedAbiVersion()
+  version_cc_text = version_cc_text.replace("{{OLDEST_SUPPORTED_ABI_VERSION}}",
+                                            oldest_supported_abi_version)
   snapshot_hash = MakeSnapshotHashString()
   version_cc_text = version_cc_text.replace("{{SNAPSHOT_HASH}}",
                                             snapshot_hash)

@@ -173,6 +173,12 @@ Encoding:
   template: "Unable to decode bytes as UTF-8."
   bytes: [255]
 
+ExperimentNotEnabled:
+  index: 93
+  template: "This requires the --#string experiment to be enabled."
+  tip: "Try enabling this experiment by adding it to the command line when compiling and running."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
 EmptyNamedParameterList:
   template: "Named parameter lists cannot be empty."
   tip: "Try adding a named parameter to the list."
@@ -1543,6 +1549,9 @@ FastaUsageLong:
 
       --target=dart2js|dart2js_server|dart_runner|flutter|flutter_runner|none|vm
         Specify the target configuration.
+
+      --enable-asserts
+        Check asserts in initializers during constant evaluation.
 
       --verify
         Check that the generated output is free of various problems. This is mostly
@@ -3461,3 +3470,26 @@ FfiStructAnnotation:
   # Used by dart:ffi
   template: "Class '#name' is a dart:ffi Pointer but has no struct annotation. Only struct Pointers can have fields."
   external: test/ffi_test.dart
+
+SpreadTypeMismatch:
+  template: "Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable."
+  script:
+    - |
+      main() {
+        int a = 42;
+        var b = [...a];
+      }
+    - |
+      main() {
+        int Function() a = null;
+        var b = [...a];
+      }
+
+SpreadElementTypeMismatch:
+  template: "Can't assign spread elements of type '#type' to collection elements of type '#type2'."
+  analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+  script: >
+    main() {
+      List<String> a = <String>["foo"];
+      List<int> b = <int>[...a];
+    }

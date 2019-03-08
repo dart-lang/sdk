@@ -131,7 +131,7 @@ method `visitClassDeclaration` is used to visit a `ClassDeclaration`. If you
 ask an AST node to accept a visitor, it will invoke the corresponding method on
 the visitor interface.
 
-If you want to define a visitor, you'll probably want to subclass one of the
+If you want to define a visitor, you would create a subclass of one of the
 concrete implementations of `AstVisitor`. The concrete subclasses are defined in
 `package:analyzer/dart/ast/visitor.dart`. A couple of the most useful include
 - `SimpleAstVisitor` which implements every visit method by doing nothing,
@@ -140,18 +140,12 @@ concrete implementations of `AstVisitor`. The concrete subclasses are defined in
 - `GeneralizingAstVisitor` which makes it easy to visit general kinds of nodes,
   such as visiting any statement, or any expression.
 
-The one time you might want to implement `AstVisitor` rather than to extend one
-of the concrete subclasses is if it's critical that you implement _every_ visit
-method. The downside of doing this is that every time the AST structure is
-updated because of an enhancement to the language, your code will need to be
-updated to implement the newly added visit methods.
-
 As an example, let's assume you want to write some code to count the number of
 `if` statements in a given structure. You need to visit every node, because you
 can't know ahead of time where the `if` statements will be located, but there is
 one specific class of node that you need to visit, so you don't need to handle
-the general "groups" of nodes, so you'd want to create a subclass of
-`RecursiveAstVisitor`.
+the general "groups" of nodes. The best approach for this example is to create a
+subclass of `RecursiveAstVisitor`.
 
 ```dart
 class IfCounter extends RecursiveAstVisitor<void> {

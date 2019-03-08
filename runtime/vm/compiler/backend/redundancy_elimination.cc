@@ -202,7 +202,7 @@ class Place : public ValueObject {
         LoadIndexedInstr* load_indexed = instr->AsLoadIndexed();
         set_representation(load_indexed->representation());
         instance_ = load_indexed->array()->definition()->OriginalDefinition();
-        SetIndex(load_indexed->index()->definition(),
+        SetIndex(load_indexed->index()->definition()->OriginalDefinition(),
                  load_indexed->index_scale(), load_indexed->class_id());
         *is_load = true;
         break;
@@ -213,7 +213,7 @@ class Place : public ValueObject {
         set_representation(store_indexed->RequiredInputRepresentation(
             StoreIndexedInstr::kValuePos));
         instance_ = store_indexed->array()->definition()->OriginalDefinition();
-        SetIndex(store_indexed->index()->definition(),
+        SetIndex(store_indexed->index()->definition()->OriginalDefinition(),
                  store_indexed->index_scale(), store_indexed->class_id());
         *is_store = true;
         break;
@@ -1256,8 +1256,11 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   } else if (current->IsCheckEitherNonSmi()) {
     current->AsCheckEitherNonSmi()->set_licm_hoisted(true);
   } else if (current->IsCheckArrayBound()) {
-    ASSERT(!FLAG_precompiled_mode);  // AOT uses non-deopting GenericCheckBound
+    ASSERT(!FLAG_precompiled_mode);  // speculative in JIT only
     current->AsCheckArrayBound()->set_licm_hoisted(true);
+  } else if (current->IsGenericCheckBound()) {
+    ASSERT(FLAG_precompiled_mode);  // non-speculative in AOT only
+    // Does not deopt, so no need for licm_hoisted flag.
   } else if (current->IsTestCids()) {
     current->AsTestCids()->set_licm_hoisted(true);
   }
@@ -1353,27 +1356,61 @@ void LICM::OptimisticallySpecializeSmiPhis() {
   }
 }
 
+// Returns true if instruction may have a "visible" effect,
+static bool MayHaveVisibleEffect(Instruction* instr) {
+  switch (instr->tag()) {
+    case Instruction::kStoreInstanceField:
+    case Instruction::kStoreStaticField:
+    case Instruction::kStoreIndexed:
+    case Instruction::kStoreIndexedUnsafe:
+      return true;
+    default:
+      return instr->HasUnknownSideEffects() || instr->MayThrow();
+  }
+}
+
 void LICM::Optimize() {
   if (flow_graph()->function().ProhibitsHoistingCheckClass()) {
     // Do not hoist any.
     return;
   }
 
+  // Compute loops and induction in flow graph.
+  const LoopHierarchy& loop_hierarchy = flow_graph()->GetLoopHierarchy();
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-      flow_graph()->GetLoopHierarchy().headers();
+      loop_hierarchy.headers();
+  loop_hierarchy.ComputeInduction();
 
   ZoneGrowableArray<BitVector*>* loop_invariant_loads =
       flow_graph()->loop_invariant_loads();
 
+  // Iterate over all loops.
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     BlockEntryInstr* header = loop_headers[i];
-    // Skip loop that don't have a pre-header block.
-    BlockEntryInstr* pre_header = header->ImmediateDominator();
-    if (pre_header == NULL) continue;
 
-    for (BitVector::Iterator loop_it(header->loop_info()->blocks());
-         !loop_it.Done(); loop_it.Advance()) {
+    // Skip loops that don't have a pre-header block.
+    BlockEntryInstr* pre_header = header->ImmediateDominator();
+    if (pre_header == nullptr) {
+      continue;
+    }
+
+    // Flag that remains true as long as the loop has not seen any instruction
+    // that may have a "visible" effect (write, throw, or other side-effect).
+    bool seen_visible_effect = false;
+
+    // Iterate over all blocks in the loop.
+    LoopInfo* loop = header->loop_info();
+    for (BitVector::Iterator loop_it(loop->blocks()); !loop_it.Done();
+         loop_it.Advance()) {
       BlockEntryInstr* block = flow_graph()->preorder()[loop_it.Current()];
+
+      // Preserve the "visible" effect flag as long as the preorder traversal
+      // sees always-taken blocks. This way, we can only hoist invariant
+      // may-throw instructions that are always seen during the first iteration.
+      if (!seen_visible_effect && !loop->IsAlwaysTaken(block)) {
+        seen_visible_effect = true;
+      }
+      // Iterate over all instructions in the block.
       for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
 
@@ -1382,24 +1419,35 @@ void LICM::Optimize() {
         // Otherwise we might move load past the initialization.
         if (LoadStaticFieldInstr* load = current->AsLoadStaticField()) {
           if (load->AllowsCSE() && !load->IsFieldInitialized()) {
+            seen_visible_effect = true;
             continue;
           }
         }
 
+        // Determine if we can hoist loop invariant code. Even may-throw
+        // instructions can be hoisted as long as its exception is still
+        // the very first "visible" effect of the loop.
+        bool is_loop_invariant = false;
         if ((current->AllowsCSE() ||
              IsLoopInvariantLoad(loop_invariant_loads, i, current)) &&
-            !current->MayThrow()) {
-          bool inputs_loop_invariant = true;
-          for (int i = 0; i < current->InputCount(); ++i) {
+            (!seen_visible_effect || !current->MayThrow())) {
+          is_loop_invariant = true;
+          for (intptr_t i = 0; i < current->InputCount(); ++i) {
             Definition* input_def = current->InputAt(i)->definition();
             if (!input_def->GetBlock()->Dominates(pre_header)) {
-              inputs_loop_invariant = false;
+              is_loop_invariant = false;
               break;
             }
           }
-          if (inputs_loop_invariant) {
-            Hoist(&it, pre_header, current);
-          }
+        }
+
+        // Hoist if all inputs are loop invariant. If not hoisted, any
+        // instruction that writes, may throw, or has an unknown side
+        // effect invalidates the first "visible" effect flag.
+        if (is_loop_invariant) {
+          Hoist(&it, pre_header, current);
+        } else if (!seen_visible_effect && MayHaveVisibleEffect(current)) {
+          seen_visible_effect = true;
         }
       }
     }

@@ -4,14 +4,14 @@
 
 import 'package:expect/expect.dart';
 
-@NoInline()
+@pragma('dart2js:noInline')
 test1(o) => o is Function(int);
 
-@NoInline()
+@pragma('dart2js:noInline')
 test2(o) => o is Function<T>(T);
 
 class C<S> {
-  @NoInline()
+  @pragma('dart2js:noInline')
   test(bool expected) {
     local1(int i) {}
     local2<T>(T t) {}

@@ -36,7 +36,9 @@ class Object;
 class RuntimeEntry;
 class Zone;
 
-#define DO(clazz) class clazz;
+#define DO(clazz)                                                              \
+  class Raw##clazz;                                                            \
+  class clazz;
 CLASS_LIST_FOR_HANDLES(DO)
 #undef DO
 
@@ -105,6 +107,18 @@ const To& CastHandle(const From& from) {
 
 // Returns true if [a] and [b] are the same object.
 bool IsSameObject(const Object& a, const Object& b);
+
+// Returns true if [a] and [b] represent the same type (are equal).
+bool IsEqualType(const AbstractType& a, const AbstractType& b);
+
+// Returns true if [type] is the "int" type.
+bool IsIntType(const AbstractType& type);
+
+// Returns true if [type] is the "double" type.
+bool IsDoubleType(const AbstractType& type);
+
+// Returns true if [type] is the "_Smi" type.
+bool IsSmiType(const AbstractType& type);
 
 // Returns true if the given handle is a zone handle or one of the global
 // cached handles.

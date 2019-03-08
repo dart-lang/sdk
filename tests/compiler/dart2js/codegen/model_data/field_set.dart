@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:calls=*,params=0*/
+/*element: main:access=*,calls=*,params=0*/
 main() {
   method1(new Class1a());
   method2(new Class2a());

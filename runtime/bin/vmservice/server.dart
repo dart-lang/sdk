@@ -4,7 +4,7 @@
 
 part of vmservice_io;
 
-final bool silentObservatory = const bool.fromEnvironment('SILENT_OBSERVATORY');
+final bool silentObservatory = new bool.fromEnvironment('SILENT_OBSERVATORY');
 
 void serverPrint(String s) {
   if (silentObservatory) {
@@ -81,10 +81,9 @@ class WebSocketClient extends Client {
           socket.addUtf8Text(result.payload);
           break;
       }
-    } catch (e, st) {
-      serverPrint("Ignoring error posting over WebSocket.");
-      serverPrint(e.toString());
-      serverPrint(st.toString());
+    } on StateError catch (_) {
+      // VM has shutdown, do nothing.
+      return;
     }
   }
 

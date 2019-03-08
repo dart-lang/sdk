@@ -86,7 +86,6 @@ class SourceReport {
   void VisitField(JSONArray* jsarr, const Field& field);
   void VisitLibrary(JSONArray* jsarr, const Library& lib);
   void VisitClosures(JSONArray* jsarr);
-  RawFunction* GetInitializerFunction(const Field& field);
   // An entry in the script table.
   struct ScriptTableEntry {
     ScriptTableEntry() : key(NULL), index(-1), script(NULL) {}

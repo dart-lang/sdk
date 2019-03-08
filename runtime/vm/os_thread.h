@@ -100,9 +100,10 @@ class OSThread : public BaseThread {
 
   uword stack_base() const { return stack_base_; }
   uword stack_limit() const { return stack_limit_; }
-  uword overflow_stack_limit() const { return stack_limit_ + kStackSizeBuffer; }
+  uword overflow_stack_limit() const { return stack_limit_ + stack_headroom_; }
 
-  bool HasStackHeadroom(intptr_t headroom = kStackSizeBuffer) {
+  bool HasStackHeadroom() { return HasStackHeadroom(stack_headroom_); }
+  bool HasStackHeadroom(intptr_t headroom) {
     return GetCurrentStackPointer() > (stack_limit_ + headroom);
   }
 
@@ -165,8 +166,10 @@ class OSThread : public BaseThread {
   // TODO(5411455): Use flag to override default value and Validate the
   // stack size by querying OS.
   static uword GetSpecifiedStackSize() {
-    ASSERT(OSThread::kStackSizeBuffer < OSThread::GetMaxStackSize());
-    uword stack_size = OSThread::GetMaxStackSize() - OSThread::kStackSizeBuffer;
+    intptr_t headroom =
+        OSThread::CalculateHeadroom(OSThread::GetMaxStackSize());
+    ASSERT(headroom < OSThread::GetMaxStackSize());
+    uword stack_size = OSThread::GetMaxStackSize() - headroom;
     return stack_size;
   }
   static BaseThread* GetCurrentTLS() {
@@ -209,7 +212,8 @@ class OSThread : public BaseThread {
   static void DisableOSThreadCreation();
   static void EnableOSThreadCreation();
 
-  static const intptr_t kStackSizeBuffer = (16 * KB * kWordSize);
+  static const intptr_t kStackSizeBufferMax = (16 * KB * kWordSize);
+  static constexpr float kStackSizeBufferFraction = 0.5;
 
   static const ThreadId kInvalidThreadId;
   static const ThreadJoinId kInvalidThreadJoinId;
@@ -237,6 +241,11 @@ class OSThread : public BaseThread {
   static void RemoveThreadFromList(OSThread* thread);
   static OSThread* CreateAndSetUnknownThread();
 
+  static uword CalculateHeadroom(uword stack_size) {
+    uword headroom = kStackSizeBufferFraction * stack_size;
+    return (headroom > kStackSizeBufferMax) ? kStackSizeBufferMax : headroom;
+  }
+
   static ThreadLocalKey thread_key_;
 
   const ThreadId id_;
@@ -260,6 +269,7 @@ class OSThread : public BaseThread {
   Log* log_;
   uword stack_base_;
   uword stack_limit_;
+  uword stack_headroom_;
   ThreadState* thread_;
 
   // thread_list_lock_ cannot have a static lifetime because the order in which

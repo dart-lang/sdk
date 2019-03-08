@@ -18,6 +18,14 @@ library;
 //   final aMap = <int, int>{1: 1, ...{2: 2}, ...?{3: 3}};
 //                                            ^^^^
 //
+// pkg/front_end/testcases/spread_collection.dart:7:36: Error: Expected ':' after this.
+//   final aMap = <int, int>{1: 1, ...{2: 2}, ...?{3: 3}};
+//                                    ^
+//
+// pkg/front_end/testcases/spread_collection.dart:7:48: Error: Expected ':' after this.
+//   final aMap = <int, int>{1: 1, ...{2: 2}, ...?{3: 3}};
+//                                                ^
+//
 // pkg/front_end/testcases/spread_collection.dart:8:25: Error: Unexpected token '...'.
 //   final aSet = <int>{1, ...[2], ...?[3]};
 //                         ^^^
@@ -29,6 +37,10 @@ library;
 // pkg/front_end/testcases/spread_collection.dart:9:22: Error: Unexpected token '...'.
 //   final aSetOrMap = {...foo()};
 //                      ^^^
+//
+// pkg/front_end/testcases/spread_collection.dart:9:25: Error: Expected ':' after this.
+//   final aSetOrMap = {...foo()};
+//                         ^
 //
 import self as self;
 import "dart:core" as core;

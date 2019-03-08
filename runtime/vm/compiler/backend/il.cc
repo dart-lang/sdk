@@ -109,23 +109,33 @@ class SubclassFinder {
 
 const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
     const Class& klass,
-    bool include_abstract) {
+    bool include_abstract,
+    bool exclude_null) {
   ClassTable* table = thread()->isolate()->class_table();
   const intptr_t cid_count = table->NumCids();
-  CidRangeVector** cid_ranges =
-      include_abstract ? &cid_subtype_ranges_abstract_ : &cid_subtype_ranges_;
-  if (*cid_ranges == NULL) {
+  CidRangeVector** cid_ranges = nullptr;
+  if (include_abstract) {
+    ASSERT(!exclude_null);
+    cid_ranges = &cid_subtype_ranges_abstract_nullable_;
+  } else if (exclude_null) {
+    ASSERT(!include_abstract);
+    cid_ranges = &cid_subtype_ranges_nonnullable_;
+  } else {
+    ASSERT(!include_abstract);
+    ASSERT(!exclude_null);
+    cid_ranges = &cid_subtype_ranges_nullable_;
+  }
+  if (*cid_ranges == nullptr) {
     *cid_ranges = new CidRangeVector[cid_count];
   }
-
   CidRangeVector& ranges = (*cid_ranges)[klass.id()];
   if (ranges.length() == 0) {
     if (!FLAG_precompiled_mode) {
       BuildRangesForJIT(table, &ranges, klass, /*use_subtype_test=*/true,
-                        include_abstract);
+                        include_abstract, exclude_null);
     } else {
       BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/true,
-                     include_abstract);
+                     include_abstract, exclude_null);
     }
   }
   return ranges;
@@ -142,19 +152,29 @@ const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
   CidRangeVector& ranges = cid_subclass_ranges_[klass.id()];
   if (ranges.length() == 0) {
     if (!FLAG_precompiled_mode) {
-      BuildRangesForJIT(table, &ranges, klass, /*use_subtype_test=*/true);
+      BuildRangesForJIT(table, &ranges, klass,
+                        /*use_subtype_test=*/true,
+                        /*include_abstract=*/false,
+                        /*exclude_null=*/false);
     } else {
-      BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/false);
+      BuildRangesFor(table, &ranges, klass,
+                     /*use_subtype_test=*/false,
+                     /*include_abstract=*/false,
+                     /*exclude_null=*/false);
     }
   }
   return ranges;
 }
 
+// Build the ranges either for:
+//    "<obj> as <Type>", or
+//    "<obj> is <Type>"
 void HierarchyInfo::BuildRangesFor(ClassTable* table,
                                    CidRangeVector* ranges,
                                    const Class& klass,
                                    bool use_subtype_test,
-                                   bool include_abstract) {
+                                   bool include_abstract,
+                                   bool exclude_null) {
   Zone* zone = thread()->zone();
   ClassTable* class_table = thread()->isolate()->class_table();
 
@@ -166,56 +186,68 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
   AbstractType& super_type = AbstractType::Handle(zone);
   const intptr_t cid_count = table->NumCids();
 
+  // Iterate over all cids to find the ones to be included in the ranges.
   intptr_t start = -1;
+  intptr_t end = -1;
   for (intptr_t cid = kInstanceCid; cid < cid_count; ++cid) {
     // Create local zone because deep hierarchies may allocate lots of handles
     // within one iteration of this loop.
     StackZone stack_zone(thread());
     HANDLESCOPE(thread());
 
+    // Some cases are "don't care", i.e., they may or may not be included,
+    // whatever yields the least number of ranges for efficiency.
     if (!table->HasValidClassAt(cid)) continue;
     if (cid == kTypeArgumentsCid) continue;
     if (cid == kVoidCid) continue;
     if (cid == kDynamicCid) continue;
-    if (cid == kNullCid) continue;
+    if (cid == kNullCid && !exclude_null) continue;
     cls = table->At(cid);
     if (!include_abstract && cls.is_abstract()) continue;
     if (cls.is_patch()) continue;
     if (cls.IsTopLevel()) continue;
 
     // We are either interested in [CidRange]es of subclasses or subtypes.
-    bool test_succeded = false;
-    if (use_subtype_test) {
+    bool test_succeeded = false;
+    if (cid == kNullCid) {
+      ASSERT(exclude_null);
+      test_succeeded = false;
+    } else if (use_subtype_test) {
       cls_type = cls.RareType();
-      test_succeded = cls_type.IsSubtypeOf(dst_type, Heap::kNew);
+      test_succeeded = cls_type.IsSubtypeOf(dst_type, Heap::kNew);
     } else {
       while (!cls.IsObjectClass()) {
         if (cls.raw() == klass.raw()) {
-          test_succeded = true;
+          test_succeeded = true;
           break;
         }
-
         super_type = cls.super_type();
         const intptr_t type_class_id = super_type.type_class_id();
         cls = class_table->At(type_class_id);
       }
     }
 
-    if (start == -1 && test_succeded) {
-      start = cid;
-    } else if (start != -1 && !test_succeded) {
-      CidRange range(start, cid - 1);
+    if (test_succeeded) {
+      // On success, open a new or continue any open range.
+      if (start == -1) start = cid;
+      end = cid;
+    } else if (start != -1) {
+      // On failure, close any open range from start to end
+      // (the latter is the most recent succesful "do-care" cid).
+      ASSERT(start <= end);
+      CidRange range(start, end);
       ranges->Add(range);
       start = -1;
+      end = -1;
     }
   }
 
+  // Construct last range (either close open one, or add invalid).
   if (start != -1) {
-    CidRange range(start, cid_count - 1);
+    ASSERT(start <= end);
+    CidRange range(start, end);
     ranges->Add(range);
-  }
-
-  if (start == -1 && ranges->length() == 0) {
+  } else if (ranges->length() == 0) {
     CidRange range;
     ASSERT(range.IsIllegalRange());
     ranges->Add(range);
@@ -226,12 +258,14 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
                                       CidRangeVector* ranges,
                                       const Class& dst_klass,
                                       bool use_subtype_test,
-                                      bool include_abstract) {
-  if (dst_klass.InVMHeap()) {
-    BuildRangesFor(table, ranges, dst_klass, use_subtype_test,
-                   include_abstract);
+                                      bool include_abstract,
+                                      bool exclude_null) {
+  if (dst_klass.IsReadOnly()) {
+    BuildRangesFor(table, ranges, dst_klass, use_subtype_test, include_abstract,
+                   exclude_null);
     return;
   }
+  ASSERT(!exclude_null);
 
   Zone* zone = thread()->zone();
   GrowableArray<intptr_t> cids;
@@ -417,10 +451,14 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
 bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
                                             intptr_t* lower_limit,
                                             intptr_t* upper_limit) {
+  ASSERT(FLAG_precompiled_mode);
   if (CanUseSubtypeRangeCheckFor(type)) {
     const Class& type_class =
         Class::Handle(thread()->zone(), type.type_class());
-    const CidRangeVector& ranges = SubtypeRangesForClass(type_class);
+    const CidRangeVector& ranges =
+        SubtypeRangesForClass(type_class,
+                              /*include_abstract=*/false,
+                              /*exclude_null=*/true);
     if (ranges.length() == 1) {
       const CidRange& range = ranges[0];
       if (!range.IsIllegalRange()) {
@@ -463,16 +501,19 @@ Object& Definition::constant_value() {
 
 Definition* Definition::OriginalDefinition() {
   Definition* defn = this;
-  while (defn->IsRedefinition() || defn->IsAssertAssignable() ||
-         defn->IsCheckArrayBound() || defn->IsGenericCheckBound()) {
-    if (defn->IsRedefinition()) {
-      defn = defn->AsRedefinition()->value()->definition();
-    } else if (defn->IsAssertAssignable()) {
-      defn = defn->AsAssertAssignable()->value()->definition();
-    } else if (defn->IsCheckArrayBound()) {
-      defn = defn->AsCheckArrayBound()->index()->definition();
+  while (true) {
+    if (auto redefinition = defn->AsRedefinition()) {
+      defn = redefinition->value()->definition();
+    } else if (auto assert_assignable = defn->AsAssertAssignable()) {
+      defn = assert_assignable->value()->definition();
+    } else if (auto check_array_bound = defn->AsCheckArrayBound()) {
+      defn = check_array_bound->index()->definition();
+    } else if (auto check_bound = defn->AsGenericCheckBound()) {
+      defn = check_bound->index()->definition();
+    } else if (auto check_null = defn->AsCheckNull()) {
+      defn = check_null->value()->definition();
     } else {
-      defn = defn->AsGenericCheckBound()->index()->definition();
+      break;
     }
   }
   return defn;
@@ -1970,9 +2011,13 @@ Definition* DoubleTestOpInstr::Canonicalize(FlowGraph* flow_graph) {
 static bool IsCommutative(Token::Kind op) {
   switch (op) {
     case Token::kMUL:
+      FALL_THROUGH;
     case Token::kADD:
+      FALL_THROUGH;
     case Token::kBIT_AND:
+      FALL_THROUGH;
     case Token::kBIT_OR:
+      FALL_THROUGH;
     case Token::kBIT_XOR:
       return true;
     default:
@@ -2154,26 +2199,32 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
 
   switch (op_kind()) {
     case Token::kTRUNCDIV:
+      FALL_THROUGH;
     case Token::kMOD:
       // Check right value for zero.
       if (right.AsInt64Value() == 0) {
         break;  // Will throw.
       }
-    // Fall through.
+      FALL_THROUGH;
     case Token::kADD:
+      FALL_THROUGH;
     case Token::kSUB:
+      FALL_THROUGH;
     case Token::kMUL: {
       result = left.ArithmeticOp(op_kind(), right, Heap::kOld);
       break;
     }
     case Token::kSHL:
+      FALL_THROUGH;
     case Token::kSHR:
       if (right.AsInt64Value() >= 0) {
         result = left.ShiftOp(op_kind(), right, Heap::kOld);
       }
       break;
     case Token::kBIT_AND:
+      FALL_THROUGH;
     case Token::kBIT_OR:
+      FALL_THROUGH;
     case Token::kBIT_XOR: {
       result = left.BitOp(op_kind(), right, Heap::kOld);
       break;
@@ -2228,11 +2279,14 @@ Definition* CheckedSmiOpInstr::Canonicalize(FlowGraph* flow_graph) {
     // range information.
     switch (op_kind()) {
       case Token::kBIT_AND:
+        FALL_THROUGH;
       case Token::kBIT_OR:
+        FALL_THROUGH;
       case Token::kBIT_XOR:
         replacement = new BinarySmiOpInstr(
             op_kind(), new Value(left()->definition()),
             new Value(right()->definition()), DeoptId::kNone);
+        FALL_THROUGH;
       default:
         break;
     }
@@ -3404,8 +3458,8 @@ Instruction* CheckEitherNonSmiInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
-Instruction* CheckNullInstr::Canonicalize(FlowGraph* flow_graph) {
-  return (!value()->Type()->is_nullable()) ? NULL : this;
+Definition* CheckNullInstr::Canonicalize(FlowGraph* flow_graph) {
+  return (!value()->Type()->is_nullable()) ? value()->definition() : this;
 }
 
 BoxInstr* BoxInstr::Create(Representation from, Value* value) {

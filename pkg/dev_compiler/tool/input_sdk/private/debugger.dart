@@ -659,7 +659,13 @@ class FunctionFormatter implements Formatter {
   bool hasChildren(object) => true;
 
   String preview(object) {
-    return dart.typeName(dart.getReifiedType(object));
+    // The debugger can createa a preview of a FunctionType while it's being
+    // constructed (before argument types exist), so we need to catch errors.
+    try {
+      return dart.typeName(dart.getReifiedType(object));
+    } catch (e) {
+      return safePreview(object, JsonMLConfig.none);
+    }
   }
 
   List<NameValuePair> children(object) => <NameValuePair>[

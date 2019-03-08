@@ -55,6 +55,7 @@ A:
   classSetters:
 
 B:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: I
@@ -85,6 +86,7 @@ B:
   interfaceSetters:
 
 A with B:
+  Longest path to Object: 3
   superclasses:
     Object
       -> A
@@ -117,6 +119,7 @@ A with B:
   interfaceSetters:
 
 C:
+  Longest path to Object: 4
   superclasses:
     Object
       -> A

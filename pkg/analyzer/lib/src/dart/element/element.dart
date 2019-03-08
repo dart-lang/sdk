@@ -29,6 +29,8 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/linked_unit_context.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/dart.dart';
 
 /// Assert that the given [object] is null, which in the places where this
@@ -412,6 +414,9 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// The unlinked representation of the class in the summary.
   final UnlinkedClass _unlinkedClass;
 
+  final Reference reference;
+  final LinkedNode _linkedNode;
+
   /// If this class is resynthesized, whether it has a constant constructor.
   bool _hasConstConstructorCached;
 
@@ -450,18 +455,31 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassElementImpl(String name, int offset)
-      : _unlinkedClass = null,
+      : reference = null,
+        _linkedNode = null,
+        _unlinkedClass = null,
         super(name, offset);
+
+  ClassElementImpl.forLinkedNode(this.reference, this._linkedNode,
+      CompilationUnitElementImpl enclosingUnit)
+      : _unlinkedClass = null,
+        super.forSerialized(enclosingUnit) {
+    reference.element = this;
+  }
 
   /// Initialize a newly created class element to have the given [name].
   ClassElementImpl.forNode(Identifier name)
-      : _unlinkedClass = null,
+      : reference = null,
+        _linkedNode = null,
+        _unlinkedClass = null,
         super.forNode(name);
 
   /// Initialize using the given serialized information.
   ClassElementImpl.forSerialized(
       this._unlinkedClass, CompilationUnitElementImpl enclosingUnit)
-      : super.forSerialized(enclosingUnit);
+      : reference = null,
+        _linkedNode = null,
+        super.forSerialized(enclosingUnit);
 
   /// Set whether this class is abstract.
   void set abstract(bool isAbstract) {
@@ -516,6 +534,18 @@ class ClassElementImpl extends AbstractClassElementImpl
 
     if (isMixinApplication) {
       return _constructors = _computeMixinAppConstructors();
+    }
+
+    if (_linkedNode != null) {
+      var context = enclosingUnit._linkedContext;
+      var containerRef = reference.getChild('@constructor');
+      _constructors = _linkedNode.classOrMixinDeclaration_members
+          .where((node) => node.kind == LinkedNodeKind.constructorDeclaration)
+          .map((node) {
+        var name = context.getConstructorDeclarationName(node);
+        var reference = containerRef.getChild(name);
+        return ConstructorElementImpl.forLinkedNode(reference, node, this);
+      }).toList();
     }
 
     if (_unlinkedClass != null) {
@@ -680,7 +710,16 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _interfaces;
     }
 
-    if (_unlinkedClass != null) {
+    if (_linkedNode != null) {
+      var context = enclosingUnit._linkedContext;
+      var implementsClause =
+          _linkedNode.classOrMixinDeclaration_implementsClause;
+      if (implementsClause != null) {
+        return _interfaces = implementsClause.implementsClause_interfaces
+            .map((node) => context.getInterfaceType(node.typeName_type))
+            .toList();
+      }
+    } else if (_unlinkedClass != null) {
       var unlinkedInterfaces = _unlinkedClass.interfaces;
       var length = unlinkedInterfaces.length;
       if (length == 0) {
@@ -718,6 +757,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isAbstract {
+    if (_linkedNode != null) {
+      return _linkedNode.classDeclaration_abstractKeyword != 0;
+    }
     if (_unlinkedClass != null) {
       return _unlinkedClass.isAbstract;
     }
@@ -830,7 +872,15 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _mixins;
     }
 
-    if (_unlinkedClass != null) {
+    if (_linkedNode != null) {
+      var context = enclosingUnit._linkedContext;
+      var withClause = _linkedNode.classDeclaration_withClause;
+      if (withClause != null) {
+        return _mixins = withClause.withClause_mixinTypes
+            .map((node) => context.getInterfaceType(node.typeName_type))
+            .toList();
+      }
+    } else if (_unlinkedClass != null) {
       var unlinkedMixins = _unlinkedClass.mixins;
       var length = unlinkedMixins.length;
       if (length == 0) {
@@ -873,6 +923,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   String get name {
+    if (_linkedNode != null) {
+      return reference.name;
+    }
     if (_unlinkedClass != null) {
       return _unlinkedClass.name;
     }
@@ -896,7 +949,15 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   InterfaceType get supertype {
     if (_supertype == null) {
-      if (_unlinkedClass != null) {
+      if (_linkedNode != null) {
+        var context = enclosingUnit._linkedContext;
+        var extendsClause = _linkedNode.classDeclaration_extendsClause;
+        if (extendsClause != null) {
+          _supertype = context.getInterfaceType(
+            extendsClause.extendsClause_superclass.typeName_type,
+          );
+        }
+      } else if (_unlinkedClass != null) {
         if (_unlinkedClass.supertype != null) {
           DartType type = enclosingUnit.resynthesizerContext
               .resolveTypeRef(this, _unlinkedClass.supertype);
@@ -1351,6 +1412,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// The unlinked representation of the part in the summary.
   final UnlinkedPart _unlinkedPart;
 
+  final LinkedUnitContext _linkedContext;
+  final Reference reference;
+  final LinkedNode _linkedNode;
+
   /// The source that corresponds to this compilation unit.
   @override
   Source source;
@@ -1412,12 +1477,28 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       : resynthesizerContext = null,
         _unlinkedUnit = null,
         _unlinkedPart = null,
+        _linkedContext = null,
+        reference = null,
+        _linkedNode = null,
         super(null, -1);
+
+  CompilationUnitElementImpl.forLinkedNode(LibraryElementImpl enclosingLibrary,
+      this._linkedContext, this.reference, this._linkedNode)
+      : resynthesizerContext = null,
+        _unlinkedUnit = null,
+        _unlinkedPart = null,
+        super.forSerialized(null) {
+    _enclosingElement = enclosingLibrary;
+    _nameOffset = -1;
+  }
 
   /// Initialize using the given serialized information.
   CompilationUnitElementImpl.forSerialized(LibraryElementImpl enclosingLibrary,
       this.resynthesizerContext, this._unlinkedUnit, this._unlinkedPart)
-      : super.forSerialized(null) {
+      : _linkedContext = null,
+        reference = null,
+        _linkedNode = null,
+        super.forSerialized(null) {
     _enclosingElement = enclosingLibrary;
     _nameOffset = -1;
   }
@@ -1630,7 +1711,17 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get types {
-    if (_unlinkedUnit != null) {
+    if (_linkedNode != null) {
+      var context = enclosingUnit._linkedContext;
+      var containerRef = reference.getChild('@class');
+      _types = _linkedNode.compilationUnit_declarations
+          .where((node) => node.kind == LinkedNodeKind.classDeclaration)
+          .map((node) {
+        var name = context.getUnitMemberName(node);
+        var reference = containerRef.getChild(name);
+        return ClassElementImpl.forLinkedNode(reference, node, this);
+      }).toList();
+    } else if (_unlinkedUnit != null) {
       _types ??= _unlinkedUnit.classes
           .map((c) => new ClassElementImpl.forSerialized(c, this))
           .toList(growable: false);
@@ -1989,17 +2080,34 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   bool isConstantEvaluated = false;
 
+  final Reference reference;
+  final LinkedNode _linkedNode;
+
   /// Initialize a newly created constructor element to have the given [name
   /// ] and[offset].
-  ConstructorElementImpl(String name, int offset) : super(name, offset);
+  ConstructorElementImpl(String name, int offset)
+      : reference = null,
+        _linkedNode = null,
+        super(name, offset);
+
+  ConstructorElementImpl.forLinkedNode(
+      this.reference, this._linkedNode, ClassElementImpl enclosingClass)
+      : super.forLinkedNode(enclosingClass) {
+    reference.element = this;
+  }
 
   /// Initialize a newly created constructor element to have the given [name].
-  ConstructorElementImpl.forNode(Identifier name) : super.forNode(name);
+  ConstructorElementImpl.forNode(Identifier name)
+      : reference = null,
+        _linkedNode = null,
+        super.forNode(name);
 
   /// Initialize using the given serialized information.
   ConstructorElementImpl.forSerialized(
       UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
-      : super.forSerialized(serializedExecutable, enclosingClass);
+      : reference = null,
+        _linkedNode = null,
+        super.forSerialized(serializedExecutable, enclosingClass);
 
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
@@ -2021,6 +2129,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  String get displayName {
+    if (_linkedNode != null) {
+      return reference.name;
+    }
+    return super.displayName;
+  }
+
+  @override
   ClassElementImpl get enclosingElement =>
       super.enclosingElement as ClassElementImpl;
 
@@ -2036,6 +2152,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isConst {
+    if (_linkedNode != null) {
+      return _linkedNode.constructorDeclaration_constKeyword != 0;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.isConst;
     }
@@ -2081,7 +2200,18 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  bool get isExternal {
+    if (_linkedNode != null) {
+      return _linkedNode.constructorDeclaration_externalKeyword != 0;
+    }
+    return super.isExternal;
+  }
+
+  @override
   bool get isFactory {
+    if (_linkedNode != null) {
+      return _linkedNode.constructorDeclaration_factoryKeyword != 0;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.isFactory;
     }
@@ -2092,7 +2222,23 @@ class ConstructorElementImpl extends ExecutableElementImpl
   bool get isStatic => false;
 
   @override
+  bool get isSynthetic {
+    if (_linkedNode != null) {
+      return _linkedNode.isSynthetic;
+    }
+    return super.isSynthetic;
+  }
+
+  @override
   ElementKind get kind => ElementKind.CONSTRUCTOR;
+
+  @override
+  String get name {
+    if (_linkedNode != null) {
+      return reference.name;
+    }
+    return super.name;
+  }
 
   @override
   int get nameEnd {
@@ -2696,6 +2842,9 @@ abstract class ElementImpl implements Element {
     this._name = StringUtilities.intern(name);
   }
 
+  /// Initialize from linked node.
+  ElementImpl.forLinkedNode(this._enclosingElement);
+
   /// Initialize a newly created element to have the given [name].
   ElementImpl.forNode(Identifier name)
       : this(name == null ? "" : name.name, name == null ? -1 : name.offset);
@@ -3007,6 +3156,8 @@ abstract class ElementImpl implements Element {
   void set nameOffset(int offset) {
     _nameOffset = offset;
   }
+
+  Reference get reference => null;
 
   @override
   AnalysisSession get session {
@@ -3631,6 +3782,11 @@ abstract class ExecutableElementImpl extends ElementImpl
   ExecutableElementImpl(String name, int offset)
       : serializedExecutable = null,
         super(name, offset);
+
+  /// Initialize using the given linked node.
+  ExecutableElementImpl.forLinkedNode(ElementImpl enclosingElement)
+      : serializedExecutable = null,
+        super.forLinkedNode(enclosingElement);
 
   /// Initialize a newly created executable element to have the given [name].
   ExecutableElementImpl.forNode(Identifier name)

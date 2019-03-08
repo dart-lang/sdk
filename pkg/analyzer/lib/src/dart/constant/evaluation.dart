@@ -904,7 +904,21 @@ class ConstantEvaluationEngine {
     if (type.isUndefined) {
       return false;
     }
-    return obj.type.isSubtypeOf(type);
+    var objType = obj.type;
+    if (objType.isDartCoreInt && type.isDartCoreDouble) {
+      // Work around dartbug.com/35993 by allowing `int` to be used in a place
+      // where `double` is expected.
+      //
+      // Note that this is not technically correct, because it allows code like
+      // this:
+      //   const Object x = 1;
+      //   const double y = x;
+      //
+      // TODO(paulberry): remove this workaround once dartbug.com/33441 is
+      // fixed.
+      return true;
+    }
+    return objType.isSubtypeOf(type);
   }
 
   /**
@@ -1338,37 +1352,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return null;
     }
     bool errorOccurred = false;
-    List<DartObjectImpl> elements = new List<DartObjectImpl>();
-    for (Expression element in node.elements) {
-      DartObjectImpl elementResult = element.accept(this);
-      if (elementResult == null) {
-        errorOccurred = true;
-      } else {
-        elements.add(elementResult);
-      }
-    }
-    if (errorOccurred) {
-      return null;
-    }
-    var nodeType = node.staticType;
-    DartType elementType =
-        nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
-            ? nodeType.typeArguments[0]
-            : _typeProvider.dynamicType;
-    InterfaceType listType = _typeProvider.listType.instantiate([elementType]);
-    return new DartObjectImpl(listType, new ListState(elements));
-  }
-
-  @override
-  DartObjectImpl visitListLiteral2(ListLiteral2 node) {
-    if (!node.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
-      return null;
-    }
-    bool errorOccurred = false;
     List<DartObjectImpl> list = [];
-    for (CollectionElement element in node.elements) {
+    for (CollectionElement element in node.elements2) {
       errorOccurred = errorOccurred | _addElementsToList(list, element);
     }
     if (errorOccurred) {
@@ -1381,73 +1366,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
             : _typeProvider.dynamicType;
     InterfaceType listType = _typeProvider.listType.instantiate([elementType]);
     return new DartObjectImpl(listType, new ListState(list));
-  }
-
-  @override
-  DartObjectImpl visitMapLiteral(MapLiteral node) {
-    if (!node.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node);
-      return null;
-    }
-    bool errorOccurred = false;
-    Map<DartObjectImpl, DartObjectImpl> map =
-        <DartObjectImpl, DartObjectImpl>{};
-    for (MapLiteralEntry entry in node.entries) {
-      DartObjectImpl keyResult = entry.key.accept(this);
-      DartObjectImpl valueResult = entry.value.accept(this);
-      if (keyResult == null || valueResult == null) {
-        errorOccurred = true;
-      } else {
-        map[keyResult] = valueResult;
-      }
-    }
-    if (errorOccurred) {
-      return null;
-    }
-    DartType keyType = _typeProvider.dynamicType;
-    DartType valueType = _typeProvider.dynamicType;
-    var nodeType = node.staticType;
-    if (nodeType is InterfaceType) {
-      var typeArguments = nodeType.typeArguments;
-      if (typeArguments.length >= 2) {
-        keyType = typeArguments[0];
-        valueType = typeArguments[1];
-      }
-    }
-    InterfaceType mapType =
-        _typeProvider.mapType.instantiate([keyType, valueType]);
-    return new DartObjectImpl(mapType, new MapState(map));
-  }
-
-  @override
-  DartObjectImpl visitMapLiteral2(MapLiteral2 node) {
-    if (!node.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node);
-      return null;
-    }
-    Map<DartObjectImpl, DartObjectImpl> map = {};
-    bool errorOccurred = false;
-    for (CollectionElement element in node.entries) {
-      errorOccurred = errorOccurred | _addElementsToMap(map, element);
-    }
-    if (errorOccurred) {
-      return null;
-    }
-    DartType keyType = _typeProvider.dynamicType;
-    DartType valueType = _typeProvider.dynamicType;
-    DartType nodeType = node.staticType;
-    if (nodeType is InterfaceType) {
-      var typeArguments = nodeType.typeArguments;
-      if (typeArguments.length >= 2) {
-        keyType = typeArguments[0];
-        valueType = typeArguments[1];
-      }
-    }
-    InterfaceType mapType =
-        _typeProvider.mapType.instantiate([keyType, valueType]);
-    return new DartObjectImpl(mapType, new MapState(map));
   }
 
   @override
@@ -1548,56 +1466,57 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
-  DartObjectImpl visitSetLiteral(SetLiteral node) {
-    if (!node.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL, node);
-      return null;
-    }
-    bool errorOccurred = false;
-    Set<DartObjectImpl> elements = new Set<DartObjectImpl>();
-    for (Expression element in node.elements) {
-      DartObjectImpl elementResult = element.accept(this);
-      if (elementResult == null) {
-        errorOccurred = true;
-      } else {
-        elements.add(elementResult);
+  DartObjectImpl visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.isMap) {
+      if (!node.isConst) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node);
+        return null;
       }
+      bool errorOccurred = false;
+      Map<DartObjectImpl, DartObjectImpl> map = {};
+      for (CollectionElement element in node.elements2) {
+        errorOccurred = errorOccurred | _addElementsToMap(map, element);
+      }
+      if (errorOccurred) {
+        return null;
+      }
+      DartType keyType = _typeProvider.dynamicType;
+      DartType valueType = _typeProvider.dynamicType;
+      DartType nodeType = node.staticType;
+      if (nodeType is InterfaceType) {
+        var typeArguments = nodeType.typeArguments;
+        if (typeArguments.length >= 2) {
+          keyType = typeArguments[0];
+          valueType = typeArguments[1];
+        }
+      }
+      InterfaceType mapType =
+          _typeProvider.mapType.instantiate([keyType, valueType]);
+      return new DartObjectImpl(mapType, new MapState(map));
+    } else if (node.isSet) {
+      if (!node.isConst) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL, node);
+        return null;
+      }
+      bool errorOccurred = false;
+      Set<DartObjectImpl> set = new Set<DartObjectImpl>();
+      for (CollectionElement element in node.elements2) {
+        errorOccurred = errorOccurred | _addElementsToSet(set, element);
+      }
+      if (errorOccurred) {
+        return null;
+      }
+      DartType nodeType = node.staticType;
+      DartType elementType =
+          nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
+              ? nodeType.typeArguments[0]
+              : _typeProvider.dynamicType;
+      InterfaceType setType = _typeProvider.setType.instantiate([elementType]);
+      return new DartObjectImpl(setType, new SetState(set));
     }
-    if (errorOccurred) {
-      return null;
-    }
-    DartType nodeType = node.staticType;
-    DartType elementType =
-        nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
-            ? nodeType.typeArguments[0]
-            : _typeProvider.dynamicType;
-    InterfaceType setType = _typeProvider.setType.instantiate([elementType]);
-    return new DartObjectImpl(setType, new SetState(elements));
-  }
-
-  @override
-  DartObjectImpl visitSetLiteral2(SetLiteral2 node) {
-    if (!node.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL, node);
-      return null;
-    }
-    bool errorOccurred = false;
-    Set<DartObjectImpl> set = new Set<DartObjectImpl>();
-    for (CollectionElement element in node.elements) {
-      errorOccurred = errorOccurred | _addElementsToSet(set, element);
-    }
-    if (errorOccurred) {
-      return null;
-    }
-    DartType nodeType = node.staticType;
-    DartType elementType =
-        nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
-            ? nodeType.typeArguments[0]
-            : _typeProvider.dynamicType;
-    InterfaceType setType = _typeProvider.setType.instantiate([elementType]);
-    return new DartObjectImpl(setType, new SetState(set));
+    return null;
   }
 
   @override

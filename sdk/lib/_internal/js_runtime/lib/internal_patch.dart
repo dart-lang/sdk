@@ -49,7 +49,7 @@ List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList) {
 }
 
 @patch
-@NoInline()
+@pragma('dart2js:noInline')
 Object extractTypeArguments<T>(T instance, Function extract) {
   // This function is recognized and replaced with calls to js_runtime.
 

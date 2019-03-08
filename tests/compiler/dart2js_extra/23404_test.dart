@@ -11,8 +11,8 @@ import 'package:expect/expect.dart';
 foo([a = '\u00a0']) => a;
 bar() => '';
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 main() {

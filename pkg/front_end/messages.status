@@ -140,6 +140,7 @@ ExpectedToken/example: Fail
 ExpectedType/example: Fail
 ExpectedUri/analyzerCode: Fail
 ExpectedUri/example: Fail
+ExperimentNotEnabled/example: Fail
 ExportAfterPart/script1: Fail
 ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
@@ -335,6 +336,10 @@ SourceBodySummary/analyzerCode: Fail
 SourceBodySummary/example: Fail
 SourceOutlineSummary/analyzerCode: Fail
 SourceOutlineSummary/example: Fail
+SpreadElementTypeMismatch/script: Fail # Can't be tested until 'spread-collections' flag is on.
+SpreadTypeMismatch/analyzerCode: Fail # There's not analyzer code for that error yet.
+SpreadTypeMismatch/script1: Fail # Can't be tested until 'spread-collections' flag is on.
+SpreadTypeMismatch/script2: Fail # Can't be tested until 'spread-collections' flag is on.
 StackOverflow/example: Fail
 StaticAfterConst/script1: Fail
 SuperAsExpression/example: Fail

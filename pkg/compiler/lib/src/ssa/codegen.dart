@@ -11,7 +11,7 @@ import '../common.dart';
 import '../common/names.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
-import '../constants/constant_system.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../common_elements.dart' show JCommonElements;
 import '../elements/entities.dart';
@@ -31,6 +31,7 @@ import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
+import '../tracer.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart'
@@ -39,6 +40,11 @@ import '../world.dart' show JClosedWorld;
 import 'codegen_helpers.dart';
 import 'nodes.dart';
 import 'variable_allocator.dart';
+
+abstract class CodegenPhase {
+  String get name => '$runtimeType';
+  void visitGraph(HGraph graph);
+}
 
 class SsaCodeGeneratorTask extends CompilerTask {
   final JavaScriptBackend backend;
@@ -89,6 +95,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           .createBuilderForContext(work.element)
           .buildDeclaration(work.element);
       SsaCodeGenerator codegen = new SsaCodeGenerator(
+          this,
           backend.compiler.options,
           backend.emitter,
           backend.nativeCodegenEnqueuer,
@@ -98,6 +105,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           backend.rtiEncoder,
           backend.namer,
           backend.superMemberData,
+          backend.tracer,
           closedWorld,
           work);
       codegen.visitGraph(graph);
@@ -114,6 +122,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
         work.registry.registerAsyncMarker(element.asyncMarker);
       }
       SsaCodeGenerator codegen = new SsaCodeGenerator(
+          this,
           backend.compiler.options,
           backend.emitter,
           backend.nativeCodegenEnqueuer,
@@ -123,6 +132,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           backend.rtiEncoder,
           backend.namer,
           backend.superMemberData,
+          backend.tracer,
           closedWorld,
           work);
       codegen.visitGraph(graph);
@@ -152,6 +162,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /// This includes declarations, which are generated as expressions.
   bool isGeneratingExpression = false;
 
+  final CompilerTask _codegenTask;
   final CompilerOptions _options;
   final CodeEmitterTask _emitter;
   final NativeCodegenEnqueuer _nativeEnqueuer;
@@ -161,6 +172,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final RuntimeTypesEncoder _rtiEncoder;
   final Namer _namer;
   final SuperMemberData _superMemberData;
+  final Tracer _tracer;
   final JClosedWorld _closedWorld;
   final CodegenWorkItem _work;
 
@@ -207,6 +219,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   Queue<HBasicBlock> blockQueue;
 
   SsaCodeGenerator(
+      this._codegenTask,
       this._options,
       this._emitter,
       this._nativeEnqueuer,
@@ -216,6 +229,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._rtiEncoder,
       this._namer,
       this._superMemberData,
+      this._tracer,
       this._closedWorld,
       this._work,
       {SourceInformation sourceInformation})
@@ -234,8 +248,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   CodegenRegistry get _registry => _work.registry;
 
   JCommonElements get _commonElements => _closedWorld.commonElements;
-
-  ConstantSystem get _constantSystem => _closedWorld.constantSystem;
 
   NativeData get _nativeData => _closedWorld.nativeData;
 
@@ -352,78 +364,38 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void preGenerateMethod(HGraph graph) {
-    new SsaInstructionSelection(_options, _closedWorld, _interceptorData)
-        .visitGraph(graph);
-    new SsaTypeKnownRemover().visitGraph(graph);
-    new SsaTrustedCheckRemover(_options).visitGraph(graph);
-    new SsaInstructionMerger(
-            _abstractValueDomain, generateAtUseSite, _superMemberData)
-        .visitGraph(graph);
-    new SsaConditionMerger(generateAtUseSite, controlFlowOperators)
-        .visitGraph(graph);
-    new SsaShareRegionConstants(_options).visitGraph(graph);
+    void runPhase(CodegenPhase phase, {bool traceGraph = true}) {
+      _codegenTask.measureSubtask(phase.name, () => phase.visitGraph(graph));
+      if (traceGraph) {
+        _tracer.traceGraph(phase.name, graph);
+      }
+      assert(graph.isValid(), 'Graph not valid after ${phase.name}');
+    }
+
+    runPhase(
+        new SsaInstructionSelection(_options, _closedWorld, _interceptorData));
+    runPhase(new SsaTypeKnownRemover());
+    runPhase(new SsaTrustedCheckRemover(_options));
+    runPhase(new SsaAssignmentChaining(_options, _closedWorld));
+    runPhase(new SsaInstructionMerger(
+        _abstractValueDomain, generateAtUseSite, _superMemberData));
+    runPhase(new SsaConditionMerger(generateAtUseSite, controlFlowOperators));
+    runPhase(new SsaShareRegionConstants(_options));
+
     SsaLiveIntervalBuilder intervalBuilder =
         new SsaLiveIntervalBuilder(generateAtUseSite, controlFlowOperators);
-    intervalBuilder.visitGraph(graph);
+    runPhase(intervalBuilder, traceGraph: false);
     SsaVariableAllocator allocator = new SsaVariableAllocator(
         _namer,
         intervalBuilder.liveInstructions,
         intervalBuilder.liveIntervals,
         generateAtUseSite);
-    allocator.visitGraph(graph);
+    runPhase(allocator, traceGraph: false);
     variableNames = allocator.names;
     shouldGroupVarDeclarations = allocator.names.numberOfVariables > 1;
   }
 
   void handleDelayedVariableDeclarations(SourceInformation sourceInformation) {
-    if (_options.experimentLocalNames) {
-      handleDelayedVariableDeclarations2(sourceInformation);
-      return;
-    }
-
-    // If we have only one variable declaration and the first statement is an
-    // assignment to that variable then we can merge the two.  We count the
-    // number of variables in the variable allocator to try to avoid this issue,
-    // but it sometimes happens that the variable allocator introduces a
-    // temporary variable that it later eliminates.
-    if (!collectedVariableDeclarations.isEmpty) {
-      if (collectedVariableDeclarations.length == 1 &&
-          currentContainer.statements.length >= 1 &&
-          currentContainer.statements[0] is js.ExpressionStatement) {
-        String name = collectedVariableDeclarations.first;
-        js.ExpressionStatement statement = currentContainer.statements[0];
-        if (statement.expression is js.Assignment) {
-          js.Assignment assignment = statement.expression;
-          if (!assignment.isCompound &&
-              assignment.leftHandSide is js.VariableReference) {
-            js.VariableReference variableReference = assignment.leftHandSide;
-            if (variableReference.name == name) {
-              js.VariableDeclaration decl = new js.VariableDeclaration(name);
-              js.VariableInitialization initialization =
-                  new js.VariableInitialization(decl, assignment.value);
-              currentContainer.statements[0] = new js.ExpressionStatement(
-                      new js.VariableDeclarationList([initialization]))
-                  .withSourceInformation(sourceInformation);
-              return;
-            }
-          }
-        }
-      }
-      // If we can't merge the declaration with the first assignment then we
-      // just do it with a new var z,y,x; statement.
-      List<js.VariableInitialization> declarations =
-          <js.VariableInitialization>[];
-      collectedVariableDeclarations.forEach((String name) {
-        declarations.add(new js.VariableInitialization(
-            new js.VariableDeclaration(name), null));
-      });
-      var declarationList = new js.VariableDeclarationList(declarations)
-          .withSourceInformation(sourceInformation);
-      insertStatementAtStart(new js.ExpressionStatement(declarationList));
-    }
-  }
-
-  void handleDelayedVariableDeclarations2(SourceInformation sourceInformation) {
     // Create 'var' list at the start of function.  Move assignment statements
     // from the top of the body into the variable initializers.
     if (collectedVariableDeclarations.isEmpty) return;
@@ -521,11 +493,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         if (current.isControlFlow()) {
           return TYPE_STATEMENT;
         }
-        // HFieldSet generates code on the form x.y = ..., which isn't
-        // valid in a declaration, but it also always have no uses, so
-        // it's caught by that test too.
-        assert(current is! HFieldSet || current.usedBy.isEmpty);
-        if (current.usedBy.isEmpty) {
+        // HFieldSet generates code on the form "x.y = ...", which isn't valid
+        // in a declaration.
+        if (current.usedBy.isEmpty || current is HFieldSet) {
           result = TYPE_EXPRESSION;
         }
         current = current.next;
@@ -2365,7 +2335,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             .withSourceInformation(sourceInformation));
       } else if (canGenerateOptimizedComparison(input)) {
         HRelational relational = input;
-        BinaryOperation operation = relational.operation(_constantSystem);
+        constant_system.BinaryOperation operation = relational.operation();
         String op = mapRelationalOperator(operation.name, true);
         handleInvokeBinary(input, op, sourceInformation);
       } else {

@@ -14,7 +14,6 @@ import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/constants/evaluation.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
-import 'package:compiler/src/constant_system_dart.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
@@ -66,8 +65,6 @@ class MemoryEnvironment implements EvaluationEnvironment {
   MemoryEnvironment(this._environment, [this.env = const <String, String>{}]);
 
   bool get checkCasts => true;
-
-  bool get immediateUnderSetLiteral => _environment.immediateUnderSetLiteral;
 
   @override
   String readFromEnvironment(String name) => env[name];
@@ -146,7 +143,7 @@ const List<TestData> DATA = const [
     const ConstantData('false', 'BoolConstant(false)'),
     const ConstantData('true', 'BoolConstant(true)'),
     const ConstantData('0', 'IntConstant(0)'),
-    const ConstantData('0.0', 'DoubleConstant(0.0)'),
+    const ConstantData('0.0', 'IntConstant(0)'),
     const ConstantData('"foo"', 'StringConstant("foo")'),
     const ConstantData('1 + 2', 'IntConstant(3)'),
     const ConstantData('-(1)', 'IntConstant(-1)'),
@@ -632,8 +629,7 @@ Future testData(TestData data) async {
         expectedResults.forEach((Map<String, String> env, String expectedText) {
           MemoryEnvironment environment =
               new MemoryEnvironment(getEnvironment(compiler, field), env);
-          ConstantValue value =
-              constant.evaluate(environment, DART_CONSTANT_SYSTEM);
+          ConstantValue value = constant.evaluate(environment);
 
           Expect.isNotNull(
               value,

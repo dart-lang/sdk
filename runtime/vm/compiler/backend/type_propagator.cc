@@ -192,17 +192,21 @@ void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
   }
 }
 
+void FlowGraphTypePropagator::GrowTypes(intptr_t up_to) {
+  // Grow types array if a new redefinition was inserted.
+  for (intptr_t i = types_.length(); i <= up_to; ++i) {
+    types_.Add(nullptr);
+  }
+}
+
 void FlowGraphTypePropagator::EnsureMoreAccurateRedefinition(
     Instruction* prev,
     Definition* original,
     CompileType new_type) {
   RedefinitionInstr* redef =
       flow_graph_->EnsureRedefinition(prev, original, new_type);
-  // Grow types array if a new redefinition was inserted.
-  if (redef != NULL) {
-    for (intptr_t i = types_.length(); i <= redef->ssa_temp_index() + 1; ++i) {
-      types_.Add(NULL);
-    }
+  if (redef != nullptr) {
+    GrowTypes(redef->ssa_temp_index() + 1);
   }
 }
 
@@ -280,9 +284,21 @@ void FlowGraphTypePropagator::VisitCheckNull(CheckNullInstr* check) {
   Definition* receiver = check->value()->definition();
   CompileType* type = TypeOf(receiver);
   if (type->is_nullable()) {
-    // Insert redefinition for the receiver to guard against invalid
-    // code motion.
-    EnsureMoreAccurateRedefinition(check, receiver, type->CopyNonNullable());
+    // If the type is nullable, translate an implicit control
+    // dependence to an explicit data dependence at this point
+    // to guard against invalid code motion later. Valid code
+    // motion of the check may still enable valid code motion
+    // of the checked code.
+    if (check->ssa_temp_index() == -1) {
+      flow_graph_->AllocateSSAIndexes(check);
+      GrowTypes(check->ssa_temp_index() + 1);
+    }
+    FlowGraph::RenameDominatedUses(receiver, check, check);
+    // Set non-nullable type on check itself (but avoid None()).
+    CompileType result = type->CopyNonNullable();
+    if (!result.IsNone()) {
+      SetTypeOf(check, new (zone()) CompileType(result));
+    }
   }
 }
 
@@ -877,6 +893,37 @@ CompileType RedefinitionInstr::ComputeType() const {
 }
 
 bool RedefinitionInstr::RecomputeType() {
+  return UpdateType(ComputeType());
+}
+
+CompileType CheckNullInstr::ComputeType() const {
+  CompileType* type = value()->Type();
+  if (type->is_nullable()) {
+    CompileType result = type->CopyNonNullable();
+    if (!result.IsNone()) {
+      return result;
+    }
+  }
+  return *type;
+}
+
+bool CheckNullInstr::RecomputeType() {
+  return UpdateType(ComputeType());
+}
+
+CompileType CheckArrayBoundInstr::ComputeType() const {
+  return *index()->Type();
+}
+
+bool CheckArrayBoundInstr::RecomputeType() {
+  return UpdateType(ComputeType());
+}
+
+CompileType GenericCheckBoundInstr::ComputeType() const {
+  return *index()->Type();
+}
+
+bool GenericCheckBoundInstr::RecomputeType() {
   return UpdateType(ComputeType());
 }
 

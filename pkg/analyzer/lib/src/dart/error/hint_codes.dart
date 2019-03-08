@@ -178,6 +178,25 @@ class HintCode extends ErrorCode {
               "rename the function in the imported library.");
 
   /**
+   * When "strict-inference" in enabled, uninitialized variables must be
+   * declared with a specific type.
+   */
+  static const HintCode INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE =
+      const HintCode(
+          'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
+          "The type of {0} cannot be inferred without either a type or "
+          "initializer.",
+          correction: "Try specifying the type of the variable.");
+
+  /**
+   * When "strict-raw-types" is enabled, raw types must be inferred via the
+   * context type, or have type arguments other than dynamic.
+   */
+  static const HintCode STRICT_RAW_TYPE = HintCode('STRICT_RAW_TYPE',
+      "The generic type '{0}' should have explicit type arguments but doesn't.",
+      correction: "Use explicit type arguments for '{0}'.");
+
+  /**
    * This hint is generated anywhere a @factory annotation is associated with
    * anything other than a method.
    */
@@ -586,6 +605,14 @@ class HintCode extends ErrorCode {
   static const HintCode UNNECESSARY_NO_SUCH_METHOD = const HintCode(
       'UNNECESSARY_NO_SUCH_METHOD', "Unnecessary 'noSuchMethod' declaration.",
       correction: "Try removing the declaration of 'noSuchMethod'.");
+  /**
+   * When the '?.' operator is used on a target that we know to be non-null,
+   * it is unnecessary.
+   */
+  static const HintCode UNNECESSARY_NULL_AWARE_CALL = const HintCode(
+      'UNNECESSARY_NULL_AWARE_CALL',
+      "The target expression cannot be null, and so '?.' is not necessary.",
+      correction: "Replace the '?.' with a '.' in the invocation.");
 
   /**
    * Unnecessary type checks, the result is always false.

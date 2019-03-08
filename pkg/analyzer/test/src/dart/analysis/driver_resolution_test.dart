@@ -4941,12 +4941,12 @@ class C {
     BlockFunctionBody fooBody = fooDeclaration.body;
     List<Statement> statements = fooBody.block.statements;
 
-    ForEachStatement forEachStatement = statements[0];
+    ForStatement2 forEachStatement = statements[0];
     Block forBlock = forEachStatement.body;
+    var forEachParts =
+        forEachStatement.forLoopParts as ForEachPartsWithIdentifier;
 
-    expect(forEachStatement.loopVariable, isNull);
-
-    SimpleIdentifier vInFor = forEachStatement.identifier;
+    SimpleIdentifier vInFor = forEachParts.identifier;
     expect(vInFor.staticElement, same(vElement.setter));
     expect(vInFor.staticType, typeProvider.numType);
 
@@ -4976,12 +4976,12 @@ void main() {
     LocalVariableElement vElement = vNode.declaredElement;
     expect(vElement.type, typeProvider.numType);
 
-    ForEachStatement forEachStatement = statements[1];
+    ForStatement2 forEachStatement = statements[1];
     Block forBlock = forEachStatement.body;
+    var forEachParts =
+        forEachStatement.forLoopParts as ForEachPartsWithIdentifier;
 
-    expect(forEachStatement.loopVariable, isNull);
-
-    SimpleIdentifier vInFor = forEachStatement.identifier;
+    SimpleIdentifier vInFor = forEachParts.identifier;
     expect(vInFor.staticElement, vElement);
     expect(vInFor.staticType, typeProvider.numType);
 
@@ -5011,12 +5011,12 @@ num v;
     TopLevelVariableElement vElement = vNode.declaredElement;
     expect(vElement.type, typeProvider.numType);
 
-    ForEachStatement forEachStatement = statements[0];
+    ForStatement2 forEachStatement = statements[0];
     Block forBlock = forEachStatement.body;
+    var forEachParts =
+        forEachStatement.forLoopParts as ForEachPartsWithIdentifier;
 
-    expect(forEachStatement.loopVariable, isNull);
-
-    SimpleIdentifier vInFor = forEachStatement.identifier;
+    SimpleIdentifier vInFor = forEachParts.identifier;
     expect(vInFor.staticElement, same(vElement.setter));
     expect(vInFor.staticType, typeProvider.numType);
 
@@ -5040,10 +5040,12 @@ void main() {
 
     List<Statement> statements = _getMainStatements(result);
 
-    ForEachStatement forEachStatement = statements[0];
+    ForStatement2 forEachStatement = statements[0];
     Block forBlock = forEachStatement.body;
+    var forEachParts =
+        forEachStatement.forLoopParts as ForEachPartsWithDeclaration;
 
-    DeclaredIdentifier vNode = forEachStatement.loopVariable;
+    DeclaredIdentifier vNode = forEachParts.loopVariable;
     LocalVariableElement vElement = vNode.declaredElement;
     expect(vElement.type, typeProvider.intType);
 
@@ -5070,10 +5072,12 @@ void main() {
 
     List<Statement> statements = _getMainStatements(result);
 
-    ForEachStatement forEachStatement = statements[0];
+    ForStatement2 forEachStatement = statements[0];
     Block forBlock = forEachStatement.body;
+    var forEachParts =
+        forEachStatement.forLoopParts as ForEachPartsWithDeclaration;
 
-    DeclaredIdentifier vNode = forEachStatement.loopVariable;
+    DeclaredIdentifier vNode = forEachParts.loopVariable;
     LocalVariableElement vElement = vNode.declaredElement;
     expect(vElement.type, typeProvider.numType);
 
@@ -5192,7 +5196,7 @@ void main() {
 
     {
       ExpressionStatement statement = statements[0];
-      MapLiteral mapLiteral = statement.expression;
+      SetOrMapLiteral mapLiteral = statement.expression;
       expect(
           mapLiteral.staticType,
           typeProvider.mapType
@@ -5201,7 +5205,7 @@ void main() {
 
     {
       ExpressionStatement statement = statements[1];
-      MapLiteral mapLiteral = statement.expression;
+      SetOrMapLiteral mapLiteral = statement.expression;
       expect(
           mapLiteral.staticType,
           typeProvider.mapType
@@ -5218,7 +5222,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var literal = findNode.mapLiteral('<bool, int, double>{}');
+    var literal = findNode.setOrMapLiteral('<bool, int, double>{}');
     assertType(literal, 'Map<dynamic, dynamic>');
 
     var boolRef = findNode.simple('bool, ');
@@ -6725,7 +6729,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isEmpty);
 
-    var literal = findNode.setLiteral('<int>{}');
+    var literal = findNode.setOrMapLiteral('<int>{}');
     assertType(literal, 'Set<int>');
 
     var intRef = findNode.simple('int>{}');

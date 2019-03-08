@@ -38,6 +38,7 @@ A:
     A.foo
 
 B:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: A
@@ -70,6 +71,7 @@ B:
     A.foo
 
 C:
+  Longest path to Object: 3
   superclasses:
     Object
       -> B
@@ -103,6 +105,7 @@ C:
     A.foo
 
 D:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: A
@@ -135,6 +138,7 @@ D:
     D.foo
 
 E:
+  Longest path to Object: 3
   superclasses:
     Object
       -> D

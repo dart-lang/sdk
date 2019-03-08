@@ -319,11 +319,15 @@ void ClassHeapStats::ResetAtNewGC() {
   pre_gc.new_size = post_gc.new_size + recent.new_size;
   pre_gc.new_external_size =
       post_gc.new_external_size + recent.new_external_size;
+  pre_gc.old_external_size =
+      post_gc.old_external_size + recent.old_external_size;
   // Accumulate allocations.
   accumulated.new_count += recent.new_count - last_reset.new_count;
   accumulated.new_size += recent.new_size - last_reset.new_size;
   accumulated.new_external_size +=
       recent.new_external_size - last_reset.new_external_size;
+  accumulated.old_external_size +=
+      recent.old_external_size - last_reset.old_external_size;
   last_reset.ResetNew();
   post_gc.ResetNew();
   recent.ResetNew();
@@ -337,11 +341,15 @@ void ClassHeapStats::ResetAtOldGC() {
   pre_gc.old_size = post_gc.old_size + recent.old_size;
   pre_gc.old_external_size =
       post_gc.old_external_size + recent.old_external_size;
+  pre_gc.new_external_size =
+      post_gc.new_external_size + recent.new_external_size;
   // Accumulate allocations.
   accumulated.old_count += recent.old_count - last_reset.old_count;
   accumulated.old_size += recent.old_size - last_reset.old_size;
   accumulated.old_external_size +=
       recent.old_external_size - last_reset.old_external_size;
+  accumulated.new_external_size +=
+      recent.new_external_size - last_reset.new_external_size;
   last_reset.ResetOld();
   post_gc.ResetOld();
   recent.ResetOld();
@@ -433,6 +441,13 @@ void ClassTable::UpdateAllocatedOld(intptr_t cid, intptr_t size) {
   ASSERT(stats != NULL);
   ASSERT(size != 0);
   stats->recent.AddOld(size);
+}
+
+void ClassTable::UpdateAllocatedOldGC(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  ASSERT(stats != NULL);
+  ASSERT(size != 0);
+  stats->recent.AddOldGC(size);
 }
 
 void ClassTable::UpdateAllocatedExternalNew(intptr_t cid, intptr_t size) {
@@ -601,6 +616,13 @@ void ClassTable::UpdateLiveNew(intptr_t cid, intptr_t size) {
   ASSERT(stats != NULL);
   ASSERT(size >= 0);
   stats->post_gc.AddNew(size);
+}
+
+void ClassTable::UpdateLiveNewGC(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  ASSERT(stats != NULL);
+  ASSERT(size >= 0);
+  stats->post_gc.AddNewGC(size);
 }
 
 void ClassTable::UpdateLiveOldExternal(intptr_t cid, intptr_t size) {

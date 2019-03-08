@@ -26,30 +26,26 @@ class VmConstantsBackend extends ConstantsBackend {
   }
 
   @override
-  Constant lowerConstant(Constant constant) {
-    if (constant is MapConstant) {
-      // The _ImmutableMap class is implemented via one field pointing to a list
-      // of key/value pairs -- see runtime/lib/immutable_map.dart!
-      final List<Constant> kvListPairs =
-          new List<Constant>(2 * constant.entries.length);
-      for (int i = 0; i < constant.entries.length; i++) {
-        final ConstantMapEntry entry = constant.entries[i];
-        kvListPairs[2 * i] = entry.key;
-        kvListPairs[2 * i + 1] = entry.value;
-      }
-      // This is a bit fishy, since we merge the key and the value type by
-      // putting both into the same list.
-      final kvListConstant = new ListConstant(const DynamicType(), kvListPairs);
-      assert(immutableMapClass.fields.length == 1);
-      final Field kvPairListField = immutableMapClass.fields[0];
-      return new InstanceConstant(immutableMapClass.reference, <DartType>[
-        constant.keyType,
-        constant.valueType,
-      ], <Reference, Constant>{
-        kvPairListField.reference: kvListConstant,
-      });
+  Constant lowerMapConstant(MapConstant constant) {
+    // The _ImmutableMap class is implemented via one field pointing to a list
+    // of key/value pairs -- see runtime/lib/immutable_map.dart!
+    final List<Constant> kvListPairs =
+        new List<Constant>(2 * constant.entries.length);
+    for (int i = 0; i < constant.entries.length; i++) {
+      final ConstantMapEntry entry = constant.entries[i];
+      kvListPairs[2 * i] = entry.key;
+      kvListPairs[2 * i + 1] = entry.value;
     }
-
-    return constant;
+    // This is a bit fishy, since we merge the key and the value type by
+    // putting both into the same list.
+    final kvListConstant = new ListConstant(const DynamicType(), kvListPairs);
+    assert(immutableMapClass.fields.length == 1);
+    final Field kvPairListField = immutableMapClass.fields[0];
+    return new InstanceConstant(immutableMapClass.reference, <DartType>[
+      constant.keyType,
+      constant.valueType,
+    ], <Reference, Constant>{
+      kvPairListField.reference: kvListConstant,
+    });
   }
 }

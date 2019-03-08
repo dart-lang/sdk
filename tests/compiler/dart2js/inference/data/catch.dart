@@ -13,9 +13,9 @@ main() {
 /// Untyped catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: catchUntyped:[null|subclass=Object]*/
+/*element: catchUntyped:[subclass=Object]*/
 catchUntyped() {
-  var local;
+  dynamic local = 0;
   try {} catch (e) {
     local = e;
   }
@@ -39,7 +39,7 @@ catchTyped() {
 /// Catch clause with stack trace.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: catchStackTrace:[null|subclass=Object]*/
+/*element: catchStackTrace:[subclass=Object]*/
 catchStackTrace() {
   dynamic local = 0;
   try {} catch (_, s) {

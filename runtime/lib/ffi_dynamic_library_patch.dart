@@ -7,9 +7,9 @@ import "dart:_internal" show patch;
 DynamicLibrary _open(String name) native "Ffi_dl_open";
 
 @patch
+@pragma("vm:entry-point")
 class DynamicLibrary {
   @patch
-  @pragma("vm:entry-point")
   factory DynamicLibrary.open(String name) {
     return _open(name);
   }

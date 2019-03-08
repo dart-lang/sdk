@@ -31,7 +31,7 @@ class _AssertionError extends Error implements AssertionError {
   // AssertionError_throwNew in errors.cc fishes the assertion source code
   // out of the script. It expects a Dart stack frame from class
   // _AssertionError. Thus we need a Dart stub that calls the native code.
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   static _throwNew(int assertionStart, int assertionEnd, Object message) {
     _doThrowNew(assertionStart, assertionEnd, message);
   }
@@ -39,7 +39,7 @@ class _AssertionError extends Error implements AssertionError {
   static _doThrowNew(int assertionStart, int assertionEnd, Object message)
       native "AssertionError_throwNew";
 
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   static _evaluateAssertion(condition) {
     if (identical(condition, true) || identical(condition, false)) {
       return condition;
@@ -194,7 +194,7 @@ class NoSuchMethodError {
   // The compiler emits a call to _throwNew when it cannot resolve a static
   // method at compile time. The receiver is actually the literal class of the
   // unresolved method.
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   static void _throwNew(Object receiver, String memberName, int invocation_type,
       Object typeArguments, List arguments, List argumentNames) {
     throw new NoSuchMethodError._withType(receiver, memberName, invocation_type,

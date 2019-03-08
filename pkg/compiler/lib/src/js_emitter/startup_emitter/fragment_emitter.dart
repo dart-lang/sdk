@@ -1078,17 +1078,33 @@ class FragmentEmitter {
   Method generateGetter(Field field) {
     assert(field.needsGetter);
 
-    String template;
-    if (field.needsInterceptedGetterOnReceiver) {
-      template = "function(receiver) { return receiver[#]; }";
-    } else if (field.needsInterceptedGetterOnThis) {
-      template = "function(receiver) { return this[#]; }";
+    js.Expression code;
+    if (field.isElided) {
+      ConstantValue constantValue = field.constantValue;
+      if (constantValue == null) {
+        assert(_closedWorld.abstractValueDomain is TrivialAbstractValueDomain);
+        // Since static types are not used in invocation/access of instance
+        // members in codegen, we see dynamic uses in codegen that are not
+        // present in resolution when using the trivial abstract value domain.
+        // This means that resolution can determine that a field is never read
+        // but codegen thinks it is read.
+        constantValue = new NullConstantValue();
+      }
+      code = js.js(
+          "function() { return #; }", generateConstantReference(constantValue));
     } else {
-      assert(!field.needsInterceptedGetter);
-      template = "function() { return this[#]; }";
+      String template;
+      if (field.needsInterceptedGetterOnReceiver) {
+        template = "function(receiver) { return receiver[#]; }";
+      } else if (field.needsInterceptedGetterOnThis) {
+        template = "function(receiver) { return this[#]; }";
+      } else {
+        assert(!field.needsInterceptedGetter);
+        template = "function() { return this[#]; }";
+      }
+      js.Expression fieldName = js.quoteName(field.name);
+      code = js.js(template, fieldName);
     }
-    js.Expression fieldName = js.quoteName(field.name);
-    js.Expression code = js.js(template, fieldName);
     js.Name getterName = namer.deriveGetterName(field.accessorName);
     return new StubMethod(getterName, code);
   }

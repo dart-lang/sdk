@@ -34,7 +34,7 @@ import 'package:expect/expect.dart';
   @{main}test();
 @{main}}
 
-@NoInline()
+@pragma('dart2js:noInline')
 @{test}test() {
 @{test}}
 ''',

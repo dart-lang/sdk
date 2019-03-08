@@ -832,6 +832,10 @@ void ScopeBuilder::VisitExpression() {
       ExitScope(helper_.reader_.min_position(), helper_.reader_.max_position());
       return;
     }
+    case kBlockExpression: {
+      UNIMPLEMENTED();
+      return;
+    }
     case kBigIntLiteral:
       helper_.SkipStringReference();  // read string reference.
       return;

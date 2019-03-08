@@ -551,6 +551,9 @@ Future<Uri> asFileUri(FileSystem fileSystem, Uri uri) async {
 /// Convert URI to a package URI if it is inside one of the packages.
 Future<Uri> convertToPackageUri(
     FileSystem fileSystem, Uri uri, Uri packagesUri) async {
+  if (uri.scheme == 'package') {
+    return uri;
+  }
   // Convert virtual URI to a real file URI.
   String uriString = (await asFileUri(fileSystem, uri)).toString();
   List<String> packages;
@@ -636,8 +639,10 @@ Future writeOutputSplitByPackages(
       final IOSink sink = new File(filename).openWrite();
 
       final main = component.mainMethod;
+      final problems = component.problemsAsJson;
       if (package != 'main') {
         component.mainMethod = null;
+        component.problemsAsJson = null;
       }
 
       ASTRemover astRemover;
@@ -663,6 +668,7 @@ Future writeOutputSplitByPackages(
           (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
       printer.writeComponentFile(component);
       component.mainMethod = main;
+      component.problemsAsJson = problems;
       if (genBytecode && dropAST) {
         astRemover.restoreAST();
       }
@@ -716,3 +722,6 @@ Future<void> writeDepfile(FileSystem fileSystem, Component component,
   file.write('\n');
   await file.close();
 }
+
+// Used by kernel_front_end_test.dart
+main() {}

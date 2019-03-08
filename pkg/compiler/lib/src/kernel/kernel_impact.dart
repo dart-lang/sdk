@@ -231,7 +231,10 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerSetLiteral(ir.DartType elementType,
       {bool isConst, bool isEmpty}) {
-    // TODO(johnniwinther,fishythefish): Register set literals.
+    impactBuilder.registerSetLiteral(new SetLiteralUse(
+        commonElements.setType(elementMap.getDartType(elementType)),
+        isConstant: isConst,
+        isEmpty: isEmpty));
   }
 
   @override
@@ -727,6 +730,13 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         target,
         new CallStructure(positionalArguments + namedArguments.length,
             namedArguments, typeArguments.length)));
+  }
+
+  @override
+  void registerConstant(ir.ConstantExpression node) {
+    // ignore: unused_local_variable
+    ConstantValue value = elementMap.getConstantValue(node);
+    // TODO(johnniwinther,fishythefish): Register the constant.
   }
 
   @override

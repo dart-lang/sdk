@@ -193,14 +193,14 @@ void Become::CrashDump(RawObject* before_obj, RawObject* after_obj) {
   OS::PrintErr("BEFORE ADDRESS: %p\n", before_obj);
   OS::PrintErr("BEFORE IS HEAP OBJECT: %s",
                before_obj->IsHeapObject() ? "YES" : "NO");
-  OS::PrintErr("BEFORE IS VM HEAP OBJECT: %s",
-               before_obj->IsVMHeapObject() ? "YES" : "NO");
+  OS::PrintErr("BEFORE IS READ ONLY OBJECT: %s",
+               before_obj->IsReadOnly() ? "YES" : "NO");
 
   OS::PrintErr("AFTER ADDRESS: %p\n", after_obj);
   OS::PrintErr("AFTER IS HEAP OBJECT: %s",
                after_obj->IsHeapObject() ? "YES" : "NO");
-  OS::PrintErr("AFTER IS VM HEAP OBJECT: %s",
-               after_obj->IsVMHeapObject() ? "YES" : "NO");
+  OS::PrintErr("AFTER IS READ ONLY OBJECT: %s",
+               after_obj->IsReadOnly() ? "YES" : "NO");
 
   if (before_obj->IsHeapObject()) {
     OS::PrintErr("BEFORE OBJECT CLASS ID=%" Pd "\n", before_obj->GetClassId());
@@ -240,7 +240,7 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
       CrashDump(before_obj, after_obj);
       FATAL("become: Cannot become immediates");
     }
-    if (before_obj->IsVMHeapObject()) {
+    if (before_obj->IsReadOnly()) {
       CrashDump(before_obj, after_obj);
       FATAL("become: Cannot forward VM heap objects");
     }

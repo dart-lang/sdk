@@ -98,6 +98,7 @@ class FlatTypeMask implements TypeMask {
 
   bool get isUnion => false;
   bool get isContainer => false;
+  bool get isSet => false;
   bool get isMap => false;
   bool get isDictionary => false;
   bool get isForwarding => false;

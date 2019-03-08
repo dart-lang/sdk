@@ -2146,6 +2146,15 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the keyword 'const' from the map literal.");
 
   /**
+   * 12.7 Maps: It is a compile time error if an element of a constant map
+   * literal is not a compile-time constant.
+   */
+  static const CompileTimeErrorCode NON_CONSTANT_MAP_ELEMENT =
+      const CompileTimeErrorCode('NON_CONSTANT_MAP_ELEMENT',
+          "The elements in a const map literal must be constant.",
+          correction: "Try removing the keyword 'const' from the map literal.");
+
+  /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an
    * entry in a constant map literal is not a compile-time constant.
    *
@@ -3246,6 +3255,14 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode('UNDEFINED_OPERATOR',
           "The operator '{0}' isn't defined for the class '{1}'.",
           correction: "Try defining the operator '{0}'.");
+
+  static const StaticTypeWarningCode UNDEFINED_PREFIXED_NAME =
+      const StaticTypeWarningCode(
+          'UNDEFINED_PREFIXED_NAME',
+          "The name '{0}' is being referenced through the prefix '{1}', but it "
+          "isn't defined in any of the libraries imported using that prefix.",
+          correction: "Try correcting the prefix or "
+              "importing the library that defines '{0}'.");
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
@@ -4649,6 +4666,10 @@ class StaticWarningCode extends ErrorCode {
 
 /**
  * This class has Strong Mode specific error codes.
+ * 
+ * "Strong Mode" was the prototype for Dart 2's sound type system. Many of these
+ * errors became part of Dart 2. Some of them are optional flags, used for
+ * stricter checking.
  *
  * These error codes tend to use the same message across different severity
  * levels, so they are grouped for clarity.

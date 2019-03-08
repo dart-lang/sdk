@@ -19,51 +19,14 @@
 
 namespace dart {
 
-// Concatenates a NULL terminated array of strings.
-// The returned string is scope allocated.
-// TODO(dacoharkes): Can we share this with runtime/bin/extensions.cc?
-const char* Concatenate(const char** strings) {
-  int size = 1;  // null termination.
-  for (int i = 0; strings[i] != NULL; i++) {
-    size += strlen(strings[i]);
-  }
-  char* result = reinterpret_cast<char*>(Dart_ScopeAllocate(size));
-  int index = 0;
-  for (int i = 0; strings[i] != NULL; i++) {
-    index += snprintf(result + index, size - index, "%s", strings[i]);
-  }
-  ASSERT(index == size - 1);
-  ASSERT(result[size - 1] == '\0');
-  return result;
-}
-
-// TODO(dacoharkes): Can we share this with runtime/bin/extensions.cc?
-const char* LibraryPath(const char* library_name) {
-  const char* library_prefix = "lib";
-#if defined(TARGET_OS_LINUX)
-  const char* library_extension = "so";
-#elif defined(TARGET_OS_MACOS)
-  const char* library_extension = "dylib";
-#else
-  const char* library_extension = "";
-  UNREACHABLE();
-#endif
-
-  const char* path_components[] = {
-      library_prefix, library_name, ".", library_extension, NULL,
-  };
-
-  return Concatenate(path_components);
-}
-
 DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
 #if !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
   UNREACHABLE();
 #else
-  GET_NON_NULL_NATIVE_ARGUMENT(String, argName, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, lib_path, arguments->NativeArgAt(0));
 
   dlerror();  // Clear any errors.
-  void* handle = dlopen(LibraryPath(argName.ToCString()), RTLD_LAZY);
+  void* handle = dlopen(lib_path.ToCString(), RTLD_LAZY);
   if (handle == nullptr) {
     char* error = dlerror();
     const String& msg = String::Handle(
@@ -88,8 +51,8 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
   void* handle = dlib.GetHandle();
 
   dlerror();  // Clear any errors.
-  uint8_t* pointer =
-      reinterpret_cast<uint8_t*>(dlsym(handle, argSymbolName.ToCString()));
+  intptr_t pointer =
+      reinterpret_cast<intptr_t>(dlsym(handle, argSymbolName.ToCString()));
   char* error;
   if ((error = dlerror()) != NULL) {
     const String& msg = String::Handle(
@@ -99,7 +62,8 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
 
   // TODO(dacoharkes): should this return NULL if addres is 0?
   // https://github.com/dart-lang/sdk/issues/35756
-  RawPointer* result = Pointer::New(type_arg, pointer);
+  RawPointer* result =
+      Pointer::New(type_arg, Integer::Handle(zone, Integer::New(pointer)));
   return result;
 #endif
 }

@@ -383,6 +383,7 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
     thread->DeferredMarkingStackRelease();
   }
   thread->StoreBufferRelease();
+  thread->heap()->AbandonRemainingTLAB(thread);
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   const bool kIsNotMutatorThread = false;
@@ -739,7 +740,7 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
   // [object] is in fact a [Code] object.
   if (object.IsCode()) {
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
-  ASSERT((expr)->IsVMHeapObject());                                            \
+  ASSERT((expr)->IsReadOnly());                                                \
   if (object.raw() == expr) {                                                  \
     return Thread::member_name##offset();                                      \
   }
@@ -750,7 +751,6 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
   // For non [Code] objects we check if the object equals to any of the cached
   // non-stub entries.
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
-  ASSERT((expr)->IsVMHeapObject());                                            \
   if (object.raw() == expr) {                                                  \
     return Thread::member_name##offset();                                      \
   }

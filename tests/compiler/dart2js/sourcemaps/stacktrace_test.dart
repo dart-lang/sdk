@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
@@ -83,6 +84,7 @@ Future runTest(Test test, String config,
       '-o$output',
       '--libraries-spec=sdk/lib/libraries.json',
       '--packages=${Platform.packageConfig}',
+      Flags.testMode,
       input,
     ]..addAll(options);
     print("Compiling dart2js ${arguments.join(' ')}");

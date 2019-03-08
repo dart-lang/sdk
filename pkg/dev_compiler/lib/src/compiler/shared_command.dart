@@ -148,6 +148,10 @@ class SharedCompilerOptions {
           help: '--bazel-mapping=gen/to/library.dart,to/library.dart\n'
               'adjusts the path in source maps.',
           splitCommas: false,
+          hide: hide)
+      ..addOption('library-root',
+          help: '(deprecated) used to name libraries inside the module, '
+              'ignored with -k.',
           hide: hide);
   }
 
@@ -467,8 +471,17 @@ class ParsedArguments {
   /// instead of Analyzer trees for representing the Dart code.
   final bool isKernel;
 
+  /// Whether to re-use the last compiler result when in a worker.
+  ///
+  /// This is useful if we are repeatedly compiling things in the same context,
+  /// e.g. in a debugger REPL.
+  final bool reuseResult;
+
   ParsedArguments._(this.rest,
-      {this.isBatch = false, this.isWorker = false, this.isKernel = false});
+      {this.isBatch = false,
+      this.isWorker = false,
+      this.isKernel = false,
+      this.reuseResult = false});
 
   /// Preprocess arguments to determine whether DDK is used in batch mode or as a
   /// persistent worker.
@@ -486,6 +499,7 @@ class ParsedArguments {
     bool isWorker = false;
     bool isBatch = false;
     bool isKernel = false;
+    bool reuseResult = false;
     var len = args.length;
     for (int i = 0; i < len; i++) {
       var arg = args[i];
@@ -502,12 +516,17 @@ class ParsedArguments {
         isBatch = true;
       } else if (arg == '--kernel' || arg == '-k') {
         isKernel = true;
+      } else if (arg == '--reuse-compiler-result') {
+        reuseResult = true;
       } else {
         newArgs.add(arg);
       }
     }
     return ParsedArguments._(newArgs,
-        isWorker: isWorker, isBatch: isBatch, isKernel: isKernel);
+        isWorker: isWorker,
+        isBatch: isBatch,
+        isKernel: isKernel,
+        reuseResult: reuseResult);
   }
 
   /// Whether the compiler is running in [isBatch] or [isWorker] mode.
@@ -532,7 +551,8 @@ class ParsedArguments {
     return ParsedArguments._(rest.toList()..addAll(newArgs.rest),
         isWorker: isWorker,
         isBatch: isBatch,
-        isKernel: isKernel || newArgs.isKernel);
+        isKernel: isKernel || newArgs.isKernel,
+        reuseResult: reuseResult);
   }
 }
 

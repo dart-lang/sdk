@@ -6,6 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
 main() {
@@ -87,6 +88,20 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
       kinds,
       everyElement(anyOf(isNull, equals(CompletionItemKind.Field))),
     );
+  }
+
+  test_completionTriggerKinds_invalidParams() async {
+    await initialize();
+
+    final invalidTriggerKind = CompletionTriggerKind.fromJson(-1);
+    final request = getCompletion(
+      mainFileUri,
+      new Position(0, 0),
+      context: new CompletionContext(invalidTriggerKind, 'A'),
+    );
+
+    await expectLater(
+        request, throwsA(isResponseError(ErrorCodes.InvalidParams)));
   }
 
   test_gettersAndSetters() async {

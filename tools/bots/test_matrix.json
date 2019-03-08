@@ -3,6 +3,10 @@
     "chrome": "65",
     "firefox": "61"
   },
+  "branches": [
+    "analyzer-stable",
+    "master"
+  ],
   "filesets": {
     "analyzer_unit_tests": [
       ".packages",
@@ -749,7 +753,9 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-napp_jitk-linux-${mode}-x64"]
+            "-napp_jitk-linux-${mode}-x64"],
+          "shards": 6,
+          "fileset": "vm-kernel"
         }
       ]
     },
@@ -1250,6 +1256,15 @@
           "arguments": [ "api_docs" ],
           "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-linux"}
 
+        },
+        {
+          "name": "upload abi dills",
+          "script": "tools/upload_abi_dills.sh",
+          "arguments": [
+            "tools/VERSION",
+            "out/ReleaseX64"
+          ],
+          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-linux"}
         }
       ]
     },

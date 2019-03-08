@@ -277,6 +277,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// fixed.
   final bool disableConflictingGenericsCheck;
 
+  bool _isNonNullable = false;
+
   /**
    * Initialize a newly created error verifier.
    */
@@ -397,7 +399,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForUseOfVoidResult(node.rightOperand);
       _checkForNullableDereference(node.leftOperand);
       _checkForNullableDereference(node.rightOperand);
-    } else if (type != TokenType.EQ_EQ && type != TokenType.BANG_EQ) {
+    } else if (type != TokenType.EQ_EQ &&
+        type != TokenType.BANG_EQ &&
+        type != TokenType.QUESTION_QUESTION) {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
       _checkForNullableDereference(node.leftOperand);
     } else {
@@ -537,9 +541,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
+    _isNonNullable = (node as CompilationUnitImpl).isNonNullable;
     _checkDuplicateUnitMembers(node);
     _checkForDeferredPrefixCollisions(node);
     super.visitCompilationUnit(node);
+    _isNonNullable = false;
   }
 
   @override
@@ -734,6 +740,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForEachStatement(ForEachStatement node) {
     _checkForInIterable(node);
     super.visitForEachStatement(node);
@@ -766,6 +773,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForStatement(ForStatement node) {
     if (node.condition != null) {
       _checkForNonBoolCondition(node.condition);
@@ -998,6 +1006,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkTypeArgumentCount(typeArguments, 1,
           StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS);
     }
+    _checkForRawTypedLiteral(node);
     _checkForImplicitDynamicTypedLiteral(node);
     _checkForListElementTypeNotAssignable(node);
 
@@ -1005,26 +1014,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitListLiteral2(ListLiteral2 node) {
-    TypeArgumentList typeArguments = node.typeArguments;
-    if (typeArguments != null) {
-      if (node.isConst) {
-        NodeList<TypeAnnotation> arguments = typeArguments.arguments;
-        if (arguments.isNotEmpty) {
-          _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
-              CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST);
-        }
-      }
-      _checkTypeArgumentCount(typeArguments, 1,
-          StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS);
-    }
-    _checkForImplicitDynamicTypedLiteral(node);
-    _checkForListElementTypeNotAssignable2(node);
-
-    super.visitListLiteral2(node);
-  }
-
-  @override
+  @deprecated
   void visitMapLiteral(MapLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
     if (typeArguments != null) {
@@ -1038,30 +1028,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkTypeArgumentCount(typeArguments, 2,
           StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
     }
+    _checkForRawTypedLiteral(node);
     _checkForImplicitDynamicTypedLiteral(node);
     _checkForMapTypeNotAssignable(node);
     _checkForNonConstMapAsExpressionStatement(node);
     super.visitMapLiteral(node);
-  }
-
-  @override
-  void visitMapLiteral2(MapLiteral2 node) {
-    TypeArgumentList typeArguments = node.typeArguments;
-    if (typeArguments != null) {
-      NodeList<TypeAnnotation> arguments = typeArguments.arguments;
-      if (arguments.isNotEmpty) {
-        if (node.isConst) {
-          _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
-              CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);
-        }
-      }
-      _checkTypeArgumentCount(typeArguments, 2,
-          StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
-    }
-    _checkForImplicitDynamicTypedLiteral(node);
-    _checkForMapTypeNotAssignable2(node);
-    _checkForNonConstMapAsExpressionStatement2(node);
-    super.visitMapLiteral2(node);
   }
 
   @override
@@ -1100,6 +1071,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       ClassElement typeReference = ElementResolver.getTypeReference(target);
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(typeReference, methodName);
+      _checkForUnnecessaryNullAware(target, node.operator);
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
       _checkForNullableDereference(node.function);
@@ -1216,6 +1188,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         propertyName.name != 'runtimeType') {
       _checkForNullableDereference(node.target);
     }
+    _checkForUnnecessaryNullAware(node.target, node.operator);
     super.visitPropertyAccess(node);
   }
 
@@ -1248,6 +1221,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitSetLiteral(SetLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
     if (typeArguments != null) {
@@ -1261,6 +1235,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkTypeArgumentCount(typeArguments, 1,
           StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
     }
+    _checkForRawTypedLiteral(node);
     _checkForImplicitDynamicTypedLiteral(node);
     _checkForSetElementTypeNotAssignable(node);
 
@@ -1268,23 +1243,41 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSetLiteral2(SetLiteral2 node) {
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
-    if (typeArguments != null) {
-      if (node.isConst) {
+    if (node.isMap) {
+      if (typeArguments != null) {
         NodeList<TypeAnnotation> arguments = typeArguments.arguments;
-        if (arguments.isNotEmpty) {
-          _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
-              CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET);
+        if (node.isConst) {
+          if (arguments.isNotEmpty) {
+            _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
+                CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);
+          }
         }
+        _checkTypeArgumentCount(typeArguments, 2,
+            StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
       }
-      _checkTypeArgumentCount(typeArguments, 1,
-          StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
+      _checkForRawTypedLiteral(node);
+      _checkForImplicitDynamicTypedLiteral(node);
+      _checkForMapTypeNotAssignable3(node);
+      _checkForNonConstMapAsExpressionStatement3(node);
+    } else if (node.isSet) {
+      if (typeArguments != null) {
+        if (node.isConst) {
+          NodeList<TypeAnnotation> arguments = typeArguments.arguments;
+          if (arguments.isNotEmpty) {
+            _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
+                CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET);
+          }
+        }
+        _checkTypeArgumentCount(typeArguments, 1,
+            StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
+      }
+      _checkForRawTypedLiteral(node);
+      _checkForImplicitDynamicTypedLiteral(node);
+      _checkForSetElementTypeNotAssignable3(node);
     }
-    _checkForImplicitDynamicTypedLiteral(node);
-    _checkForSetElementTypeNotAssignable2(node);
-
-    super.visitSetLiteral2(node);
+    super.visitSetOrMapLiteral(node);
   }
 
   @override
@@ -1378,6 +1371,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitTypeName(TypeName node) {
     _checkForTypeArgumentNotMatchingBounds(node);
+    _checkForRawTypeName(node);
     super.visitTypeName(node);
   }
 
@@ -1427,7 +1421,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         grandparent is! FieldDeclaration) {
       VariableElement element = node.declaredElement;
       if (element != null) {
-        _hiddenElements.declare(element);
+        // There is no hidden elements if we are outside of a function body,
+        // which will happen for variables declared in control flow elements.
+        _hiddenElements?.declare(element);
       }
     }
   }
@@ -2250,18 +2246,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * parameters. The [expectedStaticType] is the expected static type of the
    * parameter. The [actualStaticType] is the actual static type of the
    * argument.
-   *
-   * This method corresponds to
-   * [BestPracticesVerifier.checkForArgumentTypeNotAssignable].
-   *
-   * See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE],
-   * [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
-   * [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
-   * [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE],
-   * [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE],
-   * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
-   * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE], and
-   * [StaticWarningCode.USE_OF_VOID_RESULT].
    */
   void _checkForArgumentTypeNotAssignable(
       Expression expression,
@@ -2297,6 +2281,63 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     DartType staticParameterType = staticParameterElement?.type;
     _checkForArgumentTypeNotAssignableWithExpectedTypes(argument,
         staticParameterType, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+  }
+
+  /**
+   * Verify that the type of the elements of the given [spreadExpression] (the
+   * [spreadExpressionType]) can be assigned to the element type of the
+   * enclosing collection (the [elementType]). If not, report an error with the
+   * given [errorCode].
+   */
+  void _checkForArgumentTypeNotAssignableInSpread(
+      Expression spreadExpression,
+      DartType spreadExpressionType,
+      DartType elementType,
+      ErrorCode errorCode) {
+    if (spreadExpressionType != null && elementType != null) {
+      if (!elementType.isVoid && _checkForUseOfVoidResult(spreadExpression)) {
+        return;
+      }
+      if (spreadExpressionType is InterfaceType) {
+        if (_typeSystem.isSubtypeOf(
+            spreadExpressionType, _typeProvider.iterableObjectType)) {
+          InterfaceType iterableType =
+              (spreadExpressionType as InterfaceTypeImpl)
+                  .asInstanceOf(_typeProvider.iterableType.element);
+          if (iterableType != null) {
+            // The `iterableType` will be `null` when `spreadExpressionType` is
+            // `Null`. Fall through in that case to perform the default type
+            // check.
+            List<DartType> typeArguments = iterableType.typeArguments;
+            if (typeArguments.length == 1) {
+              _checkForAssignableExpressionAtType(
+                  spreadExpression, typeArguments[0], elementType, errorCode);
+              return;
+            }
+          }
+        } else if (_typeSystem.isSubtypeOf(
+            spreadExpressionType, _typeProvider.mapObjectObjectType)) {
+          // TODO(brianwilkerson) Handle spreads involving maps? This method
+          //  isn't currently called for maps, but might be if it's reworked as
+          //  expected.
+//          InterfaceType mapType =
+//              (spreadExpressionType as InterfaceTypeImpl)
+//                  .asInstanceOf(_typeProvider.mapType.element);
+//          if (mapType != null) {
+//            List<DartType> typeArguments = mapType.typeArguments;
+//            if (typeArguments.length == 2) {
+//              _checkForAssignableExpressionAtType(
+//                  spreadExpression, typeArguments[0], keyType, errorCode);
+//              _checkForAssignableExpressionAtType(
+//                  spreadExpression, typeArguments[1], valueType, errorCode);
+//              return;
+//            }
+//          }
+        }
+      }
+      _checkForAssignableExpressionAtType(
+          spreadExpression, spreadExpressionType, elementType, errorCode);
+    }
   }
 
   /**
@@ -2580,8 +2621,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           element, elementType, getStaticType(element), errorCode);
     } else if (element is SpreadElement) {
       Expression expression = element.expression;
-      _checkForArgumentTypeNotAssignable(
-          expression, elementType, getStaticType(expression), errorCode);
+      _checkForArgumentTypeNotAssignableInSpread(
+          expression, getStaticType(expression), elementType, errorCode);
     }
   }
 
@@ -3770,6 +3811,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Check for a type mis-match between the iterable expression and the
    * assigned variable in a for-in statement.
    */
+  @deprecated
   void _checkForInIterable(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
 
@@ -4041,40 +4083,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     // Check every list element.
     bool isConst = literal.isConst;
-    for (Expression element in literal.elements) {
-      if (isConst) {
-        // TODO(paulberry): this error should be based on the actual type of the
-        // list element, not the static type.  See dartbug.com/21119.
-        _checkForArgumentTypeNotAssignableWithExpectedTypes(
-            element,
-            listElementType,
-            CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
-      }
-      _checkForArgumentTypeNotAssignableWithExpectedTypes(element,
-          listElementType, StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
-    }
-  }
-
-  /**
-   * Verify that the elements of the given list [literal] are subtypes of the
-   * list's static type.
-   */
-  void _checkForListElementTypeNotAssignable2(ListLiteral2 literal) {
-    // Determine the list's element type. We base this on the static type and
-    // not the literal's type arguments because in strong mode, the type
-    // arguments may be inferred.
-    DartType listType = literal.staticType;
-    assert(listType is InterfaceTypeImpl);
-
-    List<DartType> typeArguments =
-        (listType as InterfaceTypeImpl).typeArguments;
-    assert(typeArguments.length == 1);
-
-    DartType listElementType = typeArguments[0];
-
-    // Check every list element.
-    bool isConst = literal.isConst;
-    for (CollectionElement element in literal.elements) {
+    for (CollectionElement element in literal.elements2) {
       if (isConst) {
         // TODO(paulberry): this error should be based on the actual type of the
         // list element, not the static type.  See dartbug.com/21119.
@@ -4150,6 +4159,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
    * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
    */
+  @deprecated
   void _checkForMapTypeNotAssignable(MapLiteral literal) {
     // Determine the map's key and value types. We base this on the static type
     // and not the literal's type arguments because in strong mode, the type
@@ -4196,7 +4206,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
    * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
    */
-  void _checkForMapTypeNotAssignable2(MapLiteral2 literal) {
+  void _checkForMapTypeNotAssignable3(SetOrMapLiteral literal) {
     // Determine the map's key and value types. We base this on the static type
     // and not the literal's type arguments because in strong mode, the type
     // arguments may be inferred.
@@ -4209,29 +4219,34 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     assert(mapType is InterfaceTypeImpl);
 
     List<DartType> typeArguments = (mapType as InterfaceTypeImpl).typeArguments;
-    assert(typeArguments.length == 2);
-    DartType keyType = typeArguments[0];
-    DartType valueType = typeArguments[1];
+    // It is possible for the number of type arguments to be inconsistent when
+    // the literal is ambiguous and a non-map type was selected.
+    // TODO(brianwilkerson) Unify this and _checkForSetElementTypeNotAssignable3
+    //  to better handle recovery situations.
+    if (typeArguments.length == 2) {
+      DartType keyType = typeArguments[0];
+      DartType valueType = typeArguments[1];
 
-    bool isConst = literal.isConst;
-    NodeList<CollectionElement> entries = literal.entries;
-    for (CollectionElement entry in entries) {
-      if (isConst) {
-        // TODO(paulberry): this error should be based on the actual type of the
-        // list element, not the static type.  See dartbug.com/21119.
-        _checkForMapElementTypeNotAssignableWithKeyOrValueType(
-            entry,
-            keyType,
-            valueType,
-            CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-            CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
-      } else {
-        _checkForMapElementTypeNotAssignableWithKeyOrValueType(
-            entry,
-            keyType,
-            valueType,
-            StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-            StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
+      bool isConst = literal.isConst;
+      NodeList<CollectionElement> entries = literal.elements2;
+      for (CollectionElement entry in entries) {
+        if (isConst) {
+          // TODO(paulberry): this error should be based on the actual type of
+          //  the map entries, not the static type.  See dartbug.com/21119.
+          _checkForMapElementTypeNotAssignableWithKeyOrValueType(
+              entry,
+              keyType,
+              valueType,
+              CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+              CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
+        } else {
+          _checkForMapElementTypeNotAssignableWithKeyOrValueType(
+              entry,
+              keyType,
+              valueType,
+              StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+              StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
+        }
       }
     }
   }
@@ -4557,11 +4572,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     Map<LibraryElement, Map<String, String>> mixedInNames =
         <LibraryElement, Map<String, String>>{};
 
-    /**
-     * Report an error and return `true` if the given [name] is a private name
-     * (which is defined in the given [library]) and it conflicts with another
-     * definition of that name inherited from the superclass.
-     */
+    /// Report an error and return `true` if the given [name] is a private name
+    /// (which is defined in the given [library]) and it conflicts with another
+    /// definition of that name inherited from the superclass.
     bool isConflictingName(
         String name, LibraryElement library, TypeName typeName) {
       if (Identifier.isPrivateName(name)) {
@@ -4802,6 +4815,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * See [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT].
    */
+  @deprecated
   void _checkForNonConstMapAsExpressionStatement(MapLiteral literal) {
     // "const"
     if (literal.constKeyword != null) {
@@ -4833,7 +4847,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * See [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT].
    */
-  void _checkForNonConstMapAsExpressionStatement2(MapLiteral2 literal) {
+  void _checkForNonConstMapAsExpressionStatement3(SetOrMapLiteral literal) {
     // "const"
     if (literal.constKeyword != null) {
       return;
@@ -4904,7 +4918,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   bool _checkForNullableDereference(Expression expression) {
     if (expression == null ||
-        !_options.experimentStatus.non_nullable ||
+        !_isNonNullable ||
         expression.staticType == null ||
         (expression.staticType as TypeImpl).nullability !=
             Nullability.nullable) {
@@ -5047,6 +5061,93 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, parameter);
+  }
+
+  /// Similar to [_checkForRawTypeName] but for list/map/set literals.
+  void _checkForRawTypedLiteral(TypedLiteral node) {
+    if (!_options.strictRawTypes || node == null) return;
+    if (node.typeArguments != null) {
+      // Type has explicit type arguments.
+      return;
+    }
+    var type = node.staticType;
+    return _checkForRawTypeErrors(node, type, type.element, node);
+  }
+
+  /// Given a [node] without type arguments that refers to [element], issues
+  /// an error if [type] is a generic type, and the type arguments were not
+  /// supplied from inference or a non-dynamic default instantiation.
+  ///
+  /// This function is used by other node-specific raw type checking functions
+  /// (for example [_checkForRawTypeName]), and should only be called when
+  /// we already know [AnalysisOptionsImpl.strictRawTypes] is true and [node]
+  /// has no explicit `typeArguments`.
+  ///
+  /// [inferenceContextNode] is the node that has the downwards context type,
+  /// if any. For example an [InstanceCreationExpression].
+  ///
+  /// The raw type error [HintCode.STRICT_RAW_TYPE] will *not* be reported when
+  /// any of the following are true:
+  ///
+  /// - [inferenceContextNode] has an inference context type that does not
+  ///   contain `?`
+  /// - [type] does not have any `dynamic` type arguments.
+  /// - the element is marked with `@optionalTypeArgs` from "package:meta".
+  void _checkForRawTypeErrors(AstNode node, DartType type, Element element,
+      Expression inferenceContextNode) {
+    assert(_options.strictRawTypes);
+    // Check if this type has type arguments and at least one is dynamic.
+    // If so, we may need to issue a strict-raw-types error.
+    if (type is ParameterizedType &&
+        type.typeArguments.any((t) => t.isDynamic)) {
+      // If we have an inference context node, check if the type was inferred
+      // from it. Some cases will not have a context type, such as the type
+      // annotation `List` in `List list;`
+      if (inferenceContextNode != null) {
+        var contextType = InferenceContext.getContext(inferenceContextNode);
+        if (contextType != null && UnknownInferredType.isKnown(contextType)) {
+          // Type was inferred from downwards context: not an error.
+          return;
+        }
+      }
+      if (element.metadata.isNotEmpty) {
+        for (var annotation in element.metadata) {
+          var e = annotation.element;
+          // TODO(jmesserly): similar "package:meta" annotations are added to
+          // the element as boolean getters, that may be worth considering.
+          if (e?.name == 'optionalTypeArgs' &&
+              e.librarySource.uri.toString() == 'package:meta/meta.dart') {
+            // Type is marked with `@optionalTypeArgs`: not an error.
+            return;
+          }
+        }
+      }
+      _errorReporter.reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [type]);
+    }
+  }
+
+  /// Checks a type annotation for a raw generic type, and reports the
+  /// appropriate error if [AnalysisOptionsImpl.strictRawTypes] is set.
+  ///
+  /// This checks if [node] refers to a generic type and does not have explicit
+  /// or inferred type arguments. When that happens, it reports error code
+  /// [StrongModeCode.STRICT_RAW_TYPE].
+  void _checkForRawTypeName(TypeName node) {
+    if (!_options.strictRawTypes || node == null) return;
+    if (node.typeArguments != null) {
+      // Type has explicit type arguments.
+      return;
+    }
+    var parent = node.parent;
+    InstanceCreationExpression inferenceContextNode;
+    if (parent is ConstructorName) {
+      var grandparent = parent.parent;
+      if (grandparent is InstanceCreationExpression) {
+        inferenceContextNode = grandparent;
+      }
+    }
+    return _checkForRawTypeErrors(
+        node, node.type, node.name.staticElement, inferenceContextNode);
   }
 
   /**
@@ -5374,6 +5475,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE], and
    * [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
    */
+  @deprecated
   void _checkForSetElementTypeNotAssignable(SetLiteral literal) {
     // Determine the list's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
@@ -5386,7 +5488,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     DartType setElementType = typeArguments[0];
 
-    // Check every list element.
+    // Check every set element.
     bool isConst = literal.isConst;
     for (Expression element in literal.elements) {
       if (isConst) {
@@ -5409,31 +5511,37 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE], and
    * [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
    */
-  void _checkForSetElementTypeNotAssignable2(SetLiteral2 literal) {
-    // Determine the list's element type. We base this on the static type and
+  void _checkForSetElementTypeNotAssignable3(SetOrMapLiteral literal) {
+    // Determine the set's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
     // arguments may be inferred.
     DartType setType = literal.staticType;
     assert(setType is InterfaceTypeImpl);
 
     List<DartType> typeArguments = (setType as InterfaceTypeImpl).typeArguments;
-    assert(typeArguments.length == 1);
+    // It is possible for the number of type arguments to be inconsistent when
+    // the literal is ambiguous and a non-set type was selected.
+    // TODO(brianwilkerson) Unify this and _checkForMapTypeNotAssignable3 to
+    //  better handle recovery situations.
+    if (typeArguments.length == 1) {
+      DartType setElementType = typeArguments[0];
 
-    DartType setElementType = typeArguments[0];
-
-    // Check every list element.
-    bool isConst = literal.isConst;
-    for (CollectionElement element in literal.elements) {
-      if (isConst) {
-        // TODO(paulberry): this error should be based on the actual type of the
-        // element, not the static type.  See dartbug.com/21119.
-        _checkForCollectionElementTypeNotAssignableWithElementType(
-            element,
-            setElementType,
-            CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
-      } else {
-        _checkForCollectionElementTypeNotAssignableWithElementType(element,
-            setElementType, StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
+      // Check every set element.
+      bool isConst = literal.isConst;
+      for (CollectionElement element in literal.elements2) {
+        if (isConst) {
+          // TODO(paulberry): this error should be based on the actual type of
+          //  the element, not the static type.  See dartbug.com/21119.
+          _checkForCollectionElementTypeNotAssignableWithElementType(
+              element,
+              setElementType,
+              CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
+        } else {
+          _checkForCollectionElementTypeNotAssignableWithElementType(
+              element,
+              setElementType,
+              StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
+        }
       }
     }
   }
@@ -5718,6 +5826,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
           constructor.returnType,
           [superElement.name]);
+    }
+  }
+
+  void _checkForUnnecessaryNullAware(Expression target, Token operator) {
+    if (operator.type != TokenType.QUESTION_PERIOD || !_isNonNullable) {
+      return;
+    }
+
+    if (target.staticType != null &&
+        (target.staticType as TypeImpl).nullability ==
+            Nullability.nonNullable) {
+      _errorReporter.reportErrorForToken(
+          HintCode.UNNECESSARY_NULL_AWARE_CALL, operator, []);
     }
   }
 

@@ -7,14 +7,14 @@ import 'package:expect/expect.dart';
 /*element: A.:hasThis*/
 class A<T> {
   /*element: A.method:hasThis*/
-  @NoInline()
+  @pragma('dart2js:noInline')
   method() {
     /*fields=[this],free=[this],hasThis*/ dynamic local() => <T>[];
     return local;
   }
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is List<int>;
 
 main() {

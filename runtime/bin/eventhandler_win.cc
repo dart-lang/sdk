@@ -301,7 +301,8 @@ bool Handle::IssueRead() {
     // Completing asynchronously through thread.
     pending_read_ = buffer;
     read_thread_starting_ = true;
-    int result = Thread::Start(ReadFileThread, reinterpret_cast<uword>(this));
+    int result = Thread::Start("dart:io ReadFile", ReadFileThread,
+                               reinterpret_cast<uword>(this));
     if (result != 0) {
       FATAL1("Failed to start read file thread %d", result);
     }
@@ -781,7 +782,8 @@ intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
     // the events it puts on the IO completion port. The reference is
     // Released by DeleteIfClosed.
     Retain();
-    int result = Thread::Start(WriteFileThread, reinterpret_cast<uword>(this));
+    int result = Thread::Start("dart:io WriteFile", WriteFileThread,
+                               reinterpret_cast<uword>(this));
     if (result != 0) {
       FATAL1("Failed to start write file thread %d", result);
     }
@@ -1460,8 +1462,8 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
 }
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
-  int result =
-      Thread::Start(EventHandlerEntry, reinterpret_cast<uword>(handler));
+  int result = Thread::Start("dart:io EventHandler", EventHandlerEntry,
+                             reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }

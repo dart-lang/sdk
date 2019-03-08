@@ -20,8 +20,8 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
   Method get handlesMessage => Method.textDocument_hover;
 
   @override
-  TextDocumentPositionParams convertParams(Map<String, dynamic> json) =>
-      TextDocumentPositionParams.fromJson(json);
+  LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
+      TextDocumentPositionParams.jsonHandler;
 
   Future<ErrorOr<Hover>> handle(TextDocumentPositionParams params) async {
     final pos = params.position;

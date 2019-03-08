@@ -117,7 +117,7 @@ D:
     Object
       -> B
         -> C<int>
-  interfaces: M<F<T>>, I<T>
+  interfaces: M<F<int>>, I<int>
   classMembers:
     D.f
     Object.toString

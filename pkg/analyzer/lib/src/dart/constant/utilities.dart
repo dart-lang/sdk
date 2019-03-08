@@ -95,28 +95,9 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
-  ListLiteral2 visitListLiteral2(ListLiteral2 node) {
-    ListLiteral2 literal = super.visitListLiteral2(node);
-    literal.staticType = node.staticType;
-    if (node.constKeyword == null && node.isConst) {
-      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
-    }
-    return literal;
-  }
-
-  @override
+  @deprecated
   MapLiteral visitMapLiteral(MapLiteral node) {
     MapLiteral literal = super.visitMapLiteral(node);
-    literal.staticType = node.staticType;
-    if (node.constKeyword == null && node.isConst) {
-      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
-    }
-    return literal;
-  }
-
-  @override
-  MapLiteral2 visitMapLiteral2(MapLiteral2 node) {
-    MapLiteral2 literal = super.visitMapLiteral2(node);
     literal.staticType = node.staticType;
     if (node.constKeyword == null && node.isConst) {
       literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
@@ -134,6 +115,7 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
+  @deprecated
   SetLiteral visitSetLiteral(SetLiteral node) {
     SetLiteral literal = super.visitSetLiteral(node);
     literal.staticType = node.staticType;
@@ -144,8 +126,8 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
-  SetLiteral2 visitSetLiteral2(SetLiteral2 node) {
-    SetLiteral2 literal = super.visitSetLiteral2(node);
+  SetOrMapLiteral visitSetOrMapLiteral(SetOrMapLiteral node) {
+    SetOrMapLiteral literal = super.visitSetOrMapLiteral(node);
     literal.staticType = node.staticType;
     if (node.constKeyword == null && node.isConst) {
       literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
@@ -208,24 +190,23 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
   }
 
   @override
-  void visitMapLiteral(MapLiteral node) {
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
     if (node.isConst) {
       _find(node);
     } else {
-      // Values of keys are computed to check that they are unique.
-      for (var entry in node.entries) {
-        _find(entry.key);
+      if (node.isMap) {
+        // Values of keys are computed to check that they are unique.
+        for (var entry in node.elements2) {
+          // TODO(mfairhurst): How do if/for loops/spreads affect this?
+          _find(entry);
+        }
+      } else if (node.isSet) {
+        // values of sets are computed to check that they are unique.
+        for (var entry in node.elements2) {
+          _find(entry);
+        }
       }
-      super.visitMapLiteral(node);
-    }
-  }
-
-  @override
-  void visitSetLiteral(SetLiteral node) {
-    if (node.isConst) {
-      _find(node);
-    } else {
-      super.visitSetLiteral(node);
+      super.visitSetOrMapLiteral(node);
     }
   }
 
@@ -235,7 +216,9 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
     node.statements.accept(this);
   }
 
-  void _find(Expression node) {
+  /// Add dependencies of a [CollectionElement] or [Expression] (which is a type
+  /// of [CollectionElement]).
+  void _find(CollectionElement node) {
     if (node != null) {
       ReferenceFinder referenceFinder = new ReferenceFinder(dependencies.add);
       node.accept(referenceFinder);

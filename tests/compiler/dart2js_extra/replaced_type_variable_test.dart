@@ -13,7 +13,7 @@ class Class<T> {
 
 class A {}
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => Expect.notEquals('dynamic', '$o');
 
 main() {

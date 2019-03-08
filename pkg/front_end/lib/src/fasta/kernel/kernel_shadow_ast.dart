@@ -42,6 +42,8 @@ import '../fasta_codes.dart'
         templateForInLoopElementTypeNotAssignable,
         templateForInLoopTypeNotIterable,
         templateIntegerLiteralIsOutOfRange,
+        templateSpreadElementTypeMismatch,
+        templateSpreadTypeMismatch,
         templateSwitchExpressionNotAssignable,
         templateWebLiteralCannotBeRepresentedExactly;
 
@@ -70,6 +72,8 @@ import '../type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment, getPositionalParameterType;
 
 import 'body_builder.dart' show combineStatements;
+
+import 'collections.dart' show SpreadElement, SpreadMapEntry;
 
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 

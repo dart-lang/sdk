@@ -103,9 +103,6 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTestBase {
 @reflectiveTest
 class ConstSetElementTypeImplementsEqualsTest extends ResolverTestCase {
   @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
-  @override
   bool get enableNewAnalysisDriver => true;
 
   test_constField() async {
@@ -207,7 +204,7 @@ main() {
 class ControlFlowCollectionsTest extends ResolverTestCase {
   @override
   List<String> get enabledExperiments =>
-      [EnableString.control_flow_collections, EnableString.set_literals];
+      [EnableString.control_flow_collections];
 
   @override
   bool get enableNewAnalysisDriver => true;
@@ -266,10 +263,19 @@ main() {
 }''', [StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS]);
   }
 
-  test_expectedTwoMapTypeArguments_three() async {
+  test_expectedTwoMapTypeArguments_three_ambiguous() async {
+    // TODO(brianwilkerson) We probably need a new error code for "expected
+    //  either one or two type arguments" to handle the ambiguous case.
     await assertErrorsInCode(r'''
 main() {
   <int, int, int>{};
+}''', [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
+  }
+
+  test_expectedTwoMapTypeArguments_three_map() async {
+    await assertErrorsInCode(r'''
+main() {
+  <int, int, int>{1:2};
 }''', [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
   }
 
@@ -543,9 +549,6 @@ f() {
 @reflectiveTest
 class InvalidTypeArgumentInConstSetTest extends ResolverTestCase {
   @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
-  @override
   bool get enableNewAnalysisDriver => true;
 
   test_class() async {
@@ -564,9 +567,6 @@ class A<E> {
 
 @reflectiveTest
 class NonConstSetElementFromDeferredLibraryTest extends ResolverTestCase {
-  @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
   @override
   bool get enableNewAnalysisDriver => true;
 
@@ -605,9 +605,6 @@ f() {
 
 @reflectiveTest
 class NonConstSetElementTest extends ResolverTestCase {
-  @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
   @override
   bool get enableNewAnalysisDriver => true;
 

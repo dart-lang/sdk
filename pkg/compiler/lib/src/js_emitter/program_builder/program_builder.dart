@@ -18,7 +18,8 @@ import '../../elements/entities.dart';
 import '../../elements/types.dart';
 import '../../io/source_information.dart';
 import '../../js/js.dart' as js;
-import '../../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
+import '../../js_backend/field_analysis.dart'
+    show FieldAnalysisData, JFieldAnalysis;
 import '../../js_backend/backend.dart' show SuperMemberData;
 import '../../js_backend/backend_usage.dart';
 import '../../js_backend/constant_handler_javascript.dart'
@@ -79,7 +80,7 @@ class ProgramBuilder {
   final Namer _namer;
   final CodeEmitterTask _task;
   final JClosedWorld _closedWorld;
-  final JAllocatorAnalysis _allocatorAnalysis;
+  final JFieldAnalysis _fieldAnalysis;
   final InferredData _inferredData;
   final SourceInformationStrategy _sourceInformationStrategy;
 
@@ -123,7 +124,7 @@ class ProgramBuilder {
       this._namer,
       this._task,
       this._closedWorld,
-      this._allocatorAnalysis,
+      this._fieldAnalysis,
       this._inferredData,
       this._sourceInformationStrategy,
       this._sorter,
@@ -406,8 +407,8 @@ class ProgramBuilder {
   }
 
   StaticField _buildStaticField(FieldEntity element) {
-    ConstantValue initialValue =
-        _worldBuilder.getConstantFieldInitializer(element);
+    FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(element);
+    ConstantValue initialValue = fieldData.initialValue;
     // TODO(zarah): The holder should not be registered during building of
     // a static field.
     _registry.registerHolder(_namer.globalObjectForConstant(initialValue),
@@ -701,12 +702,16 @@ class ProgramBuilder {
     if (!onlyForRti) {
       if (_elementEnvironment.isSuperMixinApplication(cls)) {
         List<MemberEntity> members = <MemberEntity>[];
-        _elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
+        void add(MemberEntity member) {
           if (member.enclosingClass == cls) {
             members.add(member);
             isSuperMixinApplication = true;
           }
-        });
+        }
+
+        _elementEnvironment.forEachLocalClassMember(cls, add);
+        _elementEnvironment.forEachInjectedClassMember(cls, add);
+
         if (members.isNotEmpty) {
           _sorter.sortMembers(members).forEach(visitMember);
         }
@@ -1067,9 +1072,14 @@ class ProgramBuilder {
         }
       }
 
-      ConstantValue initializerInAllocator = null;
-      if (_allocatorAnalysis.isInitializedInAllocator(field)) {
-        initializerInAllocator = _allocatorAnalysis.initializerValue(field);
+      FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(field);
+      ConstantValue initializerInAllocator;
+      if (fieldData.isInitializedInAllocator) {
+        initializerInAllocator = fieldData.initialValue;
+      }
+      ConstantValue constantValue;
+      if (fieldData.isEffectivelyConstant) {
+        constantValue = fieldData.constantValue;
       }
 
       fields.add(new Field(
@@ -1080,7 +1090,8 @@ class ProgramBuilder {
           setterFlags,
           needsCheckedSetter,
           initializerInAllocator,
-          _closedWorld.elidedFields.contains(field)));
+          constantValue,
+          fieldData.isElided));
     }
 
     FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,

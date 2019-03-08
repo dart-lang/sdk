@@ -479,10 +479,8 @@ var v = const A(null);''');
   test_listElementTypeNotAssignable() async {
     Source source = addSource("var v = const <String> [42];");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
-      StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-    ]);
+    assertErrors(source,
+        [CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 

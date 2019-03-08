@@ -12,6 +12,7 @@ import 'diagnostic/test_all.dart' as diagnostic_test_all;
 import 'edit/test_all.dart' as edit_test_all;
 import 'execution/test_all.dart' as execution_test_all;
 import 'kythe/test_all.dart' as kythe_test_all;
+import 'linter/lint_names_test.dart' as lint_names_test;
 import 'search/test_all.dart' as search_test_all;
 import 'server/test_all.dart' as server_test_all;
 
@@ -27,6 +28,7 @@ main() {
     edit_test_all.main();
     execution_test_all.main();
     kythe_test_all.main();
+    lint_names_test.main();
     search_test_all.main();
     server_test_all.main();
 

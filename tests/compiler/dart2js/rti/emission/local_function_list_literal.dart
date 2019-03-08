@@ -7,12 +7,12 @@ import 'package:expect/expect.dart';
 /*strong.class: global#JSArray:checkedInstance,checks=[$isIterable,$isList],instance*/
 /*omit.class: global#JSArray:checkedInstance,checks=[$isList],instance*/
 
-@NoInline()
+@pragma('dart2js:noInline')
 method<T>() {
   return /*checks=[],instance*/ () => <T>[];
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is List<int>;
 
 main() {

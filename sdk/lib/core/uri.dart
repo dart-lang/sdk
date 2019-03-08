@@ -725,10 +725,11 @@ abstract class Uri {
   /**
    * Creates a new `Uri` object by parsing a URI string.
    *
-   * If [start] and [end] are provided, only the substring from `start`
-   * to `end` is parsed as a URI.
+   * If [start] and [end] are provided, they must specify a valid substring
+   * of [uri], and only the substring from `start` to `end` is parsed as a URI.
    *
-   * If the string is not valid as a URI or URI reference,
+   * The [uri] must not be `null`.
+   * If the [uri] string is not valid as a URI or URI reference,
    * a [FormatException] is thrown.
    */
   static Uri parse(String uri, [int start = 0, int end]) {
@@ -1022,10 +1023,11 @@ abstract class Uri {
   /**
    * Creates a new `Uri` object by parsing a URI string.
    *
-   * If [start] and [end] are provided, only the substring from `start`
-   * to `end` is parsed as a URI.
+   * If [start] and [end] are provided, they must specify a valid substring
+   * of [uri], and only the substring from `start` to `end` is parsed as a URI.
+   * The [uri] must not be `null`.
    *
-   * Returns `null` if the string is not valid as a URI or URI reference.
+   * Returns `null` if the [uri] string is not valid as a URI or URI reference.
    */
   static Uri tryParse(String uri, [int start = 0, int end]) {
     // TODO: Optimize to avoid throwing-and-recatching.

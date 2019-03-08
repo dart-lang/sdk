@@ -26,8 +26,8 @@ class C extends A with B {
   bar() => 499;
 }
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 main() {

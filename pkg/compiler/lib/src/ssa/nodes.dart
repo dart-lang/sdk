@@ -7,7 +7,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 import '../closure.dart';
 import '../common.dart';
 import '../compiler.dart' show Compiler;
-import '../constants/constant_system.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
@@ -298,23 +298,21 @@ class HGraph {
   }
 
   HConstant addConstantInt(int i, JClosedWorld closedWorld) {
-    return addConstant(
-        closedWorld.constantSystem.createIntFromInt(i), closedWorld);
+    return addConstant(constant_system.createIntFromInt(i), closedWorld);
   }
 
   HConstant addConstantIntAsUnsigned(int i, JClosedWorld closedWorld) {
     return addConstant(
-        closedWorld.constantSystem.createInt(new BigInt.from(i).toUnsigned(64)),
+        constant_system.createInt(new BigInt.from(i).toUnsigned(64)),
         closedWorld);
   }
 
   HConstant addConstantDouble(double d, JClosedWorld closedWorld) {
-    return addConstant(closedWorld.constantSystem.createDouble(d), closedWorld);
+    return addConstant(constant_system.createDouble(d), closedWorld);
   }
 
   HConstant addConstantString(String str, JClosedWorld closedWorld) {
-    return addConstant(
-        closedWorld.constantSystem.createString(str), closedWorld);
+    return addConstant(constant_system.createString(str), closedWorld);
   }
 
   HConstant addConstantStringFromName(js.Name name, JClosedWorld closedWorld) {
@@ -325,12 +323,11 @@ class HGraph {
   }
 
   HConstant addConstantBool(bool value, JClosedWorld closedWorld) {
-    return addConstant(
-        closedWorld.constantSystem.createBool(value), closedWorld);
+    return addConstant(constant_system.createBool(value), closedWorld);
   }
 
   HConstant addConstantNull(JClosedWorld closedWorld) {
-    return addConstant(closedWorld.constantSystem.createNull(), closedWorld);
+    return addConstant(constant_system.createNull(), closedWorld);
   }
 
   HConstant addConstantUnreachable(JClosedWorld closedWorld) {
@@ -363,6 +360,35 @@ class HGraph {
           block.assignCommonDominator(predecessors[j]);
         }
       }
+    }
+    assignDominatorRanges();
+  }
+
+  void assignDominatorRanges() {
+    // DFS walk of dominator tree to assign dfs-in and dfs-out numbers to basic
+    // blocks. A dominator has a dfs-in..dfs-out range that includes the range
+    // of the dominated block. See [HGraphVisitor.visitDominatorTree] for
+    // recursion-free schema.
+    _Frame frame = new _Frame(null);
+    frame.block = entry;
+    frame.index = 0;
+
+    int dfsNumber = 0;
+    frame.block.dominatorDfsIn = dfsNumber;
+
+    while (frame != null) {
+      HBasicBlock block = frame.block;
+      int index = frame.index;
+      if (index < block.dominatedBlocks.length) {
+        frame.index = index + 1;
+        frame = frame.next ??= new _Frame(frame);
+        frame.block = block.dominatedBlocks[index];
+        frame.index = 0;
+        frame.block.dominatorDfsIn = ++dfsNumber;
+        continue;
+      }
+      block.dominatorDfsOut = dfsNumber;
+      frame = frame.previous;
     }
   }
 
@@ -633,6 +659,8 @@ class HBasicBlock extends HInstructionList {
 
   HBasicBlock dominator = null;
   final List<HBasicBlock> dominatedBlocks;
+  int dominatorDfsIn;
+  int dominatorDfsOut;
 
   HBasicBlock() : this.withId(null);
   HBasicBlock.withId(this.id)
@@ -891,20 +919,9 @@ class HBasicBlock extends HInstructionList {
     return validator.isValid;
   }
 
-  Map<HBasicBlock, bool> dominatesCache;
-
   bool dominates(HBasicBlock other) {
-    if (dominatesCache == null) {
-      dominatesCache = new Map<HBasicBlock, bool>();
-    } else {
-      bool res = dominatesCache[other];
-      if (res != null) return res;
-    }
-    do {
-      if (identical(this, other)) return dominatesCache[other] = true;
-      other = other.dominator;
-    } while (other != null && other.id >= id);
-    return dominatesCache[other] = false;
+    return this.dominatorDfsIn <= other.dominatorDfsIn &&
+        other.dominatorDfsOut <= this.dominatorDfsOut;
   }
 
   toString() => 'HBasicBlock($id)';
@@ -1327,6 +1344,7 @@ class DominatedUses {
 
   bool get isEmpty => _instructions.isEmpty;
   bool get isNotEmpty => !isEmpty;
+  int get length => _instructions.length;
 
   /// Changes all the uses in the set to [newInstruction].
   void replaceWith(HInstruction newInstruction) {
@@ -1349,6 +1367,8 @@ class DominatedUses {
   bool get isSingleton => _instructions.length == 1;
 
   HInstruction get single => _instructions.single;
+
+  Iterable<HInstruction> get instructions => _instructions;
 
   void _addUse(HInstruction user, int inputIndex) {
     _instructions.add(user);
@@ -1863,10 +1883,12 @@ class HFieldGet extends HFieldAccess {
   final bool isAssignable;
 
   HFieldGet(FieldEntity element, HInstruction receiver, AbstractValue type,
+      SourceInformation sourceInformation,
       {bool isAssignable})
       : this.isAssignable =
             (isAssignable != null) ? isAssignable : element.isAssignable,
         super(element, <HInstruction>[receiver], type) {
+    this.sourceInformation = sourceInformation;
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     setUseGvn();
@@ -1921,7 +1943,9 @@ class HFieldSet extends HFieldAccess {
   HInstruction get value => inputs[1];
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
 
-  bool isJsStatement() => true;
+  // HFieldSet is an expression if it has a user.
+  bool isJsStatement() => usedBy.isEmpty;
+
   String toString() => "FieldSet(element=$element,type=$instructionType)";
 }
 
@@ -2134,14 +2158,14 @@ abstract class HInvokeBinary extends HInstruction {
   HInstruction get left => inputs[0];
   HInstruction get right => inputs[1];
 
-  BinaryOperation operation(ConstantSystem constantSystem);
+  constant_system.BinaryOperation operation();
 }
 
 abstract class HBinaryArithmetic extends HInvokeBinary {
   HBinaryArithmetic(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
-  BinaryOperation operation(ConstantSystem constantSystem);
+  constant_system.BinaryOperation operation();
 }
 
 class HAdd extends HBinaryArithmetic {
@@ -2150,8 +2174,7 @@ class HAdd extends HBinaryArithmetic {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.add;
+  constant_system.BinaryOperation operation() => constant_system.add;
   int typeCode() => HInstruction.ADD_TYPECODE;
   bool typeEquals(other) => other is HAdd;
   bool dataEquals(HInstruction other) => true;
@@ -2163,8 +2186,7 @@ class HDivide extends HBinaryArithmetic {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitDivide(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.divide;
+  constant_system.BinaryOperation operation() => constant_system.divide;
   int typeCode() => HInstruction.DIVIDE_TYPECODE;
   bool typeEquals(other) => other is HDivide;
   bool dataEquals(HInstruction other) => true;
@@ -2176,7 +2198,7 @@ class HMultiply extends HBinaryArithmetic {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
 
-  BinaryOperation operation(ConstantSystem operations) => operations.multiply;
+  constant_system.BinaryOperation operation() => constant_system.multiply;
   int typeCode() => HInstruction.MULTIPLY_TYPECODE;
   bool typeEquals(other) => other is HMultiply;
   bool dataEquals(HInstruction other) => true;
@@ -2188,8 +2210,7 @@ class HSubtract extends HBinaryArithmetic {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.subtract;
+  constant_system.BinaryOperation operation() => constant_system.subtract;
   int typeCode() => HInstruction.SUBTRACT_TYPECODE;
   bool typeEquals(other) => other is HSubtract;
   bool dataEquals(HInstruction other) => true;
@@ -2201,8 +2222,8 @@ class HTruncatingDivide extends HBinaryArithmetic {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.truncatingDivide;
+  constant_system.BinaryOperation operation() =>
+      constant_system.truncatingDivide;
   int typeCode() => HInstruction.TRUNCATING_DIVIDE_TYPECODE;
   bool typeEquals(other) => other is HTruncatingDivide;
   bool dataEquals(HInstruction other) => true;
@@ -2214,8 +2235,7 @@ class HRemainder extends HBinaryArithmetic {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitRemainder(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.remainder;
+  constant_system.BinaryOperation operation() => constant_system.remainder;
   int typeCode() => HInstruction.REMAINDER_TYPECODE;
   bool typeEquals(other) => other is HRemainder;
   bool dataEquals(HInstruction other) => true;
@@ -2253,8 +2273,7 @@ class HShiftLeft extends HBinaryBitOp {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.shiftLeft;
+  constant_system.BinaryOperation operation() => constant_system.shiftLeft;
   int typeCode() => HInstruction.SHIFT_LEFT_TYPECODE;
   bool typeEquals(other) => other is HShiftLeft;
   bool dataEquals(HInstruction other) => true;
@@ -2266,8 +2285,7 @@ class HShiftRight extends HBinaryBitOp {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.shiftRight;
+  constant_system.BinaryOperation operation() => constant_system.shiftRight;
   int typeCode() => HInstruction.SHIFT_RIGHT_TYPECODE;
   bool typeEquals(other) => other is HShiftRight;
   bool dataEquals(HInstruction other) => true;
@@ -2279,8 +2297,7 @@ class HBitOr extends HBinaryBitOp {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.bitOr;
+  constant_system.BinaryOperation operation() => constant_system.bitOr;
   int typeCode() => HInstruction.BIT_OR_TYPECODE;
   bool typeEquals(other) => other is HBitOr;
   bool dataEquals(HInstruction other) => true;
@@ -2292,8 +2309,7 @@ class HBitAnd extends HBinaryBitOp {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.bitAnd;
+  constant_system.BinaryOperation operation() => constant_system.bitAnd;
   int typeCode() => HInstruction.BIT_AND_TYPECODE;
   bool typeEquals(other) => other is HBitAnd;
   bool dataEquals(HInstruction other) => true;
@@ -2305,8 +2321,7 @@ class HBitXor extends HBinaryBitOp {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.bitXor;
+  constant_system.BinaryOperation operation() => constant_system.bitXor;
   int typeCode() => HInstruction.BIT_XOR_TYPECODE;
   bool typeEquals(other) => other is HBitXor;
   bool dataEquals(HInstruction other) => true;
@@ -2323,7 +2338,7 @@ abstract class HInvokeUnary extends HInstruction {
 
   HInstruction get operand => inputs[0];
 
-  UnaryOperation operation(ConstantSystem constantSystem);
+  constant_system.UnaryOperation operation();
 }
 
 class HNegate extends HInvokeUnary {
@@ -2331,8 +2346,7 @@ class HNegate extends HInvokeUnary {
       : super(input, selector, type);
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
-  UnaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.negate;
+  constant_system.UnaryOperation operation() => constant_system.negate;
   int typeCode() => HInstruction.NEGATE_TYPECODE;
   bool typeEquals(other) => other is HNegate;
   bool dataEquals(HInstruction other) => true;
@@ -2343,7 +2357,7 @@ class HAbs extends HInvokeUnary {
       : super(input, selector, type);
   accept(HVisitor visitor) => visitor.visitAbs(this);
 
-  UnaryOperation operation(ConstantSystem constantSystem) => constantSystem.abs;
+  constant_system.UnaryOperation operation() => constant_system.abs;
   int typeCode() => HInstruction.ABS_TYPECODE;
   bool typeEquals(other) => other is HAbs;
   bool dataEquals(HInstruction other) => true;
@@ -2354,8 +2368,7 @@ class HBitNot extends HInvokeUnary {
       : super(input, selector, type);
   accept(HVisitor visitor) => visitor.visitBitNot(this);
 
-  UnaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.bitNot;
+  constant_system.UnaryOperation operation() => constant_system.bitNot;
   int typeCode() => HInstruction.BIT_NOT_TYPECODE;
   bool typeEquals(other) => other is HBitNot;
   bool dataEquals(HInstruction other) => true;
@@ -2621,8 +2634,7 @@ class HIdentity extends HRelational {
   HIdentity(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitIdentity(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.identity;
+  constant_system.BinaryOperation operation() => constant_system.identity;
   int typeCode() => HInstruction.IDENTITY_TYPECODE;
   bool typeEquals(other) => other is HIdentity;
   bool dataEquals(HInstruction other) => true;
@@ -2632,8 +2644,7 @@ class HGreater extends HRelational {
   HGreater(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitGreater(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.greater;
+  constant_system.BinaryOperation operation() => constant_system.greater;
   int typeCode() => HInstruction.GREATER_TYPECODE;
   bool typeEquals(other) => other is HGreater;
   bool dataEquals(HInstruction other) => true;
@@ -2644,8 +2655,7 @@ class HGreaterEqual extends HRelational {
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.greaterEqual;
+  constant_system.BinaryOperation operation() => constant_system.greaterEqual;
   int typeCode() => HInstruction.GREATER_EQUAL_TYPECODE;
   bool typeEquals(other) => other is HGreaterEqual;
   bool dataEquals(HInstruction other) => true;
@@ -2655,8 +2665,7 @@ class HLess extends HRelational {
   HLess(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitLess(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.less;
+  constant_system.BinaryOperation operation() => constant_system.less;
   int typeCode() => HInstruction.LESS_TYPECODE;
   bool typeEquals(other) => other is HLess;
   bool dataEquals(HInstruction other) => true;
@@ -2666,8 +2675,7 @@ class HLessEqual extends HRelational {
   HLessEqual(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.lessEqual;
+  constant_system.BinaryOperation operation() => constant_system.lessEqual;
   int typeCode() => HInstruction.LESS_EQUAL_TYPECODE;
   bool typeEquals(other) => other is HLessEqual;
   bool dataEquals(HInstruction other) => true;
@@ -2860,10 +2868,12 @@ class HStaticStore extends HInstruction {
   toString() => 'static store ${element.name}';
   accept(HVisitor visitor) => visitor.visitStaticStore(this);
 
+  HInstruction get value => inputs.single;
+
   int typeCode() => HInstruction.STATIC_STORE_TYPECODE;
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
-  bool isJsStatement() => true;
+  bool isJsStatement() => usedBy.isEmpty;
 }
 
 class HLiteralList extends HInstruction {
@@ -2968,9 +2978,10 @@ class HIs extends HInstruction {
       HInterceptor interceptor,
       AbstractValue type,
       SourceInformation sourceInformation) {
-    assert(
-        (typeExpression.isFunctionType || typeExpression.isInterfaceType) &&
-            typeExpression.treatAsRaw,
+    // TODO(sigmund): re-add `&& typeExpression.treatAsRaw` or something
+    // equivalent (which started failing once we allowed typeExpressions that
+    // contain type parameters matching the original bounds of the type).
+    assert((typeExpression.isFunctionType || typeExpression.isInterfaceType),
         "Unexpected raw is-test type: $typeExpression");
     return new HIs.internal(typeExpression, [expression, interceptor],
         RAW_CHECK, type, sourceInformation);

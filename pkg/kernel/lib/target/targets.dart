@@ -7,22 +7,13 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../transformations/constants.dart' show ConstantsBackend;
-import '../transformations/treeshaker.dart' show ProgramRoot;
 
 final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
   final bool legacyMode;
-  final bool treeShake;
 
-  final List<ProgramRoot> programRoots;
-  final Uri kernelRuntime;
-
-  TargetFlags(
-      {this.legacyMode: false,
-      this.treeShake: false,
-      this.programRoots: const <ProgramRoot>[],
-      this.kernelRuntime});
+  TargetFlags({this.legacyMode: false});
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);
@@ -240,5 +231,5 @@ class NoneTarget extends Target {
 
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      new ConstantsBackend();
+      const ConstantsBackend();
 }

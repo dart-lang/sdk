@@ -121,6 +121,9 @@ StreamInfo Service::logging_stream("_Logging");
 StreamInfo Service::extension_stream("Extension");
 StreamInfo Service::timeline_stream("Timeline");
 
+const uint8_t* Service::dart_library_kernel_ = NULL;
+intptr_t Service::dart_library_kernel_len_ = 0;
+
 static StreamInfo* streams_[] = {
     &Service::vm_stream,      &Service::isolate_stream,
     &Service::debug_stream,   &Service::gc_stream,
@@ -955,6 +958,7 @@ void Service::SendEvent(const char* stream_id,
   bool result;
   {
     TransitionVMToNative transition(thread);
+
     Dart_CObject cbytes;
     cbytes.type = Dart_CObject_kExternalTypedData;
     cbytes.value.as_external_typed_data.type = Dart_TypedData_kUint8;
@@ -974,6 +978,7 @@ void Service::SendEvent(const char* stream_id,
     message.type = Dart_CObject_kArray;
     message.value.as_array.length = 2;
     message.value.as_array.values = elements;
+
     result = Dart_PostCObject(ServiceIsolate::Port(), &message);
   }
 
@@ -1111,6 +1116,22 @@ void Service::PostEvent(Isolate* isolate,
   ASSERT(kind != NULL);
   ASSERT(event != NULL);
 
+  if (FLAG_trace_service) {
+    if (isolate != NULL) {
+      OS::PrintErr(
+          "vm-service: Pushing ServiceEvent(isolate='%s', "
+          "isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
+          "', kind='%s') to stream %s\n",
+          isolate->name(), static_cast<int64_t>(isolate->main_port()), kind,
+          stream_id);
+    } else {
+      OS::PrintErr(
+          "vm-service: Pushing ServiceEvent(isolate='<no current isolate>', "
+          "kind='%s') to stream %s\n",
+          kind, stream_id);
+    }
+  }
+
   // Message is of the format [<stream id>, <json string>].
   //
   // Build the event message in the C heap to avoid dart heap
@@ -1132,23 +1153,15 @@ void Service::PostEvent(Isolate* isolate,
   json_cobj.value.as_string = const_cast<char*>(event->ToCString());
   list_values[1] = &json_cobj;
 
-  if (FLAG_trace_service) {
-    if (isolate != NULL) {
-      OS::PrintErr(
-          "vm-service: Pushing ServiceEvent(isolate='%s', "
-          "isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
-          "', kind='%s') to stream %s\n",
-          isolate->name(), static_cast<int64_t>(isolate->main_port()), kind,
-          stream_id);
-    } else {
-      OS::PrintErr(
-          "vm-service: Pushing ServiceEvent(isolate='<no current isolate>', "
-          "kind='%s') to stream %s\n",
-          kind, stream_id);
-    }
+  // In certain cases (e.g. in the implementation of Dart_IsolateMakeRunnable)
+  // we do not have a current isolate/thread.
+  auto thread = Thread::Current();
+  if (thread != nullptr) {
+    TransitionVMToNative transition(thread);
+    Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
+  } else {
+    Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
   }
-
-  Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
 }
 
 class EmbedderServiceHandler {
@@ -1316,6 +1329,12 @@ int64_t Service::MaxRSS() {
   embedder_information_callback_(&info);
   ASSERT(info.version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
   return info.max_rss;
+}
+
+void Service::SetDartLibraryKernelForSources(const uint8_t* kernel_bytes,
+                                             intptr_t kernel_length) {
+  dart_library_kernel_ = kernel_bytes;
+  dart_library_kernel_len_ = kernel_length;
 }
 
 EmbedderServiceHandler* Service::FindRootEmbedderHandler(const char* name) {
@@ -3787,6 +3806,11 @@ static const MethodParameter* get_cpu_profile_params[] = {
     NULL,
 };
 
+static const MethodParameter* write_cpu_profile_timeline_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
 // TODO(johnmccutchan): Rename this to GetCpuSamples.
 static bool GetCpuProfile(Thread* thread, JSONStream* js) {
   Profile::TagOrder tag_order =
@@ -3821,6 +3845,11 @@ static bool GetCpuProfileTimeline(Thread* thread, JSONStream* js) {
       UIntParameter::Parse(js->LookupParam("timeExtentMicros"));
   ProfilerService::PrintTimelineJSON(js, tag_order, time_origin_micros,
                                      time_extent_micros);
+  return true;
+}
+
+static bool WriteCpuProfileTimeline(Thread* thread, JSONStream* js) {
+  ProfilerService::AddToTimeline();
   return true;
 }
 
@@ -4312,9 +4341,22 @@ static bool GetObject(Thread* thread, JSONStream* js) {
 
   // Handle heap objects.
   ObjectIdRing::LookupResult lookup_result;
-  const Object& obj =
-      Object::Handle(LookupHeapObject(thread, id, &lookup_result));
+  Object& obj = Object::Handle(LookupHeapObject(thread, id, &lookup_result));
   if (obj.raw() != Object::sentinel().raw()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // If obj is a script from dart:* and doesn't have source loaded, try and
+    // load the source before sending the response.
+    if (obj.IsScript()) {
+      const Script& script = Script::Cast(obj);
+      if (!script.HasSource() && script.IsPartOfDartColonLibrary() &&
+          Service::HasDartLibraryKernelForSources()) {
+        const uint8_t* kernel_buffer = Service::dart_library_kernel();
+        const intptr_t kernel_buffer_len =
+            Service::dart_library_kernel_length();
+        script.LoadSourceFromKernel(kernel_buffer, kernel_buffer_len);
+      }
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     // We found a heap object for this id.  Return it.
     obj.PrintJSON(js, false);
     return true;
@@ -4809,6 +4851,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_cpu_profile_params },
   { "_getCpuProfileTimeline", GetCpuProfileTimeline,
     get_cpu_profile_timeline_params },
+  { "_writeCpuProfileTimeline", WriteCpuProfileTimeline,
+    write_cpu_profile_timeline_params },
   { "getFlagList", GetFlagList,
     get_flag_list_params },
   { "_getHeapMap", GetHeapMap,

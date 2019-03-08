@@ -72,8 +72,8 @@ spawnFuncTest() {
             // sendports over to the other.
             Isolate.spawnUri(
                 Uri.parse('issue_21398_child_isolate1.dart'),
-                [spawnFunctionIsolate1SendPort, spawnFunctionIsolate2SendPort],
-                "no-msg");
+                null,
+                [spawnFunctionIsolate1SendPort, spawnFunctionIsolate2SendPort]);
           }, onError: (e) => print('$e'));
         });
       } else if (msg == "done") {
@@ -133,8 +133,8 @@ spawnUriTest() {
             // sendports over to the other.
             Isolate.spawnUri(
                 Uri.parse('issue_21398_child_isolate1.dart'),
-                [spawnFunctionIsolateSendPort, spawnUriIsolateSendPort],
-                "no-msg");
+                null,
+                [spawnFunctionIsolateSendPort, spawnUriIsolateSendPort]);
           }, onError: (e) => print('$e'));
         });
       } else if (msg == "done") {

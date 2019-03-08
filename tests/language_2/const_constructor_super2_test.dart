@@ -16,10 +16,10 @@ class B extends A {
   const B(a, this.b) : super(a);
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 foo() => const B(1, 2);
 
-@NoInline()
+@pragma('dart2js:noInline')
 bar() => const B(2, 2);
 
 void main() {

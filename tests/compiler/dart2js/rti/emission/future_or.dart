@@ -37,7 +37,7 @@ class FutureMock<T> implements Future<T> {
   Future<S> then<S>(FutureOr<S> onValue(T value), {Function onError}) => null;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is FutureOr<A>;
 
 main() {

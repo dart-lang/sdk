@@ -14,6 +14,7 @@ import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Names, Selectors;
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
@@ -31,7 +32,6 @@ import '../universe/selector.dart' show Selector, SelectorKind;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'backend.dart';
-import 'constant_system_javascript.dart';
 import 'native_data.dart';
 import 'runtime_types.dart';
 
@@ -574,7 +574,7 @@ class Namer {
   }
 
   /// Used to disambiguate names for constants in [constantName].
-  final NamingScope constantScope = new NamingScope();
+  final NamingScope _constantScope = new NamingScope();
 
   /// Used to store scopes for instances of [PrivatelyNamedJsEntity]
   final Map<Entity, NamingScope> _privateNamingScopes = {};
@@ -583,8 +583,8 @@ class Namer {
 
   final Map<LibraryEntity, String> libraryLongNames = HashMap();
 
-  final Map<ConstantValue, jsAst.Name> constantNames = HashMap();
-  final Map<ConstantValue, String> constantLongNames = {};
+  final Map<ConstantValue, jsAst.Name> _constantNames = HashMap();
+  final Map<ConstantValue, String> _constantLongNames = {};
   ConstantCanonicalHasher _constantHasher;
 
   /// Maps private names to a library that may use that name without prefixing
@@ -718,25 +718,25 @@ class Namer {
     // function constants since the function-implementation itself serves as
     // constant and can be accessed directly.
     assert(!constant.isFunction);
-    jsAst.Name result = constantNames[constant];
+    jsAst.Name result = _constantNames[constant];
     if (result == null) {
       String longName = constantLongName(constant);
-      result = getFreshName(constantScope, longName);
-      constantNames[constant] = result;
+      result = getFreshName(_constantScope, longName);
+      _constantNames[constant] = result;
     }
     return _newReference(result);
   }
 
   /// Proposed name for [constant].
   String constantLongName(ConstantValue constant) {
-    String longName = constantLongNames[constant];
+    String longName = _constantLongNames[constant];
     if (longName == null) {
       _constantHasher ??=
           new ConstantCanonicalHasher(rtiEncoder, _codegenWorldBuilder);
       longName = new ConstantNamingVisitor(
               rtiEncoder, _codegenWorldBuilder, _constantHasher)
           .getName(constant);
-      constantLongNames[constant] = longName;
+      _constantLongNames[constant] = longName;
     }
     return longName;
   }
@@ -816,7 +816,10 @@ class Namer {
     FunctionEntity function = method.function;
     return _disambiguateInternalMember(method, () {
       String invocationName = operatorNameToIdentifier(function.name);
-      return '${invocationName}\$body\$${method.enclosingClass.name}';
+      // TODO(sra): If the generator is for a closure's 'call' method, we don't
+      // need to incorporate the enclosing class.
+      String className = method.enclosingClass.name.replaceAll('&', '_');
+      return '${invocationName}\$body\$${className}';
     });
   }
 
@@ -1968,7 +1971,18 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
-  void visitMap(covariant JavaScriptMapConstant constant, [_]) {
+  void visitSet(SetConstantValue constant, [_]) {
+    // TODO(9476): Incorporate type parameters into name.
+    addRoot('Set');
+    if (constant.length == 0) {
+      add('empty');
+    } else {
+      add(getHashTag(constant, 5));
+    }
+  }
+
+  @override
+  void visitMap(covariant constant_system.JavaScriptMapConstant constant, [_]) {
     // TODO(9476): Incorporate type parameters into name.
     addRoot('Map');
     if (constant.length == 0) {
@@ -2136,6 +2150,11 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   @override
   int visitList(ListConstantValue constant, [_]) {
     return _hashList(constant.length, constant.entries);
+  }
+
+  @override
+  int visitSet(SetConstantValue constant, [_]) {
+    return _hashList(constant.length, constant.values);
   }
 
   @override

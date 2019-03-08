@@ -215,4 +215,10 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
   ir.DartType visitLoadLibrary(ir.LoadLibrary node) {
     return typeEnvironment.futureType(const ir.DynamicType());
   }
+
+  @override
+  ir.DartType visitConstantExpression(ir.ConstantExpression node) {
+    // TODO(johnniwinther): Include interface exactness where applicable.
+    return node.getStaticType(typeEnvironment);
+  }
 }

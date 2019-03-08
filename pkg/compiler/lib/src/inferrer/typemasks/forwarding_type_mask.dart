@@ -19,6 +19,7 @@ abstract class ForwardingTypeMask implements TypeMask {
 
   bool get isUnion => false;
   bool get isContainer => false;
+  bool get isSet => false;
   bool get isMap => false;
   bool get isDictionary => false;
   bool get isValue => false;

@@ -19,7 +19,6 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/task/api/model.dart';
-import 'package:html/dom.dart' show Document;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -620,11 +619,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   CompilationUnit parseCompilationUnit(Source source) {
     fail("Unexpected invocation of parseCompilationUnit");
-  }
-
-  @override
-  Document parseHtmlDocument(Source source) {
-    fail("Unexpected invocation of parseHtmlDocument");
   }
 
   @override

@@ -17,7 +17,7 @@ class D {
   dynamic f2 = new C2();
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 id(o) => o;
 
 main() {

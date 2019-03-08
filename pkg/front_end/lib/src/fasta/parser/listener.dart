@@ -6,7 +6,7 @@ library fasta.parser.listener;
 
 import '../../scanner/token.dart' show Token;
 
-import '../fasta_codes.dart' show Message, templateUnexpectedToken;
+import '../fasta_codes.dart' show Message, templateExperimentNotEnabled;
 
 import '../quote.dart' show UnescapeErrorListener;
 
@@ -947,16 +947,29 @@ class Listener implements UnescapeErrorListener {
     logEvent("Type");
   }
 
+  /// Called when parser encounters a '!'
+  /// used as a non-null postfix assertion in an expression.
+  void handleNonNullAssertExpression(Token bang) {
+    logEvent("NonNullAssertExpression");
+  }
+
   // TODO(danrubel): Remove this once all listeners have been updated
   // to properly handle nullable types
   void reportErrorIfNullableType(Token questionMark) {
     if (questionMark != null) {
       assert(optional('?', questionMark));
       handleRecoverableError(
-          templateUnexpectedToken.withArguments(questionMark),
+          templateExperimentNotEnabled.withArguments('non-nullable'),
           questionMark,
           questionMark);
     }
+  }
+
+  // TODO(danrubel): Remove this once all listeners have been updated
+  // to properly handle non-null assert expressions
+  void reportNonNullAssertExpressionNotEnabled(Token bang) {
+    handleRecoverableError(
+        templateExperimentNotEnabled.withArguments('non-nullable'), bang, bang);
   }
 
   void handleNoName(Token token) {
@@ -1200,18 +1213,15 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralList");
   }
 
-  void handleLiteralMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
-    logEvent("LiteralMap");
-  }
-
-  void handleLiteralSet(
-      int count, Token beginToken, Token constKeyword, Token token) {
-    logEvent("LiteralSet");
-  }
-
   void handleLiteralSetOrMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    int count,
+    Token leftBrace,
+    Token constKeyword,
+    Token rightBrace,
+    // TODO(danrubel): hasSetEntry parameter exists for replicating existing
+    // behavior and will be removed once unified collection has been enabled
+    bool hasSetEntry,
+  ) {
     logEvent('LiteralSetOrMap');
   }
 

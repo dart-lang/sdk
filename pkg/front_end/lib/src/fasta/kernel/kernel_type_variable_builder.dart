@@ -106,6 +106,14 @@ class KernelTypeVariableBuilder
         name, parent, charOffset, bound.clone(newTypes));
   }
 
+  @override
+  bool operator ==(Object other) {
+    return other is KernelTypeVariableBuilder && target == other.target;
+  }
+
+  @override
+  int get hashCode => target.hashCode;
+
   static List<TypeParameter> kernelTypeParametersFromBuilders(
       List<TypeVariableBuilder> builders) {
     if (builders == null) return null;

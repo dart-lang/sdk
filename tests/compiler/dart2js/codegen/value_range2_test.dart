@@ -6,9 +6,8 @@ import "package:expect/expect.dart";
 import "package:compiler/src/inferrer/abstract_value_domain.dart";
 import "package:compiler/src/ssa/nodes.dart";
 import "package:compiler/src/ssa/value_range_analyzer.dart";
-import "package:compiler/src/js_backend/constant_system_javascript.dart";
 
-ValueRangeInfo info = new ValueRangeInfo(JavaScriptConstantSystem.only);
+ValueRangeInfo info = new ValueRangeInfo();
 
 class AbstractValueDomainMock implements AbstractValueDomain {
   const AbstractValueDomainMock();

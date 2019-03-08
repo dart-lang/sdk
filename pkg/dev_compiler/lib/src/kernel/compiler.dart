@@ -314,6 +314,9 @@ class ProgramCompiler extends Object
     // This is done by forward declaring items.
     libraries.forEach(_emitLibrary);
 
+    moduleItems.addAll(afterClassDefItems);
+    afterClassDefItems.clear();
+
     // Visit directives (for exports)
     libraries.forEach(_emitExports);
 
@@ -569,7 +572,7 @@ class ProgramCompiler extends Object
       classDef = _defineClassTypeArguments(
           c, typeFormals, classDef, className, deferredSupertypes);
     } else {
-      body.addAll(deferredSupertypes);
+      afterClassDefItems.addAll(deferredSupertypes);
     }
 
     body = [classDef];
@@ -1116,14 +1119,34 @@ class ProgramCompiler extends Object
     return runtimeStatement('addTypeTests(#, #)', [defaultInst, isClassSymbol]);
   }
 
-  void _emitSymbols(Iterable<JS.TemporaryId> vars, List<JS.ModuleItem> body) {
+  JS.Expression _emitDartSymbol(String symbolName) {
+    // TODO(vsm): Handle qualified symbols correctly.
+    var last = symbolName.split('.').last;
+    var name = js.escapedString(symbolName, "'");
+    if (last.startsWith('_')) {
+      var nativeSymbol = emitPrivateNameSymbol(_currentLibrary, last);
+      return js.call('new #.new(#, #)', [
+        _emitConstructorAccess(privateSymbolClass.rawType),
+        name,
+        nativeSymbol
+      ]);
+    } else {
+      return js.call('new #.new(#)', [
+        _emitConstructorAccess(coreTypes.internalSymbolClass.rawType),
+        name
+      ]);
+    }
+  }
+
+  void _emitDartSymbols(
+      Iterable<JS.TemporaryId> vars, List<JS.ModuleItem> body) {
     for (var id in vars) {
       body.add(js.statement('const # = Symbol(#)', [id, js.string(id.name)]));
     }
   }
 
   void _emitSuperHelperSymbols(List<JS.Statement> body) {
-    _emitSymbols(
+    _emitDartSymbols(
         _superHelpers.values.map((m) => m.name as JS.TemporaryId), body);
     _superHelpers.clear();
   }
@@ -3821,6 +3844,9 @@ class ProgramCompiler extends Object
       if (value is PrimitiveConstant) return value.accept(this);
     }
 
+    // TODO(markzipan): reifyTearOff check can be removed when we enable
+    // front-end constant evaluation because static tear-offs will be
+    // treated as constants and handled by visitTearOffConstant.
     var result = _emitStaticTarget(target);
     if (_reifyTearoff(target)) {
       // TODO(jmesserly): we could tag static/top-level function types once
@@ -4820,26 +4846,7 @@ class ProgramCompiler extends Object
 
   @override
   visitSymbolLiteral(SymbolLiteral node) {
-    JS.Expression emitSymbol() {
-      // TODO(vsm): Handle qualified symbols correctly.
-      var last = node.value.split('.').last;
-      var name = js.escapedString(node.value, "'");
-      if (last.startsWith('_')) {
-        var nativeSymbol = emitPrivateNameSymbol(_currentLibrary, last);
-        return js.call('new #.new(#, #)', [
-          _emitConstructorAccess(privateSymbolClass.rawType),
-          name,
-          nativeSymbol
-        ]);
-      } else {
-        return js.call('new #.new(#)', [
-          _emitConstructorAccess(coreTypes.internalSymbolClass.rawType),
-          name
-        ]);
-      }
-    }
-
-    return _emitConst(emitSymbol);
+    return _emitConst(() => _emitDartSymbol(node.value));
   }
 
   JS.Expression _cacheConst(JS.Expression expr()) {
@@ -4865,8 +4872,10 @@ class ProgramCompiler extends Object
       _cacheConst(() => runtimeCall('const(#)', expr()));
 
   @override
-  visitTypeLiteral(TypeLiteral node) {
-    var typeRep = _emitType(node.type);
+  visitTypeLiteral(TypeLiteral node) => _emitTypeLiteral(node.type);
+
+  _emitTypeLiteral(DartType type) {
+    var typeRep = _emitType(type);
     // If the type is a type literal expression in Dart code, wrap the raw
     // runtime type in a "Type" instance.
     return _isInForeignJS ? typeRep : runtimeCall('wrapType(#)', typeRep);
@@ -4887,6 +4896,7 @@ class ProgramCompiler extends Object
   @override
   visitListLiteral(ListLiteral node) {
     var elementType = node.typeArgument;
+    // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
       return _emitList(elementType, _visitExpressionList(node.expressions));
     }
@@ -4896,6 +4906,7 @@ class ProgramCompiler extends Object
 
   @override
   visitSetLiteral(SetLiteral node) {
+    // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
       var setType = visitInterfaceType(
           InterfaceType(linkedHashSetClass, [node.typeArgument]));
@@ -4942,6 +4953,7 @@ class ProgramCompiler extends Object
       return JS.ArrayInitializer(entries);
     }
 
+    // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
       var mapType =
           _emitMapImplType(node.getStaticType(types) as InterfaceType);
@@ -5025,6 +5037,11 @@ class ProgramCompiler extends Object
   }
 
   @override
+  visitBlockExpression(BlockExpression node) {
+    throw UnimplementedError('ProgramCompiler.visitBlockExpression');
+  }
+
+  @override
   visitInstantiation(Instantiation node) {
     return runtimeCall('gbind(#, #)', [
       _visitExpression(node.expression),
@@ -5090,6 +5107,7 @@ class ProgramCompiler extends Object
     return _constants.getNameFromAnnotation(findAnnotation(node, test));
   }
 
+  JS.Expression visitConstant(Constant node) => node.accept(this);
   @override
   visitNullConstant(NullConstant node) => JS.LiteralNull();
   @override
@@ -5106,21 +5124,87 @@ class ProgramCompiler extends Object
   @override
   defaultConstant(Constant node) => _emitInvalidNode(node);
   @override
-  visitSymbolConstant(node) => defaultConstant(node);
+  visitSymbolConstant(node) {
+    return _emitConst(() => _emitDartSymbol(node.name));
+  }
+
   @override
-  visitMapConstant(node) => defaultConstant(node);
+  visitMapConstant(node) {
+    emitEntries() {
+      var entries = <JS.Expression>[];
+      for (var e in node.entries) {
+        entries.add(visitConstant(e.key));
+        entries.add(visitConstant(e.value));
+      }
+      return JS.ArrayInitializer(entries);
+    }
+
+    return _cacheConst(() => runtimeCall('constMap(#, #, #)',
+        [_emitType(node.keyType), _emitType(node.valueType), emitEntries()]));
+  }
+
   @override
-  visitListConstant(node) => defaultConstant(node);
+  visitListConstant(node) {
+    return _cacheConst(() => _emitConstList(
+        node.typeArgument, node.entries.map(visitConstant).toList()));
+  }
+
   @override
-  visitInstanceConstant(node) => defaultConstant(node);
+  visitSetConstant(node) {
+    // Set literals are currently desugared in the frontend.
+    // Implement this method before flipping the supportsSetLiterals flag
+    // in DevCompilerTarget to true.
+    throw "Set literal constants not supported.";
+  }
+
   @override
-  visitTearOffConstant(node) => defaultConstant(node);
+  visitInstanceConstant(node) {
+    entryToProperty(entry) {
+      var field = entry.key.asField.name.name;
+      var constant = entry.value.accept(this);
+      var member = entry.key.asField;
+      var prevLibrary = _currentLibrary;
+      _currentLibrary = member.enclosingLibrary;
+      var result =
+          JS.Property(_emitMemberName(field, member: member), constant);
+      _currentLibrary = prevLibrary;
+      return result;
+    }
+
+    var type = visitInterfaceType(node.getType(types) as InterfaceType);
+    JS.Expression prototype = js("#.prototype", [type]);
+    JS.Property proto_prop = JS.Property(_propertyName("__proto__"), prototype);
+    List<JS.Property> properties = [proto_prop]
+      ..addAll(node.fieldValues.entries.map(entryToProperty));
+    var objectInit = JS.ObjectInitializer(properties, multiline: true);
+    return _emitConst(() => objectInit);
+  }
+
   @override
-  visitTypeLiteralConstant(node) => defaultConstant(node);
+  visitTearOffConstant(node) {
+    var target = node.procedure;
+    var result = _emitStaticTarget(target);
+    // TODO(jmesserly): we could tag static/top-level function types once
+    // in the module initialization, rather than at the point where they
+    // escape.
+    return _emitFunctionTagged(result, target.function.functionType);
+  }
+
   @override
-  visitPartialInstantiationConstant(node) => defaultConstant(node);
+  visitTypeLiteralConstant(node) => _emitTypeLiteral(node.type);
+
   @override
-  visitUnevaluatedConstant(node) => defaultConstant(node);
+  visitPartialInstantiationConstant(node) {
+    return runtimeCall('gbind(#, #)', [
+      visitConstant(node.tearOffConstant),
+      node.types.map(_emitType).toList()
+    ]);
+  }
+
+  @override
+  visitUnevaluatedConstant(node) {
+    return _visitExpression(node.expression);
+  }
 }
 
 bool isSdkInternalRuntime(Library l) =>

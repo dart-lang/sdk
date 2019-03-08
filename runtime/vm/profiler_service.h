@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_PROFILER_SERVICE_H_
 #define RUNTIME_VM_PROFILER_SERVICE_H_
 
+#include "platform/text_buffer.h"
 #include "vm/allocation.h"
 #include "vm/code_observers.h"
 #include "vm/globals.h"
@@ -32,6 +33,7 @@ class RawFunction;
 class SampleFilter;
 class ProcessedSample;
 class ProcessedSampleBuffer;
+class Profile;
 
 class ProfileFunctionSourcePosition {
  public:
@@ -294,6 +296,8 @@ class ProfileTrieNode : public ZoneAllocated {
 
   virtual void PrintToJSONArray(JSONArray* array) const = 0;
 
+  virtual const char* ToCString(Profile* profile) const = 0;
+
   // Index into function or code tables.
   intptr_t table_index() const { return table_index_; }
 
@@ -315,6 +319,9 @@ class ProfileTrieNode : public ZoneAllocated {
   intptr_t NumChildren() const { return children_.length(); }
 
   ProfileTrieNode* At(intptr_t i) { return children_.At(i); }
+
+  ProfileTrieNode* parent() const { return parent_; }
+  void set_parent(ProfileTrieNode* p) { parent_ = p; }
 
   intptr_t IndexOf(ProfileTrieNode* node);
 
@@ -339,6 +346,7 @@ class ProfileTrieNode : public ZoneAllocated {
   intptr_t exclusive_allocations_;
   intptr_t inclusive_allocations_;
   ZoneGrowableArray<ProfileTrieNode*> children_;
+  ProfileTrieNode* parent_;
   intptr_t frame_id_;
 
   friend class ProfileBuilder;
@@ -388,9 +396,15 @@ class Profile : public ValueObject {
   void PrintProfileJSON(JSONStream* stream);
   void PrintTimelineJSON(JSONStream* stream);
 
+  // Serializes sample backtraces into arguments on Instant events and adds them
+  // directly to the timeline.
+  void AddToTimeline();
+
   ProfileFunction* FindFunction(const Function& function);
 
  private:
+  void AddParentTriePointers(ProfileTrieNode* current, ProfileTrieNode* parent);
+  void PrintBacktrace(ProfileTrieNode* node, TextBuffer* buf);
   void PrintHeaderJSON(JSONObject* obj);
   void PrintTimelineFrameJSON(JSONObject* frames,
                               ProfileTrieNode* current,
@@ -485,16 +499,24 @@ class ProfilerService : public AllStatic {
                                 int64_t time_origin_micros,
                                 int64_t time_extent_micros);
 
+  static void AddToTimeline();
+
   static void ClearSamples();
 
  private:
+  enum PrintKind {
+    kAsProfile,
+    kAsTimeline,
+    kAsPlatformTimeline,
+  };
+
   static void PrintJSONImpl(Thread* thread,
                             JSONStream* stream,
                             Profile::TagOrder tag_order,
                             intptr_t extra_tags,
                             SampleFilter* filter,
                             SampleBuffer* sample_buffer,
-                            bool as_timline);
+                            PrintKind kind);
 };
 
 }  // namespace dart

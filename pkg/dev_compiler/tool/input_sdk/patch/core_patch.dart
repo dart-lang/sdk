@@ -374,6 +374,22 @@ class Stopwatch {
 
   @patch
   static int _now() => Primitives.timerTicks();
+
+  @patch
+  int get elapsedMicroseconds {
+    int ticks = elapsedTicks;
+    if (_frequency == 1000000) return ticks;
+    assert(_frequency == 1000);
+    return ticks * 1000;
+  }
+
+  @patch
+  int get elapsedMilliseconds {
+    int ticks = elapsedTicks;
+    if (_frequency == 1000) return ticks;
+    assert(_frequency == 1000000);
+    return ticks ~/ 1000;
+  }
 }
 
 // Patch for List implementation.
@@ -1246,7 +1262,7 @@ class _BigIntImpl implements BigInt {
   /// Shifts the digits of [xDigits] into the right place in [resultDigits].
   ///
   /// `resultDigits[ds..xUsed+ds] = xDigits[0..xUsed-1] << (n % _DIGIT_BITS)`
-  ///   where `ds = ceil(n / _DIGIT_BITS)`
+  ///   where `ds = n ~/ _DIGIT_BITS`
   ///
   /// Does *not* clear digits below ds.
   static void _lsh(

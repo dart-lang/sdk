@@ -1753,13 +1753,16 @@ num test(Iterable values) => values.fold(values.first as num, max);
     assertMapOfIntToListOfInt(
         resolutionMap.elementDeclaredByMethodDeclaration(mapC).returnType);
 
-    MapLiteral mapLiteralB = mapB.initializer;
-    MapLiteral mapLiteralC = (mapC.body as ExpressionFunctionBody).expression;
+    SetOrMapLiteral mapLiteralB = mapB.initializer;
+    SetOrMapLiteral mapLiteralC =
+        (mapC.body as ExpressionFunctionBody).expression;
     assertMapOfIntToListOfInt(mapLiteralB.staticType);
     assertMapOfIntToListOfInt(mapLiteralC.staticType);
 
-    ListLiteral listLiteralB = mapLiteralB.entries[0].value;
-    ListLiteral listLiteralC = mapLiteralC.entries[0].value;
+    ListLiteral listLiteralB =
+        (mapLiteralB.elements2[0] as MapLiteralEntry).value;
+    ListLiteral listLiteralC =
+        (mapLiteralC.elements2[0] as MapLiteralEntry).value;
     assertListOfInt(listLiteralB.staticType);
     assertListOfInt(listLiteralC.staticType);
   }
@@ -2010,9 +2013,9 @@ num test(Iterable values) => values.fold(values.first as num, max);
     assertListOfListOfInt(literal(2).staticType);
     assertListOfListOfInt(literal(3).staticType);
 
-    assertListOfInt(literal(1).elements[0].staticType);
-    assertListOfInt(literal(2).elements[0].staticType);
-    assertListOfInt(literal(3).elements[0].staticType);
+    assertListOfInt((literal(1).elements2[0] as Expression).staticType);
+    assertListOfInt((literal(2).elements2[0] as Expression).staticType);
+    assertListOfInt((literal(3).elements2[0] as Expression).staticType);
   }
 
   test_listLiteral_simple() async {
@@ -2134,10 +2137,10 @@ num test(Iterable values) => values.fold(values.first as num, max);
     CompilationUnit unit = await resolveSource(code);
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
-    MapLiteral literal(int i) {
+    SetOrMapLiteral literal(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
-      MapLiteral exp = decl.initializer;
+      SetOrMapLiteral exp = decl.initializer;
       return exp;
     }
 
@@ -2151,10 +2154,14 @@ num test(Iterable values) => values.fold(values.first as num, max);
     assertMapOfIntToListOfString(literal(3).staticType);
     assertMapOfIntToListOfString(literal(4).staticType);
 
-    assertListOfString(literal(1).entries[0].value.staticType);
-    assertListOfString(literal(2).entries[0].value.staticType);
-    assertListOfString(literal(3).entries[0].value.staticType);
-    assertListOfString(literal(4).entries[0].value.staticType);
+    assertListOfString(
+        (literal(1).elements2[0] as MapLiteralEntry).value.staticType);
+    assertListOfString(
+        (literal(2).elements2[0] as MapLiteralEntry).value.staticType);
+    assertListOfString(
+        (literal(3).elements2[0] as MapLiteralEntry).value.staticType);
+    assertListOfString(
+        (literal(4).elements2[0] as MapLiteralEntry).value.staticType);
   }
 
   test_mapLiteral_simple() async {
@@ -2173,7 +2180,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     DartType literal(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
-      MapLiteral exp = decl.initializer;
+      SetOrMapLiteral exp = decl.initializer;
       return exp.staticType;
     }
 
@@ -2201,7 +2208,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     DartType literal(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
-      MapLiteral exp = decl.initializer;
+      SetOrMapLiteral exp = decl.initializer;
       return exp.staticType;
     }
 

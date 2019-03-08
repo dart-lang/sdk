@@ -12,11 +12,14 @@ List<int> postProcess(Component c) {
     return "${l1.fileUri}".compareTo("${l2.fileUri}");
   });
 
+  c.problemsAsJson?.sort();
+
   c.computeCanonicalNames();
   for (Library library in c.libraries) {
     library.additionalExports.sort((Reference r1, Reference r2) {
       return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
     });
+    library.problemsAsJson?.sort();
   }
 
   return serializeComponent(c);

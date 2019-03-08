@@ -197,11 +197,6 @@ template("aot_assembly") {
   if (defined(invoker.inputs)) {
     extra_inputs += invoker.inputs
   }
-  if (defined(invoker.dot_packages)) {
-    dot_packages = invoker.dot_packages
-  } else {
-    dot_packages = rebase_path("$_dart_root/.packages")
-  }
   output = "$root_gen_dir/$name.dart.S"
   if (defined(invoker.output)) {
     output = invoker.output
@@ -220,7 +215,6 @@ template("aot_assembly") {
 
     vm_args = [
       "--deterministic",
-      "--packages=$dot_packages",
       "--snapshot-kind=app-aot-assembly",
       "--assembly=$abs_output",
     ] + aot_vm_args

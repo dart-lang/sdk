@@ -59,9 +59,9 @@ void testList() {
       <int>[for (var i in <int>[0, 2]) for (var j = 1; j <= 2; j++) i + j]);
 
   // Does not flatten nested collection literal.
-  Expect.listEquals([1], [for (var i = 1; i < 2; i++) [i]].first;
-  Expect.mapEquals({1: 1}, [for (var i = 1; i < 2; i++) {i: i}].first;
-  Expect.setEquals({1}, [for (var i = 1; i < 2; i++) {i}].first;
+  Expect.listEquals([1], [for (var i = 1; i < 2; i++) [i]].first);
+  Expect.mapEquals({1: 1}, [for (var i = 1; i < 2; i++) {i: i}].first);
+  Expect.setEquals({1}, [for (var i = 1; i < 2; i++) {i}].first);
 
   // Downcast variable.
   Expect.listEquals(list, <int>[for (int n in <num>[1, 2, 3, 4]) n]);
@@ -109,7 +109,7 @@ void testMap() {
 
   // Spread inside for.
   Expect.mapEquals(map, <int, int>{
-    for (var i in <int>[0, 2]) ...<int>{1 + i: 1 + i, 2 + i: 2 + i}
+    for (var i in <int>[0, 2]) ...<int, int>{1 + i: 1 + i, 2 + i: 2 + i}
   });
 
   // If inside for.
@@ -132,9 +132,9 @@ void testMap() {
   Expect.mapEquals(map, <int, int>{for (num n in <num>[1, 2, 3, 4]) n: n});
 
   // Downcast condition.
-  Expect.mapEquals([1],
+  Expect.mapEquals({1 : 1},
       <int, int>{for (var i = 1; (i < 2) as dynamic; i++) i: i});
-  Expect.mapEquals([1],
+  Expect.mapEquals({1 : 1},
       <int, int>{for (var i = 1; (i < 2) as Object; i++) i: i});
 }
 
@@ -176,9 +176,9 @@ void testSet() {
       <int>{for (var i in <int>[0, 2]) for (var j = 1; j <= 2; j++) i + j});
 
   // Does not flatten nested collection literal.
-  Expect.listEquals([1], {for (var i = 1; i < 2; i++) [i]}.first;
-  Expect.mapEquals({1: 1}, {for (var i = 1; i < 2; i++) {i: i}}.first;
-  Expect.setEquals({1}, }for (var i = 1; i < 2; i++) {i}}.first;
+  Expect.listEquals([1], {for (var i = 1; i < 2; i++) [i]}.first);
+  Expect.mapEquals({1: 1}, {for (var i = 1; i < 2; i++) {i: i}}.first);
+  Expect.setEquals({1}, {for (var i = 1; i < 2; i++) {i}}.first);
 
   // Downcast variable.
   Expect.setEquals(set, <int>{for (int n in <num>[1, 2, 3, 4]) n});
@@ -196,13 +196,15 @@ void testDuplicateKeys() {
     1: 1,
     for (var i in <int>[1, 2, 3]) i: i,
     for (var i = 2; i <= 3; i++) i: i,
-    3: 3
+    3: 3,
+    4: 4
   });
   Expect.setEquals(set, <int>{
     1,
     for (var i in <int>[1, 2, 3]) i,
     for (var i = 2; i <= 3; i++) i,
-    3
+    3, 
+    4
   });
 }
 

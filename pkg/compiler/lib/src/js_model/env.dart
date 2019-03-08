@@ -930,14 +930,6 @@ abstract class JFieldData extends JMemberData {
 
   ConstantExpression getFieldConstantExpression(
       JsKernelToElementMap elementMap);
-
-  /// Return the [ConstantValue] the initial value of [field] or `null` if
-  /// the initializer is not a constant expression.
-  ConstantValue getFieldConstantValue(JsKernelToElementMap elementMap);
-
-  bool hasConstantFieldInitializer(JsKernelToElementMap elementMap);
-
-  ConstantValue getConstantFieldInitializer(JsKernelToElementMap elementMap);
 }
 
 class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
@@ -946,8 +938,6 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
   static const String tag = 'field-data';
 
   DartType _type;
-  bool _isConstantComputed = false;
-  ConstantValue _constantValue;
   ConstantExpression _constantExpression;
 
   JFieldDataImpl(ir.Field node, MemberDefinition definition,
@@ -994,33 +984,6 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
       }
     }
     return _constantExpression;
-  }
-
-  @override
-  ConstantValue getFieldConstantValue(JsKernelToElementMap elementMap) {
-    if (!_isConstantComputed) {
-      _constantValue = elementMap.getConstantValue(node.initializer,
-          requireConstant: node.isConst, implicitNull: !node.isConst);
-      _isConstantComputed = true;
-    }
-    return _constantValue;
-  }
-
-  @override
-  bool hasConstantFieldInitializer(JsKernelToElementMap elementMap) {
-    return getFieldConstantValue(elementMap) != null;
-  }
-
-  @override
-  ConstantValue getConstantFieldInitializer(JsKernelToElementMap elementMap) {
-    ConstantValue value = getFieldConstantValue(elementMap);
-    assert(
-        value != null,
-        failedAt(
-            definition.location,
-            "Field ${definition} doesn't have a "
-            "constant initial value."));
-    return value;
   }
 
   @override

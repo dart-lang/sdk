@@ -28,7 +28,6 @@ DEFINE_FLAG(bool,
             use_slow_path,
             false,
             "Set to true for debugging & verifying the slow paths.");
-DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, precompiled_mode);
 
 namespace compiler {

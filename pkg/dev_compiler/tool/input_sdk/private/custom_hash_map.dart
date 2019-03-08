@@ -101,7 +101,10 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
         var equals = _equals;
         for (int i = 0, n = JS('int', '#.length', buckets); i < n; i++) {
           K k = JS('', '#[#]', buckets, i);
-          if (equals(k, key)) return JS('', '#.get(#)', _map, k);
+          if (equals(k, key)) {
+            V value = JS('', '#.get(#)', _map, k);
+            return value == null ? null : value; // coerce undefined to null.
+          }
         }
       }
     }
@@ -147,6 +150,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
       JS('', '#.push(#)', buckets, key);
     }
     V value = ifAbsent();
+    if (value == null) value = null; // coerce undefined to null.
     JS('', '#.set(#, #)', _map, key, value);
     _modifications = (_modifications + 1) & 0x3ffffff;
     return value;
@@ -171,7 +175,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
           V value = JS('', '#.get(#)', map, k);
           JS('', '#.delete(#)', map, k);
           _modifications = (_modifications + 1) & 0x3ffffff;
-          return value;
+          return value == null ? null : value; // coerce undefined to null.
         }
       }
     }

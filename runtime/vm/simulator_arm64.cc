@@ -720,12 +720,12 @@ Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
   // handling stack overflow exceptions. To be safe in potential
   // stack underflows we also add some underflow buffer space.
   stack_ =
-      new char[(OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer +
-                kSimulatorStackUnderflowSize)];
+      new char[(OSThread::GetSpecifiedStackSize() +
+                OSThread::kStackSizeBufferMax + kSimulatorStackUnderflowSize)];
   // Low address.
   stack_limit_ = reinterpret_cast<uword>(stack_);
   // Limit for StackOverflowError.
-  overflow_stack_limit_ = stack_limit_ + OSThread::kStackSizeBuffer;
+  overflow_stack_limit_ = stack_limit_ + OSThread::kStackSizeBufferMax;
   // High address.
   stack_base_ = overflow_stack_limit_ + OSThread::GetSpecifiedStackSize();
 

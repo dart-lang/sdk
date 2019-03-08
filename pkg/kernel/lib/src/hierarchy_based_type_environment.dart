@@ -15,9 +15,8 @@ import '../type_environment.dart' show TypeEnvironment;
 class HierarchyBasedTypeEnvironment extends TypeEnvironment {
   final ClassHierarchy hierarchy;
 
-  HierarchyBasedTypeEnvironment(CoreTypes coreTypes, this.hierarchy,
-      {bool legacyMode: false})
-      : super.fromSubclass(coreTypes, legacyMode: legacyMode);
+  HierarchyBasedTypeEnvironment(CoreTypes coreTypes, this.hierarchy)
+      : super.fromSubclass(coreTypes);
 
   @override
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import 'package:meta/dart2js.dart';
 
 /*strong.class: C:checkedInstance,checks=[],instance,typeArgument*/
 /*omit.class: C:checks=[],instance,typeArgument*/
@@ -17,10 +16,10 @@ class D {
   call(double i) {}
 }
 
-@noInline
+@pragma('dart2js:noInline')
 test1(o) => o is Function(int);
 
-@noInline
+@pragma('dart2js:noInline')
 test2(o) => o is List<Function(int)>;
 
 main() {

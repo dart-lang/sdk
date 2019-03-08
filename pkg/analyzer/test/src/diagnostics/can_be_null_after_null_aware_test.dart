@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,10 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class CanBeNullAfterNullAwareTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
+class CanBeNullAfterNullAwareTest extends DriverResolutionTest {
   test_afterCascade() async {
     await assertErrorsInCode(r'''
 m(x) {

@@ -75,7 +75,7 @@ class FSEventsWatcher {
 
     ~Node() {
       Stop();
-      VOID_TEMP_FAILURE_RETRY(close(write_fd_));
+      close(write_fd_);
       CFRelease(path_ref_);
     }
 
@@ -178,7 +178,7 @@ class FSEventsWatcher {
   FSEventsWatcher() : run_loop_(0) { Start(); }
 
   void Start() {
-    Thread::Start(Run, reinterpret_cast<uword>(this));
+    Thread::Start("dart:io FileWatcher", Run, reinterpret_cast<uword>(this));
     monitor_.Enter();
     while (run_loop_ == NULL) {
       monitor_.Wait(Monitor::kNoTimeout);

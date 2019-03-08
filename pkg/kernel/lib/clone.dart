@@ -277,6 +277,10 @@ class CloneVisitor implements TreeVisitor {
     return new Let(newVariable, clone(node.body));
   }
 
+  visitBlockExpression(BlockExpression node) {
+    return new BlockExpression(clone(node.body), clone(node.value));
+  }
+
   visitExpressionStatement(ExpressionStatement node) {
     return new ExpressionStatement(clone(node.expression));
   }

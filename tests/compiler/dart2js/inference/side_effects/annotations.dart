@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_helper';
-
 /// Static field used in tests below.
 var field;
 
@@ -13,11 +10,12 @@ var field;
 /*element: readStaticField:SideEffects(reads static; writes nothing)*/
 readStaticField() => field;
 
-/// Read a static field. If not for the `@NoSideEffects()` annotation this would
-/// add dependency of static properties to the side effects of the method.
+/// Read a static field. If not for the `@pragma('dart2js:noSideEffects')`
+/// annotation this would add dependency of static properties to the side
+/// effects of the method.
 /*element: readStaticFieldAnnotated:SideEffects(reads nothing; writes nothing)*/
-@NoInline()
-@NoSideEffects()
+@pragma('dart2js:noInline')
+@pragma('dart2js:noSideEffects')
 readStaticFieldAnnotated() => field;
 
 /*element: main:SideEffects(reads static; writes nothing)*/

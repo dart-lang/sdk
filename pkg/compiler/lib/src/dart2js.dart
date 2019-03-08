@@ -271,6 +271,19 @@ Future<api.CompilationResult> compile(List<String> argv,
     compilationStrategy = CompilationStrategy.toData;
   }
 
+  void setDumpInfo(String argument) {
+    passThrough(Flags.dumpInfo);
+    if (argument == Flags.dumpInfo || argument == "${Flags.dumpInfo}=json") {
+      return;
+    }
+    if (argument == "${Flags.dumpInfo}=binary") {
+      passThrough(argument);
+      return;
+    }
+    helpAndFail("Error: Unsupported dump-info format '$argument', "
+        "supported formats are: json or binary");
+  }
+
   void handleThrowOnError(String argument) {
     throwOnError = true;
     String parameter = extractParameter(argument, isOptionalArgument: true);
@@ -331,6 +344,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler('${Flags.readData}|${Flags.readData}=.+', setReadData),
     new OptionHandler('${Flags.writeData}|${Flags.writeData}=.+', setWriteData),
     new OptionHandler(Flags.cfeOnly, setCfeOnly),
+    new OptionHandler(Flags.debugGlobalInference, passThrough),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler('-O.*', setOptimizationLevel),
     new OptionHandler(Flags.allowMockCompilation, ignoreOption),
@@ -372,7 +386,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler('--deferred-map=.+', passThrough),
     new OptionHandler(Flags.newDeferredSplit, passThrough),
     new OptionHandler(Flags.reportInvalidInferredDeferredTypes, passThrough),
-    new OptionHandler(Flags.dumpInfo, passThrough),
+    new OptionHandler('${Flags.dumpInfo}|${Flags.dumpInfo}=.+', setDumpInfo),
     new OptionHandler('--disallow-unsafe-eval', ignoreOption),
     new OptionHandler(Option.showPackageWarnings, passThrough),
     new OptionHandler(Option.enableLanguageExperiments, passThrough),
@@ -407,7 +421,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.experimentalTrackAllocations, passThrough),
     new OptionHandler("${Flags.experimentalAllocationsPath}=.+", passThrough),
 
-    new OptionHandler(Flags.experimentLocalNames, passThrough),
+    new OptionHandler(Flags.experimentLocalNames, ignoreOption),
     new OptionHandler(Flags.experimentStartupFunctions, passThrough),
     new OptionHandler(Flags.experimentToBoolean, passThrough),
     new OptionHandler(Flags.experimentCallInstrumentation, passThrough),
@@ -874,10 +888,10 @@ be removed in a future version:
     Generates a json file with a mapping from each deferred import to a list of
     the part.js files that will be loaded.
 
-  --dump-info
-    Generates an out.info.json file with information about the generated code.
-    You can inspect the generated file with the viewer at:
-        https://dart-lang.github.io/dump-info-visualizer/
+  --dump-info[=<format>]
+    Generates information about the generated code. 'format' can be either
+    'json' or 'binary'.
+    You can inspect the generated data using tools from 'package:dart2js_info'.
 
   --generate-code-with-compile-time-errors
     Generates output even if the program contains compile-time errors. Use the

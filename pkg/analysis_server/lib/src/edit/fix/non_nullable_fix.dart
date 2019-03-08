@@ -7,18 +7,15 @@ import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analysis_server/src/nullability/provisional_api.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// [NonNullableFix] visits each named type in a resolved compilation unit
 /// and determines whether the associated variable or parameter can be null
 /// then adds or removes a '?' trailing the named type as appropriate.
-class NonNullableFix extends FixCodeTask2 {
+class NonNullableFix extends FixCodeTask {
   /// TODO(paulberry): stop using permissive mode once the migration logic is
   /// mature enough.
   static const bool _usePermissiveMode = true;
-
-  static void task(DartFixRegistrar registrar, DartFixListener listener) {
-    registrar.registerCodeTask(new NonNullableFix(listener));
-  }
 
   final DartFixListener listener;
 
@@ -30,18 +27,29 @@ class NonNullableFix extends FixCodeTask2 {
             permissive: _usePermissiveMode);
 
   @override
+  int get numPhases => 2;
+
+  @override
   Future<void> finish() async {
     migration.finish();
   }
 
   @override
-  Future<void> processUnit(ResolvedUnitResult result) async {
-    migration.prepareInput(result);
+  Future<void> processUnit(int phase, ResolvedUnitResult result) async {
+    switch (phase) {
+      case 0:
+        migration.prepareInput(result);
+        break;
+      case 1:
+        migration.processInput(result);
+        break;
+      default:
+        throw new ArgumentError('Unsupported phase $phase');
+    }
   }
 
-  @override
-  Future<void> processUnit2(ResolvedUnitResult result) async {
-    migration.processInput(result);
+  static void task(DartFixRegistrar registrar, DartFixListener listener) {
+    registrar.registerCodeTask(new NonNullableFix(listener));
   }
 }
 
@@ -51,9 +59,13 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   NullabilityMigrationAdapter(this.listener);
 
   @override
+  void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
+    listener.addEditWithoutSuggestion(fix.source, edit);
+  }
+
+  @override
   void addFix(SingleNullabilityFix fix) {
     // TODO(danrubel): Update the description based upon the [fix.kind]
-    listener.addSourceEdits(
-        fix.kind.appliedMessage, fix.location, fix.source, fix.sourceEdits);
+    listener.addSuggestion(fix.kind.appliedMessage, fix.location);
   }
 }

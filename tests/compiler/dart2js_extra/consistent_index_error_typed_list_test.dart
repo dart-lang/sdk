@@ -7,8 +7,8 @@ import "dart:typed_data";
 
 // Test that optimized indexing and slow path indexing produce the same error.
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 class TooHigh {

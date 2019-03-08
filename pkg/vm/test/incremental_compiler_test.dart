@@ -336,6 +336,74 @@ main() {
       vm.kill();
     });
   });
+
+  group('reject', () {
+    Directory mytest;
+    setUpAll(() {
+      mytest = Directory.systemTemp.createTempSync('incremental_reject');
+    });
+
+    tearDownAll(() {
+      try {
+        mytest.deleteSync(recursive: true);
+      } catch (_) {
+        // Ignore errors;
+      }
+    });
+
+    test('compile, reject, compile again', () async {
+      var packageUri = Uri.file('${mytest.path}/.packages');
+      new File(packageUri.toFilePath()).writeAsStringSync('foo:lib/\n');
+      new Directory(mytest.path + "/lib").createSync();
+      var fooUri = Uri.file('${mytest.path}/lib/foo.dart');
+      new File(fooUri.toFilePath())
+          .writeAsStringSync("import 'package:foo/bar.dart';\n"
+              "import 'package:foo/baz.dart';\n"
+              "main() {\n"
+              "  new A();\n"
+              "  openReceivePortSoWeWontDie();"
+              "}\n");
+
+      var barUri = Uri.file('${mytest.path}/lib/bar.dart');
+      new File(barUri.toFilePath())
+          .writeAsStringSync("class A { static int a; }\n");
+
+      var bazUri = Uri.file('${mytest.path}/lib/baz.dart');
+      new File(bazUri.toFilePath()).writeAsStringSync("import 'dart:isolate';\n"
+          "openReceivePortSoWeWontDie() { new RawReceivePort(); }\n");
+
+      Uri packageEntry = Uri.parse('package:foo/foo.dart');
+      options.packagesFileUri = packageUri;
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(options, packageEntry);
+      {
+        Component component = await compiler.compile(entryPoint: packageEntry);
+        File outputFile = new File('${mytest.path}/foo.dart.dill');
+        await _writeProgramToFile(component, outputFile);
+      }
+      compiler.accept();
+      {
+        Procedure procedure = await compiler.compileExpression(
+            'a', <String>[], <String>[], 'package:foo/bar.dart', 'A', true);
+        expect(procedure, isNotNull);
+      }
+
+      new File(barUri.toFilePath())
+          .writeAsStringSync("class A { static int b; }\n");
+      compiler.invalidate(barUri);
+      {
+        Component component = await compiler.compile(entryPoint: packageEntry);
+        File outputFile = new File('${mytest.path}/foo1.dart.dill');
+        await _writeProgramToFile(component, outputFile);
+      }
+      await compiler.reject();
+      {
+        Procedure procedure = await compiler.compileExpression(
+            'a', <String>[], <String>[], 'package:foo/bar.dart', 'A', true);
+        expect(procedure, isNotNull);
+      }
+    });
+  });
 }
 
 _writeProgramToFile(Component component, File outputFile) async {

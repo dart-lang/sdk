@@ -7,7 +7,6 @@ import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
 
 /// Representation of a type in the code to be migrated.  In addition to
@@ -178,13 +177,10 @@ class DecoratedType {
 /// the source code to reflect its nullability.
 class DecoratedTypeAnnotation extends DecoratedType
     implements PotentialModification {
-  @override
-  final Source source;
-
   final int _offset;
 
   DecoratedTypeAnnotation(
-      DartType type, ConstraintVariable nullable, this.source, this._offset,
+      DartType type, ConstraintVariable nullable, this._offset,
       {List<DecoratedType> typeArguments = const []})
       : super(type, nullable, typeArguments: typeArguments);
 

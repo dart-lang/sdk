@@ -4,6 +4,7 @@
 
 // TODO(dacoharkes): Move this into compiler namespace.
 
+#include "vm/class_id.h"
 #include "vm/globals.h"
 
 #include "vm/stub_code.h"
@@ -13,6 +14,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/ffi.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/constants_x64.h"
 #include "vm/dart_entry.h"
@@ -28,90 +30,6 @@
 #define __ assembler->
 
 namespace dart {
-
-static Representation TypeRepresentation(const AbstractType& result_type) {
-  switch (result_type.type_class_id()) {
-    case kFfiFloatCid:
-    case kFfiDoubleCid:
-      return kUnboxedDouble;
-    case kFfiInt8Cid:
-    case kFfiInt16Cid:
-    case kFfiInt32Cid:
-    case kFfiInt64Cid:
-    case kFfiUint8Cid:
-    case kFfiUint16Cid:
-    case kFfiUint32Cid:
-    case kFfiUint64Cid:
-    case kFfiIntPtrCid:
-    case kFfiPointerCid:
-    default:  // Subtypes of Pointer.
-      return kUnboxedInt64;
-  }
-}
-
-// Converts a Ffi [signature] to a list of Representations.
-// Note that this ignores first argument (receiver) which is dynamic.
-static ZoneGrowableArray<Representation>* ArgumentRepresentations(
-    const Function& signature) {
-  intptr_t num_arguments = signature.num_fixed_parameters() - 1;
-  auto result = new ZoneGrowableArray<Representation>(num_arguments);
-  for (intptr_t i = 0; i < num_arguments; i++) {
-    AbstractType& arg_type =
-        AbstractType::Handle(signature.ParameterTypeAt(i + 1));
-    result->Add(TypeRepresentation(arg_type));
-  }
-  return result;
-}
-
-// Takes a list of argument representations, and converts it to a list of
-// argument locations based on calling convention.
-static ZoneGrowableArray<Location>* ArgumentLocations(
-    const ZoneGrowableArray<Representation>& arg_representations) {
-  intptr_t num_arguments = arg_representations.length();
-  auto result = new ZoneGrowableArray<Location>(num_arguments);
-  result->FillWith(Location(), 0, num_arguments);
-  Location* data = result->data();
-
-  // Loop through all arguments and assign a register or a stack location.
-  intptr_t int_regs_used = 0;
-  intptr_t xmm_regs_used = 0;
-  intptr_t nth_stack_argument = 0;
-  bool on_stack;
-  for (intptr_t i = 0; i < num_arguments; i++) {
-    on_stack = true;
-    switch (arg_representations.At(i)) {
-      case kUnboxedInt64:
-        if (int_regs_used < CallingConventions::kNumArgRegs) {
-          data[i] = Location::RegisterLocation(
-              CallingConventions::ArgumentRegisters[int_regs_used]);
-          int_regs_used++;
-          if (CallingConventions::kArgumentIntRegXorXmmReg) {
-            xmm_regs_used++;
-          }
-          on_stack = false;
-        }
-        break;
-      case kUnboxedDouble:
-        if (xmm_regs_used < CallingConventions::kNumXmmArgRegs) {
-          data[i] = Location::FpuRegisterLocation(
-              CallingConventions::XmmArgumentRegisters[xmm_regs_used]);
-          xmm_regs_used++;
-          if (CallingConventions::kArgumentIntRegXorXmmReg) {
-            int_regs_used++;
-          }
-          on_stack = false;
-        }
-        break;
-      default:
-        UNREACHABLE();
-    }
-    if (on_stack) {
-      data[i] = Location::StackSlot(nth_stack_argument, RSP);
-      nth_stack_argument++;
-    }
-  }
-  return result;
-}
 
 static intptr_t NumStackArguments(
     const ZoneGrowableArray<Location>& locations) {
@@ -313,7 +231,8 @@ static void GenerateMarshalPointer(Assembler* assembler, Register reg) {
 
   // If not null but a Pointer, load the address.
   __ Bind(&not_null);
-  __ movq(reg, FieldAddress(reg, Pointer::address_offset()));
+  __ movq(reg, FieldAddress(reg, Pointer::c_memory_address_offset()));
+  GenerateMarshalInt64(assembler, reg);
   __ Bind(&done);
 }
 
@@ -338,9 +257,9 @@ static void GenerateUnmarshalPointer(Assembler* assembler,
   __ LoadObject(RAX, Object::null_object());
   __ jmp(&done);
 
-  // Backup result value (to avoid GC).
   __ Bind(&not_null);
-  GenerateSaveInt64GCSafe(assembler, RAX);
+  GenerateUnmarshalInt64(assembler);
+  __ pushq(RAX);
 
   // Allocate object (can call into runtime).
   __ movq(TMP, closure_dart);
@@ -351,8 +270,8 @@ static void GenerateUnmarshalPointer(Assembler* assembler,
   __ popq(TMP);  // Pop type arguments.
 
   // Store the result value.
-  GenerateLoadInt64GCSafe(assembler, RDX);
-  __ movq(FieldAddress(RAX, Pointer::address_offset()), RDX);
+  __ popq(RDX);
+  __ movq(FieldAddress(RAX, Pointer::c_memory_address_offset()), RDX);
   __ Bind(&done);
 }
 
@@ -391,6 +310,9 @@ static void GenerateUnmarshalResult(Assembler* assembler,
                                     const AbstractType& result_type,
                                     Address closure_dart) {
   switch (result_type.type_class_id()) {
+    case kFfiVoidCid:
+      __ LoadObject(RAX, Object::null_object());
+      return;
     case kFfiInt8Cid:
     case kFfiInt16Cid:
     case kFfiInt32Cid:
@@ -441,9 +363,9 @@ static void GenerateUnmarshalResult(Assembler* assembler,
 // TODO(dacoharkes): Test truncation on non 64 bits ints and floats.
 void GenerateFfiTrampoline(Assembler* assembler, const Function& signature) {
   ZoneGrowableArray<Representation>* arg_representations =
-      ArgumentRepresentations(signature);
+      ffi::ArgumentRepresentations(signature);
   ZoneGrowableArray<Location>* arg_locations =
-      ArgumentLocations(*arg_representations);
+      ffi::ArgumentLocations(*arg_representations);
 
   intptr_t num_dart_arguments = signature.num_fixed_parameters();
   intptr_t num_arguments = num_dart_arguments - 1;  // ignore closure
@@ -532,9 +454,9 @@ void GenerateFfiInverseTrampoline(Assembler* assembler,
                                   const Function& signature,
                                   void* dart_entry_point) {
   ZoneGrowableArray<Representation>* arg_representations =
-      ArgumentRepresentations(signature);
+      ffi::ArgumentRepresentations(signature);
   ZoneGrowableArray<Location>* arg_locations =
-      ArgumentLocations(*arg_representations);
+      ffi::ArgumentLocations(*arg_representations);
 
   intptr_t num_dart_arguments = signature.num_fixed_parameters();
   intptr_t num_arguments = num_dart_arguments - 1;  // Ignore closure.

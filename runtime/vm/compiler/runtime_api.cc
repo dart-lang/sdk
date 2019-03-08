@@ -23,6 +23,22 @@ bool IsSameObject(const Object& a, const Object& b) {
   return a.raw() == b.raw();
 }
 
+bool IsEqualType(const AbstractType& a, const AbstractType& b) {
+  return a.Equals(b);
+}
+
+bool IsDoubleType(const AbstractType& type) {
+  return type.IsDoubleType();
+}
+
+bool IsIntType(const AbstractType& type) {
+  return type.IsIntType();
+}
+
+bool IsSmiType(const AbstractType& type) {
+  return type.IsSmiType();
+}
+
 bool IsNotTemporaryScopedHandle(const Object& obj) {
   return obj.IsNotTemporaryScopedHandle();
 }
@@ -753,7 +769,7 @@ uword Code::EntryPointOf(const dart::Code& code) {
 }
 
 bool CanEmbedAsRawPointerInGeneratedCode(const dart::Object& obj) {
-  return obj.IsSmi() || obj.InVMHeap();
+  return obj.IsSmi() || obj.IsReadOnly();
 }
 
 word ToRawPointer(const dart::Object& a) {

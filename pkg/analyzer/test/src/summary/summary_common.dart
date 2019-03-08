@@ -10775,7 +10775,6 @@ final v = $expr;
     var scanner = new Scanner(stringSource, reader, errorListener);
     var startToken = scanner.tokenize();
     var parser = new Parser(stringSource, errorListener)
-      ..enableSetLiterals = experimentStatus.set_literals
       ..enableNonNullable = experimentStatus.non_nullable;
     var compilationUnit = parser.parseCompilationUnit(startToken);
     var f = compilationUnit.declarations[0] as FunctionDeclaration;

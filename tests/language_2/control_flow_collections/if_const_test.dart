@@ -56,9 +56,9 @@ void testList() {
   Expect.identical(const [1], const <int>[if (objectTrue) 1]);
 
   // Does not flatten nested collection literal.
-  Expect.identical(const [1], const [if (true) [1]].first;
-  Expect.identical(const {1: 1}, const [if (true) {1: 1}].first;
-  Expect.identical(const {1}, const [if (true) {1}].first;
+  Expect.identical(const [1], const [if (true) [1]].first);
+  Expect.identical(const {1: 1}, const [if (true) {1: 1}].first);
+  Expect.identical(const {1}, const [if (true) {1}].first);
 
   // Nested spread.
   Expect.identical(list,
@@ -75,7 +75,7 @@ void testList() {
   Expect.identical(list, const <int>[if (true) for (var i in list) i]);
 
   // Nested for in else.
-  Expect.identical(list, const <int>[if (false) 9 for (var i in list) i]);
+  Expect.identical(list, const <int>[if (false) 9 else for (var i in list) i]);
 }
 
 void testMap() {
@@ -128,7 +128,7 @@ void testMap() {
 
   // Nested for in else.
   Expect.identical(map,
-      const <int, int>{if (false) 9: 9 for (var i in list) i: i});
+      const <int, int>{if (false) 9: 9 else for (var i in list) i: i});
 }
 
 void testSet() {
@@ -162,9 +162,10 @@ void testSet() {
   Expect.identical(const <int>{1}, const <int>{if (objectTrue) 1});
 
   // Does not flatten nested collection literal.
-  Expect.identical(const <int>[1], const <int>{if (true) [1]}.first;
-  Expect.identical(const <int, int>{1: 1}, const <int>{if (true) {1: 1}}.first;
-  Expect.identical(const <int>{1}, const <int>{if (true) {1}}.first;
+  Expect.identical(const <int>[1], const <List<int>>{if (true) [1]}.first);
+  Expect.identical(
+      const <int, int>{1: 1}, const <Map<int, int>>{if (true) {1: 1}}.first);
+  Expect.identical(const <int>{1}, const <Set<int>>{if (true) {1}}.first);
 
   // Nested spread.
   Expect.identical(set,
@@ -181,7 +182,7 @@ void testSet() {
   Expect.identical(set, const <int>{if (true) for (var i in list) i});
 
   // Nested for in else.
-  Expect.identical(set, const <int>{if (false) 9 for (var i in list) i});
+  Expect.identical(set, const <int>{if (false) 9 else for (var i in list) i});
 }
 
 void testShortCircuit() {
@@ -201,7 +202,7 @@ void testShortCircuit() {
     if (false) nil + 1: 9,
     if (false) 9: nil + 1
   });
-  Expect.identical(const <int, int>{1: 1, 2: 2}, const <int>{
+  Expect.identical(const <int, int>{1: 1, 2: 2}, const <int, int>{
     if (true) 1: 1 else nil + 1: 9,
     if (false) 9: nil + 1 else 2: 2
   });
@@ -229,7 +230,7 @@ void testShortCircuit() {
     if (false) 9: nonInt else 2: 2
   });
 
-  Expect.identical(const <int>{1}, const <int>{if (true) 1, if (false) nonInt};
+  Expect.identical(const <int>{1}, const <int>{if (true) 1, if (false) nonInt});
   Expect.identical(const <int>{1, 2},
       const <int>{if (true) 1 else nonInt, if (false) nonInt else 2});
 }

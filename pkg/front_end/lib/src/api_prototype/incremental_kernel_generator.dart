@@ -26,6 +26,10 @@ abstract class IncrementalKernelGenerator {
         initializeFromDillUri);
   }
 
+  /// Initialize the incremental compiler from a component.
+  ///
+  /// Notice that the component has to include the platform, and that no other
+  /// platform will be loaded.
   factory IncrementalKernelGenerator.fromComponent(
       CompilerOptions options, Uri entryPoint, Component component) {
     return new IncrementalCompiler.fromComponent(
@@ -36,7 +40,7 @@ abstract class IncrementalKernelGenerator {
 
   /// Returns a component whose libraries are the recompiled libraries,
   /// or - in the case of [fullComponent] - a full Component.
-  Future<Component> computeDelta({Uri entryPoint, bool fullComponent});
+  Future<Component> computeDelta({List<Uri> entryPoints, bool fullComponent});
 
   /// Remove the file associated with the given file [uri] from the set of
   /// valid files.  This guarantees that those files will be re-read on the

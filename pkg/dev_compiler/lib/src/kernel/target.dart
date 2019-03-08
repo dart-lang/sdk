@@ -151,7 +151,7 @@ class DevCompilerTarget extends Target {
 
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      new DevCompilerConstantsBackend();
+      const DevCompilerConstantsBackend();
 }
 
 /// Analyzes a component to determine if any covariance checks in private

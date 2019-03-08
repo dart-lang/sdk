@@ -49,7 +49,7 @@ class ExpressionPragmaAnnotationParser extends PragmaAnnotationParser {
       case kEntryPointPragmaName:
         // We ignore the option because we can't properly evaluate it, assume
         // it's true.
-        return new ParsedEntryPointPragma(PragmaEntryPointType.Always);
+        return new ParsedEntryPointPragma(PragmaEntryPointType.Default);
       case kExactResultTypePragmaName:
         if (options is TypeLiteral) {
           return new ParsedResultTypeByTypePragma(options.type);

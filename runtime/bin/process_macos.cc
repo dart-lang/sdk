@@ -45,7 +45,7 @@ class ProcessInfo {
  public:
   ProcessInfo(pid_t pid, intptr_t fd) : pid_(pid), fd_(fd) {}
   ~ProcessInfo() {
-    int closed = TEMP_FAILURE_RETRY(close(fd_));
+    int closed = close(fd_);
     if (closed != 0) {
       FATAL("Failed to close process exit code pipe");
     }
@@ -140,7 +140,8 @@ class ExitCodeHandler {
     }
 
     // Start thread that handles process exits when wait returns.
-    int result = Thread::Start(ExitCodeHandlerEntry, 0);
+    int result =
+        Thread::Start("dart:io Process.start", ExitCodeHandlerEntry, 0);
     if (result != 0) {
       FATAL1("Failed to start exit code handler worker thread %d", result);
     }
@@ -331,14 +332,14 @@ class ProcessStarter {
     }
 
     // Read the result of executing the child process.
-    VOID_TEMP_FAILURE_RETRY(close(exec_control_[1]));
+    close(exec_control_[1]);
     exec_control_[1] = -1;
     if (Process::ModeIsAttached(mode_)) {
       err = ReadExecResult();
     } else {
       err = ReadDetachedExecResult(&pid);
     }
-    VOID_TEMP_FAILURE_RETRY(close(exec_control_[0]));
+    close(exec_control_[0]);
     exec_control_[0] = -1;
 
     // Return error code if any failures.
@@ -349,7 +350,7 @@ class ProcessStarter {
         // GetProcessExitCodes will get a broken pipe error when it
         // tries to write to the writing side of the pipe and it will
         // ignore the error.
-        VOID_TEMP_FAILURE_RETRY(close(*exit_event_));
+        close(*exit_event_);
         *exit_event_ = -1;
       }
       CloseAllPipes();
@@ -360,17 +361,17 @@ class ProcessStarter {
       // Connect stdio, stdout and stderr.
       FDUtils::SetNonBlocking(read_in_[0]);
       *in_ = read_in_[0];
-      VOID_TEMP_FAILURE_RETRY(close(read_in_[1]));
+      close(read_in_[1]);
       FDUtils::SetNonBlocking(write_out_[1]);
       *out_ = write_out_[1];
-      VOID_TEMP_FAILURE_RETRY(close(write_out_[0]));
+      close(write_out_[0]);
       FDUtils::SetNonBlocking(read_err_[0]);
       *err_ = read_err_[0];
-      VOID_TEMP_FAILURE_RETRY(close(read_err_[1]));
+      close(read_err_[1]);
     } else {
       // Close all fds.
-      VOID_TEMP_FAILURE_RETRY(close(read_in_[0]));
-      VOID_TEMP_FAILURE_RETRY(close(read_in_[1]));
+      close(read_in_[0]);
+      close(read_in_[1]);
       ASSERT(write_out_[0] == -1);
       ASSERT(write_out_[1] == -1);
       ASSERT(read_err_[0] == -1);
@@ -482,9 +483,9 @@ class ProcessStarter {
       ASSERT(read_err_[1] == -1);
       // For a detached process the pipe to connect stdout is only used for
       // signaling when to do the first fork.
-      VOID_TEMP_FAILURE_RETRY(close(read_in_[0]));
+      close(read_in_[0]);
       read_in_[0] = -1;
-      VOID_TEMP_FAILURE_RETRY(close(read_in_[1]));
+      close(read_in_[1]);
       read_in_[1] = -1;
     } else {
       // Don't close any fds if keeping stdio open to the detached process.
@@ -596,7 +597,7 @@ class ProcessStarter {
     }
     for (int fd = 0; fd < max_fds; fd++) {
       if (fd != exec_control_[1]) {
-        VOID_TEMP_FAILURE_RETRY(close(fd));
+        close(fd);
       }
     }
 
@@ -628,24 +629,24 @@ class ProcessStarter {
     for (int fd = 0; fd < max_fds; fd++) {
       if ((fd != exec_control_[1]) && (fd != write_out_[0]) &&
           (fd != read_in_[1]) && (fd != read_err_[1])) {
-        VOID_TEMP_FAILURE_RETRY(close(fd));
+        close(fd);
       }
     }
 
     if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
       ReportChildError();
     }
-    VOID_TEMP_FAILURE_RETRY(close(write_out_[0]));
+    close(write_out_[0]);
 
     if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
       ReportChildError();
     }
-    VOID_TEMP_FAILURE_RETRY(close(read_in_[1]));
+    close(read_in_[1]);
 
     if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
       ReportChildError();
     }
-    VOID_TEMP_FAILURE_RETRY(close(read_err_[1]));
+    close(read_err_[1]);
   }
 
   int CleanupAndReturnError() {
@@ -680,7 +681,7 @@ class ProcessStarter {
       FDUtils::WriteToBlocking(exec_control_[1], os_error_message,
                                strlen(os_error_message) + 1);
     }
-    VOID_TEMP_FAILURE_RETRY(close(exec_control_[1]));
+    close(exec_control_[1]);
     exit(1);
   }
 
@@ -709,7 +710,7 @@ class ProcessStarter {
   void ClosePipe(int* fds) {
     for (int i = 0; i < 2; i++) {
       if (fds[i] != -1) {
-        VOID_TEMP_FAILURE_RETRY(close(fds[i]));
+        close(fds[i]);
         fds[i] = -1;
       }
     }
@@ -766,9 +767,9 @@ int Process::Start(Namespace* namespc,
 
 static bool CloseProcessBuffers(struct pollfd fds[3]) {
   int e = errno;
-  VOID_TEMP_FAILURE_RETRY(close(fds[0].fd));
-  VOID_TEMP_FAILURE_RETRY(close(fds[1].fd));
-  VOID_TEMP_FAILURE_RETRY(close(fds[2].fd));
+  close(fds[0].fd);
+  close(fds[1].fd);
+  close(fds[2].fd);
   errno = e;
   return false;
 }
@@ -780,7 +781,7 @@ bool Process::Wait(intptr_t pid,
                    intptr_t exit_event,
                    ProcessResult* result) {
   // Close input to the process right away.
-  VOID_TEMP_FAILURE_RETRY(close(in));
+  close(in);
 
   // There is no return from this function using Dart_PropagateError
   // as memory used by the buffer lists is freed through their
@@ -840,7 +841,7 @@ bool Process::Wait(intptr_t pid,
       }
       if (((fds[i].revents & POLLHUP) != 0) ||
           (((fds[i].revents & POLLIN) != 0) && (avail == 0))) {
-        VOID_TEMP_FAILURE_RETRY(close(fds[i].fd));
+        close(fds[i].fd);
         alive--;
         if (i < alive) {
           fds[i] = fds[alive];
@@ -973,7 +974,7 @@ static const int kSignals[kSignalsCount] = {
 };
 
 SignalInfo::~SignalInfo() {
-  VOID_TEMP_FAILURE_RETRY(close(fd_));
+  close(fd_);
 }
 
 static void SignalHandler(int signal) {
@@ -1009,8 +1010,8 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   }
   if (!FDUtils::SetCloseOnExec(fds[0]) || !FDUtils::SetCloseOnExec(fds[1]) ||
       !FDUtils::SetNonBlocking(fds[0])) {
-    VOID_TEMP_FAILURE_RETRY(close(fds[0]));
-    VOID_TEMP_FAILURE_RETRY(close(fds[1]));
+    close(fds[0]);
+    close(fds[1]);
     return -1;
   }
   ThreadSignalBlocker blocker(kSignalsCount, kSignals);
@@ -1034,8 +1035,8 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
     }
     intptr_t status = NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
     if (status < 0) {
-      VOID_TEMP_FAILURE_RETRY(close(fds[0]));
-      VOID_TEMP_FAILURE_RETRY(close(fds[1]));
+      close(fds[0]);
+      close(fds[1]);
       return -1;
     }
   }

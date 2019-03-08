@@ -43,7 +43,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
   JsLinkedHashMap();
 
   /// If ES6 Maps are available returns a linked hash-map backed by an ES6 Map.
-  @ForceInline()
+  @pragma('dart2js:tryInline')
   factory JsLinkedHashMap.es6() {
     return (_USE_ES6_MAPS && JsLinkedHashMap._supportsEs6Maps)
         ? new Es6LinkedHashMap<K, V>()

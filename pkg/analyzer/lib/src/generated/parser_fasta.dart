@@ -27,7 +27,6 @@ abstract class ParserAdapter implements Parser {
       {bool allowNativeClause: false})
       : fastaParser = new fasta.Parser(null),
         astBuilder = new AstBuilder(errorReporter, fileUri, true) {
-    fastaParser.enableSetLiterals = IsEnabledByDefault.set_literals;
     fastaParser.listener = astBuilder;
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
@@ -55,11 +54,8 @@ abstract class ParserAdapter implements Parser {
 
   @override
   void set enableSetLiterals(bool value) {
-    if (IsExpired.set_literals && value != IsEnabledByDefault.set_literals) {
-      throw new StateError(
-          'set_literals may only be set to ${IsEnabledByDefault.set_literals}');
-    }
-    fastaParser.enableSetLiterals = value;
+    // TODO(danrubel): Remove this method once the reference to this flag
+    // has been removed from dartfmt.
   }
 
   @override
@@ -189,8 +185,6 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser.parseUnit(currentToken);
     CompilationUnitImpl compilationUnit = astBuilder.pop();
     compilationUnit.localDeclarations = astBuilder.localDeclarations;
-    compilationUnit.hasPragmaAnalyzerNonNullable =
-        astBuilder.hasPragmaAnalyzerNonNullable;
     return compilationUnit;
   }
 

@@ -44,7 +44,7 @@ class Class4<T> {
   }
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is num Function(num);
 
 main() {

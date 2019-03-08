@@ -471,6 +471,10 @@ library l;''');
     _assertCloneUnitMember('class C { C(A this.a); }');
   }
 
+  void test_visitForEachStatement_await() {
+    _assertCloneStatement('await for (var a in b) {}');
+  }
+
   void test_visitForEachStatement_declared() {
     _assertCloneStatement('for (var a in b) {}');
   }
@@ -1172,7 +1176,7 @@ library l;''');
   }
 
   Statement _parseStatement(String code) {
-    CompilationUnit unit = _parseUnit('main() { $code }');
+    CompilationUnit unit = _parseUnit('main() async { $code }');
     FunctionDeclaration main = unit.declarations.single;
     BlockFunctionBody body = main.functionExpression.body;
     return body.block.statements.single;
@@ -1702,75 +1706,83 @@ class Getter_NodeReplacerTest_test_fieldFormalParameter_2
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier
-    implements NodeReplacerTest_Getter<ForEachStatement, Statement> {
+    implements NodeReplacerTest_Getter<ForStatement2, Statement> {
   @override
-  Statement get(ForEachStatement node) => node.body;
+  Statement get(ForStatement2 node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier_2
-    implements NodeReplacerTest_Getter<ForEachStatement, SimpleIdentifier> {
+    implements NodeReplacerTest_Getter<ForStatement2, SimpleIdentifier> {
   @override
-  SimpleIdentifier get(ForEachStatement node) => node.identifier;
+  SimpleIdentifier get(ForStatement2 node) =>
+      (node.forLoopParts as ForEachPartsWithIdentifier).identifier;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier_3
-    implements NodeReplacerTest_Getter<ForEachStatement, Expression> {
+    implements NodeReplacerTest_Getter<ForStatement2, Expression> {
   @override
-  Expression get(ForEachStatement node) => node.iterable;
+  Expression get(ForStatement2 node) =>
+      (node.forLoopParts as ForEachParts).iterable;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable
-    implements NodeReplacerTest_Getter<ForEachStatement, Expression> {
+    implements NodeReplacerTest_Getter<ForStatement2, Expression> {
   @override
-  Expression get(ForEachStatement node) => node.iterable;
+  Expression get(ForStatement2 node) =>
+      (node.forLoopParts as ForEachParts).iterable;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable_2
-    implements NodeReplacerTest_Getter<ForEachStatement, DeclaredIdentifier> {
+    implements NodeReplacerTest_Getter<ForStatement2, DeclaredIdentifier> {
   @override
-  DeclaredIdentifier get(ForEachStatement node) => node.loopVariable;
+  DeclaredIdentifier get(ForStatement2 node) =>
+      (node.forLoopParts as ForEachPartsWithDeclaration).loopVariable;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable_3
-    implements NodeReplacerTest_Getter<ForEachStatement, Statement> {
+    implements NodeReplacerTest_Getter<ForStatement2, Statement> {
   @override
-  Statement get(ForEachStatement node) => node.body;
+  Statement get(ForStatement2 node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withInitialization
-    implements NodeReplacerTest_Getter<ForStatement, Statement> {
+    implements NodeReplacerTest_Getter<ForStatement2, Statement> {
   @override
-  Statement get(ForStatement node) => node.body;
+  Statement get(ForStatement2 node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withInitialization_2
-    implements NodeReplacerTest_Getter<ForStatement, Expression> {
+    implements NodeReplacerTest_Getter<ForStatement2, Expression> {
   @override
-  Expression get(ForStatement node) => node.condition;
+  Expression get(ForStatement2 node) =>
+      (node.forLoopParts as ForParts).condition;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withInitialization_3
-    implements NodeReplacerTest_Getter<ForStatement, Expression> {
+    implements NodeReplacerTest_Getter<ForStatement2, Expression> {
   @override
-  Expression get(ForStatement node) => node.initialization;
+  Expression get(ForStatement2 node) =>
+      (node.forLoopParts as ForPartsWithExpression).initialization;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withVariables
-    implements NodeReplacerTest_Getter<ForStatement, Statement> {
+    implements NodeReplacerTest_Getter<ForStatement2, Statement> {
   @override
-  Statement get(ForStatement node) => node.body;
+  Statement get(ForStatement2 node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withVariables_2
-    implements NodeReplacerTest_Getter<ForStatement, VariableDeclarationList> {
+    implements NodeReplacerTest_Getter<ForStatement2, VariableDeclarationList> {
   @override
-  VariableDeclarationList get(ForStatement node) => node.variables;
+  VariableDeclarationList get(ForStatement2 node) =>
+      (node.forLoopParts as ForPartsWithDeclarations).variables;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withVariables_3
-    implements NodeReplacerTest_Getter<ForStatement, Expression> {
+    implements NodeReplacerTest_Getter<ForStatement2, Expression> {
   @override
-  Expression get(ForStatement node) => node.condition;
+  Expression get(ForStatement2 node) =>
+      (node.forLoopParts as ForParts).condition;
 }
 
 class Getter_NodeReplacerTest_test_functionDeclaration
@@ -2414,21 +2426,23 @@ class ListGetter_NodeReplacerTest_test_formalParameterList
 }
 
 class ListGetter_NodeReplacerTest_test_forStatement_withInitialization
-    extends NodeReplacerTest_ListGetter<ForStatement, Expression> {
+    extends NodeReplacerTest_ListGetter<ForStatement2, Expression> {
   ListGetter_NodeReplacerTest_test_forStatement_withInitialization(int arg0)
       : super(arg0);
 
   @override
-  NodeList<Expression> getList(ForStatement node) => node.updaters;
+  NodeList<Expression> getList(ForStatement2 node) =>
+      (node.forLoopParts as ForParts).updaters;
 }
 
 class ListGetter_NodeReplacerTest_test_forStatement_withVariables
-    extends NodeReplacerTest_ListGetter<ForStatement, Expression> {
+    extends NodeReplacerTest_ListGetter<ForStatement2, Expression> {
   ListGetter_NodeReplacerTest_test_forStatement_withVariables(int arg0)
       : super(arg0);
 
   @override
-  NodeList<Expression> getList(ForStatement node) => node.updaters;
+  NodeList<Expression> getList(ForStatement2 node) =>
+      (node.forLoopParts as ForParts).updaters;
 }
 
 class ListGetter_NodeReplacerTest_test_hideCombinator
@@ -2464,19 +2478,19 @@ class ListGetter_NodeReplacerTest_test_libraryIdentifier
 }
 
 class ListGetter_NodeReplacerTest_test_listLiteral
-    extends NodeReplacerTest_ListGetter<ListLiteral, Expression> {
+    extends NodeReplacerTest_ListGetter<ListLiteral, CollectionElement> {
   ListGetter_NodeReplacerTest_test_listLiteral(int arg0) : super(arg0);
 
   @override
-  NodeList<Expression> getList(ListLiteral node) => node.elements;
+  NodeList<CollectionElement> getList(ListLiteral node) => node.elements2;
 }
 
 class ListGetter_NodeReplacerTest_test_mapLiteral
-    extends NodeReplacerTest_ListGetter<MapLiteral, MapLiteralEntry> {
+    extends NodeReplacerTest_ListGetter<SetOrMapLiteral, MapLiteralEntry> {
   ListGetter_NodeReplacerTest_test_mapLiteral(int arg0) : super(arg0);
 
   @override
-  NodeList<MapLiteralEntry> getList(MapLiteral node) => node.entries;
+  NodeList<MapLiteralEntry> getList(SetOrMapLiteral node) => node.elements2;
 }
 
 class ListGetter_NodeReplacerTest_test_showCombinator
@@ -3051,7 +3065,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forEachStatement_withIdentifier() {
-    ForEachStatement node = AstTestFactory.forEachStatement2(
+    // ignore: deprecated_member_use_from_same_package
+    ForStatement2 node = AstTestFactory.forEachStatement2(
         AstTestFactory.identifier3("i"),
         AstTestFactory.identifier3("l"),
         AstTestFactory.block());
@@ -3064,7 +3079,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forEachStatement_withLoopVariable() {
-    ForEachStatement node = AstTestFactory.forEachStatement(
+    // ignore: deprecated_member_use_from_same_package
+    ForStatement2 node = AstTestFactory.forEachStatement(
         AstTestFactory.declaredIdentifier3("e"),
         AstTestFactory.identifier3("l"),
         AstTestFactory.block());
@@ -3084,6 +3100,7 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forStatement_withInitialization() {
+    // ignore: deprecated_member_use_from_same_package
     ForStatement node = AstTestFactory.forStatement(
         AstTestFactory.identifier3("a"),
         AstTestFactory.booleanLiteral(true),
@@ -3102,6 +3119,7 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forStatement_withVariables() {
+    // ignore: deprecated_member_use_from_same_package
     ForStatement node = AstTestFactory.forStatement2(
         AstTestFactory.variableDeclarationList2(
             null, [AstTestFactory.variableDeclaration("i")]),
@@ -3308,7 +3326,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_mapLiteral() {
-    MapLiteral node = AstTestFactory.mapLiteral(
+    // ignore: deprecated_member_use_from_same_package
+    SetOrMapLiteral node = AstTestFactory.mapLiteral(
         null,
         AstTestFactory.typeArgumentList([AstTestFactory.typeName4("E")]),
         [AstTestFactory.mapLiteralEntry("k", AstTestFactory.identifier3("v"))]);
@@ -3619,7 +3638,7 @@ class NodeReplacerTest extends EngineTestCase {
       AstNode clone = child.accept(new AstCloner());
       NodeReplacer.replace(child, clone);
       expect(getter.get(parent), clone);
-      expect(clone.parent, parent);
+      expect(clone.parent, child.parent);
     }
   }
 

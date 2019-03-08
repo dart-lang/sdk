@@ -63,6 +63,8 @@ class Tags {
   static const String isElided = 'elided';
   static const String assignment = 'assign';
   static const String isLazy = 'lazy';
+  static const String propertyAccess = 'access';
+  static const String switchCase = 'switch';
 }
 
 /// AST visitor for computing inference data for a member.
@@ -133,6 +135,8 @@ class ModelIrComputer extends IrDataExtractor<Features> {
           features[Tags.parameterCount] = '${code.params.length}';
         }
 
+        Set<js.PropertyAccess> handledAccesses = new Set();
+
         void registerCalls(String tag, js.Node node, [String prefix = '']) {
           forEachNode(node, onCall: (js.Call node) {
             js.Node target = node.target;
@@ -159,6 +163,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
                   features.addElement(
                       tag, '${prefix}${name}(${node.arguments.length})');
                 }
+                handledAccesses.add(target);
               }
             }
           });
@@ -170,6 +175,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
             registerCalls(Tags.parameterStub, stub.code, '${stub.name.key}:');
           }
         }
+
         forEachNode(code, onAssignment: (js.Assignment node) {
           js.Expression leftHandSide = node.leftHandSide;
           if (leftHandSide is js.PropertyAccess) {
@@ -182,9 +188,47 @@ class ModelIrComputer extends IrDataExtractor<Features> {
             }
             if (name != null) {
               features.addElement(Tags.assignment, '${name}');
+              handledAccesses.add(leftHandSide);
             }
           }
         });
+
+        forEachNode(code, onPropertyAccess: (js.PropertyAccess node) {
+          if (handledAccesses.contains(node)) {
+            return;
+          }
+
+          js.Node receiver = node.receiver;
+          String receiverName;
+          if (receiver is js.VariableUse) {
+            receiverName = receiver.name;
+            if (receiverName == receiverName.toUpperCase() &&
+                receiverName != r'$') {
+              // Skip holder access.
+              receiverName = null;
+            }
+          }
+
+          js.Node selector = node.selector;
+          String name;
+          if (selector is js.Name) {
+            name = selector.key;
+          } else if (selector is js.LiteralString) {
+            /// Call to fixed backend name, so we include the argument
+            /// values to test encoding of optional parameters in native
+            /// methods.
+            name = selector.value.substring(1, selector.value.length - 1);
+          }
+
+          if (receiverName != null && name != null) {
+            features.addElement(Tags.propertyAccess, '${name}');
+          }
+        });
+
+        forEachNode(code, onSwitch: (js.Switch node) {
+          features.add(Tags.switchCase);
+        });
+
         return features;
       }
     }

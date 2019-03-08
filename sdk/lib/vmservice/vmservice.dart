@@ -702,7 +702,7 @@ class VMService extends MessageRouter {
   }
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 RawReceivePort boot() {
   // Return the port we expect isolate control messages on.
   return isolateControlPort;

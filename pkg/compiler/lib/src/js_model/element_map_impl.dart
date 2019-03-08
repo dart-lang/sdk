@@ -16,7 +16,6 @@ import '../common.dart';
 import '../common/names.dart';
 import '../common_elements.dart';
 import '../compile_time_constants.dart';
-import '../constants/constant_system.dart';
 import '../constants/constructors.dart';
 import '../constants/evaluation.dart';
 import '../constants/expressions.dart';
@@ -37,7 +36,7 @@ import '../ir/static_type_base.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
-import '../js_backend/constant_system_javascript.dart';
+import '../js_backend/annotations.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_emitter/code_emitter_task.dart';
@@ -61,12 +60,6 @@ import 'locals.dart';
 
 /// Interface for kernel queries needed to implement the [CodegenWorldBuilder].
 abstract class JsToWorldBuilder implements JsToElementMap {
-  /// Returns `true` if [field] has a constant initializer.
-  bool hasConstantFieldInitializer(FieldEntity field);
-
-  /// Returns the constant initializer for [field].
-  ConstantValue getConstantFieldInitializer(FieldEntity field);
-
   /// Calls [f] for each parameter of [function] providing the type and name of
   /// the parameter and the [defaultValue] if the parameter is optional.
   void forEachParameter(FunctionEntity function,
@@ -149,7 +142,8 @@ class JsKernelToElementMap
       this.reporter,
       Environment environment,
       KernelToElementMapImpl _elementMap,
-      Map<MemberEntity, MemberUsage> liveMemberUsage)
+      Map<MemberEntity, MemberUsage> liveMemberUsage,
+      AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = new JsElementEnvironment(this);
     _commonElements = new CommonElementsImpl(_elementEnvironment);
@@ -221,8 +215,8 @@ class JsKernelToElementMap
       LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
       ClassEntity newClass =
           oldClass != null ? classes.getEntity(oldClass.classIndex) : null;
-      IndexedMember newMember =
-          convertMember(newLibrary, newClass, oldMember, memberUsage);
+      IndexedMember newMember = convertMember(
+          newLibrary, newClass, oldMember, memberUsage, annotations);
       members.register(newMember, data.convert());
       assert(
           newMember.memberIndex == oldMember.memberIndex,
@@ -1381,6 +1375,10 @@ class JsKernelToElementMap
 
   ConstantValue getConstantValue(ir.Expression node,
       {bool requireConstant: true, bool implicitNull: false}) {
+    if (node is ir.ConstantExpression) {
+      return node.constant.accept(new ConstantValuefier(this));
+    }
+
     ConstantExpression constant;
     if (node == null) {
       if (!implicitNull) {
@@ -1533,8 +1531,12 @@ class JsKernelToElementMap
     return createTypedef(library, typedef.name);
   }
 
-  MemberEntity convertMember(LibraryEntity library, ClassEntity cls,
-      IndexedMember member, MemberUsage memberUsage) {
+  MemberEntity convertMember(
+      LibraryEntity library,
+      ClassEntity cls,
+      IndexedMember member,
+      MemberUsage memberUsage,
+      AnnotationsData annotations) {
     Name memberName = new Name(member.memberName.text, library,
         isSetter: member.memberName.isSetter);
     if (member.isField) {
@@ -1545,17 +1547,19 @@ class JsKernelToElementMap
           isConst: field.isConst);
     } else if (member.isConstructor) {
       IndexedConstructor constructor = member;
+      ParameterStructure parameterStructure =
+          annotations.hasNoElision(constructor)
+              ? constructor.parameterStructure
+              : memberUsage.invokedParameters;
       if (constructor.isFactoryConstructor) {
         // TODO(redemption): This should be a JFunction.
-        return createFactoryConstructor(
-            cls, memberName, memberUsage.invokedParameters,
+        return createFactoryConstructor(cls, memberName, parameterStructure,
             isExternal: constructor.isExternal,
             isConst: constructor.isConst,
             isFromEnvironmentConstructor:
                 constructor.isFromEnvironmentConstructor);
       } else {
-        return createGenerativeConstructor(
-            cls, memberName, memberUsage.invokedParameters,
+        return createGenerativeConstructor(cls, memberName, parameterStructure,
             isExternal: constructor.isExternal, isConst: constructor.isConst);
       }
     } else if (member.isGetter) {
@@ -1572,8 +1576,11 @@ class JsKernelToElementMap
           isAbstract: setter.isAbstract);
     } else {
       IndexedFunction function = member;
-      return createMethod(library, cls, memberName,
-          memberUsage.invokedParameters, function.asyncMarker,
+      ParameterStructure parameterStructure = annotations.hasNoElision(function)
+          ? function.parameterStructure
+          : memberUsage.invokedParameters;
+      return createMethod(
+          library, cls, memberName, parameterStructure, function.asyncMarker,
           isStatic: function.isStatic,
           isExternal: function.isExternal,
           isAbstract: function.isAbstract);
@@ -1726,25 +1733,6 @@ class JsKernelToElementMap
   @override
   ClassDefinition getClassDefinition(ClassEntity cls) {
     return getClassDefinitionInternal(cls);
-  }
-
-  @override
-  ConstantValue getFieldConstantValue(covariant IndexedField field) {
-    assert(checkFamily(field));
-    JFieldData data = members.getData(field);
-    return data.getFieldConstantValue(this);
-  }
-
-  @override
-  bool hasConstantFieldInitializer(covariant IndexedField field) {
-    JFieldData data = members.getData(field);
-    return data.hasConstantFieldInitializer(this);
-  }
-
-  @override
-  ConstantValue getConstantFieldInitializer(covariant IndexedField field) {
-    JFieldData data = members.getData(field);
-    return data.getConstantFieldInitializer(this);
   }
 
   @override
@@ -2491,17 +2479,13 @@ class JsConstantEnvironment implements ConstantEnvironment {
 
   JsConstantEnvironment(this._elementMap, this._environment);
 
-  @override
-  ConstantSystem get constantSystem => JavaScriptConstantSystem.only;
-
   ConstantValue _getConstantValue(
       Spannable spannable, ConstantExpression expression,
       {bool constantRequired}) {
     return _valueMap.putIfAbsent(expression, () {
-      return expression.evaluate(
-          new JsEvaluationEnvironment(_elementMap, _environment, spannable,
-              constantRequired: constantRequired),
-          constantSystem);
+      return expression.evaluate(new JsEvaluationEnvironment(
+          _elementMap, _environment, spannable,
+          constantRequired: constantRequired));
     });
   }
 }

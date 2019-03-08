@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -14,6 +13,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CheckedModeCompileTimeErrorCodeTest_Driver);
     defineReflectiveTests(SetElementTypeNotAssignableTest);
+    defineReflectiveTests(SetElementTypeNotAssignableWithCodeAsUITest);
   });
 }
 
@@ -27,9 +27,6 @@ class CheckedModeCompileTimeErrorCodeTest_Driver
 @reflectiveTest
 class SetElementTypeNotAssignableTest extends ResolverTestCase {
   @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
-  @override
   bool get enableNewAnalysisDriver => true;
 
   test_simple() async {
@@ -41,5 +38,45 @@ class SetElementTypeNotAssignableTest extends ResolverTestCase {
       StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
+  }
+}
+
+@reflectiveTest
+class SetElementTypeNotAssignableWithCodeAsUITest extends ResolverTestCase {
+  @override
+  List<String> get enabledExperiments => ['spread-collections'];
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_simple_const() async {
+    // TODO(brianwilkerson) This test is not dependent on the experiments and
+    //  should be moved when these tests are cleaned up.
+    Source source = addSource("var v = const <String>{42};");
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  test_simple_nonConst() async {
+    // TODO(brianwilkerson) This test is not dependent on the experiments and
+    //  should be moved when these tests are cleaned up.
+    Source source = addSource("var v = <String>{42};");
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  test_spread_valid_const() async {
+    await assertNoErrorsInCode('''
+var v = const <String>{...['a', 'b']};
+''');
+  }
+
+  test_spread_valid_nonConst() async {
+    await assertNoErrorsInCode('''
+var v = <String>{...['a', 'b']};
+''');
   }
 }

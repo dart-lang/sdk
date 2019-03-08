@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_helper';
-
 /*element: main:[]*/
 main() {
   outsideLoopNoArgsCalledOnce();
@@ -36,7 +33,7 @@ _outsideLoopNoArgsCalledOnce() {
 }
 
 /*element: outsideLoopNoArgsCalledOnce:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 outsideLoopNoArgsCalledOnce() {
   _outsideLoopNoArgsCalledOnce();
 }
@@ -68,7 +65,7 @@ _outsideLoopNoArgs2() {
 }
 
 /*element: outsideLoopNoArgsCalledTwice:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 outsideLoopNoArgsCalledTwice() {
   _outsideLoopNoArgs1();
   _outsideLoopNoArgs1();
@@ -106,7 +103,7 @@ _outsideLoopOneArgCalledOnce(arg) {
 }
 
 /*element: outsideLoopOneArgCalledOnce:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 outsideLoopOneArgCalledOnce() {
   _outsideLoopOneArgCalledOnce(0);
 }
@@ -142,7 +139,7 @@ _outsideLoopOneArg2(arg) {
 }
 
 /*element: outsideLoopOneArgCalledTwice:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 outsideLoopOneArgCalledTwice() {
   _outsideLoopOneArg1(0);
   _outsideLoopOneArg1(0);
@@ -174,7 +171,7 @@ _insideLoopNoArgsCalledOnce() {
 }
 
 /*element: insideLoopNoArgsCalledOnce:loop*/
-@NoInline()
+@pragma('dart2js:noInline')
 insideLoopNoArgsCalledOnce() {
   // ignore: UNUSED_LOCAL_VARIABLE
   for (var e in [1, 2, 3, 4]) {
@@ -223,7 +220,7 @@ _insideLoopNoArgs2() {
 }
 
 /*element: insideLoopNoArgsCalledTwice:loop*/
-@NoInline()
+@pragma('dart2js:noInline')
 insideLoopNoArgsCalledTwice() {
   // ignore: UNUSED_LOCAL_VARIABLE
   for (var e in [1, 2, 3, 4]) {
@@ -264,7 +261,7 @@ _insideLoopOneArgCalledOnce(arg) {
 }
 
 /*element: insideLoopOneArgCalledOnce:loop*/
-@NoInline()
+@pragma('dart2js:noInline')
 insideLoopOneArgCalledOnce() {
   for (var e in [1, 2, 3, 4]) {
     _insideLoopOneArgCalledOnce(e);
@@ -314,7 +311,7 @@ _insideLoopOneArg2(arg) {
 }
 
 /*element: insideLoopOneArgCalledTwice:loop*/
-@NoInline()
+@pragma('dart2js:noInline')
 insideLoopOneArgCalledTwice() {
   for (var e in [1, 2, 3, 4]) {
     _insideLoopOneArg1(e);

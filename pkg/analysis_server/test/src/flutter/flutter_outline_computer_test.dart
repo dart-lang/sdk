@@ -102,6 +102,11 @@ class WidgetA extends StatelessWidget {
     expect(attribute.label, '…');
   }
 
+  test_attributes_setLiteral() async {
+    var attribute = await _getAttribute('test', '{1, 2}');
+    expect(attribute.label, '{…}');
+  }
+
   test_attributes_string_interpolation() async {
     FlutterOutline unitOutline = await _computeOutline(r'''
 import 'package:flutter/widgets.dart';
@@ -626,8 +631,7 @@ class MyWidget extends StatelessWidget {
     testCode = code;
     newFile(testPath, content: code);
     resolveResult = await session.getResolvedUnit(testPath);
-    computer = new FlutterOutlineComputer(testPath, testCode,
-        resolveResult.lineInfo, resolveResult.unit, resolveResult.typeProvider);
+    computer = new FlutterOutlineComputer(resolveResult);
     return computer.compute();
   }
 

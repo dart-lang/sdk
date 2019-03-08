@@ -8,22 +8,29 @@ part of dart2js.kernel.element_map;
 class KernelAnnotationProcessor implements AnnotationProcessor {
   final KernelToElementMapImpl elementMap;
   final NativeBasicDataBuilder _nativeBasicDataBuilder;
+  final IrAnnotationData annotationData;
 
-  KernelAnnotationProcessor(this.elementMap, this._nativeBasicDataBuilder);
+  KernelAnnotationProcessor(
+      this.elementMap, this._nativeBasicDataBuilder, this.annotationData);
 
   void extractNativeAnnotations(LibraryEntity library) {
     KElementEnvironment elementEnvironment = elementMap.elementEnvironment;
     KCommonElements commonElements = elementMap.commonElements;
 
     elementEnvironment.forEachClass(library, (ClassEntity cls) {
-      String annotationName;
-      for (ConstantValue value in elementEnvironment.getClassMetadata(cls)) {
-        String name = readAnnotationName(
-            cls, value, commonElements.nativeAnnotationClass);
-        if (annotationName == null) {
-          annotationName = name;
-        } else if (name != null) {
-          failedAt(cls, 'Too many name annotations.');
+      ir.Class node = elementMap.getClassNode(cls);
+      String annotationName = annotationData.getNativeClassName(node);
+      if (annotationName == null) {
+        // TODO(johnniwinther): Remove this branch when we use constants from
+        // CFE.
+        for (ConstantValue value in elementEnvironment.getClassMetadata(cls)) {
+          String name = readAnnotationName(
+              cls, value, commonElements.nativeAnnotationClass);
+          if (annotationName == null) {
+            annotationName = name;
+          } else if (name != null) {
+            failedAt(cls, 'Too many name annotations.');
+          }
         }
       }
       if (annotationName != null) {
@@ -64,13 +71,19 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
     KElementEnvironment elementEnvironment = elementMap.elementEnvironment;
     KCommonElements commonElements = elementMap.commonElements;
 
-    String libraryName = getJsInteropName(
+    ir.Library libraryNode = elementMap.getLibraryNode(library);
+    String libraryName = annotationData.getJsInteropLibraryName(libraryNode);
+    // TODO(johnniwinther): Remove this when we use constants from CFE.
+    libraryName ??= getJsInteropName(
         library, elementEnvironment.getLibraryMetadata(library));
     final bool isExplicitlylyJsLibrary = libraryName != null;
     bool isJsLibrary = isExplicitlylyJsLibrary;
 
     elementEnvironment.forEachLibraryMember(library, (MemberEntity member) {
-      String memberName = getJsInteropName(
+      ir.Member memberNode = elementMap.getMemberNode(member);
+      String memberName = annotationData.getJsInteropMemberName(memberNode);
+      // TODO(johnniwinther): Remove this when we use constants from CFE.
+      memberName ??= getJsInteropName(
           library, elementEnvironment.getMemberMetadata(member));
       if (member.isField) {
         if (memberName != null) {
@@ -106,15 +119,22 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
     });
 
     elementEnvironment.forEachClass(library, (ClassEntity cls) {
+      ir.Class classNode = elementMap.getClassNode(cls);
+      String className = annotationData.getJsInteropClassName(classNode);
       Iterable<ConstantValue> metadata =
           elementEnvironment.getClassMetadata(cls);
-      String className = getJsInteropName(cls, metadata);
+      // TODO(johnniwinther): Remove this when we use constants from CFE.
+      className ??= getJsInteropName(cls, metadata);
       if (className != null) {
-        bool isAnonymous = false;
-        for (ConstantValue value in metadata) {
-          if (isAnnotation(cls, value, commonElements.jsAnonymousClass)) {
-            isAnonymous = true;
-            break;
+        bool isAnonymous = annotationData.isAnonymousJsInteropClass(classNode);
+        if (!isAnonymous) {
+          // TODO(johnniwinther): Remove this branch when we use constants from
+          // CFE.
+          for (ConstantValue value in metadata) {
+            if (isAnnotation(cls, value, commonElements.jsAnonymousClass)) {
+              isAnonymous = true;
+              break;
+            }
           }
         }
         // TODO(johnniwinther): Report an error if the class is anonymous but
@@ -132,7 +152,11 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
                 member, MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED);*/
           } else {
             FunctionEntity function = member;
-            String memberName = getJsInteropName(
+            ir.Member memberNode = elementMap.getMemberNode(member);
+            String memberName =
+                annotationData.getJsInteropMemberName(memberNode);
+            // TODO(johnniwinther): Remove this when we use constants from CFE.
+            memberName ??= getJsInteropName(
                 library, elementEnvironment.getMemberMetadata(function));
 
             if (function.isExternal) {
@@ -253,9 +277,11 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
       // before a superclass that has not yet had "markJsInteropClass" called on
       // it.
       elementEnvironment.forEachClass(library, (ClassEntity cls) {
-        Iterable<ConstantValue> metadata =
-            elementEnvironment.getClassMetadata(cls);
-        String className = getJsInteropName(cls, metadata);
+        ir.Class classNode = elementMap.getClassNode(cls);
+        String className = annotationData.getJsInteropClassName(classNode);
+        // TODO(johnniwinther): Remove this when we use constants from CFE.
+        className ??=
+            getJsInteropName(cls, elementEnvironment.getClassMetadata(cls));
         if (className != null) {
           bool implementsJsJavaScriptObjectClass = false;
           elementEnvironment.forEachSupertype(cls, (InterfaceType supertype) {

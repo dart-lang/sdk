@@ -152,7 +152,6 @@ vm_sources = [
   "malloc_hooks_arm.cc",
   "malloc_hooks_arm64.cc",
   "malloc_hooks_ia32.cc",
-  "malloc_hooks_jemalloc.cc",
   "malloc_hooks_tcmalloc.cc",
   "malloc_hooks_unsupported.cc",
   "malloc_hooks_x64.cc",

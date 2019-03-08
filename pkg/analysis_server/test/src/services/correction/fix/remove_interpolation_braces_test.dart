@@ -21,7 +21,7 @@ class RemoveInterpolationBracesTest extends FixProcessorLintTest {
   FixKind get kind => DartFixKind.REMOVE_INTERPOLATION_BRACES;
 
   @override
-  String get lintCode => LintNames.unnecessary_brace_in_string_interp;
+  String get lintCode => LintNames.unnecessary_brace_in_string_interps;
 
   test_withSpace() async {
     await resolveTestUnit(r'''

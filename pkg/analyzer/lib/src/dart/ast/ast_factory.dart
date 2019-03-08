@@ -69,6 +69,7 @@ class AstFactoryImpl extends AstFactory {
   BinaryExpression binaryExpression(
           Expression leftOperand, Token operator, Expression rightOperand) =>
       new BinaryExpressionImpl(leftOperand, operator, rightOperand);
+
   @override
   Block block(
           Token leftBracket, List<Statement> statements, Token rightBracket) =>
@@ -419,46 +420,6 @@ class AstFactoryImpl extends AstFactory {
       new ForEachPartsWithIdentifierImpl(identifier, inKeyword, iterable);
 
   @override
-  ForEachStatement forEachStatementWithDeclaration(
-          Token awaitKeyword,
-          Token forKeyword,
-          Token leftParenthesis,
-          DeclaredIdentifier loopVariable,
-          Token inKeyword,
-          Expression iterator,
-          Token rightParenthesis,
-          Statement body) =>
-      new ForEachStatementImpl.withDeclaration(
-          awaitKeyword,
-          forKeyword,
-          leftParenthesis,
-          loopVariable,
-          inKeyword,
-          iterator,
-          rightParenthesis,
-          body);
-
-  @override
-  ForEachStatement forEachStatementWithReference(
-          Token awaitKeyword,
-          Token forKeyword,
-          Token leftParenthesis,
-          SimpleIdentifier identifier,
-          Token inKeyword,
-          Expression iterator,
-          Token rightParenthesis,
-          Statement body) =>
-      new ForEachStatementImpl.withReference(
-          awaitKeyword,
-          forKeyword,
-          leftParenthesis,
-          identifier,
-          inKeyword,
-          iterator,
-          rightParenthesis,
-          body);
-
-  @override
   ForElement forElement(
           {Token awaitKeyword,
           Token forKeyword,
@@ -500,39 +461,25 @@ class AstFactoryImpl extends AstFactory {
           initialization, leftSeparator, condition, rightSeparator, updaters);
 
   @override
-  ForStatement forStatement(
-          Token forKeyword,
-          Token leftParenthesis,
-          VariableDeclarationList variableList,
-          Expression initialization,
-          Token leftSeparator,
-          Expression condition,
-          Token rightSeparator,
-          List<Expression> updaters,
-          Token rightParenthesis,
-          Statement body) =>
-      new ForStatementImpl(
-          forKeyword,
-          leftParenthesis,
-          variableList,
-          initialization,
-          leftSeparator,
-          condition,
-          rightSeparator,
-          updaters,
-          rightParenthesis,
-          body);
-
-  @override
   ForStatement2 forStatement2(
-          {Token awaitKeyword,
-          Token forKeyword,
-          Token leftParenthesis,
-          ForLoopParts forLoopParts,
-          Token rightParenthesis,
-          Statement body}) =>
-      new ForStatement2Impl(awaitKeyword, forKeyword, leftParenthesis,
-          forLoopParts, rightParenthesis, body);
+      {Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopParts forLoopParts,
+      Token rightParenthesis,
+      Statement body}) {
+    if (forLoopParts is ForEachParts) {
+      // ignore: deprecated_member_use_from_same_package
+      return ForEachStatementImpl.withParts(awaitKeyword, forKeyword,
+          leftParenthesis, forLoopParts, rightParenthesis, body);
+    } else if (forLoopParts is ForParts) {
+      // ignore: deprecated_member_use_from_same_package
+      return ForStatementImpl.withParts(awaitKeyword, forKeyword,
+          leftParenthesis, forLoopParts, rightParenthesis, body);
+    } else {
+      throw new StateError('Unrecognized for loop parts');
+    }
+  }
 
   @override
   FunctionDeclaration functionDeclaration(
@@ -737,10 +684,16 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   ListLiteral listLiteral(Token constKeyword, TypeArgumentList typeArguments,
-          Token leftBracket, List<Expression> elements, Token rightBracket) =>
-      new ListLiteralImpl(
+      Token leftBracket, List<CollectionElement> elements, Token rightBracket) {
+    if (elements == null || elements is List<Expression>) {
+      return new ListLiteralImpl(
           constKeyword, typeArguments, leftBracket, elements, rightBracket);
+    }
+    return new ListLiteralImpl.experimental(
+        constKeyword, typeArguments, leftBracket, elements, rightBracket);
+  }
 
+  @Deprecated('Use listLiteral')
   @override
   ListLiteral2 listLiteral2(
           {Token constKeyword,
@@ -752,6 +705,7 @@ class AstFactoryImpl extends AstFactory {
           constKeyword, typeArguments, leftBracket, elements, rightBracket);
 
   @override
+  @Deprecated('Use setOrMapLiteral')
   MapLiteral mapLiteral(
           Token constKeyword,
           TypeArgumentList typeArguments,
@@ -761,15 +715,16 @@ class AstFactoryImpl extends AstFactory {
       new MapLiteralImpl(
           constKeyword, typeArguments, leftBracket, entries, rightBracket);
 
+  @deprecated
   @override
   MapLiteral2 mapLiteral2(
-          {Token constKeyword,
-          TypeArgumentList typeArguments,
-          Token leftBracket,
-          List<CollectionElement> entries,
-          Token rightBracket}) =>
-      new MapLiteral2Impl(
-          constKeyword, typeArguments, leftBracket, entries, rightBracket);
+      {Token constKeyword,
+      TypeArgumentList typeArguments,
+      Token leftBracket,
+      List<CollectionElement> entries,
+      Token rightBracket}) {
+    throw new UnsupportedError('Not supported');
+  }
 
   @override
   MapLiteralEntry mapLiteralEntry(
@@ -923,19 +878,31 @@ class AstFactoryImpl extends AstFactory {
   ScriptTag scriptTag(Token scriptTag) => new ScriptTagImpl(scriptTag);
 
   @override
+  @Deprecated('Use setOrMapLiteral')
   SetLiteral setLiteral(Token constKeyword, TypeArgumentList typeArguments,
           Token leftBracket, List<Expression> elements, Token rightBracket) =>
       new SetLiteralImpl(
           constKeyword, typeArguments, leftBracket, elements, rightBracket);
 
+  @deprecated
   @override
   SetLiteral2 setLiteral2(
+      {Token constKeyword,
+      TypeArgumentList typeArguments,
+      Token leftBracket,
+      List<CollectionElement> elements,
+      Token rightBracket}) {
+    throw new UnsupportedError('Not supported');
+  }
+
+  @override
+  SetOrMapLiteral setOrMapLiteral(
           {Token constKeyword,
           TypeArgumentList typeArguments,
           Token leftBracket,
           List<CollectionElement> elements,
           Token rightBracket}) =>
-      new SetLiteral2Impl(
+      new SetOrMapLiteralImpl(
           constKeyword, typeArguments, leftBracket, elements, rightBracket);
 
   @override

@@ -165,7 +165,8 @@ final List<Object> _cacheMaps = JS('!', '[]');
 /// A list of functions to reset static fields back to their uninitialized
 /// state.
 ///
-/// This is populated by [defineLazyField].
+/// This is populated by [defineLazyField], and only contains the list of fields
+/// that have actually been initialized.
 @notNull
 final List<void Function()> _resetFields = JS('', '[]');
 
@@ -174,6 +175,7 @@ final List<void Function()> _resetFields = JS('', '[]');
 /// This should be called when the user requests a hot-restart, when the UI is
 /// handling that user action.
 void hotRestart() {
+  // TODO(jmesserly): we need to prevent all pending callbacks from firing.
   for (var f in _resetFields) f();
   _resetFields.clear();
   for (var m in _cacheMaps) JS('', '#.clear()', m);

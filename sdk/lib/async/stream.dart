@@ -746,21 +746,23 @@ abstract class Stream<T> {
     StringBuffer buffer = new StringBuffer();
     StreamSubscription subscription;
     bool first = true;
-    subscription = this.listen((T element) {
-      if (!first) {
-        buffer.write(separator);
-      }
-      first = false;
-      try {
-        buffer.write(element);
-      } catch (e, s) {
-        _cancelAndErrorWithReplacement(subscription, result, e, s);
-      }
-    }, onError: (e) {
-      result._completeError(e);
-    }, onDone: () {
-      result._complete(buffer.toString());
-    }, cancelOnError: true);
+    subscription = this.listen(
+        (T element) {
+          if (!first) {
+            buffer.write(separator);
+          }
+          first = false;
+          try {
+            buffer.write(element);
+          } catch (e, s) {
+            _cancelAndErrorWithReplacement(subscription, result, e, s);
+          }
+        },
+        onError: result._completeError,
+        onDone: () {
+          result._complete(buffer.toString());
+        },
+        cancelOnError: true);
     return result;
   }
 

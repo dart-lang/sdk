@@ -13,16 +13,16 @@ class C<T> {}
 class D {}
 
 class E {
-  @NoInline()
+  @pragma('dart2js:noInline')
   m<T>() => new C<T>();
 }
 
 class F {
-  @NoInline()
+  @pragma('dart2js:noInline')
   m<T>() => false;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is C<A>;
 
 main() {

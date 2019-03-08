@@ -82,29 +82,41 @@ class CoercionReifier extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  visitForEachStatement(ForEachStatement node) {
-    // Visit other children.
-    node.iterable.accept(this);
-    node.body.accept(this);
+  void visitForStatement2(ForStatement2 node) {
+    var forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForEachParts) {
+      // Visit other children.
+      forLoopParts.iterable.accept(this);
+      node.body.accept(this);
 
-    // If needed, assert a cast inside the body before the variable is read.
-    var variable = node.identifier ?? node.loopVariable.identifier;
-    var castType = ast_properties.getImplicitCast(variable);
-    if (castType != null) {
-      // Build the cast. We will place this cast in the body, so need to clone
-      // the variable's AST node and clear out its static type (otherwise we
-      // will optimize away the cast).
-      var cast = castExpression(
-          _clone(variable)..staticType = DynamicTypeImpl.instance, castType);
-
-      var body = node.body;
-      var blockBody = <Statement>[ast.expressionStatement(cast)];
-      if (body is Block) {
-        blockBody.addAll(body.statements);
+      // If needed, assert a cast inside the body before the variable is read.
+      SimpleIdentifier variable;
+      if (forLoopParts is ForEachPartsWithIdentifier) {
+        variable = forLoopParts.identifier;
+      } else if (forLoopParts is ForEachPartsWithDeclaration) {
+        variable = forLoopParts.loopVariable.identifier;
       } else {
-        blockBody.add(body);
+        throw new StateError('Unrecognized for loop parts');
       }
-      _replaceNode(node, body, ast.block(blockBody));
+      var castType = ast_properties.getImplicitCast(variable);
+      if (castType != null) {
+        // Build the cast. We will place this cast in the body, so need to clone
+        // the variable's AST node and clear out its static type (otherwise we
+        // will optimize away the cast).
+        var cast = castExpression(
+            _clone(variable)..staticType = DynamicTypeImpl.instance, castType);
+
+        var body = node.body;
+        var blockBody = <Statement>[ast.expressionStatement(cast)];
+        if (body is Block) {
+          blockBody.addAll(body.statements);
+        } else {
+          blockBody.add(body);
+        }
+        _replaceNode(node, body, ast.block(blockBody));
+      }
+    } else {
+      super.visitForStatement2(node);
     }
   }
 

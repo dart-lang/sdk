@@ -10,30 +10,9 @@ import '../diagnostics/diagnostic_listener.dart';
 import '../diagnostics/messages.dart';
 import '../elements/entities.dart';
 import '../kernel/dart2js_target.dart';
+import '../options.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
-
-/// Returns `true` if inference of parameter types is disabled for [element].
-bool _assumeDynamic(KElementEnvironment elementEnvironment,
-    KCommonElements commonElements, MemberEntity element) {
-  return _hasAnnotation(
-      elementEnvironment, element, commonElements.expectAssumeDynamicClass);
-}
-
-/// Returns `true` if [element] is annotated with [annotationClass].
-bool _hasAnnotation(KElementEnvironment elementEnvironment,
-    MemberEntity element, ClassEntity annotationClass) {
-  if (annotationClass == null) return false;
-  for (ConstantValue value in elementEnvironment.getMemberMetadata(element)) {
-    if (value.isConstructedObject) {
-      ConstructedConstantValue constructedConstant = value;
-      if (constructedConstant.type.element == annotationClass) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
 
 class PragmaAnnotation {
   final int _index;
@@ -52,9 +31,12 @@ class PragmaAnnotation {
     return _index;
   }
 
+  /// Tells the optimizing compiler to not inline the annotated method.
   static const PragmaAnnotation noInline =
       const PragmaAnnotation(0, 'noInline', forFunctionsOnly: true);
 
+  /// Tells the optimizing compiler to always inline the annotated method, if
+  /// possible.
   static const PragmaAnnotation tryInline =
       const PragmaAnnotation(1, 'tryInline', forFunctionsOnly: true);
 
@@ -62,24 +44,29 @@ class PragmaAnnotation {
       2, 'disableFinal',
       forFunctionsOnly: true, internalOnly: true);
 
-  static const PragmaAnnotation noElision = const PragmaAnnotation(
-      3, 'noElision',
-      forFieldsOnly: true, internalOnly: true);
+  static const PragmaAnnotation noElision =
+      const PragmaAnnotation(3, 'noElision');
 
+  /// Tells the optimizing compiler that the annotated method cannot throw.
+  /// Requires @pragma('dart2js:noInline') to function correctly.
   static const PragmaAnnotation noThrows = const PragmaAnnotation(4, 'noThrows',
       forFunctionsOnly: true, internalOnly: true);
 
+  /// Tells the optimizing compiler that the annotated method has no
+  /// side-effects. Allocations don't count as side-effects, since they can be
+  /// dropped without changing the semantics of the program.
+  ///
+  /// Requires @pragma('dart2js:noInline') to function correctly.
   static const PragmaAnnotation noSideEffects = const PragmaAnnotation(
       5, 'noSideEffects',
       forFunctionsOnly: true, internalOnly: true);
 
-  // TODO(johnniwinther): Remove this.
-  static const PragmaAnnotation trustTypeAnnotations = const PragmaAnnotation(
-      6, 'trustTypeAnnotations',
-      forFunctionsOnly: true, internalOnly: true);
-
+  /// Use this as metadata on method declarations to disable closed world
+  /// assumptions on parameters, effectively assuming that the runtime arguments
+  /// could be any value. Note that the constraints due to static types still
+  /// apply.
   static const PragmaAnnotation assumeDynamic = const PragmaAnnotation(
-      7, 'assumeDynamic',
+      6, 'assumeDynamic',
       forFunctionsOnly: true, internalOnly: true);
 
   static const List<PragmaAnnotation> values = [
@@ -89,12 +76,12 @@ class PragmaAnnotation {
     noElision,
     noThrows,
     noSideEffects,
-    trustTypeAnnotations,
     assumeDynamic,
   ];
 }
 
 Set<PragmaAnnotation> processMemberAnnotations(
+    CompilerOptions options,
     DiagnosticReporter reporter,
     KCommonElements commonElements,
     KElementEnvironment elementEnvironment,
@@ -102,12 +89,9 @@ Set<PragmaAnnotation> processMemberAnnotations(
     MemberEntity element) {
   EnumSet<PragmaAnnotation> values = new EnumSet<PragmaAnnotation>();
 
-  if (_assumeDynamic(elementEnvironment, commonElements, element)) {
-    values.add(PragmaAnnotation.assumeDynamic);
-  }
-
   LibraryEntity library = element.library;
-  bool platformAnnotationsAllowed = library.canonicalUri.scheme == 'dart' ||
+  bool platformAnnotationsAllowed = options.testMode ||
+      library.canonicalUri.scheme == 'dart' ||
       maybeEnableNative(library.canonicalUri);
 
   for (ConstantValue constantValue
@@ -117,73 +101,23 @@ Set<PragmaAnnotation> processMemberAnnotations(
     ClassEntity cls = value.type.element;
     assert(cls != null); // Unresolved classes null.
 
-    if (platformAnnotationsAllowed) {
-      if (cls == commonElements.forceInlineClass) {
-        values.add(PragmaAnnotation.tryInline);
-        if (element is! FunctionEntity) {
-          reporter.internalError(element,
-              "@TryInline() is only allowed in methods and constructors.");
-        }
-      } else if (cls == commonElements.noInlineClass) {
-        values.add(PragmaAnnotation.noInline);
-        if (element is! FunctionEntity) {
-          reporter.internalError(element,
-              "@NoInline() is only allowed in methods and constructors.");
-        }
-      } else if (cls == commonElements.noThrowsClass) {
-        values.add(PragmaAnnotation.noThrows);
-        bool isValid = true;
-        if (element is FunctionEntity) {
-          if (element.isTopLevel) {
-            isValid = true;
-          } else if (element.isStatic) {
-            isValid = true;
-          } else if (element is ConstructorEntity &&
-              element.isFactoryConstructor) {
-            isValid = true;
-          }
-        } else {
-          isValid = false;
-        }
-        if (!isValid) {
-          reporter.internalError(
-              element,
-              "@NoThrows() is currently limited to top-level"
-              " or static functions and factory constructors.");
-        }
-      } else if (cls == commonElements.noSideEffectsClass) {
-        values.add(PragmaAnnotation.noSideEffects);
-        if (element is! FunctionEntity) {
-          reporter.internalError(element,
-              "@NoSideEffects() is only allowed in methods and constructors.");
-        }
-      }
-    }
-
-    if (cls == commonElements.expectNoInlineClass) {
-      values.add(PragmaAnnotation.noInline);
-      if (element is! FunctionEntity) {
-        reporter.internalError(element,
-            "@NoInline() is only allowed in methods and constructors.");
-      }
-    } else if (cls == commonElements.metaNoInlineClass) {
+    if (cls == commonElements.metaNoInlineClass) {
       values.add(PragmaAnnotation.noInline);
       if (element is! FunctionEntity) {
         reporter.internalError(
-            element, "@noInline is only allowed in methods and constructors.");
+            element,
+            "@pragma('dart2js:noInline') is only allowed in methods "
+            "and constructors.");
       }
     } else if (cls == commonElements.metaTryInlineClass) {
       values.add(PragmaAnnotation.tryInline);
       if (element is! FunctionEntity) {
         reporter.internalError(
-            element, "@tryInline is only allowed in methods and constructors.");
+            element,
+            "@pragma('dart2js:tryInline') is only allowed in methods "
+            "and constructors.");
       }
     } else if (cls == commonElements.pragmaClass) {
-      // Recognize:
-      //
-      //     @pragma('dart2js:noInline')
-      //     @pragma('dart2js:tryInline')
-      //
       ConstantValue nameValue =
           value.fields[commonElements.pragmaClassNameField];
       if (nameValue == null || !nameValue.isString) continue;
@@ -236,19 +170,25 @@ Set<PragmaAnnotation> processMemberAnnotations(
 
   if (values.contains(PragmaAnnotation.tryInline) &&
       values.contains(PragmaAnnotation.noInline)) {
-    reporter.reportErrorMessage(element, MessageKind.GENERIC,
-        {'text': '@tryInline must not be used with @noInline.'});
+    reporter.reportErrorMessage(element, MessageKind.GENERIC, {
+      'text': "@pragma('dart2js:tryInline') must not be used with "
+          "@pragma('dart2js:noInline')."
+    });
     values.remove(PragmaAnnotation.tryInline);
   }
   if (values.contains(PragmaAnnotation.noThrows) &&
       !values.contains(PragmaAnnotation.noInline)) {
     reporter.internalError(
-        element, "@NoThrows() should always be combined with @noInline.");
+        element,
+        "@pragma('dart2js:noThrows') should always be combined with "
+        "@pragma('dart2js:noInline').");
   }
   if (values.contains(PragmaAnnotation.noSideEffects) &&
       !values.contains(PragmaAnnotation.noInline)) {
     reporter.internalError(
-        element, "@NoSideEffects() should always be combined with @noInline.");
+        element,
+        "@pragma('dart2js:noSideEffects') should always be combined with "
+        "@pragma('dart2js:noInline').");
   }
   annotationsDataBuilder.registerPragmaAnnotations(element, values);
   return new Set<PragmaAnnotation>.from(
@@ -263,14 +203,14 @@ abstract class AnnotationsData {
   /// Serializes this [AnnotationsData] to [sink].
   void writeToDataSink(DataSink sink);
 
-  /// Returns `true` if [member] has an `@AssumeDynamic()` annotation.
+  /// Returns `true` if [member] has an `@pragma('dart2js:assumeDynamic')` annotation.
   bool hasAssumeDynamic(MemberEntity member);
 
-  /// Returns `true` if [member] has a `@NoInline()`, `@noInline`, or
+  /// Returns `true` if [member] has a `@pragma('dart2js:noInline')`, or
   /// `@pragma('dart2js:noInline')` annotation.
   bool hasNoInline(MemberEntity member);
 
-  /// Returns `true` if [member] has a `@ForceInline()`, `@tryInline`, or
+  /// Returns `true` if [member] has a `@pragma('dart2js:tryInline')`, or
   /// `@pragma('dart2js:tryInline')` annotation.
   bool hasTryInline(MemberEntity member);
 
@@ -278,7 +218,8 @@ abstract class AnnotationsData {
   /// annotation.
   bool hasDisableFinal(MemberEntity member);
 
-  /// Returns `true` if [member] has a `@pragma('dart2js:noElision')` annotation.
+  /// Returns `true` if [member] has a `@pragma('dart2js:noElision')`
+  /// annotation.
   bool hasNoElision(MemberEntity member);
 
   /// Returns `true` if [member] has a `@NoThrows()` annotation.
@@ -287,18 +228,20 @@ abstract class AnnotationsData {
   /// Returns `true` if [member] has a `@NoSideEffects()` annotation.
   bool hasNoSideEffects(MemberEntity member);
 
-  /// Calls [f] for all functions with a `@NoInline()`, `@noInline`, or
+  /// Calls [f] for all functions with a `@pragma('dart2js:noInline')`, or
   /// `@pragma('dart2js:noInline')` annotation.
   void forEachNoInline(void f(FunctionEntity function));
 
-  /// Calls [f] for all functions with a `@ForceInline()`, `@tryInline`, or
+  /// Calls [f] for all functions with a `@pragma('dart2js:tryInline')`, or
   /// `@pragma('dart2js:tryInline')` annotation.
   void forEachTryInline(void f(FunctionEntity function));
 
-  /// Calls [f] for all functions with a `@NoThrows()` annotation.
+  /// Calls [f] for all functions with a `@pragma('dart2js:noThrows')`
+  /// annotation.
   void forEachNoThrows(void f(FunctionEntity function));
 
-  /// Calls [f] for all functions with a `@NoSideEffects()` annotation.
+  /// Calls [f] for all functions with a `@pragma('dart2js:noSideEffects')`
+  /// annotation.
   void forEachNoSideEffects(void f(FunctionEntity function));
 }
 

@@ -13,9 +13,7 @@ import 'package:expect/expect.dart';
 import '../helpers/d8_helper.dart';
 
 const String SOURCE = r'''
-import 'package:meta/dart2js.dart';
-
-@noInline
+@pragma('dart2js:noInline')
 method1<T>(T t) {
   print('method1:');
   print('$t is $T = ${t is T}');
@@ -23,7 +21,7 @@ method1<T>(T t) {
   print('');
 }
 
-@noInline
+@pragma('dart2js:noInline')
 method2<T, S>(S s, T t) {
   print('method2:');
   print('$t is $T = ${t is T}');
@@ -33,7 +31,7 @@ method2<T, S>(S s, T t) {
   print('');
 }
 
-@tryInline
+@pragma('dart2js:tryInline')
 method3<T, S>(T t, S s) {
   print('method3:');
   print('$t is $T = ${t is T}');
@@ -65,7 +63,7 @@ testMethod4() {
 }
 
 class Class2 {
-  @tryInline
+  @pragma('dart2js:tryInline')
   method5<T>(T t) {
     print('Class2.method5:');
     print('$t is $T = ${t is T}');
@@ -73,7 +71,7 @@ class Class2 {
     print('');
   }
 
-  @noInline
+  @pragma('dart2js:noInline')
   method6(o) {
     print('Class2.method6:');
     print('$o is int = ${o is int}');
@@ -83,7 +81,7 @@ class Class2 {
 }
 
 class Class3 {
-  @noInline
+  @pragma('dart2js:noInline')
   method6<T>(T t) {
     print('Class3.method6:');
     print('$t is $T = ${t is T}');

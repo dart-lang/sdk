@@ -13,7 +13,7 @@ import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'enqueue.dart';
 import 'js_backend/annotations.dart';
-import 'js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
+import 'js_backend/field_analysis.dart' show KFieldAnalysis;
 import 'js_backend/backend_usage.dart';
 import 'js_backend/interceptor_data.dart';
 import 'js_backend/native_data.dart';
@@ -45,7 +45,7 @@ abstract class FrontendStrategy {
   DartTypes get dartTypes;
 
   /// Returns the [AnnotationProcessor] for this strategy.
-  AnnotationProcessor get annotationProcesser;
+  AnnotationProcessor get annotationProcessor;
 
   NativeBasicData get nativeBasicData;
 
@@ -70,7 +70,7 @@ abstract class FrontendStrategy {
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
-      KAllocatorAnalysis allocatorAnalysis,
+      KFieldAnalysis allocatorAnalysis,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
       NoSuchMethodRegistry noSuchMethodRegistry,
       AnnotationsDataBuilder annotationsDataBuilder,
@@ -85,7 +85,8 @@ abstract class FrontendStrategy {
       NativeDataBuilder nativeDataBuilder,
       AnnotationsDataBuilder annotationsDataBuilder,
       ImpactTransformer impactTransformer,
-      Map<Entity, WorldImpact> impactCache);
+      Map<Entity, WorldImpact> impactCache,
+      KFieldAnalysis fieldAnalysis);
 
   /// Computes the main function from [mainLibrary] adding additional world
   /// impact to [impactBuilder].

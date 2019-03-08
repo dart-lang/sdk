@@ -122,6 +122,29 @@ class MapLiteralUse {
   }
 }
 
+/// Describes a use of a set literal in the program.
+class SetLiteralUse {
+  final InterfaceType type;
+  final bool isConstant;
+  final bool isEmpty;
+
+  SetLiteralUse(this.type, {this.isConstant: false, this.isEmpty: false});
+
+  int get hashCode =>
+      type.hashCode * 13 + isConstant.hashCode * 17 + isEmpty.hashCode * 19;
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! SetLiteralUse) return false;
+    return type == other.type &&
+        isConstant == other.isConstant &&
+        isEmpty == other.isEmpty;
+  }
+
+  String toString() =>
+      'SetLiteralUse($type,isConstant:$isConstant,isEmpty:$isEmpty)';
+}
+
 /// Describes the use of a list literal in the program.
 class ListLiteralUse {
   final InterfaceType type;

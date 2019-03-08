@@ -53,7 +53,6 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
         ? new BinaryPrinter(sink)
         : new LimitedBinaryPrinter(sink, filter ?? (_) => true, false);
     printer.writeComponentFile(component);
-    component.unbindCanonicalNames();
   } finally {
     await sink.close();
   }

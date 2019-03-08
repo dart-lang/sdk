@@ -117,6 +117,10 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kLet:
         EvaluateLet();
         break;
+      case kBlockExpression: {
+        UNIMPLEMENTED();
+        break;
+      }
       case kInstantiation:
         EvaluatePartialTearoffInstantiation();
         break;
@@ -1033,7 +1037,7 @@ bool ConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
   }
 
   bool is_present = false;
-  ASSERT(!script_.InVMHeap());
+  ASSERT(!script_.IsReadOnly());
   if (script_.compile_time_constants() == Array::null()) {
     return false;
   }
@@ -1063,7 +1067,7 @@ void ConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
     return;
   }
   const intptr_t kInitialConstMapSize = 16;
-  ASSERT(!script_.InVMHeap());
+  ASSERT(!script_.IsReadOnly());
   if (script_.compile_time_constants() == Array::null()) {
     const Array& array = Array::Handle(
         HashTables::New<KernelConstantsMap>(kInitialConstMapSize, Heap::kNew));
@@ -1201,6 +1205,11 @@ const Array& ConstantHelper::ReadConstantTable() {
         temp_instance_ = H.Canonicalize(temp_array_);
         break;
       }
+      case kSetConstant:
+        // Set literals are currently desugared in the frontend and will not
+        // reach the VM. See http://dartbug.com/35124 for discussion.
+        UNREACHABLE();
+        break;
       case kInstanceConstant: {
         const NameIndex index = helper_.ReadCanonicalNameReference();
         if (ShouldSkipConstant(index)) {

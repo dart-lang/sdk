@@ -306,7 +306,7 @@ class _ElementWriter {
   void writeExpression(AstNode e, [Expression enclosing]) {
     bool needsParenthesis = e is Expression &&
         enclosing != null &&
-        e.precedence < enclosing.precedence;
+        e.precedence2 < enclosing.precedence2;
 
     if (needsParenthesis) {
       buffer.write('(');
@@ -384,19 +384,20 @@ class _ElementWriter {
       if (e.typeArguments != null) {
         writeList('<', '>', e.typeArguments.arguments, ', ', writeExpression);
       }
-      writeList('[', ']', e.elements, ', ', writeExpression,
+      writeList('[', ']', e.elements2, ', ', writeExpression,
           includeEmpty: true);
     } else if (e is Label) {
       writeExpression(e.label);
       buffer.write(': ');
-    } else if (e is MapLiteral) {
+    } else if (e is SetOrMapLiteral) {
       if (e.constKeyword != null) {
         buffer.write('const ');
       }
       if (e.typeArguments != null) {
         writeList('<', '>', e.typeArguments.arguments, ', ', writeExpression);
       }
-      writeList('{', '}', e.entries, ', ', writeExpression, includeEmpty: true);
+      writeList('{', '}', e.elements2, ', ', writeExpression,
+          includeEmpty: true);
     } else if (e is MapLiteralEntry) {
       writeExpression(e.key);
       buffer.write(': ');
@@ -952,5 +953,6 @@ class _Replacement {
   final int offset;
   final int end;
   final String text;
+
   _Replacement(this.offset, this.end, this.text);
 }

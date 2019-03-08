@@ -265,6 +265,7 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForEachStatement(ForEachStatement node) {
     _runSubscriptions(node, registry._forForEachStatement);
     super.visitForEachStatement(node);
@@ -295,6 +296,7 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  @deprecated
   void visitForStatement(ForStatement node) {
     _runSubscriptions(node, registry._forForStatement);
     super.visitForStatement(node);
@@ -451,21 +453,10 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitListLiteral2(ListLiteral2 node) {
-    _runSubscriptions(node, registry._forListLiteral2);
-    super.visitListLiteral2(node);
-  }
-
-  @override
+  @deprecated
   void visitMapLiteral(MapLiteral node) {
     _runSubscriptions(node, registry._forMapLiteral);
     super.visitMapLiteral(node);
-  }
-
-  @override
-  void visitMapLiteral2(MapLiteral2 node) {
-    _runSubscriptions(node, registry._forMapLiteral2);
-    super.visitMapLiteral2(node);
   }
 
   @override
@@ -572,9 +563,9 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSetLiteral2(SetLiteral2 node) {
-    _runSubscriptions(node, registry._forSetLiteral2);
-    super.visitSetLiteral2(node);
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    _runSubscriptions(node, registry._forSetOrMapLiteral);
+    super.visitSetOrMapLiteral(node);
   }
 
   @override
@@ -801,6 +792,7 @@ class NodeLintRegistry {
       _forForEachPartsWithDeclaration = [];
   final List<_Subscription<ForEachPartsWithIdentifier>>
       _forForEachPartsWithIdentifier = [];
+  @Deprecated('Use _forForStatement2')
   final List<_Subscription<ForEachStatement>> _forForEachStatement = [];
   final List<_Subscription<ForElement>> _forForElement = [];
   final List<_Subscription<FormalParameterList>> _forFormalParameterList = [];
@@ -808,6 +800,7 @@ class NodeLintRegistry {
       _forForPartsWithDeclarations = [];
   final List<_Subscription<ForPartsWithExpression>> _forForPartsWithExpression =
       [];
+  @Deprecated('Use _forForStatement2')
   final List<_Subscription<ForStatement>> _forForStatement = [];
   final List<_Subscription<ForStatement2>> _forForStatement2 = [];
   final List<_Subscription<FunctionDeclaration>> _forFunctionDeclaration = [];
@@ -839,9 +832,8 @@ class NodeLintRegistry {
   final List<_Subscription<LibraryDirective>> _forLibraryDirective = [];
   final List<_Subscription<LibraryIdentifier>> _forLibraryIdentifier = [];
   final List<_Subscription<ListLiteral>> _forListLiteral = [];
-  final List<_Subscription<ListLiteral2>> _forListLiteral2 = [];
+  @Deprecated('Use _forSetOrMapLiteral')
   final List<_Subscription<MapLiteral>> _forMapLiteral = [];
-  final List<_Subscription<MapLiteral2>> _forMapLiteral2 = [];
   final List<_Subscription<MapLiteralEntry>> _forMapLiteralEntry = [];
   final List<_Subscription<MethodDeclaration>> _forMethodDeclaration = [];
   final List<_Subscription<MethodInvocation>> _forMethodInvocation = [];
@@ -861,7 +853,7 @@ class NodeLintRegistry {
       _forRedirectingConstructorInvocation = [];
   final List<_Subscription<RethrowExpression>> _forRethrowExpression = [];
   final List<_Subscription<ReturnStatement>> _forReturnStatement = [];
-  final List<_Subscription<SetLiteral2>> _forSetLiteral2 = [];
+  final List<_Subscription<SetOrMapLiteral>> _forSetOrMapLiteral = [];
   final List<_Subscription<ShowCombinator>> _forShowCombinator = [];
   final List<_Subscription<SimpleFormalParameter>> _forSimpleFormalParameter =
       [];
@@ -1094,6 +1086,7 @@ class NodeLintRegistry {
         .add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  @Deprecated('Use addForStatement2')
   void addForEachStatement(LintRule linter, AstVisitor visitor) {
     _forForEachStatement
         .add(new _Subscription(linter, visitor, _getTimer(linter)));
@@ -1118,6 +1111,7 @@ class NodeLintRegistry {
         .add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  @Deprecated('Use addForStatement2')
   void addForStatement(LintRule linter, AstVisitor visitor) {
     _forForStatement.add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1242,16 +1236,9 @@ class NodeLintRegistry {
     _forListLiteral.add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
-  void addListLiteral2(LintRule linter, AstVisitor visitor) {
-    _forListLiteral2.add(new _Subscription(linter, visitor, _getTimer(linter)));
-  }
-
+  @Deprecated('Use addSetOrMapLiteral')
   void addMapLiteral(LintRule linter, AstVisitor visitor) {
     _forMapLiteral.add(new _Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addMapLiteral2(LintRule linter, AstVisitor visitor) {
-    _forMapLiteral2.add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addMapLiteralEntry(LintRule linter, AstVisitor visitor) {
@@ -1338,8 +1325,9 @@ class NodeLintRegistry {
         .add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
-  void addSetLiteral2(LintRule linter, AstVisitor visitor) {
-    _forSetLiteral2.add(new _Subscription(linter, visitor, _getTimer(linter)));
+  void addSetOrMapLiteral(LintRule linter, AstVisitor visitor) {
+    _forSetOrMapLiteral
+        .add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addShowCombinator(LintRule linter, AstVisitor visitor) {

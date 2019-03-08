@@ -93,7 +93,7 @@ class StaticTypeExactnessState final {
     return StaticTypeExactnessState(kNotTracking);
   }
 
-  static inline StaticTypeExactnessState Unitialized() {
+  static inline StaticTypeExactnessState Uninitialized() {
     return StaticTypeExactnessState(kUninitialized);
   }
 

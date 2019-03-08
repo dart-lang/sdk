@@ -60,7 +60,7 @@ switcher2(val) {
 
 var x = 0;
 
-@NoInline()
+@pragma('dart2js:noInline')
 switcher3(val) {
   switch (val) {
     case 1:

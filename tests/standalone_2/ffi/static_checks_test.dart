@@ -8,6 +8,8 @@ library FfiTest;
 
 import 'dart:ffi' as ffi;
 
+import 'dylib_utils.dart';
+
 void main() {
   testGetGeneric();
   testGetGeneric2();
@@ -245,7 +247,7 @@ void testFromFunctionTearOff() {
 
 void testLookupFunctionGeneric() {
   Function generic<T extends Function>() {
-    ffi.DynamicLibrary l = ffi.DynamicLibrary.open("ffi_test_dynamic_library");
+    ffi.DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
     Function result;
     result = l.lookupFunction<T, DoubleUnOp>("cos"); //# 15: compile-time error
     return result;
@@ -256,7 +258,7 @@ void testLookupFunctionGeneric() {
 
 void testLookupFunctionGeneric2() {
   Function generic<T extends Function>() {
-    ffi.DynamicLibrary l = ffi.DynamicLibrary.open("ffi_test_dynamic_library");
+    ffi.DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
     Function result;
     result = //# 16: compile-time error
         l.lookupFunction<NativeDoubleUnOp, T>("cos"); //# 16: compile-time error
@@ -267,12 +269,12 @@ void testLookupFunctionGeneric2() {
 }
 
 void testLookupFunctionWrongNativeFunctionSignature() {
-  ffi.DynamicLibrary l = ffi.DynamicLibrary.open("ffi_test_dynamic_library");
+  ffi.DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   l.lookupFunction<IntUnOp, IntUnOp>("cos"); //# 17: compile-time error
 }
 
 void testLookupFunctionTypeMismatch() {
-  ffi.DynamicLibrary l = ffi.DynamicLibrary.open("ffi_test_dynamic_library");
+  ffi.DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   l.lookupFunction<NativeDoubleUnOp, IntUnOp>("cos"); //# 18: compile-time error
 }
 

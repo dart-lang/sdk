@@ -32,9 +32,11 @@ main() {} // ref
 
     var set = await waitForSetWithUri('package:test/a.dart');
     var result = await _getSuggestionDetails(
-      id: set.id,
-      label: 'MyEnum.aaa',
-      offset: testCode.indexOf('} // ref'),
+      _buildRequest(
+        id: set.id,
+        label: 'MyEnum.aaa',
+        offset: testCode.indexOf('} // ref'),
+      ),
     );
 
     expect(result.completion, 'MyEnum.aaa');
@@ -54,9 +56,11 @@ main() {} // ref
 
     var mathSet = await waitForSetWithUri('dart:math');
     var result = await _getSuggestionDetails(
-      id: mathSet.id,
-      label: 'sin',
-      offset: testCode.indexOf('} // ref'),
+      _buildRequest(
+        id: mathSet.id,
+        label: 'sin',
+        offset: testCode.indexOf('} // ref'),
+      ),
     );
 
     expect(result.completion, 'sin');
@@ -72,13 +76,40 @@ main() {} // ref
 
     var mathSet = await waitForSetWithUri('dart:math');
     var result = await _getSuggestionDetails(
-      id: mathSet.id,
-      label: 'sin',
-      offset: testCode.indexOf('} // ref'),
+      _buildRequest(
+        id: mathSet.id,
+        label: 'sin',
+        offset: testCode.indexOf('} // ref'),
+      ),
     );
 
     expect(result.completion, 'math.sin');
     _assertEmptyChange(result.change);
+  }
+
+  test_invalid_label() async {
+    addTestFile(r'''
+import 'dart:math';
+
+main() {} // ref
+''');
+
+    var mathSet = await waitForSetWithUri('dart:math');
+
+    var response = await waitResponse(
+      _buildRequest(id: mathSet.id, label: 'foo', offset: 0),
+    );
+
+    expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
+  }
+
+  test_invalid_library() async {
+    addTestFile('');
+
+    var response = await waitResponse(
+      _buildRequest(id: -1, label: 'foo', offset: 0),
+    );
+    expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
   }
 
   test_newImport() async {
@@ -88,9 +119,11 @@ main() {} // ref
 
     var mathSet = await waitForSetWithUri('dart:math');
     var result = await _getSuggestionDetails(
-      id: mathSet.id,
-      label: 'sin',
-      offset: testCode.indexOf('} // ref'),
+      _buildRequest(
+        id: mathSet.id,
+        label: 'sin',
+        offset: testCode.indexOf('} // ref'),
+      ),
     );
 
     expect(result.completion, 'sin');
@@ -116,21 +149,23 @@ main() {} // ref
     expect(SourceEdit.applySequence(testCode, edits), expected);
   }
 
-  Future<CompletionGetSuggestionDetailsResult> _getSuggestionDetails({
+  Request _buildRequest({
     String file,
     @required int id,
     @required String label,
     @required int offset,
-  }) async {
-    file ??= testFile;
-    var response = await waitResponse(
-      CompletionGetSuggestionDetailsParams(
-        file,
-        id,
-        label,
-        offset,
-      ).toRequest('0'),
-    );
+  }) {
+    return CompletionGetSuggestionDetailsParams(
+      file ?? testFile,
+      id,
+      label,
+      offset,
+    ).toRequest('0');
+  }
+
+  Future<CompletionGetSuggestionDetailsResult> _getSuggestionDetails(
+      Request request) async {
+    var response = await waitResponse(request);
     return CompletionGetSuggestionDetailsResult.fromResponse(response);
   }
 }

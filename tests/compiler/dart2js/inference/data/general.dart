@@ -384,7 +384,7 @@ testLabeledIf(/*Value([exact=JSBool], value: true)*/ a) {
   var c;
   L1:
   if (a /*invoke: Value([exact=JSBool], value: true)*/ > 1) {
-    if (a /*invoke: [empty]*/ == 2) {
+    if (a /*invoke: Value([exact=JSBool], value: true)*/ == 2) {
       break L1;
     }
     c = 42;
@@ -581,7 +581,7 @@ testDoWhile4() {
   return a;
 }
 
-/*element: testSpecialization1:[subclass=JSNumber]*/
+/*element: testSpecialization1:[subclass=Object]*/
 testSpecialization1() {
   var a = topLevelGetter();
   a - 42;
@@ -621,7 +621,7 @@ testReturnNull2(/*[null|subclass=Object]*/ a) {
   return a;
 }
 
-/*element: testReturnNull3:[null|subclass=Object]*/
+/*element: testReturnNull3:[subclass=Object]*/
 testReturnNull3(/*[null|subclass=Object]*/ a) {
   if (a == null) return 42;
   return a;
@@ -641,7 +641,7 @@ testReturnNull5() {
   return a;
 }
 
-/*element: testReturnNull6:[null|subclass=Object]*/
+/*element: testReturnNull6:[subclass=Object]*/
 testReturnNull6() {
   var a = topLevelGetter();
   if (a == null) return 42;

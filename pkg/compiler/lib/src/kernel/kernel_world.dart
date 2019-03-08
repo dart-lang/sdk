@@ -8,7 +8,7 @@ import '../elements/entities.dart';
 
 import '../elements/types.dart';
 import '../js_backend/annotations.dart';
-import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
+import '../js_backend/field_analysis.dart' show KFieldAnalysis;
 import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
@@ -43,7 +43,7 @@ class KClosedWorldImpl implements KClosedWorld {
 
   /// Members that are written either directly or through a setter selector.
   final Iterable<MemberEntity> assignedInstanceMembers;
-  final KAllocatorAnalysis allocatorAnalysis;
+  final KFieldAnalysis fieldAnalysis;
 
   final Iterable<ClassEntity> liveNativeClasses;
 
@@ -66,7 +66,7 @@ class KClosedWorldImpl implements KClosedWorld {
       this.noSuchMethodData,
       ResolutionWorldBuilder resolutionWorldBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
-      this.allocatorAnalysis,
+      this.fieldAnalysis,
       Set<ClassEntity> implementedClasses,
       this.liveNativeClasses,
       this.liveInstanceMembers,

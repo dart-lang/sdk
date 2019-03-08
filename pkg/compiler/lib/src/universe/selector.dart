@@ -263,6 +263,27 @@ class Selector {
     return signatureApplies(element);
   }
 
+  /// Whether [this] could be a valid selector on `Null` without throwing.
+  bool appliesToNullWithoutThrow() {
+    var name = this.name;
+    if (isOperator && name == "==") return true;
+    // Known getters and valid tear-offs.
+    if (isGetter &&
+        (name == "hashCode" ||
+            name == "runtimeType" ||
+            name == "toString" ||
+            name == "noSuchMethod")) return true;
+    // Calling toString always succeeds, calls to `noSuchMethod` (even well
+    // formed calls) always throw.
+    if (isCall &&
+        name == "toString" &&
+        positionalArgumentCount == 0 &&
+        namedArgumentCount == 0) {
+      return true;
+    }
+    return false;
+  }
+
   bool signatureApplies(FunctionEntity function) {
     return callStructure.signatureApplies(function.parameterStructure);
   }

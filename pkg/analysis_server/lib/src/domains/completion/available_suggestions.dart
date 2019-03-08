@@ -43,7 +43,11 @@ List<protocol.IncludedSuggestionSet> computeIncludedSetList(
     }
 
     includedSetList.add(
-      protocol.IncludedSuggestionSet(library.id, relevance),
+      protocol.IncludedSuggestionSet(
+        library.id,
+        relevance,
+        displayUri: _getRelativeFileUri(resolvedUnit, library.uri),
+      ),
     );
   }
 
@@ -80,6 +84,21 @@ protocol.Notification createCompletionAvailableSuggestionsNotification(
   ).toNotification();
 }
 
+/// Computes the best URI to import [what] into the [unit] library.
+String _getRelativeFileUri(ResolvedUnitResult unit, Uri what) {
+  if (what.scheme == 'file') {
+    var pathContext = unit.session.resourceProvider.pathContext;
+
+    var libraryPath = unit.libraryElement.source.fullName;
+    var libraryFolder = pathContext.dirname(libraryPath);
+
+    var whatPath = pathContext.fromUri(what);
+    var relativePath = pathContext.relative(whatPath, from: libraryFolder);
+    return pathContext.split(relativePath).join('/');
+  }
+  return null;
+}
+
 protocol.AvailableSuggestion _protocolAvailableSuggestion(
     Declaration declaration) {
   var label = declaration.name;
@@ -87,15 +106,25 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
     label = '${declaration.name2}.${declaration.name}';
   }
 
+  List<String> relevanceTags;
+  if (declaration.relevanceTags == null) {
+    relevanceTags = null;
+  } else {
+    relevanceTags = List<String>.from(declaration.relevanceTags);
+    relevanceTags.add(declaration.name);
+  }
+
   return protocol.AvailableSuggestion(
     label,
     _protocolElement(declaration),
+    defaultArgumentListString: declaration.defaultArgumentListString,
+    defaultArgumentListTextRanges: declaration.defaultArgumentListTextRanges,
     docComplete: declaration.docComplete,
     docSummary: declaration.docSummary,
     parameterNames: declaration.parameterNames,
     parameterTypes: declaration.parameterTypes,
     requiredParameterCount: declaration.requiredParameterCount,
-    relevanceTags: declaration.relevanceTags,
+    relevanceTags: relevanceTags,
   );
 }
 

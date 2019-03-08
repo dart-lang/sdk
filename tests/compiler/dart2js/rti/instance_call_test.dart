@@ -19,65 +19,63 @@ import '../helpers/program_lookup.dart';
 import '../helpers/memory_compiler.dart';
 
 const String code = '''
-import 'package:meta/dart2js.dart';
-
 class A {
   // Both method1 implementations need type arguments.
-  @noInline
+  @pragma('dart2js:noInline')
   method1<T>(T t) => t is T;
 
   // One of the method2 implementations need type arguments.
-  @noInline
+  @pragma('dart2js:noInline')
   method2<T>(T t) => t is T;
 
   // None of the method3 implementations need type arguments.
-  @noInline
+  @pragma('dart2js:noInline')
   method3<T>(T t) => false;
 }
 
 class B {
-  @noInline
+  @pragma('dart2js:noInline')
   method1<T>(T t) => t is T;
-  @noInline
+  @pragma('dart2js:noInline')
   method2<T>(T t) => true;
-  @noInline
+  @pragma('dart2js:noInline')
   method3<T>(T t) => true;
 }
 
 // A call to either A.method1 or B.method1.
-@noInline
+@pragma('dart2js:noInline')
 call1(c) => c.method1<int>(0);
 
 // A call to A.method1.
-@noInline
+@pragma('dart2js:noInline')
 call1a() => new A().method1<int>(0);
 
 // A call to B.method1.
-@noInline
+@pragma('dart2js:noInline')
 call1b() => new B().method1<int>(0);
 
 // A call to either A.method2 or B.method2.
-@noInline
+@pragma('dart2js:noInline')
 call2(c) => c.method2<int>(0);
 
 // A call to A.method2.
-@noInline
+@pragma('dart2js:noInline')
 call2a() => new A().method2<int>(0);
 
 // A call to B.method2.
-@noInline
+@pragma('dart2js:noInline')
 call2b() => new B().method2<int>(0);
 
 // A call to either A.method3 or B.method3.
-@noInline
+@pragma('dart2js:noInline')
 call3(c) => c.method3<int>(0);
 
 // A call to A.method3.
-@noInline
+@pragma('dart2js:noInline')
 call3a() => new A().method3<int>(0);
 
 // A call to B.method3.
-@noInline
+@pragma('dart2js:noInline')
 call3b() => new B().method3<int>(0);
 
 main() {

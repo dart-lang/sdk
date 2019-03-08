@@ -7,7 +7,6 @@ import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common.dart';
 import '../constants/expressions.dart';
-import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart' show Name;
 import '../elements/types.dart';
@@ -256,6 +255,12 @@ class ClosureDataBuilder {
           case VariableUseKind.listLiteral:
             if (rtiNeed.classNeedsTypeArguments(
                 _elementMap.commonElements.jsArrayClass)) {
+              return true;
+            }
+            break;
+          case VariableUseKind.setLiteral:
+            if (rtiNeed.classNeedsTypeArguments(
+                _elementMap.commonElements.setLiteralClass)) {
               return true;
             }
             break;
@@ -1139,25 +1144,6 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
         definition.location,
         "Unexpected field ${definition} in "
         "ClosureFieldData.getFieldConstantExpression");
-    return null;
-  }
-
-  @override
-  ConstantValue getConstantFieldInitializer(IrToElementMap elementMap) {
-    failedAt(
-        definition.location,
-        "Unexpected field ${definition} in "
-        "ClosureFieldData.getConstantFieldInitializer");
-    return null;
-  }
-
-  @override
-  bool hasConstantFieldInitializer(IrToElementMap elementMap) {
-    return false;
-  }
-
-  @override
-  ConstantValue getFieldConstantValue(IrToElementMap elementMap) {
     return null;
   }
 

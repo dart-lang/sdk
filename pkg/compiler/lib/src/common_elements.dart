@@ -7,12 +7,12 @@ library dart2js.type_system;
 
 import 'common.dart';
 import 'common/names.dart' show Identifiers, Uris;
+import 'constants/constant_system.dart' as constant_system;
 import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'inferrer/abstract_value_domain.dart';
-import 'js_backend/constant_system_javascript.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
 import 'kernel/dart2js_target.dart';
 import 'universe/selector.dart' show Selector;
@@ -57,6 +57,9 @@ abstract class CommonElements {
 
   /// The `List` class defined in 'dart:core';
   ClassEntity get listClass;
+
+  /// The `Set` class defined in 'dart:core';
+  ClassEntity get setClass;
 
   /// The `Map` class defined in 'dart:core';
   ClassEntity get mapClass;
@@ -162,6 +165,12 @@ abstract class CommonElements {
   /// If no type argument is provided, the canonical raw type is returned.
   InterfaceType listType([DartType elementType]);
 
+  /// Returns an instance of the `Set` type defined in 'dart:core' with
+  /// [elementType] as its type argument.
+  ///
+  /// If no type argument is provided, the canonical raw type is returned.
+  InterfaceType setType([DartType elementType]);
+
   /// Returns an instance of the `Map` type defined in 'dart:core' with
   /// [keyType] and [valueType] as its type arguments.
   ///
@@ -198,20 +207,24 @@ abstract class CommonElements {
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
       {bool hasProtoKey: false, bool onlyStringKeys: false});
 
+  InterfaceType getConstantSetTypeFor(InterfaceType sourceType);
+
   FieldEntity get symbolField;
 
   InterfaceType get symbolImplementationType;
 
   // From dart:core
   ClassEntity get mapLiteralClass;
-
   ConstructorEntity get mapLiteralConstructor;
-
   ConstructorEntity get mapLiteralConstructorEmpty;
-
   FunctionEntity get mapLiteralUntypedMaker;
-
   FunctionEntity get mapLiteralUntypedEmptyMaker;
+
+  ClassEntity get setLiteralClass;
+  ConstructorEntity get setLiteralConstructor;
+  ConstructorEntity get setLiteralConstructorEmpty;
+  FunctionEntity get setLiteralUntypedMaker;
+  FunctionEntity get setLiteralUntypedEmptyMaker;
 
   FunctionEntity get objectNoSuchMethod;
 
@@ -314,6 +327,8 @@ abstract class CommonElements {
   ClassEntity get typeLiteralClass;
 
   ClassEntity get constMapLiteralClass;
+
+  ClassEntity get constSetLiteralClass;
 
   ClassEntity get typeVariableClass;
 
@@ -471,10 +486,6 @@ abstract class CommonElements {
 
   ClassEntity get jsGetNameEnum;
 
-  ClassEntity get expectNoInlineClass;
-
-  ClassEntity get expectAssumeDynamicClass;
-
   /// Returns `true` if [member] is a "foreign helper", that is, a member whose
   /// semantics is defined synthetically and not through Dart code.
   ///
@@ -490,14 +501,6 @@ abstract class KCommonElements implements CommonElements {
   ClassEntity get jsAnnotationClass;
 
   ClassEntity get jsAnonymousClass;
-
-  ClassEntity get noSideEffectsClass;
-
-  ClassEntity get noThrowsClass;
-
-  ClassEntity get noInlineClass;
-
-  ClassEntity get forceInlineClass;
 
   ClassEntity get pragmaClass;
   FieldEntity get pragmaClassNameField;
@@ -651,6 +654,10 @@ class CommonElementsImpl
   /// The `List` class defined in 'dart:core';
   ClassEntity _listClass;
   ClassEntity get listClass => _listClass ??= _findClass(coreLibrary, 'List');
+
+  /// The `Set` class defined in 'dart:core'.
+  ClassEntity _setClass;
+  ClassEntity get setClass => _setClass ??= _findClass(coreLibrary, 'Set');
 
   /// The `Map` class defined in 'dart:core';
   ClassEntity _mapClass;
@@ -839,6 +846,17 @@ class CommonElementsImpl
     return _createInterfaceType(listClass, [elementType]);
   }
 
+  /// Returns an instance of the `Set` type defined in 'dart:core' with
+  /// [elementType] as its type argument.
+  ///
+  /// If no type argument is provided, the canonical raw type is returned.
+  InterfaceType setType([DartType elementType]) {
+    if (elementType == null) {
+      return _getRawType(setClass);
+    }
+    return _createInterfaceType(setClass, [elementType]);
+  }
+
   /// Returns an instance of the `Map` type defined in 'dart:core' with
   /// [keyType] and [valueType] as its type arguments.
   ///
@@ -948,6 +966,12 @@ class CommonElementsImpl
     }
   }
 
+  InterfaceType getConstantSetTypeFor(InterfaceType sourceType) =>
+      sourceType.treatAsRaw
+          ? _env.getRawType(constSetLiteralClass)
+          : _env.createInterfaceType(
+              constSetLiteralClass, sourceType.typeArguments);
+
   FieldEntity get symbolField => symbolImplementationField;
 
   InterfaceType get symbolImplementationType =>
@@ -1010,6 +1034,48 @@ class CommonElementsImpl
   FunctionEntity get mapLiteralUntypedEmptyMaker {
     _ensureMapLiteralHelpers();
     return _mapLiteralUntypedEmptyMaker;
+  }
+
+  ClassEntity _setLiteralClass;
+  ClassEntity get setLiteralClass => _setLiteralClass ??=
+      _findClass(_env.lookupLibrary(Uris.dart_collection), 'LinkedHashSet');
+
+  ConstructorEntity _setLiteralConstructor;
+  ConstructorEntity _setLiteralConstructorEmpty;
+  FunctionEntity _setLiteralUntypedMaker;
+  FunctionEntity _setLiteralUntypedEmptyMaker;
+
+  void _ensureSetLiteralHelpers() {
+    if (_setLiteralConstructor != null) return;
+
+    _setLiteralConstructor =
+        _env.lookupConstructor(setLiteralClass, '_literal');
+    _setLiteralConstructorEmpty =
+        _env.lookupConstructor(setLiteralClass, '_empty');
+    _setLiteralUntypedMaker =
+        _env.lookupLocalClassMember(setLiteralClass, '_makeLiteral');
+    _setLiteralUntypedEmptyMaker =
+        _env.lookupLocalClassMember(setLiteralClass, '_makeEmpty');
+  }
+
+  ConstructorEntity get setLiteralConstructor {
+    _ensureSetLiteralHelpers();
+    return _setLiteralConstructor;
+  }
+
+  ConstructorEntity get setLiteralConstructorEmpty {
+    _ensureSetLiteralHelpers();
+    return _setLiteralConstructorEmpty;
+  }
+
+  FunctionEntity get setLiteralUntypedMaker {
+    _ensureSetLiteralHelpers();
+    return _setLiteralUntypedMaker;
+  }
+
+  FunctionEntity get setLiteralUntypedEmptyMaker {
+    _ensureSetLiteralHelpers();
+    return _setLiteralUntypedEmptyMaker;
   }
 
   FunctionEntity _objectNoSuchMethod;
@@ -1303,25 +1369,15 @@ class CommonElementsImpl
   ClassEntity get constMapLiteralClass =>
       _constMapLiteralClass ??= _findHelperClass('ConstantMap');
 
+  // TODO(fishythefish): Implement a `ConstantSet` class and update the backend
+  // impacts + constant emitter accordingly.
+  ClassEntity _constSetLiteralClass;
+  ClassEntity get constSetLiteralClass =>
+      _constSetLiteralClass ??= unmodifiableSetClass;
+
   ClassEntity _typeVariableClass;
   ClassEntity get typeVariableClass =>
       _typeVariableClass ??= _findHelperClass('TypeVariable');
-
-  ClassEntity _noSideEffectsClass;
-  ClassEntity get noSideEffectsClass =>
-      _noSideEffectsClass ??= _findHelperClass('NoSideEffects');
-
-  ClassEntity _noThrowsClass;
-  ClassEntity get noThrowsClass =>
-      _noThrowsClass ??= _findHelperClass('NoThrows');
-
-  ClassEntity _noInlineClass;
-  ClassEntity get noInlineClass =>
-      _noInlineClass ??= _findHelperClass('NoInline');
-
-  ClassEntity _forceInlineClass;
-  ClassEntity get forceInlineClass =>
-      _forceInlineClass ??= _findHelperClass('ForceInline');
 
   ClassEntity _pragmaClass;
   ClassEntity get pragmaClass =>
@@ -1354,13 +1410,13 @@ class CommonElementsImpl
   ClassEntity get stackTraceHelperClass => _findHelperClass('_StackTrace');
 
   ClassEntity get constantMapClass =>
-      _findHelperClass(JavaScriptMapConstant.DART_CLASS);
+      _findHelperClass(constant_system.JavaScriptMapConstant.DART_CLASS);
   ClassEntity get constantStringMapClass =>
-      _findHelperClass(JavaScriptMapConstant.DART_STRING_CLASS);
+      _findHelperClass(constant_system.JavaScriptMapConstant.DART_STRING_CLASS);
   ClassEntity get constantProtoMapClass =>
-      _findHelperClass(JavaScriptMapConstant.DART_PROTO_CLASS);
-  ClassEntity get generalConstantMapClass =>
-      _findHelperClass(JavaScriptMapConstant.DART_GENERAL_CLASS);
+      _findHelperClass(constant_system.JavaScriptMapConstant.DART_PROTO_CLASS);
+  ClassEntity get generalConstantMapClass => _findHelperClass(
+      constant_system.JavaScriptMapConstant.DART_GENERAL_CLASS);
 
   ClassEntity get annotationCreatesClass => _findHelperClass('Creates');
 
@@ -1657,39 +1713,6 @@ class CommonElementsImpl
   ClassEntity get jsBuiltinEnum => _jsBuiltinEnum ??= _findClass(
       _env.lookupLibrary(Uris.dart__js_embedded_names, required: true),
       'JsBuiltin');
-
-  static final Uri PACKAGE_EXPECT =
-      new Uri(scheme: 'package', path: 'expect/expect.dart');
-
-  bool _expectAnnotationChecked = false;
-  ClassEntity _expectNoInlineClass;
-  ClassEntity _expectAssumeDynamicClass;
-
-  void _ensureExpectAnnotations() {
-    if (!_expectAnnotationChecked) {
-      _expectAnnotationChecked = true;
-      LibraryEntity library = _env.lookupLibrary(PACKAGE_EXPECT);
-      if (library != null) {
-        _expectNoInlineClass = _env.lookupClass(library, 'NoInline');
-        _expectAssumeDynamicClass = _env.lookupClass(library, 'AssumeDynamic');
-        if (_expectNoInlineClass == null || _expectAssumeDynamicClass == null) {
-          // This is not the package you're looking for.
-          _expectNoInlineClass = null;
-          _expectAssumeDynamicClass = null;
-        }
-      }
-    }
-  }
-
-  ClassEntity get expectNoInlineClass {
-    _ensureExpectAnnotations();
-    return _expectNoInlineClass;
-  }
-
-  ClassEntity get expectAssumeDynamicClass {
-    _ensureExpectAnnotations();
-    return _expectAssumeDynamicClass;
-  }
 
   static final Uri PACKAGE_META_DART2JS =
       new Uri(scheme: 'package', path: 'meta/dart2js.dart');

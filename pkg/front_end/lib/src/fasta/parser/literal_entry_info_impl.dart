@@ -11,10 +11,6 @@ import 'util.dart';
 /// starting with `if` control flow.
 const LiteralEntryInfo ifCondition = const IfCondition();
 
-/// [simpleEntry] is the first step for parsing a literal entry
-/// without any control flow or spread collection operator.
-const LiteralEntryInfo simpleEntry = const LiteralEntryInfo(true);
-
 /// [spreadOperator] is the first step for parsing a literal entry
 /// preceded by a '...' spread operator.
 const LiteralEntryInfo spreadOperator = const SpreadOperator();

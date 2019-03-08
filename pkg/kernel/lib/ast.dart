@@ -155,8 +155,6 @@ abstract class TreeNode extends Node {
 
   Component get enclosingComponent => parent?.enclosingComponent;
 
-  Library get enclosingLibrary => parent?.enclosingLibrary;
-
   /// Returns the best known source location of the given AST node, or `null` if
   /// the node is orphaned.
   ///
@@ -468,8 +466,6 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
-
-  Library get enclosingLibraray => this;
 }
 
 /// An import or export declaration in a library.
@@ -3648,6 +3644,37 @@ class Let extends Expression {
   }
 }
 
+class BlockExpression extends Expression {
+  Block body;
+  Expression value;
+
+  BlockExpression(this.body, this.value) {
+    body?.parent = this;
+    value?.parent = this;
+  }
+
+  DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
+
+  accept(ExpressionVisitor v) => v.visitBlockExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitBlockExpression(this, arg);
+
+  visitChildren(Visitor v) {
+    body?.accept(v);
+    value?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (body != null) {
+      body = body.accept(v);
+      body?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept(v);
+      value?.parent = this;
+    }
+  }
+}
+
 /// Attempt to load the library referred to by a deferred import.
 ///
 /// This instruction is concerned with:
@@ -5317,6 +5344,38 @@ class ListConstant extends Constant {
 
   DartType getType(TypeEnvironment types) =>
       types.literalListType(typeArgument);
+}
+
+class SetConstant extends Constant {
+  final DartType typeArgument;
+  final List<Constant> entries;
+
+  SetConstant(this.typeArgument, this.entries);
+
+  visitChildren(Visitor v) {
+    typeArgument.accept(v);
+    for (final Constant constant in entries) {
+      constant.acceptReference(v);
+    }
+  }
+
+  accept(ConstantVisitor v) => v.visitSetConstant(this);
+  acceptReference(Visitor v) => v.visitSetConstantReference(this);
+
+  String toString() => '${this.runtimeType}<$typeArgument>($entries)';
+
+  int _cachedHashCode;
+  int get hashCode {
+    return _cachedHashCode ??= typeArgument.hashCode ^ listHashCode(entries);
+  }
+
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SetConstant &&
+          other.typeArgument == typeArgument &&
+          listEquals(other.entries, entries));
+
+  DartType getType(TypeEnvironment types) => types.literalSetType(typeArgument);
 }
 
 class InstanceConstant extends Constant {

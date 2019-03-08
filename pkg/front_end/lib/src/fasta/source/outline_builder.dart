@@ -967,6 +967,11 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
+  void handleNonNullAssertExpression(Token bang) {
+    reportNonNullAssertExpressionNotEnabled(bang);
+  }
+
+  @override
   void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
     reportErrorIfNullableType(questionMark);

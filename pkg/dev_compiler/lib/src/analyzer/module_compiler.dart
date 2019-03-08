@@ -214,9 +214,7 @@ class CompilerOptions extends SharedCompilerOptions {
       ..addOption('module-root',
           help: '(deprecated) used to determine the default module name and\n'
               'summary import name if those are not provided.',
-          hide: hide)
-      ..addOption('library-root',
-          help: '(deprecated) used to name libraries inside the module.');
+          hide: hide);
   }
 
   static String _getLibraryRoot(ArgResults args) {

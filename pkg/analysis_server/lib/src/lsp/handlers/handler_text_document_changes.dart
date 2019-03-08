@@ -4,11 +4,15 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/context_manager.dart'
+    show ContextManagerImpl;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:path/path.dart' show dirname, join;
 
 class TextDocumentChangeHandler
     extends MessageHandler<DidChangeTextDocumentParams, void> {
@@ -16,8 +20,8 @@ class TextDocumentChangeHandler
   Method get handlesMessage => Method.textDocument_didChange;
 
   @override
-  DidChangeTextDocumentParams convertParams(Map<String, dynamic> json) =>
-      DidChangeTextDocumentParams.fromJson(json);
+  LspJsonHandler<DidChangeTextDocumentParams> get jsonHandler =>
+      DidChangeTextDocumentParams.jsonHandler;
 
   ErrorOr<void> handle(DidChangeTextDocumentParams params) {
     final path = pathOfDoc(params.textDocument);
@@ -50,19 +54,44 @@ class TextDocumentChangeHandler
 
 class TextDocumentCloseHandler
     extends MessageHandler<DidCloseTextDocumentParams, void> {
-  TextDocumentCloseHandler(LspAnalysisServer server) : super(server);
+  /// Whether analysis roots are based on open files and should be updated.
+  bool updateAnalysisRoots;
+
+  TextDocumentCloseHandler(LspAnalysisServer server, this.updateAnalysisRoots)
+      : super(server);
+
   Method get handlesMessage => Method.textDocument_didClose;
 
   @override
-  DidCloseTextDocumentParams convertParams(Map<String, dynamic> json) =>
-      DidCloseTextDocumentParams.fromJson(json);
+  LspJsonHandler<DidCloseTextDocumentParams> get jsonHandler =>
+      DidCloseTextDocumentParams.jsonHandler;
 
   ErrorOr<void> handle(DidCloseTextDocumentParams params) {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) {
       server.removePriorityFile(path);
-      server.documentVersions[path] = null;
+      server.documentVersions.remove(path);
       server.updateOverlay(path, null);
+
+      if (updateAnalysisRoots) {
+        // If there are no other open files in this context, we can remove it
+        // from the analysis roots.
+        final contextFolder = server.contextManager.getContextFolderFor(path);
+        var hasOtherFilesInContext = false;
+        for (var otherDocPath in server.documentVersions.keys) {
+          if (server.contextManager.getContextFolderFor(otherDocPath) ==
+              contextFolder) {
+            hasOtherFilesInContext = true;
+            break;
+          }
+        }
+        if (!hasOtherFilesInContext) {
+          final projectFolder =
+              _findProjectFolder(server.resourceProvider, path);
+          server.updateAnalysisRoots([], [projectFolder]);
+        }
+      }
+
       return success();
     });
   }
@@ -70,12 +99,17 @@ class TextDocumentCloseHandler
 
 class TextDocumentOpenHandler
     extends MessageHandler<DidOpenTextDocumentParams, void> {
-  TextDocumentOpenHandler(LspAnalysisServer server) : super(server);
+  /// Whether analysis roots are based on open files and should be updated.
+  bool updateAnalysisRoots;
+
+  TextDocumentOpenHandler(LspAnalysisServer server, this.updateAnalysisRoots)
+      : super(server);
+
   Method get handlesMessage => Method.textDocument_didOpen;
 
   @override
-  DidOpenTextDocumentParams convertParams(Map<String, dynamic> json) =>
-      DidOpenTextDocumentParams.fromJson(json);
+  LspJsonHandler<DidOpenTextDocumentParams> get jsonHandler =>
+      DidOpenTextDocumentParams.jsonHandler;
 
   ErrorOr<void> handle(DidOpenTextDocumentParams params) {
     final doc = params.textDocument;
@@ -90,11 +124,62 @@ class TextDocumentOpenHandler
       );
       server.updateOverlay(path, doc.text);
 
+      final driver = server.contextManager.getDriverFor(path);
       // If the file did not exist, and is "overlay only", it still should be
       // analyzed. Add it to driver to which it should have been added.
-      server.contextManager.getDriverFor(path)?.addFile(path);
+
+      driver?.addFile(path);
+
+      // If there was no current driver for this file, then we may need to add
+      // its project folder as an analysis root.
+      if (updateAnalysisRoots && driver == null) {
+        final projectFolder = _findProjectFolder(server.resourceProvider, path);
+        if (projectFolder != null) {
+          server.updateAnalysisRoots([projectFolder], []);
+        } else {
+          // There was no pubspec - ideally we should add just the file
+          // here but we don't currently support that.
+          // https://github.com/dart-lang/sdk/issues/32256
+
+          // Send a warning to the user, but only if we haven't already in the
+          // last 60 seconds.
+          if (lastSentAnalyzeOpenFilesWarnings == null ||
+              (DateTime.now()
+                      .difference(lastSentAnalyzeOpenFilesWarnings)
+                      .inSeconds >
+                  60)) {
+            lastSentAnalyzeOpenFilesWarnings = DateTime.now();
+            server.showMessageToUser(
+                MessageType.Warning,
+                'When using onlyAnalyzeProjectsWithOpenFiles, files opened that '
+                'are not contained within project folders containing pubspec.yaml, '
+                '.packages or BUILD files will not be analyzed.');
+          }
+        }
+      }
 
       return success();
     });
   }
+
+  DateTime lastSentAnalyzeOpenFilesWarnings;
+}
+
+/// Finds the nearest ancestor to [filePath] that contains a pubspec/.packages/build file.
+String _findProjectFolder(ResourceProvider resourceProvider, String filePath) {
+  // TODO(dantup): Is there something we can reuse for this?
+  var folder = dirname(filePath);
+  while (folder != dirname(folder)) {
+    final pubspec =
+        resourceProvider.getFile(join(folder, ContextManagerImpl.PUBSPEC_NAME));
+    final packages = resourceProvider
+        .getFile(join(folder, ContextManagerImpl.PACKAGE_SPEC_NAME));
+    final build = resourceProvider.getFile(join(folder, 'BUILD'));
+
+    if (pubspec.exists || packages.exists || build.exists) {
+      return folder;
+    }
+    folder = dirname(folder);
+  }
+  return null;
 }

@@ -21,7 +21,7 @@ class RemoveMethodDeclarationTest extends FixProcessorLintTest {
   FixKind get kind => DartFixKind.REMOVE_METHOD_DECLARATION;
 
   @override
-  String get lintCode => LintNames.unnecessary_override;
+  String get lintCode => LintNames.unnecessary_overrides;
 
   test_getter() async {
     await resolveTestUnit('''

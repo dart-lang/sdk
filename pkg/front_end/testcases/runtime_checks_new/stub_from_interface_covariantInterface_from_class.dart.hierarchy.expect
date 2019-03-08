@@ -37,6 +37,7 @@ A:
   classSetters:
 
 B:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: A<F<T>>
@@ -68,6 +69,7 @@ B:
   interfaceSetters:
 
 I:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: A<F<T>>
@@ -99,6 +101,7 @@ I:
   interfaceSetters:
 
 C:
+  Longest path to Object: 3
   superclasses:
     Object
       -> B<F<T>>

@@ -43,13 +43,15 @@ def GetMinidumpUtils():
 
 class Version(object):
   def __init__(self, channel, major, minor, patch, prerelease,
-               prerelease_patch):
+               prerelease_patch, abi_version, oldest_supported_abi_version):
     self.channel = channel
     self.major = major
     self.minor = minor
     self.patch = patch
     self.prerelease = prerelease
     self.prerelease_patch = prerelease_patch
+    self.abi_version = abi_version
+    self.oldest_supported_abi_version = oldest_supported_abi_version
 
 
 # Try to guess the host operating system.
@@ -385,6 +387,16 @@ def GetUserName():
   return os.environ.get(key, '')
 
 
+def GetAbiVersion():
+  version = ReadVersionFile()
+  return version.abi_version
+
+
+def GetOldestSupportedAbiVersion():
+  version = ReadVersionFile()
+  return version.oldest_supported_abi_version
+
+
 def ReadVersionFile():
   def match_against(pattern, file_content):
     match = re.search(pattern, file_content, flags=re.MULTILINE)
@@ -406,10 +418,15 @@ def ReadVersionFile():
   patch = match_against('^PATCH (\d+)$', content)
   prerelease = match_against('^PRERELEASE (\d+)$', content)
   prerelease_patch = match_against('^PRERELEASE_PATCH (\d+)$', content)
+  abi_version = match_against('^ABI_VERSION (\d+)$', content)
+  oldest_supported_abi_version = match_against(
+      '^OLDEST_SUPPORTED_ABI_VERSION (\d+)$', content)
 
-  if channel and major and minor and prerelease and prerelease_patch:
+  if channel and major and minor and prerelease and prerelease_patch and \
+      abi_version and oldest_supported_abi_version:
     return Version(
-        channel, major, minor, patch, prerelease, prerelease_patch)
+        channel, major, minor, patch, prerelease, prerelease_patch, abi_version,
+        oldest_supported_abi_version)
   else:
     print "Warning: VERSION file (%s) has wrong format" % VERSION_FILE
     return None
@@ -734,13 +751,13 @@ class ChangedWorkingDirectory(object):
 
 
 class UnexpectedCrash(object):
-  def __init__(self, test, pid, binary):
+  def __init__(self, test, pid, *binaries):
     self.test = test
     self.pid = pid
-    self.binary = binary
+    self.binaries = binaries
 
   def __str__(self):
-    return "Crash(%s: %s %s)" % (self.test, self.binary, self.pid)
+    return "Crash(%s: %s %s)" % (self.test, self.pid, ', '.join(self.binaries))
 
 
 class PosixCoreDumpEnabler(object):
@@ -854,7 +871,7 @@ class BaseCoreDumpArchiver(object):
     files = set()
     missing = []
     for crash in crashes:
-      files.add(crash.binary)
+      files.update(crash.binaries)
       core = self._find_coredump_file(crash)
       if core:
         files.add(core)
@@ -955,7 +972,7 @@ class BaseCoreDumpArchiver(object):
   def _find_unexpected_crashes(self):
     """Load coredumps file. Each line has the following format:
 
-        test-name,pid,binary-file
+        test-name,pid,binary-file1,binary-file2,...
     """
     try:
       with open(BaseCoreDumpArchiver._UNEXPECTED_CRASHES_FILE) as f:

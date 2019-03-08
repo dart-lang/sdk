@@ -176,6 +176,10 @@ class KernelLoader : public ValueObject {
                                     intptr_t* p_num_classes,
                                     intptr_t* p_num_procedures);
 
+  static RawString* FindSourceForScript(const uint8_t* kernel_buffer,
+                                        intptr_t kernel_buffer_length,
+                                        const String& url);
+
   RawLibrary* LoadLibrary(intptr_t index);
 
   void FinishTopLevelClassLoading(const Class& toplevel_class,
@@ -290,8 +294,12 @@ class KernelLoader : public ValueObject {
   // for klass whose script corresponds to the uri index.
   // Otherwise return klass.
   const Object& ClassForScriptAt(const Class& klass, intptr_t source_uri_index);
+  RawScript* ScriptAt(intptr_t source_uri_index) {
+    return kernel_program_info_.ScriptAt(source_uri_index);
+  }
   RawScript* ScriptAt(intptr_t source_uri_index,
-                      StringIndex import_uri = StringIndex());
+                      const Library& lib,
+                      StringIndex import_uri);
 
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,

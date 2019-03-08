@@ -140,3 +140,21 @@ void trackLibraries(String moduleName, Object libraries, String sourceMap) {
   JS('', '#.set(#, #)', _loadedSourceMaps, moduleName, sourceMap);
   JS('', '#.set(#, #)', _loadedModules, moduleName, libraries);
 }
+
+List<String> _libraries;
+
+/// Returns a JSArray of library uris (e.g,
+/// ['dart:core', 'dart:_internal', ..., 'package:foo/bar.dart', ... 'main.dart'])
+/// loaded in this application.
+List<String> getLibraries() {
+  if (_libraries == null) {
+    _libraries = [];
+    var modules = getModuleNames();
+    for (var name in modules) {
+      var module = getModuleLibraries(name);
+      List props = getOwnPropertyNames(module);
+      _libraries.addAll(props.whereType());
+    }
+  }
+  return _libraries;
+}

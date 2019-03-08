@@ -16,13 +16,13 @@ class Purple {}
 @Native('QQQQ')
 class Q {}
 
-@NoInline()
+@pragma('dart2js:noInline')
 makeP() => JS('returns:;creates:Purple', 'null');
 
-@NoInline()
+@pragma('dart2js:noInline')
 makeQ() => JS('Q', 'null');
 
-@NoInline()
+@pragma('dart2js:noInline')
 testNative() {
   var x = makeP();
   Expect.isTrue(x is Purple);

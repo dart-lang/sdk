@@ -52,7 +52,7 @@ void setup() {
 })()""");
 }
 
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 main() {

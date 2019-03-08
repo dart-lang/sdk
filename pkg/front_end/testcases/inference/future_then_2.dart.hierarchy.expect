@@ -48,6 +48,7 @@ Future:
   classSetters:
 
 MyFuture:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Future<T>

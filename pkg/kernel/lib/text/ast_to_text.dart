@@ -448,6 +448,8 @@ class Printer extends Visitor<Null> {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
         write(prefix + '::' + node.name);
+      } else if (reference.canonicalName != null) {
+        write(reference.canonicalName.toString());
       } else {
         throw new UnimplementedError('${node.runtimeType}');
       }
@@ -1392,6 +1394,13 @@ class Printer extends Visitor<Null> {
     writeExpression(node.body);
   }
 
+  visitBlockExpression(BlockExpression node) {
+    writeSpaced('block');
+    writeBlockBody(node.body.statements, asExpression: true);
+    writeSymbol(' =>');
+    writeExpression(node.value);
+  }
+
   visitInstantiation(Instantiation node) {
     writeExpression(node.expression);
     writeSymbol('<');
@@ -1541,33 +1550,28 @@ class Printer extends Visitor<Null> {
     endLine(';');
   }
 
-  visitBlock(Block node) {
-    writeIndentation();
-    if (node.statements.isEmpty) {
-      endLine('{}');
-      return null;
+  void writeBlockBody(List<Statement> statements, {bool asExpression = false}) {
+    if (statements.isEmpty) {
+      asExpression ? writeSymbol('{}') : endLine('{}');
+      return;
     }
     endLine('{');
     ++indentation;
-    node.statements.forEach(writeNode);
+    statements.forEach(writeNode);
     --indentation;
     writeIndentation();
-    endLine('}');
+    asExpression ? writeSymbol('}') : endLine('}');
+  }
+
+  visitBlock(Block node) {
+    writeIndentation();
+    writeBlockBody(node.statements);
   }
 
   visitAssertBlock(AssertBlock node) {
     writeIndentation();
     writeSpaced('assert');
-    if (node.statements.isEmpty) {
-      endLine('{}');
-      return;
-    }
-    endLine('{');
-    ++indentation;
-    node.statements.forEach(writeNode);
-    --indentation;
-    writeIndentation();
-    endLine('}');
+    writeBlockBody(node.statements);
   }
 
   visitEmptyStatement(EmptyStatement node) {
@@ -1575,8 +1579,8 @@ class Printer extends Visitor<Null> {
     endLine(';');
   }
 
-  visitAssertStatement(AssertStatement node, {bool asExpr = false}) {
-    if (asExpr != true) {
+  visitAssertStatement(AssertStatement node, {bool asExpression = false}) {
+    if (!asExpression) {
       writeIndentation();
     }
     writeWord('assert');
@@ -1586,7 +1590,7 @@ class Printer extends Visitor<Null> {
       writeComma();
       writeExpression(node.message);
     }
-    if (asExpr != true) {
+    if (!asExpression) {
       endLine(');');
     } else {
       writeSymbol(')');
@@ -1863,7 +1867,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitAssertInitializer(AssertInitializer node) {
-    visitAssertStatement(node.statement, asExpr: true);
+    visitAssertStatement(node.statement, asExpression: true);
   }
 
   defaultInitializer(Initializer node) {
@@ -1936,6 +1940,15 @@ class Printer extends Visitor<Null> {
   }
 
   visitListConstant(ListConstant node) {
+    final String name = syntheticNames.nameConstant(node);
+    write('  $name = ');
+    final String entries = node.entries.map((Constant constant) {
+      return syntheticNames.nameConstant(constant);
+    }).join(', ');
+    endLine('${node.runtimeType}<${node.typeArgument}>($entries)');
+  }
+
+  visitSetConstant(SetConstant node) {
     final String name = syntheticNames.nameConstant(node);
     write('  $name = ');
     final String entries = node.entries.map((Constant constant) {

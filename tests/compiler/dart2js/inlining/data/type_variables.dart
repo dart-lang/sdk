@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_helper';
-
 /*element: main:[]*/
 main() {
   inlineTypeTests();
@@ -22,7 +19,7 @@ class Class1<T> extends Object with Mixin1<T> {}
 _inlineTypeTests(o) => o.field is dynamic Function(int);
 
 /*element: inlineTypeTests:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 void inlineTypeTests() {
   _inlineTypeTests(new Mixin1<int>());
   _inlineTypeTests(new Class1<int>());

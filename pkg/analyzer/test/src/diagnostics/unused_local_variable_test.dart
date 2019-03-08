@@ -5,7 +5,7 @@
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,12 +14,11 @@ main() {
 }
 
 @reflectiveTest
-class UnusedLocalVariableTest extends ResolverTestCase {
+class UnusedLocalVariableTest extends DriverResolutionTest {
   @override
-  bool get enableNewAnalysisDriver => true;
+  bool get enableUnusedLocalVariable => true;
 
   test_inFor_underscore_ignored() async {
-    enableUnusedLocalVariable = true;
     await assertNoErrorsInCode(r'''
 main() {
   for (var _ in [1,2,3]) {
@@ -32,7 +31,6 @@ main() {
   }
 
   test_inFunction() async {
-    enableUnusedLocalVariable = true;
     await assertErrorsInCode(r'''
 main() {
   var v = 1;
@@ -42,7 +40,6 @@ main() {
   }
 
   test_inMethod() async {
-    enableUnusedLocalVariable = true;
     await assertErrorsInCode(r'''
 class A {
   foo() {
@@ -54,7 +51,6 @@ class A {
   }
 
   test_isInvoked() async {
-    enableUnusedLocalVariable = true;
     await assertNoErrorsInCode(r'''
 typedef Foo();
 main() {
@@ -65,7 +61,6 @@ main() {
   }
 
   test_isNullAssigned() async {
-    enableUnusedLocalVariable = true;
     await assertNoErrorsInCode(r'''
 typedef Foo();
 main() {
@@ -77,7 +72,6 @@ doSomething() => 42;
   }
 
   test_isRead_notUsed_compoundAssign() async {
-    enableUnusedLocalVariable = true;
     await assertErrorsInCode(r'''
 main() {
   var v = 1;
@@ -87,7 +81,6 @@ main() {
   }
 
   test_isRead_notUsed_postfixExpr() async {
-    enableUnusedLocalVariable = true;
     await assertErrorsInCode(r'''
 main() {
   var v = 1;
@@ -97,7 +90,6 @@ main() {
   }
 
   test_isRead_notUsed_prefixExpr() async {
-    enableUnusedLocalVariable = true;
     await assertErrorsInCode(r'''
 main() {
   var v = 1;
@@ -107,7 +99,6 @@ main() {
   }
 
   test_isRead_usedArgument() async {
-    enableUnusedLocalVariable = true;
     await assertNoErrorsInCode(r'''
 main() {
   var v = 1;
@@ -118,7 +109,6 @@ print(x) {}
   }
 
   test_isRead_usedInvocationTarget() async {
-    enableUnusedLocalVariable = true;
     await assertNoErrorsInCode(r'''
 class A {
   foo() {}

@@ -238,7 +238,7 @@ void _reportFailure(
 }
 
 class AbstractStrongTest with ResourceProviderMixin {
-  bool _checkCalled = false;
+  bool _checkCalled = true;
 
   AnalysisContext _context = null;
   AnalysisDriver _driver = null;
@@ -266,8 +266,9 @@ class AbstractStrongTest with ResourceProviderMixin {
   ///
   /// For a single file, you may also use [checkFile].
   void addFile(String content, {String name: '/main.dart'}) {
-    name = name.replaceFirst('^package:', '/packages/');
+    name = name.replaceFirst(RegExp('^package:'), '/packages/');
     newFile(name, content: content);
+    _checkCalled = false;
   }
 
   /// Run the checker on a program, staring from '/main.dart', and verifies that
@@ -278,7 +279,9 @@ class AbstractStrongTest with ResourceProviderMixin {
   ///
   /// Returns the main resolved library. This can be used for further checks.
   Future<CompilationUnit> check(
-      {bool implicitCasts: true, bool implicitDynamic: true}) async {
+      {bool implicitCasts: true,
+      bool implicitDynamic: true,
+      bool strictRawTypes: false}) async {
     _checkCalled = true;
 
     File mainFile = getFile('/main.dart');
@@ -288,6 +291,7 @@ class AbstractStrongTest with ResourceProviderMixin {
     analysisOptions.strongModeHints = true;
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
+    analysisOptions.strictRawTypes = strictRawTypes;
     analysisOptions.enabledExperiments = enabledExperiments;
 
     var mockSdk = new MockSdk(resourceProvider: resourceProvider);
@@ -353,7 +357,12 @@ class AbstractStrongTest with ResourceProviderMixin {
             e.errorCode != HintCode.UNUSED_FIELD &&
             e.errorCode != HintCode.UNUSED_IMPORT &&
             e.errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
-            e.errorCode != TodoCode.TODO));
+            e.errorCode != TodoCode.TODO &&
+            // If testing strict-raw-types, ignore other (unrelated) hints.
+            (!strictRawTypes ||
+                e.errorCode.errorSeverity.ordinal >
+                    ErrorSeverity.INFO.ordinal ||
+                e.errorCode == HintCode.STRICT_RAW_TYPE)));
         _expectErrors(analysisOptions, analysisResult.unit, errors);
       }
     }

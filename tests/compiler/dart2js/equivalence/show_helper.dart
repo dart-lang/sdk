@@ -23,7 +23,7 @@ ArgParser createArgParser() {
   return argParser;
 }
 
-show(ArgResults argResults, DataComputer dataComputer,
+show<T>(ArgResults argResults, DataComputer<T> dataComputer,
     {bool testFrontend: false, List<String> options: const <String>[]}) async {
   dataComputer.setup();
 
@@ -48,7 +48,8 @@ show(ArgResults argResults, DataComputer dataComputer,
   if (omitImplicitChecks) {
     options.add(Flags.omitImplicitChecks);
   }
-  CompiledData data = await computeData(entryPoint, const {}, dataComputer,
+  CompiledData<T> data = await computeData<T>(
+      entryPoint, const {}, dataComputer,
       options: options,
       testFrontend: testFrontend,
       forUserLibrariesOnly: false,

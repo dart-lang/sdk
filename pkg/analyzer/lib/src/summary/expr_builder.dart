@@ -7,13 +7,19 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart' show AstRewriteVisitor;
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
+
+bool _isSetOrMapEnabled(ExperimentStatus experimentStatus) =>
+    experimentStatus.spread_collections ||
+    experimentStatus.control_flow_collections;
 
 /**
  * Builder of [Expression]s from [UnlinkedExpr]s.
@@ -25,13 +31,17 @@ class ExprBuilder {
   final ElementImpl context;
   final UnlinkedExpr _uc;
   final bool requireValidConst;
+  final bool useSetOrMap;
 
   int intPtr = 0;
   int doublePtr = 0;
   int stringPtr = 0;
   int refPtr = 0;
   int assignmentOperatorPtr = 0;
-  final List<Expression> stack = <Expression>[];
+
+  // The stack of values. Note that they are usually [Expression]s, but may be
+  // any [CollectionElement] to support map/set/list literals.
+  final List<CollectionElement> stack = <CollectionElement>[];
 
   final List<UnlinkedExecutable> localFunctions;
 
@@ -42,7 +52,10 @@ class ExprBuilder {
       this.localFunctions,
       Map<String, ParameterElement> parametersInScope})
       : this.parametersInScope =
-            parametersInScope ?? _parametersInScope(context);
+            parametersInScope ?? _parametersInScope(context),
+        this.useSetOrMap = _isSetOrMapEnabled((resynthesizer
+                .library.context.analysisOptions as AnalysisOptionsImpl)
+            .experimentStatus);
 
   bool get hasNonEmptyExpr => _uc != null && _uc.operations.isNotEmpty;
 
@@ -195,6 +208,9 @@ class ExprBuilder {
           _pushList(
               AstTestFactory.typeArgumentList(<TypeAnnotation>[itemType]));
           break;
+        case UnlinkedExprOperation.makeUntypedSetOrMap:
+          _pushSetOrMap(null);
+          break;
         case UnlinkedExprOperation.makeUntypedMap:
           _pushMap(null);
           break;
@@ -204,12 +220,27 @@ class ExprBuilder {
           _pushMap(AstTestFactory.typeArgumentList(
               <TypeAnnotation>[keyType, valueType]));
           break;
+        case UnlinkedExprOperation.makeMapLiteralEntry:
+          _pushMapLiteralEntry();
+          break;
+        case UnlinkedExprOperation.makeTypedMap2:
+          TypeAnnotation keyType = _newTypeName();
+          TypeAnnotation valueType = _newTypeName();
+          _pushSetOrMap(AstTestFactory.typeArgumentList(
+              <TypeAnnotation>[keyType, valueType]));
+          break;
         case UnlinkedExprOperation.makeUntypedSet:
           _pushSet(null);
           break;
         case UnlinkedExprOperation.makeTypedSet:
           TypeAnnotation itemType = _newTypeName();
-          _pushSet(AstTestFactory.typeArgumentList(<TypeAnnotation>[itemType]));
+          if (useSetOrMap) {
+            _pushSetOrMap(
+                AstTestFactory.typeArgumentList(<TypeAnnotation>[itemType]));
+          } else {
+            _pushSet(
+                AstTestFactory.typeArgumentList(<TypeAnnotation>[itemType]));
+          }
           break;
         case UnlinkedExprOperation.pushReference:
           _pushReference();
@@ -299,7 +330,7 @@ class ExprBuilder {
       int numNamedArgs = _uc.ints[intPtr++];
       int numPositionalArgs = _uc.ints[intPtr++];
       int numArgs = numNamedArgs + numPositionalArgs;
-      arguments = _removeTopItems(numArgs);
+      arguments = _removeTopExpressions(numArgs);
       // add names to the named arguments
       for (int i = 0; i < numNamedArgs; i++) {
         String name = _uc.strings[stringPtr++];
@@ -578,7 +609,9 @@ class ExprBuilder {
     return _buildTypeAst(type);
   }
 
-  Expression _pop() => stack.removeLast();
+  Expression _pop() => stack.removeLast() as Expression;
+
+  CollectionElement _popCollectionElement() => stack.removeLast();
 
   void _push(Expression expr) {
     stack.add(expr);
@@ -588,6 +621,10 @@ class ExprBuilder {
     Expression right = _pop();
     Expression left = _pop();
     _push(AstTestFactory.binaryExpression(left, operator, right));
+  }
+
+  void _pushCollectionElement(CollectionElement collectionElement) {
+    stack.add(collectionElement);
   }
 
   void _pushExtractProperty() {
@@ -788,8 +825,21 @@ class ExprBuilder {
         : typeArguments.arguments[1].type;
     var staticType =
         resynthesizer.typeProvider.mapType.instantiate([keyType, valueType]);
-    _push(AstTestFactory.mapLiteral(Keyword.CONST, typeArguments, entries)
-      ..staticType = staticType);
+    if (useSetOrMap) {
+      _push(
+          AstTestFactory.setOrMapLiteral(Keyword.CONST, typeArguments, entries)
+            ..staticType = staticType);
+    } else {
+      // ignore: deprecated_member_use_from_same_package
+      _push(AstTestFactory.mapLiteral(Keyword.CONST, typeArguments, entries)
+        ..staticType = staticType);
+    }
+  }
+
+  void _pushMapLiteralEntry() {
+    Expression value = _pop();
+    Expression key = _pop();
+    _pushCollectionElement(AstTestFactory.mapLiteralEntry2(key, value));
   }
 
   void _pushPrefix(TokenType operator) {
@@ -807,13 +857,41 @@ class ExprBuilder {
     for (int i = 0; i < count; i++) {
       elements.insert(0, _pop());
     }
+    // ignore: deprecated_member_use_from_same_package
     _push(AstTestFactory.setLiteral(Keyword.CONST, typeArguments, elements));
   }
 
-  List<Expression> _removeTopItems(int count) {
+  void _pushSetOrMap(TypeArgumentList typeArguments) {
+    int count = _uc.ints[intPtr++];
+    List<CollectionElement> elements = <CollectionElement>[];
+    for (int i = 0; i < count; i++) {
+      elements.add(_popCollectionElement());
+    }
+    DartType staticType;
+    if (typeArguments != null && typeArguments.arguments.length == 2) {
+      var keyType = typeArguments.arguments[0].type;
+      var valueType = typeArguments.arguments[1].type;
+      staticType =
+          resynthesizer.typeProvider.mapType.instantiate([keyType, valueType]);
+    } else if (typeArguments != null && typeArguments.arguments.length == 1) {
+      var valueType = typeArguments == null
+          ? resynthesizer.typeProvider.dynamicType
+          : typeArguments.arguments[0].type;
+      staticType = resynthesizer.typeProvider.setType.instantiate([valueType]);
+    }
+    _push(astFactory.setOrMapLiteral(
+        constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
+        typeArguments: typeArguments,
+        leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+        elements: elements,
+        rightBracket: TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET))
+      ..staticType = staticType);
+  }
+
+  List<Expression> _removeTopExpressions(int count) {
     int start = stack.length - count;
     int end = stack.length;
-    List<Expression> items = stack.getRange(start, end).toList();
+    List<Expression> items = List<Expression>.from(stack.getRange(start, end));
     stack.removeRange(start, end);
     return items;
   }

@@ -39,6 +39,7 @@ C:
     C.x
 
 D:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: C<num>
@@ -76,6 +77,7 @@ D:
     D.x
 
 E:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: C<num>

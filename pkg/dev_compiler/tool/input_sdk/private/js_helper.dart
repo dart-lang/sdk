@@ -197,7 +197,7 @@ class Primitives {
   }
 
   static int timerFrequency;
-  static Function timerTicks;
+  static num Function() timerTicks;
 
   static bool get isD8 {
     return JS(

@@ -81,8 +81,8 @@ class ClassFunctionVisitor : public ClassVisitor {
     fields_ = cls.fields();
     for (intptr_t j = 0; j < fields_.Length(); j++) {
       field_ ^= fields_.At(j);
-      if (field_.is_static() && field_.HasInitializer()) {
-        function_ ^= field_.Initializer();
+      if (field_.is_static() && field_.HasInitializerFunction()) {
+        function_ ^= field_.InitializerFunction();
         visitor_->Visit(function_);
       }
     }
@@ -653,7 +653,8 @@ void ProgramVisitor::DedupLists() {
         if (FLAG_precompiled_mode) {
           if (!function.IsSignatureFunction() &&
               !function.IsClosureFunction() &&
-              (function.name() != Symbols::Call().raw()) && !list_.InVMHeap()) {
+              (function.name() != Symbols::Call().raw()) &&
+              !list_.IsReadOnly()) {
             // Parameter types not needed for function type tests.
             for (intptr_t i = 0; i < list_.Length(); i++) {
               list_.SetAt(i, Object::dynamic_type());
@@ -668,7 +669,7 @@ void ProgramVisitor::DedupLists() {
       if (!list_.IsNull()) {
         // Preserve parameter names in case of recompilation for the JIT.
         if (FLAG_precompiled_mode) {
-          if (!function.HasOptionalNamedParameters() && !list_.InVMHeap()) {
+          if (!function.HasOptionalNamedParameters() && !list_.IsReadOnly()) {
             // Parameter names not needed for resolution.
             for (intptr_t i = 0; i < list_.Length(); i++) {
               list_.SetAt(i, Symbols::OptimizedOut());
@@ -681,7 +682,7 @@ void ProgramVisitor::DedupLists() {
     }
 
     RawArray* DedupList(const Array& list) {
-      if (list.InVMHeap()) {
+      if (list.IsReadOnly()) {
         // Avoid using read-only VM objects for de-duplication.
         return list.raw();
       }

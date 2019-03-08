@@ -16,8 +16,8 @@ class S<Y> {
 
 class TS<A, B> = T<A> with S<B>;
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 dyn(x) => x;
 
 main() {
