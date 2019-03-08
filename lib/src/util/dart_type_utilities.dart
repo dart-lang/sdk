@@ -13,7 +13,7 @@ typedef bool AstNodePredicate(AstNode node);
 
 class DartTypeUtilities {
   static bool extendsClass(DartType type, String className, String library) =>
-      _extendsClass(type, new Set<ClassElement>(), className, library);
+      _extendsClass(type, <ClassElement>{}, className, library);
 
   static bool _extendsClass(DartType type, Set<ClassElement> seenTypes,
           String className, String library) =>
