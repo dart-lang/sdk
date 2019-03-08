@@ -1051,25 +1051,38 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    DartType staticType = node.staticType;
-    if (staticType == null) {
-      DartType literalType = _inferSetOrMapLiteralType(node);
-      if (literalType.element == _typeProvider.mapType.element) {
-        (node as SetOrMapLiteralImpl).becomeMap();
-      } else {
-        assert(literalType.element == _typeProvider.setType.element);
-        (node as SetOrMapLiteralImpl).becomeSet();
-      }
-      _resolver.inferenceContext.recordInference(node, literalType);
-      _recordStaticType(node, literalType);
-    } else if (staticType is InterfaceType) {
-      List<DartType> typeArguments = staticType.typeArguments;
+    var typeArguments = node.typeArguments?.arguments;
+
+    // If we have type arguments, use them.
+    // TODO(paulberry): this logic seems redundant with
+    //  ResolverVisitor._fromTypeArguments
+    if (typeArguments != null) {
       if (typeArguments.length == 1) {
         (node as SetOrMapLiteralImpl).becomeSet();
+        var elementType = _getType(typeArguments[0]) ?? _dynamicType;
+        _recordStaticType(
+            node, _typeProvider.setType.instantiate(<DartType>[elementType]));
+        return;
       } else if (typeArguments.length == 2) {
         (node as SetOrMapLiteralImpl).becomeMap();
+        var keyType = _getType(typeArguments[0]) ?? _dynamicType;
+        var valueType = _getType(typeArguments[1]) ?? _dynamicType;
+        _recordStaticType(node,
+            _typeProvider.mapType.instantiate(<DartType>[keyType, valueType]));
+        return;
       }
+      // If we get here, then a nonsense number of type arguments were provided,
+      // so treat it as though no type arguments were provided.
     }
+    DartType literalType = _inferSetOrMapLiteralType(node);
+    if (literalType.element == _typeProvider.mapType.element) {
+      (node as SetOrMapLiteralImpl).becomeMap();
+    } else {
+      assert(literalType.element == _typeProvider.setType.element);
+      (node as SetOrMapLiteralImpl).becomeSet();
+    }
+    _resolver.inferenceContext.recordInference(node, literalType);
+    _recordStaticType(node, literalType);
   }
 
   /**
@@ -1954,9 +1967,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   DartType _inferSetOrMapLiteralType(SetOrMapLiteral literal) {
     DartType contextType = InferenceContext.getContext(literal);
     NodeList<CollectionElement> elements = literal.elements2;
-    if (elements.length < 2 && contextType != null) {
-      return contextType;
-    }
     List<_InferredCollectionElementTypeInformation> inferredTypes = [];
     bool canBeAMap = true;
     bool mustBeAMap = false;
@@ -1976,11 +1986,20 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else if (canBeAMap && mustBeAMap) {
       return _toMapType(literal, contextType, inferredTypes);
     }
-    if (contextType == null) {
-      DartType dynamicType = _typeProvider.dynamicType;
-      return _typeProvider.mapType.instantiate([dynamicType, dynamicType]);
+    // TODO(paulberry): the following computations should be based on the
+    // greatest closure of the context type.
+    bool contextIsIterable = contextType != null &&
+        _typeSystem.isSubtypeOf(contextType, _typeProvider.iterableObjectType);
+    bool contextIsMap = contextType != null &&
+        _typeSystem.isSubtypeOf(contextType, _typeProvider.mapObjectObjectType);
+    if (contextIsIterable && !contextIsMap) {
+      return _toSetType(literal, contextType, inferredTypes);
+    } else {
+      if (elements.isNotEmpty && (!contextIsMap || contextIsIterable)) {
+        // Ambiguous.  TODO(paulberry): report an error.
+      }
+      return _toMapType(literal, contextType, inferredTypes);
     }
-    return contextType;
   }
 
   /**

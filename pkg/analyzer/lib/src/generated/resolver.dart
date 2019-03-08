@@ -3670,6 +3670,8 @@ class ResolverVisitor extends ScopedVisitor {
    */
   final InheritanceManager2 inheritance;
 
+  final AnalysisOptionsImpl _analysisOptions;
+
   /// The object used to resolve the element associated with the current node.
   ElementResolver elementResolver;
 
@@ -3736,13 +3738,14 @@ class ResolverVisitor extends ScopedVisitor {
       {Scope nameScope,
       bool propagateTypes: true,
       reportConstEvaluationErrors: true})
-      : super(definingLibrary, source, typeProvider, errorListener,
+      : _analysisOptions = definingLibrary.context.analysisOptions,
+        super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
-    AnalysisOptions options = definingLibrary.context.analysisOptions;
     this.elementResolver = new ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors);
     this.typeSystem = definingLibrary.context.typeSystem;
     bool strongModeHints = false;
+    AnalysisOptions options = _analysisOptions;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
@@ -4903,6 +4906,23 @@ class ResolverVisitor extends ScopedVisitor {
             typeProvider.iterableType.instantiate([elementType]);
         _pushCollectionTypesDownToAll(node.elements2,
             elementType: elementType, iterableType: iterableType);
+        if (!_analysisOptions.experimentStatus.spread_collections &&
+            !_analysisOptions.experimentStatus.control_flow_collections &&
+            node.elements2.isEmpty &&
+            node.typeArguments == null &&
+            node.isMap) {
+          // The node is really an empty set literal with no type arguments.
+          // Rewrite the AST.
+          // ignore: deprecated_member_use_from_same_package
+          SetOrMapLiteral setLiteral = new AstFactoryImpl().setLiteral(
+              node.constKeyword,
+              null,
+              node.leftBracket,
+              null,
+              node.rightBracket);
+          NodeReplacer.replace(node, setLiteral);
+          node = setLiteral;
+        }
       } else if (typeArguments.length == 2) {
         DartType keyType = typeArguments[0];
         DartType valueType = typeArguments[1];
