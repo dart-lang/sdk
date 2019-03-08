@@ -258,14 +258,15 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     if (list.bailedOut) {
       bailout('Stored in a list that bailed out');
     } else {
-      list.flowsInto.forEach((flow) {
-        flow.users.forEach((dynamic user) {
-          if (user is! DynamicCallSiteTypeInformation) return;
-          if (user.receiver != flow) return;
-          if (inferrer.returnsListElementTypeSet.contains(user.selector)) {
-            addNewEscapeInformation(user);
-          } else if (!doesNotEscapeListSet.contains(user.selector.name)) {
-            bailout('Escape from a list via [${user.selector.name}]');
+      list.flowsInto.forEach((TypeInformation flow) {
+        flow.users.forEach((TypeInformation user) {
+          if (user is DynamicCallSiteTypeInformation) {
+            if (user.receiver != flow) return;
+            if (inferrer.returnsListElementTypeSet.contains(user.selector)) {
+              addNewEscapeInformation(user);
+            } else if (!doesNotEscapeListSet.contains(user.selector.name)) {
+              bailout('Escape from a list via [${user.selector.name}]');
+            }
           }
         });
       });
@@ -277,13 +278,15 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     if (set.bailedOut) {
       bailout('Stored in a set that bailed out');
     } else {
-      set.flowsInto.forEach((flow) {
-        flow.users.forEach((dynamic user) {
-          if (user.receiver != flow) return;
-          if (user.selector.isIndex) {
-            addNewEscapeInformation(user);
-          } else if (!doesNotEscapeSetSet.contains(user.selector.name)) {
-            bailout('Escape from a set via [${user.selector.name}]');
+      set.flowsInto.forEach((TypeInformation flow) {
+        flow.users.forEach((TypeInformation user) {
+          if (user is DynamicCallSiteTypeInformation) {
+            if (user.receiver != flow) return;
+            if (user.selector.isIndex) {
+              addNewEscapeInformation(user);
+            } else if (!doesNotEscapeSetSet.contains(user.selector.name)) {
+              bailout('Escape from a set via [${user.selector.name}]');
+            }
           }
         });
       });
@@ -295,14 +298,15 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     if (map.bailedOut) {
       bailout('Stored in a map that bailed out');
     } else {
-      map.flowsInto.forEach((flow) {
-        flow.users.forEach((dynamic user) {
-          if (user is! DynamicCallSiteTypeInformation) return;
-          if (user.receiver != flow) return;
-          if (user.selector.isIndex) {
-            addNewEscapeInformation(user);
-          } else if (!doesNotEscapeMapSet.contains(user.selector.name)) {
-            bailout('Escape from a map via [${user.selector.name}]');
+      map.flowsInto.forEach((TypeInformation flow) {
+        flow.users.forEach((TypeInformation user) {
+          if (user is DynamicCallSiteTypeInformation) {
+            if (user.receiver != flow) return;
+            if (user.selector.isIndex) {
+              addNewEscapeInformation(user);
+            } else if (!doesNotEscapeMapSet.contains(user.selector.name)) {
+              bailout('Escape from a map via [${user.selector.name}]');
+            }
           }
         });
       });
