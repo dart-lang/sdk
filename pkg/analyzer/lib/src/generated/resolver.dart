@@ -5889,6 +5889,16 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    //
+    // We visit the iterator before the loop variable because the loop variable
+    // cannot be in scope while visiting the iterator.
+    //
+    node.iterable?.accept(this);
+    node.loopVariable?.accept(this);
+  }
+
+  @override
   @deprecated
   void visitForEachStatement(ForEachStatement node) {
     Scope outerNameScope = nameScope;

@@ -1750,6 +1750,20 @@ class A {
     verify([source]);
   }
 
+  test_for_in_scope() async {
+    Source source = addSource('''
+main() {
+  List<List<int>> x = [[1]];
+  for (int x in x.first) {
+    print(x.isEven);
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_forEach_genericFunctionType() async {
     Source source = addSource(r'''
 main() {
