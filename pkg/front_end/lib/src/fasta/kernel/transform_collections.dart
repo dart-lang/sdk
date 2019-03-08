@@ -4,25 +4,32 @@
 
 library fasta.transform_collections;
 
+import 'dart:core' hide MapEntry;
+
 import 'package:kernel/ast.dart'
     show
         Arguments,
         Block,
         BlockExpression,
+        Class,
         DartType,
         DynamicType,
         Expression,
         ExpressionStatement,
+        Field,
         ForInStatement,
         IfStatement,
         InterfaceType,
         InvalidExpression,
         ListLiteral,
+        MapEntry,
+        MapLiteral,
         MethodInvocation,
         Name,
         Not,
         NullLiteral,
         Procedure,
+        PropertyGet,
         SetLiteral,
         Statement,
         StaticInvocation,
@@ -34,7 +41,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/visitor.dart' show Transformer;
 
-import 'collections.dart' show SpreadElement;
+import 'collections.dart' show SpreadElement, SpreadMapEntry;
 
 import '../source/source_loader.dart' show SourceLoader;
 
@@ -46,6 +53,10 @@ class CollectionTransformer extends Transformer {
   final Procedure setFactory;
   final Procedure setAdd;
   final Procedure objectEquals;
+  final Procedure mapPut;
+  final Class mapEntryClass;
+  final Field mapEntryKey;
+  final Field mapEntryValue;
 
   static Procedure _findSetFactory(CoreTypes coreTypes) {
     Procedure factory = coreTypes.index.getMember('dart:core', 'Set', '');
@@ -57,9 +68,16 @@ class CollectionTransformer extends Transformer {
       : coreTypes = loader.coreTypes,
         listAdd = loader.coreTypes.index.getMember('dart:core', 'List', 'add'),
         setFactory = _findSetFactory(loader.coreTypes),
-        setAdd = loader.coreTypes.index.getMember('dart:core', 'Set', 'add'),
         objectEquals =
-            loader.coreTypes.index.getMember('dart:core', 'Object', '==');
+            loader.coreTypes.index.getMember('dart:core', 'Object', '=='),
+        setAdd = loader.coreTypes.index.getMember('dart:core', 'Set', 'add'),
+        mapPut = loader.coreTypes.index.getMember('dart:core', 'Map', '[]='),
+        mapEntryClass =
+            loader.coreTypes.index.getClass('dart:core', 'MapEntry'),
+        mapEntryKey =
+            loader.coreTypes.index.getMember('dart:core', 'MapEntry', 'key'),
+        mapEntryValue =
+            loader.coreTypes.index.getMember('dart:core', 'MapEntry', 'value');
 
   TreeNode _translateListOrSet(
       Expression node, DartType elementType, List<Expression> elements,
@@ -173,5 +191,77 @@ class CollectionTransformer extends Transformer {
   TreeNode visitSetLiteral(SetLiteral node) {
     return _translateListOrSet(node, node.typeArgument, node.expressions,
         isConst: node.isConst, isSet: true);
+  }
+
+  @override
+  TreeNode visitMapLiteral(MapLiteral node) {
+    int i = 0;
+    for (; i < node.entries.length; ++i) {
+      if (node.entries[i] is SpreadMapEntry) break;
+      node.entries[i] = node.entries[i].accept(this)..parent = node;
+    }
+
+    if (i == node.entries.length) return node;
+
+    if (node.isConst) {
+      // We don't desugar const maps here.  REmove spread for now so that they
+      // don't leak out.
+      for (; i < node.entries.length; ++i) {
+        MapEntry entry = node.entries[i];
+        if (entry is SpreadMapEntry) {
+          entry.parent.replaceChild(
+              entry,
+              new MapEntry(
+                  InvalidExpression('unimplemented spread element')
+                    ..fileOffset = entry.fileOffset,
+                  new NullLiteral()));
+        }
+      }
+    }
+
+    VariableDeclaration map = new VariableDeclaration.forValue(
+        new MapLiteral([], keyType: node.keyType, valueType: node.valueType),
+        type: new InterfaceType(
+            coreTypes.mapClass, [node.keyType, node.valueType]),
+        isFinal: true);
+    List<Statement> body = [map];
+    for (int j = 0; j < i; ++j) {
+      body.add(new ExpressionStatement(new MethodInvocation(
+          new VariableGet(map),
+          new Name('[]='),
+          new Arguments([node.entries[j].key, node.entries[j].value]),
+          mapPut)));
+    }
+    DartType mapEntryType =
+        new InterfaceType(mapEntryClass, [node.keyType, node.valueType]);
+    for (; i < node.entries.length; ++i) {
+      MapEntry entry = node.entries[i];
+      if (entry is SpreadMapEntry) {
+        VariableDeclaration elt =
+            new VariableDeclaration(null, type: mapEntryType, isFinal: true);
+        body.add(new ForInStatement(
+            elt,
+            entry.expression.accept(this),
+            new ExpressionStatement(new MethodInvocation(
+                new VariableGet(map),
+                new Name('[]='),
+                new Arguments([
+                  new PropertyGet(
+                      new VariableGet(elt), new Name('key'), mapEntryKey),
+                  new PropertyGet(
+                      new VariableGet(elt), new Name('value'), mapEntryValue)
+                ]),
+                mapPut))));
+      } else {
+        entry = entry.accept(this);
+        body.add(new ExpressionStatement(new MethodInvocation(
+            new VariableGet(map),
+            new Name('[]='),
+            new Arguments([entry.key, entry.value]),
+            mapPut)));
+      }
+    }
+
+    return new BlockExpression(new Block(body), new VariableGet(map));
   }
 }

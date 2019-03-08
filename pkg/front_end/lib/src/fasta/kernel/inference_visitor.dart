@@ -928,10 +928,6 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         MapEntry entry = node.entries[i];
         List<DartType> spreadMapEntryElementTypes = new List<DartType>(2);
         if (entry is SpreadMapEntry) {
-          // TODO(dmitrayas):  Remove this flag and all related uses of it when
-          // the desugaring is implemented.
-          bool replaced = false;
-
           DartType spreadMapEntryType = spreadMapEntryTypes[i];
           spreadMapEntryElementTypes[0] = spreadMapEntryElementTypes[1] = null;
           storeSpreadMapEntryElementTypes(
@@ -947,7 +943,6 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
                             entry.expression.fileOffset,
                             1)),
                     new NullLiteral()));
-            replaced = true;
           } else if (spreadMapEntryType is DynamicType) {
             inferrer.ensureAssignable(
                 inferrer.coreTypes.mapClass.rawType,
@@ -986,16 +981,8 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
                 valueError ??= new NullLiteral();
                 node.replaceChild(
                     node.entries[i], new MapEntry(keyError, valueError));
-                replaced = true;
               }
             }
-          }
-
-          if (!replaced) {
-            node.entries[i] = new MapEntry(
-                new InvalidExpression('unimplemented spread entry')
-                  ..fileOffset = node.fileOffset,
-                new NullLiteral()..parent = node);
           }
         } else {
           Expression keyJudgment = cachedKeys[i];

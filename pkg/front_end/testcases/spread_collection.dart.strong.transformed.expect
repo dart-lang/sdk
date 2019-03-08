@@ -14,18 +14,29 @@ static method main() → dynamic {
       for (final core::int #t4 in #t3)
         #t1.{core::List::add}(#t4);
   } =>#t1;
-  final core::Map<core::int, core::int> aMap = <core::int, core::int>{1: 1, invalid-expression "unimplemented spread entry": null, invalid-expression "unimplemented spread entry": null};
-  final core::Set<core::int> aSet = block {
-    final core::Set<core::int> #t5 = col::LinkedHashSet::•<core::int>();
-    #t5.{core::Set::add}(1);
-    for (final core::int #t6 in <core::int>[2])
-      #t5.{core::Set::add}(#t6);
-    final dynamic #t7 = <core::int>[3];
-    if(!#t7.{core::Object::==}(null))
-      for (final core::int #t8 in #t7)
-        #t5.{core::Set::add}(#t8);
+  final core::Map<core::int, core::int> aMap = block {
+    final core::Map<core::int, core::int> #t5 = <core::int, core::int>{};
+    #t5.{core::Map::[]=}(1, 1);
+    for (final core::MapEntry<core::int, core::int> #t6 in <dynamic, dynamic>{2: 2})
+      #t5.{core::Map::[]=}(#t6.{core::MapEntry::key}, #t6.{core::MapEntry::value});
+    for (final core::MapEntry<core::int, core::int> #t7 in <dynamic, dynamic>{3: 3})
+      #t5.{core::Map::[]=}(#t7.{core::MapEntry::key}, #t7.{core::MapEntry::value});
   } =>#t5;
-  final core::Map<dynamic, dynamic> aSetOrMap = <dynamic, dynamic>{invalid-expression "unimplemented spread entry": null};
+  final core::Set<core::int> aSet = block {
+    final core::Set<core::int> #t8 = col::LinkedHashSet::•<core::int>();
+    #t8.{core::Set::add}(1);
+    for (final core::int #t9 in <core::int>[2])
+      #t8.{core::Set::add}(#t9);
+    final dynamic #t10 = <core::int>[3];
+    if(!#t10.{core::Object::==}(null))
+      for (final core::int #t11 in #t10)
+        #t8.{core::Set::add}(#t11);
+  } =>#t8;
+  final core::Map<dynamic, dynamic> aSetOrMap = block {
+    final core::Map<dynamic, dynamic> #t12 = <dynamic, dynamic>{};
+    for (final core::MapEntry<dynamic, dynamic> #t13 in self::foo() as{TypeError} core::Map<dynamic, dynamic>)
+      #t12.{core::Map::[]=}(#t13.{core::MapEntry::key}, #t13.{core::MapEntry::value});
+  } =>#t12;
   core::print(aList);
   core::print(aSet);
   core::print(aMap);
