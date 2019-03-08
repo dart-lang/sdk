@@ -305,6 +305,12 @@ ${parser.usage}""");
     return;
   }
 
+  if (options.rest.isNotEmpty) {
+    stderr.writeln("Unexpected extra argument: ${options.rest.first}");
+    exitCode = 1;
+    return;
+  }
+
   // Locate gsutil.py.
   gsutilPy =
       Platform.script.resolve("../third_party/gsutil/gsutil.py").toFilePath();
