@@ -283,6 +283,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   intptr_t try_depth_;
   intptr_t catch_depth_;
   intptr_t for_in_depth_;
+  intptr_t block_expression_depth_;
 
   GraphEntryInstr* graph_entry_;
 
@@ -355,13 +356,15 @@ class ProgramState {
                intptr_t loop_depth,
                intptr_t for_in_depth,
                intptr_t try_depth,
-               intptr_t catch_depth)
+               intptr_t catch_depth,
+               intptr_t block_expression_depth)
       : breakable_block_(breakable_block),
         switch_block_(switch_block),
         loop_depth_(loop_depth),
         for_in_depth_(for_in_depth),
         try_depth_(try_depth),
-        catch_depth_(catch_depth) {}
+        catch_depth_(catch_depth),
+        block_expression_depth_(block_expression_depth) {}
 
   void assignTo(FlowGraphBuilder* builder) const {
     builder->breakable_block_ = breakable_block_;
@@ -370,6 +373,7 @@ class ProgramState {
     builder->for_in_depth_ = for_in_depth_;
     builder->try_depth_ = try_depth_;
     builder->catch_depth_ = catch_depth_;
+    builder->block_expression_depth_ = block_expression_depth_;
   }
 
  private:
@@ -379,6 +383,7 @@ class ProgramState {
   const intptr_t for_in_depth_;
   const intptr_t try_depth_;
   const intptr_t catch_depth_;
+  const intptr_t block_expression_depth_;
 };
 
 class SwitchBlock {
@@ -505,7 +510,8 @@ class TryFinallyBlock {
                builder_->loop_depth_,
                builder_->for_in_depth_,
                builder_->try_depth_ - 1,
-               builder_->catch_depth_) {
+               builder_->catch_depth_,
+               builder_->block_expression_depth_) {
     builder_->try_finally_block_ = this;
   }
   ~TryFinallyBlock() { builder_->try_finally_block_ = outer_; }

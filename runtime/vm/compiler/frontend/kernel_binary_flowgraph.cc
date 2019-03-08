@@ -1338,10 +1338,8 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildFunctionExpression();
     case kLet:
       return BuildLet(position);
-    case kBlockExpression: {
-      UNIMPLEMENTED();
-      break;
-    }
+    case kBlockExpression:
+      return BuildBlockExpression();
     case kBigIntLiteral:
       return BuildBigIntLiteral(position);
     case kStringLiteral:
@@ -1482,6 +1480,18 @@ void StreamingFlowGraphBuilder::try_depth_inc() {
 
 void StreamingFlowGraphBuilder::try_depth_dec() {
   --flow_graph_builder_->try_depth_;
+}
+
+intptr_t StreamingFlowGraphBuilder::block_expression_depth() {
+  return flow_graph_builder_->block_expression_depth_;
+}
+
+void StreamingFlowGraphBuilder::block_expression_depth_inc() {
+  ++flow_graph_builder_->block_expression_depth_;
+}
+
+void StreamingFlowGraphBuilder::block_expression_depth_dec() {
+  --flow_graph_builder_->block_expression_depth_;
 }
 
 intptr_t StreamingFlowGraphBuilder::CurrentTryIndex() {
@@ -1838,7 +1848,7 @@ Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
   const intptr_t saved_context_depth = B->context_depth_;
   const ProgramState state(B->breakable_block_, B->switch_block_,
                            B->loop_depth_, B->for_in_depth_, B->try_depth_,
-                           B->catch_depth_);
+                           B->catch_depth_, B->block_expression_depth_);
 
   Fragment instructions;
 
@@ -3798,6 +3808,24 @@ Fragment StreamingFlowGraphBuilder::BuildLet(TokenPosition* position) {
   return instructions;
 }
 
+Fragment StreamingFlowGraphBuilder::BuildBlockExpression() {
+  block_expression_depth_inc();
+  const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
+
+  Fragment instructions;
+
+  instructions += EnterScope(offset);
+  const intptr_t list_length = ReadListLength();  // read number of statements.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    instructions += BuildStatement();  // read ith statement.
+  }
+  instructions += BuildExpression();  // read expression (inside scope).
+  instructions += ExitScope(offset);
+
+  block_expression_depth_dec();
+  return instructions;
+}
+
 Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
     TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
@@ -4134,6 +4162,7 @@ Fragment StreamingFlowGraphBuilder::BuildBreakStatement() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildWhileStatement() {
+  ASSERT(block_expression_depth() == 0);  // no while in block-expr
   loop_depth_inc();
   const TokenPosition position = ReadPosition();  // read position.
   TestFragment condition = TranslateConditionForControl();  // read condition.
@@ -4161,6 +4190,7 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildDoStatement() {
+  ASSERT(block_expression_depth() == 0);  // no do-while in block-expr
   loop_depth_inc();
   const TokenPosition position = ReadPosition();  // read position.
   Fragment body = BuildStatement();               // read body.
@@ -4243,7 +4273,11 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
     body += Goto(join);
 
     Fragment loop(join);
-    loop += CheckStackOverflow(position);
+
+    // Avoid OSR point inside block-expressions.
+    // TODO(ajcbik): make sure OSR works inside BE too
+    if (block_expression_depth() == 0) loop += CheckStackOverflow(position);
+
     if (condition.entry != nullptr) {
       loop <<= condition.entry;
     } else {
@@ -4316,7 +4350,11 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
     body += Goto(join);
 
     Fragment loop(join);
-    loop += CheckStackOverflow(position);
+
+    // Avoid OSR point inside block-expressions.
+    // TODO(ajcbik): make sure OSR works inside BE too
+    if (block_expression_depth() == 0) loop += CheckStackOverflow(position);
+
     loop += condition;
   } else {
     instructions += condition;
@@ -4621,6 +4659,7 @@ Fragment StreamingFlowGraphBuilder::BuildReturnStatement() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
+  ASSERT(block_expression_depth() == 0);  // no try-catch in block-expr
   InlineBailout("kernel::FlowgraphBuilder::VisitTryCatch");
 
   intptr_t try_handler_index = AllocateTryIndex();
@@ -4750,6 +4789,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildTryFinally() {
+  ASSERT(block_expression_depth() == 0);  // no try-finally in block-expr
   // Note on streaming:
   // We only stream this TryFinally if we can stream everything inside it,
   // so creating a "TryFinallyBlock" with a kernel binary offset instead of an

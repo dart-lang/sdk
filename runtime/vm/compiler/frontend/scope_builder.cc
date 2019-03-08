@@ -840,7 +840,19 @@ void ScopeBuilder::VisitExpression() {
       return;
     }
     case kBlockExpression: {
-      UNIMPLEMENTED();
+      PositionScope scope(&helper_.reader_);
+      intptr_t offset = helper_.ReaderOffset() - 1;  // -1 to include tag byte.
+
+      EnterScope(offset);
+
+      intptr_t list_length =
+          helper_.ReadListLength();  // read number of statements.
+      for (intptr_t i = 0; i < list_length; ++i) {
+        VisitStatement();  // read ith statement.
+      }
+      VisitExpression();  // read expression.
+
+      ExitScope(helper_.reader_.min_position(), helper_.reader_.max_position());
       return;
     }
     case kBigIntLiteral:

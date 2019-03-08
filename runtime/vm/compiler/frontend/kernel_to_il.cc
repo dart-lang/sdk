@@ -54,6 +54,7 @@ FlowGraphBuilder::FlowGraphBuilder(
       try_depth_(0),
       catch_depth_(0),
       for_in_depth_(0),
+      block_expression_depth_(0),
       graph_entry_(NULL),
       scopes_(NULL),
       breakable_block_(NULL),

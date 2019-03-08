@@ -2262,10 +2262,10 @@ void KernelReaderHelper::SkipExpression() {
       SkipVariableDeclaration();  // read variable declaration.
       SkipExpression();           // read expression.
       return;
-    case kBlockExpression: {
-      UNIMPLEMENTED();
+    case kBlockExpression:
+      SkipStatementList();
+      SkipExpression();  // read expression.
       return;
-    }
     case kInstantiation:
       SkipExpression();       // read expression.
       SkipListOfDartTypes();  // read type arguments.

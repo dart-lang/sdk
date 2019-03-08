@@ -112,6 +112,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void catch_depth_dec();
   void try_depth_inc();
   void try_depth_dec();
+  intptr_t block_expression_depth();
+  void block_expression_depth_inc();
+  void block_expression_depth_dec();
   intptr_t CurrentTryIndex();
   intptr_t AllocateTryIndex();
   LocalVariable* CurrentException();
@@ -314,6 +317,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildMapLiteral(bool is_const, TokenPosition* position);
   Fragment BuildFunctionExpression();
   Fragment BuildLet(TokenPosition* position);
+  Fragment BuildBlockExpression();
   Fragment BuildBigIntLiteral(TokenPosition* position);
   Fragment BuildStringLiteral(TokenPosition* position);
   Fragment BuildIntLiteral(uint8_t payload, TokenPosition* position);
