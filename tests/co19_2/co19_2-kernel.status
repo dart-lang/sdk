@@ -137,14 +137,9 @@ LibTest/isolate/ReceivePort/lastWhere_A01_t01: RuntimeError
 Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: Crash
-LanguageFeatures/Spread-collections/Ambiguity_A02_t02/01: MissingCompileTimeError
+LanguageFeatures/Spread-collections/Ambiguity_A02_t02/none: CompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A02_t03: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A03_t02/12: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/01: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/02: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/03: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/04: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/05: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/06: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/07: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/08: MissingCompileTimeError
@@ -152,6 +147,8 @@ LanguageFeatures/Spread-collections/DynamicSemantics_Map_A01_t01: CompileTimeErr
 LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t01: CompileTimeError
 LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t02: CompileTimeError
 LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t03: CompileTimeError
+LanguageFeatures/Spread-collections/DynamicSemantics_Set_A01_t01: CompileTimeError
+LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t06: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t01: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t02: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t03: CompileTimeError
@@ -159,9 +156,8 @@ LanguageFeatures/Spread-collections/NullAware_A01_t04: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t05: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t06: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A04_t01/04: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A04_t02/04: MissingCompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/04: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A08_t01/02: MissingCompileTimeError
+LanguageFeatures/Spread-collections/TypeInference_A02_t02: CompileTimeError
 
 [ $runtime == vm ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow # Does many calls
@@ -665,27 +661,38 @@ LanguageFeatures/Spread-collections/Ambiguity_A01_t01: CompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A01_t03: CompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A01_t07: CompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A02_t01/01: MissingCompileTimeError
+LanguageFeatures/Spread-collections/ConstSpreads_A01_t02: CompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/02: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/06: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/07: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/08: MissingCompileTimeError
+LanguageFeatures/Spread-collections/ConstSpreads_A06_t02: CompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A07_t03: CompileTimeError
+LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t01: CompileTimeError
+LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t02: CompileTimeError
+LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t03: CompileTimeError
 LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t05: CompileTimeError
 LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t07: CompileTimeError
+LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t08: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A02_t02: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A02_t03: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A01_t01: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A01_t03: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A01_t05: CompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A02_t02: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/none: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A05_t02/none: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/04: MissingCompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/none: CompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A08_t01/none: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A01_t03: CompileTimeError
+LanguageFeatures/Spread-collections/Syntax_A02_t01: CompileTimeError
+LanguageFeatures/Spread-collections/Syntax_A02_t02: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t04: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t06: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t08: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t09: CompileTimeError
+LanguageFeatures/Spread-collections/Syntax_A02_t10: CompileTimeError
 LanguageFeatures/Spread-collections/TypeInference_A01_t01: CompileTimeError
 LanguageFeatures/Spread-collections/TypeInference_A01_t02: CompileTimeError
 LanguageFeatures/Spread-collections/TypeInference_A02_t01: CompileTimeError

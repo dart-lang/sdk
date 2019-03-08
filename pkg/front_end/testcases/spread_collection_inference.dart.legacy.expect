@@ -242,61 +242,13 @@ library;
 //   Set<int> set70 = <int>{... /*@error=NonNullAwareSpreadIsNull*/ null};
 //                          ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:122:6: Error: Unexpected token '...'.
-//     {... /*@error=NonNullAwareSpreadIsNull*/ null, ... /*@typeArgs=dynamic*/
-//      ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:122:52: Error: Unexpected token '...'.
-//     {... /*@error=NonNullAwareSpreadIsNull*/ null, ... /*@typeArgs=dynamic*/
-//                                                    ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:122:46: Error: Expected ':' after this.
-//     {... /*@error=NonNullAwareSpreadIsNull*/ null, ... /*@typeArgs=dynamic*/
-//                                              ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:123:7: Error: Expected ':' after this.
-//       []};
-//       ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:125:42: Error: Unexpected token '...'.
-//   Map<String, int> map70 = <String, int>{... /*@error=NonNullAwareSpreadIsNull*/
-//                                          ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:126:5: Error: Expected ':' after this.
-//     null};
-//     ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:128:27: Error: Unexpected token '...?'.
+// pkg/front_end/testcases/spread_collection_inference.dart:121:27: Error: Unexpected token '...?'.
 //   List<int> lhs80 = <int>[...?null];
 //                           ^^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:130:26: Error: Unexpected token '...?'.
+// pkg/front_end/testcases/spread_collection_inference.dart:123:26: Error: Unexpected token '...?'.
 //   Set<int> set80 = <int>{...?null};
 //                          ^^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:133:6: Error: Unexpected token '...?'.
-//     {...?null, ... /*@typeArgs=dynamic*/ []};
-//      ^^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:133:16: Error: Unexpected token '...'.
-//     {...?null, ... /*@typeArgs=dynamic*/ []};
-//                ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:133:10: Error: Expected ':' after this.
-//     {...?null, ... /*@typeArgs=dynamic*/ []};
-//          ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:133:42: Error: Expected ':' after this.
-//     {...?null, ... /*@typeArgs=dynamic*/ []};
-//                                          ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:135:42: Error: Unexpected token '...?'.
-//   Map<String, int> map80 = <String, int>{...?null};
-//                                          ^^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:135:46: Error: Expected ':' after this.
-//   Map<String, int> map80 = <String, int>{...?null};
-//                                              ^
 //
 import self as self;
 import "dart:core" as core;
@@ -345,11 +297,7 @@ static method foo() → dynamic {
   core::Map<core::String, core::String> map61 = <core::String, core::String>{};
   core::List<core::int> lhs70 = <core::int>[null];
   core::Set<core::int> set70 = <core::int>{null};
-  dynamic set71ambiguous = <dynamic, dynamic>{};
-  core::Map<core::String, core::int> map70 = <core::String, core::int>{};
   core::List<core::int> lhs80 = <core::int>[null];
   core::Set<core::int> set80 = <core::int>{null};
-  dynamic set81ambiguous = <dynamic, dynamic>{};
-  core::Map<core::String, core::int> map80 = <core::String, core::int>{};
 }
 static method main() → dynamic {}

@@ -118,21 +118,9 @@ foo() {
 
   Set<int> set70 = <int>{... /*@error=NonNullAwareSpreadIsNull*/ null};
 
-  var /*@type=Set<dynamic>*/ set71ambiguous = /*@typeArgs=dynamic*/
-    {... /*@error=NonNullAwareSpreadIsNull*/ null, ... /*@typeArgs=dynamic*/
-      []};
-
-  Map<String, int> map70 = <String, int>{... /*@error=NonNullAwareSpreadIsNull*/
-    null};
-
   List<int> lhs80 = <int>[...?null];
 
   Set<int> set80 = <int>{...?null};
-
-  var /*@type=Set<dynamic>*/ set81ambiguous = /*@typeArgs=dynamic*/
-    {...?null, ... /*@typeArgs=dynamic*/ []};
-
-  Map<String, int> map80 = <String, int>{...?null};
 }
 
 main() {}
