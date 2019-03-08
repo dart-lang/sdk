@@ -30,10 +30,6 @@ CannotReadPackagesFile/example: Fail
 CannotReadSdkSpecification/analyzerCode: Fail
 CannotReadSdkSpecification/example: Fail
 CantDetermineConstness/analyzerCode: Fail
-CantDisambiguateAmbiguousInformation/analyzerCode: Fail # There's no analyzer code for that error yet.
-CantDisambiguateAmbiguousInformation/script: Fail # Can't be tested until 'spread-collections' flag is on.
-CantDisambiguateNotEnoughInformation/analyzerCode: Fail # There's no analyzer code for that error yet.
-CantDisambiguateNotEnoughInformation/script: Fail # Can't be tested until 'spread-collections' flag is on.
 CantInferPackagesFromManyInputs/analyzerCode: Fail
 CantInferPackagesFromManyInputs/example: Fail
 CantInferPackagesFromPackageUri/analyzerCode: Fail
@@ -347,7 +343,7 @@ SpreadMapEntryElementValueTypeMismatch/script: Fail # Can't be tested until 'spr
 SpreadMapEntryTypeMismatch/analyzerCode: Fail # Can't be tested until 'spread-collections' flag is on.
 SpreadMapEntryTypeMismatch/script1: Fail # Can't be tested until 'spread-collections' flag is on.
 SpreadMapEntryTypeMismatch/script2: Fail # Can't be tested until 'spread-collections' flag is on.
-SpreadTypeMismatch/analyzerCode: Fail # There's no analyzer code for that error yet.
+SpreadTypeMismatch/analyzerCode: Fail # There's not analyzer code for that error yet.
 SpreadTypeMismatch/script1: Fail # Can't be tested until 'spread-collections' flag is on.
 SpreadTypeMismatch/script2: Fail # Can't be tested until 'spread-collections' flag is on.
 StackOverflow/example: Fail

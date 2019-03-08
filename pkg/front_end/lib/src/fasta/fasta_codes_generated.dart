@@ -520,28 +520,6 @@ Message _withArgumentsCannotReadSdkSpecification(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeCantDisambiguateAmbiguousInformation =
-    messageCantDisambiguateAmbiguousInformation;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCantDisambiguateAmbiguousInformation = const MessageCode(
-    "CantDisambiguateAmbiguousInformation",
-    message:
-        r"""Both Iterable and Map spread elements encountered in ambiguous literal.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeCantDisambiguateNotEnoughInformation =
-    messageCantDisambiguateNotEnoughInformation;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCantDisambiguateNotEnoughInformation = const MessageCode(
-    "CantDisambiguateNotEnoughInformation",
-    message:
-        r"""Not enough type information to disambiguate between literal set and literal map.""",
-    tip:
-        r"""Try providing type arguments for the literal explicitly to disambiguate it.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCantInferPackagesFromManyInputs =
     messageCantInferPackagesFromManyInputs;
 
@@ -8256,13 +8234,6 @@ ${num3} ms/compilation unit.""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeSpreadElement = messageSpreadElement;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSpreadElement = const MessageCode("SpreadElement",
-    severity: Severity.context, message: r"""Iterable spread.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,
@@ -8294,15 +8265,6 @@ Message _withArgumentsSpreadElementTypeMismatch(
               labeler.originMessages,
       arguments: {'type': _type, 'type2': _type2});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeSpreadMapElement = messageSpreadMapElement;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSpreadMapElement = const MessageCode(
-    "SpreadMapElement",
-    severity: Severity.context,
-    message: r"""Map spread.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

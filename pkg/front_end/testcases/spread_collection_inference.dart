@@ -21,20 +21,12 @@ foo() {
   var /*@type=Map<dynamic, dynamic>*/ map10 = <dynamic, dynamic>{...
     /*@typeArgs=dynamic, dynamic*/ {}};
 
-  var /*@type=Map<dynamic, dynamic>*/ map10ambiguous =
-    /*@typeArgs=dynamic, dynamic*/ {...  /*@typeArgs=dynamic, dynamic*/ {}};
-
   var /*@type=List<int>*/ lhs20 = /*@typeArgs=int*/ [...spread];
 
   var /*@type=Set<int>*/ set20 = /*@typeArgs=int*/ {...spread, 42};
 
-  var /*@type=Set<int>*/ set20ambiguous = /*@typeArgs=int*/ {...spread};
-
   var /*@type=Map<String, int>*/ map20 = /*@typeArgs=String, int*/
     {...mapSpread, "baz": 42};
-
-  var /*@type=Map<String, int>*/ map20ambiguous = /*@typeArgs=String, int*/
-    {...mapSpread};
 
   var /*@type=List<dynamic>*/ lhs21 = /*@typeArgs=dynamic*/ [...(spread as
       dynamic)];
@@ -43,16 +35,11 @@ foo() {
       dynamic), 42};
 
   var /*@type=Map<dynamic, dynamic>*/ map21 = /*@typeArgs=dynamic, dynamic*/
-    {...(mapSpread as dynamic), "baz": 42};
-
-  dynamic map21ambiguous = /*@error=CantDisambiguateNotEnoughInformation*/ {...
-    (mapSpread as dynamic)};
+    {...(spread as dynamic), "baz": 42};
 
   List<int> lhs22 = /*@typeArgs=int*/ [... /*@typeArgs=int*/ []];
 
   Set<int> set22 = /*@typeArgs=int*/ {... /*@typeArgs=int*/ [], 42};
-
-  Set<int> set22ambiguous = /*@typeArgs=int*/ {... /*@typeArgs=int*/ []};
 
   Map<String, int> map22 = /*@typeArgs=String, int*/
     {... /*@typeArgs=String, int*/ {}};
@@ -63,27 +50,15 @@ foo() {
   Set<List<int>> set23 = /*@typeArgs=List<int>*/ {... /*@typeArgs=List<int>*/
     [/*@typeArgs=int*/ []], <int>[42]};
 
-  Set<List<int>> set23ambiguous = /*@typeArgs=List<int>*/
-    {... /*@typeArgs=List<int>*/ [/*@typeArgs=int*/ []]};
-
   Map<String, List<int>> map23 = /*@typeArgs=String, List<int>*/
     {... /*@typeArgs=String, List<int>*/ {"baz": /*@typeArgs=int*/ []}};
-
-  dynamic map24ambiguous = /*@error=CantDisambiguateAmbiguousInformation*/ {...
-    spread, ...mapSpread};
 
   int lhs30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ [...spread];
 
   int set30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ {...spread, 42};
 
-  int set30ambiguous = /*@error=InvalidAssignment*/ /*@typeArgs=int*/
-    {...spread};
-
   int map30 = /*@error=InvalidAssignment*/ /*@typeArgs=String, int*/
     {...mapSpread, "baz": 42};
-
-  int map30ambiguous = /*@error=InvalidAssignment*/ /*@typeArgs=String, int*/
-    {...mapSpread};
 
   List<dynamic> lhs40 = <dynamic>[... /*@error=SpreadTypeMismatch*/
     notSpreadInt];

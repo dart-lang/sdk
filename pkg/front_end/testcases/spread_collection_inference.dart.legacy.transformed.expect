@@ -18,219 +18,139 @@ library;
 //     /*@typeArgs=dynamic, dynamic*/ {}};
 //                                    ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:25:37: Error: Unexpected token '...'.
-//     /*@typeArgs=dynamic, dynamic*/ {...  /*@typeArgs=dynamic, dynamic*/ {}};
-//                                     ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:25:73: Error: Expected ':' after this.
-//     /*@typeArgs=dynamic, dynamic*/ {...  /*@typeArgs=dynamic, dynamic*/ {}};
-//                                                                         ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:27:54: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:24:54: Error: Unexpected token '...'.
 //   var /*@type=List<int>*/ lhs20 = /*@typeArgs=int*/ [...spread];
 //                                                      ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:29:53: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:26:53: Error: Unexpected token '...'.
 //   var /*@type=Set<int>*/ set20 = /*@typeArgs=int*/ {...spread, 42};
 //                                                     ^^^
 //
+// pkg/front_end/testcases/spread_collection_inference.dart:29:6: Error: Unexpected token '...'.
+//     {...mapSpread, "baz": 42};
+//      ^^^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:29:9: Error: Expected ':' after this.
+//     {...mapSpread, "baz": 42};
+//         ^
+//
 // pkg/front_end/testcases/spread_collection_inference.dart:31:62: Error: Unexpected token '...'.
-//   var /*@type=Set<int>*/ set20ambiguous = /*@typeArgs=int*/ {...spread};
-//                                                              ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:31:65: Error: Expected ':' after this.
-//   var /*@type=Set<int>*/ set20ambiguous = /*@typeArgs=int*/ {...spread};
-//                                                                 ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:34:6: Error: Unexpected token '...'.
-//     {...mapSpread, "baz": 42};
-//      ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:34:9: Error: Expected ':' after this.
-//     {...mapSpread, "baz": 42};
-//         ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:37:6: Error: Unexpected token '...'.
-//     {...mapSpread};
-//      ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:37:9: Error: Expected ':' after this.
-//     {...mapSpread};
-//         ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:39:62: Error: Unexpected token '...'.
 //   var /*@type=List<dynamic>*/ lhs21 = /*@typeArgs=dynamic*/ [...(spread as
 //                                                              ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:42:61: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:34:61: Error: Unexpected token '...'.
 //   var /*@type=Set<dynamic>*/ set21 = /*@typeArgs=dynamic*/ {...(spread as
 //                                                             ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:46:6: Error: Unexpected token '...'.
-//     {...(mapSpread as dynamic), "baz": 42};
+// pkg/front_end/testcases/spread_collection_inference.dart:38:6: Error: Unexpected token '...'.
+//     {...(spread as dynamic), "baz": 42};
 //      ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:46:20: Error: Expected ':' after this.
-//     {...(mapSpread as dynamic), "baz": 42};
-//                    ^
+// pkg/front_end/testcases/spread_collection_inference.dart:38:17: Error: Expected ':' after this.
+//     {...(spread as dynamic), "baz": 42};
+//                 ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:48:77: Error: Unexpected token '...'.
-//   dynamic map21ambiguous = /*@error=CantDisambiguateNotEnoughInformation*/ {...
-//                                                                             ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:49:16: Error: Expected ':' after this.
-//     (mapSpread as dynamic)};
-//                ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:51:40: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:40:40: Error: Unexpected token '...'.
 //   List<int> lhs22 = /*@typeArgs=int*/ [... /*@typeArgs=int*/ []];
 //                                        ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:53:39: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:42:39: Error: Unexpected token '...'.
 //   Set<int> set22 = /*@typeArgs=int*/ {... /*@typeArgs=int*/ [], 42};
 //                                       ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:55:48: Error: Unexpected token '...'.
-//   Set<int> set22ambiguous = /*@typeArgs=int*/ {... /*@typeArgs=int*/ []};
-//                                                ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:55:70: Error: Expected ':' after this.
-//   Set<int> set22ambiguous = /*@typeArgs=int*/ {... /*@typeArgs=int*/ []};
-//                                                                      ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:58:6: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:45:6: Error: Unexpected token '...'.
 //     {... /*@typeArgs=String, int*/ {}};
 //      ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:58:36: Error: Expected ':' after this.
+// pkg/front_end/testcases/spread_collection_inference.dart:45:36: Error: Expected ':' after this.
 //     {... /*@typeArgs=String, int*/ {}};
 //                                    ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:60:52: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:47:52: Error: Unexpected token '...'.
 //   List<List<int>> lhs23 = /*@typeArgs=List<int>*/ [... /*@typeArgs=List<int>*/
 //                                                    ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:63:51: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:50:51: Error: Unexpected token '...'.
 //   Set<List<int>> set23 = /*@typeArgs=List<int>*/ {... /*@typeArgs=List<int>*/
 //                                                   ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:67:6: Error: Unexpected token '...'.
-//     {... /*@typeArgs=List<int>*/ [/*@typeArgs=int*/ []]};
-//      ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:67:34: Error: Expected ':' after this.
-//     {... /*@typeArgs=List<int>*/ [/*@typeArgs=int*/ []]};
-//                                  ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:70:6: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:54:6: Error: Unexpected token '...'.
 //     {... /*@typeArgs=String, List<int>*/ {"baz": /*@typeArgs=int*/ []}};
 //      ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:70:42: Error: Expected ':' after this.
+// pkg/front_end/testcases/spread_collection_inference.dart:54:42: Error: Expected ':' after this.
 //     {... /*@typeArgs=String, List<int>*/ {"baz": /*@typeArgs=int*/ []}};
 //                                          ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:72:77: Error: Unexpected token '...'.
-//   dynamic map24ambiguous = /*@error=CantDisambiguateAmbiguousInformation*/ {...
-//                                                                             ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:73:13: Error: Unexpected token '...'.
-//     spread, ...mapSpread};
-//             ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:73:5: Error: Expected ':' after this.
-//     spread, ...mapSpread};
-//     ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:73:16: Error: Expected ':' after this.
-//     spread, ...mapSpread};
-//                ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:75:63: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:56:63: Error: Unexpected token '...'.
 //   int lhs30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ [...spread];
 //                                                               ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:77:63: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:58:63: Error: Unexpected token '...'.
 //   int set30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ {...spread, 42};
 //                                                               ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:80:6: Error: Unexpected token '...'.
-//     {...spread};
-//      ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:80:9: Error: Expected ':' after this.
-//     {...spread};
-//         ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:83:6: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:61:6: Error: Unexpected token '...'.
 //     {...mapSpread, "baz": 42};
 //      ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:83:9: Error: Expected ':' after this.
+// pkg/front_end/testcases/spread_collection_inference.dart:61:9: Error: Expected ':' after this.
 //     {...mapSpread, "baz": 42};
 //         ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:86:6: Error: Unexpected token '...'.
-//     {...mapSpread};
-//      ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:86:9: Error: Expected ':' after this.
-//     {...mapSpread};
-//         ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:88:35: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:63:35: Error: Unexpected token '...'.
 //   List<dynamic> lhs40 = <dynamic>[... /*@error=SpreadTypeMismatch*/
 //                                   ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:91:34: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:66:34: Error: Unexpected token '...'.
 //   Set<dynamic> set40 = <dynamic>{... /*@error=SpreadTypeMismatch*/
 //                                  ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:94:52: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:69:52: Error: Unexpected token '...'.
 //   Map<dynamic, dynamic> map40 = <dynamic, dynamic>{...
 //                                                    ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:95:43: Error: Expected ':' after this.
+// pkg/front_end/testcases/spread_collection_inference.dart:70:43: Error: Expected ':' after this.
 //     /*@error=SpreadMapEntryTypeMismatch*/ notSpreadInt};
 //                                           ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:97:36: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:72:36: Error: Unexpected token '...'.
 //   List<dynamic> lhs50 = <dynamic> [... /*@error=SpreadTypeMismatch*/
 //                                    ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:100:35: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:75:35: Error: Unexpected token '...'.
 //   Set<dynamic> set50 = <dynamic> {... /*@error=SpreadTypeMismatch*/
 //                                   ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:103:52: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:78:52: Error: Unexpected token '...'.
 //   Map<dynamic, dynamic> map50 = <dynamic, dynamic>{...
 //                                                    ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:104:43: Error: Expected ':' after this.
+// pkg/front_end/testcases/spread_collection_inference.dart:79:43: Error: Expected ':' after this.
 //     /*@error=SpreadMapEntryTypeMismatch*/ notSpreadFunction};
 //                                           ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:106:33: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:81:33: Error: Unexpected token '...'.
 //   List<String> lhs60 = <String>[... /*@error=SpreadElementTypeMismatch*/
 //                                 ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:109:32: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:84:32: Error: Unexpected token '...'.
 //   Set<String> set60 = <String>{... /*@error=SpreadElementTypeMismatch*/ spread};
 //                                ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:111:36: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:86:36: Error: Unexpected token '...'.
 //   Map<int, int> map60 = <int, int>{...
 //                                    ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:112:53: Error: Expected ':' after this.
+// pkg/front_end/testcases/spread_collection_inference.dart:87:53: Error: Expected ':' after this.
 //     /*@error=SpreadMapEntryElementKeyTypeMismatch*/ mapSpread};
 //                                                     ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:114:48: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection_inference.dart:89:48: Error: Unexpected token '...'.
 //   Map<String, String> map61 = <String, String>{...
 //                                                ^^^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:115:55: Error: Expected ':' after this.
+// pkg/front_end/testcases/spread_collection_inference.dart:90:55: Error: Expected ':' after this.
 //     /*@error=SpreadMapEntryElementValueTypeMismatch*/ mapSpread};
 //                                                       ^
 //
@@ -245,30 +165,21 @@ static method foo() → dynamic {
   dynamic lhs10 = <dynamic>[<dynamic>[]];
   dynamic set10 = <dynamic>{<dynamic>[]};
   dynamic map10 = <dynamic, dynamic>{};
-  dynamic map10ambiguous = <dynamic, dynamic>{};
   dynamic lhs20 = <dynamic>[spread];
   dynamic set20 = <dynamic>{spread, 42};
-  dynamic set20ambiguous = <dynamic, dynamic>{};
   dynamic map20 = <dynamic, dynamic>{"baz": 42};
-  dynamic map20ambiguous = <dynamic, dynamic>{};
   dynamic lhs21 = <dynamic>[spread as dynamic];
   dynamic set21 = <dynamic>{spread as dynamic, 42};
   dynamic map21 = <dynamic, dynamic>{"baz": 42};
-  dynamic map21ambiguous = <dynamic, dynamic>{};
   core::List<core::int> lhs22 = <dynamic>[<dynamic>[]];
   core::Set<core::int> set22 = <dynamic>{<dynamic>[], 42};
-  core::Set<core::int> set22ambiguous = <dynamic, dynamic>{};
   core::Map<core::String, core::int> map22 = <dynamic, dynamic>{};
   core::List<core::List<core::int>> lhs23 = <dynamic>[<dynamic>[<dynamic>[]]];
   core::Set<core::List<core::int>> set23 = <dynamic>{<dynamic>[<dynamic>[]], <core::int>[42]};
-  core::Set<core::List<core::int>> set23ambiguous = <dynamic, dynamic>{};
   core::Map<core::String, core::List<core::int>> map23 = <dynamic, dynamic>{};
-  dynamic map24ambiguous = <dynamic, dynamic>{};
   core::int lhs30 = <dynamic>[spread];
   core::int set30 = <dynamic>{spread, 42};
-  core::int set30ambiguous = <dynamic, dynamic>{};
   core::int map30 = <dynamic, dynamic>{"baz": 42};
-  core::int map30ambiguous = <dynamic, dynamic>{};
   core::List<dynamic> lhs40 = <dynamic>[notSpreadInt];
   core::Set<dynamic> set40 = <dynamic>{notSpreadInt};
   core::Map<dynamic, dynamic> map40 = <dynamic, dynamic>{};
