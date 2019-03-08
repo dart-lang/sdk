@@ -105,6 +105,8 @@ class DartFixContextImpl implements DartFixContext {
 class DartFixKind {
   static const ADD_ASYNC =
       const FixKind('ADD_ASYNC', 50, "Add 'async' modifier");
+  static const ADD_AWAIT =
+      const FixKind('ADD_AWAIT', 50, "Add 'await' modifier");
   static const ADD_EXPLICIT_CAST = const FixKind(
       'ADD_EXPLICIT_CAST', 50, "Add cast",
       appliedTogetherMessage: "Add all casts in file");

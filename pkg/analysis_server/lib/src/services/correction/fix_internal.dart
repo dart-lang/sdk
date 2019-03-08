@@ -610,6 +610,9 @@ class FixProcessor {
       if (name == LintNames.type_init_formals) {
         await _addFix_removeTypeAnnotation();
       }
+      if (name == LintNames.unawaited_futures) {
+        await _addFix_addAwait();
+      }
       if (name == LintNames.unnecessary_brace_in_string_interps) {
         await _addFix_removeInterpolationBraces();
       }
@@ -654,6 +657,14 @@ class FixProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.ADD_ASYNC);
     }
+  }
+
+  Future<void> _addFix_addAwait() async {
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleInsertion(node.offset, 'await ');
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_AWAIT);
   }
 
   Future<void> _addFix_addExplicitCast() async {
@@ -4349,6 +4360,7 @@ class LintNames {
   static const String prefer_final_locals = 'prefer_final_locals';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
   static const String type_init_formals = 'type_init_formals';
+  static const String unawaited_futures = 'unawaited_futures';
   static const String unnecessary_brace_in_string_interps =
       'unnecessary_brace_in_string_interps';
   static const String unnecessary_const = 'unnecessary_const';
