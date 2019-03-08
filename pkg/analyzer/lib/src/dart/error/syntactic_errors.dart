@@ -163,6 +163,8 @@ class ParserErrorCode extends ErrorCode {
       'EXPECTED_CLASS_MEMBER', "Expected a class member.",
       correction: "Try placing this code inside a class member.");
 
+  static const ParserErrorCode EXPECTED_ELSE_OR_COMMA = _EXPECTED_ELSE_OR_COMMA;
+
   static const ParserErrorCode EXPECTED_EXECUTABLE = const ParserErrorCode(
       'EXPECTED_EXECUTABLE',
       "Expected a method, getter, setter or operator declaration.",

@@ -2803,6 +2803,15 @@ Message _withArgumentsExpectedDeclaration(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedElseOrComma = messageExpectedElseOrComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedElseOrComma = const MessageCode(
+    "ExpectedElseOrComma",
+    index: 94,
+    message: r"""Expected 'else' or comma.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Token token)> templateExpectedEnumBody = const Template<
         Message Function(Token token)>(

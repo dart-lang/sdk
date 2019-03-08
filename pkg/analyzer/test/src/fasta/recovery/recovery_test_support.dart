@@ -19,13 +19,15 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
       String invalidCode, List<ErrorCode> errorCodes, String validCode,
       {CompilationUnit adjustValidUnitBeforeComparison(CompilationUnit unit),
+      bool enableControlFlowCollections,
       List<ErrorCode> expectedErrorsInValidCode}) {
     CompilationUnit validUnit;
 
     // Assert that the valid code is indeed valid.
     try {
-      validUnit =
-          parseCompilationUnit(validCode, codes: expectedErrorsInValidCode);
+      validUnit = parseCompilationUnit(validCode,
+          codes: expectedErrorsInValidCode,
+          enableControlFlowCollections: enableControlFlowCollections);
       validateTokenStream(validUnit.beginToken);
     } catch (e) {
 //      print('');
@@ -39,7 +41,8 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
     // Compare the structures before asserting valid errors.
     GatheringErrorListener listener =
         new GatheringErrorListener(checkRanges: true);
-    CompilationUnit invalidUnit = parseCompilationUnit2(invalidCode, listener);
+    CompilationUnit invalidUnit = parseCompilationUnit2(invalidCode, listener,
+        enableControlFlowCollections: enableControlFlowCollections);
     validateTokenStream(invalidUnit.beginToken);
     if (adjustValidUnitBeforeComparison != null) {
       validUnit = adjustValidUnitBeforeComparison(validUnit);

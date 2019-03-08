@@ -101,6 +101,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _STACK_OVERFLOW,
   _MISSING_CATCH_OR_FINALLY,
   _EXPERIMENT_NOT_ENABLED,
+  _EXPECTED_ELSE_OR_COMMA,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -238,6 +239,9 @@ const ParserErrorCode _EQUALITY_CANNOT_BE_EQUALITY_OPERAND = const ParserErrorCo
     'EQUALITY_CANNOT_BE_EQUALITY_OPERAND',
     r"An equality expression can't be an operand of another equality expression.",
     correction: "Try re-writing the expression.");
+
+const ParserErrorCode _EXPECTED_ELSE_OR_COMMA = const ParserErrorCode(
+    'EXPECTED_ELSE_OR_COMMA', r"Expected 'else' or comma.");
 
 const ParserErrorCode _EXPECTED_INSTEAD = const ParserErrorCode(
     'EXPECTED_INSTEAD', r"Expected '#string' instead of this.");

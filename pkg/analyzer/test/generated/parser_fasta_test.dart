@@ -1356,11 +1356,14 @@ class FastaParserTestCase
 
   @override
   CompilationUnit parseCompilationUnit(String content,
-      {List<ErrorCode> codes, List<ExpectedError> errors}) {
+      {List<ErrorCode> codes,
+      List<ExpectedError> errors,
+      bool enableControlFlowCollections}) {
     GatheringErrorListener listener =
         new GatheringErrorListener(checkRanges: true);
 
-    CompilationUnit unit = parseCompilationUnit2(content, listener);
+    CompilationUnit unit = parseCompilationUnit2(content, listener,
+        enableControlFlowCollections: enableControlFlowCollections);
 
     // Assert and return result
     if (codes != null) {
@@ -1375,7 +1378,8 @@ class FastaParserTestCase
   }
 
   CompilationUnit parseCompilationUnit2(
-      String content, GatheringErrorListener listener) {
+      String content, GatheringErrorListener listener,
+      {bool enableControlFlowCollections}) {
     var source = new StringSource(content, 'parser_test_StringSource.dart');
 
     void reportError(
@@ -1404,6 +1408,9 @@ class FastaParserTestCase
     parser.listener = astBuilder;
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
+    if (enableControlFlowCollections != null) {
+      astBuilder.enableControlFlowCollections = enableControlFlowCollections;
+    }
     parser.parseUnit(_fastaTokens);
     CompilationUnitImpl unit = astBuilder.pop();
     unit.localDeclarations = astBuilder.localDeclarations;

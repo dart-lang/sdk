@@ -201,6 +201,11 @@ EmptyOptionalParameterList:
       foo();
     }
 
+ExpectedElseOrComma:
+  index: 94
+  template: "Expected 'else' or comma."
+  analyzerCode: ParserErrorCode.EXPECTED_ELSE_OR_COMMA
+
 ExpectedBlock:
   template: "Expected a block."
   tip: "Try adding {}."

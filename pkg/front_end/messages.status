@@ -132,6 +132,7 @@ ExpectedButGot/script2: Fail
 ExpectedClassMember/example: Fail
 ExpectedClassOrMixinBody/example: Fail
 ExpectedDeclaration/example: Fail
+ExpectedElseOrComma/example: Fail
 ExpectedFunctionBody/example: Fail
 ExpectedNamedArgument/example: Fail
 ExpectedOneExpression/analyzerCode: Fail

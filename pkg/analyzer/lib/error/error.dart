@@ -390,6 +390,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
   ParserErrorCode.EXPECTED_CASE_OR_DEFAULT,
   ParserErrorCode.EXPECTED_CLASS_MEMBER,
+  ParserErrorCode.EXPECTED_ELSE_OR_COMMA,
   ParserErrorCode.EXPECTED_EXECUTABLE,
   ParserErrorCode.EXPECTED_INSTEAD,
   ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL,

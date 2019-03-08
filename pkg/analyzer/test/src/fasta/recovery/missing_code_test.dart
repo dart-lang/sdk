@@ -37,6 +37,22 @@ f() => [a, b c];
 f() => [a, b, c];
 ''');
   }
+
+  void test_missingComma_afterIf() {
+    testRecovery('''
+f() => [a, if (x) b c];
+''', [ParserErrorCode.EXPECTED_ELSE_OR_COMMA], '''
+f() => [a, if (x) b, c];
+''', enableControlFlowCollections: true);
+  }
+
+  void test_missingComma_afterIfElse() {
+    testRecovery('''
+f() => [a, if (x) b else y c];
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f() => [a, if (x) b else y, c];
+''', enableControlFlowCollections: true);
+  }
 }
 
 /**
@@ -70,6 +86,22 @@ f() => {a: b, c: d e: f};
 ''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f() => {a: b, c: d, e: f};
 ''');
+  }
+
+  void test_missingComma_afterIf() {
+    testRecovery('''
+f() => {a: b, if (x) c: d e: f};
+''', [ParserErrorCode.EXPECTED_ELSE_OR_COMMA], '''
+f() => {a: b, if (x) c: d, e: f};
+''', enableControlFlowCollections: true);
+  }
+
+  void test_missingComma_afterIfElse() {
+    testRecovery('''
+f() => {a: b, if (x) c: d else y: z e: f};
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f() => {a: b, if (x) c: d else y: z, e: f};
+''', enableControlFlowCollections: true);
   }
 
   void test_missingKey() {

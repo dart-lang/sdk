@@ -4211,7 +4211,17 @@ class Parser {
         token = next;
         break;
       }
-      token = parseListOrSetLiteralEntry(token);
+      int ifCount = 0;
+      LiteralEntryInfo info = computeLiteralEntry(token);
+      while (info != null) {
+        if (info.hasEntry) {
+          token = parseExpression(token);
+        } else {
+          token = info.parse(token, this);
+        }
+        ifCount += info.ifConditionDelta;
+        info = info.computeNext(token);
+      }
       next = token.next;
       ++count;
       if (!optional(',', next)) {
@@ -4236,28 +4246,16 @@ class Parser {
         }
         // This looks like the start of an expression.
         // Report an error, insert the comma, and continue parsing.
-        next = rewriteAndRecover(
-            token,
-            fasta.templateExpectedButGot.withArguments(','),
-            new SyntheticToken(TokenType.COMMA, next.offset));
+        var comma = new SyntheticToken(TokenType.COMMA, next.offset);
+        var message = ifCount > 0
+            ? fasta.messageExpectedElseOrComma
+            : fasta.templateExpectedButGot.withArguments(',');
+        next = rewriteAndRecover(token, message, comma);
       }
       token = next;
     }
     mayParseFunctionExpressions = old;
     listener.handleLiteralList(count, beginToken, constKeyword, token);
-    return token;
-  }
-
-  Token parseListOrSetLiteralEntry(Token token) {
-    LiteralEntryInfo info = computeLiteralEntry(token);
-    while (info != null) {
-      if (info.hasEntry) {
-        token = parseExpression(token);
-      } else {
-        token = info.parse(token, this);
-      }
-      info = info.computeNext(token);
-    }
     return token;
   }
 
@@ -4280,6 +4278,7 @@ class Parser {
     bool hasSetEntry;
 
     while (true) {
+      int ifCount = 0;
       LiteralEntryInfo info = computeLiteralEntry(token);
       if (info == simpleEntry) {
         // TODO(danrubel): Remove this section and use the while loop below
@@ -4304,6 +4303,7 @@ class Parser {
           } else {
             token = info.parse(token, this);
           }
+          ifCount += info.ifConditionDelta;
           info = info.computeNext(token);
         }
       }
@@ -4327,10 +4327,12 @@ class Parser {
         if (looksLikeLiteralEntry(next)) {
           // If this looks like the start of an expression,
           // then report an error, insert the comma, and continue parsing.
-          token = rewriteAndRecover(
-              token,
-              fasta.templateExpectedButGot.withArguments(','),
-              new SyntheticToken(TokenType.COMMA, next.offset));
+          // TODO(danrubel): Consider better error message
+          var comma = new SyntheticToken(TokenType.COMMA, next.offset);
+          var message = ifCount > 0
+              ? fasta.messageExpectedElseOrComma
+              : fasta.templateExpectedButGot.withArguments(',');
+          token = rewriteAndRecover(token, message, comma);
         } else {
           reportRecoverableError(
               next, fasta.templateExpectedButGot.withArguments('}'));
