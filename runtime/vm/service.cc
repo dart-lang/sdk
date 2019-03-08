@@ -173,13 +173,16 @@ RawObject* Service::RequestAssets() {
   Object& object = Object::Handle();
   {
     Api::Scope api_scope(T);
-    TransitionVMToNative transition(T);
-    if (get_service_assets_callback_ == NULL) {
-      return Object::null();
-    }
-    Dart_Handle handle = get_service_assets_callback_();
-    if (Dart_IsError(handle)) {
-      Dart_PropagateError(handle);
+    Dart_Handle handle;
+    {
+      TransitionVMToNative transition(T);
+      if (get_service_assets_callback_ == NULL) {
+        return Object::null();
+      }
+      handle = get_service_assets_callback_();
+      if (Dart_IsError(handle)) {
+        Dart_PropagateError(handle);
+      }
     }
     object = Api::UnwrapHandle(handle);
   }
