@@ -817,18 +817,22 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         (node.valueType is ImplicitTypeArgument));
     bool inferenceNeeded = node.keyType is ImplicitTypeArgument;
     KernelLibraryBuilder library = inferrer.library;
+    bool typeContextIsMap = false;
+    bool typeContextIsIterable = false;
     if (library != null &&
         library.loader.target.enableSetLiterals &&
-        inferenceNeeded &&
-        node.entries.isEmpty) {
+        inferenceNeeded) {
       // Ambiguous set/map literal
       DartType context =
           inferrer.typeSchemaEnvironment.unfutureType(typeContext);
       if (context is InterfaceType) {
-        if (inferrer.classHierarchy.isSubtypeOf(
-                context.classNode, inferrer.coreTypes.iterableClass) &&
-            !inferrer.classHierarchy
-                .isSubtypeOf(context.classNode, inferrer.coreTypes.mapClass)) {
+        typeContextIsMap = inferrer.classHierarchy
+            .isSubtypeOf(context.classNode, inferrer.coreTypes.mapClass);
+        typeContextIsIterable = inferrer.classHierarchy
+            .isSubtypeOf(context.classNode, inferrer.coreTypes.iterableClass);
+        if (node.entries.isEmpty &&
+            typeContextIsIterable &&
+            !typeContextIsMap) {
           // Set literal
           SetLiteralJudgment setLiteral = new SetLiteralJudgment([],
               typeArgument: const ImplicitTypeArgument(), isConst: node.isConst)
@@ -867,13 +871,24 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         cachedValues[i] = node.entries[i].value;
       }
     }
+    int iterableSpreadOffset = null;
+    int mapSpreadOffset = null;
+    int mapEntryOffset = null;
     if (inferenceNeeded || typeChecksNeeded) {
+      DartType spreadTypeContext = const UnknownType();
+      if (typeContextIsIterable && !typeContextIsMap) {
+        spreadTypeContext = inferrer.typeSchemaEnvironment
+            .getTypeAsInstanceOf(typeContext, inferrer.coreTypes.iterableClass);
+      } else if (!typeContextIsIterable && typeContextIsMap) {
+        spreadTypeContext =
+            new InterfaceType(inferrer.coreTypes.mapClass, inferredTypes);
+      }
       for (int i = 0; i < node.entries.length; ++i) {
         MapEntry entry = node.entries[i];
         if (entry is SpreadMapEntry) {
           DartType spreadMapEntryType = inferrer.inferExpression(
               entry.expression,
-              new InterfaceType(inferrer.coreTypes.mapClass, inferredTypes),
+              spreadTypeContext,
               inferenceNeeded || typeChecksNeeded,
               isVoidAllowed: true);
           if (inferenceNeeded) {
@@ -883,6 +898,19 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
           if (typeChecksNeeded) {
             spreadMapEntryTypes[i] = spreadMapEntryType;
           }
+
+          bool isMap = inferrer.typeSchemaEnvironment.isSubtypeOf(
+              spreadMapEntryType, inferrer.coreTypes.mapClass.rawType);
+          bool isSet = inferrer.typeSchemaEnvironment.isSubtypeOf(
+              spreadMapEntryType, inferrer.coreTypes.iterableClass.rawType);
+
+          if (isMap && !isSet) {
+            mapSpreadOffset = entry.expression.fileOffset;
+          }
+          if (!isMap && isSet) {
+            iterableSpreadOffset = entry.expression.fileOffset;
+          }
+
           // Use 'dynamic' for error recovery.
           int length = actualTypes.length;
           actualTypes.add(const DynamicType());
@@ -901,10 +929,62 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
           if (inferenceNeeded) {
             formalTypes.addAll(mapType.typeArguments);
           }
+
+          mapEntryOffset = entry.fileOffset;
         }
       }
     }
     if (inferenceNeeded) {
+      bool canBeSet = mapSpreadOffset == null &&
+          mapEntryOffset == null &&
+          !typeContextIsMap;
+      bool canBeMap = iterableSpreadOffset == null && !typeContextIsIterable;
+      if (canBeSet && !canBeMap) {
+        List<Expression> setElements = <Expression>[];
+        for (int i = 0; i < node.entries.length; ++i) {
+          SpreadMapEntry entry = node.entries[i];
+          // TODO(dmitryas):  Add support for null-aware spreads.
+          setElements.add(new SpreadElement(entry.expression, false));
+        }
+        SetLiteralJudgment setLiteral = new SetLiteralJudgment(setElements,
+            typeArgument: const ImplicitTypeArgument(), isConst: node.isConst)
+          ..fileOffset = node.fileOffset;
+        node.parent.replaceChild(node, setLiteral);
+        visitSetLiteralJudgment(setLiteral, typeContext);
+        node.inferredType = setLiteral.inferredType;
+        return;
+      }
+      if (canBeSet && canBeMap && node.entries.isNotEmpty) {
+        node.parent.replaceChild(
+            node,
+            inferrer.helper.desugarSyntheticExpression(inferrer.helper
+                .buildProblem(messageCantDisambiguateNotEnoughInformation,
+                    node.fileOffset, 1)));
+        node.inferredType = const BottomType();
+        return;
+      }
+      if (!canBeSet && !canBeMap) {
+        LocatedMessage iterableContextMessage = messageSpreadElement
+            .withLocation(library.uri, iterableSpreadOffset, 1);
+        LocatedMessage mapContextMessage = messageSpreadMapElement.withLocation(
+            library.uri, mapSpreadOffset, 1);
+        List<LocatedMessage> context = <LocatedMessage>[];
+        if (iterableSpreadOffset < mapSpreadOffset) {
+          context.add(iterableContextMessage);
+          context.add(mapContextMessage);
+        } else {
+          context.add(mapContextMessage);
+          context.add(iterableContextMessage);
+        }
+        node.parent.replaceChild(
+            node,
+            inferrer.helper.desugarSyntheticExpression(inferrer.helper
+                .buildProblem(messageCantDisambiguateAmbiguousInformation,
+                    node.fileOffset, 1,
+                    context: context)));
+        node.inferredType = const BottomType();
+        return;
+      }
       inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
           mapType,
           mapClass.typeParameters,
