@@ -22,6 +22,7 @@ import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
 import 'invalid_required_param_test.dart' as invalid_required_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
+import 'missing_return_test.dart' as missing_return;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
@@ -70,6 +71,7 @@ main() {
     invalid_override_different_default_values_positional.main();
     invalid_required_param.main();
     invalid_sealed_annotation.main();
+    missing_return.main();
     mixin_on_sealed_class.main();
     must_be_immutable.main();
     must_call_super.main();

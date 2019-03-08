@@ -9,28 +9,6 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'resolver_test_case.dart';
 
 abstract class NonHintCodeTest extends ResolverTestCase {
-  @override
-  void reset() {
-    super.resetWith(packages: [
-      [
-        'meta',
-        r'''
-library meta;
-
-const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
-const _Literal literal = const _Literal();
-
-class _AlwaysThrows {
-  const _AlwaysThrows();
-}
-class _Literal {
-  const _Literal();
-}
-'''
-      ]
-    ]);
-  }
-
   test_async_future_object_without_return() async {
     Source source = addSource('''
 import 'dart:async';
@@ -142,64 +120,6 @@ f(var message) {
   }
   String s = message;
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_missingReturn_alwaysThrows() async {
-    Source source = addSource(r'''
-import 'package:meta/meta.dart';
-
-@alwaysThrows
-void a() {
-  throw 'msg';
-}
-
-int f() {
-  a();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_missingReturn_emptyFunctionBody() async {
-    Source source = addSource(r'''
-abstract class A {
-  int m();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_missingReturn_expressionFunctionBody() async {
-    Source source = addSource("int f() => 0;");
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_missingReturn_futureVoidReturnType() async {
-    Source source = addSource('''
-import 'dart:async';
-Future<void> f() async {}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_missingReturn_noReturnType() async {
-    Source source = addSource("f() {}");
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_missingReturn_voidReturnType() async {
-    Source source = addSource("void f() {}");
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
