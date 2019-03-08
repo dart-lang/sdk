@@ -769,7 +769,11 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     StackZone zone(thread);
     HandleScope scope(thread);
 
-    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(thread));
+    Dart_Handle result = Api::CheckAndFinalizePendingClasses(thread);
+    {
+      TransitionVMToNative to_native(thread);
+      EXPECT_VALID(result);
+    }
     timer1.Stop();
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 

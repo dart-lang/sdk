@@ -158,7 +158,12 @@ class NativeArguments {
     return type_args.TypeAt(index);
   }
 
-  void SetReturn(const Object& value) const { *retval_ = value.raw(); }
+  RawObject** ReturnValueAddress() const { return retval_; }
+
+  void SetReturn(const Object& value) const {
+    ASSERT(thread_->execution_state() == Thread::kThreadInVM);
+    *retval_ = value.raw();
+  }
 
   RawObject* ReturnValue() const {
     // Tell MemorySanitizer the retval_ was initialized (by generated code).
@@ -250,7 +255,10 @@ class NativeArguments {
   // exceedingly careful when we use it.  If there are any other side
   // effects in the statement that may cause GC, it could lead to
   // bugs.
-  void SetReturnUnsafe(RawObject* value) const { *retval_ = value; }
+  void SetReturnUnsafe(RawObject* value) const {
+    ASSERT(thread_->execution_state() == Thread::kThreadInVM);
+    *retval_ = value;
+  }
 
   // Returns true if the arguments are those of an instance function call.
   bool ToInstanceFunction() const {

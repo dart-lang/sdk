@@ -92,7 +92,10 @@ TEST_CASE(CheckHandleValidity) {
     TransitionNativeToVM transition(thread);
     StackZone sz(thread);
     handle = reinterpret_cast<Dart_Handle>(&Smi::ZoneHandle(Smi::New(1)));
-    EXPECT_VALID(handle);
+    {
+      TransitionVMToNative to_native(thread);
+      EXPECT_VALID(handle);
+    }
   }
   EXPECT(!Api::IsValid(handle));
 
@@ -103,7 +106,10 @@ TEST_CASE(CheckHandleValidity) {
       TransitionNativeToVM transition(thread);
       HANDLESCOPE(thread);
       handle = reinterpret_cast<Dart_Handle>(&Smi::Handle(Smi::New(1)));
-      EXPECT_VALID(handle);
+      {
+        TransitionVMToNative to_native(thread);
+        EXPECT_VALID(handle);
+      }
     }
     Dart_ExitScope();
   }
