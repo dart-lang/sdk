@@ -30,7 +30,7 @@ part 'timeline.dart';
 /// Returns the value of [when]. Some debuggers may display [message].
 ///
 /// NOTE: When invoked, the isolate will not return until a debugger
-/// continues execution. When running in the Dart VM the behaviour is the same
+/// continues execution. When running in the Dart VM, the behaviour is the same
 /// regardless of whether or not a debugger is connected. When compiled to
 /// JavaScript, this uses the "debugger" statement, and behaves exactly as
 /// that does.
