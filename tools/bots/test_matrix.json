@@ -614,7 +614,7 @@
           "arguments": [
             "-ndartk-asan-linux-release-${arch}"],
           "environment": {
-            "ASAN_OPTIONS": "handle_segv=0:detect_stack_use_after_return=0",
+            "ASAN_OPTIONS": "handle_segv=0:detect_stack_use_after_return=0:disable_coredump=0",
             "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
           }
         }
