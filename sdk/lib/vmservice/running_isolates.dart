@@ -185,6 +185,7 @@ class _Evaluator {
       Map<String, dynamic> params = _setupParams();
       params['isolateId'] = _message.params['isolateId'];
       params['kernelBytes'] = kernelBase64;
+      params['disableBreakpoints'] = _message.params['disableBreakpoints'];
       Map runParams = {
         'method': '_evaluateCompiledExpression',
         'id': _message.serial,

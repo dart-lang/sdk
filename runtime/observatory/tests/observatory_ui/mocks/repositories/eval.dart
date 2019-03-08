@@ -5,7 +5,8 @@
 part of mocks;
 
 typedef Future<M.Object> EvalRepositoryMockCallback(
-    M.IsolateRef isolate, M.ObjectRef context, String expression);
+    M.IsolateRef isolate, M.ObjectRef context, String expression,
+    {bool disableBreakpoints});
 
 class EvalRepositoryMock implements M.EvalRepository {
   final EvalRepositoryMockCallback _get;
@@ -13,9 +14,11 @@ class EvalRepositoryMock implements M.EvalRepository {
   EvalRepositoryMock({EvalRepositoryMockCallback getter}) : _get = getter;
 
   Future<M.Object> evaluate(
-      M.IsolateRef isolate, M.ObjectRef context, String expression) {
+      M.IsolateRef isolate, M.ObjectRef context, String expression,
+      {bool disableBreakpoints: false}) {
     if (_get != null) {
-      return _get(isolate, context, expression);
+      return _get(isolate, context, expression,
+          disableBreakpoints: disableBreakpoints);
     }
     return new Future.value(null);
   }

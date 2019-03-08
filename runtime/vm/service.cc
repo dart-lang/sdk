@@ -2362,6 +2362,11 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     return true;
   }
 
+  bool disable_breakpoints =
+      BoolParameter::Parse(js->LookupParam("disableBreakpoints"), false);
+  DisableBreakpointsScope db(thread->isolate()->debugger(),
+                             disable_breakpoints);
+
   Zone* zone = thread->zone();
   ObjectIdRing::LookupResult lookup_result;
   Object& receiver = Object::Handle(
@@ -2842,6 +2847,11 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
   }
 
   Isolate* isolate = thread->isolate();
+
+  bool disable_breakpoints =
+      BoolParameter::Parse(js->LookupParam("disableBreakpoints"), false);
+  DisableBreakpointsScope db(isolate->debugger(), disable_breakpoints);
+
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   intptr_t frame_pos = UIntParameter::Parse(js->LookupParam("frameIndex"));
   if (frame_pos >= stack->Length()) {

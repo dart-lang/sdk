@@ -1893,10 +1893,11 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   Future<ServiceObject> eval(ServiceObject target, String expression,
-      {Map<String, ServiceObject> scope}) {
+      {Map<String, ServiceObject> scope, bool disableBreakpoints: false}) {
     Map params = {
       'targetId': target.id,
       'expression': expression,
+      'disableBreakpoints': disableBreakpoints,
     };
     if (scope != null) {
       Map<String, String> scopeWithIds = new Map();
@@ -1909,10 +1910,12 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   Future<ServiceObject> evalFrame(int frameIndex, String expression,
-      {Map<String, ServiceObject> scope}) async {
+      {Map<String, ServiceObject> scope,
+      bool disableBreakpoints: false}) async {
     Map params = {
       'frameIndex': frameIndex,
       'expression': expression,
+      'disableBreakpoints': disableBreakpoints,
     };
     if (scope != null) {
       Map<String, String> scopeWithIds = new Map();
@@ -2482,8 +2485,9 @@ class Library extends HeapObject implements M.Library {
   }
 
   Future<ServiceObject> evaluate(String expression,
-      {Map<String, ServiceObject> scope}) {
-    return isolate.eval(this, expression, scope: scope);
+      {Map<String, ServiceObject> scope, bool disableBreakpoints: false}) {
+    return isolate.eval(this, expression,
+        scope: scope, disableBreakpoints: disableBreakpoints);
   }
 
   Script get rootScript {
@@ -2661,8 +2665,9 @@ class Class extends HeapObject implements M.Class {
   }
 
   Future<ServiceObject> evaluate(String expression,
-      {Map<String, ServiceObject> scope}) {
-    return isolate.eval(this, expression, scope: scope);
+      {Map<String, ServiceObject> scope, disableBreakpoints: false}) {
+    return isolate.eval(this, expression,
+        scope: scope, disableBreakpoints: disableBreakpoints);
   }
 
   Future<ServiceObject> setTraceAllocations(bool enable) {
@@ -3027,8 +3032,9 @@ class Instance extends HeapObject implements M.Instance {
   }
 
   Future<ServiceObject> evaluate(String expression,
-      {Map<String, ServiceObject> scope}) {
-    return isolate.eval(this, expression, scope: scope);
+      {Map<String, ServiceObject> scope, bool disableBreakpoints: false}) {
+    return isolate.eval(this, expression,
+        scope: scope, disableBreakpoints: disableBreakpoints);
   }
 
   String toString() => 'Instance($shortName)';

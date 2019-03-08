@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.15-dev
+# Dart VM Service Protocol 3.16-dev
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.15-dev_ of the Dart VM Service Protocol. This
+This document describes of _version 3.16-dev_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -479,7 +479,8 @@ Note that breakpoints are added and removed on a per-isolate basis.
 @Instance|@Error|Sentinel invoke(string isolateId,
                                  string targetId,
                                  string selector,
-                                 string[] argumentIds)
+                                 string[] argumentIds,
+                                 bool disableBreakpoints [optional])
 ```
 
 The _invoke_ RPC is used to perform regular method invocation on some receiver,
@@ -490,6 +491,10 @@ _targetId_ may refer to a [Library](#library), [Class](#class), or
 [Instance](#instance).
 
 Each elements of _argumentId_ may refer to an [Instance](#instance).
+
+If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
+result of this invocation are ignored, including pauses resulting from a call
+to `debugger()` from `dart:developer`. Defaults to false if not provided.
 
 If _targetId_ or any element of _argumentIds_ is a temporary id which has
 expired, then the _Expired_ [Sentinel](#sentinel) is returned.
@@ -513,7 +518,8 @@ reference will be returned.
 @Instance|@Error|Sentinel evaluate(string isolateId,
                                    string targetId,
                                    string expression,
-                                   map<string,string> scope [optional])
+                                   map<string,string> scope [optional],
+                                   bool disableBreakpoints [optional])
 ```
 
 The _evaluate_ RPC is used to evaluate an expression in the context of
@@ -535,6 +541,9 @@ which is a child scope of the class or library for instance/class or library
 targets respectively. This means bindings provided in _scope_ may shadow
 instance members, class members and top-level members.
 
+If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
+result of this evaluation are ignored. Defaults to false if not provided.
+
 If expression is failed to parse and compile, then [rpc error](#rpc-error) 113
 "Expression compilation error" is returned.
 
@@ -550,7 +559,8 @@ reference will be returned.
 @Instance|@Error|Sentinel evaluateInFrame(string isolateId,
                                           int frameIndex,
                                           string expression,
-                                          map<string,string> scope [optional])
+                                          map<string,string> scope [optional],
+                                          bool disableBreakpoints [optional])
 ```
 
 The _evaluateInFrame_ RPC is used to evaluate an expression in the
@@ -563,6 +573,9 @@ These bindings will be added to the scope in which the expression is evaluated,
 which is a child scope of the frame's current scope. This means bindings
 provided in _scope_ may shadow instance members, class members, top-level
 members, parameters and locals.
+
+If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
+result of this evaluation are ignored. Defaults to false if not provided.
 
 If expression is failed to parse and compile, then [rpc error](#rpc-error) 113
 "Expression compilation error" is returned.
@@ -2751,5 +2764,6 @@ version | comments
 3.12 | Add 'getScripts' RPC and `ScriptList` object.
 3.13 | Class 'mixin' field now properly set for kernel transformed mixin applications.
 3.14 | Flag 'profile_period' can now be set at runtime, allowing for the profiler sample rate to be changed while the program is running.
+3.15 | Added `disableBreakpoints` parameter to `invoke`, `evaluate`, and `evaluateInFrame`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
