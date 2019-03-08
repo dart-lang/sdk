@@ -87,6 +87,14 @@ library;
 //     /*@error=SpreadMapEntryElementValueTypeMismatch*/ mapSpread};
 //                                                       ^
 //
+// pkg/front_end/testcases/spread_collection_inference.dart:117:67: Error: Can't spread a value with static type Null.
+//   List<int> lhs70 = <int>[... /*@error=NonNullAwareSpreadIsNull*/ null];
+//                                                                   ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:119:66: Error: Can't spread a value with static type Null.
+//   Set<int> set70 = <int>{... /*@error=NonNullAwareSpreadIsNull*/ null};
+//                                                                  ^
+//
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -286,5 +294,25 @@ Try changing the type of the left hand side, or casting the right hand side to '
   core::Map<core::String, core::String> map61 = <core::String, core::String>{null: invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:115:55: Error: Can't assign spread entry values of type 'int' to map entry values of type 'String'.
     /*@error=SpreadMapEntryElementValueTypeMismatch*/ mapSpread};
                                                       ^"};
+  core::List<core::int> lhs70 = <core::int>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:117:67: Error: Can't spread a value with static type Null.
+  List<int> lhs70 = <int>[... /*@error=NonNullAwareSpreadIsNull*/ null];
+                                                                  ^"];
+  core::Set<core::int> set70 = let final core::Set<core::int> #t62 = col::LinkedHashSet::•<core::int>() in let final dynamic #t63 = #t62.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:119:66: Error: Can't spread a value with static type Null.
+  Set<int> set70 = <int>{... /*@error=NonNullAwareSpreadIsNull*/ null};
+                                                                 ^") in #t62;
+  core::List<core::int> lhs80 = block {
+    final core::List<core::int> #t64 = <core::int>[];
+    final dynamic #t65 = null;
+    if(!#t65.{core::Object::==}(null))
+      for (final core::int #t66 in #t65)
+        #t64.{core::List::add}(#t66);
+  } =>#t64;
+  core::Set<core::int> set80 = block {
+    final core::Set<core::int> #t67 = col::LinkedHashSet::•<core::int>();
+    final dynamic #t68 = null;
+    if(!#t68.{core::Object::==}(null))
+      for (final core::int #t69 in #t68)
+        #t67.{core::Set::add}(#t69);
+  } =>#t67;
 }
 static method main() → dynamic {}

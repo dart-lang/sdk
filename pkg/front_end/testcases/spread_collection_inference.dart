@@ -113,6 +113,14 @@ foo() {
 
   Map<String, String> map61 = <String, String>{...
     /*@error=SpreadMapEntryElementValueTypeMismatch*/ mapSpread};
+
+  List<int> lhs70 = <int>[... /*@error=NonNullAwareSpreadIsNull*/ null];
+
+  Set<int> set70 = <int>{... /*@error=NonNullAwareSpreadIsNull*/ null};
+
+  List<int> lhs80 = <int>[...?null];
+
+  Set<int> set80 = <int>{...?null};
 }
 
 main() {}

@@ -3553,3 +3553,10 @@ SpreadElement:
 SpreadMapElement:
   template: "Map spread."
   severity: CONTEXT
+
+NonNullAwareSpreadIsNull:
+  template: "Can't spread a value with static type Null."
+  script: >
+    main() {
+      <int>[...null];
+    }
