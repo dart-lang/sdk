@@ -15,7 +15,7 @@ const desc =
 
 const details = '''
 
-**PREFER** using `const` for instantiating list and map literals used as
+**PREFER** using `const` for instantiating list, map and set literals used as
 parameters in immutable class instantiations.
 
 **BAD:**
