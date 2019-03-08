@@ -35,6 +35,11 @@ import '../../base/instrumentation.dart'
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
+        messageCantDisambiguateAmbiguousInformation,
+        messageCantDisambiguateNotEnoughInformation,
+        messageSpreadElement,
+        messageSpreadMapElement,
         messageSwitchExpressionNotAssignableCause,
         messageVoidExpression,
         noLength,

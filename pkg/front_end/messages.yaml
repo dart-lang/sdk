@@ -3525,3 +3525,26 @@ SpreadMapEntryElementValueTypeMismatch:
       Map<String, int> a = <String, int>{"foo": 42};
       Map<String, String> b = <String, String>{...a};
     }
+
+CantDisambiguateNotEnoughInformation:
+  template: "Not enough type information to disambiguate between literal set and literal map."
+  tip: "Try providing type arguments for the literal explicitly to disambiguate it."
+  script: >
+    foo(dynamic spread) {
+      var a = {...spread};
+    }
+
+CantDisambiguateAmbiguousInformation:
+  template: "Both Iterable and Map spread elements encountered in ambiguous literal."
+  script: >
+    foo(Iterable<int> iterableSpread, Map<int, int> mapSpread) {
+      var c = {...iterableSpread, ...mapSpread};
+    }
+
+SpreadElement:
+  template: "Iterable spread."
+  severity: CONTEXT
+
+SpreadMapElement:
+  template: "Map spread."
+  severity: CONTEXT
