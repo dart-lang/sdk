@@ -405,7 +405,7 @@ void Thread::SetStackLimit(uword limit) {
   // The thread setting the stack limit is not necessarily the thread which
   // the stack limit is being set on.
   MonitorLocker ml(thread_lock_);
-  if (stack_limit_ == saved_stack_limit_) {
+  if (!HasScheduledInterrupts()) {
     // No interrupt pending, set stack_limit_ too.
     stack_limit_ = limit;
   }
