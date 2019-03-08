@@ -238,6 +238,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
                 // eager and non-final fields.
                 backend.constants.registerLazyStatic(targetElement);
               }
+            } else {
+              assert(targetElement.isInstanceMember);
+              if (_fieldAnalysis
+                      .getFieldData(targetElement)
+                      .isEffectivelyFinal ||
+                  !options.parameterCheckPolicy.isEmitted) {
+                // No need for a checked setter.
+                return null;
+              }
             }
             buildField(target);
           } else if (target is ir.FunctionExpression) {
@@ -262,8 +271,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           buildConstructorBody(constructor);
           break;
         case MemberKind.closureField:
-          failedAt(targetElement, "Unexpected closure field: $targetElement");
-          break;
+          // Closure fields have no setter and therefore never require any code.
+          return null;
         case MemberKind.signature:
           ir.Node target = definition.node;
           ir.FunctionNode originalClosureNode;

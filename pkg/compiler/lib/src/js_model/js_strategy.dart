@@ -26,7 +26,6 @@ import '../js_backend/inferred_data.dart';
 import '../js_backend/native_data.dart';
 import '../kernel/kernel_strategy.dart';
 import '../native/behavior.dart';
-import '../options.dart';
 import '../ssa/builder_kernel.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
@@ -138,21 +137,9 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
   KernelCodegenWorkItemBuilder(
       this._backend, this._closedWorld, this._globalInferenceResults);
 
-  CompilerOptions get _options => _backend.compiler.options;
-
   @override
   CodegenWorkItem createWorkItem(MemberEntity entity) {
     if (entity.isAbstract) return null;
-
-    // Codegen inlines field initializers. It only needs to generate
-    // code for checked setters.
-    if (entity.isField && entity.isInstanceMember) {
-      if (!_options.parameterCheckPolicy.isEmitted ||
-          entity.enclosingClass.isClosure) {
-        return null;
-      }
-    }
-
     return new KernelCodegenWorkItem(
         _backend, _closedWorld, _globalInferenceResults, entity);
   }
