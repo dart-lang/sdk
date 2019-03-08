@@ -1135,8 +1135,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (parent is IfStatement && parent.condition == childOfParent ||
         parent is ForPartsWithDeclarations &&
             parent.condition == childOfParent ||
-        // ignore: deprecated_member_use_from_same_package
-        parent is ForStatement && parent.condition == childOfParent ||
         parent is DoStatement && parent.condition == childOfParent ||
         parent is WhileStatement && parent.condition == childOfParent ||
         parent is ConditionalExpression && parent.condition == childOfParent ||
@@ -4331,51 +4329,6 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  @deprecated
-  void visitForEachStatementInScope(ForEachStatement node) {
-    Expression iterable = node.iterable;
-    DeclaredIdentifier loopVariable = node.loopVariable;
-    SimpleIdentifier identifier = node.identifier;
-
-    identifier?.accept(this);
-
-    DartType valueType;
-    if (loopVariable != null) {
-      TypeAnnotation typeAnnotation = loopVariable.type;
-      valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
-    }
-    if (identifier != null) {
-      Element element = identifier.staticElement;
-      if (element is VariableElement) {
-        valueType = element.type;
-      } else if (element is PropertyAccessorElement) {
-        if (element.parameters.isNotEmpty) {
-          valueType = element.parameters[0].type;
-        }
-      }
-    }
-    if (valueType != null) {
-      InterfaceType targetType = (node.awaitKeyword == null)
-          ? typeProvider.iterableType
-          : typeProvider.streamType;
-      InferenceContext.setType(iterable, targetType.instantiate([valueType]));
-    }
-
-    //
-    // We visit the iterator before the loop variable because the loop variable
-    // cannot be in scope while visiting the iterator.
-    //
-    iterable?.accept(this);
-    loopVariable?.accept(this);
-    Statement body = node.body;
-    if (body != null) {
-      visitStatementInScope(body);
-    }
-    node.accept(elementResolver);
-    node.accept(typeAnalyzer);
-  }
-
-  @override
   void visitForElement(ForElement node) {
     ForLoopParts forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
@@ -4485,17 +4438,6 @@ class ResolverVisitor extends ScopedVisitor {
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     }
-  }
-
-  @override
-  @deprecated
-  void visitForStatementInScope(ForStatement node) {
-    node.variables?.accept(this);
-    node.initialization?.accept(this);
-    InferenceContext.setType(node.condition, typeProvider.boolType);
-    node.condition?.accept(this);
-    visitStatementInScope(node.body);
-    node.updaters.accept(this);
   }
 
   @override
@@ -4698,40 +4640,6 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  @deprecated
-  void visitMapLiteral(MapLiteral node) {
-    InterfaceType mapT;
-    if (node.typeArguments != null) {
-      var targs = node.typeArguments.arguments.map((t) => t.type).toList();
-      if (targs.length == 2 && targs.any((t) => !t.isDynamic)) {
-        mapT = typeProvider.mapType.instantiate([targs[0], targs[1]]);
-      }
-    } else {
-      mapT = typeAnalyzer.inferMapType(node, downwards: true);
-      if (mapT != null &&
-          node.typeArguments == null &&
-          node.entries.isEmpty &&
-          typeSystem.isAssignableTo(typeProvider.iterableObjectType, mapT) &&
-          !typeSystem.isAssignableTo(typeProvider.mapObjectObjectType, mapT)) {
-        // The node is really an empty set literal with no type arguments, so
-        // don't try to visit the replaced map literal.
-        return;
-      }
-    }
-    if (mapT != null) {
-      DartType kType = mapT.typeArguments[0];
-      DartType vType = mapT.typeArguments[1];
-      for (MapLiteralEntry entry in node.entries) {
-        InferenceContext.setType(entry.key, kType);
-        InferenceContext.setType(entry.value, vType);
-      }
-      InferenceContext.setType(node, mapT);
-    } else {
-      InferenceContext.clearType(node);
-    }
-    visitNode(node);
-  }
-
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
@@ -4863,34 +4771,6 @@ class ResolverVisitor extends ScopedVisitor {
       }
       inferenceContext.addReturnOrYieldType(type);
     }
-  }
-
-  @override
-  @deprecated
-  void visitSetLiteral(SetLiteral node) {
-    InterfaceType setT;
-
-    TypeArgumentList typeArguments = node.typeArguments;
-    if (typeArguments != null) {
-      if (typeArguments.length == 1) {
-        DartType elementType = typeArguments.arguments[0].type;
-        if (!elementType.isDynamic) {
-          setT = typeProvider.setType.instantiate([elementType]);
-        }
-      }
-    } else {
-      setT = typeAnalyzer.inferSetType(node, downwards: true);
-    }
-    if (setT != null) {
-      DartType eType = setT.typeArguments[0];
-      for (Expression child in node.elements) {
-        InferenceContext.setType(child, eType);
-      }
-      InferenceContext.setType(node, setT);
-    } else {
-      InferenceContext.clearType(node);
-    }
-    visitNode(node);
   }
 
   @override
@@ -5899,38 +5779,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  @deprecated
-  void visitForEachStatement(ForEachStatement node) {
-    Scope outerNameScope = nameScope;
-    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
-    try {
-      nameScope = new EnclosedScope(nameScope);
-      _implicitLabelScope = _implicitLabelScope.nest(node);
-      visitForEachStatementInScope(node);
-    } finally {
-      nameScope = outerNameScope;
-      _implicitLabelScope = outerImplicitScope;
-    }
-  }
-
-  /// Visit the given statement after it's scope has been created. This replaces
-  /// the normal call to the inherited visit method so that ResolverVisitor can
-  /// intervene when type propagation is enabled.
-  ///
-  /// @param node the statement to be visited
-  @deprecated
-  void visitForEachStatementInScope(ForEachStatement node) {
-    //
-    // We visit the iterator before the loop variable because the loop variable
-    // cannot be in scope while visiting the iterator.
-    //
-    node.identifier?.accept(this);
-    node.iterable?.accept(this);
-    node.loopVariable?.accept(this);
-    visitStatementInScope(node.body);
-  }
-
-  @override
   void visitFormalParameterList(FormalParameterList node) {
     super.visitFormalParameterList(node);
     // We finished resolving function signature, now include formal parameters
@@ -5943,21 +5791,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     }
     if (nameScope is FunctionTypeScope) {
       (nameScope as FunctionTypeScope).defineParameters();
-    }
-  }
-
-  @override
-  @deprecated
-  void visitForStatement(ForStatement node) {
-    Scope outerNameScope = nameScope;
-    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
-    try {
-      nameScope = new EnclosedScope(nameScope);
-      _implicitLabelScope = _implicitLabelScope.nest(node);
-      visitForStatementInScope(node);
-    } finally {
-      nameScope = outerNameScope;
-      _implicitLabelScope = outerImplicitScope;
     }
   }
 
@@ -5982,20 +5815,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     // TODO(brianwilkerson) Investigate the possibility of removing the
     //  visit...InScope methods now that type propagation is no longer done.
     node.forLoopParts?.accept(this);
-    visitStatementInScope(node.body);
-  }
-
-  /// Visit the given statement after it's scope has been created. This replaces
-  /// the normal call to the inherited visit method so that ResolverVisitor can
-  /// intervene when type propagation is enabled.
-  ///
-  /// @param node the statement to be visited
-  @deprecated
-  void visitForStatementInScope(ForStatement node) {
-    node.variables?.accept(this);
-    node.initialization?.accept(this);
-    node.condition?.accept(this);
-    node.updaters.accept(this);
     visitStatementInScope(node.body);
   }
 

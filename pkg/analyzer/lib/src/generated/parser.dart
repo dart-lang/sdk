@@ -3675,8 +3675,8 @@ class Parser {
   ///
   ///     mapLiteral ::=
   ///         'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
-  MapLiteral // ignore: deprecated_member_use_from_same_package
-      parseMapLiteral(Token modifier, TypeArgumentList typeArguments) {
+  SetOrMapLiteral parseMapLiteral(
+      Token modifier, TypeArgumentList typeArguments) {
     Token leftBracket = getAndAdvance();
     if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
       // ignore: deprecated_member_use_from_same_package
@@ -4032,8 +4032,7 @@ class Parser {
         _tokenMatchesKeyword(_peek(), Keyword.FOR)) {
       Token awaitToken = _currentToken;
       Statement statement = parseForStatement();
-      // ignore: deprecated_member_use_from_same_package
-      if (statement is! ForStatement) {
+      if (!(statement is ForStatement2 && statement.forLoopParts is ForParts)) {
         _reportErrorForToken(
             CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, awaitToken);
       }

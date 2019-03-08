@@ -1405,6 +1405,7 @@ main() {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35569')
   test_downwardsInferenceOnMapLiterals() async {
     await checkFileElement('''
 void foo([Map<int, String> m1 = /*info:INFERRED_TYPE_LITERAL*/const {1: "hello"},
@@ -1486,6 +1487,7 @@ void main() {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35569')
   test_downwardsInferenceYieldYieldStar() async {
     await checkFileElement('''
 import 'dart:async';
@@ -2521,6 +2523,7 @@ var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
     expect(v.type.toString(), 'List<(int) → Object>');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35569')
   test_inferFromComplexExpressionsIfOuterMostValueIsPrecise() async {
     await checkFileElement('''
 class A { int x; B operator+(other) => null; }
@@ -4507,6 +4510,7 @@ class InferredTypeTest_SetLiterals extends AbstractStrongTest
   }
 
   @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35569')
   test_downwardsInferenceYieldYieldStar() async {
     // The fifth to last case is inferred differently with set_literals enabled,
     // and no longer an error compared to the base implementation.

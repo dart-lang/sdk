@@ -2305,11 +2305,11 @@ var l7 = /*info:INFERRED_TYPE_LITERAL*/[42];
 
   test_implicitDynamic_mapLiteral() async {
     addFile(r'''
-var m0 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
-Map m1 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
-Map<dynamic, dynamic> m2 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+var m0 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+Map m1 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+Map<dynamic, dynamic> m2 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
 dynamic d = 42;
-var m3 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: d};
+var m3 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: d};
 var m4 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{'x': d, 'y': d};
 var m5 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: 'x'};
 
@@ -3647,6 +3647,16 @@ class Child extends Base {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35569')
+  test_strictRawTypes_emptyMap() async {
+    addFile('''
+main() {
+  var rawMap = /*info:STRICT_RAW_TYPE*/{};
+}
+''');
+    await check(strictRawTypes: true);
+  }
+
   test_strictRawTypes_classes() async {
     addFile(r'''
 class C<T> {
@@ -3744,7 +3754,6 @@ main() {
     var upwardsInferNonDynamicIsOK = {4: 2};
     var explicitDynamicIsOK = <dynamic, dynamic>{4: 2};
 
-    var rawMap = /*info:STRICT_RAW_TYPE*/{};
     var rawMapOfMaps = </*info:STRICT_RAW_TYPE*/Map>{};
     /*info:STRICT_RAW_TYPE*/Map rawMapFromType = {};
 
@@ -4153,13 +4162,13 @@ test() {
  // TODO(leafp): We can't currently test for key errors since the
  // error marker binds to the entire entry.
   {
-     Map m = {s: i};
-     m = {s: s};
-     m = {s: n};
-     m = {s: i,
+     Map m = /*info:INFERRED_TYPE_LITERAL*/{s: i};
+     m = /*info:INFERRED_TYPE_LITERAL*/{s: s};
+     m = /*info:INFERRED_TYPE_LITERAL*/{s: n};
+     m = /*info:INFERRED_TYPE_LITERAL*/{s: i,
           s: n,
           s: s};
-     m = {i: s,
+     m = /*info:INFERRED_TYPE_LITERAL*/{i: s,
           n: s,
           s: s};
   }

@@ -1671,7 +1671,7 @@ import 'dart:collection';
 LinkedHashSet<int> test4() => {};
 ''';
     await resolveTestUnit(code, noErrors: false);
-    expectExpressionType('{}', 'Set<?>');
+    expectExpressionType('{}', 'Set<dynamic>');
     await assertErrorsInCode(code, [StrongModeCode.INVALID_CAST_LITERAL_SET]);
   }
 

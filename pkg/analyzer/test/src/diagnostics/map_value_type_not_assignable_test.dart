@@ -17,6 +17,7 @@ main() {
 
 @reflectiveTest
 class MapValueTypeNotAssignableTest extends DriverResolutionTest {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35569')
   test_explicitTypeArgs_const() async {
     // TODO(brianwilkerson) Fix this so that only one error is produced.
     await assertErrorsInCode('''

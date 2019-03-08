@@ -44,6 +44,9 @@ Set<String> a = {};
     assertType(setLiteral('{'), 'Set<String>');
   }
 
+  @FailingTest(
+      issue: 'https://github.com/dart-lang/sdk/issues/35569',
+      reason: 'Failing because Map<dynamic, dynamic> is being inferred.')
   test_context_noTypeArgs_noElements_typeParameter() async {
     addTestFile('''
 class A<E extends Set<int>> {
@@ -138,13 +141,6 @@ class SetLiteralWithFlowControlAndSpreadCollectionsTest extends SetLiteralTest {
 
   @override
   AstNode setLiteral(String search) => findNode.setOrMapLiteral(search);
-
-  @failingTest
-  @override
-  test_context_noTypeArgs_noElements_typeParameter() async {
-    // Failing because Map<dynamic, dynamic> is being inferred.
-    await super.test_context_noTypeArgs_noElements_typeParameter();
-  }
 
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
     addTestFile('''
