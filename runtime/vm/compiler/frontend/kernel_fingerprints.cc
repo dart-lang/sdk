@@ -447,6 +447,13 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       ReadPosition();                           // read position.
       CalculateListOfExpressionsFingerprint();  // read list of expressions.
       return;
+    case kListConcatenation:
+    case kSetConcatenation:
+    case kMapConcatenation:
+      // Collection concatenation operations are removed by the constant
+      // evaluator.
+      UNREACHABLE();
+      break;
     case kIsExpression:
       ReadPosition();                    // read position.
       CalculateExpressionFingerprint();  // read operand.

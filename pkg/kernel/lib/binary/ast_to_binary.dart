@@ -1466,6 +1466,31 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitListConcatenation(ListConcatenation node) {
+    writeByte(Tag.ListConcatenation);
+    writeOffset(node.fileOffset);
+    writeNode(node.typeArgument);
+    writeNodeList(node.lists);
+  }
+
+  @override
+  void visitSetConcatenation(SetConcatenation node) {
+    writeByte(Tag.SetConcatenation);
+    writeOffset(node.fileOffset);
+    writeNode(node.typeArgument);
+    writeNodeList(node.sets);
+  }
+
+  @override
+  void visitMapConcatenation(MapConcatenation node) {
+    writeByte(Tag.MapConcatenation);
+    writeOffset(node.fileOffset);
+    writeNode(node.keyType);
+    writeNode(node.valueType);
+    writeNodeList(node.maps);
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     writeByte(Tag.IsExpression);
     writeOffset(node.fileOffset);

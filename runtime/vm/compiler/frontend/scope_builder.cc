@@ -758,6 +758,13 @@ void ScopeBuilder::VisitExpression() {
       }
       return;
     }
+    case kListConcatenation:
+    case kSetConcatenation:
+    case kMapConcatenation:
+      // Collection concatenation operations are removed by the constant
+      // evaluator.
+      UNREACHABLE();
+      break;
     case kIsExpression:
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read operand.

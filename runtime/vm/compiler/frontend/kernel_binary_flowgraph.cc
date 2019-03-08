@@ -1299,6 +1299,13 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildConditionalExpression(position);
     case kStringConcatenation:
       return BuildStringConcatenation(position);
+    case kListConcatenation:
+    case kSetConcatenation:
+    case kMapConcatenation:
+      // Collection concatenation operations are removed by the constant
+      // evaluator.
+      UNREACHABLE();
+      break;
     case kIsExpression:
       return BuildIsExpression(position);
     case kAsExpression:

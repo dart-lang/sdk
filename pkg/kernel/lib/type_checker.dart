@@ -683,6 +683,36 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitListConcatenation(ListConcatenation node) {
+    DartType type = environment.literalListType(node.typeArgument);
+    for (Expression part in node.lists) {
+      DartType partType = visitExpression(part);
+      checkAssignable(node, type, partType);
+    }
+    return type;
+  }
+
+  @override
+  DartType visitSetConcatenation(SetConcatenation node) {
+    DartType type = environment.literalSetType(node.typeArgument);
+    for (Expression part in node.sets) {
+      DartType partType = visitExpression(part);
+      checkAssignable(node, type, partType);
+    }
+    return type;
+  }
+
+  @override
+  DartType visitMapConcatenation(MapConcatenation node) {
+    DartType type = environment.literalMapType(node.keyType, node.valueType);
+    for (Expression part in node.maps) {
+      DartType partType = visitExpression(part);
+      checkAssignable(node, type, partType);
+    }
+    return type;
+  }
+
+  @override
   DartType visitStringLiteral(StringLiteral node) {
     return environment.stringType;
   }

@@ -4775,6 +4775,24 @@ class ProgramCompiler extends Object
   }
 
   @override
+  visitListConcatenation(ListConcatenation node) {
+    // Only occurs inside unevaluated constants.
+    throw new UnsupportedError("List concatenation");
+  }
+
+  @override
+  visitSetConcatenation(SetConcatenation node) {
+    // Only occurs inside unevaluated constants.
+    throw new UnsupportedError("Set concatenation");
+  }
+
+  @override
+  visitMapConcatenation(MapConcatenation node) {
+    // Only occurs inside unevaluated constants.
+    throw new UnsupportedError("Map concatenation");
+  }
+
+  @override
   visitIsExpression(IsExpression node) {
     return _emitIsExpression(node.operand, node.type);
   }
