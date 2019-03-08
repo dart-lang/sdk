@@ -577,6 +577,9 @@ class Dart2TypeSystem extends TypeSystem {
   ///
   /// In practice this will always replace `?` with either bottom or top
   /// (dynamic), depending on the position of `?`.
+  ///
+  /// This implements the operation the spec calls "least closure", or
+  /// sometimes "least closure with respect to `?`".
   DartType lowerBoundForType(DartType type) {
     return _substituteForUnknownType(type, lowerBound: true);
   }
@@ -641,6 +644,9 @@ class Dart2TypeSystem extends TypeSystem {
   ///
   /// In practice this will always replace `?` with either bottom or top
   /// (dynamic), depending on the position of `?`.
+  ///
+  /// This implements the operation the spec calls "greatest closure", or
+  /// sometimes "greatest closure with respect to `?`".
   DartType upperBoundForType(DartType type) {
     return _substituteForUnknownType(type);
   }
