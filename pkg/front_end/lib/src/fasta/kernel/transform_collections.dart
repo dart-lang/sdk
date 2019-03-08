@@ -237,11 +237,21 @@ class CollectionTransformer extends Transformer {
     for (; i < node.entries.length; ++i) {
       MapEntry entry = node.entries[i];
       if (entry is SpreadMapEntry) {
+        Expression value = entry.expression.accept(this);
+        // Null-aware spreads require testing the subexpression's value.
+        VariableDeclaration temp;
+        if (entry.isNullAware) {
+          temp = new VariableDeclaration.forValue(value,
+              type: coreTypes.mapClass.rawType);
+          body.add(temp);
+          value = new VariableGet(temp);
+        }
+
         VariableDeclaration elt =
             new VariableDeclaration(null, type: mapEntryType, isFinal: true);
-        body.add(new ForInStatement(
+        Statement statement = new ForInStatement(
             elt,
-            entry.expression.accept(this),
+            value,
             new ExpressionStatement(new MethodInvocation(
                 new VariableGet(map),
                 new Name('[]='),
@@ -251,7 +261,19 @@ class CollectionTransformer extends Transformer {
                   new PropertyGet(
                       new VariableGet(elt), new Name('value'), mapEntryValue)
                 ]),
-                mapPut))));
+                mapPut)));
+
+        if (entry.isNullAware) {
+          statement = new IfStatement(
+              new Not(new MethodInvocation(
+                  new VariableGet(temp),
+                  new Name('=='),
+                  new Arguments([new NullLiteral()]),
+                  objectEquals)),
+              statement,
+              null);
+        }
+        body.add(statement);
       } else {
         entry = entry.accept(this);
         body.add(new ExpressionStatement(new MethodInvocation(

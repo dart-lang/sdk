@@ -204,8 +204,9 @@ mixin _FakeMapEntryMixin implements MapEntry {
 /// A spread element in a map literal.
 class SpreadMapEntry extends TreeNode with _FakeMapEntryMixin {
   Expression expression;
+  bool isNullAware;
 
-  SpreadMapEntry(this.expression) {
+  SpreadMapEntry(this.expression, this.isNullAware) {
     expression?.parent = this;
   }
 
