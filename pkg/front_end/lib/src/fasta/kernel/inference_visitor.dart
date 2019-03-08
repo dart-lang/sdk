@@ -787,6 +787,24 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
+  // Calculates the key and the value type of a spread map entry of type
+  // spreadMapEntryType and stores them in output in positions offset and offset
+  // + 1.  If the types can't be calculated, for example, if spreadMapEntryType
+  // is a function type, the original values in output are preserved.
+  void storeSpreadMapEntryElementTypes(
+      DartType spreadMapEntryType, List<DartType> output, int offset) {
+    if (spreadMapEntryType is InterfaceType) {
+      InterfaceType supertype = inferrer.typeSchemaEnvironment
+          .getTypeAsInstanceOf(spreadMapEntryType, inferrer.coreTypes.mapClass);
+      if (supertype == null) return null;
+      output[offset] = supertype.typeArguments[0];
+      output[offset + 1] = supertype.typeArguments[1];
+    }
+    if (spreadMapEntryType is DynamicType) {
+      output[offset] = output[offset + 1] = const DynamicType();
+    }
+  }
+
   void visitMapLiteralJudgment(MapLiteralJudgment node, DartType typeContext) {
     var mapClass = inferrer.coreTypes.mapClass;
     var mapType = mapClass.thisType;
@@ -840,6 +858,8 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     }
     List<Expression> cachedKeys = new List(node.entries.length);
     List<Expression> cachedValues = new List(node.entries.length);
+    List<DartType> spreadMapEntryTypes =
+        typeChecksNeeded ? new List<DartType>(node.entries.length) : null;
     for (int i = 0; i < node.entries.length; i++) {
       MapEntry entry = node.entries[i];
       if (entry is! SpreadMapEntry) {
@@ -848,22 +868,39 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       }
     }
     if (inferenceNeeded || typeChecksNeeded) {
-      for (MapEntry entry in node.entries) {
+      for (int i = 0; i < node.entries.length; ++i) {
+        MapEntry entry = node.entries[i];
         if (entry is SpreadMapEntry) {
-          actualTypes.add(const BottomType());
-          actualTypes.add(inferrer.coreTypes.nullClass.rawType);
-          continue;
-        }
-        Expression key = entry.key;
-        inferrer.inferExpression(key, inferredKeyType, true,
-            isVoidAllowed: true);
-        actualTypes.add(getInferredType(key, inferrer));
-        Expression value = entry.value;
-        inferrer.inferExpression(value, inferredValueType, true,
-            isVoidAllowed: true);
-        actualTypes.add(getInferredType(value, inferrer));
-        if (inferenceNeeded) {
-          formalTypes.addAll(mapType.typeArguments);
+          DartType spreadMapEntryType = inferrer.inferExpression(
+              entry.expression,
+              new InterfaceType(inferrer.coreTypes.mapClass, inferredTypes),
+              inferenceNeeded || typeChecksNeeded,
+              isVoidAllowed: true);
+          if (inferenceNeeded) {
+            formalTypes.add(mapType.typeArguments[0]);
+            formalTypes.add(mapType.typeArguments[1]);
+          }
+          if (typeChecksNeeded) {
+            spreadMapEntryTypes[i] = spreadMapEntryType;
+          }
+          // Use 'dynamic' for error recovery.
+          int length = actualTypes.length;
+          actualTypes.add(const DynamicType());
+          actualTypes.add(const DynamicType());
+          storeSpreadMapEntryElementTypes(
+              spreadMapEntryType, actualTypes, length);
+        } else {
+          Expression key = entry.key;
+          inferrer.inferExpression(key, inferredKeyType, true,
+              isVoidAllowed: true);
+          actualTypes.add(getInferredType(key, inferrer));
+          Expression value = entry.value;
+          inferrer.inferExpression(value, inferredValueType, true,
+              isVoidAllowed: true);
+          actualTypes.add(getInferredType(value, inferrer));
+          if (inferenceNeeded) {
+            formalTypes.addAll(mapType.typeArguments);
+          }
         }
       }
     }
@@ -888,22 +925,89 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     }
     if (typeChecksNeeded) {
       for (int i = 0; i < node.entries.length; ++i) {
-        Expression keyJudgment = cachedKeys[i];
-        if (keyJudgment == null) {
-          node.entries[i] = new MapEntry(
-              new InvalidExpression('unimplemented spread entry')
-                ..fileOffset = node.fileOffset,
-              new NullLiteral()..parent = node);
-          continue;
-        }
-        inferrer.ensureAssignable(node.keyType, actualTypes[2 * i], keyJudgment,
-            keyJudgment.fileOffset,
-            isVoidAllowed: node.keyType is VoidType);
+        MapEntry entry = node.entries[i];
+        List<DartType> spreadMapEntryElementTypes = new List<DartType>(2);
+        if (entry is SpreadMapEntry) {
+          // TODO(dmitrayas):  Remove this flag and all related uses of it when
+          // the desugaring is implemented.
+          bool replaced = false;
 
-        Expression valueJudgment = cachedValues[i];
-        inferrer.ensureAssignable(node.valueType, actualTypes[2 * i + 1],
-            valueJudgment, valueJudgment.fileOffset,
-            isVoidAllowed: node.valueType is VoidType);
+          DartType spreadMapEntryType = spreadMapEntryTypes[i];
+          spreadMapEntryElementTypes[0] = spreadMapEntryElementTypes[1] = null;
+          storeSpreadMapEntryElementTypes(
+              spreadMapEntryType, spreadMapEntryElementTypes, 0);
+          if (spreadMapEntryElementTypes[0] == null) {
+            node.replaceChild(
+                node.entries[i],
+                new MapEntry(
+                    inferrer.helper.desugarSyntheticExpression(inferrer.helper
+                        .buildProblem(
+                            templateSpreadMapEntryTypeMismatch
+                                .withArguments(spreadMapEntryType),
+                            entry.expression.fileOffset,
+                            1)),
+                    new NullLiteral()));
+            replaced = true;
+          } else if (spreadMapEntryType is DynamicType) {
+            inferrer.ensureAssignable(
+                inferrer.coreTypes.mapClass.rawType,
+                spreadMapEntryType,
+                entry.expression,
+                entry.expression.fileOffset);
+          } else if (spreadMapEntryType is InterfaceType) {
+            if (spreadMapEntryType.classNode == inferrer.coreTypes.nullClass) {
+              // TODO(dmitryas):  Handle this case when null-aware spreads are
+              // supported by the parser.
+            } else {
+              Expression keyError;
+              Expression valueError;
+              if (!inferrer.isAssignable(
+                  node.keyType, spreadMapEntryElementTypes[0])) {
+                keyError = inferrer.helper.desugarSyntheticExpression(
+                    inferrer.helper.buildProblem(
+                        templateSpreadMapEntryElementKeyTypeMismatch
+                            .withArguments(
+                                spreadMapEntryElementTypes[0], node.keyType),
+                        entry.expression.fileOffset,
+                        1));
+              }
+              if (!inferrer.isAssignable(
+                  node.valueType, spreadMapEntryElementTypes[1])) {
+                valueError = inferrer.helper.desugarSyntheticExpression(
+                    inferrer.helper.buildProblem(
+                        templateSpreadMapEntryElementValueTypeMismatch
+                            .withArguments(
+                                spreadMapEntryElementTypes[1], node.valueType),
+                        entry.expression.fileOffset,
+                        1));
+              }
+              if (keyError != null || valueError != null) {
+                keyError ??= new NullLiteral();
+                valueError ??= new NullLiteral();
+                node.replaceChild(
+                    node.entries[i], new MapEntry(keyError, valueError));
+                replaced = true;
+              }
+            }
+          }
+
+          if (!replaced) {
+            node.entries[i] = new MapEntry(
+                new InvalidExpression('unimplemented spread entry')
+                  ..fileOffset = node.fileOffset,
+                new NullLiteral()..parent = node);
+          }
+        } else {
+          Expression keyJudgment = cachedKeys[i];
+          inferrer.ensureAssignable(node.keyType, actualTypes[2 * i],
+              keyJudgment, keyJudgment.fileOffset,
+              isVoidAllowed: node.keyType is VoidType);
+
+          Expression valueJudgment = cachedValues[i];
+          inferrer.ensureAssignable(node.valueType, actualTypes[2 * i + 1],
+              valueJudgment, valueJudgment.fileOffset,
+              isVoidAllowed: node.valueType is VoidType);
+        }
       }
     }
     node.inferredType =

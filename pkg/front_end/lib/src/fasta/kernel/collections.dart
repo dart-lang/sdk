@@ -209,6 +209,8 @@ class SpreadMapEntry extends TreeNode with _FakeMapEntryMixin {
     expression?.parent = this;
   }
 
+  accept(TreeVisitor<Object> v) => v.defaultTreeNode(this);
+
   @override
   visitChildren(Visitor<Object> v) {
     expression?.accept(v);

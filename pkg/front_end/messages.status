@@ -337,6 +337,11 @@ SourceBodySummary/example: Fail
 SourceOutlineSummary/analyzerCode: Fail
 SourceOutlineSummary/example: Fail
 SpreadElementTypeMismatch/script: Fail # Can't be tested until 'spread-collections' flag is on.
+SpreadMapEntryElementKeyTypeMismatch/script: Fail # Can't be tested until 'spread-collections' flag is on.
+SpreadMapEntryElementValueTypeMismatch/script: Fail # Can't be tested until 'spread-collections' flag is on.
+SpreadMapEntryTypeMismatch/analyzerCode: Fail # Can't be tested until 'spread-collections' flag is on.
+SpreadMapEntryTypeMismatch/script1: Fail # Can't be tested until 'spread-collections' flag is on.
+SpreadMapEntryTypeMismatch/script2: Fail # Can't be tested until 'spread-collections' flag is on.
 SpreadTypeMismatch/analyzerCode: Fail # There's not analyzer code for that error yet.
 SpreadTypeMismatch/script1: Fail # Can't be tested until 'spread-collections' flag is on.
 SpreadTypeMismatch/script2: Fail # Can't be tested until 'spread-collections' flag is on.

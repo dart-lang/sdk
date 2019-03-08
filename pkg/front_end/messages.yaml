@@ -3493,3 +3493,35 @@ SpreadElementTypeMismatch:
       List<String> a = <String>["foo"];
       List<int> b = <int>[...a];
     }
+
+SpreadMapEntryTypeMismatch:
+  template: "Unexpected type '#type' of a map spread entry.  Expected 'dynamic' or a Map."
+  script:
+    - |
+      main() {
+        int a = 42;
+        var b = <dynamic, dynamic>{...a};
+      }
+    - |
+      main() {
+        int Function() a = null;
+        var b = <dynamic, dynamic>{...a};
+      }
+
+SpreadMapEntryElementKeyTypeMismatch:
+  template: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2'."
+  analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
+  script: >
+    main() {
+      Map<String, int> a = <String, int>{"foo": 42};
+      Map<int, int> b = <int, int>{...a};
+    }
+
+SpreadMapEntryElementValueTypeMismatch:
+  template: "Can't assign spread entry values of type '#type' to map entry values of type '#type2'."
+  analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
+  script: >
+    main() {
+      Map<String, int> a = <String, int>{"foo": 42};
+      Map<String, String> b = <String, String>{...a};
+    }

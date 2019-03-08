@@ -8260,6 +8260,100 @@ Message _withArgumentsSpreadElementTypeMismatch(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateSpreadMapEntryElementKeyTypeMismatch = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""Can't assign spread entry keys of type '#type' to map entry keys of type '#type2'.""",
+    withArguments: _withArgumentsSpreadMapEntryElementKeyTypeMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeSpreadMapEntryElementKeyTypeMismatch =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "SpreadMapEntryElementKeyTypeMismatch",
+        templateSpreadMapEntryElementKeyTypeMismatch,
+        analyzerCodes: <String>["MAP_KEY_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadMapEntryElementKeyTypeMismatch(
+    DartType _type, DartType _type2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeSpreadMapEntryElementKeyTypeMismatch,
+      message:
+          """Can't assign spread entry keys of type '${type}' to map entry keys of type '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, DartType _type2)>
+    templateSpreadMapEntryElementValueTypeMismatch =
+    const Template<Message Function(DartType _type, DartType _type2)>(
+        messageTemplate:
+            r"""Can't assign spread entry values of type '#type' to map entry values of type '#type2'.""",
+        withArguments: _withArgumentsSpreadMapEntryElementValueTypeMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeSpreadMapEntryElementValueTypeMismatch =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "SpreadMapEntryElementValueTypeMismatch",
+        templateSpreadMapEntryElementValueTypeMismatch,
+        analyzerCodes: <String>["MAP_VALUE_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadMapEntryElementValueTypeMismatch(
+    DartType _type, DartType _type2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeSpreadMapEntryElementValueTypeMismatch,
+      message:
+          """Can't assign spread entry values of type '${type}' to map entry values of type '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType
+            _type)> templateSpreadMapEntryTypeMismatch = const Template<
+        Message Function(DartType _type)>(
+    messageTemplate:
+        r"""Unexpected type '#type' of a map spread entry.  Expected 'dynamic' or a Map.""",
+    withArguments: _withArgumentsSpreadMapEntryTypeMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)> codeSpreadMapEntryTypeMismatch =
+    const Code<Message Function(DartType _type)>(
+  "SpreadMapEntryTypeMismatch",
+  templateSpreadMapEntryTypeMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadMapEntryTypeMismatch(DartType _type) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeSpreadMapEntryTypeMismatch,
+      message:
+          """Unexpected type '${type}' of a map spread entry.  Expected 'dynamic' or a Map.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         DartType
             _type)> templateSpreadTypeMismatch = const Template<
         Message Function(DartType _type)>(
