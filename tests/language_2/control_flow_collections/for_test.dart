@@ -118,7 +118,7 @@ void testMap() {
 
   // Else inside for.
   Expect.mapEquals(map,
-      <int, int>{for (var i in <int>[1, -2, 3, -4]) if (i < 0) -i else i: i});
+      <int, int>{for (var i in <int>[1, -2, 3, -4]) if (i < 0) -i: -i else i: i});
 
   // For inside for.
   Expect.mapEquals(map, <int, int>{

@@ -70,12 +70,6 @@ void testList() {
 
   // Nested if in else.
   Expect.identical(const [1], const <int>[if (false) 9 else if (true) 1]);
-
-  // Nested for in then.
-  Expect.identical(list, const <int>[if (true) for (var i in list) i]);
-
-  // Nested for in else.
-  Expect.identical(list, const <int>[if (false) 9 else for (var i in list) i]);
 }
 
 void testMap() {
@@ -122,13 +116,6 @@ void testMap() {
   // Nested if in else.
   Expect.identical(const {1: 1},
       const <int, int>{if (false) 9: 9 else if (true) 1: 1});
-
-  // Nested for in then.
-  Expect.identical(map, const <int, int>{if (true) for (var i in list) i: i});
-
-  // Nested for in else.
-  Expect.identical(map,
-      const <int, int>{if (false) 9: 9 else for (var i in list) i: i});
 }
 
 void testSet() {
@@ -177,12 +164,6 @@ void testSet() {
 
   // Nested if in else.
   Expect.identical(const <int>{1}, const <int>{if (false) 9 else if (true) 1});
-
-  // Nested for in then.
-  Expect.identical(set, const <int>{if (true) for (var i in list) i});
-
-  // Nested for in else.
-  Expect.identical(set, const <int>{if (false) 9 else for (var i in list) i});
 }
 
 void testShortCircuit() {
