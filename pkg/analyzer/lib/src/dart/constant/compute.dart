@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,7 +10,6 @@ import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, TypeSystem;
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
-import 'package:analyzer/src/task/dart.dart';
 
 /// Compute values of the given [constants] with correct ordering.
 void computeConstants(

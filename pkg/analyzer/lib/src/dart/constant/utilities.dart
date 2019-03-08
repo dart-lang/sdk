@@ -12,11 +12,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart'
     show ConstructorElementHandle;
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/task/dart.dart';
 
 ConstructorElementImpl getConstructorImpl(ConstructorElement constructor) {
   while (constructor is ConstructorMember) {

@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -39,13 +39,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
-import 'package:analyzer/src/task/dart.dart';
 
 /// An element that represents a class or a mixin. The class can be defined by
 /// either a class declaration (with a class body), a mixin application (without
@@ -727,10 +727,6 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// subclasses as being immutable.
   bool get isImmutable;
 
-  /// Return `true` if this annotation marks the associated constructor as
-  /// being literal.
-  bool get isLiteral;
-
   /// Return `true` if this annotation marks the associated member as running
   /// a single test.
   bool get isIsTest;
@@ -742,6 +738,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Return `true` if this annotation marks the associated element with the
   /// `JS` annotation.
   bool get isJS;
+
+  /// Return `true` if this annotation marks the associated constructor as
+  /// being literal.
+  bool get isLiteral;
 
   /// Return `true` if this annotation marks the associated member as requiring
   /// overriding methods to call super.

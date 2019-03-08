@@ -26,7 +26,7 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart'
     show Dart2TypeSystem, TypeSystem;
-import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/task/api/model.dart';
 
 /**
  * Helper class encapsulating the methods for evaluating constants and
@@ -927,6 +927,23 @@ class ConstantEvaluationEngine {
    */
   static bool isValidPublicSymbol(String name) =>
       name.isEmpty || name == "void" || _PUBLIC_SYMBOL_PATTERN.hasMatch(name);
+}
+
+/**
+ * Interface for [AnalysisTarget]s for which constant evaluation can be
+ * performed.
+ */
+abstract class ConstantEvaluationTarget extends AnalysisTarget {
+  /**
+   * Return the [AnalysisContext] which should be used to evaluate this
+   * constant.
+   */
+  AnalysisContext get context;
+
+  /**
+   * Return whether this constant is evaluated.
+   */
+  bool get isConstantEvaluated;
 }
 
 /**

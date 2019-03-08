@@ -1,3 +1,7 @@
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:io' as io;
 import 'dart:math' show min;
 
@@ -6,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
@@ -17,7 +22,7 @@ import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/general.dart';
 import 'package:analyzer/src/task/api/model.dart';
-import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/task/dart.dart' hide ConstantEvaluationTarget;
 
 /**
  * A [ConflictingSummaryException] indicates that two different summaries

@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         UriValidationCode;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/constant_verifier.dart';
+import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
@@ -55,6 +56,9 @@ import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
+
+export 'package:analyzer/src/dart/constant/evaluation.dart'
+    show ConstantEvaluationTarget;
 
 /**
  * The [ResultCachingPolicy] for ASTs.
@@ -2375,23 +2379,6 @@ abstract class ConstantEvaluationAnalysisTask extends AnalysisTask {
     String sourceName = source == null ? '<unknown source>' : source.fullName;
     return '${descriptor.name} for element $target in source $sourceName';
   }
-}
-
-/**
- * Interface for [AnalysisTarget]s for which constant evaluation can be
- * performed.
- */
-abstract class ConstantEvaluationTarget extends AnalysisTarget {
-  /**
-   * Return the [AnalysisContext] which should be used to evaluate this
-   * constant.
-   */
-  AnalysisContext get context;
-
-  /**
-   * Return whether this constant is evaluated.
-   */
-  bool get isConstantEvaluated;
 }
 
 /**
