@@ -8910,15 +8910,20 @@ class _LeafElements {
   /// Return `true` if the given collection [element] does not contain any
   /// synthetic tokens.
   bool _isComplete(CollectionElement element) {
-    Token token = element.beginToken;
-    int endOffset = element.endToken.offset;
-    while (token != null && token.offset <= endOffset) {
-      if (token.isSynthetic) {
-        return false;
-      }
-      token = token.next;
-    }
+    // TODO(paulberry,brianwilkerson): the code below doesn't work because it
+    // assumes access to token offsets, which aren't available when working with
+    // expressions resynthesized from summaries.  For now we just assume the
+    // collection element is complete.
     return true;
+//    Token token = element.beginToken;
+//    int endOffset = element.endToken.offset;
+//    while (token != null && token.offset <= endOffset) {
+//      if (token.isSynthetic) {
+//        return false;
+//      }
+//      token = token.next;
+//    }
+//    return true;
   }
 }
 
