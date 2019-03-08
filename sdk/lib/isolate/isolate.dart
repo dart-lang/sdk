@@ -40,7 +40,7 @@ class IsolateSpawnException implements Exception {
  *
  * An `Isolate` object is a reference to an isolate, usually different from
  * the current isolate.
- * It represents, and can be used control, the other isolate.
+ * It represents, and can be used to control, the other isolate.
  *
  * When spawning a new isolate, the spawning isolate receives an `Isolate`
  * object representing the new isolate when the spawn operation succeeds.
