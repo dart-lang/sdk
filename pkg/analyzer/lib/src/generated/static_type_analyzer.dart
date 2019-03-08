@@ -1994,10 +1994,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         _typeSystem.isSubtypeOf(contextType, _typeProvider.mapObjectObjectType);
     if (contextIsIterable && !contextIsMap) {
       return _toSetType(literal, contextType, inferredTypes);
+    } else if ((contextIsMap && !contextIsIterable) || elements.isEmpty) {
+      return _toMapType(literal, contextType, inferredTypes);
     } else {
-      if (elements.isNotEmpty && (!contextIsMap || contextIsIterable)) {
-        // Ambiguous.  TODO(paulberry): report an error.
-      }
+      // Ambiguous.  We're not going to get any more information to resolve the
+      // ambiguity, so we have to make an arbitrary decision at this point; we
+      // choose map.
+      // TODO(paulberry): report an error due to the ambiguity.
       return _toMapType(literal, contextType, inferredTypes);
     }
   }
