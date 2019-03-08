@@ -67,7 +67,8 @@ class ParsedFunction;
   V(LinkedHashMap, deleted_keys, Smi, VAR)                                     \
   V(ArgumentsDescriptor, type_args_len, Smi, FINAL)                            \
   V(ArgumentsDescriptor, positional_count, Smi, FINAL)                         \
-  V(ArgumentsDescriptor, count, Smi, FINAL)
+  V(ArgumentsDescriptor, count, Smi, FINAL)                                    \
+  V(Pointer, c_memory_address, Integer, FINAL)
 
 // Slot is an abstraction that describes an readable (and possibly writeable)
 // location within an object.

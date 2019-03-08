@@ -2580,6 +2580,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_hash:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
+    case Slot::Kind::kPointer_c_memory_address:
       return false;
   }
   UNREACHABLE();

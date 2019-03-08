@@ -33,6 +33,9 @@ enum Representation {
   kNumRepresentations
 };
 
+static constexpr Representation kUnboxedIntPtr =
+    compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
+
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
 // LocationSummary object which specifies expected location for every input

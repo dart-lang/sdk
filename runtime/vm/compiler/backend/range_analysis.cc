@@ -2630,6 +2630,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosure_function:
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
+    case Slot::Kind::kPointer_c_memory_address:
       // Not an integer valued field.
       UNREACHABLE();
       break;
