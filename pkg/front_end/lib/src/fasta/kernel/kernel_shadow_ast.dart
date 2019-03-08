@@ -38,7 +38,6 @@ import '../fasta_codes.dart'
         LocatedMessage,
         messageCantDisambiguateAmbiguousInformation,
         messageCantDisambiguateNotEnoughInformation,
-        messageNonNullAwareSpreadIsNull,
         messageSpreadElement,
         messageSpreadMapElement,
         messageSwitchExpressionNotAssignableCause,

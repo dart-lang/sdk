@@ -234,22 +234,6 @@ library;
 //     /*@error=SpreadMapEntryElementValueTypeMismatch*/ mapSpread};
 //                                                       ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:117:27: Error: Unexpected token '...'.
-//   List<int> lhs70 = <int>[... /*@error=NonNullAwareSpreadIsNull*/ null];
-//                           ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:119:26: Error: Unexpected token '...'.
-//   Set<int> set70 = <int>{... /*@error=NonNullAwareSpreadIsNull*/ null};
-//                          ^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:121:27: Error: Unexpected token '...?'.
-//   List<int> lhs80 = <int>[...?null];
-//                           ^^^^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:123:26: Error: Unexpected token '...?'.
-//   Set<int> set80 = <int>{...?null};
-//                          ^^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -295,9 +279,5 @@ static method foo() → dynamic {
   core::Set<core::String> set60 = <core::String>{spread};
   core::Map<core::int, core::int> map60 = <core::int, core::int>{};
   core::Map<core::String, core::String> map61 = <core::String, core::String>{};
-  core::List<core::int> lhs70 = <core::int>[null];
-  core::Set<core::int> set70 = <core::int>{null};
-  core::List<core::int> lhs80 = <core::int>[null];
-  core::Set<core::int> set80 = <core::int>{null};
 }
 static method main() → dynamic {}
