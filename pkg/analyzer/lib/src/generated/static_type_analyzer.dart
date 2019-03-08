@@ -1774,11 +1774,17 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else if (canBeAMap && mustBeAMap) {
       return _toMapType(literal, contextType, inferredTypes);
     }
-    // TODO(paulberry): the following computations should be based on the
-    // greatest closure of the context type.
-    bool contextIsIterable = contextType != null &&
+    // Note: according to the spec, the following computations should be based
+    // on the greatest closure of the context type (unless the context type is
+    // `?`).  In practice, we can just use the context type directly, because
+    // the only way the greatest closure of the context type could possibly have
+    // a different subtype relationship to `Iterable<Object>` and
+    // `Map<Object, Object>` is if the context type is `?`.
+    bool contextProvidesAmbiguityResolutionClues =
+        contextType != null && contextType is! UnknownInferredType;
+    bool contextIsIterable = contextProvidesAmbiguityResolutionClues &&
         _typeSystem.isSubtypeOf(contextType, _typeProvider.iterableObjectType);
-    bool contextIsMap = contextType != null &&
+    bool contextIsMap = contextProvidesAmbiguityResolutionClues &&
         _typeSystem.isSubtypeOf(contextType, _typeProvider.mapObjectObjectType);
     if (contextIsIterable && !contextIsMap) {
       return _toSetType(literal, contextType, inferredTypes);
