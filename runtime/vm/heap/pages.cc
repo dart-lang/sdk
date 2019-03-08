@@ -57,11 +57,8 @@ DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 HeapPage* HeapPage::Allocate(intptr_t size_in_words,
                              PageType type,
                              const char* name) {
-  bool is_executable = (type == kExecutable);
-  // Create the new page executable (RWX) only if we're not in W^X mode
-  bool create_executable = !FLAG_write_protect_code && is_executable;
   VirtualMemory* memory = VirtualMemory::AllocateAligned(
-      size_in_words << kWordSizeLog2, kPageSize, create_executable, name);
+      size_in_words << kWordSizeLog2, kPageSize, type == kExecutable, name);
   if (memory == NULL) {
     return NULL;
   }
@@ -214,7 +211,7 @@ void HeapPage::WriteProtect(bool read_only) {
 
   VirtualMemory::Protection prot;
   if (read_only) {
-    if (type_ == kExecutable) {
+    if ((type_ == kExecutable) && (memory_->AliasOffset() == 0)) {
       prot = VirtualMemory::kReadExecute;
     } else {
       prot = VirtualMemory::kReadOnly;

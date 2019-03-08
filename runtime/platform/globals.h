@@ -352,6 +352,14 @@ typedef simd128_value_t fpu_register_t;
 #error Unknown architecture.
 #endif
 
+// Determine whether dual mapping of code pages is supported.
+#if !defined(USING_SIMULATOR) &&                                               \
+    (defined(HOST_OS_LINUX) || defined(HOST_OS_FUCHSIA)) &&                    \
+    !defined(HOST_OS_ANDROID) && !defined(TARGET_OS_ANDROID) &&                \
+    !defined(TARGET_ARCH_IA32)
+#define DUAL_MAPPING_SUPPORTED 1
+#endif
+
 // Disable background threads by default on armv5te. The relevant
 // implementations are uniprocessors.
 #if !defined(TARGET_ARCH_ARM_5TE)
