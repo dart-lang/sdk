@@ -715,30 +715,40 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
 
   @override
   InitializerComplexity visitListLiteral(ir.ListLiteral node) {
-    visitInContext(node.typeArgument, VariableUse.listLiteral);
-    visitNodes(node.expressions);
-    return node.isConst
-        ? const InitializerComplexity.constant()
-        : const InitializerComplexity.lazy();
+    InitializerComplexity complexity =
+        visitInContext(node.typeArgument, VariableUse.listLiteral);
+    complexity = complexity.combine(visitNodes(node.expressions));
+    if (node.isConst) {
+      return const InitializerComplexity.constant();
+    } else {
+      return complexity.makeEager();
+    }
   }
 
   @override
   InitializerComplexity visitSetLiteral(ir.SetLiteral node) {
-    visitInContext(node.typeArgument, VariableUse.setLiteral);
-    visitNodes(node.expressions);
-    return node.isConst
-        ? const InitializerComplexity.constant()
-        : const InitializerComplexity.lazy();
+    InitializerComplexity complexity =
+        visitInContext(node.typeArgument, VariableUse.setLiteral);
+    complexity = complexity.combine(visitNodes(node.expressions));
+    if (node.isConst) {
+      return const InitializerComplexity.constant();
+    } else {
+      return complexity.makeEager();
+    }
   }
 
   @override
   InitializerComplexity visitMapLiteral(ir.MapLiteral node) {
-    visitInContext(node.keyType, VariableUse.mapLiteral);
-    visitInContext(node.valueType, VariableUse.mapLiteral);
-    visitNodes(node.entries);
-    return node.isConst
-        ? const InitializerComplexity.constant()
-        : const InitializerComplexity.lazy();
+    InitializerComplexity complexity =
+        visitInContext(node.keyType, VariableUse.mapLiteral);
+    complexity = complexity
+        .combine(visitInContext(node.valueType, VariableUse.mapLiteral));
+    complexity = complexity.combine(visitNodes(node.entries));
+    if (node.isConst) {
+      return const InitializerComplexity.constant();
+    } else {
+      return complexity.makeEager();
+    }
   }
 
   @override
@@ -779,9 +789,16 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
 
   @override
   InitializerComplexity visitStaticGet(ir.StaticGet node) {
-    return node.target.isConst
-        ? const InitializerComplexity.constant()
-        : const InitializerComplexity.lazy();
+    ir.Member target = node.target;
+    if (target is ir.Field) {
+      return target.isConst
+          ? const InitializerComplexity.constant()
+          : new InitializerComplexity.eager(fields: <ir.Field>{target});
+    } else if (target is ir.Procedure &&
+        target.kind == ir.ProcedureKind.Method) {
+      return const InitializerComplexity.constant();
+    }
+    return const InitializerComplexity.lazy();
   }
 
   @override
@@ -1097,43 +1114,89 @@ enum ComplexityLevel {
 
 class InitializerComplexity {
   final ComplexityLevel level;
+  final Set<ir.Field> fields;
 
   // TODO(johnniwinther): This should hold the constant literal from CFE when
   // provided.
-  const InitializerComplexity.constant() : level = ComplexityLevel.constant;
+  const InitializerComplexity.constant()
+      : level = ComplexityLevel.constant,
+        fields = null;
 
   // TODO(johnniwinther): Use this to collect data on the size of the
   //  initializer.
-  const InitializerComplexity.eager()
+  InitializerComplexity.eager({this.fields})
       : level = ComplexityLevel.potentiallyEager;
 
-  const InitializerComplexity.lazy() : level = ComplexityLevel.definitelyLazy;
+  const InitializerComplexity.lazy()
+      : level = ComplexityLevel.definitelyLazy,
+        fields = null;
 
   InitializerComplexity combine(InitializerComplexity other) {
-    if (level == other.level) {
-      // TODO(johnniwinther): Special case 'eager' when it contains data.
+    if (identical(this, other)) {
       return this;
-    } else if (level == ComplexityLevel.definitelyLazy ||
-        other.level == ComplexityLevel.definitelyLazy) {
+    } else if (isLazy || other.isLazy) {
       return const InitializerComplexity.lazy();
-    } else if (level == ComplexityLevel.potentiallyEager) {
+    } else if (isEager || other.isEager) {
+      if (fields != null && other.fields != null) {
+        fields.addAll(other.fields);
+        return this;
+      } else if (fields != null) {
+        return this;
+      } else {
+        return other;
+      }
+    } else if (isConstant && other.isConstant) {
+      // TODO(johnniwinther): This is case doesn't work if InitializerComplexity
+      // objects of constant complexity hold the constant literal.
+      return this;
+    } else if (isEager) {
+      assert(other.isConstant);
       return this;
     } else {
-      assert(other.level == ComplexityLevel.potentiallyEager);
+      assert(isConstant);
+      assert(other.isEager);
       return other;
     }
   }
 
+  InitializerComplexity makeEager() {
+    if (isLazy || isEager) {
+      return this;
+    } else {
+      return new InitializerComplexity.eager();
+    }
+  }
+
+  bool get isConstant => level == ComplexityLevel.constant;
+
+  bool get isEager => level == ComplexityLevel.potentiallyEager;
+
+  bool get isLazy => level == ComplexityLevel.definitelyLazy;
+
   /// Returns a short textual representation used for testing.
   String get shortText {
+    StringBuffer sb = new StringBuffer();
     switch (level) {
       case ComplexityLevel.constant:
-        return 'constant';
+        sb.write('constant');
+        break;
       case ComplexityLevel.potentiallyEager:
-        return 'eager';
+        sb.write('eager');
+        if (fields != null) {
+          sb.write('&fields=[');
+          List<String> names = fields.map((f) => f.name.name).toList()..sort();
+          sb.write(names.join(','));
+          sb.write(']');
+        }
+        break;
       case ComplexityLevel.definitelyLazy:
-        return 'lazy';
+        sb.write('lazy');
+        break;
+      default:
+        throw new UnsupportedError("Unexpected complexity level $level");
     }
-    throw new UnsupportedError("Unexpected complexity level $level");
+    return sb.toString();
   }
+
+  String toString() => 'InitializerComplexity($shortText)';
 }

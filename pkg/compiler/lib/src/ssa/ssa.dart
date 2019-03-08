@@ -123,11 +123,9 @@ abstract class SsaBuilderFieldMixin {
           /// constant value.
           return true;
         }
-      } else {
-        // If the constant-handler was not able to produce a result we have to
-        // go through the builder (below) to generate the lazy initializer for
-        // the static variable.
-        // We also need to register the use of the cyclic-error helper.
+      } else if (fieldData.isLazy) {
+        // The generated initializer needs be wrapped in the cyclic-error
+        // helper.
         registry.worldImpact.registerStaticUse(new StaticUse.staticInvoke(
             closedWorld.commonElements.cyclicThrowHelper,
             CallStructure.ONE_ARG));

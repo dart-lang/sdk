@@ -26,6 +26,10 @@ class Tags {
   static const String isInitializedInAllocator = 'allocator';
   static const String initialValue = 'initial';
   static const String constantValue = 'constant';
+  static const String isEager = 'eager';
+  static const String eagerCreationIndex = 'index';
+  static const String isLazy = 'lazy';
+  static const String isEffectivelyFinal = 'final';
 }
 
 class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
@@ -41,14 +45,33 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
       ir.Member node = closedWorld.elementMap.getMemberDefinition(member).node;
       Features features = new Features();
       FieldAnalysisData fieldData = fieldAnalysis.getFieldData(member);
+      if (fieldData.isInitializedInAllocator) {
+        features.add(Tags.isInitializedInAllocator);
+      }
       if (fieldData.isEffectivelyConstant) {
         features[Tags.constantValue] =
             fieldData.constantValue.toStructuredText();
       } else if (fieldData.initialValue != null) {
         features[Tags.initialValue] = fieldData.initialValue.toStructuredText();
+      } else if (fieldData.isEager) {
+        if (fieldData.eagerCreationIndex != null) {
+          features[Tags.eagerCreationIndex] =
+              fieldData.eagerCreationIndex.toString();
+        }
+        if (fieldData.eagerFieldDependenciesForTesting != null) {
+          for (FieldEntity field
+              in fieldData.eagerFieldDependenciesForTesting) {
+            features.addElement(Tags.isEager, field.name);
+          }
+        } else {
+          features.add(Tags.isEager);
+        }
       }
-      if (fieldData.isInitializedInAllocator) {
-        features.add(Tags.isInitializedInAllocator);
+      if (!member.isInstanceMember && fieldData.isLazy) {
+        features.add(Tags.isLazy);
+      }
+      if (fieldData.isEffectivelyFinal && !fieldData.isEffectivelyConstant) {
+        features.add(Tags.isEffectivelyFinal);
       }
       Id id = computeEntityId(node);
       actualMap[id] = new ActualData<Features>(

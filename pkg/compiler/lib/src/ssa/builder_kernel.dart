@@ -233,7 +233,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
               // the constant value.
               return null;
             } else if (targetElement.isStatic || targetElement.isTopLevel) {
-              backend.constants.registerLazyStatic(targetElement);
+              if (_fieldAnalysis.getFieldData(targetElement).isLazy) {
+                // TODO(johnniwinther): Lazy fields should be collected like
+                // eager and non-final fields.
+                backend.constants.registerLazyStatic(targetElement);
+              }
             }
             buildField(target);
           } else if (target is ir.FunctionExpression) {
@@ -3078,26 +3082,26 @@ class KernelSsaGraphBuilder extends ir.Visitor
     } else if (staticTarget is ir.Field) {
       FieldEntity field = _elementMap.getField(staticTarget);
       FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(field);
-      if (fieldData.initialValue != null) {
-        if (fieldData.isEffectivelyFinal) {
-          var unit = closedWorld.outputUnitData.outputUnitForMember(field);
-          // TODO(sigmund): this is not equivalent to what the old FE does: if
-          // there is no prefix the old FE wouldn't treat this in any special
-          // way. Also, if the prefix points to a constant in the main output
-          // unit, the old FE would still generate a deferred wrapper here.
-          if (!closedWorld.outputUnitData
-              .hasOnlyNonDeferredImportPaths(targetElement, field)) {
-            stack.add(graph.addDeferredConstant(fieldData.initialValue, unit,
-                sourceInformation, compiler, closedWorld));
-          } else {
-            stack.add(graph.addConstant(fieldData.initialValue, closedWorld,
-                sourceInformation: sourceInformation));
-          }
+      if (fieldData.isEager) {
+        push(new HStatic(field, _typeInferenceMap.getInferredTypeOf(field),
+            sourceInformation));
+      } else if (fieldData.isEffectivelyConstant) {
+        var unit = closedWorld.outputUnitData.outputUnitForMember(field);
+        // TODO(sigmund): this is not equivalent to what the old FE does: if
+        // there is no prefix the old FE wouldn't treat this in any special
+        // way. Also, if the prefix points to a constant in the main output
+        // unit, the old FE would still generate a deferred wrapper here.
+        if (!closedWorld.outputUnitData
+            .hasOnlyNonDeferredImportPaths(targetElement, field)) {
+          stack.add(graph.addDeferredConstant(fieldData.initialValue, unit,
+              sourceInformation, compiler, closedWorld));
         } else {
-          push(new HStatic(field, _typeInferenceMap.getInferredTypeOf(field),
-              sourceInformation));
+          stack.add(graph.addConstant(fieldData.initialValue, closedWorld,
+              sourceInformation: sourceInformation));
         }
       } else {
+        assert(
+            fieldData.isLazy, "Unexpected field data for $field: $fieldData");
         push(new HLazyStatic(field, _typeInferenceMap.getInferredTypeOf(field),
             sourceInformation));
       }

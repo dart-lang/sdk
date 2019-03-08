@@ -213,9 +213,10 @@ class StaticField {
   final js.Expression code;
   final bool isFinal;
   final bool isLazy;
+  final bool isInitializedByConstant;
 
   StaticField(this.element, this.name, this.getterName, this.holder, this.code,
-      this.isFinal, this.isLazy);
+      {this.isFinal, this.isLazy, this.isInitializedByConstant: false});
 
   String toString() {
     return 'StaticField(name=${name.key},element=${element})';

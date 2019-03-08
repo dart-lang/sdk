@@ -4,20 +4,20 @@
 
 import 'package:kernel/ast.dart' as ir;
 
+import '../common.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../elements/entity_utils.dart';
 import '../ir/scope_visitor.dart';
 import '../js_model/elements.dart' show JField;
 import '../js_model/js_world_builder.dart';
 import '../kernel/element_map.dart';
 import '../kernel/kernel_strategy.dart';
 import '../kernel/kelements.dart' show KClass, KField, KConstructor;
+import '../kernel/kernel_world.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/member_usage.dart';
-import '../world.dart';
-
-abstract class FieldAnalysis {}
 
 /// AllocatorAnalysis
 ///
@@ -35,7 +35,7 @@ abstract class FieldAnalysis {}
 //
 //     this.x = this.z = null;
 //
-class KFieldAnalysis implements FieldAnalysis {
+class KFieldAnalysis {
   final KernelToElementMap _elementMap;
 
   final Map<KClass, ClassData> _classData = {};
@@ -154,6 +154,8 @@ class StaticFieldData {
   final InitializerComplexity complexity;
 
   StaticFieldData(this.initialValue, this.complexity);
+
+  bool get hasDependencies => complexity != null && complexity.fields != null;
 }
 
 class AllocatorData {
@@ -212,10 +214,10 @@ class Initializer {
   String toString() => shortText;
 }
 
-class JFieldAnalysis implements FieldAnalysis {
+class JFieldAnalysis {
   /// Tag used for identifying serialized [JFieldAnalysis] objects in a
   /// debugging data stream.
-  static const String tag = 'allocator-analysis';
+  static const String tag = 'field-analysis';
 
   // --csp and --fast-startup have different constraints to the generated code.
 
@@ -241,8 +243,8 @@ class JFieldAnalysis implements FieldAnalysis {
     sink.end(tag);
   }
 
-  factory JFieldAnalysis.from(
-      KClosedWorld closedWorld, JsToFrontendMap map, CompilerOptions options) {
+  factory JFieldAnalysis.from(KClosedWorldImpl closedWorld, JsToFrontendMap map,
+      CompilerOptions options) {
     Map<FieldEntity, FieldAnalysisData> fieldData = {};
 
     bool canBeElided(FieldEntity field) {
@@ -355,32 +357,177 @@ class JFieldAnalysis implements FieldAnalysis {
       });
     });
 
+    List<KField> independentFields = [];
+    List<KField> dependentFields = [];
+
     closedWorld.liveMemberUsage
         .forEach((MemberEntity member, MemberUsage memberUsage) {
       if (member.isField && !member.isInstanceMember) {
-        JField jField = map.toBackendMember(member);
-        if (jField == null) return;
-
-        if (!memberUsage.hasRead && canBeElided(member)) {
-          fieldData[jField] = const FieldAnalysisData(isElided: true);
+        StaticFieldData staticFieldData =
+            closedWorld.fieldAnalysis._staticFieldData[member];
+        if (staticFieldData.hasDependencies) {
+          dependentFields.add(member);
         } else {
-          bool isEffectivelyFinal = !memberUsage.hasWrite;
-          StaticFieldData staticFieldData =
-              closedWorld.fieldAnalysis._staticFieldData[member];
-          ConstantValue value = map
-              .toBackendConstant(staticFieldData.initialValue, allowNull: true);
-          bool isElided =
-              isEffectivelyFinal && value != null && canBeElided(member);
-          // TODO(johnniwinther): Compute effective initializer complexity.
-          if (value != null || isEffectivelyFinal) {
-            fieldData[jField] = new FieldAnalysisData(
-                initialValue: value,
-                isEffectivelyFinal: isEffectivelyFinal,
-                isElided: isElided);
-          }
+          independentFields.add(member);
         }
       }
     });
+
+    // Fields already processed.
+    Set<KField> processedFields = {};
+
+    // Fields currently being processed. Use for detecting cyclic dependencies.
+    Set<KField> currentFields = {};
+
+    // Index ascribed to eager fields that depend on other fields. This is
+    // used to sort the field in emission to ensure that used fields have been
+    // initialized when read.
+    int eagerCreationIndex = 0;
+
+    /// Computes the [FieldAnalysisData] for the JField corresponding to
+    /// [kField].
+    ///
+    /// If the data is currently been computed, that is, [kField] has a
+    /// cyclic dependency, `null` is returned.
+    FieldAnalysisData processField(KField kField) {
+      JField jField = map.toBackendMember(kField);
+      // TODO(johnniwinther): Can we assert that [jField] exists?
+      if (jField == null) return null;
+
+      FieldAnalysisData data = fieldData[jField];
+      if (processedFields.contains(kField)) {
+        // We only store data for non-trivial [FieldAnalysisData].
+        return data ?? const FieldAnalysisData();
+      }
+      if (currentFields.contains(kField)) {
+        // Cyclic dependency.
+        return null;
+      }
+      currentFields.add(kField);
+      MemberUsage memberUsage = closedWorld.liveMemberUsage[kField];
+      if (!memberUsage.hasRead && canBeElided(kField)) {
+        data = fieldData[jField] = const FieldAnalysisData(isElided: true);
+      } else {
+        bool isEffectivelyFinal = !memberUsage.hasWrite;
+        StaticFieldData staticFieldData =
+            closedWorld.fieldAnalysis._staticFieldData[kField];
+        ConstantValue value = map
+            .toBackendConstant(staticFieldData.initialValue, allowNull: true);
+
+        // If the field is effectively final with a constant initializer we
+        // elide the field, if allowed, because it is effectively constant.
+        bool isElided =
+            isEffectivelyFinal && value != null && canBeElided(kField);
+
+        bool isEager;
+
+        // If the field is eager and dependent on other eager fields,
+        // [eagerFieldDependencies] holds these fields and [creationIndex] is
+        // given the creation order index used to ensure that all dependencies
+        // have been assigned their values before this field is initialized.
+        //
+        // Since we only need the values of [eagerFieldDependencies] for testing
+        // and only the non-emptiness for determining the need for creation
+        // order indices, [eagerFieldDependencies] is non-null if the field has
+        // dependencies but only hold these when [retainDataForTesting] is
+        // `true`.
+        List<FieldEntity> eagerFieldDependencies;
+        int creationIndex = null;
+
+        if (isElided) {
+          // If the field is elided it needs no initializer and is therefore
+          // not eager.
+          isEager = false;
+        } else {
+          // If the field has a constant initializer we know it can be
+          // initialized eagerly.
+          //
+          // Ideally this should be the same as
+          // `staticFieldData.complexity.isConstant` but currently the constant
+          // evaluator handles cases that the analysis doesn't, so we use the
+          // better result.
+          isEager = value != null;
+          if (!isEager) {
+            // The field might be eager depending on the initializer complexity
+            // and its dependencies.
+            InitializerComplexity complexity = staticFieldData.complexity;
+            isEager = complexity?.isEager ?? false;
+            if (isEager && complexity.fields != null) {
+              for (ir.Field node in complexity.fields) {
+                KField otherField = closedWorld.elementMap.getField(node);
+                FieldAnalysisData otherData = processField(otherField);
+                if (otherData == null) {
+                  // Cyclic dependency on [otherField].
+                  isEager = false;
+                  break;
+                }
+                if (otherData.isLazy) {
+                  // [otherField] needs lazy initialization.
+                  isEager = false;
+                  break;
+                }
+                if (!otherData.isEffectivelyFinal) {
+                  // [otherField] might not hold its initial value when this field
+                  // is accessed the first time, so we need to initialize this
+                  // field lazily.
+                  isEager = false;
+                  break;
+                }
+                if (!otherData.isEffectivelyConstant) {
+                  eagerFieldDependencies ??= [];
+                  if (retainDataForTesting) {
+                    eagerFieldDependencies.add(map.toBackendMember(otherField));
+                  }
+                }
+              }
+            }
+          }
+
+          if (isEager && eagerFieldDependencies != null) {
+            creationIndex = eagerCreationIndex++;
+            if (!retainDataForTesting) {
+              eagerFieldDependencies = null;
+            }
+          } else {
+            eagerFieldDependencies = null;
+          }
+        }
+
+        data = fieldData[jField] = new FieldAnalysisData(
+            initialValue: value,
+            isEffectivelyFinal: isEffectivelyFinal,
+            isElided: isElided,
+            isEager: isEager,
+            eagerCreationIndex: creationIndex,
+            eagerFieldDependenciesForTesting: eagerFieldDependencies);
+      }
+
+      currentFields.remove(kField);
+      processedFields.add(kField);
+      return data;
+    }
+
+    // Process independent fields in no particular order. The emitter sorts
+    // these later.
+    independentFields.forEach(processField);
+
+    // Process dependent fields in declaration order to make ascribed creation
+    // indices stable. The emitter uses the creation indices for sorting
+    // dependent fields.
+    dependentFields.sort((KField a, KField b) {
+      int result =
+          compareLibrariesUris(a.library.canonicalUri, b.library.canonicalUri);
+      if (result != 0) return result;
+      ir.Location aLocation = closedWorld.elementMap.getMemberNode(a).location;
+      ir.Location bLocation = closedWorld.elementMap.getMemberNode(b).location;
+      result = compareSourceUris(aLocation.file, bLocation.file);
+      if (result != 0) return result;
+      result = aLocation.line.compareTo(bLocation.line);
+      if (result != 0) return result;
+      return aLocation.column.compareTo(bLocation.column);
+    });
+
+    dependentFields.forEach(processField);
 
     return new JFieldAnalysis._(fieldData);
   }
@@ -402,11 +549,25 @@ class FieldAnalysisData {
   final bool isEffectivelyFinal;
   final bool isElided;
 
+  /// If `true` the field is not effectively constant but the initializer can be
+  /// generated eagerly without the need for lazy initialization wrapper.
+  final bool isEager;
+
+  /// Index ascribed to eager fields that depend on other fields. This is
+  /// used to sort the field in emission to ensure that used fields have been
+  /// initialized when read.
+  final int eagerCreationIndex;
+
+  final List<FieldEntity> eagerFieldDependenciesForTesting;
+
   const FieldAnalysisData(
       {this.initialValue,
       this.isInitializedInAllocator: false,
       this.isEffectivelyFinal: false,
-      this.isElided: false});
+      this.isElided: false,
+      this.isEager: false,
+      this.eagerCreationIndex: null,
+      this.eagerFieldDependenciesForTesting: null});
 
   factory FieldAnalysisData.fromDataSource(DataSource source) {
     source.begin(tag);
@@ -415,12 +576,19 @@ class FieldAnalysisData {
     bool isInitializedInAllocator = source.readBool();
     bool isEffectivelyFinal = source.readBool();
     bool isElided = source.readBool();
+    bool isEager = source.readBool();
+    int eagerCreationIndex = source.readIntOrNull();
+    List<FieldEntity> eagerFieldDependencies =
+        source.readMembers<FieldEntity>(emptyAsNull: true);
     source.end(tag);
     return new FieldAnalysisData(
         initialValue: initialValue,
         isInitializedInAllocator: isInitializedInAllocator,
         isEffectivelyFinal: isEffectivelyFinal,
-        isElided: isElided);
+        isElided: isElided,
+        isEager: isEager,
+        eagerCreationIndex: eagerCreationIndex,
+        eagerFieldDependenciesForTesting: eagerFieldDependencies);
   }
 
   void writeToDataSink(DataSink sink) {
@@ -429,8 +597,15 @@ class FieldAnalysisData {
     sink.writeBool(isInitializedInAllocator);
     sink.writeBool(isEffectivelyFinal);
     sink.writeBool(isElided);
+    sink.writeBool(isEager);
+    sink.writeIntOrNull(eagerCreationIndex);
+    sink.writeMembers(eagerFieldDependenciesForTesting, allowNull: true);
     sink.end(tag);
   }
+
+  /// If `true` the initializer for this field requires a lazy initialization
+  /// wrapper.
+  bool get isLazy => initialValue == null && !isEager;
 
   bool get isEffectivelyConstant =>
       isEffectivelyFinal && isElided && initialValue != null;
@@ -440,5 +615,7 @@ class FieldAnalysisData {
   String toString() =>
       'FieldAnalysisData(initialValue=${initialValue?.toStructuredText()},'
       'isInitializedInAllocator=$isInitializedInAllocator,'
-      'isEffectivelyFinal=$isEffectivelyFinal,isElided=$isElided)';
+      'isEffectivelyFinal=$isEffectivelyFinal,isElided=$isElided,'
+      'isEager=$isEager,eagerCreationIndex=$eagerCreationIndex,'
+      'eagerFieldDependencies=$eagerFieldDependenciesForTesting)';
 }
