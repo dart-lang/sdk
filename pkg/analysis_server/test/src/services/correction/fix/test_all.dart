@@ -82,6 +82,7 @@ import 'remove_unused_catch_stack_test.dart' as remove_unused_catch_stack;
 import 'remove_unused_import_test.dart' as remove_unused_import;
 import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
+import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
 import 'replace_var_with_dynamic_test.dart' as replace_var_with_dynamic;
@@ -170,6 +171,7 @@ main() {
     remove_unused_import.main();
     rename_to_camel_case.main();
     replace_boolean_with_bool.main();
+    replace_colon_with_equals.main();
     replace_final_with_const.main();
     replace_return_type_future.main();
     replace_var_with_dynamic.main();

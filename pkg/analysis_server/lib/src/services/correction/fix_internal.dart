@@ -598,6 +598,9 @@ class FixProcessor {
       if (errorCode.name == LintNames.prefer_const_declarations) {
         await _addFix_replaceFinalWithConst();
       }
+      if (errorCode.name == LintNames.prefer_equal_for_default_values) {
+        await _addFix_replaceColonWithEquals();
+      }
       if (name == LintNames.prefer_final_fields) {
         await _addFix_makeVariableFinal();
       }
@@ -3173,6 +3176,17 @@ class FixProcessor {
         args: [newName]);
   }
 
+  Future<void> _addFix_replaceColonWithEquals() async {
+    if (node is DefaultFormalParameter) {
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleReplacement(
+            range.token((node as DefaultFormalParameter).separator), '=');
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_COLON_WITH_EQUALS);
+    }
+  }
+
   Future<void> _addFix_replaceFinalWithConst() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -4356,6 +4370,8 @@ class LintNames {
   static const String prefer_conditional_assignment =
       'prefer_conditional_assignment';
   static const String prefer_const_declarations = 'prefer_const_declarations';
+  static const String prefer_equal_for_default_values =
+      'prefer_equal_for_default_values';
   static const String prefer_final_fields = 'prefer_final_fields';
   static const String prefer_final_locals = 'prefer_final_locals';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';

@@ -264,6 +264,8 @@ class DartFixKind {
   static const REPLACE_BOOLEAN_WITH_BOOL = const FixKind(
       'REPLACE_BOOLEAN_WITH_BOOL', 50, "Replace 'boolean' with 'bool'",
       appliedTogetherMessage: "Replace all 'boolean' with 'bool' in file");
+  static const REPLACE_COLON_WITH_EQUALS =
+      const FixKind('REPLACE_COLON_WITH_EQUALS', 50, "Replace ':' with '='");
   static const REPLACE_FINAL_WITH_CONST = const FixKind(
       'REPLACE_FINAL_WITH_CONST', 50, "Replace 'final' with 'const'");
   static const REPLACE_RETURN_TYPE_FUTURE = const FixKind(
