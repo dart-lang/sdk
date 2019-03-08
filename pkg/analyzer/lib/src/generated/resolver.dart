@@ -5216,16 +5216,14 @@ class ResolverVisitor extends ScopedVisitor {
       DartType unwrappedContextType = unwrap(contextType);
       // TODO(brianwilkerson) Find out what the "greatest closure" is and use that
       // where [unwrappedContextType] is used below.
-      if (typeSystem.isAssignableTo(
-              typeProvider.iterableObjectType, unwrappedContextType) &&
-          !typeSystem.isAssignableTo(
-              typeProvider.mapObjectObjectType, unwrappedContextType)) {
+      bool isIterable = typeSystem.isSubtypeOf(
+          unwrappedContextType, typeProvider.iterableObjectType);
+      bool isMap = typeSystem.isSubtypeOf(
+          unwrappedContextType, typeProvider.mapObjectObjectType);
+      if (isIterable && !isMap) {
         return _LiteralResolution(
             _LiteralResolutionKind.set, unwrappedContextType);
-      } else if (typeSystem.isAssignableTo(
-              typeProvider.mapObjectObjectType, unwrappedContextType) &&
-          !typeSystem.isAssignableTo(
-              typeProvider.iterableObjectType, unwrappedContextType)) {
+      } else if (isMap && !isIterable) {
         return _LiteralResolution(
             _LiteralResolutionKind.map, unwrappedContextType);
       }
