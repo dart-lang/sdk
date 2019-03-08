@@ -21,6 +21,10 @@ class Scope {
   }
 
   Declaration lookup(String name) {
-    return map[name];
+    var declaration = map[name];
+    if (declaration != null) return declaration;
+
+    if (parent == null) return null;
+    return parent.lookup(name);
   }
 }

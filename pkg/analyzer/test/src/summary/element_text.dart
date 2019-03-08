@@ -316,6 +316,10 @@ class _ElementWriter {
       buffer.write('<null>');
     } else if (e is SimpleIdentifier && e.name == '#invalidConst') {
       buffer.write('#invalidConst');
+    } else if (e is AdjacentStrings) {
+      writeList("'", "'", e.strings, '',
+          (StringLiteral s) => buffer.write(s.stringValue),
+          includeEmpty: true);
     } else if (e is Annotation) {
       buffer.write('@');
       writeExpression(e.name);
@@ -802,16 +806,13 @@ class _ElementWriter {
 
     if (!e.isSynthetic) {
       expect(e.getter, isNotNull);
-      expect(e.getter.isSynthetic, isTrue);
-      expect(e.getter.variable, same(e));
-      expect(e.getter.enclosingElement, same(e.enclosingElement));
+      _assertSyntheticAccessorEnclosing(e, e.getter);
+
       if (e.isFinal || e.isConst) {
         expect(e.setter, isNull);
       } else {
         expect(e.setter, isNotNull);
-        expect(e.setter.isSynthetic, isTrue);
-        expect(e.setter.variable, same(e.getter.variable));
-        expect(e.setter.enclosingElement, same(e.enclosingElement));
+        _assertSyntheticAccessorEnclosing(e, e.getter);
       }
     }
 
@@ -919,6 +920,23 @@ class _ElementWriter {
         }
         buffer.write('/*error: $kindName*/');
       }
+    }
+  }
+
+  /// Assert that the [accessor] of the [property] is correctly linked to
+  /// the same enclosing element as the [property].
+  void _assertSyntheticAccessorEnclosing(
+      PropertyInducingElement property, PropertyAccessorElement accessor) {
+    expect(accessor.isSynthetic, isTrue);
+    expect(accessor.variable, same(property));
+
+    var propertyEnclosing = property.enclosingElement;
+    expect(accessor.enclosingElement, same(propertyEnclosing));
+
+    if (propertyEnclosing is CompilationUnitElement) {
+      expect(propertyEnclosing.accessors, contains(accessor));
+    } else if (propertyEnclosing is ClassElement) {
+      expect(propertyEnclosing.accessors, contains(accessor));
     }
   }
 

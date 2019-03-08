@@ -19,12 +19,17 @@ import 'package:meta/meta.dart';
 /// Serializer of fully resolved ASTs into flat buffers.
 class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   final referenceRoot = Reference.root();
-  final referenceBuilder = LinkedNodeReferenceBuilder();
+  final referencesBuilder = LinkedNodeReferencesBuilder();
   final _references = <Reference>[];
 
   final UnlinkedTokensBuilder tokens = UnlinkedTokensBuilder();
   final Map<Token, int> _tokenMap = Map.identity();
   int _tokenIndex = 0;
+
+  /// This field is set temporary while visiting [FieldDeclaration] or
+  /// [TopLevelVariableDeclaration] to store data shared among all variables
+  /// in these declarations.
+  LinkedNodeVariablesDeclarationBuilder _variablesDeclaration;
 
   AstBinaryWriter() {
     _references.add(referenceRoot);
@@ -452,6 +457,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitFieldDeclaration(FieldDeclaration node) {
+    _variablesDeclaration = LinkedNodeVariablesDeclarationBuilder(
+      isStatic: node.isStatic,
+    );
+
     var builder = LinkedNodeBuilder.fieldDeclaration(
       fieldDeclaration_covariantKeyword: _getToken(node.covariantKeyword),
       fieldDeclaration_fields: node.fields.accept(this),
@@ -459,6 +468,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       fieldDeclaration_staticKeyword: _getToken(node.staticKeyword),
     );
     _storeClassMember(builder, node);
+
+    _variablesDeclaration.comment = builder.annotatedNode_comment;
+    _variablesDeclaration = null;
+
     return builder;
   }
 
@@ -1133,11 +1146,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitTopLevelVariableDeclaration(
       TopLevelVariableDeclaration node) {
+    _variablesDeclaration = LinkedNodeVariablesDeclarationBuilder();
+
     var builder = LinkedNodeBuilder.topLevelVariableDeclaration(
       topLevelVariableDeclaration_semicolon: _getToken(node.semicolon),
       topLevelVariableDeclaration_variableList: node.variables?.accept(this),
     );
     _storeCompilationUnitMember(builder, node);
+
+    _variablesDeclaration.comment = builder.annotatedNode_comment;
+    _variablesDeclaration = null;
+
     return builder;
   }
 
@@ -1196,11 +1215,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       variableDeclaration_equals: _getToken(node.equals),
       variableDeclaration_initializer: node.initializer?.accept(this),
       variableDeclaration_name: node.name.accept(this),
+      variableDeclaration_declaration: _variablesDeclaration,
     );
   }
 
   @override
   LinkedNodeBuilder visitVariableDeclarationList(VariableDeclarationList node) {
+    if (_variablesDeclaration != null) {
+      _variablesDeclaration.isConst = node.isConst;
+      _variablesDeclaration.isFinal = node.isFinal;
+    }
+
     var builder = LinkedNodeBuilder.variableDeclarationList(
       variableDeclarationList_keyword: _getToken(node.keyword),
       variableDeclarationList_type: node.type?.accept(this),
@@ -1255,11 +1280,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     return node.accept(this);
   }
 
-  /// Write [referenceRoot] and all its children into [referenceBuilder].
+  /// Write [referenceRoot] and all its children into [referencesBuilder].
   void writeReferences() {
     for (var reference in _references) {
-      referenceBuilder.parent.add(reference.parent?.index ?? 0);
-      referenceBuilder.name.add(reference.name);
+      referencesBuilder.parent.add(reference.parent?.index ?? 0);
+      referencesBuilder.name.add(reference.name);
     }
   }
 
@@ -1298,12 +1323,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
     Reference result;
     if (element is ClassElement) {
-      var containerRef = _getReference(element.library).getChild('@class');
+      var enclosingRef = _getReference(element.enclosingElement);
+      var containerRef = enclosingRef.getChild('@class');
       _ensureReferenceIndex(containerRef);
 
       result = containerRef.getChild(element.name);
     } else if (element is CompilationUnitElement) {
-      return _getReference(element.enclosingElement);
+      var enclosingRef = _getReference(element.enclosingElement);
+      var containerRef = enclosingRef.getChild('@unit');
+      _ensureReferenceIndex(containerRef);
+
+      result = containerRef.getChild('${element.source.uri}');
     } else if (element is ConstructorElement) {
       var enclosingRef = _getReference(element.enclosingElement);
       var containerRef = enclosingRef.getChild('@constructor');
@@ -1319,13 +1349,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
       result = containerRef.getChild(element.name);
     } else if (element is FunctionElement) {
-      var containerRef = _getReference(element.library).getChild('@function');
+      var enclosingRef = _getReference(element.enclosingElement);
+      var containerRef = enclosingRef.getChild('@function');
       _ensureReferenceIndex(containerRef);
 
       result = containerRef.getChild(element.name ?? '');
     } else if (element is FunctionTypeAliasElement) {
-      var libraryRef = _getReference(element.library);
-      var containerRef = libraryRef.getChild('@functionTypeAlias');
+      var enclosingRef = _getReference(element.enclosingElement);
+      var containerRef = enclosingRef.getChild('@functionTypeAlias');
       _ensureReferenceIndex(containerRef);
 
       result = containerRef.getChild(element.name);
@@ -1333,15 +1364,16 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       if (element.enclosingElement is GenericTypeAliasElement) {
         return _getReference(element.enclosingElement);
       } else {
-        var libraryRef = _getReference(element.library);
-        var containerRef = libraryRef.getChild('@functionType');
+        var enclosingRef = _getReference(element.enclosingElement);
+        var containerRef = enclosingRef.getChild('@functionType');
         _ensureReferenceIndex(containerRef);
 
         // TODO(scheglov) do we need to store these elements at all?
         result = containerRef.getChild('<unnamed>');
       }
     } else if (element is GenericTypeAliasElement) {
-      var containerRef = _getReference(element.library).getChild('@typeAlias');
+      var enclosingRef = _getReference(element.enclosingElement);
+      var containerRef = enclosingRef.getChild('@typeAlias');
       _ensureReferenceIndex(containerRef);
 
       result = containerRef.getChild(element.name);
@@ -1374,8 +1406,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     } else if (element is MultiplyDefinedElement) {
       return referenceRoot;
     } else if (element is ParameterElement) {
-      var enclosing = element.enclosingElement;
-      var enclosingRef = _getReference(enclosing);
+      var enclosingRef = _getReference(element.enclosingElement);
       var containerRef = enclosingRef.getChild('@parameter');
       _ensureReferenceIndex(containerRef);
 
@@ -1386,7 +1417,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
       result = containerRef.getChild(element.name);
     } else if (element is PropertyAccessorElement) {
-      var enclosingRef = _getReference(element.library);
+      var enclosingRef = _getReference(element.enclosingElement);
       var containerRef = enclosingRef.getChild(
         element.isGetter ? '@getter' : '@setter',
       );
@@ -1394,7 +1425,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
       result = containerRef.getChild(element.displayName);
     } else if (element is TopLevelVariableElement) {
-      var enclosingRef = _getReference(element.library);
+      var enclosingRef = _getReference(element.enclosingElement);
       var containerRef = enclosingRef.getChild('@variable');
       _ensureReferenceIndex(containerRef);
 
@@ -1658,7 +1689,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       _addToken(
         isSynthetic: token.isSynthetic,
         kind: UnlinkedTokenKind.keyword,
-        lexeme: '',
+        lexeme: token.lexeme,
         offset: token.offset,
         length: token.length,
         precedingComment: commentIndex,

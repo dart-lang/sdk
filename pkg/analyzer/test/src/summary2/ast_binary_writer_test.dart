@@ -128,7 +128,7 @@ var a = [1, 2, 3];
 
     var reader = AstBinaryReader(
       Reference.root(),
-      writer.referenceBuilder,
+      writer.referencesBuilder,
       writer.tokens,
     );
     var deserializedUnit = reader.readNode(builder);

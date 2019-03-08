@@ -18,7 +18,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 /// Deserializer of fully resolved ASTs from flat buffers.
 class AstBinaryReader {
   final Reference _nameRoot;
-  final LinkedNodeReference _linkedReferences;
+  final LinkedNodeReferences _linkedReferences;
   final List<Reference> _references;
 
   final UnlinkedTokens _tokensBinary;

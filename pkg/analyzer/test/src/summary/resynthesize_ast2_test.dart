@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/linked_bundle_context.dart';
-import 'package:analyzer/src/summary2/linked_unit_context.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,6 +27,43 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @override
   Future<LibraryElementImpl> checkLibrary(String text,
       {bool allowErrors = false, bool dumpSummaries = false}) async {
+    var dartCoreSource = sourceFactory.forUri('dart:core');
+    var dartCoreCode = getFile(dartCoreSource.fullName).readAsStringSync();
+    dartCoreCode = r'''
+abstract class Comparable<T> {
+  int compareTo(T other);
+}
+
+class Iterable<T> {}
+
+class Iterator<T> {}
+
+class List<T> {}
+
+class Map<K, V> {}
+
+abstract class Null {}
+
+class Object {
+  const Object();
+}
+
+abstract class String {}
+
+abstract class Type {}
+
+abstract class bool {}
+
+abstract class double extends num {}
+
+abstract class int extends num {}
+
+abstract class num implements Comparable<num> {}
+''';
+
+    var rootReference = Reference.root();
+    var dartCoreResult = _link(rootReference, dartCoreSource, dartCoreCode);
+
     var source = addTestSource(text);
 
     var unit = parseText(text, experimentStatus: experimentStatus);
@@ -34,66 +73,25 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
       source: {source: unit},
     };
 
-    var rootReference = Reference.root();
-    var linkResult = link(rootReference, libraryUnitMap);
-
-    var libraryLinkResult = linkResult.libraries[source];
-    var defaultUnitResult = libraryLinkResult.units[source];
-
-    var linkedBundleContext = LinkedBundleContext(linkResult.references);
-    var linkedUnitContext = LinkedUnitContext(
-      linkedBundleContext,
-      defaultUnitResult.tokens,
+    var linkResult = link(
+      _FakeAnalysisContext(sourceFactory, null),
+      null,
+      rootReference,
+      [dartCoreResult.bundle],
+      libraryUnitMap,
     );
 
-    // TODO(scheglov) use actual names
-    // TODO(scheglov) support parts
-    var libraryElement = LibraryElementImpl(null, null, '', -1, 0);
-    var unitElement = CompilationUnitElementImpl.forLinkedNode(
-      libraryElement,
-      linkedUnitContext,
-      rootReference.getChild('${libraryLinkResult.source.uri}'),
-      defaultUnitResult.node,
+    var rootReference2 = Reference.root();
+    var elementFactory = LinkedElementFactory(
+      _FakeAnalysisContext(sourceFactory, null),
+      null,
+      rootReference2,
     );
-    libraryElement.definingCompilationUnit = unitElement;
-
-    return libraryElement;
-  }
-
-  @override
-  @failingTest
-  test_class_alias() async {
-    await super.test_class_alias();
-  }
-
-  @override
-  @failingTest
-  test_class_alias_abstract() async {
-    await super.test_class_alias_abstract();
-  }
-
-  @override
-  @failingTest
-  test_class_alias_documented() async {
-    await super.test_class_alias_documented();
-  }
-
-  @override
-  @failingTest
-  test_class_alias_documented_tripleSlash() async {
-    await super.test_class_alias_documented_tripleSlash();
-  }
-
-  @override
-  @failingTest
-  test_class_alias_documented_withLeadingNonDocumentation() async {
-    await super.test_class_alias_documented_withLeadingNonDocumentation();
-  }
-
-  @override
-  @failingTest
-  test_class_alias_generic() async {
-    await super.test_class_alias_generic();
+    elementFactory.addBundle(dartCoreResult.bundle);
+    elementFactory.addBundle(linkResult.bundle);
+    return elementFactory.elementOfReference(
+      rootReference2.getChild('${source.uri}'),
+    );
   }
 
   @override
@@ -118,36 +116,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_class_alias_with_mixin_members() async {
-    await super.test_class_alias_with_mixin_members();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_explicit_type_params() async {
-    await super.test_class_constructor_explicit_type_params();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_field_formal_dynamic_dynamic() async {
-    await super.test_class_constructor_field_formal_dynamic_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_field_formal_dynamic_typed() async {
-    await super.test_class_constructor_field_formal_dynamic_typed();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_field_formal_dynamic_untyped() async {
-    await super.test_class_constructor_field_formal_dynamic_untyped();
-  }
-
-  @override
-  @failingTest
   test_class_constructor_field_formal_functionTyped_noReturnType() async {
     await super
         .test_class_constructor_field_formal_functionTyped_noReturnType();
@@ -164,48 +132,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_class_constructor_field_formal_multiple_matching_fields() async {
     await super.test_class_constructor_field_formal_multiple_matching_fields();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_field_formal_no_matching_field() async {
-    await super.test_class_constructor_field_formal_no_matching_field();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_field_formal_typed_dynamic() async {
-    await super.test_class_constructor_field_formal_typed_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_field_formal_typed_typed() async {
-    await super.test_class_constructor_field_formal_typed_typed();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_field_formal_typed_untyped() async {
-    await super.test_class_constructor_field_formal_typed_untyped();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_field_formal_untyped_dynamic() async {
-    await super.test_class_constructor_field_formal_untyped_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_field_formal_untyped_typed() async {
-    await super.test_class_constructor_field_formal_untyped_typed();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_field_formal_untyped_untyped() async {
-    await super.test_class_constructor_field_formal_untyped_untyped();
   }
 
   @override
@@ -234,194 +160,8 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_class_constructor_implicit_type_params() async {
-    await super.test_class_constructor_implicit_type_params();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_params() async {
-    await super.test_class_constructor_params();
-  }
-
-  @override
-  @failingTest
-  test_class_documented() async {
-    await super.test_class_documented();
-  }
-
-  @override
-  @failingTest
-  test_class_documented_mix() async {
-    await super.test_class_documented_mix();
-  }
-
-  @override
-  @failingTest
-  test_class_documented_tripleSlash() async {
-    await super.test_class_documented_tripleSlash();
-  }
-
-  @override
-  @failingTest
-  test_class_documented_with_references() async {
-    await super.test_class_documented_with_references();
-  }
-
-  @override
-  @failingTest
-  test_class_documented_with_windows_line_endings() async {
-    await super.test_class_documented_with_windows_line_endings();
-  }
-
-  @override
-  @failingTest
-  test_class_documented_withLeadingNotDocumentation() async {
-    await super.test_class_documented_withLeadingNotDocumentation();
-  }
-
-  @override
-  @failingTest
   test_class_documented_withMetadata() async {
     await super.test_class_documented_withMetadata();
-  }
-
-  @override
-  @failingTest
-  test_class_field_const() async {
-    await super.test_class_field_const();
-  }
-
-  @override
-  @failingTest
-  test_class_field_implicit_type() async {
-    await super.test_class_field_implicit_type();
-  }
-
-  @override
-  @failingTest
-  test_class_field_static() async {
-    await super.test_class_field_static();
-  }
-
-  @override
-  @failingTest
-  test_class_fields() async {
-    await super.test_class_fields();
-  }
-
-  @override
-  @failingTest
-  test_class_getter_abstract() async {
-    await super.test_class_getter_abstract();
-  }
-
-  @override
-  @failingTest
-  test_class_getter_external() async {
-    await super.test_class_getter_external();
-  }
-
-  @override
-  @failingTest
-  test_class_getter_implicit_return_type() async {
-    await super.test_class_getter_implicit_return_type();
-  }
-
-  @override
-  @failingTest
-  test_class_getter_static() async {
-    await super.test_class_getter_static();
-  }
-
-  @override
-  @failingTest
-  test_class_getters() async {
-    await super.test_class_getters();
-  }
-
-  @override
-  @failingTest
-  test_class_implicitField_getterFirst() async {
-    await super.test_class_implicitField_getterFirst();
-  }
-
-  @override
-  @failingTest
-  test_class_implicitField_setterFirst() async {
-    await super.test_class_implicitField_setterFirst();
-  }
-
-  @override
-  @failingTest
-  test_class_interfaces_unresolved() async {
-    await super.test_class_interfaces_unresolved();
-  }
-
-  @override
-  @failingTest
-  test_class_method_abstract() async {
-    await super.test_class_method_abstract();
-  }
-
-  @override
-  @failingTest
-  test_class_method_external() async {
-    await super.test_class_method_external();
-  }
-
-  @override
-  @failingTest
-  test_class_method_params() async {
-    await super.test_class_method_params();
-  }
-
-  @override
-  @failingTest
-  test_class_method_static() async {
-    await super.test_class_method_static();
-  }
-
-  @override
-  @failingTest
-  test_class_methods() async {
-    await super.test_class_methods();
-  }
-
-  @override
-  @failingTest
-  test_class_mixins_generic() async {
-    await super.test_class_mixins_generic();
-  }
-
-  @override
-  @failingTest
-  test_class_mixins_unresolved() async {
-    await super.test_class_mixins_unresolved();
-  }
-
-  @override
-  @failingTest
-  test_class_setter_abstract() async {
-    await super.test_class_setter_abstract();
-  }
-
-  @override
-  @failingTest
-  test_class_setter_external() async {
-    await super.test_class_setter_external();
-  }
-
-  @override
-  @failingTest
-  test_class_setter_implicit_param_type() async {
-    await super.test_class_setter_implicit_param_type();
-  }
-
-  @override
-  @failingTest
-  test_class_setter_implicit_return_type() async {
-    await super.test_class_setter_implicit_return_type();
   }
 
   @override
@@ -432,50 +172,8 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_class_setter_invalid_no_parameter() async {
-    await super.test_class_setter_invalid_no_parameter();
-  }
-
-  @override
-  @failingTest
   test_class_setter_invalid_optional_parameter() async {
     await super.test_class_setter_invalid_optional_parameter();
-  }
-
-  @override
-  @failingTest
-  test_class_setter_invalid_too_many_parameters() async {
-    await super.test_class_setter_invalid_too_many_parameters();
-  }
-
-  @override
-  @failingTest
-  test_class_setter_static() async {
-    await super.test_class_setter_static();
-  }
-
-  @override
-  @failingTest
-  test_class_setters() async {
-    await super.test_class_setters();
-  }
-
-  @override
-  @failingTest
-  test_class_supertype_typeArguments() async {
-    await super.test_class_supertype_typeArguments();
-  }
-
-  @override
-  @failingTest
-  test_class_supertype_unresolved() async {
-    await super.test_class_supertype_unresolved();
-  }
-
-  @override
-  @failingTest
-  test_class_type_parameters() async {
-    await super.test_class_type_parameters();
   }
 
   @override
@@ -494,12 +192,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_class_type_parameters_f_bound_simple() async {
     await super.test_class_type_parameters_f_bound_simple();
-  }
-
-  @override
-  @failingTest
-  test_closure_executable_with_return_type_from_closure() async {
-    await super.test_closure_executable_with_return_type_from_closure();
   }
 
   @override
@@ -612,12 +304,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_const_invalid_intLiteral() async {
-    await super.test_const_invalid_intLiteral();
-  }
-
-  @override
-  @failingTest
   test_const_invalid_topLevel() async {
     await super.test_const_invalid_topLevel();
   }
@@ -698,12 +384,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_const_invokeConstructor_named_unresolved2() async {
-    await super.test_const_invokeConstructor_named_unresolved2();
-  }
-
-  @override
-  @failingTest
   test_const_invokeConstructor_named_unresolved3() async {
     await super.test_const_invokeConstructor_named_unresolved3();
   }
@@ -712,12 +392,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_const_invokeConstructor_named_unresolved4() async {
     await super.test_const_invokeConstructor_named_unresolved4();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_named_unresolved5() async {
-    await super.test_const_invokeConstructor_named_unresolved5();
   }
 
   @override
@@ -746,20 +420,8 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_const_invokeConstructor_unnamed_unresolved() async {
-    await super.test_const_invokeConstructor_unnamed_unresolved();
-  }
-
-  @override
-  @failingTest
   test_const_invokeConstructor_unnamed_unresolved2() async {
     await super.test_const_invokeConstructor_unnamed_unresolved2();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_unnamed_unresolved3() async {
-    await super.test_const_invokeConstructor_unnamed_unresolved3();
   }
 
   @override
@@ -958,12 +620,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_const_reference_unresolved_prefix0() async {
-    await super.test_const_reference_unresolved_prefix0();
-  }
-
-  @override
-  @failingTest
   test_const_reference_unresolved_prefix1() async {
     await super.test_const_reference_unresolved_prefix1();
   }
@@ -1014,18 +670,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_const_topLevel_prefix() async {
     await super.test_const_topLevel_prefix();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_super() async {
-    await super.test_const_topLevel_super();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_this() async {
-    await super.test_const_topLevel_this();
   }
 
   @override
@@ -1098,12 +742,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_constExpr_pushReference_staticMethod_simpleIdentifier() async {
     await super.test_constExpr_pushReference_staticMethod_simpleIdentifier();
-  }
-
-  @override
-  @failingTest
-  test_constructor_documented() async {
-    await super.test_constructor_documented();
   }
 
   @override
@@ -1217,19 +855,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_constructor_redirected_factory_named_unresolved_class() async {
-    await super.test_constructor_redirected_factory_named_unresolved_class();
-  }
-
-  @override
-  @failingTest
-  test_constructor_redirected_factory_named_unresolved_constructor() async {
-    await super
-        .test_constructor_redirected_factory_named_unresolved_constructor();
-  }
-
-  @override
-  @failingTest
   test_constructor_redirected_factory_unnamed() async {
     await super.test_constructor_redirected_factory_unnamed();
   }
@@ -1266,12 +891,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_constructor_redirected_factory_unnamed_unresolved() async {
-    await super.test_constructor_redirected_factory_unnamed_unresolved();
-  }
-
-  @override
-  @failingTest
   test_constructor_redirected_thisInvocation_named() async {
     await super.test_constructor_redirected_thisInvocation_named();
   }
@@ -1298,12 +917,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_constructor_withCycles_const() async {
     await super.test_constructor_withCycles_const();
-  }
-
-  @override
-  @failingTest
-  test_constructor_withCycles_nonConst() async {
-    await super.test_constructor_withCycles_nonConst();
   }
 
   @override
@@ -1494,32 +1107,14 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_expr_invalid_typeParameter_asPrefix() async {
-    await super.test_expr_invalid_typeParameter_asPrefix();
-  }
-
-  @override
-  @failingTest
   test_field_covariant() async {
     await super.test_field_covariant();
   }
 
   @override
   @failingTest
-  test_field_documented() async {
-    await super.test_field_documented();
-  }
-
-  @override
-  @failingTest
   test_field_formal_param_inferred_type_implicit() async {
     await super.test_field_formal_param_inferred_type_implicit();
-  }
-
-  @override
-  @failingTest
-  test_field_inferred_type_nonStatic_explicit_initialized() async {
-    await super.test_field_inferred_type_nonStatic_explicit_initialized();
   }
 
   @override
@@ -1578,12 +1173,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_field_typed() async {
-    await super.test_field_typed();
-  }
-
-  @override
-  @failingTest
   test_field_untyped() async {
     await super.test_field_untyped();
   }
@@ -1598,18 +1187,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_function_asyncStar() async {
     await super.test_function_asyncStar();
-  }
-
-  @override
-  @failingTest
-  test_function_documented() async {
-    await super.test_function_documented();
-  }
-
-  @override
-  @failingTest
-  test_function_entry_point() async {
-    await super.test_function_entry_point();
   }
 
   @override
@@ -1632,18 +1209,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_function_external() async {
-    await super.test_function_external();
-  }
-
-  @override
-  @failingTest
-  test_function_parameter_final() async {
-    await super.test_function_parameter_final();
-  }
-
-  @override
-  @failingTest
   test_function_parameter_kind_named() async {
     await super.test_function_parameter_kind_named();
   }
@@ -1652,12 +1217,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_function_parameter_kind_positional() async {
     await super.test_function_parameter_kind_positional();
-  }
-
-  @override
-  @failingTest
-  test_function_parameter_kind_required() async {
-    await super.test_function_parameter_kind_required();
   }
 
   @override
@@ -1680,36 +1239,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_function_parameter_type() async {
-    await super.test_function_parameter_type();
-  }
-
-  @override
-  @failingTest
-  test_function_parameters() async {
-    await super.test_function_parameters();
-  }
-
-  @override
-  @failingTest
-  test_function_return_type() async {
-    await super.test_function_return_type();
-  }
-
-  @override
-  @failingTest
-  test_function_return_type_implicit() async {
-    await super.test_function_return_type_implicit();
-  }
-
-  @override
-  @failingTest
-  test_function_return_type_void() async {
-    await super.test_function_return_type_void();
-  }
-
-  @override
-  @failingTest
   test_function_type_parameter() async {
     await super.test_function_type_parameter();
   }
@@ -1724,12 +1253,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_function_typed_parameter_implicit() async {
     await super.test_function_typed_parameter_implicit();
-  }
-
-  @override
-  @failingTest
-  test_functions() async {
-    await super.test_functions();
   }
 
   @override
@@ -1794,38 +1317,8 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_getter_documented() async {
-    await super.test_getter_documented();
-  }
-
-  @override
-  @failingTest
-  test_getter_external() async {
-    await super.test_getter_external();
-  }
-
-  @override
-  @failingTest
   test_getter_inferred_type_nonStatic_implicit_return() async {
     await super.test_getter_inferred_type_nonStatic_implicit_return();
-  }
-
-  @override
-  @failingTest
-  test_getters() async {
-    await super.test_getters();
-  }
-
-  @override
-  @failingTest
-  test_implicitTopLevelVariable_getterFirst() async {
-    await super.test_implicitTopLevelVariable_getterFirst();
-  }
-
-  @override
-  @failingTest
-  test_implicitTopLevelVariable_setterFirst() async {
-    await super.test_implicitTopLevelVariable_setterFirst();
   }
 
   @override
@@ -1938,27 +1431,9 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_inferred_function_type_in_generic_class_constructor() async {
-    await super.test_inferred_function_type_in_generic_class_constructor();
-  }
-
-  @override
-  @failingTest
-  test_inferred_function_type_in_generic_class_getter() async {
-    await super.test_inferred_function_type_in_generic_class_getter();
-  }
-
-  @override
-  @failingTest
   test_inferred_function_type_in_generic_class_in_generic_method() async {
     await super
         .test_inferred_function_type_in_generic_class_in_generic_method();
-  }
-
-  @override
-  @failingTest
-  test_inferred_function_type_in_generic_class_setter() async {
-    await super.test_inferred_function_type_in_generic_class_setter();
   }
 
   @override
@@ -2059,12 +1534,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_inheritance_errors() async {
-    await super.test_inheritance_errors();
-  }
-
-  @override
-  @failingTest
   test_initializer_executable_with_return_type_from_closure() async {
     await super.test_initializer_executable_with_return_type_from_closure();
   }
@@ -2102,13 +1571,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   test_initializer_executable_with_return_type_from_closure_field() async {
     await super
         .test_initializer_executable_with_return_type_from_closure_field();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_local() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_local();
   }
 
   @override
@@ -2233,42 +1695,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_localFunctions() async {
-    await super.test_localFunctions();
-  }
-
-  @override
-  @failingTest
-  test_localFunctions_inMethod() async {
-    await super.test_localFunctions_inMethod();
-  }
-
-  @override
-  @failingTest
-  test_localFunctions_inTopLevelGetter() async {
-    await super.test_localFunctions_inTopLevelGetter();
-  }
-
-  @override
-  @failingTest
-  test_localLabels_inMethod() async {
-    await super.test_localLabels_inMethod();
-  }
-
-  @override
-  @failingTest
-  test_localLabels_inTopLevelFunction() async {
-    await super.test_localLabels_inTopLevelFunction();
-  }
-
-  @override
-  @failingTest
-  test_main_class_alias() async {
-    await super.test_main_class_alias();
-  }
-
-  @override
-  @failingTest
   test_main_class_alias_via_export() async {
     await super.test_main_class_alias_via_export();
   }
@@ -2277,12 +1703,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_main_class_via_export() async {
     await super.test_main_class_via_export();
-  }
-
-  @override
-  @failingTest
-  test_main_getter() async {
-    await super.test_main_getter();
   }
 
   @override
@@ -2301,12 +1721,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_main_typedef_via_export() async {
     await super.test_main_typedef_via_export();
-  }
-
-  @override
-  @failingTest
-  test_main_variable() async {
-    await super.test_main_variable();
   }
 
   @override
@@ -2551,12 +1965,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_method_documented() async {
-    await super.test_method_documented();
-  }
-
-  @override
-  @failingTest
   test_method_inferred_type_nonStatic_implicit_param() async {
     await super.test_method_inferred_type_nonStatic_implicit_param();
   }
@@ -2657,60 +2065,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_operator() async {
-    await super.test_operator();
-  }
-
-  @override
-  @failingTest
-  test_operator_equal() async {
-    await super.test_operator_equal();
-  }
-
-  @override
-  @failingTest
-  test_operator_external() async {
-    await super.test_operator_external();
-  }
-
-  @override
-  @failingTest
-  test_operator_greater_equal() async {
-    await super.test_operator_greater_equal();
-  }
-
-  @override
-  @failingTest
-  test_operator_index() async {
-    await super.test_operator_index();
-  }
-
-  @override
-  @failingTest
-  test_operator_index_set() async {
-    await super.test_operator_index_set();
-  }
-
-  @override
-  @failingTest
-  test_operator_less_equal() async {
-    await super.test_operator_less_equal();
-  }
-
-  @override
-  @failingTest
-  test_parameter() async {
-    await super.test_parameter();
-  }
-
-  @override
-  @failingTest
-  test_parameter_covariant() async {
-    await super.test_parameter_covariant();
-  }
-
-  @override
-  @failingTest
   test_parameter_covariant_inherited() async {
     await super.test_parameter_covariant_inherited();
   }
@@ -2783,56 +2137,8 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_propagated_type_refers_to_closure() async {
-    await super.test_propagated_type_refers_to_closure();
-  }
-
-  @override
-  @failingTest
-  test_setter_covariant() async {
-    await super.test_setter_covariant();
-  }
-
-  @override
-  @failingTest
-  test_setter_documented() async {
-    await super.test_setter_documented();
-  }
-
-  @override
-  @failingTest
-  test_setter_external() async {
-    await super.test_setter_external();
-  }
-
-  @override
-  @failingTest
-  test_setter_inferred_type_conflictingInheritance() async {
-    await super.test_setter_inferred_type_conflictingInheritance();
-  }
-
-  @override
-  @failingTest
   test_setter_inferred_type_nonStatic_implicit_param() async {
     await super.test_setter_inferred_type_nonStatic_implicit_param();
-  }
-
-  @override
-  @failingTest
-  test_setter_inferred_type_static_implicit_return() async {
-    await super.test_setter_inferred_type_static_implicit_return();
-  }
-
-  @override
-  @failingTest
-  test_setter_inferred_type_top_level_implicit_return() async {
-    await super.test_setter_inferred_type_top_level_implicit_return();
-  }
-
-  @override
-  @failingTest
-  test_setters() async {
-    await super.test_setters();
   }
 
   @override
@@ -2873,38 +2179,8 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_type_arguments_explicit_dynamic_dynamic() async {
-    await super.test_type_arguments_explicit_dynamic_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_type_arguments_explicit_dynamic_int() async {
-    await super.test_type_arguments_explicit_dynamic_int();
-  }
-
-  @override
-  @failingTest
-  test_type_arguments_explicit_String_dynamic() async {
-    await super.test_type_arguments_explicit_String_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_type_arguments_explicit_String_int() async {
-    await super.test_type_arguments_explicit_String_int();
-  }
-
-  @override
-  @failingTest
   test_type_arguments_implicit() async {
     await super.test_type_arguments_implicit();
-  }
-
-  @override
-  @failingTest
-  test_type_dynamic() async {
-    await super.test_type_dynamic();
   }
 
   @override
@@ -2999,18 +2275,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_type_reference_to_class() async {
-    await super.test_type_reference_to_class();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_class_with_type_arguments() async {
-    await super.test_type_reference_to_class_with_type_arguments();
-  }
-
-  @override
-  @failingTest
   test_type_reference_to_class_with_type_arguments_implicit() async {
     await super.test_type_reference_to_class_with_type_arguments_implicit();
   }
@@ -3091,12 +2355,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_type_reference_to_typedef_with_type_arguments_implicit() async {
     await super.test_type_reference_to_typedef_with_type_arguments_implicit();
-  }
-
-  @override
-  @failingTest
-  test_type_unresolved() async {
-    await super.test_type_unresolved();
   }
 
   @override
@@ -3233,12 +2491,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_typedefs() async {
-    await super.test_typedefs();
-  }
-
-  @override
-  @failingTest
   test_unresolved_annotation_instanceCreation_argument_this() async {
     await super.test_unresolved_annotation_instanceCreation_argument_this();
   }
@@ -3340,30 +2592,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_variable() async {
-    await super.test_variable();
-  }
-
-  @override
-  @failingTest
-  test_variable_const() async {
-    await super.test_variable_const();
-  }
-
-  @override
-  @failingTest
-  test_variable_documented() async {
-    await super.test_variable_documented();
-  }
-
-  @override
-  @failingTest
-  test_variable_final() async {
-    await super.test_variable_final();
-  }
-
-  @override
-  @failingTest
   test_variable_getterInLib_setterInPart() async {
     await super.test_variable_getterInLib_setterInPart();
   }
@@ -3382,48 +2610,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_variable_implicit_type() async {
-    await super.test_variable_implicit_type();
-  }
-
-  @override
-  @failingTest
-  test_variable_inferred_type_implicit_initialized() async {
-    await super.test_variable_inferred_type_implicit_initialized();
-  }
-
-  @override
-  @failingTest
-  test_variable_initializer() async {
-    await super.test_variable_initializer();
-  }
-
-  @override
-  @failingTest
-  test_variable_initializer_final() async {
-    await super.test_variable_initializer_final();
-  }
-
-  @override
-  @failingTest
-  test_variable_initializer_final_untyped() async {
-    await super.test_variable_initializer_final_untyped();
-  }
-
-  @override
-  @failingTest
-  test_variable_initializer_untyped() async {
-    await super.test_variable_initializer_untyped();
-  }
-
-  @override
-  @failingTest
-  test_variable_propagatedType_const_noDep() async {
-    await super.test_variable_propagatedType_const_noDep();
-  }
-
-  @override
-  @failingTest
   test_variable_propagatedType_final_dep_inLib() async {
     await super.test_variable_propagatedType_final_dep_inLib();
   }
@@ -3432,12 +2618,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_variable_propagatedType_final_dep_inPart() async {
     await super.test_variable_propagatedType_final_dep_inPart();
-  }
-
-  @override
-  @failingTest
-  test_variable_propagatedType_final_noDep() async {
-    await super.test_variable_propagatedType_final_noDep();
   }
 
   @override
@@ -3452,9 +2632,46 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     await super.test_variable_setterInPart_getterInPart();
   }
 
-  @override
-  @failingTest
-  test_variables() async {
-    await super.test_variables();
+  LinkResult _link(Reference root, Source source, String code) {
+    var unit = parseText(code, experimentStatus: experimentStatus);
+
+    // TODO(scheglov) add other libraries
+    var libraryUnitMap = {
+      source: {source: unit},
+    };
+
+    var rootReference = Reference.root();
+    var linkResult = link(
+      _FakeAnalysisContext(sourceFactory, null),
+      null,
+      rootReference,
+      [],
+      libraryUnitMap,
+    );
+    return linkResult;
+//    var linkResult = link(rootReference, libraryUnitMap);
+
+//    var libraryLinkResult = linkResult.libraries[source];
+//    var defaultUnitResult = libraryLinkResult.units[source];
+//
+//    var linkedBundleContext = LinkedBundleContext(linkResult.references);
+//    var linkedUnitContext = LinkedUnitContext(
+//      linkedBundleContext,
+//      defaultUnitResult.tokens,
+//    );
   }
+}
+
+class _FakeAnalysisContext implements AnalysisContext {
+  final SourceFactory sourceFactory;
+  final Dart2TypeSystem typeSystem;
+
+  _FakeAnalysisContext(this.sourceFactory, this.typeSystem);
+
+  @override
+  AnalysisOptions get analysisOptions {
+    return AnalysisOptionsImpl();
+  }
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
