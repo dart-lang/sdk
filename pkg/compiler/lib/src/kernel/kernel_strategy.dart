@@ -4,6 +4,8 @@
 
 library dart2js.kernel.frontend_strategy;
 
+import 'package:kernel/ast.dart' as ir;
+
 import '../common.dart';
 import '../common/backend_api.dart';
 import '../common/resolution.dart';
@@ -19,6 +21,8 @@ import '../environment.dart' as env;
 import '../frontend_strategy.dart';
 import '../ir/annotations.dart';
 import '../ir/closure.dart' show ClosureScopeModel;
+import '../ir/impact.dart';
+import '../ir/modular.dart';
 import '../ir/scope.dart' show ScopeModel;
 import '../js_backend/annotations.dart';
 import '../js_backend/field_analysis.dart' show KFieldAnalysis;
@@ -224,6 +228,8 @@ class KernelWorkItem implements WorkItem {
   final Map<Entity, WorldImpact> _impactCache;
   final KFieldAnalysis _fieldAnalysis;
 
+  final ModularStrategy _modularStrategy;
+
   KernelWorkItem(
       this._compilerTask,
       this._elementMap,
@@ -233,7 +239,9 @@ class KernelWorkItem implements WorkItem {
       this.element,
       this._closureModels,
       this._impactCache,
-      this._fieldAnalysis);
+      this._fieldAnalysis)
+      : _modularStrategy =
+            new KernelModularStrategy(_compilerTask, _elementMap);
 
   @override
   WorldImpact run() {
@@ -246,20 +254,22 @@ class KernelWorkItem implements WorkItem {
           _elementMap.elementEnvironment,
           _annotationsDataBuilder,
           element);
-      ScopeModel scopeModel = _compilerTask.measureSubtask('closures', () {
-        ScopeModel scopeModel = _elementMap.computeScopeModel(element);
-        if (scopeModel?.closureScopeModel != null) {
-          _closureModels[element] = scopeModel.closureScopeModel;
-        }
-        if (element.isField && !element.isInstanceMember) {
-          _fieldAnalysis.registerStaticField(
-              element, scopeModel?.initializerComplexity);
-        }
-        return scopeModel;
-      });
+      ir.Member node = _elementMap.getMemberNode(element);
+      ModularMemberData modularMemberData =
+          _modularStrategy.computeModularMemberData(node, annotations);
+      ScopeModel scopeModel = modularMemberData.scopeModel;
+      if (scopeModel.closureScopeModel != null) {
+        _closureModels[element] = scopeModel.closureScopeModel;
+      }
+      if (element.isField && !element.isInstanceMember) {
+        _fieldAnalysis.registerStaticField(
+            element, scopeModel.initializerComplexity);
+      }
+      ImpactBuilderData impactBuilderData = modularMemberData.impactBuilderData;
       return _compilerTask.measureSubtask('worldImpact', () {
         ResolutionImpact impact = _elementMap.computeWorldImpact(
-            element, scopeModel?.variableScopeModel, annotations);
+            element, scopeModel.variableScopeModel, annotations,
+            impactBuilderData: impactBuilderData);
         WorldImpact worldImpact =
             _impactTransformer.transformResolutionImpact(impact);
         if (_impactCache != null) {
@@ -268,5 +278,35 @@ class KernelWorkItem implements WorkItem {
         return worldImpact;
       });
     });
+  }
+}
+
+class KernelModularStrategy extends ModularStrategy {
+  final CompilerTask _compilerTask;
+  final KernelToElementMapImpl _elementMap;
+
+  KernelModularStrategy(this._compilerTask, this._elementMap);
+
+  @override
+  ModularMemberData computeModularMemberData(
+      ir.Member node, Set<PragmaAnnotation> annotations) {
+    ScopeModel scopeModel = _compilerTask.measureSubtask(
+        'closures', () => new ScopeModel.from(node));
+    ImpactBuilderData impactBuilderData;
+    if (useImpactDataForTesting) {
+      // TODO(johnniwinther): Always create and use the [ImpactBuilderData].
+      // Currently it is a bit half-baked since we cannot compute data that
+      // depend on metadata, so these parts of the impact data need to be
+      // computed during conversion to [ResolutionImpact].
+      impactBuilderData = _compilerTask.measureSubtask('worldImpact', () {
+        ImpactBuilder builder = new ImpactBuilder(_elementMap.typeEnvironment,
+            _elementMap.classHierarchy, scopeModel.variableScopeModel,
+            useAsserts: _elementMap.options.enableUserAssertions,
+            inferEffectivelyFinalVariableTypes:
+                !annotations.contains(PragmaAnnotation.disableFinal));
+        return builder.computeImpact(node);
+      });
+    }
+    return new ModularMemberData(scopeModel, impactBuilderData);
   }
 }

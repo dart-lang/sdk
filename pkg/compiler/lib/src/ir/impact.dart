@@ -664,8 +664,26 @@ class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
       ir.ClassHierarchy classHierarchy, VariableScopeModel variableScopeModel,
       {this.useAsserts: false, this.inferEffectivelyFinalVariableTypes: true})
       : super(typeEnvironment, classHierarchy, variableScopeModel);
+
+  ImpactBuilderData computeImpact(ir.Member node) {
+    if (retainDataForTesting) {
+      typeMapsForTesting = {};
+    }
+    node.accept(this);
+    return new ImpactBuilderData(
+        impactData, typeMapsForTesting, cachedStaticTypes);
+  }
 }
 
 /// Return the named arguments names as a list of strings.
 List<String> _getNamedArguments(ir.Arguments arguments) =>
     arguments.named.map((n) => n.name).toList();
+
+class ImpactBuilderData {
+  final ImpactData impactData;
+  final Map<ir.Expression, TypeMap> typeMapsForTesting;
+  final Map<ir.Expression, ir.DartType> cachedStaticTypes;
+
+  ImpactBuilderData(
+      this.impactData, this.typeMapsForTesting, this.cachedStaticTypes);
+}

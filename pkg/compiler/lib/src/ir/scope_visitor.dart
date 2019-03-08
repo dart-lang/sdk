@@ -13,7 +13,7 @@ import 'scope.dart';
 /// variable is being used at any point in the code.
 class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     with VariableCollectorMixin {
-  ClosureScopeModel _model;
+  final ClosureScopeModel _model = new ClosureScopeModel();
 
   /// A map of each visited call node with the associated information about what
   /// variables are captured/used. Each ir.Node key corresponds to a scope that
@@ -61,7 +61,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
   /// The current scope we are in.
   KernelScopeInfo _currentScopeInfo;
 
-  final bool _hasThisLocal;
+  bool _hasThisLocal;
 
   /// Keeps track of the number of boxes that we've created so that they each
   /// have unique names.
@@ -74,8 +74,40 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
   /// type variable usage, such as type argument in method invocations.
   VariableUse _currentTypeUsage;
 
-  ScopeModelBuilder(this._model, {bool hasThisLocal})
-      : this._hasThisLocal = hasThisLocal;
+  ScopeModel computeModel(ir.Member node) {
+    if (node.isAbstract && !node.isExternal) {
+      return const ScopeModel(
+          initializerComplexity: const InitializerComplexity.lazy());
+    }
+
+    if (node is ir.Constructor) {
+      _hasThisLocal = true;
+    } else if (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory) {
+      _hasThisLocal = false;
+    } else if (node.isInstanceMember) {
+      _hasThisLocal = true;
+    } else {
+      _hasThisLocal = false;
+    }
+
+    InitializerComplexity initializerComplexity =
+        const InitializerComplexity.lazy();
+    if (node is ir.Field) {
+      if (node.initializer != null) {
+        initializerComplexity = node.accept(this);
+      } else {
+        initializerComplexity = const InitializerComplexity.constant();
+        _model.scopeInfo = new KernelScopeInfo(_hasThisLocal);
+      }
+    } else {
+      assert(node is ir.Procedure || node is ir.Constructor);
+      node.accept(this);
+    }
+    return new ScopeModel(
+        closureScopeModel: _model,
+        variableScopeModel: variableScopeModel,
+        initializerComplexity: initializerComplexity);
+  }
 
   @override
   InitializerComplexity defaultNode(ir.Node node) =>

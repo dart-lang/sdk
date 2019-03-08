@@ -95,7 +95,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       // Skip synthetic .dill members.
       return;
     }
-    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    variableScopeModel = new ScopeModel.from(node).variableScopeModel;
     super.visitProcedure(node);
     variableScopeModel = null;
   }
@@ -106,7 +106,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       // Skip synthetic .dill members.
       return;
     }
-    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    variableScopeModel = new ScopeModel.from(node).variableScopeModel;
     super.visitField(node);
     variableScopeModel = null;
   }
@@ -117,7 +117,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       // Skip synthetic .dill members.
       return;
     }
-    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    variableScopeModel = new ScopeModel.from(node).variableScopeModel;
     super.visitConstructor(node);
     variableScopeModel = null;
   }

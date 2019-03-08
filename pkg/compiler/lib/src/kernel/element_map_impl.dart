@@ -1322,26 +1322,19 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       _nativeBehaviorBuilder ??= new KernelBehaviorBuilder(elementEnvironment,
           commonElements, nativeBasicData, reporter, options);
 
-  ResolutionImpact computeWorldImpact(
-      KMember member,
-      VariableScopeModel variableScopeModel,
-      Set<PragmaAnnotation> annotations) {
+  ResolutionImpact computeWorldImpact(KMember member,
+      VariableScopeModel variableScopeModel, Set<PragmaAnnotation> annotations,
+      {ImpactBuilderData impactBuilderData}) {
     KMemberData memberData = members.getData(member);
     ir.Member node = memberData.node;
 
-    if (useImpactDataForTesting) {
-      ImpactBuilder builder = new ImpactBuilder(
-          typeEnvironment, classHierarchy, variableScopeModel,
-          useAsserts: options.enableUserAssertions,
-          inferEffectivelyFinalVariableTypes:
-              !annotations.contains(PragmaAnnotation.disableFinal));
-      if (retainDataForTesting) {
+    if (impactBuilderData != null) {
+      if (impactBuilderData.typeMapsForTesting != null) {
         typeMapsForTesting ??= {};
-        typeMapsForTesting[member] = builder.typeMapsForTesting = {};
+        typeMapsForTesting[member] = impactBuilderData.typeMapsForTesting;
       }
-      node.accept(builder);
-      ImpactData impactData = builder.impactData;
-      memberData.staticTypes = builder.cachedStaticTypes;
+      ImpactData impactData = impactBuilderData.impactData;
+      memberData.staticTypes = impactBuilderData.cachedStaticTypes;
       KernelImpactConverter converter =
           new KernelImpactConverter(this, member, reporter, options);
       return converter.convert(impactData);
@@ -1356,11 +1349,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       memberData.staticTypes = builder.cachedStaticTypes;
       return builder.impactBuilder;
     }
-  }
-
-  ScopeModel computeScopeModel(KMember member) {
-    ir.Member node = members.getData(member).node;
-    return ScopeModel.computeScopeModel(node);
   }
 
   Map<ir.Expression, ir.DartType> getCachedStaticTypes(KMember member) {
