@@ -95,6 +95,14 @@ library;
 //   Set<int> set70 = <int>{... /*@error=NonNullAwareSpreadIsNull*/ null};
 //                                                                  ^
 //
+// pkg/front_end/testcases/spread_collection_inference.dart:122:46: Error: Can't spread a value with static type Null.
+//     {... /*@error=NonNullAwareSpreadIsNull*/ null, ... /*@typeArgs=dynamic*/
+//                                              ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:126:5: Error: Can't spread a value with static type Null.
+//     null};
+//     ^
+//
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -300,19 +308,46 @@ Try changing the type of the left hand side, or casting the right hand side to '
   core::Set<core::int> set70 = let final core::Set<core::int> #t62 = col::LinkedHashSet::•<core::int>() in let final core::bool #t63 = #t62.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:119:66: Error: Can't spread a value with static type Null.
   Set<int> set70 = <int>{... /*@error=NonNullAwareSpreadIsNull*/ null};
                                                                  ^") in #t62;
-  core::List<core::int> lhs80 = block {
-    final core::List<core::int> #t64 = <core::int>[];
-    final dynamic #t65 = null;
-    if(!#t65.{core::Object::==}(null))
-      for (final core::int #t66 in #t65)
-        #t64.{core::List::add}(#t66);
+  core::Set<dynamic> set71ambiguous = block {
+    final core::Set<dynamic> #t64 = col::LinkedHashSet::•<dynamic>();
+    #t64.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:122:46: Error: Can't spread a value with static type Null.
+    {... /*@error=NonNullAwareSpreadIsNull*/ null, ... /*@typeArgs=dynamic*/
+                                             ^");
+    for (final dynamic #t65 in <dynamic>[])
+      #t64.{core::Set::add}(#t65);
   } =>#t64;
+  core::Map<core::String, core::int> map70 = <core::String, core::int>{invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:126:5: Error: Can't spread a value with static type Null.
+    null};
+    ^": null};
+  core::List<core::int> lhs80 = block {
+    final core::List<core::int> #t66 = <core::int>[];
+    final dynamic #t67 = null;
+    if(!#t67.{core::Object::==}(null))
+      for (final core::int #t68 in #t67)
+        #t66.{core::List::add}(#t68);
+  } =>#t66;
   core::Set<core::int> set80 = block {
-    final core::Set<core::int> #t67 = col::LinkedHashSet::•<core::int>();
-    final dynamic #t68 = null;
-    if(!#t68.{core::Object::==}(null))
-      for (final core::int #t69 in #t68)
-        #t67.{core::Set::add}(#t69);
-  } =>#t67;
+    final core::Set<core::int> #t69 = col::LinkedHashSet::•<core::int>();
+    final dynamic #t70 = null;
+    if(!#t70.{core::Object::==}(null))
+      for (final core::int #t71 in #t70)
+        #t69.{core::Set::add}(#t71);
+  } =>#t69;
+  core::Set<dynamic> set81ambiguous = block {
+    final core::Set<dynamic> #t72 = col::LinkedHashSet::•<dynamic>();
+    final dynamic #t73 = null;
+    if(!#t73.{core::Object::==}(null))
+      for (final dynamic #t74 in #t73)
+        #t72.{core::Set::add}(#t74);
+    for (final dynamic #t75 in <dynamic>[])
+      #t72.{core::Set::add}(#t75);
+  } =>#t72;
+  core::Map<core::String, core::int> map80 = block {
+    final core::Map<core::String, core::int> #t76 = <core::String, core::int>{};
+    final core::Map<dynamic, dynamic> #t77 = null;
+    if(!#t77.{core::Object::==}(null))
+      for (final core::MapEntry<core::String, core::int> #t78 in #t77)
+        #t76.{core::Map::[]=}(#t78.{core::MapEntry::key}, #t78.{core::MapEntry::value});
+  } =>#t76;
 }
 static method main() → dynamic {}
