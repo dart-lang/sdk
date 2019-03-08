@@ -295,7 +295,7 @@ class Api : AllStatic {
 
   static RawString* GetEnvironmentValue(Thread* thread, const String& name);
 
-  static bool ffiEnabled() {
+  static bool IsFfiEnabled() {
     // dart:ffi is not implemented for the following configurations
 #if !defined(TARGET_ARCH_X64)
     // https://github.com/dart-lang/sdk/issues/35774

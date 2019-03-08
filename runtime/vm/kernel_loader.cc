@@ -1197,7 +1197,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
         target_library.url() == Symbols::DartMirrors().raw()) {
       H.ReportError("import of dart:mirrors with --enable-mirrors=false");
     }
-    if (!Api::ffiEnabled() &&
+    if (!Api::IsFfiEnabled() &&
         target_library.url() == Symbols::DartFfi().raw()) {
       H.ReportError("import of dart:ffi with --enable-ffi=false");
     }
