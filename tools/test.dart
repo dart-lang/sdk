@@ -281,6 +281,11 @@ void main(List<String> args) async {
       abbr: "n",
       help: "The named test configuration that supplies the\nvalues for all "
           "test options, specifying how tests\nshould be run.");
+  parser.addOption("local-configuration",
+      abbr: "N",
+      help: "Use a different named configuration for local\ntesting than the "
+          "named configuration the baseline\nresults were downloaded for.\nThe"
+          "results may be inexact if the baseline configuration is different.");
   parser.addOption("remote",
       abbr: "R",
       help: "Compare with this remote and git branch",
@@ -351,9 +356,16 @@ ${parser.usage}""");
     return;
   }
   final namedConfiguration = namedConfigurations.single;
+  final localConfiguration =
+      options["local-configuration"] ?? namedConfiguration;
   for (final builder in builders) {
-    print("Testing the named configuration $namedConfiguration "
-        "compared with builder $builder");
+    if (localConfiguration != namedConfiguration) {
+      print("Testing the named configuration $localConfiguration "
+          "compared with builder $builder's configuration $namedConfiguration");
+    } else {
+      print("Testing the named configuration $localConfiguration "
+          "compared with builder $builder");
+    }
   }
 
   // Find out where the current HEAD branched.
@@ -391,16 +403,31 @@ ${parser.usage}""");
 
     // Write out the merged results for the builders.
     if (2 <= builders.length) {
-      print("Merging downloaded results from the builders...");
       await new File("${outDirectory.path}/previous.json").writeAsString(
           mergedResults.values.map((data) => jsonEncode(data) + "\n").join(""));
       await new File("${outDirectory.path}/flaky.json").writeAsString(
           mergedFlaky.values.map((data) => jsonEncode(data) + "\n").join(""));
     }
 
+    // Override the named configuration in the baseline data if needed.
+    if (namedConfiguration != localConfiguration) {
+      for (final path in [
+        "${outDirectory.path}/previous.json",
+        "${outDirectory.path}/flaky.json"
+      ]) {
+        final results = await loadResultsMap(path);
+        final records = results.values
+            .where((r) => r["configuration"] == namedConfiguration)
+            .toList()
+              ..forEach((r) => r["configuration"] = localConfiguration);
+        await new File(path).writeAsString(
+            records.map((data) => jsonEncode(data) + "\n").join(""));
+      }
+    }
+
     // Run the tests.
     final arguments = [
-      "--named-configuration=$namedConfiguration",
+      "--named-configuration=$localConfiguration",
       "--output-directory=${outDirectory.path}",
       "--clean-exit",
       "--silent-failures",
@@ -438,7 +465,7 @@ ${parser.usage}""");
       final deflakeDirectory = new Directory("${outDirectory.path}/$i");
       await deflakeDirectory.create();
       final deflakeArguments = <String>[
-        "--named-configuration=$namedConfiguration",
+        "--named-configuration=$localConfiguration",
         "--output-directory=${deflakeDirectory.path}",
         "--clean-exit",
         "--silent-failures",
