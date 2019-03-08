@@ -495,16 +495,6 @@ const List<String> y = x;
     verify([source]);
   }
 
-  test_mapKeyTypeNotAssignable() async {
-    Source source = addSource("var v = const <String, int > {1 : 2};");
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-      StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE
-    ]);
-    verify([source]);
-  }
-
   test_mapLiteral_inferredKeyType() async {
     Source source = addSource('''
 const Object x = {1: 1};
@@ -524,16 +514,6 @@ const Map<dynamic, String> y = x;
     await computeAnalysisResult(source);
     assertErrors(
         source, [CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
-    verify([source]);
-  }
-
-  test_mapValueTypeNotAssignable() async {
-    Source source = addSource("var v = const <String, String> {'a' : 2};");
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
-      StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE
-    ]);
     verify([source]);
   }
 

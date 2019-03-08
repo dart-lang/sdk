@@ -2320,27 +2320,6 @@ class B implements I<int>, J<String> {
     verify([source]);
   }
 
-  test_listElementTypeNotAssignable() async {
-    Source source = addSource("var v = <String> [42];");
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
-  test_mapKeyTypeNotAssignable() async {
-    Source source = addSource("var v = <String, int > {1 : 2};");
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
-  test_mapValueTypeNotAssignable() async {
-    Source source = addSource("var v = <String, String> {'a' : 2};");
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
   test_mismatchedAccessorTypes_topLevel() async {
     Source source = addSource(r'''
 int get g { return 0; }

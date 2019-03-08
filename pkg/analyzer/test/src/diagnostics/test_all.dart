@@ -22,12 +22,19 @@ import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
 import 'invalid_required_param_test.dart' as invalid_required_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
+import 'list_element_type_not_assignable_test.dart'
+    as list_element_type_not_assignable;
+import 'map_key_type_not_assignable_test.dart' as map_key_type_not_assignable;
+import 'map_value_type_not_assignable_test.dart'
+    as map_value_type_not_assignable;
 import 'missing_return_test.dart' as missing_return;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
-import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'non_constant_map_element_test.dart' as non_constant_map_element;
+import 'set_element_type_not_assignable_test.dart'
+    as set_element_type_not_assignable;
+import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
 import 'type_check_is_not_null_test.dart' as type_check_is_not_null;
@@ -71,12 +78,16 @@ main() {
     invalid_override_different_default_values_positional.main();
     invalid_required_param.main();
     invalid_sealed_annotation.main();
+    list_element_type_not_assignable.main();
+    map_key_type_not_assignable.main();
+    map_value_type_not_assignable.main();
     missing_return.main();
     mixin_on_sealed_class.main();
     must_be_immutable.main();
     must_call_super.main();
-    subtype_of_sealed_class.main();
     non_constant_map_element.main();
+    set_element_type_not_assignable.main();
+    subtype_of_sealed_class.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();
     type_check_is_not_null.main();
