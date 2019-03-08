@@ -84,6 +84,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   final Ticker ticker;
 
+  final bool outlineOnly;
+
   Set<Uri> invalidatedUris = new Set<Uri>();
 
   DillTarget dillLoadedData;
@@ -96,17 +98,22 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   bool hasToCheckPackageUris = false;
   Map<Uri, List<DiagnosticMessageFromJson>> remainingComponentProblems =
       new Map<Uri, List<DiagnosticMessageFromJson>>();
+  List<Component> modulesToLoad;
 
   KernelTarget userCode;
 
   IncrementalCompiler.fromComponent(
-      this.context, Component this.componentToInitializeFrom)
+      this.context, Component this.componentToInitializeFrom,
+      [bool outlineOnly])
       : ticker = context.options.ticker,
-        initializeFromDillUri = null;
+        initializeFromDillUri = null,
+        this.outlineOnly = outlineOnly ?? false;
 
-  IncrementalCompiler(this.context, [this.initializeFromDillUri])
+  IncrementalCompiler(this.context,
+      [this.initializeFromDillUri, bool outlineOnly])
       : ticker = context.options.ticker,
-        componentToInitializeFrom = null;
+        componentToInitializeFrom = null,
+        this.outlineOnly = outlineOnly ?? false;
 
   @override
   Future<Component> computeDelta(
@@ -315,6 +322,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     });
   }
 
+  /// Internal method.
+  void invalidateNotKeptUserBuilders(Set<Uri> invalidatedUris) {
+    throw UnimplementedError("Not implemented yet.");
+  }
+
+  /// Internal method.
+  Future loadEnsureLoadedComponents(
+      Set<Uri> reusedLibraryUris, List<LibraryBuilder> reusedLibraries) async {
+    throw UnimplementedError("Not implemented yet.");
+  }
+
+  /// Internal method.
   void reissueLibraryProblems(
       Set<Library> allLibraries, List<Library> compiledLibraries) {
     // The newly-compiled libraries have issued problems already. Re-issue
@@ -331,6 +350,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
   }
 
+  /// Internal method.
   /// Re-issue problems on the component and return the filtered list.
   List<String> reissueComponentProblems(Component componentWithDill) {
     // These problems have already been reported.
@@ -364,6 +384,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return new List<String>.from(issuedProblems);
   }
 
+  /// Internal method.
   Uri getPartFileUri(
       Uri parentFileUri, LibraryPart part, UriTranslator uriTranslator) {
     Uri fileUri = parentFileUri.resolve(part.partUri);
@@ -376,6 +397,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return fileUri;
   }
 
+  /// Internal method.
   /// Compute the transitive closure.
   ///
   /// As a side-effect, this also cleans-up now-unreferenced builders as well as
@@ -448,6 +470,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return result;
   }
 
+  /// Internal method.
   void removeLibraryFromRemainingComponentProblems(
       Library lib, UriTranslator uriTranslator) {
     remainingComponentProblems.remove(lib.fileUri);
@@ -458,6 +481,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
   }
 
+  /// Internal method.
   int prepareSummary(List<int> summaryBytes, UriTranslator uriTranslator,
       CompilerContext c, IncrementalCompilerData data) {
     dillLoadedData = new DillTarget(ticker, uriTranslator, c.options.target);
@@ -475,6 +499,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return bytesLength;
   }
 
+  /// Internal method.
   // This procedure will try to load the dill file and will crash if it cannot.
   Future<int> initializeFromDill(UriTranslator uriTranslator, CompilerContext c,
       IncrementalCompilerData data) async {
@@ -515,6 +540,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return bytesLength;
   }
 
+  /// Internal method.
   void saveComponentProblems(IncrementalCompilerData data) {
     if (data.component.problemsAsJson != null) {
       for (String jsonString in data.component.problemsAsJson) {
@@ -528,6 +554,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
   }
 
+  /// Internal method.
   // This procedure will set up compiler from [componentToInitializeFrom].
   void initializeFromComponent(UriTranslator uriTranslator, CompilerContext c,
       IncrementalCompilerData data) {
@@ -559,6 +586,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     ticker.logMs("Ran initializeFromComponent");
   }
 
+  /// Internal method.
   void appendLibraries(IncrementalCompilerData data, int bytesLength) {
     if (data.component != null) {
       dillLoadedData.loader
@@ -673,6 +701,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     });
   }
 
+  /// Internal method.
   List<LibraryBuilder> computeReusedLibraries(
       Set<Uri> invalidatedUris, UriTranslator uriTranslator,
       {Set<LibraryBuilder> notReused}) {
@@ -796,7 +825,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     invalidatedUris.add(uri);
   }
 
+  @override
+  void invalidateAllSources() {
+    throw UnimplementedError("Not implemented yet.");
+  }
+
+  @override
+  void setModulesToLoadOnNextComputeDelta(List<Component> components) {
+    throw UnimplementedError("Not implemented yet.");
+  }
+
+  /// Internal method.
   void recordInvalidatedImportUrisForTesting(List<Uri> uris) {}
+
+  /// Internal method.
   void recordTemporaryFileForTesting(Uri uri) {}
 }
 
