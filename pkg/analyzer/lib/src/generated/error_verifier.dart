@@ -1197,7 +1197,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
       _checkForRawTypedLiteral(node);
       _checkForImplicitDynamicTypedLiteral(node);
-      _checkForMapTypeNotAssignable3(node);
+      _checkForMapTypeNotAssignable(node);
       _checkForNonConstMapAsExpressionStatement3(node);
     } else if (node.isSet) {
       if (typeArguments != null) {
@@ -4010,7 +4010,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _checkForMapTypeNotAssignable3(SetOrMapLiteral literal) {
+  void _checkForMapTypeNotAssignable(SetOrMapLiteral literal) {
     // Determine the map's key and value types. We base this on the static type
     // and not the literal's type arguments because in strong mode, the type
     // arguments may be inferred.
