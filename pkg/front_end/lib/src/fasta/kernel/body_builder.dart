@@ -2554,7 +2554,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if (entry is MapEntry) {
           entries.add(entry);
         } else if (entry is SpreadElement) {
-          entries.add(new SpreadMapEntry(entry.expression));
+          entries.add(new SpreadMapEntry(entry.expression, entry.isNullAware));
         } else {
           addProblem(
             fasta.templateExpectedAfterButGot.withArguments(':'),
