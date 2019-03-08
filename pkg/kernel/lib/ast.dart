@@ -5585,6 +5585,10 @@ class Component extends TreeNode {
       : root = nameRoot ?? new CanonicalName.root(),
         libraries = libraries ?? <Library>[],
         uriToSource = uriToSource ?? <Uri, Source>{} {
+    adoptChildren();
+  }
+
+  void adoptChildren() {
     if (libraries != null) {
       for (int i = 0; i < libraries.length; ++i) {
         // The libraries are owned by this component, and so are their canonical
