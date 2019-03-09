@@ -1405,13 +1405,12 @@ main() {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35569')
   test_downwardsInferenceOnMapLiterals() async {
     await checkFileElement('''
 void foo([Map<int, String> m1 = /*info:INFERRED_TYPE_LITERAL*/const {1: "hello"},
     Map<int, String> m2 = /*info:INFERRED_TYPE_LITERAL*/const {
       // One error is from type checking and the other is from const evaluation.
-      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
           "world"
     }]) {
 }
@@ -1432,11 +1431,11 @@ void main() {
     };
   }
   {
-    Map<dynamic, dynamic> l0 = {};
-    Map<dynamic, dynamic> l1 = {3: "hello"};
-    Map<dynamic, dynamic> l2 = {"hello": "hello"};
-    Map<dynamic, dynamic> l3 = {3: 3};
-    Map<dynamic, dynamic> l4 = {3:"hello", "hello": 3};
+    Map<dynamic, dynamic> l0 = /*info:INFERRED_TYPE_LITERAL*/{};
+    Map<dynamic, dynamic> l1 = /*info:INFERRED_TYPE_LITERAL*/{3: "hello"};
+    Map<dynamic, dynamic> l2 = /*info:INFERRED_TYPE_LITERAL*/{"hello": "hello"};
+    Map<dynamic, dynamic> l3 = /*info:INFERRED_TYPE_LITERAL*/{3: 3};
+    Map<dynamic, dynamic> l4 = /*info:INFERRED_TYPE_LITERAL*/{3:"hello", "hello": 3};
   }
   {
     Map<dynamic, String> l0 = /*info:INFERRED_TYPE_LITERAL*/{};
@@ -1471,23 +1470,22 @@ void main() {
     const Map<int, String> l0 = /*info:INFERRED_TYPE_LITERAL*/const {};
     const Map<int, String> l1 = /*info:INFERRED_TYPE_LITERAL*/const {3: "hello"};
     const Map<int, String> l2 = /*info:INFERRED_TYPE_LITERAL*/const {
-      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
           "hello"
     };
     const Map<int, String> l3 = /*info:INFERRED_TYPE_LITERAL*/const {
-      3: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE,error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
+      3: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
     };
     const Map<int, String> l4 = /*info:INFERRED_TYPE_LITERAL*/const {
       3:"hello",
-      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
-          /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE,error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
+          /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
     };
   }
 }
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35569')
   test_downwardsInferenceYieldYieldStar() async {
     await checkFileElement('''
 import 'dart:async';
@@ -1506,7 +1504,7 @@ Stream<List<int>> foo() async* {
 Iterable<Map<int, int>> bar() sync* {
   yield /*info:INFERRED_TYPE_LITERAL*/{};
   yield /*error:YIELD_OF_INVALID_TYPE*/new List();
-  yield* {};
+  yield* /*info:INFERRED_TYPE_LITERAL*/{};
   yield* /*info:INFERRED_TYPE_ALLOCATION*/new List();
 }
 ''');
@@ -2523,7 +2521,6 @@ var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
     expect(v.type.toString(), 'List<(int) → Object>');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35569')
   test_inferFromComplexExpressionsIfOuterMostValueIsPrecise() async {
     await checkFileElement('''
 class A { int x; B operator+(other) => null; }
@@ -2549,13 +2546,13 @@ test1() {
   b = /*error:INVALID_ASSIGNMENT*/"hi";
   b = new B(3);
   c1 = [];
-  c1 = /*error:INVALID_ASSIGNMENT*/{};
+  c1 = /*error:INVALID_ASSIGNMENT,info:INFERRED_TYPE_LITERAL*/{};
   c2 = [];
-  c2 = /*error:INVALID_ASSIGNMENT*/{};
-  d = {};
+  c2 = /*error:INVALID_ASSIGNMENT,info:INFERRED_TYPE_LITERAL*/{};
+  d = /*info:INFERRED_TYPE_LITERAL*/{};
   d = /*error:INVALID_ASSIGNMENT*/3;
   e = new A();
-  e = /*error:INVALID_ASSIGNMENT*/{};
+  e = /*error:INVALID_ASSIGNMENT,info:INFERRED_TYPE_LITERAL*/{};
   f = 3;
   f = /*error:INVALID_ASSIGNMENT*/false;
   g = 1;
@@ -4510,7 +4507,6 @@ class InferredTypeTest_SetLiterals extends AbstractStrongTest
   }
 
   @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35569')
   test_downwardsInferenceYieldYieldStar() async {
     // The fifth to last case is inferred differently with set_literals enabled,
     // and no longer an error compared to the base implementation.
@@ -4531,7 +4527,7 @@ Stream<List<int>> foo() async* {
 Iterable<Map<int, int>> bar() sync* {
   yield /*info:INFERRED_TYPE_LITERAL*/{};
   yield /*error:YIELD_OF_INVALID_TYPE*/new List();
-  yield* {};
+  yield* /*info:INFERRED_TYPE_LITERAL*/{};
   yield* /*info:INFERRED_TYPE_ALLOCATION*/new List();
 }
 ''');
