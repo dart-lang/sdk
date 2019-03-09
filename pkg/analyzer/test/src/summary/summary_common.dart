@@ -2884,14 +2884,11 @@ const int v = p.a.length;
         operators: [
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushString,
-          UnlinkedExprOperation.makeMapLiteralEntry,
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushString,
-          UnlinkedExprOperation.makeMapLiteralEntry,
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushString,
-          UnlinkedExprOperation.makeMapLiteralEntry,
-          UnlinkedExprOperation.makeTypedMap2
+          UnlinkedExprOperation.makeTypedMap
         ],
         ints: [
           11,
@@ -2920,14 +2917,11 @@ const int v = p.a.length;
         operators: [
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushString,
-          UnlinkedExprOperation.makeMapLiteralEntry,
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushString,
-          UnlinkedExprOperation.makeMapLiteralEntry,
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushString,
-          UnlinkedExprOperation.makeMapLiteralEntry,
-          UnlinkedExprOperation.makeTypedMap2
+          UnlinkedExprOperation.makeTypedMap
         ],
         ints: [
           11,
@@ -3084,14 +3078,11 @@ const int v = p.a.length;
         operators: [
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushString,
-          UnlinkedExprOperation.makeMapLiteralEntry,
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushString,
-          UnlinkedExprOperation.makeMapLiteralEntry,
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushString,
-          UnlinkedExprOperation.makeMapLiteralEntry,
-          UnlinkedExprOperation.makeUntypedSetOrMap
+          UnlinkedExprOperation.makeUntypedMap
         ],
         ints: [
           11,
@@ -3117,7 +3108,7 @@ const int v = p.a.length;
         UnlinkedExprOperation.pushInt,
         UnlinkedExprOperation.pushInt,
         UnlinkedExprOperation.pushInt,
-        UnlinkedExprOperation.makeUntypedSetOrMap
+        UnlinkedExprOperation.makeUntypedSet
       ],
       ints: [11, 22, 33, 3],
     );
@@ -7392,7 +7383,7 @@ final v = f<int, String>();
         'var v = <int, String>{11: "aaa", 22: "bbb", 33: "ccc"};');
     assertUnlinkedConst(variable.initializer.bodyExpr,
         '<int, String>{11: "aaa", 22: "bbb", 33: "ccc"}',
-        operators: [UnlinkedExprOperation.makeTypedMap2],
+        operators: [UnlinkedExprOperation.makeTypedMap],
         ints: [0],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
@@ -7438,14 +7429,11 @@ final v = f<int, String>();
         operators: [
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushString,
-          UnlinkedExprOperation.makeMapLiteralEntry,
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushString,
-          UnlinkedExprOperation.makeMapLiteralEntry,
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushString,
-          UnlinkedExprOperation.makeMapLiteralEntry,
-          UnlinkedExprOperation.makeUntypedSetOrMap
+          UnlinkedExprOperation.makeUntypedMap
         ],
         ints: [11, 22, 33, 3],
         strings: ['aaa', 'bbb', 'ccc'],
@@ -7460,7 +7448,7 @@ final v = f<int, String>();
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.makeUntypedSetOrMap
+          UnlinkedExprOperation.makeUntypedSet
         ],
         ints: [11, 22, 33, 3],
         forTypeInferenceOnly: true);

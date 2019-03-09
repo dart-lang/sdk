@@ -865,7 +865,7 @@ class ExprBuilder {
     int count = _uc.ints[intPtr++];
     List<CollectionElement> elements = <CollectionElement>[];
     for (int i = 0; i < count; i++) {
-      elements.insert(0, _popCollectionElement());
+      elements.add(_popCollectionElement());
     }
     DartType staticType;
     if (typeArguments != null && typeArguments.arguments.length == 2) {
