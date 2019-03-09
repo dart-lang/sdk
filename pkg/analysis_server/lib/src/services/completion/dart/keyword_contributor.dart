@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -327,6 +328,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitForElement(ForElement node) {
+    _addCollectionElementKeywords();
+    _addExpressionKeywords(node);
+    return super.visitForElement(node);
+  }
+
+  @override
   visitFormalParameterList(FormalParameterList node) {
     AstNode constructorDeclaration =
         node.thisOrAncestorOfType<ConstructorDeclaration>();
@@ -384,6 +392,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         _addCompilationUnitKeywords();
       }
     }
+  }
+
+  @override
+  visitIfElement(IfElement node) {
+    _addCollectionElementKeywords();
+    _addExpressionKeywords(node);
+    return super.visitIfElement(node);
   }
 
   @override
@@ -446,6 +461,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   @override
   visitLibraryIdentifier(LibraryIdentifier node) {
     // no suggestions
+  }
+
+  @override
+  visitListLiteral(ListLiteral node) {
+    _addCollectionElementKeywords();
+    super.visitListLiteral(node);
   }
 
   @override
@@ -549,6 +570,18 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitSetOrMapLiteral(SetOrMapLiteral node) {
+    _addCollectionElementKeywords();
+    super.visitSetOrMapLiteral(node);
+  }
+
+  @override
+  visitSpreadElement(SpreadElement node) {
+    _addExpressionKeywords(node);
+    return super.visitSpreadElement(node);
+  }
+
+  @override
   visitStringLiteral(StringLiteral node) {
     // ignored
   }
@@ -624,6 +657,17 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
     if (node.implementsClause == null) {
       _addSuggestion(Keyword.IMPLEMENTS, DART_RELEVANCE_HIGH);
+    }
+  }
+
+  void _addCollectionElementKeywords() {
+    List<String> enabledExperiments = request.enabledExperiments;
+    if (enabledExperiments.contains(EnableString.control_flow_collections) ||
+        enabledExperiments.contains(EnableString.spread_collections)) {
+      _addSuggestions([
+        Keyword.FOR,
+        Keyword.IF,
+      ]);
     }
   }
 
