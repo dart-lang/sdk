@@ -592,6 +592,9 @@ class FixProcessor {
       if (name == LintNames.non_constant_identifier_names) {
         await _addFix_renameToCamelCase();
       }
+      if (name == LintNames.null_closures) {
+        await _addFix_replaceNullWithClosure();
+      }
       if (name == LintNames.prefer_conditional_assignment) {
         await _addFix_replaceWithConditionalAssignment();
       }
@@ -3210,6 +3213,39 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_VAR_WITH_DYNAMIC);
   }
 
+  Future<void> _addFix_replaceNullWithClosure() async {
+    var nodeToFix;
+    var parameters = const <ParameterElement>[];
+    if (coveredNode is NamedExpression) {
+      NamedExpression namedExpression = coveredNode;
+      var expression = namedExpression.expression;
+      if (expression is NullLiteral) {
+        var element = namedExpression.element;
+        if (element is ParameterElement) {
+          var type = element.type;
+          if (type is FunctionType) {
+            parameters = type.parameters;
+          }
+        }
+        nodeToFix = expression;
+      }
+    } else if (coveredNode is NullLiteral) {
+      nodeToFix = coveredNode;
+    }
+
+    if (nodeToFix != null) {
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addReplacement(range.node(nodeToFix),
+            (DartEditBuilder builder) {
+          builder.writeParameters(parameters);
+          builder.write(' => null');
+        });
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_NULL_WITH_CLOSURE);
+    }
+  }
+
   Future<void> _addFix_replaceWithConditionalAssignment() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -4366,6 +4402,7 @@ class LintNames {
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';
+  static const String null_closures = 'null_closures';
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String prefer_conditional_assignment =
       'prefer_conditional_assignment';

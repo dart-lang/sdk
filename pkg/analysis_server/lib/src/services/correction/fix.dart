@@ -268,6 +268,8 @@ class DartFixKind {
       const FixKind('REPLACE_COLON_WITH_EQUALS', 50, "Replace ':' with '='");
   static const REPLACE_FINAL_WITH_CONST = const FixKind(
       'REPLACE_FINAL_WITH_CONST', 50, "Replace 'final' with 'const'");
+  static const REPLACE_NULL_WITH_CLOSURE = const FixKind(
+      'REPLACE_NULL_WITH_CLOSURE', 50, "Replace 'null' with a closure");
   static const REPLACE_RETURN_TYPE_FUTURE = const FixKind(
       'REPLACE_RETURN_TYPE_FUTURE',
       50,
