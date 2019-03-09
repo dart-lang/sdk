@@ -17,15 +17,25 @@ main() {
 
 @reflectiveTest
 class MapValueTypeNotAssignableTest extends DriverResolutionTest {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35569')
   test_explicitTypeArgs_const() async {
-    // TODO(brianwilkerson) Fix this so that only one error is produced.
     await assertErrorsInCode('''
 var v = const <String, String>{'a' : 1};
-''', [
-      CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
-      StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE
-    ]);
+''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
+  }
+
+  test_explicitTypeArgs_const_actualTypeMatch() async {
+    await assertNoErrorsInCode('''
+const dynamic x = null;
+var v = const <String, String>{'a' : x};
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/21119')
+  test_explicitTypeArgs_const_actualTypeMismatch() async {
+    await assertErrorsInCode('''
+const dynamic x = 1;
+var v = const <String, String>{'a' : x};
+''', [CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
   }
 
   test_explicitTypeArgs_notConst() async {
@@ -41,12 +51,6 @@ class MapValueTypeNotAssignableWithUIAsCodeTest
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = ['control-flow-collections', 'spread-collections'];
-
-  @failingTest
-  @override
-  test_explicitTypeArgs_const() async {
-    await super.test_explicitTypeArgs_const();
-  }
 
   test_spread_valid_const() async {
     await assertNoErrorsInCode('''

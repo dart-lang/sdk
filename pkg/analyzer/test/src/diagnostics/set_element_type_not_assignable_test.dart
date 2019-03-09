@@ -17,15 +17,25 @@ main() {
 
 @reflectiveTest
 class SetElementTypeNotAssignableTest extends DriverResolutionTest {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35569')
   test_explicitTypeArgs_const() async {
-    // TODO(brianwilkerson) Fix this so that only one error is produced.
     await assertErrorsInCode('''
 var v = const <String>{42};
-''', [
-      CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
-      StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE
-    ]);
+''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+  }
+
+  test_explicitTypeArgs_const_actualTypeMatch() async {
+    await assertNoErrorsInCode('''
+const dynamic x = null;
+var v = const <String>{x};
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/21119')
+  test_explicitTypeArgs_const_actualTypeMismatch() async {
+    await assertErrorsInCode('''
+const dynamic x = 42;
+var v = const <String>{x};
+''', [CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
 
   test_explicitTypeArgs_notConst() async {
@@ -41,14 +51,6 @@ class SetElementTypeNotAssignableWithUIAsCodeTest
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = ['control-flow-collections', 'spread-collections'];
-
-  @override
-  test_explicitTypeArgs_const() async {
-    // In the newer code we're correctly only producing one error.
-    await assertErrorsInCode('''
-var v = const <String>{42};
-''', [CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
-  }
 
   test_spread_valid_const() async {
     await assertNoErrorsInCode('''

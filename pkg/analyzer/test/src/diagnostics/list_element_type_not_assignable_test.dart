@@ -20,6 +20,21 @@ class ListElementTypeNotAssignableTest extends DriverResolutionTest {
   test_explicitTypeArgs_const() async {
     await assertErrorsInCode('''
 var v = const <String>[42];
+''', [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+  }
+
+  test_explicitTypeArgs_const_actualTypeMatch() async {
+    await assertNoErrorsInCode('''
+const dynamic x = null;
+var v = const <String>[x];
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/21119')
+  test_explicitTypeArgs_const_actualTypeMismatch() async {
+    await assertErrorsInCode('''
+const dynamic x = 42;
+var v = const <String>[x];
 ''', [CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
 

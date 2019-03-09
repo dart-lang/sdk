@@ -3942,21 +3942,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     DartType listElementType = typeArguments[0];
 
     // Check every list element.
-    bool isConst = literal.isConst;
     for (CollectionElement element in literal.elements2) {
-      if (isConst) {
-        // TODO(paulberry): this error should be based on the actual type of the
-        // list element, not the static type.  See dartbug.com/21119.
-        _checkForCollectionElementTypeNotAssignableWithElementType(
-            element,
-            listElementType,
-            CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
-      } else {
-        _checkForCollectionElementTypeNotAssignableWithElementType(
-            element,
-            listElementType,
-            StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
-      }
+      _checkForCollectionElementTypeNotAssignableWithElementType(element,
+          listElementType, StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
     }
   }
 
@@ -4031,26 +4019,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType keyType = typeArguments[0];
       DartType valueType = typeArguments[1];
 
-      bool isConst = literal.isConst;
       NodeList<CollectionElement> entries = literal.elements2;
       for (CollectionElement entry in entries) {
-        if (isConst) {
-          // TODO(paulberry): this error should be based on the actual type of
-          //  the map entries, not the static type.  See dartbug.com/21119.
-          _checkForMapElementTypeNotAssignableWithKeyOrValueType(
-              entry,
-              keyType,
-              valueType,
-              CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-              CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
-        } else {
-          _checkForMapElementTypeNotAssignableWithKeyOrValueType(
-              entry,
-              keyType,
-              valueType,
-              StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-              StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
-        }
+        _checkForMapElementTypeNotAssignableWithKeyOrValueType(
+            entry,
+            keyType,
+            valueType,
+            StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+            StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
       }
     }
   }
@@ -5263,21 +5239,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType setElementType = typeArguments[0];
 
       // Check every set element.
-      bool isConst = literal.isConst;
       for (CollectionElement element in literal.elements2) {
-        if (isConst) {
-          // TODO(paulberry): this error should be based on the actual type of
-          //  the element, not the static type.  See dartbug.com/21119.
-          _checkForCollectionElementTypeNotAssignableWithElementType(
-              element,
-              setElementType,
-              CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
-        } else {
-          _checkForCollectionElementTypeNotAssignableWithElementType(
-              element,
-              setElementType,
-              StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
-        }
+        _checkForCollectionElementTypeNotAssignableWithElementType(element,
+            setElementType, StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
       }
     }
   }

@@ -415,24 +415,21 @@ class A<E> {
   test_listElementTypeNotAssignable_const() async {
     Source source = addSource("var v = const <String>[42];");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
   test_mapKeyTypeNotAssignable_const() async {
     Source source = addSource("var v = const <String, int >{1 : 2};");
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
   test_mapValueTypeNotAssignable_const() async {
     Source source = addSource("var v = const <String, String>{'a' : 2};");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -512,8 +509,7 @@ f() {
   test_setElementTypeNotAssignable_const() async {
     Source source = addSource("var v = const <String>{42};");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 }
