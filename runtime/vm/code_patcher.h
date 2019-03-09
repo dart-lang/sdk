@@ -19,12 +19,10 @@ class RawCode;
 class RawFunction;
 class RawObject;
 
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_DBC)
 // Stack-allocated class to create a scope where the specified region
 // [address, address + size] has write access enabled. This is used
 // when patching generated code. Access is reset to read-execute in
 // the destructor of this scope.
-// Dual mapping of instructions pages is not supported on these target arch.
 class WritableInstructionsScope : public ValueObject {
  public:
   WritableInstructionsScope(uword address, intptr_t size);
@@ -34,7 +32,6 @@ class WritableInstructionsScope : public ValueObject {
   const uword address_;
   const intptr_t size_;
 };
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_DBC)
 
 class CodePatcher : public AllStatic {
  public:
