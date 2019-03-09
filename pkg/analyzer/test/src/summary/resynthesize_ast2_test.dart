@@ -6,6 +6,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -30,6 +32,8 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     var dartCoreSource = sourceFactory.forUri('dart:core');
     var dartCoreCode = getFile(dartCoreSource.fullName).readAsStringSync();
     dartCoreCode = r'''
+library dart.core;
+
 abstract class Comparable<T> {
   int compareTo(T other);
 }
@@ -74,24 +78,29 @@ abstract class num implements Comparable<num> {}
     };
 
     var linkResult = link(
-      _FakeAnalysisContext(sourceFactory, null),
-      null,
+      AnalysisOptionsImpl(),
+      sourceFactory,
       rootReference,
       [dartCoreResult.bundle],
       libraryUnitMap,
     );
 
-    var rootReference2 = Reference.root();
+    var analysisContext = _FakeAnalysisContext(sourceFactory);
+
     var elementFactory = LinkedElementFactory(
-      _FakeAnalysisContext(sourceFactory, null),
+      analysisContext,
       null,
-      rootReference2,
+      Reference.root(),
     );
     elementFactory.addBundle(dartCoreResult.bundle);
     elementFactory.addBundle(linkResult.bundle);
-    return elementFactory.elementOfReference(
-      rootReference2.getChild('${source.uri}'),
-    );
+
+    var dartCore = elementFactory.libraryOfUri('dart:core');
+    var typeProvider = SummaryTypeProvider()..initializeCore(dartCore);
+    analysisContext.typeProvider = typeProvider;
+    analysisContext.typeSystem = Dart2TypeSystem(typeProvider);
+
+    return elementFactory.libraryOfUri('${source.uri}');
   }
 
   @override
@@ -174,12 +183,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_class_setter_invalid_optional_parameter() async {
     await super.test_class_setter_invalid_optional_parameter();
-  }
-
-  @override
-  @failingTest
-  test_class_type_parameters_bound() async {
-    await super.test_class_type_parameters_bound();
   }
 
   @override
@@ -646,12 +649,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_const_topLevel_identical() async {
     await super.test_const_topLevel_identical();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_ifNull() async {
-    await super.test_const_topLevel_ifNull();
   }
 
   @override
@@ -1425,27 +1422,9 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_inferred_function_type_for_variable_in_generic_function() async {
-    await super.test_inferred_function_type_for_variable_in_generic_function();
-  }
-
-  @override
-  @failingTest
   test_inferred_function_type_in_generic_class_in_generic_method() async {
     await super
         .test_inferred_function_type_in_generic_class_in_generic_method();
-  }
-
-  @override
-  @failingTest
-  test_inferred_function_type_in_generic_closure() async {
-    await super.test_inferred_function_type_in_generic_closure();
-  }
-
-  @override
-  @failingTest
-  test_inferred_generic_function_type_in_generic_closure() async {
-    await super.test_inferred_generic_function_type_in_generic_closure();
   }
 
   @override
@@ -1683,18 +1662,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_library_name_with_spaces() async {
-    await super.test_library_name_with_spaces();
-  }
-
-  @override
-  @failingTest
-  test_library_named() async {
-    await super.test_library_named();
-  }
-
-  @override
-  @failingTest
   test_main_class_alias_via_export() async {
     await super.test_main_class_alias_via_export();
   }
@@ -1709,12 +1676,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_main_getter_via_export() async {
     await super.test_main_getter_via_export();
-  }
-
-  @override
-  @failingTest
-  test_main_typedef() async {
-    await super.test_main_typedef();
   }
 
   @override
@@ -1941,30 +1902,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_metadata_typeParameter_ofClass() async {
-    await super.test_metadata_typeParameter_ofClass();
-  }
-
-  @override
-  @failingTest
-  test_metadata_typeParameter_ofClassTypeAlias() async {
-    await super.test_metadata_typeParameter_ofClassTypeAlias();
-  }
-
-  @override
-  @failingTest
-  test_metadata_typeParameter_ofFunction() async {
-    await super.test_metadata_typeParameter_ofFunction();
-  }
-
-  @override
-  @failingTest
-  test_metadata_typeParameter_ofTypedef() async {
-    await super.test_metadata_typeParameter_ofTypedef();
-  }
-
-  @override
-  @failingTest
   test_method_inferred_type_nonStatic_implicit_param() async {
     await super.test_method_inferred_type_nonStatic_implicit_param();
   }
@@ -2053,18 +1990,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_nested_generic_functions_with_function_typed_param() async {
-    await super.test_nested_generic_functions_with_function_typed_param();
-  }
-
-  @override
-  @failingTest
-  test_nested_generic_functions_with_local_variables() async {
-    await super.test_nested_generic_functions_with_local_variables();
-  }
-
-  @override
-  @failingTest
   test_parameter_covariant_inherited() async {
     await super.test_parameter_covariant_inherited();
   }
@@ -2149,20 +2074,8 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_syntheticFunctionType_genericClosure_inGenericFunction() async {
-    await super.test_syntheticFunctionType_genericClosure_inGenericFunction();
-  }
-
-  @override
-  @failingTest
   test_syntheticFunctionType_inGenericClass() async {
     await super.test_syntheticFunctionType_inGenericClass();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_inGenericFunction() async {
-    await super.test_syntheticFunctionType_inGenericFunction();
   }
 
   @override
@@ -2365,12 +2278,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_typedef_documented() async {
-    await super.test_typedef_documented();
-  }
-
-  @override
-  @failingTest
   test_typedef_generic() async {
     await super.test_typedef_generic();
   }
@@ -2401,62 +2308,8 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_typedef_parameter_type() async {
-    await super.test_typedef_parameter_type();
-  }
-
-  @override
-  @failingTest
-  test_typedef_parameter_type_generic() async {
-    await super.test_typedef_parameter_type_generic();
-  }
-
-  @override
-  @failingTest
-  test_typedef_parameters() async {
-    await super.test_typedef_parameters();
-  }
-
-  @override
-  @failingTest
   test_typedef_parameters_named() async {
     await super.test_typedef_parameters_named();
-  }
-
-  @override
-  @failingTest
-  test_typedef_return_type() async {
-    await super.test_typedef_return_type();
-  }
-
-  @override
-  @failingTest
-  test_typedef_return_type_generic() async {
-    await super.test_typedef_return_type_generic();
-  }
-
-  @override
-  @failingTest
-  test_typedef_return_type_implicit() async {
-    await super.test_typedef_return_type_implicit();
-  }
-
-  @override
-  @failingTest
-  test_typedef_return_type_void() async {
-    await super.test_typedef_return_type_void();
-  }
-
-  @override
-  @failingTest
-  test_typedef_type_parameters() async {
-    await super.test_typedef_type_parameters();
-  }
-
-  @override
-  @failingTest
-  test_typedef_type_parameters_bound() async {
-    await super.test_typedef_type_parameters_bound();
   }
 
   @override
@@ -2641,32 +2494,22 @@ abstract class num implements Comparable<num> {}
     };
 
     var rootReference = Reference.root();
-    var linkResult = link(
-      _FakeAnalysisContext(sourceFactory, null),
-      null,
+    return link(
+      AnalysisOptionsImpl(),
+      sourceFactory,
       rootReference,
       [],
       libraryUnitMap,
     );
-    return linkResult;
-//    var linkResult = link(rootReference, libraryUnitMap);
-
-//    var libraryLinkResult = linkResult.libraries[source];
-//    var defaultUnitResult = libraryLinkResult.units[source];
-//
-//    var linkedBundleContext = LinkedBundleContext(linkResult.references);
-//    var linkedUnitContext = LinkedUnitContext(
-//      linkedBundleContext,
-//      defaultUnitResult.tokens,
-//    );
   }
 }
 
 class _FakeAnalysisContext implements AnalysisContext {
   final SourceFactory sourceFactory;
-  final Dart2TypeSystem typeSystem;
+  TypeProvider typeProvider;
+  Dart2TypeSystem typeSystem;
 
-  _FakeAnalysisContext(this.sourceFactory, this.typeSystem);
+  _FakeAnalysisContext(this.sourceFactory);
 
   @override
   AnalysisOptions get analysisOptions {

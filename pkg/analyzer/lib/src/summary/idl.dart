@@ -987,6 +987,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.classDeclaration)
   LinkedNode get classDeclaration_extendsClause;
 
+  @VariantId(27, variant: LinkedNodeKind.classDeclaration)
+  bool get classDeclaration_isDartObject;
+
   @VariantId(7, variant: LinkedNodeKind.classDeclaration)
   LinkedNode get classDeclaration_withClause;
 
@@ -1486,6 +1489,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.functionTypeAlias)
   LinkedNode get functionTypeAlias_returnType;
 
+  @VariantId(24, variant: LinkedNodeKind.functionTypeAlias)
+  LinkedNodeType get functionTypeAlias_returnType2;
+
   @VariantId(8, variant: LinkedNodeKind.functionTypeAlias)
   LinkedNode get functionTypeAlias_typeParameters;
 
@@ -1509,6 +1515,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.genericFunctionType)
   LinkedNode get genericFunctionType_returnType;
+
+  @VariantId(24, variant: LinkedNodeKind.genericFunctionType)
+  LinkedNodeType get genericFunctionType_returnType2;
 
   @VariantId(6, variant: LinkedNodeKind.genericFunctionType)
   LinkedNode get genericFunctionType_typeParameters;
@@ -2376,6 +2385,15 @@ abstract class LinkedNodeLibrary extends base.SummaryClass {
   @Id(2)
   List<int> get exports;
 
+  @Id(3)
+  String get name;
+
+  @Id(5)
+  int get nameLength;
+
+  @Id(4)
+  int get nameOffset;
+
   @Id(1)
   List<LinkedNodeUnit> get units;
 
@@ -2425,6 +2443,7 @@ enum LinkedNodeTypeKind {
   bottom,
   dynamic_,
   function,
+  genericTypeAlias,
   interface,
   typeParameter,
   void_

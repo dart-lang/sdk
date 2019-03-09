@@ -1007,7 +1007,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   InterfaceType get supertype {
     if (_supertype == null) {
       if (linkedNode != null) {
-        var context = enclosingUnit.linkedContext;
         LinkedNode superclass;
         if (linkedNode.kind == LinkedNodeKind.classDeclaration) {
           superclass = linkedNode
@@ -1016,7 +1015,10 @@ class ClassElementImpl extends AbstractClassElementImpl
           superclass = linkedNode.classTypeAlias_superclass;
         }
         if (superclass != null) {
+          var context = enclosingUnit.linkedContext;
           _supertype = context.getInterfaceType(superclass.typeName_type);
+        } else if (!linkedNode.classDeclaration_isDartObject) {
+          _supertype = context.typeProvider.objectType;
         }
       } else if (_unlinkedClass != null) {
         if (_unlinkedClass.supertype != null) {
@@ -1759,8 +1761,22 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<FunctionTypeAliasElement> get functionTypeAliases {
+    if (_typeAliases != null) return _typeAliases;
+
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      var containerRef = reference.getChild('@typeAlias');
+      _typeAliases = linkedNode.compilationUnit_declarations
+          .where((node) => node.kind == LinkedNodeKind.functionTypeAlias)
+          .map((node) {
+        var name = context.getUnitMemberName(node);
+        var reference = containerRef.getChild(name);
+        return GenericTypeAliasElementImpl.forLinkedNode(this, reference, node);
+      }).toList();
+    }
+
     if (_unlinkedUnit != null) {
-      _typeAliases ??= _unlinkedUnit.typedefs.map((t) {
+      _typeAliases = _unlinkedUnit.typedefs.map((t) {
         return new GenericTypeAliasElementImpl.forSerialized(t, this);
       }).toList(growable: false);
     }
@@ -5126,6 +5142,13 @@ class GenericTypeAliasElementImpl extends ElementImpl
       : _unlinkedTypedef = null,
         super(name, offset);
 
+  GenericTypeAliasElementImpl.forLinkedNode(
+      CompilationUnitElementImpl enclosingUnit,
+      Reference reference,
+      LinkedNode linkedNode)
+      : _unlinkedTypedef = null,
+        super.forLinkedNode(enclosingUnit, reference, linkedNode);
+
   /// Initialize a newly created type alias element to have the given [name].
   GenericTypeAliasElementImpl.forNode(Identifier name)
       : _unlinkedTypedef = null,
@@ -5157,6 +5180,11 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   String get documentationComment {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.getCommentText(
+        linkedNode.annotatedNode_comment,
+      );
+    }
     if (_unlinkedTypedef != null) {
       return _unlinkedTypedef.documentationComment?.text;
     }
@@ -5176,31 +5204,53 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   GenericFunctionTypeElementImpl get function {
-    if (_function == null) {
-      if (_unlinkedTypedef != null) {
-        if (_unlinkedTypedef.style == TypedefStyle.genericFunctionType) {
-          DartType type = enclosingUnit.resynthesizerContext.resolveTypeRef(
-              this, _unlinkedTypedef.returnType,
-              declaredType: true);
-          if (type is FunctionType) {
-            Element element = type.element;
-            if (element is GenericFunctionTypeElement) {
-              (element as GenericFunctionTypeElementImpl).enclosingElement =
-                  this;
-              _function = element;
-            }
+    if (_function != null) return _function;
+
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      _function = new GenericFunctionTypeElementImpl.forOffset(-1);
+      _function.enclosingElement = this;
+      _function.returnType = context.getType(
+        linkedNode.functionTypeAlias_returnType2,
+      );
+      var containerRef = reference.getChild('@parameter');
+      var formalParameters = context.getFormalParameters(linkedNode);
+      _function.parameters = formalParameters.map((node) {
+        var name = context.getFormalParameterName(node);
+        var reference = containerRef.getChild(name);
+        reference.node = node;
+        return ParameterElementImpl.forLinkedNodeFactory(
+          this,
+          reference,
+          node,
+        );
+      }).toList();
+      return _function;
+    }
+
+    if (_unlinkedTypedef != null) {
+      if (_unlinkedTypedef.style == TypedefStyle.genericFunctionType) {
+        DartType type = enclosingUnit.resynthesizerContext.resolveTypeRef(
+            this, _unlinkedTypedef.returnType,
+            declaredType: true);
+        if (type is FunctionType) {
+          Element element = type.element;
+          if (element is GenericFunctionTypeElement) {
+            (element as GenericFunctionTypeElementImpl).enclosingElement = this;
+            _function = element;
           }
-        } else {
-          _function = new GenericFunctionTypeElementImpl.forOffset(-1);
-          _function.enclosingElement = this;
-          _function.returnType = enclosingUnit.resynthesizerContext
-              .resolveTypeRef(_function, _unlinkedTypedef.returnType,
-                  declaredType: true);
-          _function.parameters = ParameterElementImpl.resynthesizeList(
-              _unlinkedTypedef.parameters, _function);
         }
+      } else {
+        _function = new GenericFunctionTypeElementImpl.forOffset(-1);
+        _function.enclosingElement = this;
+        _function.returnType = enclosingUnit.resynthesizerContext
+            .resolveTypeRef(_function, _unlinkedTypedef.returnType,
+                declaredType: true);
+        _function.parameters = ParameterElementImpl.resynthesizeList(
+            _unlinkedTypedef.parameters, _function);
       }
     }
+
     return _function;
   }
 
@@ -5228,6 +5278,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   String get name {
+    if (linkedNode != null) {
+      return reference.name;
+    }
     if (_unlinkedTypedef != null) {
       return _unlinkedTypedef.name;
     }
@@ -8547,16 +8600,27 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   DartType get bound {
-    if (_bound == null) {
-      if (_unlinkedTypeParam != null) {
-        if (_unlinkedTypeParam.bound == null) {
-          return null;
-        }
-        _bound = enclosingUnit.resynthesizerContext.resolveTypeRef(
-            this, _unlinkedTypeParam.bound,
-            instantiateToBoundsAllowed: false, declaredType: true);
+    if (_bound != null) return _bound;
+
+    if (linkedNode != null) {
+      var bound = linkedNode.typeParameter_bound;
+      if (bound != null) {
+        var context = enclosingUnit.linkedContext;
+        return _bound = context.getTypeAnnotationType(bound);
+      } else {
+        return _bound = context.typeProvider.objectType;
       }
     }
+
+    if (_unlinkedTypeParam != null) {
+      if (_unlinkedTypeParam.bound == null) {
+        return null;
+      }
+      return _bound = enclosingUnit.resynthesizerContext.resolveTypeRef(
+          this, _unlinkedTypeParam.bound,
+          instantiateToBoundsAllowed: false, declaredType: true);
+    }
+
     return _bound;
   }
 
@@ -8617,6 +8681,9 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   TypeParameterType get type {
+    if (linkedNode != null) {
+      _type ??= new TypeParameterTypeImpl(this);
+    }
     if (_unlinkedTypeParam != null) {
       _type ??= new TypeParameterTypeImpl(this);
     }
@@ -8667,19 +8734,34 @@ mixin TypeParameterizedElementMixin
 
   @override
   List<TypeParameterElement> get typeParameters {
-    if (_typeParameterElements == null) {
-      List<UnlinkedTypeParam> unlinkedParams = unlinkedTypeParams;
-      if (unlinkedParams != null) {
-        int numTypeParameters = unlinkedParams.length;
-        _typeParameterElements =
-            new List<TypeParameterElement>(numTypeParameters);
-        for (int i = 0; i < numTypeParameters; i++) {
-          _typeParameterElements[i] =
-              new TypeParameterElementImpl.forSerialized(
-                  unlinkedParams[i], this);
-        }
+    if (_typeParameterElements != null) return _typeParameterElements;
+
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      var containerRef = reference.getChild('@typeParameter');
+      var typeParameters = context.getTypeParameters(linkedNode);
+      if (typeParameters == null) {
+        return _typeParameterElements = const [];
+      }
+      return _typeParameterElements = typeParameters.map((node) {
+        var name = context.getSimpleName(node.typeParameter_name);
+        var reference = containerRef.getChild(name);
+        reference.node = node;
+        return TypeParameterElementImpl.forLinkedNode(this, reference, node);
+      }).toList();
+    }
+
+    List<UnlinkedTypeParam> unlinkedParams = unlinkedTypeParams;
+    if (unlinkedParams != null) {
+      int numTypeParameters = unlinkedParams.length;
+      _typeParameterElements =
+          new List<TypeParameterElement>(numTypeParameters);
+      for (int i = 0; i < numTypeParameters; i++) {
+        _typeParameterElements[i] =
+            new TypeParameterElementImpl.forSerialized(unlinkedParams[i], this);
       }
     }
+
     return _typeParameterElements ?? const <TypeParameterElement>[];
   }
 

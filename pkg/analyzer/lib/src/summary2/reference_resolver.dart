@@ -5,7 +5,9 @@
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
+import 'package:analyzer/src/summary2/declaration.dart';
 import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/scope.dart';
 
 /// Recursive visitor of [LinkedNode]s that resolves explicit type annotations
@@ -24,7 +26,15 @@ class ReferenceResolver {
   /// TODO(scheglov) Update scope with local scopes (formal / type parameters).
   Scope scope;
 
-  ReferenceResolver(this.linker, this.unit, this.scope);
+  Reference reference;
+
+  ReferenceResolver(this.linker, this.unit, this.scope, this.reference);
+
+  LinkedNodeTypeBuilder get _dynamicType {
+    return LinkedNodeTypeBuilder(
+      kind: LinkedNodeTypeKind.dynamic_,
+    );
+  }
 
   void resolve() {
     _node(unit.node);
@@ -97,7 +107,7 @@ class ReferenceResolver {
     var typeNode = node.fieldFormalParameter_type;
     if (typeNode != null) {
       _node(typeNode);
-      node.fieldFormalParameter_type2 = typeNode.typeName_type;
+      node.fieldFormalParameter_type2 = _getTypeAnnotationType(typeNode);
     }
 
     var formalParameters = node.fieldFormalParameter_formalParameters;
@@ -116,13 +126,10 @@ class ReferenceResolver {
   void _functionDeclaration(LinkedNodeBuilder node) {
     var returnType = node.functionDeclaration_returnType;
     if (returnType != null) {
-      _typeName(returnType);
-      // TODO(scheglov) type annotation?
-      node.functionDeclaration_returnType2 = returnType.typeName_type;
+      _node(returnType);
+      node.functionDeclaration_returnType2 = _getTypeAnnotationType(returnType);
     } else {
-      node.functionDeclaration_returnType2 = LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.dynamic_,
-      );
+      node.functionDeclaration_returnType2 = _dynamicType;
     }
 
     _node(node.functionDeclaration_functionExpression);
@@ -133,17 +140,120 @@ class ReferenceResolver {
     _node(node.functionExpression_formalParameters);
   }
 
+  void _functionTypeAlias(LinkedNodeBuilder node) {
+    var name = unit.context.getSimpleName(
+      node.namedCompilationUnitMember_name,
+    );
+    reference = reference.getChild('@typeAlias').getChild(name);
+
+    var typeParameters = node.functionTypeAlias_typeParameters;
+    if (typeParameters != null) {
+      _newScopeTypeParameters(typeParameters);
+    }
+
+    _node(typeParameters);
+
+    var returnType = node.functionTypeAlias_returnType;
+    if (returnType != null) {
+      _node(returnType);
+      node.functionTypeAlias_returnType2 = _getTypeAnnotationType(returnType);
+    } else {
+      node.functionTypeAlias_returnType2 = _dynamicType;
+    }
+
+    _node(node.functionTypeAlias_formalParameters);
+
+    if (typeParameters != null) {
+      scope = scope.parent;
+    }
+    reference = reference.parent.parent;
+  }
+
+  void _genericFunctionType(LinkedNodeBuilder node) {
+    reference = reference.getChild('@function');
+
+    var name = '${reference.numOfChildren}';
+    reference = reference.getChild(name);
+
+    var typeParameters = node.genericFunctionType_typeParameters;
+    if (typeParameters != null) {
+      _newScopeTypeParameters(typeParameters);
+    }
+
+    _node(typeParameters);
+
+    var returnType = node.genericFunctionType_returnType;
+    if (returnType != null) {
+      _node(returnType);
+      node.genericFunctionType_returnType2 = _getTypeAnnotationType(returnType);
+    } else {
+      node.genericFunctionType_returnType2 = _dynamicType;
+    }
+
+    _node(node.genericFunctionType_formalParameters);
+
+    if (typeParameters != null) {
+      scope = scope.parent;
+    }
+    reference = reference.parent.parent;
+  }
+
+  void _genericTypeAlias(LinkedNodeBuilder node) {
+    var name = unit.context.getSimpleName(
+      node.namedCompilationUnitMember_name,
+    );
+    reference = reference.getChild('@typeAlias').getChild(name);
+
+    var typeParameters = node.genericTypeAlias_typeParameters;
+    if (typeParameters != null) {
+      _newScopeTypeParameters(typeParameters);
+    }
+
+    var function = node.genericTypeAlias_functionType;
+
+    _node(typeParameters);
+    _node(function);
+
+    if (typeParameters != null) {
+      scope = scope.parent;
+    }
+    reference = reference.parent.parent;
+  }
+
+  LinkedNodeTypeBuilder _getTypeAnnotationType(LinkedNodeBuilder node) {
+    var kind = node.kind;
+    if (kind == LinkedNodeKind.typeName) {
+      return node.typeName_type;
+    } else {
+      throw UnimplementedError('$kind');
+    }
+  }
+
+  void _libraryDirective(LinkedNodeBuilder node) {}
+
   void _methodDeclaration(LinkedNodeBuilder node) {
     _node(node.methodDeclaration_typeParameters);
 
     var returnType = node.methodDeclaration_returnType;
     if (returnType != null) {
       _node(returnType);
-      // TODO(scheglov) might be an not TypeName
-      node.methodDeclaration_returnType2 = returnType.typeName_type;
+      node.methodDeclaration_returnType2 = _getTypeAnnotationType(returnType);
     }
 
     _node(node.methodDeclaration_formalParameters);
+  }
+
+  void _newScopeTypeParameters(LinkedNode typeParameterList) {
+    scope = Scope(this.scope, {});
+
+    var containerRef = this.reference.getChild('@typeParameter');
+    var typeParameters = typeParameterList.typeParameterList_typeParameters;
+    for (var typeParameter in typeParameters) {
+      var name = unit.context.getSimpleName(typeParameter.typeParameter_name);
+      var reference = containerRef.getChild(name);
+      reference.node = typeParameter;
+      scope.declare(name, Declaration(name, reference));
+    }
   }
 
   void _node(LinkedNodeBuilder node) {
@@ -167,6 +277,14 @@ class ReferenceResolver {
       _functionDeclaration(node);
     } else if (node.kind == LinkedNodeKind.functionExpression) {
       _functionExpression(node);
+    } else if (node.kind == LinkedNodeKind.functionTypeAlias) {
+      _functionTypeAlias(node);
+    } else if (node.kind == LinkedNodeKind.genericFunctionType) {
+      _genericFunctionType(node);
+    } else if (node.kind == LinkedNodeKind.genericTypeAlias) {
+      _genericTypeAlias(node);
+    } else if (node.kind == LinkedNodeKind.libraryDirective) {
+      _libraryDirective(node);
     } else if (node.kind == LinkedNodeKind.methodDeclaration) {
       _methodDeclaration(node);
     } else if (node.kind == LinkedNodeKind.simpleFormalParameter) {
@@ -202,12 +320,10 @@ class ReferenceResolver {
     var typeNode = node.simpleFormalParameter_type;
     if (typeNode != null) {
       _node(typeNode);
-      node.simpleFormalParameter_type2 = typeNode.typeName_type;
+      node.simpleFormalParameter_type2 = _getTypeAnnotationType(typeNode);
     } else {
       // TODO(scheglov) might be inferred
-      node.simpleFormalParameter_type2 = LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.dynamic_,
-      );
+      node.simpleFormalParameter_type2 = _dynamicType;
     }
 
     if (node.normalFormalParameter_covariantKeyword != 0) {
@@ -244,9 +360,7 @@ class ReferenceResolver {
       var declaration = scope.lookup(name);
       if (declaration == null) {
         identifier.simpleIdentifier_element = 0;
-        node.typeName_type = LinkedNodeTypeBuilder(
-          kind: LinkedNodeTypeKind.dynamic_,
-        );
+        node.typeName_type = _dynamicType;
         return;
       }
 
@@ -259,7 +373,7 @@ class ReferenceResolver {
       if (typeArgumentList != null) {
         _node(typeArgumentList);
         typeArguments = typeArgumentList.typeArgumentList_arguments
-            .map((node) => node.typeName_type)
+            .map((node) => _getTypeAnnotationType(node))
             .toList();
       }
 
@@ -269,7 +383,11 @@ class ReferenceResolver {
           interfaceClass: referenceIndex,
           interfaceTypeArguments: typeArguments,
         );
-        // TODO(scheglov) type arguments
+      } else if (reference.isTypeParameter) {
+        node.typeName_type = LinkedNodeTypeBuilder(
+          kind: LinkedNodeTypeKind.typeParameter,
+          typeParameterParameter: referenceIndex,
+        );
       } else {
         // TODO(scheglov) set Object? keep unresolved?
         throw UnimplementedError();
@@ -296,7 +414,7 @@ class ReferenceResolver {
     if (typeNode != null) {
       _node(typeNode);
       for (var field in node.variableDeclarationList_variables) {
-        field.variableDeclaration_type2 = typeNode.typeName_type;
+        field.variableDeclaration_type2 = _getTypeAnnotationType(typeNode);
       }
     }
   }

@@ -1356,7 +1356,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       result = containerRef.getChild(element.name ?? '');
     } else if (element is FunctionTypeAliasElement) {
       var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@functionTypeAlias');
+      var containerRef = enclosingRef.getChild('@typeAlias');
       _ensureReferenceIndex(containerRef);
 
       result = containerRef.getChild(element.name);

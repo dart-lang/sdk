@@ -107,6 +107,104 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 /// Mixin containing test cases exercising summary resynthesis.  Intended to be
 /// applied to a class implementing [ResynthesizeTestStrategy], along with the
 /// mixin [ResynthesizeTestHelpers].
+mixin GetElementTestCases implements ResynthesizeTestHelpers {
+  test_getElement_class() async {
+    var resynthesized = _validateGetElement(
+      'class C { m() {} }',
+      ['C'],
+    );
+    expect(resynthesized, isClassElement);
+  }
+
+  test_getElement_constructor_named() async {
+    var resynthesized = _validateGetElement(
+      'class C { C.named(); }',
+      ['C', 'named'],
+    );
+    expect(resynthesized, isConstructorElement);
+  }
+
+  test_getElement_constructor_unnamed() async {
+    var resynthesized = _validateGetElement(
+      'class C { C(); }',
+      ['C', ''],
+    );
+    expect(resynthesized, isConstructorElement);
+  }
+
+  test_getElement_field() async {
+    var resynthesized = _validateGetElement(
+      'class C { var f; }',
+      ['C', 'f'],
+    );
+    expect(resynthesized, isFieldElement);
+  }
+
+  test_getElement_getter() async {
+    var resynthesized = _validateGetElement(
+      'class C { get f => null; }',
+      ['C', 'f?'],
+    );
+    expect(resynthesized, isPropertyAccessorElement);
+  }
+
+  test_getElement_method() async {
+    var resynthesized = _validateGetElement(
+      'class C { m() {} }',
+      ['C', 'm'],
+    );
+    expect(resynthesized, isMethodElement);
+  }
+
+  test_getElement_operator() async {
+    var resynthesized = _validateGetElement(
+      'class C { operator+(x) => null; }',
+      ['C', '+'],
+    );
+    expect(resynthesized, isMethodElement);
+  }
+
+  test_getElement_setter() async {
+    var resynthesized = _validateGetElement(
+      'class C { void set f(value) {} }',
+      ['C', 'f='],
+    );
+    expect(resynthesized, isPropertyAccessorElement);
+  }
+
+  test_getElement_unit() async {
+    var resynthesized = _validateGetElement('class C {}', []);
+    expect(resynthesized, isCompilationUnitElement);
+  }
+
+  /**
+   * Encode the library [text] into a summary and then use
+   * [TestSummaryResynthesizer.getElement] to retrieve just the element with
+   * the specified [names] from the resynthesized summary.
+   */
+  Element _validateGetElement(String text, List<String> names) {
+    Source source = addTestSource(text);
+    SummaryResynthesizer resynthesizer = encodeLibrary(source);
+
+    var locationComponents = [
+      source.uri.toString(),
+      source.uri.toString(),
+    ]..addAll(names);
+    var location = ElementLocationImpl.con3(locationComponents);
+
+    Element result = resynthesizer.getElement(location);
+    checkMinimalResynthesisWork(resynthesizer, source.uri, [source.uri]);
+    // Check that no other summaries needed to be resynthesized to resynthesize
+    // the library element.
+    expect(resynthesizer.resynthesisCount, 3);
+    expect(result.location, location);
+    return result;
+  }
+}
+
+/// Mixin containing test cases exercising summary resynthesis.  Intended to be
+/// applied to a class implementing [ResynthesizeTestStrategy], along with the
+/// mixin [ResynthesizeTestHelpers].
 mixin ResynthesizeTestCases implements ResynthesizeTestHelpers {
   test_class_abstract() async {
     var library = await checkLibrary('abstract class C {}');
@@ -4911,75 +5009,6 @@ int Function(int a, String b) v;
 ''');
   }
 
-  test_getElement_class() async {
-    var resynthesized = _validateGetElement(
-      'class C { m() {} }',
-      ['C'],
-    );
-    expect(resynthesized, isClassElement);
-  }
-
-  test_getElement_constructor_named() async {
-    var resynthesized = _validateGetElement(
-      'class C { C.named(); }',
-      ['C', 'named'],
-    );
-    expect(resynthesized, isConstructorElement);
-  }
-
-  test_getElement_constructor_unnamed() async {
-    var resynthesized = _validateGetElement(
-      'class C { C(); }',
-      ['C', ''],
-    );
-    expect(resynthesized, isConstructorElement);
-  }
-
-  test_getElement_field() async {
-    var resynthesized = _validateGetElement(
-      'class C { var f; }',
-      ['C', 'f'],
-    );
-    expect(resynthesized, isFieldElement);
-  }
-
-  test_getElement_getter() async {
-    var resynthesized = _validateGetElement(
-      'class C { get f => null; }',
-      ['C', 'f?'],
-    );
-    expect(resynthesized, isPropertyAccessorElement);
-  }
-
-  test_getElement_method() async {
-    var resynthesized = _validateGetElement(
-      'class C { m() {} }',
-      ['C', 'm'],
-    );
-    expect(resynthesized, isMethodElement);
-  }
-
-  test_getElement_operator() async {
-    var resynthesized = _validateGetElement(
-      'class C { operator+(x) => null; }',
-      ['C', '+'],
-    );
-    expect(resynthesized, isMethodElement);
-  }
-
-  test_getElement_setter() async {
-    var resynthesized = _validateGetElement(
-      'class C { void set f(value) {} }',
-      ['C', 'f='],
-    );
-    expect(resynthesized, isPropertyAccessorElement);
-  }
-
-  test_getElement_unit() async {
-    var resynthesized = _validateGetElement('class C {}', []);
-    expect(resynthesized, isCompilationUnitElement);
-  }
-
   test_getter_documented() async {
     var library = await checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -8683,30 +8712,6 @@ int get x {}
 int i;
 int j;
 ''');
-  }
-
-  /**
-   * Encode the library [text] into a summary and then use
-   * [TestSummaryResynthesizer.getElement] to retrieve just the element with
-   * the specified [names] from the resynthesized summary.
-   */
-  Element _validateGetElement(String text, List<String> names) {
-    Source source = addTestSource(text);
-    SummaryResynthesizer resynthesizer = encodeLibrary(source);
-
-    var locationComponents = [
-      source.uri.toString(),
-      source.uri.toString(),
-    ]..addAll(names);
-    var location = ElementLocationImpl.con3(locationComponents);
-
-    Element result = resynthesizer.getElement(location);
-    checkMinimalResynthesisWork(resynthesizer, source.uri, [source.uri]);
-    // Check that no other summaries needed to be resynthesized to resynthesize
-    // the library element.
-    expect(resynthesizer.resynthesisCount, 3);
-    expect(result.location, location);
-    return result;
   }
 }
 

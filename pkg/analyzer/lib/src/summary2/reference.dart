@@ -48,6 +48,12 @@ class Reference {
 
   bool get isClass => parent != null && parent.name == '@class';
 
+  bool get isGenericTypeAlias => parent != null && parent.name == '@typeAlias';
+
+  bool get isTypeParameter => parent != null && parent.name == '@typeParameter';
+
+  int get numOfChildren => _children != null ? _children.length : 0;
+
   /// Return the child with the given name, or `null` if does not exist.
   Reference operator [](String name) {
     return _children != null ? _children[name] : null;

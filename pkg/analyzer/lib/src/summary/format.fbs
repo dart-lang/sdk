@@ -398,6 +398,8 @@ enum LinkedNodeTypeKind : byte {
 
   function,
 
+  genericTypeAlias,
+
   interface,
 
   typeParameter,
@@ -1807,6 +1809,12 @@ table LinkedNodeBundle {
 /// Information about a single library in a [LinkedNodeBundle].
 table LinkedNodeLibrary {
   exports:[uint] (id: 2);
+
+  name:string (id: 3);
+
+  nameLength:uint (id: 5);
+
+  nameOffset:uint (id: 4);
 
   units:[LinkedNodeUnit] (id: 1);
 

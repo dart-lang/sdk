@@ -27,10 +27,6 @@ class LinkedElementFactory {
     }
   }
 
-  LinkedBundleContext bundleContextOfLibrary(String uriStr) {
-    return libraryMap[uriStr].context;
-  }
-
   Element elementOfReference(Reference reference) {
     if (reference.element != null) {
       return reference.element;
@@ -49,6 +45,11 @@ class LinkedElementFactory {
       exportReferences[i] = reference;
     }
     return exportReferences;
+  }
+
+  LibraryElementImpl libraryOfUri(String uriStr) {
+    var reference = rootReference.getChild(uriStr);
+    return elementOfReference(reference);
   }
 }
 
@@ -71,19 +72,39 @@ class _ElementRequest {
     );
   }
 
-  LibraryElementImpl createLibraryElement(Reference reference) {
-    // TODO(scheglov) use actual values
-    var libraryElement = LibraryElementImpl(elementFactory.analysisContext,
-        elementFactory.analysisSession, '', -1, 0);
+  GenericTypeAliasElementImpl createFunctionTypeAliasElement(
+      CompilationUnitElementImpl unit, Reference reference) {
+    if (reference.node == null) {
+      indexUnitDeclarations(unit);
+      assert(reference.node != 0, '$reference');
+    }
+    return reference.element = GenericTypeAliasElementImpl.forLinkedNode(
+      unit,
+      reference,
+      reference.node,
+    );
+  }
 
+  LibraryElementImpl createLibraryElement(Reference reference) {
     var uriStr = reference.name;
+
     var sourceFactory = elementFactory.analysisContext.sourceFactory;
-    var libraryData = elementFactory.libraryMap[uriStr];
     var librarySource = sourceFactory.forUri(uriStr);
+
+    var libraryData = elementFactory.libraryMap[uriStr];
+    var node = libraryData.node;
+    var hasName = node.name.isNotEmpty;
+    var libraryElement = LibraryElementImpl(
+      elementFactory.analysisContext,
+      elementFactory.analysisSession,
+      node.name,
+      hasName ? node.nameOffset : -1,
+      node.name.length,
+    );
 
     var units = <CompilationUnitElementImpl>[];
     var unitContainerRef = reference.getChild('@unit');
-    for (var unitData in libraryData.node.units) {
+    for (var unitData in node.units) {
       var unitSource = sourceFactory.forUri(unitData.uriStr);
       var unitElement = CompilationUnitElementImpl.forLinkedNode(
         libraryElement,
@@ -119,6 +140,19 @@ class _ElementRequest {
       return createClassElement(unit, reference);
     }
 
+    if (parentName == '@typeAlias') {
+      var unit = elementOfReference(parent2);
+      return createFunctionTypeAliasElement(unit, reference);
+    }
+
+    if (parentName == '@typeParameter') {
+      var enclosing = elementOfReference(parent2) as TypeParameterizedElement;
+      enclosing.typeParameters;
+      // Requesting type parameters sets elements for all their references.
+      assert(reference.element != null);
+      return reference.element;
+    }
+
     if (parentName == '@unit') {
       elementOfReference(parent2);
       // Creating a library fills all its units.
@@ -132,13 +166,18 @@ class _ElementRequest {
 
   void indexUnitDeclarations(CompilationUnitElementImpl unit) {
     var context = unit.linkedContext;
-    var classRef = unit.reference.getChild('@class');
+    var unitRef = unit.reference;
+    var classRef = unitRef.getChild('@class');
+    var typeAliasRef = unitRef.getChild('@typeAlias');
     for (var declaration in unit.linkedNode.compilationUnit_declarations) {
       var kind = declaration.kind;
       if (kind == LinkedNodeKind.classDeclaration ||
           kind == LinkedNodeKind.classTypeAlias) {
         var name = context.getUnitMemberName(declaration);
         classRef.getChild(name).node = declaration;
+      } else if (kind == LinkedNodeKind.functionTypeAlias) {
+        var name = context.getUnitMemberName(declaration);
+        typeAliasRef.getChild(name).node = declaration;
       } else {
         // TODO(scheglov) support other elements
         throw UnimplementedError('$kind');

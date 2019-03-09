@@ -53,6 +53,8 @@ class LinkedUnitContext {
     } else if (kind == LinkedNodeKind.functionDeclaration) {
       parameterList = node.functionDeclaration_functionExpression
           .functionExpression_formalParameters;
+    } else if (kind == LinkedNodeKind.functionTypeAlias) {
+      parameterList = node.functionTypeAlias_formalParameters;
     } else if (kind == LinkedNodeKind.methodDeclaration) {
       parameterList = node.methodDeclaration_formalParameters;
     } else {
@@ -107,6 +109,15 @@ class LinkedUnitContext {
     return bundleContext.getType(linkedType);
   }
 
+  DartType getTypeAnnotationType(LinkedNode node) {
+    var kind = node.kind;
+    if (kind == LinkedNodeKind.typeName) {
+      return getType(node.typeName_type);
+    } else {
+      throw UnimplementedError('$kind');
+    }
+  }
+
   List<LinkedNode> getTypeParameters(LinkedNode node) {
     LinkedNode typeParameterList;
     var kind = node.kind;
@@ -115,6 +126,14 @@ class LinkedUnitContext {
     } else if (kind == LinkedNodeKind.classDeclaration ||
         kind == LinkedNodeKind.mixinDeclaration) {
       typeParameterList = node.classOrMixinDeclaration_typeParameters;
+    } else if (kind == LinkedNodeKind.functionDeclaration) {
+      return getTypeParameters(node.functionDeclaration_functionExpression);
+    } else if (kind == LinkedNodeKind.functionExpression) {
+      typeParameterList = node.functionExpression_typeParameters;
+    } else if (kind == LinkedNodeKind.functionTypeAlias) {
+      typeParameterList = node.functionTypeAlias_typeParameters;
+    } else if (kind == LinkedNodeKind.methodDeclaration) {
+      typeParameterList = node.methodDeclaration_typeParameters;
     } else {
       throw UnimplementedError('$kind');
     }
@@ -154,7 +173,7 @@ class LinkedUnitContext {
   }
 
   bool isConstKeyword(int token) {
-    return getTokenLexeme(token) == 'const';
+    return tokens.type[token] == UnlinkedTokenType.CONST;
   }
 
   bool isConstVariableList(LinkedNode node) {
@@ -183,7 +202,7 @@ class LinkedUnitContext {
   }
 
   bool isFinalKeyword(int token) {
-    return getTokenLexeme(token) == 'final';
+    return tokens.type[token] == UnlinkedTokenType.FINAL;
   }
 
   bool isFinalVariableList(LinkedNode node) {
@@ -214,6 +233,10 @@ class LinkedUnitContext {
   bool isGetterMethod(LinkedNode node) {
     return isMethod(node) &&
         _isGetToken(node.methodDeclaration_propertyKeyword);
+  }
+
+  bool isLibraryKeyword(int token) {
+    return tokens.type[token] == UnlinkedTokenType.LIBRARY;
   }
 
   bool isMethod(LinkedNode node) {

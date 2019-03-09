@@ -8931,6 +8931,18 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  LinkedNodeTypeBuilder get functionTypeAlias_returnType2 {
+    assert(kind == idl.LinkedNodeKind.functionTypeAlias);
+    return _variantField_24;
+  }
+
+  @override
+  LinkedNodeTypeBuilder get genericFunctionType_returnType2 {
+    assert(kind == idl.LinkedNodeKind.genericFunctionType);
+    return _variantField_24;
+  }
+
+  @override
   LinkedNodeTypeBuilder get invocationExpression_invokeType {
     assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
         kind == idl.LinkedNodeKind.methodInvocation);
@@ -8976,6 +8988,16 @@ class LinkedNodeBuilder extends Object
     _variantField_24 = value;
   }
 
+  void set functionTypeAlias_returnType2(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.functionTypeAlias);
+    _variantField_24 = value;
+  }
+
+  void set genericFunctionType_returnType2(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.genericFunctionType);
+    _variantField_24 = value;
+  }
+
   void set invocationExpression_invokeType(LinkedNodeTypeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
         kind == idl.LinkedNodeKind.methodInvocation);
@@ -9009,6 +9031,12 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  bool get classDeclaration_isDartObject {
+    assert(kind == idl.LinkedNodeKind.classDeclaration);
+    return _variantField_27 ??= false;
+  }
+
+  @override
   bool get defaultFormalParameter_isNamed {
     assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
     return _variantField_27 ??= false;
@@ -9030,6 +9058,11 @@ class LinkedNodeBuilder extends Object
 
   void set booleanLiteral_value(bool value) {
     assert(kind == idl.LinkedNodeKind.booleanLiteral);
+    _variantField_27 = value;
+  }
+
+  void set classDeclaration_isDartObject(bool value) {
+    assert(kind == idl.LinkedNodeKind.classDeclaration);
     _variantField_27 = value;
   }
 
@@ -9870,6 +9903,7 @@ class LinkedNodeBuilder extends Object
     int classDeclaration_classKeyword,
     int classOrMixinDeclaration_rightBracket,
     int classOrMixinDeclaration_leftBracket,
+    bool classDeclaration_isDartObject,
     LinkedNodeBuilder classOrMixinDeclaration_implementsClause,
     List<LinkedNodeBuilder> classOrMixinDeclaration_members,
     LinkedNodeBuilder classOrMixinDeclaration_typeParameters,
@@ -9883,6 +9917,7 @@ class LinkedNodeBuilder extends Object
         _variantField_16 = classDeclaration_classKeyword,
         _variantField_18 = classOrMixinDeclaration_rightBracket,
         _variantField_19 = classOrMixinDeclaration_leftBracket,
+        _variantField_27 = classDeclaration_isDartObject,
         _variantField_12 = classOrMixinDeclaration_implementsClause,
         _variantField_5 = classOrMixinDeclaration_members,
         _variantField_13 = classOrMixinDeclaration_typeParameters,
@@ -9977,6 +10012,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder functionTypeAlias_typeParameters,
     int typeAlias_typedefKeyword,
     int typeAlias_semicolon,
+    LinkedNodeTypeBuilder functionTypeAlias_returnType2,
     LinkedNodeBuilder namedCompilationUnitMember_name,
   })  : _kind = idl.LinkedNodeKind.functionTypeAlias,
         _variantField_11 = annotatedNode_comment,
@@ -9986,6 +10022,7 @@ class LinkedNodeBuilder extends Object
         _variantField_8 = functionTypeAlias_typeParameters,
         _variantField_18 = typeAlias_typedefKeyword,
         _variantField_19 = typeAlias_semicolon,
+        _variantField_24 = functionTypeAlias_returnType2,
         _variantField_14 = namedCompilationUnitMember_name;
 
   LinkedNodeBuilder.genericTypeAlias({
@@ -10603,12 +10640,14 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder genericFunctionType_returnType,
     LinkedNodeBuilder genericFunctionType_formalParameters,
     int genericFunctionType_question,
+    LinkedNodeTypeBuilder genericFunctionType_returnType2,
   })  : _kind = idl.LinkedNodeKind.genericFunctionType,
         _variantField_6 = genericFunctionType_typeParameters,
         _variantField_15 = genericFunctionType_functionKeyword,
         _variantField_7 = genericFunctionType_returnType,
         _variantField_8 = genericFunctionType_formalParameters,
-        _variantField_16 = genericFunctionType_question;
+        _variantField_16 = genericFunctionType_question,
+        _variantField_24 = genericFunctionType_returnType2;
 
   LinkedNodeBuilder.ifElement({
     LinkedNodeBuilder ifMixin_condition,
@@ -14379,6 +14418,22 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  idl.LinkedNodeType get functionTypeAlias_returnType2 {
+    assert(kind == idl.LinkedNodeKind.functionTypeAlias);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
+
+  @override
+  idl.LinkedNodeType get genericFunctionType_returnType2 {
+    assert(kind == idl.LinkedNodeKind.genericFunctionType);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
+
+  @override
   idl.LinkedNodeType get invocationExpression_invokeType {
     assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
         kind == idl.LinkedNodeKind.methodInvocation);
@@ -14422,6 +14477,14 @@ class _LinkedNodeImpl extends Object
   @override
   bool get booleanLiteral_value {
     assert(kind == idl.LinkedNodeKind.booleanLiteral);
+    _variantField_27 ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 27, false);
+    return _variantField_27;
+  }
+
+  @override
+  bool get classDeclaration_isDartObject {
+    assert(kind == idl.LinkedNodeKind.classDeclaration);
     _variantField_27 ??=
         const fb.BoolReader().vTableGet(_bc, _bcOffset, 27, false);
     return _variantField_27;
@@ -15206,6 +15269,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (classOrMixinDeclaration_leftBracket != 0)
         _result["classOrMixinDeclaration_leftBracket"] =
             classOrMixinDeclaration_leftBracket;
+      if (classDeclaration_isDartObject != false)
+        _result["classDeclaration_isDartObject"] =
+            classDeclaration_isDartObject;
       if (classOrMixinDeclaration_implementsClause != null)
         _result["classOrMixinDeclaration_implementsClause"] =
             classOrMixinDeclaration_implementsClause.toJson();
@@ -15337,6 +15403,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["typeAlias_typedefKeyword"] = typeAlias_typedefKeyword;
       if (typeAlias_semicolon != 0)
         _result["typeAlias_semicolon"] = typeAlias_semicolon;
+      if (functionTypeAlias_returnType2 != null)
+        _result["functionTypeAlias_returnType2"] =
+            functionTypeAlias_returnType2.toJson();
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
@@ -16054,6 +16123,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             genericFunctionType_formalParameters.toJson();
       if (genericFunctionType_question != 0)
         _result["genericFunctionType_question"] = genericFunctionType_question;
+      if (genericFunctionType_returnType2 != null)
+        _result["genericFunctionType_returnType2"] =
+            genericFunctionType_returnType2.toJson();
     }
     if (kind == idl.LinkedNodeKind.ifElement) {
       if (ifMixin_condition != null)
@@ -16741,6 +16813,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             classOrMixinDeclaration_rightBracket,
         "classOrMixinDeclaration_leftBracket":
             classOrMixinDeclaration_leftBracket,
+        "classDeclaration_isDartObject": classDeclaration_isDartObject,
         "classOrMixinDeclaration_implementsClause":
             classOrMixinDeclaration_implementsClause,
         "classOrMixinDeclaration_members": classOrMixinDeclaration_members,
@@ -16827,6 +16900,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "functionTypeAlias_typeParameters": functionTypeAlias_typeParameters,
         "typeAlias_typedefKeyword": typeAlias_typedefKeyword,
         "typeAlias_semicolon": typeAlias_semicolon,
+        "functionTypeAlias_returnType2": functionTypeAlias_returnType2,
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -17375,6 +17449,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "genericFunctionType_formalParameters":
             genericFunctionType_formalParameters,
         "genericFunctionType_question": genericFunctionType_question,
+        "genericFunctionType_returnType2": genericFunctionType_returnType2,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -17919,6 +17994,9 @@ class LinkedNodeLibraryBuilder extends Object
     with _LinkedNodeLibraryMixin
     implements idl.LinkedNodeLibrary {
   List<int> _exports;
+  String _name;
+  int _nameLength;
+  int _nameOffset;
   List<LinkedNodeUnitBuilder> _units;
   String _uriStr;
 
@@ -17928,6 +18006,29 @@ class LinkedNodeLibraryBuilder extends Object
   void set exports(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._exports = value;
+  }
+
+  @override
+  String get name => _name ??= '';
+
+  void set name(String value) {
+    this._name = value;
+  }
+
+  @override
+  int get nameLength => _nameLength ??= 0;
+
+  void set nameLength(int value) {
+    assert(value == null || value >= 0);
+    this._nameLength = value;
+  }
+
+  @override
+  int get nameOffset => _nameOffset ??= 0;
+
+  void set nameOffset(int value) {
+    assert(value == null || value >= 0);
+    this._nameOffset = value;
   }
 
   @override
@@ -17945,8 +18046,16 @@ class LinkedNodeLibraryBuilder extends Object
   }
 
   LinkedNodeLibraryBuilder(
-      {List<int> exports, List<LinkedNodeUnitBuilder> units, String uriStr})
+      {List<int> exports,
+      String name,
+      int nameLength,
+      int nameOffset,
+      List<LinkedNodeUnitBuilder> units,
+      String uriStr})
       : _exports = exports,
+        _name = name,
+        _nameLength = nameLength,
+        _nameOffset = nameOffset,
         _units = units,
         _uriStr = uriStr;
 
@@ -17978,14 +18087,21 @@ class LinkedNodeLibraryBuilder extends Object
         signature.addInt(x);
       }
     }
+    signature.addString(this._name ?? '');
+    signature.addInt(this._nameOffset ?? 0);
+    signature.addInt(this._nameLength ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_exports;
+    fb.Offset offset_name;
     fb.Offset offset_units;
     fb.Offset offset_uriStr;
     if (!(_exports == null || _exports.isEmpty)) {
       offset_exports = fbBuilder.writeListUint32(_exports);
+    }
+    if (_name != null) {
+      offset_name = fbBuilder.writeString(_name);
     }
     if (!(_units == null || _units.isEmpty)) {
       offset_units =
@@ -17997,6 +18113,15 @@ class LinkedNodeLibraryBuilder extends Object
     fbBuilder.startTable();
     if (offset_exports != null) {
       fbBuilder.addOffset(2, offset_exports);
+    }
+    if (offset_name != null) {
+      fbBuilder.addOffset(3, offset_name);
+    }
+    if (_nameLength != null && _nameLength != 0) {
+      fbBuilder.addUint32(5, _nameLength);
+    }
+    if (_nameOffset != null && _nameOffset != 0) {
+      fbBuilder.addUint32(4, _nameOffset);
     }
     if (offset_units != null) {
       fbBuilder.addOffset(1, offset_units);
@@ -18025,6 +18150,9 @@ class _LinkedNodeLibraryImpl extends Object
   _LinkedNodeLibraryImpl(this._bc, this._bcOffset);
 
   List<int> _exports;
+  String _name;
+  int _nameLength;
+  int _nameOffset;
   List<idl.LinkedNodeUnit> _units;
   String _uriStr;
 
@@ -18033,6 +18161,24 @@ class _LinkedNodeLibraryImpl extends Object
     _exports ??=
         const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _exports;
+  }
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
+    return _name;
+  }
+
+  @override
+  int get nameLength {
+    _nameLength ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
+    return _nameLength;
+  }
+
+  @override
+  int get nameOffset {
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 4, 0);
+    return _nameOffset;
   }
 
   @override
@@ -18055,6 +18201,9 @@ abstract class _LinkedNodeLibraryMixin implements idl.LinkedNodeLibrary {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (exports.isNotEmpty) _result["exports"] = exports;
+    if (name != '') _result["name"] = name;
+    if (nameLength != 0) _result["nameLength"] = nameLength;
+    if (nameOffset != 0) _result["nameOffset"] = nameOffset;
     if (units.isNotEmpty)
       _result["units"] = units.map((_value) => _value.toJson()).toList();
     if (uriStr != '') _result["uriStr"] = uriStr;
@@ -18064,6 +18213,9 @@ abstract class _LinkedNodeLibraryMixin implements idl.LinkedNodeLibrary {
   @override
   Map<String, Object> toMap() => {
         "exports": exports,
+        "name": name,
+        "nameLength": nameLength,
+        "nameOffset": nameOffset,
         "units": units,
         "uriStr": uriStr,
       };

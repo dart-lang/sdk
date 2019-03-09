@@ -24,7 +24,7 @@ class ApplyCheckElementTextReplacements {
 
 @reflectiveTest
 class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
-    with ResynthesizeTestCases, ResynthesizeTestHelpers {
+    with ResynthesizeTestCases, GetElementTestCases, ResynthesizeTestHelpers {
   @failingTest // See dartbug.com/32290
   test_const_constructor_inferred_args() =>
       super.test_const_constructor_inferred_args();

@@ -35,6 +35,10 @@ class LinkedBundleContext {
         element,
         linkedType.interfaceTypeArguments.map(getType).toList(),
       );
+    } else if (kind == LinkedNodeTypeKind.typeParameter) {
+      var reference = referenceOfIndex(linkedType.typeParameterParameter);
+      Element element = elementFactory.elementOfReference(reference);
+      return TypeParameterTypeImpl(element);
     } else if (kind == LinkedNodeTypeKind.void_) {
       return VoidTypeImpl.instance;
     } else {

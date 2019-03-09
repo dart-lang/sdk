@@ -419,10 +419,17 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
   AnalysisOptionsForLink(this._linker);
 
   @override
+  ExperimentStatus get experimentStatus => new ExperimentStatus();
+
+  @override
   bool get hint => false;
 
   @override
   bool get implicitCasts => true;
+
+  @deprecated
+  @override
+  bool get previewDart2 => true;
 
   @override
   bool get strictInference => false;
@@ -430,18 +437,11 @@ class AnalysisOptionsForLink implements AnalysisOptionsImpl {
   @override
   bool get strictRawTypes => false;
 
-  @deprecated
-  @override
-  bool get previewDart2 => true;
-
   @override
   bool get strongMode => true;
 
   @override
   bool get strongModeHints => false;
-
-  @override
-  ExperimentStatus get experimentStatus => new ExperimentStatus();
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -496,6 +496,9 @@ abstract class ClassElementForLink
 
   @override
   Source get librarySource => library.source;
+
+  @override
+  get linkedNode => null;
 
   @override
   List<MethodElementForLink> get methods;
@@ -2344,6 +2347,9 @@ abstract class ExecutableElementForLink
   LibraryElement get library => enclosingElement.library;
 
   @override
+  get linkedNode => null;
+
+  @override
   String get name {
     if (_name == null) {
       _name = serializedExecutable.name;
@@ -2854,6 +2860,9 @@ class FunctionElementForLink_Initializer
   bool get isAsynchronous => serializedExecutable.isAsynchronous;
 
   @override
+  get linkedNode => null;
+
+  @override
   DartType get returnType {
     // If this is a variable whose type needs inferring, infer it.
     if (_variable.hasImplicitType) {
@@ -3169,6 +3178,9 @@ class FunctionTypeAliasElementForLink
   LibraryElementForLink get library => enclosingElement.library;
 
   @override
+  get linkedNode => null;
+
+  @override
   String get name => _unlinkedTypedef.name;
 
   @override
@@ -3287,6 +3299,9 @@ class GenericFunctionTypeElementForLink
   LibraryElementForLink get library => enclosingElement.library;
 
   @override
+  get linkedNode => null;
+
+  @override
   String get name => '-';
 
   @override
@@ -3368,6 +3383,9 @@ class GenericTypeAliasElementForLink
 
   @override
   LibraryElementForLink get library => enclosingElement.library;
+
+  @override
+  get linkedNode => null;
 
   @override
   String get name => _unlinkedTypedef.name;
