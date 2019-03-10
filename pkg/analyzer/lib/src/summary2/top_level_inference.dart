@@ -139,7 +139,7 @@ class TopLevelInference {
     var reader = AstBinaryReader(
       unit.context.bundleContext.elementFactory.rootReference,
       unit.context.bundleContext.referencesData,
-      unit.context.tokens,
+      unit.context.tokensContext,
     );
 
     // TODO(scheglov) This duplicates `readInitializer` in LinkedUnitContext

@@ -41,53 +41,61 @@ class ReferenceResolver {
   }
 
   void _classDeclaration(LinkedNodeBuilder node) {
-    _node(node.classOrMixinDeclaration_typeParameters);
+    var name = unit.context.getUnitMemberName(node);
+    reference = reference.getChild('@class').getChild(name);
 
-    var extendsClause = node.classDeclaration_extendsClause;
-    if (extendsClause != null) {
-      _typeName(extendsClause.extendsClause_superclass);
-    } else {
-      // TODO(scheglov) add synthetic
-    }
-
-    _nodeList(
-      node.classDeclaration_withClause?.withClause_mixinTypes,
-    );
-
-    _nodeList(
-      node.classOrMixinDeclaration_implementsClause
-          ?.implementsClause_interfaces,
-    );
-
-    for (var field in node.classOrMixinDeclaration_members) {
-      if (field.kind != LinkedNodeKind.constructorDeclaration) {
-        _node(field);
+    var typeParameters = node.classOrMixinDeclaration_typeParameters;
+    _withTypeParameters(typeParameters, () {
+      var extendsClause = node.classDeclaration_extendsClause;
+      if (extendsClause != null) {
+        _typeName(extendsClause.extendsClause_superclass);
       }
-    }
-    for (var field in node.classOrMixinDeclaration_members) {
-      if (field.kind == LinkedNodeKind.constructorDeclaration) {
-        _node(field);
+
+      _nodeList(
+        node.classDeclaration_withClause?.withClause_mixinTypes,
+      );
+
+      _nodeList(
+        node.classOrMixinDeclaration_implementsClause
+            ?.implementsClause_interfaces,
+      );
+
+      for (var field in node.classOrMixinDeclaration_members) {
+        if (field.kind != LinkedNodeKind.constructorDeclaration) {
+          _node(field);
+        }
       }
-    }
+      for (var field in node.classOrMixinDeclaration_members) {
+        if (field.kind == LinkedNodeKind.constructorDeclaration) {
+          _node(field);
+        }
+      }
+    });
+
+    reference = reference.parent.parent;
   }
 
   void _classTypeAlias(LinkedNodeBuilder node) {
-    _node(node.classTypeAlias_typeParameters);
+    var name = unit.context.getUnitMemberName(node);
+    reference = reference.getChild('@class').getChild(name);
 
-    var superclass = node.classTypeAlias_superclass;
-    if (superclass != null) {
-      _typeName(superclass);
-    } else {
-      // TODO(scheglov) add synthetic
-    }
+    var typeParameters = node.classTypeAlias_typeParameters;
+    _withTypeParameters(typeParameters, () {
+      var superclass = node.classTypeAlias_superclass;
+      if (superclass != null) {
+        _typeName(superclass);
+      }
 
-    _nodeList(
-      node.classTypeAlias_withClause?.withClause_mixinTypes,
-    );
+      _nodeList(
+        node.classTypeAlias_withClause?.withClause_mixinTypes,
+      );
 
-    _nodeList(
-      node.classTypeAlias_implementsClause?.implementsClause_interfaces,
-    );
+      _nodeList(
+        node.classTypeAlias_implementsClause?.implementsClause_interfaces,
+      );
+    });
+
+    reference = reference.parent.parent;
   }
 
   void _compilationUnit(LinkedNodeBuilder node) {
@@ -124,48 +132,46 @@ class ReferenceResolver {
   }
 
   void _functionDeclaration(LinkedNodeBuilder node) {
-    var returnType = node.functionDeclaration_returnType;
-    if (returnType != null) {
-      _node(returnType);
-      node.functionDeclaration_returnType2 = _getTypeAnnotationType(returnType);
-    } else {
-      node.functionDeclaration_returnType2 = _dynamicType;
-    }
+    var function = node.functionDeclaration_functionExpression;
+    var typeParameters = function.functionExpression_typeParameters;
+    _withTypeParameters(typeParameters, () {
+      var returnType = node.functionDeclaration_returnType;
+      if (returnType != null) {
+        _node(returnType);
+        node.functionDeclaration_returnType2 =
+            _getTypeAnnotationType(returnType);
+      } else {
+        node.functionDeclaration_returnType2 = _dynamicType;
+      }
 
-    _node(node.functionDeclaration_functionExpression);
+      _node(function.functionExpression_formalParameters);
+    });
   }
 
   void _functionExpression(LinkedNodeBuilder node) {
-    _node(node.functionExpression_typeParameters);
-    _node(node.functionExpression_formalParameters);
+    var typeParameters = node.functionExpression_typeParameters;
+    _withTypeParameters(typeParameters, () {
+      _node(node.functionExpression_formalParameters);
+    });
   }
 
   void _functionTypeAlias(LinkedNodeBuilder node) {
-    var name = unit.context.getSimpleName(
-      node.namedCompilationUnitMember_name,
-    );
+    var name = unit.context.getUnitMemberName(node);
     reference = reference.getChild('@typeAlias').getChild(name);
 
     var typeParameters = node.functionTypeAlias_typeParameters;
-    if (typeParameters != null) {
-      _newScopeTypeParameters(typeParameters);
-    }
+    _withTypeParameters(typeParameters, () {
+      var returnType = node.functionTypeAlias_returnType;
+      if (returnType != null) {
+        _node(returnType);
+        node.functionTypeAlias_returnType2 = _getTypeAnnotationType(returnType);
+      } else {
+        node.functionTypeAlias_returnType2 = _dynamicType;
+      }
 
-    _node(typeParameters);
+      _node(node.functionTypeAlias_formalParameters);
+    });
 
-    var returnType = node.functionTypeAlias_returnType;
-    if (returnType != null) {
-      _node(returnType);
-      node.functionTypeAlias_returnType2 = _getTypeAnnotationType(returnType);
-    } else {
-      node.functionTypeAlias_returnType2 = _dynamicType;
-    }
-
-    _node(node.functionTypeAlias_formalParameters);
-
-    if (typeParameters != null) {
-      scope = scope.parent;
-    }
     reference = reference.parent.parent;
   }
 
@@ -176,25 +182,19 @@ class ReferenceResolver {
     reference = reference.getChild(name);
 
     var typeParameters = node.genericFunctionType_typeParameters;
-    if (typeParameters != null) {
-      _newScopeTypeParameters(typeParameters);
-    }
+    _withTypeParameters(typeParameters, () {
+      var returnType = node.genericFunctionType_returnType;
+      if (returnType != null) {
+        _node(returnType);
+        node.genericFunctionType_returnType2 =
+            _getTypeAnnotationType(returnType);
+      } else {
+        node.genericFunctionType_returnType2 = _dynamicType;
+      }
 
-    _node(typeParameters);
+      _node(node.genericFunctionType_formalParameters);
+    });
 
-    var returnType = node.genericFunctionType_returnType;
-    if (returnType != null) {
-      _node(returnType);
-      node.genericFunctionType_returnType2 = _getTypeAnnotationType(returnType);
-    } else {
-      node.genericFunctionType_returnType2 = _dynamicType;
-    }
-
-    _node(node.genericFunctionType_formalParameters);
-
-    if (typeParameters != null) {
-      scope = scope.parent;
-    }
     reference = reference.parent.parent;
   }
 
@@ -205,18 +205,10 @@ class ReferenceResolver {
     reference = reference.getChild('@typeAlias').getChild(name);
 
     var typeParameters = node.genericTypeAlias_typeParameters;
-    if (typeParameters != null) {
-      _newScopeTypeParameters(typeParameters);
-    }
+    _withTypeParameters(typeParameters, () {
+      _node(node.genericTypeAlias_functionType);
+    });
 
-    var function = node.genericTypeAlias_functionType;
-
-    _node(typeParameters);
-    _node(function);
-
-    if (typeParameters != null) {
-      scope = scope.parent;
-    }
     reference = reference.parent.parent;
   }
 
@@ -232,28 +224,21 @@ class ReferenceResolver {
   void _libraryDirective(LinkedNodeBuilder node) {}
 
   void _methodDeclaration(LinkedNodeBuilder node) {
-    _node(node.methodDeclaration_typeParameters);
+    var name = unit.context.getMethodName(node);
+    reference = reference.getChild('@method').getChild(name);
 
-    var returnType = node.methodDeclaration_returnType;
-    if (returnType != null) {
-      _node(returnType);
-      node.methodDeclaration_returnType2 = _getTypeAnnotationType(returnType);
-    }
+    var typeParameters = node.methodDeclaration_typeParameters;
+    _withTypeParameters(typeParameters, () {
+      var returnType = node.methodDeclaration_returnType;
+      if (returnType != null) {
+        _node(returnType);
+        node.methodDeclaration_returnType2 = _getTypeAnnotationType(returnType);
+      }
 
-    _node(node.methodDeclaration_formalParameters);
-  }
+      _node(node.methodDeclaration_formalParameters);
+    });
 
-  void _newScopeTypeParameters(LinkedNode typeParameterList) {
-    scope = Scope(this.scope, {});
-
-    var containerRef = this.reference.getChild('@typeParameter');
-    var typeParameters = typeParameterList.typeParameterList_typeParameters;
-    for (var typeParameter in typeParameters) {
-      var name = unit.context.getSimpleName(typeParameter.typeParameter_name);
-      var reference = containerRef.getChild(name);
-      reference.node = typeParameter;
-      scope.declare(name, Declaration(name, reference));
-    }
+    reference = reference.parent.parent;
   }
 
   void _node(LinkedNodeBuilder node) {
@@ -416,6 +401,32 @@ class ReferenceResolver {
       for (var field in node.variableDeclarationList_variables) {
         field.variableDeclaration_type2 = _getTypeAnnotationType(typeNode);
       }
+    }
+  }
+
+  /// Enter the type parameters scope, visit them, and run [f].
+  void _withTypeParameters(LinkedNode typeParameterList, void f()) {
+    if (typeParameterList == null) {
+      f();
+      return;
+    }
+
+    scope = Scope(this.scope, {});
+
+    var containerRef = this.reference.getChild('@typeParameter');
+    var typeParameters = typeParameterList.typeParameterList_typeParameters;
+    for (var typeParameter in typeParameters) {
+      var name = unit.context.getSimpleName(typeParameter.typeParameter_name);
+      var reference = containerRef.getChild(name);
+      reference.node = typeParameter;
+      scope.declare(name, Declaration(name, reference));
+    }
+
+    _node(typeParameterList);
+    f();
+
+    if (typeParameterList != null) {
+      scope = scope.parent;
     }
   }
 }

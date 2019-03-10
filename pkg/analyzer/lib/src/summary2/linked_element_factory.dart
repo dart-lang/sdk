@@ -10,6 +10,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/tokens_context.dart';
 
 class LinkedElementFactory {
   final AnalysisContext analysisContext;
@@ -106,9 +107,10 @@ class _ElementRequest {
     var unitContainerRef = reference.getChild('@unit');
     for (var unitData in node.units) {
       var unitSource = sourceFactory.forUri(unitData.uriStr);
+      var tokensContext = TokensContext(unitData.tokens);
       var unitElement = CompilationUnitElementImpl.forLinkedNode(
         libraryElement,
-        LinkedUnitContext(libraryData.context, unitData.tokens),
+        LinkedUnitContext(libraryData.context, tokensContext),
         unitContainerRef.getChild(unitData.uriStr),
         unitData.node,
       );

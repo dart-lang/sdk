@@ -14,6 +14,7 @@ import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/scope.dart';
+import 'package:analyzer/src/summary2/tokens_writer.dart';
 import 'package:analyzer/src/summary2/top_level_inference.dart';
 
 class SourceLibraryBuilder {
@@ -221,10 +222,19 @@ class SourceLibraryBuilder {
       var unit = libraryUnits[unitSource];
       definingUnit ??= unit;
 
-      var writer = AstBinaryWriter();
+      var tokensResult = TokensWriter().writeTokens(
+        unit.beginToken,
+        unit.endToken,
+      );
+      var tokensContext = tokensResult.toContext();
+
+      var writer = AstBinaryWriter(tokensContext);
       var unitNode = writer.writeNode(unit);
 
-      var unitContext = LinkedUnitContext(linker.bundleContext, writer.tokens);
+      var unitContext = LinkedUnitContext(
+        linker.bundleContext,
+        tokensContext,
+      );
       builder.units.add(
         UnitBuilder(unitSource.uri, unitContext, unitNode),
       );
@@ -232,7 +242,7 @@ class SourceLibraryBuilder {
       libraryNode.units.add(
         LinkedNodeUnitBuilder(
           uriStr: '${unitSource.uri}',
-          tokens: writer.tokens,
+          tokens: tokensResult.tokens,
           node: unitNode,
         ),
       );

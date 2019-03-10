@@ -8,13 +8,14 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/tokens_context.dart';
 
 /// The context of a unit - the context of the bundle, and the unit tokens.
 class LinkedUnitContext {
   final LinkedBundleContext bundleContext;
-  final UnlinkedTokens tokens;
+  final TokensContext tokensContext;
 
-  LinkedUnitContext(this.bundleContext, this.tokens);
+  LinkedUnitContext(this.bundleContext, this.tokensContext);
 
   Iterable<LinkedNode> classFields(LinkedNode class_) sync* {
     for (var declaration in class_.classOrMixinDeclaration_members) {
@@ -98,11 +99,11 @@ class LinkedUnitContext {
   }
 
   int getSimpleOffset(LinkedNode node) {
-    return tokens.offset[node.simpleIdentifier_token];
+    return tokensContext.offset(node.simpleIdentifier_token);
   }
 
   String getTokenLexeme(int token) {
-    return tokens.lexeme[token];
+    return tokensContext.lexeme(token);
   }
 
   DartType getType(LinkedNodeType linkedType) {
@@ -173,7 +174,7 @@ class LinkedUnitContext {
   }
 
   bool isConstKeyword(int token) {
-    return tokens.type[token] == UnlinkedTokenType.CONST;
+    return tokensContext.type(token) == UnlinkedTokenType.CONST;
   }
 
   bool isConstVariableList(LinkedNode node) {
@@ -202,7 +203,7 @@ class LinkedUnitContext {
   }
 
   bool isFinalKeyword(int token) {
-    return tokens.type[token] == UnlinkedTokenType.FINAL;
+    return tokensContext.type(token) == UnlinkedTokenType.FINAL;
   }
 
   bool isFinalVariableList(LinkedNode node) {
@@ -236,7 +237,7 @@ class LinkedUnitContext {
   }
 
   bool isLibraryKeyword(int token) {
-    return tokens.type[token] == UnlinkedTokenType.LIBRARY;
+    return tokensContext.type(token) == UnlinkedTokenType.LIBRARY;
   }
 
   bool isMethod(LinkedNode node) {
@@ -305,7 +306,7 @@ class LinkedUnitContext {
     var reader = AstBinaryReader(
       bundleContext.elementFactory.rootReference,
       bundleContext.referencesData,
-      tokens,
+      tokensContext,
     );
     return reader.readNode(linkedNode.variableDeclaration_initializer);
   }
@@ -336,10 +337,10 @@ class LinkedUnitContext {
   }
 
   bool _isGetToken(int token) {
-    return tokens.type[token] == UnlinkedTokenType.GET;
+    return tokensContext.type(token) == UnlinkedTokenType.GET;
   }
 
   bool _isSetToken(int token) {
-    return tokens.type[token] == UnlinkedTokenType.SET;
+    return tokensContext.type(token) == UnlinkedTokenType.SET;
   }
 }

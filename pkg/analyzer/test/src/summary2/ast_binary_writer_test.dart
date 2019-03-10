@@ -7,6 +7,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/tokens_writer.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -122,7 +123,13 @@ var a = [1, 2, 3];
     var originalUnit = parseResult.unit;
     var originalCode = originalUnit.toSource();
 
-    var writer = new AstBinaryWriter();
+    var tokensResult = TokensWriter().writeTokens(
+      originalUnit.beginToken,
+      originalUnit.endToken,
+    );
+    var tokensContext = tokensResult.toContext();
+
+    var writer = new AstBinaryWriter(tokensContext);
     var builder = writer.writeNode(originalUnit);
     writer.writeReferences();
 

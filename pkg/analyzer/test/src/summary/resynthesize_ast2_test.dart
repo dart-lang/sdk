@@ -1272,12 +1272,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_generic_gClass_gMethodStatic() async {
-    await super.test_generic_gClass_gMethodStatic();
-  }
-
-  @override
-  @failingTest
   test_genericFunction_asFunctionReturnType() async {
     await super.test_genericFunction_asFunctionReturnType();
   }
@@ -1418,13 +1412,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_inference_map() async {
     await super.test_inference_map();
-  }
-
-  @override
-  @failingTest
-  test_inferred_function_type_in_generic_class_in_generic_method() async {
-    await super
-        .test_inferred_function_type_in_generic_class_in_generic_method();
   }
 
   @override
@@ -1914,18 +1901,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_method_type_parameter() async {
-    await super.test_method_type_parameter();
-  }
-
-  @override
-  @failingTest
-  test_method_type_parameter_in_generic_class() async {
-    await super.test_method_type_parameter_in_generic_class();
-  }
-
-  @override
-  @failingTest
   test_method_type_parameter_with_function_typed_parameter() async {
     await super.test_method_type_parameter_with_function_typed_parameter();
   }
@@ -1972,20 +1947,6 @@ abstract class num implements Comparable<num> {}
     // TODO(scheglov) unexpectedly passes on Windows
     fail('unexpectedly passes on Windows');
 //    await super.test_nameConflict_importWithRelativeUri_exportWithAbsolute();
-  }
-
-  @override
-  @failingTest
-  test_nested_generic_functions_in_generic_class_with_function_typed_params() async {
-    await super
-        .test_nested_generic_functions_in_generic_class_with_function_typed_params();
-  }
-
-  @override
-  @failingTest
-  test_nested_generic_functions_in_generic_class_with_local_variables() async {
-    await super
-        .test_nested_generic_functions_in_generic_class_with_local_variables();
   }
 
   @override
