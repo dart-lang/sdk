@@ -232,9 +232,9 @@ void testKeyOrder() {
 
 void testRuntimeFailures() {
   dynamic nonBool = 3;
-  Expect.throwsCastError(() => <int>[if (nonBool) 1]);
-  Expect.throwsCastError(() => <int, int>{if (nonBool) 1: 1});
-  Expect.throwsCastError(() => <int>{if (nonBool) 1});
+  Expect.throwsTypeError(() => <int>[if (nonBool) 1]);
+  Expect.throwsTypeError(() => <int, int>{if (nonBool) 1: 1});
+  Expect.throwsTypeError(() => <int>{if (nonBool) 1});
 
   bool nullBool = null;
   Expect.throwsAssertionError(() => <int>[if (nullBool) 1]);

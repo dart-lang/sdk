@@ -200,24 +200,24 @@ void testKeyOrder() {
 
 void testCastFailures() {
   dynamic nonIterable = 3;
-  Expect.throwsCastError(() => <int>[...nonIterable]);
-  Expect.throwsCastError(() => <int>{...nonIterable});
+  Expect.throwsTypeError(() => <int>[...nonIterable]);
+  Expect.throwsTypeError(() => <int>{...nonIterable});
 
   dynamic nonMap = 3;
-  Expect.throwsCastError(() => <int, int>{...nonMap});
+  Expect.throwsTypeError(() => <int, int>{...nonMap});
 
   dynamic wrongIterableType = <String>["s"];
-  Expect.throwsCastError(() => <int>[...wrongIterableType]);
-  Expect.throwsCastError(() => <int>{...wrongIterableType});
+  Expect.throwsTypeError(() => <int>[...wrongIterableType]);
+  Expect.throwsTypeError(() => <int>{...wrongIterableType});
 
   dynamic wrongKeyType = <String, int>{"s": 1};
   dynamic wrongValueType = <int, String>{1: "s"};
-  Expect.throwsCastError(() => <int, int>{...wrongKeyType});
-  Expect.throwsCastError(() => <int, int>{...wrongValueType});
+  Expect.throwsTypeError(() => <int, int>{...wrongKeyType});
+  Expect.throwsTypeError(() => <int, int>{...wrongValueType});
 
   // Mismatched collection types.
-  Expect.throwsCastError(() => <int>[...map]);
-  Expect.throwsCastError(() => <int, int>{...list});
-  Expect.throwsCastError(() => <int, int>{...set});
-  Expect.throwsCastError(() => <int>{...map});
+  Expect.throwsTypeError(() => <int>[...map]);
+  Expect.throwsTypeError(() => <int, int>{...list});
+  Expect.throwsTypeError(() => <int, int>{...set});
+  Expect.throwsTypeError(() => <int>{...map});
 }
