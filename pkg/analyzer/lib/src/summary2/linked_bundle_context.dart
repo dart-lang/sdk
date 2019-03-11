@@ -21,7 +21,9 @@ class LinkedBundleContext {
 
   InterfaceType getInterfaceType(LinkedNodeType linkedType) {
     var type = getType(linkedType);
-    if (type is InterfaceType) return type;
+    if (type is InterfaceType && !type.element.isEnum) {
+      return type;
+    }
     return null;
   }
 

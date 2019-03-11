@@ -48,6 +48,8 @@ class Reference {
 
   bool get isClass => parent != null && parent.name == '@class';
 
+  bool get isEnum => parent != null && parent.name == '@enum';
+
   bool get isGenericTypeAlias => parent != null && parent.name == '@typeAlias';
 
   bool get isTypeParameter => parent != null && parent.name == '@typeParameter';

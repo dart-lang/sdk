@@ -32,6 +32,8 @@ class MetadataResolver {
       }
       if (kind == LinkedNodeKind.classDeclaration) {
         _class(unit, unitDeclaration);
+      } else if (kind == LinkedNodeKind.enumDeclaration) {
+        _enumDeclaration(unit, unitDeclaration);
       } else if (kind == LinkedNodeKind.topLevelVariableDeclaration) {
         _variables(
           unit,
@@ -61,6 +63,15 @@ class MetadataResolver {
           classMember,
           classMember.fieldDeclaration_fields,
         );
+      }
+    }
+  }
+
+  void _enumDeclaration(UnitBuilder unit, LinkedNodeBuilder node) {
+    for (var constant in node.enumDeclaration_constants) {
+      var kind = constant.kind;
+      if (kind == LinkedNodeKind.enumConstantDeclaration) {
+        _annotatedNode(unit, constant);
       }
     }
   }
@@ -98,6 +109,7 @@ class MetadataResolver {
     return kind == LinkedNodeKind.classDeclaration ||
         kind == LinkedNodeKind.classTypeAlias ||
         kind == LinkedNodeKind.constructorDeclaration ||
+        kind == LinkedNodeKind.enumDeclaration ||
         kind == LinkedNodeKind.functionDeclaration ||
         kind == LinkedNodeKind.functionTypeAlias ||
         kind == LinkedNodeKind.methodDeclaration;

@@ -58,7 +58,7 @@ class LinkingBundleContext {
         kind: LinkedNodeTypeKind.function,
         functionFormalParameters: _getReferences(type.parameters),
         functionReturnType: writeType(type.returnType),
-        functionTypeParameters: _getReferences(type.parameters),
+        functionTypeParameters: _getReferences(type.typeParameters),
       );
     } else if (type is InterfaceType) {
       return LinkedNodeTypeBuilder(

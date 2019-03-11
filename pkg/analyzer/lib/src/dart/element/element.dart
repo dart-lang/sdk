@@ -1707,6 +1707,19 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get enums {
+    if (linkedNode != null) {
+      if (_enums != null) return _enums;
+      var context = enclosingUnit.linkedContext;
+      var containerRef = reference.getChild('@enum');
+      _enums = linkedNode.compilationUnit_declarations
+          .where((node) => node.kind == LinkedNodeKind.enumDeclaration)
+          .map((node) {
+        var name = context.getUnitMemberName(node);
+        var reference = containerRef.getChild(name);
+        reference.node = node;
+        return EnumElementImpl.forLinkedNode(this, reference, node);
+      }).toList();
+    }
     if (_unlinkedUnit != null) {
       _enums ??= _unlinkedUnit.enums
           .map((e) => new EnumElementImpl.forSerialized(e, this))
@@ -2188,8 +2201,21 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
       EnumElementImpl enumElement, this._unlinkedEnumValue, this._index)
       : super(enumElement);
 
+  ConstFieldElementImpl_EnumValue.forLinkedNode(EnumElementImpl enumElement,
+      Reference reference, LinkedNode linkedNode, this._index)
+      : _unlinkedEnumValue = null,
+        super.forLinkedNode(enumElement, reference, linkedNode);
+
+  @override
+  Expression get constantInitializer => null;
+
   @override
   String get documentationComment {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.getCommentText(
+        linkedNode.annotatedNode_comment,
+      );
+    }
     if (_unlinkedEnumValue != null) {
       return _unlinkedEnumValue.documentationComment?.text;
     }
@@ -2221,6 +2247,9 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
 
   @override
   String get name {
+    if (linkedNode != null) {
+      return reference.name;
+    }
     if (_unlinkedEnumValue != null) {
       return _unlinkedEnumValue.name;
     }
@@ -2229,9 +2258,16 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
 
   @override
   int get nameOffset {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.getSimpleOffset(
+        linkedNode.enumConstantDeclaration_name,
+      );
+    }
     int offset = super.nameOffset;
-    if (offset == -1 && _unlinkedEnumValue != null) {
-      return _unlinkedEnumValue.nameOffset;
+    if (offset == -1) {
+      if (_unlinkedEnumValue != null) {
+        return _unlinkedEnumValue.nameOffset;
+      }
     }
     return offset;
   }
@@ -2282,6 +2318,10 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
   ConstFieldElementImpl_ofEnum(this._enum) : super(null, -1) {
     enclosingElement = _enum;
   }
+
+  ConstFieldElementImpl_ofEnum.forLinkedNode(
+      this._enum, Reference reference, LinkedNode linkedNode)
+      : super.forLinkedNode(_enum, reference, linkedNode);
 
   @override
   void set evaluationResult(_) {
@@ -3062,7 +3102,7 @@ abstract class ElementImpl implements Element {
   /// root of the element structure.
   ElementImpl _enclosingElement;
 
-  final Reference reference;
+  Reference reference;
   final LinkedNode linkedNode;
 
   /// The name of this element.
@@ -3105,7 +3145,7 @@ abstract class ElementImpl implements Element {
   /// Initialize from linked node.
   ElementImpl.forLinkedNode(
       this._enclosingElement, this.reference, this.linkedNode) {
-    reference.element = this;
+    reference?.element = this;
   }
 
   /// Initialize a newly created element to have the given [name].
@@ -3816,6 +3856,11 @@ class EnumElementImpl extends AbstractClassElementImpl {
       : _unlinkedEnum = null,
         super(name, offset);
 
+  EnumElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
+      Reference reference, LinkedNode linkedNode)
+      : _unlinkedEnum = null,
+        super.forLinkedNode(enclosing, reference, linkedNode);
+
   /// Initialize a newly created class element to have the given [name].
   EnumElementImpl.forNode(Identifier name)
       : _unlinkedEnum = null,
@@ -3834,6 +3879,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
+      if (linkedNode != null) {
+        _resynthesizeMembers2();
+      }
       if (_unlinkedEnum != null) {
         _resynthesizeMembers();
       }
@@ -3877,6 +3925,11 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   String get documentationComment {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.getCommentText(
+        linkedNode.annotatedNode_comment,
+      );
+    }
     if (_unlinkedEnum != null) {
       return _unlinkedEnum.documentationComment?.text;
     }
@@ -3886,6 +3939,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   List<FieldElement> get fields {
     if (_fields == null) {
+      if (linkedNode != null) {
+        _resynthesizeMembers2();
+      }
       if (_unlinkedEnum != null) {
         _resynthesizeMembers();
       }
@@ -3944,6 +4000,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   List<MethodElement> get methods {
     if (_methods == null) {
+      if (linkedNode != null) {
+        _resynthesizeMembers2();
+      }
       if (_unlinkedEnum != null) {
         _resynthesizeMembers();
       }
@@ -3956,6 +4015,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   String get name {
+    if (linkedNode != null) {
+      return reference.name;
+    }
     if (_unlinkedEnum != null) {
       return _unlinkedEnum.name;
     }
@@ -4006,11 +4068,14 @@ class EnumElementImpl extends AbstractClassElementImpl {
   void createToStringMethodElement() {
     var method = new MethodElementImpl('toString', -1);
     method.isSynthetic = true;
-    if (_unlinkedEnum != null) {
+    if (linkedNode != null || _unlinkedEnum != null) {
       method.returnType = context.typeProvider.stringType;
       method.type = new FunctionTypeImpl(method);
     }
     method.enclosingElement = this;
+    if (linkedNode != null) {
+      method.reference = reference.getChild('@method').getChild('toString');
+    }
     _methods = <MethodElement>[method];
   }
 
@@ -4043,6 +4108,51 @@ class EnumElementImpl extends AbstractClassElementImpl {
             new PropertyAccessorElementImpl_ImplicitGetter(field)
               ..enclosingElement = this)
         .toList(growable: false);
+    createToStringMethodElement();
+  }
+
+  void _resynthesizeMembers2() {
+    var fields = <FieldElementImpl>[];
+    var getters = <PropertyAccessorElementImpl>[];
+
+    // Build the 'index' field.
+    {
+      var field = FieldElementImpl('index', -1)
+        ..enclosingElement = this
+        ..isSynthetic = true
+        ..isFinal = true
+        ..type = context.typeProvider.intType;
+      fields.add(field);
+      getters.add(PropertyAccessorElementImpl_ImplicitGetter(field,
+          reference: reference.getChild('@getter').getChild('index'))
+        ..enclosingElement = this);
+    }
+
+    // Build the 'values' field.
+    {
+      var field = ConstFieldElementImpl_EnumValues(this);
+      fields.add(field);
+      getters.add(PropertyAccessorElementImpl_ImplicitGetter(field,
+          reference: reference.getChild('@getter').getChild('values'))
+        ..enclosingElement = this);
+    }
+
+    // Build fields for all enum constants.
+    var constants = linkedNode.enumDeclaration_constants;
+    for (var i = 0; i < constants.length; ++i) {
+      var constant = constants[i];
+      var name = enclosingUnit.linkedContext.getSimpleName(
+        constant.enumConstantDeclaration_name,
+      );
+      var reference = this.reference.getChild('@constant').getChild(name);
+      var field = new ConstFieldElementImpl_EnumValue.forLinkedNode(
+          this, reference, constant, i);
+      fields.add(field);
+      getters.add(field.getter);
+    }
+
+    _fields = fields;
+    _accessors = getters;
     createToStringMethodElement();
   }
 }
@@ -5527,6 +5637,12 @@ class ImportElementImpl extends UriReferencedElementImpl
         _linkedDependency = null,
         super(null, offset);
 
+  ImportElementImpl.forLinkedNode(
+      LibraryElementImpl enclosing, LinkedNode linkedNode)
+      : _unlinkedImport = null,
+        _linkedDependency = null,
+        super.forLinkedNode(enclosing, null, linkedNode);
+
   /// Initialize using the given serialized information.
   ImportElementImpl.forSerialized(this._unlinkedImport, this._linkedDependency,
       LibraryElementImpl enclosingLibrary)
@@ -5554,10 +5670,28 @@ class ImportElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  CompilationUnitElementImpl get enclosingUnit {
+    LibraryElementImpl enclosingLibrary = enclosingElement;
+    return enclosingLibrary._definingCompilationUnit;
+  }
+
+  @override
   String get identifier => "${importedLibrary.identifier}@$nameOffset";
 
   @override
   LibraryElement get importedLibrary {
+    if (_importedLibrary != null) return _importedLibrary;
+
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      var relativeUriStr = context.getStringContent(
+        linkedNode.uriBasedDirective_uri,
+      );
+      var relativeUri = Uri.parse(relativeUriStr);
+      var uri = resolveRelativeUri(librarySource.uri, relativeUri);
+      var elementFactory = context.bundleContext.elementFactory;
+      return _importedLibrary = elementFactory.libraryOfUri('$uri');
+    }
     if (_linkedDependency != null) {
       if (_importedLibrary == null) {
         LibraryElementImpl library = enclosingElement as LibraryElementImpl;
@@ -5598,6 +5732,11 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
+    if (linkedNode != null) {
+      if (_metadata != null) return _metadata;
+      var metadata = enclosingUnit.linkedContext.getMetadataOrEmpty(linkedNode);
+      return _metadata = _buildAnnotations2(enclosingUnit, metadata);
+    }
     if (_metadata == null) {
       if (_unlinkedImport != null) {
         return _metadata = _buildAnnotations(
@@ -5805,6 +5944,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   final UnlinkedUnit unlinkedDefiningUnit;
 
+  /// The context of the defining unit.
+  final LinkedUnitContext linkedContext;
+
   /// The compilation unit that defines this library.
   CompilationUnitElement _definingCompilationUnit;
 
@@ -5859,7 +6001,24 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       this.context, this.session, String name, int offset, this.nameLength)
       : resynthesizerContext = null,
         unlinkedDefiningUnit = null,
+        linkedContext = null,
         super(name, offset);
+
+  LibraryElementImpl.forLinkedNode(
+      this.context,
+      this.session,
+      String name,
+      int offset,
+      this.nameLength,
+      this.linkedContext,
+      Reference reference,
+      LinkedNode linkedNode)
+      : resynthesizerContext = null,
+        unlinkedDefiningUnit = null,
+        super.forLinkedNode(null, reference, linkedNode) {
+    _name = name;
+    _nameOffset = offset;
+  }
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name].
@@ -5867,6 +6026,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       : nameLength = name != null ? name.length : 0,
         resynthesizerContext = null,
         unlinkedDefiningUnit = null,
+        linkedContext = null,
         super.forNode(name);
 
   /// Initialize using the given serialized information.
@@ -5878,7 +6038,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       this.nameLength,
       this.resynthesizerContext,
       this.unlinkedDefiningUnit)
-      : super.forSerialized(null) {
+      : linkedContext = null,
+        super.forSerialized(null) {
     _name = name;
     _nameOffset = offset;
     setResolutionCapability(
@@ -6052,6 +6213,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   List<ImportElement> get imports {
     if (_imports == null) {
+      if (linkedNode != null) {
+        return _imports = linkedNode.compilationUnit_directives
+            .where((node) => node.kind == LinkedNodeKind.importDirective)
+            .map((node) {
+          return ImportElementImpl.forLinkedNode(this, node);
+        }).toList();
+      }
       if (unlinkedDefiningUnit != null) {
         _imports = buildImportsFromSummary(this, unlinkedDefiningUnit.imports,
             resynthesizerContext.linkedLibrary.importDependencies);
@@ -6219,6 +6387,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<ElementAnnotation> get metadata {
+    if (linkedNode != null) {
+      if (_metadata != null) return _metadata;
+      CompilationUnitElementImpl enclosingUnit = _definingCompilationUnit;
+      var context = enclosingUnit.linkedContext;
+      var metadata = context.getMetadataOrEmpty(linkedNode);
+      return _metadata = _buildAnnotations2(enclosingUnit, metadata);
+    }
     if (_metadata == null) {
       if (unlinkedDefiningUnit != null) {
         _metadata = _buildAnnotations(

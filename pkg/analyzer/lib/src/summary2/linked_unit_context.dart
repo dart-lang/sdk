@@ -84,6 +84,8 @@ class LinkedUnitContext {
     if (kind == LinkedNodeKind.classDeclaration ||
         kind == LinkedNodeKind.classTypeAlias ||
         kind == LinkedNodeKind.constructorDeclaration ||
+        kind == LinkedNodeKind.enumConstantDeclaration ||
+        kind == LinkedNodeKind.enumDeclaration ||
         kind == LinkedNodeKind.functionDeclaration ||
         kind == LinkedNodeKind.functionTypeAlias ||
         kind == LinkedNodeKind.methodDeclaration ||
@@ -115,6 +117,10 @@ class LinkedUnitContext {
 
   int getSimpleOffset(LinkedNode node) {
     return tokensContext.offset(node.simpleIdentifier_token);
+  }
+
+  String getStringContent(LinkedNode node) {
+    return node.simpleStringLiteral_value;
   }
 
   String getTokenLexeme(int token) {
@@ -211,6 +217,9 @@ class LinkedUnitContext {
 
   bool isFinal(LinkedNode node) {
     var kind = node.kind;
+    if (kind == LinkedNodeKind.enumConstantDeclaration) {
+      return false;
+    }
     if (kind == LinkedNodeKind.variableDeclaration) {
       return node.variableDeclaration_declaration.isFinal;
     }
@@ -292,12 +301,16 @@ class LinkedUnitContext {
       return;
     }
 
+    var constructorContainerRef = reference.getChild('@constructor');
     var fieldContainerRef = reference.getChild('@field');
     var methodContainerRef = reference.getChild('@method');
     var getterContainerRef = reference.getChild('@getter');
     var setterContainerRef = reference.getChild('@setter');
     for (var member in node.classOrMixinDeclaration_members) {
-      if (member.kind == LinkedNodeKind.fieldDeclaration) {
+      if (member.kind == LinkedNodeKind.constructorDeclaration) {
+        var name = getConstructorDeclarationName(member);
+        constructorContainerRef.getChild(name).node = member;
+      } else if (member.kind == LinkedNodeKind.fieldDeclaration) {
         var variableList = member.fieldDeclaration_fields;
         for (var field in variableList.variableDeclarationList_variables) {
           var name = getSimpleName(field.variableDeclaration_name);

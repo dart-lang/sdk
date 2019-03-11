@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -40,7 +41,7 @@ class Linker {
   LinkedBundleContext bundleContext;
 
   /// Libraries that are being linked.
-  final List<SourceLibraryBuilder> builders = [];
+  final Map<Uri, SourceLibraryBuilder> builders = {};
 
   _AnalysisContextForLinking analysisContext;
   TypeProvider typeProvider;
@@ -92,7 +93,7 @@ class Linker {
   }
 
   void _addSyntheticConstructors() {
-    for (var library in builders) {
+    for (var library in builders.values) {
       library.addSyntheticConstructors();
     }
   }
@@ -107,19 +108,19 @@ class Linker {
   }
 
   void _computeLibraryScopes() {
-    for (var library in builders) {
+    for (var library in builders.values) {
       library.addLocalDeclarations();
     }
 
-    for (var library in builders) {
+    for (var library in builders.values) {
       library.buildInitialExportScope();
     }
 
-    for (var library in builders) {
+    for (var library in builders.values) {
       library.addImportsToScope();
     }
 
-    for (var library in builders) {
+    for (var library in builders.values) {
       library.storeExportScope();
     }
 
@@ -139,19 +140,19 @@ class Linker {
   }
 
   void _performTopLevelInference() {
-    for (var library in builders) {
+    for (var library in builders.values) {
       library.performTopLevelInference();
     }
   }
 
   void _resolveMetadata() {
-    for (var library in builders) {
+    for (var library in builders.values) {
       library.resolveMetadata();
     }
   }
 
   void _resolveTypes() {
-    for (var library in builders) {
+    for (var library in builders.values) {
       library.resolveTypes();
     }
   }
@@ -163,7 +164,7 @@ class LinkResult {
   LinkResult(this.bundle);
 }
 
-class _AnalysisContextForLinking implements AnalysisContext {
+class _AnalysisContextForLinking implements InternalAnalysisContext {
   @override
   final AnalysisOptions analysisOptions;
 
@@ -177,6 +178,13 @@ class _AnalysisContextForLinking implements AnalysisContext {
   TypeSystem typeSystem;
 
   _AnalysisContextForLinking(this.analysisOptions, this.sourceFactory);
+
+  @override
+  Namespace getPublicNamespace(LibraryElement library) {
+    // TODO(scheglov) Not sure if this method of AnalysisContext is useful.
+    var builder = new NamespaceBuilder();
+    return builder.createPublicNamespaceForLibrary(library);
+  }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

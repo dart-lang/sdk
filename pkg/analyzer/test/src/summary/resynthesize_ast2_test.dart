@@ -72,13 +72,18 @@ abstract class num implements Comparable<num> {}
     var dartCoreResult = _link(dartCoreSource, dartCoreCode);
 
     var source = addTestSource(text);
-
     var unit = parseText(text, experimentStatus: experimentStatus);
 
     // TODO(scheglov) add other libraries
     var libraryUnitMap = {
       source: {source: unit},
     };
+
+    for (var otherLibrarySource in otherLibrarySources) {
+      var text = getFile(otherLibrarySource.fullName).readAsStringSync();
+      var unit = parseText(text, experimentStatus: experimentStatus);
+      libraryUnitMap[otherLibrarySource] = {otherLibrarySource: unit};
+    }
 
     var linkResult = link(
       AnalysisOptionsImpl(),
@@ -171,12 +176,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_class_constructor_fieldFormal_optional_withDefault() async {
     await super.test_class_constructor_fieldFormal_optional_withDefault();
-  }
-
-  @override
-  @failingTest
-  test_class_documented_withMetadata() async {
-    await super.test_class_documented_withMetadata();
   }
 
   @override
@@ -313,12 +312,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_const_invalid_topLevel() async {
-    await super.test_const_invalid_topLevel();
-  }
-
-  @override
-  @failingTest
   test_const_invokeConstructor_generic_named() async {
     await super.test_const_invokeConstructor_generic_named();
   }
@@ -369,12 +362,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_const_invokeConstructor_named_imported() async {
-    await super.test_const_invokeConstructor_named_imported();
-  }
-
-  @override
-  @failingTest
   test_const_invokeConstructor_named_imported_withPrefix() async {
     await super.test_const_invokeConstructor_named_imported_withPrefix();
   }
@@ -405,12 +392,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_const_invokeConstructor_unnamed_imported() async {
-    await super.test_const_invokeConstructor_unnamed_imported();
-  }
-
-  @override
-  @failingTest
   test_const_invokeConstructor_unnamed_imported_withPrefix() async {
     await super.test_const_invokeConstructor_unnamed_imported_withPrefix();
   }
@@ -423,20 +404,8 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_const_length_ofClassConstField_imported() async {
-    await super.test_const_length_ofClassConstField_imported();
-  }
-
-  @override
-  @failingTest
   test_const_length_ofClassConstField_imported_withPrefix() async {
     await super.test_const_length_ofClassConstField_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
-  test_const_length_ofTopLevelVariable_imported() async {
-    await super.test_const_length_ofTopLevelVariable_imported();
   }
 
   @override
@@ -487,12 +456,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_const_parameterDefaultValue_normal() async {
     await super.test_const_parameterDefaultValue_normal();
-  }
-
-  @override
-  @failingTest
-  test_const_reference_staticField_imported() async {
-    await super.test_const_reference_staticField_imported();
   }
 
   @override
@@ -635,12 +598,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_const_topLevel_typedList_imported() async {
-    await super.test_const_topLevel_typedList_imported();
-  }
-
-  @override
-  @failingTest
   test_const_topLevel_typedList_importedWithPrefix() async {
     await super.test_const_topLevel_typedList_importedWithPrefix();
   }
@@ -655,18 +612,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_const_topLevel_typedMap() async {
     await super.test_const_topLevel_typedMap();
-  }
-
-  @override
-  @failingTest
-  test_constExpr_pushReference_enum_field() async {
-    await super.test_constExpr_pushReference_enum_field();
-  }
-
-  @override
-  @failingTest
-  test_constExpr_pushReference_enum_method() async {
-    await super.test_constExpr_pushReference_enum_method();
   }
 
   @override
@@ -896,36 +841,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_defaultValue_refersToGenericClass_methodNG() async {
     await super.test_defaultValue_refersToGenericClass_methodNG();
-  }
-
-  @override
-  @failingTest
-  test_enum_documented() async {
-    await super.test_enum_documented();
-  }
-
-  @override
-  @failingTest
-  test_enum_value_documented() async {
-    await super.test_enum_value_documented();
-  }
-
-  @override
-  @failingTest
-  test_enum_values() async {
-    await super.test_enum_values();
-  }
-
-  @override
-  @failingTest
-  test_enums() async {
-    await super.test_enums();
-  }
-
-  @override
-  @failingTest
-  test_error_extendsEnum() async {
-    await super.test_error_extendsEnum();
   }
 
   @override
@@ -1254,12 +1169,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_import_configurations_useDefault() async {
-    await super.test_import_configurations_useDefault();
-  }
-
-  @override
-  @failingTest
   test_import_configurations_useFirst() async {
     await super.test_import_configurations_useFirst();
   }
@@ -1308,20 +1217,8 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_import_short_absolute() async {
-    await super.test_import_short_absolute();
-  }
-
-  @override
-  @failingTest
   test_import_show() async {
     await super.test_import_show();
-  }
-
-  @override
-  @failingTest
-  test_imports() async {
-    await super.test_imports();
   }
 
   @override
@@ -1517,12 +1414,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_invalid_annotation_unprefixed_constructor() async {
-    await super.test_invalid_annotation_unprefixed_constructor();
-  }
-
-  @override
-  @failingTest
   test_invalid_importPrefix_asTypeArgument() async {
     await super.test_invalid_importPrefix_asTypeArgument();
   }
@@ -1639,18 +1530,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_metadata_constructor_call_unnamed_prefixed() async {
     await super.test_metadata_constructor_call_unnamed_prefixed();
-  }
-
-  @override
-  @failingTest
-  test_metadata_enumConstantDeclaration() async {
-    await super.test_metadata_enumConstantDeclaration();
-  }
-
-  @override
-  @failingTest
-  test_metadata_enumDeclaration() async {
-    await super.test_metadata_enumDeclaration();
   }
 
   @override
@@ -1987,12 +1866,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_type_reference_to_enum() async {
-    await super.test_type_reference_to_enum();
-  }
-
-  @override
-  @failingTest
   test_type_reference_to_import() async {
     await super.test_type_reference_to_import();
   }
@@ -2220,12 +2093,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_variable_propagatedType_final_dep_inPart() async {
     await super.test_variable_propagatedType_final_dep_inPart();
-  }
-
-  @override
-  @failingTest
-  test_variable_propagatedType_implicit_dep() async {
-    await super.test_variable_propagatedType_implicit_dep();
   }
 
   @override

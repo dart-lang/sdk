@@ -80,9 +80,28 @@ class _ElementRequest {
       return _class(unit, reference);
     }
 
+    if (parentName == '@constructor') {
+      var class_ = elementOfReference(parent2);
+      return _constructor(class_, reference);
+    }
+
+    if (parentName == '@function') {
+      CompilationUnitElementImpl enclosing = elementOfReference(parent2);
+      enclosing.functions;
+      assert(reference.element != null);
+      return reference.element;
+    }
+
     if (parentName == '@getter') {
       var enclosing = elementOfReference(parent2);
       return _getter(enclosing, reference);
+    }
+
+    if (parentName == '@parameter') {
+      ExecutableElementImpl enclosing = elementOfReference(parent2);
+      enclosing.parameters;
+      assert(reference.element != null);
+      return reference.element;
     }
 
     if (parentName == '@typeAlias') {
@@ -122,6 +141,15 @@ class _ElementRequest {
     );
   }
 
+  ConstructorElementImpl _constructor(
+      ClassElementImpl class_, Reference reference) {
+    return reference.element = ConstructorElementImpl.forLinkedNode(
+      reference,
+      reference.node,
+      class_,
+    );
+  }
+
   LibraryElementImpl _createLibraryElement(Reference reference) {
     var uriStr = reference.name;
 
@@ -131,12 +159,22 @@ class _ElementRequest {
     var libraryData = elementFactory.libraryMap[uriStr];
     var node = libraryData.node;
     var hasName = node.name.isNotEmpty;
-    var libraryElement = LibraryElementImpl(
+
+    var definingUnitData = node.units[0];
+    var definingUnitContext = LinkedUnitContext(
+      libraryData.context,
+      TokensContext(definingUnitData.tokens),
+    );
+
+    var libraryElement = LibraryElementImpl.forLinkedNode(
       elementFactory.analysisContext,
       elementFactory.analysisSession,
       node.name,
       hasName ? node.nameOffset : -1,
       node.name.length,
+      definingUnitContext,
+      reference,
+      definingUnitData.node,
     );
 
     var units = <CompilationUnitElementImpl>[];
@@ -183,18 +221,32 @@ class _ElementRequest {
     var context = unit.linkedContext;
     var unitRef = unit.reference;
     var classRef = unitRef.getChild('@class');
+    var enumRef = unitRef.getChild('@class');
+    var functionRef = unitRef.getChild('@function');
     var typeAliasRef = unitRef.getChild('@typeAlias');
+    var variableRef = unitRef.getChild('@variable');
     for (var declaration in unit.linkedNode.compilationUnit_declarations) {
       var kind = declaration.kind;
       if (kind == LinkedNodeKind.classDeclaration ||
           kind == LinkedNodeKind.classTypeAlias) {
         var name = context.getUnitMemberName(declaration);
         classRef.getChild(name).node = declaration;
+      } else if (kind == LinkedNodeKind.enumDeclaration) {
+        var name = context.getUnitMemberName(declaration);
+        enumRef.getChild(name).node = declaration;
+      } else if (kind == LinkedNodeKind.functionDeclaration) {
+        var name = context.getUnitMemberName(declaration);
+        functionRef.getChild(name).node = declaration;
       } else if (kind == LinkedNodeKind.functionTypeAlias) {
         var name = context.getUnitMemberName(declaration);
         typeAliasRef.getChild(name).node = declaration;
+      } else if (kind == LinkedNodeKind.topLevelVariableDeclaration) {
+        var variables = declaration.topLevelVariableDeclaration_variableList;
+        for (var variable in variables.variableDeclarationList_variables) {
+          var name = context.getSimpleName(variable.variableDeclaration_name);
+          variableRef.getChild(name).node = variable;
+        }
       } else {
-        // TODO(scheglov) support other elements
         throw UnimplementedError('$kind');
       }
     }

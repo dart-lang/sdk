@@ -112,6 +112,12 @@ class ReferenceResolver {
     _node(node.constructorDeclaration_parameters);
   }
 
+  void _enumConstantDeclaration(LinkedNodeBuilder node) {}
+
+  void _enumDeclaration(LinkedNodeBuilder node) {
+    _nodeList(node.enumDeclaration_constants);
+  }
+
   void _fieldDeclaration(LinkedNodeBuilder node) {
     _node(node.fieldDeclaration_fields);
   }
@@ -226,6 +232,8 @@ class ReferenceResolver {
     }
   }
 
+  void _importDirective(LinkedNodeBuilder node) {}
+
   void _libraryDirective(LinkedNodeBuilder node) {}
 
   void _methodDeclaration(LinkedNodeBuilder node) {
@@ -257,6 +265,10 @@ class ReferenceResolver {
       _compilationUnit(node);
     } else if (node.kind == LinkedNodeKind.constructorDeclaration) {
       _constructorDeclaration(node);
+    } else if (node.kind == LinkedNodeKind.enumDeclaration) {
+      _enumDeclaration(node);
+    } else if (node.kind == LinkedNodeKind.enumConstantDeclaration) {
+      _enumConstantDeclaration(node);
     } else if (node.kind == LinkedNodeKind.fieldDeclaration) {
       _fieldDeclaration(node);
     } else if (node.kind == LinkedNodeKind.fieldFormalParameter) {
@@ -273,6 +285,8 @@ class ReferenceResolver {
       _genericFunctionType(node);
     } else if (node.kind == LinkedNodeKind.genericTypeAlias) {
       _genericTypeAlias(node);
+    } else if (node.kind == LinkedNodeKind.importDirective) {
+      _importDirective(node);
     } else if (node.kind == LinkedNodeKind.libraryDirective) {
       _libraryDirective(node);
     } else if (node.kind == LinkedNodeKind.methodDeclaration) {
@@ -372,6 +386,11 @@ class ReferenceResolver {
           kind: LinkedNodeTypeKind.interface,
           interfaceClass: referenceIndex,
           interfaceTypeArguments: typeArguments,
+        );
+      } else if (reference.isEnum) {
+        node.typeName_type = LinkedNodeTypeBuilder(
+          kind: LinkedNodeTypeKind.interface,
+          interfaceClass: referenceIndex,
         );
       } else if (reference.isTypeParameter) {
         node.typeName_type = LinkedNodeTypeBuilder(

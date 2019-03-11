@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
@@ -45,21 +46,31 @@ class SourceLibraryBuilder {
   void addImportsToScope() {
     // TODO
     var hasDartCore = false;
+    var unitContext = units[0].context;
     for (var directive in units[0].node.compilationUnit_directives) {
       if (directive.kind == LinkedNodeKind.importDirective) {
-        var uriStr = directive.uriBasedDirective_uriContent;
-        var importedLibrary = reference.parent.getChild(uriStr);
-        // TODO(scheglov) resolve URI as relative
+        var relativeUriStr = unitContext.getStringContent(
+          directive.uriBasedDirective_uri,
+        );
+        var relativeUri = Uri.parse(relativeUriStr);
+        var uri = resolveRelativeUri(this.uri, relativeUri);
+        var builder = linker.builders[uri];
+        if (builder != null) {
+          builder.exportScope.forEach((name, declaration) {
+            importScope.declare(name, declaration);
+          });
+        } else {
+          var references = linker.elementFactory.exportsOfLibrary('$uri');
+          _importExportedReferences(references);
+        }
         // TODO(scheglov) prefix
         // TODO(scheglov) combinators
       }
     }
     if (!hasDartCore) {
+      // TODO(scheglov) This works only when dart:core is linked
       var references = linker.elementFactory.exportsOfLibrary('dart:core');
-      for (var reference in references) {
-        var name = reference.name;
-        importScope.declare(name, Declaration(name, reference));
-      }
+      _importExportedReferences(references);
     }
   }
 
@@ -68,6 +79,7 @@ class SourceLibraryBuilder {
     for (var unit in units) {
       var unitRef = reference.getChild('@unit').getChild('${unit.uri}');
       var classRef = unitRef.getChild('@class');
+      var enumRef = unitRef.getChild('@enum');
       var functionRef = unitRef.getChild('@function');
       var typeAliasRef = unitRef.getChild('@typeAlias');
       var getterRef = unitRef.getChild('@getter');
@@ -78,6 +90,12 @@ class SourceLibraryBuilder {
             node.kind == LinkedNodeKind.classTypeAlias) {
           var name = unit.context.getUnitMemberName(node);
           var reference = classRef.getChild(name);
+          reference.node = node;
+          var declaration = Declaration(name, reference);
+          scope.declare(name, declaration);
+        } else if (node.kind == LinkedNodeKind.enumDeclaration) {
+          var name = unit.context.getUnitMemberName(node);
+          var reference = enumRef.getChild(name);
           reference.node = node;
           var declaration = Declaration(name, reference);
           scope.declare(name, declaration);
@@ -214,6 +232,13 @@ class SourceLibraryBuilder {
     }
   }
 
+  void _importExportedReferences(List<Reference> exportedReferences) {
+    for (var reference in exportedReferences) {
+      var name = reference.name;
+      importScope.declare(name, Declaration(name, reference));
+    }
+  }
+
   static void build(Linker linker, Source librarySource,
       Map<Source, ast.CompilationUnit> libraryUnits) {
     var libraryUriStr = librarySource.uri.toString();
@@ -286,7 +311,7 @@ class SourceLibraryBuilder {
     }
 
     linker.linkingLibraries.add(libraryNode);
-    linker.builders.add(builder);
+    linker.builders[builder.uri] = builder;
   }
 }
 
