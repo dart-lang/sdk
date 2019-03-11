@@ -11,6 +11,7 @@ import 'package:analyzer/src/summary2/builder/prefix_builder.dart';
 import 'package:analyzer/src/summary2/declaration.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
+import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/scope.dart';
@@ -185,16 +186,30 @@ class SourceLibraryBuilder {
     }
   }
 
+  void resolveMetadata() {
+    var metadataResolver = MetadataResolver(linker, reference);
+    for (var unit in units) {
+      metadataResolver.resolve(unit);
+    }
+  }
+
   void resolveTypes() {
     for (var unit in units) {
       var unitReference = reference.getChild('@unit').getChild('${unit.uri}');
-      ReferenceResolver(linker, unit, scope, unitReference).resolve();
+      ReferenceResolver(
+        linker.linkingBundleContext,
+        unit,
+        scope,
+        unitReference,
+      ).resolve();
     }
   }
 
   void storeExportScope() {
+    var linkingBundleContext = linker.linkingBundleContext;
     for (var declaration in exportScope.map.values) {
-      var index = linker.indexOfReference(declaration.reference);
+      var reference = declaration.reference;
+      var index = linkingBundleContext.indexOfReference(reference);
       node.exports.add(index);
     }
   }
@@ -228,13 +243,14 @@ class SourceLibraryBuilder {
       );
       var tokensContext = tokensResult.toContext();
 
-      var writer = AstBinaryWriter(tokensContext);
-      var unitNode = writer.writeNode(unit);
-
       var unitContext = LinkedUnitContext(
         linker.bundleContext,
         tokensContext,
       );
+
+      var writer = AstBinaryWriter(linker.linkingBundleContext, tokensContext);
+      var unitNode = writer.writeNode(unit);
+
       builder.units.add(
         UnitBuilder(unitSource.uri, unitContext, unitNode),
       );

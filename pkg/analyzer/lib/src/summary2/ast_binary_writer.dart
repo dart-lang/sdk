@@ -9,28 +9,22 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/tokens_context.dart';
 
 /// Serializer of fully resolved ASTs into flat buffers.
 class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
-  final TokensContext tokens;
-
-  final referenceRoot = Reference.root();
-  final referencesBuilder = LinkedNodeReferencesBuilder();
-  final _references = <Reference>[];
+  final LinkingBundleContext _linkingBundleContext;
+  final TokensContext _tokensContext;
 
   /// This field is set temporary while visiting [FieldDeclaration] or
   /// [TopLevelVariableDeclaration] to store data shared among all variables
   /// in these declarations.
   LinkedNodeVariablesDeclarationBuilder _variablesDeclaration;
 
-  AstBinaryWriter(this.tokens) {
-    _references.add(referenceRoot);
-  }
+  AstBinaryWriter(this._linkingBundleContext, this._tokensContext);
 
   @override
   LinkedNodeBuilder visitAdjacentStrings(AdjacentStrings node) {
@@ -98,7 +92,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitAssignmentExpression(AssignmentExpression node) {
     return LinkedNodeBuilder.assignmentExpression(
-      assignmentExpression_element: _getReference(node.staticElement).index,
+      assignmentExpression_element: _getReferenceIndex(node.staticElement),
       assignmentExpression_leftHandSide: node.leftHandSide.accept(this),
       assignmentExpression_operator: _getToken(node.operator),
       assignmentExpression_rightHandSide: node.rightHandSide.accept(this),
@@ -118,7 +112,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitBinaryExpression(BinaryExpression node) {
     return LinkedNodeBuilder.binaryExpression(
-      binaryExpression_element: _getReference(node.staticElement).index,
+      binaryExpression_element: _getReferenceIndex(node.staticElement),
       binaryExpression_leftOperand: node.leftOperand.accept(this),
       binaryExpression_operator: _getToken(node.operator),
       binaryExpression_rightOperand: node.rightOperand.accept(this),
@@ -305,7 +299,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitConstructorName(ConstructorName node) {
     return LinkedNodeBuilder.constructorName(
-      constructorName_element: _getReference(node.staticElement).index,
+      constructorName_element: _getReferenceIndex(node.staticElement),
       constructorName_name: node.name?.accept(this),
       constructorName_period: _getToken(node.period),
       constructorName_type: node.type.accept(this),
@@ -689,7 +683,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitIndexExpression(IndexExpression node) {
     return LinkedNodeBuilder.indexExpression(
-      indexExpression_element: _getReference(node.staticElement).index,
+      indexExpression_element: _getReferenceIndex(node.staticElement),
       indexExpression_index: node.index.accept(this),
       indexExpression_leftBracket: _getToken(node.leftBracket),
       indexExpression_rightBracket: _getToken(node.rightBracket),
@@ -901,7 +895,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   LinkedNodeBuilder visitPostfixExpression(PostfixExpression node) {
     return LinkedNodeBuilder.postfixExpression(
       expression_type: _writeType(node.staticType),
-      postfixExpression_element: _getReference(node.staticElement).index,
+      postfixExpression_element: _getReferenceIndex(node.staticElement),
       postfixExpression_operand: node.operand.accept(this),
       postfixExpression_operator: _getToken(node.operator),
     );
@@ -921,7 +915,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   LinkedNodeBuilder visitPrefixExpression(PrefixExpression node) {
     return LinkedNodeBuilder.prefixExpression(
       expression_type: _writeType(node.staticType),
-      prefixExpression_element: _getReference(node.staticElement).index,
+      prefixExpression_element: _getReferenceIndex(node.staticElement),
       prefixExpression_operand: node.operand.accept(this),
       prefixExpression_operator: _getToken(node.operator),
     );
@@ -947,7 +941,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       redirectingConstructorInvocation_constructorName:
           node.constructorName?.accept(this),
       redirectingConstructorInvocation_element:
-          _getReference(node.staticElement).index,
+          _getReferenceIndex(node.staticElement),
       redirectingConstructorInvocation_period: _getToken(node.period),
       redirectingConstructorInvocation_thisKeyword: _getToken(node.thisKeyword),
     );
@@ -1018,7 +1012,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
     return LinkedNodeBuilder.simpleIdentifier(
       simpleIdentifier_element:
-          isDeclared ? null : _getReference(node.staticElement).index,
+          isDeclared ? null : _getReferenceIndex(node.staticElement),
       simpleIdentifier_token: _getToken(node.token),
       expression_type: _writeType(node.staticType),
     );
@@ -1058,7 +1052,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       superConstructorInvocation_constructorName:
           node.constructorName?.accept(this),
       superConstructorInvocation_element:
-          _getReference(node.staticElement).index,
+          _getReferenceIndex(node.staticElement),
       superConstructorInvocation_period: _getToken(node.period),
       superConstructorInvocation_superKeyword: _getToken(node.superKeyword),
     );
@@ -1268,159 +1262,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     return node.accept(this);
   }
 
-  /// Write [referenceRoot] and all its children into [referencesBuilder].
-  void writeReferences() {
-    for (var reference in _references) {
-      referencesBuilder.parent.add(reference.parent?.index ?? 0);
-      referencesBuilder.name.add(reference.name);
+  int _getReferenceIndex(Element element) {
+    if (element == null) return 0;
+
+    var reference = (element as ElementImpl).reference;
+    if (identical(element, DynamicElementImpl.instance)) {
+      reference = _linkingBundleContext.dynamicReference;
     }
-  }
 
-  void _ensureReferenceIndex(Reference reference) {
-    if (reference.index == null) {
-      reference.index = _references.length;
-      _references.add(reference);
-    }
-  }
-
-  Reference _getReference(Element element) {
-    if (element == null) return referenceRoot;
-
-    // TODO(scheglov) handle Member elements
-
-    Reference result;
-    if (element is ClassElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@class');
-      _ensureReferenceIndex(containerRef);
-
-      result = containerRef.getChild(element.name);
-    } else if (element is CompilationUnitElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@unit');
-      _ensureReferenceIndex(containerRef);
-
-      result = containerRef.getChild('${element.source.uri}');
-    } else if (element is ConstructorElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@constructor');
-      _ensureReferenceIndex(containerRef);
-
-      result = containerRef.getChild(element.name);
-    } else if (element is DynamicElementImpl) {
-      result = _getReference(element.library).getChild('@dynamic');
-    } else if (element is FieldElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@field');
-      _ensureReferenceIndex(containerRef);
-
-      result = containerRef.getChild(element.name);
-    } else if (element is FunctionElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@function');
-      _ensureReferenceIndex(containerRef);
-
-      result = containerRef.getChild(element.name ?? '');
-    } else if (element is FunctionTypeAliasElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@typeAlias');
-      _ensureReferenceIndex(containerRef);
-
-      result = containerRef.getChild(element.name);
-    } else if (element is GenericFunctionTypeElement) {
-      if (element.enclosingElement is GenericTypeAliasElement) {
-        return _getReference(element.enclosingElement);
-      } else {
-        var enclosingRef = _getReference(element.enclosingElement);
-        var containerRef = enclosingRef.getChild('@functionType');
-        _ensureReferenceIndex(containerRef);
-
-        // TODO(scheglov) do we need to store these elements at all?
-        result = containerRef.getChild('<unnamed>');
-      }
-    } else if (element is GenericTypeAliasElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@typeAlias');
-      _ensureReferenceIndex(containerRef);
-
-      result = containerRef.getChild(element.name);
-    } else if (element is GenericFunctionTypeElement &&
-        element.enclosingElement is ParameterElement) {
-      return _getReference(element.enclosingElement);
-    } else if (element is LibraryElement) {
-      var uriStr = element.source.uri.toString();
-      result = referenceRoot.getChild(uriStr);
-    } else if (element is LabelElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@label');
-      _ensureReferenceIndex(containerRef);
-
-      // TODO(scheglov) use index instead of offset
-      result = containerRef.getChild('${element.nameOffset}');
-    } else if (element is LocalVariableElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@localVariable');
-      _ensureReferenceIndex(containerRef);
-
-      // TODO(scheglov) use index instead of offset
-      result = containerRef.getChild('${element.nameOffset}');
-    } else if (element is MethodElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@method');
-      _ensureReferenceIndex(containerRef);
-
-      result = containerRef.getChild(element.name);
-    } else if (element is MultiplyDefinedElement) {
-      return referenceRoot;
-    } else if (element is ParameterElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@parameter');
-      _ensureReferenceIndex(containerRef);
-
-      result = containerRef.getChild(element.name);
-    } else if (element is PrefixElement) {
-      var containerRef = _getReference(element.library).getChild('@prefix');
-      _ensureReferenceIndex(containerRef);
-
-      result = containerRef.getChild(element.name);
-    } else if (element is PropertyAccessorElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild(
-        element.isGetter ? '@getter' : '@setter',
-      );
-      _ensureReferenceIndex(containerRef);
-
-      result = containerRef.getChild(element.displayName);
-    } else if (element is TopLevelVariableElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@variable');
-      _ensureReferenceIndex(containerRef);
-
-      result = containerRef.getChild(element.name);
-    } else if (element is TypeParameterElement) {
-      var enclosingRef = _getReference(element.enclosingElement);
-      var containerRef = enclosingRef.getChild('@typeParameter');
-      _ensureReferenceIndex(containerRef);
-
-      result = containerRef.getChild(element.name);
-    } else {
-      throw UnimplementedError('(${element.runtimeType}) $element');
-    }
-    _ensureReferenceIndex(result);
-    return result;
-  }
-
-  List<int> _getReferences(List<Element> elements) {
-    var result = List<int>(elements.length);
-    for (var i = 0; i < elements.length; ++i) {
-      var element = elements[i];
-      result[i] = _getReference(element).index;
-    }
-    return result;
+    return _linkingBundleContext.indexOfReference(reference);
   }
 
   int _getToken(Token token) {
-    return tokens.indexOfToken(token);
+    return _tokensContext.indexOfToken(token);
   }
 
   List<int> _getTokens(List<Token> tokenList) {
@@ -1594,7 +1448,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     builder
       ..uriBasedDirective_uri = node.uri.accept(this)
       ..uriBasedDirective_uriContent = node.uriContent
-      ..uriBasedDirective_uriElement = _getReference(node.uriElement).index;
+      ..uriBasedDirective_uriElement = _getReferenceIndex(node.uriElement);
   }
 
   List<LinkedNodeBuilder> _writeNodeList(List<AstNode> nodeList) {
@@ -1610,40 +1464,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   LinkedNodeTypeBuilder _writeType(DartType type) {
-    if (type == null) return null;
-
-    if (type.isBottom) {
-      return LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.bottom,
-      );
-    } else if (type.isDynamic) {
-      return LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.dynamic_,
-      );
-    } else if (type is FunctionType) {
-      return LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.function,
-        functionFormalParameters: _getReferences(type.parameters),
-        functionReturnType: _writeType(type.returnType),
-        functionTypeParameters: _getReferences(type.parameters),
-      );
-    } else if (type is InterfaceType) {
-      return LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.interface,
-        interfaceClass: _getReference(type.element).index,
-        interfaceTypeArguments: type.typeArguments.map(_writeType).toList(),
-      );
-    } else if (type is TypeParameterType) {
-      return LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.typeParameter,
-        typeParameterParameter: _getReference(type.element).index,
-      );
-    } else if (type is VoidType) {
-      return LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.void_,
-      );
-    } else {
-      throw UnimplementedError('(${type.runtimeType}) $type');
-    }
+    return _linkingBundleContext.writeType(type);
   }
 }

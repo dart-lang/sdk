@@ -3096,10 +3096,10 @@ abstract class ElementImpl implements Element {
 
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
-  ElementImpl(String name, this._nameOffset)
-      : reference = null,
-        linkedNode = null {
+  ElementImpl(String name, this._nameOffset, {this.reference})
+      : linkedNode = null {
     this._name = StringUtilities.intern(name);
+    this.reference?.element = this;
   }
 
   /// Initialize from linked node.
@@ -3399,6 +3399,11 @@ abstract class ElementImpl implements Element {
   }
 
   List<ElementAnnotation> get metadata {
+    if (linkedNode != null) {
+      if (_metadata != null) return _metadata;
+      var metadata = enclosingUnit.linkedContext.getMetadataOrEmpty(linkedNode);
+      return _metadata = _buildAnnotations2(enclosingUnit, metadata);
+    }
     return _metadata ?? const <ElementAnnotation>[];
   }
 
@@ -3606,6 +3611,23 @@ abstract class ElementImpl implements Element {
     } else {
       return const <ElementAnnotation>[];
     }
+  }
+
+  /// Return annotations for the given [nodeList] in the [unit].
+  List<ElementAnnotation> _buildAnnotations2(
+      CompilationUnitElementImpl unit, List<LinkedNode> nodeList) {
+    var length = nodeList.length;
+    if (length == 0) {
+      return const <ElementAnnotation>[];
+    }
+
+    var annotations = new List<ElementAnnotation>(length);
+    for (int i = 0; i < length; i++) {
+      var ast = unit.linkedContext.readNode(nodeList[i]);
+      annotations[i] = ElementAnnotationImpl(enclosingUnit)
+        ..annotationAst = ast;
+    }
+    return annotations;
   }
 
   /// If the element associated with the given [type] is a generic function type
@@ -4047,9 +4069,9 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   /// Initialize a newly created executable element to have the given [name] and
   /// [offset].
-  ExecutableElementImpl(String name, int offset)
+  ExecutableElementImpl(String name, int offset, {Reference reference})
       : serializedExecutable = null,
-        super(name, offset);
+        super(name, offset, reference: reference);
 
   /// Initialize using the given linked node.
   ExecutableElementImpl.forLinkedNode(
@@ -4296,8 +4318,11 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   FunctionType get type {
+    if (linkedNode != null) {
+      return _type ??= new FunctionTypeImpl(this);
+    }
     if (serializedExecutable != null) {
-      _type ??= new FunctionTypeImpl(this);
+      return _type ??= new FunctionTypeImpl(this);
     }
     return _type;
   }
@@ -4552,14 +4577,18 @@ class FieldElementImpl extends PropertyInducingElementImpl
       ElementImpl enclosing, Reference reference, LinkedNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode) {
     if (!linkedNode.isSynthetic) {
-      var getter = PropertyAccessorElementImpl_ImplicitGetter(this);
-      enclosing.reference.getChild('@getter').getChild(name).element = getter;
-      this.getter = getter;
+      var enclosingRef = enclosing.reference;
+
+      this.getter = PropertyAccessorElementImpl_ImplicitGetter(
+        this,
+        reference: enclosingRef.getChild('@getter').getChild(name),
+      );
 
       if (!isConst && !isFinal) {
-        var setter = PropertyAccessorElementImpl_ImplicitSetter(this);
-        enclosing.reference.getChild('@setter').getChild(name).element = setter;
-        this.setter = setter;
+        this.setter = PropertyAccessorElementImpl_ImplicitSetter(
+          this,
+          reference: enclosingRef.getChild('@setter').getChild(name),
+        );
       }
     }
   }
@@ -8044,8 +8073,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
-  PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable)
-      : super(variable.name, variable.nameOffset) {
+  PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable,
+      {Reference reference})
+      : super(variable.name, variable.nameOffset, reference: reference) {
     this.variable = variable;
     isStatic = variable.isStatic;
     isSynthetic = true;
@@ -8208,8 +8238,9 @@ class PropertyAccessorElementImpl_ImplicitGetter
     extends PropertyAccessorElementImpl {
   /// Create the implicit getter and bind it to the [property].
   PropertyAccessorElementImpl_ImplicitGetter(
-      PropertyInducingElementImpl property)
-      : super.forVariable(property) {
+      PropertyInducingElementImpl property,
+      {Reference reference})
+      : super.forVariable(property, reference: reference) {
     property.getter = this;
     enclosingElement = property.enclosingElement;
   }
@@ -8244,8 +8275,9 @@ class PropertyAccessorElementImpl_ImplicitSetter
     extends PropertyAccessorElementImpl {
   /// Create the implicit setter and bind it to the [property].
   PropertyAccessorElementImpl_ImplicitSetter(
-      PropertyInducingElementImpl property)
-      : super.forVariable(property) {
+      PropertyInducingElementImpl property,
+      {Reference reference})
+      : super.forVariable(property, reference: reference) {
     property.setter = this;
     enclosingElement = property.enclosingElement;
   }
@@ -8499,14 +8531,18 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
       ElementImpl enclosing, Reference reference, LinkedNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode) {
     if (!linkedNode.isSynthetic) {
-      var getter = PropertyAccessorElementImpl_ImplicitGetter(this);
-      enclosing.reference.getChild('@getter').getChild(name).element = getter;
-      this.getter = getter;
+      var enclosingRef = enclosing.reference;
+
+      this.getter = PropertyAccessorElementImpl_ImplicitGetter(
+        this,
+        reference: enclosingRef.getChild('@getter').getChild(name),
+      );
 
       if (!isConst && !isFinal) {
-        var setter = PropertyAccessorElementImpl_ImplicitSetter(this);
-        enclosing.reference.getChild('@setter').getChild(name).element = setter;
-        this.setter = setter;
+        this.setter = PropertyAccessorElementImpl_ImplicitSetter(
+          this,
+          reference: enclosingRef.getChild('@setter').getChild(name),
+        );
       }
     }
   }

@@ -12,19 +12,13 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/summary2/tokens_context.dart';
+import 'package:analyzer/src/summary2/linked_unit_context.dart';
 
 /// Deserializer of fully resolved ASTs from flat buffers.
 class AstBinaryReader {
-  final Reference _nameRoot;
-  final LinkedNodeReferences _linkedReferences;
-  final List<Reference> _references;
+  final LinkedUnitContext _unitContext;
 
-  final TokensContext _tokensContext;
-
-  AstBinaryReader(this._nameRoot, this._linkedReferences, this._tokensContext)
-      : _references = List<Reference>(_linkedReferences.name.length);
+  AstBinaryReader(this._unitContext);
 
   AstNode readNode(LinkedNode data) {
     if (data == null) return null;
@@ -268,7 +262,9 @@ class AstBinaryReader {
   }
 
   T _getElement<T extends Element>(int index) {
-    return _getReferenceByIndex(index)?.element;
+    var bundleContext = _unitContext.bundleContext;
+    var reference = bundleContext.referenceOfIndex(index);
+    return bundleContext.elementFactory.elementOfReference(reference);
   }
 
   List<T> _getElements<T extends Element>(List<int> indexList) {
@@ -280,28 +276,8 @@ class AstBinaryReader {
     return result;
   }
 
-  Reference _getReferenceByIndex(int index) {
-    var reference = _references[index];
-    if (reference != null) return reference;
-
-    if (index == 0) {
-      _references[index] = _nameRoot;
-      return _nameRoot;
-    }
-
-    var parentIndex = _linkedReferences.parent[index];
-    var parent = _getReferenceByIndex(parentIndex);
-    if (parent == null) return null;
-
-    var name = _linkedReferences.name[index];
-    reference = parent[name];
-    _references[index] = reference;
-
-    return reference;
-  }
-
   Token _getToken(int index) {
-    return _tokensContext.tokenOfIndex(index);
+    return _unitContext.tokensContext.tokenOfIndex(index);
   }
 
   List<Token> _getTokens(List<int> indexList) {

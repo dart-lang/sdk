@@ -32,6 +32,9 @@ class LinkedElementFactory {
     if (reference.element != null) {
       return reference.element;
     }
+    if (reference.parent == null) {
+      return null;
+    }
 
     return _ElementRequest(this, reference).elementOfReference(reference);
   }
@@ -60,10 +63,56 @@ class _ElementRequest {
 
   _ElementRequest(this.elementFactory, this.input);
 
-  ClassElementImpl createClassElement(
+  ElementImpl elementOfReference(Reference reference) {
+    if (reference.element != null) {
+      return reference.element;
+    }
+
+    var parent2 = reference.parent.parent;
+    if (parent2 == null) {
+      return _createLibraryElement(reference);
+    }
+
+    var parentName = reference.parent.name;
+
+    if (parentName == '@class') {
+      var unit = elementOfReference(parent2);
+      return _class(unit, reference);
+    }
+
+    if (parentName == '@getter') {
+      var enclosing = elementOfReference(parent2);
+      return _getter(enclosing, reference);
+    }
+
+    if (parentName == '@typeAlias') {
+      var unit = elementOfReference(parent2);
+      return _typeAlias(unit, reference);
+    }
+
+    if (parentName == '@typeParameter') {
+      var enclosing = elementOfReference(parent2) as TypeParameterizedElement;
+      enclosing.typeParameters;
+      // Requesting type parameters sets elements for all their references.
+      assert(reference.element != null);
+      return reference.element;
+    }
+
+    if (parentName == '@unit') {
+      elementOfReference(parent2);
+      // Creating a library fills all its units.
+      assert(reference.element != null);
+      return reference.element;
+    }
+
+    // TODO(scheglov) support other elements
+    throw StateError('Not found: $input');
+  }
+
+  ClassElementImpl _class(
       CompilationUnitElementImpl unit, Reference reference) {
     if (reference.node == null) {
-      indexUnitDeclarations(unit);
+      _indexUnitDeclarations(unit);
       assert(reference.node != 0, '$reference');
     }
     return reference.element = ClassElementImpl.forLinkedNode(
@@ -73,20 +122,7 @@ class _ElementRequest {
     );
   }
 
-  GenericTypeAliasElementImpl createFunctionTypeAliasElement(
-      CompilationUnitElementImpl unit, Reference reference) {
-    if (reference.node == null) {
-      indexUnitDeclarations(unit);
-      assert(reference.node != 0, '$reference');
-    }
-    return reference.element = GenericTypeAliasElementImpl.forLinkedNode(
-      unit,
-      reference,
-      reference.node,
-    );
-  }
-
-  LibraryElementImpl createLibraryElement(Reference reference) {
+  LibraryElementImpl _createLibraryElement(Reference reference) {
     var uriStr = reference.name;
 
     var sourceFactory = elementFactory.analysisContext.sourceFactory;
@@ -125,48 +161,25 @@ class _ElementRequest {
     return reference.element = libraryElement;
   }
 
-  ElementImpl elementOfReference(Reference reference) {
-    if (reference.element != null) {
-      return reference.element;
-    }
-
-    var parent2 = reference.parent.parent;
-    if (parent2 == null) {
-      return createLibraryElement(reference);
-    }
-
-    var parentName = reference.parent.name;
-
-    if (parentName == '@class') {
-      var unit = elementOfReference(parent2);
-      return createClassElement(unit, reference);
-    }
-
-    if (parentName == '@typeAlias') {
-      var unit = elementOfReference(parent2);
-      return createFunctionTypeAliasElement(unit, reference);
-    }
-
-    if (parentName == '@typeParameter') {
-      var enclosing = elementOfReference(parent2) as TypeParameterizedElement;
-      enclosing.typeParameters;
-      // Requesting type parameters sets elements for all their references.
+  PropertyAccessorElementImpl _getter(
+      ElementImpl enclosing, Reference reference) {
+    if (enclosing is ClassElementImpl) {
+      enclosing.accessors;
+      // Requesting accessors sets elements for accessors and fields.
       assert(reference.element != null);
       return reference.element;
     }
-
-    if (parentName == '@unit') {
-      elementOfReference(parent2);
-      // Creating a library fills all its units.
+    if (enclosing is CompilationUnitElementImpl) {
+      enclosing.accessors;
+      // Requesting accessors sets elements for accessors and variables.
       assert(reference.element != null);
       return reference.element;
     }
-
-    // TODO(scheglov) support other elements
-    throw StateError('Not found: $input');
+    // Only classes and units have accessors.
+    throw StateError('${enclosing.runtimeType}');
   }
 
-  void indexUnitDeclarations(CompilationUnitElementImpl unit) {
+  void _indexUnitDeclarations(CompilationUnitElementImpl unit) {
     var context = unit.linkedContext;
     var unitRef = unit.reference;
     var classRef = unitRef.getChild('@class');
@@ -185,6 +198,19 @@ class _ElementRequest {
         throw UnimplementedError('$kind');
       }
     }
+  }
+
+  GenericTypeAliasElementImpl _typeAlias(
+      CompilationUnitElementImpl unit, Reference reference) {
+    if (reference.node == null) {
+      _indexUnitDeclarations(unit);
+      assert(reference.node != 0, '$reference');
+    }
+    return reference.element = GenericTypeAliasElementImpl.forLinkedNode(
+      unit,
+      reference,
+      reference.node,
+    );
   }
 }
 

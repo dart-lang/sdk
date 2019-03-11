@@ -422,6 +422,8 @@ class _ElementWriter {
       buffer.write(e.expression);
     } else if (e is NullLiteral) {
       buffer.write('null');
+    } else if (e is ParenthesizedExpression) {
+      writeExpression(e.expression, e);
     } else if (e is PrefixExpression) {
       buffer.write(e.operator.lexeme);
       writeExpression(e.operand, e);

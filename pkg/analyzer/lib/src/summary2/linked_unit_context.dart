@@ -79,6 +79,21 @@ class LinkedUnitContext {
     return bundleContext.getInterfaceType(linkedType);
   }
 
+  List<LinkedNode> getMetadataOrEmpty(LinkedNode node) {
+    var kind = node.kind;
+    if (kind == LinkedNodeKind.classDeclaration ||
+        kind == LinkedNodeKind.classTypeAlias ||
+        kind == LinkedNodeKind.constructorDeclaration ||
+        kind == LinkedNodeKind.functionDeclaration ||
+        kind == LinkedNodeKind.functionTypeAlias ||
+        kind == LinkedNodeKind.methodDeclaration ||
+        kind == LinkedNodeKind.mixinDeclaration ||
+        kind == LinkedNodeKind.variableDeclaration) {
+      return node.annotatedNode_metadata;
+    }
+    return const <LinkedNode>[];
+  }
+
   String getMethodName(LinkedNode node) {
     return getSimpleName(node.methodDeclaration_name);
   }
@@ -303,12 +318,12 @@ class LinkedUnitContext {
   }
 
   Expression readInitializer(LinkedNode linkedNode) {
-    var reader = AstBinaryReader(
-      bundleContext.elementFactory.rootReference,
-      bundleContext.referencesData,
-      tokensContext,
-    );
-    return reader.readNode(linkedNode.variableDeclaration_initializer);
+    return readNode(linkedNode.variableDeclaration_initializer);
+  }
+
+  AstNode readNode(LinkedNode linkedNode) {
+    var reader = AstBinaryReader(this);
+    return reader.readNode(linkedNode);
   }
 
   Iterable<LinkedNode> topLevelVariables(LinkedNode unit) sync* {

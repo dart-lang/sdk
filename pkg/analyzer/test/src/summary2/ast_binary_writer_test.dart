@@ -6,6 +6,10 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
+import 'package:analyzer/src/summary2/linked_bundle_context.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/linked_unit_context.dart';
+import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/tokens_writer.dart';
 import 'package:test/test.dart';
@@ -129,15 +133,20 @@ var a = [1, 2, 3];
     );
     var tokensContext = tokensResult.toContext();
 
-    var writer = new AstBinaryWriter(tokensContext);
-    var builder = writer.writeNode(originalUnit);
-    writer.writeReferences();
+    var rootReference = Reference.root();
+    var dynamicRef = rootReference.getChild('dart:core').getChild('dynamic');
 
-    var reader = AstBinaryReader(
-      Reference.root(),
-      writer.referencesBuilder,
-      writer.tokens,
+    var linkingBundleContext = LinkingBundleContext(dynamicRef);
+    var writer = new AstBinaryWriter(linkingBundleContext, tokensContext);
+    var builder = writer.writeNode(originalUnit);
+
+    var bundleContext = LinkedBundleContext(
+      LinkedElementFactory(null, null, rootReference),
+      linkingBundleContext.referencesBuilder,
     );
+    var unitContext = LinkedUnitContext(bundleContext, tokensContext);
+
+    var reader = AstBinaryReader(unitContext);
     var deserializedUnit = reader.readNode(builder);
     var deserializedCode = deserializedUnit.toSource();
 

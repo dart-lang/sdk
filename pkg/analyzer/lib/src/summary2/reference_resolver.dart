@@ -6,7 +6,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
 import 'package:analyzer/src/summary2/declaration.dart';
-import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/scope.dart';
 
@@ -20,7 +20,7 @@ import 'package:analyzer/src/summary2/scope.dart';
 /// the type is set, otherwise we keep it empty, so we will attempt to infer
 /// it later).
 class ReferenceResolver {
-  final Linker linker;
+  final LinkingBundleContext linkingBundleContext;
   final UnitBuilder unit;
 
   /// TODO(scheglov) Update scope with local scopes (formal / type parameters).
@@ -28,7 +28,12 @@ class ReferenceResolver {
 
   Reference reference;
 
-  ReferenceResolver(this.linker, this.unit, this.scope, this.reference);
+  ReferenceResolver(
+    this.linkingBundleContext,
+    this.unit,
+    this.scope,
+    this.reference,
+  );
 
   LinkedNodeTypeBuilder get _dynamicType {
     return LinkedNodeTypeBuilder(
@@ -350,7 +355,7 @@ class ReferenceResolver {
       }
 
       var reference = declaration.reference;
-      var referenceIndex = linker.indexOfReference(reference);
+      var referenceIndex = linkingBundleContext.indexOfReference(reference);
       identifier.simpleIdentifier_element = referenceIndex;
 
       var typeArguments = const <LinkedNodeTypeBuilder>[];

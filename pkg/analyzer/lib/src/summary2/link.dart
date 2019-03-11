@@ -4,6 +4,8 @@
 
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -14,35 +16,25 @@ import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
 LinkResult link(
   AnalysisOptions analysisOptions,
   SourceFactory sourceFactory,
-  Reference rootReference,
   List<LinkedNodeBundle> inputs,
   Map<Source, Map<Source, CompilationUnit>> unitMap,
 ) {
-  var linker = Linker(analysisOptions, sourceFactory, rootReference);
+  var linker = Linker(analysisOptions, sourceFactory);
   linker.link(inputs, unitMap);
   return LinkResult(linker.linkingBundle);
 }
 
 class Linker {
-  final Reference rootReference;
+  final Reference rootReference = Reference.root();
   LinkedElementFactory elementFactory;
 
-  /// References used in all libraries being linked.
-  /// Element references in [LinkedNode]s are indexes in this list.
-  final List<Reference> references = [null];
-
-  /// The references of the [linkingBundle].
-  final LinkedNodeReferencesBuilder referencesBuilder =
-      LinkedNodeReferencesBuilder(
-    parent: [0],
-    name: [''],
-  );
-
+  LinkingBundleContext linkingBundleContext;
   List<LinkedNodeLibraryBuilder> linkingLibraries = [];
   LinkedNodeBundleBuilder linkingBundle;
   LinkedBundleContext bundleContext;
@@ -53,9 +45,14 @@ class Linker {
   _AnalysisContextForLinking analysisContext;
   TypeProvider typeProvider;
   Dart2TypeSystem typeSystem;
+  InheritanceManager2 inheritance;
 
-  Linker(AnalysisOptions analysisOptions, SourceFactory sourceFactory,
-      this.rootReference) {
+  Linker(AnalysisOptions analysisOptions, SourceFactory sourceFactory) {
+    var dynamicRef = rootReference.getChild('dart:core').getChild('dynamic');
+    dynamicRef.element = DynamicElementImpl.instance;
+
+    linkingBundleContext = LinkingBundleContext(dynamicRef);
+
     analysisContext = _AnalysisContextForLinking(
       analysisOptions,
       sourceFactory,
@@ -68,7 +65,7 @@ class Linker {
     );
 
     linkingBundle = LinkedNodeBundleBuilder(
-      references: referencesBuilder,
+      references: linkingBundleContext.referencesBuilder,
       libraries: linkingLibraries,
     );
 
@@ -76,19 +73,6 @@ class Linker {
       elementFactory,
       linkingBundle.references,
     );
-  }
-
-  int indexOfReference(Reference reference) {
-    if (reference.parent == null) return 0;
-    if (reference.index != null) return reference.index;
-
-    var parentIndex = indexOfReference(reference.parent);
-    referencesBuilder.parent.add(parentIndex);
-    referencesBuilder.name.add(reference.name);
-
-    reference.index = references.length;
-    references.add(reference);
-    return reference.index;
   }
 
   void link(List<LinkedNodeBundle> inputs,
@@ -119,6 +103,7 @@ class Linker {
     _createTypeSystem();
     _resolveTypes();
     _performTopLevelInference();
+    _resolveMetadata();
   }
 
   void _computeLibraryScopes() {
@@ -149,11 +134,19 @@ class Linker {
 
     typeSystem = Dart2TypeSystem(typeProvider);
     analysisContext.typeSystem = typeSystem;
+
+    inheritance = InheritanceManager2(typeSystem);
   }
 
   void _performTopLevelInference() {
     for (var library in builders) {
       library.performTopLevelInference();
+    }
+  }
+
+  void _resolveMetadata() {
+    for (var library in builders) {
+      library.resolveMetadata();
     }
   }
 

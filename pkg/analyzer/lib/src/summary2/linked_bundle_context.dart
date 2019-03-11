@@ -16,7 +16,8 @@ class LinkedBundleContext {
   final List<Reference> _references;
 
   LinkedBundleContext(this.elementFactory, this.referencesData)
-      : _references = List<Reference>(referencesData.name.length);
+      : _references = List<Reference>.filled(referencesData.name.length, null,
+            growable: true);
 
   InterfaceType getInterfaceType(LinkedNodeType linkedType) {
     var type = getType(linkedType);
@@ -47,17 +48,25 @@ class LinkedBundleContext {
   }
 
   Reference referenceOfIndex(int index) {
+    // When we are linking a bundle, we add new references.
+    // So, grow the list of references when we have data for them.
+    if (index >= _references.length) {
+      if (referencesData.name.length > _references.length) {
+        _references.length = referencesData.name.length;
+      }
+    }
+
     var reference = _references[index];
     if (reference != null) return reference;
 
     if (index == 0) {
-      _references[index] = elementFactory.rootReference;
-      return elementFactory.rootReference;
+      reference = elementFactory.rootReference;
+      _references[index] = reference;
+      return reference;
     }
 
     var parentIndex = referencesData.parent[index];
     var parent = referenceOfIndex(parentIndex);
-    if (parent == null) return null;
 
     var name = referencesData.name[index];
     reference = parent.getChild(name);
