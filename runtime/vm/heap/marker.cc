@@ -487,8 +487,9 @@ void GCMarker::Prologue() {
   isolate_->ReleaseStoreBuffers();
 
 #ifndef DART_PRECOMPILED_RUNTIME
-  if (isolate_->IsMutatorThreadScheduled()) {
-    Interpreter* interpreter = isolate_->mutator_thread()->interpreter();
+  Thread* mutator_thread = isolate_->mutator_thread();
+  if (mutator_thread != NULL) {
+    Interpreter* interpreter = mutator_thread->interpreter();
     if (interpreter != NULL) {
       interpreter->MajorGC();
     }
