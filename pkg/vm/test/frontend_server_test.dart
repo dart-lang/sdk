@@ -179,7 +179,7 @@ Future<int> main() async {
           new StreamController<List<int>>();
       final ReceivePort recompileCalled = new ReceivePort();
 
-      when(compiler.recompileDelta(filename: null))
+      when(compiler.recompileDelta(entryPoint: null))
           .thenAnswer((Invocation invocation) {
         recompileCalled.sendPort.send(true);
       });
@@ -195,7 +195,7 @@ Future<int> main() async {
       verifyInOrder(<void>[
         compiler.invalidate(Uri.base.resolve('file1.dart')),
         compiler.invalidate(Uri.base.resolve('file2.dart')),
-        await compiler.recompileDelta(filename: null),
+        await compiler.recompileDelta(entryPoint: null),
       ]);
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
@@ -207,7 +207,7 @@ Future<int> main() async {
           new StreamController<List<int>>();
       final ReceivePort recompileCalled = new ReceivePort();
 
-      when(compiler.recompileDelta(filename: 'file2.dart'))
+      when(compiler.recompileDelta(entryPoint: 'file2.dart'))
           .thenAnswer((Invocation invocation) {
         recompileCalled.sendPort.send(true);
       });
@@ -223,7 +223,7 @@ Future<int> main() async {
       verifyInOrder(<void>[
         compiler.invalidate(Uri.base.resolve('file1.dart')),
         compiler.invalidate(Uri.base.resolve('file2.dart')),
-        await compiler.recompileDelta(filename: 'file2.dart'),
+        await compiler.recompileDelta(entryPoint: 'file2.dart'),
       ]);
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
@@ -274,7 +274,7 @@ Future<int> main() async {
           new StreamController<List<int>>();
       final ReceivePort recompileCalled = new ReceivePort();
 
-      when(compiler.recompileDelta(filename: null))
+      when(compiler.recompileDelta(entryPoint: null))
           .thenAnswer((Invocation invocation) {
         recompileCalled.sendPort.send(true);
       });
@@ -295,7 +295,7 @@ Future<int> main() async {
         compiler.acceptLastDelta(),
         compiler.invalidate(Uri.base.resolve('file2.dart')),
         compiler.invalidate(Uri.base.resolve('file3.dart')),
-        await compiler.recompileDelta(filename: null),
+        await compiler.recompileDelta(entryPoint: null),
       ]);
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
@@ -875,7 +875,7 @@ true
       });
       Future<int> result =
           starter(args, input: inputStreamController.stream, output: ioSink);
-      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      inputStreamController.add('compile ${file.uri}\n'.codeUnits);
       int count = 0;
       receivedResults.stream.listen((String outputFilenameAndErrorCount) {
         CompilationResult result =
@@ -889,8 +889,8 @@ true
             inputStreamController.add('accept\n'.codeUnits);
             var file2 = new File('${tempDir.path}/bar.dart')..createSync();
             file2.writeAsStringSync("main() { baz(); }\n");
-            inputStreamController.add('recompile ${file2.path} abc\n'
-                '${file2.path}\n'
+            inputStreamController.add('recompile ${file2.uri} abc\n'
+                '${file2.uri}\n'
                 'abc\n'
                 .codeUnits);
             break;
@@ -902,8 +902,8 @@ true
             inputStreamController.add('accept\n'.codeUnits);
             var file2 = new File('${tempDir.path}/bar.dart')..createSync();
             file2.writeAsStringSync("main() { }\n");
-            inputStreamController.add('recompile ${file2.path} abc\n'
-                '${file2.path}\n'
+            inputStreamController.add('recompile ${file2.uri} abc\n'
+                '${file2.uri}\n'
                 'abc\n'
                 .codeUnits);
             break;

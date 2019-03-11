@@ -517,7 +517,7 @@ FileSystem createFrontEndFileSystem(
 /// absolute URI.
 ///
 /// If virtual multi-root file system is used, or [input] can be parsed to a
-/// URI with 'package' scheme, then [input] is interpreted as URI.
+/// URI with 'package' or 'file' scheme, then [input] is interpreted as URI.
 /// Otherwise [input] is interpreted as a file path.
 Uri convertFileOrUriArgumentToUri(FileSystem fileSystem, String input) {
   if (input == null) {
@@ -530,7 +530,7 @@ Uri convertFileOrUriArgumentToUri(FileSystem fileSystem, String input) {
   }
   try {
     Uri uri = Uri.parse(input);
-    if (uri.scheme == 'package') {
+    if (uri.scheme == 'package' || uri.scheme == 'file') {
       return uri;
     }
   } on FormatException {
