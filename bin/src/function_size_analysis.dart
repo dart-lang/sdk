@@ -120,7 +120,7 @@ showCodeDistribution(AllInfo info,
     var size = info.size;
     var min = dominatedSize[info];
     var max = nodeData[info].maxSize;
-    _showElement(longName(info), size, min, max, realTotal);
+    _showElement(longName(info, useLibraryUri: true), size, min, max, realTotal);
   });
 }
 

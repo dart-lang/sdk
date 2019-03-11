@@ -1,4 +1,9 @@
-## 0.6.0-dev.0.0
+## 0.6.1
+
+* Move binary subcommands under src folder. Otherwise, `pub global activate`
+  fails.
+
+## 0.6.0
 
 This release contains several **breaking changes**:
 

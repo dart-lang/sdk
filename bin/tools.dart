@@ -4,19 +4,19 @@
 
 import 'package:args/command_runner.dart';
 
-import 'code_deps.dart';
-import 'coverage_log_server.dart';
-import 'debug_info.dart';
-import 'diff.dart';
-import 'deferred_library_check.dart';
-import 'deferred_library_size.dart';
-import 'deferred_library_layout.dart';
-import 'convert.dart';
-import 'function_size_analysis.dart';
-import 'library_size_split.dart';
-import 'live_code_size_analysis.dart';
-import 'show_inferred_types.dart';
-import 'text_print.dart';
+import 'src/code_deps.dart';
+import 'src/coverage_log_server.dart';
+import 'src/debug_info.dart';
+import 'src/diff.dart';
+import 'src/deferred_library_check.dart';
+import 'src/deferred_library_size.dart';
+import 'src/deferred_library_layout.dart';
+import 'src/convert.dart';
+import 'src/function_size_analysis.dart';
+import 'src/library_size_split.dart';
+import 'src/live_code_size_analysis.dart';
+import 'src/show_inferred_types.dart';
+import 'src/text_print.dart';
 
 /// Entrypoint to run all dart2js_info tools.
 void main(args) {
