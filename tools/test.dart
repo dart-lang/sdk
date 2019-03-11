@@ -205,11 +205,6 @@ bool resolveNamedConfiguration(
         "named configuration $requestedNamedConfiguration");
     return false;
   }
-  if (requestedNamedConfiguration != null && outputNamedConfiguration.isEmpty) {
-    stderr.writeln("error: The named configuration "
-        "$requestedNamedConfiguration doesn't exist");
-    return false;
-  }
   if (requestedNamedConfiguration != null && outputBuilders.isEmpty) {
     stderr.writeln("error: The named configuration "
         "$requestedNamedConfiguration isn't tested on any builders");
