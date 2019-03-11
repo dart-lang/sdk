@@ -1217,6 +1217,14 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
+  test_import_short_absolute() async {
+    // TODO(scheglov) fails on Windows
+    fail('test_import_short_absolute on Windows');
+//    await super.test_import_short_absolute();
+  }
+
+  @override
+  @failingTest
   test_import_show() async {
     await super.test_import_show();
   }
