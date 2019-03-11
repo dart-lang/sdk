@@ -195,7 +195,7 @@
         "timeout": 240,
         "use-sdk": true
     }},
-    "unittest-asserts-(release|debug)-(linux|mac|win)": {
+    "unittest-asserts-(debug|product|release)-(linux|mac|win)": {
       "options": {
         "compiler": "dartk",
         "enable-asserts": true,
@@ -211,7 +211,7 @@
         "runtime": "vm",
         "timeout": 240
     }},
-    "unittest-analyzer_use_fasta-linux": {
+    "unittest-analyzer_use_fasta-(linux|mac|win)": {
       "options": {
         "compiler": "none",
         "runtime": "vm",
@@ -220,7 +220,7 @@
         "vm-options": ["-DuseFastaParser=true"],
         "builder-tag": "analyzer_use_fasta"
     }},
-    "dartk-asan-linux-release-(ia32|x64)": {
+    "dartk-asan-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "builder-tag": "asan",
         "timeout": 240
@@ -241,96 +241,98 @@
       "options": {
         "use-sdk": true
     }},
-    "dart2js-minified-csp-linux-chrome": {
+    "dart2js-minified-csp-(linux|mac|win)-chrome": {
       "options": {
         "minified": true,
         "csp": true,
         "use-sdk": true
     }},
-    "dart2js-minified-linux-d8": {
+    "dart2js-minified-(linux|mac|win)-d8": {
       "options": {
         "minified": true,
         "use-sdk": true
     }},
-    "dart2js-hostasserts-linux-ia32-d8": {
+    "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8": {
       "options": {
         "host-checked": true
     }},
-    "dartkp-android-release-arm": {
+    "dartkp-android-(debug|product|release)-arm": {
       "options": {
         "use-blobs": true
     }},
-    "dartkp-linux-release-(simarm|simarm64)": {
+    "dartkp-linux-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "use-blobs": true
     }},
-    "dartkp-(win|mac)-release-simarm64": {
+    "dartkp-(win|mac)-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "use-blobs": true
     }},
-    "dartkp-win-release-x64": {
+    "dartkp-win-(product|release)-x64": {
       "options": {
         "use-blobs": true
     }},
-    "dartkp-linux-(product|release)-x64": { },
-    "dartkp-obfuscate-linux-release-x64": {
+    "dartkp-win-debug-x64": {
+      "options": {
+        "use-blobs": true,
+        "vm-options": ["--no-enable-malloc-hooks"]
+    }},
+    "dartkp-(linux|mac)-(product|release)-x64": { },
+    "dartkp-obfuscate-(linux|mac|win)-(debug|product|release)-x64": {
       "options": {
         "builder-tag": "obfuscated",
         "vm-options": ["--obfuscate"]
     }},
-    "dartkp-linux-debug-x64": {
+    "dartkp-(linux|mac)-debug-x64": {
       "options": {
         "vm-options": ["--no-enable-malloc-hooks"]
     }},
-    "dartkp-no-bare-linux-(debug|release)-x64": {
+    "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-x64": {
       "options": {
         "vm-options": ["--no-enable-malloc-hooks", "--no-use-bare-instructions"]
     }},
-    "dartkp-no-bare-linux-(debug|release)-(simarm|simarm64)": {
+    "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "vm-options": ["--no-enable-malloc-hooks", "--no-use-bare-instructions"],
         "use-blobs": true
     }},
-    "dartk-(linux|mac)-(debug|release)-(ia32|x64)": { },
-    "dartk-checked-linux-release-x64": {
+    "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": { },
+    "dartk-checked-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "checked": true
     }},
-    "dartk-win-(debug|release)-(ia32|x64)": { },
-    "dartk-(linux|mac|win)-product-x64": { },
-    "dartk-(linux|mac)-(debug|release)-simdbc64": { },
-    "dartk-linux-release-(arm64|simarm|simarm64)": { },
-    "dartk-optcounter-linux-release-(ia32|x64)": {
+    "dartk-(linux|mac|win)-(debug|product|release)-(arm64|simarm|simarm64|simdbc64)": { },
+    "dartk-optcounter-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "builder-tag": "optimization_counter_threshold",
         "vm-options": ["--optimization-counter-threshold=5"]
     }},
-    "dartk-reload-linux-(debug|release)-x64": {
+    "dartk-reload-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "hot-reload": true
     }},
-    "dartk-reload-mac-(debug|release)-simdbc64": {
+    "dartk-reload-mac-(debug|product|release)-simdbc64": {
       "options": {
         "hot-reload": true
     }},
-    "dartk-reload-rollback-linux-(debug|release)-x64": {
+    "dartk-reload-rollback-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "hot-reload-rollback": true
     }},
-    "app_jitk-linux-(debug|product|release)-x64": { },
-    "dartkb-interpret-linux-(debug|release)-x64": {
+    "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": { },
+    "dartkb-interpret-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "vm-options": ["--enable_interpreter", "--compilation-counter-threshold=-1"]
     }},
-    "dartkb-mixed-linux-(debug|release)-x64": {
+    "dartkb-mixed-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "vm-options": ["--enable_interpreter"]
     }},
-    "dartkb-compile-linux-(debug|release)-x64": {
+    "dartkb-compile-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "vm-options": ["--use_bytecode_compiler"]
     }},
-    "(dartdevc|dartdevk)-checked-(linux|mac|win)-release-chrome": {
+    "(dartdevc|dartdevk)-checked-(linux|mac|win)-(debug|product|release)-chrome": {
       "options": {
         "checked": true,
         "use-sdk": true

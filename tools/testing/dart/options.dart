@@ -219,6 +219,7 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     new _Option.bool('no-tree-shake', 'Disable kernel IR tree shaking.',
         hide: true),
     new _Option.bool('list', 'List tests only, do not run them.'),
+    new _Option.bool('list-configurations', 'Output list of configurations.'),
     new _Option.bool('list_status_files',
         'List status files for test-suites. Do not run any test suites.',
         hide: true),
@@ -381,6 +382,17 @@ compiler.''',
     if (arguments.contains("--help") || arguments.contains("-h")) {
       _printHelp(
           verbose: arguments.contains("--verbose") || arguments.contains("-v"));
+      return null;
+    }
+    if (arguments.contains("--list-configurations")) {
+      final testMatrixFile = "tools/bots/test_matrix.json";
+      TestMatrix testMatrix = TestMatrix.fromPath(testMatrixFile);
+      for (final configuration in testMatrix.configurations
+          .map((configuration) => configuration.name)
+          .toList()
+            ..sort()) {
+        print(configuration);
+      }
       return null;
     }
     // Dart1 mode has been deprecated.

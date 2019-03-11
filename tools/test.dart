@@ -272,6 +272,8 @@ void main(List<String> args) async {
       help: "Select the builders building this branch",
       defaultsTo: "master");
   parser.addOption("commit", abbr: "C", help: "Compare with this commit");
+  parser.addFlag("list-configurations",
+      help: "Output list of configurations.", negatable: false);
   parser.addOption("named-configuration",
       abbr: "n",
       help: "The named test configuration that supplies the\nvalues for all "
@@ -279,8 +281,9 @@ void main(List<String> args) async {
   parser.addOption("local-configuration",
       abbr: "N",
       help: "Use a different named configuration for local\ntesting than the "
-          "named configuration the baseline\nresults were downloaded for.\nThe"
-          "results may be inexact if the baseline configuration is different.");
+          "named configuration the baseline\nresults were downloaded for. The "
+          "results may be\ninexact if the baseline configuration is "
+          "different.");
   parser.addOption("remote",
       abbr: "R",
       help: "Compare with this remote and git branch",
@@ -289,7 +292,9 @@ void main(List<String> args) async {
 
   final options = parser.parse(args);
   if (options["help"] ||
-      (options["builder"] == null && options["named-configuration"] == null)) {
+      (options["builder"] == null &&
+          options["named-configuration"] == null &&
+          !options["list-configurations"])) {
     print("""
 Usage: test.dart -b [BUILDER] -n [CONFIGURATION] [OPTION]... [--]
                  [TEST.PY OPTION]... [SELECTOR]...
@@ -306,6 +311,14 @@ Otherwise the available named configurations are listed.
 See the documentation at https://goto.google.com/dart-status-file-free-workflow
 
 ${parser.usage}""");
+    return;
+  }
+
+  if (options["list-configurations"]) {
+    final process = await Process.start(
+        "python", ["tools/test.py", "--list-configurations"],
+        mode: ProcessStartMode.inheritStdio, runInShell: Platform.isWindows);
+    exitCode = await process.exitCode;
     return;
   }
 
