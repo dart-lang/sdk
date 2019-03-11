@@ -51,6 +51,16 @@ class A<E extends List<int>> {
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
 
+  test_context_noTypeArgs_noElements_typeParameter_dynamic() async {
+    addTestFile('''
+class A<E extends List<dynamic>> {
+  E a = [];
+}
+''');
+    await resolveTestFile();
+    assertType(findNode.listLiteral('['), 'List<dynamic>');
+  }
+
   test_context_typeArgs_expression_conflictingContext() async {
     addTestFile('''
 List<String> a = <int>[0];

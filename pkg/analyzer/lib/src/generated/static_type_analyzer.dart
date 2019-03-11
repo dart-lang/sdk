@@ -180,6 +180,35 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return inferred;
   }
 
+  ParameterizedType inferMapTypeDownwards(
+      SetOrMapLiteral node, DartType contextType) {
+    if (contextType == null) {
+      return null;
+    }
+
+    var ts = _typeSystem as Dart2TypeSystem;
+    ParameterizedType inferred = ts.inferGenericFunctionOrType(
+        _typeProvider.mapType, [], [], contextType,
+        downwards: true,
+        errorReporter: _resolver.errorReporter,
+        errorNode: node);
+    return inferred;
+  }
+
+  DartType inferSetTypeDownwards(SetOrMapLiteral node, DartType contextType) {
+    if (contextType == null) {
+      return null;
+    }
+
+    var ts = _typeSystem as Dart2TypeSystem;
+    DartType inferred = ts.inferGenericFunctionOrType<InterfaceType>(
+        _typeProvider.setType, [], [], contextType,
+        downwards: true,
+        errorReporter: _resolver.errorReporter,
+        errorNode: node);
+    return inferred;
+  }
+
   /**
    * The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
    * `String`.</blockquote>

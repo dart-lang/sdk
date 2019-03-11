@@ -4775,9 +4775,30 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    DartType literalType = _computeSetOrMapContextType(node);
-    // TODO(brianwilkerson) Determine whether we need special handling for type
-    // parameter types. (E-mail sent.)
+    var typeArguments = node.typeArguments?.arguments;
+    InterfaceType literalType;
+    var literalResolution = _computeSetOrMapResolution(node);
+    if (literalResolution.kind == _LiteralResolutionKind.set) {
+      if (typeArguments != null && typeArguments.length == 1) {
+        var elementType = typeArguments[0].type;
+        literalType = typeProvider.setType.instantiate([elementType]);
+      } else {
+        literalType = typeAnalyzer.inferSetTypeDownwards(
+            node, literalResolution.contextType);
+      }
+    } else if (literalResolution.kind == _LiteralResolutionKind.map) {
+      if (typeArguments != null && typeArguments.length == 2) {
+        var keyType = typeArguments[0].type;
+        var valueType = typeArguments[1].type;
+        literalType = typeProvider.mapType.instantiate([keyType, valueType]);
+      } else {
+        literalType = typeAnalyzer.inferMapTypeDownwards(
+            node, literalResolution.contextType);
+      }
+    } else {
+      assert(literalResolution.kind == _LiteralResolutionKind.ambiguous);
+      literalType = null;
+    }
     if (literalType is InterfaceType) {
       List<DartType> typeArguments = literalType.typeArguments;
       if (typeArguments.length == 1) {
@@ -5010,7 +5031,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /// Compute the context type for the given set or map [literal].
-  DartType _computeSetOrMapContextType(SetOrMapLiteral literal) {
+  _LiteralResolution _computeSetOrMapResolution(SetOrMapLiteral literal) {
     _LiteralResolution typeArgumentsResolution =
         _fromTypeArguments(literal.typeArguments);
     DartType contextType = InferenceContext.getContext(literal);
@@ -5037,29 +5058,32 @@ class ResolverVisitor extends ScopedVisitor {
       // It looks like it needs to be both a map and a set. Attempt to recover.
       if (elementResolution.kind == _LiteralResolutionKind.ambiguous &&
           elementResolution.contextType != null) {
-        return elementResolution.contextType;
+        return elementResolution;
       } else if (typeArgumentsResolution.kind !=
               _LiteralResolutionKind.ambiguous &&
           typeArgumentsResolution.contextType != null) {
-        return typeArgumentsResolution.contextType;
+        return typeArgumentsResolution;
       } else if (contextResolution.kind != _LiteralResolutionKind.ambiguous &&
           contextResolution.contextType != null) {
-        return contextResolution.contextType;
+        return contextResolution;
       }
     } else if (unambiguousResolutions.length >= 2) {
       // If there are three resolutions, the last resolution is guaranteed to be
       // from the elements, which always has a context type of `null` (when it
       // is not ambiguous). So, whether there are 2 or 3 resolutions only the
       // first two are potentially interesting.
-      return unambiguousResolutions[0].contextType ??
-          unambiguousResolutions[1].contextType;
+      return unambiguousResolutions[0].contextType == null
+          ? unambiguousResolutions[1]
+          : unambiguousResolutions[0];
     } else if (unambiguousResolutions.length == 1) {
-      return unambiguousResolutions[0].contextType;
+      return unambiguousResolutions[0];
     } else if (literal.elements2.isEmpty) {
-      return typeProvider.mapType
-          .instantiate([typeProvider.dynamicType, typeProvider.dynamicType]);
+      return _LiteralResolution(
+          _LiteralResolutionKind.map,
+          typeProvider.mapType.instantiate(
+              [typeProvider.dynamicType, typeProvider.dynamicType]));
     }
-    return null;
+    return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
   }
 
   /// Return a newly created cloner that can be used to clone constant

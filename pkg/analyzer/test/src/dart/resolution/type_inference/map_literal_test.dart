@@ -52,6 +52,26 @@ Map<String, String> a = {};
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
+  test_context_noTypeArgs_noEntries_typeParameters() async {
+    addTestFile('''
+class A<E extends Map<int, String>> {
+  E a = {};
+}
+''');
+    await resolveTestFile();
+    assertType(setOrMapLiteral('{}'), 'Map<dynamic, dynamic>');
+  }
+
+  test_context_noTypeArgs_noEntries_typeParameters_dynamic() async {
+    addTestFile('''
+class A<E extends Map<dynamic, dynamic>> {
+  E a = {};
+}
+''');
+    await resolveTestFile();
+    assertType(setOrMapLiteral('{}'), 'Map<dynamic, dynamic>');
+  }
+
   test_context_typeArgs_entry_conflictingKey() async {
     addTestFile('''
 Map<String, String> a = <String, String>{0 : 'a'};
