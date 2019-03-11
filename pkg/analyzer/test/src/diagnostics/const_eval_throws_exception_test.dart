@@ -80,4 +80,48 @@ class Bar {
     await resolveTestFile();
     assertNoTestErrors();
   }
+
+  test_default_constructor_arg_empty_map_importAnalyzedAfter() async {
+    addTestFile('''
+import 'other.dart';
+
+main() {
+  var c = const C();
+}
+''');
+    newFile('/test/lib/other.dart', content: '''
+class C {
+  final Map<String, int> m;
+  const C({this.m = const <String, int>{}})
+    : assert(m != null);
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    var otherFileResult =
+        await resolveFile(convertPath('/test/lib/other.dart'));
+    expect(otherFileResult.errors, isEmpty);
+  }
+
+  test_default_constructor_arg_empty_map_importAnalyzedBefore() async {
+    addTestFile('''
+import 'other.dart';
+
+main() {
+  var c = const C();
+}
+''');
+    newFile('/test/lib/other.dart', content: '''
+class C {
+  final Map<String, int> m;
+  const C({this.m = const <String, int>{}})
+    : assert(m != null);
+}
+''');
+    var otherFileResult =
+        await resolveFile(convertPath('/test/lib/other.dart'));
+    expect(otherFileResult.errors, isEmpty);
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
 }

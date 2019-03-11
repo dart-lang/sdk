@@ -92,6 +92,24 @@ Map<String, String> a = <String, String>{};
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
+  test_default_constructor_param_typed() async {
+    addTestFile('''
+class C {
+  const C({x = const <String, int>{}});
+}
+''');
+    await resolveTestFile();
+  }
+
+  test_default_constructor_param_untyped() async {
+    addTestFile('''
+class C {
+  const C({x = const {}});
+}
+''');
+    await resolveTestFile();
+  }
+
   test_noContext_noTypeArgs_expressions_lubOfIntAndString() async {
     addTestFile('''
 var a = {1 : 'a', 2 : 'b', 3 : 'c'};

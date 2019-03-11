@@ -1484,7 +1484,14 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (node.isMap) {
+    // Note: due to dartbug.com/33441, it's possible that a set/map literal
+    // resynthesized from a summary will have neither its `isSet` or `isMap`
+    // boolean set to `true`.  We work around the problem by assuming such
+    // literals are maps.
+    // TODO(paulberry): when dartbug.com/33441 is fixed, add an assertion here
+    // to verify that `node.isSet == !node.isMap`.
+    bool isMap = !node.isSet;
+    if (isMap) {
       if (!node.isConst) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node);
@@ -1511,7 +1518,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       InterfaceType mapType =
           _typeProvider.mapType.instantiate([keyType, valueType]);
       return new DartObjectImpl(mapType, new MapState(map));
-    } else if (node.isSet) {
+    } else {
       if (!node.isConst) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL, node);
@@ -1533,7 +1540,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       InterfaceType setType = _typeProvider.setType.instantiate([elementType]);
       return new DartObjectImpl(setType, new SetState(set));
     }
-    return null;
   }
 
   @override
