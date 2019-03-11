@@ -35,33 +35,14 @@ def SrcConfig(name, is_buildbot):
     return None
   return bot.BuildInfo('none', 'none', 'release', 'linux')
 
-def ArchiveArtifacts(tarfile, builddir, channel):
-  namer = bot_utils.GCSNamer(channel=channel)
-  gsutil = bot_utils.GSUtil()
-  revision = utils.GetArchiveVersion()
-  # Archive the src tar to the src dir
-  remote_tarfile = '/'.join([namer.src_directory(revision),
-                             os.path.basename(tarfile)])
-  gsutil.upload(tarfile, remote_tarfile, public=True)
-  # Archive all files except the tar file to the linux packages dir
-  for entry in os.listdir(builddir):
-    full_path = os.path.join(builddir, entry)
-    # We expect a flat structure, not subdirectories
-    assert(os.path.isfile(full_path))
-    if full_path != tarfile:
-      package_dir = namer.linux_packages_directory(revision)
-      remote_file = '/'.join([package_dir,
-                              os.path.basename(entry)])
-      gsutil.upload(full_path, remote_file, public=True)
-
 def InstallFromDep(builddir):
   for entry in os.listdir(builddir):
     if entry.endswith("_amd64.deb"):
       path = os.path.join(builddir, entry)
-      Run(['sudo', 'dpkg', '-i', path])
+      Run(['dpkg', '-i', path])
 
 def UninstallDart():
-  Run(['sudo', 'dpkg', '-r', 'dart'])
+  Run(['dpkg', '-r', 'dart'])
 
 def CreateDartTestFile(tempdir):
   filename = os.path.join(tempdir, 'test.dart')
@@ -162,13 +143,6 @@ def SrcSteps(build_info):
     UninstallDart()
     TestInstallation(assume_installed=False)
 
-  with bot.BuildStep('Upload artifacts'):
-    bot_name, _ = bot.GetBotName()
-    channel = bot_utils.GetChannelFromName(bot_name)
-    if channel != bot_utils.Channel.BLEEDING_EDGE:
-     ArchiveArtifacts(tarfile, builddir, channel)
-    else:
-      print 'Not uploading artifacts on bleeding edge'
 
 if __name__ == '__main__':
   # We pass in None for build_step to avoid building the sdk.

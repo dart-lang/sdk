@@ -1246,16 +1246,12 @@
         {
           "name": "build dart",
           "script": "tools/bots/dart_sdk.py",
-          "arguments": [],
-          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-linux"}
-
+          "arguments": []
         },
         {
           "name": "build api docs",
           "script": "tools/bots/dart_sdk.py",
-          "arguments": [ "api_docs" ],
-          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-linux"}
-
+          "arguments": [ "api_docs" ]
         },
         {
           "name": "upload abi dills",
@@ -1263,8 +1259,7 @@
           "arguments": [
             "tools/VERSION",
             "out/ReleaseX64"
-          ],
-          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-linux"}
+          ]
         }
       ]
     },
@@ -1277,9 +1272,7 @@
         {
           "name": "build dart",
           "script": "tools/bots/dart_sdk.py",
-          "arguments": [],
-          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-mac"}
-
+          "arguments": []
         }
       ]
     },
@@ -1292,9 +1285,38 @@
         {
           "name": "build dart",
           "script": "tools/bots/dart_sdk.py",
-          "arguments": [],
-          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-win"}
-
+          "arguments": []
+        }
+      ]
+    },
+    {
+      "builders": ["debianpackage-linux"],
+      "meta": {
+        "description": "This configuration is used by the debianpackage-builder."
+      },
+      "steps": [
+        {
+          "name": "build debian package",
+          "script": "tools/run_debian_build.sh",
+          "arguments": []
+        },
+        {
+          "name": "upload debian packages",
+          "script": "tools/bots/upload_debian_packages.py",
+          "arguments": []
+        }
+      ]
+    },
+    {
+      "builders": ["versionchecker-linux"],
+      "meta": {
+        "description": "This configuration is used by the versionchecker-builder."
+      },
+      "steps": [
+        {
+          "name": "check version",
+          "script": "tools/bots/version_checker.py",
+          "arguments": []
         }
       ]
     },
