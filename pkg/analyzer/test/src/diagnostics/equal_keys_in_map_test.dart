@@ -24,41 +24,40 @@ class EqualKeysInMapWithUiAsCodeTest extends DriverResolutionTest {
       EnableString.spread_collections,
     ];
 
-  test_ifElement_elseBranch_evaluated_addsDuplicate() async {
+  test_ifElement_false_elseEvaluated() async {
     await assertErrorsInCode('''
-void main() {
-  const notTrue = false;
-  const {1: null, if (notTrue) 2: null else 1: null};
-}
+const c = {1: null, if (1 < 0) 2: null else 1: null};
 ''', [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
   }
 
-  test_ifElement_evaluated_addsDuplicate() async {
+  test_ifElement_false_onlyElseEvaluated() async {
+    assertNoErrorsInCode('''
+const c = {if (0 < 1) 1 : 1 else 1 : 2};
+''');
+  }
+
+  test_ifElement_false_thenNotEvaluated() async {
+    assertNoErrorsInCode('''
+const c = {2 : 1, if (1 < 0) 2 : 2};
+''');
+  }
+
+  test_ifElement_true_elseNotEvaluated() async {
+    assertNoErrorsInCode('''
+const c = {1 : 1, if (0 < 1) 2 : 2 else 1 : 2};
+''');
+  }
+
+  test_ifElement_true_onlyThenEvaluated() async {
+    assertNoErrorsInCode('''
+const c = {if (0 < 1) 1 : 1 else 1 : 2};
+''');
+  }
+
+  test_ifElement_true_thenEvaluated() async {
     await assertErrorsInCode('''
-void main() {
-  const {1: null, if (true) 1: null};
-}
+const c = {1: null, if (0 < 1) 1: null};
 ''', [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
-  }
-
-  @failingTest
-  test_ifElement_notEvaluated_doesntAddDuplicate() async {
-    await assertNoErrorsInCode('''
-void main() {
-  const notTrue = false;
-  const {1: null, if (notTrue) 1: null};
-}
-''');
-  }
-
-  @failingTest
-  test_ifElement_withElse_evaluated_doesntAddDuplicate() async {
-    await assertNoErrorsInCode('''
-void main() {
-  const isTrue = true;
-  const {if (isTrue) 1: null : 1 :null};
-}
-''');
   }
 
   @failingTest

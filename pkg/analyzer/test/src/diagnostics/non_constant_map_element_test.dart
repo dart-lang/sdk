@@ -74,7 +74,6 @@ void main() {
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
-  @failingTest
   test_ifElementWithElse_mayBeConst() async {
     await assertNoErrorsInCode('''
 void main() {

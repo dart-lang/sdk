@@ -467,21 +467,32 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       }
       return true;
     } else if (element is IfElement) {
-      bool validCondition =
-          !isConst || _validate(element.condition, errorCode) != null;
-      return validCondition &&
-          _validateCollectionElement(
+      if (isConst) {
+        DartObject conditionResult = _validate(element.condition, errorCode);
+        bool conditionValue = conditionResult?.toBoolValue();
+        if (conditionValue == null) {
+          // The errors have already been reported.
+          return false;
+        } else if (conditionValue) {
+          return _validateCollectionElement(
                   element.thenElement, isConst, keys, invalidKeys, errorCode) !=
-              null &&
-          _validateCollectionElement(
+              null;
+        } else if (element.elseElement != null) {
+          return _validateCollectionElement(
                   element.elseElement, isConst, keys, invalidKeys, errorCode) !=
               null;
+        } else {
+          return true;
+        }
+      }
+      return true;
     } else if (element is MapLiteralEntry) {
       return _validateMapLiteralEntry(element, isConst, keys, invalidKeys);
     } else if (element is SpreadElement) {
       return !isConst || _validate(element.expression, errorCode) != null;
     }
-    return null;
+    throw new UnsupportedError(
+        'Unhandled type of collection element: ${element.runtimeType}');
   }
 
   /// Validate that if the passed arguments are constant expressions.

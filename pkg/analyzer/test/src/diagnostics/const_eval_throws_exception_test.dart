@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -10,6 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstEvalThrowsExceptionTest);
+    defineReflectiveTests(ConstEvalThrowsExceptionWithUIAsCodeTest);
   });
 }
 
@@ -123,5 +126,30 @@ class C {
     expect(otherFileResult.errors, isEmpty);
     await resolveTestFile();
     assertNoTestErrors();
+  }
+}
+
+@reflectiveTest
+class ConstEvalThrowsExceptionWithUIAsCodeTest
+    extends ConstEvalThrowsExceptionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+    ];
+
+  test_ifElement_false_thenNotEvaluated() async {
+    assertNoErrorsInCode('''
+const dynamic nil = null;
+const c = [if (1 < 0) nil + 1];
+''');
+  }
+
+  test_ifElement_true_elseNotEvaluated() async {
+    assertNoErrorsInCode('''
+const dynamic nil = null;
+const c = [if (0 < 1) 3 else nil + 1];
+''');
   }
 }
