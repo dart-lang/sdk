@@ -28,10 +28,10 @@ import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
+import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/task/dart.dart' hide ConstantEvaluationTarget;
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:pub_semver/pub_semver.dart';
 

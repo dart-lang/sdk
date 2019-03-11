@@ -7,7 +7,6 @@ import 'package:analyzer/src/generated/engine.dart'
     show InternalAnalysisContext;
 import 'package:analyzer/src/plugin/task.dart';
 import 'package:analyzer/src/task/api/model.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/options_work_manager.dart';
 import 'package:plugin/plugin.dart';
@@ -137,18 +136,6 @@ class EnginePlugin implements Plugin {
   @override
   void registerExtensions(RegisterExtension registerExtension) {
     _registerWorkManagerFactoryExtensions(registerExtension);
-    _registerDartErrorsForSource(registerExtension);
-    _registerDartErrorsForUnit(registerExtension);
-  }
-
-  void _registerDartErrorsForSource(RegisterExtension registerExtension) {
-    registerExtension(DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID, PARSE_ERRORS);
-    registerExtension(DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID, SCAN_ERRORS);
-  }
-
-  void _registerDartErrorsForUnit(RegisterExtension registerExtension) {
-    registerExtension(
-        DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID, LIBRARY_UNIT_ERRORS);
   }
 
   void _registerWorkManagerFactoryExtensions(

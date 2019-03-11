@@ -29,7 +29,6 @@ import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/task/dart.dart' hide ConstantEvaluationTarget;
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
