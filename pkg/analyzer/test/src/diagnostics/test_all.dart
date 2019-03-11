@@ -31,6 +31,7 @@ import 'missing_return_test.dart' as missing_return;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
+import 'non_bool_condition_test.dart' as non_bool_condition;
 import 'non_constant_map_element_test.dart' as non_constant_map_element;
 import 'set_element_type_not_assignable_test.dart'
     as set_element_type_not_assignable;
@@ -85,6 +86,7 @@ main() {
     mixin_on_sealed_class.main();
     must_be_immutable.main();
     must_call_super.main();
+    non_bool_condition.main();
     non_constant_map_element.main();
     set_element_type_not_assignable.main();
     subtype_of_sealed_class.main();

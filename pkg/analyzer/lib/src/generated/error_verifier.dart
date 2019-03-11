@@ -894,6 +894,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitIfElement(IfElement node) {
+    _checkForNonBoolCondition(node.condition);
+    super.visitIfElement(node);
+  }
+
+  @override
   void visitIfStatement(IfStatement node) {
     _checkForNonBoolCondition(node.condition);
     super.visitIfStatement(node);
