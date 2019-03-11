@@ -458,12 +458,12 @@ def GetGitRevision():
       return fd.read()
   except:
     pass
-
-  p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%H'],
+  p = subprocess.Popen(['git', 'rev-parse', 'HEAD'],
                        stdout = subprocess.PIPE,
                        stderr = subprocess.STDOUT, shell=IsWindows(),
                        cwd = DART_DIR)
   output, _ = p.communicate()
+  output = output.strip()
   # We expect a full git hash
   if len(output) != 40:
     print "Warning: could not parse git commit, output was %s" % output
@@ -472,11 +472,12 @@ def GetGitRevision():
 
 
 def GetShortGitHash():
-  p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%h'],
+  p = subprocess.Popen(['git', '--short', 'rev-parse', 'HEAD'],
                        stdout = subprocess.PIPE,
                        stderr = subprocess.STDOUT, shell=IsWindows(),
                        cwd = DART_DIR)
   output, _ = p.communicate()
+  output = output.strip()
   if p.wait() != 0:
     return None
   return output
