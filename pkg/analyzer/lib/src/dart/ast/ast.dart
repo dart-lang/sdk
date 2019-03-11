@@ -8990,6 +8990,19 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   /// whether the kind has not or cannot be determined.
   _SetOrMapKind _resolvedKind;
 
+  /// The context type computed by
+  /// [ResolverVisitor._computeSetOrMapContextType].
+  ///
+  /// Note that this is not the same as the context pushed down by type
+  /// inference (which can be obtained via [InferenceContext.getContext]).  For
+  /// example, in the following code:
+  ///
+  ///     var m = {};
+  ///
+  /// The context pushed down by type inference is null, whereas the
+  /// `contextType` is `Map<dynamic, dynamic>`.
+  InterfaceType contextType;
+
   /// Initialize a newly created set or map literal. The [constKeyword] can be
   /// `null` if the literal is not a constant. The [typeArguments] can be `null`
   /// if no type arguments were declared. The [elements] can be `null` if the

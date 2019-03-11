@@ -4775,7 +4775,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    DartType literalType = _computeContextType(node);
+    DartType literalType = _computeSetOrMapContextType(node);
     // TODO(brianwilkerson) Determine whether we need special handling for type
     // parameter types. (E-mail sent.)
     if (literalType is InterfaceType) {
@@ -4800,6 +4800,8 @@ class ResolverVisitor extends ScopedVisitor {
               node.leftBracket,
               null,
               node.rightBracket);
+          InferenceContext.setType(
+              setLiteral, InferenceContext.getContext(node));
           NodeReplacer.replace(node, setLiteral);
           node = setLiteral;
         }
@@ -4809,9 +4811,9 @@ class ResolverVisitor extends ScopedVisitor {
         _pushCollectionTypesDownToAll(node.elements2,
             iterableType: literalType, keyType: keyType, valueType: valueType);
       }
-      InferenceContext.setType(node, literalType);
+      (node as SetOrMapLiteralImpl).contextType = literalType;
     } else {
-      InferenceContext.clearType(node);
+      (node as SetOrMapLiteralImpl).contextType = null;
     }
     super.visitSetOrMapLiteral(node);
   }
@@ -4976,8 +4978,39 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
+  /// Given the declared return type of a function, compute the type of the
+  /// values which should be returned or yielded as appropriate.  If a type
+  /// cannot be computed from the declared return type, return null.
+  DartType _computeReturnOrYieldType(DartType declaredType) {
+    bool isGenerator = _enclosingFunction.isGenerator;
+    bool isAsynchronous = _enclosingFunction.isAsynchronous;
+
+    // Ordinary functions just return their declared types.
+    if (!isGenerator && !isAsynchronous) {
+      return declaredType;
+    }
+    if (declaredType is InterfaceType) {
+      if (isGenerator) {
+        // If it's sync* we expect Iterable<T>
+        // If it's async* we expect Stream<T>
+        InterfaceType rawType = isAsynchronous
+            ? typeProvider.streamType
+            : typeProvider.iterableType;
+        // Match the types to instantiate the type arguments if possible
+        List<DartType> targs = declaredType.typeArguments;
+        if (targs.length == 1 && rawType.instantiate(targs) == declaredType) {
+          return targs[0];
+        }
+      }
+      // async functions expect `Future<T> | T`
+      var futureTypeParam = typeSystem.flatten(declaredType);
+      return _createFutureOr(futureTypeParam);
+    }
+    return declaredType;
+  }
+
   /// Compute the context type for the given set or map [literal].
-  DartType _computeContextType(SetOrMapLiteral literal) {
+  DartType _computeSetOrMapContextType(SetOrMapLiteral literal) {
     _LiteralResolution typeArgumentsResolution =
         _fromTypeArguments(literal.typeArguments);
     DartType contextType = InferenceContext.getContext(literal);
@@ -5027,37 +5060,6 @@ class ResolverVisitor extends ScopedVisitor {
           .instantiate([typeProvider.dynamicType, typeProvider.dynamicType]);
     }
     return null;
-  }
-
-  /// Given the declared return type of a function, compute the type of the
-  /// values which should be returned or yielded as appropriate.  If a type
-  /// cannot be computed from the declared return type, return null.
-  DartType _computeReturnOrYieldType(DartType declaredType) {
-    bool isGenerator = _enclosingFunction.isGenerator;
-    bool isAsynchronous = _enclosingFunction.isAsynchronous;
-
-    // Ordinary functions just return their declared types.
-    if (!isGenerator && !isAsynchronous) {
-      return declaredType;
-    }
-    if (declaredType is InterfaceType) {
-      if (isGenerator) {
-        // If it's sync* we expect Iterable<T>
-        // If it's async* we expect Stream<T>
-        InterfaceType rawType = isAsynchronous
-            ? typeProvider.streamType
-            : typeProvider.iterableType;
-        // Match the types to instantiate the type arguments if possible
-        List<DartType> targs = declaredType.typeArguments;
-        if (targs.length == 1 && rawType.instantiate(targs) == declaredType) {
-          return targs[0];
-        }
-      }
-      // async functions expect `Future<T> | T`
-      var futureTypeParam = typeSystem.flatten(declaredType);
-      return _createFutureOr(futureTypeParam);
-    }
-    return declaredType;
   }
 
   /// Return a newly created cloner that can be used to clone constant

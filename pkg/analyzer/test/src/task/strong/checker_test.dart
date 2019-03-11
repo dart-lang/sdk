@@ -3647,7 +3647,6 @@ class Child extends Base {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/35569')
   test_strictRawTypes_emptyMap() async {
     addFile('''
 main() {

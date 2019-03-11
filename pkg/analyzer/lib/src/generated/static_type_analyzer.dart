@@ -1753,7 +1753,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   DartType _inferSetOrMapLiteralType(SetOrMapLiteral literal) {
-    DartType contextType = InferenceContext.getContext(literal);
+    var literalImpl = literal as SetOrMapLiteralImpl;
+    DartType contextType = literalImpl.contextType;
+    literalImpl.contextType = null; // Not needed anymore.
     NodeList<CollectionElement> elements = literal.elements2;
     List<_InferredCollectionElementTypeInformation> inferredTypes = [];
     bool canBeAMap = true;
