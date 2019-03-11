@@ -58,16 +58,16 @@ consume2(
 test2() {
   dynamic theMap = {'a': 2.2, 'b': 3.3, 'c': 4.4};
   theMap
-      /*update: Map([subclass=JsLinkedHashMap], key: Union([exact=JSExtendableArray], [exact=JSString]), value: [null|exact=JSDouble])*/
+      /*update: Map([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSDouble])*/
       [aList2] = 5.5;
   /*iterator: [exact=LinkedHashMapKeyIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.
-      /*Map([subclass=JsLinkedHashMap], key: Union([exact=JSExtendableArray], [exact=JSString]), value: [null|exact=JSDouble])*/
+      /*Map([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSDouble])*/
       keys) {
     aDouble2 = theMap
-        /*Map([subclass=JsLinkedHashMap], key: Union([exact=JSExtendableArray], [exact=JSString]), value: [null|exact=JSDouble])*/
+        /*Map([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSDouble])*/
         [key];
   }
   // We have to reference it somewhere, so that it always gets resolved.

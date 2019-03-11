@@ -20,6 +20,7 @@ class C {
   List<T> bar<T>(Iterable<T> t) => <T>[t.first];
 }
 
+@pragma('dart2js:disableFinal')
 main() {
   B b = new B();
   C c = new C();

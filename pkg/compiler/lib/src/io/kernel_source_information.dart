@@ -109,6 +109,8 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
       location = node.location;
       offset = node.fileOffset;
     }
+    assert(
+        location != null, "No location found for $node (${node.runtimeType})");
     return new KernelSourceLocation(location, offset, name);
   }
 
