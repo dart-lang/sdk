@@ -67,79 +67,18 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
                            B->last_used_block_id_, prologue_info);
 }
 
-FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
-    LocalVariable* setter_value) {
+void StreamingFlowGraphBuilder::EvaluateConstFieldValue(const Field& field) {
+  ASSERT(field.is_const() && field.IsUninitialized());
+
   FieldHelper field_helper(this);
-  field_helper.ReadUntilIncluding(FieldHelper::kCanonicalName);
+  field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
+  Tag initializer_tag = ReadTag();  // read first part of initializer.
 
-  const Function& function = parsed_function()->function();
+  ASSERT(initializer_tag == kSomething);
 
-  // Instead of building a dynamic invocation forwarder that checks argument
-  // type and then invokes original setter we simply generate the type check
-  // and inlined field store. Scope builder takes care of setting correct
-  // type check mode in this case.
-  const bool is_setter = function.IsDynamicInvocationForwader() ||
-                         function.IsImplicitSetterFunction();
-  const bool is_method = !function.IsStaticFunction();
-  Field& field = Field::ZoneHandle(
-      Z, H.LookupFieldByKernelField(field_helper.canonical_name_));
-
-  B->graph_entry_ =
-      new (Z) GraphEntryInstr(*parsed_function(), Compiler::kNoOSRDeoptId);
-
-  auto normal_entry = B->BuildFunctionEntry(B->graph_entry_);
-  B->graph_entry_->set_normal_entry(normal_entry);
-
-  Fragment body(normal_entry);
-  if (is_setter) {
-    // We only expect to generate a dynamic invocation forwarder if
-    // the value needs type check.
-    ASSERT(!function.IsDynamicInvocationForwader() ||
-           setter_value->needs_type_check());
-    if (is_method) {
-      body += LoadLocal(scopes()->this_variable);
-    }
-    body += LoadLocal(setter_value);
-    if (I->argument_type_checks() && setter_value->needs_type_check()) {
-      body += CheckArgumentType(setter_value, setter_value->type());
-    }
-    if (is_method) {
-      body += flow_graph_builder_->StoreInstanceFieldGuarded(field, false);
-    } else {
-      body += StoreStaticField(TokenPosition::kNoSource, field);
-    }
-    body += NullConstant();
-  } else if (is_method) {
-    body += LoadLocal(scopes()->this_variable);
-    body += flow_graph_builder_->LoadField(field);
-  } else if (field.is_const()) {
-    field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
-    Tag initializer_tag = ReadTag();  // read first part of initializer.
-
-    // If the parser needs to know the value of an uninitialized constant field
-    // it will set the value to the transition sentinel (used to detect circular
-    // initialization) and then call the implicit getter.  Thus, the getter
-    // cannot contain the InitStaticField instruction that normal static getters
-    // contain because it would detect spurious circular initialization when it
-    // checks for the transition sentinel.
-    ASSERT(initializer_tag == kSomething);
-    body += Constant(Instance::ZoneHandle(
-        Z, constant_evaluator_.EvaluateExpression(ReaderOffset())));
-  } else {
-    // The field always has an initializer because static fields without
-    // initializers are initialized eagerly and do not have implicit getters.
-    ASSERT(field.has_initializer());
-    body += Constant(field);
-    body += flow_graph_builder_->InitStaticField(field);
-    body += Constant(field);
-    body += LoadStaticField();
-  }
-  body += Return(TokenPosition::kNoSource);
-
-  PrologueInfo prologue_info(-1, -1);
-  return new (Z)
-      FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
-                flow_graph_builder_->last_used_block_id_, prologue_info);
+  Instance& value = Instance::Handle(
+      Z, constant_evaluator_.EvaluateExpression(ReaderOffset()));
+  field.SetStaticValue(value);
 }
 
 void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
@@ -1211,13 +1150,18 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitStaticFinalGetter:
     case RawFunction::kImplicitSetter: {
-      return IsFieldInitializer(function, Z)
-                 ? BuildGraphOfFieldInitializer()
-                 : BuildGraphOfFieldAccessor(scopes()->setter_value);
+      if (IsFieldInitializer(function, Z)) {
+        return BuildGraphOfFieldInitializer();
+      }
+      const Field& field = Field::Handle(Z, function.accessor_field());
+      if (field.is_const() && field.IsUninitialized()) {
+        EvaluateConstFieldValue(field);
+      }
+      return B->BuildGraphOfFieldAccessor(function);
     }
     case RawFunction::kDynamicInvocationForwarder:
       if (PeekTag() == kField) {
-        return BuildGraphOfFieldAccessor(scopes()->setter_value);
+        return B->BuildGraphOfFieldAccessor(function);
       } else {
         ReadUntilFunctionNode();
         return BuildGraphOfDynamicInvocationForwarder();

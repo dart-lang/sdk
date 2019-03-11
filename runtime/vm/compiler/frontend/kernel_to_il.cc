@@ -2092,6 +2092,79 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
                            prologue_info);
 }
 
+FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
+    const Function& function) {
+  ASSERT(function.IsImplicitGetterOrSetter() ||
+         function.IsDynamicInvocationForwader());
+
+  // Instead of building a dynamic invocation forwarder that checks argument
+  // type and then invokes original setter we simply generate the type check
+  // and inlined field store. Scope builder takes care of setting correct
+  // type check mode in this case.
+  const bool is_setter = function.IsDynamicInvocationForwader() ||
+                         function.IsImplicitSetterFunction();
+  const bool is_method = !function.IsStaticFunction();
+
+  Field& field = Field::ZoneHandle(Z, function.accessor_field());
+
+  graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
+
+  auto normal_entry = BuildFunctionEntry(graph_entry_);
+  graph_entry_->set_normal_entry(normal_entry);
+
+  auto scope = parsed_function_->node_sequence()->scope();
+
+  Fragment body(normal_entry);
+  if (is_setter) {
+    LocalVariable* setter_value = scope->VariableAt(is_method ? 1 : 0);
+
+    // We only expect to generate a dynamic invocation forwarder if
+    // the value needs type check.
+    ASSERT(!function.IsDynamicInvocationForwader() ||
+           setter_value->needs_type_check());
+    if (is_method) {
+      body += LoadLocal(scope->VariableAt(0));
+    }
+    body += LoadLocal(setter_value);
+    if (I->argument_type_checks() && setter_value->needs_type_check()) {
+      body += CheckAssignable(setter_value->type(), setter_value->name(),
+                              AssertAssignableInstr::kParameterCheck);
+    }
+    if (is_method) {
+      body += StoreInstanceFieldGuarded(field, false);
+    } else {
+      body += StoreStaticField(TokenPosition::kNoSource, field);
+    }
+    body += NullConstant();
+  } else if (is_method) {
+    body += LoadLocal(scope->VariableAt(0));
+    body += LoadField(field);
+  } else if (field.is_const()) {
+    // If the parser needs to know the value of an uninitialized constant field
+    // it will set the value to the transition sentinel (used to detect circular
+    // initialization) and then call the implicit getter.  Thus, the getter
+    // cannot contain the InitStaticField instruction that normal static getters
+    // contain because it would detect spurious circular initialization when it
+    // checks for the transition sentinel.
+    ASSERT(!field.IsUninitialized());
+    body += Constant(Instance::ZoneHandle(Z, field.StaticValue()));
+  } else {
+    // The field always has an initializer because static fields without
+    // initializers are initialized eagerly and do not have implicit getters.
+    ASSERT(field.has_initializer());
+    body += Constant(field);
+    body += InitStaticField(field);
+    body += Constant(field);
+    body += LoadStaticField();
+  }
+  body += Return(TokenPosition::kNoSource);
+
+  PrologueInfo prologue_info(-1, -1);
+  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                           prologue_info);
+}
+
 void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
   try_catch_block_ = try_catch_block;
   SetCurrentTryIndex(try_catch_block == nullptr ? kInvalidTryIndex

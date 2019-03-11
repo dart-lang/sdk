@@ -5857,7 +5857,8 @@ void Function::set_saved_args_desc(const Array& value) const {
 RawField* Function::accessor_field() const {
   ASSERT(kind() == RawFunction::kImplicitGetter ||
          kind() == RawFunction::kImplicitSetter ||
-         kind() == RawFunction::kImplicitStaticFinalGetter);
+         kind() == RawFunction::kImplicitStaticFinalGetter ||
+         kind() == RawFunction::kDynamicInvocationForwarder);
   return Field::RawCast(raw_ptr()->data_);
 }
 

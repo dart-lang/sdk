@@ -268,6 +268,17 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   //
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
 
+  // Builds flow graph of implicit field getter, setter, or a
+  // dynamic invocation forwarder to a field setter.
+  //
+  // If field is const, its value should be evaluated and stored in
+  //  - StaticValue()
+  //
+  // Scope should be populated with parameter variables including
+  //  - needs_type_check()
+  //
+  FlowGraph* BuildGraphOfFieldAccessor(const Function& function);
+
   TranslationHelper translation_helper_;
   Thread* thread_;
   Zone* zone_;

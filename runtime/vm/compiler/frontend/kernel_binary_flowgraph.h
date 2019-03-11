@@ -57,7 +57,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Thread* thread() const { return flow_graph_builder_->thread_; }
 
   FlowGraph* BuildGraphOfFieldInitializer();
-  FlowGraph* BuildGraphOfFieldAccessor(LocalVariable* setter_value);
+  void EvaluateConstFieldValue(const Field& field);
   void SetupDefaultParameterValues();
   void ReadDefaultFunctionTypeArguments(const Function& function);
   Fragment BuildFieldInitializer(NameIndex canonical_name);
