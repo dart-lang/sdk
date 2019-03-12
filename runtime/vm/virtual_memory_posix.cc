@@ -43,6 +43,23 @@ void VirtualMemory::Init() {
 
 #if defined(DUAL_MAPPING_SUPPORTED)
   shm_unlink(DART_SHM_NAME);  // Could be left over from a previous crash.
+
+  // Detect dual mapping exec permission limitation on some platforms,
+  // such as on docker containers, and disable dual mapping in this case.
+  if (FLAG_dual_map_code) {
+    intptr_t size = page_size_;
+    intptr_t alignment = 256 * 1024;  // e.g. heap page size.
+    VirtualMemory* vm = AllocateAligned(size, alignment, true, NULL);
+    void* region = reinterpret_cast<void*>(vm->region_.start());
+    void* alias = reinterpret_cast<void*>(vm->alias_.start());
+    if (region == alias ||
+        mprotect(region, size, PROT_READ) != 0 ||  // Remove PROT_WRITE.
+        mprotect(alias, size, PROT_READ | PROT_EXEC) != 0) {  // Add PROT_EXEC.
+      LOG_INFO("disabling dual mapping of code\n");
+      FLAG_dual_map_code = false;
+    }
+    delete vm;
+  }
 #endif                        // defined(DUAL_MAPPING_SUPPORTED)
 }
 
