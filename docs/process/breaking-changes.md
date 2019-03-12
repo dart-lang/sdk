@@ -66,7 +66,7 @@ to a change being released in a dev channel release.
 
 [TODO: Link to an issue template for this]
 
-* Email `announce@dartlang.org, flutter-announce@googlegroups.com`,:
+* Email `announce@dartlang.org`:
 
   * Subject: 'Breaking change [bug ID]: [short summary]'
 
