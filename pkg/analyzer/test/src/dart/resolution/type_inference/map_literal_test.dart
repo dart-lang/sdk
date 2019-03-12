@@ -344,6 +344,16 @@ var a = {...b, ...c};
     assertType(setOrMapLiteral('{...'), 'Map<Object, Object>');
   }
 
+  test_noContext_noTypeArgs_spread_nestedInIf_oneAmbiguous() async {
+    addTestFile('''
+Map<String, int> c;
+dynamic d;
+var a = {if (0 < 1) ...c else ...d};
+''');
+    await resolveTestFile();
+    assertType(setOrMapLiteral('{'), 'Map<dynamic, dynamic>');
+  }
+
   @failingTest
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull() async {
     addTestFile('''
