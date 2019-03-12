@@ -4,11 +4,16 @@
 
 library js_backend.backend.annotations;
 
+import 'package:kernel/ast.dart' as ir;
+
+import '../common.dart';
 import '../common_elements.dart' show KCommonElements, KElementEnvironment;
 import '../constants/values.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../diagnostics/messages.dart';
 import '../elements/entities.dart';
+import '../ir/annotations.dart';
+import '../ir/util.dart';
 import '../kernel/dart2js_target.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
@@ -80,20 +85,11 @@ class PragmaAnnotation {
   ];
 }
 
-Set<PragmaAnnotation> processMemberAnnotations(
-    CompilerOptions options,
-    DiagnosticReporter reporter,
+List<PragmaAnnotationData> computePragmaAnnotationData(
     KCommonElements commonElements,
     KElementEnvironment elementEnvironment,
-    AnnotationsDataBuilder annotationsDataBuilder,
     MemberEntity element) {
-  EnumSet<PragmaAnnotation> values = new EnumSet<PragmaAnnotation>();
-
-  LibraryEntity library = element.library;
-  bool platformAnnotationsAllowed = options.testMode ||
-      library.canonicalUri.scheme == 'dart' ||
-      maybeEnableNative(library.canonicalUri);
-
+  List<PragmaAnnotationData> annotations = [];
   for (ConstantValue constantValue
       in elementEnvironment.getMemberMetadata(element)) {
     if (!constantValue.isConstructedObject) continue;
@@ -102,21 +98,9 @@ Set<PragmaAnnotation> processMemberAnnotations(
     assert(cls != null); // Unresolved classes null.
 
     if (cls == commonElements.metaNoInlineClass) {
-      values.add(PragmaAnnotation.noInline);
-      if (element is! FunctionEntity) {
-        reporter.internalError(
-            element,
-            "@pragma('dart2js:noInline') is only allowed in methods "
-            "and constructors.");
-      }
+      annotations.add(const PragmaAnnotationData('noInline'));
     } else if (cls == commonElements.metaTryInlineClass) {
-      values.add(PragmaAnnotation.tryInline);
-      if (element is! FunctionEntity) {
-        reporter.internalError(
-            element,
-            "@pragma('dart2js:tryInline') is only allowed in methods "
-            "and constructors.");
-      }
+      annotations.add(const PragmaAnnotationData('tryInline'));
     } else if (cls == commonElements.pragmaClass) {
       ConstantValue nameValue =
           value.fields[commonElements.pragmaClassNameField];
@@ -128,49 +112,78 @@ Set<PragmaAnnotation> processMemberAnnotations(
 
       ConstantValue optionsValue =
           value.fields[commonElements.pragmaClassOptionsField];
-      bool found = false;
-      for (PragmaAnnotation annotation in PragmaAnnotation.values) {
-        if (annotation.name == suffix) {
-          found = true;
-          values.add(annotation);
+      annotations.add(
+          new PragmaAnnotationData(suffix, hasOptions: !optionsValue.isNull));
+    }
+  }
+  return annotations;
+}
 
-          if (!optionsValue.isNull) {
-            reporter.reportErrorMessage(element, MessageKind.GENERIC,
-                {'text': "@pragma('$name') annotation does not take options"});
-          }
-          if (annotation.forFunctionsOnly) {
-            if (element is! FunctionEntity) {
-              reporter.reportErrorMessage(element, MessageKind.GENERIC, {
-                'text': "@pragma('$name') annotation is only supported "
-                    "for methods and constructors."
-              });
-            }
-          }
-          if (annotation.forFieldsOnly) {
-            if (element is! FieldEntity) {
-              reporter.reportErrorMessage(element, MessageKind.GENERIC, {
-                'text': "@pragma('$name') annotation is only supported "
-                    "for fields."
-              });
-            }
-          }
-          if (annotation.internalOnly && !platformAnnotationsAllowed) {
-            reporter.reportErrorMessage(element, MessageKind.GENERIC,
-                {'text': "Unrecognized dart2js pragma @pragma('$name')"});
-          }
-          break;
+EnumSet<PragmaAnnotation> processMemberAnnotations(
+    CompilerOptions options,
+    DiagnosticReporter reporter,
+    ir.Member member,
+    List<PragmaAnnotationData> pragmaAnnotationData) {
+  EnumSet<PragmaAnnotation> values = new EnumSet<PragmaAnnotation>();
+
+  Uri uri = member.enclosingLibrary.importUri;
+  bool platformAnnotationsAllowed =
+      options.testMode || uri.scheme == 'dart' || maybeEnableNative(uri);
+
+  for (PragmaAnnotationData data in pragmaAnnotationData) {
+    String name = data.name;
+    String suffix = data.suffix;
+    bool found = false;
+    for (PragmaAnnotation annotation in PragmaAnnotation.values) {
+      if (annotation.name == suffix) {
+        found = true;
+        values.add(annotation);
+
+        if (data.hasOptions) {
+          reporter.reportErrorMessage(
+              computeSourceSpanFromTreeNode(member),
+              MessageKind.GENERIC,
+              {'text': "@pragma('$name') annotation does not take options"});
         }
+        if (annotation.forFunctionsOnly) {
+          if (member is! ir.Procedure && member is! ir.Constructor) {
+            reporter.reportErrorMessage(
+                computeSourceSpanFromTreeNode(member), MessageKind.GENERIC, {
+              'text': "@pragma('$name') annotation is only supported "
+                  "for methods and constructors."
+            });
+          }
+        }
+        if (annotation.forFieldsOnly) {
+          if (member is! ir.Field) {
+            reporter.reportErrorMessage(
+                computeSourceSpanFromTreeNode(member), MessageKind.GENERIC, {
+              'text': "@pragma('$name') annotation is only supported "
+                  "for fields."
+            });
+          }
+        }
+        if (annotation.internalOnly && !platformAnnotationsAllowed) {
+          reporter.reportErrorMessage(
+              computeSourceSpanFromTreeNode(member),
+              MessageKind.GENERIC,
+              {'text': "Unrecognized dart2js pragma @pragma('$name')"});
+        }
+        break;
       }
-      if (!found) {
-        reporter.reportErrorMessage(element, MessageKind.GENERIC,
-            {'text': "Unknown dart2js pragma @pragma('$name')"});
-      }
+    }
+    if (!found) {
+      reporter.reportErrorMessage(
+          computeSourceSpanFromTreeNode(member),
+          MessageKind.GENERIC,
+          {'text': "Unknown dart2js pragma @pragma('$name')"});
     }
   }
 
   if (values.contains(PragmaAnnotation.tryInline) &&
       values.contains(PragmaAnnotation.noInline)) {
-    reporter.reportErrorMessage(element, MessageKind.GENERIC, {
+    reporter.reportErrorMessage(
+        computeSourceSpanFromTreeNode(member), MessageKind.GENERIC, {
       'text': "@pragma('dart2js:tryInline') must not be used with "
           "@pragma('dart2js:noInline')."
     });
@@ -179,20 +192,18 @@ Set<PragmaAnnotation> processMemberAnnotations(
   if (values.contains(PragmaAnnotation.noThrows) &&
       !values.contains(PragmaAnnotation.noInline)) {
     reporter.internalError(
-        element,
+        computeSourceSpanFromTreeNode(member),
         "@pragma('dart2js:noThrows') should always be combined with "
         "@pragma('dart2js:noInline').");
   }
   if (values.contains(PragmaAnnotation.noSideEffects) &&
       !values.contains(PragmaAnnotation.noInline)) {
     reporter.internalError(
-        element,
+        computeSourceSpanFromTreeNode(member),
         "@pragma('dart2js:noSideEffects') should always be combined with "
         "@pragma('dart2js:noInline').");
   }
-  annotationsDataBuilder.registerPragmaAnnotations(element, values);
-  return new Set<PragmaAnnotation>.from(
-      values.iterable(PragmaAnnotation.values));
+  return values;
 }
 
 abstract class AnnotationsData {

@@ -38,6 +38,7 @@ import '../universe/class_hierarchy.dart';
 import '../universe/resolution_world_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
+import '../util/enumset.dart';
 import 'deferred_load.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
@@ -55,11 +56,14 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   final Map<MemberEntity, ClosureScopeModel> closureModels = {};
 
+  ModularStrategy _modularStrategy;
+
   KernelFrontEndStrategy(this._compilerTask, this._options,
       DiagnosticReporter reporter, env.Environment environment) {
     assert(_compilerTask != null);
     _elementMap =
         new KernelToElementMapImpl(reporter, environment, this, _options);
+    _modularStrategy = new KernelModularStrategy(_compilerTask, _elementMap);
   }
 
   @override
@@ -68,6 +72,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
     _annotationProcessor = new KernelAnnotationProcessor(elementMap,
         nativeBasicDataBuilder, processAnnotations(kernelResult.component));
   }
+
+  ModularStrategy get modularStrategyForTesting => _modularStrategy;
 
   @override
   ElementEnvironment get elementEnvironment => _elementMap.elementEnvironment;
@@ -166,7 +172,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
         impactTransformer,
         closureModels,
         impactCache,
-        fieldAnalysis);
+        fieldAnalysis,
+        _modularStrategy);
   }
 
   ClassQueries createClassQueries() {
@@ -188,6 +195,7 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
   final Map<MemberEntity, ClosureScopeModel> _closureModels;
   final Map<Entity, WorldImpact> _impactCache;
   final KFieldAnalysis _fieldAnalysis;
+  final ModularStrategy _modularStrategy;
 
   KernelWorkItemBuilder(
       this._compilerTask,
@@ -198,7 +206,8 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
       this._impactTransformer,
       this._closureModels,
       this._impactCache,
-      this._fieldAnalysis)
+      this._fieldAnalysis,
+      this._modularStrategy)
       : _nativeMemberResolver = new KernelNativeMemberResolver(
             _elementMap, nativeBasicData, nativeDataBuilder);
 
@@ -213,7 +222,8 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
         entity,
         _closureModels,
         _impactCache,
-        _fieldAnalysis);
+        _fieldAnalysis,
+        _modularStrategy);
   }
 }
 
@@ -227,7 +237,6 @@ class KernelWorkItem implements WorkItem {
   final Map<MemberEntity, ClosureScopeModel> _closureModels;
   final Map<Entity, WorldImpact> _impactCache;
   final KFieldAnalysis _fieldAnalysis;
-
   final ModularStrategy _modularStrategy;
 
   KernelWorkItem(
@@ -239,24 +248,27 @@ class KernelWorkItem implements WorkItem {
       this.element,
       this._closureModels,
       this._impactCache,
-      this._fieldAnalysis)
-      : _modularStrategy =
-            new KernelModularStrategy(_compilerTask, _elementMap);
+      this._fieldAnalysis,
+      this._modularStrategy);
 
   @override
   WorldImpact run() {
     return _compilerTask.measure(() {
       _nativeMemberResolver.resolveNativeMember(element);
-      Set<PragmaAnnotation> annotations = processMemberAnnotations(
+      ir.Member node = _elementMap.getMemberNode(element);
+
+      List<PragmaAnnotationData> pragmaAnnotationData =
+          _modularStrategy.getPragmaAnnotationData(node);
+
+      EnumSet<PragmaAnnotation> annotations = processMemberAnnotations(
           _elementMap.options,
           _elementMap.reporter,
-          _elementMap.commonElements,
-          _elementMap.elementEnvironment,
-          _annotationsDataBuilder,
-          element);
-      ir.Member node = _elementMap.getMemberNode(element);
+          _elementMap.getMemberNode(element),
+          pragmaAnnotationData);
+      _annotationsDataBuilder.registerPragmaAnnotations(element, annotations);
+
       ModularMemberData modularMemberData =
-          _modularStrategy.computeModularMemberData(node, annotations);
+          _modularStrategy.getModularMemberData(node, annotations);
       ScopeModel scopeModel = modularMemberData.scopeModel;
       if (scopeModel.closureScopeModel != null) {
         _closureModels[element] = scopeModel.closureScopeModel;
@@ -268,7 +280,10 @@ class KernelWorkItem implements WorkItem {
       ImpactBuilderData impactBuilderData = modularMemberData.impactBuilderData;
       return _compilerTask.measureSubtask('worldImpact', () {
         ResolutionImpact impact = _elementMap.computeWorldImpact(
-            element, scopeModel.variableScopeModel, annotations,
+            element,
+            scopeModel.variableScopeModel,
+            new Set<PragmaAnnotation>.from(
+                annotations.iterable(PragmaAnnotation.values)),
             impactBuilderData: impactBuilderData);
         WorldImpact worldImpact =
             _impactTransformer.transformResolutionImpact(impact);
@@ -281,6 +296,15 @@ class KernelWorkItem implements WorkItem {
   }
 }
 
+/// If `true` kernel impacts are computed as [ImpactData] directly on kernel
+/// and converted to the K model afterwards. This is a pre-step to modularizing
+/// the world impact computation.
+bool useImpactDataForTesting = false;
+
+/// If `true` pragma annotations are computed directly on kernel. This is a
+/// pre-step to modularizing the world impact computation.
+bool useIrAnnotationsDataForTesting = false;
+
 class KernelModularStrategy extends ModularStrategy {
   final CompilerTask _compilerTask;
   final KernelToElementMapImpl _elementMap;
@@ -288,8 +312,18 @@ class KernelModularStrategy extends ModularStrategy {
   KernelModularStrategy(this._compilerTask, this._elementMap);
 
   @override
-  ModularMemberData computeModularMemberData(
-      ir.Member node, Set<PragmaAnnotation> annotations) {
+  List<PragmaAnnotationData> getPragmaAnnotationData(ir.Member node) {
+    if (useIrAnnotationsDataForTesting) {
+      return computePragmaAnnotationDataFromIr(node);
+    } else {
+      return computePragmaAnnotationData(_elementMap.commonElements,
+          _elementMap.elementEnvironment, _elementMap.getMember(node));
+    }
+  }
+
+  @override
+  ModularMemberData getModularMemberData(
+      ir.Member node, EnumSet<PragmaAnnotation> annotations) {
     ScopeModel scopeModel = _compilerTask.measureSubtask(
         'closures', () => new ScopeModel.from(node));
     ImpactBuilderData impactBuilderData;

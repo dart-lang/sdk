@@ -1714,9 +1714,6 @@ class CommonElementsImpl
       _env.lookupLibrary(Uris.dart__js_embedded_names, required: true),
       'JsBuiltin');
 
-  static final Uri PACKAGE_META_DART2JS =
-      new Uri(scheme: 'package', path: 'meta/dart2js.dart');
-
   bool _metaAnnotationChecked = false;
   ClassEntity _metaNoInlineClass;
   ClassEntity _metaTryInlineClass;
@@ -1724,7 +1721,7 @@ class CommonElementsImpl
   void _ensureMetaAnnotations() {
     if (!_metaAnnotationChecked) {
       _metaAnnotationChecked = true;
-      LibraryEntity library = _env.lookupLibrary(PACKAGE_META_DART2JS);
+      LibraryEntity library = _env.lookupLibrary(Uris.package_meta_dart2js);
       if (library != null) {
         _metaNoInlineClass = _env.lookupClass(library, '_NoInline');
         _metaTryInlineClass = _env.lookupClass(library, '_TryInline');

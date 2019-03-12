@@ -61,11 +61,6 @@ import 'kernel_impact.dart';
 part 'native_basic_data.dart';
 part 'no_such_method_resolver.dart';
 
-/// If `true` kernel impacts are computed as [ImpactData] directly on kernel
-/// and converted to the K model afterwards. This is a pre-step to modularizing
-/// the world impact computation.
-bool useImpactDataForTesting = false;
-
 /// Implementation of [KernelToElementMap] that only supports world
 /// impact computation.
 class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {

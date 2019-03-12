@@ -9,6 +9,8 @@ import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../js_backend/annotations.dart';
+import '../util/enumset.dart';
+import 'annotations.dart';
 import 'impact.dart';
 import 'scope.dart';
 
@@ -20,7 +22,9 @@ class ModularMemberData {
 }
 
 abstract class ModularStrategy {
+  List<PragmaAnnotationData> getPragmaAnnotationData(ir.Member node);
+
   // TODO(johnniwinther): Avoid the need for passing [pragmaAnnotations].
-  ModularMemberData computeModularMemberData(
-      ir.Member node, Set<PragmaAnnotation> pragmaAnnotations);
+  ModularMemberData getModularMemberData(
+      ir.Member node, EnumSet<PragmaAnnotation> pragmaAnnotations);
 }

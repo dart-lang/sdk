@@ -24,9 +24,23 @@ const Map<String, String> source = {
 
 library lib;
 
+import 'package:meta/dart2js.dart';
+
 import 'jslib1.dart';
 import 'jslib2.dart';
 import 'nativelib.dart';
+
+@pragma('dart2js:noInline')
+method1() {}
+
+@noInline
+method2() {}
+
+@pragma('dart2js:tryInline')
+method3() {}
+
+@tryInline
+method4() {}
 
 main() {
 }
@@ -106,6 +120,16 @@ const Set<String> expectedAnonymousJsInteropClasses = {
   '$pathPrefix/jslib2.dart::Class2',
 };
 
+const Set<String> expectedNoInlineMethods = {
+  '$pathPrefix/main.dart::method1',
+  '$pathPrefix/main.dart::method2',
+};
+
+const Set<String> expectedTryInlineMethods = {
+  '$pathPrefix/main.dart::method3',
+  '$pathPrefix/main.dart::method4',
+};
+
 main(List<String> args) {
   ArgParser argParser = createArgParser();
 
@@ -116,6 +140,7 @@ main(List<String> args) {
     List<String> options = getOptions(argResults);
 
     runTest({bool useIr}) async {
+      useIrAnnotationsDataForTesting = useIr;
       CompilationResult result = await runCompiler(
           entryPoint: Uri.parse('memory:$pathPrefix/main.dart'),
           memorySourceFiles: source,
@@ -144,11 +169,25 @@ main(List<String> args) {
 
         String expectedJsInteropMemberName =
             expectedJsInteropMemberNames[memberId];
+        Set<String> expectedPragmaNames = {};
+        if (expectedNoInlineMethods.contains(memberId)) {
+          expectedPragmaNames.add('dart2js:noInline');
+        }
+        if (expectedTryInlineMethods.contains(memberId)) {
+          expectedPragmaNames.add('dart2js:tryInline');
+        }
         if (useIr) {
           Expect.equals(
               expectedJsInteropMemberName,
               annotationData.getJsInteropMemberName(member),
               "Unexpected js interop member name from IR for $member");
+
+          List<PragmaAnnotationData> pragmaAnnotations =
+              annotationData.getMemberPragmaAnnotationData(member);
+          Set<String> pragmaNames =
+              pragmaAnnotations.map((d) => d.name).toSet();
+          Expect.setEquals(expectedPragmaNames, pragmaNames,
+              "Unexpected pragmas from IR for $member");
         }
         bool isJsInteropMember =
             (implicitJsInteropMember && member.isExternal) ||
@@ -163,6 +202,12 @@ main(List<String> args) {
                 : null,
             nativeData.getJsInteropMemberName(memberEntity),
             "Unexpected js interop member name from native data for $member");
+        List<PragmaAnnotationData> pragmaAnnotations = frontendStrategy
+            .modularStrategyForTesting
+            .getPragmaAnnotationData(member);
+        Set<String> pragmaNames = pragmaAnnotations.map((d) => d.name).toSet();
+        Expect.setEquals(expectedPragmaNames, pragmaNames,
+            "Unexpected pragmas from modular strategy for $member");
       }
 
       for (ir.Library library in component.libraries) {
