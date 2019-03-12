@@ -7,15 +7,12 @@ import utils
 
 
 def main():
-  os.mkdir(os.path.join(utils.DART_DIR, 'tools/abiversions'))
   abi_version = int(utils.GetAbiVersion())
   oldest_abi_version = int(utils.GetOldestSupportedAbiVersion())
   cmd = ['cipd', 'ensure', '-root', 'tools/abiversions', '-ensure-file', '-']
   ensure_file = ''
   for i in xrange(oldest_abi_version, abi_version):
     ensure_file += '@Subdir %d\ndart/abiversions/%d latest\n\n' % (i, i)
-  if not ensure_file:
-    return 0
   p = subprocess.Popen(cmd,
                        stdin = subprocess.PIPE,
                        shell = utils.IsWindows(),
