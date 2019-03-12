@@ -239,12 +239,15 @@ class ExceptionHandlerFinder : public StackResource {
   }
 
   void ExecuteCatchEntryMoves(const CatchEntryMoves& moves) {
+    Zone* zone = Thread::Current()->zone();
+    auto& value = Object::Handle(zone);
+    auto& dst_values = Array::Handle(zone, Array::New(moves.count()));
+
     uword fp = handler_fp;
     ObjectPool* pool = nullptr;
     for (int j = 0; j < moves.count(); j++) {
       const CatchEntryMove& move = moves.At(j);
 
-      RawObject* value;
       switch (move.source_kind()) {
         case CatchEntryMove::SourceKind::kConstant:
           if (pool == nullptr) {
@@ -295,7 +298,17 @@ class ExceptionHandlerFinder : public StackResource {
           UNREACHABLE();
       }
 
-      *TaggedSlotAt(fp, move.dest_slot()) = value;
+      dst_values.SetAt(j, value);
+    }
+
+    {
+      NoSafepointScope no_safepoint_scope;
+
+      for (int j = 0; j < moves.count(); j++) {
+        const CatchEntryMove& move = moves.At(j);
+        value = dst_values.At(j);
+        *TaggedSlotAt(fp, move.dest_slot()) = value.raw();
+      }
     }
   }
 
