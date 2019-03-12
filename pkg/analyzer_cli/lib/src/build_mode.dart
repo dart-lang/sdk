@@ -557,6 +557,22 @@ class BuildMode with HasContextMixin {
 }
 
 /**
+ * Tracks paths to dependencies, really just a thin api around a Set<String>.
+ */
+class DependencyTracker {
+  final _dependencies = Set<String>();
+
+  /// The path to the file to create once tracking is done.
+  final String outputPath;
+
+  DependencyTracker(this.outputPath);
+
+  Iterable<String> get dependencies => _dependencies;
+
+  void record(String path) => _dependencies.add(path);
+}
+
+/**
  * [PackageBundleProvider] that always reads from the [ResourceProvider].
  */
 class DirectPackageBundleProvider implements PackageBundleProvider {
@@ -718,20 +734,4 @@ class WorkerPackageBundleProvider implements PackageBundleProvider {
   PackageBundle get(String path) {
     return cache.get(inputs, path);
   }
-}
-
-/**
- * Tracks paths to dependencies, really just a thin api around a Set<String>.
- */
-class DependencyTracker {
-  final _dependencies = Set<String>();
-
-  Iterable<String> get dependencies => _dependencies;
-
-  /// The path to the file to create once tracking is done.
-  final String outputPath;
-
-  DependencyTracker(this.outputPath);
-
-  void record(String path) => _dependencies.add(path);
 }
