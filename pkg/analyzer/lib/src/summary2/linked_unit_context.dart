@@ -93,6 +93,11 @@ class LinkedUnitContext {
         kind == LinkedNodeKind.variableDeclaration) {
       return node.annotatedNode_metadata;
     }
+    if (kind == LinkedNodeKind.fieldFormalParameter ||
+        kind == LinkedNodeKind.functionTypedFormalParameter ||
+        kind == LinkedNodeKind.simpleFormalParameter) {
+      return node.normalFormalParameter_metadata;
+    }
     return const <LinkedNode>[];
   }
 
@@ -148,6 +153,8 @@ class LinkedUnitContext {
     } else if (kind == LinkedNodeKind.classDeclaration ||
         kind == LinkedNodeKind.mixinDeclaration) {
       typeParameterList = node.classOrMixinDeclaration_typeParameters;
+    } else if (kind == LinkedNodeKind.constructorDeclaration) {
+      return const [];
     } else if (kind == LinkedNodeKind.functionDeclaration) {
       return getTypeParameters(node.functionDeclaration_functionExpression);
     } else if (kind == LinkedNodeKind.functionExpression) {
@@ -331,6 +338,9 @@ class LinkedUnitContext {
   }
 
   Expression readInitializer(LinkedNode linkedNode) {
+    if (linkedNode.kind == LinkedNodeKind.defaultFormalParameter) {
+      return readNode(linkedNode.defaultFormalParameter_defaultValue);
+    }
     return readNode(linkedNode.variableDeclaration_initializer);
   }
 

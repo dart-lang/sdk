@@ -2810,6 +2810,10 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   DefaultParameterElementImpl(String name, int nameOffset)
       : super(name, nameOffset);
 
+  DefaultParameterElementImpl.forLinkedNode(
+      ElementImpl enclosing, Reference reference, LinkedNode linkedNode)
+      : super.forLinkedNode(enclosing, reference, linkedNode);
+
   /// Initialize a newly created parameter element to have the given [name].
   DefaultParameterElementImpl.forNode(Identifier name) : super.forNode(name);
 
@@ -4370,14 +4374,26 @@ abstract class ExecutableElementImpl extends ElementImpl
         var formalParameters = context.getFormalParameters(linkedNode);
         if (formalParameters != null) {
           _parameters = formalParameters.map((node) {
-            var name = context.getFormalParameterName(node);
-            var reference = containerRef.getChild(name);
-            reference.node = node;
-            return ParameterElementImpl.forLinkedNodeFactory(
-              this,
-              reference,
-              node,
-            );
+            if (node.kind == LinkedNodeKind.defaultFormalParameter) {
+              var parameterNode = node.defaultFormalParameter_parameter;
+              var name = context.getFormalParameterName(parameterNode);
+              var reference = containerRef.getChild(name);
+              reference.node = node;
+              return DefaultParameterElementImpl.forLinkedNode(
+                this,
+                reference,
+                node,
+              );
+            } else {
+              var name = context.getFormalParameterName(node);
+              var reference = containerRef.getChild(name);
+              reference.node = node;
+              return ParameterElementImpl.forLinkedNodeFactory(
+                this,
+                reference,
+                node,
+              );
+            }
           }).toList();
         } else {
           _parameters = const [];
@@ -7796,6 +7812,10 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   bool get isCovariant {
     if (linkedNode != null) {
+      if (linkedNode.kind == LinkedNodeKind.defaultFormalParameter) {
+        var parameter = linkedNode.defaultFormalParameter_parameter;
+        return parameter.normalFormalParameter_isCovariant;
+      }
       return linkedNode.normalFormalParameter_isCovariant;
     }
     if (isExplicitlyCovariant || inheritsCovariant) {
@@ -7822,6 +7842,10 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   bool get isFinal {
     if (linkedNode != null) {
+      if (linkedNode.kind == LinkedNodeKind.defaultFormalParameter) {
+        var parameter = linkedNode.defaultFormalParameter_parameter;
+        return parameter.simpleFormalParameter_keyword != 0;
+      }
       if (linkedNode.kind == LinkedNodeKind.fieldFormalParameter) {
         return false;
       }
@@ -7899,8 +7923,14 @@ class ParameterElementImpl extends VariableElementImpl
     if (_parameterKind != null) return _parameterKind;
 
     if (linkedNode != null) {
-      // TODO(scheglov) implement
-      _parameterKind = ParameterKind.REQUIRED;
+      if (linkedNode.kind == LinkedNodeKind.defaultFormalParameter) {
+        if (linkedNode.defaultFormalParameter_isNamed) {
+          return _parameterKind = ParameterKind.NAMED;
+        } else {
+          return _parameterKind = ParameterKind.POSITIONAL;
+        }
+      }
+      return _parameterKind = ParameterKind.REQUIRED;
     }
     if (unlinkedParam != null) {
       switch (unlinkedParam.kind) {
@@ -7932,7 +7962,13 @@ class ParameterElementImpl extends VariableElementImpl
   DartType get type {
     if (linkedNode != null) {
       if (_type != null) return _type;
-      return _type ??= enclosingUnit.linkedContext.getType(
+      if (linkedNode.kind == LinkedNodeKind.defaultFormalParameter) {
+        var parameter = linkedNode.defaultFormalParameter_parameter;
+        return _type = enclosingUnit.linkedContext.getType(
+          parameter.simpleFormalParameter_type2,
+        );
+      }
+      return _type = enclosingUnit.linkedContext.getType(
         linkedNode.simpleFormalParameter_type2,
       );
     }
@@ -8819,7 +8855,7 @@ class TypeParameterElementImpl extends ElementImpl
         var context = enclosingUnit.linkedContext;
         return _bound = context.getTypeAnnotationType(bound);
       } else {
-        return _bound = context.typeProvider.objectType;
+        return null;
       }
     }
 

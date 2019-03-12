@@ -2564,10 +2564,19 @@ const () → int v =
     var library = await checkLibrary('''
 const Object x = const [1];
 ''');
-    checkElementText(library, '''
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const /*typeArgs=int*/[1];
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
 const Object x = const <
         int/*location: dart:core;int*/>[1];
 ''');
+    }
   }
 
   test_const_map_inferredType() async {
@@ -2577,11 +2586,20 @@ const Object x = const <
     var library = await checkLibrary('''
 const Object x = const {1: 1.0};
 ''');
-    checkElementText(library, '''
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const /*typeArgs=int,double*/{1: 1.0};
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
 const Object x = const <
         int/*location: dart:core;int*/,
         double/*location: dart:core;double*/>{1: 1.0};
 ''');
+    }
   }
 
   test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
@@ -3071,18 +3089,30 @@ const bool vLessEqual = 1 <= 2;
     var library = await checkLibrary(r'''
 const vConditional = (1 == 2) ? 11 : 22;
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+const int vConditional = (1 == 2) ? 11 : 22;
+''');
+    } else {
+      checkElementText(library, r'''
 const int vConditional = 1 == 2 ? 11 : 22;
 ''');
+    }
   }
 
   test_const_topLevel_identical() async {
     var library = await checkLibrary(r'''
 const vIdentical = (1 == 2) ? 11 : 22;
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+const int vIdentical = (1 == 2) ? 11 : 22;
+''');
+    } else {
+      checkElementText(library, r'''
 const int vIdentical = 1 == 2 ? 11 : 22;
 ''');
+    }
   }
 
   test_const_topLevel_ifNull() async {
@@ -3174,10 +3204,16 @@ const dynamic vThis = this;
     var library = await checkLibrary(r'''
 const c = throw 42;
 ''');
-    // This is a bug.
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+const dynamic c = throw 42;
+''');
+    } else {
+      // This is a bug.
+      checkElementText(library, r'''
 const dynamic c;
 ''');
+    }
   }
 
   test_const_topLevel_typedList() async {
@@ -6804,6 +6840,23 @@ class C {
 const dynamic a = null;
 dynamic f(@
         a/*location: test.dart;a?*/ dynamic x) {}
+''');
+  }
+
+  test_metadata_simpleFormalParameter_method() async {
+    var library = await checkLibrary('''
+const a = null;
+
+class C {
+  m(@a x) {}
+}
+''');
+    checkElementText(library, r'''
+class C {
+  dynamic m(@
+        a/*location: test.dart;a?*/ dynamic x) {}
+}
+const dynamic a = null;
 ''');
   }
 

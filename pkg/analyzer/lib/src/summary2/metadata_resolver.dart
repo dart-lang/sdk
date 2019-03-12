@@ -34,6 +34,12 @@ class MetadataResolver {
         _class(unit, unitDeclaration);
       } else if (kind == LinkedNodeKind.enumDeclaration) {
         _enumDeclaration(unit, unitDeclaration);
+      } else if (kind == LinkedNodeKind.functionDeclaration) {
+        var function = unitDeclaration.functionDeclaration_functionExpression;
+        _formalParameterList(
+          unit,
+          function.functionExpression_formalParameters,
+        );
       } else if (kind == LinkedNodeKind.topLevelVariableDeclaration) {
         _variables(
           unit,
@@ -63,6 +69,11 @@ class MetadataResolver {
           classMember,
           classMember.fieldDeclaration_fields,
         );
+      } else if (kind == LinkedNodeKind.methodDeclaration) {
+        _formalParameterList(
+          unit,
+          classMember.methodDeclaration_formalParameters,
+        );
       }
     }
   }
@@ -72,6 +83,23 @@ class MetadataResolver {
       var kind = constant.kind;
       if (kind == LinkedNodeKind.enumConstantDeclaration) {
         _annotatedNode(unit, constant);
+      }
+    }
+  }
+
+  void _formalParameterList(UnitBuilder unit, LinkedNodeBuilder node) {
+    if (node == null) return;
+
+    for (var parameter in node.formalParameterList_parameters) {
+      if (parameter.kind == LinkedNodeKind.defaultFormalParameter) {
+        var actual = parameter.defaultFormalParameter_parameter;
+        var unresolved = actual.normalFormalParameter_metadata;
+        var resolved = _list(unit, unresolved);
+        actual.normalFormalParameter_metadata = resolved;
+      } else {
+        var unresolved = parameter.normalFormalParameter_metadata;
+        var resolved = _list(unit, unresolved);
+        parameter.normalFormalParameter_metadata = resolved;
       }
     }
   }

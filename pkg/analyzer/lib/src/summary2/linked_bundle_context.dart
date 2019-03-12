@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
@@ -19,6 +20,20 @@ class LinkedBundleContext {
       : _references = List<Reference>.filled(referencesData.name.length, null,
             growable: true);
 
+  T elementOfIndex<T extends Element>(int index) {
+    var reference = referenceOfIndex(index);
+    return elementFactory.elementOfReference(reference);
+  }
+
+  List<T> elementsOfIndexes<T extends Element>(List<int> indexList) {
+    var result = List<T>(indexList.length);
+    for (var i = 0; i < indexList.length; ++i) {
+      var index = indexList[i];
+      result[i] = elementOfIndex(index);
+    }
+    return result;
+  }
+
   InterfaceType getInterfaceType(LinkedNodeType linkedType) {
     var type = getType(linkedType);
     if (type is InterfaceType && !type.element.isEnum) {
@@ -31,6 +46,20 @@ class LinkedBundleContext {
     var kind = linkedType.kind;
     if (kind == LinkedNodeTypeKind.dynamic_) {
       return DynamicTypeImpl.instance;
+    } else if (kind == LinkedNodeTypeKind.function) {
+      var returnType = getType(linkedType.functionReturnType);
+      var typeParameters = linkedType.functionTypeParameters
+          .map(referenceOfIndex)
+          .map(elementFactory.elementOfReference)
+          .cast<TypeParameterElement>()
+          .toList();
+      var formalParameters = linkedType.functionFormalParameters
+          .map(referenceOfIndex)
+          .map(elementFactory.elementOfReference)
+          .cast<ParameterElement>()
+          .toList();
+      // TODO(scheglov) Rework this to purely synthetic types.
+      return FunctionElementImpl.synthetic(formalParameters, returnType).type;
     } else if (kind == LinkedNodeTypeKind.interface) {
       var reference = referenceOfIndex(linkedType.interfaceClass);
       Element element = elementFactory.elementOfReference(reference);

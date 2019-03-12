@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
@@ -1264,6 +1265,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   int _getReferenceIndex(Element element) {
     if (element == null) return 0;
+
+    if (element is Member) {
+      element = (element as Member).baseElement;
+    }
 
     var reference = (element as ElementImpl).reference;
     if (identical(element, DynamicElementImpl.instance)) {

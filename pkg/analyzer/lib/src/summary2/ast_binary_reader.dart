@@ -263,17 +263,12 @@ class AstBinaryReader {
 
   T _getElement<T extends Element>(int index) {
     var bundleContext = _unitContext.bundleContext;
-    var reference = bundleContext.referenceOfIndex(index);
-    return bundleContext.elementFactory.elementOfReference(reference);
+    return bundleContext.elementOfIndex(index);
   }
 
   List<T> _getElements<T extends Element>(List<int> indexList) {
-    var result = List<T>(indexList.length);
-    for (var i = 0; i < indexList.length; ++i) {
-      var index = indexList[i];
-      result[i] = _getElement(index);
-    }
-    return result;
+    var bundleContext = _unitContext.bundleContext;
+    return bundleContext.elementsOfIndexes(indexList);
   }
 
   Token _getToken(int index) {
@@ -1162,7 +1157,7 @@ class AstBinaryReader {
       leftBracket: _getToken(data.setOrMapLiteral_leftBracket),
       typeArguments: readNode(data.typedLiteral_typeArguments),
       rightBracket: _getToken(data.setOrMapLiteral_leftBracket),
-    );
+    )..staticType = _readType(data.expression_type);
     if (data.setOrMapLiteral_isMap) {
       node.becomeMap();
     } else if (data.setOrMapLiteral_isSet) {

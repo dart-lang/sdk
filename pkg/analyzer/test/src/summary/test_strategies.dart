@@ -98,6 +98,8 @@ abstract class ResynthesizeTestStrategy {
 
   set declaredVariables(DeclaredVariables declaredVariables);
 
+  bool get isAstBasedSummary => false;
+
   MemoryResourceProvider get resourceProvider;
 
   void set testFile(String value);
@@ -131,6 +133,9 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
       <String, UnlinkedUnitBuilder>{};
 
   PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
+
+  @override
+  bool get isAstBasedSummary => false;
 
   TestSummaryResynthesizer encodeLibrary(Source source) {
     _serializeLibrary(source);

@@ -87,9 +87,7 @@ class _ElementRequest {
 
     if (parentName == '@function') {
       CompilationUnitElementImpl enclosing = elementOfReference(parent2);
-      enclosing.functions;
-      assert(reference.element != null);
-      return reference.element;
+      return _function(enclosing, reference);
     }
 
     if (parentName == '@getter') {
@@ -97,11 +95,14 @@ class _ElementRequest {
       return _getter(enclosing, reference);
     }
 
+    if (parentName == '@method') {
+      var enclosing = elementOfReference(parent2);
+      return _method(enclosing, reference);
+    }
+
     if (parentName == '@parameter') {
       ExecutableElementImpl enclosing = elementOfReference(parent2);
-      enclosing.parameters;
-      assert(reference.element != null);
-      return reference.element;
+      return _parameter(enclosing, reference);
     }
 
     if (parentName == '@typeAlias') {
@@ -111,10 +112,7 @@ class _ElementRequest {
 
     if (parentName == '@typeParameter') {
       var enclosing = elementOfReference(parent2) as TypeParameterizedElement;
-      enclosing.typeParameters;
-      // Requesting type parameters sets elements for all their references.
-      assert(reference.element != null);
-      return reference.element;
+      return _typeParameter(enclosing, reference);
     }
 
     if (parentName == '@unit') {
@@ -199,6 +197,12 @@ class _ElementRequest {
     return reference.element = libraryElement;
   }
 
+  Element _function(CompilationUnitElementImpl enclosing, Reference reference) {
+    enclosing.functions;
+    assert(reference.element != null);
+    return reference.element;
+  }
+
   PropertyAccessorElementImpl _getter(
       ElementImpl enclosing, Reference reference) {
     if (enclosing is ClassElementImpl) {
@@ -252,6 +256,19 @@ class _ElementRequest {
     }
   }
 
+  MethodElementImpl _method(ClassElementImpl enclosing, Reference reference) {
+    enclosing.methods;
+    // Requesting methods sets elements for all of them.
+    assert(reference.element != null);
+    return reference.element;
+  }
+
+  Element _parameter(ExecutableElementImpl enclosing, Reference reference) {
+    enclosing.parameters;
+    assert(reference.element != null);
+    return reference.element;
+  }
+
   GenericTypeAliasElementImpl _typeAlias(
       CompilationUnitElementImpl unit, Reference reference) {
     if (reference.node == null) {
@@ -263,6 +280,14 @@ class _ElementRequest {
       reference,
       reference.node,
     );
+  }
+
+  Element _typeParameter(
+      TypeParameterizedElement enclosing, Reference reference) {
+    enclosing.typeParameters;
+    // Requesting type parameters sets elements for all their references.
+    assert(reference.element != null);
+    return reference.element;
   }
 }
 

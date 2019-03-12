@@ -27,6 +27,9 @@ main() {
 class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     with ResynthesizeTestCases {
   @override
+  bool get isAstBasedSummary => true;
+
+  @override
   Future<LibraryElementImpl> checkLibrary(String text,
       {bool allowErrors = false, bool dumpSummaries = false}) async {
     var dartCoreSource = sourceFactory.forUri('dart:core');
@@ -54,6 +57,7 @@ class Object {
 
 abstract class String {
   int get length;
+  String operator +(String other);
 }
 
 abstract class Symbol {}
@@ -64,9 +68,46 @@ abstract class bool {}
 
 abstract class double extends num {}
 
-abstract class int extends num {}
+abstract class int extends num {
+  bool get isEven => false;
+  bool get isNegative;
+  
+  int operator &(int other);
+  int operator -();
+  int operator <<(int shiftAmount);
+  int operator >>(int shiftAmount);
+  int operator ^(int other);
+  int operator |(int other);
+  int operator ~();
+}
 
-abstract class num implements Comparable<num> {}
+abstract class num implements Comparable<num> {
+  bool operator <(num other);
+  bool operator <=(num other);
+  bool operator ==(Object other);
+  bool operator >(num other);
+  bool operator >=(num other);
+  
+  double operator /(num other);
+  double toDouble();
+  
+  int operator <<(int other);
+  int operator >>(int other);
+  int operator ^(int other);
+  int operator |(int other);
+  int operator ~();
+  int operator ~/(num other);
+  
+  int round();
+  int toInt();
+  num abs();
+  
+  num operator %(num other);
+  num operator *(num other);
+  num operator +(num other);
+  num operator -();
+  num operator -(num other);
+}
 ''';
 
     var dartCoreResult = _link(dartCoreSource, dartCoreCode);
@@ -176,18 +217,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_class_constructor_fieldFormal_optional_withDefault() async {
     await super.test_class_constructor_fieldFormal_optional_withDefault();
-  }
-
-  @override
-  @failingTest
-  test_class_setter_invalid_named_parameter() async {
-    await super.test_class_setter_invalid_named_parameter();
-  }
-
-  @override
-  @failingTest
-  test_class_setter_invalid_optional_parameter() async {
-    await super.test_class_setter_invalid_optional_parameter();
   }
 
   @override
@@ -312,39 +341,9 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_const_invokeConstructor_generic_named() async {
-    await super.test_const_invokeConstructor_generic_named();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_generic_named_imported() async {
-    await super.test_const_invokeConstructor_generic_named_imported();
-  }
-
-  @override
-  @failingTest
   test_const_invokeConstructor_generic_named_imported_withPrefix() async {
     await super
         .test_const_invokeConstructor_generic_named_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_generic_noTypeArguments() async {
-    await super.test_const_invokeConstructor_generic_noTypeArguments();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_generic_unnamed() async {
-    await super.test_const_invokeConstructor_generic_unnamed();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_generic_unnamed_imported() async {
-    await super.test_const_invokeConstructor_generic_unnamed_imported();
   }
 
   @override
@@ -416,24 +415,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_const_length_staticMethod() async {
-    await super.test_const_length_staticMethod();
-  }
-
-  @override
-  @failingTest
-  test_const_list_inferredType() async {
-    await super.test_const_list_inferredType();
-  }
-
-  @override
-  @failingTest
-  test_const_map_inferredType() async {
-    await super.test_const_map_inferredType();
-  }
-
-  @override
-  @failingTest
   test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
     await super
         .test_const_parameterDefaultValue_initializingFormal_functionTyped();
@@ -454,20 +435,8 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_const_parameterDefaultValue_normal() async {
-    await super.test_const_parameterDefaultValue_normal();
-  }
-
-  @override
-  @failingTest
   test_const_reference_staticField_imported_withPrefix() async {
     await super.test_const_reference_staticField_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
-  test_const_reference_staticMethod() async {
-    await super.test_const_reference_staticMethod();
   }
 
   @override
@@ -484,20 +453,8 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_const_reference_topLevelFunction() async {
-    await super.test_const_reference_topLevelFunction();
-  }
-
-  @override
-  @failingTest
   test_const_reference_topLevelFunction_generic() async {
     await super.test_const_reference_topLevelFunction_generic();
-  }
-
-  @override
-  @failingTest
-  test_const_reference_topLevelFunction_imported() async {
-    await super.test_const_reference_topLevelFunction_imported();
   }
 
   @override
@@ -516,12 +473,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_const_reference_topLevelVariable_imported_withPrefix() async {
     await super.test_const_reference_topLevelVariable_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
-  test_const_reference_type() async {
-    await super.test_const_reference_type();
   }
 
   @override
@@ -556,48 +507,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_const_topLevel_binary() async {
-    await super.test_const_topLevel_binary();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_conditional() async {
-    await super.test_const_topLevel_conditional();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_identical() async {
-    await super.test_const_topLevel_identical();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_parenthesis() async {
-    await super.test_const_topLevel_parenthesis();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_prefix() async {
-    await super.test_const_topLevel_prefix();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_throw() async {
-    await super.test_const_topLevel_throw();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_typedList() async {
-    await super.test_const_topLevel_typedList();
-  }
-
-  @override
-  @failingTest
   test_const_topLevel_typedList_importedWithPrefix() async {
     await super.test_const_topLevel_typedList_importedWithPrefix();
   }
@@ -606,12 +515,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_const_topLevel_typedList_typedefArgument() async {
     await super.test_const_topLevel_typedList_typedefArgument();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_typedMap() async {
-    await super.test_const_topLevel_typedMap();
   }
 
   @override
@@ -1061,18 +964,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_function_parameter_kind_named() async {
-    await super.test_function_parameter_kind_named();
-  }
-
-  @override
-  @failingTest
-  test_function_parameter_kind_positional() async {
-    await super.test_function_parameter_kind_positional();
-  }
-
-  @override
-  @failingTest
   test_function_parameter_parameters() async {
     await super.test_function_parameter_parameters();
   }
@@ -1087,12 +978,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_function_parameter_return_type_void() async {
     await super.test_function_parameter_return_type_void();
-  }
-
-  @override
-  @failingTest
-  test_function_type_parameter() async {
-    await super.test_function_type_parameter();
   }
 
   @override
@@ -1233,12 +1118,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_infer_generic_typedef_simple() async {
     await super.test_infer_generic_typedef_simple();
-  }
-
-  @override
-  @failingTest
-  test_infer_instanceCreation_fromArguments() async {
-    await super.test_infer_instanceCreation_fromArguments();
   }
 
   @override
@@ -1428,20 +1307,8 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_invalid_nameConflict_imported() async {
-    await super.test_invalid_nameConflict_imported();
-  }
-
-  @override
-  @failingTest
   test_invalid_nameConflict_imported_exported() async {
     await super.test_invalid_nameConflict_imported_exported();
-  }
-
-  @override
-  @failingTest
-  test_invalid_nameConflict_local() async {
-    await super.test_invalid_nameConflict_local();
   }
 
   @override
@@ -1602,12 +1469,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_metadata_simpleFormalParameter() async {
-    await super.test_metadata_simpleFormalParameter();
-  }
-
-  @override
-  @failingTest
   test_metadata_simpleFormalParameter_withDefault() async {
     await super.test_metadata_simpleFormalParameter_withDefault();
   }
@@ -1700,26 +1561,8 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_parameterTypeNotInferred_constructor() async {
-    await super.test_parameterTypeNotInferred_constructor();
-  }
-
-  @override
-  @failingTest
   test_parameterTypeNotInferred_initializingFormal() async {
     await super.test_parameterTypeNotInferred_initializingFormal();
-  }
-
-  @override
-  @failingTest
-  test_parameterTypeNotInferred_staticMethod() async {
-    await super.test_parameterTypeNotInferred_staticMethod();
-  }
-
-  @override
-  @failingTest
-  test_parameterTypeNotInferred_topLevelFunction() async {
-    await super.test_parameterTypeNotInferred_topLevelFunction();
   }
 
   @override
@@ -2018,12 +1861,6 @@ abstract class num implements Comparable<num> {}
 
   @override
   @failingTest
-  test_unresolved_annotation_namedConstructorCall_noConstructor() async {
-    await super.test_unresolved_annotation_namedConstructorCall_noConstructor();
-  }
-
-  @override
-  @failingTest
   test_unresolved_annotation_prefixedIdentifier_noDeclaration() async {
     await super.test_unresolved_annotation_prefixedIdentifier_noDeclaration();
   }
@@ -2065,12 +1902,6 @@ abstract class num implements Comparable<num> {}
   @failingTest
   test_unresolved_part() async {
     await super.test_unresolved_part();
-  }
-
-  @override
-  @failingTest
-  test_unused_type_parameter() async {
-    await super.test_unused_type_parameter();
   }
 
   @override

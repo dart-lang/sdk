@@ -57,13 +57,15 @@ void checkElementText(LibraryElement library, String expected,
     bool withConstElements: true,
     bool withOffsets: false,
     bool withSyntheticAccessors: false,
-    bool withSyntheticFields: false}) {
+    bool withSyntheticFields: false,
+    bool withTypes: false}) {
   var writer = new _ElementWriter(
       withCodeRanges: withCodeRanges,
       withConstElements: withConstElements,
       withOffsets: withOffsets,
       withSyntheticAccessors: withSyntheticAccessors,
-      withSyntheticFields: withSyntheticFields);
+      withSyntheticFields: withSyntheticFields,
+      withTypes: withTypes);
   writer.writeLibraryElement(library);
 
   String actualText = writer.buffer.toString();
@@ -129,6 +131,7 @@ class _ElementWriter {
   final bool withConstElements;
   final bool withSyntheticAccessors;
   final bool withSyntheticFields;
+  final bool withTypes;
   final StringBuffer buffer = new StringBuffer();
 
   _ElementWriter(
@@ -136,7 +139,8 @@ class _ElementWriter {
       this.withConstElements: true,
       this.withOffsets: false,
       this.withSyntheticAccessors: false,
-      this.withSyntheticFields: false});
+      this.withSyntheticFields: false,
+      this.withTypes: false});
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
 
@@ -387,6 +391,8 @@ class _ElementWriter {
       }
       if (e.typeArguments != null) {
         writeList('<', '>', e.typeArguments.arguments, ', ', writeExpression);
+      } else if (withTypes) {
+        writeInterfaceTypeArgsComment(e);
       }
       writeList('[', ']', e.elements2, ', ', writeExpression,
           includeEmpty: true);
@@ -399,6 +405,8 @@ class _ElementWriter {
       }
       if (e.typeArguments != null) {
         writeList('<', '>', e.typeArguments.arguments, ', ', writeExpression);
+      } else if (withTypes) {
+        writeInterfaceTypeArgsComment(e);
       }
       writeList('{', '}', e.elements2, ', ', writeExpression,
           includeEmpty: true);
@@ -479,6 +487,9 @@ class _ElementWriter {
           (Token token) => buffer.write(token.lexeme));
     } else if (e is ThisExpression) {
       buffer.write('this');
+    } else if (e is ThrowExpression) {
+      buffer.write('throw ');
+      writeExpression(e.expression);
     } else if (e is TypeName) {
       writeExpression(e.name);
       if (e.typeArguments != null) {
@@ -567,6 +578,11 @@ class _ElementWriter {
 
       buffer.writeln(';');
     }
+  }
+
+  void writeInterfaceTypeArgsComment(Expression e) {
+    var typeArguments = (e.staticType as InterfaceType).typeArguments;
+    writeList('/*typeArgs=', '*/', typeArguments, ',', writeType);
   }
 
   void writeLibraryElement(LibraryElement e) {

@@ -68,6 +68,13 @@ class SourceLibraryBuilder {
       }
     }
     if (!hasDartCore) {
+      var importDartCore = LinkedNodeBuilder.importDirective(
+        uriBasedDirective_uri: LinkedNodeBuilder.simpleStringLiteral(
+          simpleStringLiteral_value: 'dart:core',
+        ),
+      )..isSynthetic = true;
+      units[0].node.compilationUnit_directives.add(importDartCore);
+
       // TODO(scheglov) This works only when dart:core is linked
       var references = linker.elementFactory.exportsOfLibrary('dart:core');
       _importExportedReferences(references);

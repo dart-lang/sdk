@@ -143,6 +143,9 @@ class ReferenceResolver {
   }
 
   void _functionDeclaration(LinkedNodeBuilder node) {
+    var name = unit.context.getUnitMemberName(node);
+    reference = reference.getChild('@function').getChild(name);
+
     var function = node.functionDeclaration_functionExpression;
     var typeParameters = function.functionExpression_typeParameters;
     _withTypeParameters(typeParameters, () {
@@ -157,6 +160,8 @@ class ReferenceResolver {
 
       _node(function.functionExpression_formalParameters);
     });
+
+    reference = reference.parent.parent;
   }
 
   void _functionExpression(LinkedNodeBuilder node) {
@@ -265,6 +270,8 @@ class ReferenceResolver {
       _compilationUnit(node);
     } else if (node.kind == LinkedNodeKind.constructorDeclaration) {
       _constructorDeclaration(node);
+    } else if (node.kind == LinkedNodeKind.defaultFormalParameter) {
+      _node(node.defaultFormalParameter_parameter);
     } else if (node.kind == LinkedNodeKind.enumDeclaration) {
       _enumDeclaration(node);
     } else if (node.kind == LinkedNodeKind.enumConstantDeclaration) {
