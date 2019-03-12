@@ -32,6 +32,7 @@ class NameIndex {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
 
+class BitVector;
 class Field;
 class ParsedFunction;
 class Zone;
@@ -193,6 +194,15 @@ void CollectTokenPositionsFor(const Script& script);
 RawObject* EvaluateMetadata(const Field& metadata_field,
                             bool is_annotations_offset);
 RawObject* BuildParameterDescriptor(const Function& function);
+
+// Fills in [is_covariant] and [is_generic_covariant_impl] vectors
+// according to covariance attributes of [function] parameters.
+//
+// [is_covariant] and [is_generic_covariant_impl] should contain bitvectors
+// of function.NumParameters() length.
+void ReadParameterCovariance(const Function& function,
+                             BitVector* is_covariant,
+                             BitVector* is_generic_covariant_impl);
 
 // Returns true if the given function needs dynamic invocation forwarder:
 // that is if any of the arguments require checking on the dynamic

@@ -7335,46 +7335,17 @@ RawFunction* Function::ImplicitClosureFunction() const {
 
   // Change covariant parameter types to Object in the implicit closure.
   if (!is_static()) {
-    const Script& function_script = Script::Handle(zone, script());
-    kernel::TranslationHelper translation_helper(thread);
-    translation_helper.InitFromScript(function_script);
+    BitVector is_covariant(zone, NumParameters());
+    BitVector is_generic_covariant_impl(zone, NumParameters());
+    kernel::ReadParameterCovariance(*this, &is_covariant,
+                                    &is_generic_covariant_impl);
 
-    kernel::KernelReaderHelper kernel_reader_helper(
-        zone, &translation_helper, function_script,
-        ExternalTypedData::Handle(zone, KernelData()),
-        KernelDataProgramOffset());
-
-    kernel_reader_helper.SetOffset(kernel_offset());
-    kernel_reader_helper.ReadUntilFunctionNode();
-
-    kernel::FunctionNodeHelper fn_helper(&kernel_reader_helper);
-
-    // Check the positional parameters, including the optional positional ones.
-    fn_helper.ReadUntilExcluding(
-        kernel::FunctionNodeHelper::kPositionalParameters);
-    intptr_t num_pos_params = kernel_reader_helper.ReadListLength();
-    ASSERT(num_pos_params ==
-           num_fixed_params - 1 + (has_opt_pos_params ? num_opt_params : 0));
     const Type& object_type = Type::Handle(zone, Type::ObjectType());
-    for (intptr_t i = 0; i < num_pos_params; ++i) {
-      kernel::VariableDeclarationHelper var_helper(&kernel_reader_helper);
-      var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
-      if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
-        closure_function.SetParameterTypeAt(i + 1, object_type);
-      }
-    }
-    fn_helper.SetJustRead(kernel::FunctionNodeHelper::kPositionalParameters);
-
-    // Check the optional named parameters.
-    fn_helper.ReadUntilExcluding(kernel::FunctionNodeHelper::kNamedParameters);
-    intptr_t num_named_params = kernel_reader_helper.ReadListLength();
-    ASSERT(num_named_params == (has_opt_pos_params ? 0 : num_opt_params));
-    for (intptr_t i = 0; i < num_named_params; ++i) {
-      kernel::VariableDeclarationHelper var_helper(&kernel_reader_helper);
-      var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
-      if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
-        closure_function.SetParameterTypeAt(num_pos_params + 1 + i,
-                                            object_type);
+    for (intptr_t i = kClosure; i < num_params; ++i) {
+      const intptr_t original_param_index = has_receiver - kClosure + i;
+      if (is_covariant.Contains(original_param_index) ||
+          is_generic_covariant_impl.Contains(original_param_index)) {
+        closure_function.SetParameterTypeAt(i, object_type);
       }
     }
   }
