@@ -1067,6 +1067,9 @@ void KernelLoader::FinishTopLevelClassLoading(
     // In the VM all const fields are implicitly final whereas in Kernel they
     // are not final because they are not explicitly declared that way.
     const bool is_final = field_helper.IsConst() || field_helper.IsFinal();
+    // Only instance fields could be covariant.
+    ASSERT(!field_helper.IsCovariant() &&
+           !field_helper.IsGenericCovariantImpl());
     const Field& field = Field::Handle(
         Z,
         Field::NewTopLevel(name, is_final, field_helper.IsConst(), script_class,
@@ -1490,6 +1493,9 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                      field_helper.position_, field_helper.end_position_));
       field.set_kernel_offset(field_offset);
       field.set_has_pragma(has_pragma_annotation);
+      field.set_is_covariant(field_helper.IsCovariant());
+      field.set_is_generic_covariant_impl(
+          field_helper.IsGenericCovariantImpl());
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);

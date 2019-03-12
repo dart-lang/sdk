@@ -3055,6 +3055,21 @@ class Field : public Object {
     set_kind_bits(HasPragmaBit::update(value, raw_ptr()->kind_bits_));
   }
 
+  bool is_covariant() const {
+    return CovariantBit::decode(raw_ptr()->kind_bits_);
+  }
+  void set_is_covariant(bool value) const {
+    set_kind_bits(CovariantBit::update(value, raw_ptr()->kind_bits_));
+  }
+
+  bool is_generic_covariant_impl() const {
+    return GenericCovariantImplBit::decode(raw_ptr()->kind_bits_);
+  }
+  void set_is_generic_covariant_impl(bool value) const {
+    set_kind_bits(
+        GenericCovariantImplBit::update(value, raw_ptr()->kind_bits_));
+  }
+
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
@@ -3072,11 +3087,6 @@ class Field : public Object {
   RawExternalTypedData* KernelData() const;
 
   intptr_t KernelDataProgramOffset() const;
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  void GetCovarianceAttributes(bool* is_covariant,
-                               bool* is_generic_covariant) const;
-#endif
 
   inline intptr_t Offset() const;
   // Called during class finalization.
@@ -3313,6 +3323,8 @@ class Field : public Object {
     kDoubleInitializedBit,
     kInitializerChangedAfterInitializatonBit,
     kHasPragmaBit,
+    kCovariantBit,
+    kGenericCovariantImplBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
@@ -3330,6 +3342,9 @@ class Field : public Object {
                         kInitializerChangedAfterInitializatonBit,
                         1> {};
   class HasPragmaBit : public BitField<uint16_t, bool, kHasPragmaBit, 1> {};
+  class CovariantBit : public BitField<uint16_t, bool, kCovariantBit, 1> {};
+  class GenericCovariantImplBit
+      : public BitField<uint16_t, bool, kGenericCovariantImplBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.

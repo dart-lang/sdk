@@ -8279,27 +8279,6 @@ intptr_t Field::KernelDataProgramOffset() const {
   return PatchClass::Cast(obj).library_kernel_offset();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-void Field::GetCovarianceAttributes(bool* is_covariant,
-                                    bool* is_generic_covariant) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = Thread::Current()->zone();
-  auto& script = Script::Handle(zone, Script());
-
-  kernel::TranslationHelper translation_helper(thread);
-  translation_helper.InitFromScript(script);
-
-  kernel::KernelReaderHelper kernel_reader_helper(
-      zone, &translation_helper, script,
-      ExternalTypedData::Handle(zone, KernelData()), KernelDataProgramOffset());
-  kernel_reader_helper.SetOffset(kernel_offset());
-  kernel::FieldHelper field_helper(&kernel_reader_helper);
-  field_helper.ReadUntilIncluding(kernel::FieldHelper::kFlags);
-  *is_covariant = field_helper.IsCovariant();
-  *is_generic_covariant = field_helper.IsGenericCovariantImpl();
-}
-#endif
-
 // Called at finalization time
 void Field::SetFieldType(const AbstractType& value) const {
   ASSERT(Thread::Current()->IsMutatorThread());

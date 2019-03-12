@@ -290,12 +290,10 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
         if (is_method &&
             MethodCanSkipTypeChecksForNonCovariantArguments(function, attrs)) {
-          FieldHelper field_helper(&helper_);
-          field_helper.ReadUntilIncluding(FieldHelper::kFlags);
-
-          if (field_helper.IsCovariant()) {
+          const auto& field = Field::Handle(Z, function.accessor_field());
+          if (field.is_covariant()) {
             result_->setter_value->set_is_explicit_covariant_parameter();
-          } else if (!field_helper.IsGenericCovariantImpl() ||
+          } else if (!field.is_generic_covariant_impl() ||
                      (!attrs.has_non_this_uses && !attrs.has_tearoff_uses)) {
             result_->setter_value->set_type_check_mode(
                 LocalVariable::kTypeCheckedByCaller);

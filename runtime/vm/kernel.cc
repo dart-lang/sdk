@@ -618,10 +618,8 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
   // Handle setters.
   if (reader_helper.PeekTag() == kField) {
     ASSERT(function.IsImplicitSetterFunction());
-    FieldHelper field_helper(&reader_helper);
-    field_helper.ReadUntilIncluding(FieldHelper::kFlags);
-    return !(field_helper.IsCovariant() ||
-             field_helper.IsGenericCovariantImpl());
+    const auto& field = Field::Handle(zone, function.accessor_field());
+    return !(field.is_covariant() || field.is_generic_covariant_impl());
   }
 
   reader_helper.ReadUntilFunctionNode();
