@@ -1692,42 +1692,14 @@ Set<Set<int>> ints = {{}};
 class StaticTypeAnalyzerWithStrictInferenceTest
     extends StaticTypeAnalyzer2TestShared {
   @override
+  bool get enableNewAnalysisDriver => true;
+
+  @override
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strictInference = true;
     resetWith(options: options);
-  }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  test_topLevelVariable() async {
-    String code = r'''
-var a;
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertErrorsInCode(
-        code, [HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE]);
-  }
-
-  test_topLevelVariable_withType() async {
-    String code = r'''
-int a;
-dynamic b;
-Object c;
-Null d;
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertNoErrorsInCode(code);
-  }
-
-  test_topLevelVariable_withInitializer() async {
-    String code = r'''
-var a = 7;
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertNoErrorsInCode(code);
   }
 
   test_localVariable() async {
@@ -1739,6 +1711,16 @@ f() {
     await resolveTestUnit(code, noErrors: false);
     await assertErrorsInCode(
         code, [HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE]);
+  }
+
+  test_localVariable_withInitializer() async {
+    String code = r'''
+f() {
+  var a = 7;
+}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    await assertNoErrorsInCode(code);
   }
 
   test_localVariable_withType() async {
@@ -1754,11 +1736,29 @@ f() {
     await assertNoErrorsInCode(code);
   }
 
-  test_localVariable_withInitializer() async {
+  test_topLevelVariable() async {
     String code = r'''
-f() {
-  var a = 7;
-}
+var a;
+''';
+    await resolveTestUnit(code, noErrors: false);
+    await assertErrorsInCode(
+        code, [HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE]);
+  }
+
+  test_topLevelVariable_withInitializer() async {
+    String code = r'''
+var a = 7;
+''';
+    await resolveTestUnit(code, noErrors: false);
+    await assertNoErrorsInCode(code);
+  }
+
+  test_topLevelVariable_withType() async {
+    String code = r'''
+int a;
+dynamic b;
+Object c;
+Null d;
 ''';
     await resolveTestUnit(code, noErrors: false);
     await assertNoErrorsInCode(code);
