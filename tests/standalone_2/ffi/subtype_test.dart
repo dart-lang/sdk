@@ -39,7 +39,7 @@ Future<void> testGC() async {
   CString cs = ffi.fromAddress<CString>(11);
   bar = cs;
   foo = "";
-  final watcher = GCWatcher();
+  final watcher = GCWatcher.ifAvailable();
   int counts = await watcher.size();
   for (int i = 0; i < 1000000; ++i) {
     foo = new X(i);
