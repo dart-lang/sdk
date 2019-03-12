@@ -3538,11 +3538,6 @@ class PartialResolverVisitor extends ResolverVisitor {
   }
 
   @override
-  void visitNode(AstNode node) {
-    super.visitNode(node);
-  }
-
-  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _addStaticVariables(node.variables.variables);
     super.visitTopLevelVariableDeclaration(node);
