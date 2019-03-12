@@ -1,0 +1,22 @@
+diff --git a/frontend_server/lib/server.dart b/frontend_server/lib/server.dart
+index 5d84d2dcf..2e3bce6e1 100644
+--- a/frontend_server/lib/server.dart
++++ b/frontend_server/lib/server.dart
+@@ -27,13 +27,13 @@ class _FlutterFrontendCompiler implements frontend.CompilerInterface{
+           unsafePackageSerialization: unsafePackageSerialization);
+ 
+   @override
+-  Future<bool> compile(String filename, ArgResults options, {IncrementalCompiler generator}) async {
+-    return _compiler.compile(filename, options, generator: generator);
++  Future<bool> compile(String entryPoint, ArgResults options, {IncrementalCompiler generator}) async {
++    return _compiler.compile(entryPoint, options, generator: generator);
+   }
+ 
+   @override
+-  Future<Null> recompileDelta({String filename}) async {
+-    return _compiler.recompileDelta(filename: filename);
++  Future<Null> recompileDelta({String entryPoint}) async {
++    return _compiler.recompileDelta(entryPoint: entryPoint);
+   }
+ 
+   @override
