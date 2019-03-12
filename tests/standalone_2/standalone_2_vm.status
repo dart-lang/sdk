@@ -133,5 +133,5 @@ full_coverage_test: Skip # TODO(vegorov) SIMDBC interpreter doesn't support cove
 link_natives_lazily_test: SkipByDesign # SIMDBC interpreter doesn't support lazy linking of natives.
 no_lazy_dispatchers_test: SkipByDesign # SIMDBC interpreter doesn't support --no_lazy_dispatchers
 
-[ $arch != x64 || $system != linux && $system != macos && $system != windows ]
+[ $arch != x64 || $system != linux && $system != macos ]
 ffi: Skip # ffi not yet supported on other systems than linux/macos 64

@@ -500,9 +500,9 @@ static RawCode* TrampolineCode(const Function& function,
 #elif !defined(TARGET_ARCH_X64)
   // https://github.com/dart-lang/sdk/issues/35774
   UNREACHABLE();
-#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                \
-    !defined(TARGET_OS_WINDOWS)
+#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
   // https://github.com/dart-lang/sdk/issues/35760 Arm32 && Android
+  // https://github.com/dart-lang/sdk/issues/35771 Windows
   // https://github.com/dart-lang/sdk/issues/35772 Arm64
   // https://github.com/dart-lang/sdk/issues/35773 DBC
   UNREACHABLE();
@@ -588,9 +588,9 @@ static void* GenerateFfiInverseTrampoline(const Function& signature,
 #elif !defined(TARGET_ARCH_X64)
   // https://github.com/dart-lang/sdk/issues/35774
   UNREACHABLE();
-#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                \
-    !defined(TARGET_OS_WINDOWS)
+#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
   // https://github.com/dart-lang/sdk/issues/35760 Arm32 && Android
+  // https://github.com/dart-lang/sdk/issues/35771 Windows
   // https://github.com/dart-lang/sdk/issues/35772 Arm64
   // https://github.com/dart-lang/sdk/issues/35773 DBC
   UNREACHABLE();

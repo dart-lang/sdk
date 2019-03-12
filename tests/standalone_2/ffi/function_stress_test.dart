@@ -32,7 +32,7 @@ test(GCWatcher watcher, void Function() testee,
 }
 
 main() async {
-  final watcher = GCWatcher.ifAvailable();
+  final watcher = GCWatcher();
   try {
     await test(watcher, testBoxInt64);
     // On 64-bit platforms this won't trigger GC because the result fits into a
