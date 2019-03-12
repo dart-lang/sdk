@@ -104,6 +104,7 @@ class AssistProcessor {
     await _addProposal_convertMapConstructorToMapLiteral();
     await _addProposal_convertPartOfToUri();
     await _addProposal_convertSetConstructorToSetLiteral();
+    await _addProposal_convertToAbsoluteImport();
     await _addProposal_convertToAsyncFunctionBody();
     await _addProposal_convertToBlockFunctionBody();
     await _addProposal_convertToDoubleQuotedString();
@@ -1723,6 +1724,29 @@ class AssistProcessor {
     });
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+  }
+
+  Future<void> _addProposal_convertToAbsoluteImport() async {
+    var node = this.node;
+    if (node is StringLiteral) {
+      node = node.parent;
+    }
+    if (node is ImportDirective) {
+      var importDirective = node;
+      var importUri = node.uriSource?.uri;
+      if (importUri?.scheme != 'package') {
+        return;
+      }
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        builder.addSimpleReplacement(
+            range.node(importDirective.uri), "'$importUri'");
+      });
+      _addAssistFromBuilder(
+        changeBuilder,
+        DartAssistKind.CONVERT_INTO_ABSOLUTE_IMPORT,
+      );
+    }
   }
 
   Future<void> _addProposal_convertToMultilineString() async {
