@@ -4731,8 +4731,17 @@ abstract class SetOrMapLiteral implements TypedLiteral {
   /// This getter will always return `false` if [isSet] returns `true`.
   ///
   /// However, this getter is _not_ the inverse of [isSet]. It is possible for
-  /// both getters to return `false` if the literal was either invalid or
-  /// ambiguous.
+  /// both getters to return `false` if
+  ///
+  /// - the AST has not been resolved (because determining the kind of the
+  ///   literal is done during resolution),
+  /// - the literal is ambiguous (contains one or more spread elements and none
+  ///   of those elements can be used to determine the kind of the literal), or
+  /// - the literal is invalid because it contains both expressions (for sets)
+  ///   and map entries (for maps).
+  ///
+  /// In both of the latter two cases there will be compilation errors
+  /// associated with the literal.
   bool get isMap;
 
   /// Return `true` if this literal represents a set literal.
@@ -4740,8 +4749,17 @@ abstract class SetOrMapLiteral implements TypedLiteral {
   /// This getter will always return `false` if [isMap] returns `true`.
   ///
   /// However, this getter is _not_ the inverse of [isMap]. It is possible for
-  /// both getters to return `false` if the literal was either invalid or
-  /// ambiguous.
+  /// both getters to return `false` if
+  ///
+  /// - the AST has not been resolved (because determining the kind of the
+  ///   literal is done during resolution),
+  /// - the literal is ambiguous (contains one or more spread elements and none
+  ///   of those elements can be used to determine the kind of the literal), or
+  /// - the literal is invalid because it contains both expressions (for sets)
+  ///   and map entries (for maps).
+  ///
+  /// In both of the latter two cases there will be compilation errors
+  /// associated with the literal.
   bool get isSet;
 
   /// Return the left curly bracket.
