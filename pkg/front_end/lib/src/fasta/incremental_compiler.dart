@@ -100,6 +100,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       new Map<Uri, List<DiagnosticMessageFromJson>>();
   List<Component> modulesToLoad;
 
+  static final Uri debugExprUri =
+      new Uri(scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
+
   KernelTarget userCode;
 
   IncrementalCompiler.fromComponent(
@@ -337,13 +340,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   void reissueLibraryProblems(
       Set<Library> allLibraries, List<Library> compiledLibraries) {
     // The newly-compiled libraries have issued problems already. Re-issue
-    // problems for the libraries that weren't re-compiled.
+    // problems for the libraries that weren't re-compiled (ignore compile
+    // expression problems)
     allLibraries.removeAll(compiledLibraries);
     for (Library library in allLibraries) {
       if (library.problemsAsJson?.isNotEmpty == true) {
         for (String jsonString in library.problemsAsJson) {
           DiagnosticMessageFromJson message =
               new DiagnosticMessageFromJson.fromJson(jsonString);
+          if (message.uri == debugExprUri) {
+            continue;
+          }
           context.options.reportDiagnosticMessage(message);
         }
       }
@@ -624,9 +631,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (String name in definitions.keys) {
         if (!isLegalIdentifier(name)) return null;
       }
-
-      Uri debugExprUri = new Uri(
-          scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
 
       KernelLibraryBuilder debugLibrary = new KernelLibraryBuilder(
           libraryUri,

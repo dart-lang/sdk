@@ -36,12 +36,25 @@ main() {
     };
 
   group('basic', () {
-    test('compile', () async {
-      var systemTempDir = Directory.systemTemp;
-      var file = new File('${systemTempDir.path}/foo.dart')..createSync();
-      file.writeAsStringSync("main() {}\n");
+    Directory mytest;
+    File main;
 
-      IncrementalCompiler compiler = new IncrementalCompiler(options, file.uri);
+    setUpAll(() {
+      mytest = Directory.systemTemp.createTempSync('incremental');
+      main = new File('${mytest.path}/main.dart')..createSync();
+      main.writeAsStringSync("main() {}\n");
+    });
+
+    tearDownAll(() {
+      try {
+        mytest.deleteSync(recursive: true);
+      } catch (_) {
+        // Ignore errors;
+      }
+    });
+
+    test('compile', () async {
+      IncrementalCompiler compiler = new IncrementalCompiler(options, main.uri);
       Component component = await compiler.compile();
 
       final StringBuffer buffer = new StringBuffer();
@@ -56,13 +69,14 @@ main() {
     });
 
     test('compile exclude sources', () async {
-      var systemTempDir = Directory.systemTemp;
-      var file = new File('${systemTempDir.path}/foo.dart')..createSync();
-      file.writeAsStringSync("main() {}\n");
-
-      CompilerOptions optionsExcludeSources = options..embedSourceText = false;
+      CompilerOptions optionsExcludeSources = new CompilerOptions()
+        ..sdkRoot = options.sdkRoot
+        ..target = options.target
+        ..linkedDependencies = options.linkedDependencies
+        ..onDiagnostic = options.onDiagnostic
+        ..embedSourceText = false;
       IncrementalCompiler compiler =
-          new IncrementalCompiler(optionsExcludeSources, file.uri);
+          new IncrementalCompiler(optionsExcludeSources, main.uri);
       Component component = await compiler.compile();
 
       for (Source source in component.uriToSource.values) {
@@ -78,6 +92,37 @@ main() {
               'import self as self;\n'
               '\n'
               'static method main() → dynamic {}\n'));
+    });
+
+    test('compile expressions errors are not re-reported', () async {
+      var errorsReported = 0;
+      CompilerOptions optionsAcceptErrors = new CompilerOptions()
+        ..sdkRoot = options.sdkRoot
+        ..target = options.target
+        ..linkedDependencies = options.linkedDependencies
+        ..onDiagnostic = (DiagnosticMessage message) {
+          errorsReported++;
+          message.plainTextFormatted.forEach(print);
+        };
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(optionsAcceptErrors, main.uri);
+      await compiler.compile();
+      compiler.accept();
+      {
+        Procedure procedure = await compiler.compileExpression(
+            'main', <String>[], <String>[], main.uri.toString(), null, true);
+        expect(procedure, isNotNull);
+        expect(errorsReported, equals(0));
+      }
+      {
+        Procedure procedure = await compiler.compileExpression(
+            'main1', <String>[], <String>[], main.uri.toString(), null, true);
+        expect(procedure, isNotNull);
+        expect(errorsReported, equals(1));
+        errorsReported = 0;
+      }
+      await compiler.compile();
+      expect(errorsReported, equals(0));
     });
   });
 
