@@ -598,6 +598,76 @@ void main() {
   const Less(double.infinity, double.infinity, false).check();
   const Less(0x7fffffff00000000, 0x8000000000000000, true).check();
   const Less(0x8000000000000000, 0x7fffffff00000000, false).check();
+
+  const LessEqual(double.nan, double.nan, false).check();
+  const LessEqual(double.nan, double.infinity, false).check();
+  const LessEqual(double.infinity, double.nan, false).check();
+  const LessEqual(double.nan, double.maxFinite, false).check();
+  const LessEqual(double.maxFinite, double.nan, false).check();
+  const LessEqual(double.nan, -double.maxFinite, false).check();
+  const LessEqual(-double.maxFinite, double.nan, false).check();
+  const LessEqual(double.nan, double.negativeInfinity, false).check();
+  const LessEqual(double.negativeInfinity, double.nan, false).check();
+  const LessEqual(double.negativeInfinity, double.negativeInfinity, true)
+      .check();
+  const LessEqual(double.negativeInfinity, -double.maxFinite, true).check();
+  const LessEqual(-double.maxFinite, double.negativeInfinity, false).check();
+  const LessEqual(-double.maxFinite, -double.maxFinite, true).check();
+  const LessEqual(-double.maxFinite, -9007199254740992, true).check();
+  const LessEqual(-9007199254740992, -double.maxFinite, false).check();
+  const LessEqual(-9007199254740992, -9007199254740992, true).check();
+  const LessEqual(-9007199254740992, -4294967296, true).check();
+  const LessEqual(-4294967296, -9007199254740992, false).check();
+  const LessEqual(-4294967296, -4294967296, true).check();
+  const LessEqual(-4294967296, -42, true).check();
+  const LessEqual(-42, -4294967296, false).check();
+  const LessEqual(-42, -42, true).check();
+  const LessEqual(-42, -42.0, true).check();
+  const LessEqual(-42.0, -42, true).check();
+  const LessEqual(-42.0, -42.0, true).check();
+  const LessEqual(-42, -3.14, true).check();
+  const LessEqual(-3.14, -42, false).check();
+  const LessEqual(-3.14, -3.14, true).check();
+  const LessEqual(-3.14, -double.minPositive, true).check();
+  const LessEqual(-double.minPositive, -3.14, false).check();
+  const LessEqual(-double.minPositive, -double.minPositive, true).check();
+  const LessEqual(-double.minPositive, -0.0, true).check();
+  const LessEqual(-0.0, -double.minPositive, false).check();
+  const LessEqual(-0.0, -0.0, true).check();
+  const LessEqual(0, 0, true).check();
+  const LessEqual(0.0, 0.0, true).check();
+  const LessEqual(-0.0, 0, true).check();
+  const LessEqual(0, -0.0, true).check();
+  const LessEqual(-0.0, 0.0, true).check();
+  const LessEqual(0.0, -0.0, true).check();
+  const LessEqual(0, 0.0, true).check();
+  const LessEqual(0.0, 0, true).check();
+  const LessEqual(0.0, double.minPositive, true).check();
+  const LessEqual(double.minPositive, 0.0, false).check();
+  const LessEqual(double.minPositive, double.minPositive, true).check();
+  const LessEqual(double.minPositive, 3.14, true).check();
+  const LessEqual(3.14, double.minPositive, false).check();
+  const LessEqual(3.14, 3.14, true).check();
+  const LessEqual(3.14, 42, true).check();
+  const LessEqual(42, 3.14, false).check();
+  const LessEqual(42.0, 42.0, true).check();
+  const LessEqual(42, 42.0, true).check();
+  const LessEqual(42.0, 42, true).check();
+  const LessEqual(42, 42, true).check();
+  const LessEqual(42, 4294967296, true).check();
+  const LessEqual(4294967296, 42, false).check();
+  const LessEqual(4294967296, 4294967296, true).check();
+  const LessEqual(4294967296, 9007199254740992, true).check();
+  const LessEqual(9007199254740992, 4294967296, false).check();
+  const LessEqual(9007199254740992, 9007199254740992, true).check();
+  const LessEqual(9007199254740992, double.maxFinite, true).check();
+  const LessEqual(double.maxFinite, 9007199254740992, false).check();
+  const LessEqual(double.maxFinite, double.maxFinite, true).check();
+  const LessEqual(double.maxFinite, double.infinity, true).check();
+  const LessEqual(double.infinity, double.maxFinite, false).check();
+  const LessEqual(double.infinity, double.infinity, true).check();
+  const LessEqual(0x7fffffff00000000, 0x8000000000000000, true).check();
+  const LessEqual(0x8000000000000000, 0x7fffffff00000000, false).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -882,4 +952,18 @@ class Less extends TestOp {
 
   @pragma('dart2js:tryInline')
   eval() => arg1 < arg2;
+}
+
+class LessEqual extends TestOp {
+  final arg1;
+  final arg2;
+
+  const LessEqual(this.arg1, this.arg2, expected)
+      : super(expected, arg1 <= arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @pragma('dart2js:tryInline')
+  eval() => arg1 <= arg2;
 }
