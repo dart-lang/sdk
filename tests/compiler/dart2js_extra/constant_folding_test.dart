@@ -738,6 +738,76 @@ void main() {
   const Greater(double.infinity, double.infinity, false).check();
   const Greater(0x7fffffff00000000, 0x8000000000000000, false).check();
   const Greater(0x8000000000000000, 0x7fffffff00000000, true).check();
+
+  const GreaterEqual(double.nan, double.nan, false).check();
+  const GreaterEqual(double.nan, double.infinity, false).check();
+  const GreaterEqual(double.infinity, double.nan, false).check();
+  const GreaterEqual(double.nan, double.maxFinite, false).check();
+  const GreaterEqual(double.maxFinite, double.nan, false).check();
+  const GreaterEqual(double.nan, -double.maxFinite, false).check();
+  const GreaterEqual(-double.maxFinite, double.nan, false).check();
+  const GreaterEqual(double.nan, double.negativeInfinity, false).check();
+  const GreaterEqual(double.negativeInfinity, double.nan, false).check();
+  const GreaterEqual(double.negativeInfinity, double.negativeInfinity, true)
+      .check();
+  const GreaterEqual(double.negativeInfinity, -double.maxFinite, false).check();
+  const GreaterEqual(-double.maxFinite, double.negativeInfinity, true).check();
+  const GreaterEqual(-double.maxFinite, -double.maxFinite, true).check();
+  const GreaterEqual(-double.maxFinite, -9007199254740992, false).check();
+  const GreaterEqual(-9007199254740992, -double.maxFinite, true).check();
+  const GreaterEqual(-9007199254740992, -9007199254740992, true).check();
+  const GreaterEqual(-9007199254740992, -4294967296, false).check();
+  const GreaterEqual(-4294967296, -9007199254740992, true).check();
+  const GreaterEqual(-4294967296, -4294967296, true).check();
+  const GreaterEqual(-4294967296, -42, false).check();
+  const GreaterEqual(-42, -4294967296, true).check();
+  const GreaterEqual(-42, -42, true).check();
+  const GreaterEqual(-42, -42.0, true).check();
+  const GreaterEqual(-42.0, -42, true).check();
+  const GreaterEqual(-42.0, -42.0, true).check();
+  const GreaterEqual(-42, -3.14, false).check();
+  const GreaterEqual(-3.14, -42, true).check();
+  const GreaterEqual(-3.14, -3.14, true).check();
+  const GreaterEqual(-3.14, -double.minPositive, false).check();
+  const GreaterEqual(-double.minPositive, -3.14, true).check();
+  const GreaterEqual(-double.minPositive, -double.minPositive, true).check();
+  const GreaterEqual(-double.minPositive, -0.0, false).check();
+  const GreaterEqual(-0.0, -double.minPositive, true).check();
+  const GreaterEqual(-0.0, -0.0, true).check();
+  const GreaterEqual(0, 0, true).check();
+  const GreaterEqual(0.0, 0.0, true).check();
+  const GreaterEqual(-0.0, 0, true).check();
+  const GreaterEqual(0, -0.0, true).check();
+  const GreaterEqual(-0.0, 0.0, true).check();
+  const GreaterEqual(0.0, -0.0, true).check();
+  const GreaterEqual(0, 0.0, true).check();
+  const GreaterEqual(0.0, 0, true).check();
+  const GreaterEqual(0.0, double.minPositive, false).check();
+  const GreaterEqual(double.minPositive, 0.0, true).check();
+  const GreaterEqual(double.minPositive, double.minPositive, true).check();
+  const GreaterEqual(double.minPositive, 3.14, false).check();
+  const GreaterEqual(3.14, double.minPositive, true).check();
+  const GreaterEqual(3.14, 3.14, true).check();
+  const GreaterEqual(3.14, 42, false).check();
+  const GreaterEqual(42, 3.14, true).check();
+  const GreaterEqual(42.0, 42.0, true).check();
+  const GreaterEqual(42, 42.0, true).check();
+  const GreaterEqual(42.0, 42, true).check();
+  const GreaterEqual(42, 42, true).check();
+  const GreaterEqual(42, 4294967296, false).check();
+  const GreaterEqual(4294967296, 42, true).check();
+  const GreaterEqual(4294967296, 4294967296, true).check();
+  const GreaterEqual(4294967296, 9007199254740992, false).check();
+  const GreaterEqual(9007199254740992, 4294967296, true).check();
+  const GreaterEqual(9007199254740992, 9007199254740992, true).check();
+  const GreaterEqual(9007199254740992, double.maxFinite, false).check();
+  const GreaterEqual(double.maxFinite, 9007199254740992, true).check();
+  const GreaterEqual(double.maxFinite, double.maxFinite, true).check();
+  const GreaterEqual(double.maxFinite, double.infinity, false).check();
+  const GreaterEqual(double.infinity, double.maxFinite, true).check();
+  const GreaterEqual(double.infinity, double.infinity, true).check();
+  const GreaterEqual(0x7fffffff00000000, 0x8000000000000000, false).check();
+  const GreaterEqual(0x8000000000000000, 0x7fffffff00000000, true).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -1049,4 +1119,18 @@ class Greater extends TestOp {
 
   @pragma('dart2js:tryInline')
   eval() => arg1 > arg2;
+}
+
+class GreaterEqual extends TestOp {
+  final arg1;
+  final arg2;
+
+  const GreaterEqual(this.arg1, this.arg2, expected)
+      : super(expected, arg1 >= arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @pragma('dart2js:tryInline')
+  eval() => arg1 >= arg2;
 }
