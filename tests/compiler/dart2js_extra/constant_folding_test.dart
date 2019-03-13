@@ -139,6 +139,71 @@ void main() {
   const BooleanOr(false, true, true).check();
   const BooleanOr(false, false, false).check();
   const BooleanOr(true, null, true).check();
+
+  const Subtract(314159, 271828, 42331).check();
+  const Subtract(271828, 314159, -42331).check();
+  const Subtract(0, 0, 0).check();
+  const Subtract(0, 42, -42).check();
+  const Subtract(0, -42, 42).check();
+  const Subtract(42, 0, 42).check();
+  const Subtract(42, 42, 0).check();
+  const Subtract(42, -42, 84).check();
+  const Subtract(-42, 0, -42).check();
+  const Subtract(-42, 42, -84).check();
+  const Subtract(-42, -42, 0).check();
+  const Subtract(4294967295, -1, 4294967296).check();
+  const Subtract(4294967296, -1, 4294967297).check();
+  const Subtract(9007199254740991, -1, 9007199254740992).check();
+  const Subtract(9007199254740992, -1, 9007199254740992).check();
+  const Subtract(9007199254740992, -100, 9007199254741092).check();
+  const Subtract(-4294967295, 1, -4294967296).check();
+  const Subtract(-4294967296, 1, -4294967297).check();
+  const Subtract(-9007199254740991, 1, -9007199254740992).check();
+  const Subtract(-9007199254740992, 1, -9007199254740992).check();
+  const Subtract(-9007199254740992, 100, -9007199254741092).check();
+  const Subtract(
+          0x7fffffff00000000, -0x7fffffff00000000, 2 * 0x7fffffff00000000)
+      .check();
+  const Subtract(4.2, 1.5, 2.7).check();
+  const Subtract(1.5, 4.2, -2.7).check();
+  const Subtract(1.5, 0, 1.5).check();
+  const Subtract(0, 1.5, -1.5).check();
+  const Subtract(1.5, 1.5, 0.0).check();
+  const Subtract(-1.5, -1.5, 0.0).check();
+  const Subtract(0.0, 0.0, 0.0).check();
+  const Subtract(0.0, -0.0, 0.0).check();
+  const Subtract(-0.0, 0.0, -0.0).check();
+  const Subtract(-0.0, -0.0, 0.0).check();
+  const Subtract(double.maxFinite, -double.maxFinite, double.infinity).check();
+  const Subtract(-double.maxFinite, double.maxFinite, double.negativeInfinity)
+      .check();
+  const Subtract(1.5, double.nan, double.nan).check();
+  const Subtract(double.nan, 1.5, double.nan).check();
+  const Subtract(double.nan, double.nan, double.nan).check();
+  const Subtract(double.nan, double.infinity, double.nan).check();
+  const Subtract(double.nan, double.negativeInfinity, double.nan).check();
+  const Subtract(double.infinity, double.nan, double.nan).check();
+  const Subtract(double.negativeInfinity, double.nan, double.nan).check();
+  const Subtract(double.infinity, double.maxFinite, double.infinity).check();
+  const Subtract(double.infinity, -double.maxFinite, double.infinity).check();
+  const Subtract(
+          double.negativeInfinity, double.maxFinite, double.negativeInfinity)
+      .check();
+  const Subtract(
+          double.negativeInfinity, -double.maxFinite, double.negativeInfinity)
+      .check();
+  const Subtract(1.5, double.infinity, double.negativeInfinity).check();
+  const Subtract(1.5, double.negativeInfinity, double.infinity).check();
+  const Subtract(double.infinity, double.infinity, double.nan).check();
+  const Subtract(double.infinity, double.negativeInfinity, double.infinity)
+      .check();
+  const Subtract(
+          double.negativeInfinity, double.infinity, double.negativeInfinity)
+      .check();
+  const Subtract(double.negativeInfinity, double.negativeInfinity, double.nan)
+      .check();
+  const Subtract(double.minPositive, double.minPositive, 0.0).check();
+  const Subtract(-double.minPositive, -double.minPositive, 0.0).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -326,4 +391,18 @@ class BooleanOr extends TestOp {
   @override
   @pragma('dart2js:tryInline')
   eval() => arg1 || arg2;
+}
+
+class Subtract extends TestOp {
+  final arg1;
+  final arg2;
+
+  const Subtract(this.arg1, this.arg2, expected) : super(expected, arg1 - arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @override
+  @pragma('dart2js:tryInline')
+  eval() => arg1 - arg2;
 }
