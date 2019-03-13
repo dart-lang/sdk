@@ -204,6 +204,72 @@ void main() {
       .check();
   const Subtract(double.minPositive, double.minPositive, 0.0).check();
   const Subtract(-double.minPositive, -double.minPositive, 0.0).check();
+
+  const Multiply(6, 7, 42).check();
+  const Multiply(-6, 7, -42).check();
+  const Multiply(6, -7, -42).check();
+  const Multiply(-6, -7, 42).check();
+  const Multiply(0, 0, 0).check();
+  const Multiply(0, 7, 0).check();
+  const Multiply(6, 0, 0).check();
+  const Multiply(65536, 65536, 4294967296).check();
+  const Multiply(4294967296, -1, -4294967296).check();
+  const Multiply(-1, 4294967296, -4294967296).check();
+  const Multiply(134217728, 134217728, 18014398509481984).check();
+  const Multiply(18014398509481984, -1, -18014398509481984).check();
+  const Multiply(-1, 18014398509481984, -18014398509481984).check();
+  const Multiply(9000000000000000, 9000000000000000, 8.1e31).check();
+  const Multiply(0x7fff000000000000, 0x8000000000000000, 8.506799558180535e37)
+      .check();
+  const Multiply(0x8000000000000000, 1.2, 11068046444225730000.0).check();
+  const Multiply(3.14, 2.72, 8.5408).check();
+  const Multiply(-3.14, 2.72, -8.5408).check();
+  const Multiply(3.14, -2.72, -8.5408).check();
+  const Multiply(-3.14, -2.72, 8.5408).check();
+  const Multiply(3.14, 0, 0.0).check();
+  const Multiply(0, 2.72, 0.0).check();
+  const Multiply(0.0, 0.0, 0.0).check();
+  const Multiply(0.0, -0.0, -0.0).check();
+  const Multiply(-0.0, 0.0, -0.0).check();
+  const Multiply(-0.0, -0.0, 0.0).check();
+  const Multiply(double.maxFinite, double.maxFinite, double.infinity).check();
+  const Multiply(double.maxFinite, -double.maxFinite, double.negativeInfinity)
+      .check();
+  const Multiply(-double.maxFinite, double.maxFinite, double.negativeInfinity)
+      .check();
+  const Multiply(-double.maxFinite, -double.maxFinite, double.infinity).check();
+  const Multiply(0, double.nan, double.nan).check();
+  const Multiply(double.nan, 0, double.nan).check();
+  const Multiply(double.nan, double.nan, double.nan).check();
+  const Multiply(0, double.infinity, double.nan).check();
+  const Multiply(double.infinity, 0, double.nan).check();
+  const Multiply(0, double.negativeInfinity, double.nan).check();
+  const Multiply(double.negativeInfinity, 0, double.nan).check();
+  const Multiply(-0.0, double.infinity, double.nan).check();
+  const Multiply(double.infinity, -0.0, double.nan).check();
+  const Multiply(-0.0, double.negativeInfinity, double.nan).check();
+  const Multiply(double.negativeInfinity, -0.0, double.nan).check();
+  const Multiply(double.infinity, double.infinity, double.infinity).check();
+  const Multiply(
+          double.infinity, double.negativeInfinity, double.negativeInfinity)
+      .check();
+  const Multiply(
+          double.negativeInfinity, double.infinity, double.negativeInfinity)
+      .check();
+  const Multiply(
+          double.negativeInfinity, double.negativeInfinity, double.infinity)
+      .check();
+  const Multiply(double.minPositive, 0.5, 0.0).check();
+  const Multiply(double.minPositive, -0.5, -0.0).check();
+  const Multiply(-double.minPositive, 0.5, -0.0).check();
+  const Multiply(-double.minPositive, -0.5, 0.0).check();
+  const Multiply(1e-300, -1e-300, -0.0).check();
+  const Multiply(double.minPositive, double.infinity, double.infinity).check();
+  const Multiply(
+          double.minPositive, double.negativeInfinity, double.negativeInfinity)
+      .check();
+  const Multiply(double.minPositive, double.maxFinite, 8.881784197001251e-16)
+      .check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -405,4 +471,18 @@ class Subtract extends TestOp {
   @override
   @pragma('dart2js:tryInline')
   eval() => arg1 - arg2;
+}
+
+class Multiply extends TestOp {
+  final arg1;
+  final arg2;
+
+  const Multiply(this.arg1, this.arg2, expected) : super(expected, arg1 * arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @override
+  @pragma('dart2js:tryInline')
+  eval() => arg1 * arg2;
 }
