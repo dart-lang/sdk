@@ -366,6 +366,103 @@ void main() {
   const TruncatingDivide(-42, double.infinity, 0).check();
   const TruncatingDivide(42, double.negativeInfinity, 0).check();
   const TruncatingDivide(-42, double.negativeInfinity, 0).check();
+
+  const Divide(27, 3, 9).check();
+  const Divide(27, 1, 27).check();
+  const Divide(27, -1, -27).check();
+  const Divide(-27, 1, -27).check();
+  const Divide(-27, -1, 27).check();
+  const Divide(0, 1, 0).check();
+  const Divide(0, -1, -0.0).check();
+  const Divide(-0.0, 1, -0.0).check();
+  const Divide(-0.0, -1, 0).check();
+  const Divide(314159, 27, 11635.518518518518).check();
+  const Divide(314159, -27, -11635.518518518518).check();
+  const Divide(-314159, 27, -11635.518518518518).check();
+  const Divide(-314159, -27, 11635.518518518518).check();
+  const Divide(4294967295, 4294967296, 0.9999999997671694).check();
+  const Divide(4294967295, -4294967296, -0.9999999997671694).check();
+  const Divide(-4294967295, 4294967296, -0.9999999997671694).check();
+  const Divide(-4294967295, -4294967296, 0.9999999997671694).check();
+  const Divide(9007199254740991, 9007199254740992, 0.9999999999999999).check();
+  const Divide(9007199254740991, -9007199254740992, -0.9999999999999999)
+      .check();
+  const Divide(-9007199254740991, 9007199254740992, -0.9999999999999999)
+      .check();
+  const Divide(-9007199254740991, -9007199254740992, 0.9999999999999999)
+      .check();
+  const Divide(4294967296, 4294967295, 1.0000000002328306).check();
+  const Divide(4294967296, -4294967295, -1.0000000002328306).check();
+  const Divide(-4294967296, 4294967295, -1.0000000002328306).check();
+  const Divide(-4294967296, -4294967295, 1.0000000002328306).check();
+  const Divide(9007199254740992, 9007199254740991, 1.0000000000000002).check();
+  const Divide(9007199254740992, -9007199254740991, -1.0000000000000002)
+      .check();
+  const Divide(-9007199254740992, 9007199254740991, -1.0000000000000002)
+      .check();
+  const Divide(-9007199254740992, -9007199254740991, 1.0000000000000002)
+      .check();
+  const Divide(4294967295, 0.5, 8589934590).check();
+  const Divide(4294967295, -0.5, -8589934590).check();
+  const Divide(-4294967295, 0.5, -8589934590).check();
+  const Divide(-4294967295, -0.5, 8589934590).check();
+  const Divide(9007199254740991, 0.5, 18014398509481982).check();
+  const Divide(9007199254740991, -0.5, -18014398509481982).check();
+  const Divide(-9007199254740991, 0.5, -18014398509481982).check();
+  const Divide(-9007199254740991, -0.5, 18014398509481982).check();
+  const Divide(2.71828, 3.14159, 0.8652561282662601).check();
+  const Divide(2.71828, 1, 2.71828).check();
+  const Divide(2.71828, -1, -2.71828).check();
+  const Divide(-2.71828, 1, -2.71828).check();
+  const Divide(-2.71828, -1, 2.71828).check();
+  const Divide(27.1828, 3.14159, 8.652561282662601).check();
+  const Divide(27.1828, -3.14159, -8.652561282662601).check();
+  const Divide(-27.1828, 3.14159, -8.652561282662601).check();
+  const Divide(-27.1828, -3.14159, 8.652561282662601).check();
+  const Divide(1, 0, double.infinity).check();
+  const Divide(1, -0.0, double.negativeInfinity).check();
+  const Divide(-1, 0, double.negativeInfinity).check();
+  const Divide(-1, -0.0, double.infinity).check();
+  const Divide(0, 0, double.nan).check();
+  const Divide(0, -0.0, double.nan).check();
+  const Divide(-0.0, 0, double.nan).check();
+  const Divide(-0.0, -0.0, double.nan).check();
+  const Divide(double.infinity, 0, double.infinity).check();
+  const Divide(double.infinity, -0.0, double.negativeInfinity).check();
+  const Divide(double.negativeInfinity, 0, double.negativeInfinity).check();
+  const Divide(double.negativeInfinity, -0.0, double.infinity).check();
+  const Divide(double.nan, 0, double.nan).check();
+  const Divide(double.nan, -0.0, double.nan).check();
+  const Divide(double.nan, 1, double.nan).check();
+  const Divide(1, double.nan, double.nan).check();
+  const Divide(0, double.nan, double.nan).check();
+  const Divide(double.nan, double.nan, double.nan).check();
+  const Divide(double.nan, double.infinity, double.nan).check();
+  const Divide(double.infinity, double.nan, double.nan).check();
+  const Divide(double.negativeInfinity, double.nan, double.nan).check();
+  const Divide(double.infinity, 1, double.infinity).check();
+  const Divide(double.infinity, -1, double.negativeInfinity).check();
+  const Divide(double.negativeInfinity, 1, double.negativeInfinity).check();
+  const Divide(double.negativeInfinity, -1, double.infinity).check();
+  const Divide(0, double.infinity, 0).check();
+  const Divide(0, double.negativeInfinity, -0.0).check();
+  const Divide(-0.0, double.infinity, -0.0).check();
+  const Divide(-0.0, double.negativeInfinity, 0).check();
+  const Divide(1, double.infinity, 0).check();
+  const Divide(1, double.negativeInfinity, -0.0).check();
+  const Divide(-1, double.infinity, -0.0).check();
+  const Divide(-1, double.negativeInfinity, 0).check();
+  const Divide(double.infinity, double.infinity, double.nan).check();
+  const Divide(double.minPositive, double.maxFinite, 0).check();
+  const Divide(double.minPositive, -double.maxFinite, -0.0).check();
+  const Divide(-double.minPositive, double.maxFinite, -0.0).check();
+  const Divide(-double.minPositive, -double.maxFinite, 0).check();
+  const Divide(double.maxFinite, double.minPositive, double.infinity).check();
+  const Divide(double.maxFinite, -double.minPositive, double.negativeInfinity)
+      .check();
+  const Divide(-double.maxFinite, double.minPositive, double.negativeInfinity)
+      .check();
+  const Divide(-double.maxFinite, -double.minPositive, double.infinity).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -610,4 +707,18 @@ class TruncatingDivide extends TestOp {
   @override
   @pragma('dart2js:tryInline')
   eval() => arg1 ~/ arg2;
+}
+
+class Divide extends TestOp {
+  final arg1;
+  final arg2;
+
+  const Divide(this.arg1, this.arg2, expected) : super(expected, arg1 / arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @override
+  @pragma('dart2js:tryInline')
+  eval() => arg1 / arg2;
 }
