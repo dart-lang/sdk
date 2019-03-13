@@ -3311,6 +3311,7 @@ class Field : public Object {
                             const Object& owner,
                             TokenPosition token_pos,
                             TokenPosition end_token_pos);
+  friend class Interpreter;              // Access to bit field.
   friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
 
   enum {

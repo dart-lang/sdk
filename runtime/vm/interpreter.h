@@ -210,6 +210,21 @@ class Interpreter {
                         uint32_t* pc,
                         RawObject** FP,
                         RawObject** SP);
+  bool AllocateDoubleBox(Thread* thread,
+                         double value,
+                         uint32_t* pc,
+                         RawObject** FP,
+                         RawObject** SP);
+  bool AllocateFloat32x4Box(Thread* thread,
+                            simd128_value_t value,
+                            uint32_t* pc,
+                            RawObject** FP,
+                            RawObject** SP);
+  bool AllocateFloat64x2Box(Thread* thread,
+                            simd128_value_t value,
+                            uint32_t* pc,
+                            RawObject** FP,
+                            RawObject** SP);
 
 #if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.

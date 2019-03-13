@@ -8299,7 +8299,7 @@ void Field::InitializeNew(const Field& result,
   result.set_token_pos(token_pos);
   result.set_end_token_pos(end_token_pos);
   result.set_has_initializer(false);
-  result.set_is_unboxing_candidate(true);
+  result.set_is_unboxing_candidate(!is_final);
   result.set_initializer_changed_after_initialization(false);
   result.set_kernel_offset(0);
   result.set_has_pragma(false);
