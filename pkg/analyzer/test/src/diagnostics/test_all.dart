@@ -9,6 +9,9 @@ import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
 import 'const_constructor_param_type_mismatch_test.dart'
     as const_constructor_param_type_mismatch;
+import 'const_spread_expected_list_or_set_test.dart'
+    as const_spread_expected_list_or_set;
+import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
 import 'dead_code_test.dart' as dead_code;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'division_optimization_test.dart' as division_optimization;
@@ -69,6 +72,8 @@ main() {
     argument_type_not_assignable.main();
     can_be_null_after_null_aware.main();
     const_constructor_param_type_mismatch.main();
+    const_spread_expected_list_or_set.main();
+    const_spread_expected_map.main();
     dead_code.main();
     deprecated_member_use.main();
     division_optimization.main();

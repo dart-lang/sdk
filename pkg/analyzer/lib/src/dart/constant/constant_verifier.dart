@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -149,7 +150,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       List<Expression> invalidKeys = new List<Expression>();
       for (CollectionElement element in node.elements2) {
         bool isValid = _validateCollectionElement(element, true, keys,
-            invalidKeys, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+            invalidKeys, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
+            forList: true);
         if (isValid && element is Expression) {
           // TODO(brianwilkerson) Handle the other kinds of elements.
           _reportErrorIfFromDeferredLibrary(
@@ -201,7 +203,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             }
           } else {
             bool isValid = _validateCollectionElement(element, isConst, keys,
-                invalidKeys, CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT);
+                invalidKeys, CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT,
+                forSet: true);
             if (isValid) {
               // TODO(mfairhurst) report deferred library error
             }
@@ -224,7 +227,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           }
         } else {
           bool isValid = _validateCollectionElement(entry, isConst, keys,
-              invalidKeys, CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT);
+              invalidKeys, CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT,
+              forMap: true);
           if (isValid) {
             // TODO(mfarihurst): handle deferred library checks
           }
@@ -453,11 +457,15 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   bool _validateCollectionElement(
-      CollectionElement element,
-      bool isConst,
-      HashSet<DartObject> keys,
-      List<Expression> invalidKeys,
-      ErrorCode errorCode) {
+    CollectionElement element,
+    bool isConst,
+    HashSet<DartObject> keys,
+    List<Expression> invalidKeys,
+    ErrorCode errorCode, {
+    bool forList = false,
+    bool forMap = false,
+    bool forSet = false,
+  }) {
     if (element is Expression) {
       return !isConst || _validate(element, errorCode) != null;
     } else if (element is ForElement) {
@@ -489,10 +497,45 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     } else if (element is MapLiteralEntry) {
       return _validateMapLiteralEntry(element, isConst, keys, invalidKeys);
     } else if (element is SpreadElement) {
-      return !isConst || _validate(element.expression, errorCode) != null;
+      if (!isConst) return true;
+
+      var value = _validate(element.expression, errorCode);
+      if (value == null) return false;
+
+      if (forList || forSet) {
+        if (value.toListValue() != null ||
+            value.toSetValue() != null ||
+            value.isNull && _isNullableSpread(element)) {
+          return true;
+        }
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
+          element.expression,
+        );
+        return false;
+      }
+
+      if (forMap) {
+        if (value.toMapValue() != null ||
+            value.isNull && _isNullableSpread(element)) {
+          return true;
+        }
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP,
+          element.expression,
+        );
+        return false;
+      }
+
+      return true;
     }
     throw new UnsupportedError(
         'Unhandled type of collection element: ${element.runtimeType}');
+  }
+
+  static bool _isNullableSpread(SpreadElement element) {
+    return element.spreadOperator.type ==
+        TokenType.PERIOD_PERIOD_PERIOD_QUESTION;
   }
 
   /// Validate that if the passed arguments are constant expressions.

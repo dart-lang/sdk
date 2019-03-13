@@ -654,6 +654,14 @@ class CompileTimeErrorCode extends ErrorCode {
           correction:
               "Try declaring the field as final, or adding the keyword 'static'.");
 
+  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_LIST_OR_SET =
+      const CompileTimeErrorCode('CONST_SPREAD_EXPECTED_LIST_OR_SET',
+          "A list or a set is expected in this spread.");
+
+  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_MAP =
+      const CompileTimeErrorCode(
+          'CONST_SPREAD_EXPECTED_MAP', "A map is expected in this spread.");
+
   /**
    * 12.8 Maps: It is a compile-time error if the key of an entry in a constant
    * map literal is an instance of a class that implements the operator
