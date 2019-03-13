@@ -574,13 +574,10 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
       "test");
 
   /**
-   * Create a source object representing a file with the given [fileName] and
-   * give it an empty content. Return the source that was created.
+   * Return a source object representing a file with the given [fileName].
    */
   Source createNamedSource(String fileName) {
-    Source source = getFile(fileName).createSource();
-    analysisContext2.setContents(source, '');
-    return source;
+    return getFile(fileName).createSource();
   }
 
   /**

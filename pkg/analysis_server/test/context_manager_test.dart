@@ -2498,20 +2498,12 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
 
     ContextBuilder builder =
         createContextBuilder(folder, options, useSummaries: true);
-    AnalysisContext context = builder.buildContext(folder.path);
-    SourceFactory sourceFactory = context.sourceFactory;
-    AnalysisOptions analysisOptions = context.analysisOptions;
-    context.dispose();
+    builder.analysisDriverScheduler = scheduler;
+    builder.byteStore = MemoryByteStore();
+    builder.performanceLog = logger;
+    builder.fileContentOverlay = FileContentOverlay();
+    currentDriver = builder.buildDriver(contextRoot);
 
-    currentDriver = new AnalysisDriver(
-        scheduler,
-        logger,
-        resourceProvider,
-        new MemoryByteStore(),
-        new FileContentOverlay(),
-        contextRoot,
-        sourceFactory,
-        analysisOptions);
     driverMap[path] = currentDriver;
     currentDriver.exceptions.listen((ExceptionResult result) {
       AnalysisEngine.instance.logger
