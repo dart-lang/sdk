@@ -53,6 +53,18 @@ void main() {
 
   const Not(true, false).check();
   const Not(false, true).check();
+
+  const BitAnd(314159, 271828, 262404).check();
+  const BitAnd(271828, 314159, 262404).check();
+  const BitAnd(0, 0, 0).check();
+  const BitAnd(-1, 0, 0).check();
+  const BitAnd(-1, 314159, 314159).check();
+  const BitAnd(-1, 0xFFFFFFFF, 0xFFFFFFFF).check();
+  const BitAnd(0xff, -4, 0xfc).check();
+  const BitAnd(0, 0xFFFFFFFF, 0).check();
+  const BitAnd(0xFFFFFFFF, 0, 0).check();
+  const BitAnd(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF).check();
+  const BitAnd(0x123456789ABC, 0xEEEEEEEEEEEE, 0x46688AAC).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -138,4 +150,18 @@ class Not extends TestOp {
   @override
   @pragma('dart2js:tryInline')
   eval() => !arg;
+}
+
+class BitAnd extends TestOp {
+  final arg1;
+  final arg2;
+
+  const BitAnd(this.arg1, this.arg2, expected) : super(expected, arg1 & arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @override
+  @pragma('dart2js:tryInline')
+  eval() => arg1 & arg2;
 }
