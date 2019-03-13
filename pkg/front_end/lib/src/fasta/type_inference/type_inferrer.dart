@@ -544,7 +544,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   TypeInferrerImpl.private(
       this.engine, this.uri, bool topLevel, this.thisType, this.library)
-      : classHierarchy = engine.classHierarchy,
+      : assert((topLevel && library == null) || (!topLevel && library != null)),
+        classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel,

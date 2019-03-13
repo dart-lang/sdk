@@ -165,11 +165,13 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         node.arguments,
         isConst: node.isConst);
     inferrer.storeInferredType(node, inferenceResult.type);
-    KernelLibraryBuilder inferrerLibrary = inferrer.library;
-    if (!hasExplicitTypeArguments && inferrerLibrary is KernelLibraryBuilder) {
-      inferrerLibrary.checkBoundsInConstructorInvocation(
-          node, inferrer.typeSchemaEnvironment,
-          inferred: true);
+    if (!inferrer.isTopLevel) {
+      KernelLibraryBuilder library = inferrer.library;
+      if (!hasExplicitTypeArguments) {
+        library.checkBoundsInConstructorInvocation(
+            node, inferrer.typeSchemaEnvironment,
+            inferred: true);
+      }
     }
   }
 
@@ -224,11 +226,13 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         node.argumentJudgments,
         isConst: node.isConst);
     node.inferredType = inferenceResult.type;
-    KernelLibraryBuilder inferrerLibrary = inferrer.library;
-    if (!hadExplicitTypeArguments && inferrerLibrary is KernelLibraryBuilder) {
-      inferrerLibrary.checkBoundsInFactoryInvocation(
-          node, inferrer.typeSchemaEnvironment,
-          inferred: true);
+    if (!inferrer.isTopLevel) {
+      KernelLibraryBuilder library = inferrer.library;
+      if (!hadExplicitTypeArguments) {
+        library.checkBoundsInFactoryInvocation(
+            node, inferrer.typeSchemaEnvironment,
+            inferred: true);
+      }
     }
     return null;
   }
@@ -772,11 +776,12 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       }
     }
     node.inferredType = new InterfaceType(listClass, [inferredTypeArgument]);
-    KernelLibraryBuilder inferrerLibrary = inferrer.library;
-    if (inferenceNeeded && inferrerLibrary is KernelLibraryBuilder) {
-      inferrerLibrary.checkBoundsInListLiteral(
-          node, inferrer.typeSchemaEnvironment,
-          inferred: true);
+    if (!inferrer.isTopLevel) {
+      KernelLibraryBuilder library = inferrer.library;
+      if (inferenceNeeded) {
+        library.checkBoundsInListLiteral(node, inferrer.typeSchemaEnvironment,
+            inferred: true);
+      }
     }
 
     return null;
@@ -832,28 +837,29 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     KernelLibraryBuilder library = inferrer.library;
     bool typeContextIsMap = false;
     bool typeContextIsIterable = false;
-    if (library != null &&
-        library.loader.target.enableSetLiterals &&
-        inferenceNeeded) {
-      // Ambiguous set/map literal
-      DartType context =
-          inferrer.typeSchemaEnvironment.unfutureType(typeContext);
-      if (context is InterfaceType) {
-        typeContextIsMap = inferrer.classHierarchy
-            .isSubtypeOf(context.classNode, inferrer.coreTypes.mapClass);
-        typeContextIsIterable = inferrer.classHierarchy
-            .isSubtypeOf(context.classNode, inferrer.coreTypes.iterableClass);
-        if (node.entries.isEmpty &&
-            typeContextIsIterable &&
-            !typeContextIsMap) {
-          // Set literal
-          SetLiteralJudgment setLiteral = new SetLiteralJudgment([],
-              typeArgument: const ImplicitTypeArgument(), isConst: node.isConst)
-            ..fileOffset = node.fileOffset;
-          node.parent.replaceChild(node, setLiteral);
-          visitSetLiteralJudgment(setLiteral, typeContext);
-          node.inferredType = setLiteral.inferredType;
-          return;
+    if (!inferrer.isTopLevel) {
+      if (library.loader.target.enableSetLiterals && inferenceNeeded) {
+        // Ambiguous set/map literal
+        DartType context =
+            inferrer.typeSchemaEnvironment.unfutureType(typeContext);
+        if (context is InterfaceType) {
+          typeContextIsMap = inferrer.classHierarchy
+              .isSubtypeOf(context.classNode, inferrer.coreTypes.mapClass);
+          typeContextIsIterable = inferrer.classHierarchy
+              .isSubtypeOf(context.classNode, inferrer.coreTypes.iterableClass);
+          if (node.entries.isEmpty &&
+              typeContextIsIterable &&
+              !typeContextIsMap) {
+            // Set literal
+            SetLiteralJudgment setLiteral = new SetLiteralJudgment([],
+                typeArgument: const ImplicitTypeArgument(),
+                isConst: node.isConst)
+              ..fileOffset = node.fileOffset;
+            node.parent.replaceChild(node, setLiteral);
+            visitSetLiteralJudgment(setLiteral, typeContext);
+            node.inferredType = setLiteral.inferredType;
+            return;
+          }
         }
       }
     }
@@ -976,24 +982,26 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         return;
       }
       if (!canBeSet && !canBeMap) {
-        LocatedMessage iterableContextMessage = messageSpreadElement
-            .withLocation(library.uri, iterableSpreadOffset, 1);
-        LocatedMessage mapContextMessage = messageSpreadMapElement.withLocation(
-            library.uri, mapSpreadOffset, 1);
-        List<LocatedMessage> context = <LocatedMessage>[];
-        if (iterableSpreadOffset < mapSpreadOffset) {
-          context.add(iterableContextMessage);
-          context.add(mapContextMessage);
-        } else {
-          context.add(mapContextMessage);
-          context.add(iterableContextMessage);
+        if (!inferrer.isTopLevel) {
+          LocatedMessage iterableContextMessage = messageSpreadElement
+              .withLocation(library.uri, iterableSpreadOffset, 1);
+          LocatedMessage mapContextMessage = messageSpreadMapElement
+              .withLocation(library.uri, mapSpreadOffset, 1);
+          List<LocatedMessage> context = <LocatedMessage>[];
+          if (iterableSpreadOffset < mapSpreadOffset) {
+            context.add(iterableContextMessage);
+            context.add(mapContextMessage);
+          } else {
+            context.add(mapContextMessage);
+            context.add(iterableContextMessage);
+          }
+          node.parent.replaceChild(
+              node,
+              inferrer.helper.desugarSyntheticExpression(inferrer.helper
+                  .buildProblem(messageCantDisambiguateAmbiguousInformation,
+                      node.fileOffset, 1,
+                      context: context)));
         }
-        node.parent.replaceChild(
-            node,
-            inferrer.helper.desugarSyntheticExpression(inferrer.helper
-                .buildProblem(messageCantDisambiguateAmbiguousInformation,
-                    node.fileOffset, 1,
-                    context: context)));
         node.inferredType = const BottomType();
         return;
       }
@@ -1098,13 +1106,14 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     }
     node.inferredType =
         new InterfaceType(mapClass, [inferredKeyType, inferredValueType]);
-    KernelLibraryBuilder inferrerLibrary = inferrer.library;
-    // Either both [_declaredKeyType] and [_declaredValueType] are omitted or
-    // none of them, so we may just check one.
-    if (inferenceNeeded && inferrerLibrary is KernelLibraryBuilder) {
-      inferrerLibrary.checkBoundsInMapLiteral(
-          node, inferrer.typeSchemaEnvironment,
-          inferred: true);
+    if (!inferrer.isTopLevel) {
+      KernelLibraryBuilder library = inferrer.library;
+      // Either both [_declaredKeyType] and [_declaredValueType] are omitted or
+      // none of them, so we may just check one.
+      if (inferenceNeeded) {
+        library.checkBoundsInMapLiteral(node, inferrer.typeSchemaEnvironment,
+            inferred: true);
+      }
     }
   }
 
@@ -1441,17 +1450,16 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       }
     }
     node.inferredType = new InterfaceType(setClass, [inferredTypeArgument]);
-    KernelLibraryBuilder inferrerLibrary = inferrer.library;
-    if (inferenceNeeded && inferrerLibrary is KernelLibraryBuilder) {
-      inferrerLibrary.checkBoundsInSetLiteral(
-          node, inferrer.typeSchemaEnvironment,
-          inferred: true);
-    }
+    if (!inferrer.isTopLevel) {
+      KernelLibraryBuilder library = inferrer.library;
+      if (inferenceNeeded) {
+        library.checkBoundsInSetLiteral(node, inferrer.typeSchemaEnvironment,
+            inferred: true);
+      }
 
-    KernelLibraryBuilder library = inferrer.library;
-    if (library != null &&
-        !library.loader.target.backendTarget.supportsSetLiterals) {
-      inferrer.helper.transformSetLiterals = true;
+      if (!library.loader.target.backendTarget.supportsSetLiterals) {
+        inferrer.helper.transformSetLiterals = true;
+      }
     }
   }
 
@@ -1706,11 +1714,13 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         node.initializer = replacedInitializer;
       }
     }
-    KernelLibraryBuilder inferrerLibrary = inferrer.library;
-    if (node._implicitlyTyped && inferrerLibrary is KernelLibraryBuilder) {
-      inferrerLibrary.checkBoundsInVariableDeclaration(
-          node, inferrer.typeSchemaEnvironment,
-          inferred: true);
+    if (!inferrer.isTopLevel) {
+      KernelLibraryBuilder library = inferrer.library;
+      if (node._implicitlyTyped) {
+        library.checkBoundsInVariableDeclaration(
+            node, inferrer.typeSchemaEnvironment,
+            inferred: true);
+      }
     }
   }
 
