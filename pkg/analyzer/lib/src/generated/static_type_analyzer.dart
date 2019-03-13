@@ -2003,9 +2003,9 @@ class _InferredCollectionElementTypeInformation {
       elementType != null &&
       elementType.isDynamic &&
       keyType != null &&
-      keyType?.isDynamic &&
+      keyType.isDynamic &&
       valueType != null &&
-      valueType?.isDynamic;
+      valueType.isDynamic;
 
   bool get mustBeAMap => canBeAMap && elementType == null;
 
