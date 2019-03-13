@@ -1259,28 +1259,6 @@ const String B = A + 'b';
     verify([source]);
   }
 
-  test_constMapKeyExpressionTypeImplementsEquals_abstract() async {
-    Source source = addSource(r'''
-abstract class B {
-  final id;
-  const B(this.id);
-  String toString() => 'C($id)';
-  /** Equality is identity equality, the id isn't used. */
-  bool operator==(Object other);
-  }
-
-class C extends B {
-  const C(id) : super(id);
-}
-
-Map getMap() {
-  return const { const C(0): 'Map: 0' };
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_constNotInitialized_field() async {
     Source source = addSource(r'''
 class A {
@@ -4173,17 +4151,6 @@ f() {
 }''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_nonConstMapKey_constField() async {
-    Source source = addSource(r'''
-main() {
-  const {double.INFINITY: 0};
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
     verify([source]);
   }
 
