@@ -32,6 +32,7 @@ class ExprBuilder {
   final UnlinkedExpr _uc;
   final bool requireValidConst;
   final bool useSetOrMap;
+  final bool becomeSetOrMap;
 
   int intPtr = 0;
   int doublePtr = 0;
@@ -47,11 +48,15 @@ class ExprBuilder {
 
   final Map<String, ParameterElement> parametersInScope;
 
-  ExprBuilder(this.resynthesizer, this.context, this._uc,
-      {this.requireValidConst: true,
-      this.localFunctions,
-      Map<String, ParameterElement> parametersInScope})
-      : this.parametersInScope =
+  ExprBuilder(
+    this.resynthesizer,
+    this.context,
+    this._uc, {
+    this.requireValidConst: true,
+    this.localFunctions,
+    Map<String, ParameterElement> parametersInScope,
+    this.becomeSetOrMap: true,
+  })  : this.parametersInScope =
             parametersInScope ?? _parametersInScope(context),
         this.useSetOrMap = _isSetOrMapEnabled((resynthesizer
                 .library.context.analysisOptions as AnalysisOptionsImpl)
@@ -867,25 +872,47 @@ class ExprBuilder {
     for (int i = 0; i < count; i++) {
       elements.insert(0, _popCollectionElement());
     }
+
+    bool isMap = true; // assume Map unless can prove otherwise
     DartType staticType;
-    if (typeArguments != null && typeArguments.arguments.length == 2) {
-      var keyType = typeArguments.arguments[0].type;
-      var valueType = typeArguments.arguments[1].type;
-      staticType =
-          resynthesizer.typeProvider.mapType.instantiate([keyType, valueType]);
-    } else if (typeArguments != null && typeArguments.arguments.length == 1) {
-      var valueType = typeArguments == null
-          ? resynthesizer.typeProvider.dynamicType
-          : typeArguments.arguments[0].type;
-      staticType = resynthesizer.typeProvider.setType.instantiate([valueType]);
+    if (typeArguments != null) {
+      if (typeArguments.arguments.length == 2) {
+        var keyType = typeArguments.arguments[0].type;
+        var valueType = typeArguments.arguments[1].type;
+        staticType = resynthesizer.typeProvider.mapType
+            .instantiate([keyType, valueType]);
+      } else if (typeArguments.arguments.length == 1) {
+        isMap = false;
+        var valueType = typeArguments == null
+            ? resynthesizer.typeProvider.dynamicType
+            : typeArguments.arguments[0].type;
+        staticType =
+            resynthesizer.typeProvider.setType.instantiate([valueType]);
+      }
+    } else {
+      for (var i = 0; i < elements.length; ++i) {
+        var element = elements[i];
+        if (element is Expression) {
+          isMap = false;
+        }
+      }
     }
-    _push(astFactory.setOrMapLiteral(
-        constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
-        typeArguments: typeArguments,
-        leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-        elements: elements,
-        rightBracket: TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET))
-      ..staticType = staticType);
+
+    SetOrMapLiteral setOrMapLiteral = astFactory.setOrMapLiteral(
+      constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
+      typeArguments: typeArguments,
+      leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+      elements: elements,
+      rightBracket: TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET),
+    );
+    if (becomeSetOrMap) {
+      if (isMap) {
+        (setOrMapLiteral as SetOrMapLiteralImpl).becomeMap();
+      } else {
+        (setOrMapLiteral as SetOrMapLiteralImpl).becomeSet();
+      }
+    }
+    _push(setOrMapLiteral..staticType = staticType);
   }
 
   List<Expression> _removeTopExpressions(int count) {

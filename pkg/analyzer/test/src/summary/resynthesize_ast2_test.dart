@@ -60,6 +60,8 @@ abstract class String {
   String operator +(String other);
 }
 
+class Set<T> {}
+
 abstract class Symbol {}
 
 abstract class Type {}

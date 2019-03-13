@@ -2520,7 +2520,9 @@ class ExprTypeComputer {
       List<UnlinkedExecutable> localFunctions)
       : _builder = new ExprBuilder(
             unitResynthesizer, _functionElement, unlinkedConst,
-            requireValidConst: false, localFunctions: localFunctions);
+            requireValidConst: false,
+            localFunctions: localFunctions,
+            becomeSetOrMap: false);
 
   TopLevelInferenceErrorKind get errorKind {
     // TODO(paulberry): should we return TopLevelInferenceErrorKind.assignment
