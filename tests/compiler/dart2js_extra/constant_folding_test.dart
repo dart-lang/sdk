@@ -320,6 +320,52 @@ void main() {
   const Modulo(double.infinity, double.negativeInfinity, double.nan).check();
   const Modulo(double.negativeInfinity, double.negativeInfinity, double.nan)
       .check();
+
+  const TruncatingDivide(27, 314159, 0).check();
+  const TruncatingDivide(27, 1, 27).check();
+  const TruncatingDivide(27, -1, -27).check();
+  const TruncatingDivide(-27, 1, -27).check();
+  const TruncatingDivide(-27, -1, 27).check();
+  const TruncatingDivide(314159, 27, 11635).check();
+  const TruncatingDivide(314159, -27, -11635).check();
+  const TruncatingDivide(-314159, 27, -11635).check();
+  const TruncatingDivide(-314159, -27, 11635).check();
+  const TruncatingDivide(4294967295, 4294967296, 0).check();
+  const TruncatingDivide(4294967295, -4294967296, 0).check();
+  const TruncatingDivide(-4294967295, 4294967296, 0).check();
+  const TruncatingDivide(-4294967295, -4294967296, 0).check();
+  const TruncatingDivide(9007199254740991, 9007199254740992, 0).check();
+  const TruncatingDivide(9007199254740991, -9007199254740992, 0).check();
+  const TruncatingDivide(-9007199254740991, 9007199254740992, 0).check();
+  const TruncatingDivide(-9007199254740991, -9007199254740992, 0).check();
+  const TruncatingDivide(4294967295, 0.5, 8589934590).check();
+  const TruncatingDivide(4294967295, -0.5, -8589934590).check();
+  const TruncatingDivide(-4294967295, 0.5, -8589934590).check();
+  const TruncatingDivide(-4294967295, -0.5, 8589934590).check();
+  const TruncatingDivide(9007199254740991, 0.5, 18014398509481982).check();
+  const TruncatingDivide(9007199254740991, -0.5, -18014398509481982).check();
+  const TruncatingDivide(-9007199254740991, 0.5, -18014398509481982).check();
+  const TruncatingDivide(-9007199254740991, -0.5, 18014398509481982).check();
+  const TruncatingDivide(
+          0x80000000 * 0x100000000, -1, -0x80000000 * 0x100000000)
+      .check();
+  const TruncatingDivide(2.71828, 3.14159, 0).check();
+  const TruncatingDivide(2.71828, 1, 2).check();
+  const TruncatingDivide(2.71828, -1, -2).check();
+  const TruncatingDivide(-2.71828, 1, -2).check();
+  const TruncatingDivide(-2.71828, -1, 2).check();
+  const TruncatingDivide(27.1828, 3.14159, 8).check();
+  const TruncatingDivide(27.1828, -3.14159, -8).check();
+  const TruncatingDivide(-27.1828, 3.14159, -8).check();
+  const TruncatingDivide(-27.1828, -3.14159, 8).check();
+  const TruncatingDivide(0.0, double.infinity, 0).check();
+  const TruncatingDivide(-0.0, double.infinity, 0).check();
+  const TruncatingDivide(0.0, double.negativeInfinity, 0).check();
+  const TruncatingDivide(-0.0, double.negativeInfinity, 0).check();
+  const TruncatingDivide(42, double.infinity, 0).check();
+  const TruncatingDivide(-42, double.infinity, 0).check();
+  const TruncatingDivide(42, double.negativeInfinity, 0).check();
+  const TruncatingDivide(-42, double.negativeInfinity, 0).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -549,4 +595,19 @@ class Modulo extends TestOp {
   @override
   @pragma('dart2js:tryInline')
   eval() => arg1 % arg2;
+}
+
+class TruncatingDivide extends TestOp {
+  final arg1;
+  final arg2;
+
+  const TruncatingDivide(this.arg1, this.arg2, expected)
+      : super(expected, arg1 ~/ arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @override
+  @pragma('dart2js:tryInline')
+  eval() => arg1 ~/ arg2;
 }
