@@ -50,6 +50,9 @@ void main() {
   const Negate(double.minPositive, -double.minPositive).check();
   const Negate(-double.minPositive, double.minPositive).check();
   const Negate(double.nan, double.nan).check();
+
+  const Not(true, false).check();
+  const Not(false, true).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -122,4 +125,17 @@ class Negate extends TestOp {
   @override
   @pragma('dart2js:tryInline')
   eval() => -arg;
+}
+
+class Not extends TestOp {
+  final arg;
+
+  const Not(this.arg, expected) : super(expected, !arg);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @override
+  @pragma('dart2js:tryInline')
+  eval() => !arg;
 }
