@@ -127,6 +127,12 @@ void main() {
   const ShiftRight(-1073741824, 31, 0xFFFFFFFF).check();
   const ShiftRight(-1073741824, 32, 0xFFFFFFFF).check();
   const ShiftRight(-1073741824, 100, 0xFFFFFFFF).check();
+
+  const BooleanAnd(true, true, true).check();
+  const BooleanAnd(true, false, false).check();
+  const BooleanAnd(false, true, false).check();
+  const BooleanAnd(false, false, false).check();
+  const BooleanAnd(false, null, false).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -284,4 +290,19 @@ class ShiftRight extends TestOp {
   @override
   @pragma('dart2js:tryInline')
   eval() => arg1 >> arg2;
+}
+
+class BooleanAnd extends TestOp {
+  final arg1;
+  final arg2;
+
+  const BooleanAnd(this.arg1, this.arg2, expected)
+      : super(expected, arg1 && arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @override
+  @pragma('dart2js:tryInline')
+  eval() => arg1 && arg2;
 }
