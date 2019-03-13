@@ -2114,7 +2114,6 @@ main() {
     var fTypeParameter = fType.normalParameterTypes[0] as TypeParameterType;
     expect(fTypeParameter.element, same(fTypeTypeParameter));
     var tRef = findNode.simple('T>');
-    assertType(tRef, null);
     var functionTypeNode = tRef.parent.parent.parent as GenericFunctionType;
     var functionType = functionTypeNode.type as FunctionType;
     assertElement(tRef, functionType.typeFormals[0]);
