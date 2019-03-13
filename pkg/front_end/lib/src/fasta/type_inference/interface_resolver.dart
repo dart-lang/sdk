@@ -47,12 +47,7 @@ import '../builder/builder.dart' show LibraryBuilder;
 import '../kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
 
 import '../kernel/kernel_shadow_ast.dart'
-    show
-        ShadowClass,
-        ShadowField,
-        ShadowMember,
-        ShadowProcedure,
-        VariableDeclarationJudgment;
+    show ShadowClass, ShadowField, ShadowProcedure, VariableDeclarationJudgment;
 
 import '../messages.dart'
     show
@@ -160,7 +155,7 @@ class AccessorInferenceNode extends InferenceNode {
       DartType overriddenType;
       if (resolvedCandidate is SyntheticAccessor) {
         var field = resolvedCandidate._field;
-        ShadowMember.resolveInferenceNode(field);
+        TypeInferenceEngine.resolveInferenceNode(field);
         overriddenType = field.type;
       } else if (resolvedCandidate.function != null) {
         switch (resolvedCandidate.kind) {

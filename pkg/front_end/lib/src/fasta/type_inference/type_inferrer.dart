@@ -104,7 +104,6 @@ import '../kernel/kernel_shadow_ast.dart'
         ExpressionJudgment,
         ShadowClass,
         ShadowField,
-        ShadowMember,
         ShadowTypeInferenceEngine,
         ShadowTypeInferrer,
         VariableDeclarationJudgment,
@@ -1840,7 +1839,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         member = member is SyntheticAccessor
             ? SyntheticAccessor.getField(member)
             : member;
-        ShadowMember.resolveInferenceNode(member);
+        TypeInferenceEngine.resolveInferenceNode(member);
         return member;
       }
     }

@@ -1469,10 +1469,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     if (write is StaticSet) {
       writeContext = write.target.setterType;
       writeMember = write.target;
-      if (writeMember is ShadowField && writeMember.inferenceNode != null) {
-        writeMember.inferenceNode.resolve();
-        writeMember.inferenceNode = null;
-      }
+      TypeInferenceEngine.resolveInferenceNode(writeMember);
     }
     node._inferRhs(inferrer, readType, writeContext);
     node._replaceWithDesugared();
@@ -1482,10 +1479,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
   @override
   void visitStaticGet(StaticGet node, DartType typeContext) {
     var target = node.target;
-    if (target is ShadowField && target.inferenceNode != null) {
-      target.inferenceNode.resolve();
-      target.inferenceNode = null;
-    }
+    TypeInferenceEngine.resolveInferenceNode(target);
     var type = target.getterType;
     if (target is Procedure && target.kind == ProcedureKind.Method) {
       type = inferrer.instantiateTearOff(type, typeContext, node);

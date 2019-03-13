@@ -1003,15 +1003,6 @@ abstract class ShadowMember implements Member {
 
   void setInferredType(
       TypeInferenceEngine engine, Uri uri, DartType inferredType);
-
-  static void resolveInferenceNode(Member member) {
-    if (member is ShadowMember) {
-      if (member.inferenceNode != null) {
-        member.inferenceNode.resolve();
-        member.inferenceNode = null;
-      }
-    }
-  }
 }
 
 /// Shadow object for [MethodInvocation].
