@@ -105,6 +105,7 @@ class ObjectPointerVisitor;
   RW(Array, libraries_map)                                                     \
   RW(GrowableObjectArray, closure_functions)                                   \
   RW(GrowableObjectArray, pending_classes)                                     \
+  RW(GrowableObjectArray, pending_unevaluated_const_fields)                    \
   R_(GrowableObjectArray, pending_deferred_loads)                              \
   R_(GrowableObjectArray, resume_capabilities)                                 \
   R_(GrowableObjectArray, exit_listeners)                                      \

@@ -676,6 +676,14 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
       }
     }
 
+    // Set pending fields array to flag constant table loading.
+    ASSERT(I->object_store()->pending_unevaluated_const_fields() ==
+           GrowableObjectArray::null());
+    GrowableObjectArray& pending_unevaluated_const_fields =
+        GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+    I->object_store()->set_pending_unevaluated_const_fields(
+        pending_unevaluated_const_fields);
+
     // All classes were successfully loaded, so let's:
     //     a) load & canonicalize the constant table
     const Array& constants = ReadConstantTable();
@@ -690,6 +698,22 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
     kernel_program_info_.set_constants(constants);
     kernel_program_info_.set_constants_table(ExternalTypedData::Handle(Z));
 
+    //     d) evaluate pending field initializers
+    Error& error = Error::Handle(Z);
+    Field& field = Field::Handle(Z);
+    for (intptr_t i = 0, n = pending_unevaluated_const_fields.Length(); i < n;
+         i++) {
+      field ^= pending_unevaluated_const_fields.At(i);
+      error = field.EvaluateInitializer();
+      if (!error.IsNull()) {
+        H.ReportError(error, "postponed field initializer");
+      }
+    }
+    pending_unevaluated_const_fields = GrowableObjectArray::null();
+    I->object_store()->set_pending_unevaluated_const_fields(
+        pending_unevaluated_const_fields);
+
+    //     e) evaluate pragmas that were delayed
     EvaluateDelayedPragmas();
 
     NameIndex main = program_->main_method();
