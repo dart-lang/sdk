@@ -25,11 +25,11 @@ static method main() → dynamic {
   final core::Map<core::int, core::int> aMap = block {
     final core::Map<core::int, core::int> #t5 = <core::int, core::int>{};
     #t5.{core::Map::[]=}(1, 1);
-    for (final core::MapEntry<core::int, core::int> #t6 in <core::int, core::int>{2: 2})
+    for (final core::MapEntry<core::int, core::int> #t6 in <core::int, core::int>{2: 2}.{core::Map::entries})
       #t5.{core::Map::[]=}(#t6.{core::MapEntry::key}, #t6.{core::MapEntry::value});
     final core::Map<dynamic, dynamic> #t7 = <core::int, core::int>{3: 3};
     if(!#t7.{core::Object::==}(null))
-      for (final core::MapEntry<core::int, core::int> #t8 in #t7)
+      for (final core::MapEntry<core::int, core::int> #t8 in #t7.{core::Map::entries})
         #t5.{core::Map::[]=}(#t8.{core::MapEntry::key}, #t8.{core::MapEntry::value});
   } =>#t5;
   final core::Set<core::int> aSet = block {
