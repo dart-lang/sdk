@@ -8,11 +8,15 @@ import 'strong_test_helper.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CheckerTest_Driver);
+    defineReflectiveTests(CheckerTest);
   });
 }
 
-abstract class CheckerTest extends AbstractStrongTest {
+@reflectiveTest
+class CheckerTest extends AbstractStrongTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_awaitForInCastsStreamElementToVariable() async {
     await checkFile('''
 import 'dart:async';
@@ -2535,7 +2539,6 @@ class C extends Object with M1, M2 implements I1, I2 {}
     ''');
   }
 
-  @failingTest // Does not work with old task model
   test_interfacesFromMixinsUsedTwiceAreChecked() {
     // Regression test for https://github.com/dart-lang/sdk/issues/29782
     return checkFile(r'''
@@ -3647,15 +3650,6 @@ class Child extends Base {
 ''');
   }
 
-  test_strictRawTypes_emptyMap() async {
-    addFile('''
-main() {
-  var rawMap = /*info:STRICT_RAW_TYPE*/{};
-}
-''');
-    await check(strictRawTypes: true);
-  }
-
   test_strictRawTypes_classes() async {
     addFile(r'''
 class C<T> {
@@ -3823,6 +3817,15 @@ main() {
 }
     ''');
 
+    await check(strictRawTypes: true);
+  }
+
+  test_strictRawTypes_emptyMap() async {
+    addFile('''
+main() {
+  var rawMap = /*info:STRICT_RAW_TYPE*/{};
+}
+''');
     await check(strictRawTypes: true);
   }
 
@@ -4507,14 +4510,4 @@ class _Virtual { const _Virtual(); }
 const Object virtual = const _Virtual();
     ''', name: '/meta.dart');
   }
-}
-
-@reflectiveTest
-class CheckerTest_Driver extends CheckerTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override // Passes with driver
-  test_interfacesFromMixinsUsedTwiceAreChecked() =>
-      super.test_interfacesFromMixinsUsedTwiceAreChecked();
 }

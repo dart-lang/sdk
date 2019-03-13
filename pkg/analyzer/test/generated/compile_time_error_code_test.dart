@@ -13,7 +13,7 @@ import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CompileTimeErrorCodeTest_Driver);
+    defineReflectiveTests(CompileTimeErrorCodeTest);
     defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest);
     defineReflectiveTests(ControlFlowCollectionsTest);
     defineReflectiveTests(InvalidTypeArgumentInConstSetTest);
@@ -23,7 +23,7 @@ main() {
 }
 
 @reflectiveTest
-class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTestBase {
+class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
   @override
   bool get enableNewAnalysisDriver => true;
 

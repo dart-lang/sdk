@@ -45,6 +45,8 @@ main() {
     defineReflectiveTests(LibraryScopeTest);
     defineReflectiveTests(PrefixedNamespaceTest);
     defineReflectiveTests(ScopeTest);
+    defineReflectiveTests(StrictModeTest);
+    defineReflectiveTests(TypePropagationTest);
     defineReflectiveTests(TypeProviderImplTest);
     defineReflectiveTests(TypeResolverVisitorTest);
   });
@@ -571,18 +573,10 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
  * The class `StrictModeTest` contains tests to ensure that the correct errors and warnings
  * are reported when the analysis engine is run in strict mode.
  */
-abstract class StrictModeTest extends ResolverTestCase {
-  fail_for() async {
-    Source source = addSource(r'''
-int f(List<int> list) {
-  num sum = 0;
-  for (num i = 0; i < list.length; i++) {
-    sum += list[i];
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-  }
+@reflectiveTest
+class StrictModeTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   @override
   void setUp() {
@@ -632,6 +626,19 @@ int f(num n) {
     Source source = addSource(r'''
 int f(num n) {
   return (n is! int || n < 0) ? 0 : n & 0x0F;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+
+  @failingTest
+  test_for() async {
+    Source source = addSource(r'''
+int f(List<int> list) {
+  num sum = 0;
+  for (num i = 0; i < list.length; i++) {
+    sum += list[i];
+  }
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
@@ -722,16 +729,10 @@ int f() {
   }
 }
 
-abstract class TypePropagationTest extends ResolverTestCase {
-  fail_propagatedReturnType_functionExpression() async {
-    // TODO(scheglov) disabled because we don't resolve function expression
-    String code = r'''
-main() {
-  var v = (() {return 42;})();
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.dynamicType);
-  }
+@reflectiveTest
+class TypePropagationTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   test_assignment_null() async {
     String code = r'''
@@ -998,6 +999,17 @@ main() {
     MethodInvocation methodInvoke = methodName.parent;
     expect(methodName.staticType, typeProvider.dynamicType);
     expect(methodInvoke.staticType, typeProvider.dynamicType);
+  }
+
+  @failingTest
+  test_propagatedReturnType_functionExpression() async {
+    // TODO(scheglov) disabled because we don't resolve function expression
+    String code = r'''
+main() {
+  var v = (() {return 42;})();
+}''';
+    CompilationUnit unit = await resolveSource(code);
+    assertAssignedType(code, unit, typeProvider.dynamicType);
   }
 
   /**

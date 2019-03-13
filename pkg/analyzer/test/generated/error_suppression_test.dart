@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,10 +6,21 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
 
-abstract class ErrorSuppressionTest extends ResolverTestCase {
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ErrorSuppressionTest);
+  });
+}
+
+@reflectiveTest
+class ErrorSuppressionTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   String get ignoredCode => 'const_initialized_with_non_constant_value';
 
   List<ErrorCode> get reportedCodes => [

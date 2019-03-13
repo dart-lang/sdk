@@ -16,12 +16,22 @@ import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:front_end/src/base/errors.dart';
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../utils.dart';
 import 'resolver_test_case.dart';
 
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(StrongModeLocalInferenceTest);
+    defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
+    defineReflectiveTests(StrongModeTypePropagationTest);
+  });
+}
+
 /// Strong mode static analyzer local type inference tests
-abstract class StrongModeLocalInferenceTest extends ResolverTestCase {
+@reflectiveTest
+class StrongModeLocalInferenceTest extends ResolverTestCase {
   TypeAssertions _assertions;
 
   Asserter<DartType> _isDynamic;
@@ -49,6 +59,9 @@ abstract class StrongModeLocalInferenceTest extends ResolverTestCase {
 
   AsserterBuilder<Element, DartType> _hasElement;
   AsserterBuilder<DartType, DartType> _hasElementOf;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   @override
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
@@ -2809,6 +2822,91 @@ class B<T2, U2> {
   }
 }
 
+@reflectiveTest
+class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
+    with StrongModeStaticTypeAnalyzer2TestCases {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  void setUp() {
+    super.setUp();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    resetWith(options: options);
+  }
+
+  @failingTest
+  @override
+  test_genericFunction_parameter() {
+    return super.test_genericFunction_parameter();
+  }
+
+  @failingTest
+  @override
+  test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() {
+    return super
+        .test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit();
+  }
+
+  @failingTest
+  @override
+  test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() {
+    return super
+        .test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred();
+  }
+
+  @failingTest
+  @override
+  test_genericMethod_functionInvocation_functionTypedParameter_explicit() {
+    return super
+        .test_genericMethod_functionInvocation_functionTypedParameter_explicit();
+  }
+
+  @failingTest
+  @override
+  test_genericMethod_functionInvocation_functionTypedParameter_inferred() {
+    return super
+        .test_genericMethod_functionInvocation_functionTypedParameter_inferred();
+  }
+
+  @failingTest
+  @override
+  test_genericMethod_functionTypedParameter_tearoff() {
+    return super.test_genericMethod_functionTypedParameter_tearoff();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_nestedCaptureBounds() {
+    // https://github.com/dart-lang/sdk/issues/30236
+    return super.test_genericMethod_nestedCaptureBounds();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_tearoff_instantiated() {
+    return super.test_genericMethod_tearoff_instantiated();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_class_error_extension_malbounded() {
+    return super.test_instantiateToBounds_class_error_extension_malbounded();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_class_error_instantiation_malbounded() {
+    return super
+        .test_instantiateToBounds_class_error_instantiation_malbounded();
+  }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_generic_function_error_malbounded() {
+    return super.test_instantiateToBounds_generic_function_error_malbounded();
+  }
+}
+
 /// Test cases for [StrongModeStaticTypeAnalyzer2Test]
 mixin StrongModeStaticTypeAnalyzer2TestCases
     implements StaticTypeAnalyzer2TestShared {
@@ -4320,7 +4418,11 @@ main() {
   }
 }
 
-abstract class StrongModeTypePropagationTest extends ResolverTestCase {
+@reflectiveTest
+class StrongModeTypePropagationTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   @override
   void setUp() {
     super.setUp();
