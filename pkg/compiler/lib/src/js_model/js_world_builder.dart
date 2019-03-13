@@ -340,25 +340,12 @@ class JsClosedWorldBuilder {
     Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior =
         map.toBackendMemberMap(
             nativeData.nativeFieldStoreBehavior, convertNativeBehavior);
-    Map<LibraryEntity, String> jsInteropLibraryNames =
-        map.toBackendLibraryMap(nativeData.jsInteropLibraries, identity);
-    Set<ClassEntity> anonymousJsInteropClasses =
-        map.toBackendClassSet(nativeData.anonymousJsInteropClasses);
-    Map<ClassEntity, String> jsInteropClassNames =
-        map.toBackendClassMap(nativeData.jsInteropClasses, identity);
-    Map<MemberEntity, String> jsInteropMemberNames =
-        map.toBackendMemberMap(nativeData.jsInteropMembers, identity);
-
     return new NativeDataImpl(
         nativeBasicData,
         nativeMemberName,
         nativeMethodBehavior,
         nativeFieldLoadBehavior,
-        nativeFieldStoreBehavior,
-        jsInteropLibraryNames,
-        anonymousJsInteropClasses,
-        jsInteropClassNames,
-        jsInteropMemberNames);
+        nativeFieldStoreBehavior);
   }
 
   InterceptorData _convertInterceptorData(JsToFrontendMap map,
