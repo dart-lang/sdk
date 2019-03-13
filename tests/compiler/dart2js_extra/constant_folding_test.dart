@@ -808,6 +808,35 @@ void main() {
   const GreaterEqual(double.infinity, double.infinity, true).check();
   const GreaterEqual(0x7fffffff00000000, 0x8000000000000000, false).check();
   const GreaterEqual(0x8000000000000000, 0x7fffffff00000000, true).check();
+
+  const Equals(null, null, true).check();
+  const Equals(null, "", false).check();
+  const Equals("", null, false).check();
+  const Equals("", "", true).check();
+  const Equals(true, true, true).check();
+  const Equals(false, false, true).check();
+  const Equals(true, false, false).check();
+  const Equals(false, true, false).check();
+  const Equals(0, false, false).check();
+  const Equals(true, 1, false).check();
+  const Equals(double.nan, double.nan, false).check();
+  const Equals(0, 0, true).check();
+  const Equals(0.0, 0.0, true).check();
+  const Equals(-0.0, -0.0, true).check();
+  const Equals(0, 0.0, true).check();
+  const Equals(0.0, 0, true).check();
+  const Equals(0, -0.0, true).check();
+  const Equals(-0.0, 0, true).check();
+  const Equals(0.0, -0.0, true).check();
+  const Equals(-0.0, 0.0, true).check();
+  const Equals(1, 1, true).check();
+  const Equals(1.0, 1.0, true).check();
+  const Equals(1, 1.0, true).check();
+  const Equals(1.0, 1, true).check();
+  const Equals(double.infinity, double.infinity, true).check();
+  const Equals(double.infinity, double.negativeInfinity, false).check();
+  const Equals(double.negativeInfinity, double.infinity, false).check();
+  const Equals(double.negativeInfinity, double.negativeInfinity, true).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -1133,4 +1162,17 @@ class GreaterEqual extends TestOp {
 
   @pragma('dart2js:tryInline')
   eval() => arg1 >= arg2;
+}
+
+class Equals extends TestOp {
+  final arg1;
+  final arg2;
+
+  const Equals(this.arg1, this.arg2, expected) : super(expected, arg1 == arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @pragma('dart2js:tryInline')
+  eval() => arg1 == arg2;
 }
