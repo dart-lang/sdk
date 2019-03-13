@@ -104,6 +104,29 @@ void main() {
   const ShiftLeft(-1, 31, 0x80000000).check();
   const ShiftLeft(-1, 32, 0).check();
   const ShiftLeft(-1, 100, 0).check();
+
+  const ShiftRight(8675309, 0, 8675309).check();
+  const ShiftRight(8675309, 5, 271103).check();
+  const ShiftRight(0xFEDCBA98, 0, 0xFEDCBA98).check();
+  const ShiftRight(0xFEDCBA98, 5, 0x07F6E5D4).check();
+  const ShiftRight(0xFEDCBA98, 31, 1).check();
+  const ShiftRight(0xFEDCBA98, 32, 0).check();
+  const ShiftRight(0xFEDCBA98, 100, 0).check();
+  const ShiftRight(0xFFFFFEDCBA98, 0, 0xFEDCBA98).check();
+  const ShiftRight(0xFFFFFEDCBA98, 5, 0x07F6E5D4).check();
+  const ShiftRight(0xFFFFFEDCBA98, 31, 1).check();
+  const ShiftRight(0xFFFFFEDCBA98, 32, 0).check();
+  const ShiftRight(0xFFFFFEDCBA98, 100, 0).check();
+  const ShiftRight(-1, 0, 0xFFFFFFFF).check();
+  const ShiftRight(-1, 5, 0xFFFFFFFF).check();
+  const ShiftRight(-1, 31, 0xFFFFFFFF).check();
+  const ShiftRight(-1, 32, 0xFFFFFFFF).check();
+  const ShiftRight(-1, 100, 0xFFFFFFFF).check();
+  const ShiftRight(-1073741824, 0, 0xC0000000).check();
+  const ShiftRight(-1073741824, 5, 0xFE000000).check();
+  const ShiftRight(-1073741824, 31, 0xFFFFFFFF).check();
+  const ShiftRight(-1073741824, 32, 0xFFFFFFFF).check();
+  const ShiftRight(-1073741824, 100, 0xFFFFFFFF).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -246,4 +269,19 @@ class ShiftLeft extends TestOp {
   @override
   @pragma('dart2js:tryInline')
   eval() => arg1 << arg2;
+}
+
+class ShiftRight extends TestOp {
+  final arg1;
+  final arg2;
+
+  const ShiftRight(this.arg1, this.arg2, expected)
+      : super(expected, arg1 >> arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @override
+  @pragma('dart2js:tryInline')
+  eval() => arg1 >> arg2;
 }
