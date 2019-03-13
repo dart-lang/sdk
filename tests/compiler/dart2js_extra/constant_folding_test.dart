@@ -5,8 +5,14 @@
 import "package:expect/expect.dart";
 
 void main() {
+  const BitNot(42, 4294967253).check();
+  const BitNot(4294967253, 42).check();
+  const BitNot(-42, 41).check();
+  const BitNot(-1, 0).check();
   const BitNot(0, 0xFFFFFFFF).check();
-  const BitNot(-2, 1).check();
+  const BitNot(4294967295, 0).check();
+  const BitNot(0x12121212121212, 0xEDEDEDED).check();
+
   const Negate(0, -0).check();
   const Negate(1, -1).check();
 }
