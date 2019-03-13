@@ -43,6 +43,17 @@ method3() {}
 method4() {}
 
 main() {
+  method1();
+  method2();
+  method3();
+  method4();
+  new JsClass1()..jsMethod1()..jsMethod2();
+  new JsClass2();
+  jsMethod3();
+  new NativeClass1()..nativeMethod()..nativeField;
+  new NativeClass2()..nativeField;
+  new NativeClass3()..nativeGetter;
+  nativeMethod();
 }
 ''',
   '$pathPrefix/jslib1.dart': '''
@@ -53,11 +64,11 @@ library lib1;
 import 'package:js/js.dart';
 
 @JS('JsInteropClass1')
-class Class1 {
+class JsClass1 {
   @JS('jsInteropMethod1')
-  external method1();
+  external jsMethod1();
   
-  external method2();
+  external jsMethod2();
 }
 
 ''',
@@ -70,35 +81,56 @@ import 'package:js/js.dart';
 
 @JS()
 @anonymous
-class Class2 {
+class JsClass2 {
 }
 
 @JS('jsInteropMethod3')
-external method3();
+external jsMethod3();
 ''',
   '$pathPrefix/nativelib.dart': '''
+library lib3; 
+ 
 import 'dart:_js_helper';
 
-@Native('NativeClass1')
-class Class1 {
+@Native('Class1')
+class NativeClass1 {
+  @JSName('field1')
+  var nativeField;
+  
+  @JSName('method1')
+  nativeMethod() native;
 }
 
-@Native('NativeClass2,!nonleaf')
-class Class2 {
+@Native('Class2,!nonleaf')
+class NativeClass2 {
+  @JSName('field2')
+  var nativeField;
 }
 
-@Native('NativeClass3a,NativeClass3b')
-class Class3 {
+@Native('Class3a,Class3b')
+class NativeClass3 {
+  
+  @JSName('method2')
+  get nativeGetter native;
 }
 
-
+@JSName('method3')
+nativeMethod() native;
 ''',
 };
 
 const Map<String, String> expectedNativeClassNames = {
-  '$pathPrefix/nativelib.dart::Class1': 'NativeClass1',
-  '$pathPrefix/nativelib.dart::Class2': 'NativeClass2,!nonleaf',
-  '$pathPrefix/nativelib.dart::Class3': 'NativeClass3a,NativeClass3b',
+  '$pathPrefix/nativelib.dart::NativeClass1': 'Class1',
+  '$pathPrefix/nativelib.dart::NativeClass2': 'Class2,!nonleaf',
+  '$pathPrefix/nativelib.dart::NativeClass3': 'Class3a,Class3b',
+};
+
+const Map<String, String> expectedNativeMemberNames = {
+  '$pathPrefix/nativelib.dart::NativeClass1::nativeField': 'field1',
+  '$pathPrefix/nativelib.dart::NativeClass1::nativeMethod': 'method1',
+  '$pathPrefix/nativelib.dart::NativeClass2::nativeField': 'field2',
+  '$pathPrefix/nativelib.dart::NativeClass3::nativeGetter': 'method2',
+  '$pathPrefix/nativelib.dart::nativeMethod': 'method3',
 };
 
 const Map<String, String> expectedJsInteropLibraryNames = {
@@ -107,17 +139,17 @@ const Map<String, String> expectedJsInteropLibraryNames = {
 };
 
 const Map<String, String> expectedJsInteropClassNames = {
-  '$pathPrefix/jslib1.dart::Class1': 'JsInteropClass1',
-  '$pathPrefix/jslib2.dart::Class2': '',
+  '$pathPrefix/jslib1.dart::JsClass1': 'JsInteropClass1',
+  '$pathPrefix/jslib2.dart::JsClass2': '',
 };
 
 const Map<String, String> expectedJsInteropMemberNames = {
-  '$pathPrefix/jslib1.dart::Class1::method1': 'jsInteropMethod1',
-  '$pathPrefix/jslib2.dart::method3': 'jsInteropMethod3',
+  '$pathPrefix/jslib1.dart::JsClass1::jsMethod1': 'jsInteropMethod1',
+  '$pathPrefix/jslib2.dart::jsMethod3': 'jsInteropMethod3',
 };
 
 const Set<String> expectedAnonymousJsInteropClasses = {
-  '$pathPrefix/jslib2.dart::Class2',
+  '$pathPrefix/jslib2.dart::JsClass2',
 };
 
 const Set<String> expectedNoInlineMethods = {
@@ -163,12 +195,13 @@ main(List<String> args) {
       }
 
       void testMember(String idPrefix, ir.Member member,
-          {bool implicitJsInteropMember}) {
+          {bool implicitJsInteropMember, bool implicitNativeMember}) {
         String memberId = '$idPrefix::${member.name.name}';
         MemberEntity memberEntity = elementMap.getMember(member);
 
         String expectedJsInteropMemberName =
             expectedJsInteropMemberNames[memberId];
+        String expectedNativeMemberName = expectedNativeMemberNames[memberId];
         Set<String> expectedPragmaNames = {};
         if (expectedNoInlineMethods.contains(memberId)) {
           expectedPragmaNames.add('dart2js:noInline');
@@ -180,6 +213,11 @@ main(List<String> args) {
           Expect.equals(
               expectedJsInteropMemberName,
               annotationData.getJsInteropMemberName(member),
+              "Unexpected js interop member name from IR for $member");
+
+          Expect.equals(
+              expectedNativeMemberName,
+              annotationData.getNativeMemberName(member),
               "Unexpected js interop member name from IR for $member");
 
           List<PragmaAnnotationData> pragmaAnnotations =
@@ -202,6 +240,22 @@ main(List<String> args) {
                 : null,
             nativeData.getJsInteropMemberName(memberEntity),
             "Unexpected js interop member name from native data for $member");
+
+        bool isNativeMember =
+            implicitNativeMember || expectedNativeMemberName != null;
+        Expect.equals(
+            isNativeMember || isJsInteropMember,
+            nativeData.isNativeMember(memberEntity),
+            "Unexpected native member result from native data for $member");
+        Expect.equals(
+            isNativeMember
+                ? expectedNativeMemberName ?? memberEntity.name
+                : (isJsInteropMember
+                    ? expectedJsInteropMemberName ?? memberEntity.name
+                    : null),
+            nativeData.getFixedBackendName(memberEntity),
+            "Unexpected fixed backend name from native data for $member");
+
         List<PragmaAnnotationData> pragmaAnnotations = frontendStrategy
             .modularStrategyForTesting
             .getPragmaAnnotationData(member);
@@ -293,20 +347,24 @@ main(List<String> args) {
             for (ir.Member member in cls.members) {
               testMember(clsId, member,
                   implicitJsInteropMember:
-                      nativeData.isJsInteropClass(classEntity));
+                      nativeData.isJsInteropClass(classEntity),
+                  implicitNativeMember: member is! ir.Constructor &&
+                      nativeData.isNativeClass(classEntity) &&
+                      !nativeData.isJsInteropClass(classEntity));
             }
           }
           for (ir.Member member in library.members) {
-            testMember(libraryId, member, implicitJsInteropMember: false);
+            testMember(libraryId, member,
+                implicitJsInteropMember: false, implicitNativeMember: false);
           }
         }
       }
     }
 
-    print('test annotations from IR');
-    await runTest(useIr: true);
-
     print('test annotations from K-model');
     await runTest(useIr: false);
+
+    print('test annotations from IR');
+    await runTest(useIr: true);
   });
 }
