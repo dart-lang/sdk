@@ -495,6 +495,16 @@ copy("copy_vm_dill_files") {
   ]
 }
 
+copy("copy_abi_dill_files") {
+  visibility = [ ":create_common_sdk" ]
+  sources = [
+    "../tools/abiversions",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/_internal/abiversions",
+  ]
+}
+
 copy("copy_dart2js_dill_files") {
   visibility = [ ":create_full_sdk" ]
   deps = [
@@ -889,6 +899,7 @@ copy("copy_api_readme") {
 group("create_common_sdk") {
   visibility = [ ":create_sdk" ]
   public_deps = [
+    ":copy_abi_dill_files",
     ":copy_analysis_summaries",
     ":copy_api_readme",
     ":copy_dart",

@@ -1,4 +1,3 @@
-# tools/idl_parser and tools/abiversions are populated by gclient sync
-abiversions
+# tools/idl_parser is populated by gclient sync
 idl_parser
 
