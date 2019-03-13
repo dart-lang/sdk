@@ -133,6 +133,12 @@ void main() {
   const BooleanAnd(false, true, false).check();
   const BooleanAnd(false, false, false).check();
   const BooleanAnd(false, null, false).check();
+
+  const BooleanOr(true, true, true).check();
+  const BooleanOr(true, false, true).check();
+  const BooleanOr(false, true, true).check();
+  const BooleanOr(false, false, false).check();
+  const BooleanOr(true, null, true).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -305,4 +311,19 @@ class BooleanAnd extends TestOp {
   @override
   @pragma('dart2js:tryInline')
   eval() => arg1 && arg2;
+}
+
+class BooleanOr extends TestOp {
+  final arg1;
+  final arg2;
+
+  const BooleanOr(this.arg1, this.arg2, expected)
+      : super(expected, arg1 || arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @override
+  @pragma('dart2js:tryInline')
+  eval() => arg1 || arg2;
 }
