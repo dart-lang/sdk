@@ -318,7 +318,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       if (helper_.PeekTag() == kField) {
 #ifdef DEBUG
         String& name = String::Handle(Z, function.name());
-        ASSERT(Function::IsDynamicInvocationForwaderName(name));
+        ASSERT(Function::IsDynamicInvocationForwarderName(name));
         name = Function::DemangleDynamicInvocationForwarderName(name);
         ASSERT(Field::IsSetterName(name));
 #endif

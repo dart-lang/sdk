@@ -949,7 +949,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   }
   // Inline implicit instance setter.
   String& field_name = String::Handle(Z, instr->function_name().raw());
-  if (Function::IsDynamicInvocationForwaderName(field_name)) {
+  if (Function::IsDynamicInvocationForwarderName(field_name)) {
     field_name = Function::DemangleDynamicInvocationForwarderName(field_name);
   }
   field_name = Field::NameFromSetter(field_name);

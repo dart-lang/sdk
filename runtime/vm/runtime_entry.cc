@@ -1041,7 +1041,7 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
 
   // Handle noSuchMethod for dyn:methodName by getting a noSuchMethod dispatcher
   // (or a call-through getter for methodName).
-  if (Function::IsDynamicInvocationForwaderName(target_name)) {
+  if (Function::IsDynamicInvocationForwarderName(target_name)) {
     const String& demangled = String::Handle(
         Function::DemangleDynamicInvocationForwarderName(target_name));
     return InlineCacheMissHelper(receiver, args_descriptor, demangled);
@@ -1682,7 +1682,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
     target_name = MegamorphicCache::Cast(ic_data_or_cache).target_name();
   }
 
-  if (Function::IsDynamicInvocationForwaderName(target_name)) {
+  if (Function::IsDynamicInvocationForwarderName(target_name)) {
     target_name = Function::DemangleDynamicInvocationForwarderName(target_name);
   }
 

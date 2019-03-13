@@ -3006,7 +3006,7 @@ bool Library::FindPragma(Thread* T,
   return false;
 }
 
-bool Function::IsDynamicInvocationForwaderName(const String& name) {
+bool Function::IsDynamicInvocationForwarderName(const String& name) {
   return name.StartsWith(Symbols::DynamicPrefix());
 }
 
@@ -3056,7 +3056,7 @@ RawString* Function::CreateDynamicInvocationForwarderName(const String& name) {
 RawFunction* Function::GetDynamicInvocationForwarder(
     const String& mangled_name,
     bool allow_add /* = true */) const {
-  ASSERT(IsDynamicInvocationForwaderName(mangled_name));
+  ASSERT(IsDynamicInvocationForwarderName(mangled_name));
   const Class& owner = Class::Handle(Owner());
   Function& result = Function::Handle(owner.GetInvocationDispatcher(
       mangled_name, Array::null_array(),
@@ -7972,7 +7972,7 @@ const char* Function::ToCString() const {
       kind_str = " no-such-method-dispatcher";
       break;
     case RawFunction::kDynamicInvocationForwarder:
-      kind_str = " dynamic-invocation-forwader";
+      kind_str = " dynamic-invocation-forwarder";
       break;
     case RawFunction::kInvokeFieldDispatcher:
       kind_str = "invoke-field-dispatcher";
@@ -13317,7 +13317,7 @@ bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (smi_op_target.IsNull() &&
-      Function::IsDynamicInvocationForwaderName(name)) {
+      Function::IsDynamicInvocationForwarderName(name)) {
     const String& demangled =
         String::Handle(Function::DemangleDynamicInvocationForwarderName(name));
     smi_op_target = Resolver::ResolveDynamicAnyArgs(zone, smi_class, demangled);
@@ -13383,7 +13383,7 @@ void ICData::AddTarget(const Function& target) const {
 bool ICData::ValidateInterceptor(const Function& target) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const String& name = String::Handle(target_name());
-  if (Function::IsDynamicInvocationForwaderName(name)) {
+  if (Function::IsDynamicInvocationForwarderName(name)) {
     return Function::DemangleDynamicInvocationForwarderName(name) ==
            target.name();
   }

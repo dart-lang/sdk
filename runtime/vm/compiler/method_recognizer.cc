@@ -304,7 +304,7 @@ Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name_) {
   String& name = thread->StringHandle();
   name = name_.raw();
   ASSERT(name.IsSymbol());
-  if (Function::IsDynamicInvocationForwaderName(name)) {
+  if (Function::IsDynamicInvocationForwarderName(name)) {
     name = Function::DemangleDynamicInvocationForwarderName(name);
   }
   if (name.raw() == Symbols::Plus().raw()) {

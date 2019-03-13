@@ -2185,7 +2185,7 @@ class Function : public Object {
     return kind() == RawFunction::kInvokeFieldDispatcher;
   }
 
-  bool IsDynamicInvocationForwader() const {
+  bool IsDynamicInvocationForwarder() const {
     return kind() == RawFunction::kDynamicInvocationForwarder;
   }
 
@@ -2655,7 +2655,7 @@ class Function : public Object {
   RawFunction* CreateMethodExtractor(const String& getter_name) const;
   RawFunction* GetMethodExtractor(const String& getter_name) const;
 
-  static bool IsDynamicInvocationForwaderName(const String& name);
+  static bool IsDynamicInvocationForwarderName(const String& name);
 
   static RawString* DemangleDynamicInvocationForwarderName(const String& name);
 

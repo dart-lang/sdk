@@ -2103,13 +2103,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     const Function& function) {
   ASSERT(function.IsImplicitGetterOrSetter() ||
-         function.IsDynamicInvocationForwader());
+         function.IsDynamicInvocationForwarder());
 
   // Instead of building a dynamic invocation forwarder that checks argument
   // type and then invokes original setter we simply generate the type check
   // and inlined field store. Scope builder takes care of setting correct
   // type check mode in this case.
-  const bool is_setter = function.IsDynamicInvocationForwader() ||
+  const bool is_setter = function.IsDynamicInvocationForwarder() ||
                          function.IsImplicitSetterFunction();
   const bool is_method = !function.IsStaticFunction();
 
@@ -2129,7 +2129,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
 
     // We only expect to generate a dynamic invocation forwarder if
     // the value needs type check.
-    ASSERT(!function.IsDynamicInvocationForwader() ||
+    ASSERT(!function.IsDynamicInvocationForwarder() ||
            setter_value->needs_type_check());
     if (is_method) {
       body += LoadLocal(scope->VariableAt(0));
