@@ -64,6 +64,10 @@ abstract class Declaration {
 
   bool get isNamedMixinApplication => false;
 
+  bool get isAnonymousMixinApplication {
+    return isMixinApplication && !isNamedMixinApplication;
+  }
+
   /// Applies [patch] to this declaration.
   void applyPatch(Declaration patch) {
     unsupported("${runtimeType}.applyPatch", charOffset, fileUri);
