@@ -270,6 +270,56 @@ void main() {
       .check();
   const Multiply(double.minPositive, double.maxFinite, 8.881784197001251e-16)
       .check();
+
+  const Modulo(27, 314159, 27).check();
+  const Modulo(27, 1, 0).check();
+  const Modulo(27, -1, 0).check();
+  const Modulo(-27, 1, 0).check();
+  const Modulo(-27, -1, 0).check();
+  const Modulo(314159, 27, 14).check();
+  const Modulo(314159, -27, 14).check();
+  const Modulo(-314159, 27, 13).check();
+  const Modulo(-314159, -27, 13).check();
+  const Modulo(4294967295, 4294967296, 4294967295).check();
+  const Modulo(4294967295, -4294967296, 4294967295).check();
+  const Modulo(-4294967295, 4294967296, 1).check();
+  const Modulo(-4294967295, -4294967296, 1).check();
+  const Modulo(9007199254740991, 9007199254740992, 9007199254740991).check();
+  const Modulo(9007199254740991, -9007199254740992, 9007199254740991).check();
+  const Modulo(-9007199254740991, 9007199254740992, 1).check();
+  const Modulo(-9007199254740991, -9007199254740992, 1).check();
+  const Modulo(2.71828, 3.14159, 2.71828).check();
+  const Modulo(2.71828, 1, 0.71828).check();
+  const Modulo(2.71828, -1, 0.71828).check();
+  const Modulo(-2.71828, 1, 0.28171999999999997).check();
+  const Modulo(-2.71828, -1, 0.28171999999999997).check();
+  const Modulo(27.1828, 3.14159, 2.0500800000000012).check();
+  const Modulo(27.1828, -3.14159, 2.0500800000000012).check();
+  const Modulo(-27.1828, 3.14159, 1.0915099999999986).check();
+  const Modulo(-27.1828, -3.14159, 1.0915099999999986).check();
+  const Modulo(42, double.nan, double.nan).check();
+  const Modulo(double.nan, 42, double.nan).check();
+  const Modulo(0, double.nan, double.nan).check();
+  const Modulo(double.nan, double.nan, double.nan).check();
+  const Modulo(double.infinity, double.nan, double.nan).check();
+  const Modulo(double.nan, double.infinity, double.nan).check();
+  const Modulo(0.0, double.infinity, 0).check();
+  const Modulo(-0.0, double.infinity, 0).check();
+  const Modulo(0.0, double.negativeInfinity, 0).check();
+  const Modulo(-0.0, double.negativeInfinity, 0).check();
+  const Modulo(42, double.infinity, 42).check();
+  const Modulo(-42, double.infinity, double.infinity).check();
+  const Modulo(42, double.negativeInfinity, 42).check();
+  const Modulo(-42, double.negativeInfinity, double.infinity).check();
+  const Modulo(double.infinity, 42, double.nan).check();
+  const Modulo(double.infinity, -42, double.nan).check();
+  const Modulo(double.negativeInfinity, 42, double.nan).check();
+  const Modulo(double.negativeInfinity, -42, double.nan).check();
+  const Modulo(double.infinity, double.infinity, double.nan).check();
+  const Modulo(double.negativeInfinity, double.infinity, double.nan).check();
+  const Modulo(double.infinity, double.negativeInfinity, double.nan).check();
+  const Modulo(double.negativeInfinity, double.negativeInfinity, double.nan)
+      .check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -485,4 +535,18 @@ class Multiply extends TestOp {
   @override
   @pragma('dart2js:tryInline')
   eval() => arg1 * arg2;
+}
+
+class Modulo extends TestOp {
+  final arg1;
+  final arg2;
+
+  const Modulo(this.arg1, this.arg2, expected) : super(expected, arg1 % arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @override
+  @pragma('dart2js:tryInline')
+  eval() => arg1 % arg2;
 }
