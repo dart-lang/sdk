@@ -14,7 +14,42 @@ void main() {
   const BitNot(0x12121212121212, 0xEDEDEDED).check();
 
   const Negate(0, -0).check();
+  const Negate(-0, 0).check();
+  const Negate(0.0, -0.0).check();
+  const Negate(-0.0, 0.0).check();
+  const Negate(-0.0, 0).check();
+  const Negate(-0, 0.0).check();
+  const Negate(0, -0.0).check();
+  const Negate(0.0, -0).check();
   const Negate(1, -1).check();
+  const Negate(-1, 1).check();
+  const Negate(1.0, -1.0).check();
+  const Negate(-1.0, 1.0).check();
+  const Negate(3.14, -3.14).check();
+  const Negate(-3.14, 3.14).check();
+  const Negate(4294967295, -4294967295).check();
+  const Negate(-4294967295, 4294967295).check();
+  const Negate(4294967295.5, -4294967295.5).check();
+  const Negate(-4294967295.5, 4294967295.5).check();
+  const Negate(4294967296, -4294967296).check();
+  const Negate(-4294967296, 4294967296).check();
+  const Negate(4294967296.5, -4294967296.5).check();
+  const Negate(-4294967296.5, 4294967296.5).check();
+  const Negate(9007199254740991, -9007199254740991).check();
+  const Negate(-9007199254740991, 9007199254740991).check();
+  const Negate(9007199254740991.5, -9007199254740991.5).check();
+  const Negate(-9007199254740991.5, 9007199254740991.5).check();
+  const Negate(9007199254740992, -9007199254740992).check();
+  const Negate(-9007199254740992, 9007199254740992).check();
+  const Negate(9007199254740992.5, -9007199254740992.5).check();
+  const Negate(-9007199254740992.5, 9007199254740992.5).check();
+  const Negate(double.infinity, double.negativeInfinity).check();
+  const Negate(double.negativeInfinity, double.infinity).check();
+  const Negate(double.maxFinite, -double.maxFinite).check();
+  const Negate(-double.maxFinite, double.maxFinite).check();
+  const Negate(double.minPositive, -double.minPositive).check();
+  const Negate(-double.minPositive, double.minPositive).check();
+  const Negate(double.nan, double.nan).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
