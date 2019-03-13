@@ -88,6 +88,22 @@ void main() {
   const BitXor(0xFFFFFFFF, 0, 0xFFFFFFFF).check();
   const BitXor(0xFFFFFFFF, 0xFFFFFFFF, 0).check();
   const BitXor(0x123456789ABC, 0x111111111111, 0x47698BAD).check();
+
+  const ShiftLeft(42, 0, 42).check();
+  const ShiftLeft(42, 5, 1344).check();
+  const ShiftLeft(1, 31, 0x80000000).check();
+  const ShiftLeft(1, 32, 0).check();
+  const ShiftLeft(1, 100, 0).check();
+  const ShiftLeft(0, 0, 0).check();
+  const ShiftLeft(0, 5, 0).check();
+  const ShiftLeft(0, 31, 0).check();
+  const ShiftLeft(0, 32, 0).check();
+  const ShiftLeft(0, 100, 0).check();
+  const ShiftLeft(-1, 0, 0xFFFFFFFF).check();
+  const ShiftLeft(-1, 5, 0xFFFFFFE0).check();
+  const ShiftLeft(-1, 31, 0x80000000).check();
+  const ShiftLeft(-1, 32, 0).check();
+  const ShiftLeft(-1, 100, 0).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -215,4 +231,19 @@ class BitXor extends TestOp {
   @override
   @pragma('dart2js:tryInline')
   eval() => arg1 ^ arg2;
+}
+
+class ShiftLeft extends TestOp {
+  final arg1;
+  final arg2;
+
+  const ShiftLeft(this.arg1, this.arg2, expected)
+      : super(expected, arg1 << arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @override
+  @pragma('dart2js:tryInline')
+  eval() => arg1 << arg2;
 }
