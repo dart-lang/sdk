@@ -4,13 +4,17 @@
 
 // This file contains test functions for the dart:ffi test cases.
 
-// The tests which use this don't run on Windows yet.
-#if !defined(_WIN32)
-
 #include <stddef.h>
 #include <stdlib.h>
 #include <sys/types.h>
+
+#include "platform/globals.h"
+#if defined(HOST_OS_WINDOWS)
+#include <psapi.h>
+#else
 #include <unistd.h>
+#endif
+
 #include <iostream>
 #include <limits>
 
@@ -406,6 +410,7 @@ DART_EXPORT void* SmallPointer() {
   return reinterpret_cast<void*>(-0x80000000L);
 }
 
+#if !defined(_WIN32)
 DART_EXPORT int RedirectStderr() {
   char filename[256];
   snprintf(filename, sizeof(filename), "/tmp/captured_stderr_%d", getpid());
@@ -413,7 +418,6 @@ DART_EXPORT int RedirectStderr() {
   printf("Got file %s\n", filename);
   return getpid();
 }
+#endif
 
 }  // namespace dart
-
-#endif
