@@ -607,7 +607,7 @@ Please include the following information:
 
       MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE: const MessageTemplate(
           MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE,
-          "`#{constant}` of type '#{type}' is not a valid logical and operand. "
+          "`#{constant}` of type '#{type}' is not a valid logical or operand. "
           "Must be a value of type 'bool'."),
 
       MessageKind.INVALID_CONSTANT_CONSTRUCTOR: const MessageTemplate(
