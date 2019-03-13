@@ -65,6 +65,18 @@ void main() {
   const BitAnd(0xFFFFFFFF, 0, 0).check();
   const BitAnd(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF).check();
   const BitAnd(0x123456789ABC, 0xEEEEEEEEEEEE, 0x46688AAC).check();
+
+  const BitOr(314159, 271828, 323583).check();
+  const BitOr(271828, 314159, 323583).check();
+  const BitOr(0, 0, 0).check();
+  const BitOr(-8, 0, 0xFFFFFFF8).check();
+  const BitOr(-8, 271828, 0xFFFFFFFC).check();
+  const BitOr(-8, 0xFFFFFFFF, 0xFFFFFFFF).check();
+  const BitOr(0x1, -4, 0xFFFFFFFD).check();
+  const BitOr(0, 0xFFFFFFFF, 0xFFFFFFFF).check();
+  const BitOr(0xFFFFFFFF, 0, 0xFFFFFFFF).check();
+  const BitOr(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF).check();
+  const BitOr(0x123456789ABC, 0x111111111111, 0x57799BBD).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -164,4 +176,18 @@ class BitAnd extends TestOp {
   @override
   @pragma('dart2js:tryInline')
   eval() => arg1 & arg2;
+}
+
+class BitOr extends TestOp {
+  final arg1;
+  final arg2;
+
+  const BitOr(this.arg1, this.arg2, expected) : super(expected, arg1 | arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @override
+  @pragma('dart2js:tryInline')
+  eval() => arg1 | arg2;
 }
