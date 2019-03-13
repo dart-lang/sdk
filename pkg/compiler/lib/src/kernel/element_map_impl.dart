@@ -1492,7 +1492,10 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     DartType type = getDartType(field.type);
     List<ConstantValue> metadata = getMetadata(field.annotations);
     return nativeBehaviorBuilder.buildFieldLoadBehavior(
-        type, metadata, typeLookup(resolveAsRaw: false),
+        type,
+        getCreatesAnnotations(reporter, commonElements, metadata),
+        getReturnsAnnotations(reporter, commonElements, metadata),
+        typeLookup(resolveAsRaw: false),
         isJsInterop: isJsInterop);
   }
 
@@ -1517,7 +1520,10 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     }
     List<ConstantValue> metadata = getMetadata(member.annotations);
     return nativeBehaviorBuilder.buildMethodBehavior(
-        type, metadata, typeLookup(resolveAsRaw: false),
+        type,
+        getCreatesAnnotations(reporter, commonElements, metadata),
+        getReturnsAnnotations(reporter, commonElements, metadata),
+        typeLookup(resolveAsRaw: false),
         isJsInterop: isJsInterop);
   }
 
