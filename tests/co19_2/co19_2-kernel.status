@@ -139,7 +139,6 @@ Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.d
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: Crash
 LanguageFeatures/Spread-collections/Ambiguity_A02_t02/01: MissingCompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A02_t03: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A03_t02/12: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/01: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/02: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/03: MissingCompileTimeError
@@ -151,7 +150,6 @@ LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/08: MissingCompileTimeE
 LanguageFeatures/Spread-collections/DynamicSemantics_Map_A01_t01: CompileTimeError
 LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t01: CompileTimeError
 LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t02: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t03: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t01: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t02: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t03: CompileTimeError
@@ -245,12 +243,17 @@ Language/Expressions/Relational_Expressions/syntax_t01: CompileTimeError
 Language/Expressions/Shift/syntax_t01: CompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t10: CompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t27: CompileTimeError
-Language/Generics/class_A01_t02/none: CompileTimeError
-Language/Generics/syntax_t21: CompileTimeError
+Language/Generics/syntax_t20: CompileTimeError
+Language/Generics/syntax_t22: CompileTimeError
 Language/Generics/syntax_t23: CompileTimeError
 Language/Generics/syntax_t24: CompileTimeError
 Language/Generics/syntax_t25: CompileTimeError
-Language/Generics/syntax_t26: CompileTimeError
+Language/Generics/syntax_t27/none: CompileTimeError
+Language/Generics/typedef_A01_t01: CompileTimeError
+Language/Generics/typedef_A01_t06/none: CompileTimeError
+Language/Generics/typedef_A01_t07: CompileTimeError
+Language/Generics/typedef_A01_t08: CompileTimeError
+Language/Generics/typedef_A01_t10: CompileTimeError
 Language/Libraries_and_Scripts/Imports/library_name_t01: MissingCompileTimeError # Expects an error, but this is a warning in Dart 2
 Language/Mixins/Mixin_Application/abstract_t09: Crash
 Language/Mixins/Mixin_Application/abstract_t10: Crash
@@ -267,7 +270,14 @@ Language/Mixins/Mixin_Application/interfaces_t06: Crash
 Language/Mixins/Mixin_Application/interfaces_t07: Crash
 Language/Mixins/Mixin_Application/static_warning_t01: MissingCompileTimeError # Mixin super equirement
 Language/Mixins/Mixin_Application/superclass_t03: Crash
-Language/Mixins/Mixin_Application/superinterfaces_t07: MissingCompileTimeError
+Language/Mixins/Mixin_Application/superclass_t04: Crash
+Language/Mixins/Mixin_Application/superinterfaces_t10: Crash
+Language/Mixins/Mixin_Application/superinterfaces_t11: Crash
+Language/Mixins/Mixin_Application/superinterfaces_t12: CompileTimeError
+Language/Mixins/Mixin_Application/superinterfaces_t13: Crash
+Language/Mixins/Mixin_Application/superinterfaces_t14: Crash
+Language/Mixins/Mixin_Application/syntax_t26: Crash
+Language/Mixins/Mixin_Application/warning_t04: Crash
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Mixin constructor
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Mixin constructor
 Language/Overview/Privacy/private_and_public_t11: CompileTimeError
@@ -294,6 +304,40 @@ Language/Types/Type_Aliases/syntax_t01: CompileTimeError
 Language/Types/Type_Aliases/syntax_t02: CompileTimeError
 Language/Types/Type_Aliases/syntax_t03: CompileTimeError
 Language/Types/Type_Aliases/syntax_t04: CompileTimeError
+Language/Types/Type_Aliases/syntax_t20: CompileTimeError
+Language/Types/Type_Aliases/syntax_t21: CompileTimeError
+LanguageFeatures/Constant-update-2018/CastOperator_A01_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/CastOperator_A02_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/CastOperator_A02_t02: CompileTimeError
+LanguageFeatures/Constant-update-2018/CastOperator_A04_t02/none: CompileTimeError
+LanguageFeatures/Constant-update-2018/CastOperator_A04_t03: Crash
+LanguageFeatures/Constant-update-2018/EqualityOperator_A01_t09: MissingCompileTimeError
+LanguageFeatures/Constant-update-2018/EqualityOperator_A01_t10: MissingCompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t02: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A02_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A02_t02: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A02_t05: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A02_t06: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A02_t09: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A02_t10: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A01_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A01_t07: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A02_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A02_t08: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A03_t01: Crash
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A03_t02: Crash
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A03_t05: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A03_t06: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A03_t07: MissingCompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A04_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A04_t05: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A04_t09: MissingCompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A04_t11: MissingCompileTimeError
+LanguageFeatures/Constant-update-2018/TypeTestOperator_A01_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/TypeTestOperator_A01_t02: CompileTimeError
+LanguageFeatures/Constant-update-2018/TypeTestOperator_A02_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/TypeTestOperator_A02_t02: CompileTimeError
 LanguageFeatures/Constant_update2018/CastOperator_A01_t01: CompileTimeError
 LanguageFeatures/Constant_update2018/CastOperator_A02_t01: CompileTimeError
 LanguageFeatures/Constant_update2018/CastOperator_A02_t02: CompileTimeError
@@ -661,35 +705,21 @@ LanguageFeatures/Simple-bounds/static/typedef_l2_t02/none: CompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t04/01: MissingCompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t04/02: MissingCompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t10: CompileTimeError
-LanguageFeatures/Spread-collections/Ambiguity_A01_t01: CompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A01_t03: CompileTimeError
-LanguageFeatures/Spread-collections/Ambiguity_A01_t07: CompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A02_t01/01: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/02: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/06: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/07: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/08: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A07_t03: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t05: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t07: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A02_t02: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A02_t03: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A01_t03: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A01_t05: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/none: CompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/04: MissingCompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/05: MissingCompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A05_t02/none: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/04: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/none: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A01_t03: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t04: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t06: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t08: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A02_t09: CompileTimeError
-LanguageFeatures/Spread-collections/TypeInference_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/TypeInference_A01_t02: CompileTimeError
-LanguageFeatures/Spread-collections/TypeInference_A02_t01: CompileTimeError
-LanguageFeatures/Spread-collections/TypeInference_A03_t01: CompileTimeError
 LanguageFeatures/Super-mixins/covariance_t03: MissingCompileTimeError # Issue 35111
 LanguageFeatures/Super-mixins/covariance_t06: MissingCompileTimeError # Issue 35111
 LanguageFeatures/Super-mixins/covariance_t07: MissingCompileTimeError # Issue 35111
