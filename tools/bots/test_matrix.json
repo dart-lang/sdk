@@ -1387,7 +1387,7 @@
         {
           "name": "analyze tests co19_2",
           "arguments": [
-            "-nanalyzer-${system}",
+            "-nanalyzer-asserts-${system}",
             "co19_2"
           ]
         }
