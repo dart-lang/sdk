@@ -77,6 +77,17 @@ void main() {
   const BitOr(0xFFFFFFFF, 0, 0xFFFFFFFF).check();
   const BitOr(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF).check();
   const BitOr(0x123456789ABC, 0x111111111111, 0x57799BBD).check();
+
+  const BitXor(314159, 271828, 61179).check();
+  const BitXor(271828, 314159, 61179).check();
+  const BitXor(0, 0, 0).check();
+  const BitXor(-1, 0, 0xFFFFFFFF).check();
+  const BitXor(-256, 1, 0xFFFFFF01).check();
+  const BitXor(-256, -255, 1).check();
+  const BitXor(0, 0xFFFFFFFF, 0xFFFFFFFF).check();
+  const BitXor(0xFFFFFFFF, 0, 0xFFFFFFFF).check();
+  const BitXor(0xFFFFFFFF, 0xFFFFFFFF, 0).check();
+  const BitXor(0x123456789ABC, 0x111111111111, 0x47698BAD).check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -190,4 +201,18 @@ class BitOr extends TestOp {
   @override
   @pragma('dart2js:tryInline')
   eval() => arg1 | arg2;
+}
+
+class BitXor extends TestOp {
+  final arg1;
+  final arg2;
+
+  const BitXor(this.arg1, this.arg2, expected) : super(expected, arg1 ^ arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @override
+  @pragma('dart2js:tryInline')
+  eval() => arg1 ^ arg2;
 }
