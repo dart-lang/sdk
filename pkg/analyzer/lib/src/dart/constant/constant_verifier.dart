@@ -503,9 +503,21 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (value == null) return false;
 
       if (forList || forSet) {
-        if (value.toListValue() != null ||
-            value.toSetValue() != null ||
+        var listValue = value.toListValue();
+        var setValue = value.toSetValue();
+        if (listValue != null ||
+            setValue != null ||
             value.isNull && _isNullableSpread(element)) {
+          if (listValue != null) {
+            var elementType = value.type.typeArguments[0];
+            if (_implementsEqualsWhenNotAllowed(elementType)) {
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
+                element,
+                [elementType.displayName],
+              );
+            }
+          }
           return true;
         }
         _errorReporter.reportErrorForNode(

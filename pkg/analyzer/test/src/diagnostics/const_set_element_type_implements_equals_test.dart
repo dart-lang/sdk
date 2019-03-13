@@ -10,35 +10,26 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstMapKeyExpressionTypeImplementsEqualsTest);
+    defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest);
     defineReflectiveTests(
-      ConstMapKeyExpressionTypeImplementsEqualsWithUIAsCodeTest,
+      ConstSetElementTypeImplementsEqualsWithUIAsCodeTest,
     );
   });
 }
 
 @reflectiveTest
-class ConstMapKeyExpressionTypeImplementsEqualsTest
-    extends DriverResolutionTest {
-  test_abstract() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  const A();
-  bool operator==(Object other);
-}
-
-main() {
-  const {const A(): 0};
-}
-''');
-  }
-
+class ConstSetElementTypeImplementsEqualsTest extends DriverResolutionTest {
   test_constField() async {
     await assertErrorsInCode(r'''
-main() {
-  const {double.INFINITY: 0};
+class A {
+  static const a = const A();
+  const A();
+  operator ==(other) => false;
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+main() {
+  const {A.a};
+}
+''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
   }
 
   test_direct() async {
@@ -47,11 +38,10 @@ class A {
   const A();
   operator ==(other) => false;
 }
-
 main() {
-  const {const A() : 0};
+  const {const A()};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
   }
 
   test_dynamic() async {
@@ -63,32 +53,29 @@ class A {
   const A();
   operator ==(other) => false;
 }
-
 class B {
   static const a = const A();
 }
-
 main() {
-  const {B.a : 0};
+  const {B.a};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
   }
 
   test_factory() async {
     await assertErrorsInCode(r'''
-class A {
-  const factory A() = B;
-}
+class A { const factory A() = B; }
 
 class B implements A {
   const B();
+
   operator ==(o) => true;
 }
 
 main() {
-  const {const A(): 42};
+  var m = const {const A()};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
   }
 
   test_super() async {
@@ -97,22 +84,46 @@ class A {
   const A();
   operator ==(other) => false;
 }
-
 class B extends A {
   const B();
 }
-
 main() {
-  const {const B() : 0};
+  const {const B()};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
   }
 }
 
 @reflectiveTest
-class ConstMapKeyExpressionTypeImplementsEqualsWithUIAsCodeTest
-    extends ConstMapKeyExpressionTypeImplementsEqualsTest {
+class ConstSetElementTypeImplementsEqualsWithUIAsCodeTest
+    extends ConstSetElementTypeImplementsEqualsTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = ['control-flow-collections', 'spread-collections'];
+
+  test_spread_list() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+
+main() {
+  const {...[A()]};
+}
+''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+  }
+
+  test_spread_set() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+
+main() {
+  const {...{A()}};
+}
+''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+  }
 }

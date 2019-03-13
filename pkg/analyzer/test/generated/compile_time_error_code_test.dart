@@ -14,7 +14,6 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompileTimeErrorCodeTest);
-    defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest);
     defineReflectiveTests(ControlFlowCollectionsTest);
     defineReflectiveTests(InvalidTypeArgumentInConstSetTest);
     defineReflectiveTests(NonConstSetElementFromDeferredLibraryTest);
@@ -97,106 +96,6 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
   @failingTest
   test_yieldInNonGenerator_sync() {
     return super.test_yieldInNonGenerator_sync();
-  }
-}
-
-@reflectiveTest
-class ConstSetElementTypeImplementsEqualsTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  test_constField() async {
-    Source source = addSource(r'''
-class A {
-  static const a = const A();
-  const A();
-  operator ==(other) => false;
-}
-main() {
-  const {A.a};
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
-    verify([source]);
-  }
-
-  test_direct() async {
-    Source source = addSource(r'''
-class A {
-  const A();
-  operator ==(other) => false;
-}
-main() {
-  const {const A()};
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
-    verify([source]);
-  }
-
-  test_dynamic() async {
-    // Note: static type of B.a is "dynamic", but actual type of the const
-    // object is A.  We need to make sure we examine the actual type when
-    // deciding whether there is a problem with operator==.
-    Source source = addSource(r'''
-class A {
-  const A();
-  operator ==(other) => false;
-}
-class B {
-  static const a = const A();
-}
-main() {
-  const {B.a};
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
-    verify([source]);
-  }
-
-  test_factory() async {
-    Source source = addSource(r'''
-class A { const factory A() = B; }
-
-class B implements A {
-  const B();
-
-  operator ==(o) => true;
-}
-
-main() {
-  var m = const {const A()};
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
-    verify([source]);
-  }
-
-  test_super() async {
-    Source source = addSource(r'''
-class A {
-  const A();
-  operator ==(other) => false;
-}
-class B extends A {
-  const B();
-}
-main() {
-  const {const B()};
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
-    verify([source]);
   }
 }
 
