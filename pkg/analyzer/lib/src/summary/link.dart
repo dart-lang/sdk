@@ -62,7 +62,6 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
@@ -117,10 +116,11 @@ Map<String, LinkedLibraryBuilder> link(
     GetDependencyCallback getDependency,
     GetUnitCallback getUnit,
     GetDeclaredVariable getDeclaredVariable,
+    AnalysisOptions analysisOptions,
     [GetAstCallback getAst]) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
       setupForLink(libraryUris, getUnit, getDeclaredVariable);
-  _relink(linkedLibraries, getDependency, getUnit, getAst);
+  _relink(linkedLibraries, getDependency, getUnit, getAst, analysisOptions);
   return linkedLibraries;
 }
 
@@ -301,8 +301,9 @@ void _relink(
     Map<String, LinkedLibraryBuilder> libraries,
     GetDependencyCallback getDependency,
     GetUnitCallback getUnit,
-    GetAstCallback getAst) {
-  new Linker(libraries, getDependency, getUnit, getAst).link();
+    GetAstCallback getAst,
+    AnalysisOptions analysisOptions) {
+  new Linker(libraries, getDependency, getUnit, getAst, analysisOptions).link();
 }
 
 /// Create an [UnlinkedParam] representing the given [parameter], which should
@@ -411,41 +412,6 @@ typedef LinkedLibrary GetDependencyCallback(String absoluteUri);
 /// Type of the callback used by [link] and [relink] to request
 /// [UnlinkedUnit] objects.
 typedef UnlinkedUnit GetUnitCallback(String absoluteUri);
-
-/// Stub implementation of [AnalysisOptions] used during linking.
-class AnalysisOptionsForLink implements AnalysisOptionsImpl {
-  final Linker _linker;
-
-  AnalysisOptionsForLink(this._linker);
-
-  @override
-  ExperimentStatus get experimentStatus => new ExperimentStatus();
-
-  @override
-  bool get hint => false;
-
-  @override
-  bool get implicitCasts => true;
-
-  @deprecated
-  @override
-  bool get previewDart2 => true;
-
-  @override
-  bool get strictInference => false;
-
-  @override
-  bool get strictRawTypes => false;
-
-  @override
-  bool get strongMode => true;
-
-  @override
-  bool get strongModeHints => false;
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 /// Element representing a class or enum resynthesized from a summary
 /// during linking.
@@ -2110,7 +2076,7 @@ class ContextForLink implements AnalysisContext {
   ContextForLink(this._linker);
 
   @override
-  AnalysisOptionsForLink get analysisOptions => _linker.analysisOptions;
+  AnalysisOptions get analysisOptions => _linker.analysisOptions;
 
   @override
   TypeProvider get typeProvider => _linker.typeProvider;
@@ -3970,10 +3936,12 @@ class Linker {
   SpecialTypeElementForLink _bottomElement;
   InheritanceManager2 _inheritanceManager;
   ContextForLink _context;
-  AnalysisOptionsForLink _analysisOptions;
+
+  /// Gets an instance of [AnalysisOptions] for use during linking.
+  final AnalysisOptions analysisOptions;
 
   Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
-      this.getUnit, this.getAst) {
+      this.getUnit, this.getAst, this.analysisOptions) {
     // Create elements for the libraries to be linked.  The rest of
     // the element model will be created on demand.
     linkedLibraries
@@ -3983,10 +3951,6 @@ class Linker {
           new LibraryElementInBuildUnit(this, uri, linkedLibrary));
     });
   }
-
-  /// Get an instance of [AnalysisOptions] for use during linking.
-  AnalysisOptionsForLink get analysisOptions =>
-      _analysisOptions ??= new AnalysisOptionsForLink(this);
 
   /// Get the library element for `dart:async`.
   LibraryElementForLink get asyncLibrary =>

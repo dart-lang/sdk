@@ -354,8 +354,12 @@ class BuildMode with HasContextMixin {
             uriToUnit[absoluteUri];
       }
 
-      Map<String, LinkedLibraryBuilder> linkResult = link(libraryUris,
-          getDependency, getUnit, analysisDriver.declaredVariables.get);
+      Map<String, LinkedLibraryBuilder> linkResult = link(
+          libraryUris,
+          getDependency,
+          getUnit,
+          analysisDriver.declaredVariables.get,
+          analysisOptions);
       linkResult.forEach(assembler.addLinkedLibrary);
     });
   }

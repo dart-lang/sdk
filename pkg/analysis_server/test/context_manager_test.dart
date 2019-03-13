@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/sdk.dart';
@@ -1981,7 +1982,9 @@ include: package:boo/other_options.yaml
     String sdkExtPath = '$projPath/sdk_ext';
     newFile('$projPath/test', content: 'test.dart');
     newFile('$sdkExtPath/entry.dart');
-    List<int> bytes = new SummaryBuilder([], null).build();
+    List<int> bytes = new SummaryBuilder(
+            [], RestrictedAnalysisContext(analysisOptions, null, null))
+        .build();
     newFileWithBytes('$projPath/sdk.ds', bytes);
     // Setup _embedder.yaml.
     newFile('$libPath/_embedder.yaml', content: r'''
@@ -2045,8 +2048,10 @@ linter:
 
     expect(
         lintNames,
-        unorderedEquals(
-            ['avoid_as' /* embedder */, 'camel_case_types' /* options */]));
+        unorderedEquals([
+          'avoid_as' /* embedder */,
+          'camel_case_types' /* options */
+        ]));
 
     // Sanity check embedder libs.
     var source = sourceFactory.forUri('dart:foobar');

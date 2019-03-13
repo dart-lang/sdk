@@ -63,14 +63,14 @@ class LibraryContext {
       store.addStore(externalSummaries);
     }
 
-    // Fill the store with summaries required for the initial library.
-    load(targetLibrary);
-
     analysisContext = new RestrictedAnalysisContext(
       analysisOptions,
       declaredVariables,
       sourceFactory,
     );
+
+    // Fill the store with summaries required for the initial library.
+    load(targetLibrary);
 
     var provider = new InputPackagesResultProvider(analysisContext, store,
         session: session);
@@ -173,7 +173,7 @@ class LibraryContext {
       }, (String uri) {
         UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
         return unlinkedUnit;
-      }, (_) => null);
+      }, (_) => null, analysisContext.analysisOptions);
       logger.writeln('Linked ${linkedLibraries.length} libraries.');
     });
 

@@ -25,11 +25,9 @@ import 'package:analyzer/src/summary/summarize_elements.dart';
 class SummaryBuilder {
   final Iterable<Source> librarySources;
   final AnalysisContext context;
+
   /**
    * Create a summary builder for these [librarySources] and [context].
-   *
-   * TODO(paulberry): remove optional "strong" parameter once all callers have
-   * stopped passing it in.
    */
   SummaryBuilder(this.librarySources, this.context);
 
@@ -94,7 +92,7 @@ class _Builder {
       return unlinked;
     }, (String name) {
       throw new StateError('Unexpected call to GetDeclaredVariable($name).');
-    });
+    }, context.analysisOptions);
     map.forEach(bundleAssembler.addLinkedLibrary);
 
     return bundleAssembler.assemble().toBuffer();
