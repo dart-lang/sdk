@@ -49,6 +49,7 @@ class SerializationTask extends CompilerTask {
 
   SerializationTask(this.compiler, Measurer measurer) : super(measurer);
 
+  @override
   String get name => 'Serialization';
 
   void serialize(GlobalTypeInferenceResults results) {

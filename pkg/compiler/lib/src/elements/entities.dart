@@ -53,6 +53,7 @@ class ImportEntity {
 
   ImportEntity(this.isDeferred, this.name, this.uri, this.enclosingLibraryUri);
 
+  @override
   String toString() => 'import($name:${isDeferred ? ' deferred' : ''})';
 }
 
@@ -196,6 +197,7 @@ class AsyncMarker {
   const AsyncMarker._(this.asyncParserState,
       {this.isAsync: false, this.isYielding: false});
 
+  @override
   String toString() {
     return '${isAsync ? 'async' : 'sync'}${isYielding ? '*' : ''}';
   }
@@ -326,6 +328,7 @@ class ParameterStructure {
         namedParameters, typeParameters);
   }
 
+  @override
   int get hashCode => Hashing.listHash(
       namedParameters,
       Hashing.objectHash(
@@ -333,6 +336,7 @@ class ParameterStructure {
           Hashing.objectHash(
               requiredParameters, Hashing.objectHash(typeParameters))));
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ParameterStructure) return false;
@@ -368,6 +372,7 @@ class ParameterStructure {
     return sb.toString();
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('ParameterStructure(');

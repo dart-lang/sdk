@@ -195,6 +195,7 @@ class PragmaAnnotationData {
 
   String get name => 'dart2js:$suffix';
 
+  @override
   String toString() => 'PragmaAnnotationData($name)';
 }
 

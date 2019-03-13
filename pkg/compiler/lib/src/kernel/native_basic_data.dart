@@ -13,6 +13,7 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
   KernelAnnotationProcessor(
       this.elementMap, this._nativeBasicDataBuilder, this.annotationData);
 
+  @override
   void extractNativeAnnotations(LibraryEntity library) {
     KElementEnvironment elementEnvironment = elementMap.elementEnvironment;
     KCommonElements commonElements = elementMap.commonElements;
@@ -66,6 +67,7 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
     }
   }
 
+  @override
   void extractJsInteropAnnotations(LibraryEntity library) {
     DiagnosticReporter reporter = elementMap.reporter;
     KElementEnvironment elementEnvironment = elementMap.elementEnvironment;

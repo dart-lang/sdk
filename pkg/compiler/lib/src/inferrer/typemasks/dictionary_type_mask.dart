@@ -44,6 +44,7 @@ class DictionaryTypeMask extends MapTypeMask {
   }
 
   /// Serializes this [DictionaryTypeMask] to [sink].
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(TypeMaskKind.dictionary);
     sink.begin(tag);
@@ -59,6 +60,7 @@ class DictionaryTypeMask extends MapTypeMask {
     sink.end(tag);
   }
 
+  @override
   TypeMask nullable() {
     return isNullable
         ? this
@@ -66,6 +68,7 @@ class DictionaryTypeMask extends MapTypeMask {
             allocationElement, keyType, valueType, _typeMap);
   }
 
+  @override
   TypeMask nonNullable() {
     return isNullable
         ? new DictionaryTypeMask(forwardTo.nonNullable(), allocationNode,
@@ -73,13 +76,16 @@ class DictionaryTypeMask extends MapTypeMask {
         : this;
   }
 
+  @override
   bool get isDictionary => true;
+  @override
   bool get isExact => true;
 
   bool containsKey(String key) => _typeMap.containsKey(key);
 
   TypeMask getValueForKey(String key) => _typeMap[key];
 
+  @override
   bool equalsDisregardNull(other) {
     if (other is! DictionaryTypeMask) return false;
     return allocationNode == other.allocationNode &&
@@ -90,12 +96,14 @@ class DictionaryTypeMask extends MapTypeMask {
             (k) => _typeMap.containsKey(k) && _typeMap[k] == other._typeMap[k]);
   }
 
+  @override
   TypeMask intersection(TypeMask other, JClosedWorld closedWorld) {
     TypeMask forwardIntersection = forwardTo.intersection(other, closedWorld);
     if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
     return forwardIntersection.isNullable ? nullable() : nonNullable();
   }
 
+  @override
   TypeMask union(dynamic other, JClosedWorld closedWorld) {
     if (this == other) {
       return this;
@@ -135,12 +143,15 @@ class DictionaryTypeMask extends MapTypeMask {
     }
   }
 
+  @override
   bool operator ==(other) => super == other;
 
+  @override
   int get hashCode {
     return computeHashCode(allocationNode, isNullable, _typeMap, forwardTo);
   }
 
+  @override
   String toString() {
     return 'Dictionary($forwardTo, key: $keyType, '
         'value: $valueType, map: $_typeMap)';

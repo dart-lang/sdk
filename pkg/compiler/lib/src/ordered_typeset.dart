@@ -175,6 +175,7 @@ class OrderedTypeSet {
     return null;
   }
 
+  @override
   String toString() => types.toString();
 }
 
@@ -213,6 +214,7 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
   int getHierarchyDepth(covariant ClassEntity cls);
   OrderedTypeSet getOrderedTypeSet(covariant ClassEntity cls);
 
+  @override
   OrderedTypeSet createOrderedTypeSet(
       InterfaceType supertype, Link<DartType> interfaces) {
     // TODO(15296): Collapse these iterations to one when the order is not
@@ -305,6 +307,7 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
     return new OrderedTypeSet.internal(levels, levels.last);
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     for (int depth = 0; depth <= maxDepth; depth++) {

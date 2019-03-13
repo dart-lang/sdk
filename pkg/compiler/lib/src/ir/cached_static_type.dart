@@ -14,6 +14,7 @@ import 'static_type_provider.dart';
 /// and a precomputed cache for complex expression type.
 class CachedStaticType extends StaticTypeBase implements StaticTypeProvider {
   final Map<ir.Expression, ir.DartType> _cache;
+  @override
   final ThisInterfaceType thisType;
 
   CachedStaticType(

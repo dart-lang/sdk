@@ -27,6 +27,7 @@ class _ConstantOrdering
     _dartTypeOrdering = new _DartTypeOrdering(this);
   }
 
+  @override
   int compare(ConstantValue a, ConstantValue b) => compareValues(a, b);
 
   int compareValues(ConstantValue a, ConstantValue b) {
@@ -75,38 +76,46 @@ class _ConstantOrdering
     return _dartTypeOrdering.compare(a, b);
   }
 
+  @override
   int visitFunction(FunctionConstantValue a, FunctionConstantValue b) {
     return compareMembers(a.element, b.element);
   }
 
+  @override
   int visitNull(NullConstantValue a, NullConstantValue b) {
     return 0;
   }
 
+  @override
   int visitNonConstant(NonConstantValue a, NonConstantValue b) {
     return 0;
   }
 
+  @override
   int visitInt(IntConstantValue a, IntConstantValue b) {
     return a.intValue.compareTo(b.intValue);
   }
 
+  @override
   int visitDouble(DoubleConstantValue a, DoubleConstantValue b) {
     return a.doubleValue.compareTo(b.doubleValue);
   }
 
+  @override
   int visitBool(BoolConstantValue a, BoolConstantValue b) {
     int aInt = a.boolValue ? 1 : 0;
     int bInt = b.boolValue ? 1 : 0;
     return aInt.compareTo(bInt);
   }
 
+  @override
   int visitString(StringConstantValue a, StringConstantValue b) {
     String aString = a.stringValue;
     String bString = b.stringValue;
     return aString.compareTo(bString);
   }
 
+  @override
   int visitList(ListConstantValue a, ListConstantValue b) {
     int r = compareLists(compareValues, a.entries, b.entries);
     if (r != 0) return r;
@@ -120,6 +129,7 @@ class _ConstantOrdering
     return compareDartTypes(a.type, b.type);
   }
 
+  @override
   int visitMap(MapConstantValue a, MapConstantValue b) {
     int r = compareLists(compareValues, a.keys, b.keys);
     if (r != 0) return r;
@@ -128,6 +138,7 @@ class _ConstantOrdering
     return compareDartTypes(a.type, b.type);
   }
 
+  @override
   int visitConstructed(ConstructedConstantValue a, ConstructedConstantValue b) {
     int r = compareDartTypes(a.type, b.type);
     if (r != 0) return r;
@@ -145,16 +156,19 @@ class _ConstantOrdering
         aFields.map((field) => b.fields[field]).toList());
   }
 
+  @override
   int visitType(TypeConstantValue a, TypeConstantValue b) {
     int r = compareDartTypes(a.representedType, b.representedType);
     if (r != 0) return r;
     return compareDartTypes(a.type, b.type);
   }
 
+  @override
   int visitInterceptor(InterceptorConstantValue a, InterceptorConstantValue b) {
     return compareClasses(a.cls, b.cls);
   }
 
+  @override
   int visitSynthetic(SyntheticConstantValue a, SyntheticConstantValue b) {
     // [SyntheticConstantValue]s have abstract fields that are set only by
     // convention.  Lucky for us, they do not occur as top level constant, only
@@ -183,6 +197,7 @@ class _ConstantOrdering
     }
   }
 
+  @override
   int visitDeferredGlobal(
       DeferredGlobalConstantValue a, DeferredGlobalConstantValue b) {
     int r = compareValues(a.referenced, b.referenced);
@@ -190,6 +205,7 @@ class _ConstantOrdering
     return a.unit.compareTo(b.unit);
   }
 
+  @override
   int visitInstantiation(
       InstantiationConstantValue a, InstantiationConstantValue b) {
     int r = compareValues(a.function, b.function);
@@ -221,21 +237,37 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   static int kind(ConstantValue constant) =>
       constant.accept(const _KindVisitor(), null);
 
+  @override
   int visitFunction(FunctionConstantValue a, _) => FUNCTION;
+  @override
   int visitNull(NullConstantValue a, _) => NULL;
+  @override
   int visitNonConstant(NonConstantValue a, _) => NONCONSTANT;
+  @override
   int visitInt(IntConstantValue a, _) => INT;
+  @override
   int visitDouble(DoubleConstantValue a, _) => DOUBLE;
+  @override
   int visitBool(BoolConstantValue a, _) => BOOL;
+  @override
   int visitString(StringConstantValue a, _) => STRING;
+  @override
   int visitList(ListConstantValue a, _) => LIST;
+  @override
   int visitSet(SetConstantValue a, _) => SET;
+  @override
   int visitMap(MapConstantValue a, _) => MAP;
+  @override
   int visitConstructed(ConstructedConstantValue a, _) => CONSTRUCTED;
+  @override
   int visitType(TypeConstantValue a, _) => TYPE;
+  @override
   int visitInterceptor(InterceptorConstantValue a, _) => INTERCEPTOR;
+  @override
   int visitSynthetic(SyntheticConstantValue a, _) => SYNTHETIC;
+  @override
   int visitDeferredGlobal(DeferredGlobalConstantValue a, _) => DEFERRED_GLOBAL;
+  @override
   int visitInstantiation(InstantiationConstantValue a, _) => INSTANTIATION;
 }
 
@@ -247,11 +279,17 @@ class _DartTypeKindVisitor extends DartTypeVisitor<int, Null> {
     return type.accept(const _DartTypeKindVisitor(), null);
   }
 
+  @override
   int visitVoidType(covariant VoidType type, _) => 6;
+  @override
   int visitTypeVariableType(covariant TypeVariableType type, _) => 3;
+  @override
   int visitFunctionType(covariant FunctionType type, _) => 0;
+  @override
   int visitInterfaceType(covariant InterfaceType type, _) => 1;
+  @override
   int visitTypedefType(covariant TypedefType type, _) => 2;
+  @override
   int visitDynamicType(covariant DynamicType type, _) => 5;
 }
 
@@ -271,16 +309,19 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
     return r;
   }
 
+  @override
   int visitVoidType(covariant VoidType type, covariant VoidType other) {
     throw new UnsupportedError('Unreachable');
   }
 
+  @override
   int visitTypeVariableType(
       covariant TypeVariableType type, covariant TypeVariableType other) {
     throw new UnsupportedError(
         "Type variables are not expected in constants: '$type' in '$_root'");
   }
 
+  @override
   int visitFunctionType(
       covariant FunctionType type, covariant FunctionType other) {
     int r = _compareTypeArguments(type.parameterTypes, other.parameterTypes);
@@ -297,6 +338,7 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
     return compare(type.returnType, other.returnType);
   }
 
+  @override
   int visitInterfaceType(
       covariant InterfaceType type, covariant InterfaceType other) {
     int r = _constantOrdering.compareClasses(type.element, other.element);
@@ -304,6 +346,7 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
     return _compareTypeArguments(type.typeArguments, other.typeArguments);
   }
 
+  @override
   int visitTypedefType(
       covariant TypedefType type, covariant TypedefType other) {
     int r = _constantOrdering.compareTypedefs(type.element, other.element);
@@ -311,6 +354,7 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
     return _compareTypeArguments(type.typeArguments, other.typeArguments);
   }
 
+  @override
   int visitDynamicType(
       covariant DynamicType type, covariant DynamicType other) {
     throw new UnsupportedError('Unreachable');

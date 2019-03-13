@@ -24,8 +24,10 @@ class SpecialType {
   /// The type Object, but no subtypes:
   static const JsObject = const SpecialType._('=Object');
 
+  @override
   int get hashCode => name.hashCode;
 
+  @override
   String toString() => name;
 
   static SpecialType fromName(String name) {
@@ -68,6 +70,7 @@ class NativeThrowBehavior {
     return this;
   }
 
+  @override
   String toString() {
     if (this == NEVER) return 'never';
     if (this == MAY) return 'may';
@@ -258,6 +261,7 @@ class NativeBehavior {
     sink.end(tag);
   }
 
+  @override
   String toString() {
     return 'NativeBehavior('
         'returns: ${typesReturned}'

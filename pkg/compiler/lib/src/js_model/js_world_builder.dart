@@ -660,6 +660,7 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
 
   JsToFrontendMapImpl(this._backend);
 
+  @override
   DartType toBackendType(DartType type, {bool allowFreeVariables: false}) =>
       type == null
           ? null
@@ -677,14 +678,17 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
     return toBackendLibrary(entity);
   }
 
+  @override
   LibraryEntity toBackendLibrary(covariant IndexedLibrary library) {
     return _backend.libraries.getEntity(library.libraryIndex);
   }
 
+  @override
   ClassEntity toBackendClass(covariant IndexedClass cls) {
     return _backend.classes.getEntity(cls.classIndex);
   }
 
+  @override
   MemberEntity toBackendMember(covariant IndexedMember member) {
     return _backend.members.getEntity(member.memberIndex);
   }
@@ -703,6 +707,7 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
         .getEntity(indexedTypeVariable.typeVariableIndex);
   }
 
+  @override
   ConstantValue toBackendConstant(ConstantValue constant,
       {bool allowNull: false}) {
     if (constant == null) {
@@ -822,19 +827,28 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   _ConstantConverter(this.toBackendEntity)
       : typeConverter = new _TypeConverter();
 
+  @override
   ConstantValue visitNull(NullConstantValue constant, _) => constant;
+  @override
   ConstantValue visitInt(IntConstantValue constant, _) => constant;
+  @override
   ConstantValue visitDouble(DoubleConstantValue constant, _) => constant;
+  @override
   ConstantValue visitBool(BoolConstantValue constant, _) => constant;
+  @override
   ConstantValue visitString(StringConstantValue constant, _) => constant;
+  @override
   ConstantValue visitSynthetic(SyntheticConstantValue constant, _) => constant;
+  @override
   ConstantValue visitNonConstant(NonConstantValue constant, _) => constant;
 
+  @override
   ConstantValue visitFunction(FunctionConstantValue constant, _) {
     return new FunctionConstantValue(toBackendEntity(constant.element),
         typeConverter.visit(constant.type, toBackendEntity));
   }
 
+  @override
   ConstantValue visitList(ListConstantValue constant, _) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     List<ConstantValue> entries = _handleValues(constant.entries);
@@ -855,6 +869,7 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     return new constant_system.JavaScriptSetConstant(type, entries);
   }
 
+  @override
   ConstantValue visitMap(
       covariant constant_system.JavaScriptMapConstant constant, _) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
@@ -871,6 +886,7 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
         type, keys, values, protoValue, constant.onlyStringKeys);
   }
 
+  @override
   ConstantValue visitConstructed(ConstructedConstantValue constant, _) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     Map<FieldEntity, ConstantValue> fields = {};
@@ -882,6 +898,7 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     return new ConstructedConstantValue(type, fields);
   }
 
+  @override
   ConstantValue visitType(TypeConstantValue constant, _) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     DartType representedType =
@@ -892,18 +909,21 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     return new TypeConstantValue(representedType, type);
   }
 
+  @override
   ConstantValue visitInterceptor(InterceptorConstantValue constant, _) {
     // Interceptor constants are only created in the SSA graph builder.
     throw new UnsupportedError(
         "Unexpected visitInterceptor ${constant.toStructuredText()}");
   }
 
+  @override
   ConstantValue visitDeferredGlobal(DeferredGlobalConstantValue constant, _) {
     // Deferred global constants are only created in the SSA graph builder.
     throw new UnsupportedError(
         "Unexpected DeferredGlobalConstantValue ${constant.toStructuredText()}");
   }
 
+  @override
   ConstantValue visitInstantiation(InstantiationConstantValue constant, _) {
     ConstantValue function = constant.function.accept(this, null);
     List<DartType> typeArguments =

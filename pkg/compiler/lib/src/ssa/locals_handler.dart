@@ -692,15 +692,18 @@ class LocalsHandler {
 /// For instance used for holding return value of function or the exception of a
 /// try-catch statement.
 class SyntheticLocal extends Local {
+  @override
   final String name;
   final Entity executableContext;
   final MemberEntity memberContext;
 
   // Avoid slow Object.hashCode.
+  @override
   final int hashCode = _nextHashCode = (_nextHashCode + 1).toUnsigned(30);
   static int _nextHashCode = 0;
 
   SyntheticLocal(this.name, this.executableContext, this.memberContext);
 
+  @override
   toString() => 'SyntheticLocal($name)';
 }

@@ -30,6 +30,7 @@ class BaseNativeClassFinder implements NativeClassFinder {
 
   BaseNativeClassFinder(this._elementEnvironment, this._nativeBasicData);
 
+  @override
   Iterable<ClassEntity> computeNativeClasses(Iterable<Uri> libraries) {
     Set<ClassEntity> nativeClasses = new Set<ClassEntity>();
     libraries.forEach((uri) => _processNativeClassesInLibrary(

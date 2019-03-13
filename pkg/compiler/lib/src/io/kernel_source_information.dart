@@ -485,8 +485,11 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
 }
 
 class KernelSourceLocation extends AbstractSourceLocation {
+  @override
   final int offset;
+  @override
   final String sourceName;
+  @override
   final Uri sourceUri;
 
   KernelSourceLocation(ir.Location location, this.offset, this.sourceName)

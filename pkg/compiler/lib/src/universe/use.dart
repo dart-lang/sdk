@@ -85,9 +85,11 @@ class DynamicUse {
 
   List<DartType> get typeArguments => const <DartType>[];
 
+  @override
   int get hashCode => Hashing.listHash(
       typeArguments, Hashing.objectsHash(selector, receiverConstraint));
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! DynamicUse) return false;
@@ -96,6 +98,7 @@ class DynamicUse {
         equalElements(typeArguments, other.typeArguments);
   }
 
+  @override
   String toString() => '$selector,$receiverConstraint';
 }
 
@@ -112,6 +115,7 @@ class GenericDynamicUse extends DynamicUse {
         "${typeArguments?.length ?? 0} were passed.");
   }
 
+  @override
   List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
 }
 
@@ -120,6 +124,7 @@ class GenericDynamicUse extends DynamicUse {
 /// This is used in the codegen phase where receivers are constrained to a
 /// type mask or similar.
 class ConstrainedDynamicUse extends DynamicUse {
+  @override
   final Object receiverConstraint;
   final List<DartType> _typeArguments;
 
@@ -134,6 +139,7 @@ class ConstrainedDynamicUse extends DynamicUse {
         "${_typeArguments?.length ?? 0} were passed.");
   }
 
+  @override
   List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
 }
 
@@ -163,6 +169,7 @@ enum StaticUseKind {
 class StaticUse {
   final Entity element;
   final StaticUseKind kind;
+  @override
   final int hashCode;
   final InterfaceType type;
   final CallStructure callStructure;
@@ -588,6 +595,7 @@ class StaticUse {
     return new GenericStaticUse.methodInlining(element, typeArguments);
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! StaticUse) return false;
@@ -598,11 +606,13 @@ class StaticUse {
         equalElements(typeArguments, other.typeArguments);
   }
 
+  @override
   String toString() =>
       'StaticUse($element,$kind,$type,$typeArguments,$callStructure)';
 }
 
 class GenericStaticUse extends StaticUse {
+  @override
   final List<DartType> typeArguments;
 
   GenericStaticUse(Entity entity, StaticUseKind kind,
@@ -643,6 +653,7 @@ enum TypeUseKind {
 class TypeUse {
   final DartType type;
   final TypeUseKind kind;
+  @override
   final int hashCode;
   final ImportEntity deferredImport;
 
@@ -758,12 +769,14 @@ class TypeUse {
     return new TypeUse.internal(type, TypeUseKind.TYPE_ARGUMENT);
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! TypeUse) return false;
     return type == other.type && kind == other.kind;
   }
 
+  @override
   String toString() => 'TypeUse($type,$kind)';
 }
 
@@ -778,6 +791,7 @@ enum ConstantUseKind {
 class ConstantUse {
   final ConstantValue value;
   final ConstantUseKind kind;
+  @override
   final int hashCode;
 
   ConstantUse._(this.value, this.kind)
@@ -809,11 +823,13 @@ class ConstantUse {
   ConstantUse.literal(ConstantValue value)
       : this._(value, ConstantUseKind.DIRECT);
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ConstantUse) return false;
     return value == other.value;
   }
 
+  @override
   String toString() => 'ConstantUse(${value.toStructuredText()},$kind)';
 }

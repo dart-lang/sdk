@@ -98,14 +98,17 @@ abstract class EnumSet<E> {
   /// Returns `true` if this set is not empty.
   bool get isNotEmpty => value != 0;
 
+  @override
   int get hashCode => value.hashCode * 19;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! EnumSet<E>) return false;
     return value == other.value;
   }
 
+  @override
   String toString() {
     if (value == 0) return '0';
     int index = value.bitLength - 1;
@@ -172,6 +175,7 @@ class _EnumSet<E> extends EnumSet<E> {
 
 /// Immutable implementation of [EnumSet].
 class _ConstEnumSet<E> extends EnumSet<E> {
+  @override
   final int value;
 
   const _ConstEnumSet(this.value) : super._();
@@ -188,6 +192,7 @@ class _ConstEnumSet<E> extends EnumSet<E> {
     return new _ConstEnumSet(value);
   }
 
+  @override
   void set value(int mask) {
     throw new UnsupportedError('EnumSet.value=');
   }

@@ -27,14 +27,17 @@ abstract class AbstractDataSource extends DataSourceMixin
     _importIndex = new IndexedSource<ImportEntity>(this);
   }
 
+  @override
   void begin(String tag) {
     if (useDataKinds) _begin(tag);
   }
 
+  @override
   void end(String tag) {
     if (useDataKinds) _end(tag);
   }
 
+  @override
   void registerComponentLookup(ComponentLookup componentLookup) {
     assert(_componentLookup == null);
     _componentLookup = componentLookup;
@@ -45,6 +48,7 @@ abstract class AbstractDataSource extends DataSourceMixin
     return _componentLookup;
   }
 
+  @override
   void registerEntityLookup(EntityLookup entityLookup) {
     assert(_entityLookup == null);
     _entityLookup = entityLookup;
@@ -55,6 +59,7 @@ abstract class AbstractDataSource extends DataSourceMixin
     return _entityLookup;
   }
 
+  @override
   void registerLocalLookup(LocalLookup localLookup) {
     assert(_localLookup == null);
     _localLookup = localLookup;
@@ -71,18 +76,22 @@ abstract class AbstractDataSource extends DataSourceMixin
     return source.read(f);
   }
 
+  @override
   IndexedLibrary readLibrary() {
     return getIndexedLibrary(readInt());
   }
 
+  @override
   IndexedClass readClass() {
     return getIndexedClass(readInt());
   }
 
+  @override
   IndexedTypedef readTypedef() {
     return getIndexedTypedef(readInt());
   }
 
+  @override
   IndexedMember readMember() {
     return getIndexedMember(readInt());
   }
@@ -409,6 +418,7 @@ abstract class AbstractDataSource extends DataSourceMixin
     return _readConstant();
   }
 
+  @override
   double readDoubleValue() {
     _checkDataKind(DataKind.double);
     return _readDoubleValue();
@@ -423,6 +433,7 @@ abstract class AbstractDataSource extends DataSourceMixin
     return data.getFloat64(0);
   }
 
+  @override
   int readIntegerValue() {
     _checkDataKind(DataKind.int);
     return _readBigInt().toInt();

@@ -116,6 +116,7 @@ class InvokeDynamicSpecializer {
 class IndexAssignSpecializer extends InvokeDynamicSpecializer {
   const IndexAssignSpecializer();
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -187,6 +188,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
 class IndexSpecializer extends InvokeDynamicSpecializer {
   const IndexSpecializer();
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -221,10 +223,12 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
 class BitNotSpecializer extends InvokeDynamicSpecializer {
   const BitNotSpecializer();
 
+  @override
   constant_system.UnaryOperation operation() {
     return constant_system.bitNot;
   }
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -241,6 +245,7 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -266,10 +271,12 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
 class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
   const UnaryNegateSpecializer();
 
+  @override
   constant_system.UnaryOperation operation() {
     return constant_system.negate;
   }
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -297,6 +304,7 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -322,10 +330,12 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
 class AbsSpecializer extends InvokeDynamicSpecializer {
   const AbsSpecializer();
 
+  @override
   constant_system.UnaryOperation operation() {
     return constant_system.abs;
   }
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -341,6 +351,7 @@ class AbsSpecializer extends InvokeDynamicSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -369,6 +380,7 @@ class AbsSpecializer extends InvokeDynamicSpecializer {
 abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
   const BinaryArithmeticSpecializer();
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -408,6 +420,7 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
             .isDefinitelyTrue;
   }
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -465,6 +478,7 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
 class AddSpecializer extends BinaryArithmeticSpecializer {
   const AddSpecializer();
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -480,10 +494,12 @@ class AddSpecializer extends BinaryArithmeticSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.add;
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -506,10 +522,12 @@ class AddSpecializer extends BinaryArithmeticSpecializer {
 class DivideSpecializer extends BinaryArithmeticSpecializer {
   const DivideSpecializer();
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.divide;
   }
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInstruction instruction,
       GlobalTypeInferenceResults results,
@@ -523,6 +541,7 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -542,6 +561,7 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
 class ModuloSpecializer extends BinaryArithmeticSpecializer {
   const ModuloSpecializer();
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -554,10 +574,12 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.modulo;
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -634,6 +656,7 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
 class RemainderSpecializer extends BinaryArithmeticSpecializer {
   const RemainderSpecializer();
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -646,10 +669,12 @@ class RemainderSpecializer extends BinaryArithmeticSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.remainder;
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -672,10 +697,12 @@ class RemainderSpecializer extends BinaryArithmeticSpecializer {
 class MultiplySpecializer extends BinaryArithmeticSpecializer {
   const MultiplySpecializer();
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.multiply;
   }
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -688,6 +715,7 @@ class MultiplySpecializer extends BinaryArithmeticSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -710,10 +738,12 @@ class MultiplySpecializer extends BinaryArithmeticSpecializer {
 class SubtractSpecializer extends BinaryArithmeticSpecializer {
   const SubtractSpecializer();
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.subtract;
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -736,10 +766,12 @@ class SubtractSpecializer extends BinaryArithmeticSpecializer {
 class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
   const TruncatingDivideSpecializer();
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.truncatingDivide;
   }
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -789,6 +821,7 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
     return false;
   }
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -824,6 +857,7 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
     return null;
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -846,6 +880,7 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
 abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
   const BinaryBitOpSpecializer();
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -895,10 +930,12 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
 class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
   const ShiftLeftSpecializer();
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.shiftLeft;
   }
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -933,6 +970,7 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
     return null;
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -955,6 +993,7 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
 class ShiftRightSpecializer extends BinaryBitOpSpecializer {
   const ShiftRightSpecializer();
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -968,6 +1007,7 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -1015,6 +1055,7 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
     return null;
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -1027,6 +1068,7 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
   }
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.shiftRight;
   }
@@ -1041,10 +1083,12 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
 class BitOrSpecializer extends BinaryBitOpSpecializer {
   const BitOrSpecializer();
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.bitOr;
   }
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -1060,6 +1104,7 @@ class BitOrSpecializer extends BinaryBitOpSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -1072,6 +1117,7 @@ class BitOrSpecializer extends BinaryBitOpSpecializer {
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
   }
 
+  @override
   void registerOptimization(
       OptimizationTestLog log, HInstruction original, HInstruction converted) {
     log.registerBitOr(original, converted);
@@ -1081,10 +1127,12 @@ class BitOrSpecializer extends BinaryBitOpSpecializer {
 class BitAndSpecializer extends BinaryBitOpSpecializer {
   const BitAndSpecializer();
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.bitAnd;
   }
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -1103,6 +1151,7 @@ class BitAndSpecializer extends BinaryBitOpSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -1115,6 +1164,7 @@ class BitAndSpecializer extends BinaryBitOpSpecializer {
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
   }
 
+  @override
   void registerOptimization(
       OptimizationTestLog log, HInstruction original, HInstruction converted) {
     log.registerBitAnd(original, converted);
@@ -1124,10 +1174,12 @@ class BitAndSpecializer extends BinaryBitOpSpecializer {
 class BitXorSpecializer extends BinaryBitOpSpecializer {
   const BitXorSpecializer();
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.bitXor;
   }
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -1143,6 +1195,7 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -1155,6 +1208,7 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
         computeTypeFromInputTypes(instruction, results, options, closedWorld));
   }
 
+  @override
   void registerOptimization(
       OptimizationTestLog log, HInstruction original, HInstruction converted) {
     log.registerBitXor(original, converted);
@@ -1164,6 +1218,7 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
 abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
   const RelationalSpecializer();
 
+  @override
   AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
@@ -1178,6 +1233,7 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
         .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -1209,6 +1265,7 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
 class EqualsSpecializer extends RelationalSpecializer {
   const EqualsSpecializer();
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -1250,10 +1307,12 @@ class EqualsSpecializer extends RelationalSpecializer {
     return null;
   }
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.equal;
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, JClosedWorld closedWorld) {
     return new HIdentity(instruction.inputs[1], instruction.inputs[2],
@@ -1270,10 +1329,12 @@ class EqualsSpecializer extends RelationalSpecializer {
 class LessSpecializer extends RelationalSpecializer {
   const LessSpecializer();
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.less;
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, JClosedWorld closedWorld) {
     return new HLess(instruction.inputs[1], instruction.inputs[2],
@@ -1290,10 +1351,12 @@ class LessSpecializer extends RelationalSpecializer {
 class GreaterSpecializer extends RelationalSpecializer {
   const GreaterSpecializer();
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.greater;
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, JClosedWorld closedWorld) {
     return new HGreater(instruction.inputs[1], instruction.inputs[2],
@@ -1310,10 +1373,12 @@ class GreaterSpecializer extends RelationalSpecializer {
 class GreaterEqualSpecializer extends RelationalSpecializer {
   const GreaterEqualSpecializer();
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.greaterEqual;
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, JClosedWorld closedWorld) {
     return new HGreaterEqual(instruction.inputs[1], instruction.inputs[2],
@@ -1330,10 +1395,12 @@ class GreaterEqualSpecializer extends RelationalSpecializer {
 class LessEqualSpecializer extends RelationalSpecializer {
   const LessEqualSpecializer();
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.lessEqual;
   }
 
+  @override
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, JClosedWorld closedWorld) {
     return new HLessEqual(instruction.inputs[1], instruction.inputs[2],
@@ -1350,10 +1417,12 @@ class LessEqualSpecializer extends RelationalSpecializer {
 class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
   const CodeUnitAtSpecializer();
 
+  @override
   constant_system.BinaryOperation operation() {
     return constant_system.codeUnitAt;
   }
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -1387,6 +1456,7 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
 class CompareToSpecializer extends InvokeDynamicSpecializer {
   const CompareToSpecializer();
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -1436,6 +1506,7 @@ abstract class IdempotentStringOperationSpecializer
     extends InvokeDynamicSpecializer {
   const IdempotentStringOperationSpecializer();
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -1482,6 +1553,7 @@ class TrimSpecializer extends IdempotentStringOperationSpecializer {
 class PatternMatchSpecializer extends InvokeDynamicSpecializer {
   const PatternMatchSpecializer();
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,
@@ -1510,10 +1582,12 @@ class PatternMatchSpecializer extends InvokeDynamicSpecializer {
 class RoundSpecializer extends InvokeDynamicSpecializer {
   const RoundSpecializer();
 
+  @override
   constant_system.UnaryOperation operation() {
     return constant_system.round;
   }
 
+  @override
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
       HGraph graph,

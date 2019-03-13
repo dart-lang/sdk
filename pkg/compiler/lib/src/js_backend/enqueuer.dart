@@ -37,8 +37,11 @@ class CodegenEnqueuer extends EnqueuerImpl {
   final CodegenWorldBuilderImpl _worldBuilder;
   final WorkItemBuilder _workItemBuilder;
 
+  @override
   bool queueIsClosed = false;
+  @override
   final CompilerTask task;
+  @override
   final EnqueuerListener listener;
   final CompilerOptions _options;
 
@@ -62,8 +65,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 
+  @override
   CodegenWorldBuilder get worldBuilder => _worldBuilder;
 
+  @override
   bool get queueIsEmpty => _queue.isEmpty;
 
   @override
@@ -74,6 +79,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
+  @override
   bool get isResolutionQueue => false;
 
   /// Create a [WorkItem] for [entity] and add it to the work list if it has not
@@ -92,6 +98,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     _queue.add(workItem);
   }
 
+  @override
   void applyImpact(WorldImpact worldImpact, {var impactSource}) {
     if (worldImpact.isEmpty) return;
     impactStrategy.visitImpact(
@@ -106,11 +113,13 @@ class CodegenEnqueuer extends EnqueuerImpl {
     });
   }
 
+  @override
   bool checkNoEnqueuedInvokedInstanceMethods(
       ElementEnvironment elementEnvironment) {
     return checkEnqueuerConsistency(elementEnvironment);
   }
 
+  @override
   void checkClass(ClassEntity cls) {
     _worldBuilder.processClassMembers(cls, (MemberEntity member, useSet) {
       if (useSet.isNotEmpty) {
@@ -148,12 +157,14 @@ class CodegenEnqueuer extends EnqueuerImpl {
     }
   }
 
+  @override
   void processDynamicUse(DynamicUse dynamicUse) {
     task.measure(() {
       _worldBuilder.registerDynamicUse(dynamicUse, _applyMemberUse);
     });
   }
 
+  @override
   void processStaticUse(StaticUse staticUse) {
     _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
     switch (staticUse.kind) {
@@ -171,6 +182,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     }
   }
 
+  @override
   void processTypeUse(TypeUse typeUse) {
     DartType type = typeUse.type;
     switch (typeUse.kind) {
@@ -213,6 +225,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     }
   }
 
+  @override
   void processConstantUse(ConstantUse constantUse) {
     task.measure(() {
       if (_worldBuilder.registerConstantUse(constantUse)) {
@@ -252,6 +265,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
         _queue.isNotEmpty || _recentClasses.isNotEmpty || _recentConstants);
   }
 
+  @override
   void forEach(void f(WorkItem work)) {
     _forEach(f);
     if (onEmptyForTesting != null) {
@@ -276,8 +290,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
     listener.logSummary(log);
   }
 
+  @override
   String toString() => 'Enqueuer($name)';
 
+  @override
   ImpactUseCase get impactUse => IMPACT_USE;
 
   @override

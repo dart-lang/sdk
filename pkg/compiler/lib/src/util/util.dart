@@ -234,14 +234,17 @@ class Pair<A, B> {
 
   Pair(this.a, this.b);
 
+  @override
   int get hashCode => 13 * a.hashCode + 17 * b.hashCode;
 
+  @override
   bool operator ==(var other) {
     if (identical(this, other)) return true;
     if (other is! Pair) return false;
     return a == other.a && b == other.b;
   }
 
+  @override
   String toString() => '($a,$b)';
 }
 

@@ -99,10 +99,12 @@ abstract class ConstantExpression {
 
   int _computeHashCode();
 
+  @override
   int get hashCode => _hashCode ??= _computeHashCode();
 
   bool _equals(covariant ConstantExpression other);
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ConstantExpression) return false;
@@ -111,6 +113,7 @@ abstract class ConstantExpression {
     return _equals(other);
   }
 
+  @override
   String toString() {
     assertDebugMode('Use ConstantExpression.toDartText() or '
         'ConstantExpression.toStructuredText() instead of '
@@ -136,8 +139,10 @@ abstract class ConstantExpression {
 
 /// A synthetic constant used to recover from errors.
 class ErroneousConstantExpression extends ConstantExpression {
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.ERRONEOUS;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     // Do nothing. This is an error.
   }
@@ -166,8 +171,10 @@ class BoolConstantExpression extends ConstantExpression {
 
   BoolConstantExpression(this.boolValue);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.BOOL;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitBool(this, context);
   }
@@ -201,8 +208,10 @@ class IntConstantExpression extends ConstantExpression {
 
   IntConstantExpression(this.intValue);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.INT;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitInt(this, context);
   }
@@ -236,8 +245,10 @@ class DoubleConstantExpression extends ConstantExpression {
 
   DoubleConstantExpression(this.doubleValue);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.DOUBLE;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitDouble(this, context);
   }
@@ -271,8 +282,10 @@ class StringConstantExpression extends ConstantExpression {
 
   StringConstantExpression(this.stringValue);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.STRING;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitString(this, context);
   }
@@ -304,8 +317,10 @@ class StringConstantExpression extends ConstantExpression {
 class NullConstantExpression extends ConstantExpression {
   NullConstantExpression();
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.NULL;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitNull(this, context);
   }
@@ -338,8 +353,10 @@ class ListConstantExpression extends ConstantExpression {
 
   ListConstantExpression(this.type, this.values);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.LIST;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitList(this, context);
   }
@@ -362,6 +379,7 @@ class ListConstantExpression extends ConstantExpression {
         type, values.map((v) => v.evaluate(environment)).toList());
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return new ListConstantExpression(
         type, values.map((v) => v.apply(arguments)).toList());
@@ -475,8 +493,10 @@ class MapConstantExpression extends ConstantExpression {
 
   MapConstantExpression(this.type, this.keys, this.values);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.MAP;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitMap(this, context);
   }
@@ -519,6 +539,7 @@ class MapConstantExpression extends ConstantExpression {
     });
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return new MapConstantExpression(
         type,
@@ -571,8 +592,10 @@ class ConstructedConstantExpression extends ConstantExpression {
     assert(!arguments.contains(null));
   }
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.CONSTRUCTED;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitConstructed(this, context);
   }
@@ -605,6 +628,7 @@ class ConstructedConstantExpression extends ConstantExpression {
         .computeInstanceType(environment, type);
   }
 
+  @override
   ConstructedConstantExpression apply(NormalizedArguments arguments) {
     return new ConstructedConstantExpression(type, target, callStructure,
         this.arguments.map((a) => a.apply(arguments)).toList());
@@ -683,8 +707,10 @@ class ConcatenateConstantExpression extends ConstantExpression {
 
   ConcatenateConstantExpression(this.expressions);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.CONCATENATE;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitConcatenate(this, context);
   }
@@ -701,6 +727,7 @@ class ConcatenateConstantExpression extends ConstantExpression {
     sb.write('])');
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return new ConcatenateConstantExpression(
         expressions.map((a) => a.apply(arguments)).toList());
@@ -782,8 +809,10 @@ class SymbolConstantExpression extends ConstantExpression {
 
   SymbolConstantExpression(this.name);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.SYMBOL;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitSymbol(this, context);
   }
@@ -822,8 +851,10 @@ class TypeConstantExpression extends ConstantExpression {
         "Unexpected type constant type: $type");
   }
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.TYPE;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitType(this, context);
   }
@@ -859,8 +890,10 @@ class AsConstantExpression extends ConstantExpression {
 
   AsConstantExpression(this.expression, this.type);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.AS;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitAs(this, context);
   }
@@ -936,8 +969,10 @@ class FieldConstantExpression extends ConstantExpression {
 
   FieldConstantExpression(this.element);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.FIELD;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitField(this, context);
   }
@@ -970,8 +1005,10 @@ class LocalVariableConstantExpression extends ConstantExpression {
 
   LocalVariableConstantExpression(this.element);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.LOCAL_VARIABLE;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitLocalVariable(this, context);
   }
@@ -1003,8 +1040,10 @@ class FunctionConstantExpression extends ConstantExpression {
 
   FunctionConstantExpression(this.element, this.type);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.FUNCTION;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitFunction(this, context);
   }
@@ -1046,8 +1085,10 @@ class BinaryConstantExpression extends ConstantExpression {
   static bool potentialOperator(BinaryOperator operator) =>
       PRECEDENCE_MAP[operator.kind] != null;
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.BINARY;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitBinary(this, context);
   }
@@ -1302,11 +1343,13 @@ class BinaryConstantExpression extends ConstantExpression {
     return new NonConstantValue();
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return new BinaryConstantExpression(
         left.apply(arguments), operator, right.apply(arguments));
   }
 
+  @override
   // ignore: MISSING_RETURN
   InterfaceType getKnownType(CommonElements commonElements) {
     DartType knownLeftType = left.getKnownType(commonElements);
@@ -1359,6 +1402,7 @@ class BinaryConstantExpression extends ConstantExpression {
     }
   }
 
+  @override
   int get precedence => PRECEDENCE_MAP[operator.kind];
 
   @override
@@ -1410,8 +1454,10 @@ class IdenticalConstantExpression extends ConstantExpression {
 
   IdenticalConstantExpression(this.left, this.right);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.IDENTICAL;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitIdentical(this, context);
   }
@@ -1435,11 +1481,13 @@ class IdenticalConstantExpression extends ConstantExpression {
     return new NonConstantValue();
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return new IdenticalConstantExpression(
         left.apply(arguments), right.apply(arguments));
   }
 
+  @override
   int get precedence => 15;
 
   @override
@@ -1471,8 +1519,10 @@ class UnaryConstantExpression extends ConstantExpression {
     assert(PRECEDENCE_MAP[operator.kind] != null);
   }
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.UNARY;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitUnary(this, context);
   }
@@ -1533,10 +1583,12 @@ class UnaryConstantExpression extends ConstantExpression {
     return new NonConstantValue();
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return new UnaryConstantExpression(operator, expression.apply(arguments));
   }
 
+  @override
   int get precedence => PRECEDENCE_MAP[operator.kind];
 
   @override
@@ -1572,8 +1624,10 @@ class StringLengthConstantExpression extends ConstantExpression {
 
   StringLengthConstantExpression(this.expression);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.STRING_LENGTH;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitStringLength(this, context);
   }
@@ -1602,10 +1656,12 @@ class StringLengthConstantExpression extends ConstantExpression {
     }
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return new StringLengthConstantExpression(expression.apply(arguments));
   }
 
+  @override
   int get precedence => 15;
 
   @override
@@ -1636,8 +1692,10 @@ class ConditionalConstantExpression extends ConstantExpression {
 
   ConditionalConstantExpression(this.condition, this.trueExp, this.falseExp);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.CONDITIONAL;
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitConditional(this, context);
   }
@@ -1653,11 +1711,13 @@ class ConditionalConstantExpression extends ConstantExpression {
     sb.write(')');
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return new ConditionalConstantExpression(condition.apply(arguments),
         trueExp.apply(arguments), falseExp.apply(arguments));
   }
 
+  @override
   int get precedence => 3;
 
   @override
@@ -1720,10 +1780,12 @@ class PositionalArgumentReference extends ConstantExpression {
 
   PositionalArgumentReference(this.index);
 
+  @override
   ConstantExpressionKind get kind {
     return ConstantExpressionKind.POSITIONAL_REFERENCE;
   }
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitPositional(this, context);
   }
@@ -1733,6 +1795,7 @@ class PositionalArgumentReference extends ConstantExpression {
     sb.write('Positional(index=$index)');
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return arguments.getPositionalArgument(index);
   }
@@ -1758,10 +1821,12 @@ class NamedArgumentReference extends ConstantExpression {
 
   NamedArgumentReference(this.name);
 
+  @override
   ConstantExpressionKind get kind {
     return ConstantExpressionKind.NAMED_REFERENCE;
   }
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitNamed(this, context);
   }
@@ -1771,6 +1836,7 @@ class NamedArgumentReference extends ConstantExpression {
     sb.write('Named(name=$name)');
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return arguments.getNamedArgument(name);
   }
@@ -1838,10 +1904,12 @@ class BoolFromEnvironmentConstantExpression
       ConstantExpression name, ConstantExpression defaultValue)
       : super(name, defaultValue);
 
+  @override
   ConstantExpressionKind get kind {
     return ConstantExpressionKind.BOOL_FROM_ENVIRONMENT;
   }
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitBoolFromEnvironment(this, context);
   }
@@ -1898,6 +1966,7 @@ class BoolFromEnvironmentConstantExpression
     return new NonConstantValue();
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return new BoolFromEnvironmentConstantExpression(name.apply(arguments),
         defaultValue != null ? defaultValue.apply(arguments) : null);
@@ -1915,10 +1984,12 @@ class IntFromEnvironmentConstantExpression
       ConstantExpression name, ConstantExpression defaultValue)
       : super(name, defaultValue);
 
+  @override
   ConstantExpressionKind get kind {
     return ConstantExpressionKind.INT_FROM_ENVIRONMENT;
   }
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitIntFromEnvironment(this, context);
   }
@@ -1977,6 +2048,7 @@ class IntFromEnvironmentConstantExpression
     return new NonConstantValue();
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return new IntFromEnvironmentConstantExpression(name.apply(arguments),
         defaultValue != null ? defaultValue.apply(arguments) : null);
@@ -1994,10 +2066,12 @@ class StringFromEnvironmentConstantExpression
       ConstantExpression name, ConstantExpression defaultValue)
       : super(name, defaultValue);
 
+  @override
   ConstantExpressionKind get kind {
     return ConstantExpressionKind.STRING_FROM_ENVIRONMENT;
   }
 
+  @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitStringFromEnvironment(this, context);
   }
@@ -2052,6 +2126,7 @@ class StringFromEnvironmentConstantExpression
     return new NonConstantValue();
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return new StringFromEnvironmentConstantExpression(name.apply(arguments),
         defaultValue != null ? defaultValue.apply(arguments) : null);
@@ -2133,6 +2208,7 @@ class AssertConstantExpression extends ConstantExpression {
     return visitor.visitAssert(this, context);
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return new AssertConstantExpression(
         condition.apply(arguments), message?.apply(arguments));
@@ -2145,6 +2221,7 @@ class InstantiationConstantExpression extends ConstantExpression {
 
   InstantiationConstantExpression(this.typeArguments, this.expression);
 
+  @override
   ConstantExpressionKind get kind => ConstantExpressionKind.INSTANTIATION;
 
   @override
@@ -2167,6 +2244,7 @@ class InstantiationConstantExpression extends ConstantExpression {
     return Hashing.objectHash(expression, Hashing.listHash(typeArguments));
   }
 
+  @override
   ConstantExpression apply(NormalizedArguments arguments) {
     return new InstantiationConstantExpression(
         typeArguments, expression.apply(arguments));
@@ -2527,5 +2605,6 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     sb.write(')');
   }
 
+  @override
   String toString() => sb.toString();
 }

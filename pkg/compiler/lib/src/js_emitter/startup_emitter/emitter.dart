@@ -41,6 +41,7 @@ class EmitterFactory implements emitterTask.EmitterFactory {
 class Emitter extends emitterTask.EmitterBase {
   final Compiler _compiler;
   final JClosedWorld _closedWorld;
+  @override
   final Namer namer;
   final ModelEmitter _emitter;
 

@@ -72,6 +72,7 @@ abstract class VariableScope {
 class VariableScopeImpl implements VariableScope {
   List<VariableScope> _subScopes;
   Set<ir.VariableDeclaration> _assignedVariables;
+  @override
   bool hasContinueSwitch = false;
 
   void addSubScope(VariableScope scope) {
@@ -84,6 +85,7 @@ class VariableScopeImpl implements VariableScope {
     _assignedVariables.add(variable);
   }
 
+  @override
   Iterable<ir.VariableDeclaration> get assignedVariables sync* {
     if (_assignedVariables != null) {
       yield* _assignedVariables;

@@ -65,6 +65,7 @@ part 'no_such_method_resolver.dart';
 /// impact computation.
 class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   final CompilerOptions options;
+  @override
   final DiagnosticReporter reporter;
   CommonElementsImpl _commonElements;
   KernelElementEnvironment _elementEnvironment;
@@ -123,8 +124,10 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     _types = new KernelDartTypes(this);
   }
 
+  @override
   DartTypes get types => _types;
 
+  @override
   KernelElementEnvironment get elementEnvironment => _elementEnvironment;
 
   @override
@@ -246,6 +249,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   @override
   ClassEntity getClass(ir.Class node) => getClassInternal(node);
 
+  @override
   InterfaceType getSuperType(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -276,6 +280,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     }
   }
 
+  @override
   TypeVariableEntity getTypeVariable(ir.TypeParameter node) =>
       getTypeVariableInternal(node);
 
@@ -376,6 +381,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     throw new UnsupportedError("Unexpected member: $node");
   }
 
+  @override
   MemberEntity getSuperMember(MemberEntity context, ir.Name name,
       {bool setter: false}) {
     // We can no longer trust the interface target of the super access since it
@@ -405,6 +411,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   ConstructorEntity getConstructor(ir.Member node) =>
       getConstructorInternal(node);
 
+  @override
   ConstructorEntity getSuperConstructor(
       ir.Constructor sourceNode, ir.Member targetNode) {
     ConstructorEntity source = getConstructor(sourceNode);
@@ -435,6 +442,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   @override
   DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
 
+  @override
   TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
       getDartType(type);
 
@@ -446,6 +454,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return list;
   }
 
+  @override
   InterfaceType getInterfaceType(ir.InterfaceType type) =>
       _typeConverter.convert(type);
 
@@ -523,6 +532,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         constantRequired: requireConstant, checkCasts: checkCasts);
   }
 
+  @override
   DartType substByContext(DartType type, InterfaceType context) {
     return type.subst(
         context.typeArguments, getThisType(context.element).typeArguments);
@@ -533,6 +543,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   /// If [type] doesn't have a `call` member `null` is returned. If [type] has
   /// an invalid `call` member (non-method or a synthesized method with both
   /// optional and named parameters) a [DynamicType] is returned.
+  @override
   DartType getCallType(InterfaceType type) {
     IndexedClass cls = type.element;
     assert(checkFamily(cls));
@@ -543,6 +554,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return null;
   }
 
+  @override
   InterfaceType getThisType(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -575,6 +587,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.getFunctionTypeVariables(this);
   }
 
+  @override
   DartType getTypeVariableBound(IndexedTypeVariable typeVariable) {
     assert(checkFamily(typeVariable));
     KTypeVariableData data = typeVariables.getData(typeVariable);
@@ -667,6 +680,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.getFieldConstantExpression(this);
   }
 
+  @override
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
     assert(checkFamily(cls));
     OrderedTypeSet orderedTypeSet = getOrderedTypeSet(type.element);
@@ -678,6 +692,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return supertype;
   }
 
+  @override
   OrderedTypeSet getOrderedTypeSet(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -685,6 +700,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.orderedTypeSet;
   }
 
+  @override
   int getHierarchyDepth(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -692,6 +708,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.orderedTypeSet.maxDepth;
   }
 
+  @override
   Iterable<InterfaceType> getInterfaces(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -699,11 +716,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.interfaces;
   }
 
+  @override
   ir.Member getMemberNode(covariant IndexedMember member) {
     assert(checkFamily(member));
     return members.getData(member).node;
   }
 
+  @override
   ir.Class getClassNode(covariant IndexedClass cls) {
     assert(checkFamily(cls));
     return classes.getData(cls).node;
@@ -713,6 +732,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return typedefs.getData(typedef).node;
   }
 
+  @override
   ImportEntity getImport(ir.LibraryDependency node) {
     if (node == null) return null;
     ir.Library library = node.parent;
@@ -720,6 +740,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.imports[node];
   }
 
+  @override
   ir.TypeEnvironment get typeEnvironment {
     if (_typeEnvironment == null) {
       _typeEnvironment ??= new ir.TypeEnvironment(
@@ -728,6 +749,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return _typeEnvironment;
   }
 
+  @override
   ir.ClassHierarchy get classHierarchy {
     if (_classHierarchy == null) {
       _classHierarchy ??= new ir.ClassHierarchy(env.mainComponent);
@@ -735,11 +757,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return _classHierarchy;
   }
 
+  @override
   Name getName(ir.Name name) {
     return new Name(
         name.name, name.isPrivate ? getLibrary(name.library) : null);
   }
 
+  @override
   CallStructure getCallStructure(ir.Arguments arguments) {
     int argumentCount = arguments.positional.length + arguments.named.length;
     List<String> namedArguments = arguments.named.map((e) => e.name).toList();
@@ -761,6 +785,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         namedParameters, includeTypeParameters ? typeParameters : 0);
   }
 
+  @override
   Selector getInvocationSelector(ir.Name irName, int positionalArguments,
       List<String> namedArguments, int typeArguments) {
     Name name = getName(irName);
@@ -871,6 +896,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Computes the [NativeBehavior] for a call to the [JS] function.
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 2 ||
         node.arguments.named.isNotEmpty) {
@@ -904,6 +930,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN]
   /// function.
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
       reporter.internalError(
@@ -932,6 +959,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   /// Computes the [NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
@@ -964,6 +992,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         commonElements);
   }
 
+  @override
   js.Name getNameForJsGetName(ConstantValue constant, Namer namer) {
     int index = extractEnumIndexFromConstantValue(
         constant, commonElements.jsGetNameEnum);
@@ -986,6 +1015,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return null;
   }
 
+  @override
   ConstantValue getConstantValue(ir.Expression node,
       {bool requireConstant: true,
       bool implicitNull: false,
@@ -1033,6 +1063,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return metadata;
   }
 
+  @override
   FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
     while (cls != null) {
       cls = elementEnvironment.getSuperClass(cls);
@@ -1303,12 +1334,14 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   /// NativeBasicData is need for computation of the default super class.
+  @override
   NativeBasicData get nativeBasicData => _frontendStrategy.nativeBasicData;
 
   /// Adds libraries in [component] to the set of libraries.
   ///
   /// The main method of the first component is used as the main method for the
   /// compilation.
+  @override
   void addComponent(ir.Component component) {
     env.addComponent(component);
   }
@@ -1441,6 +1474,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Returns `true` is [node] has a `@Native(...)` annotation.
   // TODO(johnniwinther): Cache this for later use.
+  @override
   bool isNativeClass(ir.Class node) {
     for (ir.Expression annotation in node.annotations) {
       if (annotation is ir.ConstructorInvocation) {
@@ -1454,6 +1488,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   /// Compute the kind of foreign helper function called by [node], if any.
+  @override
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (commonElements.isForeignHelper(getMember(node.target))) {
       switch (node.target.name.name) {
@@ -1472,6 +1507,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Computes the [InterfaceType] referenced by a call to the
   /// [JS_INTERCEPTOR_CONSTANT] function, if any.
+  @override
   InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length != 1 ||
         node.arguments.named.isNotEmpty) {
@@ -1487,6 +1523,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Computes the native behavior for reading the native [field].
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
       {bool isJsInterop}) {
     DartType type = getDartType(field.type);
@@ -1501,6 +1538,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Computes the native behavior for writing to the native [field].
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
     DartType type = getDartType(field.type);
     return nativeBehaviorBuilder.buildFieldStoreBehavior(type);
@@ -1508,6 +1546,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Computes the native behavior for calling [member].
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForMethod(ir.Member member,
       {bool isJsInterop}) {
     DartType type;
@@ -1841,9 +1880,13 @@ class KernelElementEnvironment extends ElementEnvironment
 
 /// [BehaviorBuilder] for kernel based elements.
 class KernelBehaviorBuilder extends BehaviorBuilder {
+  @override
   final ElementEnvironment elementEnvironment;
+  @override
   final CommonElements commonElements;
+  @override
   final DiagnosticReporter reporter;
+  @override
   final NativeBasicData nativeBasicData;
   final CompilerOptions _options;
 
@@ -1882,6 +1925,7 @@ class KernelConstantEnvironment implements ConstantEnvironment {
 class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
   final KernelToElementMapImpl _elementMap;
   final Environment _environment;
+  @override
   final bool checkCasts;
 
   KernelEvaluationEnvironment(

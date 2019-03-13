@@ -88,6 +88,7 @@ class JsKernelToElementMap
   static const String nestedClosuresTag = 'nested-closures';
 
   final CompilerOptions options;
+  @override
   final DiagnosticReporter reporter;
   CommonElementsImpl _commonElements;
   JsElementEnvironment _elementEnvironment;
@@ -483,8 +484,10 @@ class JsKernelToElementMap
     sink.end(tag);
   }
 
+  @override
   DartTypes get types => _types;
 
+  @override
   JsElementEnvironment get elementEnvironment => _elementEnvironment;
 
   @override
@@ -597,11 +600,13 @@ class JsKernelToElementMap
     return new InterfaceType(getClass(cls), getDartTypes(typeArguments));
   }
 
+  @override
   LibraryEntity getLibrary(ir.Library node) => getLibraryInternal(node);
 
   @override
   ClassEntity getClass(ir.Class node) => getClassInternal(node);
 
+  @override
   InterfaceType getSuperType(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
@@ -632,6 +637,7 @@ class JsKernelToElementMap
     }
   }
 
+  @override
   TypeVariableEntity getTypeVariable(ir.TypeParameter node) =>
       getTypeVariableInternal(node);
 
@@ -732,6 +738,7 @@ class JsKernelToElementMap
     throw new UnsupportedError("Unexpected member: $node");
   }
 
+  @override
   MemberEntity getSuperMember(MemberEntity context, ir.Name name,
       {bool setter: false}) {
     // We can no longer trust the interface target of the super access since it
@@ -788,9 +795,11 @@ class JsKernelToElementMap
   @override
   DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
 
+  @override
   TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
       getDartType(type);
 
+  @override
   List<DartType> getDartTypes(List<ir.DartType> types) {
     List<DartType> list = <DartType>[];
     types.forEach((ir.DartType type) {
@@ -799,6 +808,7 @@ class JsKernelToElementMap
     return list;
   }
 
+  @override
   InterfaceType getInterfaceType(ir.InterfaceType type) =>
       _typeConverter.convert(type);
 
@@ -876,6 +886,7 @@ class JsKernelToElementMap
         constantRequired: requireConstant);
   }
 
+  @override
   DartType substByContext(DartType type, InterfaceType context) {
     return type.subst(
         context.typeArguments, getThisType(context.element).typeArguments);
@@ -886,6 +897,7 @@ class JsKernelToElementMap
   /// If [type] doesn't have a `call` member `null` is returned. If [type] has
   /// an invalid `call` member (non-method or a synthesized method with both
   /// optional and named parameters) a [DynamicType] is returned.
+  @override
   DartType getCallType(InterfaceType type) {
     IndexedClass cls = type.element;
     assert(checkFamily(cls));
@@ -896,6 +908,7 @@ class JsKernelToElementMap
     return null;
   }
 
+  @override
   InterfaceType getThisType(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
@@ -928,6 +941,7 @@ class JsKernelToElementMap
     return data.getFieldType(this);
   }
 
+  @override
   DartType getTypeVariableBound(IndexedTypeVariable typeVariable) {
     assert(checkFamily(typeVariable));
     JTypeVariableData data = typeVariables.getData(typeVariable);
@@ -1013,6 +1027,7 @@ class JsKernelToElementMap
     return data.getFieldConstantExpression(this);
   }
 
+  @override
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
     assert(checkFamily(cls));
     OrderedTypeSet orderedTypeSet = getOrderedTypeSet(type.element);
@@ -1024,6 +1039,7 @@ class JsKernelToElementMap
     return supertype;
   }
 
+  @override
   OrderedTypeSet getOrderedTypeSet(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
@@ -1031,6 +1047,7 @@ class JsKernelToElementMap
     return data.orderedTypeSet;
   }
 
+  @override
   int getHierarchyDepth(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
@@ -1038,6 +1055,7 @@ class JsKernelToElementMap
     return data.orderedTypeSet.maxDepth;
   }
 
+  @override
   Iterable<InterfaceType> getInterfaces(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
@@ -1055,6 +1073,7 @@ class JsKernelToElementMap
     return classes.getData(cls).definition;
   }
 
+  @override
   ImportEntity getImport(ir.LibraryDependency node) {
     ir.Library library = node.parent;
     JLibraryData data = libraries.getData(getLibraryInternal(library));
@@ -1076,6 +1095,7 @@ class JsKernelToElementMap
     return _classHierarchy;
   }
 
+  @override
   StaticTypeProvider getStaticTypeProvider(MemberEntity member) {
     MemberDefinition memberDefinition = members.getData(member).definition;
     Map<ir.Expression, ir.DartType> cachedStaticTypes;
@@ -1112,11 +1132,13 @@ class JsKernelToElementMap
         new ThisInterfaceType.from(thisType));
   }
 
+  @override
   Name getName(ir.Name name) {
     return new Name(
         name.name, name.isPrivate ? getLibrary(name.library) : null);
   }
 
+  @override
   CallStructure getCallStructure(ir.Arguments arguments) {
     int argumentCount = arguments.positional.length + arguments.named.length;
     List<String> namedArguments = arguments.named.map((e) => e.name).toList();
@@ -1124,6 +1146,7 @@ class JsKernelToElementMap
         argumentCount, namedArguments, arguments.types.length);
   }
 
+  @override
   Selector getSelector(ir.Expression node) {
     // TODO(efortuna): This is screaming for a common interface between
     // PropertyGet and SuperPropertyGet (and same for *Get). Talk to kernel
@@ -1258,6 +1281,7 @@ class JsKernelToElementMap
 
   /// Computes the [native.NativeBehavior] for a call to the [JS] function.
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 2 ||
         node.arguments.named.isNotEmpty) {
@@ -1291,6 +1315,7 @@ class JsKernelToElementMap
   /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN]
   /// function.
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
       reporter.internalError(
@@ -1319,6 +1344,7 @@ class JsKernelToElementMap
   /// Computes the [NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
@@ -1351,6 +1377,7 @@ class JsKernelToElementMap
         commonElements);
   }
 
+  @override
   js.Name getNameForJsGetName(ConstantValue constant, Namer namer) {
     int index = extractEnumIndexFromConstantValue(
         constant, commonElements.jsGetNameEnum);
@@ -1373,6 +1400,7 @@ class JsKernelToElementMap
     return null;
   }
 
+  @override
   ConstantValue getConstantValue(ir.Expression node,
       {bool requireConstant: true, bool implicitNull: false}) {
     if (node is ir.ConstantExpression) {
@@ -1416,6 +1444,7 @@ class JsKernelToElementMap
     return metadata;
   }
 
+  @override
   FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
     while (cls != null) {
       cls = elementEnvironment.getSuperClass(cls);
@@ -2454,9 +2483,13 @@ class JsElementEnvironment extends ElementEnvironment
 
 /// [BehaviorBuilder] for kernel based elements.
 class JsBehaviorBuilder extends BehaviorBuilder {
+  @override
   final ElementEnvironment elementEnvironment;
+  @override
   final CommonElements commonElements;
+  @override
   final DiagnosticReporter reporter;
+  @override
   final NativeBasicData nativeBasicData;
   final CompilerOptions _options;
 

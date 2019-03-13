@@ -27,11 +27,13 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
   AbstractValueDomain get _abstractValueDomain =>
       _closedWorld.abstractValueDomain;
 
+  @override
   void visitGraph(HGraph graph) {
     this.graph = graph;
     visitDominatorTree(graph);
   }
 
+  @override
   visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
     while (instruction != null) {
@@ -63,10 +65,12 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
     }
   }
 
+  @override
   HInstruction visitInstruction(HInstruction node) {
     return node;
   }
 
+  @override
   HInstruction visitIs(HIs node) {
     if (node.kind == HIs.RAW_CHECK) {
       HInstruction interceptor = node.interceptor;
@@ -78,6 +82,7 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
     return node;
   }
 
+  @override
   HInstruction visitIdentity(HIdentity node) {
     node.singleComparisonOp = simpleOp(node.left, node.right);
     return node;
@@ -128,6 +133,7 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
       .isInterceptor(_abstractValueDomain.excludeNull(type))
       .isPotentiallyTrue;
 
+  @override
   HInstruction visitInvokeDynamic(HInvokeDynamic node) {
     if (node.isInterceptedCall) {
       tryReplaceInterceptorWithDummy(node, node.selector, node.mask);
@@ -135,6 +141,7 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
     return node;
   }
 
+  @override
   HInstruction visitInvokeSuper(HInvokeSuper node) {
     if (node.isInterceptedCall) {
       AbstractValue mask = node.getDartReceiver(_closedWorld).instructionType;
@@ -143,6 +150,7 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
     return node;
   }
 
+  @override
   HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
     // The receiver parameter should never be replaced with a dummy constant.
     return node;
@@ -195,6 +203,7 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
     return false;
   }
 
+  @override
   HInstruction visitFieldSet(HFieldSet setter) {
     // Pattern match
     //     t1 = x.f; t2 = t1 + 1; x.f = t2; use(t2)   -->  ++x.f
@@ -305,6 +314,7 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
     return noMatchingRead();
   }
 
+  @override
   visitIf(HIf node) {
     if (!_options.experimentToBoolean) return node;
     HInstruction condition = node.inputs.single;
@@ -343,10 +353,12 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
 /// Remove [HTypeKnown] instructions from the graph, to make codegen
 /// analysis easier.
 class SsaTypeKnownRemover extends HBaseVisitor with CodegenPhase {
+  @override
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
 
+  @override
   void visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
     while (instruction != null) {
@@ -356,6 +368,7 @@ class SsaTypeKnownRemover extends HBaseVisitor with CodegenPhase {
     }
   }
 
+  @override
   void visitTypeKnown(HTypeKnown instruction) {
     for (HInstruction user in instruction.usedBy) {
       if (user is HTypeConversion) {
@@ -374,11 +387,13 @@ class SsaTrustedCheckRemover extends HBaseVisitor with CodegenPhase {
 
   SsaTrustedCheckRemover(this._options);
 
+  @override
   void visitGraph(HGraph graph) {
     if (!_options.trustPrimitives) return;
     visitDominatorTree(graph);
   }
 
+  @override
   void visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
     while (instruction != null) {
@@ -388,6 +403,7 @@ class SsaTrustedCheckRemover extends HBaseVisitor with CodegenPhase {
     }
   }
 
+  @override
   void visitTypeConversion(HTypeConversion instruction) {
     if (instruction.isReceiverTypeCheck || instruction.isArgumentTypeCheck) {
       instruction.block.rewrite(instruction, instruction.checkedInput);
@@ -413,11 +429,13 @@ class SsaAssignmentChaining extends HBaseVisitor with CodegenPhase {
   AbstractValueDomain get _abstractValueDomain =>
       _closedWorld.abstractValueDomain;
 
+  @override
   void visitGraph(HGraph graph) {
     //this.graph = graph;
     visitDominatorTree(graph);
   }
 
+  @override
   void visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
     while (instruction != null) {
@@ -426,14 +444,17 @@ class SsaAssignmentChaining extends HBaseVisitor with CodegenPhase {
   }
 
   /// Returns the next instruction.
+  @override
   HInstruction visitInstruction(HInstruction node) {
     return node.next;
   }
 
+  @override
   HInstruction visitFieldSet(HFieldSet setter) {
     return tryChainAssignment(setter, setter.value);
   }
 
+  @override
   HInstruction visitStaticStore(HStaticStore store) {
     return tryChainAssignment(store, store.inputs.single);
   }
@@ -589,6 +610,7 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
   SsaInstructionMerger(
       this._abstractValueDomain, this.generateAtUseSite, this._superMemberData);
 
+  @override
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
@@ -651,12 +673,14 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
         .isNotEmpty;
   }
 
+  @override
   void visitInstruction(HInstruction instruction) {
     // A code motion invariant instruction is dealt before visiting it.
     assert(!instruction.isCodeMotionInvariant());
     analyzeInputs(instruction, 0);
   }
 
+  @override
   void visitInvokeSuper(HInvokeSuper instruction) {
     MemberEntity superMethod = instruction.element;
     Selector selector = instruction.selector;
@@ -677,6 +701,7 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
     }
   }
 
+  @override
   void visitIs(HIs instruction) {
     // In the general case the input might be used multple multiple times, so it
     // must not be set generate at use site.
@@ -695,6 +720,7 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
 
   // A bounds check method must not have its first input generated at use site,
   // because it's using it twice.
+  @override
   void visitBoundsCheck(HBoundsCheck instruction) {
     analyzeInputs(instruction, 1);
   }
@@ -702,6 +728,7 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
   // An identity operation must only have its inputs generated at use site if
   // does not require an expression with multiple uses (because of null /
   // undefined).
+  @override
   void visitIdentity(HIdentity instruction) {
     if (instruction.singleComparisonOp != null) {
       super.visitIdentity(instruction);
@@ -709,6 +736,7 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
     // Do nothing.
   }
 
+  @override
   void visitTypeConversion(HTypeConversion instruction) {
     if (!instruction.isArgumentTypeCheck && !instruction.isReceiverTypeCheck) {
       assert(instruction.isCheckedModeCheck || instruction.isCastTypeCheck);
@@ -719,6 +747,7 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
     }
   }
 
+  @override
   void visitTypeKnown(HTypeKnown instruction) {
     // [HTypeKnown] instructions are removed before code generation.
     assert(false);
@@ -734,6 +763,7 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
         block.successors[0].predecessors.length == 1;
   }
 
+  @override
   void visitBasicBlock(HBasicBlock block) {
     // Compensate from not merging blocks: if the block is the
     // single predecessor of its single successor, let the successor
@@ -878,6 +908,7 @@ class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
 
   SsaConditionMerger(this.generateAtUseSite, this.controlFlowOperators);
 
+  @override
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
   }
@@ -927,6 +958,7 @@ class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
     return user.hasSameLoopHeaderAs(input);
   }
 
+  @override
   void visitBasicBlock(HBasicBlock block) {
     if (block.last is! HIf) return;
     HIf startIf = block.last;
@@ -1046,6 +1078,7 @@ class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
 
   SsaShareRegionConstants(this._options);
 
+  @override
   visitGraph(HGraph graph) {
     // We need the async rewrite to be smarter about hoisting region constants
     // before it is worth-while.
@@ -1056,6 +1089,7 @@ class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
     visitBasicBlock(graph.entry);
   }
 
+  @override
   visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
     while (instruction != null) {
@@ -1089,6 +1123,7 @@ class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
     }
   }
 
+  @override
   void visitThis(HThis node) {
     int size = 4;
     // Compare the size of the unchanged minified with the size of the minified
@@ -1110,6 +1145,7 @@ class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
     _cache(node, (_) => true, '_this');
   }
 
+  @override
   void visitConstant(HConstant node) {
     if (node.usedBy.length <= 1) return;
     ConstantValue constant = node.constant;
@@ -1218,6 +1254,7 @@ class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
 /// A simple Entity to give intermediate values nice names when not generating
 /// minified code.
 class _ExpressionName implements Entity {
+  @override
   final String name;
   _ExpressionName(this.name);
 }

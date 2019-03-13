@@ -129,6 +129,7 @@ class TrieNode {
 
   TrieNode(this.key, this.depth);
 
+  @override
   String toString() => 'TrieNode(#$length)';
 }
 

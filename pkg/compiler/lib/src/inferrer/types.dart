@@ -147,6 +147,7 @@ abstract class GlobalTypeInferenceResults {
 /// Global analysis that infers concrete types.
 class GlobalTypeInferenceTask extends CompilerTask {
   // TODO(sigmund): rename at the same time as our benchmarking tools.
+  @override
   final String name = 'Type inference';
 
   final Compiler compiler;
@@ -187,7 +188,9 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   /// in a debugging data stream.
   static const String tag = 'global-type-inference-results';
 
+  @override
   final JClosedWorld closedWorld;
+  @override
   final InferredData inferredData;
   final GlobalTypeInferenceMemberResult _deadFieldResult;
   final GlobalTypeInferenceMemberResult _deadMethodResult;
@@ -240,6 +243,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         allocatedLists);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeBool(false); // Is _not_ trivial.
     sink.begin(tag);
@@ -365,8 +369,10 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   bool isFixedArrayCheckedForGrowable(ir.Node ctorCall) =>
       checkedForGrowableLists.contains(ctorCall);
 
+  @override
   AbstractValue typeOfNewList(ir.Node node) => _allocatedLists[node];
 
+  @override
   AbstractValue typeOfListLiteral(ir.Node node) => _allocatedLists[node];
 }
 
@@ -377,9 +383,13 @@ class GlobalTypeInferenceMemberResultImpl
   static const String tag = 'global-type-inference-member-result';
 
   final GlobalTypeInferenceElementData _data;
+  @override
   final AbstractValue returnType;
+  @override
   final AbstractValue type;
+  @override
   final bool throwsAlways;
+  @override
   final bool isCalledOnce;
 
   GlobalTypeInferenceMemberResultImpl(this._data, this.returnType, this.type,
@@ -403,6 +413,7 @@ class GlobalTypeInferenceMemberResultImpl
         throwsAlways: throwsAlways, isCalledOnce: isCalledOnce);
   }
 
+  @override
   void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
     sink.begin(tag);
     sink.writeValueOrNull(_data, (GlobalTypeInferenceElementData data) {
@@ -415,19 +426,26 @@ class GlobalTypeInferenceMemberResultImpl
     sink.end(tag);
   }
 
+  @override
   AbstractValue typeOfSend(ir.Node node) => _data?.typeOfSend(node);
+  @override
   AbstractValue typeOfGetter(ir.Node node) => _data?.typeOfGetter(node);
+  @override
   AbstractValue typeOfIterator(ir.Node node) => _data?.typeOfIterator(node);
+  @override
   AbstractValue typeOfIteratorMoveNext(ir.Node node) =>
       _data?.typeOfIteratorMoveNext(node);
+  @override
   AbstractValue typeOfIteratorCurrent(ir.Node node) =>
       _data?.typeOfIteratorCurrent(node);
 }
 
 class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
+  @override
   final JClosedWorld closedWorld;
   final TrivialGlobalTypeInferenceMemberResult _trivialMemberResult;
   final AbstractValue _trivialParameterResult;
+  @override
   final InferredData inferredData = new TrivialInferredData();
 
   TrivialGlobalTypeInferenceResults(this.closedWorld)
@@ -435,6 +453,7 @@ class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
             closedWorld.abstractValueDomain.dynamicType),
         _trivialParameterResult = closedWorld.abstractValueDomain.dynamicType;
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeBool(true); // Is trivial.
   }
@@ -497,6 +516,7 @@ class TrivialGlobalTypeInferenceMemberResult
   @override
   bool get isCalledOnce => false;
 
+  @override
   void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
     throw new UnsupportedError(
         "TrivialGlobalTypeInferenceMemberResult.writeToDataSink");
@@ -539,6 +559,7 @@ class DeadFieldGlobalTypeInferenceResult
   @override
   bool get isCalledOnce => false;
 
+  @override
   void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
     throw new UnsupportedError(
         "DeadFieldGlobalTypeInferenceResult.writeToDataSink");
@@ -581,6 +602,7 @@ class DeadMethodGlobalTypeInferenceResult
   @override
   bool get isCalledOnce => false;
 
+  @override
   void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
     throw new UnsupportedError(
         "DeadFieldGlobalTypeInferenceResult.writeToDataSink");

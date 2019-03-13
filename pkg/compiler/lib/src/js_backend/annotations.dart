@@ -273,6 +273,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     return new AnnotationsDataImpl(pragmaAnnotations);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     sink.writeMemberMap(pragmaAnnotations, (EnumSet<PragmaAnnotation> set) {
@@ -286,27 +287,35 @@ class AnnotationsDataImpl implements AnnotationsData {
     return set != null && set.contains(annotation);
   }
 
+  @override
   bool hasAssumeDynamic(MemberEntity member) =>
       _hasPragma(member, PragmaAnnotation.assumeDynamic);
 
+  @override
   bool hasNoInline(MemberEntity member) =>
       _hasPragma(member, PragmaAnnotation.noInline);
 
+  @override
   bool hasTryInline(MemberEntity member) =>
       _hasPragma(member, PragmaAnnotation.tryInline);
 
+  @override
   bool hasDisableFinal(MemberEntity member) =>
       _hasPragma(member, PragmaAnnotation.disableFinal);
 
+  @override
   bool hasNoElision(MemberEntity member) =>
       _hasPragma(member, PragmaAnnotation.noElision);
 
+  @override
   bool hasNoThrows(MemberEntity member) =>
       _hasPragma(member, PragmaAnnotation.noThrows);
 
+  @override
   bool hasNoSideEffects(MemberEntity member) =>
       _hasPragma(member, PragmaAnnotation.noSideEffects);
 
+  @override
   void forEachNoInline(void f(FunctionEntity function)) {
     pragmaAnnotations
         .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
@@ -316,6 +325,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     });
   }
 
+  @override
   void forEachTryInline(void f(FunctionEntity function)) {
     pragmaAnnotations
         .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
@@ -325,6 +335,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     });
   }
 
+  @override
   void forEachNoThrows(void f(FunctionEntity function)) {
     pragmaAnnotations
         .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
@@ -334,6 +345,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     });
   }
 
+  @override
   void forEachNoSideEffects(void f(FunctionEntity function)) {
     pragmaAnnotations
         .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {

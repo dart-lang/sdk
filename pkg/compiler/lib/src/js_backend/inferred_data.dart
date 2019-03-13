@@ -121,6 +121,7 @@ class InferredDataImpl implements InferredData {
         functionsThatMightBePassedToApply);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeBool(false); // Is _not_ trivial.
     sink.begin(tag);
@@ -235,6 +236,7 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
   }
 
   /// Compute [SideEffects] for all registered [SideEffectBuilder]s.
+  @override
   InferredData close(JClosedWorld closedWorld) {
     assert(_sideEffectsBuilders != null,
         "Inferred data has already been computed.");

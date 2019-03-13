@@ -58,6 +58,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   VariableScopeModel get variableScopeModel;
 
+  @override
   ThisInterfaceType get thisType {
     assert(_thisType != null);
     return _thisType;
@@ -951,6 +952,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return type;
   }
 
+  @override
   ir.DartType visitExpressionStatement(ir.ExpressionStatement node) {
     visitNode(node.expression);
     return null;
@@ -1427,6 +1429,7 @@ class TypeHolder {
     return candidate;
   }
 
+  @override
   int get hashCode {
     if (_hashCode == null) {
       _hashCode = Hashing.setHash(falseTypes,
@@ -1435,6 +1438,7 @@ class TypeHolder {
     return _hashCode;
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return other is TypeHolder &&
@@ -1460,6 +1464,7 @@ class TypeHolder {
     sb.write('}');
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('TypeHolder(');
@@ -1697,6 +1702,7 @@ class TargetInfo {
     sb.write(']');
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('TargetInfo(');
@@ -1841,6 +1847,7 @@ class TypeMap {
     return sb.toString();
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('TypeMap(');

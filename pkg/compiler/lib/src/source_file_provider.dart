@@ -176,6 +176,7 @@ List<int> readAll(String filename, {bool zeroTerminated: true}) {
 class CompilerSourceFileProvider extends SourceFileProvider {
   // TODO(johnniwinther): Remove this when no longer needed for the old compiler
   // API.
+  @override
   Future<List<int>> call(Uri resourceUri) =>
       readFromUri(resourceUri).then((input) => input.data);
 
@@ -372,6 +373,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
     return uri;
   }
 
+  @override
   OutputSink createOutputSink(String name, String extension, OutputType type) {
     Uri uri = createUri(name, extension, type);
     bool isPrimaryOutput = uri == out;
@@ -474,8 +476,10 @@ class _OutputSinkWrapper extends OutputSink {
 
   _OutputSinkWrapper(this.onAdd, this.onClose);
 
+  @override
   void add(String data) => onAdd(data);
 
+  @override
   void close() => onClose();
 }
 
@@ -485,9 +489,11 @@ class _BinaryOutputSinkWrapper extends BinaryOutputSink {
 
   _BinaryOutputSinkWrapper(this.onWrite, this.onClose);
 
+  @override
   void write(List<int> data, [int start = 0, int end]) =>
       onWrite(data, start, end);
 
+  @override
   void close() => onClose();
 }
 

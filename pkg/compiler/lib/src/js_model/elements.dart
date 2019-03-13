@@ -20,7 +20,9 @@ class JLibrary extends IndexedLibrary {
   /// debugging data stream.
   static const String tag = 'library';
 
+  @override
   final String name;
+  @override
   final Uri canonicalUri;
 
   JLibrary(this.name, this.canonicalUri);
@@ -42,6 +44,7 @@ class JLibrary extends IndexedLibrary {
     sink.end(tag);
   }
 
+  @override
   String toString() => '${jsElementPrefix}library($name)';
 }
 
@@ -53,9 +56,12 @@ class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
   /// debugging data stream.
   static const String tag = 'class';
 
+  @override
   final JLibrary library;
 
+  @override
   final String name;
+  @override
   final bool isAbstract;
 
   JClass(this.library, this.name, {this.isAbstract});
@@ -92,6 +98,7 @@ class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
   @override
   bool get isClosure => false;
 
+  @override
   String toString() => '${jsElementPrefix}class($name)';
 }
 
@@ -100,8 +107,10 @@ class JTypedef extends IndexedTypedef {
   /// debugging data stream.
   static const String tag = 'typedef';
 
+  @override
   final JLibrary library;
 
+  @override
   final String name;
 
   JTypedef(this.library, this.name);
@@ -123,6 +132,7 @@ class JTypedef extends IndexedTypedef {
     sink.end(tag);
   }
 
+  @override
   String toString() => '${jsElementPrefix}typedef($name)';
 }
 
@@ -143,7 +153,9 @@ enum JMemberKind {
 }
 
 abstract class JMember extends IndexedMember {
+  @override
   final JLibrary library;
+  @override
   final JClass enclosingClass;
   final Name _name;
   final bool _isStatic;
@@ -186,8 +198,10 @@ abstract class JMember extends IndexedMember {
   /// Serializes this [JMember] to [sink].
   void writeToDataSink(DataSink sink);
 
+  @override
   String get name => _name.text;
 
+  @override
   Name get memberName => _name;
 
   @override
@@ -225,14 +239,18 @@ abstract class JMember extends IndexedMember {
 
   String get _kind;
 
+  @override
   String toString() => '${jsElementPrefix}$_kind'
       '(${enclosingClass != null ? '${enclosingClass.name}.' : ''}$name)';
 }
 
 abstract class JFunction extends JMember
     implements FunctionEntity, IndexedFunction {
+  @override
   final ParameterStructure parameterStructure;
+  @override
   final bool isExternal;
+  @override
   final AsyncMarker asyncMarker;
 
   JFunction(JLibrary library, JClass enclosingClass, Name name,
@@ -243,6 +261,7 @@ abstract class JFunction extends JMember
 
 abstract class JConstructor extends JFunction
     implements ConstructorEntity, IndexedConstructor {
+  @override
   final bool isConst;
 
   JConstructor(
@@ -267,6 +286,7 @@ abstract class JConstructor extends JFunction
   @override
   bool get isFromEnvironmentConstructor => false;
 
+  @override
   String get _kind => 'constructor';
 }
 
@@ -370,6 +390,7 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
   /// debugging data stream.
   static const String tag = 'constructor-body';
 
+  @override
   final JConstructor constructor;
 
   JConstructorBody(this.constructor, ParameterStructure parameterStructure)
@@ -395,6 +416,7 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
     sink.end(tag);
   }
 
+  @override
   String get _kind => 'constructor_body';
 }
 
@@ -403,6 +425,7 @@ class JMethod extends JFunction {
   /// debugging data stream.
   static const String tag = 'method';
 
+  @override
   final bool isAbstract;
 
   JMethod(JLibrary library, JClass enclosingClass, Name name,
@@ -461,6 +484,7 @@ class JMethod extends JFunction {
   @override
   bool get isFunction => true;
 
+  @override
   String get _kind => 'method';
 }
 
@@ -471,6 +495,7 @@ class JGeneratorBody extends JFunction {
 
   final JFunction function;
   final DartType elementType;
+  @override
   final int hashCode;
 
   JGeneratorBody(this.function, this.elementType)
@@ -496,6 +521,7 @@ class JGeneratorBody extends JFunction {
     sink.end(tag);
   }
 
+  @override
   String get _kind => 'generator_body';
 }
 
@@ -504,6 +530,7 @@ class JGetter extends JFunction {
   /// debugging data stream.
   static const String tag = 'getter';
 
+  @override
   final bool isAbstract;
 
   JGetter(JLibrary library, JClass enclosingClass, Name name,
@@ -560,6 +587,7 @@ class JGetter extends JFunction {
   @override
   bool get isGetter => true;
 
+  @override
   String get _kind => 'getter';
 }
 
@@ -568,6 +596,7 @@ class JSetter extends JFunction {
   /// debugging data stream.
   static const String tag = 'setter';
 
+  @override
   final bool isAbstract;
 
   JSetter(JLibrary library, JClass enclosingClass, Name name,
@@ -624,6 +653,7 @@ class JSetter extends JFunction {
   @override
   bool get isSetter => true;
 
+  @override
   String get _kind => 'setter';
 }
 
@@ -632,7 +662,9 @@ class JField extends JMember implements FieldEntity, IndexedField {
   /// debugging data stream.
   static const String tag = 'field';
 
+  @override
   final bool isAssignable;
+  @override
   final bool isConst;
 
   JField(JLibrary library, JClass enclosingClass, Name name,
@@ -683,6 +715,7 @@ class JField extends JMember implements FieldEntity, IndexedField {
   @override
   bool get isField => true;
 
+  @override
   String get _kind => 'field';
 }
 
@@ -718,6 +751,7 @@ class JClosureCallMethod extends JMethod {
     sink.end(tag);
   }
 
+  @override
   String get _kind => 'closure_call';
 }
 
@@ -740,6 +774,7 @@ class JSignatureMethod extends JMethod {
     return new JSignatureMethod(cls);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(JMemberKind.signatureMethod);
     sink.begin(tag);
@@ -747,6 +782,7 @@ class JSignatureMethod extends JMethod {
     sink.end(tag);
   }
 
+  @override
   String get _kind => 'signature';
 }
 
@@ -758,8 +794,11 @@ class JTypeVariable extends IndexedTypeVariable {
   /// debugging data stream.
   static const String tag = 'type-variable';
 
+  @override
   final Entity typeDeclaration;
+  @override
   final String name;
+  @override
   final int index;
 
   JTypeVariable(this.typeDeclaration, this.name, this.index);
@@ -818,6 +857,7 @@ class JTypeVariable extends IndexedTypeVariable {
     sink.end(tag);
   }
 
+  @override
   String toString() =>
       '${jsElementPrefix}type_variable(${typeDeclaration.name}.$name)';
 }

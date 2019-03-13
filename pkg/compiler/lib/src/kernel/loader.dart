@@ -51,6 +51,7 @@ class KernelLoaderTask extends CompilerTask {
       : initializedCompilerState = _options.kernelInitializedCompilerState,
         super(measurer);
 
+  @override
   String get name => 'kernel loader';
 
   /// Loads an entire Kernel [Component] from a file on disk.
@@ -157,5 +158,6 @@ class KernelResult {
     assert(rootLibraryUri != null);
   }
 
+  @override
   String toString() => 'root=$rootLibraryUri,libraries=${libraries}';
 }

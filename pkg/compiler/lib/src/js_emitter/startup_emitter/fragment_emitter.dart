@@ -1994,10 +1994,12 @@ class DeferredPrimaryExpression extends js.DeferredExpression {
     _value = value;
   }
 
+  @override
   js.Expression get value {
     assert(_value != null);
     return _value;
   }
 
+  @override
   int get precedenceLevel => js_precedence.PRIMARY;
 }

@@ -188,6 +188,7 @@ abstract class ImpactRegistry {
 
 abstract class ImpactBuilderBase extends StaticTypeVisitor
     implements ImpactRegistry {
+  @override
   final VariableScopeModel variableScopeModel;
 
   ImpactBuilderBase(ir.TypeEnvironment typeEnvironment,
@@ -406,6 +407,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
     registerLoadLibrary();
   }
 
+  @override
   void handleRedirectingInitializer(
       ir.RedirectingInitializer node, ArgumentTypes argumentTypes) {
     registerRedirectingInitializer(
@@ -643,6 +645,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
     return super.visitSwitchStatement(node);
   }
 
+  @override
   void handleRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType) {
     registerRuntimeTypeUse(node, kind, receiverType, argumentType);
@@ -656,8 +659,10 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
 
 /// Visitor that builds an [ImpactData] object for the world impact.
 class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
+  @override
   final bool useAsserts;
 
+  @override
   final inferEffectivelyFinalVariableTypes;
 
   ImpactBuilder(ir.TypeEnvironment typeEnvironment,

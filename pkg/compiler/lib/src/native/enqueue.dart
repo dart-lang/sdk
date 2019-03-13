@@ -40,6 +40,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   final Set<ClassEntity> _registeredClasses = new Set<ClassEntity>();
   final Set<ClassEntity> _unusedClasses = new Set<ClassEntity>();
 
+  @override
   bool get hasInstantiatedNativeClasses => !_registeredClasses.isEmpty;
 
   /// Log message reported if all native types are used.
@@ -56,6 +57,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   bool get enableLiveTypeAnalysis => _options.enableNativeLiveTypeAnalysis;
 
+  @override
   void onInstantiatedType(InterfaceType type) {
     if (_unusedClasses.remove(type.element)) {
       _registeredClasses.add(type.element);
@@ -77,6 +79,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     }
   }
 
+  @override
   void registerNativeBehavior(
       WorldImpactBuilder impactBuilder, NativeBehavior nativeBehavior, cause) {
     _processNativeBehavior(impactBuilder, nativeBehavior, cause);
@@ -161,6 +164,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     });
   }
 
+  @override
   void logSummary(void log(String message)) {
     if (_allUsedMessage != null) {
       log(_allUsedMessage);
@@ -189,6 +193,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
   Iterable<ClassEntity> get liveNativeClasses => _registeredClasses;
 
+  @override
   WorldImpact processNativeClasses(Iterable<Uri> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     Iterable<ClassEntity> nativeClasses =
@@ -201,6 +206,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     return impactBuilder;
   }
 
+  @override
   void logSummary(void log(String message)) {
     super.logSummary(log);
     log('Resolved ${_registeredClasses.length} native elements used, '
@@ -225,6 +231,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
       this._nativeData)
       : super(options, elementEnvironment, commonElements, dartTypes);
 
+  @override
   WorldImpact processNativeClasses(Iterable<Uri> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     _unusedClasses.addAll(_nativeClasses);
@@ -247,6 +254,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     return impactBuilder;
   }
 
+  @override
   void _registerTypeUses(
       WorldImpactBuilder impactBuilder, Set<ClassEntity> classes, cause) {
     super._registerTypeUses(impactBuilder, classes, cause);
@@ -288,6 +296,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     directSubtypes.add(cls);
   }
 
+  @override
   void logSummary(void log(String message)) {
     super.logSummary(log);
     log('Compiled ${_registeredClasses.length} native classes, '

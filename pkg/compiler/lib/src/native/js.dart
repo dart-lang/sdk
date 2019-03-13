@@ -41,18 +41,21 @@ class SideEffectsVisitor extends js.BaseVisitor {
     node.accept(this);
   }
 
+  @override
   void visitLiteralExpression(js.LiteralExpression node) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
     node.visitChildren(this);
   }
 
+  @override
   void visitLiteralStatement(js.LiteralStatement node) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
     node.visitChildren(this);
   }
 
+  @override
   void visitAssignment(js.Assignment node) {
     sideEffects.setChangesStaticProperty();
     sideEffects.setChangesInstanceProperty();
@@ -60,32 +63,38 @@ class SideEffectsVisitor extends js.BaseVisitor {
     node.visitChildren(this);
   }
 
+  @override
   void visitVariableInitialization(js.VariableInitialization node) {
     node.visitChildren(this);
   }
 
+  @override
   void visitCall(js.Call node) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
     node.visitChildren(this);
   }
 
+  @override
   void visitBinary(js.Binary node) {
     node.visitChildren(this);
   }
 
+  @override
   void visitThrow(js.Throw node) {
     // TODO(ngeoffray): Incorporate a mayThrow flag in the
     // [SideEffects] class.
     sideEffects.setAllSideEffects();
   }
 
+  @override
   void visitNew(js.New node) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
     node.visitChildren(this);
   }
 
+  @override
   void visitPrefix(js.Prefix node) {
     if (node.op == 'delete') {
       sideEffects.setChangesStaticProperty();
@@ -95,14 +104,17 @@ class SideEffectsVisitor extends js.BaseVisitor {
     node.visitChildren(this);
   }
 
+  @override
   void visitVariableUse(js.VariableUse node) {
     sideEffects.setDependsOnStaticPropertyStore();
   }
 
+  @override
   void visitPostfix(js.Postfix node) {
     node.visitChildren(this);
   }
 
+  @override
   void visitAccess(js.PropertyAccess node) {
     sideEffects.setDependsOnIndexStore();
     sideEffects.setDependsOnInstancePropertyStore();
@@ -149,43 +161,53 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
     return node.accept(this);
   }
 
+  @override
   NativeThrowBehavior visitNode(js.Node node) {
     return NativeThrowBehavior.MAY;
   }
 
+  @override
   NativeThrowBehavior visitLiteral(js.Literal node) {
     return NativeThrowBehavior.NEVER;
   }
 
+  @override
   NativeThrowBehavior visitInterpolatedExpression(js.InterpolatedNode node) {
     return NativeThrowBehavior.NEVER;
   }
 
+  @override
   NativeThrowBehavior visitInterpolatedSelector(js.InterpolatedNode node) {
     return NativeThrowBehavior.NEVER;
   }
 
+  @override
   NativeThrowBehavior visitArrayInitializer(js.ArrayInitializer node) {
     return node.elements.map(visit).fold(NativeThrowBehavior.NEVER, sequence);
   }
 
+  @override
   NativeThrowBehavior visitArrayHole(js.ArrayHole node) {
     return NativeThrowBehavior.NEVER;
   }
 
+  @override
   NativeThrowBehavior visitObjectInitializer(js.ObjectInitializer node) {
     return node.properties.map(visit).fold(NativeThrowBehavior.NEVER, sequence);
   }
 
+  @override
   NativeThrowBehavior visitProperty(js.Property node) {
     return sequence(visit(node.name), visit(node.value));
   }
 
+  @override
   NativeThrowBehavior visitAssignment(js.Assignment node) {
     // TODO(sra): Can we make "#.p = #" be null(1)?
     return NativeThrowBehavior.MAY;
   }
 
+  @override
   NativeThrowBehavior visitCall(js.Call node) {
     js.Expression target = node.target;
     if (target is js.PropertyAccess && _isFirstInterpolatedProperty(target)) {
@@ -201,11 +223,13 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
     return NativeThrowBehavior.MAY;
   }
 
+  @override
   NativeThrowBehavior visitNew(js.New node) {
     // TODO(sra): `new Array(x)` where `x` is a small number.
     return NativeThrowBehavior.MAY;
   }
 
+  @override
   NativeThrowBehavior visitBinary(js.Binary node) {
     NativeThrowBehavior left = visit(node.left);
     NativeThrowBehavior right = visit(node.right);
@@ -248,10 +272,12 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
     }
   }
 
+  @override
   NativeThrowBehavior visitThrow(js.Throw node) {
     return sequence(visit(node.expression), NativeThrowBehavior.MAY);
   }
 
+  @override
   NativeThrowBehavior visitPrefix(js.Prefix node) {
     if (node.op == 'typeof' && node.argument is js.VariableUse)
       return NativeThrowBehavior.NEVER;
@@ -269,6 +295,7 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
     }
   }
 
+  @override
   NativeThrowBehavior visitVariableUse(js.VariableUse node) {
     // We could get a ReferenceError unless the variable is in scope. The AST
     // could distinguish in-scope and out-of scope references. For JS fragments,
@@ -284,6 +311,7 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
     }
   }
 
+  @override
   NativeThrowBehavior visitAccess(js.PropertyAccess node) {
     js.Node receiver = node.receiver;
     NativeThrowBehavior first = visit(receiver);

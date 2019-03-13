@@ -14,6 +14,7 @@ import 'package:kernel/type_environment.dart' as ir;
 class DoesNotCompleteType extends ir.BottomType {
   const DoesNotCompleteType();
 
+  @override
   String toString() => 'DoesNotCompleteType()';
 }
 
@@ -27,6 +28,7 @@ class ThisInterfaceType extends ir.InterfaceType {
       ? new ThisInterfaceType(type.classNode, type.typeArguments)
       : null;
 
+  @override
   String toString() => 'this:${super.toString()}';
 }
 
@@ -40,6 +42,7 @@ class ExactInterfaceType extends ir.InterfaceType {
       ? new ExactInterfaceType(type.classNode, type.typeArguments)
       : null;
 
+  @override
   String toString() => 'exact:${super.toString()}';
 }
 
@@ -79,6 +82,7 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
     }
   }
 
+  @override
   ir.DartType defaultExpression(ir.Expression node) {
     throw fail('Unhandled node $node (${node.runtimeType})');
   }

@@ -108,6 +108,7 @@ class _LibraryData {
     return _members[name];
   }
 
+  @override
   String toString() => '_LibraryData($node(${identityHashCode(node)}))';
 }
 
@@ -137,6 +138,7 @@ class _ClassData {
     return _members[name];
   }
 
+  @override
   String toString() => '_ClassData($node(${identityHashCode(node)}))';
 }
 
@@ -180,5 +182,6 @@ class _MemberData {
     return index;
   }
 
+  @override
   String toString() => '_MemberData($node(${identityHashCode(node)}))';
 }

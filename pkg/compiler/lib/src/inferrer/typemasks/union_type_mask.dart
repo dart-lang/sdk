@@ -34,6 +34,7 @@ class UnionTypeMask implements TypeMask {
   }
 
   /// Serializes this [UnionTypeMask] to [sink].
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(TypeMaskKind.union);
     sink.begin(tag);
@@ -161,6 +162,7 @@ class UnionTypeMask implements TypeMask {
     return new TypeMask(bestElement, bestKind, isNullable, closedWorld);
   }
 
+  @override
   TypeMask union(dynamic other, JClosedWorld closedWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (!other.isUnion && disjointMasks.contains(other)) return this;
@@ -175,6 +177,7 @@ class UnionTypeMask implements TypeMask {
     return new TypeMask.unionOf(newList, closedWorld);
   }
 
+  @override
   TypeMask intersection(dynamic other, JClosedWorld closedWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (!other.isUnion && disjointMasks.contains(other)) return other;
@@ -197,6 +200,7 @@ class UnionTypeMask implements TypeMask {
     return new TypeMask.unionOf(intersections, closedWorld);
   }
 
+  @override
   bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
     for (var current in disjointMasks) {
       if (!current.isDisjoint(other, closedWorld)) return false;
@@ -204,6 +208,7 @@ class UnionTypeMask implements TypeMask {
     return true;
   }
 
+  @override
   TypeMask nullable() {
     if (isNullable) return this;
     List<FlatTypeMask> newList = new List<FlatTypeMask>.from(disjointMasks);
@@ -211,6 +216,7 @@ class UnionTypeMask implements TypeMask {
     return new UnionTypeMask._internal(newList);
   }
 
+  @override
   TypeMask nonNullable() {
     if (!isNullable) return this;
     Iterable<FlatTypeMask> newIterable = disjointMasks.map((e) {
@@ -220,17 +226,29 @@ class UnionTypeMask implements TypeMask {
     return new UnionTypeMask._internal(newIterable);
   }
 
+  @override
   bool get isEmptyOrNull => false;
+  @override
   bool get isEmpty => false;
+  @override
   bool get isNull => false;
+  @override
   bool get isNullable => disjointMasks.any((e) => e.isNullable);
+  @override
   bool get isExact => false;
+  @override
   bool get isUnion => true;
+  @override
   bool get isContainer => false;
+  @override
   bool get isSet => false;
+  @override
   bool get isMap => false;
+  @override
   bool get isDictionary => false;
+  @override
   bool get isForwarding => false;
+  @override
   bool get isValue => false;
 
   /// Checks whether [other] is contained in this union.
@@ -268,6 +286,7 @@ class UnionTypeMask implements TypeMask {
     return members.every((ClassEntity cls) => this.contains(cls, closedWorld));
   }
 
+  @override
   bool isInMask(TypeMask other, JClosedWorld closedWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (isNullable && !other.isNullable) return false;
@@ -296,6 +315,7 @@ class UnionTypeMask implements TypeMask {
     return disjointMasks.every((mask) => mask.isInMask(other, closedWorld));
   }
 
+  @override
   bool containsMask(TypeMask other, JClosedWorld closedWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (other.isNullable && !isNullable) return false;
@@ -311,55 +331,68 @@ class UnionTypeMask implements TypeMask {
     return contained;
   }
 
+  @override
   bool containsOnlyInt(JClosedWorld closedWorld) {
     return disjointMasks.every((mask) => mask.containsOnlyInt(closedWorld));
   }
 
+  @override
   bool containsOnlyDouble(JClosedWorld closedWorld) {
     return disjointMasks.every((mask) => mask.containsOnlyDouble(closedWorld));
   }
 
+  @override
   bool containsOnlyNum(JClosedWorld closedWorld) {
     return disjointMasks.every((mask) {
       return mask.containsOnlyNum(closedWorld);
     });
   }
 
+  @override
   bool containsOnlyBool(JClosedWorld closedWorld) {
     return disjointMasks.every((mask) => mask.containsOnlyBool(closedWorld));
   }
 
+  @override
   bool containsOnlyString(JClosedWorld closedWorld) {
     return disjointMasks.every((mask) => mask.containsOnlyString(closedWorld));
   }
 
+  @override
   bool containsOnly(ClassEntity element) {
     return disjointMasks.every((mask) => mask.containsOnly(element));
   }
 
+  @override
   bool satisfies(ClassEntity cls, JClosedWorld closedWorld) {
     return disjointMasks.every((mask) => mask.satisfies(cls, closedWorld));
   }
 
+  @override
   bool contains(ClassEntity cls, JClosedWorld closedWorld) {
     return disjointMasks.any((e) => e.contains(cls, closedWorld));
   }
 
+  @override
   bool containsAll(JClosedWorld closedWorld) {
     return disjointMasks.any((mask) => mask.containsAll(closedWorld));
   }
 
+  @override
   ClassEntity singleClass(JClosedWorld closedWorld) => null;
 
+  @override
   bool needsNoSuchMethodHandling(Selector selector, JClosedWorld closedWorld) {
     return disjointMasks
         .any((e) => e.needsNoSuchMethodHandling(selector, closedWorld));
   }
 
+  @override
   bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
     return disjointMasks.any((e) => e.canHit(element, name, closedWorld));
   }
 
+  @override
   MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {
     MemberEntity candidate;
     for (FlatTypeMask mask in disjointMasks) {
@@ -375,6 +408,7 @@ class UnionTypeMask implements TypeMask {
     return candidate;
   }
 
+  @override
   String toString() {
     String masksString =
         (disjointMasks.map((TypeMask mask) => mask.toString()).toList()..sort())
@@ -382,6 +416,7 @@ class UnionTypeMask implements TypeMask {
     return 'Union($masksString)';
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
 
@@ -398,6 +433,7 @@ class UnionTypeMask implements TypeMask {
         containsAll();
   }
 
+  @override
   int get hashCode {
     int hashCode = isNullable ? 86 : 43;
     // The order of the masks in [disjointMasks] must not affect the

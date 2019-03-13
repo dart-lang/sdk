@@ -71,14 +71,17 @@ class Tag {
 
   Tag(this.value);
 
+  @override
   int get hashCode => value.hashCode * 13;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! Tag) return false;
     return value == other.value;
   }
 
+  @override
   String toString() => 'Tag($value)';
 }
 
@@ -102,6 +105,7 @@ class DartTypeWriter
 
   DartTypeWriter(this._sink);
 
+  @override
   void visit(covariant DartType type,
           List<FunctionTypeVariable> functionTypeVariables) =>
       type.accept(this, functionTypeVariables);
@@ -114,11 +118,13 @@ class DartTypeWriter
     }
   }
 
+  @override
   void visitVoidType(covariant VoidType type,
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.voidType);
   }
 
+  @override
   void visitTypeVariableType(covariant TypeVariableType type,
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.typeVariable);
@@ -126,6 +132,7 @@ class DartTypeWriter
     _sink.writeInt(typeVariable.typeVariableIndex);
   }
 
+  @override
   void visitFunctionTypeVariable(covariant FunctionTypeVariable type,
       List<FunctionTypeVariable> functionTypeVariables) {
     int index = functionTypeVariables.indexOf(type);
@@ -138,6 +145,7 @@ class DartTypeWriter
     }
   }
 
+  @override
   void visitFunctionType(covariant FunctionType type,
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.functionType);
@@ -157,6 +165,7 @@ class DartTypeWriter
     }
   }
 
+  @override
   void visitInterfaceType(covariant InterfaceType type,
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.interfaceType);
@@ -164,6 +173,7 @@ class DartTypeWriter
     visitTypes(type.typeArguments, functionTypeVariables);
   }
 
+  @override
   void visitTypedefType(covariant TypedefType type,
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.typedef);
@@ -172,11 +182,13 @@ class DartTypeWriter
     _sink._writeDartType(type.unaliased, functionTypeVariables);
   }
 
+  @override
   void visitDynamicType(covariant DynamicType type,
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.dynamicType);
   }
 
+  @override
   void visitFutureOrType(covariant FutureOrType type,
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.futureOr);
@@ -217,27 +229,32 @@ class DartTypeNodeWriter
     }
   }
 
+  @override
   void defaultDartType(
       ir.DartType node, List<ir.TypeParameter> functionTypeVariables) {
     throw new UnsupportedError(
         "Unexpected ir.DartType $node (${node.runtimeType}).");
   }
 
+  @override
   void visitInvalidType(
       ir.InvalidType node, List<ir.TypeParameter> functionTypeVariables) {
     _sink.writeEnum(DartTypeNodeKind.invalidType);
   }
 
+  @override
   void visitDynamicType(
       ir.DynamicType node, List<ir.TypeParameter> functionTypeVariables) {
     _sink.writeEnum(DartTypeNodeKind.dynamicType);
   }
 
+  @override
   void visitVoidType(
       ir.VoidType node, List<ir.TypeParameter> functionTypeVariables) {
     _sink.writeEnum(DartTypeNodeKind.voidType);
   }
 
+  @override
   void visitBottomType(
       ir.BottomType node, List<ir.TypeParameter> functionTypeVariables) {
     if (node == const DoesNotCompleteType()) {
@@ -247,6 +264,7 @@ class DartTypeNodeWriter
     }
   }
 
+  @override
   void visitInterfaceType(
       ir.InterfaceType node, List<ir.TypeParameter> functionTypeVariables) {
     if (node is ThisInterfaceType) {
@@ -260,6 +278,7 @@ class DartTypeNodeWriter
     visitTypes(node.typeArguments, functionTypeVariables);
   }
 
+  @override
   void visitFunctionType(
       ir.FunctionType node, List<ir.TypeParameter> functionTypeVariables) {
     _sink.writeEnum(DartTypeNodeKind.functionType);
@@ -286,6 +305,7 @@ class DartTypeNodeWriter
     _sink.end(functionTypeNodeTag);
   }
 
+  @override
   void visitTypeParameterType(
       ir.TypeParameterType node, List<ir.TypeParameter> functionTypeVariables) {
     int index = functionTypeVariables.indexOf(node.parameter);
@@ -302,6 +322,7 @@ class DartTypeNodeWriter
     }
   }
 
+  @override
   void visitTypedefType(
       ir.TypedefType node, List<ir.TypeParameter> functionTypeVariables) {
     _sink.writeEnum(DartTypeNodeKind.typedef);

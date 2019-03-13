@@ -45,14 +45,18 @@ bool maybeEnableNative(Uri uri) {
 /// A kernel [Target] to configure the Dart Front End for dart2js.
 class Dart2jsTarget extends Target {
   final TargetFlags flags;
+  @override
   final String name;
 
   Dart2jsTarget(this.name, this.flags);
 
+  @override
   bool get legacyMode => flags.legacyMode;
 
+  @override
   bool get enableNoSuchMethodForwarders => !flags.legacyMode;
 
+  @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name];
 
   @override

@@ -16,6 +16,7 @@ class LiveRange {
     assert(start <= end);
   }
 
+  @override
   String toString() => '[$start $end[';
 }
 
@@ -56,6 +57,7 @@ class LiveInterval {
     return false;
   }
 
+  @override
   String toString() {
     List<String> res = new List<String>();
     for (final interval in ranges) res.add(interval.toString());
@@ -148,6 +150,7 @@ class LiveEnvironment {
   bool get isEmpty => liveInstructions.isEmpty && loopMarkers.isEmpty;
   bool contains(HInstruction instruction) =>
       liveInstructions.containsKey(instruction);
+  @override
   String toString() => liveInstructions.toString();
 }
 
@@ -174,6 +177,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor with CodegenPhase {
       : liveInstructions = new Map<HBasicBlock, LiveEnvironment>(),
         liveIntervals = new Map<HInstruction, LiveInterval>();
 
+  @override
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
     if (!liveInstructions[graph.entry].isEmpty) {
@@ -251,6 +255,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor with CodegenPhase {
     }
   }
 
+  @override
   void visitBasicBlock(HBasicBlock block) {
     LiveEnvironment environment =
         new LiveEnvironment(liveIntervals, instructionId);
@@ -356,6 +361,7 @@ class Copy<T> {
 
   Copy(this.source, this.destination);
 
+  @override
   String toString() => '$destination <- $source';
 }
 
@@ -381,6 +387,7 @@ class CopyHandler {
     assignments.add(new Copy<HInstruction>(source, destination));
   }
 
+  @override
   String toString() => 'Copies: $copies, assignments: $assignments';
 
   bool get isEmpty => copies.isEmpty && assignments.isEmpty;
@@ -574,10 +581,12 @@ class SsaVariableAllocator extends HBaseVisitor with CodegenPhase {
       this.generateAtUseSite)
       : this.names = new VariableNames();
 
+  @override
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
 
+  @override
   void visitBasicBlock(HBasicBlock block) {
     VariableNamer variableNamer =
         new VariableNamer(liveInstructions[block], names, _namer);

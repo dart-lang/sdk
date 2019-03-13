@@ -46,6 +46,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   _CodegenImpact();
 
+  @override
   void apply(WorldImpactVisitor visitor) {
     staticUses.forEach(visitor.visitStaticUse);
     dynamicUses.forEach(visitor.visitDynamicUse);
@@ -59,6 +60,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         .add(new Pair<DartType, DartType>(subtype, supertype));
   }
 
+  @override
   Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks {
     return _typeVariableBoundsSubtypeChecks != null
         ? _typeVariableBoundsSubtypeChecks
@@ -70,6 +72,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     _constSymbols.add(name);
   }
 
+  @override
   Iterable<String> get constSymbols {
     return _constSymbols != null ? _constSymbols : const <String>[];
   }
@@ -79,6 +82,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     _specializedGetInterceptors.add(classes);
   }
 
+  @override
   Iterable<Set<ClassEntity>> get specializedGetInterceptors {
     return _specializedGetInterceptors != null
         ? _specializedGetInterceptors
@@ -89,6 +93,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     _usesInterceptor = true;
   }
 
+  @override
   bool get usesInterceptor => _usesInterceptor;
 
   void registerAsyncMarker(AsyncMarker asyncMarker) {
@@ -96,6 +101,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     _asyncMarkers.add(asyncMarker);
   }
 
+  @override
   Iterable<AsyncMarker> get asyncMarkers {
     return _asyncMarkers != null
         ? _asyncMarkers.iterable(AsyncMarker.values)
@@ -125,6 +131,7 @@ class CodegenRegistry {
 
   bool get isForResolution => false;
 
+  @override
   String toString() => 'CodegenRegistry for $currentElement';
 
   @deprecated

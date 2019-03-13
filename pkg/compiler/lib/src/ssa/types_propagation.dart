@@ -41,6 +41,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   final CommonElements commonElements;
   final JClosedWorld closedWorld;
   final OptimizationTestLog _log;
+  @override
   String get name => 'SsaTypePropagator';
 
   SsaTypePropagator(this.results, this.options, this.commonElements,
@@ -66,11 +67,13 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     return oldType != newType;
   }
 
+  @override
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
     processWorklist();
   }
 
+  @override
   visitBasicBlock(HBasicBlock block) {
     if (block.isLoopHeader()) {
       block.forEachPhi((HPhi phi) {
@@ -129,6 +132,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     }
   }
 
+  @override
   AbstractValue visitBinaryArithmetic(HBinaryArithmetic instruction) {
     HInstruction left = instruction.left;
     HInstruction right = instruction.right;
@@ -152,29 +156,35 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     return visitBinaryArithmetic(instruction);
   }
 
+  @override
   AbstractValue visitMultiply(HMultiply instruction) {
     return checkPositiveInteger(instruction);
   }
 
+  @override
   AbstractValue visitAdd(HAdd instruction) {
     return checkPositiveInteger(instruction);
   }
 
+  @override
   AbstractValue visitDivide(HDivide instruction) {
     // Always double, as initialized.
     return instruction.instructionType;
   }
 
+  @override
   AbstractValue visitTruncatingDivide(HTruncatingDivide instruction) {
     // Always as initialized.
     return instruction.instructionType;
   }
 
+  @override
   AbstractValue visitRemainder(HRemainder instruction) {
     // Always as initialized.
     return instruction.instructionType;
   }
 
+  @override
   AbstractValue visitNegate(HNegate instruction) {
     HInstruction operand = instruction.operand;
     // We have integer subclasses that represent ranges, so widen any int
@@ -185,16 +195,19 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     return instruction.operand.instructionType;
   }
 
+  @override
   AbstractValue visitAbs(HAbs instruction) {
     // TODO(sra): Can narrow to non-negative type for integers.
     return instruction.operand.instructionType;
   }
 
+  @override
   AbstractValue visitInstruction(HInstruction instruction) {
     assert(instruction.instructionType != null);
     return instruction.instructionType;
   }
 
+  @override
   AbstractValue visitPhi(HPhi phi) {
     AbstractValue candidateType = abstractValueDomain.emptyType;
     for (int i = 0, length = phi.inputs.length; i < length; i++) {
@@ -204,6 +217,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     return candidateType;
   }
 
+  @override
   AbstractValue visitTypeConversion(HTypeConversion instruction) {
     HInstruction input = instruction.checkedInput;
     AbstractValue inputType = input.instructionType;
@@ -261,6 +275,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     return outputType;
   }
 
+  @override
   AbstractValue visitTypeKnown(HTypeKnown instruction) {
     HInstruction input = instruction.checkedInput;
     AbstractValue inputType = input.instructionType;
@@ -392,6 +407,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     });
   }
 
+  @override
   AbstractValue visitInvokeDynamic(HInvokeDynamic instruction) {
     if (instruction.isInterceptedCall) {
       // We cannot do the following optimization now, because we have to wait

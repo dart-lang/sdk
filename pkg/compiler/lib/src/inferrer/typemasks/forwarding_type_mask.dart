@@ -11,68 +11,93 @@ abstract class ForwardingTypeMask implements TypeMask {
 
   ForwardingTypeMask();
 
+  @override
   bool get isEmptyOrNull => forwardTo.isEmptyOrNull;
+  @override
   bool get isEmpty => forwardTo.isEmpty;
+  @override
   bool get isNullable => forwardTo.isNullable;
+  @override
   bool get isNull => forwardTo.isNull;
+  @override
   bool get isExact => forwardTo.isExact;
 
+  @override
   bool get isUnion => false;
+  @override
   bool get isContainer => false;
+  @override
   bool get isSet => false;
+  @override
   bool get isMap => false;
+  @override
   bool get isDictionary => false;
+  @override
   bool get isValue => false;
+  @override
   bool get isForwarding => true;
 
+  @override
   bool isInMask(TypeMask other, JClosedWorld closedWorld) {
     return forwardTo.isInMask(other, closedWorld);
   }
 
+  @override
   bool containsMask(TypeMask other, JClosedWorld closedWorld) {
     return forwardTo.containsMask(other, closedWorld);
   }
 
+  @override
   bool containsOnlyInt(JClosedWorld closedWorld) {
     return forwardTo.containsOnlyInt(closedWorld);
   }
 
+  @override
   bool containsOnlyDouble(JClosedWorld closedWorld) {
     return forwardTo.containsOnlyDouble(closedWorld);
   }
 
+  @override
   bool containsOnlyNum(JClosedWorld closedWorld) {
     return forwardTo.containsOnlyNum(closedWorld);
   }
 
+  @override
   bool containsOnlyBool(JClosedWorld closedWorld) {
     return forwardTo.containsOnlyBool(closedWorld);
   }
 
+  @override
   bool containsOnlyString(JClosedWorld closedWorld) {
     return forwardTo.containsOnlyString(closedWorld);
   }
 
+  @override
   bool containsOnly(ClassEntity cls) {
     return forwardTo.containsOnly(cls);
   }
 
+  @override
   bool satisfies(ClassEntity cls, JClosedWorld closedWorld) {
     return forwardTo.satisfies(cls, closedWorld);
   }
 
+  @override
   bool contains(ClassEntity cls, JClosedWorld closedWorld) {
     return forwardTo.contains(cls, closedWorld);
   }
 
+  @override
   bool containsAll(JClosedWorld closedWorld) {
     return forwardTo.containsAll(closedWorld);
   }
 
+  @override
   ClassEntity singleClass(JClosedWorld closedWorld) {
     return forwardTo.singleClass(closedWorld);
   }
 
+  @override
   TypeMask union(other, JClosedWorld closedWorld) {
     if (this == other) {
       return this;
@@ -84,23 +109,28 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.union(other, closedWorld);
   }
 
+  @override
   bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
     return forwardTo.isDisjoint(other, closedWorld);
   }
 
+  @override
   TypeMask intersection(TypeMask other, JClosedWorld closedWorld) {
     return forwardTo.intersection(other, closedWorld);
   }
 
+  @override
   bool needsNoSuchMethodHandling(
       Selector selector, covariant JClosedWorld closedWorld) {
     return forwardTo.needsNoSuchMethodHandling(selector, closedWorld);
   }
 
+  @override
   bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
     return forwardTo.canHit(element, name, closedWorld);
   }
 
+  @override
   MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {
     return forwardTo.locateSingleMember(selector, closedWorld);
   }
@@ -114,10 +144,12 @@ abstract class ForwardingTypeMask implements TypeMask {
     }
   }
 
+  @override
   bool operator ==(other) {
     return equalsDisregardNull(other) && isNullable == other.isNullable;
   }
 
+  @override
   int get hashCode => throw "Subclass should implement hashCode getter";
 }
 

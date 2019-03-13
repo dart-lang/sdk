@@ -370,6 +370,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     return const InitializerComplexity.lazy();
   }
 
+  @override
   InitializerComplexity visitWhileStatement(ir.WhileStatement node) {
     enterNewScope(node, () {
       visitInVariableScope(node, () {
@@ -380,6 +381,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     return const InitializerComplexity.lazy();
   }
 
+  @override
   InitializerComplexity visitDoStatement(ir.DoStatement node) {
     enterNewScope(node, () {
       visitInVariableScope(node, () {
@@ -444,6 +446,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     return const InitializerComplexity.lazy();
   }
 
+  @override
   InitializerComplexity visitSuperMethodInvocation(
       ir.SuperMethodInvocation node) {
     if (_hasThisLocal) {
@@ -458,6 +461,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     return const InitializerComplexity.lazy();
   }
 
+  @override
   InitializerComplexity visitSuperPropertySet(ir.SuperPropertySet node) {
     if (_hasThisLocal) {
       _registerNeedsThis(VariableUse.explicit);
@@ -466,6 +470,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     return const InitializerComplexity.lazy();
   }
 
+  @override
   InitializerComplexity visitSuperPropertyGet(ir.SuperPropertyGet node) {
     if (_hasThisLocal) {
       _registerNeedsThis(VariableUse.explicit);
@@ -1198,5 +1203,6 @@ class InitializerComplexity {
     return sb.toString();
   }
 
+  @override
   String toString() => 'InitializerComplexity($shortText)';
 }

@@ -83,6 +83,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   @override
   CommonElements get commonElements => _elementMap.commonElements;
 
+  @override
   DartTypes get dartTypes => _elementMap.types;
 
   KernelToElementMap get elementMap => _elementMap;
@@ -104,16 +105,19 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
         _elementMap.elementEnvironment, nativeBasicData);
   }
 
+  @override
   NoSuchMethodResolver createNoSuchMethodResolver() {
     return new KernelNoSuchMethodResolver(elementMap);
   }
 
   /// Computes the main function from [mainLibrary] adding additional world
   /// impact to [impactBuilder].
+  @override
   FunctionEntity computeMain(WorldImpactBuilder impactBuilder) {
     return elementEnvironment.mainFunction;
   }
 
+  @override
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
     return _runtimeTypesNeedBuilder ??= _options.disableRtiOptimization
         ? const TrivialRuntimeTypesNeedBuilder()
@@ -121,9 +125,11 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
             elementEnvironment, _elementMap.types);
   }
 
+  @override
   RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>
       _runtimeTypesNeedBuilder;
 
+  @override
   ResolutionWorldBuilder createResolutionWorldBuilder(
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
@@ -179,6 +185,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
         _irAnnotationData);
   }
 
+  @override
   ClassQueries createClassQueries() {
     return new KernelClassQueries(elementMap);
   }
@@ -239,6 +246,7 @@ class KernelWorkItem implements WorkItem {
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final AnnotationsDataBuilder _annotationsDataBuilder;
+  @override
   final MemberEntity element;
   final Map<MemberEntity, ClosureScopeModel> _closureModels;
   final Map<Entity, WorldImpact> _impactCache;

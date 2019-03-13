@@ -64,6 +64,7 @@ class ClosureDataImpl implements ClosureData {
   }
 
   /// Serializes this [ClosureData] to [sink].
+  @override
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     sink.writeMemberMap(
@@ -430,6 +431,7 @@ class JsScopeInfo extends ScopeInfo {
   static const String tag = 'scope-info';
 
   final Iterable<Local> localsUsedInTryOrSync;
+  @override
   final Local thisLocal;
   final Map<Local, JRecordField> boxedVariables;
 
@@ -455,15 +457,18 @@ class JsScopeInfo extends ScopeInfo {
     }
   }
 
+  @override
   void forEachBoxedVariable(f(Local local, FieldEntity field)) {
     boxedVariables.forEach((Local l, JRecordField box) {
       f(l, box);
     });
   }
 
+  @override
   bool localIsUsedInTryOrSync(Local variable) =>
       localsUsedInTryOrSync.contains(variable);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('this=$thisLocal,');
@@ -471,6 +476,7 @@ class JsScopeInfo extends ScopeInfo {
     return sb.toString();
   }
 
+  @override
   bool isBoxedVariable(Local variable) => boxedVariables.containsKey(variable);
 
   factory JsScopeInfo.readFromDataSource(DataSource source) {
@@ -502,6 +508,7 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
   /// debugging data stream.
   static const String tag = 'captured-scope';
 
+  @override
   final Local context;
 
   JsCapturedScope.internal(
@@ -522,6 +529,7 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
             boxedVariables.isNotEmpty ? boxedVariables.values.first.box : null,
         super.from(boxedVariables, capturedScope, localsMap, elementMap);
 
+  @override
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 
   factory JsCapturedScope.readFromDataSource(DataSource source) {
@@ -555,6 +563,7 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
   /// debugging data stream.
   static const String tag = 'captured-loop-scope';
 
+  @override
   final List<Local> boxedLoopVariables;
 
   JsCapturedLoopScope.internal(
@@ -577,6 +586,7 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
             .toList(),
         super.from(boxedVariables, capturedScope, localsMap, elementMap);
 
+  @override
   bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
 
   factory JsCapturedLoopScope.readFromDataSource(DataSource source) {
@@ -615,10 +625,14 @@ class KernelClosureClassInfo extends JsScopeInfo
   /// debugging data stream.
   static const String tag = 'closure-representation-info';
 
+  @override
   JFunction callMethod;
   JSignatureMethod signatureMethod;
+  @override
   final Local closureEntity;
+  @override
   final Local thisLocal;
+  @override
   final JClass closureClassEntity;
 
   final Map<Local, JField> localToFieldMap;
@@ -674,6 +688,7 @@ class KernelClosureClassInfo extends JsScopeInfo
         localToFieldMap);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(ScopeInfoKind.closureRepresentationInfo);
     sink.begin(tag);
@@ -689,6 +704,7 @@ class KernelClosureClassInfo extends JsScopeInfo
     sink.end(tag);
   }
 
+  @override
   List<Local> get createdFieldEntities => localToFieldMap.keys.toList();
 
   @override
@@ -702,13 +718,16 @@ class KernelClosureClassInfo extends JsScopeInfo
     return null;
   }
 
+  @override
   FieldEntity get thisFieldEntity => localToFieldMap[thisLocal];
 
+  @override
   void forEachFreeVariable(f(Local variable, JField field)) {
     localToFieldMap.forEach(f);
     boxedVariables.forEach(f);
   }
 
+  @override
   bool get isClosure => true;
 }
 
@@ -728,6 +747,7 @@ class JClosureClass extends JClass {
     return new JClosureClass(library, name);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(JClassKind.closure);
     sink.begin(tag);
@@ -739,6 +759,7 @@ class JClosureClass extends JClass {
   @override
   bool get isClosure => true;
 
+  @override
   String toString() => '${jsElementPrefix}closure_class($name)';
 }
 
@@ -747,16 +768,20 @@ class AnonymousClosureLocal implements Local {
 
   AnonymousClosureLocal(this.closureClass);
 
+  @override
   String get name => '';
 
+  @override
   int get hashCode => closureClass.hashCode * 13;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! AnonymousClosureLocal) return false;
     return closureClass == other.closureClass;
   }
 
+  @override
   String toString() =>
       '${jsElementPrefix}anonymous_closure_local(${closureClass.name})';
 }
@@ -766,6 +791,7 @@ class JClosureField extends JField implements PrivatelyNamedJSEntity {
   /// debugging data stream.
   static const String tag = 'closure-field';
 
+  @override
   final String declaredName;
 
   JClosureField(
@@ -894,6 +920,7 @@ class JRecord extends JClass {
     return new JRecord(library, name);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(JClassKind.record);
     sink.begin(tag);
@@ -902,8 +929,10 @@ class JRecord extends JClass {
     sink.end(tag);
   }
 
+  @override
   bool get isClosure => false;
 
+  @override
   String toString() => '${jsElementPrefix}record_container($name)';
 }
 
@@ -991,6 +1020,7 @@ class ClosureClassDefinition implements ClassDefinition {
   /// debugging data stream.
   static const String tag = 'closure-class-definition';
 
+  @override
   final SourceSpan location;
 
   ClosureClassDefinition(this.location);
@@ -1010,20 +1040,25 @@ class ClosureClassDefinition implements ClassDefinition {
     sink.end(tag);
   }
 
+  @override
   ClassKind get kind => ClassKind.closure;
 
+  @override
   ir.Node get node =>
       throw new UnsupportedError('ClosureClassDefinition.node for $location');
 
+  @override
   String toString() => 'ClosureClassDefinition(kind:$kind,location:$location)';
 }
 
 abstract class ClosureMemberData implements JMemberData {
+  @override
   final MemberDefinition definition;
   final InterfaceType memberThisType;
 
   ClosureMemberData(this.definition, this.memberThisType);
 
+  @override
   Map<ir.Expression, ir.DartType> get staticTypes {
     // The cached types are stored in the data for enclosing member.
     throw new UnsupportedError("ClosureMemberData.staticTypes");
@@ -1043,7 +1078,9 @@ class ClosureFunctionData extends ClosureMemberData
   static const String tag = 'closure-function-data';
 
   final FunctionType functionType;
+  @override
   final ir.FunctionNode functionNode;
+  @override
   final ClassTypeVariableAccess classTypeVariableAccess;
 
   ClosureFunctionData(
@@ -1068,6 +1105,7 @@ class ClosureFunctionData extends ClosureMemberData
         functionNode, classTypeVariableAccess);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(JMemberDataKind.closureFunction);
     sink.begin(tag);
@@ -1104,6 +1142,7 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
     return new ClosureFieldData(definition, memberThisType);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(JMemberDataKind.closureField);
     sink.begin(tag);
@@ -1157,8 +1196,11 @@ class ClosureMemberDefinition implements MemberDefinition {
   /// debugging data stream.
   static const String tag = 'closure-member-definition';
 
+  @override
   final SourceSpan location;
+  @override
   final MemberKind kind;
+  @override
   final ir.TreeNode node;
 
   ClosureMemberDefinition(this.location, this.kind, this.node)
@@ -1174,6 +1216,7 @@ class ClosureMemberDefinition implements MemberDefinition {
     return new ClosureMemberDefinition(location, kind, node);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(kind);
     sink.begin(tag);
@@ -1182,6 +1225,7 @@ class ClosureMemberDefinition implements MemberDefinition {
     sink.end(tag);
   }
 
+  @override
   String toString() => 'ClosureMemberDefinition(kind:$kind,location:$location)';
 }
 
@@ -1190,6 +1234,7 @@ class RecordContainerDefinition implements ClassDefinition {
   /// a debugging data stream.
   static const String tag = 'record-definition';
 
+  @override
   final SourceSpan location;
 
   RecordContainerDefinition(this.location);
@@ -1209,11 +1254,14 @@ class RecordContainerDefinition implements ClassDefinition {
     sink.end(tag);
   }
 
+  @override
   ClassKind get kind => ClassKind.record;
 
+  @override
   ir.Node get node => throw new UnsupportedError(
       'RecordContainerDefinition.node for $location');
 
+  @override
   String toString() =>
       'RecordContainerDefinition(kind:$kind,location:$location)';
 }

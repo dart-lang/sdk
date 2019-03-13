@@ -2291,24 +2291,30 @@ class FunctionTypeNamer extends BaseDartTypeVisitor {
     return sb.toString();
   }
 
+  @override
   visit(DartType type, [_]) {
     type.accept(this, null);
   }
 
+  @override
   visitType(DartType type, _) {}
 
+  @override
   visitInterfaceType(InterfaceType type, _) {
     sb.write(type.element.name);
   }
 
+  @override
   visitTypedefType(TypedefType type, _) {
     sb.write(type.element.name);
   }
 
+  @override
   visitTypeVariableType(TypeVariableType type, _) {
     sb.write(type.element.name);
   }
 
+  @override
   visitFunctionType(FunctionType type, _) {
     if (rtiEncoder.isSimpleFunctionType(type)) {
       sb.write('args${type.parameterTypes.length}');

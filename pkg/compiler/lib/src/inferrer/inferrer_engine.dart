@@ -252,6 +252,7 @@ class InferrerEngineImpl extends InferrerEngine {
   final Map<Local, TypeInformation> defaultTypeOfParameter =
       new Map<Local, TypeInformation>();
   final WorkQueue workQueue = new WorkQueue();
+  @override
   final FunctionEntity mainElement;
   final Set<MemberEntity> analyzedElements = new Set<MemberEntity>();
 
@@ -263,16 +264,22 @@ class InferrerEngineImpl extends InferrerEngine {
   int overallRefineCount = 0;
   int addedInGraph = 0;
 
+  @override
   final CompilerOptions options;
   final Progress progress;
+  @override
   final DiagnosticReporter reporter;
   final CompilerOutput _compilerOutput;
 
   /// The [JClosedWorld] on which inference reasoning is based.
+  @override
   final JsClosedWorld closedWorld;
+  @override
   final InferredDataBuilder inferredDataBuilder;
 
+  @override
   final TypeSystem types;
+  @override
   final Map<ir.Node, TypeInformation> concreteTypes =
       new Map<ir.Node, TypeInformation>();
 
@@ -300,6 +307,7 @@ class InferrerEngineImpl extends InferrerEngine {
 
   ElementEnvironment get _elementEnvironment => closedWorld.elementEnvironment;
 
+  @override
   void forEachElementMatching(
       Selector selector, AbstractValue mask, bool f(MemberEntity element)) {
     Iterable<MemberEntity> elements = closedWorld.locateMembers(selector, mask);
@@ -309,6 +317,7 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   // TODO(johnniwinther): Make this private again.
+  @override
   GlobalTypeInferenceElementData dataOfMember(MemberEntity element) =>
       _memberData[element] ??= new KernelGlobalTypeInferenceElementData();
 
@@ -342,6 +351,7 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
+  @override
   TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior) {
     if (nativeBehavior == null) return types.dynamicType;
     List typesReturned = nativeBehavior.typesReturned;
@@ -382,6 +392,7 @@ class InferrerEngineImpl extends InferrerEngine {
     return returnType;
   }
 
+  @override
   void updateSelectorInMember(MemberEntity owner, CallType callType,
       ir.Node node, Selector selector, AbstractValue mask) {
     KernelGlobalTypeInferenceElementData data = dataOfMember(owner);
@@ -403,26 +414,31 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
+  @override
   bool checkIfExposesThis(ConstructorEntity element) {
     return generativeConstructorsExposingThis.contains(element);
   }
 
+  @override
   void recordExposesThis(ConstructorEntity element, bool exposesThis) {
     if (exposesThis) {
       generativeConstructorsExposingThis.add(element);
     }
   }
 
+  @override
   bool returnsListElementType(Selector selector, AbstractValue mask) {
     return mask != null &&
         abstractValueDomain.isContainer(mask) &&
         returnsListElementTypeSet.contains(selector);
   }
 
+  @override
   bool returnsMapValueType(Selector selector, AbstractValue mask) {
     return mask != null && abstractValueDomain.isMap(mask) && selector.isIndex;
   }
 
+  @override
   void analyzeListAndEnqueue(ListTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
@@ -443,6 +459,7 @@ class InferrerEngineImpl extends InferrerEngine {
     workQueue.add(info.elementType);
   }
 
+  @override
   void analyzeSetAndEnqueue(SetTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
@@ -460,6 +477,7 @@ class InferrerEngineImpl extends InferrerEngine {
     workQueue.add(info.elementType);
   }
 
+  @override
   void analyzeMapAndEnqueue(MapTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
@@ -485,6 +503,7 @@ class InferrerEngineImpl extends InferrerEngine {
     workQueue.add(info);
   }
 
+  @override
   void runOverAllElements() {
     analyzeAllElements();
     TypeGraphDump dump =
@@ -733,6 +752,7 @@ class InferrerEngineImpl extends InferrerEngine {
     return function;
   }
 
+  @override
   void analyze(MemberEntity element) {
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
@@ -906,6 +926,7 @@ class InferrerEngineImpl extends InferrerEngine {
     workQueue.addAll(types.allocatedCalls);
   }
 
+  @override
   void updateParameterAssignments(TypeInformation caller, MemberEntity callee,
       ArgumentsTypes arguments, Selector selector, AbstractValue mask,
       {bool remove, bool addToQueue: true}) {
@@ -970,6 +991,7 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
+  @override
   void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
       {bool isInstanceMember}) {
     assert(
@@ -997,6 +1019,7 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
+  @override
   TypeInformation getDefaultTypeOfParameter(Local parameter) {
     return defaultTypeOfParameter.putIfAbsent(parameter, () {
       return new PlaceholderTypeInformation(
@@ -1004,29 +1027,35 @@ class InferrerEngineImpl extends InferrerEngine {
     });
   }
 
+  @override
   bool hasAlreadyComputedTypeOfParameterDefault(Local parameter) {
     TypeInformation seen = defaultTypeOfParameter[parameter];
     return (seen != null && seen is! PlaceholderTypeInformation);
   }
 
+  @override
   TypeInformation typeOfParameter(Local element) {
     return types.getInferredTypeOfParameter(element);
   }
 
+  @override
   TypeInformation typeOfMember(MemberEntity element) {
     if (element is FunctionEntity) return types.functionType;
     return types.getInferredTypeOfMember(element);
   }
 
+  @override
   TypeInformation returnTypeOfMember(MemberEntity element) {
     if (element is! FunctionEntity) return types.dynamicType;
     return types.getInferredTypeOfMember(element);
   }
 
+  @override
   void recordTypeOfField(FieldEntity element, TypeInformation type) {
     types.getInferredTypeOfMember(element).addAssignment(type);
   }
 
+  @override
   void recordReturnType(FunctionEntity element, TypeInformation type) {
     TypeInformation info = types.getInferredTypeOfMember(element);
     if (element.name == '==') {
@@ -1039,6 +1068,7 @@ class InferrerEngineImpl extends InferrerEngine {
     if (info.assignments.isEmpty) info.addAssignment(type);
   }
 
+  @override
   TypeInformation addReturnTypeForMethod(
       FunctionEntity element, TypeInformation unused, TypeInformation newType) {
     TypeInformation type = types.getInferredTypeOfMember(element);
@@ -1051,6 +1081,7 @@ class InferrerEngineImpl extends InferrerEngine {
     return type;
   }
 
+  @override
   TypeInformation registerCalledMember(
       Object node,
       Selector selector,
@@ -1090,6 +1121,7 @@ class InferrerEngineImpl extends InferrerEngine {
     return info;
   }
 
+  @override
   TypeInformation registerCalledSelector(
       CallType callType,
       ir.Node node,
@@ -1132,6 +1164,7 @@ class InferrerEngineImpl extends InferrerEngine {
     return info;
   }
 
+  @override
   TypeInformation registerAwait(ir.Node node, TypeInformation argument) {
     AwaitTypeInformation info = new AwaitTypeInformation(
         abstractValueDomain, types.currentMember, node);
@@ -1140,6 +1173,7 @@ class InferrerEngineImpl extends InferrerEngine {
     return info;
   }
 
+  @override
   TypeInformation registerYield(ir.Node node, TypeInformation argument) {
     YieldTypeInformation info = new YieldTypeInformation(
         abstractValueDomain, types.currentMember, node);
@@ -1148,6 +1182,7 @@ class InferrerEngineImpl extends InferrerEngine {
     return info;
   }
 
+  @override
   TypeInformation registerCalledClosure(
       ir.Node node,
       Selector selector,
@@ -1173,6 +1208,7 @@ class InferrerEngineImpl extends InferrerEngine {
     return info;
   }
 
+  @override
   void close() {
     for (MemberTypeInformation typeInformation
         in types.memberTypeInformations.values) {
@@ -1180,6 +1216,7 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
+  @override
   void clear() {
     if (retainDataForTesting) return;
 
@@ -1213,11 +1250,13 @@ class InferrerEngineImpl extends InferrerEngine {
     _memberData.clear();
   }
 
+  @override
   Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element) {
     MemberTypeInformation info = types.getInferredTypeOfMember(element);
     return info.callersForTesting;
   }
 
+  @override
   TypeInformation typeOfMemberWithSelector(
       MemberEntity element, Selector selector) {
     if (element.name == Identifiers.noSuchMethod_ &&
@@ -1252,6 +1291,7 @@ class InferrerEngineImpl extends InferrerEngine {
   ///
   /// One category of elements that do not apply is runtime helpers that the
   /// backend calls, but the optimizations don't see those calls.
+  @override
   bool canFieldBeUsedForGlobalOptimizations(FieldEntity element) {
     if (closedWorld.backendUsage.isFieldUsedByBackend(element)) {
       return false;
@@ -1267,6 +1307,7 @@ class InferrerEngineImpl extends InferrerEngine {
   ///
   /// One category of elements that do not apply is runtime helpers that the
   /// backend calls, but the optimizations don't see those calls.
+  @override
   bool canFunctionParametersBeUsedForGlobalOptimizations(
       FunctionEntity function) {
     return !closedWorld.backendUsage.isFunctionUsedByBackend(function);
@@ -1427,6 +1468,7 @@ class KernelGlobalTypeInferenceElementData
   }
 
   /// Serializes this [GlobalTypeInferenceElementData] to [sink].
+  @override
   void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
     sink.begin(tag);
     sink.writeTreeNodeMap(

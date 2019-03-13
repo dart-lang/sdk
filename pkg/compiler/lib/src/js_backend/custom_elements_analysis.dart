@@ -81,6 +81,7 @@ abstract class CustomElementsAnalysisBase {
 }
 
 class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
+  @override
   final CustomElementsAnalysisJoin join;
 
   CustomElementsResolutionAnalysis(
@@ -117,6 +118,7 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
 }
 
 class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
+  @override
   final CustomElementsAnalysisJoin join;
 
   CustomElementsCodegenAnalysis(CommonElements commonElements,

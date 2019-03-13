@@ -29,18 +29,22 @@ import 'code_emitter_task.dart' show Emitter;
 abstract class _MetadataEntry extends jsAst.DeferredNumber
     implements Comparable, jsAst.ReferenceCountedAstNode {
   jsAst.Expression get entry;
+  @override
   int get value;
   int get _rc;
 
   // Mark this entry as seen. On the first time this is seen, the visitor
   // will be applied to the [entry] to also mark potential [_MetadataEntry]
   // instances in the [entry] as seen.
+  @override
   markSeen(jsAst.TokenCounter visitor);
 }
 
 class _BoundMetadataEntry extends _MetadataEntry {
   int _value = -1;
+  @override
   int _rc = 0;
+  @override
   final jsAst.Expression entry;
 
   _BoundMetadataEntry(this.entry);
@@ -52,6 +56,7 @@ class _BoundMetadataEntry extends _MetadataEntry {
     _value = value;
   }
 
+  @override
   int get value {
     assert(isFinalized);
     return _value;
@@ -59,13 +64,16 @@ class _BoundMetadataEntry extends _MetadataEntry {
 
   bool get isUsed => _rc > 0;
 
+  @override
   markSeen(jsAst.BaseVisitor visitor) {
     _rc++;
     if (_rc == 1) entry.accept(visitor);
   }
 
+  @override
   int compareTo(covariant _MetadataEntry other) => other._rc - this._rc;
 
+  @override
   String toString() => '_BoundMetadataEntry($hashCode,rc=$_rc,_value=$_value)';
 }
 
@@ -78,11 +86,13 @@ class _MetadataList extends jsAst.DeferredExpression {
     _value = value;
   }
 
+  @override
   jsAst.Expression get value {
     assert(_value != null);
     return _value;
   }
 
+  @override
   int get precedenceLevel => js_precedence.PRIMARY;
 }
 

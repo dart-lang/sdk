@@ -33,10 +33,15 @@ import 'element_map.dart';
 /// Visitor that computes the world impact of a member.
 class KernelImpactBuilder extends ImpactBuilderBase
     with KernelImpactRegistryMixin {
+  @override
   final ResolutionWorldImpactBuilder impactBuilder;
+  @override
   final KernelToElementMap elementMap;
+  @override
   final DiagnosticReporter reporter;
+  @override
   final CompilerOptions _options;
+  @override
   final MemberEntity currentMember;
   final Set<PragmaAnnotation> _annotations;
 
@@ -47,12 +52,16 @@ class KernelImpactBuilder extends ImpactBuilderBase
         super(elementMap.typeEnvironment, elementMap.classHierarchy,
             variableScopeModel);
 
+  @override
   CommonElements get commonElements => elementMap.commonElements;
 
+  @override
   NativeBasicData get _nativeBasicData => elementMap.nativeBasicData;
 
+  @override
   bool get useAsserts => _options.enableUserAssertions;
 
+  @override
   bool get inferEffectivelyFinalVariableTypes =>
       !_annotations.contains(PragmaAnnotation.disableFinal);
 }
@@ -60,10 +69,15 @@ class KernelImpactBuilder extends ImpactBuilderBase
 /// Converts a [ImpactData] object based on kernel to the corresponding
 /// [ResolutionImpact] based on the K model.
 class KernelImpactConverter extends KernelImpactRegistryMixin {
+  @override
   final ResolutionWorldImpactBuilder impactBuilder;
+  @override
   final KernelToElementMap elementMap;
+  @override
   final DiagnosticReporter reporter;
+  @override
   final CompilerOptions _options;
+  @override
   final MemberEntity currentMember;
 
   KernelImpactConverter(
@@ -71,10 +85,13 @@ class KernelImpactConverter extends KernelImpactRegistryMixin {
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember}');
 
+  @override
   ir.TypeEnvironment get typeEnvironment => elementMap.typeEnvironment;
 
+  @override
   CommonElements get commonElements => elementMap.commonElements;
 
+  @override
   NativeBasicData get _nativeBasicData => elementMap.nativeBasicData;
 
   /// Converts a [ImpactData] object based on kernel to the corresponding
@@ -284,6 +301,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     }
   }
 
+  @override
   void registerConstConstructorInvocationNode(ir.ConstructorInvocation node) {
     assert(node.isConst);
     ConstructorEntity constructor = elementMap.getConstructor(node.target);
@@ -669,6 +687,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     impactBuilder.registerFeature(Feature.THROW_EXPRESSION);
   }
 
+  @override
   void registerSyncForIn(ir.DartType iterableType) {
     // TODO(johnniwinther): Use receiver constraints for the dynamic uses in
     // strong mode.
@@ -678,6 +697,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     impactBuilder.registerDynamicUse(new DynamicUse(Selectors.moveNext));
   }
 
+  @override
   void registerAsyncForIn(ir.DartType iterableType) {
     // TODO(johnniwinther): Use receiver constraints for the dynamic uses in
     // strong mode.
@@ -687,14 +707,17 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     impactBuilder.registerDynamicUse(new DynamicUse(Selectors.moveNext));
   }
 
+  @override
   void registerCatch() {
     impactBuilder.registerFeature(Feature.CATCH_STATEMENT);
   }
 
+  @override
   void registerStackTrace() {
     impactBuilder.registerFeature(Feature.STACK_TRACE_IN_CATCH);
   }
 
+  @override
   void registerCatchType(ir.DartType type) {
     impactBuilder
         .registerTypeUse(new TypeUse.catchType(elementMap.getDartType(type)));

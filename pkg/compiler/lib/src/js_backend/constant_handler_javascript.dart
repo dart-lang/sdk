@@ -20,6 +20,7 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
       : this.jsConstantCompiler = new JavaScriptConstantCompiler(),
         super(compiler.measurer);
 
+  @override
   String get name => 'ConstantHandler';
 }
 

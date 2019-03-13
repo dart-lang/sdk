@@ -32,6 +32,7 @@ class CompilerFileSystem implements fe.FileSystem {
 }
 
 class _CompilerFileSystemEntity implements fe.FileSystemEntity {
+  @override
   final Uri uri;
   final CompilerFileSystem fs;
 

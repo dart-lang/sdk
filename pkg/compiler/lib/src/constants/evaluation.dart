@@ -71,6 +71,7 @@ abstract class EvaluationEnvironment {
 
 abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
   Link<Spannable> _spannableStack = const Link<Spannable>();
+  @override
   InterfaceType enclosingConstructedType;
   final Set<FieldEntity> _currentlyEvaluatedFields = new Set<FieldEntity>();
   final bool constantRequired;
@@ -79,6 +80,7 @@ abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
     _spannableStack = _spannableStack.prepend(spannable);
   }
 
+  @override
   bool get checkCasts => true;
 
   DiagnosticReporter get reporter;
@@ -239,6 +241,7 @@ class NormalizedArguments {
     return value;
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('NormalizedArguments[');

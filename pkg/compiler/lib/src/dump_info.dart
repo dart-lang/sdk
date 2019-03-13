@@ -402,6 +402,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       : useBinaryFormat = compiler.options.useDumpInfoBinaryFormat,
         super(compiler.measurer);
 
+  @override
   String get name => "Dump Info";
 
   ElementInfoCollector infoCollector;
@@ -433,6 +434,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     _programSize = programSize;
   }
 
+  @override
   void reportInlined(FunctionEntity element, MemberEntity inlinedFrom) {
     inlineCount.putIfAbsent(element, () => 0);
     inlineCount[element] += 1;
@@ -675,6 +677,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
 // TODO(sigmund): delete once we no longer emit text by default.
 class _CodeData extends CodeSpan {
   StringBuffer _text = new StringBuffer();
+  @override
   String get text => '$_text';
   int get length => end - start;
 }
