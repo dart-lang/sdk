@@ -590,11 +590,18 @@ const char* File::StringEscapedPathSeparator() {
   return "/";
 }
 
+static int fd_is_valid(int fd) {
+    return NO_RETRY_EXPECTED(fcntl(fd, F_GETFD)) != -1 || errno != EBADF;
+}
+
 File::StdioHandleType File::GetStdioHandleType(int fd) {
   struct stat buf;
   int result = TEMP_FAILURE_RETRY(fstat(fd, &buf));
   if (result == -1) {
-    return kOther;
+    // fstat() on fds 0, 1, 2 on Fuchsia return -1 with errno ENOTSUP,
+    // but if they are opened, then we can read/write them, so pretend they
+    // are kPipe.
+    return ((errno == ENOTSUP) && fd_is_valid(fd)) ? kPipe : kOther;
   }
   if (S_ISCHR(buf.st_mode)) {
     return kTerminal;
