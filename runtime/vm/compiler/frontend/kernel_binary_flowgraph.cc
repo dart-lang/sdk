@@ -387,162 +387,6 @@ void StreamingFlowGraphBuilder::ReadDefaultFunctionTypeArguments(
   parsed_function()->SetDefaultFunctionTypeArguments(default_types);
 }
 
-Fragment StreamingFlowGraphBuilder::PushAllArguments(PushedArguments* pushed) {
-  FunctionNodeHelper function_node_helper(this);
-  function_node_helper.SetNext(FunctionNodeHelper::kTypeParameters);
-
-  Fragment body;
-
-  const intptr_t num_type_params = ReadListLength();
-  if (num_type_params > 0) {
-    // Skip type arguments.
-    for (intptr_t i = 0; i < num_type_params; ++i) {
-      TypeParameterHelper helper(this);
-      helper.Finish();
-    }
-
-    body += LoadLocal(parsed_function()->function_type_arguments());
-    body += PushArgument();
-    pushed->type_args_len = num_type_params;
-  }
-  function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
-  function_node_helper.ReadUntilExcluding(
-      FunctionNodeHelper::kPositionalParameters);
-
-  // Push receiver.
-  body += LoadLocal(scopes()->this_variable);
-  body += PushArgument();
-
-  // Push positional parameters.
-  const intptr_t num_positional_params = ReadListLength();
-  for (intptr_t i = 0; i < num_positional_params; ++i) {
-    // ith variable offset.
-    const intptr_t offset = ReaderOffset();
-    SkipVariableDeclaration();
-
-    LocalVariable* param = LookupVariable(offset + data_program_offset_);
-    body += LoadLocal(param);
-    body += PushArgument();
-  }
-
-  // Push named parameters.
-  const intptr_t num_named_params = ReadListLength();
-  pushed->argument_names = Array::New(num_named_params, Heap::kOld);
-  for (intptr_t i = 0; i < num_named_params; ++i) {
-    // ith variable offset.
-    const intptr_t offset = ReaderOffset();
-    SkipVariableDeclaration();
-
-    LocalVariable* param = LookupVariable(offset + data_program_offset_);
-    pushed->argument_names.SetAt(i, param->name());
-    body += LoadLocal(param);
-    body += PushArgument();
-  }
-
-  pushed->argument_count = num_positional_params + num_named_params + 1;
-
-  return body;
-}
-
-FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder() {
-  const Function& dart_function = parsed_function()->function();
-
-  // The prologue builder needs the default parameter values.
-  SetupDefaultParameterValues();
-  // BuildDefaultTypeHandling needs default function type arguments.
-  ReadDefaultFunctionTypeArguments(dart_function);
-
-  B->graph_entry_ = new (Z) GraphEntryInstr(*parsed_function(), B->osr_id_);
-
-  auto normal_entry = B->BuildFunctionEntry(B->graph_entry_);
-  B->graph_entry_->set_normal_entry(normal_entry);
-
-  PrologueInfo prologue_info(-1, -1);
-  auto instruction_cursor = B->BuildPrologue(normal_entry, &prologue_info);
-
-  Fragment body;
-  if (!dart_function.is_native()) {
-    body += B->CheckStackOverflowInPrologue(dart_function.token_pos());
-  }
-
-  ASSERT(parsed_function()->node_sequence()->scope()->num_context_variables() ==
-         0);
-
-  FunctionNodeHelper function_node_helper(this);
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
-  const intptr_t type_parameters_offset = ReaderOffset();
-  function_node_helper.ReadUntilExcluding(
-      FunctionNodeHelper::kPositionalParameters);
-  intptr_t first_parameter_offset = -1;
-  {
-    AlternativeReadingScope alt(&reader_);
-    intptr_t list_length = ReadListLength();  // read number of positionals.
-    if (list_length > 0) {
-      first_parameter_offset = ReaderOffset() + data_program_offset_;
-    }
-  }
-  USE(first_parameter_offset);
-  // Current position: About to read list of positionals.
-
-  // Should never build a dynamic invocation forwarder for equality
-  // operator.
-  ASSERT(dart_function.name() != Symbols::EqualOperator().raw());
-
-  // Even if the caller did not pass argument vector we would still
-  // call the target with instantiate-to-bounds type arguments.
-  body += B->BuildDefaultTypeHandling(dart_function);
-
-  String& name = String::Handle(Z, dart_function.name());
-  name = Function::DemangleDynamicInvocationForwarderName(name);
-  const Class& owner = Class::Handle(Z, dart_function.Owner());
-  const Function& target =
-      Function::ZoneHandle(Z, owner.LookupDynamicFunction(name));
-  ASSERT(!target.IsNull());
-
-  // Build argument type checks that complement those that are emitted in the
-  // target.
-  {
-    AlternativeReadingScope alt(&reader_);
-    SetOffset(type_parameters_offset);
-    B->BuildArgumentTypeChecks(
-        TypeChecksToBuild::kCheckNonCovariantTypeParameterBounds, &body, &body,
-        nullptr);
-  }
-
-  // Push all arguments and invoke the original method.
-  PushedArguments pushed = {0, 0, Array::ZoneHandle(Z)};
-  {
-    AlternativeReadingScope alt(&reader_);
-    SetOffset(type_parameters_offset);
-    body += PushAllArguments(&pushed);
-  }
-  body += StaticCall(TokenPosition::kNoSource, target, pushed.argument_count,
-                     pushed.argument_names, ICData::kNoRebind, nullptr,
-                     pushed.type_args_len);
-
-  // Some IL optimization passes assume that result of operator []= invocation
-  // is never used, so we drop it and replace with an explicit null constant.
-  if (name.raw() == Symbols::AssignIndexToken().raw()) {
-    body += Drop();
-    body += NullConstant();
-  }
-
-  body += Return(TokenPosition::kNoSource);
-
-  instruction_cursor->LinkTo(body.entry);
-
-  GraphEntryInstr* graph_entry = B->graph_entry_;
-  // When compiling for OSR, use a depth first search to find the OSR
-  // entry and make graph entry jump to it instead of normal entry.
-  // Catch entries are always considered reachable, even if they
-  // become unreachable after OSR.
-  if (B->IsCompiledForOsr()) {
-    graph_entry->RelinkToOsrEntry(Z, B->last_used_block_id_ + 1);
-  }
-  return new (Z) FlowGraph(*parsed_function(), graph_entry,
-                           B->last_used_block_id_, prologue_info);
-}
-
 Fragment StreamingFlowGraphBuilder::DebugStepCheckInPrologue(
     const Function& dart_function,
     TokenPosition position) {
@@ -1160,12 +1004,12 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       return B->BuildGraphOfFieldAccessor(function);
     }
     case RawFunction::kDynamicInvocationForwarder:
-      if (PeekTag() == kField) {
-        return B->BuildGraphOfFieldAccessor(function);
-      } else {
+      if (PeekTag() != kField) {
         ReadUntilFunctionNode();
-        return BuildGraphOfDynamicInvocationForwarder();
+        SetupDefaultParameterValues();
+        ReadDefaultFunctionTypeArguments(function);
       }
+      return B->BuildGraphOfDynamicInvocationForwarder(function);
     case RawFunction::kMethodExtractor:
       return flow_graph_builder_->BuildGraphOfMethodExtractor(function);
     case RawFunction::kNoSuchMethodDispatcher:

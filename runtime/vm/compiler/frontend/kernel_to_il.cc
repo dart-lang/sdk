@@ -1243,6 +1243,35 @@ BlockEntryInstr* FlowGraphBuilder::BuildPrologue(BlockEntryInstr* normal_entry,
   return instruction_cursor;
 }
 
+RawArray* FlowGraphBuilder::GetOptionalParameterNames(
+    const Function& function) {
+  if (!function.HasOptionalNamedParameters()) {
+    return Array::null();
+  }
+
+  const intptr_t num_fixed_params = function.num_fixed_parameters();
+  const intptr_t num_opt_params = function.NumOptionalNamedParameters();
+  const auto& names = Array::Handle(Z, Array::New(num_opt_params, Heap::kOld));
+  auto& name = String::Handle(Z);
+  for (intptr_t i = 0; i < num_opt_params; ++i) {
+    name = function.ParameterNameAt(num_fixed_params + i);
+    names.SetAt(i, name);
+  }
+  return names.raw();
+}
+
+Fragment FlowGraphBuilder::PushExplicitParameters(const Function& function) {
+  Fragment instructions;
+  auto scope = parsed_function_->node_sequence()->scope();
+  for (intptr_t i = function.NumImplicitParameters(),
+                n = function.NumParameters();
+       i < n; ++i) {
+    instructions += LoadLocal(scope->VariableAt(i));
+    instructions += PushArgument();
+  }
+  return instructions;
+}
+
 FlowGraph* FlowGraphBuilder::BuildGraphOfMethodExtractor(
     const Function& method) {
   // A method extractor is the implicit getter for a method.
@@ -2001,50 +2030,29 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     body += PushArgument();
   }
 
-  // Load all the arguments.
-  auto scope = parsed_function_->node_sequence()->scope();
-
+  // Push receiver.
   if (!target.is_static()) {
     // The context has a fixed shape: a single variable which is the
     // closed-over receiver.
-    body += LoadLocal(scope->VariableAt(0));
+    body +=
+        LoadLocal(parsed_function_->node_sequence()->scope()->VariableAt(0));
     body += LoadNativeField(Slot::Closure_context());
     body += LoadNativeField(
         Slot::GetContextVariableSlotFor(thread_, *scopes_->this_variable));
     body += PushArgument();
   }
 
-  // Positional.
-  intptr_t arg_index = function.NumImplicitParameters();
-  const intptr_t named_argument_count = function.NumOptionalNamedParameters();
-  const intptr_t positional_argument_count = function.NumParameters() -
-                                             function.NumImplicitParameters() -
-                                             named_argument_count;
-  for (intptr_t i = 0; i < positional_argument_count; ++i, ++arg_index) {
-    body += LoadLocal(scope->VariableAt(arg_index));  // ith variable offset.
-    body += PushArgument();
-  }
+  body += PushExplicitParameters(function);
 
-  // Named.
-  Array& argument_names = Array::ZoneHandle(Z);
-  if (named_argument_count > 0) {
-    argument_names = Array::New(named_argument_count, Heap::kOld);
-    String& name = String::Handle(Z);
-    for (intptr_t i = 0; i < named_argument_count; ++i, ++arg_index) {
-      body += LoadLocal(scope->VariableAt(arg_index));
-      body += PushArgument();
-
-      name = function.ParameterNameAt(arg_index);
-      argument_names.SetAt(i, name);
-    }
-  }
-
-  // Forward them to the parent.
-  intptr_t argument_count = positional_argument_count + named_argument_count;
-  if (!parent.is_static()) {
-    ++argument_count;
-  }
+  // Forward parameters to the target.
+  intptr_t argument_count = function.NumParameters() -
+                            function.NumImplicitParameters() +
+                            (target.is_static() ? 0 : 1);
   ASSERT(argument_count == target.NumParameters());
+
+  Array& argument_names =
+      Array::ZoneHandle(Z, GetOptionalParameterNames(function));
+
   body += StaticCall(TokenPosition::kNoSource, target, argument_count,
                      argument_names, ICData::kNoRebind,
                      /* result_type = */ NULL, type_args_len);
@@ -2161,6 +2169,98 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   body += Return(TokenPosition::kNoSource);
 
   PrologueInfo prologue_info(-1, -1);
+  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                           prologue_info);
+}
+
+FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
+    const Function& function) {
+  auto& name = String::Handle(Z, function.name());
+  name = Function::DemangleDynamicInvocationForwarderName(name);
+  const auto& owner = Class::Handle(Z, function.Owner());
+  const auto& target =
+      Function::ZoneHandle(Z, owner.LookupDynamicFunction(name));
+  ASSERT(!target.IsNull());
+  ASSERT(!target.IsImplicitGetterFunction());
+
+  if (target.IsImplicitSetterFunction()) {
+    return BuildGraphOfFieldAccessor(function);
+  }
+
+  graph_entry_ = new (Z) GraphEntryInstr(*parsed_function_, osr_id_);
+
+  auto normal_entry = BuildFunctionEntry(graph_entry_);
+  graph_entry_->set_normal_entry(normal_entry);
+
+  PrologueInfo prologue_info(-1, -1);
+  auto instruction_cursor = BuildPrologue(normal_entry, &prologue_info);
+
+  Fragment body;
+  if (!function.is_native()) {
+    body += CheckStackOverflowInPrologue(function.token_pos());
+  }
+
+  ASSERT(parsed_function_->node_sequence()->scope()->num_context_variables() ==
+         0);
+
+  // Should never build a dynamic invocation forwarder for equality
+  // operator.
+  ASSERT(function.name() != Symbols::EqualOperator().raw());
+
+  // Even if the caller did not pass argument vector we would still
+  // call the target with instantiate-to-bounds type arguments.
+  body += BuildDefaultTypeHandling(function);
+
+  // Build argument type checks that complement those that are emitted in the
+  // target.
+  BuildArgumentTypeChecks(
+      TypeChecksToBuild::kCheckNonCovariantTypeParameterBounds, &body, &body,
+      nullptr);
+
+  // Push all arguments and invoke the original method.
+
+  intptr_t type_args_len = 0;
+  if (function.IsGeneric()) {
+    type_args_len = function.NumTypeParameters();
+    ASSERT(parsed_function_->function_type_arguments() != nullptr);
+    body += LoadLocal(parsed_function_->function_type_arguments());
+    body += PushArgument();
+  }
+
+  // Push receiver.
+  ASSERT(function.NumImplicitParameters() == 1);
+  body += LoadLocal(scopes_->this_variable);
+  body += PushArgument();
+
+  body += PushExplicitParameters(function);
+
+  const intptr_t argument_count = function.NumParameters();
+  const auto& argument_names =
+      Array::ZoneHandle(Z, GetOptionalParameterNames(function));
+
+  body += StaticCall(TokenPosition::kNoSource, target, argument_count,
+                     argument_names, ICData::kNoRebind, nullptr, type_args_len);
+
+  // Later optimization passes assume that result of a x.[]=(...) call is not
+  // used. We must guarantee this invariant because violation will lead to an
+  // illegal IL once we replace x.[]=(...) with a sequence that does not
+  // actually produce any value. See http://dartbug.com/29135 for more details.
+  if (name.raw() == Symbols::AssignIndexToken().raw()) {
+    body += Drop();
+    body += NullConstant();
+  }
+
+  body += Return(TokenPosition::kNoSource);
+
+  instruction_cursor->LinkTo(body.entry);
+
+  // When compiling for OSR, use a depth first search to find the OSR
+  // entry and make graph entry jump to it instead of normal entry.
+  // Catch entries are always considered reachable, even if they
+  // become unreachable after OSR.
+  if (IsCompiledForOsr()) {
+    graph_entry_->RelinkToOsrEntry(Z, last_used_block_id_ + 1);
+  }
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);
 }
