@@ -868,6 +868,11 @@ void main() {
   const Identity(double.negativeInfinity, double.infinity, false).check();
   const Identity(double.negativeInfinity, double.negativeInfinity, true)
       .check();
+
+  const IfNull(null, null, null).check();
+  const IfNull(null, 1, 1).check();
+  const IfNull("foo", 1, "foo").check();
+  const IfNull("foo", null, "foo").check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -1220,4 +1225,17 @@ class Identity extends TestOp {
 
   @pragma('dart2js:tryInline')
   eval() => identical(arg1, arg2);
+}
+
+class IfNull extends TestOp {
+  final arg1;
+  final arg2;
+
+  const IfNull(this.arg1, this.arg2, expected) : super(expected, arg1 ?? arg2);
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @pragma('dart2js:tryInline')
+  eval() => arg1 ?? arg2;
 }
