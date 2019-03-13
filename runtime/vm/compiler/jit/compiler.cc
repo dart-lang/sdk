@@ -1058,13 +1058,6 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
 
   ASSERT(function.ShouldCompilerOptimize());
 
-  // If we are in the optimizing in the mutator/Dart thread, then
-  // this is either an OSR compilation or background compilation is
-  // not currently allowed.
-  ASSERT(!thread->IsMutatorThread() || (osr_id != kNoOSRDeoptId) ||
-         !FLAG_background_compilation ||
-         BackgroundCompiler::IsDisabled(Isolate::Current()) ||
-         !function.is_background_optimizable());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline, function, /* optimized = */ true,

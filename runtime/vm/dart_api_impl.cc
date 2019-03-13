@@ -5943,6 +5943,10 @@ Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length) {
   API_TIMELINE_DURATION(thread);
   DARTSCOPE(thread);
   CHECK_NULL(buffer);
+  Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
+  if (Api::IsError(state)) {
+    return state;
+  }
   CompilationTraceLoader loader(thread);
   const Object& error =
       Object::Handle(loader.CompileTrace(buffer, buffer_length));
@@ -5962,6 +5966,10 @@ Dart_Handle Dart_LoadTypeFeedback(uint8_t* buffer, intptr_t buffer_length) {
   API_TIMELINE_DURATION(thread);
   DARTSCOPE(thread);
   CHECK_NULL(buffer);
+  Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
+  if (Api::IsError(state)) {
+    return state;
+  }
   ReadStream stream(buffer, buffer_length);
   TypeFeedbackLoader loader(thread);
   const Object& error = Object::Handle(loader.LoadFeedback(&stream));
