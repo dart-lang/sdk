@@ -1293,14 +1293,12 @@ void Instruction::InheritDeoptTargetAfter(FlowGraph* flow_graph,
       flow_graph->zone(), this, call->ArgumentCount(),
       flow_graph->constant_dead(),
       result != NULL ? result : flow_graph->constant_dead());
-  env()->set_deopt_id(deopt_id_);
 }
 
 void Instruction::InheritDeoptTarget(Zone* zone, Instruction* other) {
   ASSERT(other->env() != NULL);
   CopyDeoptIdFrom(*other);
   other->env()->DeepCopyTo(zone, this);
-  env()->set_deopt_id(deopt_id_);
 }
 
 void BranchInstr::InheritDeoptTarget(Zone* zone, Instruction* other) {
@@ -4674,9 +4672,8 @@ Environment* Environment::From(Zone* zone,
                                const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
                                const ParsedFunction& parsed_function) {
-  Environment* env =
-      new (zone) Environment(definitions.length(), fixed_parameter_count,
-                             DeoptId::kNone, parsed_function, NULL);
+  Environment* env = new (zone) Environment(
+      definitions.length(), fixed_parameter_count, parsed_function, NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     env->values_.Add(new (zone) Value(definitions[i]));
   }
@@ -4689,9 +4686,10 @@ void Environment::PushValue(Value* value) {
 
 Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
   ASSERT(length <= values_.length());
-  Environment* copy = new (zone)
-      Environment(length, fixed_parameter_count_, deopt_id_, parsed_function_,
-                  (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
+  Environment* copy =
+      new (zone) Environment(length, fixed_parameter_count_, parsed_function_,
+                             (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
+  copy->deopt_id_ = this->deopt_id_;
   if (locations_ != NULL) {
     Location* new_locations = zone->Alloc<Location>(length);
     copy->set_locations(new_locations);
@@ -4743,12 +4741,15 @@ void Environment::DeepCopyAfterTo(Zone* zone,
 
 // Copies the environment as outer on an inlined instruction and updates the
 // environment use lists.
-void Environment::DeepCopyToOuter(Zone* zone, Instruction* instr) const {
+void Environment::DeepCopyToOuter(Zone* zone,
+                                  Instruction* instr,
+                                  intptr_t outer_deopt_id) const {
   // Create a deep copy removing caller arguments from the environment.
   ASSERT(this != NULL);
   ASSERT(instr->env()->outer() == NULL);
   intptr_t argument_count = instr->env()->fixed_parameter_count();
   Environment* copy = DeepCopy(zone, values_.length() - argument_count);
+  copy->deopt_id_ = outer_deopt_id;
   instr->env()->outer_ = copy;
   intptr_t use_index = instr->env()->Length();  // Start index after inner.
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {

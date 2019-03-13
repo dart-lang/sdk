@@ -7786,8 +7786,13 @@ class Environment : public ZoneAllocated {
     locations_ = locations;
   }
 
-  void set_deopt_id(intptr_t deopt_id) { deopt_id_ = deopt_id; }
-  intptr_t deopt_id() const { return deopt_id_; }
+  // Get deopt_id associated with this environment.
+  // Note that only outer environments have deopt id associated with
+  // them (set by DeepCopyToOuter).
+  intptr_t deopt_id() const {
+    ASSERT(deopt_id_ != DeoptId::kNone);
+    return deopt_id_;
+  }
 
   Environment* outer() const { return outer_; }
 
@@ -7837,7 +7842,9 @@ class Environment : public ZoneAllocated {
   Environment* DeepCopy(Zone* zone) const { return DeepCopy(zone, Length()); }
 
   void DeepCopyTo(Zone* zone, Instruction* instr) const;
-  void DeepCopyToOuter(Zone* zone, Instruction* instr) const;
+  void DeepCopyToOuter(Zone* zone,
+                       Instruction* instr,
+                       intptr_t outer_deopt_id) const;
 
   void DeepCopyAfterTo(Zone* zone,
                        Instruction* instr,
@@ -7870,20 +7877,19 @@ class Environment : public ZoneAllocated {
 
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
-              intptr_t deopt_id,
               const ParsedFunction& parsed_function,
               Environment* outer)
       : values_(length),
-        locations_(NULL),
         fixed_parameter_count_(fixed_parameter_count),
-        deopt_id_(deopt_id),
         parsed_function_(parsed_function),
         outer_(outer) {}
 
   GrowableArray<Value*> values_;
-  Location* locations_;
+  Location* locations_ = nullptr;
   const intptr_t fixed_parameter_count_;
-  intptr_t deopt_id_;
+  // Deoptimization id associated with this environment. Only set for
+  // outer environments.
+  intptr_t deopt_id_ = DeoptId::kNone;
   const ParsedFunction& parsed_function_;
   Environment* outer_;
 

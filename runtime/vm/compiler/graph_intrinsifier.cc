@@ -162,7 +162,6 @@ class BlockBuilder : public ValueObject {
         current_(entry),
         fall_through_env_(new Environment(0,
                                           0,
-                                          DeoptId::kNone,
                                           flow_graph->parsed_function(),
                                           NULL)) {}
 
