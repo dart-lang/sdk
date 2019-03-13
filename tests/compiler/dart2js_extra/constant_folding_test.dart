@@ -837,6 +837,37 @@ void main() {
   const Equals(double.infinity, double.negativeInfinity, false).check();
   const Equals(double.negativeInfinity, double.infinity, false).check();
   const Equals(double.negativeInfinity, double.negativeInfinity, true).check();
+
+  const Identity(null, null, true).check();
+  const Identity(null, "", false).check();
+  const Identity("", null, false).check();
+  const Identity("", "", true).check();
+  const Identity(true, true, true).check();
+  const Identity(false, false, true).check();
+  const Identity(true, false, false).check();
+  const Identity(false, true, false).check();
+  const Identity(0, false, false).check();
+  const Identity(true, 1, false).check();
+  // TODO(36194)
+  //const Identity(double.nan, double.nan, false).check();
+  const Identity(0, 0, true).check();
+  const Identity(0.0, 0.0, true).check();
+  const Identity(-0.0, -0.0, true).check();
+  const Identity(0, 0.0, true).check();
+  const Identity(0.0, 0, true).check();
+  const Identity(0, -0.0, true).check();
+  const Identity(-0.0, 0, true).check();
+  const Identity(0.0, -0.0, true).check();
+  const Identity(-0.0, 0.0, true).check();
+  const Identity(1, 1, true).check();
+  const Identity(1.0, 1.0, true).check();
+  const Identity(1, 1.0, true).check();
+  const Identity(1.0, 1, true).check();
+  const Identity(double.infinity, double.infinity, true).check();
+  const Identity(double.infinity, double.negativeInfinity, false).check();
+  const Identity(double.negativeInfinity, double.infinity, false).check();
+  const Identity(double.negativeInfinity, double.negativeInfinity, true)
+      .check();
 }
 
 /// Wraps [Expect.equals] to accommodate JS equality semantics.
@@ -1175,4 +1206,18 @@ class Equals extends TestOp {
 
   @pragma('dart2js:tryInline')
   eval() => arg1 == arg2;
+}
+
+class Identity extends TestOp {
+  final arg1;
+  final arg2;
+
+  const Identity(this.arg1, this.arg2, expected)
+      : super(expected, identical(arg1, arg2));
+
+  @pragma('dart2js:tryInline')
+  check() => checkAll(eval());
+
+  @pragma('dart2js:tryInline')
+  eval() => identical(arg1, arg2);
 }
