@@ -31,7 +31,6 @@ import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:path/path.dart' as path;
-import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart';
@@ -1723,9 +1722,6 @@ abstract class ContextManagerTest with ResourceProviderMixin {
       .firstWhere((ErrorProcessor p) => p.appliesTo(error), orElse: () => null);
 
   void processRequiredPlugins() {
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
-
     registerLintRules();
   }
 

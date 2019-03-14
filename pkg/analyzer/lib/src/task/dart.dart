@@ -46,7 +46,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
-import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/general.dart';
@@ -2461,27 +2460,6 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
   @override
   void internalPerform() {
     List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
-    //
-    // Prepare inputs.
-    //
-    EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
-    List<ResultDescriptor> errorsForSource = enginePlugin.dartErrorsForSource;
-    int sourceLength = errorsForSource.length;
-    for (int i = 0; i < sourceLength; i++) {
-      ResultDescriptor result = errorsForSource[i];
-      String inputName = result.name + '_input';
-      errorLists.add(getRequiredInput(inputName));
-    }
-    List<ResultDescriptor> errorsForUnit = enginePlugin.dartErrorsForUnit;
-    int unitLength = errorsForUnit.length;
-    for (int i = 0; i < unitLength; i++) {
-      ResultDescriptor result = errorsForUnit[i];
-      String inputName = result.name + '_input';
-      Map<Source, List<AnalysisError>> errorMap = getRequiredInput(inputName);
-      for (List<AnalysisError> errors in errorMap.values) {
-        errorLists.add(errors);
-      }
-    }
 
     //
     // Filter ignored errors.
@@ -2520,29 +2498,6 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
     Map<String, TaskInput> inputs = <String, TaskInput>{};
     inputs[LINE_INFO_INPUT] = LINE_INFO.of(source);
     inputs[IGNORE_INFO_INPUT] = IGNORE_INFO.of(source);
-    EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
-    // for Source
-    List<ListResultDescriptor<AnalysisError>> errorsForSource =
-        enginePlugin.dartErrorsForSource;
-    int sourceLength = errorsForSource.length;
-    for (int i = 0; i < sourceLength; i++) {
-      ListResultDescriptor<AnalysisError> result = errorsForSource[i];
-      String inputName = result.name + '_input';
-      inputs[inputName] = result.of(source);
-    }
-    // for LibrarySpecificUnit
-    List<ListResultDescriptor<AnalysisError>> errorsForUnit =
-        enginePlugin.dartErrorsForUnit;
-    int unitLength = errorsForUnit.length;
-    for (int i = 0; i < unitLength; i++) {
-      ListResultDescriptor<AnalysisError> result = errorsForUnit[i];
-      String inputName = result.name + '_input';
-      inputs[inputName] =
-          CONTAINING_LIBRARIES.of(source).toMap((Source library) {
-        LibrarySpecificUnit unit = new LibrarySpecificUnit(library, source);
-        return result.of(unit);
-      });
-    }
     return inputs;
   }
 

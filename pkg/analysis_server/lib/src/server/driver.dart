@@ -30,7 +30,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
-import 'package:plugin/manager.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 
@@ -440,10 +439,8 @@ class Driver implements ServerStarter {
     final serve_http = diagnosticServerPort != null;
 
     //
-    // Process all of the plugins so that extensions are registered.
+    // Register lint rules.
     //
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
     linter.registerLintRules();
 
     _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
@@ -701,6 +698,15 @@ class Driver implements ServerStarter {
     return sdk;
   }
 
+  /**
+   * Constructs a uuid combining the current date and a random integer.
+   */
+  String _generateUuidString() {
+    int millisecondsSinceEpoch = new DateTime.now().millisecondsSinceEpoch;
+    int random = new Random().nextInt(0x3fffffff);
+    return '$millisecondsSinceEpoch$random';
+  }
+
   String _getSdkPath(ArgResults args) {
     if (args[SDK_OPTION] != null) {
       return args[SDK_OPTION];
@@ -765,15 +771,6 @@ class Driver implements ServerStarter {
       uuid = 'temp-$uuid';
     }
     return uuid;
-  }
-
-  /**
-   * Constructs a uuid combining the current date and a random integer.
-   */
-  String _generateUuidString() {
-    int millisecondsSinceEpoch = new DateTime.now().millisecondsSinceEpoch;
-    int random = new Random().nextInt(0x3fffffff);
-    return '$millisecondsSinceEpoch$random';
   }
 
   /**

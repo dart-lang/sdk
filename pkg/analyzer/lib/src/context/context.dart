@@ -116,7 +116,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Initialize a newly created analysis context.
    */
-  AnalysisContextImpl() {}
+  AnalysisContextImpl();
 
   @override
   AnalysisCache get analysisCache {

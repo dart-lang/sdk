@@ -23,7 +23,6 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
-import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:watcher/watcher.dart';
 
@@ -107,11 +106,6 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   AnalysisServer createAnalysisServer() {
-    //
-    // Process plugins
-    //
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
     //
     // Create an SDK in the mock file system.
     //

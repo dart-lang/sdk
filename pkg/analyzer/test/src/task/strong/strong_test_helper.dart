@@ -243,9 +243,9 @@ class AbstractStrongTest with ResourceProviderMixin {
   AnalysisContext _context = null;
   AnalysisDriver _driver = null;
 
-  bool get enableNewAnalysisDriver => false;
-
   List<String> get enabledExperiments => [];
+
+  bool get enableNewAnalysisDriver => false;
 
   /// Adds a file to check. The file should contain:
   ///
@@ -382,9 +382,7 @@ class AbstractStrongTest with ResourceProviderMixin {
     );
   }
 
-  void setUp() {
-    AnalysisEngine.instance.processRequiredPlugins();
-  }
+  void setUp() {}
 
   void tearDown() {
     // This is a sanity check, in case only addFile is called.

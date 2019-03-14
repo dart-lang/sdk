@@ -25,7 +25,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -34,8 +33,6 @@ import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:path/path.dart' as pathos;
-import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
@@ -747,12 +744,6 @@ class AnalysisEngine {
   Logger _logger = Logger.NULL;
 
   /**
-   * The plugin that defines the extension points and extensions that are
-   * inherently defined by the analysis engine.
-   */
-  final EnginePlugin enginePlugin = new EnginePlugin();
-
-  /**
    * The instrumentation service that is to be used by this analysis engine.
    */
   InstrumentationService _instrumentationService =
@@ -803,13 +794,6 @@ class AnalysisEngine {
   }
 
   /**
-   * Return the list of plugins that clients are required to process, either by
-   * creating an [ExtensionManager] or by using the method
-   * [processRequiredPlugins].
-   */
-  List<Plugin> get requiredPlugins => <Plugin>[enginePlugin];
-
-  /**
    * Return the task manager used to manage the tasks used to analyze code.
    */
   TaskManager get taskManager {
@@ -841,12 +825,8 @@ class AnalysisEngine {
    * plugins. This method can only be used by clients that do not need to
    * process any other plugins.
    */
-  void processRequiredPlugins() {
-    if (enginePlugin.workManagerFactoryExtensionPoint == null) {
-      ExtensionManager manager = new ExtensionManager();
-      manager.processPlugins(requiredPlugins);
-    }
-  }
+  @deprecated
+  void processRequiredPlugins() {}
 
   /**
    * Return `true` if the given [fileName] is an analysis options file.

@@ -77,8 +77,6 @@ class CompilerAnalysisDriver {
       {SummaryDataStore summaryData,
       List<String> summaryPaths = const [],
       Map<String, bool> experiments = const {}}) {
-    AnalysisEngine.instance.processRequiredPlugins();
-
     var resourceProvider = options.resourceProvider;
     var contextBuilder = options.createContextBuilder();
 
