@@ -8,6 +8,8 @@
 
 ### Dart VM
 
+* RegExp patterns can now use lookbehind assertions.
+
 ### Tool Changes
 
 #### Pub client
