@@ -5056,7 +5056,12 @@ class ProgramCompiler extends Object
 
   @override
   visitBlockExpression(BlockExpression node) {
-    throw UnimplementedError('ProgramCompiler.visitBlockExpression');
+    var jsExpr = _visitExpression(node.value);
+    List<JS.Statement> jsStmts = node.body.statements
+        .map(_visitStatement)
+        .toList()
+          ..add(JS.Return(jsExpr));
+    return JS.Call(JS.ArrowFun([], JS.Block(jsStmts)), []);
   }
 
   @override
@@ -5162,9 +5167,12 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitListConstant(node) {
-    return _cacheConst(() => _emitConstList(
-        node.typeArgument, node.entries.map(visitConstant).toList()));
+  visitListConstant(node) => visitConstantList(node.typeArgument, node.entries);
+
+  /// Visits [Constant] with [_visitConstant].
+  visitConstantList(DartType typeArgument, List<Constant> entries) {
+    return _cacheConst(() =>
+        _emitConstList(typeArgument, entries.map(visitConstant).toList()));
   }
 
   @override
@@ -5172,7 +5180,10 @@ class ProgramCompiler extends Object
     // Set literals are currently desugared in the frontend.
     // Implement this method before flipping the supportsSetLiterals flag
     // in DevCompilerTarget to true.
-    throw "Set literal constants not supported.";
+    return _cacheConst(() => runtimeCall('constSet(#, #)', [
+          _emitType(node.typeArgument),
+          visitConstantList(node.typeArgument, node.entries)
+        ]));
   }
 
   @override
