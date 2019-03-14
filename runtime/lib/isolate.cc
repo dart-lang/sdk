@@ -130,9 +130,12 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
     // Make a copy of the state's isolate flags and hand it to the callback.
     Dart_IsolateFlags api_flags = *(state_->isolate_flags());
+    const char* name = (state_->debug_name() == NULL) ? state_->function_name()
+                                                      : state_->debug_name();
+    ASSERT(name != NULL);
 
     Isolate* isolate = reinterpret_cast<Isolate*>((callback)(
-        state_->script_url(), state_->function_name(), state_->package_root(),
+        state_->script_url(), name, state_->package_root(),
         state_->package_config(), &api_flags, state_->init_data(), &error));
     state_->DecrementSpawnCount();
     if (isolate == NULL) {
@@ -182,7 +185,7 @@ static const char* String2UTF8(const String& str) {
   return result;
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, script_uri, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(2));
@@ -193,6 +196,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(7));
   GET_NATIVE_ARGUMENT(String, packageRoot, arguments->NativeArgAt(8));
   GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(9));
+  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(10));
 
   if (closure.IsClosure()) {
     Function& func = Function::Handle();
@@ -223,13 +227,15 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
       const char* utf8_package_root = NULL;
       const char* utf8_package_config =
           packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
+      const char* utf8_debug_name =
+          debugName.IsNull() ? NULL : String2UTF8(debugName);
 
       IsolateSpawnState* state = new IsolateSpawnState(
           port.Id(), isolate->origin_id(), isolate->init_callback_data(),
           String2UTF8(script_uri), func, &message_buffer,
           isolate->spawn_count_monitor(), isolate->spawn_count(),
           utf8_package_root, utf8_package_config, paused.value(), fatal_errors,
-          on_exit_port, on_error_port);
+          on_exit_port, on_error_port, utf8_debug_name);
 
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
@@ -285,7 +291,7 @@ static const char* CanonicalizeUri(Thread* thread,
   return result;
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(1));
 
@@ -303,6 +309,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
 
   GET_NATIVE_ARGUMENT(String, packageRoot, arguments->NativeArgAt(10));
   GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(11));
+
+  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(12));
 
   if (Dart::vm_snapshot_kind() == Snapshot::kFullAOT) {
     const Array& args = Array::Handle(Array::New(1));
@@ -347,12 +355,15 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   const char* utf8_package_root = NULL;
   const char* utf8_package_config =
       packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
+  const char* utf8_debug_name =
+      debugName.IsNull() ? NULL : String2UTF8(debugName);
 
   IsolateSpawnState* state = new IsolateSpawnState(
       port.Id(), isolate->init_callback_data(), canonical_uri,
       utf8_package_root, utf8_package_config, &arguments_buffer,
       &message_buffer, isolate->spawn_count_monitor(), isolate->spawn_count(),
-      paused.value(), fatal_errors, on_exit_port, on_error_port);
+      paused.value(), fatal_errors, on_exit_port, on_error_port,
+      utf8_debug_name);
 
   // If we were passed a value then override the default flags state for
   // checked mode.
@@ -376,6 +387,15 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
     spawn_task = NULL;
   }
   return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Isolate_getDebugName, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+  Isolate* isolate_lookup = Isolate::LookupIsolateByPort(port.Id());
+  if (isolate_lookup == NULL) {
+    return Object::null();
+  }
+  return String::New(isolate_lookup->name());
 }
 
 DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0, 0) {

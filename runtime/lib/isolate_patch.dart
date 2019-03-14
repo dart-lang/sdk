@@ -316,6 +316,9 @@ class Isolate {
   static Isolate get current => _currentIsolate;
 
   @patch
+  String get debugName => _getDebugName(controlPort);
+
+  @patch
   static Future<Uri> get packageRoot {
     var hook = VMLibraryHooks.packageRootUriFuture;
     if (hook == null) {
@@ -352,7 +355,8 @@ class Isolate {
       {bool paused: false,
       bool errorsAreFatal,
       SendPort onExit,
-      SendPort onError}) async {
+      SendPort onError,
+      String debugName}) async {
     // `paused` isn't handled yet.
     RawReceivePort readyPort;
     try {
@@ -377,8 +381,18 @@ class Isolate {
         script = await Isolate.resolvePackageUri(script);
       }
 
-      _spawnFunction(readyPort.sendPort, script.toString(), entryPoint, message,
-          paused, errorsAreFatal, onExit, onError, null, packageConfig);
+      _spawnFunction(
+          readyPort.sendPort,
+          script.toString(),
+          entryPoint,
+          message,
+          paused,
+          errorsAreFatal,
+          onExit,
+          onError,
+          null,
+          packageConfig,
+          debugName);
       return await _spawnCommon(readyPort);
     } catch (e, st) {
       if (readyPort != null) {
@@ -398,7 +412,8 @@ class Isolate {
       Map<String, String> environment,
       Uri packageRoot,
       Uri packageConfig,
-      bool automaticPackageResolution: false}) async {
+      bool automaticPackageResolution: false,
+      String debugName}) async {
     RawReceivePort readyPort;
     if (environment != null) {
       throw new UnimplementedError("environment");
@@ -467,7 +482,8 @@ class Isolate {
           null,
           /* environment */
           packageRootString,
-          packageConfigString);
+          packageConfigString,
+          debugName);
       return await _spawnCommon(readyPort);
     } catch (e) {
       if (readyPort != null) {
@@ -524,7 +540,8 @@ class Isolate {
       SendPort onExit,
       SendPort onError,
       String packageRoot,
-      String packageConfig) native "Isolate_spawnFunction";
+      String packageConfig,
+      String debugName) native "Isolate_spawnFunction";
 
   static void _spawnUri(
       SendPort readyPort,
@@ -538,9 +555,13 @@ class Isolate {
       bool checked,
       List environment,
       String packageRoot,
-      String packageConfig) native "Isolate_spawnUri";
+      String packageConfig,
+      String debugName) native "Isolate_spawnUri";
 
   static void _sendOOB(port, msg) native "Isolate_sendOOB";
+
+  static String _getDebugName(SendPort controlPort)
+      native "Isolate_getDebugName";
 
   @patch
   void _pause(Capability resumeCapability) {
