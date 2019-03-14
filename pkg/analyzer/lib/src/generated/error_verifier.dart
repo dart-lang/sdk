@@ -1204,6 +1204,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForImplicitDynamicTypedLiteral(node);
       _checkForMapTypeNotAssignable(node);
       _checkForNonConstMapAsExpressionStatement3(node);
+      _checkForExpressions(node.elements2);
     } else if (node.isSet) {
       if (typeArguments != null) {
         if (node.isConst) {
@@ -1219,6 +1220,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForRawTypedLiteral(node);
       _checkForImplicitDynamicTypedLiteral(node);
       _checkForSetElementTypeNotAssignable3(node);
+      _checkForMapEntries(node.elements2);
     }
     super.visitSetOrMapLiteral(node);
   }
@@ -3173,6 +3175,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
+   * Create a diagnostic if any of the leaf elements in the given collection of
+   * [elements] is an expression.
+   */
+  void _checkForExpression(CollectionElement element) {
+    if (element is ForElement) {
+      _checkForExpression(element.body);
+    } else if (element is IfElement) {
+      _checkForExpression(element.thenElement);
+      _checkForExpression(element.elseElement);
+    } else if (element is Expression) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXPRESSION_IN_MAP, element);
+    }
+  }
+
+  /**
+   * Create a diagnostic if any of the leaf elements in the given collection of
+   * [elements] is an expression.
+   */
+  void _checkForExpressions(NodeList<CollectionElement> elements) {
+    for (CollectionElement element in elements) {
+      _checkForExpression(element);
+    }
+  }
+
+  /**
    * Verify that the given extends [clause] does not extend a deferred class.
    *
    * See [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS].
@@ -4000,6 +4028,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               expression, valueType, typeArguments[1], valueErrorCode);
         }
       }
+    }
+  }
+
+  /**
+   * Create a diagnostic if any of the leaf elements in the given collection of
+   * [elements] is a map entry.
+   */
+  void _checkForMapEntries(NodeList<CollectionElement> elements) {
+    for (CollectionElement element in elements) {
+      _checkForMapEntry(element);
+    }
+  }
+
+  /**
+   * Create a diagnostic if any of the leaf elements in the given collection of
+   * [elements] is a map entry.
+   */
+  void _checkForMapEntry(CollectionElement element) {
+    if (element is ForElement) {
+      _checkForMapEntry(element.body);
+    } else if (element is IfElement) {
+      _checkForMapEntry(element.thenElement);
+      _checkForMapEntry(element.elseElement);
+    } else if (element is MapLiteralEntry) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP, element);
     }
   }
 

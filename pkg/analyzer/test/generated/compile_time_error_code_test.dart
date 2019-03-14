@@ -123,7 +123,8 @@ typedef F = int Function({Map<String, String> m: const {}});
   }
 
   test_defaultValueInFunctionTypeAlias_new_named_ambiguous() async {
-    // Strong checker asserts isSet || isMap. Prove that assertion holds.
+    // Test that the strong checker does not crash when given an ambiguous
+    // set or map literal.
     Source source = addSource('''
 typedef F = int Function({Object m: const {1, 2: 3}});
 ''');
@@ -131,6 +132,7 @@ typedef F = int Function({Object m: const {1, 2: 3}});
     assertErrors(source, [
       ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
       CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
+      CompileTimeErrorCode.EXPRESSION_IN_MAP,
     ]);
     verify([source]);
   }

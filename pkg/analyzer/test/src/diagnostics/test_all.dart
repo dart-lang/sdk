@@ -20,6 +20,7 @@ import 'dead_code_test.dart' as dead_code;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'division_optimization_test.dart' as division_optimization;
 import 'equal_keys_in_map_test.dart' as equal_keys_in_map;
+import 'expression_in_map_test.dart' as expression_in_map;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
@@ -32,6 +33,7 @@ import 'invalid_required_param_test.dart' as invalid_required_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
 import 'list_element_type_not_assignable_test.dart'
     as list_element_type_not_assignable;
+import 'map_entry_not_in_map_test.dart' as map_entry_not_in_map;
 import 'map_key_type_not_assignable_test.dart' as map_key_type_not_assignable;
 import 'map_value_type_not_assignable_test.dart'
     as map_value_type_not_assignable;
@@ -84,6 +86,7 @@ main() {
     deprecated_member_use.main();
     division_optimization.main();
     equal_keys_in_map.main();
+    expression_in_map.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
     invalid_immutable_annotation.main();
@@ -93,6 +96,7 @@ main() {
     invalid_required_param.main();
     invalid_sealed_annotation.main();
     list_element_type_not_assignable.main();
+    map_entry_not_in_map.main();
     map_key_type_not_assignable.main();
     map_value_type_not_assignable.main();
     missing_return.main();

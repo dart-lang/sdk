@@ -1001,6 +1001,12 @@ class CompileTimeErrorCode extends ErrorCode {
           "The exported library '{0}' can't have a part-of directive.",
           correction: "Try exporting the library that the part is a part of.");
 
+  static const CompileTimeErrorCode EXPRESSION_IN_MAP =
+      const CompileTimeErrorCode(
+          'EXPRESSION_IN_MAP', "Expressions cannot be used in a map literal.",
+          correction:
+              "Try removing the expression or converting it to be a map entry.");
+
   /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a
    * class <i>C</i> includes a type expression that does not denote a class
@@ -1718,6 +1724,12 @@ class CompileTimeErrorCode extends ErrorCode {
           'LABEL_UNDEFINED', "Can't reference undefined label '{0}'.",
           correction: "Try defining the label, or "
               "correcting the name to match an existing label.");
+
+  static const CompileTimeErrorCode MAP_ENTRY_NOT_IN_MAP =
+      const CompileTimeErrorCode('MAP_ENTRY_NOT_IN_MAP',
+          "Map entries can only be used in a map literal.",
+          correction:
+              "Try converting the collection to a map or removing the map entry.");
 
   /**
    * 7 Classes: It is a compile time error if a class <i>C</i> declares a member
