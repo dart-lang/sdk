@@ -27,25 +27,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   final VersionConstraint _versionConstraint;
 
   /// A cached flag indicating whether references to Future and Stream need to
-  /// be checked. Use [checkFutureAndStream] to access this field.
+  /// be checked. Use [] to access this field.
   bool _checkFutureAndStream;
-
-  /// A cached flag indicating whether references to set literals need to
-  /// be checked. Use [checkSetLiterals] to access this field.
-  bool _checkSetLiterals;
-
-  /// A flag indicating whether we are visiting code inside a set literal. Used
-  /// to prevent over-reporting uses of set literals.
-  bool _inSetLiteral = false;
-
-  /// A cached flag indicating whether references to the ui-as-code features
-  /// need to be checked. Use [checkUiAsCode] to access this field.
-  bool _checkUiAsCode;
-
-  /// A flag indicating whether we are visiting code inside one of the
-  /// ui-as-code features. Used to prevent over-reporting uses of these
-  /// features.
-  bool _inUiAsCode = false;
 
   /// Initialize a newly created verifier to use the given [_errorReporter] to
   /// report errors.
@@ -56,59 +39,13 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   VersionRange get before_2_1_0 =>
       new VersionRange(max: Version.parse('2.1.0'), includeMax: false);
 
-  /// Return a range covering every version up to, but not including, 2.2.0.
-  VersionRange get before_2_2_0 =>
-      new VersionRange(max: Version.parse('2.2.0'), includeMax: false);
-
-  /// Return a range covering every version up to, but not including, 2.2.2.
-  VersionRange get before_2_2_2 =>
-      new VersionRange(max: Version.parse('2.2.2'), includeMax: false);
-
   /// Return `true` if references to Future and Stream need to be checked.
   bool get checkFutureAndStream => _checkFutureAndStream ??=
       !before_2_1_0.intersect(_versionConstraint).isEmpty;
 
-  /// Return `true` if references to set literals need to be checked.
-  bool get checkSetLiterals =>
-      _checkSetLiterals ??= !before_2_2_0.intersect(_versionConstraint).isEmpty;
-
-  /// Return `true` if references to the ui-as-code features (control flow and
-  /// spread collections) need to be checked.
-  bool get checkUiAsCode =>
-      _checkUiAsCode ??= !before_2_2_2.intersect(_versionConstraint).isEmpty;
-
-  @override
-  void visitForElement(ForElement node) {
-    _validateUiAsCode(node);
-    bool wasInUiAsCode = _inUiAsCode;
-    _inUiAsCode = true;
-    super.visitForElement(node);
-    _inUiAsCode = wasInUiAsCode;
-  }
-
   @override
   void visitHideCombinator(HideCombinator node) {
     // Don't flag references to either `Future` or `Stream` within a combinator.
-  }
-
-  @override
-  void visitIfElement(IfElement node) {
-    _validateUiAsCode(node);
-    bool wasInUiAsCode = _inUiAsCode;
-    _inUiAsCode = true;
-    super.visitIfElement(node);
-    _inUiAsCode = wasInUiAsCode;
-  }
-
-  @override
-  void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (node.isSet && checkSetLiterals && !_inSetLiteral) {
-      _errorReporter.reportErrorForNode(HintCode.SDK_VERSION_SET_LITERAL, node);
-    }
-    bool wasInSetLiteral = _inSetLiteral;
-    _inSetLiteral = true;
-    super.visitSetOrMapLiteral(node);
-    _inSetLiteral = wasInSetLiteral;
   }
 
   @override
@@ -136,24 +73,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       }
       _errorReporter.reportErrorForNode(
           HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, node, [element.name]);
-    }
-  }
-
-  @override
-  void visitSpreadElement(SpreadElement node) {
-    _validateUiAsCode(node);
-    bool wasInUiAsCode = _inUiAsCode;
-    _inUiAsCode = true;
-    super.visitSpreadElement(node);
-    _inUiAsCode = wasInUiAsCode;
-  }
-
-  /// Given that the [node] is only valid when the ui-as-code feature is
-  /// enabled, check that the code will not be executed with a version of the
-  /// SDK that does not support the feature.
-  void _validateUiAsCode(AstNode node) {
-    if (checkUiAsCode && !_inUiAsCode) {
-      _errorReporter.reportErrorForNode(HintCode.SDK_VERSION_UI_AS_CODE, node);
     }
   }
 }
