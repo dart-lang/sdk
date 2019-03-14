@@ -13,6 +13,7 @@ import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 import 'mocks.dart';
+import 'rules/experiments/experiments.dart';
 
 main() {
   defineTests();
@@ -820,7 +821,9 @@ defineTests() {
         expect(
             configuredLints,
             unorderedEquals(Analyzer.facade.registeredRules
-                .where((r) => r.maturity != Maturity.deprecated)
+                .where((r) =>
+                    r.maturity != Maturity.deprecated &&
+                    !experiments.contains(r))
                 .map((r) => r.name)));
       });
     });
