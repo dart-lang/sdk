@@ -1280,39 +1280,22 @@ index 5781c65aa..000000000
 -    );
 -  }, skip: !Platform.isLinux); // Coretext uses different thicknesses for decoration
 -}
-diff --git a/packages/flutter_tools/lib/src/codegen.dart b/packages/flutter_tools/lib/src/codegen.dart
-index 7d521a4f2..60403279d 100644
---- a/packages/flutter_tools/lib/src/codegen.dart
-+++ b/packages/flutter_tools/lib/src/codegen.dart
-@@ -190,10 +190,10 @@ class CodeGeneratingKernelCompiler implements KernelCompiler {
-         await outputFile.create();
-       }
-       await outputFile.writeAsBytes(await buildResult.dillFile.readAsBytes());
--      return CompilerOutput(outputFilePath, 0);
-+      return CompilerOutput(outputFilePath, 0, /* sources= */ null);
-     } on Exception catch (err) {
-       printError('Compilation Failed: $err');
--      return const CompilerOutput(null, 1);
-+      return const CompilerOutput(null, 1, /* sources= */ null);
-     }
-   }
- }
 diff --git a/packages/flutter_tools/lib/src/compile.dart b/packages/flutter_tools/lib/src/compile.dart
-index dd255f53a..4cd09eacb 100644
+index 5f936715f..702101c9d 100644
 --- a/packages/flutter_tools/lib/src/compile.dart
 +++ b/packages/flutter_tools/lib/src/compile.dart
 @@ -57,12 +57,15 @@ class TargetModel {
  }
- 
+
  class CompilerOutput {
 -  const CompilerOutput(this.outputFilename, this.errorCount);
 +  const CompilerOutput(this.outputFilename, this.errorCount, this.sources);
- 
+
    final String outputFilename;
    final int errorCount;
 +  final List<Uri> sources;
  }
- 
+
 +enum StdoutState { CollectDiagnostic, CollectDependencies }
 +
  /// Handles stdin/stdout communication with the frontend server.
@@ -1325,14 +1308,14 @@ index dd255f53a..4cd09eacb 100644
 +  StdoutState state = StdoutState.CollectDiagnostic;
    Completer<CompilerOutput> compilerOutput;
 +  final List<Uri> sources = <Uri>[];
- 
+
    bool _suppressCompilerMessages;
- 
+
    void handler(String message) {
 +    printTrace('-> $message');
      const String kResultPrefix = 'result ';
      if (boundaryKey == null && message.startsWith(kResultPrefix)) {
-         boundaryKey = message.substring(kResultPrefix.length);
+       boundaryKey = message.substring(kResultPrefix.length);
      } else if (message.startsWith(boundaryKey)) {
 -      if (message.length <= boundaryKey.length) {
 -        compilerOutput.complete(null);
@@ -1385,7 +1368,7 @@ index dd255f53a..4cd09eacb 100644
 -      consumer(message);
      }
    }
- 
+
 @@ -106,6 +133,7 @@ class StdoutHandler {
      compilerMessageReceived = false;
      compilerOutput = Completer<CompilerOutput>();
@@ -1393,17 +1376,17 @@ index dd255f53a..4cd09eacb 100644
 +    state = StdoutState.CollectDiagnostic;
    }
  }
- 
-@@ -199,7 +227,7 @@ class KernelCompiler {
- 
+
+@@ -200,7 +228,7 @@ class KernelCompiler {
+
        if (await fingerprinter.doesFingerprintMatch()) {
          printTrace('Skipping kernel compilation. Fingerprint match.');
 -        return CompilerOutput(outputFilePath, 0);
 +        return CompilerOutput(outputFilePath, 0, /* sources */ null);
        }
      }
- 
-@@ -449,10 +477,13 @@ class ResidentCompiler {
+
+@@ -453,10 +481,13 @@ class ResidentCompiler {
          ? _mapFilename(request.mainPath, packageUriMapper) + ' '
          : '';
      _server.stdin.writeln('recompile $mainUri$inputKey');
@@ -1414,18 +1397,18 @@ index dd255f53a..4cd09eacb 100644
      }
      _server.stdin.writeln(inputKey);
 +    printTrace('<- $inputKey');
- 
+
      return _stdoutHandler.compilerOutput.future;
    }
-@@ -542,6 +573,7 @@ class ResidentCompiler {
+@@ -546,6 +577,7 @@ class ResidentCompiler {
        .listen((String message) { printError(message); });
- 
+
      _server.stdin.writeln('compile $scriptUri');
 +    printTrace('<- compile $scriptUri');
- 
+
      return _stdoutHandler.compilerOutput.future;
    }
-@@ -594,6 +626,7 @@ class ResidentCompiler {
+@@ -598,6 +630,7 @@ class ResidentCompiler {
    void accept() {
      if (_compileRequestNeedsConfirmation) {
        _server.stdin.writeln('accept');
@@ -1433,7 +1416,7 @@ index dd255f53a..4cd09eacb 100644
      }
      _compileRequestNeedsConfirmation = false;
    }
-@@ -617,6 +650,7 @@ class ResidentCompiler {
+@@ -621,6 +654,7 @@ class ResidentCompiler {
      }
      _stdoutHandler.reset();
      _server.stdin.writeln('reject');
@@ -1441,13 +1424,13 @@ index dd255f53a..4cd09eacb 100644
      _compileRequestNeedsConfirmation = false;
      return _stdoutHandler.compilerOutput.future;
    }
-@@ -626,6 +660,7 @@ class ResidentCompiler {
+@@ -630,6 +664,7 @@ class ResidentCompiler {
    /// kernel file.
    void reset() {
      _server?.stdin?.writeln('reset');
 +    printTrace('<- reset');
    }
- 
+
    String _mapFilename(String filename, PackageUriMapper packageUriMapper) {
 diff --git a/packages/flutter_tools/lib/src/devfs.dart b/packages/flutter_tools/lib/src/devfs.dart
 index 7940e8bb0..9e8b9bd45 100644
