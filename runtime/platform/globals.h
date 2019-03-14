@@ -352,19 +352,6 @@ typedef simd128_value_t fpu_register_t;
 #error Unknown architecture.
 #endif
 
-// Determine whether dual mapping of code pages is supported.
-#if !defined(USING_SIMULATOR) &&                                               \
-    (defined(HOST_OS_LINUX) || defined(HOST_OS_FUCHSIA)) &&                    \
-    !defined(TARGET_OS_ANDROID) && !defined(TARGET_ARCH_IA32)
-#define DUAL_MAPPING_SUPPORTED 1
-#endif
-
-// Disable background threads by default on armv5te. The relevant
-// implementations are uniprocessors.
-#if !defined(TARGET_ARCH_ARM_5TE)
-#define ARCH_IS_MULTI_CORE 1
-#endif
-
 #if !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_FUCHSIA) &&              \
     !defined(TARGET_OS_MACOS_IOS) && !defined(TARGET_OS_LINUX) &&              \
     !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_WINDOWS)
@@ -385,6 +372,19 @@ typedef simd128_value_t fpu_register_t;
 #else
 #error Automatic target OS detection failed.
 #endif
+#endif
+
+// Determine whether dual mapping of code pages is supported.
+// We test dual mapping on linux x64 and deploy it on fuchsia.
+#if defined(TARGET_OS_LINUX) && defined(TARGET_ARCH_X64) ||                    \
+    defined(TARGET_OS_FUCHSIA)
+#define DUAL_MAPPING_SUPPORTED 1
+#endif
+
+// Disable background threads by default on armv5te. The relevant
+// implementations are uniprocessors.
+#if !defined(TARGET_ARCH_ARM_5TE)
+#define ARCH_IS_MULTI_CORE 1
 #endif
 
 // Short form printf format specifiers

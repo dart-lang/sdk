@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 
 #include "platform/assert.h"
@@ -31,8 +32,6 @@ namespace dart {
 #undef MAP_FAILED
 #define MAP_FAILED reinterpret_cast<void*>(-1)
 
-#define DART_SHM_NAME "/dart_shm"
-
 DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
 
@@ -42,25 +41,29 @@ void VirtualMemory::Init() {
   page_size_ = getpagesize();
 
 #if defined(DUAL_MAPPING_SUPPORTED)
-  shm_unlink(DART_SHM_NAME);  // Could be left over from a previous crash.
-
   // Detect dual mapping exec permission limitation on some platforms,
   // such as on docker containers, and disable dual mapping in this case.
+  // Also detect for missing support of memfd_create syscall.
   if (FLAG_dual_map_code) {
     intptr_t size = page_size_;
     intptr_t alignment = 256 * 1024;  // e.g. heap page size.
     VirtualMemory* vm = AllocateAligned(size, alignment, true, NULL);
+    if (vm == NULL) {
+      LOG_INFO("memfd_create not supported; disabling dual mapping of code.\n");
+      FLAG_dual_map_code = false;
+      return;
+    }
     void* region = reinterpret_cast<void*>(vm->region_.start());
     void* alias = reinterpret_cast<void*>(vm->alias_.start());
     if (region == alias ||
         mprotect(region, size, PROT_READ) != 0 ||  // Remove PROT_WRITE.
         mprotect(alias, size, PROT_READ | PROT_EXEC) != 0) {  // Add PROT_EXEC.
-      LOG_INFO("disabling dual mapping of code\n");
+      LOG_INFO("mprotect fails; disabling dual mapping of code.\n");
       FLAG_dual_map_code = false;
     }
     delete vm;
   }
-#endif                        // defined(DUAL_MAPPING_SUPPORTED)
+#endif  // defined(DUAL_MAPPING_SUPPORTED)
 }
 
 static void unmap(uword start, uword end) {
@@ -80,6 +83,16 @@ static void unmap(uword start, uword end) {
 }
 
 #if defined(DUAL_MAPPING_SUPPORTED)
+// Wrapper to call memfd_create syscall.
+static inline int memfd_create(const char* name, unsigned int flags) {
+#if !defined(__NR_memfd_create)
+  errno = ENOSYS;
+  return -1;
+#else
+  return syscall(__NR_memfd_create, name, flags);
+#endif
+}
+
 static void* MapAligned(int fd,
                         int prot,
                         intptr_t size,
@@ -130,14 +143,11 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   const bool dual_mapping =
       is_executable && FLAG_write_protect_code && FLAG_dual_map_code;
   if (dual_mapping) {
-    // Create a shared memory object for dual mapping.
-    // There is a small conflict window, i.e. another Dart process
-    // simultaneously opening an object with the same name.
-    do {
-      fd = shm_open(DART_SHM_NAME, O_RDWR | O_CREAT | O_EXCL, S_IRWXU);
-    } while ((fd == -1) && (errno == EEXIST));
-    shm_unlink(DART_SHM_NAME);
-    if ((fd == -1) || (ftruncate(fd, size) == -1)) {
+    fd = memfd_create("dart_vm", 0);
+    if (fd == -1) {
+      return NULL;
+    }
+    if (ftruncate(fd, size) == -1) {
       close(fd);
       return NULL;
     }
