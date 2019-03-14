@@ -60,6 +60,31 @@ static inline void ForwardTo(uword original, uword target) {
   *reinterpret_cast<uword*>(original) = target | kForwarded;
 }
 
+static inline void objcpy(void* dst, const void* src, size_t size) {
+  // A memcopy specialized for objects. We can assume:
+  //  - dst and src do not overlap
+  ASSERT(
+      (reinterpret_cast<uword>(dst) + size <= reinterpret_cast<uword>(src)) ||
+      (reinterpret_cast<uword>(src) + size <= reinterpret_cast<uword>(dst)));
+  //  - dst and src are word aligned
+  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(dst), sizeof(uword)));
+  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(src), sizeof(uword)));
+  //  - size is strictly positive
+  ASSERT(size > 0);
+  //  - size is a multiple of double words
+  ASSERT(Utils::IsAligned(size, 2 * sizeof(uword)));
+
+  uword* __restrict dst_cursor = reinterpret_cast<uword*>(dst);
+  const uword* __restrict src_cursor = reinterpret_cast<const uword*>(src);
+  do {
+    uword a = *src_cursor++;
+    uword b = *src_cursor++;
+    *dst_cursor++ = a;
+    *dst_cursor++ = b;
+    size -= (2 * sizeof(uword));
+  } while (size > 0);
+}
+
 class ScavengerVisitor : public ObjectPointerVisitor {
  public:
   explicit ScavengerVisitor(Isolate* isolate,
@@ -163,8 +188,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       // current objects to the to space.
       ASSERT(new_addr != 0);
       // Copy the object to the new location.
-      memmove(reinterpret_cast<void*>(new_addr),
-              reinterpret_cast<void*>(raw_addr), size);
+      objcpy(reinterpret_cast<void*>(new_addr),
+             reinterpret_cast<void*>(raw_addr), size);
 
       RawObject* new_obj = RawObject::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
