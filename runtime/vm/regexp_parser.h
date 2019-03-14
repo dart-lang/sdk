@@ -23,7 +23,10 @@ class RegExpBuilder : public ZoneAllocated {
   void AddAtom(RegExpTree* tree);
   void AddAssertion(RegExpTree* tree);
   void NewAlternative();  // '|'
-  void AddQuantifierToAtom(intptr_t min,
+  // Attempt to add a quantifier to the last atom added. The return value
+  // denotes whether the attempt succeeded, since some atoms like lookbehind
+  // cannot be quantified.
+  bool AddQuantifierToAtom(intptr_t min,
                            intptr_t max,
                            RegExpQuantifier::QuantifierType type);
   RegExpTree* ToRegExp();
@@ -93,9 +96,7 @@ class RegExpParser : public ValueObject {
   bool simple();
   bool contains_anchor() { return contains_anchor_; }
   void set_contains_anchor() { contains_anchor_ = true; }
-  intptr_t captures_started() {
-    return captures_ == NULL ? 0 : captures_->length();
-  }
+  intptr_t captures_started() { return captures_started_; }
   intptr_t position() { return next_pos_ - 1; }
 
   static const intptr_t kMaxCaptures = 1 << 16;
@@ -105,8 +106,8 @@ class RegExpParser : public ValueObject {
   enum SubexpressionType {
     INITIAL,
     CAPTURE,  // All positive values represent captures.
-    POSITIVE_LOOKAHEAD,
-    NEGATIVE_LOOKAHEAD,
+    POSITIVE_LOOKAROUND,
+    NEGATIVE_LOOKAROUND,
     GROUPING
   };
 
@@ -114,11 +115,13 @@ class RegExpParser : public ValueObject {
    public:
     RegExpParserState(RegExpParserState* previous_state,
                       SubexpressionType group_type,
+                      RegExpLookaround::Type lookaround_type,
                       intptr_t disjunction_capture_index,
                       Zone* zone)
         : previous_state_(previous_state),
           builder_(new (zone) RegExpBuilder()),
           group_type_(group_type),
+          lookaround_type_(lookaround_type),
           disjunction_capture_index_(disjunction_capture_index) {}
     // Parser state of containing expression, if any.
     RegExpParserState* previous_state() { return previous_state_; }
@@ -127,10 +130,15 @@ class RegExpParser : public ValueObject {
     RegExpBuilder* builder() { return builder_; }
     // Type of regexp being parsed (parenthesized group or entire regexp).
     SubexpressionType group_type() { return group_type_; }
+    // Lookahead or lookbehind.
+    RegExpLookaround::Type lookaround_type() { return lookaround_type_; }
     // Index in captures array of first capture in this sub-expression, if any.
     // Also the capture index of this sub-expression itself, if group_type
     // is CAPTURE.
     intptr_t capture_index() { return disjunction_capture_index_; }
+
+    // Check whether the parser is inside a capture group with the given index.
+    bool IsInsideCaptureGroup(intptr_t index);
 
    private:
     // Linked list implementation of stack of states.
@@ -139,9 +147,16 @@ class RegExpParser : public ValueObject {
     RegExpBuilder* builder_;
     // Stored disjunction type (capture, look-ahead or grouping), if any.
     SubexpressionType group_type_;
+    // Stored read direction.
+    const RegExpLookaround::Type lookaround_type_;
     // Stored disjunction's capture index (if any).
     intptr_t disjunction_capture_index_;
   };
+
+  // Return the 1-indexed RegExpCapture object, allocate if necessary.
+  RegExpCapture* GetCapture(intptr_t index);
+
+  RegExpParserState* ParseOpenParenthesis(RegExpParserState* state);
 
   Zone* zone() { return zone_; }
 
@@ -157,6 +172,7 @@ class RegExpParser : public ValueObject {
   const String& in_;
   uint32_t current_;
   intptr_t next_pos_;
+  intptr_t captures_started_;
   // The capture count is only valid after we have scanned for captures.
   intptr_t capture_count_;
   bool has_more_;
