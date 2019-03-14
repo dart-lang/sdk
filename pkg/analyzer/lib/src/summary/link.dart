@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/session.dart';
-
 /// This library is capable of producing linked summaries from unlinked
 /// ones (or prelinked ones).  It functions by building a miniature
 /// element model to represent the contents of the summaries, and then
@@ -57,6 +55,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 ///
 /// - Where possible, we favor method dispatch instead of "is" and "as"
 ///   checks.  E.g. see [ReferenceableElementForLink.asConstructor].
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -412,6 +411,11 @@ typedef LinkedLibrary GetDependencyCallback(String absoluteUri);
 /// Type of the callback used by [link] and [relink] to request
 /// [UnlinkedUnit] objects.
 typedef UnlinkedUnit GetUnitCallback(String absoluteUri);
+
+class AnalysisSessionForLink implements AnalysisSession {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 /// Element representing a class or enum resynthesized from a summary
 /// during linking.
@@ -3639,6 +3643,9 @@ abstract class LibraryElementForLink<
   LibraryResynthesizerContext get resynthesizerContext => this;
 
   @override
+  AnalysisSession get session => _linker.session;
+
+  @override
   Source get source => definingCompilationUnit.source;
 
   @override
@@ -3936,6 +3943,7 @@ class Linker {
   SpecialTypeElementForLink _bottomElement;
   InheritanceManager2 _inheritanceManager;
   ContextForLink _context;
+  AnalysisSessionForLink _session;
 
   /// Gets an instance of [AnalysisOptions] for use during linking.
   final AnalysisOptions analysisOptions;
@@ -3975,6 +3983,10 @@ class Linker {
   /// Get an instance of [InheritanceManager2] for use during linking.
   InheritanceManager2 get inheritanceManager =>
       _inheritanceManager ??= new InheritanceManager2(typeSystem);
+
+  /// Get a stub implementation of [AnalysisContext] which can be used during
+  /// linking.
+  get session => _session ??= new AnalysisSessionForLink();
 
   /// Indicates whether type inference should use strong mode rules.
   @deprecated

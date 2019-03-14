@@ -7800,6 +7800,21 @@ int y;
 ''');
   }
 
+  test_type_inference_multiplyDefinedElement() async {
+    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource('/b.dart', 'class C {}');
+    var library = await checkLibrary('''
+import 'a.dart';
+import 'b.dart';
+var v = C;
+''');
+    checkElementText(library, r'''
+import 'a.dart';
+import 'b.dart';
+dynamic v;
+''');
+  }
+
   test_type_inference_nested_function() async {
     var library = await checkLibrary('''
 var x = (t) => (u) => t + u;

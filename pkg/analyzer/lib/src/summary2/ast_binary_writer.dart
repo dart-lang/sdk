@@ -1009,11 +1009,16 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitSimpleIdentifier(SimpleIdentifier node) {
-    var isDeclared = node.inDeclarationContext();
+    Element element;
+    if (!node.inDeclarationContext()) {
+      element = node.staticElement;
+      if (element is MultiplyDefinedElement) {
+        element = null;
+      }
+    }
 
     return LinkedNodeBuilder.simpleIdentifier(
-      simpleIdentifier_element:
-          isDeclared ? null : _getReferenceIndex(node.staticElement),
+      simpleIdentifier_element: _getReferenceIndex(element),
       simpleIdentifier_token: _getToken(node.token),
       expression_type: _writeType(node.staticType),
     );
