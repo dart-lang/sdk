@@ -140,20 +140,26 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
   @override
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
 
+  @override
   int get hashCode => entity.hashCode;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! MemberUsage) return false;
     return entity == other.entity;
   }
 
+  @override
   String toString() => '$entity:${appliedUse.iterable(MemberUse.values)}';
 }
 
 class FieldUsage extends MemberUsage {
+  @override
   bool hasInit = false;
+  @override
   bool hasRead = false;
+  @override
   bool hasWrite = false;
 
   FieldUsage(FieldEntity field, {bool isNative: false})
@@ -221,12 +227,15 @@ class FieldUsage extends MemberUsage {
     return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
   }
 
+  @override
   String toString() => 'FieldUsage($entity,hasInit=$hasInit,hasRead=$hasRead,'
       'hasWrite=$hasWrite,pendingUse=${_pendingUse.iterable(MemberUse.values)}';
 }
 
 class FinalFieldUsage extends MemberUsage {
+  @override
   bool hasInit = false;
+  @override
   bool hasRead = false;
 
   FinalFieldUsage(FieldEntity field, {bool isNative: false})
@@ -280,12 +289,15 @@ class FinalFieldUsage extends MemberUsage {
     return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
   }
 
+  @override
   String toString() => 'FinalFieldUsage($entity,hasInit=$hasInit,'
       'hasRead=$hasRead,pendingUse=${_pendingUse.iterable(MemberUse.values)}';
 }
 
 class FunctionUsage extends MemberUsage {
+  @override
   bool hasInvoke = false;
+  @override
   bool hasRead = false;
 
   FunctionUsage(FunctionEntity function) : super.internal(function) {
@@ -297,11 +309,14 @@ class FunctionUsage extends MemberUsage {
     }
   }
 
+  @override
   FunctionEntity get entity => super.entity;
 
+  @override
   EnumSet<MemberUse> get _originalUse =>
       entity.isInstanceMember ? MemberUses.ALL_INSTANCE : MemberUses.ALL_STATIC;
 
+  @override
   bool get hasPendingClosurizationUse => entity.isInstanceMember
       ? _pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)
       : _pendingUse.contains(MemberUse.CLOSURIZE_STATIC);
@@ -349,6 +364,7 @@ class FunctionUsage extends MemberUsage {
 }
 
 class ParameterTrackingFunctionUsage extends MemberUsage {
+  @override
   bool hasRead = false;
 
   final ParameterUsage _parameterUsage;
@@ -364,12 +380,15 @@ class ParameterTrackingFunctionUsage extends MemberUsage {
     }
   }
 
+  @override
   bool get hasInvoke => _parameterUsage.hasInvoke;
 
+  @override
   bool get hasPendingClosurizationUse => entity.isInstanceMember
       ? _pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)
       : _pendingUse.contains(MemberUse.CLOSURIZE_STATIC);
 
+  @override
   EnumSet<MemberUse> get _originalUse =>
       entity.isInstanceMember ? MemberUses.ALL_INSTANCE : MemberUses.ALL_STATIC;
 
@@ -420,6 +439,7 @@ class ParameterTrackingFunctionUsage extends MemberUsage {
   @override
   bool get hasPendingNormalUse => !isFullyInvoked;
 
+  @override
   bool get isFullyInvoked => _parameterUsage.isFullyUsed;
 
   @override
@@ -430,6 +450,7 @@ class ParameterTrackingFunctionUsage extends MemberUsage {
 }
 
 class GetterUsage extends MemberUsage {
+  @override
   bool hasRead = false;
 
   GetterUsage(FunctionEntity getter) : super.internal(getter);
@@ -454,6 +475,7 @@ class GetterUsage extends MemberUsage {
 }
 
 class SetterUsage extends MemberUsage {
+  @override
   bool hasWrite = false;
 
   SetterUsage(FunctionEntity setter) : super.internal(setter);
@@ -475,12 +497,15 @@ class SetterUsage extends MemberUsage {
 }
 
 class ConstructorUsage extends MemberUsage {
+  @override
   bool hasInvoke = false;
 
   ConstructorUsage(ConstructorEntity constructor) : super.internal(constructor);
 
+  @override
   ConstructorEntity get entity => super.entity;
 
+  @override
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
 
   @override
@@ -512,8 +537,10 @@ class ParameterTrackingConstructorUsage extends MemberUsage {
       : _parameterUsage = new ParameterUsage(constructor.parameterStructure),
         super.internal(constructor);
 
+  @override
   ConstructorEntity get entity => super.entity;
 
+  @override
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
 
   @override
@@ -548,6 +575,7 @@ class ParameterTrackingConstructorUsage extends MemberUsage {
   @override
   bool get hasPendingNormalUse => !isFullyInvoked;
 
+  @override
   bool get isFullyInvoked => _parameterUsage.isFullyUsed;
 
   @override
@@ -620,6 +648,7 @@ class ClassUsage extends AbstractUsage<ClassUse> {
   @override
   EnumSet<ClassUse> get _originalUse => ClassUses.ALL;
 
+  @override
   String toString() => '$cls:${appliedUse.iterable(ClassUse.values)}';
 }
 
@@ -641,6 +670,7 @@ typedef void ClassUsedCallback(ClassEntity cls, EnumSet<ClassUse> useSet);
 // TODO(johnniwinther): Merge this with [MemberUsage].
 abstract class StaticMemberUsage extends AbstractUsage<MemberUse>
     implements MemberUsage {
+  @override
   final MemberEntity entity;
 
   bool hasNormalUse = false;
@@ -658,14 +688,19 @@ abstract class StaticMemberUsage extends AbstractUsage<MemberUse>
 
   EnumSet<MemberUse> tearOff();
 
+  @override
   EnumSet<MemberUse> init() => normalUse();
 
+  @override
   EnumSet<MemberUse> read() => tearOff();
 
+  @override
   EnumSet<MemberUse> write() => normalUse();
 
+  @override
   EnumSet<MemberUse> invoke(CallStructure callStructure) => normalUse();
 
+  @override
   EnumSet<MemberUse> fullyUse() => normalUse();
 
   @override
@@ -677,12 +712,14 @@ abstract class StaticMemberUsage extends AbstractUsage<MemberUse>
   @override
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
 
+  @override
   String toString() => '$entity:${appliedUse.iterable(MemberUse.values)}';
 }
 
 class GeneralStaticMemberUsage extends StaticMemberUsage {
   GeneralStaticMemberUsage(MemberEntity entity) : super.internal(entity);
 
+  @override
   EnumSet<MemberUse> tearOff() => normalUse();
 
   @override
@@ -708,15 +745,18 @@ class GeneralStaticMemberUsage extends StaticMemberUsage {
 }
 
 class StaticFunctionUsage extends StaticMemberUsage {
+  @override
   bool hasClosurization = false;
 
   StaticFunctionUsage(FunctionEntity entity) : super.internal(entity);
 
+  @override
   FunctionEntity get entity => super.entity;
 
   @override
   bool get hasInit => true;
 
+  @override
   EnumSet<MemberUse> tearOff() {
     if (hasClosurization) {
       return MemberUses.NONE;

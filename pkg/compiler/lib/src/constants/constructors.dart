@@ -74,13 +74,16 @@ class GenerativeConstantConstructor implements ConstantConstructor {
   GenerativeConstantConstructor(this.type, this.defaultValues, this.fieldMap,
       this.assertions, this.superConstructorInvocation);
 
+  @override
   ConstantConstructorKind get kind => ConstantConstructorKind.GENERATIVE;
 
+  @override
   InterfaceType computeInstanceType(
       EvaluationEnvironment environment, InterfaceType newType) {
     return environment.substByContext(type, newType);
   }
 
+  @override
   InstanceData computeInstanceData(EvaluationEnvironment environment,
       List<ConstantExpression> arguments, CallStructure callStructure) {
     NormalizedArguments args =
@@ -96,10 +99,12 @@ class GenerativeConstantConstructor implements ConstantConstructor {
     return appliedInstanceData;
   }
 
+  @override
   accept(ConstantConstructorVisitor visitor, arg) {
     return visitor.visitGenerative(this, arg);
   }
 
+  @override
   int get hashCode {
     int hash = Hashing.objectHash(type);
     hash = Hashing.mapHash(defaultValues, hash);
@@ -107,6 +112,7 @@ class GenerativeConstantConstructor implements ConstantConstructor {
     return Hashing.objectHash(superConstructorInvocation, hash);
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! GenerativeConstantConstructor) return false;
@@ -116,6 +122,7 @@ class GenerativeConstantConstructor implements ConstantConstructor {
         mapEquals(fieldMap, other.fieldMap);
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("{'type': $type");
@@ -181,16 +188,19 @@ class RedirectingGenerativeConstantConstructor implements ConstantConstructor {
   RedirectingGenerativeConstantConstructor(
       this.defaultValues, this.thisConstructorInvocation);
 
+  @override
   ConstantConstructorKind get kind {
     return ConstantConstructorKind.REDIRECTING_GENERATIVE;
   }
 
+  @override
   InterfaceType computeInstanceType(
       EvaluationEnvironment environment, InterfaceType newType) {
     return environment.substByContext(
         thisConstructorInvocation.computeInstanceType(environment), newType);
   }
 
+  @override
   InstanceData computeInstanceData(EvaluationEnvironment environment,
       List<ConstantExpression> arguments, CallStructure callStructure) {
     NormalizedArguments args =
@@ -201,15 +211,18 @@ class RedirectingGenerativeConstantConstructor implements ConstantConstructor {
     return appliedInstanceData;
   }
 
+  @override
   accept(ConstantConstructorVisitor visitor, arg) {
     return visitor.visitRedirectingGenerative(this, arg);
   }
 
+  @override
   int get hashCode {
     int hash = Hashing.objectHash(thisConstructorInvocation);
     return Hashing.mapHash(defaultValues, hash);
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! RedirectingGenerativeConstantConstructor) return false;
@@ -218,6 +231,7 @@ class RedirectingGenerativeConstantConstructor implements ConstantConstructor {
             defaultValues, other.defaultValues);
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("{'type': ${thisConstructorInvocation.type}");
@@ -236,16 +250,19 @@ class RedirectingFactoryConstantConstructor implements ConstantConstructor {
 
   RedirectingFactoryConstantConstructor(this.targetConstructorInvocation);
 
+  @override
   ConstantConstructorKind get kind {
     return ConstantConstructorKind.REDIRECTING_FACTORY;
   }
 
+  @override
   InterfaceType computeInstanceType(
       EvaluationEnvironment environment, InterfaceType newType) {
     return environment.substByContext(
         targetConstructorInvocation.computeInstanceType(environment), newType);
   }
 
+  @override
   InstanceData computeInstanceData(EvaluationEnvironment environment,
       List<ConstantExpression> arguments, CallStructure callStructure) {
     ConstantConstructor constantConstructor =
@@ -254,20 +271,24 @@ class RedirectingFactoryConstantConstructor implements ConstantConstructor {
         environment, arguments, callStructure);
   }
 
+  @override
   accept(ConstantConstructorVisitor visitor, arg) {
     return visitor.visitRedirectingFactory(this, arg);
   }
 
+  @override
   int get hashCode {
     return Hashing.objectHash(targetConstructorInvocation);
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! RedirectingFactoryConstantConstructor) return false;
     return targetConstructorInvocation == other.targetConstructorInvocation;
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("{");

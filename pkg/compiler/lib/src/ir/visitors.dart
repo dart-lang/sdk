@@ -63,6 +63,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     return constant;
   }
 
+  @override
   ConstantExpression defaultExpression(ir.Expression node) {
     if (requireConstant) {
       failNode ??= node;

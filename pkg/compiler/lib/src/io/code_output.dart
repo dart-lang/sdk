@@ -50,9 +50,11 @@ abstract class SourceLocations {
 }
 
 class _SourceLocationsImpl implements SourceLocations {
+  @override
   final String name;
   final AbstractCodeOutput codeOutput;
   Map<int, List<SourceLocation>> markers = <int, List<SourceLocation>>{};
+  @override
   Map<int, List<FrameEntry>> frameMarkers = <int, List<FrameEntry>>{};
 
   _SourceLocationsImpl(this.name, this.codeOutput);
@@ -143,6 +145,7 @@ abstract class CodeOutput implements SourceLocationsProvider {
 abstract class AbstractCodeOutput extends CodeOutput {
   Map<String, _SourceLocationsImpl> sourceLocationsMap =
       <String, _SourceLocationsImpl>{};
+  @override
   bool isClosed = false;
 
   void _addInternal(String text);
@@ -199,10 +202,12 @@ class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
   @override
   int get length => buffer.length;
 
+  @override
   String getText() {
     return buffer.toString();
   }
 
+  @override
   String toString() {
     throw "Don't use CodeBuffer.toString() since it drops sourcemap data.";
   }
@@ -210,6 +215,7 @@ class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
 
 /// [CodeOutput] using a [CompilationOutput] as backend.
 class StreamCodeOutput extends AbstractCodeOutput {
+  @override
   int length = 0;
   final OutputSink output;
   final List<CodeOutputListener> _listeners;
@@ -225,6 +231,7 @@ class StreamCodeOutput extends AbstractCodeOutput {
     }
   }
 
+  @override
   void close() {
     output.close();
     super.close();

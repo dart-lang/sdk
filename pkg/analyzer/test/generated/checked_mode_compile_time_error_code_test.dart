@@ -5,12 +5,23 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
 
-abstract class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(CheckedModeCompileTimeErrorCodeTest);
+  });
+}
+
+@reflectiveTest
+class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
   @override
   AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   test_assertion_throws() async {
     Source source = addSource(r'''

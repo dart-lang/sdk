@@ -2015,7 +2015,12 @@ RawError* Object::Init(Isolate* isolate,
 bool Object::IsReadOnly() const {
   if (FLAG_verify_handles && raw()->IsReadOnly()) {
     Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-    ASSERT(vm_isolate_heap->Contains(RawObject::ToAddr(raw())));
+    uword addr = RawObject::ToAddr(raw());
+    if (!vm_isolate_heap->Contains(addr)) {
+      ASSERT(FLAG_write_protect_code);
+      addr = RawObject::ToAddr(HeapPage::ToWritable(raw()));
+      ASSERT(vm_isolate_heap->Contains(addr));
+    }
   }
   return raw()->IsReadOnly();
 }
@@ -2072,8 +2077,12 @@ void Object::CheckHandle() const {
       Isolate* isolate = Isolate::Current();
       Heap* isolate_heap = isolate->heap();
       Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-      ASSERT(isolate_heap->Contains(RawObject::ToAddr(raw_)) ||
-             vm_isolate_heap->Contains(RawObject::ToAddr(raw_)));
+      uword addr = RawObject::ToAddr(raw_);
+      if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
+        ASSERT(FLAG_write_protect_code);
+        addr = RawObject::ToAddr(HeapPage::ToWritable(raw_));
+        ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
+      }
     }
   }
 #endif
@@ -2997,7 +3006,7 @@ bool Library::FindPragma(Thread* T,
   return false;
 }
 
-bool Function::IsDynamicInvocationForwaderName(const String& name) {
+bool Function::IsDynamicInvocationForwarderName(const String& name) {
   return name.StartsWith(Symbols::DynamicPrefix());
 }
 
@@ -3047,7 +3056,7 @@ RawString* Function::CreateDynamicInvocationForwarderName(const String& name) {
 RawFunction* Function::GetDynamicInvocationForwarder(
     const String& mangled_name,
     bool allow_add /* = true */) const {
-  ASSERT(IsDynamicInvocationForwaderName(mangled_name));
+  ASSERT(IsDynamicInvocationForwarderName(mangled_name));
   const Class& owner = Class::Handle(Owner());
   Function& result = Function::Handle(owner.GetInvocationDispatcher(
       mangled_name, Array::null_array(),
@@ -7335,46 +7344,17 @@ RawFunction* Function::ImplicitClosureFunction() const {
 
   // Change covariant parameter types to Object in the implicit closure.
   if (!is_static()) {
-    const Script& function_script = Script::Handle(zone, script());
-    kernel::TranslationHelper translation_helper(thread);
-    translation_helper.InitFromScript(function_script);
+    BitVector is_covariant(zone, NumParameters());
+    BitVector is_generic_covariant_impl(zone, NumParameters());
+    kernel::ReadParameterCovariance(*this, &is_covariant,
+                                    &is_generic_covariant_impl);
 
-    kernel::KernelReaderHelper kernel_reader_helper(
-        zone, &translation_helper, function_script,
-        ExternalTypedData::Handle(zone, KernelData()),
-        KernelDataProgramOffset());
-
-    kernel_reader_helper.SetOffset(kernel_offset());
-    kernel_reader_helper.ReadUntilFunctionNode();
-
-    kernel::FunctionNodeHelper fn_helper(&kernel_reader_helper);
-
-    // Check the positional parameters, including the optional positional ones.
-    fn_helper.ReadUntilExcluding(
-        kernel::FunctionNodeHelper::kPositionalParameters);
-    intptr_t num_pos_params = kernel_reader_helper.ReadListLength();
-    ASSERT(num_pos_params ==
-           num_fixed_params - 1 + (has_opt_pos_params ? num_opt_params : 0));
     const Type& object_type = Type::Handle(zone, Type::ObjectType());
-    for (intptr_t i = 0; i < num_pos_params; ++i) {
-      kernel::VariableDeclarationHelper var_helper(&kernel_reader_helper);
-      var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
-      if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
-        closure_function.SetParameterTypeAt(i + 1, object_type);
-      }
-    }
-    fn_helper.SetJustRead(kernel::FunctionNodeHelper::kPositionalParameters);
-
-    // Check the optional named parameters.
-    fn_helper.ReadUntilExcluding(kernel::FunctionNodeHelper::kNamedParameters);
-    intptr_t num_named_params = kernel_reader_helper.ReadListLength();
-    ASSERT(num_named_params == (has_opt_pos_params ? 0 : num_opt_params));
-    for (intptr_t i = 0; i < num_named_params; ++i) {
-      kernel::VariableDeclarationHelper var_helper(&kernel_reader_helper);
-      var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
-      if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
-        closure_function.SetParameterTypeAt(num_pos_params + 1 + i,
-                                            object_type);
+    for (intptr_t i = kClosure; i < num_params; ++i) {
+      const intptr_t original_param_index = has_receiver - kClosure + i;
+      if (is_covariant.Contains(original_param_index) ||
+          is_generic_covariant_impl.Contains(original_param_index)) {
+        closure_function.SetParameterTypeAt(i, object_type);
       }
     }
   }
@@ -7992,7 +7972,7 @@ const char* Function::ToCString() const {
       kind_str = " no-such-method-dispatcher";
       break;
     case RawFunction::kDynamicInvocationForwarder:
-      kind_str = " dynamic-invocation-forwader";
+      kind_str = " dynamic-invocation-forwarder";
       break;
     case RawFunction::kInvokeFieldDispatcher:
       kind_str = "invoke-field-dispatcher";
@@ -8279,27 +8259,6 @@ intptr_t Field::KernelDataProgramOffset() const {
   return PatchClass::Cast(obj).library_kernel_offset();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-void Field::GetCovarianceAttributes(bool* is_covariant,
-                                    bool* is_generic_covariant) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = Thread::Current()->zone();
-  auto& script = Script::Handle(zone, Script());
-
-  kernel::TranslationHelper translation_helper(thread);
-  translation_helper.InitFromScript(script);
-
-  kernel::KernelReaderHelper kernel_reader_helper(
-      zone, &translation_helper, script,
-      ExternalTypedData::Handle(zone, KernelData()), KernelDataProgramOffset());
-  kernel_reader_helper.SetOffset(kernel_offset());
-  kernel::FieldHelper field_helper(&kernel_reader_helper);
-  field_helper.ReadUntilIncluding(kernel::FieldHelper::kFlags);
-  *is_covariant = field_helper.IsCovariant();
-  *is_generic_covariant = field_helper.IsGenericCovariantImpl();
-}
-#endif
-
 // Called at finalization time
 void Field::SetFieldType(const AbstractType& value) const {
   ASSERT(Thread::Current()->IsMutatorThread());
@@ -8340,7 +8299,7 @@ void Field::InitializeNew(const Field& result,
   result.set_token_pos(token_pos);
   result.set_end_token_pos(end_token_pos);
   result.set_has_initializer(false);
-  result.set_is_unboxing_candidate(true);
+  result.set_is_unboxing_candidate(!is_final);
   result.set_initializer_changed_after_initialization(false);
   result.set_kernel_offset(0);
   result.set_has_pragma(false);
@@ -13358,7 +13317,7 @@ bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (smi_op_target.IsNull() &&
-      Function::IsDynamicInvocationForwaderName(name)) {
+      Function::IsDynamicInvocationForwarderName(name)) {
     const String& demangled =
         String::Handle(Function::DemangleDynamicInvocationForwarderName(name));
     smi_op_target = Resolver::ResolveDynamicAnyArgs(zone, smi_class, demangled);
@@ -13424,7 +13383,7 @@ void ICData::AddTarget(const Function& target) const {
 bool ICData::ValidateInterceptor(const Function& target) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const String& name = String::Handle(target_name());
-  if (Function::IsDynamicInvocationForwaderName(name)) {
+  if (Function::IsDynamicInvocationForwarderName(name)) {
     return Function::DemangleDynamicInvocationForwarderName(name) ==
            target.name();
   }
@@ -14563,6 +14522,24 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
                                object->raw());
     }
 
+    // Write protect instructions and, if supported by OS, use dual mapping
+    // for execution.
+    if (FLAG_write_protect_code) {
+      uword address = RawObject::ToAddr(instrs.raw());
+      // Check if a dual mapping exists.
+      instrs = Instructions::RawCast(HeapPage::ToExecutable(instrs.raw()));
+      uword exec_address = RawObject::ToAddr(instrs.raw());
+      if (exec_address != address) {
+        VirtualMemory::Protect(reinterpret_cast<void*>(address),
+                               instrs.raw()->HeapSize(),
+                               VirtualMemory::kReadOnly);
+        address = exec_address;
+      }
+      VirtualMemory::Protect(reinterpret_cast<void*>(address),
+                             instrs.raw()->HeapSize(),
+                             VirtualMemory::kReadExecute);
+    }
+
     // Hook up Code and Instructions objects.
     code.SetActiveInstructions(instrs);
     code.set_instructions(instrs);
@@ -14571,13 +14548,6 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
     // Set object pool in Instructions object.
     if (pool_attachment == PoolAttachment::kAttachPool) {
       code.set_object_pool(object_pool->raw());
-    }
-
-    if (FLAG_write_protect_code) {
-      uword address = RawObject::ToAddr(instrs.raw());
-      VirtualMemory::Protect(reinterpret_cast<void*>(address),
-                             instrs.raw()->HeapSize(),
-                             VirtualMemory::kReadExecute);
     }
 
 #if defined(DART_PRECOMPILER)

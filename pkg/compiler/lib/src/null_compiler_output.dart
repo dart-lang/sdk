@@ -29,10 +29,13 @@ class NullSink implements OutputSink {
 
   NullSink(this.name);
 
+  @override
   void add(String value) {}
 
+  @override
   void close() {}
 
+  @override
   String toString() => name;
 
   /// Convenience method for getting an [api.CompilerOutputProvider].
@@ -53,5 +56,6 @@ class NullBinarySink implements BinaryOutputSink {
   @override
   void close() {}
 
+  @override
   String toString() => 'NullBinarySink($uri)';
 }

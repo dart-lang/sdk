@@ -1266,11 +1266,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // Prepare information about existing imports.
     LibraryDirective libraryDirective;
     List<ImportDirective> importDirectives = <ImportDirective>[];
+    PartDirective partDirective;
     for (Directive directive in unit.directives) {
       if (directive is LibraryDirective) {
         libraryDirective = directive;
       } else if (directive is ImportDirective) {
         importDirectives.add(directive);
+      } else if (directive is PartDirective) {
+        partDirective = directive;
       }
     }
 
@@ -1396,15 +1399,28 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // Insert imports: after the library directive.
     if (libraryDirective != null) {
       addInsertion(libraryDirective.end, (EditBuilder builder) {
+        builder.writeln();
+        builder.writeln();
         for (int i = 0; i < importList.length; i++) {
           var import = importList[i];
-          if (i == 0) {
+          writeImport(builder, import);
+          if (i != importList.length - 1) {
             builder.writeln();
           }
-          builder.writeln();
+        }
+      });
+      return;
+    }
+
+    // Insert imports: before a part directive.
+    if (partDirective != null) {
+      addInsertion(partDirective.offset, (EditBuilder builder) {
+        for (int i = 0; i < importList.length; i++) {
+          var import = importList[i];
           writeImport(builder, import);
           builder.writeln();
         }
+        builder.writeln();
       });
       return;
     }

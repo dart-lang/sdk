@@ -35,6 +35,9 @@ class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
   @failingTest // See dartbug.com/33441
   test_const_map_inferredType() => super.test_const_map_inferredType();
 
+  @failingTest // See dartbug.com/33441
+  test_const_set_inferredType() => super.test_const_set_inferredType();
+
   @override
   @failingTest
   test_syntheticFunctionType_inGenericClass() async {

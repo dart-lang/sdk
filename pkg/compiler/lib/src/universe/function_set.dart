@@ -96,6 +96,7 @@ class FunctionSet {
 class SelectorMask {
   final Selector selector;
   final AbstractValue receiver;
+  @override
   final int hashCode;
 
   SelectorMask(this.selector, this.receiver)
@@ -119,11 +120,13 @@ class SelectorMask {
         .isPotentiallyTrue;
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return selector == other.selector && receiver == other.receiver;
   }
 
+  @override
   String toString() => '($selector,$receiver)';
 }
 
@@ -238,6 +241,7 @@ class FunctionSetNode {
     return result;
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('FunctionSetNode(');
@@ -273,6 +277,7 @@ class EmptyFunctionSetQuery implements FunctionSetQuery {
   @override
   Iterable<MemberEntity> get functions => const <MemberEntity>[];
 
+  @override
   String toString() => '<empty>';
 }
 
@@ -289,5 +294,6 @@ class FullFunctionSetQuery implements FunctionSetQuery {
     return _receiver ??= domain.computeReceiver(functions);
   }
 
+  @override
   String toString() => '$_receiver:$functions';
 }

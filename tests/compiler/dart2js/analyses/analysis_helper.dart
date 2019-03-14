@@ -69,6 +69,7 @@ run(Uri entryPoint, String allowedListPath,
 }
 
 class StaticTypeVisitorBase extends StaticTypeVisitor {
+  @override
   VariableScopeModel variableScopeModel;
 
   StaticTypeVisitorBase(
@@ -291,6 +292,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     }
   }
 
+  @override
   ir.DartType visitNode(ir.Node node) {
     ir.DartType staticType = node?.accept(this);
     assert(

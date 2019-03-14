@@ -673,6 +673,7 @@ class SuppressionInfo {
 
 class CompilerDiagnosticReporter extends DiagnosticReporter {
   final Compiler compiler;
+  @override
   final DiagnosticOptions options;
 
   Entity _currentElement;
@@ -690,6 +691,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
 
   Entity get currentElement => _currentElement;
 
+  @override
   DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
       [Map arguments = const {}]) {
     SourceSpan span = spanFromSpannable(spannable);
@@ -698,22 +700,26 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     return new DiagnosticMessage(span, spannable, message);
   }
 
+  @override
   void reportError(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     reportDiagnosticInternal(message, infos, api.Diagnostic.ERROR);
   }
 
+  @override
   void reportWarning(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     reportDiagnosticInternal(message, infos, api.Diagnostic.WARNING);
   }
 
+  @override
   void reportHint(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     reportDiagnosticInternal(message, infos, api.Diagnostic.HINT);
   }
 
   @deprecated
+  @override
   void reportInfo(Spannable node, MessageKind messageKind,
       [Map arguments = const {}]) {
     reportDiagnosticInternal(createMessage(node, messageKind, arguments),
@@ -779,6 +785,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   /// Perform an operation, [f], returning the return value from [f].  If an
   /// error occurs then report it as having occurred during compilation of
   /// [element].  Can be nested.
+  @override
   withCurrentElement(Entity element, f()) {
     Entity old = currentElement;
     _currentElement = element;
@@ -832,6 +839,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     throw 'No error location.';
   }
 
+  @override
   SourceSpan spanFromSpannable(Spannable spannable) {
     if (spannable == CURRENT_ELEMENT_SPANNABLE) {
       spannable = currentElement;
@@ -852,6 +860,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     }
   }
 
+  @override
   internalError(Spannable spannable, reason) {
     String message = tryToString(reason);
     reportDiagnosticInternal(
@@ -886,6 +895,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     return element != null ? element : currentElement;
   }
 
+  @override
   void log(message) {
     Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]
         .message({'text': '$message'});
@@ -953,11 +963,13 @@ class _MapImpactCacheDeleter implements ImpactCacheDeleter {
   final Map<Entity, WorldImpact> _impactCache;
   _MapImpactCacheDeleter(this._impactCache);
 
+  @override
   void uncacheWorldImpact(Entity element) {
     if (retainDataForTesting) return;
     _impactCache.remove(element);
   }
 
+  @override
   void emptyCache() {
     if (retainDataForTesting) return;
     _impactCache.clear();
@@ -967,6 +979,7 @@ class _MapImpactCacheDeleter implements ImpactCacheDeleter {
 class _EmptyEnvironment implements Environment {
   const _EmptyEnvironment();
 
+  @override
   String valueOf(String key) => null;
 }
 
@@ -990,6 +1003,7 @@ class ProgressImpl implements Progress {
 
   ProgressImpl(this._reporter);
 
+  @override
   void showProgress(String prefix, int count, String suffix) {
     if (_stopwatch.elapsedMilliseconds > 500) {
       _reporter.log('$prefix$count$suffix');
@@ -997,6 +1011,7 @@ class ProgressImpl implements Progress {
     }
   }
 
+  @override
   void startPhase() {
     _stopwatch.reset();
   }
@@ -1008,12 +1023,14 @@ class ProgressImpl implements Progress {
 class InteractiveProgress implements Progress {
   final Stopwatch _stopwatchPhase = new Stopwatch()..start();
   final Stopwatch _stopwatchInterval = new Stopwatch()..start();
+  @override
   void startPhase() {
     print('');
     _stopwatchPhase.reset();
     _stopwatchInterval.reset();
   }
 
+  @override
   void showProgress(String prefix, int count, String suffix) {
     if (_stopwatchInterval.elapsedMilliseconds > 500) {
       var time = _stopwatchPhase.elapsedMilliseconds / 1000;

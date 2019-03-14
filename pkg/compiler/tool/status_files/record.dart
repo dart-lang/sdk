@@ -26,6 +26,7 @@ class Record implements Comparable<Record> {
   Record(this.suite, this.test, this.config, this.expected, this.actual,
       this.reason, this.repro, this.fullReason, this.stack);
 
+  @override
   int compareTo(Record other) {
     if (suite == null && other.suite != null) return -1;
     if (suite != null && other.suite == null) return 1;
@@ -43,6 +44,7 @@ class Record implements Comparable<Record> {
     return repro.compareTo(other.repro);
   }
 
+  @override
   bool operator ==(covariant Record other) =>
       suite == other.suite &&
       test == other.test &&

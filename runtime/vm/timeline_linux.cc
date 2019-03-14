@@ -28,9 +28,9 @@ static int OpenTraceFD() {
   const char* kSystraceDebugPath = "/sys/kernel/debug/tracing/trace_marker";
   const char* kSystracePath = "/sys/kernel/tracing/trace_marker";
 
-  int fd = TEMP_FAILURE_RETRY(::open(kSystraceDebugPath, O_WRONLY));
+  int fd = TEMP_FAILURE_RETRY(::open(kSystracePath, O_WRONLY));
   if (fd < 0) {
-    fd = TEMP_FAILURE_RETRY(::open(kSystracePath, O_WRONLY));
+    fd = TEMP_FAILURE_RETRY(::open(kSystraceDebugPath, O_WRONLY));
   }
 
   if (fd < 0 && FLAG_trace_timeline) {

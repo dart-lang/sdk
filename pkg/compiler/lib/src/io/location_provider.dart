@@ -49,6 +49,7 @@ class LocationCollector extends CodeOutputListener implements LocationProvider {
     this.length = length;
   }
 
+  @override
   String toString() {
     return 'lineStarts=$lineStarts,length=$length';
   }

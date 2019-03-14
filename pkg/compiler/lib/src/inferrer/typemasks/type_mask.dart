@@ -48,6 +48,7 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
     return _masks.add(mask);
   }
 
+  @override
   String toString() {
     if (isAll) {
       return '<all>';
@@ -361,6 +362,7 @@ abstract class TypeMask implements AbstractValue {
   ///
   /// Note: This may differ from semantic equality in the set containment sense.
   ///   Use [containsMask] and [isInMask] for that, instead.
+  @override
   bool operator ==(other);
 
   /// If this returns `true`, [other] is guaranteed to be a supertype of this

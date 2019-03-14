@@ -16,6 +16,7 @@ import 'abstract_value_domain.dart';
 class TrivialAbstractValue implements AbstractValue {
   const TrivialAbstractValue();
 
+  @override
   String toString() => '?';
 }
 
@@ -472,5 +473,6 @@ class TrivialUniverseSelectorConstraints
   @override
   bool canHit(MemberEntity element, Name name, World world) => true;
 
+  @override
   String toString() => 'TrivialUniverseSelectorConstraints:$hashCode';
 }

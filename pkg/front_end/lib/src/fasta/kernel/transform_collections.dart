@@ -53,6 +53,7 @@ class CollectionTransformer extends Transformer {
   final Procedure setFactory;
   final Procedure setAdd;
   final Procedure objectEquals;
+  final Procedure mapEntries;
   final Procedure mapPut;
   final Class mapEntryClass;
   final Field mapEntryKey;
@@ -68,9 +69,11 @@ class CollectionTransformer extends Transformer {
       : coreTypes = loader.coreTypes,
         listAdd = loader.coreTypes.index.getMember('dart:core', 'List', 'add'),
         setFactory = _findSetFactory(loader.coreTypes),
+        setAdd = loader.coreTypes.index.getMember('dart:core', 'Set', 'add'),
         objectEquals =
             loader.coreTypes.index.getMember('dart:core', 'Object', '=='),
-        setAdd = loader.coreTypes.index.getMember('dart:core', 'Set', 'add'),
+        mapEntries =
+            loader.coreTypes.index.getMember('dart:core', 'Map', 'get:entries'),
         mapPut = loader.coreTypes.index.getMember('dart:core', 'Map', '[]='),
         mapEntryClass =
             loader.coreTypes.index.getClass('dart:core', 'MapEntry'),
@@ -251,7 +254,7 @@ class CollectionTransformer extends Transformer {
             new VariableDeclaration(null, type: mapEntryType, isFinal: true);
         Statement statement = new ForInStatement(
             elt,
-            value,
+            new PropertyGet(value, new Name('entries'), mapEntries),
             new ExpressionStatement(new MethodInvocation(
                 new VariableGet(map),
                 new Name('[]='),

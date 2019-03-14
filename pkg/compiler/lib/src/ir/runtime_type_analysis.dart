@@ -63,6 +63,7 @@ class RuntimeTypeUseData {
     throw new UnsupportedError("Unexpected RuntimeTypeUseKind $kind.");
   }
 
+  @override
   String toString() {
     return "RuntimeTypeUseData(kind=$kind,"
         "receiverGet=$leftRuntimeTypeExpression,receiver=$receiver,"

@@ -12,12 +12,15 @@ class MapTypeMask extends AllocationTypeMask {
   /// debugging data stream.
   static const String tag = 'map-type-mask';
 
+  @override
   final TypeMask forwardTo;
 
   // The [Node] where this type mask was created.
+  @override
   final ir.TreeNode allocationNode;
 
   // The [MemberEntity] where this type mask was created.
+  @override
   final MemberEntity allocationElement;
 
   // The value type of this map.
@@ -44,6 +47,7 @@ class MapTypeMask extends AllocationTypeMask {
   }
 
   /// Serializes this [MapTypeMask] to [sink].
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(TypeMaskKind.map);
     sink.begin(tag);
@@ -55,6 +59,7 @@ class MapTypeMask extends AllocationTypeMask {
     sink.end(tag);
   }
 
+  @override
   TypeMask nullable() {
     return isNullable
         ? this
@@ -62,6 +67,7 @@ class MapTypeMask extends AllocationTypeMask {
             allocationElement, keyType, valueType);
   }
 
+  @override
   TypeMask nonNullable() {
     return isNullable
         ? new MapTypeMask(forwardTo.nonNullable(), allocationNode,
@@ -69,10 +75,14 @@ class MapTypeMask extends AllocationTypeMask {
         : this;
   }
 
+  @override
   bool get isContainer => false;
+  @override
   bool get isMap => true;
+  @override
   bool get isExact => true;
 
+  @override
   bool equalsDisregardNull(other) {
     if (other is! MapTypeMask) return false;
     return super.equalsDisregardNull(other) &&
@@ -81,12 +91,14 @@ class MapTypeMask extends AllocationTypeMask {
         valueType == other.valueType;
   }
 
+  @override
   TypeMask intersection(TypeMask other, JClosedWorld closedWorld) {
     TypeMask forwardIntersection = forwardTo.intersection(other, closedWorld);
     if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
     return forwardIntersection.isNullable ? nullable() : nonNullable();
   }
 
+  @override
   TypeMask union(dynamic other, JClosedWorld closedWorld) {
     if (this == other) {
       return this;
@@ -128,13 +140,16 @@ class MapTypeMask extends AllocationTypeMask {
     }
   }
 
+  @override
   bool operator ==(other) => super == other;
 
+  @override
   int get hashCode {
     return computeHashCode(
         allocationNode, isNullable, keyType, valueType, forwardTo);
   }
 
+  @override
   String toString() {
     return 'Map($forwardTo, key: $keyType, value: $valueType)';
   }

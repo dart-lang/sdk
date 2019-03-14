@@ -116,6 +116,7 @@ class ScopeBuilder {
 
   const String& GenerateName(const char* prefix, intptr_t suffix);
 
+  void HandleLoadReceiver();
   void HandleSpecialLoad(LocalVariable** variable, const String& symbol);
   void LookupCapturedVariableByName(LocalVariable** variable,
                                     const String& name);
@@ -171,8 +172,7 @@ struct FunctionScope {
 class ScopeBuildingResult : public ZoneAllocated {
  public:
   ScopeBuildingResult()
-      : this_variable(NULL),
-        type_arguments_variable(NULL),
+      : type_arguments_variable(NULL),
         switch_variable(NULL),
         finally_return_variable(NULL),
         setter_value(NULL),
@@ -183,9 +183,6 @@ class ScopeBuildingResult : public ZoneAllocated {
   IntMap<LocalVariable*> locals;
   IntMap<LocalScope*> scopes;
   GrowableArray<FunctionScope> function_scopes;
-
-  // Only non-NULL for instance functions.
-  LocalVariable* this_variable;
 
   // Only non-NULL for factory constructor functions.
   LocalVariable* type_arguments_variable;

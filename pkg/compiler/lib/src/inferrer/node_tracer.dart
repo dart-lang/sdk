@@ -184,10 +184,12 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     continueAnalyzing = false;
   }
 
+  @override
   void visitAwaitTypeInformation(AwaitTypeInformation info) {
     bailout("Passed through await");
   }
 
+  @override
   void visitYieldTypeInformation(YieldTypeInformation info) {
     // TODO(29344): The enclosing sync*/async/async* method could have a
     // tracable TypeInformation for the Iterable / Future / Stream with an
@@ -196,55 +198,70 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     bailout("Passed through yield");
   }
 
+  @override
   void visitNarrowTypeInformation(NarrowTypeInformation info) {
     addNewEscapeInformation(info);
   }
 
+  @override
   void visitPhiElementTypeInformation(PhiElementTypeInformation info) {
     addNewEscapeInformation(info);
   }
 
+  @override
   void visitElementInContainerTypeInformation(
       ElementInContainerTypeInformation info) {
     addNewEscapeInformation(info);
   }
 
+  @override
   void visitElementInSetTypeInformation(ElementInSetTypeInformation info) {
     addNewEscapeInformation(info);
   }
 
+  @override
   void visitKeyInMapTypeInformation(KeyInMapTypeInformation info) {
     // We do not track the use of keys from a map, so we have to bail.
     bailout('Used as key in Map');
   }
 
+  @override
   void visitValueInMapTypeInformation(ValueInMapTypeInformation info) {
     addNewEscapeInformation(info);
   }
 
+  @override
   void visitListTypeInformation(ListTypeInformation info) {
     listsToAnalyze.add(info);
   }
 
+  @override
   void visitSetTypeInformation(SetTypeInformation info) {
     setsToAnalyze.add(info);
   }
 
+  @override
   void visitMapTypeInformation(MapTypeInformation info) {
     mapsToAnalyze.add(info);
   }
 
+  @override
   void visitConcreteTypeInformation(ConcreteTypeInformation info) {}
 
+  @override
   void visitStringLiteralTypeInformation(StringLiteralTypeInformation info) {}
 
+  @override
   void visitBoolLiteralTypeInformation(BoolLiteralTypeInformation info) {}
 
+  @override
   void visitClosureTypeInformation(ClosureTypeInformation info) {}
 
+  @override
   void visitClosureCallSiteTypeInformation(
       ClosureCallSiteTypeInformation info) {}
 
+  @override
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     MemberEntity called = info.calledElement;
     TypeInformation inferred = inferrer.types.getInferredTypeOfMember(called);
@@ -362,6 +379,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     }
   }
 
+  @override
   void visitDynamicCallSiteTypeInformation(
       DynamicCallSiteTypeInformation info) {
     void addsToContainer(AbstractValue mask) {
@@ -497,6 +515,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     return cls != null && cls.isClosure;
   }
 
+  @override
   void visitMemberTypeInformation(MemberTypeInformation info) {
     if (info.isClosurized) {
       bailout('Returned from a closurized method');
@@ -511,6 +530,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     addNewEscapeInformation(info);
   }
 
+  @override
   void visitParameterTypeInformation(ParameterTypeInformation info) {
     if (inferrer.closedWorld.nativeData.isNativeMember(info.method)) {
       bailout('Passed to a native method');

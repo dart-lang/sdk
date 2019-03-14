@@ -4251,7 +4251,10 @@ void Serializer::WriteInstructions(RawInstructions* instr, RawCode* code) {
   ASSERT(code != Code::null());
 
   const intptr_t offset = image_writer_->GetTextOffsetFor(instr, code);
-  ASSERT(offset != 0);
+  if (offset == 0) {
+    // Code should have been removed by DropCodeWithoutReusableInstructions.
+    UnexpectedObject(code, "Expected instructions to reuse");
+  }
   Write<int32_t>(offset);
 
   // If offset < 0, it's pointing to a shared instruction. We don't profile

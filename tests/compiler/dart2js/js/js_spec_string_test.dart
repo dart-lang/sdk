@@ -15,11 +15,13 @@ const NULL = 'Null';
 
 class Listener extends DiagnosticReporter {
   String errorMessage;
+  @override
   internalError(spannable, message) {
     errorMessage = message;
     throw "error";
   }
 
+  @override
   reportError(message, [infos = const <DiagnosticMessage>[]]) {
     errorMessage =
         '${message.message.arguments}'; // E.g.  "{text: Duplicate tag 'new'.}"
@@ -33,6 +35,7 @@ class Listener extends DiagnosticReporter {
         MessageTemplate.TEMPLATES[messageKind].message(arguments));
   }
 
+  @override
   noSuchMethod(_) => null;
 }
 

@@ -235,7 +235,8 @@ class CompilerAnalysisDriver {
         libraryUris.toSet(),
         (uri) => summaryData.linkedMap[uri],
         (uri) => summaryData.unlinkedMap[uri] ?? uriToUnit[uri],
-        declaredVariables.get);
+        declaredVariables.get,
+        analysisOptions);
     linkResult.forEach(assembler.addLinkedLibrary);
 
     var summaryBytes = assembler.assemble().toBuffer();

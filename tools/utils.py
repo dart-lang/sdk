@@ -880,11 +880,11 @@ class BaseCoreDumpArchiver(object):
         missing.append(crash)
     if self._output_directory is not None and self._is_shard():
       print (
-          "INFO: Copying collected dumps and binaries into output directory\n"
+          "INFO: Moving collected dumps and binaries into output directory\n"
           "INFO: They will be uploaded to isolate server. Look for \"isolated"
           " out\" under the failed step on the build page.\n"
           "INFO: For more information see runtime/docs/infra/coredumps.md")
-      self._copy(files)
+      self._move(files)
     else:
       print (
           "INFO: Uploading collected dumps and binaries into Cloud Storage\n"
@@ -910,13 +910,7 @@ class BaseCoreDumpArchiver(object):
     if throw:
       raise Exception('Missing crash dumps for: %s' % missing_as_string)
 
-  def _copy(self, files):
-    for file in files:
-      tarname = self._tar(file)
-      print '+++ Copying %s to output_directory (%s)' % (tarname, self._output_directory)
-      shutil.copy(tarname, self._output_directory)
-
-  def _tar(self, file):
+  def _get_file_name(self, file):
     # Sanitize the name: actual cores follow 'core.%d' pattern, crashed
     # binaries are copied next to cores and named
     # 'binary.<mode>_<arch>_<binary_name>'.
@@ -927,7 +921,21 @@ class BaseCoreDumpArchiver(object):
     if is_binary:
       (mode, arch, binary_name) = suffix.split('_', 2)
       name = binary_name
+    return (name, is_binary)
 
+  def _move(self, files):
+    for file in files:
+      print '+++ Moving %s to output_directory (%s)' % (file, self._output_directory)
+      (name, is_binary) = self._get_file_name(file)
+      destination = os.path.join(self._output_directory, name)
+      shutil.move(file, destination)
+      if is_binary and os.path.exists(file + '.pdb'):
+        # Also move a PDB file if there is one.
+        pdb = os.path.join(self._output_directory, name + '.pdb')
+        shutil.move(file + '.pdb', pdb)
+
+  def _tar(self, file):
+    (name, is_binary) = self._get_file_name(file)
     tarname = '%s.tar.gz' % name
 
     # Compress the file.

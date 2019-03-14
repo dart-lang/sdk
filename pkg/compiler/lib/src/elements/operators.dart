@@ -26,6 +26,7 @@ class UnaryOperator {
   Selector get selector => new Selector(SelectorKind.OPERATOR,
       new PublicName(selectorName), CallStructure.NO_ARGS);
 
+  @override
   String toString() => name;
 
   /// The unary ! operator.
@@ -102,6 +103,7 @@ class BinaryOperator {
 
   String get selectorName => name;
 
+  @override
   String toString() => name;
 
   /// The == operator.
@@ -297,8 +299,10 @@ class BinaryOperator {
 class _NotEqualsOperator extends BinaryOperator {
   const _NotEqualsOperator() : super._(BinaryOperatorKind.NOT_EQ, '!=');
 
+  @override
   bool get isUserDefinable => false;
 
+  @override
   String get selectorName => '==';
 }
 
@@ -308,8 +312,10 @@ class _LogicalOperator extends BinaryOperator {
   const _LogicalOperator(BinaryOperatorKind kind, String name)
       : super._(kind, name);
 
+  @override
   bool get isUserDefinable => false;
 
+  @override
   String get selectorName => null;
 }
 
@@ -318,7 +324,9 @@ class _IfNullOperator extends BinaryOperator {
   const _IfNullOperator(BinaryOperatorKind kind, String name)
       : super._(kind, name);
 
+  @override
   bool get isUserDefinable => false;
 
+  @override
   String get selectorName => '??';
 }

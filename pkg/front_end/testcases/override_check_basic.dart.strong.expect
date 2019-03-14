@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/override_check_basic.dart:29:52: Error: The return type of the method 'E.f4' is 'Object', which does not match the return type of the overridden method, 'A'.
+// pkg/front_end/testcases/override_check_basic.dart:29:52: Error: The return type of the method 'E.f4' is 'Object', which does not match the return type, 'A', of the overridden method, 'C.f4'.
 //  - 'Object' is from 'dart:core'.
 //  - 'A' is from 'pkg/front_end/testcases/override_check_basic.dart'.
 // Change to a subtype of 'A'.
@@ -12,7 +12,7 @@ library;
 //   A f4() {}
 //     ^
 //
-// pkg/front_end/testcases/override_check_basic.dart:28:55: Error: The parameter 'x' of the method 'E.f3' has type 'B', which does not match the corresponding type in the overridden method, 'A'.
+// pkg/front_end/testcases/override_check_basic.dart:28:55: Error: The parameter 'x' of the method 'E.f3' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'C.f3'.
 //  - 'B' is from 'pkg/front_end/testcases/override_check_basic.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/override_check_basic.dart'.
 // Change to a supertype of 'A', or, for a covariant parameter, a subtype.
@@ -22,7 +22,7 @@ library;
 //   void f3({A x}) {}
 //        ^
 //
-// pkg/front_end/testcases/override_check_basic.dart:26:54: Error: The parameter 'x' of the method 'E.f1' has type 'B', which does not match the corresponding type in the overridden method, 'A'.
+// pkg/front_end/testcases/override_check_basic.dart:26:54: Error: The parameter 'x' of the method 'E.f1' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'C.f1'.
 //  - 'B' is from 'pkg/front_end/testcases/override_check_basic.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/override_check_basic.dart'.
 // Change to a supertype of 'A', or, for a covariant parameter, a subtype.
@@ -32,7 +32,7 @@ library;
 //   void f1(A x) {}
 //        ^
 //
-// pkg/front_end/testcases/override_check_basic.dart:27:55: Error: The parameter 'x' of the method 'E.f2' has type 'B', which does not match the corresponding type in the overridden method, 'A'.
+// pkg/front_end/testcases/override_check_basic.dart:27:55: Error: The parameter 'x' of the method 'E.f2' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'C.f2'.
 //  - 'B' is from 'pkg/front_end/testcases/override_check_basic.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/override_check_basic.dart'.
 // Change to a supertype of 'A', or, for a covariant parameter, a subtype.

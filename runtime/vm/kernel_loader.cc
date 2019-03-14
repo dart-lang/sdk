@@ -676,6 +676,14 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
       }
     }
 
+    // Set pending fields array to flag constant table loading.
+    ASSERT(I->object_store()->pending_unevaluated_const_fields() ==
+           GrowableObjectArray::null());
+    GrowableObjectArray& pending_unevaluated_const_fields =
+        GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+    I->object_store()->set_pending_unevaluated_const_fields(
+        pending_unevaluated_const_fields);
+
     // All classes were successfully loaded, so let's:
     //     a) load & canonicalize the constant table
     const Array& constants = ReadConstantTable();
@@ -690,6 +698,22 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
     kernel_program_info_.set_constants(constants);
     kernel_program_info_.set_constants_table(ExternalTypedData::Handle(Z));
 
+    //     d) evaluate pending field initializers
+    Error& error = Error::Handle(Z);
+    Field& field = Field::Handle(Z);
+    for (intptr_t i = 0, n = pending_unevaluated_const_fields.Length(); i < n;
+         i++) {
+      field ^= pending_unevaluated_const_fields.At(i);
+      error = field.EvaluateInitializer();
+      if (!error.IsNull()) {
+        H.ReportError(error, "postponed field initializer");
+      }
+    }
+    pending_unevaluated_const_fields = GrowableObjectArray::null();
+    I->object_store()->set_pending_unevaluated_const_fields(
+        pending_unevaluated_const_fields);
+
+    //     e) evaluate pragmas that were delayed
     EvaluateDelayedPragmas();
 
     NameIndex main = program_->main_method();
@@ -1067,6 +1091,9 @@ void KernelLoader::FinishTopLevelClassLoading(
     // In the VM all const fields are implicitly final whereas in Kernel they
     // are not final because they are not explicitly declared that way.
     const bool is_final = field_helper.IsConst() || field_helper.IsFinal();
+    // Only instance fields could be covariant.
+    ASSERT(!field_helper.IsCovariant() &&
+           !field_helper.IsGenericCovariantImpl());
     const Field& field = Field::Handle(
         Z,
         Field::NewTopLevel(name, is_final, field_helper.IsConst(), script_class,
@@ -1490,6 +1517,9 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                      field_helper.position_, field_helper.end_position_));
       field.set_kernel_offset(field_offset);
       field.set_has_pragma(has_pragma_annotation);
+      field.set_is_covariant(field_helper.IsCovariant());
+      field.set_is_generic_covariant_impl(
+          field_helper.IsGenericCovariantImpl());
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);

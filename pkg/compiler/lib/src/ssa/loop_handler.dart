@@ -313,6 +313,7 @@ abstract class LoopHandler {
 // TODO(het): Since kernel simplifies loop breaks and continues, we should
 // rewrite the loop handler from scratch to account for the simplified structure
 class KernelLoopHandler extends LoopHandler {
+  @override
   final KernelSsaGraphBuilder builder;
 
   KernelLoopHandler(KernelSsaGraphBuilder builder)

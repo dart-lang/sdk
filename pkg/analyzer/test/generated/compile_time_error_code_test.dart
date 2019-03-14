@@ -13,7 +13,8 @@ import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CompileTimeErrorCodeTest_Driver);
+    defineReflectiveTests(CompileTimeErrorCodeTest);
+    defineReflectiveTests(CompileTimeErrorCodeTest_WithUIAsCode);
     defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest);
     defineReflectiveTests(ControlFlowCollectionsTest);
     defineReflectiveTests(InvalidTypeArgumentInConstSetTest);
@@ -23,7 +24,7 @@ main() {
 }
 
 @reflectiveTest
-class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTestBase {
+class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
   @override
   bool get enableNewAnalysisDriver => true;
 
@@ -97,6 +98,41 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTestBase {
   @failingTest
   test_yieldInNonGenerator_sync() {
     return super.test_yieldInNonGenerator_sync();
+  }
+}
+
+@reflectiveTest
+class CompileTimeErrorCodeTest_WithUIAsCode extends ResolverTestCase {
+  @override
+  List<String> get enabledExperiments =>
+      [EnableString.control_flow_collections, EnableString.spread_collections];
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_defaultValueInFunctionTypeAlias_new_named() async {
+    // This test used to fail with UI as code enabled. Test the fix here.
+    Source source = addSource('''
+typedef F = int Function({Map<String, String> m: const {}});
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
+    ]);
+    verify([source]);
+  }
+
+  test_defaultValueInFunctionTypeAlias_new_named_ambiguous() async {
+    // Strong checker asserts isSet || isMap. Prove that assertion holds.
+    Source source = addSource('''
+typedef F = int Function({Object m: const {1, 2: 3}});
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
+      CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
+    ]);
+    verify([source]);
   }
 }
 

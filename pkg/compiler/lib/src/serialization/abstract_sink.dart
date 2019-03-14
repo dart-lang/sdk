@@ -43,6 +43,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _importIndex = new IndexedSink<ImportEntity>(this);
   }
 
+  @override
   void begin(String tag) {
     if (useDataKinds) {
       _tags ??= <String>[];
@@ -51,6 +52,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     }
   }
 
+  @override
   void end(Object tag) {
     if (useDataKinds) {
       _end(tag);
@@ -207,6 +209,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _writeIntInternal(value);
   }
 
+  @override
   void writeTreeNode(ir.TreeNode value) {
     _writeDataKind(DataKind.treeNode);
     _writeTreeNode(value);
@@ -294,22 +297,27 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     if (useDataKinds) _writeEnumInternal(kind);
   }
 
+  @override
   void writeLibrary(IndexedLibrary value) {
     writeInt(value.libraryIndex);
   }
 
+  @override
   void writeClass(IndexedClass value) {
     writeInt(value.classIndex);
   }
 
+  @override
   void writeTypedef(IndexedTypedef value) {
     writeInt(value.typedefIndex);
   }
 
+  @override
   void writeMember(IndexedMember value) {
     writeInt(value.memberIndex);
   }
 
+  @override
   void writeLocal(Local local) {
     if (local is JLocal) {
       writeEnum(LocalKind.jLocal);

@@ -208,6 +208,7 @@ abstract class CompilerTask {
 }
 
 class GenericTask extends CompilerTask {
+  @override
   final String name;
   GenericTask(this.name, Measurer measurer) : super(measurer);
 }
@@ -230,6 +231,7 @@ class Measurer {
   final bool enableTaskMeasurements;
 
   static int _hashCodeGenerator = 197;
+  @override
   final int hashCode = _hashCodeGenerator++;
 
   Measurer({this.enableTaskMeasurements: false});

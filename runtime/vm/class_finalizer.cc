@@ -1225,6 +1225,12 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   sentinel.SetStaticValue(enum_value, true);
   sentinel.RecordStore(enum_value);
 
+  const GrowableObjectArray& pending_unevaluated_const_fields =
+      GrowableObjectArray::Handle(zone,
+                                  thread->isolate()
+                                      ->object_store()
+                                      ->pending_unevaluated_const_fields());
+
   if (enum_cls.kernel_offset() > 0) {
     Error& error = Error::Handle(zone);
     for (intptr_t i = 0; i < fields.Length(); i++) {
@@ -1234,12 +1240,19 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
         continue;
       }
       // The eager evaluation of the enum values is required for hot-reload (see
-      // commit e3ecc87).
+      // commit e3ecc87). However, while busy loading the constant table, we
+      // need to postpone this evaluation until table is done.
       if (!FLAG_precompiled_mode) {
         if (field.IsUninitialized()) {
-          error = field.EvaluateInitializer();
-          if (!error.IsNull()) {
-            ReportError(error);
+          if (pending_unevaluated_const_fields.IsNull()) {
+            // Evaluate right away.
+            error = field.EvaluateInitializer();
+            if (!error.IsNull()) {
+              ReportError(error);
+            }
+          } else {
+            // Postpone evaluation until we have a constant table.
+            pending_unevaluated_const_fields.Add(field);
           }
         }
       }

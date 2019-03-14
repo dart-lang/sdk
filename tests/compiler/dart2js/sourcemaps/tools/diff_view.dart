@@ -124,6 +124,7 @@ void computeEntityCodeSources(
 class CodeLineAnnotationJsonStrategy implements JsonStrategy {
   const CodeLineAnnotationJsonStrategy();
 
+  @override
   Map encodeAnnotation(Annotation annotation) {
     CodeLineAnnotation data = annotation.data;
     return {
@@ -134,6 +135,7 @@ class CodeLineAnnotationJsonStrategy implements JsonStrategy {
     };
   }
 
+  @override
   Annotation decodeAnnotation(Map json) {
     return new Annotation(json['id'], json['codeOffset'], json['title'],
         data: CodeLineAnnotation.fromJson(json['data'], this));

@@ -1117,16 +1117,30 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return _typeSystem.leastUpperBound(thenType, elseType);
     } else if (element is Expression) {
       return element.staticType;
+    } else if (element is MapLiteralEntry) {
+      // This error will be reported elsewhere.
+      return _typeProvider.dynamicType;
     } else if (element is SpreadElement) {
-      DartType collectionType = element.expression.staticType;
-      if (collectionType is ParameterizedType) {
-        List<DartType> typeArguments = collectionType.typeArguments;
-        if (typeArguments.length == 1) {
-          return typeArguments[0];
+      DartType expressionType = element.expression.staticType;
+      bool isNull = expressionType.isDartCoreNull;
+      if (!isNull && expressionType is InterfaceType) {
+        if (_typeSystem.isSubtypeOf(
+            expressionType, _typeProvider.iterableObjectType)) {
+          InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
+              .asInstanceOf(_typeProvider.iterableType.element);
+          return iterableType.typeArguments[0];
         }
+      } else if (expressionType.isDynamic) {
+        return expressionType;
+      } else if (isNull &&
+          element.spreadOperator.type ==
+              TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
+        return expressionType;
       }
+      // TODO(brianwilkerson) Report this as an error.
+      return _typeProvider.dynamicType;
     }
-    return null;
+    throw StateError('Unhandled element type ${element.runtimeType}');
   }
 
   /**
@@ -1385,7 +1399,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       _InferredCollectionElementTypeInformation elseType =
           _inferCollectionElementType(element.elseElement);
-      return _InferredCollectionElementTypeInformation.leastUpperBound(
+      return _InferredCollectionElementTypeInformation.forIfElement(
           _typeSystem, thenType, elseType);
     } else if (element is Expression) {
       return _InferredCollectionElementTypeInformation(
@@ -1403,41 +1417,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
             expressionType, _typeProvider.iterableObjectType)) {
           InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
               .asInstanceOf(_typeProvider.iterableType.element);
-          if (iterableType != null) {
-            // The `iterableType` will be `null` when `expressionType` is
-            // `Null`. Fall through in that case to perform the default type
-            // check.
-            List<DartType> typeArguments = iterableType.typeArguments;
-            if (typeArguments.length == 1) {
-              return _InferredCollectionElementTypeInformation(
-                  elementType: typeArguments[0],
-                  keyType: null,
-                  valueType: null);
-            }
-          }
           return _InferredCollectionElementTypeInformation(
-              elementType: _typeProvider.dynamicType,
+              elementType: iterableType.typeArguments[0],
               keyType: null,
               valueType: null);
         } else if (_typeSystem.isSubtypeOf(
             expressionType, _typeProvider.mapObjectObjectType)) {
           InterfaceType mapType = (expressionType as InterfaceTypeImpl)
               .asInstanceOf(_typeProvider.mapType.element);
-          if (mapType != null) {
-            // The `iterableType` will be `null` when `expressionType` is
-            // `Null`. Fall through in that case to perform the default type
-            // check.
-            List<DartType> typeArguments = mapType.typeArguments;
-            if (typeArguments.length == 2) {
-              return _InferredCollectionElementTypeInformation(
-                  elementType: null,
-                  keyType: typeArguments[0],
-                  valueType: typeArguments[1]);
-            }
-          }
-          DartType dynamicType = _typeProvider.dynamicType;
+          List<DartType> typeArguments = mapType.typeArguments;
           return _InferredCollectionElementTypeInformation(
-              elementType: null, keyType: dynamicType, valueType: dynamicType);
+              elementType: null,
+              keyType: typeArguments[0],
+              valueType: typeArguments[1]);
         }
       } else if (expressionType.isDynamic) {
         return _InferredCollectionElementTypeInformation(
@@ -1825,7 +1817,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       // Ambiguous.  We're not going to get any more information to resolve the
       // ambiguity, so we have to make an arbitrary decision at this point; we
       // choose map.
-      // TODO(paulberry): report an error due to the ambiguity.
+      if (mustBeAMap && mustBeASet) {
+        _resolver.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, literal);
+      } else {
+        _resolver.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, literal);
+      }
       return _toMapType(literal, contextType, inferredTypes);
     }
   }
@@ -1953,21 +1951,43 @@ class _InferredCollectionElementTypeInformation {
   _InferredCollectionElementTypeInformation(
       {this.elementType, this.keyType, this.valueType});
 
-  factory _InferredCollectionElementTypeInformation.leastUpperBound(
-          TypeSystem typeSystem,
-          _InferredCollectionElementTypeInformation first,
-          _InferredCollectionElementTypeInformation second) =>
-      _InferredCollectionElementTypeInformation(
-          elementType: _leastUpperBoundOfTypes(
-              typeSystem, first.elementType, second.elementType),
-          keyType: _leastUpperBoundOfTypes(
-              typeSystem, first.keyType, second.keyType),
-          valueType: _leastUpperBoundOfTypes(
-              typeSystem, first.valueType, second.valueType));
+  factory _InferredCollectionElementTypeInformation.forIfElement(
+      TypeSystem typeSystem,
+      _InferredCollectionElementTypeInformation thenInfo,
+      _InferredCollectionElementTypeInformation elseInfo) {
+    if (thenInfo.isDynamic) {
+      DartType dynamic = thenInfo.elementType;
+      return _InferredCollectionElementTypeInformation(
+          elementType: _dynamicOrNull(elseInfo.elementType, dynamic),
+          keyType: _dynamicOrNull(elseInfo.keyType, dynamic),
+          valueType: _dynamicOrNull(elseInfo.valueType, dynamic));
+    } else if (elseInfo.isDynamic) {
+      DartType dynamic = elseInfo.elementType;
+      return _InferredCollectionElementTypeInformation(
+          elementType: _dynamicOrNull(thenInfo.elementType, dynamic),
+          keyType: _dynamicOrNull(thenInfo.keyType, dynamic),
+          valueType: _dynamicOrNull(thenInfo.valueType, dynamic));
+    }
+    return _InferredCollectionElementTypeInformation(
+        elementType: _leastUpperBoundOfTypes(
+            typeSystem, thenInfo.elementType, elseInfo.elementType),
+        keyType: _leastUpperBoundOfTypes(
+            typeSystem, thenInfo.keyType, elseInfo.keyType),
+        valueType: _leastUpperBoundOfTypes(
+            typeSystem, thenInfo.valueType, elseInfo.valueType));
+  }
 
   bool get canBeAMap => keyType != null || valueType != null;
 
   bool get canBeASet => elementType != null;
+
+  bool get isDynamic =>
+      elementType != null &&
+      elementType.isDynamic &&
+      keyType != null &&
+      keyType.isDynamic &&
+      valueType != null &&
+      valueType.isDynamic;
 
   bool get mustBeAMap => canBeAMap && elementType == null;
 
@@ -1976,6 +1996,13 @@ class _InferredCollectionElementTypeInformation {
   @override
   String toString() {
     return '($elementType, $keyType, $valueType)';
+  }
+
+  static DartType _dynamicOrNull(DartType type, DartType dynamic) {
+    if (type == null) {
+      return null;
+    }
+    return dynamic;
   }
 
   static DartType _leastUpperBoundOfTypes(

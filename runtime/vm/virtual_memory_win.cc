@@ -14,6 +14,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, write_protect_code);
+
 uword VirtualMemory::page_size_ = 0;
 
 void VirtualMemory::Init() {
@@ -26,11 +28,16 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
                                               const char* name) {
+  // When FLAG_write_protect_code is active, code memory (indicated by
+  // is_executable = true) is allocated as non-executable and later
+  // changed to executable via VirtualMemory::Protect.
   ASSERT(Utils::IsAligned(size, page_size_));
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, page_size_));
   intptr_t reserved_size = size + alignment - page_size_;
-  int prot = is_executable ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
+  int prot = (is_executable && !FLAG_write_protect_code)
+                 ? PAGE_EXECUTE_READWRITE
+                 : PAGE_READWRITE;
   void* address = VirtualAlloc(NULL, reserved_size, MEM_RESERVE, prot);
   if (address == NULL) {
     return NULL;

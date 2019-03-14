@@ -211,6 +211,7 @@ class Initializer {
     throw new UnsupportedError('Unexpected kind $kind');
   }
 
+  @override
   String toString() => shortText;
 }
 
@@ -612,6 +613,7 @@ class FieldAnalysisData {
 
   ConstantValue get constantValue => isEffectivelyFinal ? initialValue : null;
 
+  @override
   String toString() =>
       'FieldAnalysisData(initialValue=${initialValue?.toStructuredText()},'
       'isInitializedInAllocator=$isInitializedInAllocator,'

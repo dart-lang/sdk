@@ -903,13 +903,20 @@ class AstCloner
   }
 
   @override
-  SetOrMapLiteral visitSetOrMapLiteral(SetOrMapLiteral node) =>
-      astFactory.setOrMapLiteral(
-          constKeyword: cloneToken(node.constKeyword),
-          typeArguments: cloneNode(node.typeArguments),
-          leftBracket: cloneToken(node.leftBracket),
-          elements: cloneNodeList(node.elements2),
-          rightBracket: cloneToken(node.rightBracket));
+  SetOrMapLiteral visitSetOrMapLiteral(SetOrMapLiteral node) {
+    var result = astFactory.setOrMapLiteral(
+        constKeyword: cloneToken(node.constKeyword),
+        typeArguments: cloneNode(node.typeArguments),
+        leftBracket: cloneToken(node.leftBracket),
+        elements: cloneNodeList(node.elements2),
+        rightBracket: cloneToken(node.rightBracket));
+    if (node.isMap) {
+      (result as SetOrMapLiteralImpl).becomeMap();
+    } else if (node.isSet) {
+      (result as SetOrMapLiteralImpl).becomeSet();
+    }
+    return result;
+  }
 
   @override
   ShowCombinator visitShowCombinator(ShowCombinator node) => astFactory

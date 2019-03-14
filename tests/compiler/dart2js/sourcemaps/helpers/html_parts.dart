@@ -36,8 +36,10 @@ class AnnotationData {
   const AnnotationData(
       {this.tag: 'a', this.properties: const <String, String>{}});
 
+  @override
   int get hashCode => tag.hashCode * 13 + properties.hashCode * 19;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! AnnotationData) return false;
@@ -171,6 +173,7 @@ class ConstHtmlPart implements HtmlPart {
 
   const ConstHtmlPart(this.html);
 
+  @override
   HtmlPartKind get kind => HtmlPartKind.CONST;
 
   @override
@@ -178,6 +181,7 @@ class ConstHtmlPart implements HtmlPart {
     buffer.write(html);
   }
 
+  @override
   toJson(JsonStrategy strategy) {
     return {'kind': kind.index, 'html': html};
   }
@@ -190,8 +194,10 @@ class ConstHtmlPart implements HtmlPart {
 class NewLine implements HtmlPart {
   const NewLine();
 
+  @override
   HtmlPartKind get kind => HtmlPartKind.NEWLINE;
 
+  @override
   void printHtmlOn(StringBuffer buffer, HtmlPrintContext context) {
     if (context.usePre) {
       buffer.write('\n');
@@ -200,6 +206,7 @@ class NewLine implements HtmlPart {
     }
   }
 
+  @override
   toJson(JsonStrategy strategy) {
     return {'kind': kind.index};
   }
@@ -210,13 +217,16 @@ class HtmlText implements HtmlPart {
 
   const HtmlText(this.text);
 
+  @override
   HtmlPartKind get kind => HtmlPartKind.TEXT;
 
+  @override
   void printHtmlOn(StringBuffer buffer, HtmlPrintContext context) {
     String escaped = escape(text);
     buffer.write(escaped);
   }
 
+  @override
   toJson(JsonStrategy strategy) {
     return {'kind': kind.index, 'text': text};
   }
@@ -235,6 +245,7 @@ class TagPart implements HtmlPart {
       {this.properties: const <String, String>{},
       this.content: const <HtmlPart>[]});
 
+  @override
   HtmlPartKind get kind => HtmlPartKind.TAG;
 
   @override
@@ -252,6 +263,7 @@ class TagPart implements HtmlPart {
     buffer.write('</$tag>');
   }
 
+  @override
   toJson(JsonStrategy strategy) {
     return {
       'kind': kind.index,
@@ -271,6 +283,7 @@ class TagPart implements HtmlPart {
 class HtmlLine implements HtmlPart {
   final List<HtmlPart> htmlParts = <HtmlPart>[];
 
+  @override
   HtmlPartKind get kind => HtmlPartKind.LINE;
 
   @override
@@ -280,6 +293,7 @@ class HtmlLine implements HtmlPart {
     }
   }
 
+  @override
   Map toJson(JsonStrategy strategy) {
     return {
       'kind': kind.index,
@@ -370,6 +384,7 @@ class LineNumber extends HtmlPart {
 
   LineNumber(this.lineNo, this.lineAnnotation);
 
+  @override
   HtmlPartKind get kind => HtmlPartKind.LINE_NUMBER;
 
   @override
@@ -407,6 +422,7 @@ class CodeLine extends HtmlPart {
 
   CodeLine(this.lineNo, this.offset, {this.uri});
 
+  @override
   HtmlPartKind get kind => HtmlPartKind.CODE;
 
   String get code {
@@ -432,6 +448,7 @@ class CodeLine extends HtmlPart {
     }
   }
 
+  @override
   Map toJson(JsonStrategy strategy) {
     return {
       'kind': kind.index,

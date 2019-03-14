@@ -5,6 +5,7 @@
 #include "vm/compiler/relocation.h"
 
 #include "vm/code_patcher.h"
+#include "vm/heap/pages.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/stub_code.h"
@@ -362,8 +363,11 @@ void CodeRelocator::ResolveCallToDestination(UnresolvedCall* unresolved_call,
   auto caller = Code::InstructionsOf(unresolved_call->caller);
   const int32_t distance = destination_text - call_text_offset;
   {
-    PcRelativeCallPattern call(Instructions::PayloadStart(caller) +
-                               call_offset);
+    uword addr = Instructions::PayloadStart(caller) + call_offset;
+    if (FLAG_write_protect_code) {
+      addr -= HeapPage::Of(caller)->AliasOffset();
+    }
+    PcRelativeCallPattern call(addr);
     ASSERT(call.IsValid());
     call.set_distance(static_cast<int32_t>(distance));
     ASSERT(call.distance() == distance);

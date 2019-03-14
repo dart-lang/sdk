@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -174,8 +175,8 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
         .map((Source source) => source.uri.toString())
         .toSet();
 
-    Map<String, LinkedLibrary> linkedSummaries =
-        link(nonSdkLibraryUris, getDependency, getUnit, declaredVariables.get);
+    Map<String, LinkedLibrary> linkedSummaries = link(nonSdkLibraryUris,
+        getDependency, getUnit, declaredVariables.get, analysisOptions);
 
     var analysisContext = RestrictedAnalysisContext(
       analysisOptions,
@@ -270,6 +271,7 @@ class SerializedMockSdk {
   final Map<String, UnlinkedUnit> uriToUnlinkedUnit;
 
   final Map<String, LinkedLibrary> uriToLinkedLibrary;
+
   SerializedMockSdk._(this.uriToUnlinkedUnit, this.uriToLinkedLibrary);
 
   static SerializedMockSdk _serializeMockSdk() {
@@ -441,7 +443,7 @@ class SummaryLinkerTestStrategyTwoPhase extends _SummaryBaseTestStrategyTwoPhase
         _linkerInputs.getUnit,
         _linkerInputs.getDeclaredVariable);
     linker = new Linker(linkedLibraries, _linkerInputs.getDependency,
-        _linkerInputs.getUnit, null);
+        _linkerInputs.getUnit, null, analysisOptions);
   }
 }
 
@@ -526,6 +528,9 @@ abstract class _SummaryBaseTestStrategyTwoPhase
 
   _LinkerInputs _linkerInputs;
 
+  AnalysisOptions get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = experimentStatus.toStringList();
+
   bool get _allowMissingFiles;
 
   @override
@@ -550,7 +555,8 @@ abstract class _SummaryBaseTestStrategyTwoPhase
         linkerInputs.linkedLibraries,
         linkerInputs.getDependency,
         linkerInputs.getUnit,
-        linkerInputs.getDeclaredVariable);
+        linkerInputs.getDeclaredVariable,
+        analysisOptions);
     linkedLibraries.forEach(assembler.addLinkedLibrary);
     linkerInputs._uriToUnit.forEach((String uri, UnlinkedUnit unit) {
       assembler.addUnlinkedUnitViaUri(uri, unit);
@@ -614,7 +620,8 @@ abstract class _SummaryBlackBoxTestStrategyTwoPhase
         _linkerInputs.linkedLibraries,
         _linkerInputs.getDependency,
         _linkerInputs.getUnit,
-        (name) => null)[_linkerInputs._testDartUri.toString()];
+        (name) => null,
+        analysisOptions)[_linkerInputs._testDartUri.toString()];
     expect(linked, isNotNull);
     _validateLinkedLibrary(linked);
     unlinkedUnits = <UnlinkedUnit>[_linkerInputs._unlinkedDefiningUnit];

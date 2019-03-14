@@ -170,6 +170,7 @@ class VariableScope {
     sb.write(']');
   }
 
+  @override
   String toString() {
     String rest = parent == null ? "null" : parent.toString();
     return '{$variables} $rest';
@@ -253,12 +254,16 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
       : positional = const [],
         named = const {};
 
+  @override
   int get length => positional.length + named.length;
 
+  @override
   Iterator<TypeInformation> get iterator => new ArgumentsTypesIterator(this);
 
+  @override
   String toString() => "{ positional = $positional, named = $named }";
 
+  @override
   bool operator ==(other) {
     if (positional.length != other.positional.length) return false;
     if (named.length != other.named.length) return false;
@@ -272,19 +277,23 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
     return result;
   }
 
+  @override
   int get hashCode => throw new UnsupportedError('ArgumentsTypes.hashCode');
 
   bool hasNoArguments() => positional.isEmpty && named.isEmpty;
 
+  @override
   void forEach(void f(TypeInformation type)) {
     positional.forEach(f);
     named.values.forEach(f);
   }
 
+  @override
   bool every(bool f(TypeInformation type)) {
     return positional.every(f) && named.values.every(f);
   }
 
+  @override
   bool contains(Object type) {
     return positional.contains(type) || named.containsValue(type);
   }
@@ -302,8 +311,10 @@ class ArgumentsTypesIterator implements Iterator<TypeInformation> {
   Iterator<TypeInformation> get _currentIterator =>
       _iteratePositional ? positional : named;
 
+  @override
   TypeInformation get current => _currentIterator.current;
 
+  @override
   bool moveNext() {
     if (_iteratePositional && positional.moveNext()) {
       return true;
@@ -587,6 +598,7 @@ class LocalsHandler {
     sb.write('\n]');
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('LocalsHandler(');

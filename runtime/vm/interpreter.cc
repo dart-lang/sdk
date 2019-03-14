@@ -584,8 +584,40 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       RawInstance* instance = reinterpret_cast<RawInstance*>(*call_base);
       RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
       intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
+      RawObject* value =
+          reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+
+      const bool unboxing =
+          (field->ptr()->is_nullable_ != kNullCid) &&
+          Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
+      classid_t guarded_cid = field->ptr()->guarded_cid_;
+      if (unboxing && (guarded_cid == kDoubleCid)) {
+        double raw_value = Double::RawCast(value)->ptr()->value_;
+        if (!AllocateDoubleBox(thread, raw_value, *pc, *FP, *SP)) {
+          *invoked = true;
+          return false;
+        }
+        value = Double::RawCast(*SP[0]);
+      } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
+        simd128_value_t raw_value;
+        raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
+        if (!AllocateFloat32x4Box(thread, raw_value, *pc, *FP, *SP)) {
+          *invoked = true;
+          return false;
+        }
+        value = Float32x4::RawCast(*SP[0]);
+      } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
+        simd128_value_t raw_value;
+        raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
+        if (!AllocateFloat64x2Box(thread, raw_value, *pc, *FP, *SP)) {
+          *invoked = true;
+          return false;
+        }
+        value = Float64x2::RawCast(*SP[0]);
+      }
+
       *SP = call_base;
-      **SP = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+      **SP = value;
       *invoked = true;
       return true;
     }
@@ -669,9 +701,39 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
         instance = reinterpret_cast<RawInstance*>(call_base[0]);
         value = call_base[1];
       }
-      instance->StorePointer(
-          reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-          value, thread);
+
+      const bool unboxing =
+          (field->ptr()->is_nullable_ != kNullCid) &&
+          Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
+      classid_t guarded_cid = field->ptr()->guarded_cid_;
+      if (unboxing && (guarded_cid == kDoubleCid)) {
+        double raw_value = Double::RawCast(value)->ptr()->value_;
+        RawDouble* box =
+            *(reinterpret_cast<RawDouble**>(instance->ptr()) + offset_in_words);
+        ASSERT(box != null_value);  // Non-initializing store.
+        box->ptr()->value_ = raw_value;
+      } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
+        simd128_value_t raw_value;
+        raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
+        RawFloat32x4* box =
+            *(reinterpret_cast<RawFloat32x4**>(instance->ptr()) +
+              offset_in_words);
+        ASSERT(box != null_value);  // Non-initializing store.
+        raw_value.writeTo(box->ptr()->value_);
+      } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
+        simd128_value_t raw_value;
+        raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
+        RawFloat64x2* box =
+            *(reinterpret_cast<RawFloat64x2**>(instance->ptr()) +
+              offset_in_words);
+        ASSERT(box != null_value);  // Non-initializing store.
+        raw_value.writeTo(box->ptr()->value_);
+      } else {
+        instance->StorePointer(
+            reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
+            value, thread);
+      }
+
       *SP = call_base;
       **SP = null_value;
       *invoked = true;
@@ -1350,8 +1412,111 @@ DART_NOINLINE bool Interpreter::AllocateInt64Box(Thread* thread,
     if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
       return false;
     }
-    *reinterpret_cast<int64_t*>(reinterpret_cast<uword>(SP[0]) -
-                                kHeapObjectTag + Mint::value_offset()) = value;
+    reinterpret_cast<RawMint*>(SP[0])->ptr()->value_ = value;
+    return true;
+  }
+}
+
+// Allocate _Double box for the given double value and puts it into SP[0].
+// Returns false on exception.
+DART_NOINLINE bool Interpreter::AllocateDoubleBox(Thread* thread,
+                                                  double value,
+                                                  uint32_t* pc,
+                                                  RawObject** FP,
+                                                  RawObject** SP) {
+  const intptr_t instance_size = Double::InstanceSize();
+  const uword start =
+      thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
+  if (LIKELY(start != 0)) {
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(kDoubleCid, tags);
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    // Also writes zero in the hash_ field.
+    *reinterpret_cast<uword*>(start + Double::tags_offset()) = tags;
+    *reinterpret_cast<double*>(start + Double::value_offset()) = value;
+    SP[0] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+    return true;
+  } else {
+    SP[0] = 0;  // Space for the result.
+    SP[1] = thread->isolate()->object_store()->double_class();  // Class object.
+    SP[2] = Object::null();  // Type arguments.
+    Exit(thread, FP, SP + 3, pc);
+    NativeArguments args(thread, 2, SP + 1, SP);
+    if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
+      return false;
+    }
+    reinterpret_cast<RawDouble*>(SP[0])->ptr()->value_ = value;
+    return true;
+  }
+}
+
+// Allocate _Float32x4 box for the given simd value and puts it into SP[0].
+// Returns false on exception.
+DART_NOINLINE bool Interpreter::AllocateFloat32x4Box(Thread* thread,
+                                                     simd128_value_t value,
+                                                     uint32_t* pc,
+                                                     RawObject** FP,
+                                                     RawObject** SP) {
+  const intptr_t instance_size = Float32x4::InstanceSize();
+  const uword start =
+      thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
+  if (LIKELY(start != 0)) {
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(kFloat32x4Cid, tags);
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    // Also writes zero in the hash_ field.
+    *reinterpret_cast<uword*>(start + Float32x4::tags_offset()) = tags;
+    SP[0] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+    value.writeTo(reinterpret_cast<RawFloat32x4*>(SP[0])->ptr()->value_);
+    return true;
+  } else {
+    SP[0] = 0;  // Space for the result.
+    SP[1] =
+        thread->isolate()->object_store()->float32x4_class();  // Class object.
+    SP[2] = Object::null();  // Type arguments.
+    Exit(thread, FP, SP + 3, pc);
+    NativeArguments args(thread, 2, SP + 1, SP);
+    if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
+      return false;
+    }
+    value.writeTo(reinterpret_cast<RawFloat32x4*>(SP[0])->ptr()->value_);
+    return true;
+  }
+}
+
+// Allocate _Float64x2 box for the given simd value and puts it into SP[0].
+// Returns false on exception.
+DART_NOINLINE bool Interpreter::AllocateFloat64x2Box(Thread* thread,
+                                                     simd128_value_t value,
+                                                     uint32_t* pc,
+                                                     RawObject** FP,
+                                                     RawObject** SP) {
+  const intptr_t instance_size = Float64x2::InstanceSize();
+  const uword start =
+      thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
+  if (LIKELY(start != 0)) {
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(kFloat64x2Cid, tags);
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    // Also writes zero in the hash_ field.
+    *reinterpret_cast<uword*>(start + Float64x2::tags_offset()) = tags;
+    SP[0] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+    value.writeTo(reinterpret_cast<RawFloat64x2*>(SP[0])->ptr()->value_);
+    return true;
+  } else {
+    SP[0] = 0;  // Space for the result.
+    SP[1] =
+        thread->isolate()->object_store()->float64x2_class();  // Class object.
+    SP[2] = Object::null();  // Type arguments.
+    Exit(thread, FP, SP + 3, pc);
+    NativeArguments args(thread, 2, SP + 1, SP);
+    if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
+      return false;
+    }
+    value.writeTo(reinterpret_cast<RawFloat32x4*>(SP[0])->ptr()->value_);
     return true;
   }
 }
@@ -2230,30 +2395,74 @@ SwitchDispatch:
     RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
     RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
     RawObject* value = reinterpret_cast<RawObject*>(SP[0]);
-    SP -= 2;  // Drop instance and value.
     intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
 
     if (thread->isolate()->use_field_guards() &&
         InterpreterHelpers::FieldNeedsGuardUpdate(field, value)) {
-      SP[1] = instance;  // Preserve.
-      SP[2] = 0;         // Unused result of runtime call.
-      SP[3] = field;
-      SP[4] = value;
-      Exit(thread, FP, SP + 5, pc);
-      NativeArguments args(thread, 2, /* argv */ SP + 3, /* retval */ SP + 2);
+      SP[1] = 0;  // Unused result of runtime call.
+      SP[2] = field;
+      SP[3] = value;
+      Exit(thread, FP, SP + 4, pc);
+      NativeArguments args(thread, 2, /* argv */ SP + 2, /* retval */ SP + 1);
       if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid, args)) {
         HANDLE_EXCEPTION;
       }
 
       // Reload objects after the call which may trigger GC.
-      instance = reinterpret_cast<RawInstance*>(SP[1]);
-      value = SP[4];
+      field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
+      instance = reinterpret_cast<RawInstance*>(SP[-1]);
+      value = SP[0];
     }
 
-    instance->StorePointer(
-        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
-        thread);
+    const bool unboxing =
+        (field->ptr()->is_nullable_ != kNullCid) &&
+        Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
+    classid_t guarded_cid = field->ptr()->guarded_cid_;
+    if (unboxing && (guarded_cid == kDoubleCid)) {
+      double raw_value = Double::RawCast(value)->ptr()->value_;
+      ASSERT(*(reinterpret_cast<RawDouble**>(instance->ptr()) +
+               offset_in_words) == null_value);  // Initializing store.
+      if (!AllocateDoubleBox(thread, raw_value, pc, FP, SP)) {
+        HANDLE_EXCEPTION;
+      }
+      RawDouble* box = Double::RawCast(SP[0]);
+      instance = reinterpret_cast<RawInstance*>(SP[-1]);
+      instance->StorePointer(
+          reinterpret_cast<RawDouble**>(instance->ptr()) + offset_in_words, box,
+          thread);
+    } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
+      simd128_value_t raw_value;
+      raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
+      ASSERT(*(reinterpret_cast<RawFloat32x4**>(instance->ptr()) +
+               offset_in_words) == null_value);  // Initializing store.
+      if (!AllocateFloat32x4Box(thread, raw_value, pc, FP, SP)) {
+        HANDLE_EXCEPTION;
+      }
+      RawFloat32x4* box = Float32x4::RawCast(SP[0]);
+      instance = reinterpret_cast<RawInstance*>(SP[-1]);
+      instance->StorePointer(
+          reinterpret_cast<RawFloat32x4**>(instance->ptr()) + offset_in_words,
+          box, thread);
+    } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
+      simd128_value_t raw_value;
+      raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
+      ASSERT(*(reinterpret_cast<RawFloat64x2**>(instance->ptr()) +
+               offset_in_words) == null_value);  // Initializing store.
+      if (!AllocateFloat64x2Box(thread, raw_value, pc, FP, SP)) {
+        HANDLE_EXCEPTION;
+      }
+      RawFloat64x2* box = Float64x2::RawCast(SP[0]);
+      instance = reinterpret_cast<RawInstance*>(SP[-1]);
+      instance->StorePointer(
+          reinterpret_cast<RawFloat64x2**>(instance->ptr()) + offset_in_words,
+          box, thread);
+    } else {
+      instance->StorePointer(
+          reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
+          value, thread);
+    }
 
+    SP -= 2;  // Drop instance and value.
     DISPATCH();
   }
 
@@ -2289,6 +2498,16 @@ SwitchDispatch:
 
   {
     BYTECODE(LoadFieldTOS, __D);
+#if defined(DEBUG)
+    // Currently only used to load closure fields, which are not unboxed.
+    // If used for general field, code for copying the mutable box must be
+    // added.
+    RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
+    const bool unboxing =
+        (field->ptr()->is_nullable_ != kNullCid) &&
+        Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
+    ASSERT(!unboxing);
+#endif
     const uword offset_in_words =
         static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
     RawInstance* instance = static_cast<RawInstance*>(SP[0]);

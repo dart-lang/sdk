@@ -80,6 +80,7 @@ class SourceMapHtmlInfo {
   SourceMapHtmlInfo(
       this.sourceMapInfo, this.codeProcessor, this.sourceLocationCollection);
 
+  @override
   String toString() {
     return sourceMapInfo.toString();
   }
@@ -117,6 +118,7 @@ abstract class CssColorScheme {
 }
 
 class CustomColorScheme implements CssColorScheme {
+  @override
   final bool showLocationAsSpan;
   final Function single;
   final Function multi;
@@ -126,8 +128,10 @@ class CustomColorScheme implements CssColorScheme {
       String this.single(int id),
       String this.multi(List<int> ids)});
 
+  @override
   String singleLocationToCssColor(int id) => single != null ? single(id) : null;
 
+  @override
   String multiLocationToCssColor(List<int> ids) =>
       multi != null ? multi(ids) : null;
 }
@@ -135,12 +139,15 @@ class CustomColorScheme implements CssColorScheme {
 class PatternCssColorScheme implements CssColorScheme {
   const PatternCssColorScheme();
 
+  @override
   bool get showLocationAsSpan => true;
 
+  @override
   String singleLocationToCssColor(int index) {
     return "background:${toPattern(index)};";
   }
 
+  @override
   String multiLocationToCssColor(List<int> indices) {
     StringBuffer sb = new StringBuffer();
     double delta = 100.0 / (indices.length);
@@ -163,12 +170,15 @@ class PatternCssColorScheme implements CssColorScheme {
 class SingleColorScheme implements CssColorScheme {
   const SingleColorScheme();
 
+  @override
   bool get showLocationAsSpan => false;
 
+  @override
   String singleLocationToCssColor(int index) {
     return "background:${toColorCss(index)};";
   }
 
+  @override
   String multiLocationToCssColor(List<int> indices) {
     StringBuffer sb = new StringBuffer();
     double delta = 100.0 / (indices.length);

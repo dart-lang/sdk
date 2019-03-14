@@ -86,40 +86,50 @@ abstract class OutputVisitor<R, A> {
 abstract class BaseOutputVisitor<R, A> extends OutputVisitor<R, A> {
   R visitEntity(OutputEntity entity, A arg) => null;
 
+  @override
   R visitStructure(OutputStructure entity, A arg) => visitEntity(entity, arg);
+  @override
   R visitLibrary(LibraryBlock entity, A arg) => visitEntity(entity, arg);
+  @override
   R visitClass(LibraryClass entity, A arg) => visitEntity(entity, arg);
 
   R visitMember(BasicEntity entity, A arg) => visitEntity(entity, arg);
 
   R visitTopLevelMember(BasicEntity entity, A arg) => visitMember(entity, arg);
 
+  @override
   R visitTopLevelFunction(TopLevelFunction entity, A arg) {
     return visitTopLevelMember(entity, arg);
   }
 
+  @override
   R visitTopLevelValue(TopLevelValue entity, A arg) {
     return visitTopLevelMember(entity, arg);
   }
 
   R visitClassMember(BasicEntity entity, A arg) => visitMember(entity, arg);
 
+  @override
   R visitMemberObject(MemberObject entity, A arg) {
     return visitClassMember(entity, arg);
   }
 
+  @override
   R visitMemberFunction(MemberFunction entity, A arg) {
     return visitClassMember(entity, arg);
   }
 
+  @override
   R visitMemberValue(MemberValue entity, A arg) {
     return visitClassMember(entity, arg);
   }
 
+  @override
   R visitStatics(Statics entity, A arg) {
     return visitClassMember(entity, arg);
   }
 
+  @override
   R visitStaticFunction(StaticFunction entity, A arg) {
     return visitClassMember(entity, arg);
   }
@@ -130,6 +140,7 @@ class OutputStructure extends OutputEntity {
   final List<CodeLine> lines;
   final int headerEnd;
   final int footerStart;
+  @override
   final List<LibraryBlock> children;
 
   OutputStructure(this.lines, this.headerEnd, this.footerStart, this.children);
@@ -137,14 +148,19 @@ class OutputStructure extends OutputEntity {
   @override
   EntityKind get kind => EntityKind.STRUCTURE;
 
+  @override
   Interval get interval => new Interval(0, lines.length);
 
+  @override
   Interval get header => new Interval(0, headerEnd);
 
+  @override
   Interval get footer => new Interval(footerStart, lines.length);
 
+  @override
   bool get canHaveChildren => true;
 
+  @override
   OutputEntity getEntityForLine(int line) {
     if (line < headerEnd || line >= footerStart) {
       return this;
@@ -221,6 +237,7 @@ class OutputStructure extends OutputEntity {
     return new OutputStructure(lines, headerEnd, footerStart, libraryBlocks);
   }
 
+  @override
   accept(OutputVisitor visitor, arg) => visitor.visitStructure(this, arg);
 
   @override
@@ -252,6 +269,7 @@ abstract class AbstractEntity extends OutputEntity {
 
   AbstractEntity(this.name, this.from);
 
+  @override
   Interval get interval => new Interval(from, to);
 
   @override
@@ -328,6 +346,7 @@ abstract class AbstractEntity extends OutputEntity {
 
 /// A block defining the content of a Dart library.
 class LibraryBlock extends AbstractEntity {
+  @override
   List<BasicEntity> children = <BasicEntity>[];
   int get headerEnd => from + 2;
   int get footerStart => to /* - 1*/;
@@ -337,10 +356,13 @@ class LibraryBlock extends AbstractEntity {
   @override
   EntityKind get kind => EntityKind.LIBRARY;
 
+  @override
   Interval get header => new Interval(from, headerEnd);
 
+  @override
   Interval get footer => new Interval(footerStart, to);
 
+  @override
   bool get canHaveChildren => true;
 
   void preprocess(List<CodeLine> lines) {
@@ -383,8 +405,10 @@ class LibraryBlock extends AbstractEntity {
     }
   }
 
+  @override
   accept(OutputVisitor visitor, arg) => visitor.visitLibrary(this, arg);
 
+  @override
   OutputEntity getEntityForLine(int line) {
     if (line < headerEnd || line >= footerStart) {
       return this;
@@ -402,10 +426,13 @@ class LibraryBlock extends AbstractEntity {
 abstract class BasicEntity extends AbstractEntity {
   BasicEntity(String name, int from) : super(name, from);
 
+  @override
   Interval get header => new Interval(from, to);
 
+  @override
   Interval get footer => new Interval(to, to);
 
+  @override
   List<OutputEntity> get children => const <OutputEntity>[];
 
   void preprocess(List<CodeLine> lines) {}
@@ -425,6 +452,7 @@ class TopLevelFunction extends BasicEntity {
   @override
   EntityKind get kind => EntityKind.TOP_LEVEL_FUNCTION;
 
+  @override
   accept(OutputVisitor visitor, arg) {
     return visitor.visitTopLevelFunction(this, arg);
   }
@@ -436,6 +464,7 @@ class TopLevelValue extends BasicEntity {
   @override
   EntityKind get kind => EntityKind.TOP_LEVEL_VALUE;
 
+  @override
   accept(OutputVisitor visitor, arg) {
     return visitor.visitTopLevelValue(this, arg);
   }
@@ -443,6 +472,7 @@ class TopLevelValue extends BasicEntity {
 
 /// A block defining a Dart class.
 class LibraryClass extends BasicEntity {
+  @override
   List<BasicEntity> children = <BasicEntity>[];
   int get headerEnd => from + 1;
   int get footerStart => to - 1;
@@ -452,12 +482,16 @@ class LibraryClass extends BasicEntity {
   @override
   EntityKind get kind => EntityKind.CLASS;
 
+  @override
   Interval get header => new Interval(from, headerEnd);
 
+  @override
   Interval get footer => new Interval(footerStart, to);
 
+  @override
   bool get canHaveChildren => true;
 
+  @override
   void preprocess(List<CodeLine> lines) {
     int index = headerEnd;
     BasicEntity current;
@@ -503,8 +537,10 @@ class LibraryClass extends BasicEntity {
     }
   }
 
+  @override
   accept(OutputVisitor visitor, arg) => visitor.visitClass(this, arg);
 
+  @override
   OutputEntity getEntityForLine(int line) {
     if (line < headerEnd || line >= footerStart) {
       return this;
@@ -520,6 +556,7 @@ class LibraryClass extends BasicEntity {
 
 /// A block defining static members of a Dart class.
 class Statics extends BasicEntity {
+  @override
   List<BasicEntity> children = <BasicEntity>[];
   int get headerEnd => from + 1;
   int get footerStart => to - 1;
@@ -529,12 +566,16 @@ class Statics extends BasicEntity {
   @override
   EntityKind get kind => EntityKind.STATICS;
 
+  @override
   Interval get header => new Interval(from, headerEnd);
 
+  @override
   Interval get footer => new Interval(footerStart, to);
 
+  @override
   bool get canHaveChildren => true;
 
+  @override
   void preprocess(List<CodeLine> lines) {
     int index = headerEnd;
     BasicEntity current;
@@ -561,8 +602,10 @@ class Statics extends BasicEntity {
     }
   }
 
+  @override
   accept(OutputVisitor visitor, arg) => visitor.visitStatics(this, arg);
 
+  @override
   OutputEntity getEntityForLine(int line) {
     if (line < headerEnd || line >= footerStart) {
       return this;
@@ -582,6 +625,7 @@ class MemberFunction extends BasicEntity {
   @override
   EntityKind get kind => EntityKind.MEMBER_FUNCTION;
 
+  @override
   accept(OutputVisitor visitor, arg) => visitor.visitMemberFunction(this, arg);
 }
 
@@ -591,6 +635,7 @@ class MemberObject extends BasicEntity {
   @override
   EntityKind get kind => EntityKind.MEMBER_OBJECT;
 
+  @override
   accept(OutputVisitor visitor, arg) => visitor.visitMemberObject(this, arg);
 }
 
@@ -600,6 +645,7 @@ class MemberValue extends BasicEntity {
   @override
   EntityKind get kind => EntityKind.MEMBER_VALUE;
 
+  @override
   accept(OutputVisitor visitor, arg) => visitor.visitMemberValue(this, arg);
 }
 
@@ -609,6 +655,7 @@ class StaticFunction extends BasicEntity {
   @override
   EntityKind get kind => EntityKind.STATIC_FUNCTION;
 
+  @override
   accept(OutputVisitor visitor, arg) => visitor.visitStaticFunction(this, arg);
 }
 
@@ -634,6 +681,7 @@ class Interval {
     return from - windowSize <= index && index < to + windowSize;
   }
 
+  @override
   String toString() => '[$from,$to[';
 }
 
@@ -652,6 +700,7 @@ class CodeLocation {
     assert(uri != null);
   }
 
+  @override
   String toString() => '$uri:$name:$offset';
 
   Map toJson(JsonStrategy strategy) {
@@ -681,6 +730,7 @@ class CodeSource {
 
   CodeSource(this.kind, this.uri, this.name, this.begin, this.end);
 
+  @override
   int get hashCode {
     return kind.hashCode * 13 +
         uri.hashCode * 17 +
@@ -688,6 +738,7 @@ class CodeSource {
         begin.hashCode * 23;
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! CodeSource) return false;
@@ -697,6 +748,7 @@ class CodeSource {
         begin == other.begin;
   }
 
+  @override
   String toString() => '${toJson()}';
 
   Map toJson() {

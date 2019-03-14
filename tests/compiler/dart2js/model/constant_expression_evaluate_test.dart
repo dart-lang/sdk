@@ -64,6 +64,7 @@ class MemoryEnvironment implements EvaluationEnvironment {
 
   MemoryEnvironment(this._environment, [this.env = const <String, String>{}]);
 
+  @override
   bool get checkCasts => true;
 
   @override

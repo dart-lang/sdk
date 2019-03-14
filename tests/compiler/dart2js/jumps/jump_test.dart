@@ -56,6 +56,7 @@ class TargetData {
 
   TargetData(this.index, this.id, this.sourceSpan, this.target);
 
+  @override
   String toString() => 'TargetData(index=$index,id=$id,'
       'sourceSpan=$sourceSpan,target=$target)';
 }
@@ -67,6 +68,7 @@ class GotoData {
 
   GotoData(this.id, this.sourceSpan, this.target);
 
+  @override
   String toString() => 'GotoData(id=$id,sourceSpan=$sourceSpan,target=$target)';
 }
 
@@ -113,6 +115,7 @@ class JumpsIrChecker extends IrDataExtractor<String> {
     });
   }
 
+  @override
   void run(ir.Node root) {
     super.run(root);
     processData();
@@ -136,30 +139,35 @@ class JumpsIrChecker extends IrDataExtractor<String> {
     }
   }
 
+  @override
   visitForStatement(ir.ForStatement node) {
     addTargetData(
         node, createLoopId(node), _localsMap.getJumpTargetForFor(node));
     super.visitForStatement(node);
   }
 
+  @override
   visitForInStatement(ir.ForInStatement node) {
     addTargetData(
         node, createLoopId(node), _localsMap.getJumpTargetForForIn(node));
     super.visitForInStatement(node);
   }
 
+  @override
   visitWhileStatement(ir.WhileStatement node) {
     addTargetData(
         node, createLoopId(node), _localsMap.getJumpTargetForWhile(node));
     super.visitWhileStatement(node);
   }
 
+  @override
   visitDoStatement(ir.DoStatement node) {
     addTargetData(
         node, createLoopId(node), _localsMap.getJumpTargetForDo(node));
     super.visitDoStatement(node);
   }
 
+  @override
   visitBreakStatement(ir.BreakStatement node) {
     JumpTarget target = _localsMap.getJumpTargetForBreak(node);
     assert(target != null, 'No target for $node.');
@@ -180,18 +188,21 @@ class JumpsIrChecker extends IrDataExtractor<String> {
     super.visitLabeledStatement(node);
   }
 
+  @override
   visitSwitchStatement(ir.SwitchStatement node) {
     addTargetData(
         node, createSwitchId(node), _localsMap.getJumpTargetForSwitch(node));
     super.visitSwitchStatement(node);
   }
 
+  @override
   visitSwitchCase(ir.SwitchCase node) {
     addTargetData(node, createSwitchCaseId(node),
         _localsMap.getJumpTargetForSwitchCase(node));
     super.visitSwitchCase(node);
   }
 
+  @override
   visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
     JumpTarget target = _localsMap.getJumpTargetForContinueSwitch(node);
     assert(target != null, 'No target for $node.');

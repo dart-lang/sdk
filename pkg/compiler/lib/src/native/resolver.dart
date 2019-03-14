@@ -6,12 +6,14 @@ import '../common.dart';
 import '../common_elements.dart' show KElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../ir/annotations.dart';
 import '../js_backend/native_data.dart';
 
 /// Interface for computing native members.
 abstract class NativeMemberResolver {
   /// Computes whether [element] is native or JsInterop.
-  void resolveNativeMember(MemberEntity element);
+  void resolveNativeMember(
+      MemberEntity element, IrAnnotationData annotationData);
 }
 
 /// Determines all native classes in a set of libraries.
@@ -28,6 +30,7 @@ class BaseNativeClassFinder implements NativeClassFinder {
 
   BaseNativeClassFinder(this._elementEnvironment, this._nativeBasicData);
 
+  @override
   Iterable<ClassEntity> computeNativeClasses(Iterable<Uri> libraries) {
     Set<ClassEntity> nativeClasses = new Set<ClassEntity>();
     libraries.forEach((uri) => _processNativeClassesInLibrary(

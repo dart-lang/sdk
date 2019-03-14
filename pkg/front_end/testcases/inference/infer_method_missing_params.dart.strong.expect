@@ -2,18 +2,18 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_method_missing_params.dart:25:79: Error: Can't infer the type of 'y': overridden members must all have the same type.
-// Specify the type explicitly.
+// pkg/front_end/testcases/inference/infer_method_missing_params.dart:25:79: Error: Can't infer a type for 'y' as some of the inherited members have different types.
+// Try adding an explicit type.
 //       /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ y);
 //                                                                               ^
 //
-// pkg/front_end/testcases/inference/infer_method_missing_params.dart:29:80: Error: Can't infer the type of 'y': overridden members must all have the same type.
-// Specify the type explicitly.
+// pkg/front_end/testcases/inference/infer_method_missing_params.dart:29:80: Error: Can't infer a type for 'y' as some of the inherited members have different types.
+// Try adding an explicit type.
 //       {/*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ y});
 //                                                                                ^
 //
-// pkg/front_end/testcases/inference/infer_method_missing_params.dart:27:80: Error: Can't infer the type of 'y': overridden members must all have the same type.
-// Specify the type explicitly.
+// pkg/front_end/testcases/inference/infer_method_missing_params.dart:27:80: Error: Can't infer a type for 'y' as some of the inherited members have different types.
+// Try adding an explicit type.
 //       [/*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ y]);
 //                                                                                ^
 //

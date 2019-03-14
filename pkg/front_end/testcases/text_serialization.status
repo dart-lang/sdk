@@ -157,6 +157,7 @@ inference/coerce_bottom_and_null_types: TextSerializationFailure # Was: Pass
 inference/complex_predecrement: TextSerializationFailure # Was: Pass
 inference/conditional_lub: TextSerializationFailure # Was: Pass
 inference/conditional_upwards_inference: TextSerializationFailure # Was: Pass
+inference/conflicting_fields: TypeCheckError
 inference/conflicts_can_happen2: TypeCheckError
 inference/conflicts_can_happen: TypeCheckError
 inference/constructors_downwards_with_constraint: TextSerializationFailure # Was: Pass

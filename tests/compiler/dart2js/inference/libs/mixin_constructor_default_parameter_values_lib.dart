@@ -6,6 +6,7 @@ class _SECRET {
   /*element: _SECRET.:[exact=_SECRET]*/
   const _SECRET();
   /*element: _SECRET.toString:Value([exact=JSString], value: "SECRET!")*/
+  @override
   String toString() => "SECRET!";
 }
 
@@ -29,5 +30,6 @@ class C {
         this.y = b;
 
   /*element: C.toString:[exact=JSString]*/
+  @override
   String toString() => "C(${/*[exact=D]*/ x},${/*[exact=D]*/ y})";
 }

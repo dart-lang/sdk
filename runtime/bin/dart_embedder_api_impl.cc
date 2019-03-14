@@ -90,8 +90,6 @@ Dart_Isolate CreateVmServiceIsolate(const IsolateCreationData& data,
   if (!bin::VmService::Setup(config.ip, config.port, config.dev_mode,
                              /*trace_loading=*/false, config.deterministic)) {
     *error = strdup(bin::VmService::GetErrorMessage());
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
     return nullptr;
   }
 

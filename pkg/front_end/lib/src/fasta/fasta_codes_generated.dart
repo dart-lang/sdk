@@ -590,30 +590,31 @@ Message _withArgumentsCantInferTypeDueToCircularity(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)>
+const Template<Message Function(String name)>
     templateCantInferTypeDueToInconsistentOverrides =
-    const Template<Message Function(String string)>(
+    const Template<Message Function(String name)>(
         messageTemplate:
-            r"""Can't infer the type of '#string': overridden members must all have the same type.""",
-        tipTemplate: r"""Specify the type explicitly.""",
+            r"""Can't infer a type for '#name' as some of the inherited members have different types.""",
+        tipTemplate: r"""Try adding an explicit type.""",
         withArguments: _withArgumentsCantInferTypeDueToInconsistentOverrides);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)>
+const Code<Message Function(String name)>
     codeCantInferTypeDueToInconsistentOverrides =
-    const Code<Message Function(String string)>(
+    const Code<Message Function(String name)>(
         "CantInferTypeDueToInconsistentOverrides",
         templateCantInferTypeDueToInconsistentOverrides,
         analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String string) {
-  if (string.isEmpty) throw 'No string provided';
+Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
   return new Message(codeCantInferTypeDueToInconsistentOverrides,
       message:
-          """Can't infer the type of '${string}': overridden members must all have the same type.""",
-      tip: """Specify the type explicitly.""",
-      arguments: {'string': string});
+          """Can't infer a type for '${name}' as some of the inherited members have different types.""",
+      tip: """Try adding an explicit type.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7381,29 +7382,35 @@ const Template<
         String name,
         String name2,
         DartType _type,
-        DartType
-            _type2)> templateOverrideTypeMismatchParameter = const Template<
-        Message Function(String name, String name2, DartType _type,
-            DartType _type2)>(
+        DartType _type2,
+        String
+            name3)> templateOverrideTypeMismatchParameter = const Template<
+        Message Function(
+            String name,
+            String name2,
+            DartType _type,
+            DartType _type2,
+            String
+                name3)>(
     messageTemplate:
-        r"""The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type in the overridden method, '#type2'.""",
+        r"""The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type, '#type2', in the overridden method, '#name3'.""",
     tipTemplate:
         r"""Change to a supertype of '#type2', or, for a covariant parameter, a subtype.""",
     withArguments: _withArgumentsOverrideTypeMismatchParameter);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
-        Message Function(
-            String name, String name2, DartType _type, DartType _type2)>
-    codeOverrideTypeMismatchParameter = const Code<
-            Message Function(
-                String name, String name2, DartType _type, DartType _type2)>(
+        Message Function(String name, String name2, DartType _type,
+            DartType _type2, String name3)> codeOverrideTypeMismatchParameter =
+    const Code<
+            Message Function(String name, String name2, DartType _type,
+                DartType _type2, String name3)>(
         "OverrideTypeMismatchParameter", templateOverrideTypeMismatchParameter,
         analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeMismatchParameter(
-    String name, String name2, DartType _type, DartType _type2) {
+    String name, String name2, DartType _type, DartType _type2, String name3) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
@@ -7411,18 +7418,21 @@ Message _withArgumentsOverrideTypeMismatchParameter(
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
+  if (name3.isEmpty) throw 'No name provided';
+  name3 = demangleMixinApplicationName(name3);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(codeOverrideTypeMismatchParameter,
       message:
-          """The parameter '${name}' of the method '${name2}' has type '${type}', which does not match the corresponding type in the overridden method, '${type2}'.""" +
+          """The parameter '${name}' of the method '${name2}' has type '${type}', which does not match the corresponding type, '${type2}', in the overridden method, '${name3}'.""" +
               labeler.originMessages,
       tip: """Change to a supertype of '${type2}', or, for a covariant parameter, a subtype.""",
       arguments: {
         'name': name,
         'name2': name2,
         'type': _type,
-        'type2': _type2
+        'type2': _type2,
+        'name3': name3
       });
 }
 
@@ -7431,38 +7441,50 @@ const Template<
     Message Function(
         String name,
         DartType _type,
-        DartType
-            _type2)> templateOverrideTypeMismatchReturnType = const Template<
-        Message Function(String name, DartType _type, DartType _type2)>(
+        DartType _type2,
+        String
+            name2)> templateOverrideTypeMismatchReturnType = const Template<
+        Message Function(
+            String name, DartType _type, DartType _type2, String name2)>(
     messageTemplate:
-        r"""The return type of the method '#name' is '#type', which does not match the return type of the overridden method, '#type2'.""",
+        r"""The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'.""",
     tipTemplate: r"""Change to a subtype of '#type2'.""",
     withArguments: _withArgumentsOverrideTypeMismatchReturnType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type, DartType _type2)>
-    codeOverrideTypeMismatchReturnType =
-    const Code<Message Function(String name, DartType _type, DartType _type2)>(
+const Code<
+        Message Function(
+            String name, DartType _type, DartType _type2, String name2)>
+    codeOverrideTypeMismatchReturnType = const Code<
+            Message Function(
+                String name, DartType _type, DartType _type2, String name2)>(
         "OverrideTypeMismatchReturnType",
         templateOverrideTypeMismatchReturnType,
         analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeMismatchReturnType(
-    String name, DartType _type, DartType _type2) {
+    String name, DartType _type, DartType _type2, String name2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(codeOverrideTypeMismatchReturnType,
       message:
-          """The return type of the method '${name}' is '${type}', which does not match the return type of the overridden method, '${type2}'.""" +
+          """The return type of the method '${name}' is '${type}', which does not match the return type, '${type2}', of the overridden method, '${name2}'.""" +
               labeler.originMessages,
       tip: """Change to a subtype of '${type2}'.""",
-      arguments: {'name': name, 'type': _type, 'type2': _type2});
+      arguments: {
+        'name': name,
+        'type': _type,
+        'type2': _type2,
+        'name2': name2
+      });
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

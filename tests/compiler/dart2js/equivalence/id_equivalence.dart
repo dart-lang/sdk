@@ -34,14 +34,17 @@ class IdValue {
 
   const IdValue(this.id, this.value);
 
+  @override
   int get hashCode => id.hashCode * 13 + value.hashCode * 17;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! IdValue) return false;
     return id == other.id && value == other.value;
   }
 
+  @override
   String toString() => idToString(id, value);
 
   static String idToString(Id id, String value) {
@@ -131,6 +134,7 @@ class IdValue {
 class ElementId implements Id {
   final String className;
   final String memberName;
+  @override
   final bool isGlobal;
 
   factory ElementId(String text, {bool isGlobal: false}) {
@@ -145,44 +149,55 @@ class ElementId implements Id {
 
   ElementId.internal(this.memberName, {this.className, this.isGlobal: false});
 
+  @override
   int get hashCode => className.hashCode * 13 + memberName.hashCode * 17;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ElementId) return false;
     return className == other.className && memberName == other.memberName;
   }
 
+  @override
   IdKind get kind => IdKind.element;
 
   String get name => className != null ? '$className.$memberName' : memberName;
 
+  @override
   String get descriptor => 'member $name';
 
+  @override
   String toString() => 'element:$name';
 }
 
 /// Id for a class.
 class ClassId implements Id {
   final String className;
+  @override
   final bool isGlobal;
 
   ClassId(this.className, {this.isGlobal: false});
 
+  @override
   int get hashCode => className.hashCode * 13;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ClassId) return false;
     return className == other.className;
   }
 
+  @override
   IdKind get kind => IdKind.cls;
 
   String get name => className;
 
+  @override
   String get descriptor => 'class $name';
 
+  @override
   String toString() => 'class:$name';
 }
 
@@ -190,22 +205,28 @@ class ClassId implements Id {
 // TODO(johnniwinther): Create an [NodeId]-based equivalence with the kernel IR.
 class NodeId implements Id {
   final int value;
+  @override
   final IdKind kind;
 
   const NodeId(this.value, this.kind);
 
+  @override
   bool get isGlobal => false;
 
+  @override
   int get hashCode => value.hashCode * 13 + kind.hashCode * 17;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! NodeId) return false;
     return value == other.value && kind == other.kind;
   }
 
+  @override
   String get descriptor => 'offset $value ($kind)';
 
+  @override
   String toString() => '$kind:$value';
 }
 
@@ -230,6 +251,7 @@ class ActualData<T> {
     return 'object `${'$object'.replaceAll('\n', '')}` (${object.runtimeType})';
   }
 
+  @override
   String toString() =>
       'ActualData(id=$id,value=$value,sourceSpan=$sourceSpan,object=$objectText)';
 }
@@ -272,7 +294,9 @@ Id computeEntityId(ir.Member node) {
 /// Abstract IR visitor for computing data corresponding to a node or element,
 /// and record it with a generic [Id]
 abstract class IrDataExtractor<T> extends ir.Visitor with DataRegistry<T> {
+  @override
   final DiagnosticReporter reporter;
+  @override
   final Map<Id, ActualData<T>> actualMap;
 
   /// Implement this to compute the data corresponding to [member].
@@ -352,15 +376,18 @@ abstract class IrDataExtractor<T> extends ir.Visitor with DataRegistry<T> {
     root.accept(this);
   }
 
+  @override
   defaultNode(ir.Node node) {
     node.visitChildren(this);
   }
 
+  @override
   defaultMember(ir.Member node) {
     computeForMember(node);
     super.defaultMember(node);
   }
 
+  @override
   visitMethodInvocation(ir.MethodInvocation node) {
     ir.TreeNode receiver = node.receiver;
     if (receiver is ir.VariableGet &&
@@ -384,15 +411,18 @@ abstract class IrDataExtractor<T> extends ir.Visitor with DataRegistry<T> {
     }
   }
 
+  @override
   visitLoadLibrary(ir.LoadLibrary node) {
     computeForNode(node, createInvokeId(node));
   }
 
+  @override
   visitPropertyGet(ir.PropertyGet node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitPropertyGet(node);
   }
 
+  @override
   visitVariableDeclaration(ir.VariableDeclaration node) {
     if (node.name != null && node.parent is! ir.FunctionDeclaration) {
       // Skip synthetic variables and function declaration variables.
@@ -401,16 +431,19 @@ abstract class IrDataExtractor<T> extends ir.Visitor with DataRegistry<T> {
     super.visitVariableDeclaration(node);
   }
 
+  @override
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitFunctionDeclaration(node);
   }
 
+  @override
   visitFunctionExpression(ir.FunctionExpression node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitFunctionExpression(node);
   }
 
+  @override
   visitVariableGet(ir.VariableGet node) {
     if (node.variable.name != null && !node.variable.isFieldFormal) {
       // Skip use of synthetic variables.
@@ -419,11 +452,13 @@ abstract class IrDataExtractor<T> extends ir.Visitor with DataRegistry<T> {
     super.visitVariableGet(node);
   }
 
+  @override
   visitPropertySet(ir.PropertySet node) {
     computeForNode(node, createUpdateId(node));
     super.visitPropertySet(node);
   }
 
+  @override
   visitVariableSet(ir.VariableSet node) {
     if (node.variable.name != null) {
       // Skip use of synthetic variables.
@@ -432,16 +467,19 @@ abstract class IrDataExtractor<T> extends ir.Visitor with DataRegistry<T> {
     super.visitVariableSet(node);
   }
 
+  @override
   visitDoStatement(ir.DoStatement node) {
     computeForNode(node, createLoopId(node));
     super.visitDoStatement(node);
   }
 
+  @override
   visitForStatement(ir.ForStatement node) {
     computeForNode(node, createLoopId(node));
     super.visitForStatement(node);
   }
 
+  @override
   visitForInStatement(ir.ForInStatement node) {
     computeForNode(node, createLoopId(node));
     computeForNode(node, createIteratorId(node));
@@ -450,11 +488,13 @@ abstract class IrDataExtractor<T> extends ir.Visitor with DataRegistry<T> {
     super.visitForInStatement(node);
   }
 
+  @override
   visitWhileStatement(ir.WhileStatement node) {
     computeForNode(node, createLoopId(node));
     super.visitWhileStatement(node);
   }
 
+  @override
   visitLabeledStatement(ir.LabeledStatement node) {
     if (!JumpVisitor.canBeBreakTarget(node.body) &&
         !JumpVisitor.canBeContinueTarget(node.parent)) {
@@ -463,16 +503,19 @@ abstract class IrDataExtractor<T> extends ir.Visitor with DataRegistry<T> {
     super.visitLabeledStatement(node);
   }
 
+  @override
   visitBreakStatement(ir.BreakStatement node) {
     computeForNode(node, createGotoId(node));
     super.visitBreakStatement(node);
   }
 
+  @override
   visitSwitchStatement(ir.SwitchStatement node) {
     computeForNode(node, createSwitchId(node));
     super.visitSwitchStatement(node);
   }
 
+  @override
   visitSwitchCase(ir.SwitchCase node) {
     if (node.expressionOffsets.isNotEmpty) {
       computeForNode(node, createSwitchCaseId(node));
@@ -480,6 +523,7 @@ abstract class IrDataExtractor<T> extends ir.Visitor with DataRegistry<T> {
     super.visitSwitchCase(node);
   }
 
+  @override
   visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
     computeForNode(node, createGotoId(node));
     super.visitContinueSwitchStatement(node);

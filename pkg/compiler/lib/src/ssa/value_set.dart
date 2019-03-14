@@ -152,6 +152,7 @@ class ValueSet {
 class ValueSetNode {
   final HInstruction value;
   final int hash;
+  @override
   int get hashCode => hash;
   ValueSetNode next;
   ValueSetNode(this.value, this.hash, this.next);

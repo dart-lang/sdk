@@ -53,6 +53,7 @@ class Check {
     return ' $indent';
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     printOn(sb, '');

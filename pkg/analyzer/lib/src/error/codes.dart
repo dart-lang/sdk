@@ -213,6 +213,26 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the export of one of the libraries, or "
               "explicitly hiding the name in one of the export directives.");
 
+  static const CompileTimeErrorCode AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH =
+      const CompileTimeErrorCode(
+          'AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
+          "This literal must be both a map and a set, because some elements "
+          "spread a 'Map' and others spread an 'Iterable', but that isn't "
+          "allowed.",
+          correction:
+              "Try removing or changing some of the elements so that all of "
+              "the elements are consistent.");
+
+  static const CompileTimeErrorCode AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER =
+      const CompileTimeErrorCode(
+          'AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER',
+          "This literal must be either a map or a set, but none of the "
+          "elements have enough type information to know which, and that isn't "
+          "allowed.",
+          correction:
+              "Try adding type arguments to the literal (one for sets, two "
+              "for maps).");
+
   /**
    * 15 Metadata: The constant expression given in an annotation is type checked
    * and evaluated in the scope surrounding the declaration being annotated.
@@ -633,6 +653,14 @@ class CompileTimeErrorCode extends ErrorCode {
           "Only static fields can be declared as const.",
           correction:
               "Try declaring the field as final, or adding the keyword 'static'.");
+
+  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_LIST_OR_SET =
+      const CompileTimeErrorCode('CONST_SPREAD_EXPECTED_LIST_OR_SET',
+          "A list or a set is expected in this spread.");
+
+  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_MAP =
+      const CompileTimeErrorCode(
+          'CONST_SPREAD_EXPECTED_MAP', "A map is expected in this spread.");
 
   /**
    * 12.8 Maps: It is a compile-time error if the key of an entry in a constant

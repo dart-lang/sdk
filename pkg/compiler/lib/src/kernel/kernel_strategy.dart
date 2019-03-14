@@ -57,6 +57,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   final Map<MemberEntity, ClosureScopeModel> closureModels = {};
 
   ModularStrategy _modularStrategy;
+  IrAnnotationData _irAnnotationData;
 
   KernelFrontEndStrategy(this._compilerTask, this._options,
       DiagnosticReporter reporter, env.Environment environment) {
@@ -69,9 +70,14 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   @override
   void registerLoadedLibraries(KernelResult kernelResult) {
     _elementMap.addComponent(kernelResult.component);
-    _annotationProcessor = new KernelAnnotationProcessor(elementMap,
-        nativeBasicDataBuilder, processAnnotations(kernelResult.component));
+    if (useIrAnnotationsDataForTesting) {
+      _irAnnotationData = processAnnotations(kernelResult.component);
+    }
+    _annotationProcessor = new KernelAnnotationProcessor(
+        elementMap, nativeBasicDataBuilder, _irAnnotationData);
   }
+
+  IrAnnotationData get irAnnotationDataForTesting => _irAnnotationData;
 
   ModularStrategy get modularStrategyForTesting => _modularStrategy;
 
@@ -81,6 +87,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   @override
   CommonElements get commonElements => _elementMap.commonElements;
 
+  @override
   DartTypes get dartTypes => _elementMap.types;
 
   KernelToElementMap get elementMap => _elementMap;
@@ -102,16 +109,19 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
         _elementMap.elementEnvironment, nativeBasicData);
   }
 
+  @override
   NoSuchMethodResolver createNoSuchMethodResolver() {
     return new KernelNoSuchMethodResolver(elementMap);
   }
 
   /// Computes the main function from [mainLibrary] adding additional world
   /// impact to [impactBuilder].
+  @override
   FunctionEntity computeMain(WorldImpactBuilder impactBuilder) {
     return elementEnvironment.mainFunction;
   }
 
+  @override
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
     return _runtimeTypesNeedBuilder ??= _options.disableRtiOptimization
         ? const TrivialRuntimeTypesNeedBuilder()
@@ -119,9 +129,11 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
             elementEnvironment, _elementMap.types);
   }
 
+  @override
   RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>
       _runtimeTypesNeedBuilder;
 
+  @override
   ResolutionWorldBuilder createResolutionWorldBuilder(
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
@@ -173,9 +185,11 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
         closureModels,
         impactCache,
         fieldAnalysis,
-        _modularStrategy);
+        _modularStrategy,
+        _irAnnotationData);
   }
 
+  @override
   ClassQueries createClassQueries() {
     return new KernelClassQueries(elementMap);
   }
@@ -196,6 +210,7 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
   final Map<Entity, WorldImpact> _impactCache;
   final KFieldAnalysis _fieldAnalysis;
   final ModularStrategy _modularStrategy;
+  final IrAnnotationData _irAnnotationData;
 
   KernelWorkItemBuilder(
       this._compilerTask,
@@ -207,7 +222,8 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
       this._closureModels,
       this._impactCache,
       this._fieldAnalysis,
-      this._modularStrategy)
+      this._modularStrategy,
+      this._irAnnotationData)
       : _nativeMemberResolver = new KernelNativeMemberResolver(
             _elementMap, nativeBasicData, nativeDataBuilder);
 
@@ -223,7 +239,8 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
         _closureModels,
         _impactCache,
         _fieldAnalysis,
-        _modularStrategy);
+        _modularStrategy,
+        _irAnnotationData);
   }
 }
 
@@ -233,11 +250,13 @@ class KernelWorkItem implements WorkItem {
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final AnnotationsDataBuilder _annotationsDataBuilder;
+  @override
   final MemberEntity element;
   final Map<MemberEntity, ClosureScopeModel> _closureModels;
   final Map<Entity, WorldImpact> _impactCache;
   final KFieldAnalysis _fieldAnalysis;
   final ModularStrategy _modularStrategy;
+  final IrAnnotationData _irAnnotationData;
 
   KernelWorkItem(
       this._compilerTask,
@@ -249,12 +268,13 @@ class KernelWorkItem implements WorkItem {
       this._closureModels,
       this._impactCache,
       this._fieldAnalysis,
-      this._modularStrategy);
+      this._modularStrategy,
+      this._irAnnotationData);
 
   @override
   WorldImpact run() {
     return _compilerTask.measure(() {
-      _nativeMemberResolver.resolveNativeMember(element);
+      _nativeMemberResolver.resolveNativeMember(element, _irAnnotationData);
       ir.Member node = _elementMap.getMemberNode(element);
 
       List<PragmaAnnotationData> pragmaAnnotationData =

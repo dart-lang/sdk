@@ -53,6 +53,12 @@ regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
+[ $runtime == vm ]
+spread_collections/const_error_test/05: Crash
+spread_collections/const_error_test/06: Crash
+spread_collections/const_error_test/07: Crash
+spread_collections/const_error_test/08: Crash
+
 [ $fasta ]
 partial_instantiation_static_bounds_check_test/01: MissingCompileTimeError # Issue 34327
 partial_instantiation_static_bounds_check_test/02: MissingCompileTimeError # Issue 34327

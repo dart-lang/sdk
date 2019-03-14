@@ -3538,11 +3538,6 @@ class PartialResolverVisitor extends ResolverVisitor {
   }
 
   @override
-  void visitNode(AstNode node) {
-    super.visitNode(node);
-  }
-
-  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _addStaticVariables(node.variables.variables);
     super.visitTopLevelVariableDeclaration(node);
@@ -4251,6 +4246,7 @@ class ResolverVisitor extends ScopedVisitor {
         resolutionMap.elementDeclaredByFormalParameter(node.parameter)?.type);
     super.visitDefaultFormalParameter(node);
     ParameterElement element = node.declaredElement;
+
     if (element.initializer != null && node.defaultValue != null) {
       (element.initializer as FunctionElementImpl).returnType =
           node.defaultValue.staticType;
@@ -4329,7 +4325,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitForElement(ForElement node) {
+  void visitForElementInScope(ForElement node) {
     ForLoopParts forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
       if (forLoopParts is ForPartsWithDeclarations) {
@@ -4516,9 +4512,6 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitFunctionTypeAliasInScope(node);
     safelyVisitComment(node.documentationComment);
   }
-
-  @override
-  void visitGenericFunctionType(GenericFunctionType node) {}
 
   @override
   void visitGenericTypeAliasInFunctionScope(GenericTypeAlias node) {
@@ -5802,6 +5795,27 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     //
     node.iterable?.accept(this);
     node.loopVariable?.accept(this);
+  }
+
+  @override
+  void visitForElement(ForElement node) {
+    Scope outerNameScope = nameScope;
+    try {
+      nameScope = new EnclosedScope(nameScope);
+      visitForElementInScope(node);
+    } finally {
+      nameScope = outerNameScope;
+    }
+  }
+
+  /// Visit the given [node] after it's scope has been created. This replaces
+  /// the normal call to the inherited visit method so that ResolverVisitor can
+  /// intervene when type propagation is enabled.
+  void visitForElementInScope(ForElement node) {
+    // TODO(brianwilkerson) Investigate the possibility of removing the
+    //  visit...InScope methods now that type propagation is no longer done.
+    node.forLoopParts?.accept(this);
+    node.body?.accept(this);
   }
 
   @override

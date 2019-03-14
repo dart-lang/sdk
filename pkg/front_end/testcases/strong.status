@@ -26,6 +26,7 @@ external_import: RuntimeError # The native extension to import doesn't exist. Th
 fallthrough: ExpectationFileMismatch
 incomplete_field_formal_parameter: RuntimeError
 inference/abstract_class_instantiation: InstrumentationMismatch # Issue #30040
+inference/conflicting_fields: TypeCheckError
 inference/conflicts_can_happen: TypeCheckError
 inference/conflicts_can_happen2: TypeCheckError
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError

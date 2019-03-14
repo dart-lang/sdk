@@ -5,10 +5,21 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
 
-abstract class NonHintCodeTest extends ResolverTestCase {
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NonHintCodeTest);
+  });
+}
+
+@reflectiveTest
+class NonHintCodeTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_async_future_object_without_return() async {
     Source source = addSource('''
 import 'dart:async';

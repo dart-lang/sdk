@@ -3655,13 +3655,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endIfControlFlow(Token token) {
     debugEvent("endIfControlFlow");
-    // TODO(danrubel) implement control flow support
-
     var entry = pop();
-    pop(); // parenthesized expression
+    var condition = pop(); // parenthesized expression
     Token ifToken = pop();
-    if (entry != invalidCollectionElement) {
-      // TODO(danrubel): Replace this with control flow structure
+    if (!library.loader.target.enableControlFlowCollections) {
       // TODO(danrubel): Report a more user friendly error message
       // when an experiment is not enabled
       handleRecoverableError(
@@ -3669,24 +3666,28 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           ifToken,
           ifToken);
       push(invalidCollectionElement);
-    } else {
-      // TODO(danrubel): Remove this when unified collections enabled
+      return;
+    }
+    if (entry == invalidCollectionElement) {
       push(invalidCollectionElement);
+      return;
+    }
+    transformCollections = true;
+    if (entry is MapEntry) {
+      push(forest.ifMapEntry(toValue(condition), entry, null, ifToken));
+    } else {
+      push(forest.ifElement(toValue(condition), toValue(entry), null, ifToken));
     }
   }
 
   @override
   void endIfElseControlFlow(Token token) {
     debugEvent("endIfElseControlFlow");
-    // TODO(danrubel) implement control flow support
-
     var elseEntry = pop(); // else entry
     var thenEntry = pop(); // then entry
-    pop(); // parenthesized expression
+    var condition = pop(); // parenthesized expression
     Token ifToken = pop();
-    if (thenEntry != invalidCollectionElement &&
-        elseEntry != invalidCollectionElement) {
-      // TODO(danrubel): Replace this with control flow support
+    if (!library.loader.target.enableControlFlowCollections) {
       // TODO(danrubel): Report a more user friendly error message
       // when an experiment is not enabled
       handleRecoverableError(
@@ -3694,23 +3695,57 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           ifToken,
           ifToken);
       push(invalidCollectionElement);
-    } else {
-      // TODO(danrubel): Remove when unified collections enabled
+      return;
+    }
+    if (thenEntry == invalidCollectionElement ||
+        elseEntry == invalidCollectionElement) {
       push(invalidCollectionElement);
+      return;
+    }
+    transformCollections = true;
+    if (thenEntry is MapEntry) {
+      if (elseEntry is MapEntry) {
+        push(forest.ifMapEntry(
+            toValue(condition), thenEntry, elseEntry, ifToken));
+      } else if (elseEntry is SpreadElement) {
+        push(forest.ifMapEntry(
+            toValue(condition),
+            thenEntry,
+            new SpreadMapEntry(elseEntry.expression, elseEntry.isNullAware),
+            ifToken));
+      } else {
+        push(invalidCollectionElement);
+      }
+    } else if (elseEntry is MapEntry) {
+      if (thenEntry is SpreadElement) {
+        push(forest.ifMapEntry(
+            toValue(condition),
+            new SpreadMapEntry(thenEntry.expression, thenEntry.isNullAware),
+            elseEntry,
+            ifToken));
+      } else {
+        push(invalidCollectionElement);
+      }
+    } else {
+      push(forest.ifElement(
+          toValue(condition), toValue(thenEntry), toValue(elseEntry), ifToken));
     }
   }
 
   @override
   void handleSpreadExpression(Token spreadToken) {
     debugEvent("SpreadExpression");
+    var expression = pop();
     if (!library.loader.target.enableSpreadCollections) {
-      return handleRecoverableError(
+      handleRecoverableError(
           fasta.templateUnexpectedToken.withArguments(spreadToken),
           spreadToken,
           spreadToken);
+      push(invalidCollectionElement);
+      return;
     }
     transformCollections = true;
-    push(forest.spreadElement(popForValue(), spreadToken));
+    push(forest.spreadElement(toValue(expression), spreadToken));
   }
 
   @override

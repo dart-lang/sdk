@@ -7,8 +7,15 @@ import 'dart:async';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(InvalidCodeTest);
+  });
+}
 
 /**
  * Tests for various end-to-end cases when invalid code caused exceptions
@@ -16,9 +23,13 @@ import 'resolver_test_case.dart';
  * errors generated, but we want to make sure that there is at least one,
  * and analysis finishes without exceptions.
  */
-abstract class InvalidCodeTest extends ResolverTestCase {
+@reflectiveTest
+class InvalidCodeTest extends ResolverTestCase {
   @override
   AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   /**
    * This code results in a method with the empty name, and the default

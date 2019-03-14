@@ -45,25 +45,34 @@ class NullJumpHandler implements JumpHandler {
 
   NullJumpHandler(this.reporter);
 
+  @override
   void generateBreak(SourceInformation sourceInformation,
       [LabelDefinition label]) {
     reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
         'NullJumpHandler.generateBreak should not be called.');
   }
 
+  @override
   void generateContinue(SourceInformation sourceInformation,
       [LabelDefinition label]) {
     reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
         'NullJumpHandler.generateContinue should not be called.');
   }
 
+  @override
   void forEachBreak(Function ignored) {}
+  @override
   void forEachContinue(Function ignored) {}
+  @override
   void close() {}
+  @override
   bool hasAnyContinue() => false;
+  @override
   bool hasAnyBreak() => false;
 
+  @override
   List<LabelDefinition> get labels => const <LabelDefinition>[];
+  @override
   JumpTarget get target => null;
 }
 
@@ -73,6 +82,7 @@ class NullJumpHandler implements JumpHandler {
 /// breaks of the body. Continues in switches is currently not handled.
 class TargetJumpHandler implements JumpHandler {
   final GraphBuilder builder;
+  @override
   final JumpTarget target;
   final List<_JumpHandlerEntry> jumps;
 
@@ -83,6 +93,7 @@ class TargetJumpHandler implements JumpHandler {
     builder.jumpTargets[target] = this;
   }
 
+  @override
   void generateBreak(SourceInformation sourceInformation,
       [LabelDefinition label]) {
     HInstruction breakInstruction;
@@ -98,6 +109,7 @@ class TargetJumpHandler implements JumpHandler {
     jumps.add(new _JumpHandlerEntry(breakInstruction, locals));
   }
 
+  @override
   void generateContinue(SourceInformation sourceInformation,
       [LabelDefinition label]) {
     HInstruction continueInstruction;
@@ -116,18 +128,21 @@ class TargetJumpHandler implements JumpHandler {
     jumps.add(new _JumpHandlerEntry(continueInstruction, locals));
   }
 
+  @override
   void forEachBreak(Function action) {
     for (_JumpHandlerEntry entry in jumps) {
       if (entry.isBreak()) action(entry.jumpInstruction, entry.locals);
     }
   }
 
+  @override
   void forEachContinue(Function action) {
     for (_JumpHandlerEntry entry in jumps) {
       if (entry.isContinue()) action(entry.jumpInstruction, entry.locals);
     }
   }
 
+  @override
   bool hasAnyContinue() {
     for (_JumpHandlerEntry entry in jumps) {
       if (entry.isContinue()) return true;
@@ -135,6 +150,7 @@ class TargetJumpHandler implements JumpHandler {
     return false;
   }
 
+  @override
   bool hasAnyBreak() {
     for (_JumpHandlerEntry entry in jumps) {
       if (entry.isBreak()) return true;
@@ -142,11 +158,13 @@ class TargetJumpHandler implements JumpHandler {
     return false;
   }
 
+  @override
   void close() {
     // The mapping from TargetElement to JumpHandler is no longer needed.
     builder.jumpTargets.remove(target);
   }
 
+  @override
   List<LabelDefinition> get labels {
     List<LabelDefinition> result = null;
     for (LabelDefinition element in target.labels) {
@@ -167,6 +185,7 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
   SwitchCaseJumpHandler(GraphBuilder builder, JumpTarget target)
       : super(builder, target);
 
+  @override
   void generateBreak(SourceInformation sourceInformation,
       [LabelDefinition label]) {
     if (label == null) {
@@ -189,6 +208,7 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
     return label != null && targetIndexMap.containsKey(label.target);
   }
 
+  @override
   void generateContinue(SourceInformation sourceInformation,
       [LabelDefinition label]) {
     if (isContinueToSwitchCase(label)) {
@@ -212,6 +232,7 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
     }
   }
 
+  @override
   void close() {
     // The mapping from TargetElement to JumpHandler is no longer needed.
     for (JumpTarget target in targetIndexMap.keys) {

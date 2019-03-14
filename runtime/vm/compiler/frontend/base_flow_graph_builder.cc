@@ -284,8 +284,7 @@ Fragment BaseFlowGraphBuilder::TestDelayedTypeArgs(LocalVariable* closure,
 Fragment BaseFlowGraphBuilder::TestAnyTypeArgs(Fragment present,
                                                Fragment absent) {
   if (parsed_function_->function().IsClosureFunction()) {
-    LocalVariable* closure =
-        parsed_function_->node_sequence()->scope()->VariableAt(0);
+    LocalVariable* closure = parsed_function_->ParameterVariable(0);
 
     JoinEntryInstr* complete = BuildJoinEntry();
     JoinEntryInstr* present_entry = BuildJoinEntry();

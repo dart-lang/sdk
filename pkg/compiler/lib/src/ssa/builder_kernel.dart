@@ -83,11 +83,14 @@ class StackFrame {
 
 class KernelSsaGraphBuilder extends ir.Visitor
     with GraphBuilder, SsaBuilderFieldMixin {
+  @override
   final MemberEntity targetElement;
   final MemberEntity initialTargetElement;
 
+  @override
   final JClosedWorld closedWorld;
   final CodegenWorldBuilder _worldBuilder;
+  @override
   final CodegenRegistry registry;
   final ClosureData closureDataLookup;
 
@@ -105,6 +108,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   HInstruction rethrowableException;
 
+  @override
   final Compiler compiler;
 
   @override
@@ -112,8 +116,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   final SourceInformationStrategy _sourceInformationStrategy;
   final JsToElementMap _elementMap;
+  @override
   final GlobalTypeInferenceResults globalInferenceResults;
   LoopHandler loopHandler;
+  @override
   TypeBuilder typeBuilder;
 
   final NativeEmitter nativeEmitter;
@@ -1957,6 +1963,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ..cleanUp();
   }
 
+  @override
   HInstruction callSetRuntimeTypeInfo(HInstruction typeInfo,
       HInstruction newObject, SourceInformation sourceInformation) {
     // Set the runtime type information on the object.
@@ -5056,6 +5063,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
   }
 
+  @override
   void visitYieldStatement(ir.YieldStatement node) {
     node.expression.accept(this);
     add(new HYield(abstractValueDomain, pop(), node.isYieldStar,
@@ -6611,8 +6619,10 @@ class KernelTypeBuilder extends TypeBuilder {
   KernelTypeBuilder(KernelSsaGraphBuilder builder, this._elementMap)
       : super(builder);
 
+  @override
   KernelSsaGraphBuilder get builder => super.builder;
 
+  @override
   ClassTypeVariableAccess computeTypeVariableAccess(MemberEntity member) {
     return _elementMap.getClassTypeVariableAccessForMember(member);
   }
@@ -6625,17 +6635,22 @@ class _ErroneousInitializerVisitor extends ir.Visitor<bool> {
   static bool check(ir.Initializer initializer) =>
       initializer.accept(new _ErroneousInitializerVisitor());
 
+  @override
   bool defaultInitializer(ir.Node node) => false;
 
+  @override
   bool visitInvalidInitializer(ir.InvalidInitializer node) => true;
 
+  @override
   bool visitLocalInitializer(ir.LocalInitializer node) {
     return node.variable.initializer?.accept(this) ?? false;
   }
 
   // Expressions: Does the expression always throw?
+  @override
   bool defaultExpression(ir.Expression node) => false;
 
+  @override
   bool visitThrow(ir.Throw node) => true;
 
   // TODO(sra): We might need to match other expressions that always throw but

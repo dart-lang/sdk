@@ -17,12 +17,18 @@ bool VirtualMemory::InSamePage(uword address0, uword address1) {
 void VirtualMemory::Truncate(intptr_t new_size) {
   ASSERT(Utils::IsAligned(new_size, PageSize()));
   ASSERT(new_size <= size());
-  if (reserved_.size() == region_.size()) { // Don't create holes in reservation.
+  if (reserved_.size() ==
+      region_.size()) {  // Don't create holes in reservation.
     FreeSubSegment(reinterpret_cast<void*>(start() + new_size),
                    size() - new_size);
     reserved_.set_size(new_size);
+    if (AliasOffset() != 0) {
+      FreeSubSegment(reinterpret_cast<void*>(alias_.start() + new_size),
+                     alias_.size() - new_size);
+    }
   }
   region_.Subregion(region_, 0, new_size);
+  alias_.Subregion(alias_, 0, new_size);
 }
 
 VirtualMemory* VirtualMemory::ForImagePage(void* pointer, uword size) {
@@ -31,7 +37,7 @@ VirtualMemory* VirtualMemory::ForImagePage(void* pointer, uword size) {
   MemoryRegion region(pointer, size);
   MemoryRegion reserved(0, 0);  // NULL reservation indicates VM should not
                                 // attempt to free this memory.
-  VirtualMemory* memory = new VirtualMemory(region, reserved);
+  VirtualMemory* memory = new VirtualMemory(region, region, reserved);
   ASSERT(!memory->vm_owns_region());
   return memory;
 }

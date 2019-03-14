@@ -1236,9 +1236,6 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
     Value* use = it.CurrentValue();
     use->definition()->AddEnvUse(use);
   }
-  if (instr->ComputeCanDeoptimize()) {
-    instr->env()->set_deopt_id(instr->deopt_id());
-  }
 }
 
 void FlowGraph::RenameRecursive(

@@ -91,6 +91,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   BlockEntryInstr* BuildPrologue(BlockEntryInstr* normal_entry,
                                  PrologueInfo* prologue_info);
 
+  // Return names of optional named parameters of [function].
+  RawArray* GetOptionalParameterNames(const Function& function);
+
+  // Generate fragment which pushes all explicit parameters of [function].
+  Fragment PushExplicitParameters(const Function& function);
+
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);
   FlowGraph* BuildGraphOfInvokeFieldDispatcher(const Function& function);
@@ -258,6 +264,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Builds flow graph for implicit closure function (tear-off).
   //
   // ParsedFunction should have the following information:
+  //  - DefaultFunctionTypeArguments()
+  //  - function_type_arguments()
   //  - default_parameter_values()
   //  - is_forwarding_stub()
   //  - forwarding_stub_super_target()
@@ -278,6 +286,21 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   //  - needs_type_check()
   //
   FlowGraph* BuildGraphOfFieldAccessor(const Function& function);
+
+  // Builds flow graph of dynamic invocation forwarder.
+  //
+  // ParsedFunction should have the following information:
+  //  - DefaultFunctionTypeArguments()
+  //  - function_type_arguments()
+  //  - default_parameter_values()
+  //  - is_forwarding_stub()
+  //  - forwarding_stub_super_target()
+  //
+  // Scope should be populated with parameter variables including
+  //  - needs_type_check()
+  //  - is_explicit_covariant_parameter()
+  //
+  FlowGraph* BuildGraphOfDynamicInvocationForwarder(const Function& function);
 
   TranslationHelper translation_helper_;
   Thread* thread_;

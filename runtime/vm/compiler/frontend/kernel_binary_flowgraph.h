@@ -63,7 +63,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildFieldInitializer(NameIndex canonical_name);
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfFunction(bool constructor);
-  FlowGraph* BuildGraphOfDynamicInvocationForwarder();
 
   Fragment BuildExpression(TokenPosition* position = NULL);
   Fragment BuildStatement();
@@ -195,13 +194,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       const InferredTypeMetadata* result_type = nullptr,
       bool use_unchecked_entry = false,
       const CallSiteAttributesMetadata* call_site_attrs = nullptr);
-
-  struct PushedArguments {
-    intptr_t type_args_len;
-    intptr_t argument_count;
-    Array& argument_names;
-  };
-  Fragment PushAllArguments(PushedArguments* pushed);
 
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();

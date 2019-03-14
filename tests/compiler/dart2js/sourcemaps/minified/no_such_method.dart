@@ -17,6 +17,7 @@ main() {
 confuse(x) => x;
 
 class A {
+  @override
   noSuchMethod(i) => null;
 }
 

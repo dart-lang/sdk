@@ -62,6 +62,7 @@ class Features {
     return sb.toString();
   }
 
+  @override
   String toString() => 'Features(${getText()})';
 
   /// Creates a [Features] object by parse the [text] encoding.

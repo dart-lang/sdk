@@ -51,6 +51,7 @@ class OutputUnit implements Comparable<OutputUnit> {
 
   OutputUnit(this.isMainOutput, this.name, this._imports);
 
+  @override
   int compareTo(OutputUnit other) {
     if (identical(this, other)) return 0;
     if (isMainOutput && !other.isMainOutput) return -1;
@@ -76,6 +77,7 @@ class OutputUnit implements Comparable<OutputUnit> {
 
   Set<ImportEntity> get importsForTesting => _imports;
 
+  @override
   String toString() => "OutputUnit($name, $_imports)";
 }
 
@@ -84,6 +86,7 @@ class OutputUnit implements Comparable<OutputUnit> {
 /// shared OutputUnits.
 abstract class DeferredLoadTask extends CompilerTask {
   /// The name of this task.
+  @override
   String get name => 'Deferred Loading';
 
   /// The OutputUnit that will be loaded when the program starts.
@@ -1092,6 +1095,7 @@ class ImportSet {
     return result;
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('ImportSet(size: $length, ');
@@ -1200,6 +1204,7 @@ class ClassWorkItem extends WorkItem {
 
   ClassWorkItem(this.cls, ImportSet newSet) : super(newSet);
 
+  @override
   void update(DeferredLoadTask task, WorkQueue queue) {
     queue.pendingClasses.remove(cls);
     ImportSet oldSet = task._classToSet[cls];
@@ -1215,6 +1220,7 @@ class MemberWorkItem extends WorkItem {
 
   MemberWorkItem(this.member, ImportSet newSet) : super(newSet);
 
+  @override
   void update(DeferredLoadTask task, WorkQueue queue) {
     queue.pendingMembers.remove(member);
     ImportSet oldSet = task._memberToSet[member];
@@ -1230,6 +1236,7 @@ class ConstantWorkItem extends WorkItem {
 
   ConstantWorkItem(this.constant, ImportSet newSet) : super(newSet);
 
+  @override
   void update(DeferredLoadTask task, WorkQueue queue) {
     queue.pendingConstants.remove(constant);
     ImportSet oldSet = task._constantToSet[constant];

@@ -23,6 +23,7 @@ class PositionSourceInformation extends SourceInformation {
   @override
   final SourceLocation innerPosition;
 
+  @override
   final List<FrameContext> inliningContext;
 
   PositionSourceInformation(
@@ -49,11 +50,13 @@ class PositionSourceInformation extends SourceInformation {
     return new SourceSpan(uri, offset, offset);
   }
 
+  @override
   int get hashCode {
     return 0x7FFFFFFF &
         (startPosition.hashCode * 17 + innerPosition.hashCode * 19);
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! PositionSourceInformation) return false;
@@ -78,6 +81,7 @@ class PositionSourceInformation extends SourceInformation {
     return sb.toString();
   }
 
+  @override
   String get shortText {
     if (startPosition != null) {
       return _computeText(startPosition.sourceUri.pathSegments.last);
@@ -86,6 +90,7 @@ class PositionSourceInformation extends SourceInformation {
     }
   }
 
+  @override
   String toString() {
     if (startPosition != null) {
       return _computeText('${startPosition.sourceUri}');
@@ -152,6 +157,7 @@ class CodePosition {
     }
   }
 
+  @override
   String toString() {
     return 'CodePosition(start=$startPosition,'
         'end=$endPosition,closing=$closingPosition)';
@@ -178,6 +184,7 @@ class CodePositionRecorder implements CodePositionMap {
     _codePositionMap[node] = codePosition;
   }
 
+  @override
   CodePosition operator [](js.Node node) => _codePositionMap[node];
 }
 
@@ -295,6 +302,7 @@ class PositionSourceInformationProcessor extends SourceInformationProcessor {
     }
   }
 
+  @override
   void process(js.Node node, BufferedCodeOutput code) {
     new JavaScriptTracer(codePositionMap, reader, traceListeners).apply(node);
     inliningListener?.finish();
@@ -379,6 +387,7 @@ abstract class NodeToSourceInformationMixin {
 class InliningTraceListener extends TraceListener
     with NodeToSourceInformationMixin {
   final SourceMapper sourceMapper;
+  @override
   final SourceInformationReader reader;
   final Map<int, List<FrameContext>> _frames = {};
 
@@ -459,6 +468,7 @@ class InliningTraceListener extends TraceListener
 class PositionTraceListener extends TraceListener
     with NodeToSourceInformationMixin {
   final SourceMapper sourceMapper;
+  @override
   final SourceInformationReader reader;
 
   PositionTraceListener(this.sourceMapper, this.reader);
@@ -752,6 +762,7 @@ class Offset {
 
   int get value => subexpressionOffset;
 
+  @override
   String toString() {
     return 'Offset[statementOffset=$statementOffset,'
         'leftToRightOffset=$leftToRightOffset,'
@@ -1369,12 +1380,14 @@ class Coverage {
     return sb.toString();
   }
 
+  @override
   String toString() => getCoverageReport();
 }
 
 /// [TraceListener] that registers [onStep] callbacks with [coverage].
 class CoverageListener extends TraceListener with NodeToSourceInformationMixin {
   final Coverage coverage;
+  @override
   final SourceInformationReader reader;
 
   CoverageListener(this.coverage, this.reader);

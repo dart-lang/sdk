@@ -8,28 +8,77 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
 
-class NonErrorResolverTestBase extends ResolverTestCase {
-  @override
-  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NonErrorResolverTest);
+    defineReflectiveTests(NonErrorResolverWithUiAsCodeTest);
+    defineReflectiveTests(NonConstantValueInInitializer);
+  });
+}
 
-  fail_undefinedEnumConstant() async {
+@reflectiveTest
+class NonConstantValueInInitializer extends ResolverTestCase {
+  @override
+  List<String> get enabledExperiments => [EnableString.constant_update_2018];
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_intLiteralInDoubleContext_const_exact() async {
     Source source = addSource(r'''
-enum E { ONE }
-E e() {
-  return E.TWO;
+const double x = 0;
+class C {
+  const C(double y) : assert(y is double), assert(x is double);
+}
+@C(0)
+@C(-0)
+@C(0x0)
+@C(-0x0)
+void main() {
+  const C(0);
+  const C(-0);
+  const C(0x0);
+  const C(-0x0);
 }''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
   }
+
+  test_isCheckInConstAssert() async {
+    Source source = addSource(r'''
+class C {
+  const C() : assert(1 is int);
+}
+
+void main() {
+  const C();
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+}
+
+@reflectiveTest
+class NonErrorResolverTest extends ResolverTestCase {
+  @override
+  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
+
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   test_ambiguousExport() async {
     Source source = addSource(r'''
@@ -1205,28 +1254,6 @@ class B {
 const String A = 'a';
 const String B = A + 'b';
 ''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_constMapKeyExpressionTypeImplementsEquals_abstract() async {
-    Source source = addSource(r'''
-abstract class B {
-  final id;
-  const B(this.id);
-  String toString() => 'C($id)';
-  /** Equality is identity equality, the id isn't used. */
-  bool operator==(Object other);
-  }
-
-class C extends B {
-  const C(id) : super(id);
-}
-
-Map getMap() {
-  return const { const C(0): 'Map: 0' };
-}''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
@@ -4127,17 +4154,6 @@ f() {
     verify([source]);
   }
 
-  test_nonConstMapKey_constField() async {
-    Source source = addSource(r'''
-main() {
-  const {double.INFINITY: 0};
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
-    verify([source]);
-  }
-
   test_nonConstMapValue_constField() async {
     Source source = addSource(r'''
 main() {
@@ -4409,6 +4425,7 @@ class A {
     verify([source]);
   }
 
+  @failingTest
   test_null_callOperator() async {
     Source source = addSource(r'''
 main() {
@@ -5524,6 +5541,18 @@ class Bar extends Foo {
     verify([source]);
   }
 
+  @failingTest
+  test_undefinedEnumConstant() async {
+    Source source = addSource(r'''
+enum E { ONE }
+E e() {
+  return E.TWO;
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_undefinedGetter_static_conditionalAccess() async {
     // The conditional access operator '?.' can be used to access static
     // fields.
@@ -6052,4 +6081,11 @@ class A {
   Future<void> _check_wrongNumberOfParametersForOperator1(String name) async {
     await _check_wrongNumberOfParametersForOperator(name, "a");
   }
+}
+
+@reflectiveTest
+class NonErrorResolverWithUiAsCodeTest extends NonErrorResolverTest {
+  @override
+  List<String> get enabledExperiments =>
+      [EnableString.spread_collections, EnableString.control_flow_collections];
 }

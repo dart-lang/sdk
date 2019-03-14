@@ -12,12 +12,15 @@ class ContainerTypeMask extends AllocationTypeMask {
   /// debugging data stream.
   static const String tag = 'container-type-mask';
 
+  @override
   final TypeMask forwardTo;
 
   // The [Node] where this type mask was created.
+  @override
   final ir.TreeNode allocationNode;
 
   // The [Entity] where this type mask was created.
+  @override
   final MemberEntity allocationElement;
 
   // The element type of this container.
@@ -44,6 +47,7 @@ class ContainerTypeMask extends AllocationTypeMask {
   }
 
   /// Serializes this [ContainerTypeMask] to [sink].
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(TypeMaskKind.container);
     sink.begin(tag);
@@ -55,6 +59,7 @@ class ContainerTypeMask extends AllocationTypeMask {
     sink.end(tag);
   }
 
+  @override
   TypeMask nullable() {
     return isNullable
         ? this
@@ -62,6 +67,7 @@ class ContainerTypeMask extends AllocationTypeMask {
             allocationElement, elementType, length);
   }
 
+  @override
   TypeMask nonNullable() {
     return isNullable
         ? new ContainerTypeMask(forwardTo.nonNullable(), allocationNode,
@@ -69,9 +75,12 @@ class ContainerTypeMask extends AllocationTypeMask {
         : this;
   }
 
+  @override
   bool get isContainer => true;
+  @override
   bool get isExact => true;
 
+  @override
   bool equalsDisregardNull(other) {
     if (other is! ContainerTypeMask) return false;
     return super.equalsDisregardNull(other) &&
@@ -80,12 +89,14 @@ class ContainerTypeMask extends AllocationTypeMask {
         length == other.length;
   }
 
+  @override
   TypeMask intersection(TypeMask other, JClosedWorld closedWorld) {
     TypeMask forwardIntersection = forwardTo.intersection(other, closedWorld);
     if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
     return forwardIntersection.isNullable ? nullable() : nonNullable();
   }
 
+  @override
   TypeMask union(dynamic other, JClosedWorld closedWorld) {
     if (this == other) {
       return this;
@@ -113,13 +124,16 @@ class ContainerTypeMask extends AllocationTypeMask {
     }
   }
 
+  @override
   bool operator ==(other) => super == other;
 
+  @override
   int get hashCode {
     return computeHashCode(
         allocationNode, isNullable, elementType, length, forwardTo);
   }
 
+  @override
   String toString() {
     return 'Container($forwardTo, element: $elementType, length: $length)';
   }

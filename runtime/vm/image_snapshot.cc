@@ -157,8 +157,9 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
     ObjectOffsetPair* pair = reuse_instructions_.Lookup(instructions);
     if (pair == NULL) {
       // Code should have been removed by DropCodeWithoutReusableInstructions.
-      FATAL("Expected instructions to reuse\n");
+      return 0;
     }
+    ASSERT(pair->offset != 0);
     return pair->offset;
   }
 
@@ -167,6 +168,7 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
     // Negative offsets tell the reader the offset is w/r/t the shared
     // instructions image instead of the app-specific instructions image.
     // Compare ImageReader::GetInstructionsAt.
+    ASSERT(pair->offset != 0);
     return -pair->offset;
   }
 
@@ -175,6 +177,7 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
   next_text_offset_ += instructions->HeapSize();
   instructions_.Add(InstructionsData(instructions, code, offset));
 
+  ASSERT(offset != 0);
   return offset;
 }
 

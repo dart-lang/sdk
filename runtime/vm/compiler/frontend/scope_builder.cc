@@ -96,14 +96,15 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     // load instantiator type arguments if they are needed.
     Class& klass = Class::Handle(Z, function.Owner());
     Type& klass_type = H.GetDeclarationType(klass);
-    result_->this_variable =
+    LocalVariable* receiver_variable =
         MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      Symbols::This(), klass_type);
-    result_->this_variable->set_is_captured();
+    parsed_function_->set_receiver_var(receiver_variable);
+    receiver_variable->set_is_captured();
     enclosing_scope = new (Z) LocalScope(NULL, 0, 0);
     enclosing_scope->set_context_level(0);
-    enclosing_scope->AddVariable(result_->this_variable);
-    enclosing_scope->AddContextVariable(result_->this_variable);
+    enclosing_scope->AddVariable(receiver_variable);
+    enclosing_scope->AddContextVariable(receiver_variable);
   } else if (function.IsLocalFunction()) {
     enclosing_scope = LocalScope::RestoreOuterScope(
         ContextScope::Handle(Z, function.context_scope()));
@@ -170,7 +171,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                          Symbols::This(), klass_type);
         scope_->InsertParameterAt(pos++, variable);
-        result_->this_variable = variable;
+        parsed_function_->set_receiver_var(variable);
 
         // We visit instance field initializers because they might contain
         // [Let] expressions and we need to have a mapping.
@@ -279,7 +280,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                          Symbols::This(), klass_type);
         scope_->InsertParameterAt(pos++, variable);
-        result_->this_variable = variable;
+        parsed_function_->set_receiver_var(variable);
       }
       if (is_setter) {
         result_->setter_value = MakeVariable(
@@ -290,12 +291,10 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
         if (is_method &&
             MethodCanSkipTypeChecksForNonCovariantArguments(function, attrs)) {
-          FieldHelper field_helper(&helper_);
-          field_helper.ReadUntilIncluding(FieldHelper::kFlags);
-
-          if (field_helper.IsCovariant()) {
+          const auto& field = Field::Handle(Z, function.accessor_field());
+          if (field.is_covariant()) {
             result_->setter_value->set_is_explicit_covariant_parameter();
-          } else if (!field_helper.IsGenericCovariantImpl() ||
+          } else if (!field.is_generic_covariant_impl() ||
                      (!attrs.has_non_this_uses && !attrs.has_tearoff_uses)) {
             result_->setter_value->set_type_check_mode(
                 LocalVariable::kTypeCheckedByCaller);
@@ -320,16 +319,16 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       if (helper_.PeekTag() == kField) {
 #ifdef DEBUG
         String& name = String::Handle(Z, function.name());
-        ASSERT(Function::IsDynamicInvocationForwaderName(name));
+        ASSERT(Function::IsDynamicInvocationForwarderName(name));
         name = Function::DemangleDynamicInvocationForwarderName(name);
         ASSERT(Field::IsSetterName(name));
 #endif
         // Create [this] variable.
         const Class& klass = Class::Handle(Z, function.Owner());
-        result_->this_variable =
+        parsed_function_->set_receiver_var(
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                         Symbols::This(), H.GetDeclarationType(klass));
-        scope_->InsertParameterAt(0, result_->this_variable);
+                         Symbols::This(), H.GetDeclarationType(klass)));
+        scope_->InsertParameterAt(0, parsed_function_->receiver_var());
 
         // Create setter value variable.
         result_->setter_value = MakeVariable(
@@ -345,10 +344,10 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         // Create [this] variable.
         intptr_t pos = 0;
         Class& klass = Class::Handle(Z, function.Owner());
-        result_->this_variable =
+        parsed_function_->set_receiver_var(
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                         Symbols::This(), H.GetDeclarationType(klass));
-        scope_->InsertParameterAt(pos++, result_->this_variable);
+                         Symbols::This(), H.GetDeclarationType(klass)));
+        scope_->InsertParameterAt(pos++, parsed_function_->receiver_var());
 
         // Create all positional and named parameters.
         AddPositionalAndNamedParameters(
@@ -368,7 +367,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                        Symbols::This(), klass_type);
       scope_->InsertParameterAt(0, variable);
-      result_->this_variable = variable;
+      parsed_function_->set_receiver_var(variable);
       break;
     }
     case RawFunction::kNoSuchMethodDispatcher:
@@ -513,12 +512,11 @@ void ScopeBuilder::VisitFunctionNode() {
   }
 
   if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    LocalScope* scope = parsed_function_->node_sequence()->scope();
     intptr_t offset = parsed_function_->function().num_fixed_parameters();
     for (intptr_t i = 0;
          i < parsed_function_->function().NumOptionalPositionalParameters();
          i++) {
-      scope->VariableAt(offset + i)->set_is_forced_stack();
+      parsed_function_->ParameterVariable(offset + i)->set_is_forced_stack();
     }
   }
 
@@ -678,13 +676,13 @@ void ScopeBuilder::VisitExpression() {
       VisitExpression();                     // read value·
       return;
     case kSuperPropertyGet:
-      HandleSpecialLoad(&result_->this_variable, Symbols::This());
+      HandleLoadReceiver();
       helper_.ReadPosition();                // read position.
       helper_.SkipName();                    // read name.
       helper_.SkipCanonicalNameReference();  // read target_reference.
       return;
     case kSuperPropertySet:
-      HandleSpecialLoad(&result_->this_variable, Symbols::This());
+      HandleLoadReceiver();
       helper_.ReadPosition();                // read position.
       helper_.SkipName();                    // read name.
       VisitExpression();                     // read value.
@@ -714,7 +712,7 @@ void ScopeBuilder::VisitExpression() {
       VisitArguments();                      // read arguments.
       return;
     case kSuperMethodInvocation:
-      HandleSpecialLoad(&result_->this_variable, Symbols::This());
+      HandleLoadReceiver();
       helper_.ReadPosition();  // read position.
       helper_.SkipName();      // read name.
       VisitArguments();        // read arguments.
@@ -783,7 +781,7 @@ void ScopeBuilder::VisitExpression() {
       VisitDartType();  // read type.
       return;
     case kThisExpression:
-      HandleSpecialLoad(&result_->this_variable, Symbols::This());
+      HandleLoadReceiver();
       return;
     case kRethrow:
       helper_.ReadPosition();  // read position.
@@ -1361,7 +1359,7 @@ void ScopeBuilder::VisitTypeParameterType() {
     // object, so we need to capture 'this'.
     Class& parent_class = Class::Handle(Z, function.Owner());
     if (index < parent_class.NumTypeParameters()) {
-      HandleSpecialLoad(&result_->this_variable, Symbols::This());
+      HandleLoadReceiver();
     }
   }
 
@@ -1706,6 +1704,24 @@ const String& ScopeBuilder::GenerateName(const char* prefix, intptr_t suffix) {
   char name[64];
   Utils::SNPrint(name, 64, "%s%" Pd "", prefix, suffix);
   return H.DartSymbolObfuscate(name);
+}
+
+void ScopeBuilder::HandleLoadReceiver() {
+  if (!parsed_function_->has_receiver_var() &&
+      current_function_scope_->parent() != nullptr) {
+    // Lazily populate receiver variable using the parent function scope.
+    parsed_function_->set_receiver_var(
+        current_function_scope_->parent()->LookupVariable(Symbols::This(),
+                                                          true));
+  }
+
+  if ((current_function_scope_->parent() != nullptr) ||
+      (scope_->function_level() > 0)) {
+    // Every scope we use the [receiver] from needs to be notified of the usage
+    // in order to ensure that preserving the context scope on that particular
+    // use-site also includes the [receiver].
+    scope_->CaptureVariable(parsed_function_->receiver_var());
+  }
 }
 
 void ScopeBuilder::HandleSpecialLoad(LocalVariable** variable,

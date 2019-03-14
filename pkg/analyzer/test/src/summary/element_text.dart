@@ -410,6 +410,12 @@ class _ElementWriter {
       }
       writeList('{', '}', e.elements2, ', ', writeExpression,
           includeEmpty: true);
+      if (e.isMap) {
+        buffer.write('/*isMap*/');
+      }
+      if (e.isSet) {
+        buffer.write('/*isSet*/');
+      }
     } else if (e is MapLiteralEntry) {
       writeExpression(e.key);
       buffer.write(': ');

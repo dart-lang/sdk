@@ -8,6 +8,7 @@
 /// green.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -73,25 +74,45 @@ Future<Map<String, Map<String, dynamic>>> loadResultsMapIfExists(
         ? loadResultsMap(path)
         : <String, Map<String, dynamic>>{};
 
+/// Exception for when the results for a builder can't be found.
+class NoResultsException implements Exception {
+  final String message;
+  final String buildUrl;
+
+  NoResultsException(this.message, this.buildUrl);
+
+  String toString() => message;
+}
+
 /// Loads a log from logdog.
 Future<String> loadLog(String id, String step) async {
+  final buildUrl = "https://ci.chromium.org/b/$id";
   final logUrl = Uri.parse("https://logs.chromium.org/"
       "logs/dart/buildbucket/cr-buildbucket.appspot.com/"
       "$id/+/steps/$step?format=raw");
   final client = new HttpClient();
-  final request =
-      await client.getUrl(logUrl).timeout(const Duration(seconds: 60));
-  final response = await request.close().timeout(const Duration(seconds: 60));
-  if (response.statusCode != HttpStatus.ok) {
-    throw new Exception("The log at $logUrl doesn't exist");
+  try {
+    final request =
+        await client.getUrl(logUrl).timeout(const Duration(seconds: 60));
+    final response = await request.close().timeout(const Duration(seconds: 60));
+    if (response.statusCode == HttpStatus.notFound) {
+      await response.drain();
+      throw new NoResultsException(
+          "The log at $logUrl doesn't exist: ${response.statusCode}", buildUrl);
+    }
+    if (response.statusCode != HttpStatus.ok) {
+      await response.drain();
+      throw new Exception("Failed to download $logUrl: ${response.statusCode}");
+    }
+    final contents = (await response
+            .transform(new Utf8Decoder())
+            .timeout(const Duration(seconds: 60))
+            .toList())
+        .join("");
+    return contents;
+  } finally {
+    client.close();
   }
-  final contents = (await response
-          .transform(new Utf8Decoder())
-          .timeout(const Duration(seconds: 60))
-          .toList())
-      .join("");
-  client.close();
-  return contents;
 }
 
 /// TODO(https://github.com/dart-lang/sdk/issues/36015): The step name changed
@@ -493,10 +514,19 @@ ${parser.usage}""");
   // Load all the latest results for the selected bots, as well as flakiness
   // data, and the set of currently approved results. Each bot's latest build
   // is downloaded in parallel to make this phase faster.
-  final testListFutures = <Future>[];
+  final testListFutures = <Future<List<Test>>>[];
+  final noResultsBuilds = new SplayTreeMap<String, String>();
   for (final String bot in bots) {
-    testListFutures
-        .add(loadResultsFromBot(bot, options, changelistBuilds[bot]));
+    testListFutures.add(new Future(() async {
+      try {
+        return await loadResultsFromBot(bot, options, changelistBuilds[bot]);
+      } on NoResultsException catch (e) {
+        print(
+            "Error: Failed to find results for $bot build <${e.buildUrl}>: $e");
+        noResultsBuilds[bot] = e.buildUrl;
+        return <Test>[];
+      }
+    }));
   }
 
   // Collect all the tests from the synchronous downloads.
@@ -630,6 +660,17 @@ ${parser.usage}""");
       fixedTests.length, tests.length, "tests were fixed since last approval");
   statistic(brokenTests.length, tests.length,
       "tests were broken since last approval");
+
+  // Warn about any builders where results weren't available.
+  if (noResultsBuilds.isNotEmpty) {
+    print("");
+    noResultsBuilds.forEach((String builder, String buildUrl) {
+      print("Warning: No results were found for $builder: <$buildUrl>");
+    });
+    print("Warning: Builders without results are usually due to infrastructure "
+        "issues, please have a closer look at the affected builders and try "
+        "the build again.");
+  }
 
   // Stop if there's nothing to do.
   if (unapprovedBots.isEmpty) {

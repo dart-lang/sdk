@@ -104,7 +104,6 @@ import '../kernel/kernel_shadow_ast.dart'
         ExpressionJudgment,
         ShadowClass,
         ShadowField,
-        ShadowMember,
         ShadowTypeInferenceEngine,
         ShadowTypeInferrer,
         VariableDeclarationJudgment,
@@ -545,7 +544,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   TypeInferrerImpl.private(
       this.engine, this.uri, bool topLevel, this.thisType, this.library)
-      : classHierarchy = engine.classHierarchy,
+      : assert((topLevel && library == null) || (!topLevel && library != null)),
+        classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel,
@@ -1840,7 +1840,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         member = member is SyntheticAccessor
             ? SyntheticAccessor.getField(member)
             : member;
-        ShadowMember.resolveInferenceNode(member);
+        TypeInferenceEngine.resolveInferenceNode(member);
         return member;
       }
     }

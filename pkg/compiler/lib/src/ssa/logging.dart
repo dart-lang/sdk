@@ -244,6 +244,7 @@ class OptimizationTestLog {
     return entries.join(',\n');
   }
 
+  @override
   String toString() => 'OptimizationLog(${getText()})';
 }
 
@@ -257,5 +258,6 @@ class OptimizationLogEntry {
 
   OptimizationLogEntry(this.tag, this.features);
 
+  @override
   String toString() => '$tag(${features.getText()})';
 }

@@ -22,7 +22,9 @@ import 'options.dart' show CompilerOptions;
 /// Implements the [Compiler] using a [api.CompilerInput] for supplying the
 /// sources.
 class CompilerImpl extends Compiler {
+  @override
   final Measurer measurer;
+  @override
   api.CompilerInput provider;
   api.CompilerDiagnostics handler;
 
@@ -81,6 +83,7 @@ class CompilerImpl extends Compiler {
     return future;
   }
 
+  @override
   Future<bool> run(Uri uri) {
     Duration setupDuration = measurer.elapsedWallClock;
     return selfTask.measureSubtask("impl.run", () {
@@ -146,6 +149,7 @@ class CompilerImpl extends Compiler {
         ' (${percent.toStringAsFixed(2)}%)');
   }
 
+  @override
   void reportDiagnostic(DiagnosticMessage message,
       List<DiagnosticMessage> infos, api.Diagnostic kind) {
     _reportDiagnosticMessage(message, kind);
@@ -197,6 +201,7 @@ class _Environment implements Environment {
 
   _Environment(this.definitions);
 
+  @override
   String valueOf(String name) {
     var result = definitions[name];
     if (result != null || definitions.containsKey(name)) return result;

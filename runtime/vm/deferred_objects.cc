@@ -105,16 +105,13 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
     Exceptions::PropagateError(error);
   }
   const Code& code = Code::Handle(zone, function.unoptimized_code());
-// Check that deopt_id exists.
-// TODO(vegorov): verify after deoptimization targets as well.
-#ifdef DEBUG
-  ASSERT(DeoptId::IsDeoptAfter(deopt_id_) ||
-         (code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kDeopt) != 0));
-#endif
 
   uword continue_at_pc =
       code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kDeopt);
-  ASSERT(continue_at_pc != 0);
+  if (continue_at_pc == 0) {
+    FATAL2("Can't locate continuation PC for deoptid %" Pd " within %s\n",
+           deopt_id_, function.ToFullyQualifiedCString());
+  }
   uword* dest_addr = reinterpret_cast<uword*>(slot());
   *dest_addr = continue_at_pc;
 

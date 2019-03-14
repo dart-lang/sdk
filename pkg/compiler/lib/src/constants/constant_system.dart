@@ -1001,8 +1001,10 @@ class JavaScriptMapConstant extends MapConstantValue {
       List<ConstantValue> values, this.protoValue, this.onlyStringKeys)
       : this.keyList = keyList,
         super(type, keyList.entries, values);
+  @override
   bool get isMap => true;
 
+  @override
   List<ConstantValue> getDependencies() {
     List<ConstantValue> result = <ConstantValue>[];
     if (onlyStringKeys) {

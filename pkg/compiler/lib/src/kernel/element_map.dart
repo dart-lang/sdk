@@ -147,6 +147,7 @@ abstract class KernelToElementMap {
 
   /// Computes the native behavior for reading the native [field].
   NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+      Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
       {bool isJsInterop});
 
   /// Computes the native behavior for writing to the native [field].
@@ -155,6 +156,7 @@ abstract class KernelToElementMap {
   /// Computes the native behavior for calling the function or constructor
   /// [member].
   NativeBehavior getNativeBehaviorForMethod(ir.Member member,
+      Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
       {bool isJsInterop});
 
   /// Compute the kind of foreign helper function called by [node], if any.

@@ -607,7 +607,7 @@ Please include the following information:
 
       MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE: const MessageTemplate(
           MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE,
-          "`#{constant}` of type '#{type}' is not a valid logical and operand. "
+          "`#{constant}` of type '#{type}' is not a valid logical or operand. "
           "Must be a value of type 'bool'."),
 
       MessageKind.INVALID_CONSTANT_CONSTRUCTOR: const MessageTemplate(
@@ -692,6 +692,7 @@ become a compile-time error in the future."""),
           "'case' expression of type '#{type}'."),
     }); // End of TEMPLATES.
 
+  @override
   String toString() => template;
 
   Message message([Map arguments = const {}, bool terse = false]) {
@@ -738,15 +739,18 @@ class Message {
     return message;
   }
 
+  @override
   String toString() {
     return computeMessage();
   }
 
+  @override
   bool operator ==(other) {
     if (other is! Message) return false;
     return (template == other.template) && (toString() == other.toString());
   }
 
+  @override
   int get hashCode => throw new UnsupportedError('Message.hashCode');
 
   static String convertToString(value) {

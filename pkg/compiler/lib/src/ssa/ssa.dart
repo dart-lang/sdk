@@ -33,12 +33,14 @@ class SsaFunctionCompiler implements FunctionCompiler {
         optimizer = new SsaOptimizerTask(backend),
         backend = backend;
 
+  @override
   void onCodegenStart() {
     _builder.onCodegenStart();
   }
 
   /// Generates JavaScript code for `work.element`.
   /// Using the ssa builder, optimizer and code generator.
+  @override
   js.Fun compile(CodegenWorkItem work, JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults) {
     HGraph graph = _builder.build(work, closedWorld, globalInferenceResults);
@@ -62,6 +64,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     return result;
   }
 
+  @override
   Iterable<CompilerTask> get tasks {
     return <CompilerTask>[_builder, optimizer, generator];
   }
@@ -82,6 +85,7 @@ class SsaBuilderTask extends CompilerTask {
   SsaBuilderTask(this._backend, this._sourceInformationFactory)
       : super(_backend.compiler.measurer);
 
+  @override
   String get name => 'SSA builder';
 
   void onCodegenStart() {

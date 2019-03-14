@@ -176,6 +176,7 @@ class LibraryData {
     return _staticFieldMap[field];
   }
 
+  @override
   String toString() => 'LibraryData(library=$library,_classMap=$_classMap,'
       '_methodMap=$_methodMap,_fieldMap=$_fieldMap)';
 }
@@ -220,6 +221,7 @@ class ClassData {
     return _checkedSetterMap[field];
   }
 
+  @override
   String toString() => 'ClassData(cls=$cls,'
       '_methodMap=$_methodMap,_fieldMap=$_fieldMap)';
 }

@@ -103,6 +103,7 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
     _constantLiterals.add(constant);
   }
 
+  @override
   Iterable<ConstantExpression> get constantLiterals {
     return _constantLiterals != null
         ? _constantLiterals
@@ -140,6 +141,7 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
     return _genericInstantiations ?? const <GenericInstantiation>[];
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('ResolutionWorldImpactBuilder($name)');

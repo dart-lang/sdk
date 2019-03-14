@@ -26,6 +26,7 @@ class Tracer extends TracerUtil {
   final JClosedWorld closedWorld;
   final Namer namer;
   bool traceActive = false;
+  @override
   final api.OutputSink output;
   final RegExp traceFilter;
 

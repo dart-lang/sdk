@@ -949,7 +949,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   }
   // Inline implicit instance setter.
   String& field_name = String::Handle(Z, instr->function_name().raw());
-  if (Function::IsDynamicInvocationForwaderName(field_name)) {
+  if (Function::IsDynamicInvocationForwarderName(field_name)) {
     field_name = Function::DemangleDynamicInvocationForwarderName(field_name);
   }
   field_name = Field::NameFromSetter(field_name);
@@ -1017,14 +1017,10 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
     // not in strong mode or if at a dynamic invocation.
     bool needs_check = true;
     if (!instr->interface_target().IsNull() && (field.kernel_offset() >= 0)) {
-      bool is_covariant = false;
-      bool is_generic_covariant = false;
-      field.GetCovarianceAttributes(&is_covariant, &is_generic_covariant);
-
-      if (is_covariant) {
+      if (field.is_covariant()) {
         // Always type check covariant fields.
         needs_check = true;
-      } else if (is_generic_covariant) {
+      } else if (field.is_generic_covariant_impl()) {
         // If field is generic covariant then we don't need to check it
         // if the invocation was marked as unchecked (e.g. receiver of
         // the invocation is also the receiver of the surrounding method).

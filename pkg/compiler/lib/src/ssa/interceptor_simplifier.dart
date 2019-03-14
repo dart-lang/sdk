@@ -32,6 +32,7 @@ import 'optimize.dart';
 ///
 class SsaSimplifyInterceptors extends HBaseVisitor
     implements OptimizationPhase {
+  @override
   final String name = "SsaSimplifyInterceptors";
   final JClosedWorld _closedWorld;
   final ClassEntity _enclosingClass;
@@ -46,11 +47,13 @@ class SsaSimplifyInterceptors extends HBaseVisitor
   AbstractValueDomain get _abstractValueDomain =>
       _closedWorld.abstractValueDomain;
 
+  @override
   void visitGraph(HGraph graph) {
     this._graph = graph;
     visitDominatorTree(graph);
   }
 
+  @override
   void visitBasicBlock(HBasicBlock node) {
     currentBlock = node;
 
@@ -65,8 +68,10 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     }
   }
 
+  @override
   bool visitInstruction(HInstruction instruction) => false;
 
+  @override
   bool visitInvoke(HInvoke invoke) {
     if (!invoke.isInterceptedCall) return false;
     dynamic interceptor = invoke.inputs[0];
@@ -187,6 +192,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
   static int useCount(HInstruction user, HInstruction used) =>
       user.inputs.where((input) => input == used).length;
 
+  @override
   bool visitInterceptor(HInterceptor node) {
     if (node.receiver.nonCheck() == _graph.explicitReceiverParameter) {
       // If `explicitReceiverParameter` is set it means the current method is an
@@ -431,6 +437,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     }
   }
 
+  @override
   bool visitOneShotInterceptor(HOneShotInterceptor node) {
     // 'Undo' the one-shot transformation if the receiver has a constant
     // interceptor.

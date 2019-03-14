@@ -99,18 +99,22 @@ class KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
 
   KernelOrderedTypeSetBuilder(this.elementMap, ClassEntity cls) : super(cls);
 
+  @override
   InterfaceType getThisType(ClassEntity cls) {
     return elementMap.getThisType(cls);
   }
 
+  @override
   InterfaceType substByContext(InterfaceType type, InterfaceType context) {
     return elementMap.substByContext(type, context);
   }
 
+  @override
   int getHierarchyDepth(ClassEntity cls) {
     return elementMap.getHierarchyDepth(cls);
   }
 
+  @override
   OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
     return elementMap.getOrderedTypeSet(cls);
   }
@@ -141,6 +145,7 @@ abstract class AbstractTypeRelationMixin
 
 class KernelSubtypeVisitor extends SubtypeVisitor<DartType>
     with AbstractTypeRelationMixin {
+  @override
   final IrToElementMap elementMap;
 
   KernelSubtypeVisitor(this.elementMap);
@@ -148,6 +153,7 @@ class KernelSubtypeVisitor extends SubtypeVisitor<DartType>
 
 class _KernelPotentialSubtypeVisitor extends PotentialSubtypeVisitor<DartType>
     with AbstractTypeRelationMixin {
+  @override
   final IrToElementMap elementMap;
 
   _KernelPotentialSubtypeVisitor(this.elementMap);

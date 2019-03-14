@@ -12,12 +12,15 @@ class SetTypeMask extends AllocationTypeMask {
   /// data stream.
   static const String tag = 'set-type-mask';
 
+  @override
   final TypeMask forwardTo;
 
   // The [Node] where this type mask was created.
+  @override
   final ir.TreeNode allocationNode;
 
   // The [Entity] where this type mask was created.
+  @override
   final MemberEntity allocationElement;
 
   // The element type of this set.

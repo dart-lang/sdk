@@ -9,15 +9,17 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resolver_test_case.dart';
 
-abstract class StaticTypeWarningCodeTest extends ResolverTestCase {
-  fail_undefinedEnumConstant() async {
-    // We need a way to set the parseEnum flag in the parser to true.
-    await assertErrorsInCode(r'''
-enum E { ONE }
-E e() {
-  return E.TWO;
-}''', [StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT]);
-  }
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(StaticTypeWarningCodeTest);
+    defineReflectiveTests(StrongModeStaticTypeWarningCodeTest);
+  });
+}
+
+@reflectiveTest
+class StaticTypeWarningCodeTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   test_assert_message_suppresses_type_promotion() async {
     // If a variable is assigned to inside the expression for an assert
@@ -1298,6 +1300,16 @@ main(A<V> p) {
 }''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
+  @failingTest
+  test_undefinedEnumConstant() async {
+    // We need a way to set the parseEnum flag in the parser to true.
+    await assertErrorsInCode(r'''
+enum E { ONE }
+E e() {
+  return E.TWO;
+}''', [StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT]);
+  }
+
   test_undefinedGetter() async {
     await assertErrorsInUnverifiedCode(r'''
 class T {}
@@ -1705,7 +1717,11 @@ Stream<int> f() sync* {
   }
 }
 
-abstract class StrongModeStaticTypeWarningCodeTest extends ResolverTestCase {
+@reflectiveTest
+class StrongModeStaticTypeWarningCodeTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();

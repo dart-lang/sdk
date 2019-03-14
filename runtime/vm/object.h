@@ -2185,7 +2185,7 @@ class Function : public Object {
     return kind() == RawFunction::kInvokeFieldDispatcher;
   }
 
-  bool IsDynamicInvocationForwader() const {
+  bool IsDynamicInvocationForwarder() const {
     return kind() == RawFunction::kDynamicInvocationForwarder;
   }
 
@@ -2655,7 +2655,7 @@ class Function : public Object {
   RawFunction* CreateMethodExtractor(const String& getter_name) const;
   RawFunction* GetMethodExtractor(const String& getter_name) const;
 
-  static bool IsDynamicInvocationForwaderName(const String& name);
+  static bool IsDynamicInvocationForwarderName(const String& name);
 
   static RawString* DemangleDynamicInvocationForwarderName(const String& name);
 
@@ -3055,6 +3055,21 @@ class Field : public Object {
     set_kind_bits(HasPragmaBit::update(value, raw_ptr()->kind_bits_));
   }
 
+  bool is_covariant() const {
+    return CovariantBit::decode(raw_ptr()->kind_bits_);
+  }
+  void set_is_covariant(bool value) const {
+    set_kind_bits(CovariantBit::update(value, raw_ptr()->kind_bits_));
+  }
+
+  bool is_generic_covariant_impl() const {
+    return GenericCovariantImplBit::decode(raw_ptr()->kind_bits_);
+  }
+  void set_is_generic_covariant_impl(bool value) const {
+    set_kind_bits(
+        GenericCovariantImplBit::update(value, raw_ptr()->kind_bits_));
+  }
+
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
@@ -3072,11 +3087,6 @@ class Field : public Object {
   RawExternalTypedData* KernelData() const;
 
   intptr_t KernelDataProgramOffset() const;
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  void GetCovarianceAttributes(bool* is_covariant,
-                               bool* is_generic_covariant) const;
-#endif
 
   inline intptr_t Offset() const;
   // Called during class finalization.
@@ -3301,6 +3311,7 @@ class Field : public Object {
                             const Object& owner,
                             TokenPosition token_pos,
                             TokenPosition end_token_pos);
+  friend class Interpreter;              // Access to bit field.
   friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
 
   enum {
@@ -3313,6 +3324,8 @@ class Field : public Object {
     kDoubleInitializedBit,
     kInitializerChangedAfterInitializatonBit,
     kHasPragmaBit,
+    kCovariantBit,
+    kGenericCovariantImplBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
@@ -3330,6 +3343,9 @@ class Field : public Object {
                         kInitializerChangedAfterInitializatonBit,
                         1> {};
   class HasPragmaBit : public BitField<uint16_t, bool, kHasPragmaBit, 1> {};
+  class CovariantBit : public BitField<uint16_t, bool, kCovariantBit, 1> {};
+  class GenericCovariantImplBit
+      : public BitField<uint16_t, bool, kGenericCovariantImplBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -4651,6 +4667,7 @@ class ExceptionHandlers : public Object {
 
 class Code : public Object {
  public:
+  // When dual mapping, this returns the executable view.
   RawInstructions* active_instructions() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
@@ -4660,6 +4677,7 @@ class Code : public Object {
 #endif
   }
 
+  // When dual mapping, these return the executable view.
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
   static RawInstructions* InstructionsOf(const RawCode* code) {
     return code->ptr()->instructions_;
@@ -5140,6 +5158,7 @@ class Code : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
+  friend class CodeTestHelper;
   friend class SnapshotWriter;
   friend class StubCode;     // for set_object_pool
   friend class Precompiler;  // for set_object_pool
@@ -9140,8 +9159,12 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
     Isolate* isolate = Isolate::Current();
     Heap* isolate_heap = isolate->heap();
     Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-    ASSERT(isolate_heap->Contains(RawObject::ToAddr(raw_)) ||
-           vm_isolate_heap->Contains(RawObject::ToAddr(raw_)));
+    uword addr = RawObject::ToAddr(raw_);
+    if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
+      ASSERT(FLAG_write_protect_code);
+      addr = RawObject::ToAddr(HeapPage::ToWritable(raw_));
+      ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
+    }
   }
 #endif
 }

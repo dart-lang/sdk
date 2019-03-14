@@ -299,6 +299,16 @@ var a = [...b, ...c];
     assertType(findNode.listLiteral('[...'), 'List<Object>');
   }
 
+  test_noContext_noTypeArgs_spread_nestedInIf_oneAmbiguous() async {
+    addTestFile('''
+List<int> c;
+dynamic d;
+var a = [if (0 < 1) ...c else ...d];
+''');
+    await resolveTestFile();
+    assertType(findNode.listLiteral('['), 'List<dynamic>');
+  }
+
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull() async {
     addTestFile('''
 f() {
@@ -307,7 +317,7 @@ f() {
 }
 ''');
     await resolveTestFile();
-    assertType(findNode.listLiteral('['), 'List<int>');
+    assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
@@ -318,6 +328,6 @@ f() {
 }
 ''');
     await resolveTestFile();
-    assertType(findNode.listLiteral('['), 'List<dynamic>');
+    assertType(findNode.listLiteral('['), 'List<Null>');
   }
 }

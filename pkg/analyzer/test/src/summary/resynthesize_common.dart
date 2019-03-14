@@ -2590,14 +2590,14 @@ const Object x = const {1: 1.0};
       checkElementText(
           library,
           '''
-const Object x = const /*typeArgs=int,double*/{1: 1.0};
+const Object x = const /*typeArgs=int,double*/{1: 1.0}/*isMap*/;
 ''',
           withTypes: true);
     } else {
       checkElementText(library, '''
 const Object x = const <
         int/*location: dart:core;int*/,
-        double/*location: dart:core;double*/>{1: 1.0};
+        double/*location: dart:core;double*/>{1: 1.0}/*isMap*/;
 ''');
     }
   }
@@ -3042,6 +3042,28 @@ const dynamic V =
 ''');
   }
 
+  test_const_set_inferredType() async {
+    // The summary needs to contain enough information so that when the constant
+    // is resynthesized, the constant value can get the type that was computed
+    // by type inference.
+    var library = await checkLibrary('''
+const Object x = const {1};
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const /*typeArgs=int*/{1}/*isSet*/;
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/>{1}/*isSet*/;
+''');
+    }
+  }
+
   test_const_topLevel_binary() async {
     var library = await checkLibrary(r'''
 const vEqual = 1 == 2;
@@ -3293,17 +3315,34 @@ const vInterfaceWithTypeArguments = const <int, List<String>>{};
     checkElementText(library, r'''
 const Map<dynamic, int> vDynamic1 = const <
         dynamic/*location: dynamic*/,
-        int/*location: dart:core;int*/>{};
+        int/*location: dart:core;int*/>{}/*isMap*/;
 const Map<int, dynamic> vDynamic2 = const <
         int/*location: dart:core;int*/,
-        dynamic/*location: dynamic*/>{};
+        dynamic/*location: dynamic*/>{}/*isMap*/;
 const Map<int, String> vInterface = const <
         int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>{};
+        String/*location: dart:core;String*/>{}/*isMap*/;
 const Map<int, List<String>> vInterfaceWithTypeArguments = const <
         int/*location: dart:core;int*/,
         List/*location: dart:core;List*/<
-        String/*location: dart:core;String*/>>{};
+        String/*location: dart:core;String*/>>{}/*isMap*/;
+''');
+  }
+
+  test_const_topLevel_typedSet() async {
+    var library = await checkLibrary(r'''
+const vDynamic1 = const <dynamic>{};
+const vInterface = const <int>{};
+const vInterfaceWithTypeArguments = const <List<String>>{};
+''');
+    checkElementText(library, r'''
+const Set<dynamic> vDynamic1 = const <
+        dynamic/*location: dynamic*/>{}/*isSet*/;
+const Set<int> vInterface = const <
+        int/*location: dart:core;int*/>{}/*isSet*/;
+const Set<List<String>> vInterfaceWithTypeArguments = const <
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>{}/*isSet*/;
 ''');
   }
 
@@ -3321,7 +3360,16 @@ const List<int> v = const [1, 2, 3];
 const v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
 ''');
     checkElementText(library, r'''
-const Map<int, String> v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
+const Map<int, String> v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'}/*isMap*/;
+''');
+  }
+
+  test_const_topLevel_untypedSet() async {
+    var library = await checkLibrary(r'''
+const v = const {0, 1, 2};
+''');
+    checkElementText(library, r'''
+const Set<int> v = const {0, 1, 2}/*isSet*/;
 ''');
   }
 

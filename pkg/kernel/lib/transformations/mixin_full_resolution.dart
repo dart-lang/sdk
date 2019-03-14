@@ -188,7 +188,7 @@ class MixinFullResolution {
 
           assert(src.typeParameters.length == dst.typeParameters.length);
           for (int j = 0; j < src.typeParameters.length; ++j) {
-            dst.typeParameters[j].flags = src.typeParameters[i].flags;
+            dst.typeParameters[j].flags = src.typeParameters[j].flags;
           }
           for (int j = 0; j < src.positionalParameters.length; ++j) {
             dst.positionalParameters[j].flags =

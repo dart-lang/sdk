@@ -1973,6 +1973,7 @@ class LocalState {
     sb.write('\n]');
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('LocalState(');

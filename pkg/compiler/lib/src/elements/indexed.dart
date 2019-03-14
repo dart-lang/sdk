@@ -13,18 +13,21 @@ abstract class _Indexed {
 abstract class IndexedLibrary extends _Indexed implements LibraryEntity {
   /// Library index used for fast lookup in [KernelToElementMapBase].
   int get libraryIndex => _index;
+  @override
   int get hashCode => 7 * _index + 2;
 }
 
 abstract class IndexedClass extends _Indexed implements ClassEntity {
   /// Class index used for fast lookup in [KernelToElementMapBase].
   int get classIndex => _index;
+  @override
   int get hashCode => 7 * _index + 1;
 }
 
 abstract class IndexedMember extends _Indexed implements MemberEntity {
   /// Member index used for fast lookup in [KernelToElementMapBase].
   int get memberIndex => _index;
+  @override
   int get hashCode => 7 * _index;
 }
 

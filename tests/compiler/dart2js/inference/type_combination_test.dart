@@ -54,7 +54,9 @@ class Pair {
   final first;
   final second;
   Pair(this.first, this.second);
+  @override
   int get hashCode => first.hashCode * 47 + second.hashCode;
+  @override
   bool operator ==(other) =>
       other is Pair &&
       identical(first, other.first) &&

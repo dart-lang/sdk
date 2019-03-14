@@ -124,12 +124,12 @@ static method foo() → dynamic {
   } =>#t3;
   core::Map<dynamic, dynamic> map10 = block {
     final core::Map<dynamic, dynamic> #t5 = <dynamic, dynamic>{};
-    for (final core::MapEntry<dynamic, dynamic> #t6 in <dynamic, dynamic>{})
+    for (final core::MapEntry<dynamic, dynamic> #t6 in <dynamic, dynamic>{}.{core::Map::entries})
       #t5.{core::Map::[]=}(#t6.{core::MapEntry::key}, #t6.{core::MapEntry::value});
   } =>#t5;
   core::Map<dynamic, dynamic> map10ambiguous = block {
     final core::Map<dynamic, dynamic> #t7 = <dynamic, dynamic>{};
-    for (final core::MapEntry<dynamic, dynamic> #t8 in <dynamic, dynamic>{})
+    for (final core::MapEntry<dynamic, dynamic> #t8 in <dynamic, dynamic>{}.{core::Map::entries})
       #t7.{core::Map::[]=}(#t8.{core::MapEntry::key}, #t8.{core::MapEntry::value});
   } =>#t7;
   core::List<core::int> lhs20 = block {
@@ -150,13 +150,13 @@ static method foo() → dynamic {
   } =>#t13;
   core::Map<core::String, core::int> map20 = block {
     final core::Map<core::String, core::int> #t15 = <core::String, core::int>{};
-    for (final core::MapEntry<core::String, core::int> #t16 in mapSpread)
+    for (final core::MapEntry<core::String, core::int> #t16 in mapSpread.{core::Map::entries})
       #t15.{core::Map::[]=}(#t16.{core::MapEntry::key}, #t16.{core::MapEntry::value});
     #t15.{core::Map::[]=}("baz", 42);
   } =>#t15;
   core::Map<core::String, core::int> map20ambiguous = block {
     final core::Map<core::String, core::int> #t17 = <core::String, core::int>{};
-    for (final core::MapEntry<core::String, core::int> #t18 in mapSpread)
+    for (final core::MapEntry<core::String, core::int> #t18 in mapSpread.{core::Map::entries})
       #t17.{core::Map::[]=}(#t18.{core::MapEntry::key}, #t18.{core::MapEntry::value});
   } =>#t17;
   core::List<dynamic> lhs21 = block {
@@ -172,7 +172,7 @@ static method foo() → dynamic {
   } =>#t21;
   core::Map<dynamic, dynamic> map21 = block {
     final core::Map<dynamic, dynamic> #t23 = <dynamic, dynamic>{};
-    for (final core::MapEntry<dynamic, dynamic> #t24 in (mapSpread as dynamic) as{TypeError} core::Map<dynamic, dynamic>)
+    for (final core::MapEntry<dynamic, dynamic> #t24 in ((mapSpread as dynamic) as{TypeError} core::Map<dynamic, dynamic>).{core::Map::entries})
       #t23.{core::Map::[]=}(#t24.{core::MapEntry::key}, #t24.{core::MapEntry::value});
     #t23.{core::Map::[]=}("baz", 42);
   } =>#t23;
@@ -198,7 +198,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   } =>#t29;
   core::Map<core::String, core::int> map22 = block {
     final core::Map<core::String, core::int> #t31 = <core::String, core::int>{};
-    for (final core::MapEntry<core::String, core::int> #t32 in <core::String, core::int>{})
+    for (final core::MapEntry<core::String, core::int> #t32 in <core::String, core::int>{}.{core::Map::entries})
       #t31.{core::Map::[]=}(#t32.{core::MapEntry::key}, #t32.{core::MapEntry::value});
   } =>#t31;
   core::List<core::List<core::int>> lhs23 = block {
@@ -219,7 +219,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   } =>#t37;
   core::Map<core::String, core::List<core::int>> map23 = block {
     final core::Map<core::String, core::List<core::int>> #t39 = <core::String, core::List<core::int>>{};
-    for (final core::MapEntry<core::String, core::List<core::int>> #t40 in <core::String, core::List<core::int>>{"baz": <core::int>[]})
+    for (final core::MapEntry<core::String, core::List<core::int>> #t40 in <core::String, core::List<core::int>>{"baz": <core::int>[]}.{core::Map::entries})
       #t39.{core::Map::[]=}(#t40.{core::MapEntry::key}, #t40.{core::MapEntry::value});
   } =>#t39;
   dynamic map24ambiguous = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:72:76: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
@@ -259,7 +259,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
     {...mapSpread, \"baz\": 42};
     ^" in ( block {
     final core::Map<core::String, core::int> #t51 = <core::String, core::int>{};
-    for (final core::MapEntry<core::String, core::int> #t52 in mapSpread)
+    for (final core::MapEntry<core::String, core::int> #t52 in mapSpread.{core::Map::entries})
       #t51.{core::Map::[]=}(#t52.{core::MapEntry::key}, #t52.{core::MapEntry::value});
     #t51.{core::Map::[]=}("baz", 42);
   } =>#t51) as{TypeError} core::int;
@@ -269,7 +269,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
     {...mapSpread};
     ^" in ( block {
     final core::Map<core::String, core::int> #t54 = <core::String, core::int>{};
-    for (final core::MapEntry<core::String, core::int> #t55 in mapSpread)
+    for (final core::MapEntry<core::String, core::int> #t55 in mapSpread.{core::Map::entries})
       #t54.{core::Map::[]=}(#t55.{core::MapEntry::key}, #t55.{core::MapEntry::value});
   } =>#t54) as{TypeError} core::int;
   core::List<dynamic> lhs40 = <dynamic>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:89:5: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
@@ -346,7 +346,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
     final core::Map<core::String, core::int> #t76 = <core::String, core::int>{};
     final core::Map<dynamic, dynamic> #t77 = null;
     if(!#t77.{core::Object::==}(null))
-      for (final core::MapEntry<core::String, core::int> #t78 in #t77)
+      for (final core::MapEntry<core::String, core::int> #t78 in #t77.{core::Map::entries})
         #t76.{core::Map::[]=}(#t78.{core::MapEntry::key}, #t78.{core::MapEntry::value});
   } =>#t76;
 }
