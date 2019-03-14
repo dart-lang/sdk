@@ -335,7 +335,13 @@ class FixProcessor {
 //    }
     if (errorCode == HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE) {
       await _addFix_importAsync();
-      await _addFix_updateSdkConstraints();
+      await _addFix_updateSdkConstraints('2.1.0');
+    }
+    if (errorCode == HintCode.SDK_VERSION_SET_LITERAL) {
+      await _addFix_updateSdkConstraints('2.2.0');
+    }
+    if (errorCode == HintCode.SDK_VERSION_UI_AS_CODE) {
+      await _addFix_updateSdkConstraints('2.2.2');
     }
     if (errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL) {
       await _addFix_isNotNull();
@@ -3203,16 +3209,6 @@ class FixProcessor {
     }
   }
 
-  Future<void> _addFix_replaceVarWithDynamic() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(range.error(error), 'dynamic');
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_VAR_WITH_DYNAMIC);
-  }
-
   Future<void> _addFix_replaceNullWithClosure() async {
     var nodeToFix;
     var parameters = const <ParameterElement>[];
@@ -3244,6 +3240,16 @@ class FixProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_NULL_WITH_CLOSURE);
     }
+  }
+
+  Future<void> _addFix_replaceVarWithDynamic() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(range.error(error), 'dynamic');
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_VAR_WITH_DYNAMIC);
   }
 
   Future<void> _addFix_replaceWithConditionalAssignment() async {
@@ -3301,16 +3307,6 @@ class FixProcessor {
     }
   }
 
-  Future<void> _addFix_replaceWithRethrow() async {
-    if (coveredNode is ThrowExpression) {
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(range.node(coveredNode), 'rethrow');
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.USE_RETHROW);
-    }
-  }
-
   Future<void> _addFix_replaceWithIdentifier() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -3325,6 +3321,16 @@ class FixProcessor {
       _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_IDENTIFIER);
     } else {
       await _addFix_removeTypeAnnotation();
+    }
+  }
+
+  Future<void> _addFix_replaceWithRethrow() async {
+    if (coveredNode is ThrowExpression) {
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleReplacement(range.node(coveredNode), 'rethrow');
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.USE_RETHROW);
     }
   }
 
@@ -3746,7 +3752,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_FIELD_FORMAL_PARAMETERS);
   }
 
-  Future<void> _addFix_updateSdkConstraints() async {
+  Future<void> _addFix_updateSdkConstraints(String minimumVersion) async {
     Context context = resourceProvider.pathContext;
     File pubspecFile = null;
     Folder folder = resourceProvider.getFolder(context.dirname(file));
@@ -3774,13 +3780,13 @@ class FixProcessor {
       length = spaceOffset;
     }
     if (text == 'any') {
-      newText = '^2.1.0';
+      newText = '^$minimumVersion';
     } else if (text.startsWith('^')) {
-      newText = '^2.1.0';
+      newText = '^$minimumVersion';
     } else if (text.startsWith('>=')) {
-      newText = '>=2.1.0';
+      newText = '>=$minimumVersion';
     } else if (text.startsWith('>')) {
-      newText = '>=2.1.0';
+      newText = '>=$minimumVersion';
     }
     if (newText == null) {
       return;

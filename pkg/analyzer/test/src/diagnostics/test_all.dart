@@ -41,6 +41,10 @@ import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
 import 'non_bool_condition_test.dart' as non_bool_condition;
 import 'non_constant_map_element_test.dart' as non_constant_map_element;
+import 'sdk_version_async_exported_from_core_test.dart'
+    as sdk_version_async_exported_from_core;
+import 'sdk_version_set_literal_test.dart' as sdk_version_set_literal;
+import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
 import 'set_element_type_not_assignable_test.dart'
     as set_element_type_not_assignable;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
@@ -101,6 +105,9 @@ main() {
     must_call_super.main();
     non_bool_condition.main();
     non_constant_map_element.main();
+    sdk_version_async_exported_from_core.main();
+    sdk_version_set_literal.main();
+    sdk_version_ui_as_code.main();
     set_element_type_not_assignable.main();
     subtype_of_sealed_class.main();
     top_level_instance_getter.main();
