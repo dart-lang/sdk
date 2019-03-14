@@ -93,10 +93,10 @@ class ConditionScope {
 /// When add a new local scope:
 /// - Visiting a non-empty function body: [BlockFunctionBody] [ExpressionFunctionBody].
 /// - Visiting a flow-control statement: [IfStatement] ElseStatement.
-/// - Visiting loop statements: [DoStatement] [WhileStatement] [ForStatement] [ForEachStatement].
+/// - Visiting loop statements: [DoStatement] [WhileStatement] [ForStatement] [ForStatement2].
 ///
 /// When call the abstract method visitCondition(node.condition):
-/// - After visiting a conditional statements: [IfStatement] [DoStatement] [WhileStatement] [ForStatement].
+/// - After visiting a conditional statements: [IfStatement] [DoStatement] [WhileStatement] [ForStatement2].
 ///
 /// When undefine an element:
 /// - Visiting reassignments of variables: [AssignmentExpression] [PrefixExpression] [PostfixExpression].
@@ -108,7 +108,7 @@ class ConditionScope {
 ///
 /// When propagate undefined elements:
 /// - After visiting a flow-control statement: [IfStatement] ElseStatement.
-/// - After visiting loop statements: [DoStatement] [WhileStatement] [ForStatement] [ForEachStatement].
+/// - After visiting loop statements: [DoStatement] [WhileStatement] [ForStatement] [ForStatement2].
 ///
 /// When add a Condition as true condition:
 /// - Inside an if body and after an else body with exit clause.
