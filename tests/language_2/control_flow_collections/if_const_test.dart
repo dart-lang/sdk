@@ -129,7 +129,7 @@ void testSet() {
   Expect.identical(set, const <int>{1, if (false) 9 else 2, 3});
 
   // Only if.
-  Expect.identical({1}, const <int>{if (true) 1});
+  Expect.identical(const <int>{1}, const <int>{if (true) 1});
 
   // If at beginning.
   Expect.identical(set, const <int>{if (true) 1, 2, 3});
@@ -201,7 +201,7 @@ void testShortCircuit() {
   Expect.identical(const <int>[1, 2],
       const <int>[if (true) 1 else nonInt, if (false) nonInt else 2]);
 
-  Expect.identical(const <int>{1: 1}, const <int, int>{
+  Expect.identical(const <int, int>{1: 1}, const <int, int>{
     if (true) 1: 1,
     if (false) nonInt: 9,
     if (false) 9: nonInt
