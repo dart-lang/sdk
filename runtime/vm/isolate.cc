@@ -2288,6 +2288,14 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 
   jsobj.AddProperty("_threads", thread_registry_);
 }
+
+void Isolate::PrintMemoryUsageJSON(JSONStream* stream) {
+  if (!FLAG_support_service) {
+    return;
+  }
+  heap()->PrintMemoryUsageJSON(stream);
+}
+
 #endif
 
 void Isolate::set_tag_table(const GrowableObjectArray& value) {

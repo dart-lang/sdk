@@ -515,6 +515,10 @@ class Isolate : public BaseIsolate {
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream, bool ref = true);
+
+  // Creates an object with the total heap memory usage statistics for this
+  // isolate.
+  void PrintMemoryUsageJSON(JSONStream* stream);
 #endif
 
 #if !defined(PRODUCT)

@@ -1377,6 +1377,16 @@ static bool GetIsolate(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* get_memory_usage_params[] = {
+    ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool GetMemoryUsage(Thread* thread, JSONStream* js) {
+  thread->isolate()->PrintMemoryUsageJSON(js);
+  return true;
+}
+
 static const MethodParameter* get_scripts_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     NULL,
@@ -4876,6 +4886,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_instances_params },
   { "getIsolate", GetIsolate,
     get_isolate_params },
+  { "getMemoryUsage", GetMemoryUsage,
+    get_memory_usage_params },
   { "_getIsolateMetric", GetIsolateMetric,
     get_isolate_metric_params },
   { "_getIsolateMetricList", GetIsolateMetricList,
