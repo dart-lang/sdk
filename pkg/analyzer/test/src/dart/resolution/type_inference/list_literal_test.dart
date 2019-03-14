@@ -317,7 +317,7 @@ f() {
 }
 ''');
     await resolveTestFile();
-    assertType(findNode.listLiteral('['), 'List<int>');
+    assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
@@ -328,6 +328,6 @@ f() {
 }
 ''');
     await resolveTestFile();
-    assertType(findNode.listLiteral('['), 'List<dynamic>');
+    assertType(findNode.listLiteral('['), 'List<Null>');
   }
 }

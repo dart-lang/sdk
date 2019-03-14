@@ -1121,17 +1121,21 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       // This error will be reported elsewhere.
       return _typeProvider.dynamicType;
     } else if (element is SpreadElement) {
-      DartType collectionType = element.expression.staticType;
-      if (collectionType.isDynamic) {
-        return collectionType;
-      } else if (collectionType is ParameterizedType) {
-        // TODO(brianwilkerson) This should probably test to ensure that the
-        //  type of the collection is `Iterable` before returning the element
-        //  type.
-        List<DartType> typeArguments = collectionType.typeArguments;
-        if (typeArguments.length == 1) {
-          return typeArguments[0];
+      DartType expressionType = element.expression.staticType;
+      bool isNull = expressionType.isDartCoreNull;
+      if (!isNull && expressionType is InterfaceType) {
+        if (_typeSystem.isSubtypeOf(
+            expressionType, _typeProvider.iterableObjectType)) {
+          InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
+              .asInstanceOf(_typeProvider.iterableType.element);
+          return iterableType.typeArguments[0];
         }
+      } else if (expressionType.isDynamic) {
+        return expressionType;
+      } else if (isNull &&
+          element.spreadOperator.type ==
+              TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
+        return expressionType;
       }
       // TODO(brianwilkerson) Report this as an error.
       return _typeProvider.dynamicType;
@@ -1413,41 +1417,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
             expressionType, _typeProvider.iterableObjectType)) {
           InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
               .asInstanceOf(_typeProvider.iterableType.element);
-          if (iterableType != null) {
-            // The `iterableType` will be `null` when `expressionType` is
-            // `Null`. Fall through in that case to perform the default type
-            // check.
-            List<DartType> typeArguments = iterableType.typeArguments;
-            if (typeArguments.length == 1) {
-              return _InferredCollectionElementTypeInformation(
-                  elementType: typeArguments[0],
-                  keyType: null,
-                  valueType: null);
-            }
-          }
           return _InferredCollectionElementTypeInformation(
-              elementType: _typeProvider.dynamicType,
+              elementType: iterableType.typeArguments[0],
               keyType: null,
               valueType: null);
         } else if (_typeSystem.isSubtypeOf(
             expressionType, _typeProvider.mapObjectObjectType)) {
           InterfaceType mapType = (expressionType as InterfaceTypeImpl)
               .asInstanceOf(_typeProvider.mapType.element);
-          if (mapType != null) {
-            // The `iterableType` will be `null` when `expressionType` is
-            // `Null`. Fall through in that case to perform the default type
-            // check.
-            List<DartType> typeArguments = mapType.typeArguments;
-            if (typeArguments.length == 2) {
-              return _InferredCollectionElementTypeInformation(
-                  elementType: null,
-                  keyType: typeArguments[0],
-                  valueType: typeArguments[1]);
-            }
-          }
-          DartType dynamicType = _typeProvider.dynamicType;
+          List<DartType> typeArguments = mapType.typeArguments;
           return _InferredCollectionElementTypeInformation(
-              elementType: null, keyType: dynamicType, valueType: dynamicType);
+              elementType: null,
+              keyType: typeArguments[0],
+              valueType: typeArguments[1]);
         }
       } else if (expressionType.isDynamic) {
         return _InferredCollectionElementTypeInformation(
