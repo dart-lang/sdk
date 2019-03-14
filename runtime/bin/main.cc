@@ -888,6 +888,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       intptr_t size = 0;
       ReadFile(Options::load_compilation_trace_filename(), &buffer, &size);
       result = Dart_LoadCompilationTrace(buffer, size);
+      free(buffer);
       CHECK_RESULT(result);
     }
     if (Options::load_type_feedback_filename() != NULL) {
@@ -895,6 +896,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       intptr_t size = 0;
       ReadFile(Options::load_type_feedback_filename(), &buffer, &size);
       result = Dart_LoadTypeFeedback(buffer, size);
+      free(buffer);
       CHECK_RESULT(result);
     }
 

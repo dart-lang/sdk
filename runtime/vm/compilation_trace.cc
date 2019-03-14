@@ -472,6 +472,7 @@ TypeFeedbackLoader::TypeFeedbackLoader(Thread* thread)
     : thread_(thread),
       zone_(thread->zone()),
       stream_(nullptr),
+      cid_map_(nullptr),
       uri_(String::Handle(zone_)),
       lib_(Library::Handle(zone_)),
       cls_name_(String::Handle(zone_)),
@@ -489,6 +490,10 @@ TypeFeedbackLoader::TypeFeedbackLoader(Thread* thread)
       functions_to_compile_(
           GrowableObjectArray::Handle(zone_, GrowableObjectArray::New())),
       error_(Error::Handle(zone_)) {}
+
+TypeFeedbackLoader::~TypeFeedbackLoader() {
+  delete[] cid_map_;
+}
 
 RawObject* TypeFeedbackLoader::LoadFeedback(ReadStream* stream) {
   stream_ = stream;

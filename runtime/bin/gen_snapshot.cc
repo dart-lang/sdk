@@ -424,6 +424,7 @@ static void MaybeLoadCode() {
     intptr_t size = 0;
     ReadFile(load_compilation_trace_filename, &buffer, &size);
     Dart_Handle result = Dart_LoadCompilationTrace(buffer, size);
+    free(buffer);
     CHECK_RESULT(result);
   }
 
@@ -433,6 +434,7 @@ static void MaybeLoadCode() {
     intptr_t size = 0;
     ReadFile(load_type_feedback_filename, &buffer, &size);
     Dart_Handle result = Dart_LoadTypeFeedback(buffer, size);
+    free(buffer);
     CHECK_RESULT(result);
   }
 }
