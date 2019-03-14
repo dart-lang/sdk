@@ -2020,11 +2020,16 @@ class Printer extends Visitor<Null> {
     endLine(sb.toString());
   }
 
+  visitStringConstant(StringConstant node) {
+    final String name = syntheticNames.nameConstant(node);
+    endLine('  $name = "${escapeString(node.value)}"');
+  }
+
   visitUnevaluatedConstant(UnevaluatedConstant node) {
     final String name = syntheticNames.nameConstant(node);
-    write('  $name = ');
+    write('  $name = (');
     writeExpression(node.expression);
-    endLine();
+    endLine(')');
   }
 
   defaultNode(Node node) {
