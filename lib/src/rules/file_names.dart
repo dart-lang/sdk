@@ -28,6 +28,7 @@ symbolic imports.
 
 * `SliderMenu.dart`
 * `filesystem.dart`
+* `file-system.dart`
 
 The lint `library_names` can be used to enforce the same kind of naming on the
 library.
