@@ -3329,7 +3329,10 @@ const MessageCode messageFastaUsageLong =
 
   -Dname
   -Dname=value
-    Ignored for now.
+    Define an environment variable in the compile-time environment.
+
+  --no-defines
+    Ignore all -D options and leave environment constants unevaluated.
 
   --
     Stop option parsing, the rest of the command line is assumed to be
