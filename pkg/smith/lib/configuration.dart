@@ -249,6 +249,7 @@ class Configuration {
         name, architecture, compiler, mode, runtime, system,
         builderTag: stringOption("builder-tag"),
         vmOptions: stringListOption("vm-options"),
+        dart2jsOptions: stringListOption("dart2js-options"),
         timeout: intOption("timeout"),
         enableAsserts: boolOption("enable-asserts"),
         isChecked: boolOption("checked"),
@@ -287,6 +288,8 @@ class Configuration {
 
   final List<String> vmOptions;
 
+  final List<String> dart2jsOptions;
+
   int timeout;
 
   final bool enableAsserts;
@@ -320,6 +323,7 @@ class Configuration {
       this.runtime, this.system,
       {String builderTag,
       List<String> vmOptions,
+      List<String> dart2jsOptions,
       int timeout,
       bool enableAsserts,
       bool isChecked,
@@ -335,6 +339,7 @@ class Configuration {
       bool useSdk})
       : builderTag = builderTag ?? "",
         vmOptions = vmOptions ?? <String>[],
+        dart2jsOptions = dart2jsOptions ?? <String>[],
         timeout = timeout,
         enableAsserts = enableAsserts ?? false,
         isChecked = isChecked ?? false,
@@ -359,6 +364,7 @@ class Configuration {
       system == other.system &&
       builderTag == other.builderTag &&
       vmOptions.join(" & ") == other.vmOptions.join(" & ") &&
+      dart2jsOptions.join(" & ") == other.dart2jsOptions.join(" & ") &&
       timeout == other.timeout &&
       enableAsserts == other.enableAsserts &&
       isChecked == other.isChecked &&
@@ -388,6 +394,7 @@ class Configuration {
       system.hashCode ^
       builderTag.hashCode ^
       vmOptions.join(" & ").hashCode ^
+      dart2jsOptions.join(" & ").hashCode ^
       timeout.hashCode ^
       _toBinary([
         enableAsserts,
@@ -418,6 +425,8 @@ class Configuration {
 
     if (builderTag != "") fields.add("builder-tag: $builderTag");
     if (vmOptions != "") fields.add("vm-options: [${vmOptions.join(", ")}]");
+    if (dart2jsOptions != "")
+      fields.add("dart2js-options: [${dart2jsOptions.join(", ")}]");
     if (timeout != 0) fields.add("timeout: $timeout");
     if (enableAsserts) fields.add("enable-asserts");
     if (isChecked) fields.add("checked");
@@ -458,6 +467,11 @@ class Configuration {
       var tag = "[${vmOptions.join(", ")}]";
       var otherTag = "[${other.vmOptions.join(", ")}]";
       fields.add("vm-options: $tag $otherTag");
+    }
+    if (dart2jsOptions != "" || other.dart2jsOptions != "") {
+      var tag = "[${dart2jsOptions.join(", ")}]";
+      var otherTag = "[${other.dart2jsOptions.join(", ")}]";
+      fields.add("dart2js-options: $tag $otherTag");
     }
     fields.add("timeout: $timeout ${other.timeout}");
     if (enableAsserts || other.enableAsserts) {

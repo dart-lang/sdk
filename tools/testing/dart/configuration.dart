@@ -59,7 +59,6 @@ class TestConfiguration {
       this.testDriverErrorPort,
       this.localIP,
       this.keepGeneratedFiles,
-      this.dart2jsOptions,
       this.sharedOptions,
       String packages,
       this.packageRoot,
@@ -141,7 +140,7 @@ class TestConfiguration {
   final bool keepGeneratedFiles;
 
   /// Extra dart2js options passed to the testing script.
-  final List<String> dart2jsOptions;
+  List<String> get dart2jsOptions => configuration.dart2jsOptions;
 
   /// Extra VM options passed to the testing script.
   List<String> get vmOptions => configuration.vmOptions;
@@ -437,6 +436,7 @@ class TestConfiguration {
         'csp': isCsp,
         'system': system.name,
         'vm_options': vmOptions,
+        'dart2js_options': dart2jsOptions,
         'fasta': usesFasta,
         'use_sdk': useSdk,
         'builder_tag': builderTag,

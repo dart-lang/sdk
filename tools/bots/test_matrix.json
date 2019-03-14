@@ -252,6 +252,11 @@
         "minified": true,
         "use-sdk": true
     }},
+    "dart2js-production-(linux|mac|win)-d8": {
+      "options": {
+        "use-sdk": true,
+        "dart2js-options": ["-O3"]
+    }},
     "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8": {
       "options": {
         "host-checked": true
@@ -1179,6 +1184,25 @@
           "name": "dart2js extra tests",
           "arguments": [
             "-ndart2js-minified-linux-d8",
+            "--dart2js-batch",
+            "dart2js_extra",
+            "dart2js_native"
+          ]
+        },
+        {
+          "name": "dart2js production tests",
+          "arguments": [
+            "-ndart2js-production-linux-d8",
+            "--dart2js-batch",
+            "--exclude_suite=observatory_ui"
+          ],
+          "shards": 6,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js production extra tests",
+          "arguments": [
+            "-ndart2js-production-linux-d8",
             "--dart2js-batch",
             "dart2js_extra",
             "dart2js_native"

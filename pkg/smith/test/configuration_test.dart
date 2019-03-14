@@ -200,6 +200,7 @@ void main() {
             Configuration.parse("dart2js", {
               "builder-tag": "the tag",
               "vm-options": ["vm stuff", "more vm stuff"],
+              "dart2js-options": ["dart2js stuff", "more dart2js stuff"],
               "enable-asserts": true,
               "checked": true,
               "csp": true,
@@ -219,6 +220,7 @@ void main() {
               System.host,
               builderTag: "the tag",
               vmOptions: ["vm stuff", "more vm stuff"],
+              dart2jsOptions: ["dart2js stuff", "more dart2js stuff"],
               enableAsserts: true,
               isChecked: true,
               isCsp: true,
