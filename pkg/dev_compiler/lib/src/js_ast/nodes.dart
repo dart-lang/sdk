@@ -1124,7 +1124,6 @@ class Prefix extends Expression {
 // it is for simplicity's sake.
 class Spread extends Prefix {
   Spread(Expression operand) : super('...', operand);
-  int get precedenceLevel => SPREAD;
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitSpread(this);
   Spread _clone() => Spread(argument);
