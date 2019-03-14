@@ -231,9 +231,26 @@ Future<String> findMergeBase(
   return LineSplitter.split(result.stdout).first;
 }
 
+/// Exception thrown when looking up the build for a commit failed.
+class CommitNotBuiltException implements Exception {
+  final String reason;
+
+  CommitNotBuiltException(this.reason);
+
+  String toString() => reason;
+}
+
+/// The result after searching for a build of a commit.
+class BuildSearchResult {
+  final int build;
+  final String commit;
+
+  BuildSearchResult(this.build, this.commit);
+}
+
 /// Locates the build number of the [commit] on the [builder], or throws an
 /// exception if the builder hasn't built the commit.
-Future<int> buildNumberOfCommit(String builder, String commit) async {
+Future<BuildSearchResult> searchForBuild(String builder, String commit) async {
   final requestUrl = Uri.parse(
       "https://cr-buildbucket.appspot.com/_ah/api/buildbucket/v1/search"
       "?bucket=luci.dart.ci.sandbox"
@@ -250,7 +267,8 @@ Future<int> buildNumberOfCommit(String builder, String commit) async {
   client.close();
   final builds = object["builds"];
   if (builds == null || builds.isEmpty) {
-    throw new Exception("Builder $builder hasn't built commit $commit");
+    throw new CommitNotBuiltException(
+        "Builder $builder hasn't built commit $commit");
   }
   final build = builds.last;
   final tags = (build["tags"] as List).cast<String>();
@@ -258,9 +276,44 @@ Future<int> buildNumberOfCommit(String builder, String commit) async {
       tags.firstWhere((tag) => tag.startsWith("build_address:"));
   final buildAddress = buildAddressTag.substring("build_address:".length);
   if (build["status"] != "COMPLETED") {
-    throw new Exception("Build $buildAddress isn't completed yet");
+    throw new CommitNotBuiltException(
+        "Build $buildAddress isn't completed yet");
   }
-  return int.parse(buildAddress.split("/").last);
+  return new BuildSearchResult(int.parse(buildAddress.split("/").last), commit);
+}
+
+Future<BuildSearchResult> searchForApproximateBuild(
+    String builder, String commit) async {
+  try {
+    return await searchForBuild(builder, commit);
+  } on CommitNotBuiltException catch (e) {
+    print("Warning: $e, searching for an inexact previous build...");
+    final int limit = 25;
+    final arguments = [
+      "rev-list",
+      "$commit~$limit..$commit~1",
+      "--first-parent",
+      "--topo-order"
+    ];
+    final processResult = await Process.run("git", arguments, runInShell: true);
+    if (processResult.exitCode != 0) {
+      throw new Exception("Failed to list potential commits: git $arguments\n"
+          "exitCode: ${processResult.exitCode}\n"
+          "stdout: ${processResult.stdout}\n"
+          "stdout: ${processResult.stderr}\n");
+    }
+    for (final fallbackCommit in LineSplitter.split(processResult.stdout)) {
+      try {
+        return await searchForBuild(builder, fallbackCommit);
+      } catch (e) {
+        print(
+            "Warning: Searching for inexact baseline build: $e, continuing...");
+      }
+    }
+    throw new CommitNotBuiltException(
+        "Failed to locate approximate baseline results for "
+        "$commit in past $limit commits");
+  }
 }
 
 void main(List<String> args) async {
@@ -388,10 +441,18 @@ ${parser.usage}""");
     final mergedFlaky = <String, Map<String, dynamic>>{};
 
     // Use the buildbucket API to search for builds of the right commit.
+    final inexactBuilds = new SplayTreeMap<String, String>();
     for (final builder in builders) {
       // Download the previous results and flakiness info from cloud storage.
       print("Finding build on builder $builder to compare with...");
-      final buildNumber = await buildNumberOfCommit(builder, commit);
+      final buildSearchResult =
+          await searchForApproximateBuild(builder, commit);
+      if (buildSearchResult.commit != commit) {
+        print("Warning: Using commit ${buildSearchResult.commit} "
+            "as baseline instead of $commit for $builder");
+        inexactBuilds[builder] = buildSearchResult.commit;
+      }
+      final buildNumber = buildSearchResult.build;
       print("Downloading results from builder $builder build $buildNumber...");
       await cpGsutil(
           buildFileCloudPath(builder, buildNumber.toString(), "results.json"),
@@ -517,6 +578,12 @@ ${parser.usage}""");
       print("There were no test failures.");
     } else {
       stdout.write(compareOutput.stdout);
+    }
+    if (inexactBuilds.isNotEmpty) {
+      print("");
+      inexactBuilds.forEach((String builder, String inexactCommit) => print(
+          "Warning: Results may be inexact because commit ${inexactCommit} "
+          "was used as the baseline for $builder instead of $commit"));
     }
   } finally {
     await outDirectory.delete(recursive: true);
