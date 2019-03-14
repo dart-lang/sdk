@@ -83,6 +83,11 @@ static void unmap(uword start, uword end) {
 }
 
 #if defined(DUAL_MAPPING_SUPPORTED)
+// Do not leak file descriptors to child processes.
+#if !defined(MFD_CLOEXEC)
+#define MFD_CLOEXEC 0x0001U
+#endif
+
 // Wrapper to call memfd_create syscall.
 static inline int memfd_create(const char* name, unsigned int flags) {
 #if !defined(__NR_memfd_create)
@@ -143,7 +148,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   const bool dual_mapping =
       is_executable && FLAG_write_protect_code && FLAG_dual_map_code;
   if (dual_mapping) {
-    fd = memfd_create("dart_vm", 0);
+    fd = memfd_create("dart_vm", MFD_CLOEXEC);
     if (fd == -1) {
       return NULL;
     }
