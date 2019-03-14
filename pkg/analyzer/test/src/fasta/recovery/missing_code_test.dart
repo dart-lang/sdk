@@ -291,8 +291,7 @@ f(x) => x;
     testUserDefinableOperatorWithSuper('^');
   }
 
-  @failingTest
-  void test_initializerList_missingComma() {
+  void test_initializerList_missingComma_assert() {
     // https://github.com/dart-lang/sdk/issues/33241
     testRecovery('''
 class Test {
@@ -305,6 +304,40 @@ class Test {
   Test()
     : assert(true),
       assert(true);
+}
+''');
+  }
+
+  void test_initializerList_missingComma_field() {
+    // https://github.com/dart-lang/sdk/issues/33241
+    testRecovery('''
+class Test {
+  Test()
+    : assert(true)
+      x = 2;
+}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+class Test {
+  Test()
+    : assert(true),
+      x = 2;
+}
+''');
+  }
+
+  void test_initializerList_missingComma_thisField() {
+    // https://github.com/dart-lang/sdk/issues/33241
+    testRecovery('''
+class Test {
+  Test()
+    : assert(true)
+      this.x = 2;
+}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+class Test {
+  Test()
+    : assert(true),
+      this.x = 2;
 }
 ''');
   }

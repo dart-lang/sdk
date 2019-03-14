@@ -2416,10 +2416,50 @@ class Parser {
     int count = 0;
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = false;
-    do {
-      token = parseInitializer(token.next);
+    Token next = begin;
+    while (true) {
+      token = parseInitializer(next);
       ++count;
-    } while (optional(',', token.next));
+      next = token.next;
+      if (!optional(',', next)) {
+        if (!next.isKeywordOrIdentifier) {
+          break;
+        }
+        // Recovery: Found an identifier which could be
+        // 1) missing preceding `,` thus it's another initializer, or
+        // 2) missing preceding `;` thus it's a class member, or
+        // 3) missing preceding '{' thus it's a statement
+        if (optional('assert', next)) {
+          next = next.next;
+          if (!optional('(', next)) {
+            break;
+          }
+          // Looks like assert expression ... fall through to insert comma
+        } else {
+          if (optional('this', next)) {
+            next = next.next;
+            if (!optional('.', next)) {
+              break;
+            }
+            next = next.next;
+            if (!next.isKeywordOrIdentifier) {
+              break;
+            }
+          }
+          next = next.next;
+          if (!optional('=', next)) {
+            break;
+          }
+          // Looks like field assignment... fall through to insert comma
+        }
+        // TODO(danrubel): Consider enhancing this to indicate that we are
+        // expecting one of `,` or `;` or `{`
+        reportRecoverableError(
+            token, fasta.templateExpectedAfterButGot.withArguments(','));
+        next = rewriter.insertToken(
+            token, new SyntheticToken(TokenType.COMMA, token.next.charOffset));
+      }
+    }
     mayParseFunctionExpressions = old;
     listener.endInitializers(count, begin, token.next);
     return token;
