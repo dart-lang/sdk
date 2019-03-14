@@ -2540,7 +2540,10 @@ class AssistProcessor {
     await changeBuilder.addFileEdit(file, (builder) {
       builder.addReplacement(range.node(widgetExpr), (builder) {
         builder.writeType(streamBuilderElement.type);
-        builder.writeln('<Object>(');
+
+        builder.write('<');
+        builder.addSimpleLinkedEdit('type', 'Object');
+        builder.writeln('>(');
 
         String indentOld = utils.getLinePrefix(widgetExpr.offset);
         String indentNew1 = indentOld + utils.getIndent(1);
