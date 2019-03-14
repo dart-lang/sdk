@@ -69,6 +69,12 @@ var v = const <int>{if (1 < 0) a else b};
   }
 
   test_const_ifElement_thenFalse_intString() async {
+    await assertErrorsInCode('''
+var v = const <int>{if (1 < 0) 'a'};
+''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+  }
+
+  test_const_ifElement_thenFalse_intString_dynamic() async {
     await assertNoErrorsInCode('''
 const dynamic a = 'a';
 var v = const <int>{if (1 < 0) a};
@@ -109,6 +115,12 @@ const dynamic a = 0;
 const dynamic b = 0;
 var v = <int>{if (1 < 0) a else b};
 ''');
+  }
+
+  test_nonConst_ifElement_thenFalse_intString() async {
+    await assertErrorsInCode('''
+var v = <int>[if (1 < 0) 'a'];
+''', [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
 
   test_nonConst_ifElement_thenTrue_intDynamic() async {
