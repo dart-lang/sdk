@@ -95,6 +95,7 @@ class ClosureIrChecker extends IrDataExtractor<String> {
           ? closureRepresentationInfoStack.head
           : null;
 
+  @override
   visitFunctionExpression(ir.FunctionExpression node) {
     ClosureRepresentationInfo info = closureDataLookup.getClosureInfo(node);
     pushMember(info.callMethod);
@@ -104,6 +105,7 @@ class ClosureIrChecker extends IrDataExtractor<String> {
     popMember();
   }
 
+  @override
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
     ClosureRepresentationInfo info = closureDataLookup.getClosureInfo(node);
     pushMember(info.callMethod);
@@ -113,18 +115,21 @@ class ClosureIrChecker extends IrDataExtractor<String> {
     popMember();
   }
 
+  @override
   visitForStatement(ir.ForStatement node) {
     pushLoopNode(node);
     super.visitForStatement(node);
     popLoop();
   }
 
+  @override
   visitWhileStatement(ir.WhileStatement node) {
     pushLoopNode(node);
     super.visitWhileStatement(node);
     popLoop();
   }
 
+  @override
   visitForInStatement(ir.ForInStatement node) {
     pushLoopNode(node);
     super.visitForInStatement(node);

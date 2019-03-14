@@ -190,6 +190,7 @@ class FunctionTypeData {
 
   const FunctionTypeData(this.returnType, this.name, this.parameters);
 
+  @override
   String toString() => '$returnType $name$parameters';
 }
 

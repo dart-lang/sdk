@@ -49,6 +49,7 @@ const String librariesJson = r'''
 class DummyCompilerInput implements CompilerInput {
   const DummyCompilerInput();
 
+  @override
   Future<Input> readFromUri(Uri uri,
       {InputKind inputKind: InputKind.UTF8}) async {
     if (uri.path.endsWith("libraries.json")) {
@@ -62,6 +63,7 @@ class DummyCompilerInput implements CompilerInput {
 class DummyCompilerDiagnostics implements CompilerDiagnostics {
   const DummyCompilerDiagnostics();
 
+  @override
   report(code, uri, begin, end, text, kind) {
     throw "should not be needed";
   }

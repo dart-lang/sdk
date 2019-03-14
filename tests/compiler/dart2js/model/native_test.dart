@@ -290,6 +290,7 @@ class SubTest {
     return sb.toString();
   }
 
+  @override
   String toString() {
     return lines.values.join('\n');
   }

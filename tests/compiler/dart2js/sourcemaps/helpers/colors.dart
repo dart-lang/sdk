@@ -22,6 +22,7 @@ class RGB implements Color {
   /// all in range 0..1.
   const RGB(this.r, this.g, this.b);
 
+  @override
   String get toCss {
     StringBuffer sb = new StringBuffer();
     sb.write('#');
@@ -41,6 +42,7 @@ class RGB implements Color {
     return sb.toString();
   }
 
+  @override
   String toString() => 'rgb($r,$g,$b)';
 }
 
@@ -49,6 +51,7 @@ class RGBA extends RGB {
 
   const RGBA(double r, double g, double b, this.a) : super(r, g, b);
 
+  @override
   String get toCss {
     StringBuffer sb = new StringBuffer();
 
@@ -84,6 +87,7 @@ class HSV implements Color {
   /// saturation [s] in range 0..1, and value [v] in range 0..1.
   const HSV(this.h, this.s, this.v);
 
+  @override
   String get toCss => toRGB(this).toCss;
 
   static RGB toRGB(HSV hsv) {
@@ -116,5 +120,6 @@ class HSV implements Color {
     }
   }
 
+  @override
   String toString() => 'hsv($h,$s,$v)';
 }

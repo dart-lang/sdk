@@ -29,21 +29,33 @@ import 'package:compiler/src/options.dart' show CompilerOptions;
 
 class CollectingFormattingDiagnosticHandler
     implements FormattingDiagnosticHandler {
+  @override
   final provider = null;
+  @override
   bool showWarnings = true;
+  @override
   bool showHints = true;
+  @override
   bool verbose = true;
+  @override
   bool isAborting = false;
+  @override
   bool enableColors = false;
+  @override
   bool throwOnError = false;
+  @override
   bool autoReadFileUri = false;
+  @override
   var lastKind = null;
 
+  @override
   final int FATAL = 0;
+  @override
   final int INFO = 1;
 
   final messages = [];
 
+  @override
   void info(var message, [kind = Diagnostic.VERBOSE_INFO]) {
     messages.add([message, kind]);
   }
@@ -58,12 +70,15 @@ class CollectingFormattingDiagnosticHandler
     report(null, uri, begin, end, message, kind);
   }
 
+  @override
   String prefixMessage(String message, Diagnostic kind) {
     return message;
   }
 
+  @override
   int fatalCount;
 
+  @override
   int throwOnErrorCount;
 }
 

@@ -32,6 +32,7 @@ class TestCompiler extends apiimpl.CompilerImpl {
   final String testMarker;
   final String testType;
   final Function onTest;
+  @override
   TestDiagnosticReporter reporter;
 
   TestCompiler(
@@ -54,6 +55,7 @@ class TestCompiler extends apiimpl.CompilerImpl {
     return new TestBackend(this);
   }
 
+  @override
   Future<bool> run(Uri uri) {
     test('Compiler.run');
     return super.run(uri);
@@ -98,6 +100,7 @@ class TestCompiler extends apiimpl.CompilerImpl {
 }
 
 class TestBackend extends JavaScriptBackend {
+  @override
   final TestCompiler compiler;
   TestBackend(TestCompiler compiler)
       : this.compiler = compiler,
@@ -116,6 +119,7 @@ class TestBackend extends JavaScriptBackend {
 
 class TestDiagnosticReporter extends DiagnosticReporterWrapper {
   TestCompiler compiler;
+  @override
   DiagnosticReporter reporter;
 
   @override

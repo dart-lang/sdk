@@ -24,14 +24,17 @@ class DiffColumn {
 
   const DiffColumn(this.type, [this.index]);
 
+  @override
   int get hashCode => type.hashCode * 19 + index.hashCode * 23;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! DiffColumn) return false;
     return type == other.type && index == other.index;
   }
 
+  @override
   String toString() => '$type${index != null ? index : ''}';
 }
 
@@ -46,6 +49,7 @@ class PartsColumnBlock extends DiffColumnBlock {
 
   PartsColumnBlock(this.parts);
 
+  @override
   void printHtmlOn(StringBuffer htmlBuffer, HtmlPrintContext context) {
     if (parts.isNotEmpty) {
       for (HtmlPart part in parts) {
@@ -62,6 +66,7 @@ class CodeLinesColumnBlock extends DiffColumnBlock {
 
   CodeLinesColumnBlock(this.jsCodeLines, this.jsToDartMap);
 
+  @override
   void printHtmlOn(StringBuffer htmlBuffer, HtmlPrintContext context) {
     if (jsCodeLines.isNotEmpty) {
       htmlBuffer.write('<table style="width:100%">');
