@@ -4,8 +4,12 @@
 
 [ $compiler == dart2js ]
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign
+LanguageFeatures/Control-flow-collections/*: Skip
 LibTest/io/*: SkipByDesign # dart:io not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
+
+[ $compiler == dartdevk ]
+LanguageFeatures/Control-flow-collections/*: Skip
 
 [ $builder_tag != run_webgl_tests && $compiler == dart2js ]
 LayoutTests/fast/canvas/webgl*: Skip # Only run WebGL on special builders, issue 29961
