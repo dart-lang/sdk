@@ -1,8 +1,9 @@
 diff --git a/packages/flutter/test/widgets/clip_test.dart b/packages/flutter/test/widgets/clip_test.dart
-index 006c09994..fe08d98e4 100644
+deleted file mode 100644
+index 006c09994..000000000
 --- a/packages/flutter/test/widgets/clip_test.dart
-+++ b/packages/flutter/test/widgets/clip_test.dart
-@@ -1,747 +1 @@
++++ /dev/null
+@@ -1,747 +0,0 @@
 -// Copyright 2015 The Chromium Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style license that can be
 -// found in the LICENSE file.
@@ -750,15 +751,16 @@ index 006c09994..fe08d98e4 100644
 -    ]);
 -  });
 -}
-+void main() { }
 diff --git a/packages/flutter/test/widgets/text_golden_test.dart b/packages/flutter/test/widgets/text_golden_test.dart
-index 5781c65aa..664646694 100644
+deleted file mode 100644
+index 5781c65aa..000000000
 --- a/packages/flutter/test/widgets/text_golden_test.dart
-+++ b/packages/flutter/test/widgets/text_golden_test.dart
-@@ -2,522 +2,4 @@
- // Use of this source code is governed by a BSD-style license that can be
- // found in the LICENSE file.
- 
++++ /dev/null
+@@ -1,523 +0,0 @@
+-// Copyright 2018 The Chromium Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style license that can be
+-// found in the LICENSE file.
+-
 -import 'dart:io' show Platform;
 -
 -import 'package:flutter_test/flutter_test.dart';
@@ -1278,4 +1280,3 @@ index 5781c65aa..664646694 100644
 -    );
 -  }, skip: !Platform.isLinux); // Coretext uses different thicknesses for decoration
 -}
-+void main() { }
