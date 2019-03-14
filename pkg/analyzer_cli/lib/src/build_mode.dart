@@ -358,7 +358,7 @@ class BuildMode with HasContextMixin {
           libraryUris,
           getDependency,
           getUnit,
-          analysisDriver.declaredVariables.get,
+          analysisDriver.declaredVariables,
           analysisOptions);
       linkResult.forEach(assembler.addLinkedLibrary);
     });

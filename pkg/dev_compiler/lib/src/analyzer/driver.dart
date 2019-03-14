@@ -233,7 +233,7 @@ class CompilerAnalysisDriver {
         libraryUris.toSet(),
         (uri) => summaryData.linkedMap[uri],
         (uri) => summaryData.unlinkedMap[uri] ?? uriToUnit[uri],
-        declaredVariables.get,
+        declaredVariables,
         analysisOptions);
     linkResult.forEach(assembler.addLinkedLibrary);
 

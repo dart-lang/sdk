@@ -176,7 +176,7 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
         .toSet();
 
     Map<String, LinkedLibrary> linkedSummaries = link(nonSdkLibraryUris,
-        getDependency, getUnit, declaredVariables.get, analysisOptions);
+        getDependency, getUnit, declaredVariables, analysisOptions);
 
     var analysisContext = RestrictedAnalysisContext(
       analysisOptions,
@@ -250,7 +250,7 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
     UnlinkedUnit definingUnit = _getUnlinkedUnit(librarySource);
     if (definingUnit != null) {
       LinkedLibraryBuilder linkedLibrary = prelink(librarySource.uri.toString(),
-          definingUnit, getPart, getImport, declaredVariables.get);
+          definingUnit, getPart, getImport, declaredVariables);
       linkedLibrary.dependencies.skip(1).forEach((LinkedDependency d) {
         Source source = sourceFactory.forUri(d.uri);
         _serializeLibrary(source);
@@ -377,11 +377,12 @@ class SummaryBlackBoxTestStrategyPrelink
     }
 
     linked = new LinkedLibrary.fromBuffer(prelink(
-        _linkerInputs._testDartUri.toString(),
-        _linkerInputs._unlinkedDefiningUnit,
-        getPart,
-        getImport,
-        (String declaredVariable) => null).toBuffer());
+            _linkerInputs._testDartUri.toString(),
+            _linkerInputs._unlinkedDefiningUnit,
+            getPart,
+            getImport,
+            DeclaredVariables())
+        .toBuffer());
     _validateLinkedLibrary(linked);
   }
 }
@@ -441,7 +442,7 @@ class SummaryLinkerTestStrategyTwoPhase extends _SummaryBaseTestStrategyTwoPhase
     Map<String, LinkedLibraryBuilder> linkedLibraries = setupForLink(
         _linkerInputs.linkedLibraries,
         _linkerInputs.getUnit,
-        _linkerInputs.getDeclaredVariable);
+        _linkerInputs.declaredVariables);
     linker = new Linker(linkedLibraries, _linkerInputs.getDependency,
         _linkerInputs.getUnit, null, analysisOptions);
   }
@@ -481,11 +482,9 @@ class _LinkerInputs {
       this._dependentLinkedLibraries,
       this._dependentUnlinkedUnits);
 
-  Set<String> get linkedLibraries => _uriToUnit.keys.toSet();
+  DeclaredVariables get declaredVariables => DeclaredVariables();
 
-  String getDeclaredVariable(String name) {
-    return null;
-  }
+  Set<String> get linkedLibraries => _uriToUnit.keys.toSet();
 
   LinkedLibrary getDependency(String absoluteUri) {
     Map<String, LinkedLibrary> sdkLibraries =
@@ -555,7 +554,7 @@ abstract class _SummaryBaseTestStrategyTwoPhase
         linkerInputs.linkedLibraries,
         linkerInputs.getDependency,
         linkerInputs.getUnit,
-        linkerInputs.getDeclaredVariable,
+        linkerInputs.declaredVariables,
         analysisOptions);
     linkedLibraries.forEach(assembler.addLinkedLibrary);
     linkerInputs._uriToUnit.forEach((String uri, UnlinkedUnit unit) {
@@ -620,7 +619,7 @@ abstract class _SummaryBlackBoxTestStrategyTwoPhase
         _linkerInputs.linkedLibraries,
         _linkerInputs.getDependency,
         _linkerInputs.getUnit,
-        (name) => null,
+        DeclaredVariables(),
         analysisOptions)[_linkerInputs._testDartUri.toString()];
     expect(linked, isNotNull);
     _validateLinkedLibrary(linked);

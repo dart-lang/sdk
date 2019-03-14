@@ -55,6 +55,7 @@
 ///
 /// - Where possible, we favor method dispatch instead of "is" and "as"
 ///   checks.  E.g. see [ReferenceableElementForLink.asConstructor].
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
@@ -114,11 +115,11 @@ Map<String, LinkedLibraryBuilder> link(
     Set<String> libraryUris,
     GetDependencyCallback getDependency,
     GetUnitCallback getUnit,
-    GetDeclaredVariable getDeclaredVariable,
+    DeclaredVariables declaredVariables,
     AnalysisOptions analysisOptions,
     [GetAstCallback getAst]) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
-      setupForLink(libraryUris, getUnit, getDeclaredVariable);
+      setupForLink(libraryUris, getUnit, declaredVariables);
   _relink(linkedLibraries, getDependency, getUnit, getAst, analysisOptions);
   return linkedLibraries;
 }
@@ -131,7 +132,7 @@ Map<String, LinkedLibraryBuilder> link(
 /// of the libraries in this build unit, and whose values are the corresponding
 /// [LinkedLibraryBuilder]s.
 Map<String, LinkedLibraryBuilder> setupForLink(Set<String> libraryUris,
-    GetUnitCallback getUnit, GetDeclaredVariable getDeclaredVariable) {
+    GetUnitCallback getUnit, DeclaredVariables declaredVariables) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
       <String, LinkedLibraryBuilder>{};
   for (String absoluteUri in libraryUris) {
@@ -140,7 +141,7 @@ Map<String, LinkedLibraryBuilder> setupForLink(Set<String> libraryUris,
         getUnit(absoluteUri),
         getUnit,
         (String absoluteUri) => getUnit(absoluteUri)?.publicNamespace,
-        getDeclaredVariable);
+        declaredVariables);
   }
   return linkedLibraries;
 }
