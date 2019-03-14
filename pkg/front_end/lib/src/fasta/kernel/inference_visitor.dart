@@ -11,6 +11,10 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
 
   @override
   void defaultExpression(Expression node, DartType typeContext) {
+    if (node is IfElement) {
+      visitIfElement(node, typeContext);
+      return;
+    }
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
   }
@@ -19,6 +23,11 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
   void defaultStatement(Statement node, _) {
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
+  }
+
+  visitIfElement(IfElement node, DartType typeContext) {
+    node.parent.replaceChild(node,
+        new InvalidExpression('unhandled if element in collection literal'));
   }
 
   @override
@@ -885,7 +894,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         typeChecksNeeded ? new List<DartType>(node.entries.length) : null;
     for (int i = 0; i < node.entries.length; i++) {
       MapEntry entry = node.entries[i];
-      if (entry is! SpreadMapEntry) {
+      if (entry is! SpreadMapEntry && entry is! IfMapEntry) {
         cachedKeys[i] = node.entries[i].key;
         cachedValues[i] = node.entries[i].value;
       }
@@ -936,6 +945,13 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
           actualTypes.add(const DynamicType());
           storeSpreadMapEntryElementTypes(
               spreadMapEntryType, entry.isNullAware, actualTypes, length);
+        } else if (entry is IfMapEntry) {
+          node.entries[i] = new MapEntry(
+              new InvalidExpression('unimplemented spread entry')
+                ..fileOffset = node.fileOffset,
+              new NullLiteral());
+          actualTypes.add(const DynamicType());
+          actualTypes.add(const DynamicType());
         } else {
           Expression key = entry.key;
           inferrer.inferExpression(key, inferredKeyType, true,
@@ -1093,14 +1109,16 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
           }
         } else {
           Expression keyJudgment = cachedKeys[i];
-          inferrer.ensureAssignable(node.keyType, actualTypes[2 * i],
-              keyJudgment, keyJudgment.fileOffset,
-              isVoidAllowed: node.keyType is VoidType);
+          if (keyJudgment != null) {
+            inferrer.ensureAssignable(node.keyType, actualTypes[2 * i],
+                keyJudgment, keyJudgment.fileOffset,
+                isVoidAllowed: node.keyType is VoidType);
 
-          Expression valueJudgment = cachedValues[i];
-          inferrer.ensureAssignable(node.valueType, actualTypes[2 * i + 1],
-              valueJudgment, valueJudgment.fileOffset,
-              isVoidAllowed: node.valueType is VoidType);
+            Expression valueJudgment = cachedValues[i];
+            inferrer.ensureAssignable(node.valueType, actualTypes[2 * i + 1],
+                valueJudgment, valueJudgment.fileOffset,
+                isVoidAllowed: node.valueType is VoidType);
+          }
         }
       }
     }

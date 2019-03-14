@@ -190,6 +190,12 @@ abstract class Forest {
 
   Expression spreadElement(Expression expression, Token token);
 
+  Expression ifElement(
+      Expression condition, Expression then, Expression otherwise, Token token);
+
+  MapEntry ifMapEntry(
+      Expression condition, MapEntry then, MapEntry otherwise, Token token);
+
   /// Return a representation of an assert that appears in a constructor's
   /// initializer list.
   Object assertInitializer(Token assertKeyword, Token leftParenthesis,

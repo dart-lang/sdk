@@ -137,6 +137,49 @@ LibTest/isolate/ReceivePort/lastWhere_A01_t01: RuntimeError
 Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: Crash
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/03: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/04: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/05: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/06: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/07: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/08: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/09: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/10: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/11: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/12: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/14: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A01_t01/01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A01_t01/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A01_t01/03: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A02_t01/01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A02_t01/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A02_t01/03: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A03_t01/01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A03_t01/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A03_t01/03: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A04_t01/01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A04_t01/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A04_t01/03: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A04_t01/04: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/05: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/06: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/09: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/10: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/11: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/12: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/17: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/18: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/19: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/20: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/21: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/22: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/23: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/24: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/syntax_A03_t01/02: MissingCompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A02_t02/01: MissingCompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A02_t03: CompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/01: MissingCompileTimeError
@@ -389,7 +432,6 @@ LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t03/none: CompileTimeE
 LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t04/none: CompileTimeError
 LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t01/none: CompileTimeError
 LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t02/none: CompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A01_t02: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A02_t03: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A02_t04: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A04_t02: CompileTimeError
@@ -397,12 +439,9 @@ LanguageFeatures/Control-flow-collections/const_collections_A05_t02: CompileTime
 LanguageFeatures/Control-flow-collections/const_collections_A06_t02: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A07_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A07_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A07_t03: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A01_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A04_t02: CompileTimeError
 LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A01_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A04_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A01_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A04_t02: CompileTimeError
 LanguageFeatures/Control-flow-collections/scoping_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
 LanguageFeatures/Control-flow-collections/scoping_A02_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
