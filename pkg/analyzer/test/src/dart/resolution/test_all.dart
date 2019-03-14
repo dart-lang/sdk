@@ -10,6 +10,7 @@ import 'comment_test.dart' as comment_test;
 import 'constant_test.dart' as constant_test;
 import 'enum_test.dart' as enum_test;
 import 'flow_analysis_test.dart' as flow_analysis_test;
+import 'for_element_test.dart' as for_element_test;
 import 'for_in_test.dart' as for_in_test;
 import 'generic_type_alias_test.dart' as generic_type_alias_test;
 import 'import_prefix_test.dart' as import_prefix_test;
@@ -34,6 +35,7 @@ main() {
     constant_test.main();
     enum_test.main();
     flow_analysis_test.main();
+    for_element_test.main();
     for_in_test.main();
     generic_type_alias_test.main();
     import_prefix_test.main();
