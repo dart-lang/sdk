@@ -28,6 +28,7 @@ import 'package:usage/uuid/uuid.dart';
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart'
     show
+        asFileUri,
         compileToKernel,
         parseCommandLineDefines,
         convertFileOrUriArgumentToUri,
@@ -240,6 +241,8 @@ class FrontendCompiler implements CompilerInterface {
   String _kernelBinaryFilenameFull;
   String _initializeFromDill;
 
+  Set<Uri> previouslyReportedDependencies = Set<Uri>();
+
   final ProgramTransformer transformer;
 
   final List<String> errors = new List<String>();
@@ -355,6 +358,8 @@ class FrontendCompiler implements CompilerInterface {
       await writeDillFile(component, _kernelBinaryFilename,
           filterExternal: importDill != null);
 
+      _outputStream.writeln(boundaryKey);
+      await _outputDependenciesDelta(component);
       _outputStream
           .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
       final String depfile = options['depfile'];
@@ -367,6 +372,27 @@ class FrontendCompiler implements CompilerInterface {
     } else
       _outputStream.writeln(boundaryKey);
     return errors.isEmpty;
+  }
+
+  void _outputDependenciesDelta(Component component) async {
+    Set<Uri> uris = new Set<Uri>();
+    for (Uri uri in component.uriToSource.keys) {
+      // Skip empty or corelib dependencies.
+      if (uri == null || uri.scheme == 'org-dartlang-sdk') continue;
+      uris.add(uri);
+    }
+    for (Uri uri in uris) {
+      if (previouslyReportedDependencies.contains(uri)) {
+        continue;
+      }
+      _outputStream.writeln('+${await asFileUri(_fileSystem, uri)}');
+    }
+    for (Uri uri in previouslyReportedDependencies) {
+      if (!uris.contains(uri)) {
+        _outputStream.writeln('-${await asFileUri(_fileSystem, uri)}');
+      }
+    }
+    previouslyReportedDependencies = uris;
   }
 
   writeDillFile(Component component, String filename,
@@ -468,6 +494,8 @@ class FrontendCompiler implements CompilerInterface {
       transformer.transform(deltaProgram);
     }
     await writeDillFile(deltaProgram, _kernelBinaryFilename);
+    _outputStream.writeln(boundaryKey);
+    await _outputDependenciesDelta(deltaProgram);
     _outputStream
         .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
