@@ -259,8 +259,6 @@ class Configuration {
         useAnalyzerCfe: boolOption("use-cfe"),
         useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
         useBlobs: boolOption("use-blobs"),
-        useDart2JSWithKernel: boolOption("dart2js-with-kernel"),
-        useDart2JSOldFrontEnd: boolOption("dart2js-old-frontend"),
         useHotReload: boolOption("hot-reload"),
         useHotReloadRollback: boolOption("hot-reload-rollback"),
         useSdk: boolOption("use-sdk"));
@@ -313,10 +311,6 @@ class Configuration {
   // TODO(rnystrom): What is this?
   final bool useBlobs;
 
-  // TODO(rnystrom): Remove these when Dart 1.0 is no longer supported.
-  final bool useDart2JSWithKernel;
-  final bool useDart2JSOldFrontEnd;
-
   final bool useHotReload;
   final bool useHotReloadRollback;
 
@@ -336,8 +330,6 @@ class Configuration {
       bool useAnalyzerCfe,
       bool useAnalyzerFastaParser,
       bool useBlobs,
-      bool useDart2JSWithKernel,
-      bool useDart2JSOldFrontEnd,
       bool useHotReload,
       bool useHotReloadRollback,
       bool useSdk})
@@ -353,8 +345,6 @@ class Configuration {
         useAnalyzerCfe = useAnalyzerCfe ?? false,
         useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
         useBlobs = useBlobs ?? false,
-        useDart2JSWithKernel = useDart2JSWithKernel ?? false,
-        useDart2JSOldFrontEnd = useDart2JSOldFrontEnd ?? false,
         useHotReload = useHotReload ?? false,
         useHotReloadRollback = useHotReloadRollback ?? false,
         useSdk = useSdk ?? false;
@@ -379,8 +369,6 @@ class Configuration {
       useAnalyzerCfe == other.useAnalyzerCfe &&
       useAnalyzerFastaParser == other.useAnalyzerFastaParser &&
       useBlobs == other.useBlobs &&
-      useDart2JSWithKernel == other.useDart2JSWithKernel &&
-      useDart2JSOldFrontEnd == other.useDart2JSOldFrontEnd &&
       useHotReload == other.useHotReload &&
       useHotReloadRollback == other.useHotReloadRollback &&
       useSdk == other.useSdk;
@@ -411,8 +399,6 @@ class Configuration {
         useAnalyzerCfe,
         useAnalyzerFastaParser,
         useBlobs,
-        useDart2JSWithKernel,
-        useDart2JSOldFrontEnd,
         useHotReload,
         useHotReloadRollback,
         useSdk
@@ -442,8 +428,6 @@ class Configuration {
     if (useAnalyzerCfe) fields.add("use-cfe");
     if (useAnalyzerFastaParser) fields.add("analyzer-use-fasta-parser");
     if (useBlobs) fields.add("use-blobs");
-    if (useDart2JSWithKernel) fields.add("dart2js-with-kernel");
-    if (useDart2JSOldFrontEnd) fields.add("dart2js-old-frontend");
     if (useHotReload) fields.add("hot-reload");
     if (useHotReloadRollback) fields.add("hot-reload-rollback");
     if (useSdk) fields.add("use-sdk");
@@ -503,14 +487,6 @@ class Configuration {
     }
     if (useBlobs || other.useBlobs) {
       fields.add("useBlobs $useBlobs ${other.useBlobs}");
-    }
-    if (useDart2JSWithKernel || other.useDart2JSWithKernel) {
-      fields.add("useDart2JSWithKernel "
-          "$useDart2JSWithKernel ${other.useDart2JSWithKernel}");
-    }
-    if (useDart2JSOldFrontEnd || other.useDart2JSOldFrontEnd) {
-      fields.add("useDart2JSOldFrontEnd "
-          "$useDart2JSOldFrontEnd ${other.useDart2JSOldFrontEnd}");
     }
     if (useHotReload || other.useHotReload) {
       fields.add("useHotReload $useHotReload ${other.useHotReload}");

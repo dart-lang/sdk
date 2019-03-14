@@ -174,13 +174,6 @@ test options, specifying how tests should be run.''',
         'Pass the --use-fasta-parser flag to analyzer',
         hide: true),
 
-    // TODO(sigmund): replace dart2js_with_kernel with preview-dart-2.
-    new _Option.bool(
-        'dart2js_with_kernel', 'Pass the --use-kernel flag to dart2js.',
-        hide: true),
-    new _Option.bool(
-        'dart2js_old_frontend', 'Pass the --use-old-frontend flag to dart2js.',
-        hide: true),
     new _Option.bool('hot_reload', 'Run hot reload stress tests.', hide: true),
     new _Option.bool(
         'hot_reload_rollback', 'Run hot reload rollback stress tests.',
@@ -695,8 +688,6 @@ compiler.''',
                         data["analyzer_use_fasta_parser"] as bool,
                     useBlobs: data["use_blobs"] as bool,
                     useSdk: data["use_sdk"] as bool,
-                    useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
-                    useDart2JSOldFrontEnd: data["dart2js_old_frontend"] as bool,
                     useHotReload: data["hot_reload"] as bool,
                     useHotReloadRollback: data["hot_reload_rollback"] as bool,
                     isChecked: data["checked"] as bool,

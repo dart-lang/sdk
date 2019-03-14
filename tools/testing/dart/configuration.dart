@@ -117,8 +117,6 @@ class TestConfiguration {
   bool get useBlobs => configuration.useBlobs;
   bool get useSdk => configuration.useSdk;
   bool get useEnableAsserts => configuration.enableAsserts;
-  bool get useDart2JSWithKernel => configuration.useDart2JSWithKernel;
-  bool get useDart2JSOldFrontend => configuration.useDart2JSOldFrontEnd;
 
   // Various file paths.
 
@@ -187,9 +185,9 @@ class TestConfiguration {
       Compiler.dartkb,
       Compiler.dartkp,
       Compiler.fasta,
+      Compiler.dart2js,
     ];
-    return fastaCompilers.contains(compiler) ||
-        (compiler == Compiler.dart2js && !useDart2JSOldFrontend);
+    return fastaCompilers.contains(compiler);
   }
 
   /// The base directory named for this configuration, like:
@@ -236,19 +234,12 @@ class TestConfiguration {
       return const ["--ignore-unrecognized-flags"];
     }
 
-    var args = ['--generate-code-with-compile-time-errors', '--test-mode'];
+    var args = ['--test-mode'];
     if (isChecked) args.add('--enable-checked-mode');
-
-    if (!runtime.isBrowser) {
-      args.add("--allow-mock-compilation");
-      args.add("--categories=all");
-    }
 
     if (isMinified) args.add("--minify");
     if (isCsp) args.add("--csp");
     if (useEnableAsserts) args.add("--enable-asserts");
-    if (useDart2JSWithKernel) args.add("--use-kernel");
-    if (useDart2JSOldFrontend) args.add("--use-old-frontend");
     return args;
   }
 
@@ -453,8 +444,6 @@ class TestConfiguration {
         'no_preview_dart_2': noPreviewDart2,
         'use_cfe': useAnalyzerCfe,
         'analyzer_use_fasta_parser': useAnalyzerFastaParser,
-        'dart2js_with_kernel': useDart2JSWithKernel,
-        'dart2js_old_frontend': useDart2JSOldFrontend,
         'enable_asserts': useEnableAsserts,
         'hot_reload': hotReload,
         'hot_reload_rollback': hotReloadRollback,
