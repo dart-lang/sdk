@@ -383,9 +383,7 @@ Fragment PrologueBuilder::BuildFixedParameterLengthChecks(JoinEntryInstr* nsm) {
 }
 
 Fragment PrologueBuilder::BuildClosureContextHandling() {
-  LocalScope* scope = parsed_function_->node_sequence()->scope();
-  LocalVariable* closure_parameter = scope->VariableAt(0);
-
+  LocalVariable* closure_parameter = parsed_function_->ParameterVariable(0);
   LocalVariable* context = parsed_function_->current_context_var();
 
   // Load closure.context & store it into the context variable.
@@ -419,8 +417,7 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
   handling += TestTypeArgsLen(store_null, store_type_args, 0);
 
   if (parsed_function_->function().IsClosureFunction()) {
-    LocalVariable* closure =
-        parsed_function_->node_sequence()->scope()->VariableAt(0);
+    LocalVariable* closure = parsed_function_->ParameterVariable(0);
 
     // Currently, delayed type arguments can only be introduced through type
     // inference in the FE. So if they are present, we can assume they are

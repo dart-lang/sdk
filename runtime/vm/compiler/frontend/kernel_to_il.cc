@@ -138,10 +138,10 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
     ASSERT(function.IsFactory());
 #endif
     instructions += LoadLocal(scopes_->type_arguments_variable);
-  } else if (scopes_->this_variable != NULL &&
+  } else if (parsed_function_->has_receiver_var() &&
              active_class_.ClassNumTypeArguments() > 0) {
     ASSERT(!parsed_function_->function().IsFactory());
-    instructions += LoadLocal(scopes_->this_variable);
+    instructions += LoadLocal(parsed_function_->receiver_var());
     instructions += LoadNativeField(
         Slot::GetTypeArgumentsSlotFor(thread_, *active_class_.klass));
   } else {
@@ -259,9 +259,8 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
   LocalVariable* context_variable = parsed_function_->current_context_var();
   if (should_restore_closure_context) {
     ASSERT(parsed_function_->function().IsClosureFunction());
-    LocalScope* scope = parsed_function_->node_sequence()->scope();
 
-    LocalVariable* closure_parameter = scope->VariableAt(0);
+    LocalVariable* closure_parameter = parsed_function_->ParameterVariable(0);
     ASSERT(!closure_parameter->is_captured());
     instructions += LoadLocal(closure_parameter);
     instructions += LoadNativeField(Slot::Closure_context());
@@ -735,13 +734,13 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   bool omit_result_type_check = true;
   switch (kind) {
     case MethodRecognizer::kObjectEquals:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadLocal(first_parameter);
       body += StrictCompare(Token::kEQ_STRICT);
       break;
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadNativeField(Slot::String_length());
       if (kind == MethodRecognizer::kStringBaseIsEmpty) {
         body += IntConstant(0);
@@ -749,16 +748,16 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
       }
       break;
     case MethodRecognizer::kGrowableArrayLength:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadNativeField(Slot::GrowableObjectArray_length());
       break;
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadNativeField(Slot::Array_length());
       break;
     case MethodRecognizer::kTypedDataLength:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadNativeField(Slot::TypedData_length());
       break;
     case MethodRecognizer::kClassIDgetID:
@@ -766,7 +765,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
       body += LoadClassId();
       break;
     case MethodRecognizer::kGrowableArrayCapacity:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadNativeField(Slot::GrowableObjectArray_data());
       body += LoadNativeField(Slot::Array_length());
       break;
@@ -840,33 +839,33 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
       body += CreateArray();
       break;
     case MethodRecognizer::kLinkedHashMap_getIndex:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadNativeField(Slot::LinkedHashMap_index());
       break;
     case MethodRecognizer::kLinkedHashMap_setIndex:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadLocal(first_parameter);
       body += StoreInstanceField(TokenPosition::kNoSource,
                                  Slot::LinkedHashMap_index());
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getData:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadNativeField(Slot::LinkedHashMap_data());
       break;
     case MethodRecognizer::kLinkedHashMap_setData:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadLocal(first_parameter);
       body += StoreInstanceField(TokenPosition::kNoSource,
                                  Slot::LinkedHashMap_data());
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getHashMask:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadNativeField(Slot::LinkedHashMap_hash_mask());
       break;
     case MethodRecognizer::kLinkedHashMap_setHashMask:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadLocal(first_parameter);
       body +=
           StoreInstanceField(TokenPosition::kNoSource,
@@ -874,11 +873,11 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getUsedData:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadNativeField(Slot::LinkedHashMap_used_data());
       break;
     case MethodRecognizer::kLinkedHashMap_setUsedData:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadLocal(first_parameter);
       body +=
           StoreInstanceField(TokenPosition::kNoSource,
@@ -886,11 +885,11 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadNativeField(Slot::LinkedHashMap_deleted_keys());
       break;
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
-      body += LoadLocal(scopes_->this_variable);
+      body += LoadLocal(parsed_function_->receiver_var());
       body += LoadLocal(first_parameter);
       body += StoreInstanceField(TokenPosition::kNoSource,
                                  Slot::LinkedHashMap_deleted_keys(),
@@ -924,16 +923,16 @@ static const LocalScope* MakeImplicitClosureScope(Zone* Z,
   // and not the signature type.
   Type& klass_type = Type::ZoneHandle(Z, klass.DeclarationType());
 
-  LocalVariable* this_variable = new (Z)
+  LocalVariable* receiver_variable = new (Z)
       LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                     Symbols::This(), klass_type, /*param_type=*/nullptr);
 
-  this_variable->set_is_captured();
-  //  this_variable->set_is_final();
+  receiver_variable->set_is_captured();
+  //  receiver_variable->set_is_final();
   LocalScope* scope = new (Z) LocalScope(NULL, 0, 0);
   scope->set_context_level(0);
-  scope->AddVariable(this_variable);
-  scope->AddContextVariable(this_variable);
+  scope->AddVariable(receiver_variable);
+  scope->AddContextVariable(receiver_variable);
   return scope;
 }
 
@@ -983,7 +982,7 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   // The context is on top of the operand stack.  Store `this`.  The context
   // doesn't need a parent pointer because it doesn't close over anything
   // else.
-  fragment += LoadLocal(scopes_->this_variable);
+  fragment += LoadLocal(parsed_function_->receiver_var());
   fragment += StoreInstanceField(
       TokenPosition::kNoSource,
       Slot::GetContextVariableSlotFor(
@@ -1182,8 +1181,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
   // check them again at the call-site.
   if (dart_function.IsClosureFunction() && !check_bounds.is_empty() &&
       FLAG_eliminate_type_checks) {
-    LocalVariable* closure =
-        parsed_function_->node_sequence()->scope()->VariableAt(0);
+    LocalVariable* closure = parsed_function_->ParameterVariable(0);
     *implicit_checks += TestDelayedTypeArgs(closure, /*present=*/{},
                                             /*absent=*/check_bounds);
   } else {
@@ -1193,8 +1191,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
   const intptr_t num_params = dart_function.NumParameters();
   for (intptr_t i = dart_function.NumImplicitParameters(); i < num_params;
        ++i) {
-    LocalVariable* param =
-        parsed_function_->node_sequence()->scope()->VariableAt(i);
+    LocalVariable* param = parsed_function_->ParameterVariable(i);
     if (!param->needs_type_check()) {
       continue;
     }
@@ -1262,11 +1259,10 @@ RawArray* FlowGraphBuilder::GetOptionalParameterNames(
 
 Fragment FlowGraphBuilder::PushExplicitParameters(const Function& function) {
   Fragment instructions;
-  auto scope = parsed_function_->node_sequence()->scope();
   for (intptr_t i = function.NumImplicitParameters(),
                 n = function.NumParameters();
        i < n; ++i) {
-    instructions += LoadLocal(scope->VariableAt(i));
+    instructions += LoadLocal(parsed_function_->ParameterVariable(i));
     instructions += PushArgument();
   }
   return instructions;
@@ -1329,8 +1325,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
 
   // The receiver is the first argument to noSuchMethod, and it is the first
   // argument passed to the dispatcher function.
-  LocalScope* scope = parsed_function_->node_sequence()->scope();
-  body += LoadLocal(scope->VariableAt(0));
+  body += LoadLocal(parsed_function_->ParameterVariable(0));
   body += PushArgument();
 
   // The second argument to noSuchMethod is an invocation mirror.  Push the
@@ -1360,7 +1355,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   for (intptr_t i = 0; i < descriptor.PositionalCount(); ++i) {
     body += LoadLocal(array);
     body += IntConstant(receiver_index + i);
-    body += LoadLocal(scope->VariableAt(i));
+    body += LoadLocal(parsed_function_->ParameterVariable(i));
     body += StoreIndexed(kArrayCid);
   }
   String& name = String::Handle(Z);
@@ -1370,7 +1365,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
     name = Symbols::New(H.thread(), name);
     body += LoadLocal(array);
     body += IntConstant(receiver_index + descriptor.PositionAt(i));
-    body += LoadLocal(scope->VariableAt(parameter_index));
+    body += LoadLocal(parsed_function_->ParameterVariable(parameter_index));
     body += StoreIndexed(kArrayCid);
   }
   body += PushArgument();
@@ -1462,8 +1457,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   Fragment body(instruction_cursor);
   body += CheckStackOverflowInPrologue(function.token_pos());
 
-  LocalScope* scope = parsed_function_->node_sequence()->scope();
-
   if (descriptor.TypeArgsLen() > 0) {
     LocalVariable* type_args = parsed_function_->function_type_arguments();
     ASSERT(type_args != NULL);
@@ -1473,13 +1466,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   LocalVariable* closure = NULL;
   if (is_closure_call) {
-    closure = scope->VariableAt(0);
+    closure = parsed_function_->ParameterVariable(0);
 
     // The closure itself is the first argument.
     body += LoadLocal(closure);
   } else {
     // Invoke the getter to get the field value.
-    body += LoadLocal(scope->VariableAt(0));
+    body += LoadLocal(parsed_function_->ParameterVariable(0));
     body += PushArgument();
     const intptr_t kTypeArgsLen = 0;
     const intptr_t kNumArgsChecked = 1;
@@ -1493,7 +1486,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   // Push all arguments onto the stack.
   intptr_t pos = 1;
   for (; pos < descriptor.Count(); pos++) {
-    body += LoadLocal(scope->VariableAt(pos));
+    body += LoadLocal(parsed_function_->ParameterVariable(pos));
     body += PushArgument();
   }
 
@@ -1543,14 +1536,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       body += LoadArgDescriptor();
       body += LoadNativeField(Slot::ArgumentsDescriptor_count());
       body += LoadLocal(parsed_function_->current_context_var());
-      body += LoadNativeField(
-          Slot::GetContextVariableSlotFor(thread_, *scopes_->this_variable));
+      body += LoadNativeField(Slot::GetContextVariableSlotFor(
+          thread_, *parsed_function_->receiver_var()));
       body += StoreFpRelativeSlot(
           kWordSize * compiler::target::frame_layout.param_end_from_fp);
     } else {
       body += LoadLocal(parsed_function_->current_context_var());
-      body += LoadNativeField(
-          Slot::GetContextVariableSlotFor(thread_, *scopes_->this_variable));
+      body += LoadNativeField(Slot::GetContextVariableSlotFor(
+          thread_, *parsed_function_->receiver_var()));
       body += StoreFpRelativeSlot(
           kWordSize * (compiler::target::frame_layout.param_end_from_fp +
                        function.NumParameters()));
@@ -1685,12 +1678,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       body += Constant(type);
     } else {
       body += LoadLocal(parsed_function_->current_context_var());
-      body += LoadNativeField(
-          Slot::GetContextVariableSlotFor(thread_, *scopes_->this_variable));
+      body += LoadNativeField(Slot::GetContextVariableSlotFor(
+          thread_, *parsed_function_->receiver_var()));
     }
   } else {
-    LocalScope* scope = parsed_function_->node_sequence()->scope();
-    body += LoadLocal(scope->VariableAt(0));
+    body += LoadLocal(parsed_function_->ParameterVariable(0));
   }
   body += PushArgument();
 
@@ -1735,8 +1727,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 
   // Push the number of delayed type arguments.
   if (function.IsClosureFunction()) {
-    LocalVariable* closure =
-        parsed_function_->node_sequence()->scope()->VariableAt(0);
+    LocalVariable* closure = parsed_function_->ParameterVariable(0);
     Fragment then;
     then += IntConstant(function.NumTypeParameters());
     then += StoreLocal(TokenPosition::kNoSource, argument_count_var);
@@ -2034,11 +2025,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   if (!target.is_static()) {
     // The context has a fixed shape: a single variable which is the
     // closed-over receiver.
-    body +=
-        LoadLocal(parsed_function_->node_sequence()->scope()->VariableAt(0));
+    body += LoadLocal(parsed_function_->ParameterVariable(0));
     body += LoadNativeField(Slot::Closure_context());
-    body += LoadNativeField(
-        Slot::GetContextVariableSlotFor(thread_, *scopes_->this_variable));
+    body += LoadNativeField(Slot::GetContextVariableSlotFor(
+        thread_, *parsed_function_->receiver_var()));
     body += PushArgument();
   }
 
@@ -2064,7 +2054,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   FunctionEntryInstr* extra_entry = nullptr;
   if (function.MayHaveUncheckedEntryPoint(I)) {
     // The prologue for a closure will always have context handling (e.g.
-    // setting up the 'this_variable'), but we don't need it on the unchecked
+    // setting up the receiver variable), but we don't need it on the unchecked
     // entry because the only time we reference this is for loading the
     // receiver, which we fetch directly from the context.
     if (PrologueBuilder::PrologueSkippableOnUncheckedEntry(function)) {
@@ -2121,18 +2111,17 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   auto normal_entry = BuildFunctionEntry(graph_entry_);
   graph_entry_->set_normal_entry(normal_entry);
 
-  auto scope = parsed_function_->node_sequence()->scope();
-
   Fragment body(normal_entry);
   if (is_setter) {
-    LocalVariable* setter_value = scope->VariableAt(is_method ? 1 : 0);
+    LocalVariable* setter_value =
+        parsed_function_->ParameterVariable(is_method ? 1 : 0);
 
     // We only expect to generate a dynamic invocation forwarder if
     // the value needs type check.
     ASSERT(!function.IsDynamicInvocationForwarder() ||
            setter_value->needs_type_check());
     if (is_method) {
-      body += LoadLocal(scope->VariableAt(0));
+      body += LoadLocal(parsed_function_->ParameterVariable(0));
     }
     body += LoadLocal(setter_value);
     if (I->argument_type_checks() && setter_value->needs_type_check()) {
@@ -2146,7 +2135,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     }
     body += NullConstant();
   } else if (is_method) {
-    body += LoadLocal(scope->VariableAt(0));
+    body += LoadLocal(parsed_function_->ParameterVariable(0));
     body += LoadField(field);
   } else if (field.is_const()) {
     // If the parser needs to know the value of an uninitialized constant field
@@ -2229,7 +2218,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
 
   // Push receiver.
   ASSERT(function.NumImplicitParameters() == 1);
-  body += LoadLocal(scopes_->this_variable);
+  body += LoadLocal(parsed_function_->receiver_var());
   body += PushArgument();
 
   body += PushExplicitParameters(function);

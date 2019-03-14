@@ -985,8 +985,8 @@ CompileType ParameterInstr::ComputeType() const {
   // Parameter is the receiver.
   if ((index() == 0) &&
       (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {
-    LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
-    const AbstractType& type = scope->VariableAt(index())->type();
+    const AbstractType& type =
+        graph_entry->parsed_function().ParameterVariable(index())->type();
     if (type.IsObjectType() || type.IsNullType()) {
       // Receiver can be null.
       return CompileType::FromAbstractType(type, CompileType::kNullable);

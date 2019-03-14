@@ -171,7 +171,7 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
   }
 
   Fragment instructions;
-  instructions += LoadLocal(scopes()->this_variable);
+  instructions += LoadLocal(parsed_function()->receiver_var());
   instructions += BuildExpression();
   instructions += flow_graph_builder_->StoreInstanceFieldGuarded(field, true);
   return instructions;
@@ -267,7 +267,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           NameIndex canonical_target =
               ReadCanonicalNameReference();  // read target_reference.
 
-          instructions += LoadLocal(scopes()->this_variable);
+          instructions += LoadLocal(parsed_function()->receiver_var());
           instructions += PushArgument();
 
           // TODO(jensj): ASSERT(init->arguments()->types().length() == 0);
@@ -294,7 +294,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           NameIndex canonical_target =
               ReadCanonicalNameReference();  // read target_reference.
 
-          instructions += LoadLocal(scopes()->this_variable);
+          instructions += LoadLocal(parsed_function()->receiver_var());
           instructions += PushArgument();
 
           // TODO(jensj): ASSERT(init->arguments()->types().length() == 0);
@@ -399,8 +399,8 @@ Fragment StreamingFlowGraphBuilder::DebugStepCheckInPrologue(
   const int parameter_count = dart_function.NumParameters();
   TokenPosition check_pos = TokenPosition::kNoSource;
   if (parameter_count > 0) {
-    LocalScope* scope = parsed_function()->node_sequence()->scope();
-    const LocalVariable& parameter = *scope->VariableAt(parameter_count - 1);
+    const LocalVariable& parameter =
+        *parsed_function()->ParameterVariable(parameter_count - 1);
     check_pos = parameter.token_pos();
   }
   if (!check_pos.IsDebugPause()) {
@@ -453,8 +453,7 @@ Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
 
   if (dart_function.IsClosureFunction() &&
       dart_function.NumParentTypeParameters() > 0) {
-    LocalVariable* closure =
-        parsed_function()->node_sequence()->scope()->VariableAt(0);
+    LocalVariable* closure = parsed_function()->ParameterVariable(0);
 
     // Function with yield points can not be generic itself but the outer
     // function can be.
@@ -584,7 +583,7 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
     const Function& function = pf.function();
 
     for (intptr_t i = 0; i < parameter_count; ++i) {
-      LocalVariable* variable = scope->VariableAt(i);
+      LocalVariable* variable = pf.ParameterVariable(i);
       if (variable->is_captured()) {
         LocalVariable& raw_parameter = *pf.RawParameterVariable(i);
         ASSERT((function.HasOptionalParameters() &&
@@ -2173,12 +2172,12 @@ Fragment StreamingFlowGraphBuilder::BuildAllocateInvocationMirrorCall(
   // Populate array containing the actual arguments. Just add [this] here.
   instructions += LoadLocal(actuals_array);                      // array
   instructions += IntConstant(num_type_arguments == 0 ? 0 : 1);  // index
-  instructions += LoadLocal(scopes()->this_variable);            // receiver
+  instructions += LoadLocal(parsed_function()->receiver_var());  // receiver
   instructions += StoreIndexed(kArrayCid);
   instructions += build_rest_of_actuals;
 
   // First argument is receiver.
-  instructions += LoadLocal(scopes()->this_variable);
+  instructions += LoadLocal(parsed_function()->receiver_var());
   instructions += PushArgument();
 
   // Push the arguments for allocating the invocation mirror:
@@ -2278,7 +2277,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
     ASSERT(!klass.IsNull());
     ASSERT(!function.IsNull());
 
-    instructions += LoadLocal(scopes()->this_variable);
+    instructions += LoadLocal(parsed_function()->receiver_var());
     instructions += PushArgument();
 
     instructions +=
@@ -2335,7 +2334,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
     instructions += Drop();  // Drop array
   } else {
     // receiver
-    instructions += LoadLocal(scopes()->this_variable);
+    instructions += LoadLocal(parsed_function()->receiver_var());
     instructions += PushArgument();
 
     instructions += BuildExpression();  // read value.
@@ -2931,7 +2930,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
     }
 
     // receiver
-    instructions += LoadLocal(scopes()->this_variable);
+    instructions += LoadLocal(parsed_function()->receiver_var());
     instructions += PushArgument();
 
     Array& argument_names = Array::ZoneHandle(Z);
@@ -3436,7 +3435,7 @@ Fragment StreamingFlowGraphBuilder::BuildThisExpression(
     TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
-  return LoadLocal(scopes()->this_variable);
+  return LoadLocal(parsed_function()->receiver_var());
 }
 
 Fragment StreamingFlowGraphBuilder::BuildRethrow(TokenPosition* p) {
@@ -4713,9 +4712,8 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
     //     ...
     //   }
     //
-    LocalScope* scope = parsed_function()->node_sequence()->scope();
-    LocalVariable* exception_var = scope->VariableAt(2);
-    LocalVariable* stack_trace_var = scope->VariableAt(3);
+    LocalVariable* exception_var = parsed_function()->ParameterVariable(2);
+    LocalVariable* stack_trace_var = parsed_function()->ParameterVariable(3);
     ASSERT(exception_var->name().raw() == Symbols::ExceptionParameter().raw());
     ASSERT(stack_trace_var->name().raw() ==
            Symbols::StackTraceParameter().raw());

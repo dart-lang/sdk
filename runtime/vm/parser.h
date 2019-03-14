@@ -103,6 +103,17 @@ class ParsedFunction : public ZoneAllocated {
   bool has_arg_desc_var() const { return arg_desc_var_ != NULL; }
   LocalVariable* arg_desc_var() const { return arg_desc_var_; }
 
+  LocalVariable* receiver_var() const {
+    ASSERT(receiver_var_ != nullptr);
+    return receiver_var_;
+  }
+  void set_receiver_var(LocalVariable* value) {
+    ASSERT(receiver_var_ == nullptr);
+    ASSERT(value != nullptr);
+    receiver_var_ = value;
+  }
+  bool has_receiver_var() const { return receiver_var_ != nullptr; }
+
   LocalVariable* expression_temp_var() const {
     ASSERT(has_expression_temp_var());
     return expression_temp_var_;
@@ -198,6 +209,12 @@ class ParsedFunction : public ZoneAllocated {
     return raw_parameters_->At(i);
   }
 
+  LocalVariable* ParameterVariable(intptr_t i) const {
+    ASSERT((i >= 0) && (i < function_.NumParameters()));
+    ASSERT(node_sequence() != nullptr && node_sequence()->scope() != nullptr);
+    return node_sequence()->scope()->VariableAt(i);
+  }
+
   void SetDefaultFunctionTypeArguments(const TypeArguments& value) {
     default_function_type_arguments_ = value.raw();
   }
@@ -216,6 +233,7 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* parent_type_arguments_;
   LocalVariable* current_context_var_;
   LocalVariable* arg_desc_var_;
+  LocalVariable* receiver_var_ = nullptr;
   LocalVariable* expression_temp_var_;
   LocalVariable* entry_points_temp_var_;
   LocalVariable* finally_return_temp_var_;
