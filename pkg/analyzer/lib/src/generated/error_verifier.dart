@@ -3934,6 +3934,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE].
    */
   void _checkForListElementTypeNotAssignable(ListLiteral literal) {
+    // Constants are verified using their actual values.
+    if (literal.isConst) return;
+
     // Determine the list's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
     // arguments may be inferred.
@@ -5229,6 +5232,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
    */
   void _checkForSetElementTypeNotAssignable3(SetOrMapLiteral literal) {
+    // Constants are verified using their actual values.
+    if (literal.isConst) return;
+
     // Determine the set's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
     // arguments may be inferred.

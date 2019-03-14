@@ -144,6 +144,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
     if (node.isConst) {
+      InterfaceType nodeType = node.staticType;
+      DartType elementType = nodeType.typeArguments[0];
       // Dummy sets of keys to accommodate the fact that
       // `_validateCollectionElement` handles map literals.
       HashSet<DartObject> keys = new HashSet<DartObject>();
@@ -151,7 +153,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       for (CollectionElement element in node.elements2) {
         bool isValid = _validateCollectionElement(element, true, keys,
             invalidKeys, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
-            forList: true);
+            forList: true, listElementType: elementType);
         if (isValid && element is Expression) {
           // TODO(brianwilkerson) Handle the other kinds of elements.
           _reportErrorIfFromDeferredLibrary(
@@ -176,41 +178,20 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     HashSet<DartObject> keys = new HashSet<DartObject>();
     List<Expression> invalidKeys = new List<Expression>();
     if (node.isSet) {
-      HashSet<DartObject> elements = new HashSet<DartObject>();
-      List<Expression> invalidElements = new List<Expression>();
       if (isConst) {
+        InterfaceType nodeType = node.staticType;
+        var elementType = nodeType.typeArguments[0];
+        var uniqueValues = Set<DartObject>();
+        var duplicateElements = <Expression>[];
         for (CollectionElement element in node.elements2) {
-          if (element is Expression) {
-            // TODO(mfairhurst): unify this with _validateCollectionElemet
-            DartObject result = _validate(
-                element, CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT);
-            if (result != null) {
-              _reportErrorIfFromDeferredLibrary(
-                  element,
-                  CompileTimeErrorCode
-                      .NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY);
-              if (!elements.add(result)) {
-                invalidElements.add(element);
-              }
-              DartType type = result.type;
-              if (_implementsEqualsWhenNotAllowed(type)) {
-                _errorReporter.reportErrorForNode(
-                    CompileTimeErrorCode
-                        .CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-                    element,
-                    [type.displayName]);
-              }
-            }
-          } else {
-            bool isValid = _validateCollectionElement(element, isConst, keys,
-                invalidKeys, CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT,
-                forSet: true);
-            if (isValid) {
-              // TODO(mfairhurst) report deferred library error
-            }
-          }
+          _validateCollectionElement(element, isConst, keys, invalidKeys,
+              CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT,
+              forSet: true,
+              setElementType: elementType,
+              setElements: uniqueValues,
+              setElementsDuplicate: duplicateElements);
         }
-        for (var invalidElement in invalidElements) {
+        for (var invalidElement in duplicateElements) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.EQUAL_VALUES_IN_CONST_SET, invalidElement);
         }
@@ -462,12 +443,62 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     HashSet<DartObject> keys,
     List<Expression> invalidKeys,
     ErrorCode errorCode, {
+    DartType listElementType,
+    DartType mapKeyType,
+    DartType mapValueType,
+    DartType setElementType,
+    Set<DartObject> setElements,
+    List<CollectionElement> setElementsDuplicate,
     bool forList = false,
     bool forMap = false,
     bool forSet = false,
   }) {
     if (element is Expression) {
-      return !isConst || _validate(element, errorCode) != null;
+      if (!isConst) return true;
+
+      var value = _validate(element, errorCode);
+      if (value == null) return false;
+
+      if (forList) {
+        if (!_evaluationEngine.runtimeTypeMatch(value, listElementType)) {
+          _errorReporter.reportErrorForNode(
+            StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+            element,
+            [value.type, listElementType],
+          );
+          return false;
+        }
+      }
+
+      if (forSet) {
+        if (!_evaluationEngine.runtimeTypeMatch(value, setElementType)) {
+          _errorReporter.reportErrorForNode(
+            StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
+            element,
+            [value.type, setElementType],
+          );
+          return false;
+        }
+
+        if (_implementsEqualsWhenNotAllowed(value.type)) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
+              element,
+              [value.type.displayName]);
+          return false;
+        }
+
+        _reportErrorIfFromDeferredLibrary(
+          element,
+          CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY,
+        );
+
+        if (!setElements.add(value)) {
+          setElementsDuplicate.add(element);
+        }
+      }
+
+      return true;
     } else if (element is ForElement) {
       if (isConst) {
         _errorReporter.reportErrorForNode(errorCode, element);
@@ -483,11 +514,39 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           return false;
         } else if (conditionValue) {
           return _validateCollectionElement(
-                  element.thenElement, isConst, keys, invalidKeys, errorCode) !=
+                element.thenElement,
+                isConst,
+                keys,
+                invalidKeys,
+                errorCode,
+                forList: forList,
+                forMap: forMap,
+                forSet: forSet,
+                listElementType: listElementType,
+                mapKeyType: mapKeyType,
+                mapValueType: mapValueType,
+                setElementType: setElementType,
+                setElements: setElements,
+                setElementsDuplicate: setElementsDuplicate,
+              ) !=
               null;
         } else if (element.elseElement != null) {
           return _validateCollectionElement(
-                  element.elseElement, isConst, keys, invalidKeys, errorCode) !=
+                element.elseElement,
+                isConst,
+                keys,
+                invalidKeys,
+                errorCode,
+                forList: forList,
+                forMap: forMap,
+                forSet: forSet,
+                listElementType: listElementType,
+                mapKeyType: mapKeyType,
+                mapValueType: mapValueType,
+                setElementType: setElementType,
+                setElements: setElements,
+                setElementsDuplicate: setElementsDuplicate,
+              ) !=
               null;
         } else {
           return true;

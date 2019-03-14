@@ -30,12 +30,11 @@ var v = const <String>[x];
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/21119')
   test_explicitTypeArgs_const_actualTypeMismatch() async {
     await assertErrorsInCode('''
 const dynamic x = 42;
 var v = const <String>[x];
-''', [CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+''', [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
 
   test_explicitTypeArgs_notConst() async {
@@ -52,15 +51,82 @@ class ListElementTypeNotAssignableWithUIAsCodeTest
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = ['control-flow-collections', 'spread-collections'];
 
-  test_spread_valid_const() async {
+  test_const_ifElement_thenElseFalse_intInt() async {
     await assertNoErrorsInCode('''
-var v = const <String>[...['a', 'b']];
+const dynamic a = 0;
+const dynamic b = 0;
+var v = <int>[if (1 < 0) a else b];
 ''');
   }
 
-  test_spread_valid_nonConst() async {
+  test_const_ifElement_thenElseFalse_intString() async {
+    await assertErrorsInCode('''
+const dynamic a = 0;
+const dynamic b = 'b';
+var v = const <int>[if (1 < 0) a else b];
+''', [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+  }
+
+  test_const_ifElement_thenFalse_intString() async {
     await assertNoErrorsInCode('''
-var v = <String>[...['a', 'b']];
+const dynamic a = 'a';
+var v = const <int>[if (1 < 0) a];
+''');
+  }
+
+  test_const_ifElement_thenTrue_intInt() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 0;
+var v = <int>[if (true) a];
+''');
+  }
+
+  test_const_ifElement_thenTrue_intString() async {
+    await assertErrorsInCode('''
+const dynamic a = 'a';
+var v = const <int>[if (true) a];
+''', [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+  }
+
+  test_const_spread_intInt() async {
+    await assertNoErrorsInCode('''
+var v = const <int>[...[0, 1]];
+''');
+  }
+
+  test_nonConst_ifElement_thenElseFalse_intDynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 'a';
+const dynamic b = 'b';
+var v = <int>[if (1 < 0) a else b];
+''');
+  }
+
+  test_nonConst_ifElement_thenElseFalse_intInt() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 0;
+const dynamic b = 0;
+var v = <int>[if (1 < 0) a else b];
+''');
+  }
+
+  test_nonConst_ifElement_thenTrue_intDynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 'a';
+var v = <int>[if (true) a];
+''');
+  }
+
+  test_nonConst_ifElement_thenTrue_intInt() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 0;
+var v = <int>[if (true) a];
+''');
+  }
+
+  test_nonConst_spread_intInt() async {
+    await assertNoErrorsInCode('''
+var v = <int>[...[0, 1]];
 ''');
   }
 }
