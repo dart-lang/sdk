@@ -21,6 +21,7 @@ import '../ir/impact_data.dart';
 import '../ir/util.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
+import '../native/behavior.dart';
 import '../options.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
 import '../universe/call_structure.dart';
@@ -150,9 +151,18 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     if (field.isInstanceMember &&
         elementMap.isNativeClass(field.enclosingClass)) {
       MemberEntity member = elementMap.getMember(field);
+      // TODO(johnniwinther): NativeDataBuilder already has the native behavior
+      // at this point. Use that instead.
       bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
-      impactBuilder.registerNativeData(elementMap
-          .getNativeBehaviorForFieldLoad(field, isJsInterop: isJsInterop));
+      List<ConstantValue> metadata =
+          elementMap.elementEnvironment.getMemberMetadata(member);
+      Iterable<String> createsAnnotations =
+          getCreatesAnnotations(reporter, commonElements, metadata);
+      Iterable<String> returnsAnnotations =
+          getReturnsAnnotations(reporter, commonElements, metadata);
+      impactBuilder.registerNativeData(elementMap.getNativeBehaviorForFieldLoad(
+          field, createsAnnotations, returnsAnnotations,
+          isJsInterop: isJsInterop));
       impactBuilder
           .registerNativeData(elementMap.getNativeBehaviorForFieldStore(field));
     }
@@ -162,9 +172,18 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   void registerConstructorNode(ir.Constructor constructor) {
     MemberEntity member = elementMap.getMember(constructor);
     if (constructor.isExternal && !commonElements.isForeignHelper(member)) {
+      // TODO(johnniwinther): NativeDataBuilder already has the native behavior
+      // at this point. Use that instead.
       bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
-      impactBuilder.registerNativeData(elementMap
-          .getNativeBehaviorForMethod(constructor, isJsInterop: isJsInterop));
+      List<ConstantValue> metadata =
+          elementMap.elementEnvironment.getMemberMetadata(member);
+      Iterable<String> createsAnnotations =
+          getCreatesAnnotations(reporter, commonElements, metadata);
+      Iterable<String> returnsAnnotations =
+          getReturnsAnnotations(reporter, commonElements, metadata);
+      impactBuilder.registerNativeData(elementMap.getNativeBehaviorForMethod(
+          constructor, createsAnnotations, returnsAnnotations,
+          isJsInterop: isJsInterop));
     }
   }
 
@@ -199,9 +218,18 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   void registerProcedureNode(ir.Procedure procedure) {
     MemberEntity member = elementMap.getMember(procedure);
     if (procedure.isExternal && !commonElements.isForeignHelper(member)) {
+      // TODO(johnniwinther): NativeDataBuilder already has the native behavior
+      // at this point. Use that instead.
       bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
-      impactBuilder.registerNativeData(elementMap
-          .getNativeBehaviorForMethod(procedure, isJsInterop: isJsInterop));
+      List<ConstantValue> metadata =
+          elementMap.elementEnvironment.getMemberMetadata(member);
+      Iterable<String> createsAnnotations =
+          getCreatesAnnotations(reporter, commonElements, metadata);
+      Iterable<String> returnsAnnotations =
+          getReturnsAnnotations(reporter, commonElements, metadata);
+      impactBuilder.registerNativeData(elementMap.getNativeBehaviorForMethod(
+          procedure, createsAnnotations, returnsAnnotations,
+          isJsInterop: isJsInterop));
     }
   }
 

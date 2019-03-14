@@ -1525,14 +1525,11 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   // TODO(johnniwinther): Cache this for later use.
   @override
   NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+      Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
       {bool isJsInterop}) {
     DartType type = getDartType(field.type);
-    List<ConstantValue> metadata = getMetadata(field.annotations);
-    return nativeBehaviorBuilder.buildFieldLoadBehavior(
-        type,
-        getCreatesAnnotations(reporter, commonElements, metadata),
-        getReturnsAnnotations(reporter, commonElements, metadata),
-        typeLookup(resolveAsRaw: false),
+    return nativeBehaviorBuilder.buildFieldLoadBehavior(type,
+        createsAnnotations, returnsAnnotations, typeLookup(resolveAsRaw: false),
         isJsInterop: isJsInterop);
   }
 
@@ -1548,6 +1545,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   // TODO(johnniwinther): Cache this for later use.
   @override
   NativeBehavior getNativeBehaviorForMethod(ir.Member member,
+      Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
       {bool isJsInterop}) {
     DartType type;
     if (member is ir.Procedure) {
@@ -1557,12 +1555,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     } else {
       failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected method node $member.");
     }
-    List<ConstantValue> metadata = getMetadata(member.annotations);
-    return nativeBehaviorBuilder.buildMethodBehavior(
-        type,
-        getCreatesAnnotations(reporter, commonElements, metadata),
-        getReturnsAnnotations(reporter, commonElements, metadata),
-        typeLookup(resolveAsRaw: false),
+    return nativeBehaviorBuilder.buildMethodBehavior(type, createsAnnotations,
+        returnsAnnotations, typeLookup(resolveAsRaw: false),
         isJsInterop: isJsInterop);
   }
 
@@ -1974,7 +1968,7 @@ class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
 class KernelNativeMemberResolver implements NativeMemberResolver {
   static final RegExp _identifier = new RegExp(r'^[a-zA-Z_$][a-zA-Z0-9_$]*$');
 
-  final KernelToElementMap _elementMap;
+  final KernelToElementMapImpl _elementMap;
   final NativeBasicData _nativeBasicData;
   final NativeDataBuilder _nativeDataBuilder;
 
@@ -1996,16 +1990,18 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
       FunctionEntity method = element;
       bool isNative = _processMethodAnnotations(method, annotationData);
       if (isNative || isJsInterop) {
-        NativeBehavior behavior =
-            _computeNativeMethodBehavior(method, isJsInterop: isJsInterop);
+        NativeBehavior behavior = _computeNativeMethodBehavior(
+            method, annotationData,
+            isJsInterop: isJsInterop);
         _nativeDataBuilder.setNativeMethodBehavior(method, behavior);
       }
     } else if (element.isField) {
       FieldEntity field = element;
       bool isNative = _processFieldAnnotations(field, annotationData);
       if (isNative || isJsInterop) {
-        NativeBehavior fieldLoadBehavior =
-            _computeNativeFieldLoadBehavior(field, isJsInterop: isJsInterop);
+        NativeBehavior fieldLoadBehavior = _computeNativeFieldLoadBehavior(
+            field, annotationData,
+            isJsInterop: isJsInterop);
         NativeBehavior fieldStoreBehavior =
             _computeNativeFieldStoreBehavior(field);
         _nativeDataBuilder.setNativeFieldLoadBehavior(field, fieldLoadBehavior);
@@ -2096,9 +2092,11 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
   /// present.
   String _findJsNameFromAnnotation(
       MemberEntity element, IrAnnotationData annotationData) {
-    String jsName =
-        annotationData.getNativeMemberName(_elementMap.getMemberNode(element));
-    if (jsName == null) {
+    String jsName;
+    if (annotationData != null) {
+      jsName = annotationData
+          .getNativeMemberName(_elementMap.getMemberNode(element));
+    } else {
       for (ConstantValue value
           in _elementEnvironment.getMemberMetadata(element)) {
         String name = readAnnotationName(
@@ -2119,17 +2117,47 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
     return _elementMap.getNativeBehaviorForFieldStore(node);
   }
 
-  NativeBehavior _computeNativeFieldLoadBehavior(covariant KField field,
+  NativeBehavior _computeNativeFieldLoadBehavior(
+      KField field, IrAnnotationData annotationData,
       {bool isJsInterop}) {
     ir.Field node = _elementMap.getMemberNode(field);
-    return _elementMap.getNativeBehaviorForFieldLoad(node,
+    Iterable<String> createsAnnotations;
+    Iterable<String> returnsAnnotations;
+    if (annotationData != null) {
+      createsAnnotations = annotationData.getCreatesAnnotations(node);
+      returnsAnnotations = annotationData.getReturnsAnnotations(node);
+    } else {
+      List<ConstantValue> metadata =
+          _elementEnvironment.getMemberMetadata(field);
+      createsAnnotations = getCreatesAnnotations(
+          _elementMap.reporter, _elementMap.commonElements, metadata);
+      returnsAnnotations = getReturnsAnnotations(
+          _elementMap.reporter, _elementMap.commonElements, metadata);
+    }
+    return _elementMap.getNativeBehaviorForFieldLoad(
+        node, createsAnnotations, returnsAnnotations,
         isJsInterop: isJsInterop);
   }
 
-  NativeBehavior _computeNativeMethodBehavior(covariant KFunction function,
+  NativeBehavior _computeNativeMethodBehavior(
+      KFunction function, IrAnnotationData annotationData,
       {bool isJsInterop}) {
     ir.Member node = _elementMap.getMemberNode(function);
-    return _elementMap.getNativeBehaviorForMethod(node,
+    Iterable<String> createsAnnotations;
+    Iterable<String> returnsAnnotations;
+    if (annotationData != null) {
+      createsAnnotations = annotationData.getCreatesAnnotations(node);
+      returnsAnnotations = annotationData.getReturnsAnnotations(node);
+    } else {
+      List<ConstantValue> metadata =
+          _elementEnvironment.getMemberMetadata(function);
+      createsAnnotations = getCreatesAnnotations(
+          _elementMap.reporter, _elementMap.commonElements, metadata);
+      returnsAnnotations = getReturnsAnnotations(
+          _elementMap.reporter, _elementMap.commonElements, metadata);
+    }
+    return _elementMap.getNativeBehaviorForMethod(
+        node, createsAnnotations, returnsAnnotations,
         isJsInterop: isJsInterop);
   }
 
@@ -2137,12 +2165,15 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
       covariant KFunction function, IrAnnotationData annotationData) {
     if (!maybeEnableNative(function.library.canonicalUri)) return false;
     ir.Member node = _elementMap.getMemberNode(function);
-    if (annotationData.hasNativeBody(node)) return true;
-    return node.annotations.any((ir.Expression expression) {
-      return expression is ir.ConstructorInvocation &&
-          _elementMap.getInterfaceType(expression.constructedType) ==
-              _commonElements.externalNameType;
-    });
+    if (annotationData != null) {
+      return annotationData.hasNativeBody(node);
+    } else {
+      return node.annotations.any((ir.Expression expression) {
+        return expression is ir.ConstructorInvocation &&
+            _elementMap.getInterfaceType(expression.constructedType) ==
+                _commonElements.externalNameType;
+      });
+    }
   }
 
   bool _isJsInteropMember(MemberEntity element) {

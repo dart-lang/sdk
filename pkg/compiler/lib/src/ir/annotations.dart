@@ -9,6 +9,8 @@ class IrAnnotationData {
   Map<ir.Class, String> _nativeClassNames = {};
   Set<ir.Member> _nativeMembers = {};
   Map<ir.Member, String> _nativeMemberNames = {};
+  Map<ir.Member, List<String>> _createsAnnotations = {};
+  Map<ir.Member, List<String>> _returnsAnnotations = {};
 
   Map<ir.Library, String> _jsInteropLibraryNames = {};
   Map<ir.Class, String> _jsInteropClassNames = {};
@@ -25,6 +27,16 @@ class IrAnnotationData {
 
   // Returns the text from the `@JSName(<text>)` annotation of [node], if any.
   String getNativeMemberName(ir.Member node) => _nativeMemberNames[node];
+
+  // Returns a list of the text from the `@Creates(<text>)` annotation of
+  // [node].
+  List<String> getCreatesAnnotations(ir.Member node) =>
+      _createsAnnotations[node] ?? const [];
+
+  // Returns a list of the text from the `@Returns(<text>)` annotation of
+  // [node].
+  List<String> getReturnsAnnotations(ir.Member node) =>
+      _returnsAnnotations[node] ?? const [];
 
   // Returns the text from the `@JS(<text>)` annotation of [node], if any.
   String getJsInteropLibraryName(ir.Library node) =>
@@ -50,6 +62,8 @@ IrAnnotationData processAnnotations(ir.Component component) {
 
   void processMember(ir.Member member) {
     List<PragmaAnnotationData> pragmaAnnotations;
+    List<String> createsAnnotations;
+    List<String> returnsAnnotations;
     for (ir.Expression annotation in member.annotations) {
       if (annotation is ir.ConstantExpression) {
         ir.Constant constant = annotation.constant;
@@ -67,6 +81,22 @@ IrAnnotationData processAnnotations(ir.Component component) {
         String nativeName = _getNativeMemberName(constant);
         if (nativeName != null) {
           data._nativeMemberNames[member] = nativeName;
+        }
+
+        String creates = _getCreatesAnnotation(constant);
+        if (creates != null) {
+          if (createsAnnotations == null) {
+            data._createsAnnotations[member] = createsAnnotations = [];
+          }
+          createsAnnotations.add(creates);
+        }
+
+        String returns = _getReturnsAnnotation(constant);
+        if (returns != null) {
+          if (returnsAnnotations == null) {
+            data._returnsAnnotations[member] = returnsAnnotations = [];
+          }
+          returnsAnnotations.add(returns);
         }
 
         PragmaAnnotationData pragmaAnnotation = _getPragmaAnnotation(constant);
@@ -153,6 +183,32 @@ bool _isNativeMember(ir.Constant constant) {
 String _getNativeMemberName(ir.Constant constant) {
   if (constant is ir.InstanceConstant &&
       constant.classNode.name == 'JSName' &&
+      constant.classNode.enclosingLibrary.importUri == Uris.dart__js_helper) {
+    assert(constant.fieldValues.length == 1);
+    ir.Constant fieldValue = constant.fieldValues.values.single;
+    if (fieldValue is ir.StringConstant) {
+      return fieldValue.value;
+    }
+  }
+  return null;
+}
+
+String _getCreatesAnnotation(ir.Constant constant) {
+  if (constant is ir.InstanceConstant &&
+      constant.classNode.name == 'Creates' &&
+      constant.classNode.enclosingLibrary.importUri == Uris.dart__js_helper) {
+    assert(constant.fieldValues.length == 1);
+    ir.Constant fieldValue = constant.fieldValues.values.single;
+    if (fieldValue is ir.StringConstant) {
+      return fieldValue.value;
+    }
+  }
+  return null;
+}
+
+String _getReturnsAnnotation(ir.Constant constant) {
+  if (constant is ir.InstanceConstant &&
+      constant.classNode.name == 'Returns' &&
       constant.classNode.enclosingLibrary.importUri == Uris.dart__js_helper) {
     assert(constant.fieldValues.length == 1);
     ir.Constant fieldValue = constant.fieldValues.values.single;

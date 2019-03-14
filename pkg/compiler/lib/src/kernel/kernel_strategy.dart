@@ -70,10 +70,14 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   @override
   void registerLoadedLibraries(KernelResult kernelResult) {
     _elementMap.addComponent(kernelResult.component);
-    _irAnnotationData = processAnnotations(kernelResult.component);
+    if (useIrAnnotationsDataForTesting) {
+      _irAnnotationData = processAnnotations(kernelResult.component);
+    }
     _annotationProcessor = new KernelAnnotationProcessor(
         elementMap, nativeBasicDataBuilder, _irAnnotationData);
   }
+
+  IrAnnotationData get irAnnotationDataForTesting => _irAnnotationData;
 
   ModularStrategy get modularStrategyForTesting => _modularStrategy;
 

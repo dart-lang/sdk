@@ -52,7 +52,7 @@ main() {
   jsMethod3();
   new NativeClass1()..nativeMethod()..nativeField;
   new NativeClass2()..nativeField;
-  new NativeClass3()..nativeGetter;
+  new NativeClass3()..nativeMethod()..nativeGetter;
   nativeMethod();
 }
 ''',
@@ -112,6 +112,10 @@ class NativeClass3 {
   
   @JSName('method2')
   get nativeGetter native;
+
+  @Creates('String')
+  @Returns('int')
+  nativeMethod() native;
 }
 
 @JSName('method3')
@@ -131,6 +135,14 @@ const Map<String, String> expectedNativeMemberNames = {
   '$pathPrefix/nativelib.dart::NativeClass2::nativeField': 'field2',
   '$pathPrefix/nativelib.dart::NativeClass3::nativeGetter': 'method2',
   '$pathPrefix/nativelib.dart::nativeMethod': 'method3',
+};
+
+const Map<String, String> expectedCreates = {
+  '$pathPrefix/nativelib.dart::NativeClass3::nativeMethod': 'String',
+};
+
+const Map<String, String> expectedReturns = {
+  '$pathPrefix/nativelib.dart::NativeClass3::nativeMethod': 'int',
 };
 
 const Map<String, String> expectedJsInteropLibraryNames = {
@@ -189,10 +201,8 @@ main(List<String> args) {
       NativeData nativeData =
           compiler.resolutionWorldBuilder.closedWorldForTesting.nativeData;
       ir.Component component = elementMap.env.mainComponent;
-      IrAnnotationData annotationData;
-      if (useIr) {
-        annotationData = processAnnotations(component);
-      }
+      IrAnnotationData annotationData =
+          frontendStrategy.irAnnotationDataForTesting;
 
       void testMember(String idPrefix, ir.Member member,
           {bool implicitJsInteropMember, bool implicitNativeMember}) {
@@ -209,23 +219,45 @@ main(List<String> args) {
         if (expectedTryInlineMethods.contains(memberId)) {
           expectedPragmaNames.add('dart2js:tryInline');
         }
+
+        String expectedCreatesText = expectedCreates[memberId];
+        String expectedReturnsText = expectedReturns[memberId];
+
         if (useIr) {
           Expect.equals(
               expectedJsInteropMemberName,
               annotationData.getJsInteropMemberName(member),
-              "Unexpected js interop member name from IR for $member");
+              "Unexpected js interop member name from IR for $member, "
+              "id: $memberId");
 
           Expect.equals(
               expectedNativeMemberName,
               annotationData.getNativeMemberName(member),
-              "Unexpected js interop member name from IR for $member");
+              "Unexpected js interop member name from IR for $member, "
+              "id: $memberId");
 
           List<PragmaAnnotationData> pragmaAnnotations =
               annotationData.getMemberPragmaAnnotationData(member);
           Set<String> pragmaNames =
               pragmaAnnotations.map((d) => d.name).toSet();
           Expect.setEquals(expectedPragmaNames, pragmaNames,
-              "Unexpected pragmas from IR for $member");
+              "Unexpected pragmas from IR for $member, " "id: $memberId");
+
+          List<String> createsAnnotations =
+              annotationData.getCreatesAnnotations(member);
+          Expect.equals(
+              expectedCreatesText,
+              createsAnnotations.isEmpty ? null : createsAnnotations.join(','),
+              "Unexpected create annotations from IR for $member, "
+              "id: $memberId");
+
+          List<String> returnsAnnotations =
+              annotationData.getReturnsAnnotations(member);
+          Expect.equals(
+              expectedReturnsText,
+              returnsAnnotations.isEmpty ? null : returnsAnnotations.join(','),
+              "Unexpected returns annotations from IR for $member, "
+              "id: $memberId");
         }
         bool isJsInteropMember =
             (implicitJsInteropMember && member.isExternal) ||
@@ -233,20 +265,23 @@ main(List<String> args) {
         Expect.equals(
             isJsInteropMember,
             nativeData.isJsInteropMember(memberEntity),
-            "Unexpected js interop member result from native data for $member");
+            "Unexpected js interop member result from native data for $member, "
+            "id: $memberId");
         Expect.equals(
             isJsInteropMember
                 ? expectedJsInteropMemberName ?? memberEntity.name
                 : null,
             nativeData.getJsInteropMemberName(memberEntity),
-            "Unexpected js interop member name from native data for $member");
+            "Unexpected js interop member name from native data for $member, "
+            "id: $memberId");
 
         bool isNativeMember =
             implicitNativeMember || expectedNativeMemberName != null;
         Expect.equals(
             isNativeMember || isJsInteropMember,
             nativeData.isNativeMember(memberEntity),
-            "Unexpected native member result from native data for $member");
+            "Unexpected native member result from native data for $member, "
+            "id: $memberId");
         Expect.equals(
             isNativeMember
                 ? expectedNativeMemberName ?? memberEntity.name
@@ -254,14 +289,58 @@ main(List<String> args) {
                     ? expectedJsInteropMemberName ?? memberEntity.name
                     : null),
             nativeData.getFixedBackendName(memberEntity),
-            "Unexpected fixed backend name from native data for $member");
+            "Unexpected fixed backend name from native data for $member, "
+            "id: $memberId");
+
+        if (expectedCreatesText != null) {
+          String createsText;
+          if (memberEntity.isField) {
+            createsText = nativeData
+                .getNativeFieldLoadBehavior(memberEntity)
+                .typesInstantiated
+                .join(',');
+          } else {
+            createsText = nativeData
+                .getNativeMethodBehavior(memberEntity)
+                .typesInstantiated
+                .join(',');
+          }
+          Expect.equals(
+              expectedCreatesText,
+              createsText,
+              "Unexpected create annotations from native data for $member, "
+              "id: $memberId");
+        }
+
+        if (expectedReturnsText != null) {
+          String returnsText;
+          if (memberEntity.isField) {
+            returnsText = nativeData
+                .getNativeFieldLoadBehavior(memberEntity)
+                .typesReturned
+                .join(',');
+          } else {
+            returnsText = nativeData
+                .getNativeMethodBehavior(memberEntity)
+                .typesReturned
+                .join(',');
+          }
+          Expect.equals(
+              expectedReturnsText,
+              returnsText,
+              "Unexpected returns annotations from native data for $member, "
+              "id: $memberId");
+        }
 
         List<PragmaAnnotationData> pragmaAnnotations = frontendStrategy
             .modularStrategyForTesting
             .getPragmaAnnotationData(member);
         Set<String> pragmaNames = pragmaAnnotations.map((d) => d.name).toSet();
-        Expect.setEquals(expectedPragmaNames, pragmaNames,
-            "Unexpected pragmas from modular strategy for $member");
+        Expect.setEquals(
+            expectedPragmaNames,
+            pragmaNames,
+            "Unexpected pragmas from modular strategy for $member, "
+            "id: $memberId");
       }
 
       for (ir.Library library in component.libraries) {
