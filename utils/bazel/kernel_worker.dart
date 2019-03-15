@@ -15,6 +15,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:build_integration/file_system/multi_root.dart';
+import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
@@ -159,10 +160,9 @@ Future<bool> computeKernel(List<String> args,
       }
       break;
     case 'devcompiler':
-      // TODO(jakemac): change to a subclass of `DevCompilerTarget`. If
-      // `generateKernel` changes to return a summary component, use the default
-      // `DevCompilerTarget` and post process the component instead.
-      target = new SummaryTarget(sources, excludeNonSources, targetFlags);
+      // TODO(jakemac):If `generateKernel` changes to return a summary
+      // component, process the component instead.
+      target = new DevCompilerSummaryTarget(sources, excludeNonSources);
       if (!summaryOnly) {
         out.writeln('error: --no-summary-only not supported for the '
             'devcompiler target');
@@ -211,8 +211,8 @@ Future<bool> computeKernel(List<String> args,
   return succeeded;
 }
 
-/// A target that transforms outlines to meet the requirements of summaries in
-/// bazel and package-build.
+/// Extends the DevCompilerTarget to transform outlines to meet the requirements
+/// of summaries in bazel and package-build.
 ///
 /// Build systems like package-build may provide the same input file twice to
 /// the summary worker, but only intends to have it in one output summary.  The
@@ -223,15 +223,15 @@ Future<bool> computeKernel(List<String> args,
 ///
 /// Note: this transformation is destructive and is only intended to be used
 /// when generating summaries.
-class SummaryTarget extends NoneTarget {
+class DevCompilerSummaryTarget extends DevCompilerTarget {
   final List<Uri> sources;
   final bool excludeNonSources;
 
-  SummaryTarget(this.sources, this.excludeNonSources, TargetFlags flags)
-      : super(flags);
+  DevCompilerSummaryTarget(this.sources, this.excludeNonSources);
 
   @override
   void performOutlineTransformations(Component component) {
+    super.performOutlineTransformations(component);
     if (!excludeNonSources) return;
 
     List<Library> libraries = new List.from(component.libraries);
