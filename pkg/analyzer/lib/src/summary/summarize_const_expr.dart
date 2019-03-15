@@ -548,6 +548,16 @@ abstract class AbstractConstExprSerializer {
       operations.add(isNullAware
           ? UnlinkedExprOperation.nullAwareSpreadElement
           : UnlinkedExprOperation.spreadElement);
+    } else if (element is IfElement) {
+      _serialize(element.condition);
+      _serializeCollectionElement(element.thenElement);
+      var elseElement = element.elseElement;
+      if (elseElement == null) {
+        operations.add(UnlinkedExprOperation.ifElement);
+      } else {
+        _serializeCollectionElement(elseElement);
+        operations.add(UnlinkedExprOperation.ifElseElement);
+      }
     } else {
       // TODO(paulberry): Implement serialization for spread and control flow
       //  elements.

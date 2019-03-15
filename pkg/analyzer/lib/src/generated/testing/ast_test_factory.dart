@@ -670,6 +670,20 @@ class AstTestFactory {
         .toList();
   }
 
+  static IfElement ifElement(
+          Expression condition, CollectionElement thenElement,
+          [CollectionElement elseElement]) =>
+      astFactory.ifElement(
+          ifKeyword: TokenFactory.tokenFromKeyword(Keyword.IF),
+          leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          condition: condition,
+          rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          thenElement: thenElement,
+          elseKeyword: elseElement == null
+              ? null
+              : TokenFactory.tokenFromKeyword(Keyword.ELSE),
+          elseElement: elseElement);
+
   static IfStatement ifStatement(
           Expression condition, Statement thenStatement) =>
       ifStatement2(condition, thenStatement, null);

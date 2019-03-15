@@ -2754,6 +2754,44 @@ const int v = p.a.length;
         ]);
   }
 
+  test_constExpr_list_if() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('const v = [if (true) 1];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '[if (true) 1]',
+        operators: [
+          UnlinkedExprOperation.pushTrue,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.ifElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        ints: [
+          1,
+          1
+        ]);
+  }
+
+  test_constExpr_list_if_else() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('const v = [if (true) 1 else 2];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '[if (true) 1 else 2]',
+        operators: [
+          UnlinkedExprOperation.pushTrue,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.ifElseElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        ints: [
+          1,
+          2,
+          1
+        ]);
+  }
+
   test_constExpr_list_spread() {
     experimentStatus = ExperimentStatus(
         control_flow_collections: true, spread_collections: true);
@@ -3149,6 +3187,67 @@ const int v = p.a.length;
       ],
       ints: [11, 22, 33, 3],
     );
+  }
+
+  test_constExpr_map_if() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('const v = <int, int>{if (true) 1 : 2};');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '<int, int>{if (true) 1 : 2}',
+        operators: [
+          UnlinkedExprOperation.pushTrue,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.makeMapLiteralEntry,
+          UnlinkedExprOperation.ifElement,
+          UnlinkedExprOperation.makeTypedMap2
+        ],
+        ints: [
+          1,
+          2,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum)
+        ]);
+  }
+
+  test_constExpr_map_if_else() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable = serializeVariableText(
+        'const v = <int, int>{if (true) 1 : 2 else 3 : 4};');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '<int, int>{if (true) 1 : 2 else 3 : 4}',
+        operators: [
+          UnlinkedExprOperation.pushTrue,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.makeMapLiteralEntry,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.makeMapLiteralEntry,
+          UnlinkedExprOperation.ifElseElement,
+          UnlinkedExprOperation.makeTypedMap2
+        ],
+        ints: [
+          1,
+          2,
+          3,
+          4,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum)
+        ]);
   }
 
   test_constExpr_map_spread() {
@@ -3923,6 +4022,53 @@ const v = p.C.foo;
     UnlinkedVariable variable = serializeVariableText('const v = true;');
     assertUnlinkedConst(variable.initializer.bodyExpr, 'true',
         operators: [UnlinkedExprOperation.pushTrue]);
+  }
+
+  test_constExpr_set_if() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('const v = <int>{if (true) 1};');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '<int>{if (true) 1}',
+        operators: [
+          UnlinkedExprOperation.pushTrue,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.ifElement,
+          UnlinkedExprOperation.makeTypedSet
+        ],
+        ints: [
+          1,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum)
+        ]);
+  }
+
+  test_constExpr_set_if_else() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('const v = <int>{if (true) 1 else 2};');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '<int>{if (true) 1 else 2}',
+        operators: [
+          UnlinkedExprOperation.pushTrue,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.ifElseElement,
+          UnlinkedExprOperation.makeTypedSet
+        ],
+        ints: [
+          1,
+          2,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum)
+        ]);
   }
 
   test_constExpr_set_spread() {

@@ -3876,6 +3876,17 @@ enum UnlinkedExprOperation {
   /// Pop the top value from the stack, convert it to a spread element of type
   /// `...?`, and push the result back onto the stack.
   nullAwareSpreadElement,
+
+  /// Pop the top two values from the stack.  The first is a condition
+  /// and the second is a collection element.  Push an "if" element having the
+  /// given condition, with the collection element as its "then" clause.
+  ifElement,
+
+  /// Pop the top three values from the stack.  The first is a condition and the
+  /// other two are collection elements.  Push an "if" element having the given
+  /// condition, with the two collection elements as its "then" and "else"
+  /// clauses, respectively.
+  ifElseElement,
 }
 
 /// Unlinked summary information about an import declaration.

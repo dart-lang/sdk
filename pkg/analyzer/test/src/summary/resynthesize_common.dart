@@ -2556,6 +2556,34 @@ const () → int v =
 ''');
   }
 
+  test_const_list_if() async {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>[if (true) 1];
+''');
+    checkElementText(
+        library,
+        '''
+const Object x = const <
+        int/*location: dart:core;int*/>[if (true) 1];
+''',
+        withTypes: true);
+  }
+
+  test_const_list_if_else() async {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>[if (true) 1 else 2];
+''');
+    checkElementText(
+        library,
+        '''
+const Object x = const <
+        int/*location: dart:core;int*/>[if (true) 1 else 2];
+''',
+        withTypes: true);
+  }
+
   test_const_list_inferredType() async {
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
@@ -2622,6 +2650,36 @@ const Object x = const <
         int/*location: dart:core;int*/>[1]];
 ''');
     }
+  }
+
+  test_const_map_if() async {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int, int>{if (true) 1: 2};
+''');
+    checkElementText(
+        library,
+        '''
+const Object x = const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{if (true) 1: 2}/*isMap*/;
+''',
+        withTypes: true);
+  }
+
+  test_const_map_if_else() async {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int, int>{if (true) 1: 2 else 3: 4];
+''');
+    checkElementText(
+        library,
+        '''
+const Object x = const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{if (true) 1: 2 else 3: 4}/*isMap*/;
+''',
+        withTypes: true);
   }
 
   test_const_map_inferredType() async {
@@ -3139,6 +3197,34 @@ const dynamic V =
         C/*location: foo.dart;C*/.
         foo/*location: null*/;
 ''');
+  }
+
+  test_const_set_if() async {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>{if (true) 1};
+''');
+    checkElementText(
+        library,
+        '''
+const Object x = const <
+        int/*location: dart:core;int*/>{if (true) 1}/*isSet*/;
+''',
+        withTypes: true);
+  }
+
+  test_const_set_if_else() async {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>{if (true) 1 else 2];
+''');
+    checkElementText(
+        library,
+        '''
+const Object x = const <
+        int/*location: dart:core;int*/>{if (true) 1 else 2}/*isSet*/;
+''',
+        withTypes: true);
   }
 
   test_const_set_inferredType() async {

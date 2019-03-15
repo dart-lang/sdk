@@ -673,6 +673,16 @@ class _ElementWriter {
     } else if (e is SpreadElement) {
       buffer.write(e.spreadOperator.lexeme);
       writeNode(e.expression);
+    } else if (e is IfElement) {
+      buffer.write('if (');
+      writeNode(e.condition);
+      buffer.write(') ');
+      writeNode(e.thenElement);
+      var elseElement = e.elseElement;
+      if (elseElement != null) {
+        buffer.write(' else ');
+        writeNode(elseElement);
+      }
     } else {
       fail('Unsupported expression type: ${e.runtimeType}');
     }

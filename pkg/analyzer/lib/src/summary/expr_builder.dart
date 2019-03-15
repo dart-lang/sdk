@@ -323,6 +323,12 @@ class ExprBuilder {
         case UnlinkedExprOperation.nullAwareSpreadElement:
           _pushSpread(TokenType.PERIOD_PERIOD_PERIOD_QUESTION);
           break;
+        case UnlinkedExprOperation.ifElement:
+          _pushIfElement(false);
+          break;
+        case UnlinkedExprOperation.ifElseElement:
+          _pushIfElement(true);
+          break;
         case UnlinkedExprOperation.cascadeSectionBegin:
         case UnlinkedExprOperation.cascadeSectionEnd:
         case UnlinkedExprOperation.pushLocalFunctionReference:
@@ -648,6 +654,13 @@ class ExprBuilder {
       propertyNode.staticElement = _getStringLengthElement();
     }
     _push(AstTestFactory.propertyAccess(target, propertyNode));
+  }
+
+  void _pushIfElement(bool hasElse) {
+    CollectionElement elseElement = hasElse ? _popCollectionElement() : null;
+    CollectionElement thenElement = _popCollectionElement();
+    Expression condition = _pop();
+    _push(AstTestFactory.ifElement(condition, thenElement, elseElement));
   }
 
   void _pushInstanceCreation() {
