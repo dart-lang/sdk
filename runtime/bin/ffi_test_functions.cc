@@ -33,6 +33,11 @@ DART_EXPORT int32_t SumPlus42(int32_t a, int32_t b) {
   return retval;
 }
 
+// Test 32-bit (int32_t) -> 64-bit (Dart int) sign extension and truncation.
+DART_EXPORT int32_t TestExtension() {
+  return 1UL << 31;
+}
+
 // Performs some computation on various sized signed ints.
 // Used for testing value ranges for signed ints.
 DART_EXPORT int64_t IntComputation(int8_t a, int16_t b, int32_t c, int64_t d) {
@@ -408,6 +413,10 @@ DART_EXPORT double SmallDouble() {
 
 DART_EXPORT void* SmallPointer() {
   return reinterpret_cast<void*>(-0x80000000L);
+}
+
+DART_EXPORT void* LargePointer() {
+  return reinterpret_cast<void*>(-0x8000000000000000L);
 }
 
 #if !defined(_WIN32)
