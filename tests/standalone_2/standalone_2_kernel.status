@@ -8,6 +8,7 @@ fragmentation_test: Pass, Slow # GC heavy
 io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
 
 [ $builder_tag == asan ]
+ffi/data_not_asan_test: Skip # this test tries to allocate too much memory on purpose
 io/file_test: Fail # Issue 34724
 io/http_server_response_test: Fail # Issue 34724
 io/process_sync_test: Pass, Fail # https://github.com/dart-lang/sdk/issues/34724
@@ -15,6 +16,11 @@ io/signals_test: Fail # Issue 34724
 io/test_extension_fail_test: Fail # Issue 32187
 
 [ $compiler == app_jitk ]
+ffi/dynamic_library_test: Skip # https://github.com/dart-lang/sdk/issues/35934
+ffi/function_callbacks_test: Skip # https://github.com/dart-lang/sdk/issues/35934
+ffi/function_structs_test: Skip # https://github.com/dart-lang/sdk/issues/35934
+ffi/function_test: Skip # https://github.com/dart-lang/sdk/issues/35934
+ffi/negative_function_test: Skip # https://github.com/dart-lang/sdk/issues/35934
 io/file_error_test: RuntimeError
 io/file_test: RuntimeError
 io/http_auth_digest_test: RuntimeError
@@ -41,6 +47,9 @@ io/platform_resolved_executable_test/04: RuntimeError
 [ $compiler == dartkp ]
 io/arguments_test: Fail # Test harness passes runtime arguments to the compiler
 io/test_runner_test: SkipByDesign # Is not relevant for AOT.
+
+[ $runtime == dart_precompiled ]
+ffi: Skip # https://github.com/dart-lang/sdk/issues/35765
 
 [ $system == android ]
 entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
@@ -157,6 +166,9 @@ io/socket_port_test: Pass, Crash
 [ $mode == debug && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
 io/web_socket_ping_test: Crash, Pass
 
+[ $runtime != dart_precompiled && $runtime != vm ]
+ffi: SkipByDesign # ffi is only supported on vm
+
 [ $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
 io/http_client_request_test: Pass, Timeout
 io/secure_builtin_roots_test: Pass, Timeout
@@ -229,9 +241,12 @@ io/socket_many_connections_test: Skip # Timeout
 io/web_socket_compression_test: Skip # Timeout
 io/web_socket_test: Skip # Timeout
 
-[ $arch != x64 || $compiler != dartk || $mode == product || $system != linux && $system != macos ]
+[ $arch != x64 || $compiler != dartk || $mode == product || $system != linux && $system != macos && $system != windows ]
 ffi/function_stress_test: SkipByDesign # FFI must be supported. Also requires --verbose-gc, which isn't included in product.
-ffi/subtype_test: SkipByDesign # FFI must be supported. Also requires --verbose-gc, which isn't included in product. See #36138 for Windows.
+ffi/subtype_test: SkipByDesign # FFI must be supported. Also requires --verbose-gc, which isn't included in product.
+
+[ $arch != x64 || $system != linux && $system != macos && $system != windows ]
+ffi: Skip # ffi not yet supported on other systems than linux/macos/windows x64
 
 [ $compiler != dartk && $compiler != dartkb && $compiler != dartkp || $compiler == dartkp && $system == windows ]
 entrypoints_verification_test: SkipByDesign # Requires VM to run. Cannot run in precompiled Windows because the DLL is linked against dart.exe instead of dart_precompiled_runtime.exe.

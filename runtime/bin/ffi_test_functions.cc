@@ -412,7 +412,8 @@ DART_EXPORT double SmallDouble() {
 }
 
 DART_EXPORT void* SmallPointer() {
-  return reinterpret_cast<void*>(-0x80000000L);
+  intptr_t value = 0x80000000;
+  return reinterpret_cast<void*>(-value);
 }
 
 DART_EXPORT void* LargePointer() {
