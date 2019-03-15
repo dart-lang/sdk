@@ -925,7 +925,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
   SetOffset(kernel_offset);
 
   if ((FLAG_use_bytecode_compiler || FLAG_enable_interpreter) &&
-      function.IsBytecodeAllowed(Z) && !function.is_native()) {
+      function.IsBytecodeAllowed(Z)) {
     if (!function.HasBytecode()) {
       bytecode_metadata_helper_.ReadMetadata(function);
     }

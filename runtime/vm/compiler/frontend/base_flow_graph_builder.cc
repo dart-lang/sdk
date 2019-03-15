@@ -702,6 +702,12 @@ Fragment BaseFlowGraphBuilder::InstantiateTypeArguments(
   return Fragment(instr);
 }
 
+Fragment BaseFlowGraphBuilder::LoadClassId() {
+  LoadClassIdInstr* load = new (Z) LoadClassIdInstr(Pop());
+  Push(load);
+  return Fragment(load);
+}
+
 }  // namespace kernel
 }  // namespace dart
 

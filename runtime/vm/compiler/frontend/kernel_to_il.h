@@ -154,7 +154,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                    const ZoneGrowableArray<Location>& arg_locs);
 
   Fragment RethrowException(TokenPosition position, int catch_try_index);
-  Fragment LoadClassId();
   Fragment LoadLocal(LocalVariable* variable);
   Fragment InitStaticField(const Field& field);
   Fragment NativeCall(const String* name, const Function* function);

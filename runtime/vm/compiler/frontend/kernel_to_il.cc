@@ -431,12 +431,6 @@ Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
   return instructions;
 }
 
-Fragment FlowGraphBuilder::LoadClassId() {
-  LoadClassIdInstr* load = new (Z) LoadClassIdInstr(Pop());
-  Push(load);
-  return Fragment(load);
-}
-
 Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   if (variable->is_captured()) {
     Fragment instructions;
