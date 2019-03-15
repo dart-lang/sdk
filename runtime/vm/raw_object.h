@@ -712,6 +712,7 @@ class RawObject {
   friend class RawInstance;
   friend class RawString;
   friend class RawTypedData;
+  friend class RawTypedDataView;
   friend class Scavenger;
   friend class ScavengerVisitor;
   friend class SizeExcludingClassVisitor;  // GetClassId
@@ -2081,6 +2082,25 @@ class RawTwoByteString : public RawString {
   friend class String;
 };
 
+// All _*ArrayView/_ByteDataView classes share the same layout.
+class RawTypedDataView : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TypedDataView);
+
+ protected:
+  VISIT_FROM(RawObject*, typed_data_)
+  RawInstance* typed_data_;
+  RawSmi* offset_in_bytes_;
+  RawSmi* length_;
+  VISIT_TO(RawObject*, length_)
+
+  friend class Api;
+  friend class Object;
+  friend class ObjectPoolDeserializationCluster;
+  friend class ObjectPoolSerializationCluster;
+  friend class RawObjectPool;
+  friend class SnapshotReader;
+};
+
 class RawExternalOneByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString);
 
@@ -2639,7 +2659,7 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
 // is defined by the VM but are used in the VM code by computing the
 // implicit field offsets of the various fields in the dart object.
 inline bool RawObject::IsImplicitFieldClassId(intptr_t index) {
-  return (IsTypedDataViewClassId(index) || index == kByteBufferCid);
+  return index == kByteBufferCid;
 }
 
 inline intptr_t RawObject::NumberOfTypedDataClasses() {

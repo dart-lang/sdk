@@ -1400,52 +1400,6 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   Error& error = Error::Handle(zone);
   TypeParameter& type_param = TypeParameter::Handle(zone);
 
-  // First verify field offsets of all the TypedDataView classes.
-  for (intptr_t cid = kTypedDataInt8ArrayViewCid;
-       cid <= kTypedDataFloat32x4ArrayViewCid; cid++) {
-    cls = class_table.At(cid);  // Get the TypedDataView class.
-    error = cls.EnsureIsFinalized(thread);
-    ASSERT(error.IsNull());
-    cls = cls.SuperClass();  // Get it's super class '_TypedListView'.
-    cls = cls.SuperClass();
-    fields_array ^= cls.fields();
-    ASSERT(fields_array.Length() == TypedDataView::NumberOfFields());
-    field ^= fields_array.At(0);
-    ASSERT(field.Offset() == TypedDataView::data_offset());
-    name ^= field.name();
-    expected_name ^= String::New("_typedData");
-    ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
-    field ^= fields_array.At(1);
-    ASSERT(field.Offset() == TypedDataView::offset_in_bytes_offset());
-    name ^= field.name();
-    ASSERT(name.Equals("offsetInBytes"));
-    field ^= fields_array.At(2);
-    ASSERT(field.Offset() == TypedDataView::length_offset());
-    name ^= field.name();
-    ASSERT(name.Equals("length"));
-  }
-
-  // Now verify field offsets of '_ByteDataView' class.
-  cls = class_table.At(kByteDataViewCid);
-  error = cls.EnsureIsFinalized(thread);
-  ASSERT(error.IsNull());
-  fields_array ^= cls.fields();
-  ASSERT(fields_array.Length() == TypedDataView::NumberOfFields());
-  field ^= fields_array.At(0);
-  ASSERT(field.Offset() == TypedDataView::data_offset());
-  name ^= field.name();
-  expected_name ^= String::New("_typedData");
-  ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
-  field ^= fields_array.At(1);
-  ASSERT(field.Offset() == TypedDataView::offset_in_bytes_offset());
-  name ^= field.name();
-  expected_name ^= String::New("_offset");
-  ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
-  field ^= fields_array.At(2);
-  ASSERT(field.Offset() == TypedDataView::length_offset());
-  name ^= field.name();
-  ASSERT(name.Equals("length"));
-
   // Now verify field offsets of '_ByteBuffer' class.
   cls = class_table.At(kByteBufferCid);
   error = cls.EnsureIsFinalized(thread);

@@ -1256,7 +1256,7 @@ class Class : public Object {
   // Allocate the raw TypedData classes.
   static RawClass* NewTypedDataClass(intptr_t class_id);
 
-  // Allocate the raw TypedDataView classes.
+  // Allocate the raw TypedDataView/ByteDataView classes.
   static RawClass* NewTypedDataViewClass(intptr_t class_id);
 
   // Allocate the raw ExternalTypedData classes.
@@ -8466,49 +8466,55 @@ class ExternalTypedData : public Instance {
   friend class Class;
 };
 
-class TypedDataView : public AllStatic {
+class TypedDataView : public Instance {
  public:
-  static intptr_t ElementSizeInBytes(const Instance& view_obj) {
+  static RawTypedDataView* New(intptr_t class_id,
+                               Heap::Space space = Heap::kNew);
+  static RawTypedDataView* New(intptr_t class_id,
+                               const Instance& typed_data,
+                               intptr_t offset_in_bytes,
+                               intptr_t length,
+                               Heap::Space space = Heap::kNew);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawTypedDataView));
+  }
+
+  static intptr_t ElementSizeInBytes(const TypedDataView& view_obj) {
     ASSERT(!view_obj.IsNull());
     intptr_t cid = view_obj.raw()->GetClassId();
     return ElementSizeInBytes(cid);
   }
 
-  static RawInstance* Data(const Instance& view_obj) {
-    ASSERT(!view_obj.IsNull());
-    return *reinterpret_cast<RawInstance* const*>(view_obj.raw_ptr() +
-                                                  kDataOffset);
+  static RawInstance* Data(const TypedDataView& view) {
+    return view.typed_data();
   }
 
-  static RawSmi* OffsetInBytes(const Instance& view_obj) {
-    ASSERT(!view_obj.IsNull());
-    return *reinterpret_cast<RawSmi* const*>(view_obj.raw_ptr() +
-                                             kOffsetInBytesOffset);
+  static RawSmi* OffsetInBytes(const TypedDataView& view) {
+    return view.offset_in_bytes();
   }
 
-  static RawSmi* Length(const Instance& view_obj) {
-    ASSERT(!view_obj.IsNull());
-    return *reinterpret_cast<RawSmi* const*>(view_obj.raw_ptr() +
-                                             kLengthOffset);
-  }
+  static RawSmi* Length(const TypedDataView& view) { return view.length(); }
 
-  static bool IsExternalTypedDataView(const Instance& view_obj) {
-    const Instance& data = Instance::Handle(Data(view_obj));
+  static bool IsExternalTypedDataView(const TypedDataView& view_obj) {
+    const auto& data = Instance::Handle(Data(view_obj));
     intptr_t cid = data.raw()->GetClassId();
     ASSERT(RawObject::IsTypedDataClassId(cid) ||
            RawObject::IsExternalTypedDataClassId(cid));
     return RawObject::IsExternalTypedDataClassId(cid);
   }
 
-  static intptr_t NumberOfFields() { return kLengthOffset; }
-
-  static intptr_t data_offset() { return kWordSize * kDataOffset; }
-
-  static intptr_t offset_in_bytes_offset() {
-    return kWordSize * kOffsetInBytesOffset;
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawTypedDataView, typed_data_);
   }
 
-  static intptr_t length_offset() { return kWordSize * kLengthOffset; }
+  static intptr_t length_offset() {
+    return OFFSET_OF(RawTypedDataView, length_);
+  }
+
+  static intptr_t offset_in_bytes_offset() {
+    return OFFSET_OF(RawTypedDataView, offset_in_bytes_);
+  }
 
   static intptr_t ElementSizeInBytes(intptr_t class_id) {
     ASSERT(RawObject::IsTypedDataViewClassId(class_id));
@@ -8517,12 +8523,34 @@ class TypedDataView : public AllStatic {
                : TypedData::element_size(class_id - kTypedDataInt8ArrayViewCid);
   }
 
+  RawInstance* typed_data() const { return raw_ptr()->typed_data_; }
+
+  void set_typed_data(const Instance& typed_data) {
+    const classid_t cid = typed_data.GetClassId();
+    ASSERT(RawObject::IsTypedDataClassId(cid) ||
+           RawObject::IsExternalTypedDataClassId(cid));
+    StorePointer(&raw_ptr()->typed_data_, typed_data.raw());
+  }
+
+  void set_length(intptr_t value) {
+    StorePointer(&raw_ptr()->length_, Smi::New(value));
+  }
+
+  void set_offset_in_bytes(intptr_t value) {
+    StorePointer(&raw_ptr()->offset_in_bytes_, Smi::New(value));
+  }
+
+  RawSmi* offset_in_bytes() const { return raw_ptr()->offset_in_bytes_; }
+
+  RawSmi* length() const { return raw_ptr()->length_; }
+
  private:
-  enum {
-    kDataOffset = 1,
-    kOffsetInBytesOffset = 2,
-    kLengthOffset = 3,
-  };
+  void clear_typed_data() {
+    StorePointer(&raw_ptr()->typed_data_, Instance::RawCast(Object::null()));
+  }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedDataView, Instance);
+  friend class Class;
 };
 
 class ByteBuffer : public AllStatic {

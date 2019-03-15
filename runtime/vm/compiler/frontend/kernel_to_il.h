@@ -105,6 +105,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment NativeFunctionBody(const Function& function,
                               LocalVariable* first_parameter);
 
+  Fragment BuildTypedDataViewFactoryConstructor(const Function& function,
+                                                classid_t cid);
+
   Fragment EnterScope(intptr_t kernel_offset,
                       const LocalScope** scope = nullptr);
   Fragment ExitScope(intptr_t kernel_offset);

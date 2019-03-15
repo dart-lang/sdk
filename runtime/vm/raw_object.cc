@@ -269,22 +269,25 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 #undef RAW_VISITPOINTERS
 #define RAW_VISITPOINTERS(clazz) case kExternalTypedData##clazz##Cid:
     CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
-      RawExternalTypedData* raw_obj =
-          reinterpret_cast<RawExternalTypedData*>(this);
+      auto raw_obj = reinterpret_cast<RawExternalTypedData*>(this);
       size = RawExternalTypedData::VisitExternalTypedDataPointers(raw_obj,
                                                                   visitor);
       break;
     }
 #undef RAW_VISITPOINTERS
-#define RAW_VISITPOINTERS(clazz) case kTypedData##clazz##ViewCid:
-    CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS)
     case kByteDataViewCid:
+#define RAW_VISITPOINTERS(clazz) case kTypedData##clazz##ViewCid:
+      CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
+        auto raw_obj = reinterpret_cast<RawTypedDataView*>(this);
+        size = RawTypedDataView::VisitTypedDataViewPointers(raw_obj, visitor);
+        break;
+      }
+#undef RAW_VISITPOINTERS
     case kByteBufferCid: {
       RawInstance* raw_obj = reinterpret_cast<RawInstance*>(this);
       size = RawInstance::VisitInstancePointers(raw_obj, visitor);
       break;
     }
-#undef RAW_VISITPOINTERS
     case kFfiPointerCid: {
       RawPointer* raw_obj = reinterpret_cast<RawPointer*>(this);
       size = RawPointer::VisitPointerPointers(raw_obj, visitor);
@@ -427,6 +430,7 @@ REGULAR_VISITOR(ExternalTwoByteString)
 COMPRESSED_VISITOR(GrowableObjectArray)
 COMPRESSED_VISITOR(LinkedHashMap)
 COMPRESSED_VISITOR(ExternalTypedData)
+REGULAR_VISITOR(TypedDataView)
 REGULAR_VISITOR(ReceivePort)
 REGULAR_VISITOR(StackTrace)
 REGULAR_VISITOR(RegExp)

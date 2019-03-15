@@ -3087,19 +3087,19 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
     }
   }
   if (RawObject::IsTypedDataViewClassId(obj.GetClassId())) {
-    const Instance& view = Instance::Cast(obj);
+    const auto& view = TypedDataView::Cast(obj);
     if (TypedDataView::ElementSizeInBytes(view) == 1) {
-      intptr_t view_length = Smi::Value(TypedDataView::Length(view));
+      const intptr_t view_length = Smi::Value(view.length());
       if (!Utils::RangeCheck(offset, length, view_length)) {
         return Api::NewError(
             "Invalid length passed in to access list elements");
       }
-      const Instance& data = Instance::Handle(TypedDataView::Data(view));
+      const auto& data = Instance::Handle(view.typed_data());
       if (data.IsTypedData()) {
         const TypedData& array = TypedData::Cast(data);
         if (array.ElementSizeInBytes() == 1) {
-          intptr_t data_offset =
-              Smi::Value(TypedDataView::OffsetInBytes(view)) + offset;
+          const intptr_t data_offset =
+              Smi::Value(view.offset_in_bytes()) + offset;
           // Range check already performed on the view object.
           ASSERT(Utils::RangeCheck(data_offset, length, array.Length()));
           return CopyBytes(array, data_offset, native_array, length);
@@ -3389,10 +3389,9 @@ Dart_GetTypeOfExternalTypedData(Dart_Handle object) {
   if (RawObject::IsTypedDataViewClassId(class_id)) {
     // Check if data object of the view is external.
     Zone* zone = thread->zone();
-    const Instance& view_obj = Api::UnwrapInstanceHandle(zone, object);
+    const auto& view_obj = Api::UnwrapTypedDataViewHandle(zone, object);
     ASSERT(!view_obj.IsNull());
-    const Instance& data_obj =
-        Instance::Handle(zone, TypedDataView::Data(view_obj));
+    const auto& data_obj = Instance::Handle(zone, view_obj.typed_data());
     if (ExternalTypedData::IsExternalTypedData(data_obj)) {
       return GetType(class_id);
     }
@@ -3744,15 +3743,15 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     data_tmp = obj.DataAddr(0);
   } else {
     ASSERT(RawObject::IsTypedDataViewClassId(class_id));
-    const Instance& view_obj = Api::UnwrapInstanceHandle(Z, object);
+    const auto& view_obj = Api::UnwrapTypedDataViewHandle(Z, object);
     ASSERT(!view_obj.IsNull());
     Smi& val = Smi::Handle();
-    val ^= TypedDataView::Length(view_obj);
+    val ^= view_obj.length();
     length = val.Value();
     size_in_bytes = length * TypedDataView::ElementSizeInBytes(class_id);
-    val ^= TypedDataView::OffsetInBytes(view_obj);
+    val ^= view_obj.offset_in_bytes();
     intptr_t offset_in_bytes = val.Value();
-    const Instance& obj = Instance::Handle(TypedDataView::Data(view_obj));
+    const auto& obj = Instance::Handle(view_obj.typed_data());
     T->IncrementNoSafepointScopeDepth();
     START_NO_CALLBACK_SCOPE(T);
     if (TypedData::IsTypedData(obj)) {

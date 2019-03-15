@@ -1389,6 +1389,10 @@ void TypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void TypedDataView::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
+}
+
 void ExternalTypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);

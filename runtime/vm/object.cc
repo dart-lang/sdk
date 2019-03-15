@@ -1642,9 +1642,11 @@ RawError* Object::Init(Isolate* isolate,
   pending_classes.Add(cls);
 
     CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
+
     cls = Class::NewTypedDataViewClass(kByteDataViewCid);
     RegisterPrivateClass(cls, Symbols::_ByteDataView(), lib);
     pending_classes.Add(cls);
+
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);      \
@@ -3709,9 +3711,11 @@ RawClass* Class::NewTypedDataClass(intptr_t class_id) {
 
 RawClass* Class::NewTypedDataViewClass(intptr_t class_id) {
   ASSERT(RawObject::IsTypedDataViewClassId(class_id));
-  Class& result = Class::Handle(New<Instance>(class_id));
-  result.set_instance_size(0);
-  result.set_next_field_offset(-kWordSize);
+  const intptr_t instance_size = TypedDataView::InstanceSize();
+  Class& result = Class::Handle(New<TypedDataView>(class_id));
+  result.set_instance_size(instance_size);
+  result.set_next_field_offset(TypedDataView::NextFieldOffset());
+  result.set_is_prefinalized();
   return result.raw();
 }
 
@@ -20895,6 +20899,37 @@ RawExternalTypedData* ExternalTypedData::New(intptr_t class_id,
     result.SetData(data);
   }
   return result.raw();
+}
+
+RawTypedDataView* TypedDataView::New(intptr_t class_id, Heap::Space space) {
+  auto& result = TypedDataView::Handle();
+  {
+    RawObject* raw =
+        Object::Allocate(class_id, TypedDataView::InstanceSize(), space);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.clear_typed_data();
+    result.set_offset_in_bytes(0);
+    result.set_length(0);
+  }
+  return result.raw();
+}
+
+RawTypedDataView* TypedDataView::New(intptr_t class_id,
+                                     const Instance& typed_data,
+                                     intptr_t offset_in_bytes,
+                                     intptr_t length,
+                                     Heap::Space space) {
+  auto& result = TypedDataView::Handle(TypedDataView::New(class_id, space));
+  result.set_typed_data(typed_data);
+  result.set_offset_in_bytes(offset_in_bytes);
+  result.set_length(length);
+  return result.raw();
+}
+
+const char* TypedDataView::ToCString() const {
+  auto zone = Thread::Current()->zone();
+  return OS::SCreate(zone, "TypedDataView(cid: %" Pd ")", GetClassId());
 }
 
 const char* ExternalTypedData::ToCString() const {

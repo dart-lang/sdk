@@ -59,6 +59,9 @@ class ParsedFunction;
   V(GrowableObjectArray, length, Smi, VAR)                                     \
   V(GrowableObjectArray, data, Array, VAR)                                     \
   V(TypedData, length, Smi, FINAL)                                             \
+  V(TypedDataView, length, Smi, FINAL)                                         \
+  V(TypedDataView, offset_in_bytes, Smi, FINAL)                                \
+  V(TypedDataView, data, Dynamic, FINAL)                                       \
   V(String, length, Smi, FINAL)                                                \
   V(LinkedHashMap, index, TypedDataUint32Array, VAR)                           \
   V(LinkedHashMap, data, Array, VAR)                                           \

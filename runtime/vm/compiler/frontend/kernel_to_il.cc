@@ -748,6 +748,65 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
   bool omit_result_type_check = true;
   switch (kind) {
+    case MethodRecognizer::kTypedData_ByteDataView_factory:
+      body += BuildTypedDataViewFactoryConstructor(function, kByteDataViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Int8ArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(function,
+                                                   kTypedDataInt8ArrayViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint8ArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(function,
+                                                   kTypedDataUint8ArrayViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint8ClampedArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(
+          function, kTypedDataUint8ClampedArrayViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Int16ArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(function,
+                                                   kTypedDataInt16ArrayViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint16ArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(
+          function, kTypedDataUint16ArrayViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Int32ArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(function,
+                                                   kTypedDataInt32ArrayViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint32ArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(
+          function, kTypedDataUint32ArrayViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Int64ArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(function,
+                                                   kTypedDataInt64ArrayViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint64ArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(
+          function, kTypedDataUint64ArrayViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Float32ArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(
+          function, kTypedDataFloat32ArrayViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Float64ArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(
+          function, kTypedDataFloat64ArrayViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Float32x4ArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(
+          function, kTypedDataFloat32x4ArrayViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(
+          function, kTypedDataInt32x4ArrayViewCid);
+      break;
+    case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
+      body += BuildTypedDataViewFactoryConstructor(
+          function, kTypedDataFloat64x2ArrayViewCid);
+      break;
     case MethodRecognizer::kObjectEquals:
       body += LoadLocal(parsed_function_->receiver_var());
       body += LoadLocal(first_parameter);
@@ -774,6 +833,21 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
     case MethodRecognizer::kTypedDataLength:
       body += LoadLocal(parsed_function_->receiver_var());
       body += LoadNativeField(Slot::TypedData_length());
+      break;
+    case MethodRecognizer::kByteDataViewLength:
+    case MethodRecognizer::kTypedDataViewLength:
+      body += LoadLocal(parsed_function_->receiver_var());
+      body += LoadNativeField(Slot::TypedDataView_length());
+      break;
+    case MethodRecognizer::kByteDataViewOffsetInBytes:
+    case MethodRecognizer::kTypedDataViewOffsetInBytes:
+      body += LoadLocal(parsed_function_->receiver_var());
+      body += LoadNativeField(Slot::TypedDataView_offset_in_bytes());
+      break;
+    case MethodRecognizer::kByteDataViewTypedData:
+    case MethodRecognizer::kTypedDataViewTypedData:
+      body += LoadLocal(parsed_function_->receiver_var());
+      body += LoadNativeField(Slot::TypedDataView_data());
       break;
     case MethodRecognizer::kClassIDgetID:
       body += LoadLocal(first_parameter);
@@ -928,6 +1002,39 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
     }
   }
   return body + Return(TokenPosition::kNoSource, omit_result_type_check);
+}
+
+Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
+    const Function& function,
+    classid_t cid) {
+  auto token_pos = function.token_pos();
+  auto class_table = Thread::Current()->isolate()->class_table();
+
+  ASSERT(class_table->HasValidClassAt(cid));
+  const auto& view_class = Class::ZoneHandle(H.zone(), class_table->At(cid));
+
+  LocalVariable* typed_data = parsed_function_->RawParameterVariable(1);
+  LocalVariable* offset_in_bytes = parsed_function_->RawParameterVariable(2);
+  LocalVariable* length = parsed_function_->RawParameterVariable(3);
+
+  Fragment body;
+
+  body += AllocateObject(token_pos, view_class, /*arg_count=*/0);
+  LocalVariable* view_object = MakeTemporary();
+
+  body += LoadLocal(view_object);
+  body += LoadLocal(typed_data);
+  body += StoreInstanceField(token_pos, Slot::TypedDataView_data());
+
+  body += LoadLocal(view_object);
+  body += LoadLocal(offset_in_bytes);
+  body += StoreInstanceField(token_pos, Slot::TypedDataView_offset_in_bytes());
+
+  body += LoadLocal(view_object);
+  body += LoadLocal(length);
+  body += StoreInstanceField(token_pos, Slot::TypedDataView_length());
+
+  return body;
 }
 
 static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {

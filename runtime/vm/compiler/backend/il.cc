@@ -2554,6 +2554,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
   switch (slot().kind()) {
     case Slot::Kind::kArray_length:
     case Slot::Kind::kTypedData_length:
+    case Slot::Kind::kTypedDataView_length:
     case Slot::Kind::kString_length:
       return true;
     case Slot::Kind::kGrowableObjectArray_length:
@@ -2569,6 +2570,8 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kArgumentsDescriptor_positional_count:
     case Slot::Kind::kArgumentsDescriptor_count:
     case Slot::Kind::kTypeArguments:
+    case Slot::Kind::kTypedDataView_offset_in_bytes:
+    case Slot::Kind::kTypedDataView_data:
     case Slot::Kind::kGrowableObjectArray_data:
     case Slot::Kind::kContext_parent:
     case Slot::Kind::kClosure_context:

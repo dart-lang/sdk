@@ -73,6 +73,9 @@ const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
       RawObject::IsTypedDataClassId(array_cid)) {
     return GetNativeSlot(Kind::kTypedData_length);
   }
+  if (RawObject::IsTypedDataViewClassId(array_cid)) {
+    return GetNativeSlot(Kind::kTypedDataView_length);
+  }
 
   switch (array_cid) {
     case kGrowableObjectArrayCid:

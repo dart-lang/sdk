@@ -535,8 +535,11 @@ static bool IsSmallLeaf(FlowGraph* graph) {
         if (!function.always_inline() && !function.IsRecognized()) {
           return false;
         }
-        static constexpr intptr_t kAvgListedMethodSize = 20;
-        instruction_count += (inl_size == 0 ? kAvgListedMethodSize : inl_size);
+        if (!function.always_inline()) {
+          static constexpr intptr_t kAvgListedMethodSize = 20;
+          instruction_count +=
+              (inl_size == 0 ? kAvgListedMethodSize : inl_size);
+        }
       }
     }
   }
