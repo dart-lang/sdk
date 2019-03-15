@@ -16,11 +16,6 @@ class Isolate {
   }
 
   @patch
-  String get debugName {
-    throw new UnsupportedError("Isolate.debugName");
-  }
-
-  @patch
   static Future<Uri> get packageRoot {
     throw new UnsupportedError("Isolate.packageRoot");
   }

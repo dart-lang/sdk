@@ -148,10 +148,9 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
         &isolate_snapshot_data, &isolate_snapshot_instructions);
     isolate_data = new bin::IsolateData(script_uri, package_root,
                                         packages_config, app_snapshot);
-    isolate =
-        Dart_CreateIsolate(DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
-                           isolate_snapshot_data, isolate_snapshot_instructions,
-                           NULL, NULL, flags, isolate_data, error);
+    isolate = Dart_CreateIsolate(
+        DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
+        isolate_snapshot_instructions, NULL, NULL, flags, isolate_data, error);
     if (*error != NULL) {
       free(*error);
       *error = NULL;

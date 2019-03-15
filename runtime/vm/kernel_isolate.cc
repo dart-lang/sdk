@@ -98,9 +98,8 @@ class RunKernelTask : public ThreadPool::Task {
     api_flags.use_osr = true;
 #endif
 
-    isolate = reinterpret_cast<Isolate*>(
-        create_callback(KernelIsolate::kName, KernelIsolate::kName, NULL, NULL,
-                        &api_flags, NULL, &error));
+    isolate = reinterpret_cast<Isolate*>(create_callback(
+        KernelIsolate::kName, NULL, NULL, NULL, &api_flags, NULL, &error));
     if (isolate == NULL) {
       if (FLAG_trace_kernel) {
         OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Isolate creation error: %s\n",

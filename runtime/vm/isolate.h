@@ -772,10 +772,6 @@ class Isolate : public BaseIsolate {
   static void KillAllIsolates(LibMsgId msg_id);
   static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
 
-  // Lookup an isolate by its main port. Returns NULL if no matching isolate is
-  // found.
-  static Isolate* LookupIsolateByPort(Dart_Port port);
-
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
   static bool IsolateCreationEnabled();
@@ -1124,8 +1120,7 @@ class IsolateSpawnState {
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
-                    Dart_Port onError,
-                    const char* debug_name);
+                    Dart_Port onError);
   IsolateSpawnState(Dart_Port parent_port,
                     void* init_data,
                     const char* script_url,
@@ -1138,8 +1133,7 @@ class IsolateSpawnState {
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
-                    Dart_Port onError,
-                    const char* debug_name);
+                    Dart_Port onError);
   ~IsolateSpawnState();
 
   Isolate* isolate() const { return isolate_; }
@@ -1156,7 +1150,6 @@ class IsolateSpawnState {
   const char* library_url() const { return library_url_; }
   const char* class_name() const { return class_name_; }
   const char* function_name() const { return function_name_; }
-  const char* debug_name() const { return debug_name_; }
   bool is_spawn_uri() const { return library_url_ == NULL; }
   bool paused() const { return paused_; }
   bool errors_are_fatal() const { return errors_are_fatal_; }
@@ -1181,7 +1174,6 @@ class IsolateSpawnState {
   const char* library_url_;
   const char* class_name_;
   const char* function_name_;
-  const char* debug_name_;
   Message* serialized_args_;
   Message* serialized_message_;
 

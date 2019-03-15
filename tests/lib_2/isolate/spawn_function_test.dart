@@ -17,15 +17,12 @@ child(args) {
 
 void main([args, port]) {
   if (testRemote(main, port)) return;
-  test('message - reply chain', () async {
+  test('message - reply chain', () {
     ReceivePort port = new ReceivePort();
+    Isolate.spawn(child, ['hi', port.sendPort]);
     port.listen(expectAsync((msg) {
       port.close();
       expect(msg, equals('re: hi'));
     }));
-    const String debugName = 'spawnedIsolate';
-    final i =
-        await Isolate.spawn(child, ['hi', port.sendPort], debugName: debugName);
-    expect(i.debugName, debugName);
   });
 }

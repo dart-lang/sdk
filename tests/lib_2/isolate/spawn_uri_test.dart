@@ -12,17 +12,14 @@ import 'dart:isolate';
 import 'package:expect/async_minitest.dart';
 
 main() {
-  test('isolate fromUri - send and reply', () async {
+  test('isolate fromUri - send and reply', () {
     ReceivePort port = new ReceivePort();
     port.listen(expectAsync((msg) {
       expect(msg, equals('re: hi'));
       port.close();
     }));
 
-    const String debugName = 'spawnedIsolate';
-    final i = await Isolate.spawnUri(
-        Uri.parse('spawn_uri_child_isolate.dart'), ['hi'], port.sendPort,
-        debugName: debugName);
-    expect(i.debugName, debugName);
+    Isolate.spawnUri(
+        Uri.parse('spawn_uri_child_isolate.dart'), ['hi'], port.sendPort);
   });
 }

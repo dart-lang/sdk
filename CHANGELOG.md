@@ -6,12 +6,6 @@
 
 ### Core library changes
 
-#### `dart:isolate`
-
-* Added `debugName` property to `Isolate`.
-* Added `debugName` optional parameter to `Isolate.spawn` and
-  `Isolate.spawnUri`.
-
 ### Dart VM
 
 * RegExp patterns can now use lookbehind assertions.

@@ -112,20 +112,6 @@ class Isolate {
   final Capability terminateCapability;
 
   /**
-   * The name of the [Isolate] displayed for debug purposes.
-   *
-   * This can be set using the `debugName` parameter in [spawn] and [spawnUri].
-   *
-   * This name does not uniquely identify an isolate. Multiple isolates in the
-   * same process may have the same `debugName`.
-   *
-   * For a given isolate, this value will be the same as the values returned by
-   * `Dart_DebugName` in the C embedding API and the `debugName` property in
-   * [IsolateMirror].
-   */
-  external String get debugName;
-
-  /**
    * Create a new [Isolate] object with a restricted set of capabilities.
    *
    * The port should be a control port for an isolate, as taken from
@@ -229,9 +215,6 @@ class Isolate {
    * corresponding parameter and was processed before the isolate starts
    * running.
    *
-   * If [debugName] is provided, the spawned [Isolate] will be identifiable by
-   * this name in debuggers and logging.
-   *
    * If [errorsAreFatal] is omitted, the platform may choose a default behavior
    * or inherit the current isolate's behavior.
    *
@@ -248,8 +231,7 @@ class Isolate {
       {bool paused: false,
       bool errorsAreFatal,
       SendPort onExit,
-      SendPort onError,
-      String debugName});
+      SendPort onError});
 
   /**
    * Creates and spawns an isolate that runs the code from the library with
@@ -317,9 +299,6 @@ class Isolate {
    * WARNING: The [environment] parameter is not implemented on all
    * platforms yet.
    *
-   * If [debugName] is provided, the spawned [Isolate] will be identifiable by
-   * this name in debuggers and logging.
-   *
    * Returns a future that will complete with an [Isolate] instance if the
    * spawning succeeded. It will complete with an error otherwise.
    */
@@ -336,8 +315,7 @@ class Isolate {
       @Deprecated('The packages/ dir is not supported in Dart 2')
           Uri packageRoot,
       Uri packageConfig,
-      bool automaticPackageResolution: false,
-      String debugName});
+      bool automaticPackageResolution: false});
 
   /**
    * Requests the isolate to pause.
