@@ -4,9 +4,6 @@
 
 // Check that control flow is not enabled without the experimental flag.
 
-// Do enable set literals, just not the new syntax in them.
-// SharedOptions=--enable-experiment=set-literals
-
 // TODO(rnystrom): Remove this test when the feature is enabled without a flag.
 
 void main() {

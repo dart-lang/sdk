@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=set-literals,control-flow-collections,spread-collections
+// SharedOptions=--enable-experiment=control-flow-collections,spread-collections
 
 // Test how control flow interacts with inference.
 import 'package:expect/expect.dart';
