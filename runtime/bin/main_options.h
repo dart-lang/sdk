@@ -62,7 +62,8 @@ namespace bin {
 #define CB_OPTIONS_LIST(V)                                                     \
   V(ProcessEnvironmentOption)                                                  \
   V(ProcessEnableVmServiceOption)                                              \
-  V(ProcessObserveOption)
+  V(ProcessObserveOption)                                                      \
+  V(ProcessAbiVersionOption)
 
 // This enum must match the strings in kSnapshotKindNames in main_options.cc.
 enum SnapshotKind {
@@ -115,6 +116,8 @@ class Options {
   static const char* vm_service_server_ip() { return vm_service_server_ip_; }
   static int vm_service_server_port() { return vm_service_server_port_; }
 
+  static int target_abi_version() { return target_abi_version_; }
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static DFE* dfe() { return dfe_; }
   static void set_dfe(DFE* dfe) { dfe_ = dfe; }
@@ -158,6 +161,8 @@ class Options {
                                     const char** out_ip,
                                     int default_port,
                                     const char* default_ip);
+
+  static int target_abi_version_;
 
 #define OPTION_FRIEND(flag, variable) friend class OptionProcessor_##flag;
   STRING_OPTIONS_LIST(OPTION_FRIEND)
