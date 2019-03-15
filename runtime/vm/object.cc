@@ -1223,6 +1223,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
       raw->StoreSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
+      raw->ResetData();
     } else {
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
@@ -16380,12 +16381,10 @@ intptr_t Instance::ElementSizeFor(intptr_t cid) {
 
 intptr_t Instance::DataOffsetFor(intptr_t cid) {
   if (RawObject::IsExternalTypedDataClassId(cid) ||
-      RawObject::IsExternalStringClassId(cid)) {
-    // Elements start at offset 0 of the external data.
+      RawObject::IsExternalStringClassId(cid) ||
+      RawObject::IsTypedDataClassId(cid)) {
+    // Elements start at offset 0 of the external and typed data.
     return 0;
-  }
-  if (RawObject::IsTypedDataClassId(cid)) {
-    return TypedData::data_offset();
   }
   switch (cid) {
     case kArrayCid:
@@ -20852,9 +20851,11 @@ RawTypedData* TypedData::New(intptr_t class_id,
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
+    result.ResetData();
     if (len > 0) {
       memset(result.DataAddr(0), 0, lengthInBytes);
     }
+    ASSERT(result.Length() == len);
   }
   return result.raw();
 }

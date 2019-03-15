@@ -2436,9 +2436,11 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
     // Load from the data from backing store which is a fixed-length array.
     *array = elements;
     array_cid = kArrayCid;
-  } else if (RawObject::IsExternalTypedDataClassId(array_cid)) {
-    LoadUntaggedInstr* elements = new (Z) LoadUntaggedInstr(
-        new (Z) Value(*array), ExternalTypedData::data_offset());
+  } else if (RawObject::IsTypedDataClassId(array_cid) ||
+             RawObject::IsExternalTypedDataClassId(array_cid)) {
+    ASSERT(TypedData::data_offset() == ExternalTypedData::data_offset());
+    LoadUntaggedInstr* elements = new (Z)
+        LoadUntaggedInstr(new (Z) Value(*array), TypedData::data_offset());
     *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
     *array = elements;
   }
@@ -2853,64 +2855,6 @@ static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
                                  FlowGraph::kValue);
 }
 
-// Emits preparatory code for a typed getter/setter.
-// Handles three cases:
-//   (1) dynamic:  generates a conditional on the receiver cid
-//                 that handles external (load untagged) and
-//                 internal storage at runtime.
-//   (2) external: generates load untagged.
-//   (3) internal: no code required.
-static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
-                                         Instruction* call,
-                                         Definition* receiver,
-                                         intptr_t array_cid,
-                                         Definition** array,
-                                         Instruction** cursor,
-                                         TargetEntryInstr** block_external,
-                                         TargetEntryInstr** block_internal) {
-  if (array_cid == kDynamicCid) {
-    // Dynamic case:   runtime resolution between external/internal typed data.
-    //                 cid = LoadCid
-    //                 if cid in [ kExternalTypedDataInt8ArrayCid,
-    //                             kExternalTypedDataFloat64x2ArrayCid ]
-    // block_external: LoadUntagged
-    //                 ..
-    //                 else
-    // block_internal: ..
-    //
-    // TODO(ajcbik): as suggested above, subtract + single unsigned test.
-    //
-    LoadClassIdInstr* load_cid =
-        new (Z) LoadClassIdInstr(new (Z) Value(receiver));
-    *cursor = flow_graph->AppendTo(*cursor, load_cid, NULL, FlowGraph::kValue);
-    ConstantInstr* cid_lo = flow_graph->GetConstant(
-        Smi::ZoneHandle(Smi::New(kExternalTypedDataInt8ArrayCid)));
-    RelationalOpInstr* le_lo = new (Z)
-        RelationalOpInstr(call->token_pos(), Token::kLTE, new (Z) Value(cid_lo),
-                          new (Z) Value(load_cid), kSmiCid, call->deopt_id());
-    ConstantInstr* cid_hi = flow_graph->GetConstant(
-        Smi::ZoneHandle(Smi::New(kExternalTypedDataFloat64x2ArrayCid)));
-    RelationalOpInstr* le_hi = new (Z) RelationalOpInstr(
-        call->token_pos(), Token::kLTE, new (Z) Value(load_cid),
-        new (Z) Value(cid_hi), kSmiCid, call->deopt_id());
-    *cursor = flow_graph->NewDiamond(*cursor, call,
-                                     FlowGraph::LogicalAnd(le_lo, le_hi),
-                                     block_external, block_internal);
-    LoadUntaggedInstr* elements = new (Z) LoadUntaggedInstr(
-        new (Z) Value(*array), ExternalTypedData::data_offset());
-    flow_graph->InsertAfter(*block_external, elements, NULL, FlowGraph::kValue);
-    *array = elements;  // return load untagged definition in array
-  } else if (RawObject::IsExternalTypedDataClassId(array_cid)) {
-    // External typed data: load untagged.
-    LoadUntaggedInstr* elements = new (Z) LoadUntaggedInstr(
-        new (Z) Value(*array), ExternalTypedData::data_offset());
-    *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
-    *array = elements;
-  } else {
-    // Internal typed data: no action.
-  }
-}
-
 static LoadIndexedInstr* NewLoad(FlowGraph* flow_graph,
                                  Instruction* call,
                                  Definition* array,
@@ -2962,44 +2906,16 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
                                        array, &index, &cursor);
   }
 
-  // Generates a template for the load, either a dynamic conditional
-  // that dispatches on external and internal storage, or a single
-  // case that deals with either external or internal storage.
-  TargetEntryInstr* block_external = nullptr;
-  TargetEntryInstr* block_internal = nullptr;
-  PrepareInlineByteArrayBaseOp(flow_graph, call, receiver, array_cid, &array,
-                               &cursor, &block_external, &block_internal);
+  ASSERT(TypedData::data_offset() == ExternalTypedData::data_offset());
+  LoadUntaggedInstr* elements =
+      new (Z) LoadUntaggedInstr(new (Z) Value(array), TypedData::data_offset());
+  cursor = flow_graph->AppendTo(cursor, elements, nullptr, FlowGraph::kValue);
 
-  // Fill out the generated template with loads.
-  if (array_cid == kDynamicCid) {
-    ASSERT(block_external != nullptr && block_internal != nullptr);
-    // Load from external in block_external and internal in block_internal
-    // (resolves (B)). The former loads from "array", which is the returned
-    // load untagged definition. The latter loads from the original "receiver".
-    LoadIndexedInstr* load1 = NewLoad(flow_graph, call, array, index, view_cid);
-    ASSERT(block_external->next() == array);
-    flow_graph->InsertAfter(
-        block_external->next(), load1,
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kValue);
-    LoadIndexedInstr* load2 =
-        NewLoad(flow_graph, call, receiver, index, view_cid);
-    flow_graph->InsertAfter(
-        block_internal, load2,
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kValue);
-    // Construct phi of external and internal load.
-    *last = flow_graph->AddPhi(cursor->AsJoinEntry(), load1, load2);
-  } else {
-    ASSERT(block_external == nullptr && block_internal == nullptr);
-    // Load from either external or internal.
-    LoadIndexedInstr* load = NewLoad(flow_graph, call, array, index, view_cid);
-    flow_graph->AppendTo(
-        cursor, load,
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kValue);
-    cursor = *last = load;
-  }
+  LoadIndexedInstr* load = NewLoad(flow_graph, call, elements, index, view_cid);
+  flow_graph->AppendTo(
+      cursor, load, call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
+      FlowGraph::kValue);
+  cursor = *last = load;
 
   if (view_cid == kTypedDataFloat32ArrayCid) {
     *last = new (Z) FloatToDoubleInstr(new (Z) Value((*last)->AsDefinition()),
@@ -3178,43 +3094,17 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                   FlowGraph::kValue);
   }
 
-  // Generates a template for the store, either a dynamic conditional
-  // that dispatches on external and internal storage, or a single
-  // case that deals with either external or internal storage.
-  TargetEntryInstr* block_external = nullptr;
-  TargetEntryInstr* block_internal = nullptr;
-  PrepareInlineByteArrayBaseOp(flow_graph, call, receiver, array_cid, &array,
-                               &cursor, &block_external, &block_internal);
+  ASSERT(TypedData::data_offset() == ExternalTypedData::data_offset());
+  LoadUntaggedInstr* elements =
+      new (Z) LoadUntaggedInstr(new (Z) Value(array), TypedData::data_offset());
+  cursor = flow_graph->AppendTo(cursor, elements, nullptr, FlowGraph::kValue);
 
-  // Fill out the generated template with stores.
-  if (array_cid == kDynamicCid) {
-    ASSERT(block_external != nullptr && block_internal != nullptr);
-    // Store to external in block_external and internal in block_internal
-    // (resolves (B)). The former stores to "array", which is the returned
-    // load untagged definition. The latter stores to the original "receiver".
-    ASSERT(block_external->next() == array);
-    flow_graph->InsertAfter(
-        block_external->next(),
-        NewStore(flow_graph, call, array, index, stored_value, view_cid),
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kEffect);
-    flow_graph->InsertAfter(
-        block_internal,
-        NewStore(flow_graph, call, receiver, index, stored_value, view_cid),
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kEffect);
-    *last = cursor;
-  } else {
-    ASSERT(block_external == nullptr && block_internal == nullptr);
-    // Store on either external or internal.
-    StoreIndexedInstr* store =
-        NewStore(flow_graph, call, array, index, stored_value, view_cid);
-    flow_graph->AppendTo(
-        cursor, store,
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kEffect);
-    *last = store;
-  }
+  StoreIndexedInstr* store =
+      NewStore(flow_graph, call, elements, index, stored_value, view_cid);
+  flow_graph->AppendTo(
+      cursor, store, call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
+      FlowGraph::kEffect);
+  *last = store;
   // We need a return value to replace uses of the original definition. However,
   // the final instruction is a use of 'void operator[]=()', so we use null.
   *result = flow_graph->constant_null();

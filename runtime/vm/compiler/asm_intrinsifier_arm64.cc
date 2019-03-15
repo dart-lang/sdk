@@ -177,6 +177,8 @@ static int GetScaleFactor(intptr_t size) {
   /* data area to be initialized. */                                           \
   __ mov(R3, ZR);                                                              \
   __ AddImmediate(R2, R0, target::TypedData::InstanceSize() - 1);              \
+  __ StoreIntoObjectNoBarrier(                                                 \
+      R0, FieldAddress(R0, target::TypedData::data_offset()), R2);             \
   Label init_loop, done;                                                       \
   __ Bind(&init_loop);                                                         \
   __ cmp(R2, Operand(R1));                                                     \
@@ -601,13 +603,12 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   // R0 = n ~/ (2*_DIGIT_BITS)
   __ AsrImmediate(R0, R5, 6);
   // R6 = &x_digits[0]
-  __ add(R6, R3, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ ldr(R6, FieldAddress(R3, target::TypedData::data_offset()));
   // R7 = &x_digits[2*R2]
   __ add(R7, R6, Operand(R2, LSL, 3));
   // R8 = &r_digits[2*1]
-  __ add(R8, R4,
-         Operand(target::TypedData::data_offset() - kHeapObjectTag +
-                 2 * kBytesPerBigIntDigit));
+  __ ldr(R8, FieldAddress(R4, target::TypedData::data_offset()));
+  __ add(R8, R8, Operand(2 * kBytesPerBigIntDigit));
   // R8 = &r_digits[2*(R2 + n ~/ (2*_DIGIT_BITS) + 1)]
   __ add(R0, R0, Operand(R2));
   __ add(R8, R8, Operand(R0, LSL, 3));
@@ -645,9 +646,9 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   // R0 = n ~/ (2*_DIGIT_BITS)
   __ AsrImmediate(R0, R5, 6);
   // R8 = &r_digits[0]
-  __ add(R8, R4, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ ldr(R8, FieldAddress(R4, target::TypedData::data_offset()));
   // R7 = &x_digits[2*(n ~/ (2*_DIGIT_BITS))]
-  __ add(R7, R3, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ ldr(R7, FieldAddress(R3, target::TypedData::data_offset()));
   __ add(R7, R7, Operand(R0, LSL, 3));
   // R6 = &r_digits[2*(R2 - n ~/ (2*_DIGIT_BITS) - 1)]
   __ add(R0, R0, Operand(1));
@@ -689,19 +690,19 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   __ add(R2, R2, Operand(2));  // used > 0, Smi. R2 = used + 1, round up.
   __ add(R2, ZR, Operand(R2, ASR, 2));  // R2 = num of digit pairs to process.
   // R3 = &digits[0]
-  __ add(R3, R3, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ ldr(R3, FieldAddress(R3, target::TypedData::data_offset()));
 
   // R4 = a_used, R5 = a_digits
   __ ldp(R4, R5, Address(SP, 1 * target::kWordSize, Address::PairOffset));
   __ add(R4, R4, Operand(2));  // a_used > 0, Smi. R4 = a_used + 1, round up.
   __ add(R4, ZR, Operand(R4, ASR, 2));  // R4 = num of digit pairs to process.
   // R5 = &a_digits[0]
-  __ add(R5, R5, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ ldr(R5, FieldAddress(R5, target::TypedData::data_offset()));
 
   // R6 = r_digits
   __ ldr(R6, Address(SP, 0 * target::kWordSize));
   // R6 = &r_digits[0]
-  __ add(R6, R6, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ ldr(R6, FieldAddress(R6, target::TypedData::data_offset()));
 
   // R7 = &digits[a_used rounded up to even number].
   __ add(R7, R3, Operand(R4, LSL, 3));
@@ -755,19 +756,19 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
   __ add(R2, R2, Operand(2));  // used > 0, Smi. R2 = used + 1, round up.
   __ add(R2, ZR, Operand(R2, ASR, 2));  // R2 = num of digit pairs to process.
   // R3 = &digits[0]
-  __ add(R3, R3, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ ldr(R3, FieldAddress(R3, target::TypedData::data_offset()));
 
   // R4 = a_used, R5 = a_digits
   __ ldp(R4, R5, Address(SP, 1 * target::kWordSize, Address::PairOffset));
   __ add(R4, R4, Operand(2));  // a_used > 0, Smi. R4 = a_used + 1, round up.
   __ add(R4, ZR, Operand(R4, ASR, 2));  // R4 = num of digit pairs to process.
   // R5 = &a_digits[0]
-  __ add(R5, R5, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ ldr(R5, FieldAddress(R5, target::TypedData::data_offset()));
 
   // R6 = r_digits
   __ ldr(R6, Address(SP, 0 * target::kWordSize));
   // R6 = &r_digits[0]
-  __ add(R6, R6, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ ldr(R6, FieldAddress(R6, target::TypedData::data_offset()));
 
   // R7 = &digits[a_used rounded up to even number].
   __ add(R7, R3, Operand(R4, LSL, 3));
@@ -838,8 +839,9 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   // R3 = x, no_op if x == 0
   // R0 = xi as Smi, R1 = x_digits.
   __ ldp(R0, R1, Address(SP, 5 * target::kWordSize, Address::PairOffset));
-  __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R3, FieldAddress(R1, target::TypedData::data_offset()));
+  __ add(R3, R3, Operand(R0, LSL, 1));
+  __ ldr(R3, Address(R3, 0));
   __ tst(R3, Operand(R3));
   __ b(&done, EQ);
 
@@ -852,14 +854,14 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   // R4 = mip = &m_digits[i >> 1]
   // R0 = i as Smi, R1 = m_digits.
   __ ldp(R0, R1, Address(SP, 3 * target::kWordSize, Address::PairOffset));
-  __ add(R1, R1, Operand(R0, LSL, 1));
-  __ add(R4, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ ldr(R4, FieldAddress(R1, target::TypedData::data_offset()));
+  __ add(R4, R4, Operand(R0, LSL, 1));
 
   // R5 = ajp = &a_digits[j >> 1]
   // R0 = j as Smi, R1 = a_digits.
   __ ldp(R0, R1, Address(SP, 1 * target::kWordSize, Address::PairOffset));
-  __ add(R1, R1, Operand(R0, LSL, 1));
-  __ add(R5, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ ldr(R5, FieldAddress(R1, target::TypedData::data_offset()));
+  __ add(R5, R5, Operand(R0, LSL, 1));
 
   // R1 = c = 0
   __ mov(R1, ZR);
@@ -946,8 +948,8 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   // R4 = xip = &x_digits[i >> 1]
   // R2 = i as Smi, R3 = x_digits
   __ ldp(R2, R3, Address(SP, 2 * target::kWordSize, Address::PairOffset));
-  __ add(R3, R3, Operand(R2, LSL, 1));
-  __ add(R4, R3, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ ldr(R4, FieldAddress(R3, target::TypedData::data_offset()));
+  __ add(R4, R4, Operand(R2, LSL, 1));
 
   // R3 = x = *xip++, return if x == 0
   Label x_zero;
@@ -957,8 +959,8 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
 
   // R5 = ajp = &a_digits[i]
   __ ldr(R1, Address(SP, 1 * target::kWordSize));  // a_digits
-  __ add(R1, R1, Operand(R2, LSL, 2));             // j == 2*i, i is Smi.
-  __ add(R5, R1, Operand(target::TypedData::data_offset() - kHeapObjectTag));
+  __ ldr(R5, FieldAddress(R1, target::TypedData::data_offset()));
+  __ add(R5, R5, Operand(R2, LSL, 2));  // j == 2*i, i is Smi.
 
   // R6:R1 = t = x*x + *ajp
   __ ldr(R0, Address(R5, 0));
@@ -1076,18 +1078,19 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
   //   return 2;
   // }
 
-  // R4 = args
+  // R4 = &args[0]
   __ ldr(R4, Address(SP, 2 * target::kWordSize));  // args
+  __ ldr(R4, FieldAddress(R4, target::TypedData::data_offset()));
 
   // R3 = yt = args[0..1]
-  __ ldr(R3, FieldAddress(R4, target::TypedData::data_offset()));
+  __ ldr(R3, Address(R4, 0));
 
   // R2 = dh = digits[(i >> 1) - 1 .. i >> 1]
   // R0 = i as Smi, R1 = digits
   __ ldp(R0, R1, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+  __ ldr(R1, FieldAddress(R1, target::TypedData::data_offset()));
   __ add(R1, R1, Operand(R0, LSL, 1));
-  __ ldr(R2, FieldAddress(
-                 R1, target::TypedData::data_offset() - kBytesPerBigIntDigit));
+  __ ldr(R2, Address(R1, -kBytesPerBigIntDigit));
 
   // R0 = qd = (DIGIT_MASK << 32) | DIGIT_MASK = -1
   __ movn(R0, Immediate(0), 0);
@@ -1098,8 +1101,7 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
   __ b(&return_qd, EQ);
 
   // R1 = dl = digits[(i >> 1) - 3 .. (i >> 1) - 2]
-  __ ldr(R1, FieldAddress(R1, target::TypedData::data_offset() -
-                                  3 * kBytesPerBigIntDigit));
+  __ ldr(R1, Address(R1, -3 * kBytesPerBigIntDigit));
 
   // R5 = yth = yt >> 32
   __ orr(R5, ZR, Operand(R3, LSR, 32));
@@ -1203,8 +1205,7 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
 
   __ Bind(&return_qd);
   // args[2..3] = qd
-  __ str(R0, FieldAddress(R4, target::TypedData::data_offset() +
-                                  2 * kBytesPerBigIntDigit));
+  __ str(R0, Address(R4, 2 * kBytesPerBigIntDigit));
 
   __ LoadImmediate(R0, target::ToRawSmi(2));  // Two digits processed.
   __ ret();
@@ -1221,25 +1222,25 @@ void AsmIntrinsifier::Montgomery_mulMod(Assembler* assembler,
   //   return 2;
   // }
 
-  // R4 = args
+  // R4 = &args[0]
   __ ldr(R4, Address(SP, 2 * target::kWordSize));  // args
+  __ ldr(R4, FieldAddress(R4, target::TypedData::data_offset()));
 
   // R3 = rho = args[2..3]
-  __ ldr(R3, FieldAddress(R4, target::TypedData::data_offset() +
-                                  2 * kBytesPerBigIntDigit));
+  __ ldr(R3, Address(R4, 2 * kBytesPerBigIntDigit));
 
   // R2 = digits[i >> 1 .. (i >> 1) + 1]
   // R0 = i as Smi, R1 = digits
   __ ldp(R0, R1, Address(SP, 0 * target::kWordSize, Address::PairOffset));
-  __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R2, FieldAddress(R1, target::TypedData::data_offset()));
+  __ add(R2, R2, Operand(R0, LSL, 1));
+  __ ldr(R2, Address(R2, 0));
 
   // R0 = rho*d mod DIGIT_BASE
   __ mul(R0, R2, R3);  // R0 = low64(R2*R3).
 
   // args[4 .. 5] = R0
-  __ str(R0, FieldAddress(R4, target::TypedData::data_offset() +
-                                  4 * kBytesPerBigIntDigit));
+  __ str(R0, Address(R4, 4 * kBytesPerBigIntDigit));
 
   __ LoadImmediate(R0, target::ToRawSmi(2));  // Two digits processed.
   __ ret();
@@ -1557,10 +1558,10 @@ void AsmIntrinsifier::Random_nextState(Assembler* assembler,
   // Field '_state'.
   __ ldr(R1, FieldAddress(R0, LookupFieldOffsetInBytes(state_field)));
 
-  // Addresses of _state[0].
+  // Address of _state[0].
+  __ ldr(R1, FieldAddress(R1, target::TypedData::data_offset()));
   const int64_t disp =
-      target::Instance::DataOffsetFor(kTypedDataUint32ArrayCid) -
-      kHeapObjectTag;
+      target::Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
 
   __ LoadImmediate(R0, a_int_value);
   __ LoadFromOffset(R2, R1, disp);

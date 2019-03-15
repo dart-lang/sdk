@@ -169,6 +169,8 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* data area to be initialized. */                                           \
   __ xorq(RBX, RBX); /* Zero. */                                               \
   __ leaq(RDI, FieldAddress(RAX, target::TypedData::InstanceSize()));          \
+  __ StoreIntoObjectNoBarrier(                                                 \
+      RAX, FieldAddress(RAX, target::TypedData::data_offset()), RDI);          \
   Label done, init_loop;                                                       \
   __ Bind(&init_loop);                                                         \
   __ cmpq(RDI, RCX);                                                           \
@@ -684,11 +686,11 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   __ movq(RBX, Address(RSP, 1 * target::kWordSize));  // r_digits
   __ movq(RSI, RCX);
   __ sarq(RSI, Immediate(6));  // RSI = n ~/ (2*_DIGIT_BITS).
-  __ leaq(RBX,
-          FieldAddress(RBX, RSI, TIMES_8, target::TypedData::data_offset()));
+  __ movq(RBX, FieldAddress(RBX, target::TypedData::data_offset()));
+  __ leaq(RBX, Address(RBX, RSI, TIMES_8, 0));
   __ xorq(RAX, RAX);  // RAX = 0.
-  __ movq(RDX,
-          FieldAddress(RDI, R8, TIMES_8, target::TypedData::data_offset()));
+  __ movq(RDI, FieldAddress(RDI, target::TypedData::data_offset()));
+  __ movq(RDX, Address(RDI, R8, TIMES_8, 0));
   __ shldq(RAX, RDX, RCX);
   __ movq(Address(RBX, R8, TIMES_8, 2 * kBytesPerBigIntDigit), RAX);
   Label last;
@@ -697,9 +699,7 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   Label loop;
   __ Bind(&loop);
   __ movq(RAX, RDX);
-  __ movq(RDX, FieldAddress(RDI, R8, TIMES_8,
-                            target::TypedData::data_offset() -
-                                2 * kBytesPerBigIntDigit));
+  __ movq(RDX, Address(RDI, R8, TIMES_8, -2 * kBytesPerBigIntDigit));
   __ shldq(RAX, RDX, RCX);
   __ movq(Address(RBX, R8, TIMES_8, 0), RAX);
   __ decq(R8);
@@ -724,11 +724,11 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ movq(RSI, Address(RSP, 3 * target::kWordSize));  // x_used is Smi
   __ subq(RSI, Immediate(2));  // x_used > 0, Smi. RSI = x_used - 1, round up.
   __ sarq(RSI, Immediate(2));
-  __ leaq(RDI,
-          FieldAddress(RDI, RSI, TIMES_8, target::TypedData::data_offset()));
+  __ movq(RDI, FieldAddress(RDI, target::TypedData::data_offset()));
+  __ leaq(RDI, Address(RDI, RSI, TIMES_8, 0));
   __ subq(RSI, RDX);  // RSI + 1 = number of digit pairs to read.
-  __ leaq(RBX,
-          FieldAddress(RBX, RSI, TIMES_8, target::TypedData::data_offset()));
+  __ movq(RBX, FieldAddress(RBX, target::TypedData::data_offset()));
+  __ leaq(RBX, Address(RBX, RSI, TIMES_8, 0));
   __ negq(RSI);
   __ movq(RDX, Address(RDI, RSI, TIMES_8, 0));
   Label last;
@@ -765,6 +765,10 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   __ sarq(RCX, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RBX, Address(RSP, 1 * target::kWordSize));  // r_digits
 
+  __ movq(RDI, FieldAddress(RDI, target::TypedData::data_offset()));
+  __ movq(RBX, FieldAddress(RBX, target::TypedData::data_offset()));
+  __ movq(RSI, FieldAddress(RSI, target::TypedData::data_offset()));
+
   // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subq(R8, RCX);
   __ incq(R8);  // To account for the extra test between loops.
@@ -773,12 +777,9 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   Label add_loop;
   __ Bind(&add_loop);
   // Loop (a_used+1)/2 times, RCX > 0.
-  __ movq(RAX,
-          FieldAddress(RDI, RDX, TIMES_8, target::TypedData::data_offset()));
-  __ adcq(RAX,
-          FieldAddress(RSI, RDX, TIMES_8, target::TypedData::data_offset()));
-  __ movq(FieldAddress(RBX, RDX, TIMES_8, target::TypedData::data_offset()),
-          RAX);
+  __ movq(RAX, Address(RDI, RDX, TIMES_8, 0));
+  __ adcq(RAX, Address(RSI, RDX, TIMES_8, 0));
+  __ movq(Address(RBX, RDX, TIMES_8, 0), RAX);
   __ incq(RDX);  // Does not affect carry flag.
   __ decq(RCX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &add_loop, Assembler::kNearJump);
@@ -790,11 +791,9 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   Label carry_loop;
   __ Bind(&carry_loop);
   // Loop (used+1)/2 - (a_used+1)/2 times, R8 > 0.
-  __ movq(RAX,
-          FieldAddress(RDI, RDX, TIMES_8, target::TypedData::data_offset()));
+  __ movq(RAX, Address(RDI, RDX, TIMES_8, 0));
   __ adcq(RAX, Immediate(0));
-  __ movq(FieldAddress(RBX, RDX, TIMES_8, target::TypedData::data_offset()),
-          RAX);
+  __ movq(Address(RBX, RDX, TIMES_8, 0), RAX);
   __ incq(RDX);  // Does not affect carry flag.
   __ decq(R8);   // Does not affect carry flag.
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
@@ -802,8 +801,7 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   __ Bind(&last_carry);
   Label done;
   __ j(NOT_CARRY, &done);
-  __ movq(FieldAddress(RBX, RDX, TIMES_8, target::TypedData::data_offset()),
-          Immediate(1));
+  __ movq(Address(RBX, RDX, TIMES_8, 0), Immediate(1));
 
   __ Bind(&done);
   __ LoadObject(RAX, NullObject());
@@ -826,6 +824,10 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
   __ sarq(RCX, Immediate(2));  // R8 = number of digit pairs to process.
   __ movq(RBX, Address(RSP, 1 * target::kWordSize));  // r_digits
 
+  __ movq(RDI, FieldAddress(RDI, target::TypedData::data_offset()));
+  __ movq(RBX, FieldAddress(RBX, target::TypedData::data_offset()));
+  __ movq(RSI, FieldAddress(RSI, target::TypedData::data_offset()));
+
   // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subq(R8, RCX);
   __ incq(R8);  // To account for the extra test between loops.
@@ -834,12 +836,9 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
   Label sub_loop;
   __ Bind(&sub_loop);
   // Loop (a_used+1)/2 times, RCX > 0.
-  __ movq(RAX,
-          FieldAddress(RDI, RDX, TIMES_8, target::TypedData::data_offset()));
-  __ sbbq(RAX,
-          FieldAddress(RSI, RDX, TIMES_8, target::TypedData::data_offset()));
-  __ movq(FieldAddress(RBX, RDX, TIMES_8, target::TypedData::data_offset()),
-          RAX);
+  __ movq(RAX, Address(RDI, RDX, TIMES_8, 0));
+  __ sbbq(RAX, Address(RSI, RDX, TIMES_8, 0));
+  __ movq(Address(RBX, RDX, TIMES_8, 0), RAX);
   __ incq(RDX);  // Does not affect carry flag.
   __ decq(RCX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &sub_loop, Assembler::kNearJump);
@@ -851,11 +850,9 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
   Label carry_loop;
   __ Bind(&carry_loop);
   // Loop (used+1)/2 - (a_used+1)/2 times, R8 > 0.
-  __ movq(RAX,
-          FieldAddress(RDI, RDX, TIMES_8, target::TypedData::data_offset()));
+  __ movq(RAX, Address(RDI, RDX, TIMES_8, 0));
   __ sbbq(RAX, Immediate(0));
-  __ movq(FieldAddress(RBX, RDX, TIMES_8, target::TypedData::data_offset()),
-          RAX);
+  __ movq(Address(RBX, RDX, TIMES_8, 0), RAX);
   __ incq(RDX);  // Does not affect carry flag.
   __ decq(R8);   // Does not affect carry flag.
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
@@ -899,8 +896,8 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   // RBX = x, done if x == 0
   __ movq(RCX, Address(RSP, 7 * target::kWordSize));  // x_digits
   __ movq(RAX, Address(RSP, 6 * target::kWordSize));  // xi is Smi
-  __ movq(RBX,
-          FieldAddress(RCX, RAX, TIMES_2, target::TypedData::data_offset()));
+  __ movq(RBX, FieldAddress(RCX, target::TypedData::data_offset()));
+  __ movq(RBX, Address(RBX, RAX, TIMES_2, 0));
   __ testq(RBX, RBX);
   __ j(ZERO, &done, Assembler::kNearJump);
 
@@ -913,14 +910,14 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   // RDI = mip = &m_digits[i >> 1]
   __ movq(RDI, Address(RSP, 5 * target::kWordSize));  // m_digits
   __ movq(RAX, Address(RSP, 4 * target::kWordSize));  // i is Smi
-  __ leaq(RDI,
-          FieldAddress(RDI, RAX, TIMES_2, target::TypedData::data_offset()));
+  __ movq(RDI, FieldAddress(RDI, target::TypedData::data_offset()));
+  __ leaq(RDI, Address(RDI, RAX, TIMES_2, 0));
 
   // RSI = ajp = &a_digits[j >> 1]
   __ movq(RSI, Address(RSP, 3 * target::kWordSize));  // a_digits
   __ movq(RAX, Address(RSP, 2 * target::kWordSize));  // j is Smi
-  __ leaq(RSI,
-          FieldAddress(RSI, RAX, TIMES_2, target::TypedData::data_offset()));
+  __ movq(RSI, FieldAddress(RSI, target::TypedData::data_offset()));
+  __ leaq(RSI, Address(RSI, RAX, TIMES_2, 0));
 
   // RCX = c = 0
   __ xorq(RCX, RCX);
@@ -1007,8 +1004,8 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   // RDI = xip = &x_digits[i >> 1]
   __ movq(RDI, Address(RSP, 4 * target::kWordSize));  // x_digits
   __ movq(RAX, Address(RSP, 3 * target::kWordSize));  // i is Smi
-  __ leaq(RDI,
-          FieldAddress(RDI, RAX, TIMES_2, target::TypedData::data_offset()));
+  __ movq(RDI, FieldAddress(RDI, target::TypedData::data_offset()));
+  __ leaq(RDI, Address(RDI, RAX, TIMES_2, 0));
 
   // RBX = x = *xip++, return if x == 0
   Label x_zero;
@@ -1019,8 +1016,8 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
 
   // RSI = ajp = &a_digits[i]
   __ movq(RSI, Address(RSP, 2 * target::kWordSize));  // a_digits
-  __ leaq(RSI,
-          FieldAddress(RSI, RAX, TIMES_4, target::TypedData::data_offset()));
+  __ movq(RSI, FieldAddress(RSI, target::TypedData::data_offset()));
+  __ leaq(RSI, Address(RSI, RAX, TIMES_4, 0));
 
   // RDX:RAX = t = x*x + *ajp
   __ movq(RAX, RBX);
@@ -1116,18 +1113,18 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
   //   return 2;
   // }
 
-  // RDI = args
+  // RDI = &args[0]
   __ movq(RDI, Address(RSP, 3 * target::kWordSize));  // args
+  __ movq(RDI, FieldAddress(RDI, target::TypedData::data_offset()));
 
   // RCX = yt = args[0..1]
-  __ movq(RCX, FieldAddress(RDI, target::TypedData::data_offset()));
+  __ movq(RCX, Address(RDI, 0));
 
   // RBX = dp = &digits[(i >> 1) - 1]
   __ movq(RBX, Address(RSP, 2 * target::kWordSize));  // digits
   __ movq(RAX, Address(RSP, 1 * target::kWordSize));  // i is Smi and odd.
-  __ leaq(RBX, FieldAddress(
-                   RBX, RAX, TIMES_2,
-                   target::TypedData::data_offset() - kBytesPerBigIntDigit));
+  __ movq(RBX, FieldAddress(RBX, target::TypedData::data_offset()));
+  __ leaq(RBX, Address(RBX, RAX, TIMES_2, -kBytesPerBigIntDigit));
 
   // RDX = dh = dp[0]
   __ movq(RDX, Address(RBX, 0));
@@ -1148,9 +1145,7 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
 
   __ Bind(&return_qd);
   // args[2..3] = qd
-  __ movq(FieldAddress(
-              RDI, target::TypedData::data_offset() + 2 * kBytesPerBigIntDigit),
-          RAX);
+  __ movq(Address(RDI, 2 * kBytesPerBigIntDigit), RAX);
 
   __ movq(RAX, Immediate(target::ToRawSmi(2)));  // Two digits processed.
   __ ret();
@@ -1167,26 +1162,24 @@ void AsmIntrinsifier::Montgomery_mulMod(Assembler* assembler,
   //   return 2;
   // }
 
-  // RDI = args
+  // RDI = &args[0]
   __ movq(RDI, Address(RSP, 3 * target::kWordSize));  // args
+  __ movq(RDI, FieldAddress(RDI, target::TypedData::data_offset()));
 
   // RCX = rho = args[2 .. 3]
-  __ movq(RCX, FieldAddress(RDI, target::TypedData::data_offset() +
-                                     2 * kBytesPerBigIntDigit));
+  __ movq(RCX, Address(RDI, 2 * kBytesPerBigIntDigit));
 
   // RAX = digits[i >> 1 .. (i >> 1) + 1]
   __ movq(RBX, Address(RSP, 2 * target::kWordSize));  // digits
   __ movq(RAX, Address(RSP, 1 * target::kWordSize));  // i is Smi
-  __ movq(RAX,
-          FieldAddress(RBX, RAX, TIMES_2, target::TypedData::data_offset()));
+  __ movq(RBX, FieldAddress(RBX, target::TypedData::data_offset()));
+  __ movq(RAX, Address(RBX, RAX, TIMES_2, 0));
 
   // RDX:RAX = t = rho*d
   __ mulq(RCX);
 
   // args[4 .. 5] = t mod DIGIT_BASE^2 = low64(t)
-  __ movq(FieldAddress(
-              RDI, target::TypedData::data_offset() + 4 * kBytesPerBigIntDigit),
-          RAX);
+  __ movq(Address(RDI, 4 * kBytesPerBigIntDigit), RAX);
 
   __ movq(RAX, Immediate(target::ToRawSmi(2)));  // Two digits processed.
   __ ret();
@@ -1503,12 +1496,13 @@ void AsmIntrinsifier::Random_nextState(Assembler* assembler,
   // Field '_state'.
   __ movq(RBX, FieldAddress(RAX, LookupFieldOffsetInBytes(state_field)));
   // Addresses of _state[0] and _state[1].
+  __ movq(RBX, FieldAddress(RBX, target::TypedData::data_offset()));
   const intptr_t scale =
       target::Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
   const intptr_t offset =
       target::Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
-  Address addr_0 = FieldAddress(RBX, 0 * scale + offset);
-  Address addr_1 = FieldAddress(RBX, 1 * scale + offset);
+  Address addr_0 = Address(RBX, 0 * scale + offset);
+  Address addr_1 = Address(RBX, 1 * scale + offset);
   __ movq(RAX, Immediate(a_int_value));
   __ movl(RCX, addr_0);
   __ imulq(RCX, RAX);

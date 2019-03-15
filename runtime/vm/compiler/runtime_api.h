@@ -335,6 +335,8 @@ class RawObject : public AllStatic {
   static const word kSizeTagMaxSizeTag;
   static const word kTagBitsSizeTagPos;
   static const word kBarrierOverlapShift;
+
+  static bool IsTypedDataClassId(intptr_t cid);
 };
 
 class RawAbstractType : public AllStatic {

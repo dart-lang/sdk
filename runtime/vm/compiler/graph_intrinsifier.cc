@@ -275,7 +275,9 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
   index = PrepareIndexedOp(flow_graph, &builder, array, index,
                            Slot::GetLengthFieldForArrayCid(array_cid));
 
-  if (RawObject::IsExternalTypedDataClassId(array_cid)) {
+  if (RawObject::IsTypedDataClassId(array_cid) ||
+      RawObject::IsExternalTypedDataClassId(array_cid)) {
+    ASSERT(TypedData::data_offset() == ExternalTypedData::data_offset());
     array = builder.AddDefinition(new LoadUntaggedInstr(
         new Value(array), ExternalTypedData::data_offset()));
   }
@@ -421,7 +423,9 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
       UNREACHABLE();
   }
 
-  if (RawObject::IsExternalTypedDataClassId(array_cid)) {
+  if (RawObject::IsTypedDataClassId(array_cid) ||
+      RawObject::IsExternalTypedDataClassId(array_cid)) {
+    ASSERT(TypedData::data_offset() == ExternalTypedData::data_offset());
     array = builder.AddDefinition(new LoadUntaggedInstr(
         new Value(array), ExternalTypedData::data_offset()));
   }
