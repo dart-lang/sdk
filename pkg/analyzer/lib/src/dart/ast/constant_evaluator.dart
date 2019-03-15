@@ -344,29 +344,26 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (node.isMap) {
-      Map<String, Object> map = new HashMap<String, Object>();
-      for (CollectionElement element in node.elements2) {
-        if (element is MapLiteralEntry) {
-          Object key = element.key.accept(this);
-          Object value = element.value.accept(this);
-          if (key is String && !identical(value, NOT_A_CONSTANT)) {
-            map[key] = value;
-          } else {
-            return NOT_A_CONSTANT;
-          }
+    // There are a lot of constants that this class does not support, so we
+    // didn't add support for set literals. As a result, this assumes that we're
+    // looking at a map literal until we prove otherwise.
+    Map<String, Object> map = new HashMap<String, Object>();
+    for (CollectionElement element in node.elements2) {
+      if (element is MapLiteralEntry) {
+        Object key = element.key.accept(this);
+        Object value = element.value.accept(this);
+        if (key is String && !identical(value, NOT_A_CONSTANT)) {
+          map[key] = value;
         } else {
-          // There are a lot of constants that this class does not support, so
-          // we didn't add support for the extended collection support.
           return NOT_A_CONSTANT;
         }
+      } else {
+        // There are a lot of constants that this class does not support, so
+        // we didn't add support for the extended collection support.
+        return NOT_A_CONSTANT;
       }
-      return map;
-    } else if (node.isSet) {
-      // There are a lot of constants that this class does not support, so
-      // we didn't add support for set literals.
     }
-    return NOT_A_CONSTANT;
+    return map;
   }
 
   @override
