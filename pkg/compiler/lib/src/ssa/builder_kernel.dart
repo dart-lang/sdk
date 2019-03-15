@@ -1436,29 +1436,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
-  void defaultExpression(ir.Expression expression) {
-    // TODO(johnniwinther): We should make this an internal error.
-    _trap('Unhandled ir.${expression.runtimeType}  $expression');
-  }
-
-  @override
-  void defaultStatement(ir.Statement statement) {
-    // TODO(johnniwinther): We should make this an internal error.
-    _trap('Unhandled ir.${statement.runtimeType}  $statement');
-    pop();
-  }
-
-  void _trap(String message) {
-    HInstruction nullValue = graph.addConstantNull(closedWorld);
-    HInstruction errorMessage = graph.addConstantString(message, closedWorld);
-    HInstruction trap = new HForeignCode(
-        js.js.parseForeignJS("#.#"),
-        abstractValueDomain.dynamicType,
-        <HInstruction>[nullValue, errorMessage]);
-    trap.sideEffects
-      ..setAllSideEffects()
-      ..setDependsOnSomething();
-    push(trap);
+  void defaultNode(ir.Node node) {
+    throw new UnsupportedError("Unhandled node $node (${node.runtimeType})");
   }
 
   /// Returns the current source element. This is used by the type builder.
@@ -1543,6 +1522,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       expression.accept(this);
       pop();
     }
+  }
+
+  @override
+  void visitConstantExpression(ir.ConstantExpression node) {
+    stack.add(
+        graph.addConstant(_elementMap.getConstantValue(node), closedWorld));
   }
 
   /// Returns true if the [type] is a valid return type for an asynchronous

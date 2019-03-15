@@ -785,9 +785,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
 
   @override
   void registerConstant(ir.ConstantExpression node) {
-    // ignore: unused_local_variable
     ConstantValue value = elementMap.getConstantValue(node);
-    // TODO(johnniwinther,fishythefish): Register the constant.
+    impactBuilder.registerConstantUse(new ConstantUse.literal(value));
   }
 
   @override
