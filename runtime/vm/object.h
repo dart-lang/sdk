@@ -1978,6 +1978,14 @@ class Function : public Object {
   // Update the signature type (with a canonical version).
   void SetSignatureType(const Type& value) const;
 
+  // Set the "C signature" function for an FFI trampoline.
+  // Can only be used on FFI trampolines.
+  void SetFfiCSignature(const Function& sig) const;
+
+  // Retrieves the "C signature" function for an FFI trampoline.
+  // Can only be used on FFI trampolines.
+  RawFunction* FfiCSignature() const;
+
   // Return a new function with instantiated result and parameter types.
   RawFunction* InstantiateSignatureFrom(
       const TypeArguments& instantiator_type_arguments,
@@ -2244,6 +2252,13 @@ class Function : public Object {
   bool IsFactory() const {
     return (kind() == RawFunction::kConstructor) && is_static();
   }
+
+  // Whether this function can receive an invocation where the number and names
+  // of arguments have not been checked.
+  bool CanReceiveDynamicInvocation() const {
+    return IsClosureFunction() || IsFfiTrampoline();
+  }
+
   bool IsDynamicFunction(bool allow_abstract = false) const {
     if (is_static() || (!allow_abstract && is_abstract())) {
       return false;
@@ -2419,6 +2434,13 @@ class Function : public Object {
 
   bool IsOptimizable() const;
   void SetIsOptimizable(bool value) const;
+
+  // Whether this function must be optimized immediately and cannot be compiled
+  // with the unoptimizing compiler. Such a function must be sure to not
+  // deoptimize, since we won't generate deoptimization info or register
+  // dependencies. It will be compiled into optimized code immediately when it's
+  // run.
+  bool ForceOptimize() const { return IsFfiTrampoline(); }
 
   bool CanBeInlined() const;
 
@@ -2988,6 +3010,9 @@ class FfiTrampolineData : public Object {
   // Signature type of this closure function.
   RawType* signature_type() const { return raw_ptr()->signature_type_; }
   void set_signature_type(const Type& value) const;
+
+  RawFunction* c_signature() const { return raw_ptr()->c_signature_; }
+  void set_c_signature(const Function& value) const;
 
   static RawFfiTrampolineData* New();
 

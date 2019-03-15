@@ -1506,6 +1506,7 @@ CompileType CaseInsensitiveCompareUC16Instr::ComputeType() const {
 
 CompileType UnboxInstr::ComputeType() const {
   switch (representation()) {
+    case kUnboxedFloat:
     case kUnboxedDouble:
       return CompileType::FromCid(kDoubleCid);
 
@@ -1529,6 +1530,7 @@ CompileType UnboxInstr::ComputeType() const {
 
 CompileType BoxInstr::ComputeType() const {
   switch (from_representation()) {
+    case kUnboxedFloat:
     case kUnboxedDouble:
       return CompileType::FromCid(kDoubleCid);
 

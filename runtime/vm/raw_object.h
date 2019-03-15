@@ -1036,7 +1036,8 @@ class RawFfiTrampolineData : public RawObject {
 
   VISIT_FROM(RawObject*, signature_type_);
   RawType* signature_type_;
-  VISIT_TO(RawObject*, signature_type_);
+  RawFunction* c_signature_;
+  VISIT_TO(RawObject*, c_signature_);
 };
 
 class RawField : public RawObject {

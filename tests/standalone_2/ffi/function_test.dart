@@ -20,7 +20,7 @@ void main() {
     testNativeFunctionFromCast();
     testNativeFunctionFromLookup();
     test64bitInterpretations();
-    //  TODO(36122): testExtension();
+    testExtension();
     testTruncation();
     testNativeFunctionDoubles();
     testNativeFunctionFloats();

@@ -15,6 +15,7 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/ffi.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/method_recognizer.h"
@@ -3473,6 +3474,7 @@ BoxInstr* BoxInstr::Create(Representation from, Value* value) {
       return new BoxInt64Instr(value);
 
     case kUnboxedDouble:
+    case kUnboxedFloat:
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
@@ -3490,8 +3492,12 @@ UnboxInstr* UnboxInstr::Create(Representation to,
                                SpeculativeMode speculative_mode) {
   switch (to) {
     case kUnboxedInt32:
-      return new UnboxInt32Instr(UnboxInt32Instr::kNoTruncation, value,
-                                 deopt_id, speculative_mode);
+      // We must truncate if we can't deoptimize.
+      return new UnboxInt32Instr(
+          speculative_mode == SpeculativeMode::kNotSpeculative
+              ? UnboxInt32Instr::kTruncate
+              : UnboxInt32Instr::kNoTruncation,
+          value, deopt_id, speculative_mode);
 
     case kUnboxedUint32:
       return new UnboxUint32Instr(value, deopt_id, speculative_mode);
@@ -3500,6 +3506,7 @@ UnboxInstr* UnboxInstr::Create(Representation to,
       return new UnboxInt64Instr(value, deopt_id, speculative_mode);
 
     case kUnboxedDouble:
+    case kUnboxedFloat:
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
@@ -3728,10 +3735,10 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
   __ Bind(compiler->GetJumpLabel(this));
 
-  // In the AOT compiler we want to reduce code size, so generate no
-  // fall-through code in [FlowGraphCompiler::CompileGraph()].
-  // (As opposed to here where we don't check for the return value of
-  // [Intrinsify]).
+// In the AOT compiler we want to reduce code size, so generate no
+// fall-through code in [FlowGraphCompiler::CompileGraph()].
+// (As opposed to here where we don't check for the return value of
+// [Intrinsify]).
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
   if (FLAG_precompiled_mode) {
     const Function& function = compiler->parsed_function().function();
@@ -4632,6 +4639,7 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (speculative_mode() == kNotSpeculative) {
     switch (representation()) {
       case kUnboxedDouble:
+      case kUnboxedFloat:
         EmitLoadFromBox(compiler);
         break;
 
@@ -5180,6 +5188,74 @@ void NativeCallInstr::SetupNative() {
   set_is_auto_scope(auto_setup_scope);
   set_native_c_function(native_function);
 }
+
+#if defined(TARGET_ARCH_X64)
+
+#define Z zone_
+
+Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
+  if (idx == TargetAddressIndex()) {
+    return kUnboxedIntPtr;
+  } else {
+    return arg_representations_[idx];
+  }
+}
+
+LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
+                                                   bool is_optimizing) const {
+  // The temporary register needs to be callee-saved and not an argument
+  // register.
+  ASSERT(((1 << CallingConventions::kFirstCalleeSavedCpuReg) &
+          CallingConventions::kArgumentRegisters) == 0);
+
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
+                                 /*num_temps=*/1, LocationSummary::kCall);
+
+  summary->set_in(TargetAddressIndex(),
+                  Location::RegisterLocation(
+                      CallingConventions::kFirstNonArgumentRegister));
+  summary->set_temp(0, Location::RegisterLocation(
+                           CallingConventions::kSecondNonArgumentRegister));
+  summary->set_out(0, compiler::ffi::ResultLocation(
+                          compiler::ffi::ResultRepresentation(signature_)));
+
+  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
+    Location target = arg_locations_[i];
+    if (target.IsMachineRegister()) {
+      summary->set_in(i, target);
+    } else {
+      // Since we have to push this input on the stack, there's no point in
+      // pinning it to any specific register.
+      summary->set_in(i, Location::Any());
+    }
+  }
+
+  return summary;
+}
+
+Representation FfiCallInstr::representation() const {
+  return compiler::ffi::ResultRepresentation(signature_);
+}
+
+#undef Z
+
+#else
+
+Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
+  UNREACHABLE();
+}
+
+LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
+                                                   bool is_optimizing) const {
+  UNREACHABLE();
+}
+
+Representation FfiCallInstr::representation() const {
+  UNREACHABLE();
+}
+
+#endif
 
 // SIMD
 

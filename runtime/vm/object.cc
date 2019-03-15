@@ -5985,6 +5985,20 @@ RawType* Function::ExistingSignatureType() const {
   }
 }
 
+void Function::SetFfiCSignature(const Function& sig) const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  FfiTrampolineData::Cast(obj).set_c_signature(sig);
+}
+
+RawFunction* Function::FfiCSignature() const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  return FfiTrampolineData::Cast(obj).c_signature();
+}
+
 RawType* Function::SignatureType() const {
   Type& type = Type::Handle(ExistingSignatureType());
   if (type.IsNull()) {
@@ -7975,10 +7989,10 @@ const char* Function::ToCString() const {
       kind_str = " dynamic-invocation-forwarder";
       break;
     case RawFunction::kInvokeFieldDispatcher:
-      kind_str = "invoke-field-dispatcher";
+      kind_str = " invoke-field-dispatcher";
       break;
     case RawFunction::kIrregexpFunction:
-      kind_str = "irregexp-function";
+      kind_str = " irregexp-function";
       break;
     case RawFunction::kFfiTrampoline:
       kind_str = " ffi-trampoline-function";
@@ -8096,6 +8110,10 @@ const char* RedirectionData::ToCString() const {
 
 void FfiTrampolineData::set_signature_type(const Type& value) const {
   StorePointer(&raw_ptr()->signature_type_, value.raw());
+}
+
+void FfiTrampolineData::set_c_signature(const Function& value) const {
+  StorePointer(&raw_ptr()->c_signature_, value.raw());
 }
 
 RawFfiTrampolineData* FfiTrampolineData::New() {

@@ -29,7 +29,7 @@ bool PrologueBuilder::PrologueSkippableOnUncheckedEntry(
 
 bool PrologueBuilder::HasEmptyPrologue(const Function& function) {
   return !function.HasOptionalParameters() && !function.IsGeneric() &&
-         !function.IsClosureFunction();
+         !function.CanReceiveDynamicInvocation();
 }
 
 BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
@@ -41,7 +41,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
 
   const bool load_optional_arguments = function_.HasOptionalParameters();
   const bool expect_type_args = function_.IsGeneric();
-  const bool check_arguments = function_.IsClosureFunction();
+  const bool check_arguments = function_.CanReceiveDynamicInvocation();
 
   Fragment prologue = Fragment(entry);
   JoinEntryInstr* nsm = NULL;

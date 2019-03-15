@@ -1020,9 +1020,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       SetupDefaultParameterValues();
       ReadDefaultFunctionTypeArguments(function);
       return flow_graph_builder_->BuildGraphOfImplicitClosureFunction(function);
+    case RawFunction::kFfiTrampoline:
+      return flow_graph_builder_->BuildGraphOfFfiTrampoline(function);
     case RawFunction::kSignatureFunction:
     case RawFunction::kIrregexpFunction:
-    case RawFunction::kFfiTrampoline:
       break;
   }
   UNREACHABLE();

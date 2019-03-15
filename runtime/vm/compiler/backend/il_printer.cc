@@ -511,6 +511,18 @@ void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
+void FfiCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print(" pointer=");
+  InputAt(TargetAddressIndex())->PrintTo(f);
+  f->Print(" signature=%s",
+           Type::Handle(signature_.SignatureType()).ToCString());
+  for (intptr_t i = 0, n = InputCount(); i < n - 1; ++i) {
+    f->Print(", ");
+    InputAt(i)->PrintTo(f);
+    f->Print(" (at %s) ", arg_locations_[i].ToCString());
+  }
+}
+
 void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" %s<%" Pd ">", function_name().ToCString(), type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
@@ -910,6 +922,8 @@ const char* RepresentationToCString(Representation rep) {
       return "untagged";
     case kUnboxedDouble:
       return "double";
+    case kUnboxedFloat:
+      return "float";
     case kUnboxedInt32:
       return "int32";
     case kUnboxedUint32:

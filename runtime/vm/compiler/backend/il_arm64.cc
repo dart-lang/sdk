@@ -872,6 +872,10 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
+void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -3505,6 +3509,10 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kUnboxedDouble:
       __ StoreDFieldToOffset(value, out_reg, ValueOffset());
       break;
+    case kUnboxedFloat:
+      __ fcvtds(FpuTMP, value);
+      __ StoreDFieldToOffset(FpuTMP, out_reg, ValueOffset());
+      break;
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
@@ -3541,6 +3549,13 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
     case kUnboxedDouble: {
       const VRegister result = locs()->out(0).fpu_reg();
       __ LoadDFieldFromOffset(result, box, ValueOffset());
+      break;
+    }
+
+    case kUnboxedFloat: {
+      const VRegister result = locs()->out(0).fpu_reg();
+      __ LoadDFieldFromOffset(result, box, ValueOffset());
+      __ fcvtsd(result, result);
       break;
     }
 

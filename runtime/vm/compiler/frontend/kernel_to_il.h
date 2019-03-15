@@ -100,6 +100,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);
   FlowGraph* BuildGraphOfInvokeFieldDispatcher(const Function& function);
+  FlowGraph* BuildGraphOfFfiTrampoline(const Function& function);
 
   Fragment NativeFunctionBody(const Function& function,
                               LocalVariable* first_parameter);
@@ -148,6 +149,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                        intptr_t argument_count,
                        const Array& argument_names,
                        bool use_unchecked_entry = false);
+  Fragment FfiCall(const Function& signature,
+                   const ZoneGrowableArray<Representation>& arg_reps,
+                   const ZoneGrowableArray<Location>& arg_locs);
 
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadClassId();
@@ -203,6 +207,25 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
   Fragment DebugStepCheck(TokenPosition position);
+
+  // Truncates (instead of deoptimizing) if the origin does not fit into the
+  // target representation.
+  Fragment UnboxTruncate(Representation to);
+
+  // Sign-extends kUnboxedInt32 and zero-extends kUnboxedUint32.
+  Fragment Box(Representation from);
+
+  // Pops an 'ffi.Pointer' off the stack.
+  // If it's null, pushes 0.
+  // Otherwise pushes the address (in boxed representation).
+  Fragment LoadAddressFromFfiPointer();
+
+  // Reverse of 'LoadPointerFromFfiPointer':
+  // Pops an integer off the the stack.
+  // If it's zero, pushes null.
+  // If it's nonzero, creates an 'ffi.Pointer' holding the address and pushes
+  // the pointer.
+  Fragment FfiPointerFromAddress(const Type& result_type);
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 

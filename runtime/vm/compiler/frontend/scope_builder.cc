@@ -127,6 +127,10 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     scope_->AddVariable(parsed_function_->arg_desc_var());
   }
 
+  if (parsed_function_->function().IsFfiTrampoline()) {
+    needs_expr_temp_ = true;
+  }
+
   LocalVariable* context_var = parsed_function_->current_context_var();
   context_var->set_is_forced_stack();
   scope_->AddVariable(context_var);
@@ -372,17 +376,19 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     }
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:
+    case RawFunction::kFfiTrampoline:
       for (intptr_t i = 0; i < function.NumParameters(); ++i) {
-        LocalVariable* variable =
-            MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                         String::ZoneHandle(Z, function.ParameterNameAt(i)),
-                         AbstractType::dynamic_type());
+        LocalVariable* variable = MakeVariable(
+            TokenPosition::kNoSource, TokenPosition::kNoSource,
+            String::ZoneHandle(Z, function.ParameterNameAt(i)),
+            AbstractType::ZoneHandle(Z, function.IsFfiTrampoline()
+                                            ? function.ParameterTypeAt(i)
+                                            : Object::dynamic_type().raw()));
         scope_->InsertParameterAt(i, variable);
       }
       break;
     case RawFunction::kSignatureFunction:
     case RawFunction::kIrregexpFunction:
-    case RawFunction::kFfiTrampoline:
       UNREACHABLE();
   }
   if (needs_expr_temp_) {

@@ -836,7 +836,7 @@ class Assembler : public AssemblerBase {
   //   ....
   //   locals space  <=== RSP
   //   saved PP
-  //   pc (used to derive the RawInstruction Object of the dart code)
+  //   code object (used to derive the RawInstruction Object of the dart code)
   //   saved RBP     <=== RBP
   //   ret PC
   //   .....

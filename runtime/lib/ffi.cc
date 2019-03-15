@@ -6,7 +6,6 @@
 #include "include/dart_api.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
-#include "vm/class_id.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/exceptions.h"
 #include "vm/log.h"
@@ -227,10 +226,10 @@ DEFINE_NATIVE_ENTRY(Ffi_allocate, 1, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, argCount, arguments->NativeArgAt(0));
   int64_t count = argCount.AsInt64Value();
   classid_t type_cid = type_arg.type_class_id();
-  int64_t max_count = INTPTR_MAX / ffi::ElementSizeInBytes(type_cid);
+  int64_t max_count = INTPTR_MAX / compiler::ffi::ElementSizeInBytes(type_cid);
   CheckRange(argCount, 1, max_count, "count");
 
-  size_t size = ffi::ElementSizeInBytes(type_cid) * count;
+  size_t size = compiler::ffi::ElementSizeInBytes(type_cid) * count;
   intptr_t memory = reinterpret_cast<intptr_t>(malloc(size));
   if (memory == 0) {
     const String& error = String::Handle(String::NewFormatted(
@@ -268,9 +267,9 @@ DEFINE_NATIVE_ENTRY(Ffi_elementAt, 0, 2) {
 
   classid_t class_id = pointer_type_arg.type_class_id();
   Integer& address = Integer::Handle(zone, pointer.GetCMemoryAddress());
-  address =
-      Integer::New(address.AsInt64Value() +
-                   index.AsInt64Value() * ffi::ElementSizeInBytes(class_id));
+  address = Integer::New(address.AsInt64Value() +
+                         index.AsInt64Value() *
+                             compiler::ffi::ElementSizeInBytes(class_id));
   RawPointer* result = Pointer::New(pointer_type_arg, address);
   return result;
 }
@@ -470,54 +469,7 @@ DEFINE_NATIVE_ENTRY(Ffi_sizeOf, 1, 0) {
   CheckSized(type_arg);
 
   classid_t type_cid = type_arg.type_class_id();
-  return Smi::New(ffi::ElementSizeInBytes(type_cid));
-}
-
-// Generates assembly to trampoline from Dart into C++.
-//
-// Attaches assembly code to the function with the folling features:
-// - unboxes arguments
-// - puts the arguments on the c stack
-// - invokes the c function
-// - reads the the result
-// - boxes the result and returns it.
-//
-// It inspects the signature to know what to box/unbox
-// Parameter `function` has the Dart types in its signature
-// Parameter `c_signature` has the C++ types in its signature
-static RawCode* TrampolineCode(const Function& function,
-                               const Function& c_signature) {
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-  // Currently we generate the trampoline when calling asFunction(), this means
-  // the ffi cannot be used in AOT.
-  // In order make it work in AOT we need to:
-  // - collect all asFunction signatures ahead of time
-  // - generate trampolines for those
-  // - store these in the object store
-  // - and read these from the object store when calling asFunction()
-  // https://github.com/dart-lang/sdk/issues/35765
-  UNREACHABLE();
-#elif !defined(TARGET_ARCH_X64)
-  // https://github.com/dart-lang/sdk/issues/35774
-  UNREACHABLE();
-#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                \
-    !defined(TARGET_OS_WINDOWS)
-  // https://github.com/dart-lang/sdk/issues/35760 Arm32 && Android
-  // https://github.com/dart-lang/sdk/issues/35772 Arm64
-  // https://github.com/dart-lang/sdk/issues/35773 DBC
-  UNREACHABLE();
-#else
-  extern void GenerateFfiTrampoline(Assembler * assembler,
-                                    const Function& signature);
-  ObjectPoolBuilder object_pool_builder;
-  Assembler assembler(&object_pool_builder);
-  GenerateFfiTrampoline(&assembler, c_signature);
-  const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
-      function, nullptr, &assembler, Code::PoolAttachment::kAttachPool));
-  code.set_exception_handlers(
-      ExceptionHandlers::Handle(ExceptionHandlers::New(0)));
-  return code.raw();
-#endif
+  return Smi::New(compiler::ffi::ElementSizeInBytes(type_cid));
 }
 
 // TODO(dacoharkes): Cache the trampolines.
@@ -526,25 +478,37 @@ static RawFunction* TrampolineFunction(const Function& dart_signature,
                                        const Function& c_signature) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  const String& name =
+  String& name =
       String::ZoneHandle(Symbols::New(Thread::Current(), "FfiTrampoline"));
   const Library& lib = Library::Handle(Library::FfiLibrary());
   const Class& owner_class = Class::Handle(lib.toplevel_class());
-  Function& function = Function::ZoneHandle(
-      zone, Function::New(name, RawFunction::kFfiTrampoline,
-                          true,   // is_static
-                          false,  // is_const
-                          false,  // is_abstract
-                          false,  // is_external
-                          true,   // is_native
-                          owner_class, TokenPosition::kMinSource));
-
+  Function& function =
+      Function::Handle(zone, Function::New(name, RawFunction::kFfiTrampoline,
+                                           /*is_static=*/true,
+                                           /*is_const=*/false,
+                                           /*is_abstract=*/false,
+                                           /*is_external=*/false,
+                                           /*is_native=*/false, owner_class,
+                                           TokenPosition::kMinSource));
+  function.set_is_debuggable(false);
   function.set_num_fixed_parameters(dart_signature.num_fixed_parameters());
   function.set_result_type(AbstractType::Handle(dart_signature.result_type()));
   function.set_parameter_types(Array::Handle(dart_signature.parameter_types()));
 
-  const Code& code = Code::Handle(TrampolineCode(function, c_signature));
-  function.AttachCode(code);
+  // The signature function won't have any names for the parameters. We need to
+  // assign unique names for scope building and error messages.
+  const intptr_t num_params = dart_signature.num_fixed_parameters();
+  const Array& parameter_names = Array::Handle(Array::New(num_params));
+  for (intptr_t i = 0; i < num_params; ++i) {
+    if (i == 0) {
+      name = Symbols::ClosureParameter().raw();
+    } else {
+      name = Symbols::NewFormatted(thread, ":ffiParam%" Pd, i);
+    }
+    parameter_names.SetAt(i, name);
+  }
+  function.set_parameter_names(parameter_names);
+  function.SetFfiCSignature(c_signature);
 
   return function.raw();
 }

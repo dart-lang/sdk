@@ -78,7 +78,8 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
 
   const bool load_optional_arguments = function.HasOptionalParameters();
 
-  const bool check_arguments = function_.IsClosureFunction();
+  const bool check_arguments =
+      function_.IsClosureFunction() || function.IsFfiTrampoline();
 
   const bool need_argument_descriptor =
       load_optional_arguments || check_arguments || reify_generic_argument;

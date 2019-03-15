@@ -123,7 +123,8 @@ void FlowGraph::AddToDeferredPrefixes(
 
 bool FlowGraph::ShouldReorderBlocks(const Function& function,
                                     bool is_optimized) {
-  return is_optimized && FLAG_reorder_basic_blocks && !function.is_intrinsic();
+  return is_optimized && FLAG_reorder_basic_blocks &&
+         !function.is_intrinsic() && !function.IsFfiTrampoline();
 }
 
 GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(

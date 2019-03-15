@@ -824,8 +824,9 @@ static Location::Kind RegisterKindFromPolicy(Location loc) {
 static Location::Kind RegisterKindForResult(Instruction* instr) {
   const Representation rep = instr->representation();
 #if !defined(TARGET_ARCH_DBC)
-  if ((rep == kUnboxedDouble) || (rep == kUnboxedFloat32x4) ||
-      (rep == kUnboxedInt32x4) || (rep == kUnboxedFloat64x2)) {
+  if ((rep == kUnboxedFloat) || (rep == kUnboxedDouble) ||
+      (rep == kUnboxedFloat32x4) || (rep == kUnboxedInt32x4) ||
+      (rep == kUnboxedFloat64x2)) {
     return Location::kFpuRegister;
   } else {
     return Location::kRegister;
@@ -1454,7 +1455,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 #if defined(DEBUG)
     // Verify that temps, inputs and output were specified as fixed
     // locations.  Every register is blocked now so attempt to
-    // allocate will not succeed.
+    // allocate will go on the stack.
     for (intptr_t j = 0; j < locs->temp_count(); j++) {
       ASSERT(!locs->temp(j).IsPairLocation());
       ASSERT(!locs->temp(j).IsUnallocated());
@@ -1463,10 +1464,13 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     for (intptr_t j = 0; j < locs->input_count(); j++) {
       if (locs->in(j).IsPairLocation()) {
         PairLocation* pair = locs->in_slot(j)->AsPairLocation();
-        ASSERT(!pair->At(0).IsUnallocated());
-        ASSERT(!pair->At(1).IsUnallocated());
+        ASSERT(!pair->At(0).IsUnallocated() ||
+               locs->in(j).policy() == Location::kAny);
+        ASSERT(!pair->At(1).IsUnallocated() ||
+               locs->in(j).policy() == Location::kAny);
       } else {
-        ASSERT(!locs->in(j).IsUnallocated());
+        ASSERT(!locs->in(j).IsUnallocated() ||
+               locs->in(j).policy() == Location::kAny);
       }
     }
 
@@ -2059,7 +2063,8 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
       ASSERT(need_quad);
       location = Location::QuadStackSlot(slot_idx);
     } else {
-      ASSERT((range->representation() == kUnboxedDouble));
+      ASSERT(range->representation() == kUnboxedFloat ||
+             range->representation() == kUnboxedDouble);
       location = Location::DoubleStackSlot(slot_idx);
     }
     range->set_spill_slot(location);

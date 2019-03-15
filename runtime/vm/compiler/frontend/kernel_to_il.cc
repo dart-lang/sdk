@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/backend/locations.h"
 
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/ffi.h"
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/frontend/prologue_builder.h"
@@ -391,6 +393,25 @@ Fragment FlowGraphBuilder::ClosureCall(TokenPosition position,
                                              : Code::EntryKind::kNormal);
   Push(call);
   return Fragment(call);
+}
+
+Fragment FlowGraphBuilder::FfiCall(
+    const Function& signature,
+    const ZoneGrowableArray<Representation>& arg_reps,
+    const ZoneGrowableArray<Location>& arg_locs) {
+  Fragment body;
+
+  FfiCallInstr* call =
+      new (Z) FfiCallInstr(Z, GetNextDeoptId(), signature, arg_reps, arg_locs);
+
+  for (intptr_t i = call->InputCount() - 1; i >= 0; --i) {
+    call->SetInputAt(i, Pop());
+  }
+
+  Push(call);
+  body <<= call;
+
+  return body;
 }
 
 Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
@@ -915,9 +936,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   return body + Return(TokenPosition::kNoSource, omit_result_type_check);
 }
 
-static const LocalScope* MakeImplicitClosureScope(Zone* Z,
-                                                  const Function& function) {
-  Class& klass = Class::Handle(Z, function.Owner());
+static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
   ASSERT(!klass.IsNull());
   // Note that if klass is _Closure, DeclarationType will be _Closure,
   // and not the signature type.
@@ -959,7 +978,7 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   // Allocate a context that closes over `this`.
   // Note: this must be kept in sync with ScopeBuilder::BuildScopes.
   const LocalScope* implicit_closure_scope =
-      MakeImplicitClosureScope(Z, target);
+      MakeImplicitClosureScope(Z, Class::Handle(Z, target.Owner()));
   fragment += AllocateContext(implicit_closure_scope->context_variables());
   LocalVariable* context = MakeTemporary();
 
@@ -2252,6 +2271,180 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
   }
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);
+}
+
+Fragment FlowGraphBuilder::UnboxTruncate(Representation to) {
+  auto* unbox = UnboxInstr::Create(to, Pop(), DeoptId::kNone,
+                                   Instruction::kNotSpeculative);
+  Push(unbox);
+  return Fragment(unbox);
+}
+
+Fragment FlowGraphBuilder::LoadAddressFromFfiPointer() {
+  Fragment test;
+  TargetEntryInstr* null_entry;
+  TargetEntryInstr* not_null_entry;
+  JoinEntryInstr* join = BuildJoinEntry();
+
+  LocalVariable* result = parsed_function_->expression_temp_var();
+
+  LocalVariable* pointer = MakeTemporary();
+  test += LoadLocal(pointer);
+  test += BranchIfNull(&null_entry, &not_null_entry);
+
+  Fragment load_0(null_entry);
+  load_0 += IntConstant(0);
+  load_0 += StoreLocal(TokenPosition::kNoSource, result);
+  load_0 += Drop();
+  load_0 += Goto(join);
+
+  Fragment unbox(not_null_entry);
+  unbox += LoadLocal(pointer);
+  unbox += LoadNativeField(Slot::Pointer_c_memory_address());
+  unbox += StoreLocal(TokenPosition::kNoSource, result);
+  unbox += Drop();
+  unbox += Goto(join);
+
+  Fragment done{test.entry, join};
+  done += Drop();
+  done += LoadLocal(result);
+
+  return done;
+}
+
+Fragment FlowGraphBuilder::Box(Representation from) {
+  BoxInstr* box = BoxInstr::Create(from, Pop());
+  Push(box);
+  return Fragment(box);
+}
+
+Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
+  Fragment test;
+  TargetEntryInstr* null_entry;
+  TargetEntryInstr* not_null_entry;
+  JoinEntryInstr* join = BuildJoinEntry();
+
+  LocalVariable* address = MakeTemporary();
+  LocalVariable* result = parsed_function_->expression_temp_var();
+
+  test += LoadLocal(address);
+  test += IntConstant(0);
+  test += BranchIfEqual(&null_entry, &not_null_entry);
+
+  // If the result is 0, we return null because "0 means null".
+  Fragment load_null(null_entry);
+  {
+    load_null += NullConstant();
+    load_null += StoreLocal(TokenPosition::kNoSource, result);
+    load_null += Drop();
+    load_null += Goto(join);
+  }
+
+  Fragment box(not_null_entry);
+  {
+    Class& result_class = Class::ZoneHandle(Z, result_type.type_class());
+    TypeArguments& args = TypeArguments::ZoneHandle(Z, result_type.arguments());
+
+    // A kernel transform for FFI in the front-end ensures that type parameters
+    // do not appear in the type arguments to a any Pointer classes in an FFI
+    // signature.
+    ASSERT(args.IsNull() || args.IsInstantiated());
+
+    box += Constant(args);
+    box += PushArgument();
+    box += AllocateObject(TokenPosition::kNoSource, result_class, 1);
+    LocalVariable* pointer = MakeTemporary();
+    box += LoadLocal(pointer);
+    box += LoadLocal(address);
+    box += StoreInstanceField(TokenPosition::kNoSource,
+                              Slot::Pointer_c_memory_address());
+    box += StoreLocal(TokenPosition::kNoSource, result);
+    box += Drop();
+    box += Goto(join);
+  }
+
+  Fragment rest(test.entry, join);
+  rest += Drop();
+  rest += LoadLocal(result);
+
+  return rest;
+}
+
+FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
+    const Function& function) {
+#if !defined(TARGET_ARCH_X64)
+  UNREACHABLE();
+#else
+  graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
+
+  auto normal_entry = BuildFunctionEntry(graph_entry_);
+  graph_entry_->set_normal_entry(normal_entry);
+
+  PrologueInfo prologue_info(-1, -1);
+
+  BlockEntryInstr* instruction_cursor =
+      BuildPrologue(normal_entry, &prologue_info);
+
+  Fragment body(instruction_cursor);
+  body += CheckStackOverflowInPrologue(function.token_pos());
+
+  const Function& signature = Function::ZoneHandle(Z, function.FfiCSignature());
+  const auto& arg_reps = *compiler::ffi::ArgumentRepresentations(signature);
+  const auto& arg_locs = *compiler::ffi::ArgumentLocations(arg_reps);
+
+  BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
+                          &body, &body, &body);
+
+  // Unbox and push the arguments.
+  AbstractType& ffi_type = AbstractType::Handle(Z);
+  for (intptr_t pos = 1; pos < function.num_fixed_parameters(); pos++) {
+    body += LoadLocal(parsed_function_->ParameterVariable(pos));
+    ffi_type = signature.ParameterTypeAt(pos);
+
+    // Check for 'null'. Only ffi.Pointers are allowed to be null.
+    if (!compiler::ffi::NativeTypeIsPointer(ffi_type)) {
+      body += LoadLocal(parsed_function_->ParameterVariable(pos));
+      body <<=
+          new (Z) CheckNullInstr(Pop(), String::ZoneHandle(Z, function.name()),
+                                 GetNextDeoptId(), TokenPosition::kNoSource);
+    }
+
+    if (compiler::ffi::NativeTypeIsPointer(ffi_type)) {
+      body += LoadAddressFromFfiPointer();
+      body += UnboxTruncate(kUnboxedIntPtr);
+    } else {
+      body += UnboxTruncate(arg_reps[pos - 1]);
+    }
+  }
+
+  // Push the function pointer, which is stored (boxed) in the first slot of the
+  // context.
+  body += LoadLocal(parsed_function_->ParameterVariable(0));
+  body += LoadNativeField(Slot::Closure_context());
+  body += LoadNativeField(Slot::GetContextVariableSlotFor(
+      thread_, *MakeImplicitClosureScope(
+                    Z, Class::Handle(I->object_store()->ffi_pointer_class()))
+                    ->context_variables()[0]));
+  body += UnboxTruncate(kUnboxedIntPtr);
+  body += FfiCall(signature, arg_reps, arg_locs);
+
+  ffi_type = signature.result_type();
+  if (compiler::ffi::NativeTypeIsPointer(ffi_type)) {
+    body += Box(kUnboxedIntPtr);
+    body += FfiPointerFromAddress(Type::Cast(ffi_type));
+  } else if (compiler::ffi::NativeTypeIsVoid(ffi_type)) {
+    body += Drop();
+    body += NullConstant();
+  } else {
+    body += Box(compiler::ffi::ResultRepresentation(signature));
+  }
+
+  body += Return(TokenPosition::kNoSource);
+
+  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                           prologue_info);
+#endif
 }
 
 void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {

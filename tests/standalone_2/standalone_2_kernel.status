@@ -230,11 +230,8 @@ io/web_socket_compression_test: Skip # Timeout
 io/web_socket_test: Skip # Timeout
 
 [ $arch != x64 || $compiler != dartk || $mode == product || $system != linux && $system != macos ]
-ffi/function_stress_test: SkipByDesign # FFI must be supported. Also requires --verbose-gc, which isn't included in product. Windows issues will be fixed in IL CL: https://github.com/dart-lang/sdk/issues/36138
-ffi/subtype_test: SkipByDesign # FFI must be supported. Also requires --verbose-gc, which isn't included in product.
-
-[ $mode == product || $mode != product ]
-ffi/negative_function_test: Skip # Issues 36033, 36034
+ffi/function_stress_test: SkipByDesign # FFI must be supported. Also requires --verbose-gc, which isn't included in product.
+ffi/subtype_test: SkipByDesign # FFI must be supported. Also requires --verbose-gc, which isn't included in product. See #36138 for Windows.
 
 [ $compiler != dartk && $compiler != dartkb && $compiler != dartkp || $compiler == dartkp && $system == windows ]
 entrypoints_verification_test: SkipByDesign # Requires VM to run. Cannot run in precompiled Windows because the DLL is linked against dart.exe instead of dart_precompiled_runtime.exe.

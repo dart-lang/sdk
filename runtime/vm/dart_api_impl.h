@@ -298,7 +298,7 @@ class Api : AllStatic {
   static bool IsFfiEnabled() {
     // dart:ffi is not implemented for the following configurations
 #if !defined(TARGET_ARCH_X64)
-    // https://github.com/dart-lang/sdk/issues/35774
+    // https://github.com/dart-lang/sdk/issues/35774 IA32
     return false;
 #elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                \
     !defined(TARGET_OS_WINDOWS)

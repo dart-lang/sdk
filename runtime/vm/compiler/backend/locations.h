@@ -23,6 +23,7 @@ enum Representation {
   kTagged,
   kUntagged,
   kUnboxedDouble,
+  kUnboxedFloat,
   kUnboxedInt32,
   kUnboxedUint32,
   kUnboxedInt64,
@@ -639,7 +640,10 @@ class LocationSummary : public ZoneAllocated {
   void set_in(intptr_t index, Location loc) {
     ASSERT(index >= 0);
     ASSERT(index < num_inputs_);
-    ASSERT(!always_calls() || loc.IsMachineRegister());
+    // See FlowGraphAllocator::ProcessOneInstruction for explanation of this
+    // restriction.
+    ASSERT(!always_calls() || loc.IsMachineRegister() ||
+           (loc.IsUnallocated() && loc.policy() == Location::kAny));
     input_locations_[index] = loc;
   }
 

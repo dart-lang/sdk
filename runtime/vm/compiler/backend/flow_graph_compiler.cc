@@ -1821,6 +1821,7 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
 
 const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
   switch (rep) {
+    case kUnboxedFloat:
     case kUnboxedDouble:
       return double_class();
     case kUnboxedFloat32x4:

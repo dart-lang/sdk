@@ -381,8 +381,11 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
 
   // CreateDeoptInfo uses the object pool and needs to be done before
   // FinalizeCode.
-  const Array& deopt_info_array =
-      Array::Handle(zone, graph_compiler->CreateDeoptInfo(assembler));
+  Array& deopt_info_array = Array::Handle(zone, Object::empty_array().raw());
+  if (!function.ForceOptimize()) {
+    deopt_info_array = graph_compiler->CreateDeoptInfo(assembler);
+  }
+
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
   Code& code = Code::Handle(Code::FinalizeCode(
@@ -431,7 +434,13 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   graph_compiler->FinalizeStaticCallTargetsTable(code);
   graph_compiler->FinalizeCodeSourceMap(code);
 
-  if (optimized()) {
+  if (function.ForceOptimize()) {
+    ASSERT(optimized() && thread()->IsMutatorThread());
+    code.set_is_optimized(false);
+    function.AttachCode(code);
+    function.set_unoptimized_code(code);
+    function.SetWasCompiled(true);
+  } else if (optimized()) {
     // Installs code while at safepoint.
     if (thread()->IsMutatorThread()) {
       const bool is_osr = osr_id() != Compiler::kNoOSRDeoptId;
@@ -764,6 +773,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                                         intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled());
+  if (function.ForceOptimize()) optimized = true;
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();

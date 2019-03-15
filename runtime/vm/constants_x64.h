@@ -145,9 +145,9 @@ enum ScaleFactor {
 
 #define R(reg) (1 << (reg))
 
-#if defined(_WIN64)
 class CallingConventions {
  public:
+#if defined(_WIN64)
   static const Register kArg1Reg = RCX;
   static const Register kArg2Reg = RDX;
   static const Register kArg3Reg = R8;
@@ -186,10 +186,10 @@ class CallingConventions {
   // Windows x64 ABI specifies that small objects are passed in registers.
   // Otherwise they are passed by reference.
   static const size_t kRegisterTransferLimit = 16;
-};
+
+  static constexpr Register kReturnReg = RAX;
+  static constexpr FpuRegister kReturnFpuReg = XMM0;
 #else
-class CallingConventions {
- public:
   static const Register kArg1Reg = RDI;
   static const Register kArg2Reg = RSI;
   static const Register kArg3Reg = RDX;
@@ -229,8 +229,23 @@ class CallingConventions {
   static const intptr_t kCalleeSaveXmmRegisters = 0;
 
   static const XmmRegister xmmFirstNonParameterReg = XMM8;
-};
+
+  static constexpr Register kReturnReg = RAX;
+  static constexpr FpuRegister kReturnFpuReg = XMM0;
 #endif
+
+  COMPILE_ASSERT((kArgumentRegisters & kReservedCpuRegisters) == 0);
+
+  static constexpr Register kFirstCalleeSavedCpuReg = RBX;
+  static constexpr Register kFirstNonArgumentRegister = RAX;
+  static constexpr Register kSecondNonArgumentRegister = RBX;
+
+  COMPILE_ASSERT(((R(kFirstCalleeSavedCpuReg)) & kCalleeSaveCpuRegisters) != 0);
+
+  COMPILE_ASSERT(((R(kFirstNonArgumentRegister) |
+                   R(kSecondNonArgumentRegister)) &
+                  kArgumentRegisters) == 0);
+};
 
 #undef R
 
