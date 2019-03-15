@@ -1,19 +1,19 @@
 diff --git a/packages/flutter_tools/lib/src/compile.dart b/packages/flutter_tools/lib/src/compile.dart
-index 5f936715f..702101c9d 100644
+index 12c0770ab..7787bd4ca 100644
 --- a/packages/flutter_tools/lib/src/compile.dart
 +++ b/packages/flutter_tools/lib/src/compile.dart
 @@ -57,12 +57,15 @@ class TargetModel {
  }
-
+ 
  class CompilerOutput {
 -  const CompilerOutput(this.outputFilename, this.errorCount);
 +  const CompilerOutput(this.outputFilename, this.errorCount, this.sources);
-
+ 
    final String outputFilename;
    final int errorCount;
 +  final List<Uri> sources;
  }
-
+ 
 +enum StdoutState { CollectDiagnostic, CollectDependencies }
 +
  /// Handles stdin/stdout communication with the frontend server.
@@ -26,9 +26,9 @@ index 5f936715f..702101c9d 100644
 +  StdoutState state = StdoutState.CollectDiagnostic;
    Completer<CompilerOutput> compilerOutput;
 +  final List<Uri> sources = <Uri>[];
-
+ 
    bool _suppressCompilerMessages;
-
+ 
    void handler(String message) {
 +    printTrace('-> $message');
      const String kResultPrefix = 'result ';
@@ -86,7 +86,7 @@ index 5f936715f..702101c9d 100644
 -      consumer(message);
      }
    }
-
+ 
 @@ -106,6 +133,7 @@ class StdoutHandler {
      compilerMessageReceived = false;
      compilerOutput = Completer<CompilerOutput>();
@@ -94,16 +94,16 @@ index 5f936715f..702101c9d 100644
 +    state = StdoutState.CollectDiagnostic;
    }
  }
-
+ 
 @@ -200,7 +228,7 @@ class KernelCompiler {
-
+ 
        if (await fingerprinter.doesFingerprintMatch()) {
          printTrace('Skipping kernel compilation. Fingerprint match.');
 -        return CompilerOutput(outputFilePath, 0);
 +        return CompilerOutput(outputFilePath, 0, /* sources */ null);
        }
      }
-
+ 
 @@ -453,10 +481,13 @@ class ResidentCompiler {
          ? _mapFilename(request.mainPath, packageUriMapper) + ' '
          : '';
@@ -115,18 +115,18 @@ index 5f936715f..702101c9d 100644
      }
      _server.stdin.writeln(inputKey);
 +    printTrace('<- $inputKey');
-
+ 
      return _stdoutHandler.compilerOutput.future;
    }
-@@ -546,6 +577,7 @@ class ResidentCompiler {
+@@ -545,6 +576,7 @@ class ResidentCompiler {
        .listen((String message) { printError(message); });
-
+ 
      _server.stdin.writeln('compile $scriptUri');
 +    printTrace('<- compile $scriptUri');
-
+ 
      return _stdoutHandler.compilerOutput.future;
    }
-@@ -598,6 +630,7 @@ class ResidentCompiler {
+@@ -597,6 +629,7 @@ class ResidentCompiler {
    void accept() {
      if (_compileRequestNeedsConfirmation) {
        _server.stdin.writeln('accept');
@@ -134,7 +134,7 @@ index 5f936715f..702101c9d 100644
      }
      _compileRequestNeedsConfirmation = false;
    }
-@@ -621,6 +654,7 @@ class ResidentCompiler {
+@@ -620,6 +653,7 @@ class ResidentCompiler {
      }
      _stdoutHandler.reset();
      _server.stdin.writeln('reject');
@@ -142,13 +142,13 @@ index 5f936715f..702101c9d 100644
      _compileRequestNeedsConfirmation = false;
      return _stdoutHandler.compilerOutput.future;
    }
-@@ -630,6 +664,7 @@ class ResidentCompiler {
+@@ -629,6 +663,7 @@ class ResidentCompiler {
    /// kernel file.
    void reset() {
      _server?.stdin?.writeln('reset');
 +    printTrace('<- reset');
    }
-
+ 
    String _mapFilename(String filename, PackageUriMapper packageUriMapper) {
 diff --git a/packages/flutter_tools/lib/src/devfs.dart b/packages/flutter_tools/lib/src/devfs.dart
 index 7940e8bb0..9e8b9bd45 100644
@@ -163,3 +163,28 @@ index 7940e8bb0..9e8b9bd45 100644
      // Don't send full kernel file that would overwrite what VM already
      // started loading from.
      if (!bundleFirstUpload) {
+diff --git a/packages/flutter_tools/test/src/mocks.dart b/packages/flutter_tools/test/src/mocks.dart
+index 52c5fc907..36d63f2d5 100644
+--- a/packages/flutter_tools/test/src/mocks.dart
++++ b/packages/flutter_tools/test/src/mocks.dart
+@@ -496,6 +496,6 @@ class MockResidentCompiler extends BasicMock implements ResidentCompiler {
+   Future<CompilerOutput> recompile(String mainPath, List<String> invalidatedFiles, { String outputPath, String packagesFilePath }) async {
+     fs.file(outputPath).createSync(recursive: true);
+     fs.file(outputPath).writeAsStringSync('compiled_kernel_output');
+-    return CompilerOutput(outputPath, 0);
++    return CompilerOutput(outputPath, 0, <Uri>[]);
+   }
+ }
+diff --git a/packages/flutter_tools/test/tester/flutter_tester_test.dart b/packages/flutter_tools/test/tester/flutter_tester_test.dart
+index a78f70f4f..b6524bd5d 100644
+--- a/packages/flutter_tools/test/tester/flutter_tester_test.dart
++++ b/packages/flutter_tools/test/tester/flutter_tester_test.dart
+@@ -177,7 +177,7 @@ Hello!
+           packagesPath: anyNamed('packagesPath'),
+         )).thenAnswer((_) async {
+           fs.file('$mainPath.dill').createSync(recursive: true);
+-          return CompilerOutput('$mainPath.dill', 0);
++          return CompilerOutput('$mainPath.dill', 0, <Uri>[]);
+         });
+ 
+         final LaunchResult result = await device.startApp(null,
