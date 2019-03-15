@@ -3659,6 +3659,19 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('ms3');
   }
 
+  test_super_fromSuperclassConstraint() async {
+    addTestSource('''
+class C {
+  void c(x, int y) {}
+}
+mixin M on C {
+  m() {super.^}
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('c', 'C', 'void');
+  }
+
   test_super_withMixin() async {
     addTestSource('''
 mixin M {
