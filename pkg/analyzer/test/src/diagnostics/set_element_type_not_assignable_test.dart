@@ -56,7 +56,7 @@ class SetElementTypeNotAssignableWithUIAsCodeTest
     await assertNoErrorsInCode('''
 const dynamic a = 0;
 const dynamic b = 0;
-var v = <int>{if (1 < 0) a else b};
+var v = const <int>{if (1 < 0) a else b};
 ''');
   }
 
@@ -84,7 +84,7 @@ var v = const <int>{if (1 < 0) a};
   test_const_ifElement_thenTrue_intInt() async {
     await assertNoErrorsInCode('''
 const dynamic a = 0;
-var v = <int>{if (true) a};
+var v = const <int>{if (true) a};
 ''');
   }
 

@@ -192,6 +192,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         }
       }
     } else if (node.isMap) {
+      InterfaceType nodeType = node.staticType;
+      var keyType = nodeType.typeArguments[0];
+      var valueType = nodeType.typeArguments[1];
       bool reportEqualKeys = true;
       var duplicateKeyElements = <Expression>[];
       var verifier = _ConstLiteralVerifier(
@@ -199,6 +202,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         isConst: isConst,
         errorCode: CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT,
         forMap: true,
+        mapKeyType: keyType,
+        mapValueType: valueType,
         mapUniqueKeys: Set<DartObject>(),
         mapDuplicateKeyElements: duplicateKeyElements,
       );
@@ -696,19 +701,21 @@ class _ConstLiteralVerifier {
     } else if (element is IfElement) {
       if (!isConst) return true;
 
-      DartObject conditionResult =
-          verifier._validate(element.condition, errorCode);
-      bool conditionValue = conditionResult?.toBoolValue();
-      if (conditionValue == null) {
-        // The errors have already been reported.
-        return false;
-      } else if (conditionValue) {
-        return verify(element.thenElement);
-      } else if (element.elseElement != null) {
-        return verify(element.elseElement);
-      } else {
-        return true;
-      }
+      var conditionValue = verifier._validate(element.condition, errorCode);
+      var conditionBool = conditionValue?.toBoolValue();
+
+      // The errors have already been reported.
+      if (conditionBool == null) return false;
+
+      var thenValid = !conditionBool || verify(element.thenElement);
+
+      var elseValid = conditionBool ||
+          element.elseElement == null ||
+          verify(element.elseElement);
+
+      // TODO(scheglov) Check that not taken branches are constants
+
+      return thenValid && elseValid;
     } else if (element is MapLiteralEntry) {
       return _validateMapLiteralEntry(element);
     } else if (element is SpreadElement) {
@@ -784,29 +791,31 @@ class _ConstLiteralVerifier {
     if (!forMap) return false;
 
     var keyExpression = entry.key;
+    var valueExpression = entry.value;
+
     if (isConst) {
       var keyValue = verifier._validate(
         keyExpression,
         CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
       );
 
-      var valueExpression = entry.value;
       var valueValue = verifier._validate(
         valueExpression,
         CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
       );
 
       if (keyValue != null) {
-        verifier._reportErrorIfFromDeferredLibrary(
-          keyExpression,
-          CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
-        );
+        var keyType = keyValue.type;
 
-        if (!mapUniqueKeys.add(keyValue)) {
-          mapDuplicateKeyElements.add(keyExpression);
+        if (!verifier._evaluationEngine
+            .runtimeTypeMatch(keyValue, mapKeyType)) {
+          verifier._errorReporter.reportErrorForNode(
+            StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+            keyExpression,
+            [keyType, mapKeyType],
+          );
         }
 
-        var keyType = keyValue.type;
         if (verifier._implementsEqualsWhenNotAllowed(keyType)) {
           verifier._errorReporter.reportErrorForNode(
             CompileTimeErrorCode
@@ -815,9 +824,27 @@ class _ConstLiteralVerifier {
             [keyType],
           );
         }
+
+        verifier._reportErrorIfFromDeferredLibrary(
+          keyExpression,
+          CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
+        );
+
+        if (!mapUniqueKeys.add(keyValue)) {
+          mapDuplicateKeyElements.add(keyExpression);
+        }
       }
 
       if (valueValue != null) {
+        if (!verifier._evaluationEngine
+            .runtimeTypeMatch(valueValue, mapValueType)) {
+          verifier._errorReporter.reportErrorForNode(
+            StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+            valueExpression,
+            [valueValue.type, mapValueType],
+          );
+        }
+
         verifier._reportErrorIfFromDeferredLibrary(
           valueExpression,
           CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
