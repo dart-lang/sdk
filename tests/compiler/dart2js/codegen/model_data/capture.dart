@@ -4,7 +4,7 @@
 
 /*element: method1:params=0*/
 @pragma('dart2js:noInline')
-method1([a]) => /*params=0*/ () => a;
+method1([a]) => /*access=[a],params=0*/ () => a;
 
 class Class {
   /*element: Class.f:emitted*/
@@ -13,14 +13,14 @@ class Class {
 
   /*element: Class.capture:params=0*/
   @pragma('dart2js:noInline')
-  Class.capture([a]) : f = (/*params=0*/ () => a);
+  Class.capture([a]) : f = (/*access=[a],params=0*/ () => a);
 
   // TODO(johnniwinther): Remove the redundant assignment of elided boxed
   // parameters.
   /*element: Class.box:assign=[a,a],params=0*/
   @pragma('dart2js:noInline')
   Class.box([a])
-      : f = (/*assign=[a],params=0*/ () {
+      : f = (/*access=[_box_0],assign=[a],params=0*/ () {
           a = 42;
         });
 
@@ -30,12 +30,12 @@ class Class {
 class Subclass extends Class {
   /*element: Subclass.capture:params=0*/
   @pragma('dart2js:noInline')
-  Subclass.capture([a]) : super.internal(/*params=0*/ () => a);
+  Subclass.capture([a]) : super.internal(/*access=[a],params=0*/ () => a);
 
   /*element: Subclass.box:assign=[a,a],params=0*/
   @pragma('dart2js:noInline')
   Subclass.box([a])
-      : super.internal(/*assign=[a],params=0*/ () {
+      : super.internal(/*access=[_box_0],assign=[a],params=0*/ () {
           a = 42;
         });
 }
