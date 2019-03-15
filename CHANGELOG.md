@@ -1,3 +1,15 @@
+# 0.1.83
+
+* updated `file_names` to skip prefixed-extension Dart files (e.g., `.css.dart`, `.g.dart`)
+* updated SDK constraint to `2.2.0`
+* miscellaneous rule documentation fixes
+* (internal) updated sources to use Set literals
+* fixed NPE in `avoid_shadowing_type_parameters`
+* added linter version numbering for use in analyzer summaries
+* fixed type utilities to handle inheritance cycles
+* (internal) changes to adopt new `package:analyzer` APIs
+* fixed `unnecessary_parenthesis` false positives
+
 # 0.1.82
 
 * fixed `prefer_collection_literals` Set literal false positives
