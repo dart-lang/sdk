@@ -4,7 +4,8 @@ version: 0.1.82
 author: Dart Team <misc@dartlang.org>
 
 description: >-
-  A linter for idiomatic Dart, catching common errors at compile time.
+  The implementation of the lint rules supported by the analyzer framework.
+  This package is not intended to be used directly.
 homepage: https://github.com/dart-lang/linter
 documentation: https://dart-lang.github.io/linter/lints
 
