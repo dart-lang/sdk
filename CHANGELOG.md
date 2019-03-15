@@ -1,3 +1,8 @@
+## 2.2.1-dev.1.1
+
+* Cherry-pick 567d552de8ff93d704111467e7f3bf3b896ab684 to dev
+* Cherry-pick 4ca57befd707a0309e384472a566c084eef0e56e to dev
+
 ## 2.2.1-dev.1.0
 
 ### Tool Changes
