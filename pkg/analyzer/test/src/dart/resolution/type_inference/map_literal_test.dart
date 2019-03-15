@@ -370,10 +370,10 @@ f() {
     addTestFile('''
 f() {
   var futureNull = Future.value(null);
-  var a = {...?await futureNull : 1};
+  var a = {...?await futureNull};
 }
 ''');
     await resolveTestFile();
-    assertType(setOrMapLiteral('{...'), 'Map<dynamic, dynamic>');
+    assertType(setOrMapLiteral('{...'), 'dynamic');
   }
 }

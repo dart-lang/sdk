@@ -132,7 +132,6 @@ typedef F = int Function({Object m: const {1, 2: 3}});
     assertErrors(source, [
       ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
       CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
-      CompileTimeErrorCode.EXPRESSION_IN_MAP,
     ]);
     verify([source]);
   }

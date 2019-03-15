@@ -896,7 +896,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       // so treat it as though no type arguments were provided.
     }
     DartType literalType = _inferSetOrMapLiteralType(node);
-    if (literalType.element == _typeProvider.mapType.element) {
+    if (literalType.isDynamic) {
+      // The literal is ambiguous, and further analysis won't resolve the
+      // ambiguity.  Leave it as neither a set nor a map.
+    } else if (literalType.element == _typeProvider.mapType.element) {
       (node as SetOrMapLiteralImpl).becomeMap();
     } else {
       assert(literalType.element == _typeProvider.setType.element);
@@ -1815,8 +1818,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return _toMapType(literal, contextType, inferredTypes);
     } else {
       // Ambiguous.  We're not going to get any more information to resolve the
-      // ambiguity, so we have to make an arbitrary decision at this point; we
-      // choose map.
+      // ambiguity.  We don't want to make an arbitrary decision at this point
+      // because it will interfere with future type inference (see
+      // dartbug.com/36210), so we return a type of `dynamic`.
       if (mustBeAMap && mustBeASet) {
         _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, literal);
@@ -1824,7 +1828,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, literal);
       }
-      return _toMapType(literal, contextType, inferredTypes);
+      return _typeProvider.dynamicType;
     }
   }
 
