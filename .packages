@@ -65,7 +65,6 @@ observatory:runtime/observatory/lib
 package_config:third_party/pkg_tested/package_config/lib
 package_resolver:third_party/pkg_tested/package_resolver/lib
 path:third_party/pkg/path/lib
-plugin:third_party/pkg/plugin/lib
 pool:third_party/pkg/pool/lib
 protobuf:third_party/pkg/protobuf/protobuf/lib
 pub:third_party/pkg/pub/lib
