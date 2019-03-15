@@ -17,6 +17,14 @@ main() {
     ], isDartFileName, isFalse);
   });
 
+  group('isStrictDartFileName', () {
+    testEach(['foo.dart', 'a-b.dart'], isStrictDartFileName, isTrue);
+    testEach([
+      'a-b.css.dart',
+      'foo',
+    ], isStrictDartFileName, isFalse);
+  });
+
   group('pubspec', () {
     testEach(['pubspec.yaml', '_pubspec.yaml'], isPubspecFileName, isTrue);
     testEach(['__pubspec.yaml', 'foo.yaml'], isPubspecFileName, isFalse);

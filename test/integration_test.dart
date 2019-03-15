@@ -375,14 +375,22 @@ defineTests() {
         exitCode = 0;
       });
 
-      test('on bad file names', () async {
-        await cli.run(['test/_data/file_names', '--rules=file_names']);
+      test('bad', () async {
+        await cli.run(['test/_data/file_names/a-b.dart', '--rules=file_names']);
         expect(
             collectingOut.trim(),
             stringContainsInOrder([
               'a-b.dart 1:1 [lint] Name source files using `lowercase_with_underscores`.'
             ]));
         expect(exitCode, 1);
+      });
+
+      test('ok', () async {
+        await cli.run([
+          'test/_data/file_names/non-strict.css.dart',
+          '--rules=file_names'
+        ]);
+        expect(exitCode, 0);
       });
     });
 
