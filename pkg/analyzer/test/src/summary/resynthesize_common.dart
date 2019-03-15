@@ -9,8 +9,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
@@ -30,7 +30,6 @@ import 'test_strategies.dart';
  */
 abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   DeclaredVariables declaredVariables = new DeclaredVariables();
-  AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
   SourceFactory sourceFactory;
   MockSdk sdk;
 
@@ -2579,6 +2578,52 @@ const Object x = const <
     }
   }
 
+  test_const_list_spread() async {
+    experimentStatus = ExperimentStatus(spread_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>[...<int>[1]];
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const <
+        int/*location: dart:core;int*/>[...<
+        int/*location: dart:core;int*/>[1]];
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/>[...const <
+        int/*location: dart:core;int*/>[1]];
+''');
+    }
+  }
+
+  test_const_list_spread_null_aware() async {
+    experimentStatus = ExperimentStatus(spread_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>[...?<int>[1]];
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const <
+        int/*location: dart:core;int*/>[...?<
+        int/*location: dart:core;int*/>[1]];
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/>[...?const <
+        int/*location: dart:core;int*/>[1]];
+''');
+    }
+  }
+
   test_const_map_inferredType() async {
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
@@ -2598,6 +2643,60 @@ const Object x = const /*typeArgs=int,double*/{1: 1.0}/*isMap*/;
 const Object x = const <
         int/*location: dart:core;int*/,
         double/*location: dart:core;double*/>{1: 1.0}/*isMap*/;
+''');
+    }
+  }
+
+  test_const_map_spread() async {
+    experimentStatus = ExperimentStatus(spread_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int, int>{...<int, int>{1: 2}};
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{...<
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{1: 2}/*isMap*/}/*isMap*/;
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{...const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{1: 2}/*isMap*/}/*isMap*/;
+''');
+    }
+  }
+
+  test_const_map_spread_null_aware() async {
+    experimentStatus = ExperimentStatus(spread_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int, int>{...?<int, int>{1: 2}};
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{...?<
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{1: 2}/*isMap*/}/*isMap*/;
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{...?const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{1: 2}/*isMap*/}/*isMap*/;
 ''');
     }
   }
@@ -3060,6 +3159,52 @@ const Object x = const /*typeArgs=int*/{1}/*isSet*/;
       checkElementText(library, '''
 const Object x = const <
         int/*location: dart:core;int*/>{1}/*isSet*/;
+''');
+    }
+  }
+
+  test_const_set_spread() async {
+    experimentStatus = ExperimentStatus(spread_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>{...<int>{1}};
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const <
+        int/*location: dart:core;int*/>{...<
+        int/*location: dart:core;int*/>{1}/*isSet*/}/*isSet*/;
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/>{...const <
+        int/*location: dart:core;int*/>{1}/*isSet*/}/*isSet*/;
+''');
+    }
+  }
+
+  test_const_set_spread_null_aware() async {
+    experimentStatus = ExperimentStatus(spread_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>{...?<int>{1}};
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const <
+        int/*location: dart:core;int*/>{...?<
+        int/*location: dart:core;int*/>{1}/*isSet*/}/*isSet*/;
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/>{...?const <
+        int/*location: dart:core;int*/>{1}/*isSet*/}/*isSet*/;
 ''');
     }
   }

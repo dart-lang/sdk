@@ -541,6 +541,13 @@ abstract class AbstractConstExprSerializer {
       _serialize(element.key);
       _serialize(element.value);
       operations.add(UnlinkedExprOperation.makeMapLiteralEntry);
+    } else if (element is SpreadElement) {
+      _serialize(element.expression);
+      bool isNullAware = element.spreadOperator.type ==
+          TokenType.PERIOD_PERIOD_PERIOD_QUESTION;
+      operations.add(isNullAware
+          ? UnlinkedExprOperation.nullAwareSpreadElement
+          : UnlinkedExprOperation.spreadElement);
     } else {
       // TODO(paulberry): Implement serialization for spread and control flow
       //  elements.

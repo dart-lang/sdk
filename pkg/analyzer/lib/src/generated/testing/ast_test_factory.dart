@@ -817,7 +817,7 @@ class AstTestFactory {
 
   static ListLiteral listLiteral2(
           Keyword keyword, TypeArgumentList typeArguments,
-          [List<Expression> elements]) =>
+          [List<CollectionElement> elements]) =>
       astFactory.listLiteral(
           keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
           typeArguments,
@@ -1125,6 +1125,12 @@ class AstTestFactory {
   static SimpleFormalParameter simpleFormalParameter4(
           TypeAnnotation type, String parameterName) =>
       simpleFormalParameter2(null, type, parameterName);
+
+  static SpreadElement spreadElement(
+          TokenType operator, Expression expression) =>
+      astFactory.spreadElement(
+          spreadOperator: TokenFactory.tokenFromType(operator),
+          expression: expression);
 
   static StringInterpolation string([List<InterpolationElement> elements]) =>
       astFactory.stringInterpolation(elements);

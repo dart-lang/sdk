@@ -43,9 +43,11 @@ CompilationUnit parseText(
   Scanner scanner =
       new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
   Token token = scanner.tokenize();
-  Parser parser =
-      new Parser(NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
-        ..enableNonNullable = experimentStatus.non_nullable;
+  Parser parser = new Parser(
+      NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
+    ..enableNonNullable = experimentStatus.non_nullable
+    ..enableSpreadCollections = experimentStatus.spread_collections
+    ..enableControlFlowCollections = experimentStatus.control_flow_collections;
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
   return unit;
@@ -175,6 +177,9 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
         .map((Source source) => source.uri.toString())
         .toSet();
 
+    var analysisOptions = AnalysisOptionsImpl()
+      ..enabledExperiments = experimentStatus.toStringList();
+
     Map<String, LinkedLibrary> linkedSummaries = link(nonSdkLibraryUris,
         getDependency, getUnit, declaredVariables, analysisOptions);
 
@@ -222,7 +227,8 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
         contents = '';
       }
 
-      CompilationUnit unit = parseText(contents);
+      CompilationUnit unit =
+          parseText(contents, experimentStatus: experimentStatus);
 
       UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
       bundleAssembler.addUnlinkedUnit(source, unlinkedUnit);

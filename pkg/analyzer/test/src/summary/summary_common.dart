@@ -2754,6 +2754,34 @@ const int v = p.a.length;
         ]);
   }
 
+  test_constExpr_list_spread() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable = serializeVariableText('const v = [...[]];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '[...[]]', operators: [
+      UnlinkedExprOperation.makeUntypedList,
+      UnlinkedExprOperation.spreadElement,
+      UnlinkedExprOperation.makeUntypedList
+    ], ints: [
+      0,
+      1
+    ]);
+  }
+
+  test_constExpr_list_spread_null_aware() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable = serializeVariableText('const v = [...?[]];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '[...?[]]', operators: [
+      UnlinkedExprOperation.makeUntypedList,
+      UnlinkedExprOperation.nullAwareSpreadElement,
+      UnlinkedExprOperation.makeUntypedList
+    ], ints: [
+      0,
+      1
+    ]);
+  }
+
   test_constExpr_makeSymbol() {
     UnlinkedVariable variable = serializeVariableText('const v = #a.bb.ccc;');
     assertUnlinkedConst(variable.initializer.bodyExpr, '#a.bb.ccc',
@@ -3121,6 +3149,62 @@ const int v = p.a.length;
       ],
       ints: [11, 22, 33, 3],
     );
+  }
+
+  test_constExpr_map_spread() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('const v = <int, String>{...<int, String>{}};');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '<int, String>{...<int, String>{}}',
+        operators: [
+          UnlinkedExprOperation.makeTypedMap2,
+          UnlinkedExprOperation.spreadElement,
+          UnlinkedExprOperation.makeTypedMap2
+        ],
+        ints: [
+          0,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'String',
+              expectedKind: ReferenceKind.classOrEnum),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'String',
+              expectedKind: ReferenceKind.classOrEnum)
+        ]);
+  }
+
+  test_constExpr_map_spread_null_aware() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('const v = <int, String>{...?<int, String>{}};');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '<int, String>{...?<int, String>{}}',
+        operators: [
+          UnlinkedExprOperation.makeTypedMap2,
+          UnlinkedExprOperation.nullAwareSpreadElement,
+          UnlinkedExprOperation.makeTypedMap2
+        ],
+        ints: [
+          0,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'String',
+              expectedKind: ReferenceKind.classOrEnum),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'String',
+              expectedKind: ReferenceKind.classOrEnum)
+        ]);
   }
 
   test_constExpr_parenthesized() {
@@ -3839,6 +3923,52 @@ const v = p.C.foo;
     UnlinkedVariable variable = serializeVariableText('const v = true;');
     assertUnlinkedConst(variable.initializer.bodyExpr, 'true',
         operators: [UnlinkedExprOperation.pushTrue]);
+  }
+
+  test_constExpr_set_spread() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('const v = <int>{...<int>{}};');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '<int>{...<int>{}}',
+        operators: [
+          UnlinkedExprOperation.makeTypedSet,
+          UnlinkedExprOperation.spreadElement,
+          UnlinkedExprOperation.makeTypedSet
+        ],
+        ints: [
+          0,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum)
+        ]);
+  }
+
+  test_constExpr_set_spread_null_aware() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('const v = <int>{...?<int>{}};');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '<int>{...?<int>{}}',
+        operators: [
+          UnlinkedExprOperation.makeTypedSet,
+          UnlinkedExprOperation.nullAwareSpreadElement,
+          UnlinkedExprOperation.makeTypedSet
+        ],
+        ints: [
+          0,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum),
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum)
+        ]);
   }
 
   test_constructor() {

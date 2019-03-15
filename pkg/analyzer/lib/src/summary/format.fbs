@@ -972,7 +972,15 @@ enum UnlinkedExprOperation : byte {
 
   /// Pop the top 2 values from the stack, place them in a [MapLiteralEntry],
   /// and push the result back onto the stack.
-  makeMapLiteralEntry
+  makeMapLiteralEntry,
+
+  /// Pop the top value from the stack, convert it to a spread element of type
+  /// `...`, and push the result back onto the stack.
+  spreadElement,
+
+  /// Pop the top value from the stack, convert it to a spread element of type
+  /// `...?`, and push the result back onto the stack.
+  nullAwareSpreadElement
 }
 
 /// Enum used to indicate the kind of a parameter.

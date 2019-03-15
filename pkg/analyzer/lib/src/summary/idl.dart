@@ -3868,6 +3868,14 @@ enum UnlinkedExprOperation {
   /// Pop the top 2 values from the stack, place them in a [MapLiteralEntry],
   /// and push the result back onto the stack.
   makeMapLiteralEntry,
+
+  /// Pop the top value from the stack, convert it to a spread element of type
+  /// `...`, and push the result back onto the stack.
+  spreadElement,
+
+  /// Pop the top value from the stack, convert it to a spread element of type
+  /// `...?`, and push the result back onto the stack.
+  nullAwareSpreadElement,
 }
 
 /// Unlinked summary information about an import declaration.
