@@ -19,7 +19,8 @@ void main() {
 void testBottomUpInference() {
   Map<int, int> map = {};
   Set<int> set = Set();
-  dynamic dyn = map;
+  dynamic dynMap = map;
+  dynamic dynSet = set;
   Iterable<int> iterable = [];
   CustomSet customSet = CustomSet();
   CustomMap customMap = CustomMap();
@@ -35,21 +36,21 @@ void testBottomUpInference() {
 
   Expect.type<Map<int, int>>({...map, ...map});
   // Expect.type<...>({...map, ...set});
-  Expect.type<Map<dynamic, dynamic>>({...map, ...dyn});
+  Expect.type<Map<dynamic, dynamic>>({...map, ...dynMap});
   // Expect.type<...>({...map, ...iterable});
   // Expect.type<...>({...map, ...customSet});
   Expect.type<Map<int, int>>({...map, ...customMap});
 
   Expect.type<Set<int>>({...set, ...set});
-  Expect.type<Set<dynamic>>({...set, ...dyn});
+  Expect.type<Set<dynamic>>({...set, ...dynSet});
   Expect.type<Set<int>>({...set, ...iterable});
   Expect.type<Set<int>>({...set, ...customSet});
   // Expect.type<...>({...set, ...customMap});
 
   // Expect.type<...>({...dyn, ...dyn});
-  Expect.type<Set<dynamic>>({...dyn, ...iterable});
-  Expect.type<Set<dynamic>>({...dyn, ...customSet});
-  Expect.type<Map<dynamic, dynamic>>({...dyn, ...customMap});
+  Expect.type<Set<dynamic>>({...dynSet, ...iterable});
+  Expect.type<Set<dynamic>>({...dynSet, ...customSet});
+  Expect.type<Map<dynamic, dynamic>>({...dynMap, ...customMap});
 
   Expect.type<Set<int>>({...iterable, ...iterable});
   Expect.type<Set<int>>({...iterable, ...customSet});
