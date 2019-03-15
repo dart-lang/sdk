@@ -136,9 +136,6 @@ abstract class CommonElements {
   /// The `double` type defined in 'dart:core'.
   InterfaceType get doubleType;
 
-  /// The `Resource` type defined in 'dart:core'.
-  InterfaceType get resourceType;
-
   /// The `String` type defined in 'dart:core'.
   InterfaceType get stringType;
 
@@ -851,10 +848,6 @@ class CommonElementsImpl
   /// The `double` type defined in 'dart:core'.
   @override
   InterfaceType get doubleType => _getRawType(doubleClass);
-
-  /// The `Resource` type defined in 'dart:core'.
-  @override
-  InterfaceType get resourceType => _getRawType(resourceClass);
 
   /// The `String` type defined in 'dart:core'.
   @override
