@@ -17,7 +17,7 @@ main() {
 /*class: A1:checkedTypeArgument,checks=[],typeArgument*/
 class A1<T> {}
 
-/*class: B1:checkedTypeArgument,checks=[$asA1],typeArgument*/
+/*class: B1:checks=[$asA1],typeArgument*/
 class B1 extends A1<int> {}
 
 @pragma('dart2js:noInline')
@@ -78,10 +78,10 @@ void method3c(A3<String> a) {}
 @pragma('dart3js:noInline')
 _test3(f) => f is void Function(B3);
 
-/*class: A4:checkedTypeArgument,checks=[],typeArgument*/
+/*class: A4:checks=[],typeArgument*/
 class A4<T> {}
 
-/*class: B4:checkedTypeArgument,checks=[$asA4],typeArgument*/
+/*class: B4:checkedTypeArgument,checks=[],typeArgument*/
 class B4 extends A4<int> {}
 
 @pragma('dart4js:noInline')
@@ -101,8 +101,7 @@ _test4(f) => f is B4 Function();
 /*class: A5:checkedTypeArgument,checks=[],typeArgument*/
 class A5<T> {}
 
-/*strong.class: B5:checkedTypeArgument,checks=[$asA5],typeArgument*/
-/*omit.class: B5:checkedTypeArgument,checks=[$asA5],typeArgument*/
+/*class: B5:checks=[$asA5],typeArgument*/
 class B5 extends A5<int> {}
 
 @pragma('dart2js:noInline')
@@ -119,12 +118,10 @@ void method5c(void Function(A5<String>) f) => null;
 @pragma('dart2js:noInline')
 bool _test5(f) => f is void Function(void Function(A5<int>));
 
-/*strong.class: A6:checkedTypeArgument,checks=[],typeArgument*/
-/*omit.class: A6:checkedTypeArgument,checks=[],typeArgument*/
+/*class: A6:checkedTypeArgument,checks=[],typeArgument*/
 class A6<T> {}
 
-/*strong.class: B6:checkedTypeArgument,checks=[$asA6],typeArgument*/
-/*omit.class: B6:checkedTypeArgument,checks=[$asA6],typeArgument*/
+/*class: B6:checkedTypeArgument,checks=[$asA6],typeArgument*/
 class B6 extends A6<int> {}
 
 @pragma('dart6js:noInline')
@@ -141,12 +138,10 @@ void Function(A6<String>) method6c() => null;
 @pragma('dart6js:noInline')
 _test6(f) => f is void Function(B6) Function();
 
-/*strong.class: A7:checkedTypeArgument,checks=[],typeArgument*/
-/*omit.class: A7:checkedTypeArgument,checks=[],typeArgument*/
+/*class: A7:checks=[],typeArgument*/
 class A7<T> {}
 
-/*strong.class: B7:checkedTypeArgument,checks=[$asA7],typeArgument*/
-/*omit.class: B7:checkedTypeArgument,checks=[$asA7],typeArgument*/
+/*class: B7:checkedTypeArgument,checks=[],typeArgument*/
 class B7 extends A7<int> {}
 
 @pragma('dart7js:noInline')

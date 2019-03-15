@@ -16,10 +16,10 @@ main() {
   test6();
 }
 
-/*class: B1:checks=[],typeArgument*/
+/*class: B1:checkedTypeArgument,checks=[],typeArgument*/
 class B1<T> {}
 
-/*class: C1:checkedTypeArgument,checks=[],typeArgument*/
+/*class: C1:checkedTypeArgument,checks=[$asB1],typeArgument*/
 class C1 extends B1<int> {}
 
 @pragma('dart2js:noInline')
@@ -51,7 +51,7 @@ _test2(f) => f is A<C2 Function()>;
 /*class: B3:checkedTypeArgument,checks=[],typeArgument*/
 class B3<T> {}
 
-/*class: C3:checks=[$asB3],typeArgument*/
+/*class: C3:checkedTypeArgument,checks=[$asB3],typeArgument*/
 class C3 extends B3<int> {}
 
 @pragma('dart2js:noInline')
@@ -80,10 +80,10 @@ test4() {
 @pragma('dart4js:noInline')
 _test4(f) => f is A<B4<int> Function()>;
 
-/*class: B5:checks=[],typeArgument*/
+/*class: B5:checkedTypeArgument,checks=[],typeArgument*/
 class B5<T> {}
 
-/*class: C5:checkedTypeArgument,checks=[],typeArgument*/
+/*class: C5:checkedTypeArgument,checks=[$asB5],typeArgument*/
 class C5 extends B5<int> {}
 
 @pragma('dart2js:noInline')
