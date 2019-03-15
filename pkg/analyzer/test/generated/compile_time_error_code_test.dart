@@ -457,13 +457,6 @@ class A<E> {
     verify([source]);
   }
 
-  test_mapKeyTypeNotAssignable_const() async {
-    Source source = addSource("var v = const <String, int >{1 : 2};");
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
   test_mapValueTypeNotAssignable_const() async {
     Source source = addSource("var v = const <String, String>{'a' : 2};");
     await computeAnalysisResult(source);
