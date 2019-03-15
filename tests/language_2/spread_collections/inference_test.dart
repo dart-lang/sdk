@@ -113,5 +113,5 @@ void testTopDownInference() {
   Expect.setEquals(<int>{}, <int>{...expectIntSet()});
 
   // Bottom up-inference from elements is not pushed back down into spread.
-  Expect.setEquals(<int>{}, {1, ...expectDynamicSet()});
+  Expect.setEquals(<int>{1}, {1, ...expectDynamicSet()});
 }

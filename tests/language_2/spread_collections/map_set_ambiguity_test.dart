@@ -32,14 +32,14 @@ void testBottomUpInference() {
   // Expect.type<...>({...dyn});
   Expect.type<Set<int>>({...iterable});
   Expect.type<Set<int>>({...customSet});
-  Expect.type<Map<int, int>>({...customMap});
+  Expect.type<Map<int, String>>({...customMap});
 
   Expect.type<Map<int, int>>({...map, ...map});
   // Expect.type<...>({...map, ...set});
   Expect.type<Map<dynamic, dynamic>>({...map, ...dynMap});
   // Expect.type<...>({...map, ...iterable});
   // Expect.type<...>({...map, ...customSet});
-  Expect.type<Map<int, int>>({...map, ...customMap});
+  Expect.type<Map<int, Object>>({...map, ...customMap});
 
   Expect.type<Set<int>>({...set, ...set});
   Expect.type<Set<dynamic>>({...set, ...dynSet});
@@ -59,7 +59,7 @@ void testBottomUpInference() {
   Expect.type<Set<int>>({...customSet, ...customSet});
   // Expect.type<...>({...customSet, ...customMap});
 
-  Expect.type<Map<int, int>>({...customMap, ...customMap});
+  Expect.type<Map<int, String>>({...customMap, ...customMap});
 }
 
 void testTopDownInference() {
