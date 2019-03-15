@@ -19,6 +19,7 @@ import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/target/vm.dart';
+import 'package:compiler/src/kernel/dart2js_target.dart';
 
 main(List<String> args) async {
   args = preprocessArgs(args);
@@ -83,7 +84,7 @@ List<String> preprocessArgs(List<String> args) {
 
 /// An [ArgParser] for generating kernel summaries.
 final summaryArgsParser = new ArgParser()
-  ..addFlag('help', negatable: false)
+  ..addFlag('help', negatable: false, abbr: 'h')
   ..addFlag('exclude-non-sources',
       negatable: false,
       help: 'Whether source files loaded implicitly should be included as '
@@ -92,11 +93,15 @@ final summaryArgsParser = new ArgParser()
       defaultsTo: true,
       negatable: true,
       help: 'Whether to only build summary files.')
+  ..addOption('target',
+      allowed: const ['vm', 'dart2js', 'devcompiler'],
+      help: 'Build kernel for the vm, dart2js, or devcompiler')
   ..addOption('dart-sdk-summary')
   ..addMultiOption('input-summary')
   ..addMultiOption('input-linked')
   ..addMultiOption('multi-root')
   ..addOption('multi-root-scheme', defaultsTo: 'org-dartlang-multi-root')
+  ..addOption('libraries-file')
   ..addOption('packages-file')
   ..addMultiOption('source')
   ..addOption('output');
@@ -128,20 +133,55 @@ Future<bool> computeKernel(List<String> args,
   if (multiRoots.isEmpty) multiRoots.add(Uri.base);
   var fileSystem = new MultiRootFileSystem(parsedArgs['multi-root-scheme'],
       multiRoots, fe.StandardFileSystem.instance);
-  var sources = (parsedArgs['source'] as List<String>).map(Uri.parse).toList();
-  Target target;
-  var summaryOnly = parsedArgs['summary-only'] as bool;
+  var sources =
+      (parsedArgs['source'] as List<String>).map(Uri.base.resolve).toList();
   var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
+
+  var summaryOnly = parsedArgs['summary-only'] as bool;
+  // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
+  // compatible while we migrate existing clients of this tool.
+  var targetName =
+      (parsedArgs['target'] as String) ?? (summaryOnly ? 'devcompiler' : 'vm');
   var targetFlags = new TargetFlags();
-  if (summaryOnly) {
-    target = new SummaryTarget(sources, excludeNonSources, targetFlags);
-  } else {
-    target = new VmTarget(targetFlags);
+  Target target;
+  switch (targetName) {
+    case 'vm':
+      target = new VmTarget(targetFlags);
+      if (summaryOnly) {
+        out.writeln('error: --summary-only not supported for the vm target');
+      }
+      break;
+    case 'dart2js':
+      target = new Dart2jsTarget('dart2js', targetFlags);
+      if (summaryOnly) {
+        out.writeln(
+            'error: --summary-only not supported for the dart2js target');
+      }
+      break;
+    case 'devcompiler':
+      // TODO(jakemac): change to a subclass of `DevCompilerTarget`. If
+      // `generateKernel` changes to return a summary component, use the default
+      // `DevCompilerTarget` and post process the component instead.
+      target = new SummaryTarget(sources, excludeNonSources, targetFlags);
+      if (!summaryOnly) {
+        out.writeln('error: --no-summary-only not supported for the '
+            'devcompiler target');
+      }
+      break;
+    default:
+      out.writeln('error: unsupported target: $targetName');
   }
+
+  // TODO(sigmund,jakemac): make it mandatory. We allow null while we migrate
+  // existing clients of this tool.
+  var librariesSpec = parsedArgs['libraries-file'] == null
+      ? null
+      : Uri.base.resolve(parsedArgs['libraries-file']);
   var state = await fe.initializeCompiler(
       // TODO(sigmund): pass an old state once we can make use of it.
       null,
       Uri.base.resolve(parsedArgs['dart-sdk-summary']),
+      librariesSpec,
       Uri.base.resolve(parsedArgs['packages-file']),
       (parsedArgs['input-summary'] as List<String>)
           .map(Uri.base.resolve)
