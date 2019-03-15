@@ -67,7 +67,7 @@ package_resolver:third_party/pkg_tested/package_resolver/lib
 path:third_party/pkg/path/lib
 plugin:third_party/pkg/plugin/lib
 pool:third_party/pkg/pool/lib
-protobuf:third_party/pkg/protobuf/lib
+protobuf:third_party/pkg/protobuf/protobuf/lib
 pub:third_party/pkg/pub/lib
 pub_semver:third_party/pkg/pub_semver/lib
 quiver:third_party/pkg/quiver/lib

@@ -54,7 +54,7 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.4.4",
   "async_tag": "2.0.8",
-  "bazel_worker_tag": "0.1.14",
+  "bazel_worker_tag": "bazel_worker-v0.1.20",
   "boolean_selector_tag" : "1.0.4",
   "boringssl_gen_rev": "bbf52f18f425e29b1185f2f6753bec02ed8c5880",
   "boringssl_rev" : "702e2b6d3831486535e958f262a05c75a5cb312e",
@@ -111,7 +111,7 @@ vars = {
   "plugin_tag": "f5b4b0e32d1406d62daccea030ba6457d14b1c47",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
-  "protobuf_tag": "0.9.0",
+  "protobuf_tag": "0c77167b16d00b561a6055bfe26690af7f26ae88",
   "pub_rev": "3c060aae47985e9a248b850f1d0450304a5c97e3",
   "pub_semver_tag": "1.4.2",
   "quiver_tag": "2.0.0+1",
