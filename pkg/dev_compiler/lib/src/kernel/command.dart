@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
+import 'package:dev_compiler/src/flutter/track_widget_constructor_locations.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/kernel.dart' hide MapEntry;
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
@@ -72,6 +73,8 @@ Future<CompilerResult> _compile(List<String> args,
         help: 'emit API summary in a .js.txt file',
         defaultsTo: false,
         hide: true)
+    ..addFlag('track-widget-creation',
+        help: 'enable inspecting of Flutter widgets', hide: true)
     // TODO(jmesserly): add verbose help to show hidden options
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
@@ -252,8 +255,16 @@ Future<CompilerResult> _compile(List<String> args,
     outFiles.add(File(output + '.txt').writeAsString(sb.toString()));
   }
   var target = compilerState.options.target as DevCompilerTarget;
+  var hierarchy = target.hierarchy;
+
+  // TODO(jmesserly): remove this hack once Flutter SDK has a `dartdevc` with
+  // support for the widget inspector.
+  if (argResults['track-widget-creation'] as bool) {
+    WidgetCreatorTracker(hierarchy).transform(component);
+  }
+
   var compiler =
-      ProgramCompiler(component, target.hierarchy, options, declaredVariables);
+      ProgramCompiler(component, hierarchy, options, declaredVariables);
 
   var jsModule = compiler.emitModule(component, result.inputSummaries,
       compilerState.options.inputSummaries, summaryModules);
