@@ -252,6 +252,10 @@ class FindNode {
     return _node(search, (n) => n is VariableDeclaration);
   }
 
+  VariableDeclarationList variableDeclarationList(String search) {
+    return _node(search, (n) => n is VariableDeclarationList);
+  }
+
   WhileStatement whileStatement(String search) {
     return _node(search, (n) => n is WhileStatement);
   }
