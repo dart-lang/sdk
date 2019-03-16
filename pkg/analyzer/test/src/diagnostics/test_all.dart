@@ -43,7 +43,9 @@ import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
 import 'non_bool_condition_test.dart' as non_bool_condition;
+import 'non_constant_list_element_test.dart' as non_constant_list_element;
 import 'non_constant_map_element_test.dart' as non_constant_map_element;
+import 'non_constant_set_element_test.dart' as non_constant_set_element;
 import 'set_element_type_not_assignable_test.dart'
     as set_element_type_not_assignable;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
@@ -106,7 +108,9 @@ main() {
     must_be_immutable.main();
     must_call_super.main();
     non_bool_condition.main();
+    non_constant_list_element.main();
     non_constant_map_element.main();
+    non_constant_set_element.main();
     set_element_type_not_assignable.main();
     subtype_of_sealed_class.main();
     top_level_instance_getter.main();

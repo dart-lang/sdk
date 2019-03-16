@@ -94,14 +94,6 @@ var v = const <int, bool>{if (1 < 0) 'a': true};
 ''', [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
   }
 
-  @failingTest
-  test_const_ifElement_thenFalse_notConst() async {
-    await assertErrorsInCode('''
-final a = 0;
-var v = const <int, bool>{if (1 > 2) a: true};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
-  }
-
   test_const_ifElement_thenTrue_intInt_dynamic() async {
     await assertNoErrorsInCode('''
 const dynamic a = 0;

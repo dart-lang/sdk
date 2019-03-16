@@ -13,6 +13,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -707,13 +708,19 @@ class _ConstLiteralVerifier {
       // The errors have already been reported.
       if (conditionBool == null) return false;
 
-      var thenValid = !conditionBool || verify(element.thenElement);
-
-      var elseValid = conditionBool ||
-          element.elseElement == null ||
-          verify(element.elseElement);
-
-      // TODO(scheglov) Check that not taken branches are constants
+      var thenValid = true;
+      var elseValid = true;
+      if (conditionBool) {
+        thenValid = verify(element.thenElement);
+        if (element.elseElement != null) {
+          elseValid = _reportNotPotentialConstants(element.elseElement);
+        }
+      } else {
+        thenValid = _reportNotPotentialConstants(element.thenElement);
+        if (element.elseElement != null) {
+          elseValid = verify(element.elseElement);
+        }
+      }
 
       return thenValid && elseValid;
     } else if (element is MapLiteralEntry) {
@@ -737,6 +744,36 @@ class _ConstLiteralVerifier {
     throw new UnsupportedError(
       'Unhandled type of collection element: ${element.runtimeType}',
     );
+  }
+
+  /// Return `true` if the [node] is a potential constant.
+  bool _reportNotPotentialConstants(AstNode node) {
+    var notPotentiallyConstants = getNotPotentiallyConstants(node);
+    if (notPotentiallyConstants.isEmpty) return true;
+
+    for (var notConst in notPotentiallyConstants) {
+      CompileTimeErrorCode errorCode;
+      if (forList) {
+        errorCode = CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT;
+      } else if (forMap) {
+        errorCode = CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT;
+        for (var parent = notConst; parent != null; parent = parent.parent) {
+          if (parent is MapLiteralEntry) {
+            if (parent.key == notConst) {
+              errorCode = CompileTimeErrorCode.NON_CONSTANT_MAP_KEY;
+            } else {
+              errorCode = CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE;
+            }
+            break;
+          }
+        }
+      } else if (forSet) {
+        errorCode = CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT;
+      }
+      verifier._errorReporter.reportErrorForNode(errorCode, notConst);
+    }
+
+    return false;
   }
 
   bool _validateListExpression(Expression expression, DartObjectImpl value) {
