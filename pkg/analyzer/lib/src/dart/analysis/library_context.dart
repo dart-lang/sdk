@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -43,7 +42,7 @@ class LibraryContext {
   /// We use it as an approximation for the heap size of elements.
   int _linkedDataInBytes = 0;
 
-  AnalysisContextImpl analysisContext;
+  RestrictedAnalysisContext analysisContext;
   SummaryResynthesizer resynthesizer;
   InheritanceManager2 inheritanceManager;
 
@@ -72,9 +71,10 @@ class LibraryContext {
     // Fill the store with summaries required for the initial library.
     load(targetLibrary);
 
-    var provider = new InputPackagesResultProvider(analysisContext, store,
-        session: session);
-    resynthesizer = provider.resynthesizer;
+    resynthesizer = new StoreBasedSummaryResynthesizer(
+        analysisContext, session, sourceFactory, true, store);
+    analysisContext.typeProvider = resynthesizer.typeProvider;
+    resynthesizer.finishCoreAsyncLibraries();
 
     inheritanceManager = new InheritanceManager2(analysisContext.typeSystem);
   }
