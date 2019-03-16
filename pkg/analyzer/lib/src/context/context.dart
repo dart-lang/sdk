@@ -17,7 +17,6 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/task/api/model.dart';
-import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
 
 /**
@@ -58,11 +57,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   @override
   final List<WorkManager> workManagers = <WorkManager>[];
-
-  /**
-   * The [DartWorkManager] instance that performs Dart specific scheduling.
-   */
-  DartWorkManager dartWorkManager;
 
   /**
    * The analysis driver used to perform analysis.
