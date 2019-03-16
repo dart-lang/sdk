@@ -348,6 +348,19 @@ class B {}
     ]);
   }
 
+  test_added_part_withoutLibrary() async {
+    var b = convertPath('/home/test/lib/b.dart');
+
+    newFile(b, content: r'''
+part of 'a.dart';
+''');
+    tracker.changeFile(b);
+    await _doAllTrackerWork();
+
+    _assertHasNoLibrary('package:test/a.dart');
+    _assertHasNoLibrary('package:test/b.dart');
+  }
+
   test_chooseContext_inAnalysisRoot() async {
     var homePath = convertPath('/home');
     var testPath = convertPath('/home/test');
@@ -536,6 +549,30 @@ class D {}
     _assertHasLibrary('package:test/b.dart');
   }
 
+  test_deleted_library_ofPart() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+
+    newFile(a, content: r'''
+part 'b.dart';
+''');
+    newFile(b, content: r'''
+part of 'a.dart';
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/a.dart');
+    _assertHasNoLibrary('package:test/b.dart');
+
+    deleteFile(a);
+    tracker.changeFile(a);
+    await _doAllTrackerWork();
+
+    _assertHasNoLibrary('package:test/a.dart');
+    _assertHasNoLibrary('package:test/b.dart');
+  }
+
   test_deleted_part() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
@@ -573,6 +610,19 @@ class C {}
     _assertHasLibrary('package:test/c.dart', declarations: [
       _ExpectedDeclaration.class_('C'),
     ]);
+  }
+
+  test_deleted_part_withoutLibrary() async {
+    var b = convertPath('/home/test/lib/b.dart');
+
+    newFile(b, content: r'''
+part of 'a.dart';
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasNoLibrary('package:test/a.dart');
+    _assertHasNoLibrary('package:test/b.dart');
   }
 
   test_updated_exported() async {
@@ -712,6 +762,30 @@ class B2 {}
     _assertHasLibrary('package:test/c.dart', declarations: [
       _ExpectedDeclaration.class_('C'),
     ]);
+  }
+
+  test_updated_part_withoutLibrary() async {
+    var b = convertPath('/home/test/lib/b.dart');
+
+    newFile(b, content: r'''
+part of 'a.dart';
+class B {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasNoLibrary('package:test/a.dart');
+    _assertHasNoLibrary('package:test/b.dart');
+
+    newFile(b, content: r'''
+part of 'a.dart';
+class B2 {}
+''');
+    tracker.changeFile(b);
+
+    await _doAllTrackerWork();
+    _assertHasNoLibrary('package:test/a.dart');
+    _assertHasNoLibrary('package:test/b.dart');
   }
 }
 
