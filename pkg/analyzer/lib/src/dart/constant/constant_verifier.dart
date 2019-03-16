@@ -798,7 +798,6 @@ class _ConstLiteralVerifier {
         keyExpression,
         CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
       );
-
       var valueValue = verifier._validate(
         valueExpression,
         CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
@@ -865,23 +864,34 @@ class _ConstLiteralVerifier {
           mapDuplicateKeyElements.add(keyExpression);
         }
       }
-
-      return true;
     }
     return true;
   }
 
   bool _validateMapSpread(SpreadElement element, DartObjectImpl value) {
-    if (value.toMapValue() != null ||
-        value.isNull && _isNullableSpread(element)) {
+    if (value.isNull && _isNullableSpread(element)) {
       return true;
     }
-
+    Map<DartObject, DartObject> map = value.toMapValue();
+    if (map != null) {
+      // TODO(brianwilkerson) Figure out how to improve the error messages. They
+      //  currently point to the whole spread expression, but the key and/or
+      //  value being referenced might not be located there (if it's referenced
+      //  through a const variable).
+      for (var entry in map.entries) {
+        DartObjectImpl keyValue = entry.key;
+        if (keyValue != null) {
+          if (!mapUniqueKeys.add(keyValue)) {
+            mapDuplicateKeyElements.add(element.expression);
+          }
+        }
+      }
+      return true;
+    }
     verifier._errorReporter.reportErrorForNode(
       CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP,
       element.expression,
     );
-
     return false;
   }
 

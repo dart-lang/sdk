@@ -69,7 +69,6 @@ void main() {
 ''');
   }
 
-  @failingTest
   test_spreadElement_addsDuplicate() async {
     await assertErrorsInCode('''
 void main() {
