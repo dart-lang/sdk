@@ -9,6 +9,7 @@ import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
 import 'const_constructor_param_type_mismatch_test.dart'
     as const_constructor_param_type_mismatch;
+import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
 import 'const_map_key_expression_type_implements_equals_test.dart'
     as const_map_key_expression_type_implements_equals;
 import 'const_set_element_type_implements_equals_test.dart'
@@ -78,6 +79,7 @@ main() {
     argument_type_not_assignable.main();
     can_be_null_after_null_aware.main();
     const_constructor_param_type_mismatch.main();
+    const_eval_throws_exception.main();
     const_map_key_expression_type_implements_equals.main();
     const_set_element_type_implements_equals.main();
     const_spread_expected_list_or_set.main();

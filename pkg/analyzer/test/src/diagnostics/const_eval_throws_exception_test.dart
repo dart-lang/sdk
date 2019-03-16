@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -144,6 +145,27 @@ class ConstEvalThrowsExceptionWithUIAsCodeTest
 const dynamic nil = null;
 const c = [if (1 < 0) nil + 1];
 ''');
+  }
+
+  test_ifElement_nonBoolCondition_list() async {
+    assertErrorsInCode('''
+const dynamic nonBool = 3;
+const c = const [if (nonBool) 'a'];
+''', [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+  }
+
+  test_ifElement_nonBoolCondition_map() async {
+    assertErrorsInCode('''
+const dynamic nonBool = null;
+const c = const {if (nonBool) 'a' : 1};
+''', [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+  }
+
+  test_ifElement_nonBoolCondition_set() async {
+    assertErrorsInCode('''
+const dynamic nonBool = 'a';
+const c = const {if (nonBool) 3};
+''', [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
   }
 
   test_ifElement_true_elseNotEvaluated() async {
