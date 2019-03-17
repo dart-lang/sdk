@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/literal_element_verifier.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -1204,7 +1205,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForImplicitDynamicTypedLiteral(node);
       _checkForMapTypeNotAssignable(node);
       _checkForNonConstMapAsExpressionStatement3(node);
-      _checkForExpressions(node.elements2);
     } else if (node.isSet) {
       if (typeArguments != null) {
         if (node.isConst) {
@@ -1220,7 +1220,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForRawTypedLiteral(node);
       _checkForImplicitDynamicTypedLiteral(node);
       _checkForSetElementTypeNotAssignable3(node);
-      _checkForMapEntries(node.elements2);
     }
     super.visitSetOrMapLiteral(node);
   }
@@ -2229,63 +2228,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * Verify that the type of the elements of the given [spreadExpression] (the
-   * [spreadExpressionType]) can be assigned to the element type of the
-   * enclosing collection (the [elementType]). If not, report an error with the
-   * given [errorCode].
-   */
-  void _checkForArgumentTypeNotAssignableInSpread(
-      Expression spreadExpression,
-      DartType spreadExpressionType,
-      DartType elementType,
-      ErrorCode errorCode) {
-    if (spreadExpressionType != null && elementType != null) {
-      if (!elementType.isVoid && _checkForUseOfVoidResult(spreadExpression)) {
-        return;
-      }
-      if (spreadExpressionType is InterfaceType) {
-        if (_typeSystem.isSubtypeOf(
-            spreadExpressionType, _typeProvider.iterableObjectType)) {
-          InterfaceType iterableType =
-              (spreadExpressionType as InterfaceTypeImpl)
-                  .asInstanceOf(_typeProvider.iterableType.element);
-          if (iterableType != null) {
-            // The `iterableType` will be `null` when `spreadExpressionType` is
-            // `Null`. Fall through in that case to perform the default type
-            // check.
-            List<DartType> typeArguments = iterableType.typeArguments;
-            if (typeArguments.length == 1) {
-              _checkForAssignableExpressionAtType(
-                  spreadExpression, typeArguments[0], elementType, errorCode);
-              return;
-            }
-          }
-        } else if (_typeSystem.isSubtypeOf(
-            spreadExpressionType, _typeProvider.mapObjectObjectType)) {
-          // TODO(brianwilkerson) Handle spreads involving maps? This method
-          //  isn't currently called for maps, but might be if it's reworked as
-          //  expected.
-//          InterfaceType mapType =
-//              (spreadExpressionType as InterfaceTypeImpl)
-//                  .asInstanceOf(_typeProvider.mapType.element);
-//          if (mapType != null) {
-//            List<DartType> typeArguments = mapType.typeArguments;
-//            if (typeArguments.length == 2) {
-//              _checkForAssignableExpressionAtType(
-//                  spreadExpression, typeArguments[0], keyType, errorCode);
-//              _checkForAssignableExpressionAtType(
-//                  spreadExpression, typeArguments[1], valueType, errorCode);
-//              return;
-//            }
-//          }
-        }
-      }
-      _checkForAssignableExpressionAtType(
-          spreadExpression, spreadExpressionType, elementType, errorCode);
-    }
-  }
-
-  /**
    * Verify that the given [expression] can be assigned to its corresponding
    * parameters. The [expectedStaticType] is the expected static type.
    *
@@ -2540,34 +2482,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       if (member is SwitchCase) {
         _checkForCaseBlockNotTerminated(member);
       }
-    }
-  }
-
-  /**
-   * Verify that the given [element] can be assigned to the [elementType] of the
-   * enclosing list or set literal. Report an error with the given [errorCode]
-   * if not.
-   *
-   * This method corresponds to
-   * [BestPracticesVerifier.checkForArgumentTypeNotAssignableWithExpectedTypes].
-   */
-  void _checkForCollectionElementTypeNotAssignableWithElementType(
-      CollectionElement element, DartType elementType, ErrorCode errorCode) {
-    if (element is ForElement) {
-      _checkForCollectionElementTypeNotAssignableWithElementType(
-          element.body, elementType, errorCode);
-    } else if (element is IfElement) {
-      _checkForCollectionElementTypeNotAssignableWithElementType(
-          element.thenElement, elementType, errorCode);
-      _checkForCollectionElementTypeNotAssignableWithElementType(
-          element.elseElement, elementType, errorCode);
-    } else if (element is Expression) {
-      _checkForArgumentTypeNotAssignable(
-          element, elementType, getStaticType(element), errorCode);
-    } else if (element is SpreadElement) {
-      Expression expression = element.expression;
-      _checkForArgumentTypeNotAssignableInSpread(
-          expression, getStaticType(expression), elementType, errorCode);
     }
   }
 
@@ -3172,32 +3086,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
         directive,
         [directive.uri]);
-  }
-
-  /**
-   * Create a diagnostic if any of the leaf elements in the given collection of
-   * [elements] is an expression.
-   */
-  void _checkForExpression(CollectionElement element) {
-    if (element is ForElement) {
-      _checkForExpression(element.body);
-    } else if (element is IfElement) {
-      _checkForExpression(element.thenElement);
-      _checkForExpression(element.elseElement);
-    } else if (element is Expression) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.EXPRESSION_IN_MAP, element);
-    }
-  }
-
-  /**
-   * Create a diagnostic if any of the leaf elements in the given collection of
-   * [elements] is an expression.
-   */
-  void _checkForExpressions(NodeList<CollectionElement> elements) {
-    for (CollectionElement element in elements) {
-      _checkForExpression(element);
-    }
   }
 
   /**
@@ -3975,85 +3863,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     DartType listElementType = typeArguments[0];
 
     // Check every list element.
+    var verifier = LiteralElementVerifier(
+      _typeProvider,
+      _typeSystem,
+      _errorReporter,
+      _checkForUseOfVoidResult,
+      forList: true,
+      elementType: listElementType,
+    );
     for (CollectionElement element in literal.elements2) {
-      _checkForCollectionElementTypeNotAssignableWithElementType(element,
-          listElementType, StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
-    }
-  }
-
-  /**
-   * Verify that the given [element] can be assigned to the [elementType] of the
-   * enclosing list or set literal. Report an error with the given [errorCode]
-   * if not.
-   *
-   * This method corresponds to
-   * [BestPracticesVerifier.checkForArgumentTypeNotAssignableWithExpectedTypes].
-   */
-  void _checkForMapElementTypeNotAssignableWithKeyOrValueType(
-      CollectionElement element,
-      DartType keyType,
-      DartType valueType,
-      ErrorCode keyErrorCode,
-      ErrorCode valueErrorCode) {
-    if (element is ForElement) {
-      _checkForMapElementTypeNotAssignableWithKeyOrValueType(
-          element.body, keyType, valueType, keyErrorCode, valueErrorCode);
-    } else if (element is IfElement) {
-      _checkForMapElementTypeNotAssignableWithKeyOrValueType(
-          element.thenElement,
-          keyType,
-          valueType,
-          keyErrorCode,
-          valueErrorCode);
-      _checkForMapElementTypeNotAssignableWithKeyOrValueType(
-          element.elseElement,
-          keyType,
-          valueType,
-          keyErrorCode,
-          valueErrorCode);
-    } else if (element is MapLiteralEntry) {
-      _checkForArgumentTypeNotAssignableWithExpectedTypes(
-          element.key, keyType, keyErrorCode);
-      _checkForArgumentTypeNotAssignableWithExpectedTypes(
-          element.value, valueType, valueErrorCode);
-    } else if (element is SpreadElement) {
-      Expression expression = element.expression;
-      DartType expressionType = getStaticType(expression);
-      if (expressionType is ParameterizedType) {
-        List<DartType> typeArguments = expressionType.typeArguments;
-        if (typeArguments.length == 2) {
-          _checkForArgumentTypeNotAssignable(
-              expression, keyType, typeArguments[0], keyErrorCode);
-          _checkForArgumentTypeNotAssignable(
-              expression, valueType, typeArguments[1], valueErrorCode);
-        }
-      }
-    }
-  }
-
-  /**
-   * Create a diagnostic if any of the leaf elements in the given collection of
-   * [elements] is a map entry.
-   */
-  void _checkForMapEntries(NodeList<CollectionElement> elements) {
-    for (CollectionElement element in elements) {
-      _checkForMapEntry(element);
-    }
-  }
-
-  /**
-   * Create a diagnostic if any of the leaf elements in the given collection of
-   * [elements] is a map entry.
-   */
-  void _checkForMapEntry(CollectionElement element) {
-    if (element is ForElement) {
-      _checkForMapEntry(element.body);
-    } else if (element is IfElement) {
-      _checkForMapEntry(element.thenElement);
-      _checkForMapEntry(element.elseElement);
-    } else if (element is MapLiteralEntry) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP, element);
+      verifier.verify(element);
     }
   }
 
@@ -4078,14 +3897,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType keyType = typeArguments[0];
       DartType valueType = typeArguments[1];
 
-      NodeList<CollectionElement> entries = literal.elements2;
-      for (CollectionElement entry in entries) {
-        _checkForMapElementTypeNotAssignableWithKeyOrValueType(
-            entry,
-            keyType,
-            valueType,
-            StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-            StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
+      var verifier = LiteralElementVerifier(
+        _typeProvider,
+        _typeSystem,
+        _errorReporter,
+        _checkForUseOfVoidResult,
+        forMap: true,
+        mapKeyType: keyType,
+        mapValueType: valueType,
+      );
+      for (CollectionElement element in literal.elements2) {
+        verifier.verify(element);
       }
     }
   }
@@ -5298,9 +5120,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType setElementType = typeArguments[0];
 
       // Check every set element.
+      var verifier = LiteralElementVerifier(
+        _typeProvider,
+        _typeSystem,
+        _errorReporter,
+        _checkForUseOfVoidResult,
+        forSet: true,
+        elementType: setElementType,
+      );
       for (CollectionElement element in literal.elements2) {
-        _checkForCollectionElementTypeNotAssignableWithElementType(element,
-            setElementType, StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE);
+        verifier.verify(element);
       }
     }
   }

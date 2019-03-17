@@ -2279,6 +2279,14 @@ class CompileTimeErrorCode extends ErrorCode {
           "{0} required argument(s) expected, but {1} found.",
           correction: "Try adding the missing arguments.");
 
+  static const CompileTimeErrorCode NOT_ITERABLE_SPREAD =
+      const CompileTimeErrorCode('NOT_ITERABLE_SPREAD',
+          "Spread elements in list or set literals must implement 'Iterable'.");
+
+  static const CompileTimeErrorCode NOT_MAP_SPREAD = const CompileTimeErrorCode(
+      'NOT_MAP_SPREAD',
+      "Spread elements in map literals must implement 'Map'.");
+
   /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the
    * superinitializer appears and let <i>S</i> be the superclass of <i>C</i>.

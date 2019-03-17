@@ -170,6 +170,18 @@ var v = <bool, int>{...{true: 1}};
 ''');
   }
 
+  test_nonConst_spread_intNum() async {
+    await assertNoErrorsInCode('''
+var v = <int, int>{...<num, num>{1: 1}};
+''');
+  }
+
+  test_nonConst_spread_intString() async {
+    await assertErrorsInCode('''
+var v = <bool, int>{...{true: 'a'}};
+''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
+  }
+
   test_nonConst_spread_intString_dynamic() async {
     await assertNoErrorsInCode('''
 const dynamic a = 'a';

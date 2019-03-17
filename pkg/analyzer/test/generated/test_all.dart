@@ -31,7 +31,6 @@ import 'source_factory_test.dart' as source_factory_test;
 import 'static_type_analyzer_test.dart' as static_type_analyzer_test;
 import 'static_type_warning_code_test.dart' as static_type_warning_code;
 import 'static_warning_code_test.dart' as static_warning_code;
-import 'static_warning_code_test.dart' as static_warning_code_test;
 import 'strong_mode_test.dart' as strong_mode;
 import 'type_system_test.dart' as type_system_test;
 import 'utilities_dart_test.dart' as utilities_dart_test;
@@ -64,7 +63,6 @@ main() {
     static_type_analyzer_test.main();
     static_type_warning_code.main();
     static_warning_code.main();
-    static_warning_code_test.main();
     strong_mode.main();
     type_system_test.main();
     utilities_dart_test.main();
