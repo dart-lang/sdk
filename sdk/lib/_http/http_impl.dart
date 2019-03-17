@@ -1937,6 +1937,7 @@ class _ConnectionTarget {
             socketFuture.timeout(client.connectionTimeout, onTimeout: () {
           _socketTasks.remove(task);
           task.cancel();
+          return task.socket;
         });
       }
       return socketFuture.then((socket) {
