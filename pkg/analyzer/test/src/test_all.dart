@@ -9,15 +9,18 @@ import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
 import 'diagnostics/test_all.dart' as diagnostics;
 import 'fasta/test_all.dart' as fasta;
+import 'hint/test_all.dart' as hint;
 import 'lint/test_all.dart' as lint;
 import 'options/test_all.dart' as options;
 import 'pubspec/test_all.dart' as pubspec;
+import 'services/test_all.dart' as services;
 import 'source/test_all.dart' as source;
 import 'summary/test_all.dart' as summary;
+import 'summary2/test_all.dart' as summary2;
 import 'task/test_all.dart' as task;
 import 'util/test_all.dart' as util;
+import 'workspace/test_all.dart' as workspace;
 
-/// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
     command_line.main();
@@ -25,12 +28,16 @@ main() {
     dart.main();
     diagnostics.main();
     fasta.main();
+    hint.main();
     lint.main();
     options.main();
     pubspec.main();
+    services.main();
     source.main();
     summary.main();
+    summary2.main();
     task.main();
     util.main();
+    workspace.main();
   }, name: 'src');
 }

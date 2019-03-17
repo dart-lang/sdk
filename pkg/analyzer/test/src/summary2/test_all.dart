@@ -4,16 +4,10 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'ast_builder_test.dart' as ast_builder;
-import 'message_coverage_test.dart' as message_coverage;
-import 'recovery/test_all.dart' as recovery;
-import 'token_utils_test.dart' as token_utils;
+import 'ast_binary_writer_test.dart' as ast_binary_writer;
 
 main() {
   defineReflectiveSuite(() {
-    ast_builder.main();
-    message_coverage.main();
-    recovery.main();
-    token_utils.main();
-  }, name: 'fasta');
+    ast_binary_writer.main();
+  }, name: 'summary2');
 }

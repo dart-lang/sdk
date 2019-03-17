@@ -9,6 +9,8 @@ import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
 import 'const_constructor_param_type_mismatch_test.dart'
     as const_constructor_param_type_mismatch;
+import 'const_constructor_with_mixin_with_field_test.dart'
+    as const_constructor_with_mixin_with_field;
 import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
 import 'const_map_key_expression_type_implements_equals_test.dart'
     as const_map_key_expression_type_implements_equals;
@@ -32,6 +34,8 @@ import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
 import 'invalid_required_param_test.dart' as invalid_required_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
+import 'invalid_visibility_annotation_test.dart'
+    as invalid_visibility_annotation;
 import 'list_element_type_not_assignable_test.dart'
     as list_element_type_not_assignable;
 import 'map_entry_not_in_map_test.dart' as map_entry_not_in_map;
@@ -55,6 +59,8 @@ import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
 import 'type_check_is_not_null_test.dart' as type_check_is_not_null;
 import 'type_check_is_null_test.dart' as type_check_is_null;
+import 'unchecked_use_of_nullable_value_test.dart'
+    as unchecked_use_of_nullable_value;
 import 'undefined_getter_test.dart' as undefined_getter;
 import 'undefined_hidden_name_test.dart' as undefined_hidden_name;
 import 'undefined_operator_test.dart' as undefined_operator;
@@ -83,6 +89,7 @@ main() {
     argument_type_not_assignable.main();
     can_be_null_after_null_aware.main();
     const_constructor_param_type_mismatch.main();
+    const_constructor_with_mixin_with_field.main();
     const_eval_throws_exception.main();
     const_map_key_expression_type_implements_equals.main();
     const_set_element_type_implements_equals.main();
@@ -101,6 +108,7 @@ main() {
     invalid_override_different_default_values_positional.main();
     invalid_required_param.main();
     invalid_sealed_annotation.main();
+    invalid_visibility_annotation.main();
     list_element_type_not_assignable.main();
     map_entry_not_in_map.main();
     map_key_type_not_assignable.main();
@@ -121,6 +129,7 @@ main() {
     top_level_instance_method.main();
     type_check_is_not_null.main();
     type_check_is_null.main();
+    unchecked_use_of_nullable_value.main();
     undefined_getter.main();
     undefined_hidden_name.main();
     undefined_operator.main();

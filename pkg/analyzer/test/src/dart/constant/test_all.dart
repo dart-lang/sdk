@@ -5,13 +5,14 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'evaluation_test.dart' as evaluation;
+import 'potentially_constant_test.dart' as potentially_constant;
 import 'utilities_test.dart' as utilities;
 import 'value_test.dart' as value;
 
-/// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
     evaluation.main();
+    potentially_constant.main();
     utilities.main();
     value.main();
   }, name: 'constant');
