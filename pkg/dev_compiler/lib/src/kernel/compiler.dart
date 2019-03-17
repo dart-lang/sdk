@@ -5061,7 +5061,20 @@ class ProgramCompiler extends Object
         .map(_visitStatement)
         .toList()
           ..add(JS.Return(jsExpr));
-    return JS.Call(JS.ArrowFun([], JS.Block(jsStmts)), []);
+    var jsBlock = JS.Block(jsStmts);
+    // BlockExpressions with async operations must be constructed
+    // with a generator instead of a lambda.
+    var finder = YieldFinder();
+    jsBlock.accept(finder);
+    if (finder.hasYield) {
+      var genFn = JS.Fun([], jsBlock, isGenerator: true);
+      var asyncLibrary = emitLibraryName(coreTypes.asyncLibrary);
+      var returnType = _emitType(node.getStaticType(types));
+      var asyncCall =
+          js.call('#.async(#, #)', [asyncLibrary, returnType, genFn]);
+      return JS.Yield(asyncCall);
+    }
+    return JS.Call(JS.ArrowFun([], jsBlock), []);
   }
 
   @override

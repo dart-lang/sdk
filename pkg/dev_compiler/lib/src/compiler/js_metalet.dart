@@ -4,7 +4,7 @@
 
 // TODO(jmesserly): import from its own package
 import '../js_ast/js_ast.dart';
-
+import 'shared_compiler.dart' show YieldFinder;
 import 'js_names.dart' show TemporaryId;
 
 /// A synthetic `let*` node, similar to that found in Scheme.
@@ -181,7 +181,7 @@ class MetaLet extends Expression {
   }
 
   Expression _toInvokedFunction(Block block) {
-    var finder = _YieldFinder();
+    var finder = YieldFinder();
     block.accept(finder);
     if (!finder.hasYield) {
       return Call(ArrowFun([], block), []);
@@ -351,36 +351,5 @@ class _IdentFinder extends BaseVisitor {
   @override
   visitNode(Node node) {
     if (!found) super.visitNode(node);
-  }
-}
-
-class _YieldFinder extends BaseVisitor {
-  bool hasYield = false;
-  bool hasThis = false;
-  bool _nestedFunction = false;
-
-  @override
-  visitThis(This node) {
-    hasThis = true;
-  }
-
-  @override
-  visitFunctionExpression(FunctionExpression node) {
-    var savedNested = _nestedFunction;
-    _nestedFunction = true;
-    super.visitFunctionExpression(node);
-    _nestedFunction = savedNested;
-  }
-
-  @override
-  visitYield(Yield node) {
-    if (!_nestedFunction) hasYield = true;
-    super.visitYield(node);
-  }
-
-  @override
-  visitNode(Node node) {
-    if (hasYield && hasThis) return; // found both, nothing more to do.
-    super.visitNode(node);
   }
 }
