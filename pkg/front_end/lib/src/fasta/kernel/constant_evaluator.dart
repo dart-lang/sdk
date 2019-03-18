@@ -39,6 +39,7 @@ import '../fasta_codes.dart'
         messageConstEvalCircularity,
         messageConstEvalContext,
         messageConstEvalFailedAssertion,
+        messageConstEvalNullValue,
         noLength,
         templateConstEvalDeferredLibrary,
         templateConstEvalDuplicateKey,
@@ -1131,7 +1132,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                 typeEnvironment.numType,
                 other.getType(typeEnvironment)));
       }
+    } else if (receiver is NullConstant) {
+      return report(node, messageConstEvalNullValue);
     }
+
     return report(
         node,
         templateConstEvalInvalidMethodInvocation.withArguments(
@@ -1248,6 +1252,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           node,
           new PropertyGet(
               unique(receiver.expression), node.name, node.interfaceTarget));
+    } else if (receiver is NullConstant) {
+      return report(node, messageConstEvalNullValue);
     }
     throw 'Could not evaluate property get on $receiver.';
   }
@@ -1396,8 +1402,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               if (value == null) return nullConstant;
               return canonicalize(new StringConstant(value));
             }
+          } else if (name is NullConstant) {
+            return report(node, messageConstEvalNullValue);
           }
-          // TODO(askesc): Give more meaningful error message if name is null.
         } else {
           // Leave environment constant unevaluated.
           return unevaluated(
@@ -1484,6 +1491,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return unevaluated(node,
           new Instantiation(unique(constant.expression), node.typeArguments));
     }
+    // The inner expression in an instantiation can never be null, since
+    // instantiations are only inferred on direct references to declarations.
     throw new Exception(
         'Only tear-off constants can be partially instantiated.');
   }
