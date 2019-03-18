@@ -146,10 +146,9 @@ class Dart2jsTarget extends Target {
     return new ir.InvalidExpression(null);
   }
 
-  // TODO(askesc): Return specialized dart2js constants backend.
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      const ConstantsBackend();
+      const Dart2jsConstantsBackend();
 }
 
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
@@ -194,3 +193,10 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:mirrors',
   ]
 };
+
+class Dart2jsConstantsBackend extends ConstantsBackend {
+  const Dart2jsConstantsBackend();
+
+  @override
+  NumberSemantics get numberSemantics => NumberSemantics.js;
+}

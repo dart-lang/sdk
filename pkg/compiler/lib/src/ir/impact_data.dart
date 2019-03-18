@@ -968,6 +968,11 @@ class ImpactDataImpl implements ImpactData {
             data.node, data.kind, data.receiverType, data.argumentType);
       }
     }
+    if (_constants != null) {
+      for (ir.ConstantExpression data in _constants) {
+        registry.registerConstant(data);
+      }
+    }
 
     // TODO(johnniwinther): Remove these when CFE provides constants.
     if (_constructorNodes != null) {

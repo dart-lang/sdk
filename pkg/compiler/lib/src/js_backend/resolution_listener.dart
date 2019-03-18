@@ -219,6 +219,13 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _backendUsage.registerBackendFunctionUse(helper);
       impactBuilder
           .registerTypeUse(new TypeUse.instantiation(_commonElements.typeType));
+    } else if (constant.isConstructedObject) {
+      ConstructedConstantValue constructed = constant;
+      impactBuilder
+          .registerTypeUse(new TypeUse.instantiation(constructed.type));
+      constructed.fields.forEach((FieldEntity field, _) {
+        impactBuilder.registerStaticUse(new StaticUse.fieldInit(field));
+      });
     }
   }
 

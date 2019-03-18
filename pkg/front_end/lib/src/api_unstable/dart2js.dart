@@ -56,6 +56,8 @@ export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
+export '../fasta/fasta_codes.dart' show LocatedMessage;
+
 export '../fasta/kernel/redirecting_factory_body.dart'
     show RedirectingFactoryBody;
 
