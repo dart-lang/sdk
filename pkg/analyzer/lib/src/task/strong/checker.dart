@@ -174,9 +174,18 @@ class CodeChecker extends RecursiveAstVisitor {
     } else if (element is Expression) {
       checkAssignment(element, expectedType);
     } else if (element is SpreadElement) {
-      DartType iterableType =
+      // Spread expression may be dynamic in which case it's implicitly downcast
+      // to Iterable<dynamic>
+      DartType expressionCastType =
+          typeProvider.iterableType.instantiate([DynamicTypeImpl.instance]);
+      checkAssignment(element.expression, expressionCastType);
+
+      // Items in the spread will then potentially be downcast to the expected
+      // type.
+      DartType elementsCastType =
           typeProvider.iterableType.instantiate([expectedType]);
-      checkAssignment(element.expression, iterableType);
+      _checkImplicitCast(element.expression, elementsCastType,
+          from: element.expression.staticType, forSpread: true);
     }
   }
 
@@ -198,6 +207,23 @@ class CodeChecker extends RecursiveAstVisitor {
     } else if (element is MapLiteralEntry) {
       checkAssignment(element.key, expectedKeyType);
       checkAssignment(element.value, expectedValueType);
+    } else if (element is SpreadElement) {
+      // Spread expression may be dynamic in which case it's implicitly downcast
+      // to Iterable<dynamic>
+      DartType expressionCastType = typeProvider.mapType
+          .instantiate([DynamicTypeImpl.instance, DynamicTypeImpl.instance]);
+      checkAssignment(element.expression, expressionCastType);
+
+      // The keys and values in the spread will then potentially be downcast to
+      // the expected types.
+      DartType keyCastType = typeProvider.mapType
+          .instantiate([expectedKeyType, DynamicTypeImpl.instance]);
+      _checkImplicitCast(element.expression, keyCastType,
+          from: element.expression.staticType, forSpreadKey: true);
+      DartType valueCastType = typeProvider.mapType
+          .instantiate([DynamicTypeImpl.instance, expectedValueType]);
+      _checkImplicitCast(element.expression, valueCastType,
+          from: element.expression.staticType, forSpreadValue: true);
     }
   }
 
@@ -772,11 +798,20 @@ class CodeChecker extends RecursiveAstVisitor {
   /// If [expr] does not require an implicit cast because it is not related to
   /// [to] or is already a subtype of it, does nothing.
   void _checkImplicitCast(Expression expr, DartType to,
-      {DartType from, bool opAssign: false}) {
+      {DartType from,
+      bool opAssign: false,
+      bool forSpread: false,
+      bool forSpreadKey: false,
+      bool forSpreadValue: false}) {
     from ??= _getExpressionType(expr);
 
     if (_needsImplicitCast(expr, to, from: from) == true) {
-      _recordImplicitCast(expr, to, from: from, opAssign: opAssign);
+      _recordImplicitCast(expr, to,
+          from: from,
+          opAssign: opAssign,
+          forSpread: forSpread,
+          forSpreadKey: forSpreadKey,
+          forSpreadValue: forSpreadValue);
     }
   }
 
@@ -1013,9 +1048,19 @@ class CodeChecker extends RecursiveAstVisitor {
         : type.lookUpInheritedMethod(name, library: library);
   }
 
-  void _markImplicitCast(Expression expr, DartType to, {bool opAssign: false}) {
+  void _markImplicitCast(Expression expr, DartType to,
+      {bool opAssign: false,
+      bool forSpread: false,
+      bool forSpreadKey: false,
+      bool forSpreadValue: false}) {
     if (opAssign) {
       setImplicitOperationCast(expr, to);
+    } else if (forSpread) {
+      setImplicitSpreadCast(expr, to);
+    } else if (forSpreadKey) {
+      setImplicitSpreadKeyCast(expr, to);
+    } else if (forSpreadValue) {
+      setImplicitSpreadValueCast(expr, to);
     } else {
       setImplicitCast(expr, to);
     }
@@ -1078,66 +1123,80 @@ class CodeChecker extends RecursiveAstVisitor {
   /// This will emit the appropriate error/warning/hint message as well as mark
   /// the AST node.
   void _recordImplicitCast(Expression expr, DartType to,
-      {DartType from, bool opAssign: false}) {
+      {DartType from,
+      bool opAssign: false,
+      forSpread: false,
+      forSpreadKey: false,
+      forSpreadValue: false}) {
     // If this is an implicit tearoff, we need to mark the cast, but we don't
     // want to warn if it's a legal subtype.
     if (from is InterfaceType && rules.acceptsFunctionType(to)) {
       var type = rules.getCallMethodType(from);
       if (type != null && rules.isSubtypeOf(type, to)) {
-        _markImplicitCast(expr, to, opAssign: opAssign);
+        _markImplicitCast(expr, to,
+            opAssign: opAssign,
+            forSpread: forSpread,
+            forSpreadKey: forSpreadKey,
+            forSpreadValue: forSpreadValue);
         return;
       }
     }
 
-    // Inference "casts":
-    if (expr is Literal) {
-      // fromT should be an exact type - this will almost certainly fail at
-      // runtime.
-      if (expr is ListLiteral) {
-        _recordMessage(
-            expr, StrongModeCode.INVALID_CAST_LITERAL_LIST, [from, to]);
-      } else if (expr is SetOrMapLiteral) {
-        if (expr.isMap) {
-          _recordMessage(
-              expr, StrongModeCode.INVALID_CAST_LITERAL_MAP, [from, to]);
-        } else {
-          // Ambiguity should be resolved by now
-          assert(expr.isSet);
-          _recordMessage(
-              expr, StrongModeCode.INVALID_CAST_LITERAL_SET, [from, to]);
-        }
-      } else {
-        _recordMessage(
-            expr, StrongModeCode.INVALID_CAST_LITERAL, [expr, from, to]);
-      }
-      return;
-    }
+    if (!forSpread && !forSpreadKey && !forSpreadValue) {
+      // Spreads are special in that they may create downcasts at runtime but
+      // those casts are implied so we don't treat them as strictly.
 
-    if (expr is FunctionExpression) {
-      _recordMessage(
-          expr, StrongModeCode.INVALID_CAST_FUNCTION_EXPR, [from, to]);
-      return;
-    }
-
-    if (expr is InstanceCreationExpression) {
-      ConstructorElement e = expr.staticElement;
-      if (e == null || !e.isFactory) {
+      // Inference "casts":
+      if (expr is Literal) {
         // fromT should be an exact type - this will almost certainly fail at
         // runtime.
-        _recordMessage(expr, StrongModeCode.INVALID_CAST_NEW_EXPR, [from, to]);
+        if (expr is ListLiteral) {
+          _recordMessage(
+              expr, StrongModeCode.INVALID_CAST_LITERAL_LIST, [from, to]);
+        } else if (expr is SetOrMapLiteral) {
+          if (expr.isMap) {
+            _recordMessage(
+                expr, StrongModeCode.INVALID_CAST_LITERAL_MAP, [from, to]);
+          } else {
+            // Ambiguity should be resolved by now
+            assert(expr.isSet);
+            _recordMessage(
+                expr, StrongModeCode.INVALID_CAST_LITERAL_SET, [from, to]);
+          }
+        } else {
+          _recordMessage(
+              expr, StrongModeCode.INVALID_CAST_LITERAL, [expr, from, to]);
+        }
         return;
       }
-    }
 
-    Element e = _getKnownElement(expr);
-    if (e is FunctionElement || e is MethodElement && e.isStatic) {
-      _recordMessage(
-          expr,
-          e is MethodElement
-              ? StrongModeCode.INVALID_CAST_METHOD
-              : StrongModeCode.INVALID_CAST_FUNCTION,
-          [e.name, from, to]);
-      return;
+      if (expr is FunctionExpression) {
+        _recordMessage(
+            expr, StrongModeCode.INVALID_CAST_FUNCTION_EXPR, [from, to]);
+        return;
+      }
+
+      if (expr is InstanceCreationExpression) {
+        ConstructorElement e = expr.staticElement;
+        if (e == null || !e.isFactory) {
+          // fromT should be an exact type - this will almost certainly fail at
+          // runtime.
+          _recordMessage(
+              expr, StrongModeCode.INVALID_CAST_NEW_EXPR, [from, to]);
+          return;
+        }
+      }
+
+      Element e = _getKnownElement(expr);
+      if (e is FunctionElement || e is MethodElement && e.isStatic) {
+        _recordMessage(
+            expr,
+            e is MethodElement
+                ? StrongModeCode.INVALID_CAST_METHOD
+                : StrongModeCode.INVALID_CAST_FUNCTION,
+            [e.name, from, to]);
+        return;
+      }
     }
 
     // Composite cast: these are more likely to fail.
