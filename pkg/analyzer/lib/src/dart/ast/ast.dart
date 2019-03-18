@@ -3042,9 +3042,6 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   }
 
   @override
-  ParameterElement get declaredElement => _parameter.declaredElement;
-
-  @override
   Token get beginToken => _parameter.beginToken;
 
   @override
@@ -3053,6 +3050,9 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
 
   @override
   Token get covariantKeyword => null;
+
+  @override
+  ParameterElement get declaredElement => _parameter.declaredElement;
 
   @override
   Expression get defaultValue => _defaultValue;
