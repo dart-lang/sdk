@@ -34,27 +34,11 @@ class DevCompilerConstants {
   /// failed, or if the constant was unavailable.
   ///
   /// Returns [NullConstant] to represent the `null` value.
-  ///
-  /// To avoid performance costs associated with try+catch on invalid constant
-  /// evaluation, call this after [isConstant] is known to be true.
-  Constant evaluate(Expression e, {bool cache = false}) {
+  Constant evaluate(Expression e) {
     if (e == null) return null;
 
-    try {
-      var result = cache ? _evaluator.evaluate(e) : e.accept(_evaluator);
-      return result is UnevaluatedConstant ? null : result;
-    } on _AbortCurrentEvaluation {
-      // TODO(jmesserly): the try+catch is necessary because the front end is
-      // not issuing sufficient errors, so the constant evaluation can fail.
-      //
-      // It can also be caused by methods in the evaluator that don't understand
-      // unavailable constants.
-      return null;
-    } on NoSuchMethodError {
-      // TODO(jmesserly): this is probably the same issue as above, but verify
-      // that it's fixed once Kernel does constant evaluation.
-      return null;
-    }
+    Constant result = _evaluator.evaluate(e);
+    return result is UnevaluatedConstant ? null : result;
   }
 
   /// If [node] is an annotation with a field named `name`, returns that field's
@@ -184,12 +168,7 @@ class DevCompilerConstantsBackend extends ConstantsBackend {
 class _ErrorReporter extends SimpleErrorReporter {
   const _ErrorReporter();
 
+  // Ignore reported errors.
   @override
-  report(context, message, node) => throw const _AbortCurrentEvaluation();
-}
-
-// TODO(jmesserly): this class is private in Kernel constants library, so
-// we have our own version.
-class _AbortCurrentEvaluation {
-  const _AbortCurrentEvaluation();
+  report(context, message, node) => message;
 }

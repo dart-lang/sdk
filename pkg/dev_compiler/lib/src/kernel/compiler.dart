@@ -3840,7 +3840,7 @@ class ProgramCompiler extends Object
   visitStaticGet(StaticGet node) {
     var target = node.target;
     if (target is Field && target.isConst) {
-      var value = _constants.evaluate(target.initializer, cache: true);
+      var value = _constants.evaluate(target.initializer);
       if (value is PrimitiveConstant) return value.accept(this);
     }
 
