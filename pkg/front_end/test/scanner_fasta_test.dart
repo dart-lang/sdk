@@ -745,24 +745,25 @@ abstract class ScannerTest_Fasta_Base {
 /// Scanner tests that exercise the Fasta scanner directly.
 @reflectiveTest
 class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
-  createScanner(String source, {bool includeComments}) {
+  createScanner(String source, {bool includeComments, bool reportErrors}) {
     List<int> encoded = utf8.encode(source).toList(growable: true);
     encoded.add(0); // Ensure 0 terminted bytes for UTF8 scanner
     return new fasta.Utf8BytesScanner(encoded,
-        includeComments: includeComments);
+        includeComments: includeComments, reportErrors: reportErrors);
   }
 }
 
 /// Scanner tests that exercise the Fasta scanner directly.
 @reflectiveTest
 class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
-  createScanner(String source, {bool includeComments}) =>
-      new fasta.StringScanner(source, includeComments: includeComments);
+  createScanner(String source, {bool includeComments, bool reportErrors}) =>
+      new fasta.StringScanner(source,
+          includeComments: includeComments, reportErrors: reportErrors);
 
   @override
   Token scan(String source, {int errorCount}) {
-    Scanner scanner = createScanner(source, includeComments: true);
-    scanner.reportErrors = true;
+    Scanner scanner =
+        createScanner(source, includeComments: true, reportErrors: true);
     final Token first = scanner.tokenize();
     Token token = first;
     while (!token.isEof) {

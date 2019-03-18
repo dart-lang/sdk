@@ -41,13 +41,13 @@ const int unicodeReplacementCharacter = unicodeReplacementCharacterRune;
 typedef Token Recover(List<int> bytes, Token tokens, List<int> lineStarts);
 
 abstract class Scanner {
-  /// A list of errors that occured during [tokenize] or `null` if none.
+  /// A list of errors that occurred during [tokenize] or `null` if none.
   List<LocatedMessage> errors;
 
-  /// Set true if errors should be reported via the [errors] list.
+  /// Returns `true` if errors should be reported via the [errors] list.
   // TODO(danrubel): Remove this once all scanner clients can process
   // errors reported via the [errors] list.
-  bool reportErrors;
+  bool get reportErrors;
 
   /// Returns true if an error occured during [tokenize].
   bool get hasErrors;

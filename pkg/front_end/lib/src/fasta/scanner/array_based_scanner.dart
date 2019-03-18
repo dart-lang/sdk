@@ -28,11 +28,13 @@ import '../util/link.dart' show Link;
 
 abstract class ArrayBasedScanner extends AbstractScanner {
   List<LocatedMessage> errors;
-  bool reportErrors = false;
+  final bool reportErrors;
   bool hasErrors = false;
 
-  ArrayBasedScanner(bool includeComments, {int numberOfBytesHint})
-      : super(includeComments, numberOfBytesHint: numberOfBytesHint);
+  ArrayBasedScanner(bool includeComments,
+      {int numberOfBytesHint, bool reportErrors})
+      : this.reportErrors = reportErrors ?? false,
+        super(includeComments, numberOfBytesHint: numberOfBytesHint);
 
   /**
    * The stack of open groups, e.g [: { ... ( .. :]
