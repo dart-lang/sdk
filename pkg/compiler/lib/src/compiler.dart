@@ -981,6 +981,9 @@ class _EmptyEnvironment implements Environment {
 
   @override
   String valueOf(String key) => null;
+
+  @override
+  Map<String, String> toMap() => const {};
 }
 
 /// Interface for showing progress during compilation.

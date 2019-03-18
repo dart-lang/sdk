@@ -134,7 +134,7 @@ final field4a = 2 + 3;
 /*element: field4b:constant=IntConstant(5)*/
 var field4b = 2 + 3;
 
-/*element: field4c:constant=IntConstant(5)*/
+/*strong.element: field4c:constant=IntConstant(5)*/
 const field4c = 2 + 3;
 
 /*element: field5a:constant=FunctionConstant(method)*/
@@ -143,7 +143,7 @@ final field5a = method;
 /*element: field5b:constant=FunctionConstant(method)*/
 var field5b = method;
 
-/*element: field5c:constant=FunctionConstant(method)*/
+/*strong.element: field5c:constant=FunctionConstant(method)*/
 const field5c = method;
 
 /*element: field6a:constant=ConstructedConstant(Class())*/

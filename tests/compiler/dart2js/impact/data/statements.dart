@@ -65,7 +65,7 @@ testIfThenElse() {
     return 1;
 }
 
-/*strong.element: testForIn:
+/*element: testForIn:
  dynamic=[
   current,
   iterator,
@@ -82,7 +82,7 @@ testForIn(o) {
   for (var e in o) {}
 }
 
-/*strong.element: testForInTyped:
+/*element: testForInTyped:
  dynamic=[
   current,
   iterator,
@@ -142,7 +142,21 @@ testTryFinally() {
   try {} finally {}
 }
 
-/*element: testSwitchWithoutFallthrough:
+/*strong.element: testSwitchWithoutFallthrough:
+ static=[
+  throwExpression(1),
+  wrapException(1)],
+ type=[
+  inst:JSDouble,
+  inst:JSInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSString,
+  inst:JSUInt31,
+  inst:JSUInt32]
+*/
+/*strongConst.element: testSwitchWithoutFallthrough:
+ constant=[0,1,2,3,4],
  static=[
   throwExpression(1),
   wrapException(1)],
