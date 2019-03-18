@@ -2,9 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(askesc): We should not need to call the constant evaluator
+// explicitly once constant-update-2018 is shipped.
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    show ConstantEvaluator, SimpleErrorReporter;
+
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/transformations/constants.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'kernel_helpers.dart';
 

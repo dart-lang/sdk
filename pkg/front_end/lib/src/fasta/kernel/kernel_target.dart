@@ -43,9 +43,6 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
-import 'package:kernel/transformations/constants.dart' as constants
-    show transformLibraries;
-
 import '../../api_prototype/file_system.dart' show FileSystem;
 
 import '../compiler_context.dart' show CompilerContext;
@@ -84,6 +81,8 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
 
 import '../uri_translator.dart' show UriTranslator;
+
+import 'constant_evaluator.dart' as constants show transformLibraries;
 
 import 'kernel_builder.dart'
     show

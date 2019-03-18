@@ -13,6 +13,11 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem, MultiRootFileSystemEntity;
 
+// TODO(askesc): We should not need to call the constant evaluator
+// explicitly once constant-update-2018 is shipped.
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    as constants;
+
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -39,7 +44,6 @@ import 'package:kernel/binary/limited_ast_to_binary.dart'
     show LimitedBinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
-import 'package:kernel/transformations/constants.dart' as constants;
 import 'package:kernel/vm/constants_native_effects.dart' as vm_constants;
 
 import 'bytecode/ast_remover.dart' show ASTRemover;

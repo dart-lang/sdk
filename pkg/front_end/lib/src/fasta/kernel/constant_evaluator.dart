@@ -16,17 +16,21 @@
 /// Furthermore due to the lowering of certain constructs in the front-end
 /// (e.g. '??') we need to support a super-set of the normal constant expression
 /// language.  Issue(http://dartbug.com/31799)
-library kernel.transformations.constants;
+library fasta.constant_evaluator;
+
+import 'dart:core' hide MapEntry;
 
 import 'dart:io' as io;
 
-import '../ast.dart';
-import '../class_hierarchy.dart';
-import '../clone.dart';
-import '../core_types.dart';
-import '../kernel.dart';
-import '../type_algebra.dart';
-import '../type_environment.dart';
+import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/clone.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/kernel.dart';
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
+
+import 'package:kernel/target/targets.dart';
 
 Component transformComponent(Component component, ConstantsBackend backend,
     Map<String, String> environmentDefines, ErrorReporter errorReporter,
@@ -370,7 +374,7 @@ class ConstantsTransformer extends Transformer {
   }
 }
 
-class ConstantEvaluator extends RecursiveVisitor {
+class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final ConstantsBackend backend;
   final NumberSemantics numberSemantics;
   Map<String, String> environmentDefines;
@@ -1239,7 +1243,7 @@ class ConstantEvaluator extends RecursiveVisitor {
     final List<Object> concatenated = <Object>[new StringBuffer()];
     for (int i = 0; i < node.expressions.length; i++) {
       Constant constant = _evaluateSubexpression(node.expressions[i]);
-      if (constant is PrimitiveConstant) {
+      if (constant is PrimitiveConstant<Object>) {
         String value = constant.value.toString();
         Object last = concatenated.last;
         if (last is StringBuffer) {
@@ -1627,32 +1631,6 @@ class EvaluationEnvironment {
     if (_typeVariables.isEmpty) return type;
     return substitute(type, _typeVariables);
   }
-}
-
-/// The different kinds of number semantics supported by the constant evaluator.
-enum NumberSemantics {
-  /// Dart VM number semantics.
-  vm,
-
-  /// JavaScript (Dart2js and DDC) number semantics.
-  js,
-}
-
-// Backend specific constant evaluation behavior
-class ConstantsBackend {
-  const ConstantsBackend();
-
-  /// Lowering of a list constant to a backend-specific representation.
-  Constant lowerListConstant(ListConstant constant) => constant;
-
-  /// Lowering of a set constant to a backend-specific representation.
-  Constant lowerSetConstant(SetConstant constant) => constant;
-
-  /// Lowering of a map constant to a backend-specific representation.
-  Constant lowerMapConstant(MapConstant constant) => constant;
-
-  /// Number semantics to use for this backend.
-  NumberSemantics get numberSemantics => NumberSemantics.vm;
 }
 
 // Used as control-flow to abort the current evaluation.

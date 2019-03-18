@@ -9,8 +9,6 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
-import 'package:kernel/transformations/constants.dart' show ErrorReporter;
-
 import '../fasta_codes.dart'
     show
         Message,
@@ -33,6 +31,8 @@ import '../fasta_codes.dart'
         templateConstEvalZeroDivisor;
 
 import '../loader.dart' show Loader;
+
+import 'constant_evaluator.dart' show ErrorReporter;
 
 class KernelConstantErrorReporter extends ErrorReporter {
   final Loader<Library> loader;

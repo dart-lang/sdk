@@ -4,17 +4,17 @@
 
 library vm.bytecode.gen_bytecode;
 
+// TODO(askesc): We should not need to call the constant evaluator
+// explicitly once constant-update-2018 is shipped.
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    show ConstantEvaluator, EvaluationEnvironment, ErrorReporter;
+
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:kernel/library_index.dart' show LibraryIndex;
-import 'package:kernel/transformations/constants.dart'
-    show
-        ConstantEvaluator,
-        ConstantsBackend,
-        EvaluationEnvironment,
-        ErrorReporter;
+import 'package:kernel/target/targets.dart' show ConstantsBackend;
 import 'package:kernel/type_algebra.dart'
     show Substitution, containsTypeVariable;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
