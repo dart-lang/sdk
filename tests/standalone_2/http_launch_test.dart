@@ -24,6 +24,9 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 
 String pathToExecutable = Platform.executable;
+List<String> executableArguments = Platform.executableArguments
+    .where((arg) => !arg.startsWith('--packages='))
+    .toList();
 Uri pathOfData = Platform.script.resolve('http_launch_data/');
 int port;
 
@@ -50,16 +53,29 @@ handleRequest(HttpRequest request) {
 serverRunning(HttpServer server) {
   port = server.port;
   server.listen(handleRequest);
-  Future<ProcessResult> no_http_run = Process.run(pathToExecutable,
-      [pathOfData.resolve('http_launch_main.dart').toFilePath()]);
-  Future<ProcessResult> http_run = Process
-      .run(pathToExecutable, ['http://127.0.0.1:$port/http_launch_main.dart']);
-  Future<ProcessResult> http_pkg_root_run = Process.run(pathToExecutable, [
-    '--package-root=http://127.0.0.1:$port/the_packages/',
-    'http://127.0.0.1:$port/http_launch_main.dart'
-  ]);
-  Future<ProcessResult> isolate_run = Process.run(pathToExecutable,
-      ['http://127.0.0.1:$port/http_spawn_main.dart', '$port']);
+  Future<ProcessResult> no_http_run = Process.run(
+      pathToExecutable,
+      []
+        ..addAll(executableArguments)
+        ..add(pathOfData.resolve('http_launch_main.dart').toFilePath()));
+  Future<ProcessResult> http_run = Process.run(
+      pathToExecutable,
+      []
+        ..addAll(executableArguments)
+        ..add('http://127.0.0.1:$port/http_launch_main.dart'));
+  Future<ProcessResult> http_pkg_root_run = Process.run(
+      pathToExecutable,
+      []
+        ..addAll(executableArguments)
+        ..addAll([
+          '--package-root=http://127.0.0.1:$port/the_packages/',
+          'http://127.0.0.1:$port/http_launch_main.dart'
+        ]));
+  Future<ProcessResult> isolate_run = Process.run(
+      pathToExecutable,
+      []
+        ..addAll(executableArguments)
+        ..addAll(['http://127.0.0.1:$port/http_spawn_main.dart', '$port']));
   Future<List<ProcessResult>> results =
       Future.wait([no_http_run, http_run, http_pkg_root_run, isolate_run]);
   results.then((results) {

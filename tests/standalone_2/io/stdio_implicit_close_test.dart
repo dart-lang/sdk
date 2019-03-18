@@ -13,15 +13,14 @@ void test({bool closeStdout, bool closeStderr}) {
   var scriptFile = "stdio_implicit_close_script.dart";
   var script = Platform.script.resolve(scriptFile).toFilePath();
 
-  var arguments = [
-    script,
-  ];
+  var arguments = <String>[]
+    ..addAll(Platform.executableArguments)
+    ..add(script);
   if (closeStdout) arguments.add("stdout");
   if (closeStderr) arguments.add("stderr");
 
   asyncStart();
-  Process
-      .run(Platform.executable, arguments,
+  Process.run(Platform.executable, arguments,
           stdoutEncoding: ascii, stderrEncoding: ascii)
       .then((result) {
     print(result.stdout);

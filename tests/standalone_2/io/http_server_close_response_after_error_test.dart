@@ -20,10 +20,15 @@ void main() {
         request.response.close();
       });
     });
-    Process.run(Platform.executable, [
-      Platform.script.resolve(CLIENT_SCRIPT).toString(),
-      server.port.toString()
-    ]).then((result) {
+    Process.run(
+            Platform.executable,
+            []
+              ..addAll(Platform.executableArguments)
+              ..addAll([
+                Platform.script.resolve(CLIENT_SCRIPT).toString(),
+                server.port.toString()
+              ]))
+        .then((result) {
       if (result.exitCode != 0) throw "Bad exit code";
       server.close();
     });
