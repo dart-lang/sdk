@@ -411,7 +411,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         nodeCache = <Node, Constant>{},
         env = new EvaluationEnvironment();
 
-  /// Evaluates [node] and possibly cache the evaluation result.
+  /// Evaluate [node] and possibly cache the evaluation result.
+  /// Returns UnevaluatedConstant if the constant could not be evaluated.
+  /// If the expression in the UnevaluatedConstant is an InvalidExpression,
+  /// an error occurred during constant evaluation.
   Constant evaluate(Expression node) {
     evaluationRoot = node;
     try {
@@ -459,7 +462,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return unevaluatedNodes != null && unevaluatedNodes.contains(node);
   }
 
-  /// Evaluates [node] and possibly cache the evaluation result.
+  /// Evaluate [node] and possibly cache the evaluation result.
   /// @throws _AbortCurrentEvaluation if expression can't be evaluated.
   Constant _evaluateSubexpression(Expression node) {
     if (node == null) return nullConstant;
