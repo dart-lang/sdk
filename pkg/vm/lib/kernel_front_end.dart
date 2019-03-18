@@ -35,7 +35,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         parseExperimentalFlags,
         printDiagnosticMessage;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/ast.dart'
     show Component, Field, Library, Reference, StaticGet;
@@ -405,13 +404,10 @@ Future _performConstantEvaluation(
   final vmConstants = new vm_constants.VmConstantsBackend(coreTypes);
 
   await runWithFrontEndCompilerContext(source, compilerOptions, component, () {
-    final hierarchy = new ClassHierarchy(component);
-    final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
-
     // TFA will remove constants fields which are unused (and respects the
     // vm/embedder entrypoints).
     constants.transformComponent(component, vmConstants, environmentDefines,
-        new ForwardConstantEvaluationErrors(typeEnvironment),
+        new ForwardConstantEvaluationErrors(),
         keepFields: true,
         evaluateAnnotations: true,
         enableAsserts: enableAsserts);

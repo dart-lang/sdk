@@ -58,7 +58,7 @@ void generateBytecode(
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
   final constantsBackend = new VmConstantsBackend(coreTypes);
-  final errorReporter = new ForwardConstantEvaluationErrors(typeEnvironment);
+  final errorReporter = new ForwardConstantEvaluationErrors();
   libraries ??= component.libraries;
   final bytecodeGenerator = new BytecodeGenerator(
       component,
