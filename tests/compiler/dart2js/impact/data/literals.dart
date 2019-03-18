@@ -86,11 +86,10 @@ testString() => 'foo';
 */
 testStringInterpolation() => '${true}';
 
-/*strong.element: testStringInterpolationConst:
+/*element: testStringInterpolationConst:
  dynamic=[toString(0)],
  static=[S(1)],type=[inst:JSBool,inst:JSString]
 */
-/*strongConst.element: testStringInterpolationConst:constant=["true"]*/
 testStringInterpolationConst() {
   const b = '${true}';
   return b;
@@ -103,15 +102,13 @@ testStringInterpolationConst() {
 */
 testStringJuxtaposition() => 'a' 'b';
 
-/*strong.element: testSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
-/*strongConst.element: testSymbol:constant=[Symbol(_name="main")]*/
+/*element: testSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testSymbol() => #main;
 
-/*strong.element: testConstSymbol:
+/*element: testConstSymbol:
  static=[Symbol.(1),Symbol.(1),Symbol.validated(1)],
  type=[inst:JSString,inst:Symbol]
 */
-/*strongConst.element: testConstSymbol:constant=[Symbol(_name="main")]*/
 testConstSymbol() => const Symbol('main');
 
 /*strong.element: complexSymbolField1:
@@ -193,15 +190,13 @@ const complexSymbolField =
  static=[Symbol.(1),Symbol.(1),Symbol.validated(1),complexSymbolField],
  type=[impl:String,inst:JSBool,inst:Symbol]
 */
-/*strongConst.element: testComplexConstSymbol:constant=[Symbol(_name="truefalsetruenull")]*/
 testComplexConstSymbol() => const Symbol(complexSymbolField);
 
-/*strong.element: testIfNullConstSymbol:
+/*element: testIfNullConstSymbol:
  dynamic=[Null.==],
  static=[Symbol.(1),Symbol.(1),Symbol.validated(1)],
  type=[inst:JSNull,inst:JSString,inst:Symbol]
 */
-/*strongConst.element: testIfNullConstSymbol:constant=[Symbol(_name="foo")]*/
 testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 
 /*element: testTypeLiteral:
@@ -210,8 +205,7 @@ testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 */
 testTypeLiteral() => Object;
 
-/*strong.element: testBoolFromEnvironment:static=[bool.fromEnvironment(1)],type=[inst:JSString]*/
-/*strongConst.element: testBoolFromEnvironment:constant=[false]*/
+/*element: testBoolFromEnvironment:static=[bool.fromEnvironment(1)],type=[inst:JSString]*/
 testBoolFromEnvironment() => const bool.fromEnvironment('FOO');
 
 /*element: testEmptyListLiteral:type=[inst:List<dynamic>]*/
@@ -220,14 +214,13 @@ testEmptyListLiteral() => [];
 /*element: testEmptyListLiteralDynamic:type=[inst:List<dynamic>]*/
 testEmptyListLiteralDynamic() => <dynamic>[];
 
-/*element: testEmptyListLiteralTyped:type=[inst:List<String>]*/
+/*strong.element: testEmptyListLiteralTyped:type=[inst:List<String>]*/
 testEmptyListLiteralTyped() => <String>[];
 
-/*strong.element: testEmptyListLiteralConstant:type=[inst:List<dynamic>]*/
-/*strongConst.element: testEmptyListLiteralConstant:constant=[[]]*/
+/*element: testEmptyListLiteralConstant:type=[inst:List<dynamic>]*/
 testEmptyListLiteralConstant() => const [];
 
-/*element: testNonEmptyListLiteral:type=[inst:JSBool,inst:List<bool>]*/
+/*strong.element: testNonEmptyListLiteral:type=[inst:JSBool,inst:List<bool>]*/
 testNonEmptyListLiteral() => [true];
 
 /*element: testEmptyMapLiteral:type=[inst:Map<dynamic,dynamic>]*/
@@ -236,22 +229,21 @@ testEmptyMapLiteral() => {};
 /*element: testEmptyMapLiteralDynamic:type=[inst:Map<dynamic,dynamic>]*/
 testEmptyMapLiteralDynamic() => <dynamic, dynamic>{};
 
-/*element: testEmptyMapLiteralTyped:type=[inst:Map<String,int>]*/
+/*strong.element: testEmptyMapLiteralTyped:type=[inst:Map<String,int>]*/
 testEmptyMapLiteralTyped() => <String, int>{};
 
-/*strong.element: testEmptyMapLiteralConstant:
+/*element: testEmptyMapLiteralConstant:
 type=[
  inst:ConstantMap<dynamic,dynamic>,
  inst:ConstantProtoMap<dynamic,dynamic>,
  inst:ConstantStringMap<dynamic,dynamic>,
  inst:GeneralConstantMap<dynamic,dynamic>]*/
-/*strongConst.element: testEmptyMapLiteralConstant:constant=[{}]*/
 testEmptyMapLiteralConstant() => const {};
 
-/*element: testNonEmptyMapLiteral:type=[inst:JSBool,inst:JSNull,inst:Map<Null,bool>]*/
+/*strong.element: testNonEmptyMapLiteral:type=[inst:JSBool,inst:JSNull,inst:Map<Null,bool>]*/
 testNonEmptyMapLiteral() => {null: true};
 
 class GenericClass<X, Y> {
-  /*strong.element: GenericClass.generative:static=[Object.(0)]*/
+  /*element: GenericClass.generative:static=[Object.(0)]*/
   const GenericClass.generative();
 }

@@ -22,7 +22,7 @@ main() {
   testNativeMethodReturns();
 }
 
-/*element: testJSCall:
+/*strong.element: testJSCall:
  static=[JS<dynamic>(3)],
  type=[inst:JSNull,inst:JSString,native:bool,native:int]
 */
@@ -68,10 +68,6 @@ class NativeClass {
     native:int,
     param:Object]
   */
-  // TODO(johnniwinther): The metadata is defined in dart:html_common and
-  // therefore derived from platform.dill which doesn't currently include IR
-  // constants.
-  /*strongConst.element: NativeClass.field:type=[inst:JSBool,inst:JSNull,param:Object]*/
   @annotation_Creates_SerializedScriptValue
   final Object field;
 
@@ -80,7 +76,7 @@ class NativeClass {
   }
 }
 
-/*element: testNativeField:
+/*strong.element: testNativeField:
  dynamic=[NativeClass.field],
  static=[defineProperty(3)],
  type=[inst:JSBool,param:NativeClass]

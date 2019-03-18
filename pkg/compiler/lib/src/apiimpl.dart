@@ -197,14 +197,12 @@ class CompilerImpl extends Compiler {
 
 class _Environment implements Environment {
   final Map<String, String> definitions;
-  Map<String, String> _completeMap;
   Set<String> supportedLibraries;
 
   _Environment(this.definitions);
 
   @override
   String valueOf(String name) {
-    if (_completeMap != null) return _completeMap[name];
     var result = definitions[name];
     if (result != null || definitions.containsKey(name)) return result;
     if (!name.startsWith(_dartLibraryEnvironmentPrefix)) return null;
@@ -215,22 +213,6 @@ class _Environment implements Environment {
     if (libraryName.startsWith("_")) return null;
     if (supportedLibraries.contains(libraryName)) return "true";
     return null;
-  }
-
-  @override
-  Map<String, String> toMap() {
-    if (_completeMap == null) {
-      _completeMap = new Map<String, String>.from(definitions);
-      for (String libraryName in supportedLibraries) {
-        if (!libraryName.startsWith("_")) {
-          String key = '${_dartLibraryEnvironmentPrefix}${libraryName}';
-          if (!definitions.containsKey(key)) {
-            _completeMap[key] = "true";
-          }
-        }
-      }
-    }
-    return _completeMap;
   }
 }
 

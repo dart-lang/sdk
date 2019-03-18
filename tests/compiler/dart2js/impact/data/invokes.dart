@@ -78,12 +78,10 @@ main() {
 /*element: topLevelFunction1:*/
 topLevelFunction1(a) {}
 
-/*strong.element: topLevelFunction2:type=[inst:JSNull]*/
-/*strongConst.element: topLevelFunction2:constant=[null]*/
+/*element: topLevelFunction2:type=[inst:JSNull]*/
 topLevelFunction2(a, [b, c]) {}
 
-/*strong.element: topLevelFunction3:type=[inst:JSNull]*/
-/*strongConst.element: topLevelFunction3:constant=[null]*/
+/*element: topLevelFunction3:type=[inst:JSNull]*/
 topLevelFunction3(a, {b, c}) {}
 
 /*element: testTopLevelInvoke:
@@ -117,19 +115,10 @@ testTopLevelInvoke() {
   topLevelFunction3(15, c: 16, b: 17);
 }
 
-/*element: topLevelFunction1Typed:type=[inst:JSBool,param:int]*/
+/*strong.element: topLevelFunction1Typed:type=[inst:JSBool,param:int]*/
 void topLevelFunction1Typed(int a) {}
 
 /*strong.element: topLevelFunction2Typed:
- type=[
-  inst:JSBool,
-  inst:JSNull,
-  param:String,
-  param:double,
-  param:num]
-*/
-/*strongConst.element: topLevelFunction2Typed:
- constant=[null],
  type=[
   inst:JSBool,
   inst:JSNull,
@@ -159,32 +148,11 @@ int topLevelFunction2Typed(String a, [num b, double c]) => null;
   param:Map<String,bool>,
   param:bool]
 */
-/*strongConst.element: topLevelFunction3Typed:
- constant=[null],
- static=[
-  checkSubtype(4),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
-  getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSNull,
-  inst:JSUnmodifiableArray<dynamic>,
-  param:List<int>,
-  param:Map<String,bool>,
-  param:bool]
-*/
 double topLevelFunction3Typed(bool a, {List<int> b, Map<String, bool> c}) {
   return null;
 }
 
-/*element: testTopLevelInvokeTyped:
+/*strong.element: testTopLevelInvokeTyped:
  static=[
   topLevelFunction1Typed(1),
   topLevelFunction2Typed(1),
@@ -220,7 +188,7 @@ testTopLevelInvokeTyped() {
   topLevelFunction3Typed(false, c: {'16': false}, b: [17]);
 }
 
-/*element: topLevelFunctionTyped1:
+/*strong.element: topLevelFunctionTyped1:
  static=[
   checkSubtype(4),
   getRuntimeTypeArgument(3),
@@ -239,7 +207,7 @@ testTopLevelInvokeTyped() {
 */
 topLevelFunctionTyped1(void a(num b)) {}
 
-/*element: topLevelFunctionTyped2:
+/*strong.element: topLevelFunctionTyped2:
  static=[
   checkSubtype(4),
   getRuntimeTypeArgument(3),
@@ -258,7 +226,7 @@ topLevelFunctionTyped1(void a(num b)) {}
 */
 topLevelFunctionTyped2(void a(num b, [String c])) {}
 
-/*element: topLevelFunctionTyped3:
+/*strong.element: topLevelFunctionTyped3:
  static=[
   checkSubtype(4),
   getRuntimeTypeArgument(3),
@@ -277,7 +245,7 @@ topLevelFunctionTyped2(void a(num b, [String c])) {}
 */
 topLevelFunctionTyped3(void a(num b, {String c, int d})) {}
 
-/*element: topLevelFunctionTyped4:
+/*strong.element: topLevelFunctionTyped4:
  static=[
   checkSubtype(4),
   getRuntimeTypeArgument(3),
@@ -311,8 +279,7 @@ testTopLevelFunctionTyped() {
   topLevelFunctionTyped4(null);
 }
 
-/*strong.element: testTopLevelFunctionGet:static=[topLevelFunction1]*/
-/*strongConst.element: testTopLevelFunctionGet:constant=[topLevelFunction1]*/
+/*element: testTopLevelFunctionGet:static=[topLevelFunction1]*/
 testTopLevelFunctionGet() => topLevelFunction1;
 
 /*element: topLevelGetter:type=[inst:JSNull]*/
@@ -321,7 +288,7 @@ get topLevelGetter => null;
 /*element: testTopLevelGetterGet:static=[topLevelGetter]*/
 testTopLevelGetterGet() => topLevelGetter;
 
-/*element: topLevelGetterTyped:type=[inst:JSNull]*/
+/*strong.element: topLevelGetterTyped:type=[inst:JSNull]*/
 int get topLevelGetterTyped => null;
 
 /*element: testTopLevelGetterGetTyped:static=[topLevelGetterTyped]*/
@@ -333,7 +300,7 @@ set topLevelSetter(_) {}
 /*element: testTopLevelSetterSet:static=[set:topLevelSetter],type=[inst:JSNull]*/
 testTopLevelSetterSet() => topLevelSetter = null;
 
-/*element: topLevelSetterTyped=:type=[inst:JSBool,param:int]*/
+/*strong.element: topLevelSetterTyped=:type=[inst:JSBool,param:int]*/
 void set topLevelSetterTyped(int value) {}
 
 /*element: testTopLevelSetterSetTyped:static=[set:topLevelSetterTyped],type=[inst:JSNull]*/
@@ -351,11 +318,10 @@ var topLevelFieldLazy = topLevelFunction1(null);
 /*element: testTopLevelFieldLazy:static=[topLevelFieldLazy]*/
 testTopLevelFieldLazy() => topLevelFieldLazy;
 
-/*strong.element: topLevelFieldConst:type=[inst:JSNull]*/
+/*element: topLevelFieldConst:type=[inst:JSNull]*/
 const topLevelFieldConst = null;
 
-/*strong.element: testTopLevelFieldConst:static=[topLevelFieldConst]*/
-/*strongConst.element: testTopLevelFieldConst:constant=[null]*/
+/*element: testTopLevelFieldConst:static=[topLevelFieldConst]*/
 testTopLevelFieldConst() => topLevelFieldConst;
 
 /*element: topLevelFieldFinal:static=[throwCyclicInit(1),topLevelFunction1(1)],type=[inst:JSNull]*/
@@ -364,25 +330,25 @@ final topLevelFieldFinal = topLevelFunction1(null);
 /*element: testTopLevelFieldFinal:static=[topLevelFieldFinal]*/
 testTopLevelFieldFinal() => topLevelFieldFinal;
 
-/*element: topLevelFieldTyped:type=[inst:JSBool,inst:JSNull,param:int]*/
+/*strong.element: topLevelFieldTyped:type=[inst:JSBool,inst:JSNull,param:int]*/
 int topLevelFieldTyped;
 
 /*element: testTopLevelFieldTyped:static=[topLevelFieldTyped]*/
 testTopLevelFieldTyped() => topLevelFieldTyped;
 
-/*element: topLevelFieldGeneric1:type=[inst:JSBool,inst:JSNull,param:GenericClass<dynamic,dynamic>]*/
+/*strong.element: topLevelFieldGeneric1:type=[inst:JSBool,inst:JSNull,param:GenericClass<dynamic,dynamic>]*/
 GenericClass topLevelFieldGeneric1;
 
 /*element: testTopLevelFieldGeneric1:static=[topLevelFieldGeneric1]*/
 testTopLevelFieldGeneric1() => topLevelFieldGeneric1;
 
-/*element: topLevelFieldGeneric2:type=[inst:JSBool,inst:JSNull,param:GenericClass<dynamic,dynamic>]*/
+/*strong.element: topLevelFieldGeneric2:type=[inst:JSBool,inst:JSNull,param:GenericClass<dynamic,dynamic>]*/
 GenericClass<dynamic, dynamic> topLevelFieldGeneric2;
 
 /*element: testTopLevelFieldGeneric2:static=[topLevelFieldGeneric2]*/
 testTopLevelFieldGeneric2() => topLevelFieldGeneric2;
 
-/*element: topLevelFieldGeneric3:
+/*strong.element: topLevelFieldGeneric3:
  static=[
   checkSubtype(4),
   getRuntimeTypeArgument(3),
@@ -413,8 +379,7 @@ class StaticFunctionGetClass {
   static foo() {}
 }
 
-/*strong.element: testStaticFunctionGet:static=[StaticFunctionGetClass.foo]*/
-/*strongConst.element: testStaticFunctionGet:constant=[StaticFunctionGetClass.foo]*/
+/*element: testStaticFunctionGet:static=[StaticFunctionGetClass.foo]*/
 testStaticFunctionGet() => StaticFunctionGetClass.foo;
 
 /*element: testDynamicInvoke:
@@ -491,7 +456,7 @@ testLocalWithInitializer() {
   var l = 42;
 }
 
-/*element: testLocalWithInitializerTyped:
+/*strong.element: testLocalWithInitializerTyped:
  type=[
   inst:JSDouble,
   inst:JSInt,
@@ -505,7 +470,7 @@ testLocalWithInitializerTyped() {
   int l = 42;
 }
 
-/*element: testLocalFunction:
+/*strong.element: testLocalFunction:
  static=[
   computeSignature(3),
   def:localFunction,
@@ -525,7 +490,7 @@ testLocalFunction() {
   localFunction() {}
 }
 
-/*element: testLocalFunctionTyped:
+/*strong.element: testLocalFunctionTyped:
  static=[
   computeSignature(3),
   def:localFunction,
@@ -546,7 +511,7 @@ testLocalFunctionTyped() {
   int localFunction(String a) => null;
 }
 
-/*element: testLocalFunctionInvoke:
+/*strong.element: testLocalFunctionInvoke:
  dynamic=[call(0)],
  static=[computeSignature(3),
   def:localFunction,
@@ -565,7 +530,7 @@ testLocalFunctionInvoke() {
   localFunction();
 }
 
-/*element: testLocalFunctionGet:static=[computeSignature(3),
+/*strong.element: testLocalFunctionGet:static=[computeSignature(3),
   def:localFunction,
   getRuntimeTypeArguments(3),
   getRuntimeTypeInfo(1),
@@ -581,7 +546,7 @@ testLocalFunctionGet() {
   localFunction;
 }
 
-/*element: testClosure:static=[computeSignature(3),
+/*strong.element: testClosure:static=[computeSignature(3),
   def:<anonymous>,
   getRuntimeTypeArguments(3),
   getRuntimeTypeInfo(1),
@@ -596,7 +561,7 @@ testClosure() {
   () {};
 }
 
-/*element: testClosureInvoke:
+/*strong.element: testClosureInvoke:
  dynamic=[call(0)],
  static=[computeSignature(3),
   def:<anonymous>,
@@ -637,13 +602,9 @@ testInvokeIndex(o) => o[42];
 */
 testInvokeIndexSet(o) => o[42] = null;
 
-/*strong.element: testDynamicPrivateMethodInvoke:
+/*element: testDynamicPrivateMethodInvoke:
  dynamic=[_privateMethod(0),call(0)],
  type=[inst:JSNull]
-*/
-/*strongConst.element: testDynamicPrivateMethodInvoke:
- constant=[null],
- dynamic=[_privateMethod(0),call(0)]
 */
 testDynamicPrivateMethodInvoke([o]) => o._privateMethod();
 

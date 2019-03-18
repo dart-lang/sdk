@@ -64,7 +64,7 @@ testAsync() async {}
 */
 testAsyncStar() async* {}
 
-/*element: testLocalSyncStar:
+/*strong.element: testLocalSyncStar:
  static=[
   _IterationMarker.endOfIteration(0),
   _IterationMarker.uncaughtError(1),
@@ -88,7 +88,7 @@ testLocalSyncStar() {
   return local;
 }
 
-/*element: testLocalAsync:
+/*strong.element: testLocalAsync:
  static=[
   StreamIterator.(1),
   _asyncAwait(2),
@@ -115,7 +115,7 @@ testLocalAsync() {
   return local;
 }
 
-/*element: testLocalAsyncStar:
+/*strong.element: testLocalAsyncStar:
  static=[
   StreamIterator.(1),
   _IterationMarker.yieldSingle(1),
@@ -142,7 +142,7 @@ testLocalAsyncStar() {
   return local;
 }
 
-/*element: testAnonymousSyncStar:
+/*strong.element: testAnonymousSyncStar:
  static=[
   _IterationMarker.endOfIteration(0),
   _IterationMarker.uncaughtError(1),
@@ -165,7 +165,7 @@ testAnonymousSyncStar() {
   return () sync* {};
 }
 
-/*element: testAnonymousAsync:
+/*strong.element: testAnonymousAsync:
  static=[
   StreamIterator.(1),
   _asyncAwait(2),
@@ -191,7 +191,7 @@ testAnonymousAsync() {
   return () async {};
 }
 
-/*element: testAnonymousAsyncStar:
+/*strong.element: testAnonymousAsyncStar:
  static=[
   StreamIterator.(1),
   _IterationMarker.yieldSingle(1),
@@ -217,7 +217,7 @@ testAnonymousAsyncStar() {
   return () async* {};
 }
 
-/*element: testAsyncForIn:
+/*strong.element: testAsyncForIn:
  dynamic=[
   cancel(0),
   current,
@@ -241,7 +241,7 @@ testAsyncForIn(o) async {
   await for (var e in o) {}
 }
 
-/*element: testAsyncForInTyped:
+/*strong.element: testAsyncForInTyped:
  dynamic=[
   cancel(0),
   current,

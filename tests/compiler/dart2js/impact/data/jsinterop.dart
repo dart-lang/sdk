@@ -7,19 +7,14 @@ library jsinterop;
 
 import 'package:js/js.dart';
 
-/*element: main:
- static=[
-  testJsInteropClass(0),
-  testJsInteropMethod(0),
-  testOptionalGenericFunctionTypeArgument(0)]
-*/
+/*element: main:static=[testJsInteropClass(0),testJsInteropMethod(0),testOptionalGenericFunctionTypeArgument(0)]*/
 main() {
   testOptionalGenericFunctionTypeArgument();
   testJsInteropMethod();
   testJsInteropClass();
 }
 
-/*element: testJsInteropMethod:*/
+/*strong.element: testJsInteropMethod:*/
 @JS()
 external int testJsInteropMethod();
 
@@ -28,7 +23,7 @@ class JsInteropClass {
   /*element: JsInteropClass.:static=[JavaScriptObject.(0)]*/
   external JsInteropClass();
 
-  /*element: JsInteropClass.method:
+  /*strong.element: JsInteropClass.method:
    type=[
     native:ApplicationCacheErrorEvent,
     native:DomError,
@@ -48,7 +43,7 @@ class JsInteropClass {
   external double method();
 }
 
-/*element: testJsInteropClass:
+/*strong.element: testJsInteropClass:
  dynamic=[JavaScriptObject.method(0)],
  static=[JsInteropClass.(0)]
 */
@@ -77,28 +72,10 @@ class GenericClass<T> {
     inst:JSUnmodifiableArray<dynamic>,
     param:void Function(GenericClass.T)]
   */
-  /*strongConst.element: GenericClass.method:
-   constant=[null],
-   static=[
-    checkSubtype(4),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
-    setRuntimeTypeInfo(2)],
-   type=[
-    inst:JSArray<dynamic>,
-    inst:JSBool,
-    inst:JSExtendableArray<dynamic>,
-    inst:JSFixedArray<dynamic>,
-    inst:JSMutableArray<dynamic>,
-    inst:JSUnmodifiableArray<dynamic>,
-    param:void Function(GenericClass.T)]
-  */
   external GenericClass method([Callback<T> callback]);
 }
 
-/*element: testOptionalGenericFunctionTypeArgument:
+/*strong.element: testOptionalGenericFunctionTypeArgument:
  dynamic=[JavaScriptObject.method(0)],
  static=[GenericClass.(0)]
 */

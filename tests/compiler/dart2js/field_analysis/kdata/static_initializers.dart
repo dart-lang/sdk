@@ -65,7 +65,7 @@ final field1a = 0;
 /*element: field1b:complexity=constant,initial=IntConstant(0)*/
 var field1b = 0;
 
-/*strong.element: field1c:complexity=constant,initial=IntConstant(0)*/
+/*element: field1c:complexity=constant,initial=IntConstant(0)*/
 const field1c = 0;
 
 /*element: field2a:complexity=constant,initial=ListConstant([])*/
@@ -74,7 +74,7 @@ final field2a = const [];
 /*element: field2b:complexity=constant,initial=ListConstant([])*/
 var field2b = const [];
 
-/*strong.element: field2c:complexity=constant,initial=ListConstant([])*/
+/*element: field2c:complexity=constant,initial=ListConstant([])*/
 const field2c = const [];
 
 /*element: field3a:complexity=eager*/
@@ -125,7 +125,7 @@ final field4a = 2 + 3;
 /*element: field4b:complexity=lazy,initial=IntConstant(5)*/
 var field4b = 2 + 3;
 
-/*strong.element: field4c:complexity=lazy,initial=IntConstant(5)*/
+/*element: field4c:complexity=lazy,initial=IntConstant(5)*/
 const field4c = 2 + 3;
 
 /*element: field5a:complexity=constant,initial=FunctionConstant(method)*/
@@ -134,7 +134,7 @@ final field5a = method;
 /*element: field5b:complexity=constant,initial=FunctionConstant(method)*/
 var field5b = method;
 
-/*strong.element: field5c:complexity=constant,initial=FunctionConstant(method)*/
+/*element: field5c:complexity=constant,initial=FunctionConstant(method)*/
 const field5c = method;
 
 /*element: field6a:complexity=constant,initial=ConstructedConstant(Class())*/

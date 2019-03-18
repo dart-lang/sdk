@@ -113,7 +113,7 @@ use2(Class2 c2) {
   use(c2.field13b);
 }
 
-/*strong.element: const1:constant=BoolConstant(true)*/
+/*element: const1:constant=BoolConstant(true)*/
 const bool const1 = true;
 
 class Class1 {

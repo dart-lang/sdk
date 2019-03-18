@@ -11,7 +11,6 @@ import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
-import 'package:kernel/transformations/constants.dart' as ir;
 
 import '../common.dart';
 import '../common/names.dart';
@@ -29,7 +28,6 @@ import '../elements/types.dart';
 import '../environment.dart';
 import '../frontend_strategy.dart';
 import '../ir/annotations.dart';
-import '../ir/constants.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/impact.dart';
@@ -69,7 +67,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   final CompilerOptions options;
   @override
   final DiagnosticReporter reporter;
-  final Environment _environment;
   CommonElementsImpl _commonElements;
   KernelElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
@@ -77,7 +74,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   KernelDartTypes _types;
   ir.TypeEnvironment _typeEnvironment;
   ir.ClassHierarchy _classHierarchy;
-  ir.ConstantEvaluator _constantEvaluator;
 
   /// Library environment. Used for fast lookup.
   KProgramEnv env = new KProgramEnv();
@@ -119,11 +115,11 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   Map<KMember, Map<ir.Expression, TypeMap>> typeMapsForTesting;
 
-  KernelToElementMapImpl(
-      this.reporter, this._environment, this._frontendStrategy, this.options) {
+  KernelToElementMapImpl(this.reporter, Environment environment,
+      this._frontendStrategy, this.options) {
     _elementEnvironment = new KernelElementEnvironment(this);
     _commonElements = new CommonElementsImpl(_elementEnvironment);
-    _constantEnvironment = new KernelConstantEnvironment(this, _environment);
+    _constantEnvironment = new KernelConstantEnvironment(this, environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
   }
@@ -746,19 +742,19 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   @override
   ir.TypeEnvironment get typeEnvironment {
-    return _typeEnvironment ??= new ir.TypeEnvironment(
-        new ir.CoreTypes(env.mainComponent), classHierarchy);
+    if (_typeEnvironment == null) {
+      _typeEnvironment ??= new ir.TypeEnvironment(
+          new ir.CoreTypes(env.mainComponent), classHierarchy);
+    }
+    return _typeEnvironment;
   }
 
   @override
   ir.ClassHierarchy get classHierarchy {
-    return _classHierarchy ??= new ir.ClassHierarchy(env.mainComponent);
-  }
-
-  Dart2jsConstantEvaluator get constantEvaluator {
-    return _constantEvaluator ??= new Dart2jsConstantEvaluator(typeEnvironment,
-        enableAsserts: options.enableUserAssertions,
-        environment: _environment.toMap());
+    if (_classHierarchy == null) {
+      _classHierarchy ??= new ir.ClassHierarchy(env.mainComponent);
+    }
+    return _classHierarchy;
   }
 
   @override
@@ -1025,17 +1021,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       bool implicitNull: false,
       bool checkCasts: true}) {
     if (node is ir.ConstantExpression) {
-      ir.Constant constant =
-          constantEvaluator.evaluate(node, requireConstant: requireConstant);
-      if (constant == null) {
-        if (requireConstant) {
-          throw new UnsupportedError(
-              'No constant for ${DebugPrinter.prettyPrint(node)}');
-        }
-        return null;
-      } else {
-        return constant.accept(new ConstantValuefier(this));
-      }
+      return node.constant.accept(new ConstantValuefier(this));
     }
 
     ConstantExpression constant;

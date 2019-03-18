@@ -30,10 +30,7 @@ main(List<String> args) {
     print('==================================================================');
     useImpactDataForTesting = true;
     await checkTests(dataDir, const ImpactDataComputer(),
-        args: args,
-        testOmit: false,
-        testFrontend: true,
-        testCFEConstants: true);
+        args: args, testOmit: false, testFrontend: true);
   });
 }
 

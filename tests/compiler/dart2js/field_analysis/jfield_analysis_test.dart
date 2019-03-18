@@ -18,7 +18,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('jdata'));
     await checkTests(dataDir, const JAllocatorAnalysisDataComputer(),
-        args: args, testOmit: false, testCFEConstants: true);
+        args: args, testOmit: false);
   });
 }
 

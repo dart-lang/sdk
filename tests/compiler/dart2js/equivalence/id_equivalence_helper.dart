@@ -129,12 +129,15 @@ void reportError(
       .reportErrorMessage(spannable, MessageKind.GENERIC, {'text': message});
 }
 
+/// Display name used for compilation using the new common frontend.
+const String kernelName = 'kernel';
+
 /// Display name used for strong mode compilation using the new common frontend.
 const String strongName = 'strong mode';
 
 /// Display name used for strong mode compilation without implicit checks using
 /// the new common frontend.
-const String omitName = 'strong mode without implicit checks';
+const String trustName = 'strong mode without implicit checks';
 
 /// Compute actual data for all members defined in the program with the
 /// [entryPoint] and [memorySourceFiles].
@@ -418,25 +421,21 @@ class IdData<T> {
         String expected = expectedValue?.toString() ?? '';
         String actual = dataValidator.getText(actualValue);
         int offset = getOffsetFromId(id, uri);
-        if (offset != null) {
-          String value1 = '${expected}';
-          String value2 = IdValue.idToString(id, '${actual}');
-          annotations
-              .putIfAbsent(offset, () => [])
-              .add(colorizeDiff(value1, ' | ', value2));
-        }
+        String value1 = '${expected}';
+        String value2 = IdValue.idToString(id, '${actual}');
+        annotations
+            .putIfAbsent(offset, () => [])
+            .add(colorizeDiff(value1, ' | ', value2));
       }
     });
     expectedMaps[uri].forEach((Id id, IdValue expected) {
       if (!actualMaps[uri].containsKey(id)) {
         int offset = getOffsetFromId(id, uri);
-        if (offset != null) {
-          String value1 = '${expected}';
-          String value2 = '---';
-          annotations
-              .putIfAbsent(offset, () => [])
-              .add(colorizeDiff(value1, ' | ', value2));
-        }
+        String value1 = '${expected}';
+        String value2 = '---';
+        annotations
+            .putIfAbsent(offset, () => [])
+            .add(colorizeDiff(value1, ' | ', value2));
       }
     });
     return withAnnotations(code[uri].sourceCode, annotations);
@@ -445,7 +444,7 @@ class IdData<T> {
   int getOffsetFromId(Id id, Uri uri) {
     return compiler.reporter
         .spanFromSpannable(computeSpannable(elementEnvironment, uri, id))
-        ?.begin;
+        .begin;
   }
 }
 
@@ -531,7 +530,6 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     int shards: 1,
     int shardIndex: 0,
     bool testOmit: true,
-    bool testCFEConstants: false,
     void onTest(Uri uri)}) async {
   dataComputer.setup();
 
@@ -581,8 +579,6 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     Map<String, MemberAnnotations<IdValue>> expectedMaps = {
       strongMarker: new MemberAnnotations<IdValue>(),
       omitMarker: new MemberAnnotations<IdValue>(),
-      strongConstMarker: new MemberAnnotations<IdValue>(),
-      omitConstMarker: new MemberAnnotations<IdValue>(),
     };
     computeExpectedMap(entryPoint, code[entryPoint], expectedMaps);
     Map<String, String> memorySourceFiles = {
@@ -611,79 +607,51 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 
     if (setUpFunction != null) setUpFunction();
 
-    Future runTests({bool useCFEConstants: false}) async {
+    if (skipForStrong.contains(name)) {
+      print('--skipped for kernel (strong mode)----------------------------');
+    } else {
+      print('--from kernel (strong mode)-----------------------------------');
+      List<String> options = new List<String>.from(testOptions);
+      MemberAnnotations<IdValue> annotations = expectedMaps[strongMarker];
+      CompiledData<T> compiledData2 = await computeData(
+          entryPoint, memorySourceFiles, dataComputer,
+          options: options,
+          verbose: verbose,
+          printCode: printCode,
+          testFrontend: testFrontend,
+          forUserLibrariesOnly: forUserLibrariesOnly,
+          globalIds: annotations.globalData.keys);
+      if (await checkCode(strongName, entity.uri, code, annotations,
+          compiledData2, dataComputer.dataValidator,
+          filterActualData: filterActualData,
+          fatalErrors: !testAfterFailures)) {
+        hasFailures = true;
+      }
+    }
+    if (testOmit) {
       if (skipForStrong.contains(name)) {
-        print('--skipped for kernel (strong mode)----------------------------');
+        print('--skipped for kernel (strong mode, omit-implicit-checks)------');
       } else {
-        print('--from kernel (strong mode)-----------------------------------');
-        List<String> options = new List<String>.from(testOptions);
-        String marker = strongMarker;
-        if (useCFEConstants) {
-          marker = strongConstMarker;
-          options
-              .add('${Flags.enableLanguageExperiments}=constant-update-2018');
-        } else {
-          options.add(
-              '${Flags.enableLanguageExperiments}=no-constant-update-2018');
-        }
-        MemberAnnotations<IdValue> annotations = expectedMaps[marker];
+        print('--from kernel (strong mode, omit-implicit-checks)-------------');
+        List<String> options = [
+          Flags.omitImplicitChecks,
+          Flags.laxRuntimeTypeToString
+        ]..addAll(testOptions);
+        MemberAnnotations<IdValue> annotations = expectedMaps[omitMarker];
         CompiledData<T> compiledData2 = await computeData(
             entryPoint, memorySourceFiles, dataComputer,
             options: options,
             verbose: verbose,
-            printCode: printCode,
             testFrontend: testFrontend,
             forUserLibrariesOnly: forUserLibrariesOnly,
             globalIds: annotations.globalData.keys);
-        if (await checkCode(strongName, entity.uri, code, annotations,
+        if (await checkCode(trustName, entity.uri, code, annotations,
             compiledData2, dataComputer.dataValidator,
             filterActualData: filterActualData,
             fatalErrors: !testAfterFailures)) {
           hasFailures = true;
         }
       }
-      if (testOmit) {
-        if (skipForStrong.contains(name)) {
-          print(
-              '--skipped for kernel (strong mode, omit-implicit-checks)------');
-        } else {
-          print(
-              '--from kernel (strong mode, omit-implicit-checks)-------------');
-          List<String> options = [
-            Flags.omitImplicitChecks,
-            Flags.laxRuntimeTypeToString
-          ]..addAll(testOptions);
-          String marker = omitMarker;
-          if (useCFEConstants) {
-            marker = omitConstMarker;
-            options
-                .add('${Flags.enableLanguageExperiments}=constant-update-2018');
-          } else {
-            options.add(
-                '${Flags.enableLanguageExperiments}=no-constant-update-2018');
-          }
-          MemberAnnotations<IdValue> annotations = expectedMaps[marker];
-          CompiledData<T> compiledData2 = await computeData(
-              entryPoint, memorySourceFiles, dataComputer,
-              options: options,
-              verbose: verbose,
-              testFrontend: testFrontend,
-              forUserLibrariesOnly: forUserLibrariesOnly,
-              globalIds: annotations.globalData.keys);
-          if (await checkCode(omitName, entity.uri, code, annotations,
-              compiledData2, dataComputer.dataValidator,
-              filterActualData: filterActualData,
-              fatalErrors: !testAfterFailures)) {
-            hasFailures = true;
-          }
-        }
-      }
-    }
-
-    await runTests();
-    if (testCFEConstants) {
-      print('--use cfe constants---------------------------------------------');
-      await runTests(useCFEConstants: true);
     }
   }
   Expect.isFalse(hasFailures, 'Errors found.');
@@ -958,11 +926,10 @@ Spannable computeSpannable(
     }
     LibraryEntity library = elementEnvironment.lookupLibrary(mainUri);
     if (id.className != null) {
-      ClassEntity cls = elementEnvironment.lookupClass(library, id.className);
+      ClassEntity cls =
+          elementEnvironment.lookupClass(library, id.className, required: true);
       if (cls == null) {
-        // Constant expression in CFE might remove inlined parts of sources.
-        print("No class '${id.className}' in $mainUri.");
-        return NO_LOCATION_SPANNABLE;
+        throw new ArgumentError("No class '${id.className}' in $mainUri.");
       }
       MemberEntity member = elementEnvironment
           .lookupClassMember(cls, memberName, setter: isSetter);
@@ -970,9 +937,7 @@ Spannable computeSpannable(
         ConstructorEntity constructor =
             elementEnvironment.lookupConstructor(cls, memberName);
         if (constructor == null) {
-          // Constant expression in CFE might remove inlined parts of sources.
-          print("No class member '${memberName}' in $cls.");
-          return NO_LOCATION_SPANNABLE;
+          throw new ArgumentError("No class member '${memberName}' in $cls.");
         }
         return constructor;
       }
@@ -981,19 +946,16 @@ Spannable computeSpannable(
       MemberEntity member = elementEnvironment
           .lookupLibraryMember(library, memberName, setter: isSetter);
       if (member == null) {
-        // Constant expression in CFE might remove inlined parts of sources.
-        print("No member '${memberName}' in $mainUri.");
-        return NO_LOCATION_SPANNABLE;
+        throw new ArgumentError("No member '${memberName}' in $mainUri.");
       }
       return member;
     }
   } else if (id is ClassId) {
     LibraryEntity library = elementEnvironment.lookupLibrary(mainUri);
-    ClassEntity cls = elementEnvironment.lookupClass(library, id.className);
+    ClassEntity cls =
+        elementEnvironment.lookupClass(library, id.className, required: true);
     if (cls == null) {
-      // Constant expression in CFE might remove inlined parts of sources.
-      print("No class '${id.className}' in $mainUri.");
-      return NO_LOCATION_SPANNABLE;
+      throw new ArgumentError("No class '${id.className}' in $mainUri.");
     }
     return cls;
   }
@@ -1002,8 +964,6 @@ Spannable computeSpannable(
 
 const String strongMarker = 'strong.';
 const String omitMarker = 'omit.';
-const String strongConstMarker = 'strongConst.';
-const String omitConstMarker = 'omitConst.';
 
 /// Compute three [MemberAnnotations] objects from [code] specifying the
 /// expected annotations we anticipate encountering; one corresponding to the
@@ -1020,7 +980,7 @@ const String omitConstMarker = 'omitConst.';
 /// annotations without prefixes.
 void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
     Map<String, MemberAnnotations<IdValue>> maps) {
-  List<String> mapKeys = maps.keys.toList();
+  List<String> mapKeys = [strongMarker, omitMarker];
   Map<String, AnnotatedCode> split = splitByPrefixes(code, mapKeys);
 
   split.forEach((String marker, AnnotatedCode code) {
