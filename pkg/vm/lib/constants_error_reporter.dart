@@ -6,6 +6,9 @@
 /// [constants.ErrorReporter] which uses package:front_end to report errors.
 library vm.constants_error_reporter;
 
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    as constants;
+
 import 'package:front_end/src/api_unstable/vm.dart'
     show CompilerContext, Severity;
 
@@ -13,7 +16,6 @@ import 'package:front_end/src/api_unstable/vm.dart' as codes;
 
 import 'package:kernel/ast.dart'
     show Constant, DartType, IntConstant, Member, TreeNode;
-import 'package:kernel/transformations/constants.dart' as constants;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 class ForwardConstantEvaluationErrors extends constants.ErrorReporter {

@@ -10,7 +10,6 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/transformations/constants.dart' show ConstantsBackend;
 import 'invocation_mirror_constants.dart';
 
 const Iterable<String> _allowedDartSchemePaths = const <String>[
