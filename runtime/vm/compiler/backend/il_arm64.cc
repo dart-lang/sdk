@@ -1064,9 +1064,8 @@ static bool CanBeImmediateIndex(Value* value, intptr_t cid, bool is_external) {
   const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
   const intptr_t scale = Instance::ElementSizeFor(cid);
   const int64_t offset =
-      index * scale + (is_external || RawObject::IsTypedDataClassId(cid)
-                           ? 0
-                           : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+      index * scale +
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
   if (!Utils::IsInt(32, offset)) {
     return false;
   }

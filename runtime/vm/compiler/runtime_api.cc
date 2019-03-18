@@ -254,10 +254,6 @@ const word RawAbstractType::kTypeStateFinalizedInstantiated =
 const word RawObject::kBarrierOverlapShift =
     dart::RawObject::kBarrierOverlapShift;
 
-bool RawObject::IsTypedDataClassId(intptr_t cid) {
-  return dart::RawObject::IsTypedDataClassId(cid);
-}
-
 intptr_t ObjectPool::element_offset(intptr_t index) {
   return dart::ObjectPool::element_offset(index);
 }

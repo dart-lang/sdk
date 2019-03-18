@@ -3372,8 +3372,7 @@ class TypedDataDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(
           data, cid_, TypedData::InstanceSize(length_in_bytes), is_canonical);
       data->ptr()->length_ = Smi::New(length);
-      data->ResetData();
-      uint8_t* cdata = data->ptr()->data();
+      uint8_t* cdata = reinterpret_cast<uint8_t*>(data->ptr()->data());
       d->ReadBytes(cdata, length_in_bytes);
     }
   }

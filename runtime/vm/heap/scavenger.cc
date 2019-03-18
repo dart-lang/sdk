@@ -208,10 +208,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         new_obj->ptr()->tags_ = tags;
       }
 
-      if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
-        reinterpret_cast<RawTypedData*>(new_obj)->ResetData();
-      }
-
       // Remember forwarding address.
       ForwardTo(raw_addr, new_addr);
     }

@@ -2248,31 +2248,13 @@ COMPILE_ASSERT(sizeof(RawFloat64x2) == 24);
 class RawTypedData : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypedData);
 
- public:
-  // Reset data_ pointer to internal data.
-  void ResetData() { ptr()->data_ = ptr()->internal_data(); }
-
  protected:
   VISIT_FROM(RawCompressed, length_)
   RawSmi* length_;
   VISIT_TO_LENGTH(RawCompressed, &ptr()->length_)
-
-  uint8_t* data_;
   // Variable length data follows here.
-
-  uint8_t* internal_data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
-  const uint8_t* internal_data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
-
-  uint8_t* data() {
-    // TODO(alexmarkov): revise after merging with ExternalTypedData
-    ASSERT(data_ == internal_data());
-    return data_;
-  }
-  const uint8_t* data() const {
-    // TODO(alexmarkov): revise after merging with ExternalTypedData
-    ASSERT(data_ == internal_data());
-    return data_;
-  }
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
+  const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
   friend class Api;
   friend class Instance;

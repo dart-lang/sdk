@@ -8221,9 +8221,13 @@ class TypedData : public Instance {
 
   static intptr_t length_offset() { return OFFSET_OF(RawTypedData, length_); }
 
-  static intptr_t data_offset() { return OFFSET_OF(RawTypedData, data_); }
+  static intptr_t data_offset() {
+    return OFFSET_OF_RETURNED_VALUE(RawTypedData, data);
+  }
 
   static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawTypedData) ==
+           OFFSET_OF_RETURNED_VALUE(RawTypedData, data));
     return 0;
   }
 
@@ -8314,13 +8318,6 @@ class TypedData : public Instance {
   void SetLength(intptr_t value) const {
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
-
-  void SetData(uint8_t* data) const {
-    ASSERT(Isolate::Current()->heap()->Contains(reinterpret_cast<uword>(data)));
-    StoreNonPointer(&raw_ptr()->data_, data);
-  }
-
-  void ResetData() { raw()->ResetData(); }
 
  private:
   // Provides const access to non-pointer, non-aligned data within the object.

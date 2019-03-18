@@ -2535,7 +2535,7 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              Register array,
                                              intptr_t index,
                                              intptr_t extra_disp) {
-  if (is_external || RawObject::IsTypedDataClassId(cid)) {
+  if (is_external) {
     return Address(array, index * index_scale + extra_disp);
   } else {
     const int64_t disp = static_cast<int64_t>(index) * index_scale +
@@ -2573,7 +2573,7 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              Register array,
                                              Register index,
                                              intptr_t extra_disp) {
-  if (is_external || RawObject::IsTypedDataClassId(cid)) {
+  if (is_external) {
     return Address(array, index, ToScaleFactor(index_scale), extra_disp);
   } else {
     return FieldAddress(array, index, ToScaleFactor(index_scale),
