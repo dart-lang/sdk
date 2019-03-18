@@ -150,10 +150,6 @@ ConstEvalCircularity:
   template: "Constant expression depends on itself."
   analyzerCode: RECURSIVE_COMPILE_TIME_CONSTANT
 
-ConstEvalNullValue:
-  template: "Null value during constant evaluation."
-  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
-
 NotConstantExpression:
   template: "#string is not a constant expression."
   analyzerCode: NOT_CONSTANT_EXPRESSION

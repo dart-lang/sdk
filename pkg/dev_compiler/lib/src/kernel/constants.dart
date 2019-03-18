@@ -2,14 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(askesc): We should not need to call the constant evaluator
-// explicitly once constant-update-2018 is shipped.
-import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    show ConstantEvaluator, SimpleErrorReporter;
-
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/target/targets.dart';
+import 'package:kernel/transformations/constants.dart';
 import 'package:kernel/type_environment.dart';
 import 'kernel_helpers.dart';
 
@@ -34,11 +29,27 @@ class DevCompilerConstants {
   /// failed, or if the constant was unavailable.
   ///
   /// Returns [NullConstant] to represent the `null` value.
-  Constant evaluate(Expression e) {
+  ///
+  /// To avoid performance costs associated with try+catch on invalid constant
+  /// evaluation, call this after [isConstant] is known to be true.
+  Constant evaluate(Expression e, {bool cache = false}) {
     if (e == null) return null;
 
-    Constant result = _evaluator.evaluate(e);
-    return result is UnevaluatedConstant ? null : result;
+    try {
+      var result = cache ? _evaluator.evaluate(e) : e.accept(_evaluator);
+      return result is UnevaluatedConstant ? null : result;
+    } on _AbortCurrentEvaluation {
+      // TODO(jmesserly): the try+catch is necessary because the front end is
+      // not issuing sufficient errors, so the constant evaluation can fail.
+      //
+      // It can also be caused by methods in the evaluator that don't understand
+      // unavailable constants.
+      return null;
+    } on NoSuchMethodError {
+      // TODO(jmesserly): this is probably the same issue as above, but verify
+      // that it's fixed once Kernel does constant evaluation.
+      return null;
+    }
   }
 
   /// If [node] is an annotation with a field named `name`, returns that field's
@@ -168,7 +179,12 @@ class DevCompilerConstantsBackend extends ConstantsBackend {
 class _ErrorReporter extends SimpleErrorReporter {
   const _ErrorReporter();
 
-  // Ignore reported errors.
   @override
-  reportMessage(Uri uri, int offset, String message) {}
+  report(context, message, node) => throw const _AbortCurrentEvaluation();
+}
+
+// TODO(jmesserly): this class is private in Kernel constants library, so
+// we have our own version.
+class _AbortCurrentEvaluation {
+  const _AbortCurrentEvaluation();
 }

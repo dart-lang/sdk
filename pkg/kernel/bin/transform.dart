@@ -6,15 +6,15 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    as constants show SimpleErrorReporter, transformComponent;
-
 import 'package:args/args.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/src/tool/batch_util.dart';
 import 'package:kernel/target/targets.dart';
+
+import 'package:kernel/transformations/constants.dart' as constants
+    show SimpleErrorReporter, transformComponent;
 
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;

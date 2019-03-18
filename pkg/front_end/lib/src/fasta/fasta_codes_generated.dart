@@ -1423,15 +1423,6 @@ Message _withArgumentsConstEvalNonConstantVariableGet(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstEvalNullValue = messageConstEvalNullValue;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalNullValue = const MessageCode(
-    "ConstEvalNullValue",
-    analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
-    message: r"""Null value during constant evaluation.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,

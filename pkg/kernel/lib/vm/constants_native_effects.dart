@@ -5,7 +5,7 @@
 library vm.constants_native_effects;
 
 import '../ast.dart';
-import '../target/targets.dart';
+import '../transformations/constants.dart';
 import '../core_types.dart';
 
 class VmConstantsBackend extends ConstantsBackend {
