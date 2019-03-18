@@ -1906,6 +1906,7 @@ abstract class ConstNode extends Node<ConstNode> {
         case UnlinkedExprOperation.makeUntypedMap:
         case UnlinkedExprOperation.makeUntypedSet:
         case UnlinkedExprOperation.makeUntypedSetOrMap:
+        case UnlinkedExprOperation.forParts:
           intPtr++;
           break;
         case UnlinkedExprOperation.assignToRef:
@@ -5206,6 +5207,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
         case UnlinkedExprOperation.makeUntypedMap:
         case UnlinkedExprOperation.makeUntypedSet:
         case UnlinkedExprOperation.makeUntypedSetOrMap:
+        case UnlinkedExprOperation.forParts:
           intPtr++;
           break;
         case UnlinkedExprOperation.makeTypedList:

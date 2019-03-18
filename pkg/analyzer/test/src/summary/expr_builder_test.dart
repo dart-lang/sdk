@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -293,6 +294,51 @@ class C {
     checkSimpleExpression('0 <= 1');
   }
 
+  void test_list_for() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (i = 0; i < 10; i++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
+  }
+
+  void test_list_for_empty_condition() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (i = 0;; i++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
+  }
+
+  void test_list_for_empty_initializer() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (; i < 10; i++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
+  }
+
+  void test_list_for_two_updaters() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (i = 0; i < 10; i++, j++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i; int j;');
+  }
+
+  void test_list_for_zero_updaters() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (i = 0; i < 10;) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
+  }
+
   void test_makeSymbol() {
     checkSimpleExpression('#foo');
   }
@@ -311,6 +357,15 @@ class C {
 
   void test_makeUntypedMap_const() {
     checkSimpleExpression('const {0 : false}');
+  }
+
+  void test_map_for() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '{1 : 2, for (i = 0; i < 10; i++) i : i}';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
   }
 
   void test_modulo() {
@@ -460,6 +515,15 @@ class B {
 
   void test_pushTrue() {
     checkSimpleExpression('true');
+  }
+
+  void test_set_for() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '{1, for (i = 0; i < 10; i++) i}';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
   }
 
   void test_subtract() {

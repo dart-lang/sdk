@@ -520,6 +520,15 @@ class AstTestFactory {
           rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           body: body);
 
+  static ForElement forElement(
+          ForLoopParts forLoopParts, CollectionElement body) =>
+      astFactory.forElement(
+          forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
+          leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          forLoopParts: forLoopParts,
+          rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          body: body);
+
   static FormalParameterList formalParameterList(
           [List<FormalParameter> parameters]) =>
       astFactory.formalParameterList(
@@ -528,6 +537,17 @@ class AstTestFactory {
           null,
           null,
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
+
+  static ForPartsWithExpression forPartsWithExpression(
+          Expression initialization,
+          Expression condition,
+          List<Expression> updaters) =>
+      astFactory.forPartsWithExpression(
+          initialization: initialization,
+          leftSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+          condition: condition,
+          rightSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+          updaters: updaters);
 
   @Deprecated('Use forStatement2')
   static ForStatement2 forStatement(Expression initialization,

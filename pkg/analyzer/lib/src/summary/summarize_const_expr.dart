@@ -293,8 +293,10 @@ abstract class AbstractConstExprSerializer {
   }
 
   /// Serialize the given [expr] expression into this serializer state.
-  void _serialize(Expression expr) {
-    if (expr is IntegerLiteral) {
+  void _serialize(Expression expr, {bool emptyExpressionPermitted: false}) {
+    if (emptyExpressionPermitted && expr == null) {
+      operations.add(UnlinkedExprOperation.pushEmptyExpression);
+    } else if (expr is IntegerLiteral) {
       int value = expr.value ?? 0;
       if (value >= 0) {
         _pushInt(value);
@@ -558,9 +560,28 @@ abstract class AbstractConstExprSerializer {
         _serializeCollectionElement(elseElement);
         operations.add(UnlinkedExprOperation.ifElseElement);
       }
+    } else if (element is ForElement) {
+      var parts = element.forLoopParts;
+      if (parts is ForParts) {
+        if (parts is ForPartsWithExpression) {
+          _serialize(parts.initialization, emptyExpressionPermitted: true);
+        } else {
+          // See https://github.com/dart-lang/sdk/issues/35569
+          throw StateError('TODO(paulberry)');
+        }
+        _serialize(parts.condition, emptyExpressionPermitted: true);
+        for (var updater in parts.updaters) {
+          _serialize(updater);
+        }
+        operations.add(UnlinkedExprOperation.forParts);
+        ints.add(parts.updaters.length);
+      } else {
+        // See https://github.com/dart-lang/sdk/issues/35569
+        throw new StateError('TODO(paulberry)');
+      }
+      _serializeCollectionElement(element.body);
+      operations.add(UnlinkedExprOperation.forElement);
     } else {
-      // TODO(paulberry): Implement serialization for spread and control flow
-      //  elements.
       throw new StateError('Unsupported CollectionElement: $element');
     }
   }

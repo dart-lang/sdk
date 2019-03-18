@@ -3887,6 +3887,19 @@ enum UnlinkedExprOperation {
   /// condition, with the two collection elements as its "then" and "else"
   /// clauses, respectively.
   ifElseElement,
+
+  /// Pop the top n+2 values from the stack, where n is obtained from
+  /// [UnlinkedExpr.ints].  The first two are the initialization and condition
+  /// of the for-loop; the remainder are the updaters.
+  forParts,
+
+  /// Pop the top 2 values from the stack.  The first is the for loop parts.
+  /// The second is the body.
+  forElement,
+
+  /// Push the empty expression (used for missing initializers and conditions in
+  /// `for` loops)
+  pushEmptyExpression,
 }
 
 /// Unlinked summary information about an import declaration.

@@ -7650,6 +7650,205 @@ final v = f<int, String>();
         forTypeInferenceOnly: true);
   }
 
+  test_expr_list_for() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('int i; var v = [for (i = 0; i < 10; i++) i];');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '[for (i = 0; i < 10; i++) i]',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.less,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.forParts,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.assign,
+          UnlinkedExprAssignOperator.postfixIncrement
+        ],
+        ints: [
+          0,
+          10,
+          1,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor)
+        ]);
+  }
+
+  test_expr_list_for_empty_condition() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('int i; var v = [for (i = 0;; i++) i];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '[for (i = 0;; i++) i]',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.pushEmptyExpression,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.forParts,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.assign,
+          UnlinkedExprAssignOperator.postfixIncrement
+        ],
+        ints: [
+          0,
+          1,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor)
+        ]);
+  }
+
+  test_expr_list_for_empty_initializer() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('int i; var v = [for (; i < 10; i++) i];');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '[for (; i < 10; i++) i]',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.pushEmptyExpression,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.less,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.forParts,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.postfixIncrement
+        ],
+        ints: [
+          10,
+          1,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor)
+        ]);
+  }
+
+  test_expr_list_for_two_updaters() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable = serializeVariableText(
+        'int i; int j; var v = [for (i = 0; i < 10; i++, j++) i];');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '[for (i = 0; i < 10; i++, j++) i]',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.less,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.forParts,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.assign,
+          UnlinkedExprAssignOperator.postfixIncrement,
+          UnlinkedExprAssignOperator.postfixIncrement
+        ],
+        ints: [
+          0,
+          10,
+          2,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'j',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor)
+        ]);
+  }
+
+  test_expr_list_for_zero_updaters() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('int i; var v = [for (i = 0; i < 10;) i];');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '[for (i = 0; i < 10;) i]',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.less,
+          UnlinkedExprOperation.forParts,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.assign
+        ],
+        ints: [
+          0,
+          10,
+          0,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor)
+        ]);
+  }
+
   test_expr_makeTypedList() {
     UnlinkedVariable variable =
         serializeVariableText('var v = <int>[11, 22, 33];');
@@ -7740,6 +7939,101 @@ final v = f<int, String>();
         ],
         ints: [11, 22, 33, 3],
         forTypeInferenceOnly: true);
+  }
+
+  test_expr_map_for() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable = serializeVariableText(
+        'int i; var v = {1: 2, for (i = 0; i < 10; i++) i: i};');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '{1: 2, for (i = 0; i < 10; i++) i: i}',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.makeMapLiteralEntry,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.less,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.forParts,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.makeMapLiteralEntry,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedSetOrMap
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.assign,
+          UnlinkedExprAssignOperator.postfixIncrement
+        ],
+        ints: [
+          1,
+          2,
+          0,
+          10,
+          1,
+          2
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor)
+        ]);
+  }
+
+  test_expr_set_for() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable = serializeVariableText(
+        'int i; var v = {1, for (i = 0; i < 10; i++) i};');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '{1, for (i = 0; i < 10; i++) i}',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.less,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.forParts,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedSetOrMap
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.assign,
+          UnlinkedExprAssignOperator.postfixIncrement
+        ],
+        ints: [
+          1,
+          0,
+          10,
+          1,
+          2
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor)
+        ]);
   }
 
   test_expr_super() {

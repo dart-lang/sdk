@@ -42,7 +42,7 @@ class ExprBuilder {
 
   // The stack of values. Note that they are usually [Expression]s, but may be
   // any [CollectionElement] to support map/set/list literals.
-  final List<CollectionElement> stack = <CollectionElement>[];
+  final List<AstNode> stack = <AstNode>[];
 
   final List<UnlinkedExecutable> localFunctions;
 
@@ -328,6 +328,15 @@ class ExprBuilder {
           break;
         case UnlinkedExprOperation.ifElseElement:
           _pushIfElement(true);
+          break;
+        case UnlinkedExprOperation.forParts:
+          _pushForParts();
+          break;
+        case UnlinkedExprOperation.forElement:
+          _pushForElement();
+          break;
+        case UnlinkedExprOperation.pushEmptyExpression:
+          _push(null);
           break;
         case UnlinkedExprOperation.cascadeSectionBegin:
         case UnlinkedExprOperation.cascadeSectionEnd:
@@ -629,9 +638,12 @@ class ExprBuilder {
 
   Expression _pop() => stack.removeLast() as Expression;
 
-  CollectionElement _popCollectionElement() => stack.removeLast();
+  CollectionElement _popCollectionElement() =>
+      stack.removeLast() as CollectionElement;
 
-  void _push(CollectionElement expr) {
+  AstNode _popNode() => stack.removeLast();
+
+  void _push(Expression expr) {
     stack.add(expr);
   }
 
@@ -656,11 +668,34 @@ class ExprBuilder {
     _push(AstTestFactory.propertyAccess(target, propertyNode));
   }
 
+  void _pushForElement() {
+    var body = _popCollectionElement();
+    var forLoopParts = _popNode() as ForLoopParts;
+    _pushCollectionElement(AstTestFactory.forElement(forLoopParts, body));
+  }
+
+  void _pushForParts() {
+    var updaterCount = _uc.ints[intPtr++];
+    var updaters = <Expression>[];
+    for (int i = 0; i < updaterCount; i++) {
+      updaters.insert(0, _pop());
+    }
+    Expression condition = _pop();
+    AstNode initialization = _popNode();
+    if (initialization is Expression || initialization == null) {
+      _pushNode(AstTestFactory.forPartsWithExpression(
+          initialization, condition, updaters));
+    } else {
+      throw UnimplementedError('TODO(paulberry)');
+    }
+  }
+
   void _pushIfElement(bool hasElse) {
     CollectionElement elseElement = hasElse ? _popCollectionElement() : null;
     CollectionElement thenElement = _popCollectionElement();
     Expression condition = _pop();
-    _push(AstTestFactory.ifElement(condition, thenElement, elseElement));
+    _pushCollectionElement(
+        AstTestFactory.ifElement(condition, thenElement, elseElement));
   }
 
   void _pushInstanceCreation() {
@@ -868,6 +903,10 @@ class ExprBuilder {
     _pushCollectionElement(AstTestFactory.mapLiteralEntry2(key, value));
   }
 
+  void _pushNode(AstNode node) {
+    stack.add(node);
+  }
+
   void _pushPrefix(TokenType operator) {
     Expression operand = _pop();
     _push(AstTestFactory.prefixExpression(operator, operand));
@@ -938,7 +977,7 @@ class ExprBuilder {
 
   void _pushSpread(TokenType operator) {
     Expression operand = _pop();
-    _push(AstTestFactory.spreadElement(operator, operand));
+    _pushCollectionElement(AstTestFactory.spreadElement(operator, operand));
   }
 
   List<Expression> _removeTopExpressions(int count) {
