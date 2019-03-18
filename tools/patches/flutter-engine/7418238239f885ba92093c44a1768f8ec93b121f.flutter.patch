@@ -151,10 +151,10 @@ index 12c0770ab..7787bd4ca 100644
  
    String _mapFilename(String filename, PackageUriMapper packageUriMapper) {
 diff --git a/packages/flutter_tools/lib/src/devfs.dart b/packages/flutter_tools/lib/src/devfs.dart
-index 7940e8bb0..9e8b9bd45 100644
+index 407a51b12..ea63e73c6 100644
 --- a/packages/flutter_tools/lib/src/devfs.dart
 +++ b/packages/flutter_tools/lib/src/devfs.dart
-@@ -557,6 +557,8 @@ class DevFS {
+@@ -484,6 +484,8 @@ class DevFS {
        outputPath:  dillOutputPath ?? getDefaultApplicationKernelPath(trackWidgetCreation: trackWidgetCreation),
        packagesFilePath : _packagesFilePath,
      );
@@ -164,10 +164,10 @@ index 7940e8bb0..9e8b9bd45 100644
      // started loading from.
      if (!bundleFirstUpload) {
 diff --git a/packages/flutter_tools/test/src/mocks.dart b/packages/flutter_tools/test/src/mocks.dart
-index 52c5fc907..36d63f2d5 100644
+index 42c9d8f7f..c47b4ff7c 100644
 --- a/packages/flutter_tools/test/src/mocks.dart
 +++ b/packages/flutter_tools/test/src/mocks.dart
-@@ -496,6 +496,6 @@ class MockResidentCompiler extends BasicMock implements ResidentCompiler {
+@@ -490,6 +490,6 @@ class MockResidentCompiler extends BasicMock implements ResidentCompiler {
    Future<CompilerOutput> recompile(String mainPath, List<String> invalidatedFiles, { String outputPath, String packagesFilePath }) async {
      fs.file(outputPath).createSync(recursive: true);
      fs.file(outputPath).writeAsStringSync('compiled_kernel_output');
