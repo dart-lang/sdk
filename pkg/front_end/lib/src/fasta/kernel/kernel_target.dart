@@ -758,7 +758,7 @@ class KernelTarget extends TargetImplementation {
           backendTarget.constantsBackend(loader.coreTypes),
           environmentDefines,
           environment,
-          new KernelConstantErrorReporter(loader, environment),
+          new KernelConstantErrorReporter(loader),
           enableAsserts: enableAsserts);
       ticker.logMs("Evaluated constants");
     }

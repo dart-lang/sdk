@@ -170,5 +170,5 @@ class _ErrorReporter extends SimpleErrorReporter {
 
   // Ignore reported errors.
   @override
-  report(context, message, node) => message;
+  reportMessage(Uri uri, int offset, String message) {}
 }
