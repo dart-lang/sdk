@@ -18,8 +18,6 @@ main() {
     defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest);
     defineReflectiveTests(ControlFlowCollectionsTest);
     defineReflectiveTests(InvalidTypeArgumentInConstSetTest);
-    defineReflectiveTests(NonConstSetElementFromDeferredLibraryTest);
-    defineReflectiveTests(NonConstSetElementTest);
   });
 }
 
@@ -559,60 +557,6 @@ class A<E> {
     await computeAnalysisResult(source);
     assertErrors(
         source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET]);
-    verify([source]);
-  }
-}
-
-@reflectiveTest
-class NonConstSetElementFromDeferredLibraryTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  test_topLevelVariable_immediate() async {
-    await resolveWithErrors(<String>[
-      r'''
-library lib1;
-const int c = 1;''',
-      r'''
-library root;
-import 'lib1.dart' deferred as a;
-f() {
-  return const {a.c};
-}'''
-    ], [
-      CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY
-    ]);
-  }
-
-  test_topLevelVariable_nested() async {
-    await resolveWithErrors(<String>[
-      r'''
-library lib1;
-const int c = 1;''',
-      r'''
-library root;
-import 'lib1.dart' deferred as a;
-f() {
-  return const {a.c + 1};
-}'''
-    ], [
-      CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY
-    ]);
-  }
-}
-
-@reflectiveTest
-class NonConstSetElementTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  test_parameter() async {
-    Source source = addSource(r'''
-f(a) {
-  return const {a};
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
     verify([source]);
   }
 }

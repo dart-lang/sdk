@@ -4228,48 +4228,6 @@ main (int p) {
     ]);
   }
 
-  test_nonConstListElement() async {
-    Source source = addSource(r'''
-f(a) {
-  return const [a];
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
-    verify([source]);
-  }
-
-  test_nonConstListElementFromDeferredLibrary() async {
-    await resolveWithErrors(<String>[
-      r'''
-library lib1;
-const int c = 1;''',
-      r'''
-library root;
-import 'lib1.dart' deferred as a;
-f() {
-  return const [a.c];
-}'''
-    ], [
-      CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
-    ]);
-  }
-
-  test_nonConstListElementFromDeferredLibrary_nested() async {
-    await resolveWithErrors(<String>[
-      r'''
-library lib1;
-const int c = 1;''',
-      r'''
-library root;
-import 'lib1.dart' deferred as a;
-f() {
-  return const [a.c + 1];
-}'''
-    ], [
-      CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
-    ]);
-  }
-
   test_nonConstMapAsExpressionStatement_begin() async {
     Source source = addSource(r'''
 f() {
@@ -4326,90 +4284,6 @@ f() {
               ]
             : [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
     verify([source]);
-  }
-
-  test_nonConstMapKey() async {
-    Source source = addSource(r'''
-f(a) {
-  return const {a : 0};
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
-    verify([source]);
-  }
-
-  test_nonConstMapKeyFromDeferredLibrary() async {
-    await resolveWithErrors(<String>[
-      r'''
-library lib1;
-const int c = 1;''',
-      r'''
-library root;
-import 'lib1.dart' deferred as a;
-f() {
-  return const {a.c : 0};
-}'''
-    ], [
-      CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY
-    ]);
-  }
-
-  test_nonConstMapKeyFromDeferredLibrary_nested() async {
-    await resolveWithErrors(<String>[
-      r'''
-library lib1;
-const int c = 1;''',
-      r'''
-library root;
-import 'lib1.dart' deferred as a;
-f() {
-  return const {a.c + 1 : 0};
-}'''
-    ], [
-      CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY
-    ]);
-  }
-
-  test_nonConstMapValue() async {
-    Source source = addSource(r'''
-f(a) {
-  return const {'a' : a};
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
-    verify([source]);
-  }
-
-  test_nonConstMapValueFromDeferredLibrary() async {
-    await resolveWithErrors(<String>[
-      r'''
-library lib1;
-const int c = 1;''',
-      r'''
-library root;
-import 'lib1.dart' deferred as a;
-f() {
-  return const {'a' : a.c};
-}'''
-    ], [
-      CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY
-    ]);
-  }
-
-  test_nonConstMapValueFromDeferredLibrary_nested() async {
-    await resolveWithErrors(<String>[
-      r'''
-library lib1;
-const int c = 1;''',
-      r'''
-library root;
-import 'lib1.dart' deferred as a;
-f() {
-  return const {'a' : a.c + 1};
-}'''
-    ], [
-      CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY
-    ]);
   }
 
   test_nonConstValueInInitializer_assert_condition() async {

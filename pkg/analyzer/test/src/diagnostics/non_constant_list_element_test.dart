@@ -25,6 +25,13 @@ var v = const [a];
 ''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
   }
 
+  test_const_topVar_nested() async {
+    await assertErrorsInCode(r'''
+final dynamic a = 0;
+var v = const [a + 1];
+''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+  }
+
   test_nonConst_topVar() async {
     await assertNoErrorsInCode('''
 final dynamic a = 0;
@@ -42,6 +49,13 @@ class NonConstantListElementWithUiAsCodeTest
       EnableString.control_flow_collections,
       EnableString.spread_collections,
     ];
+
+  test_const_forElement() async {
+    await assertErrorsInCode(r'''
+const Set set = {};
+var v = const [for(final x in set) x];
+''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+  }
 
   test_const_ifElement_thenElseFalse_finalElse() async {
     await assertErrorsInCode('''

@@ -18,6 +18,13 @@ main() {
 
 @reflectiveTest
 class NonConstantSetElementTest extends DriverResolutionTest {
+  test_const_parameter() async {
+    await assertErrorsInCode(r'''
+f(a) {
+  return const {a};
+}''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+  }
+
   test_const_topVar() async {
     await assertErrorsInCode('''
 final dynamic a = 0;
@@ -95,6 +102,13 @@ var v = const <int>{if (1 > 0) a};
     await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const <int>{if (1 > 0) a};
+''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+  }
+
+  test_const_spread_final() async {
+    await assertErrorsInCode(r'''
+final Set x = null;
+var v = const {...x};
 ''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 }
