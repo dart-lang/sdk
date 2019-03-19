@@ -6621,7 +6621,51 @@ class CodeGenerator extends Object
       : _emitMapLiteral(node.elements2, node);
 
   @override
-  visitSpreadElement(SpreadElement node) => _unreachable(node);
+  JS.Statement visitSpreadElement(SpreadElement node) {
+    /// Returns `true` if [node] is or is a sub element of a Map literal.
+    isMap(AstNode node) {
+      if (node is SetOrMapLiteral) return node.isMap;
+      if (node is ListLiteral) return false;
+      return isMap(node.parent);
+    }
+
+    /// Appends all elements in [spreadItems] to the collection being built.
+    ///
+    /// Walks the parent nodes starting at [parent] to determine if this is
+    /// spread is in a Map literal.
+    emitSpread(AstNode parent, JS.Expression spreadExpression) {
+      if (isMap(parent)) {
+        return js.statement('#.forEach((k, v) => {#.push(k); #.push(v)})', [
+          spreadExpression,
+          _currentCollectionVariable,
+          _currentCollectionVariable
+        ]);
+      }
+      return js.statement('#.forEach((i) => #.push(i))',
+          [spreadExpression, _currentCollectionVariable]);
+    }
+
+    /// Emits a null check on [spreadExpression] then appends all elements to
+    /// the collection being built.
+    ///
+    /// Walks the parent nodes starting at [parent] to determine if this is
+    /// spread is in a Map literal.
+    emitNullSafeSpread(AstNode parent, JS.Expression spreadExpression) {
+      // TODO(nshahan) Could optimize out if we know the value is null.
+      var spreadItems = _emitSimpleIdentifier(
+          _createTemporary('items', getStaticType(node.expression)));
+      return JS.Block([
+        js.statement('let # = #', [spreadItems, spreadExpression]),
+        js.statement('if (# != null) #',
+            [spreadItems, emitSpread(node.parent, spreadItems)])
+      ]);
+    }
+
+    var spreadExpression = _visitExpression(node.expression);
+    return node.beginToken.lexeme == '...?'
+        ? emitNullSafeSpread(node.parent, spreadExpression)
+        : emitSpread(node.parent, spreadExpression);
+  }
 
   @override
   visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
