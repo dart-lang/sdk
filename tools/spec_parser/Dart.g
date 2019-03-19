@@ -43,29 +43,6 @@ import java.util.Stack;
     return !errorHasOccurred;
   }
 
-  /// Produce grammar debugging friendly output, as described in 'The
-  /// Definitive ANTLR Reference', p247.
-  public String getErrorMessage(RecognitionException e, String[] tokenNames) {
-    List stack = getRuleInvocationStack(e, this.getClass().getName());
-    String msg = null;
-    if (e instanceof NoViableAltException) {
-      NoViableAltException nvae = (NoViableAltException)e;
-      msg = "no viable alt; token=" + e.token +
-          " (decision=" + nvae.decisionNumber +
-          " state " + nvae.stateNumber + ")" +
-          " decision=<<" + nvae.grammarDecisionDescription + ">>";
-    }
-    else {
-      msg = super.getErrorMessage(e, tokenNames);
-    }
-    if (!errorHasOccurred) prepareForErrors();
-    return stack + " " + msg;
-  }
-
-  public String getTokenErrorDisplay(Token t) {
-    return t.toString();
-  }
-
   // Enable the parser to treat ASYNC/AWAIT/YIELD as keywords in the body of an
   // `async`, `async*`, or `sync*` function. Access via methods below.
   private Stack<Boolean> asyncEtcAreKeywords = new Stack<Boolean>();
@@ -89,20 +66,6 @@ import java.util.Stack;
     }
     return false;
   }
-
-  // Debugging support methods.
-  void dp(int indent, String method, String sep) {
-    for (int i = 0; i < indent; i++) {
-      System.out.print("  ");
-    }
-    System.out.println(method + sep + " " + input.LT(1) + " " + state.failed);
-  }
-
-  void dpBegin(int indent, String method) { dp(indent, method, ":"); }
-  void dpEnd(int indent, String method) { dp(indent, method, " END:"); }
-  void dpCall(int indent, String method) { dp(indent, method, "?"); }
-  void dpCalled(int indent, String method) { dp(indent, method, ".."); }
-  void dpResult(int indent, String method) { dp(indent, method, "!"); }
 }
 
 @lexer::members{
@@ -111,13 +74,6 @@ import java.util.Stack;
   public static final int BRACE_DOUBLE = 3;
   public static final int BRACE_THREE_SINGLE = 4;
   public static final int BRACE_THREE_DOUBLE = 5;
-
-  /// This override ensures that lexer errors are recognized as errors,
-  /// but does not change the format of the reported error.
-  public String getErrorMessage(RecognitionException e, String[] tokenNames) {
-    if (!DartParser.errorHasOccurred) DartParser.prepareForErrors();
-    return super.getErrorMessage(e, tokenNames);
-  }
 
   // Enable the parser to handle string interpolations via brace matching.
   // The top of the `braceLevels` stack describes the most recent unmatched
@@ -171,9 +127,9 @@ import java.util.Stack;
 
 libraryDefinition
     :    FEFF? SCRIPT_TAG?
-         ((metadata LIBRARY) => libraryName)?
-         ((metadata (IMPORT | EXPORT)) => importOrExport)*
-         ((metadata PART) => partDirective)*
+         libraryName?
+         importOrExport*
+         partDirective*
          (metadata topLevelDefinition)*
          EOF
     ;
@@ -181,16 +137,13 @@ libraryDefinition
 topLevelDefinition
     :    classDefinition
     |    enumType
-    |    (TYPEDEF typeIdentifier typeParameters? '=') => typeAlias
-    |    (TYPEDEF functionPrefix ('<' | '(')) => typeAlias
-    |    (EXTERNAL functionSignature ';') => EXTERNAL functionSignature ';'
-    |    (EXTERNAL getterSignature) => EXTERNAL getterSignature ';'
-    |    (EXTERNAL type? SET identifier '(') =>
-         EXTERNAL setterSignature ';'
-    |    (getterSignature functionBodyPrefix) => getterSignature functionBody
-    |    (type? SET identifier '(') => setterSignature functionBody
-    |    (type? identifierNotFUNCTION typeParameters? '(') =>
-         functionSignature functionBody
+    |    typeAlias
+    |    EXTERNAL functionSignature ';'
+    |    EXTERNAL getterSignature ';'
+    |    EXTERNAL setterSignature ';'
+    |    getterSignature functionBody
+    |    setterSignature functionBody
+    |    functionSignature functionBody
     |    (FINAL | CONST) type? staticFinalDeclarationList ';'
     |    topLevelVariableDeclaration ';'
     ;
@@ -276,9 +229,8 @@ normalFormalParameter
     ;
 
 normalFormalParameterNoMetadata
-    :    (COVARIANT? type? identifierNotFUNCTION formalParameterPart) =>
-         functionFormalParameter
-    |    (finalConstVarOrType? THIS) => fieldFormalParameter
+    :    functionFormalParameter
+    |    fieldFormalParameter
     |    simpleFormalParameter
     ;
 
@@ -310,11 +262,9 @@ typeApplication
     ;
 
 classDefinition
-    :    (ABSTRACT? CLASS typeApplication (EXTENDS|IMPLEMENTS|LBRACE)) =>
-         ABSTRACT? CLASS typeApplication (superclass mixins?)? interfaces?
+    :    ABSTRACT? CLASS typeApplication (superclass mixins?)? interfaces?
          LBRACE (metadata classMemberDefinition)* RBRACE
-    |    (ABSTRACT? CLASS typeApplication '=') =>
-         ABSTRACT? CLASS mixinApplicationClass
+    |    ABSTRACT? CLASS mixinApplicationClass
     ;
 
 mixins
@@ -322,18 +272,17 @@ mixins
     ;
 
 classMemberDefinition
-    :    (methodSignature functionBodyPrefix) => methodSignature functionBody
+    :    methodSignature functionBody
     |    declaration ';'
     ;
 
 methodSignature
-    :    (constructorSignature ':') => constructorSignature initializers
-    |    (FACTORY constructorName '(') => factoryConstructorSignature
-    |    (STATIC? type? identifierNotFUNCTION typeParameters? '(') =>
-         STATIC? functionSignature
-    |    (STATIC? type? GET) => STATIC? getterSignature
-    |    (STATIC? type? SET) => STATIC? setterSignature
-    |    (type? OPERATOR operator '(') => operatorSignature
+    :    constructorSignature initializers
+    |    factoryConstructorSignature
+    |    STATIC? functionSignature
+    |    STATIC? getterSignature
+    |    STATIC? setterSignature
+    |    operatorSignature
     |    constructorSignature
     ;
 
@@ -355,25 +304,17 @@ methodSignature
 // check.
 
 declaration
-    :    (EXTERNAL CONST? FACTORY constructorName '(') =>
-         EXTERNAL factoryConstructorSignature
-    |    (EXTERNAL CONST constructorName '(') =>
-         EXTERNAL constantConstructorSignature
-    |    (EXTERNAL constructorName '(') => EXTERNAL constructorSignature
-    |    ((EXTERNAL STATIC?)? type? GET identifier) =>
-         (EXTERNAL STATIC?)? getterSignature
-    |    ((EXTERNAL STATIC?)? type? SET identifier) =>
-         (EXTERNAL STATIC?)? setterSignature
-    |    (EXTERNAL? type? OPERATOR) => EXTERNAL? operatorSignature
-    |    (STATIC (FINAL | CONST)) =>
-         STATIC (FINAL | CONST) type? staticFinalDeclarationList
+    :    EXTERNAL factoryConstructorSignature
+    |    EXTERNAL constantConstructorSignature
+    |    EXTERNAL constructorSignature
+    |    (EXTERNAL STATIC?)? getterSignature
+    |    (EXTERNAL STATIC?)? setterSignature
+    |    EXTERNAL? operatorSignature
+    |    STATIC (FINAL | CONST) type? staticFinalDeclarationList
     |    FINAL type? initializedIdentifierList
-    |    ((STATIC | COVARIANT)? (VAR | type) identifier ('=' | ',' | ';')) =>
-         (STATIC | COVARIANT)? (VAR | type) initializedIdentifierList
-    |    (EXTERNAL? STATIC? functionSignature ';') =>
-         EXTERNAL? STATIC? functionSignature
-    |    (CONST? FACTORY constructorName formalParameterList '=') =>
-         redirectingFactoryConstructorSignature
+    |    (STATIC | COVARIANT)? (VAR | type) initializedIdentifierList
+    |    EXTERNAL? STATIC? functionSignature
+    |    redirectingFactoryConstructorSignature
     |    constantConstructorSignature (redirection | initializers)?
     |    constructorSignature (redirection | initializers)?
     ;
@@ -400,7 +341,7 @@ operator
 binaryOperator
     :    multiplicativeOperator
     |    additiveOperator
-    |    (shiftOperator) => shiftOperator
+    |    shiftOperator
     |    relationalOperator
     |    '=='
     |    bitwiseOperator
@@ -496,20 +437,16 @@ metadatum
     ;
 
 expression
-    :    (formalParameterPart functionExpressionBodyPrefix) =>
-         functionExpression
+    :    functionExpression
     |    throwExpression
-    |    (assignableExpression assignmentOperator) =>
-         assignableExpression assignmentOperator expression
+    |    assignableExpression assignmentOperator expression
     |    conditionalExpression cascadeSection*
     ;
 
 expressionWithoutCascade
-    :    (formalParameterPart functionExpressionBodyPrefix) =>
-         functionExpressionWithoutCascade
+    :    functionExpressionWithoutCascade
     |    throwExpressionWithoutCascade
-    |    (assignableExpression assignmentOperator) =>
-         assignableExpression assignmentOperator expressionWithoutCascade
+    |    assignableExpression assignmentOperator expressionWithoutCascade
     |    conditionalExpression
     ;
 
@@ -520,9 +457,9 @@ expressionList
 primary
     :    thisExpression
     |    SUPER unconditionalAssignableSelector
-    |    (CONST constructorDesignation) => constObjectExpression
+    |    constObjectExpression
     |    newExpression
-    |    (formalParameterPart functionPrimaryBodyPrefix) => functionPrimary
+    |    functionPrimary
     |    '(' expression ')'
     |    literal
     |    identifier
@@ -534,7 +471,7 @@ literal
     |    numericLiteral
     |    stringLiteral
     |    symbolLiteral
-    |    (CONST? typeArguments? LBRACE) => mapLiteral
+    |    mapLiteral
     |    listLiteral
     ;
 
@@ -770,8 +707,8 @@ multiplicativeOperator
     ;
 
 unaryExpression
-    :    (prefixOperator ~SUPER) => prefixOperator unaryExpression
-    |    (awaitExpression) => awaitExpression
+    :    prefixOperator unaryExpression
+    |    awaitExpression
     |    postfixExpression
     |    (minusOperator | tildeOperator) SUPER
     |    incrementOperator assignableExpression
@@ -804,11 +741,9 @@ awaitExpression
 // sequence of two relational expressions.
 
 postfixExpression
-    :    (assignableExpression postfixOperator) =>
-         assignableExpression postfixOperator
-    |    (typeName typeArguments '.') =>
-         constructorInvocation ((selector) => selector)*
-    |    primary ((selector) => selector)*
+    :    assignableExpression postfixOperator
+    |    constructorInvocation selector*
+    |    primary selector*
     ;
 
 constructorInvocation
@@ -841,15 +776,10 @@ incrementOperator
 // relationalOperator, not the beginning of typeArguments.
 
 assignableExpression
-    :    (SUPER unconditionalAssignableSelector
-            ~('<' | '(' | '[' | '.' | '?.')) =>
-         SUPER unconditionalAssignableSelector
-    |    (typeName typeArguments '.' identifier '(') =>
-         constructorInvocation
-         ((assignableSelectorPart) => assignableSelectorPart)+
-    |    (identifier ~('<' | '(' | '[' | '.' | '?.')) => identifier
-    |    (primary assignableSelectorPart) =>
-         primary ((assignableSelectorPart) => assignableSelectorPart)+
+    :    SUPER unconditionalAssignableSelector
+    |    constructorInvocation assignableSelectorPart+
+    |    identifier
+    |    primary assignableSelectorPart+
     |    identifier
     ;
 
@@ -891,7 +821,7 @@ identifierNotFUNCTION
     |    ON // Not a built-in identifier.
     |    SHOW // Not a built-in identifier.
     |    SYNC // Not a built-in identifier.
-    |    { asyncEtcPredicate(input.LA(1)) }? (ASYNC|AWAIT|YIELD)
+    |    { asyncEtcPredicate(getCurrentToken().getType()) }? (ASYNC|AWAIT|YIELD)
     ;
 
 identifier
@@ -913,7 +843,7 @@ typeIdentifier
     |    ON // Not a built-in identifier.
     |    SHOW // Not a built-in identifier.
     |    SYNC // Not a built-in identifier.
-    |    { asyncEtcPredicate(input.LA(1)) }? (ASYNC|AWAIT|YIELD)
+    |    { asyncEtcPredicate(getCurrentToken().getType()) }? (ASYNC|AWAIT|YIELD)
     ;
 
 typeTest
@@ -947,10 +877,9 @@ statement
 // add another statement which can start with LBRACE we must adjust this
 // check.
 nonLabelledStatement
-    :    (LBRACE) => block
-    |    (metadata declaredIdentifier ('='|','|';')) =>
-         localVariableDeclaration
-    |    (AWAIT? FOR) => forStatement
+    :    block
+    |    localVariableDeclaration
+    |    forStatement
     |    whileStatement
     |    doStatement
     |    switchStatement
@@ -960,10 +889,9 @@ nonLabelledStatement
     |    breakStatement
     |    continueStatement
     |    returnStatement
-    |    (metadata functionSignature functionBodyPrefix) =>
-         localFunctionDeclaration
+    |    localFunctionDeclaration
     |    assertStatement
-    |    (YIELD ~'*') => yieldStatement
+    |    yieldStatement
     |    yieldEachStatement
     |    expressionStatement
     ;
@@ -985,7 +913,7 @@ localFunctionDeclaration
     ;
 
 ifStatement
-    :    IF '(' expression ')' statement ((ELSE) => ELSE statement | ())
+    :    IF '(' expression ')' statement (ELSE statement | ())
     ;
 
 forStatement
@@ -993,16 +921,15 @@ forStatement
     ;
 
 forLoopParts
-    :    (metadata declaredIdentifier IN) =>
-         metadata declaredIdentifier IN expression
-    |    (metadata identifier IN) => metadata identifier IN expression
+    :    metadata declaredIdentifier IN expression
+    |    metadata identifier IN expression
     |    forInitializerStatement expression? ';' expressionList?
     ;
 
 // The localVariableDeclaration cannot be CONST, but that can
 // be enforced in a later phase, and the grammar allows it.
 forInitializerStatement
-    :    (localVariableDeclaration) => localVariableDeclaration
+    :    localVariableDeclaration
     |    expression? ';'
     ;
 
@@ -1040,7 +967,7 @@ onPart
     ;
 
 onParts
-    :    (onPart (ON|CATCH)) => onPart onParts
+    :    onPart onParts
     |    onPart
     ;
 
@@ -1089,8 +1016,8 @@ libraryName
     ;
 
 importOrExport
-    :    (metadata IMPORT) => libraryImport
-    |    (metadata EXPORT) => libraryExport
+    :    libraryImport
+    |    libraryExport
     ;
 
 libraryImport
@@ -1132,9 +1059,8 @@ uri
     ;
 
 type
-    :    (FUNCTION ('('|'<')) => functionTypeTails
-    |    (typeNotFunction FUNCTION ('('|'<')) =>
-         typeNotFunction functionTypeTails
+    :    functionTypeTails
+    |    typeNotFunction functionTypeTails
     |    typeNotFunction
     ;
 
@@ -1144,7 +1070,7 @@ typeNotFunction
     ;
 
 typeNotVoid
-    :    (typeNotFunction? FUNCTION ('('|'<')) => functionType
+    :    functionType
     |    typeNotVoidNotFunction
     ;
 
@@ -1170,8 +1096,7 @@ typeNotVoidNotFunctionList
     ;
 
 typeAlias
-    :    (TYPEDEF typeIdentifier typeParameters? '=') =>
-         TYPEDEF typeIdentifier typeParameters? '=' functionType ';'
+    :    TYPEDEF typeIdentifier typeParameters? '=' functionType ';'
     |    TYPEDEF functionTypeAlias
     ;
 
@@ -1180,7 +1105,7 @@ functionTypeAlias
     ;
 
 functionPrefix
-    :    (type identifier) => type identifier
+    :    type identifier
     |    identifier
     ;
 
@@ -1189,22 +1114,19 @@ functionTypeTail
     ;
 
 functionTypeTails
-    :    (functionTypeTail FUNCTION ('<'|'(')) =>
-         functionTypeTail functionTypeTails
+    :    functionTypeTail functionTypeTails
     |    functionTypeTail
     ;
 
 functionType
-    :    (FUNCTION ('<'|'(')) => functionTypeTails
+    :    functionTypeTails
     |    typeNotFunction functionTypeTails
     ;
 
 parameterTypeList
-    :    ('(' ')') => '(' ')'
-    |    ('(' normalParameterTypes ',' ('['|'{')) =>
-         '(' normalParameterTypes ',' optionalParameterTypes ')'
-    |    ('(' normalParameterTypes ','? ')') =>
-         '(' normalParameterTypes ','? ')'
+    :    '(' ')'
+    |    '(' normalParameterTypes ',' optionalParameterTypes ')'
+    |    '(' normalParameterTypes ','? ')'
     |    '(' optionalParameterTypes ')'
     ;
 
@@ -1213,7 +1135,7 @@ normalParameterTypes
     ;
 
 normalParameterType
-    :    (typedIdentifier) => typedIdentifier
+    :    typedIdentifier
     |    type
     ;
 
@@ -1239,9 +1161,8 @@ constructorDesignation
     |    typeName typeArguments ('.' identifier)?
     ;
 
-// Predicate: Force resolution as composite symbolLiteral as far as possible.
 symbolLiteral
-    :    '#' (operator | (identifier (('.' identifier) => '.' identifier)*))
+    :    '#' (operator | (identifier ('.' identifier)*))
     ;
 
 singleLineStringWithoutInterpolation
@@ -1536,7 +1457,7 @@ FUNCTION
     ;
 
 NUMBER
-    :    (DIGIT+ '.' DIGIT) => DIGIT+ '.' DIGIT+ EXPONENT?
+    :    DIGIT+ '.' DIGIT+ EXPONENT?
     |    DIGIT+ EXPONENT?
     |    '.' DIGIT+ EXPONENT?
     ;
@@ -1552,8 +1473,8 @@ RAW_SINGLE_LINE_STRING
     ;
 
 RAW_MULTI_LINE_STRING
-    :    'r' '"""' (options {greedy=false;} : .)* '"""'
-    |    'r' '\'\'\'' (options {greedy=false;} : .)* '\'\'\''
+    :    'r' '"""' (.)*? '"""'
+    |    'r' '\'\'\'' (.)*? '\'\'\''
     ;
 
 fragment
@@ -1577,15 +1498,13 @@ SINGLE_LINE_STRING_SQ_BEGIN_MID
     ;
 
 SINGLE_LINE_STRING_SQ_MID_MID
-    :    { currentBraceLevel(BRACE_SINGLE) }? =>
-         ('}' STRING_CONTENT_SQ* '${') =>
+    :    { currentBraceLevel(BRACE_SINGLE) }?
          { exitBrace(); } '}' STRING_CONTENT_SQ* '${'
          { enterBraceSingleQuote(); }
     ;
 
 SINGLE_LINE_STRING_SQ_MID_END
-    :    { currentBraceLevel(BRACE_SINGLE) }? =>
-         ('}' STRING_CONTENT_SQ* '\'') =>
+    :    { currentBraceLevel(BRACE_SINGLE) }?
          { exitBrace(); } '}' STRING_CONTENT_SQ* '\''
     ;
 
@@ -1605,15 +1524,13 @@ SINGLE_LINE_STRING_DQ_BEGIN_MID
     ;
 
 SINGLE_LINE_STRING_DQ_MID_MID
-    :    { currentBraceLevel(BRACE_DOUBLE) }? =>
-         ('}' STRING_CONTENT_DQ* '${') =>
+    :    { currentBraceLevel(BRACE_DOUBLE) }?
          { exitBrace(); } '}' STRING_CONTENT_DQ* '${'
          { enterBraceDoubleQuote(); }
     ;
 
 SINGLE_LINE_STRING_DQ_MID_END
-    :    { currentBraceLevel(BRACE_DOUBLE) }? =>
-         ('}' STRING_CONTENT_DQ* '"') =>
+    :    { currentBraceLevel(BRACE_DOUBLE) }?
          { exitBrace(); } '}' STRING_CONTENT_DQ* '"'
     ;
 
@@ -1644,15 +1561,13 @@ MULTI_LINE_STRING_SQ_BEGIN_MID
     ;
 
 MULTI_LINE_STRING_SQ_MID_MID
-    :    { currentBraceLevel(BRACE_THREE_SINGLE) }? =>
-         ('}' STRING_CONTENT_TSQ* QUOTES_SQ '${') =>
+    :    { currentBraceLevel(BRACE_THREE_SINGLE) }?
          { exitBrace(); } '}' STRING_CONTENT_TSQ* QUOTES_SQ '${'
          { enterBraceThreeSingleQuotes(); }
     ;
 
 MULTI_LINE_STRING_SQ_MID_END
-    :    { currentBraceLevel(BRACE_THREE_SINGLE) }? =>
-         ('}' STRING_CONTENT_TSQ* '\'\'\'') =>
+    :    { currentBraceLevel(BRACE_THREE_SINGLE) }?
          { exitBrace(); } '}' STRING_CONTENT_TSQ* '\'\'\''
     ;
 
@@ -1682,15 +1597,13 @@ MULTI_LINE_STRING_DQ_BEGIN_MID
     ;
 
 MULTI_LINE_STRING_DQ_MID_MID
-    :    { currentBraceLevel(BRACE_THREE_DOUBLE) }? =>
-         ('}' STRING_CONTENT_TDQ* QUOTES_DQ '${') =>
+    :    { currentBraceLevel(BRACE_THREE_DOUBLE) }?
          { exitBrace(); } '}' STRING_CONTENT_TDQ* QUOTES_DQ '${'
          { enterBraceThreeDoubleQuotes(); }
     ;
 
 MULTI_LINE_STRING_DQ_MID_END
-    :    { currentBraceLevel(BRACE_THREE_DOUBLE) }? =>
-         ('}' STRING_CONTENT_TDQ* '"""') =>
+    :    { currentBraceLevel(BRACE_THREE_DOUBLE) }?
          { exitBrace(); } '}' STRING_CONTENT_TDQ* '"""'
     ;
 
@@ -1699,7 +1612,7 @@ LBRACE
     ;
 
 RBRACE
-    :    { currentBraceLevel(BRACE_NORMAL) }? => ('}') => { exitBrace(); } '}'
+    :    { currentBraceLevel(BRACE_NORMAL) }? { exitBrace(); } '}'
     ;
 
 fragment
@@ -1745,7 +1658,7 @@ SINGLE_LINE_COMMENT
     ;
 
 MULTI_LINE_COMMENT
-    :    '/*' (options {greedy=false;} : (MULTI_LINE_COMMENT | .))* '*/'
+    :    '/*' (MULTI_LINE_COMMENT | .)*? '*/'
          { skip(); }
     ;
 

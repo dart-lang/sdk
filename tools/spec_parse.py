@@ -4,14 +4,14 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# This script runs the parser which is generated using ANTLR 3 from
+# This script runs the parser which is generated using ANTLR 4 from
 # docs/language/Dart.g. It relies on a certain environment and is hence
 # usable locally where this environment can be obtained, but it may not be
 # possible to run it, e.g., on build bots. The requirements are as follows:
 #
 #   - `make parser` in spec_parser has been executed successfully.
 #   - A suitable JVM is in the PATH and may be executed as 'java'.
-#   - the ANTLR3 jar is available as /usr/share/java/antlr3-runtime.jar.
+#   - the ANTLR3 jar is available as /usr/share/java/antlr4-runtime.jar.
 
 import os
 import string
@@ -32,7 +32,7 @@ def Main():
   tools_dir = os.path.dirname(os.path.realpath(__file__))
   spec_parser_dir = os.path.join(tools_dir, 'spec_parser')
   spec_parser_file = os.path.join(spec_parser_dir, 'SpecParser.class')
-  antlr_jar = '/usr/share/java/antlr3-runtime.jar'
+  antlr_jar = '/usr/share/java/antlr4-runtime.jar'
   class_path = string.join([spec_parser_dir, antlr_jar], ':')
   command = ['java', '-cp', class_path, 'SpecParser'] + args
 
