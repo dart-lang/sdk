@@ -63,6 +63,7 @@ import 'type_check_is_null_test.dart' as type_check_is_null;
 import 'unchecked_use_of_nullable_value_test.dart'
     as unchecked_use_of_nullable_value;
 import 'undefined_getter_test.dart' as undefined_getter;
+import 'undefined_identifier_test.dart' as undefined_identifier;
 import 'undefined_hidden_name_test.dart' as undefined_hidden_name;
 import 'undefined_operator_test.dart' as undefined_operator;
 import 'undefined_prefixed_name_test.dart' as undefined_prefixed_name;
@@ -133,6 +134,7 @@ main() {
     type_check_is_null.main();
     unchecked_use_of_nullable_value.main();
     undefined_getter.main();
+    undefined_identifier.main();
     undefined_hidden_name.main();
     undefined_operator.main();
     undefined_prefixed_name.main();
