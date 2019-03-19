@@ -4,9 +4,9 @@
 
 part of masks;
 
-/// A [ContainerTypeMask] is a [TypeMask] for a specific allocation
-/// site of a container (currently only List) that will get specialized
-/// once the [TypeGraphInferrer] phase finds an element type for it.
+/// A [TypeMask] for a specific allocation site of a container (currently only
+/// List) that will get specialized once the [TypeGraphInferrer] phase finds an
+/// element type for it.
 class ContainerTypeMask extends AllocationTypeMask {
   /// Tag used for identifying serialized [ContainerTypeMask] objects in a
   /// debugging data stream.
@@ -15,11 +15,9 @@ class ContainerTypeMask extends AllocationTypeMask {
   @override
   final TypeMask forwardTo;
 
-  // The [Node] where this type mask was created.
   @override
   final ir.TreeNode allocationNode;
 
-  // The [Entity] where this type mask was created.
   @override
   final MemberEntity allocationElement;
 

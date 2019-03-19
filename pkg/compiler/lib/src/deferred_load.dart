@@ -85,7 +85,6 @@ class OutputUnit implements Comparable<OutputUnit> {
 /// import is loaded. Elements that are used by several deferred imports are in
 /// shared OutputUnits.
 abstract class DeferredLoadTask extends CompilerTask {
-  /// The name of this task.
   @override
   String get name => 'Deferred Loading';
 

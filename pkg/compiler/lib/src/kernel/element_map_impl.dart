@@ -897,7 +897,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return node.arguments.positional[index].accept(new Stringifier());
   }
 
-  /// Computes the [NativeBehavior] for a call to the [JS] function.
   // TODO(johnniwinther): Cache this for later use.
   @override
   NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
@@ -930,8 +929,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         commonElements);
   }
 
-  /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN]
-  /// function.
   // TODO(johnniwinther): Cache this for later use.
   @override
   NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
@@ -959,8 +956,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         commonElements);
   }
 
-  /// Computes the [NativeBehavior] for a call to the
-  /// [JS_EMBEDDED_GLOBAL] function.
   // TODO(johnniwinther): Cache this for later use.
   @override
   NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
@@ -1350,10 +1345,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   @override
   NativeBasicData get nativeBasicData => _frontendStrategy.nativeBasicData;
 
-  /// Adds libraries in [component] to the set of libraries.
-  ///
-  /// The main method of the first component is used as the main method for the
-  /// compilation.
   @override
   void addComponent(ir.Component component) {
     env.addComponent(component);
@@ -1485,7 +1476,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return _getTypedefNode(typedef);
   }
 
-  /// Returns `true` is [node] has a `@Native(...)` annotation.
   // TODO(johnniwinther): Cache this for later use.
   @override
   bool isNativeClass(ir.Class node) {
@@ -1500,7 +1490,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return false;
   }
 
-  /// Compute the kind of foreign helper function called by [node], if any.
   @override
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (commonElements.isForeignHelper(getMember(node.target))) {
@@ -1518,8 +1507,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return ForeignKind.NONE;
   }
 
-  /// Computes the [InterfaceType] referenced by a call to the
-  /// [JS_INTERCEPTOR_CONSTANT] function, if any.
   @override
   InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length != 1 ||
@@ -1534,7 +1521,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return null;
   }
 
-  /// Computes the native behavior for reading the native [field].
   // TODO(johnniwinther): Cache this for later use.
   @override
   NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
@@ -1546,7 +1532,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         isJsInterop: isJsInterop);
   }
 
-  /// Computes the native behavior for writing to the native [field].
   // TODO(johnniwinther): Cache this for later use.
   @override
   NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
@@ -1554,7 +1539,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return nativeBehaviorBuilder.buildFieldStoreBehavior(type);
   }
 
-  /// Computes the native behavior for calling [member].
   // TODO(johnniwinther): Cache this for later use.
   @override
   NativeBehavior getNativeBehaviorForMethod(ir.Member member,

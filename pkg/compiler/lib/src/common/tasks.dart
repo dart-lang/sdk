@@ -32,8 +32,10 @@ abstract class CompilerTask {
   /// only measure time if measurements are enabled.
   bool get _isDisabled => _watch == null;
 
-  /// Name to use for reporting timing information. Subclasses should override
-  /// this with a proper name, otherwise we use the runtime type of the task.
+  /// Name to use for reporting timing information.
+  ///
+  /// Subclasses should override this with a proper name, otherwise we use the
+  /// runtime type of the task.
   String get name => "Unknown task '${this.runtimeType}'";
 
   bool get isRunning => _watch?.isRunning == true;

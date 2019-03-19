@@ -99,8 +99,6 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
   void registerClosurizedMember(MemberEntity element);
 
   /// Register [type] as (directly) instantiated.
-  ///
-  /// If [byMirrors] is `true`, the instantiation is through mirrors.
   // TODO(johnniwinther): Fully enforce the separation between exact, through
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
@@ -369,7 +367,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   final Map<String, Set<MemberUsage>> _instanceFunctionsByName =
       <String, Set<MemberUsage>>{};
 
-  /// Fields set.
   @override
   final Set<FieldEntity> fieldSetters = new Set<FieldEntity>();
   @override
@@ -388,10 +385,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   @override
   final Set<Local> localFunctionsWithFreeTypeVariables = new Set<Local>();
 
-  /// Set of live closurized members whose signatures reference type variables.
-  ///
-  /// A closurized method is considered live if the enclosing class has been
-  /// instantiated.
   @override
   final Set<FunctionEntity> closurizedMembersWithFreeTypeVariables =
       new Set<FunctionEntity>();
@@ -504,9 +497,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     return _closedWorldCache;
   }
 
-  /// All directly instantiated classes, that is, classes with a generative
-  /// constructor that has been called directly and not only through a
-  /// super-call.
   // TODO(johnniwinther): Improve semantic precision.
   @override
   Iterable<ClassEntity> get directlyInstantiatedClasses {
@@ -519,10 +509,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     return classes;
   }
 
-  /// All directly instantiated types, that is, the types of the directly
-  /// instantiated classes.
-  ///
-  /// See [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
   @override
   Iterable<InterfaceType> get instantiatedTypes {
@@ -553,9 +539,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     }
   }
 
-  /// Register [type] as (directly) instantiated.
-  ///
-  /// If [byMirrors] is `true`, the instantiation is through mirrors.
   // TODO(johnniwinther): Fully enforce the separation between exact, through
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
@@ -853,8 +836,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     }
   }
 
-  /// Computes usage for all members declared by [cls]. Calls [membersUsed] with
-  /// the usage changes for each member.
   @override
   void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed) {
     _elementEnvironment.forEachClassMember(cls,
@@ -973,7 +954,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     }
   }
 
-  /// Returns an iterable over all mixin applications that mixin [cls].
   @override
   Iterable<ClassEntity> allMixinUsesOf(ClassEntity cls) {
     Iterable<ClassEntity> uses = _classHierarchyBuilder.mixinUses[cls];
@@ -996,8 +976,8 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         new Map<ClassEntity, Set<ClassEntity>>();
 
-    /// Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
-    /// properties of the [ClassHierarchyNode] for [cls].
+    // Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
+    // properties of the [ClassHierarchyNode] for [cls].
 
     void addSubtypes(ClassEntity cls, InstantiationInfo info) {
       if (!info.hasInstantiation) {

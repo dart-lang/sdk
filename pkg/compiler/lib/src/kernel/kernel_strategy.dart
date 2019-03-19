@@ -114,8 +114,6 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
     return new KernelNoSuchMethodResolver(elementMap);
   }
 
-  /// Computes the main function from [mainLibrary] adding additional world
-  /// impact to [impactBuilder].
   @override
   FunctionEntity computeMain(WorldImpactBuilder impactBuilder) {
     return elementEnvironment.mainFunction;

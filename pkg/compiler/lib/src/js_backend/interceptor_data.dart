@@ -35,8 +35,16 @@ abstract class InterceptorData {
   bool fieldHasInterceptedSetter(FieldEntity element);
   bool isInterceptedName(String name);
   bool isInterceptedSelector(Selector selector);
+
+  /// Returns `true` iff [selector] matches an element defined in a class mixed
+  /// into an intercepted class.
+  ///
+  /// These selectors are not eligible for the 'dummy explicit receiver'
+  /// optimization.
   bool isInterceptedMixinSelector(
       Selector selector, AbstractValue mask, JClosedWorld closedWorld);
+
+  /// Set of classes whose methods are intercepted.
   Iterable<ClassEntity> get interceptedClasses;
   bool isMixedIntoInterceptedClass(ClassEntity element);
 
@@ -71,7 +79,6 @@ class InterceptorDataImpl implements InterceptorData {
   /// know whether a send must be intercepted or not.
   final Map<String, Set<MemberEntity>> interceptedMembers;
 
-  /// Set of classes whose methods are intercepted.
   @override
   final Set<ClassEntity> interceptedClasses;
 
@@ -169,9 +176,6 @@ class InterceptorDataImpl implements InterceptorData {
     return interceptedMembers[selector.name] != null;
   }
 
-  /// Returns `true` iff [selector] matches an element defined in a class mixed
-  /// into an intercepted class.  These selectors are not eligible for the
-  /// 'dummy explicit receiver' optimization.
   @override
   bool isInterceptedMixinSelector(
       Selector selector, AbstractValue mask, JClosedWorld closedWorld) {

@@ -89,7 +89,6 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   /// Invariant: Elements are declaration elements.
   Iterable<FieldEntity> get allReferencedStaticFields;
 
-  /// Set of methods in instantiated classes that are potentially closurized.
   @override
   Iterable<FunctionEntity> get closurizedMembers;
 
@@ -134,15 +133,9 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   /// Classes implemented by directly instantiated classes.
   final Set<ClassEntity> _implementedClasses = new Set<ClassEntity>();
 
-  /// The set of all referenced static fields.
-  ///
-  /// Invariant: Elements are declaration elements.
   @override
   final Set<FieldEntity> allReferencedStaticFields = new Set<FieldEntity>();
 
-  /// Documentation wanted -- johnniwinther
-  ///
-  /// Invariant: Elements are declaration elements.
   @override
   final Set<FunctionEntity> staticFunctionsNeedingGetter =
       new Set<FunctionEntity>();
@@ -210,26 +203,17 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   Iterable<ClassEntity> get instantiatedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
 
-  /// All directly instantiated classes, that is, classes with a generative
-  /// constructor that has been called directly and not only through a
-  /// super-call.
   // TODO(johnniwinther): Improve semantic precision.
   @override
   Iterable<ClassEntity> get directlyInstantiatedClasses {
     return _directlyInstantiatedClasses;
   }
 
-  /// All directly instantiated types, that is, the types of the directly
-  /// instantiated classes.
-  ///
-  /// See [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
   @override
   Iterable<InterfaceType> get instantiatedTypes => _instantiatedTypes;
 
   /// Register [type] as (directly) instantiated.
-  ///
-  /// If [byMirrors] is `true`, the instantiation is through mirrors.
   // TODO(johnniwinther): Fully enforce the separation between exact, through
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.

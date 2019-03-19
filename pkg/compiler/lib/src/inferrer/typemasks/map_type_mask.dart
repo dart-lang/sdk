@@ -15,11 +15,9 @@ class MapTypeMask extends AllocationTypeMask {
   @override
   final TypeMask forwardTo;
 
-  // The [Node] where this type mask was created.
   @override
   final ir.TreeNode allocationNode;
 
-  // The [MemberEntity] where this type mask was created.
   @override
   final MemberEntity allocationElement;
 

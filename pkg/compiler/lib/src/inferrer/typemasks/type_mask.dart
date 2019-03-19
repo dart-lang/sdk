@@ -400,7 +400,10 @@ abstract class TypeMask implements AbstractValue {
   TypeMask intersection(TypeMask other, JClosedWorld closedWorld);
 
   /// Returns whether [element] is a potential target when being invoked on this
-  /// type mask. [name] is used to ensure library privacy is taken into account.
+  /// type mask.
+  ///
+  ///
+  /// [name] is used to ensure library privacy is taken into account.
   bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld);
 
   /// Returns whether this [TypeMask] applied to [selector] can hit a

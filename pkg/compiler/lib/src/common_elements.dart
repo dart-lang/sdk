@@ -103,19 +103,25 @@ abstract class CommonElements {
   /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity get typedDataClass;
 
-  /// Constructor of the `Symbol` class in dart:internal. This getter will
-  /// ensure that `Symbol` is resolved and lookup the constructor on demand.
+  /// Constructor of the `Symbol` class in dart:internal.
+  ///
+  /// This getter will ensure that `Symbol` is resolved and lookup the
+  /// constructor on demand.
   ConstructorEntity get symbolConstructorTarget;
 
-  /// Whether [element] is the same as [symbolConstructor]. Used to check
-  /// for the constructor without computing it until it is likely to be seen.
+  /// Whether [element] is the same as [symbolConstructor].
+  ///
+  /// Used to check for the constructor without computing it until it is likely
+  /// to be seen.
   bool isSymbolConstructor(ConstructorEntity element);
 
   /// The function `identical` in dart:core.
   FunctionEntity get identicalFunction;
 
-  /// Whether [element] is the `Function.apply` method. This will not
-  /// resolve the apply method if it hasn't been seen yet during compilation.
+  /// Whether [element] is the `Function.apply` method.
+  ///
+  /// This will not resolve the apply method if it hasn't been seen yet during
+  /// compilation.
   bool isFunctionApplyMethod(MemberEntity element);
 
   /// The `dynamic` type.
@@ -481,6 +487,7 @@ abstract class CommonElements {
 
   // From dart:_js_embedded_names
 
+  /// Holds the class for the [JsGetName] enum.
   ClassEntity get jsGetNameEnum;
 
   /// Returns `true` if [member] is a "foreign helper", that is, a member whose
@@ -522,13 +529,15 @@ abstract class KCommonElements implements CommonElements {
 }
 
 abstract class JCommonElements implements CommonElements {
-  /// Returns `true` if [element] is the unnamed constructor of `List`. This
-  /// will not resolve the constructor if it hasn't been seen yet during
+  /// Returns `true` if [element] is the unnamed constructor of `List`.
+  ///
+  /// This will not resolve the constructor if it hasn't been seen yet during
   /// compilation.
   bool isUnnamedListConstructor(ConstructorEntity element);
 
-  /// Returns `true` if [element] is the 'filled' constructor of `List`. This
-  /// will not resolve the constructor if it hasn't been seen yet during
+  /// Returns `true` if [element] is the 'filled' constructor of `List`.
+  ///
+  /// This will not resolve the constructor if it hasn't been seen yet during
   /// compilation.
   bool isFilledListConstructor(ConstructorEntity element);
 
@@ -578,6 +587,7 @@ abstract class JCommonElements implements CommonElements {
 
   ClassEntity get typedArrayOfDoubleClass;
 
+  /// Holds the class for the [JsBuiltins] enum.
   ClassEntity get jsBuiltinEnum;
 
   bool isForeign(MemberEntity element);
@@ -593,131 +603,111 @@ class CommonElementsImpl
 
   CommonElementsImpl(this._env);
 
-  /// The `Object` class defined in 'dart:core'.
   ClassEntity _objectClass;
   @override
   ClassEntity get objectClass =>
       _objectClass ??= _findClass(coreLibrary, 'Object');
 
-  /// The `bool` class defined in 'dart:core'.
   ClassEntity _boolClass;
   @override
   ClassEntity get boolClass => _boolClass ??= _findClass(coreLibrary, 'bool');
 
-  /// The `num` class defined in 'dart:core'.
   ClassEntity _numClass;
   @override
   ClassEntity get numClass => _numClass ??= _findClass(coreLibrary, 'num');
 
-  /// The `int` class defined in 'dart:core'.
   ClassEntity _intClass;
   @override
   ClassEntity get intClass => _intClass ??= _findClass(coreLibrary, 'int');
 
-  /// The `double` class defined in 'dart:core'.
   ClassEntity _doubleClass;
   @override
   ClassEntity get doubleClass =>
       _doubleClass ??= _findClass(coreLibrary, 'double');
 
-  /// The `String` class defined in 'dart:core'.
   ClassEntity _stringClass;
   @override
   ClassEntity get stringClass =>
       _stringClass ??= _findClass(coreLibrary, 'String');
 
-  /// The `Function` class defined in 'dart:core'.
   ClassEntity _functionClass;
   @override
   ClassEntity get functionClass =>
       _functionClass ??= _findClass(coreLibrary, 'Function');
 
-  /// The `Resource` class defined in 'dart:core'.
   ClassEntity _resourceClass;
   @override
   ClassEntity get resourceClass =>
       _resourceClass ??= _findClass(coreLibrary, 'Resource');
 
-  /// The `Symbol` class defined in 'dart:core'.
   ClassEntity _symbolClass;
   @override
   ClassEntity get symbolClass =>
       _symbolClass ??= _findClass(coreLibrary, 'Symbol');
 
-  /// The `Null` class defined in 'dart:core'.
   ClassEntity _nullClass;
   @override
   ClassEntity get nullClass => _nullClass ??= _findClass(coreLibrary, 'Null');
 
-  /// The `Type` class defined in 'dart:core'.
   ClassEntity _typeClass;
   @override
   ClassEntity get typeClass => _typeClass ??= _findClass(coreLibrary, 'Type');
 
-  /// The `StackTrace` class defined in 'dart:core';
   ClassEntity _stackTraceClass;
   @override
   ClassEntity get stackTraceClass =>
       _stackTraceClass ??= _findClass(coreLibrary, 'StackTrace');
 
-  /// The `List` class defined in 'dart:core';
   ClassEntity _listClass;
   @override
   ClassEntity get listClass => _listClass ??= _findClass(coreLibrary, 'List');
 
-  /// The `Set` class defined in 'dart:core'.
   ClassEntity _setClass;
   @override
   ClassEntity get setClass => _setClass ??= _findClass(coreLibrary, 'Set');
 
-  /// The `Map` class defined in 'dart:core';
   ClassEntity _mapClass;
   @override
   ClassEntity get mapClass => _mapClass ??= _findClass(coreLibrary, 'Map');
 
-  /// The `_UnmodifiableSet` class defined in 'dart:collection';
   ClassEntity _unmodifiableSetClass;
   @override
   ClassEntity get unmodifiableSetClass => _unmodifiableSetClass ??=
       _findClass(_env.lookupLibrary(Uris.dart_collection), '_UnmodifiableSet');
 
-  /// The `Iterable` class defined in 'dart:core';
   ClassEntity _iterableClass;
   @override
   ClassEntity get iterableClass =>
       _iterableClass ??= _findClass(coreLibrary, 'Iterable');
 
-  /// The `Future` class defined in 'async';.
   ClassEntity _futureClass;
   @override
   ClassEntity get futureClass =>
       _futureClass ??= _findClass(asyncLibrary, 'Future');
 
-  /// The `Stream` class defined in 'async';
   ClassEntity _streamClass;
   @override
   ClassEntity get streamClass =>
       _streamClass ??= _findClass(asyncLibrary, 'Stream');
 
-  /// The dart:core library.
   LibraryEntity _coreLibrary;
   @override
   LibraryEntity get coreLibrary =>
       _coreLibrary ??= _env.lookupLibrary(Uris.dart_core, required: true);
 
-  /// The dart:async library.
   LibraryEntity _asyncLibrary;
   @override
   LibraryEntity get asyncLibrary =>
       _asyncLibrary ??= _env.lookupLibrary(Uris.dart_async);
 
-  /// The dart:mirrors library. Null if the program doesn't access dart:mirrors.
+  /// The dart:mirrors library.
+  ///
+  /// Null if the program doesn't access dart:mirrors.
   LibraryEntity _mirrorsLibrary;
   @override
   LibraryEntity get mirrorsLibrary =>
       _mirrorsLibrary ??= _env.lookupLibrary(Uris.dart_mirrors);
 
-  /// The dart:typed_data library.
   LibraryEntity _typedDataLibrary;
   @override
   LibraryEntity get typedDataLibrary =>
@@ -744,14 +734,11 @@ class CommonElementsImpl
   LibraryEntity get internalLibrary => _internalLibrary ??=
       _env.lookupLibrary(Uris.dart__internal, required: true);
 
-  /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity _typedDataClass;
   @override
   ClassEntity get typedDataClass =>
       _typedDataClass ??= _findClass(typedDataLibrary, 'NativeTypedData');
 
-  /// Constructor of the `Symbol` class in dart:internal. This getter will
-  /// ensure that `Symbol` is resolved and lookup the constructor on demand.
   ConstructorEntity _symbolConstructorTarget;
   @override
   ConstructorEntity get symbolConstructorTarget {
@@ -788,8 +775,6 @@ class CommonElementsImpl
         _findConstructor(symbolClass, '', required: false);
   }
 
-  /// Whether [element] is the same as [symbolConstructor]. Used to check
-  /// for the constructor without computing it until it is likely to be seen.
   @override
   bool isSymbolConstructor(ConstructorEntity element) {
     assert(element != null);
@@ -798,88 +783,71 @@ class CommonElementsImpl
         element == _symbolConstructorTarget;
   }
 
-  /// The function `identical` in dart:core.
   FunctionEntity _identicalFunction;
   @override
   FunctionEntity get identicalFunction =>
       _identicalFunction ??= _findLibraryMember(coreLibrary, 'identical');
 
-  /// Whether [element] is the `Function.apply` method. This will not
-  /// resolve the apply method if it hasn't been seen yet during compilation.
   @override
   bool isFunctionApplyMethod(MemberEntity element) =>
       element.name == 'apply' && element.enclosingClass == functionClass;
 
-  /// Returns `true` if [element] is the unnamed constructor of `List`. This
-  /// will not resolve the constructor if it hasn't been seen yet during
+  /// Returns `true` if [element] is the unnamed constructor of `List`.
+  ///
+  /// This will not resolve the constructor if it hasn't been seen yet during
   /// compilation.
   @override
   bool isUnnamedListConstructor(ConstructorEntity element) =>
       (element.name == '' && element.enclosingClass == listClass) ||
       (element.name == 'list' && element.enclosingClass == jsArrayClass);
 
-  /// Returns `true` if [element] is the 'filled' constructor of `List`. This
-  /// will not resolve the constructor if it hasn't been seen yet during
+  /// Returns `true` if [element] is the 'filled' constructor of `List`.
+  ///
+  /// This will not resolve the constructor if it hasn't been seen yet during
   /// compilation.
   @override
   bool isFilledListConstructor(ConstructorEntity element) =>
       element.name == 'filled' && element.enclosingClass == listClass;
 
-  /// The `dynamic` type.
   @override
   DynamicType get dynamicType => _env.dynamicType;
 
-  /// The `Object` type defined in 'dart:core'.
   @override
   InterfaceType get objectType => _getRawType(objectClass);
 
-  /// The `bool` type defined in 'dart:core'.
   @override
   InterfaceType get boolType => _getRawType(boolClass);
 
-  /// The `num` type defined in 'dart:core'.
   @override
   InterfaceType get numType => _getRawType(numClass);
 
-  /// The `int` type defined in 'dart:core'.
   @override
   InterfaceType get intType => _getRawType(intClass);
 
-  /// The `double` type defined in 'dart:core'.
   @override
   InterfaceType get doubleType => _getRawType(doubleClass);
 
-  /// The `String` type defined in 'dart:core'.
   @override
   InterfaceType get stringType => _getRawType(stringClass);
 
-  /// The `Symbol` type defined in 'dart:core'.
   @override
   InterfaceType get symbolType => _getRawType(symbolClass);
 
-  /// The `Function` type defined in 'dart:core'.
   @override
   InterfaceType get functionType => _getRawType(functionClass);
 
-  /// The `Null` type defined in 'dart:core'.
   @override
   InterfaceType get nullType => _getRawType(nullClass);
 
-  /// The `Type` type defined in 'dart:core'.
   @override
   InterfaceType get typeType => _getRawType(typeClass);
 
   @override
   InterfaceType get typeLiteralType => _getRawType(typeLiteralClass);
 
-  /// The `StackTrace` type defined in 'dart:core';
   @override
   InterfaceType get stackTraceType => _getRawType(stackTraceClass);
 
-  /// Returns an instance of the `List` type defined in 'dart:core' with
-  /// [elementType] as its type argument.
-  ///
-  /// If no type argument is provided, the canonical raw type is returned.
   @override
   InterfaceType listType([DartType elementType]) {
     if (elementType == null) {
@@ -888,10 +856,6 @@ class CommonElementsImpl
     return _createInterfaceType(listClass, [elementType]);
   }
 
-  /// Returns an instance of the `Set` type defined in 'dart:core' with
-  /// [elementType] as its type argument.
-  ///
-  /// If no type argument is provided, the canonical raw type is returned.
   @override
   InterfaceType setType([DartType elementType]) {
     if (elementType == null) {
@@ -900,10 +864,6 @@ class CommonElementsImpl
     return _createInterfaceType(setClass, [elementType]);
   }
 
-  /// Returns an instance of the `Map` type defined in 'dart:core' with
-  /// [keyType] and [valueType] as its type arguments.
-  ///
-  /// If no type arguments are provided, the canonical raw type is returned.
   @override
   InterfaceType mapType([DartType keyType, DartType valueType]) {
     if (keyType == null && valueType == null) {
@@ -916,10 +876,6 @@ class CommonElementsImpl
     return _createInterfaceType(mapClass, [keyType, valueType]);
   }
 
-  /// Returns an instance of the `Iterable` type defined in 'dart:core' with
-  /// [elementType] as its type argument.
-  ///
-  /// If no type argument is provided, the canonical raw type is returned.
   @override
   InterfaceType iterableType([DartType elementType]) {
     if (elementType == null) {
@@ -928,10 +884,6 @@ class CommonElementsImpl
     return _createInterfaceType(iterableClass, [elementType]);
   }
 
-  /// Returns an instance of the `Future` type defined in 'dart:async' with
-  /// [elementType] as its type argument.
-  ///
-  /// If no type argument is provided, the canonical raw type is returned.
   @override
   InterfaceType futureType([DartType elementType]) {
     if (elementType == null) {
@@ -940,10 +892,6 @@ class CommonElementsImpl
     return _createInterfaceType(futureClass, [elementType]);
   }
 
-  /// Returns an instance of the `Stream` type defined in 'dart:async' with
-  /// [elementType] as its type argument.
-  ///
-  /// If no type argument is provided, the canonical raw type is returned.
   @override
   InterfaceType streamType([DartType elementType]) {
     if (elementType == null) {
@@ -952,19 +900,16 @@ class CommonElementsImpl
     return _createInterfaceType(streamClass, [elementType]);
   }
 
-  /// Returns `true` if [element] is a superclass of `String` or `num`.
   @override
   bool isNumberOrStringSupertype(ClassEntity element) {
     return element == _findClass(coreLibrary, 'Comparable', required: false);
   }
 
-  /// Returns `true` if [element] is a superclass of `String`.
   @override
   bool isStringOnlySupertype(ClassEntity element) {
     return element == _findClass(coreLibrary, 'Pattern', required: false);
   }
 
-  /// Returns `true` if [element] is a superclass of `List`.
   @override
   bool isListSupertype(ClassEntity element) => element == iterableClass;
 
@@ -1354,8 +1299,6 @@ class CommonElementsImpl
   ClassEntity get jsUInt31Class =>
       _jsUInt31Class ??= _findInterceptorsClass('JSUInt31');
 
-  /// Returns `true` member is the 'findIndexForNativeSubclassType' method
-  /// declared in `dart:_interceptors`.
   @override
   bool isFindIndexForNativeSubclassType(MemberEntity member) {
     return member.name == 'findIndexForNativeSubclassType' &&
@@ -1369,7 +1312,6 @@ class CommonElementsImpl
       _getNativeInterceptorMethod ??=
           _findInterceptorsFunction('getNativeInterceptor');
 
-  /// Returns `true` if [selector] applies to `JSIndexable.length`.
   @override
   bool appliesToJsIndexableLength(Selector selector) {
     return selector.name == 'length' && (selector.isGetter || selector.isCall);
@@ -1401,10 +1343,6 @@ class CommonElementsImpl
         _isJsStringClass(member.enclosingClass);
   }
 
-  /// Returns `true` if [selector] applies to `JSString.split` on [receiver]
-  /// in the given [world].
-  ///
-  /// Returns `false` if `JSString.split` is not available.
   @override
   bool appliesToJsStringSplit(Selector selector, AbstractValue receiver,
       AbstractValueDomain abstractValueDomain) {
@@ -1465,8 +1403,6 @@ class CommonElementsImpl
     return _jsAnonymousClass;
   }
 
-  // From dart:_js_helper
-  // TODO(johnniwinther): Avoid the need for this (from [CheckedModeHelper]).
   @override
   FunctionEntity findHelperFunction(String name) => _findHelperFunction(name);
 
@@ -1533,8 +1469,6 @@ class CommonElementsImpl
       _invocationTypeArgumentGetter ??=
           _findClassMember(jsInvocationMirrorClass, 'typeArguments');
 
-  /// Interface used to determine if an object has the JavaScript
-  /// indexing behavior. The interface is only visible to specific libraries.
   ClassEntity _jsIndexingBehaviorInterface;
   @override
   ClassEntity get jsIndexingBehaviorInterface =>
@@ -1566,7 +1500,6 @@ class CommonElementsImpl
   @override
   ClassEntity get annotationJSNameClass => _findHelperClass('JSName');
 
-  /// The class for native annotations defined in dart:_js_helper.
   ClassEntity _nativeAnnotationClass;
   @override
   ClassEntity get nativeAnnotationClass =>
@@ -1597,15 +1530,12 @@ class CommonElementsImpl
   FunctionEntity get assertUnreachableMethod =>
       _assertUnreachableMethod ??= _findHelperFunction('assertUnreachable');
 
-  /// Holds the method "getIsolateAffinityTag" when dart:_js_helper has been
-  /// loaded.
   FunctionEntity _getIsolateAffinityTagMarker;
   @override
   FunctionEntity get getIsolateAffinityTagMarker =>
       _getIsolateAffinityTagMarker ??=
           _findHelperFunction('getIsolateAffinityTag');
 
-  /// Holds the method "requiresPreamble" in _js_helper.
   FunctionEntity _requiresPreambleMarker;
   @override
   FunctionEntity get requiresPreambleMarker =>
@@ -1670,8 +1600,6 @@ class CommonElementsImpl
   FunctionEntity get throwConcurrentModificationError =>
       _findHelperFunction('throwConcurrentModificationError');
 
-  /// Return `true` if [member] is the 'checkInt' function defined in
-  /// dart:_js_helpers.
   @override
   bool isCheckInt(MemberEntity member) {
     return member.isFunction &&
@@ -1680,8 +1608,6 @@ class CommonElementsImpl
         member.name == 'checkInt';
   }
 
-  /// Return `true` if [member] is the 'checkNum' function defined in
-  /// dart:_js_helpers.
   @override
   bool isCheckNum(MemberEntity member) {
     return member.isFunction &&
@@ -1690,8 +1616,6 @@ class CommonElementsImpl
         member.name == 'checkNum';
   }
 
-  /// Return `true` if [member] is the 'checkString' function defined in
-  /// dart:_js_helpers.
   @override
   bool isCheckString(MemberEntity member) {
     return member.isFunction &&
@@ -1867,7 +1791,6 @@ class CommonElementsImpl
   ClassEntity get symbolImplementationClass =>
       _symbolImplementationClass ??= _findClass(internalLibrary, 'Symbol');
 
-  /// Used to annotate items that have the keyword "native".
   ClassEntity _externalNameClass;
   @override
   ClassEntity get externalNameClass =>
@@ -1913,14 +1836,12 @@ class CommonElementsImpl
 
   // From dart:_js_embedded_names
 
-  /// Holds the class for the [JsGetName] enum.
   ClassEntity _jsGetNameEnum;
   @override
   ClassEntity get jsGetNameEnum => _jsGetNameEnum ??= _findClass(
       _env.lookupLibrary(Uris.dart__js_embedded_names, required: true),
       'JsGetName');
 
-  /// Holds the class for the [JsBuiltins] enum.
   ClassEntity _jsBuiltinEnum;
   @override
   ClassEntity get jsBuiltinEnum => _jsBuiltinEnum ??= _findClass(
@@ -1962,23 +1883,12 @@ class CommonElementsImpl
   @override
   bool isForeign(MemberEntity element) => element.library == foreignLibrary;
 
-  /// Returns `true` if [member] is a "foreign helper", that is, a member whose
-  /// semantics is defined synthetically and not through Dart code.
-  ///
-  /// Most foreign helpers are located in the `dart:_foreign_helper` library.
   @override
   bool isForeignHelper(MemberEntity member) {
     return member.library == foreignLibrary ||
         isCreateInvocationMirrorHelper(member);
   }
 
-  /// Returns `true` if [function] is allowed to be external.
-  ///
-  /// This returns `true` for foreign helpers, from environment constructors and
-  /// members of libraries that support native.
-  ///
-  /// This returns `false` for JS interop members which therefore must be
-  /// allowed to be external through the JS interop annotation handling.
   @override
   bool isExternalAllowed(FunctionEntity function) {
     return isForeignHelper(function) ||
@@ -1990,8 +1900,6 @@ class CommonElementsImpl
         function.library.canonicalUri == Uris.dart_mirrors;
   }
 
-  /// Returns `true` if the implementation of the 'operator ==' [function] is
-  /// known to handle `null` as argument.
   @override
   bool operatorEqHandlesNullArgument(FunctionEntity function) {
     assert(function.name == '==',

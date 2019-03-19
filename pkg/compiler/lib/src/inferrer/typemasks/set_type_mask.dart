@@ -15,11 +15,9 @@ class SetTypeMask extends AllocationTypeMask {
   @override
   final TypeMask forwardTo;
 
-  // The [Node] where this type mask was created.
   @override
   final ir.TreeNode allocationNode;
 
-  // The [Entity] where this type mask was created.
   @override
   final MemberEntity allocationElement;
 
