@@ -650,6 +650,7 @@ source_set("dart_kernel_platform_cc") {
     ":gen_kernel_bytecode_dill",
     ":kernel_service_dill_linkable",
     ":platform_strong_dill_linkable",
+    "../../utils/kernel-service:kernel_service_bytecode_dill",
   ]
   sources = get_target_outputs(":kernel_service_dill_linkable") +
             get_target_outputs(":platform_strong_dill_linkable")
