@@ -953,10 +953,15 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /**
    * Return the name of the method invoked by the given postfix [expression].
    */
-  String _getPostfixOperator(PostfixExpression expression) =>
-      (expression.operator.type == TokenType.PLUS_PLUS)
-          ? TokenType.PLUS.lexeme
-          : TokenType.MINUS.lexeme;
+  String _getPostfixOperator(PostfixExpression expression) {
+    if (expression.operator.type == TokenType.PLUS_PLUS) {
+      return TokenType.PLUS.lexeme;
+    } else if (expression.operator.type == TokenType.MINUS_MINUS) {
+      return TokenType.MINUS.lexeme;
+    } else {
+      return expression.operator.lexeme;
+    }
+  }
 
   /**
    * Return the name of the method invoked by the given postfix [expression].

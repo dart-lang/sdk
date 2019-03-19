@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -835,6 +836,29 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
         AstTestFactory.postfixExpression(operand, TokenType.PLUS_PLUS);
     _resolveNode(expression);
     expect(expression.staticElement, getMethod(numType, "+"));
+    _listener.assertNoErrors();
+  }
+
+  test_visitPostfixExpression_bang() async {
+    InterfaceType numType = _typeProvider.numType;
+    SimpleIdentifier operand = AstTestFactory.identifier3("i");
+    operand.staticType = numType;
+    PostfixExpression expression =
+        AstTestFactory.postfixExpression(operand, TokenType.BANG);
+    _resolveNode(expression);
+    _listener.assertErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+
+  fail_test_visitPostfixExpression_bang_NNBD() async {
+    // TODO(danrubel): enable NNBD
+    InterfaceType numType = _typeProvider.numType;
+    SimpleIdentifier operand = AstTestFactory.identifier3("i");
+    operand.staticType = numType;
+    PostfixExpression expression =
+        AstTestFactory.postfixExpression(operand, TokenType.BANG);
+    _resolveNode(expression);
+    // TODO(danrubel): getMethod fails "Could not find method named ! in num"
+    expect(expression.staticElement, getMethod(numType, "!"));
     _listener.assertNoErrors();
   }
 
