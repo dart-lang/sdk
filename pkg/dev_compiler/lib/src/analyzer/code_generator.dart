@@ -70,8 +70,10 @@ class CodeGenerator extends Object
     with
         UIAsCodeVisitorMixin<JS.Node>,
         NullableTypeInference,
-        SharedCompiler<LibraryElement, ClassElement>
-    implements AstVisitor<JS.Node> {
+        SharedCompiler<LibraryElement, ClassElement, InterfaceType,
+            FunctionBody>
+    implements
+        AstVisitor<JS.Node> {
   final SummaryDataStore summaryData;
 
   final CompilerOptions options;
@@ -142,6 +144,7 @@ class CodeGenerator extends Object
   final ClassElement objectClass;
   final ClassElement stringClass;
   final ClassElement functionClass;
+  final ClassElement internalSymbolClass;
   final ClassElement privateSymbolClass;
   final InterfaceType linkedHashMapImplType;
   final InterfaceType identityHashMapImplType;
@@ -182,8 +185,6 @@ class CodeGenerator extends Object
   bool _superAllowed = true;
 
   final _superHelpers = Map<String, JS.Method>();
-
-  List<TypeParameterType> _typeParamInConst;
 
   /// Whether we are currently generating code for the body of a `JS()` call.
   bool _isInForeignJS = false;
@@ -226,6 +227,7 @@ class CodeGenerator extends Object
         objectClass = driver.getClass('dart:core', 'Object'),
         stringClass = driver.getClass('dart:core', 'String'),
         functionClass = driver.getClass('dart:core', 'Function'),
+        internalSymbolClass = driver.getClass('dart:_internal', 'Symbol'),
         privateSymbolClass =
             driver.getClass('dart:_js_helper', 'PrivateSymbol'),
         linkedHashMapImplType =
@@ -246,7 +248,17 @@ class CodeGenerator extends Object
 
   LibraryElement get currentLibrary => _currentElement.library;
 
+  @override
   Uri get currentLibraryUri => _currentElement.librarySource.uri;
+
+  @override
+  FunctionBody get currentFunction => _currentFunction;
+
+  @override
+  InterfaceType get privateSymbolType => privateSymbolClass.type;
+
+  @override
+  InterfaceType get internalSymbolType => internalSymbolClass.type;
 
   CompilationUnitElement get _currentCompilationUnit {
     for (var e = _currentElement;; e = e.enclosingElement) {
@@ -1863,7 +1875,7 @@ class CodeGenerator extends Object
       return _emitInstanceCreationExpression(
           element,
           element.returnType as InterfaceType,
-          () => _emitArgumentList(node.arguments),
+          _emitArgumentList(node.arguments),
           isConst: true);
     } else {
       return _visitExpression(node.name);
@@ -2004,7 +2016,7 @@ class CodeGenerator extends Object
         values.add(JS.PropertyAccess(
             _emitStaticClassName(classElem), _declareMemberName(f.getter)));
         var enumValue = runtimeCall('const(new (#.#)(#))', [
-          _emitConstructorAccess(type),
+          emitConstructorAccess(type),
           _constructorName(''),
           js.number(index++)
         ]);
@@ -3295,8 +3307,8 @@ class CodeGenerator extends Object
     return _emitAnnotatedResult(result, metadata);
   }
 
-  /// Emits an expression that lets you access statics on a [type] from code.
-  JS.Expression _emitConstructorAccess(DartType type) {
+  @override
+  JS.Expression emitConstructorAccess(DartType type) {
     return _emitJSInterop(type.element) ?? _emitType(type);
   }
 
@@ -3348,7 +3360,6 @@ class CodeGenerator extends Object
 
     var name = type.name;
     if (type is TypeParameterType) {
-      _typeParamInConst?.add(type);
       return JS.Identifier(name);
     }
 
@@ -3683,7 +3694,7 @@ class CodeGenerator extends Object
   JS.Expression _emitTarget(Expression target, Element member, bool isStatic) {
     if (isStatic) {
       if (member is ConstructorElement) {
-        return _emitConstructorAccess(member.enclosingElement.type)
+        return emitConstructorAccess(member.enclosingElement.type)
           ..sourceInformation = _nodeSpan(target);
       }
       if (member is PropertyAccessorElement) {
@@ -4351,7 +4362,7 @@ class CodeGenerator extends Object
 
   JS.Expression _emitConstructorName(DartType type, String name) {
     return _emitJSInterop(type.element) ??
-        JS.PropertyAccess(_emitConstructorAccess(type), _constructorName(name));
+        JS.PropertyAccess(emitConstructorAccess(type), _constructorName(name));
   }
 
   @override
@@ -4359,8 +4370,8 @@ class CodeGenerator extends Object
     return _emitConstructorName(node.type.type, node.staticElement.name);
   }
 
-  JS.Expression _emitInstanceCreationExpression(ConstructorElement element,
-      InterfaceType type, List<JS.Expression> Function() emitArguments,
+  JS.Expression _emitInstanceCreationExpression(
+      ConstructorElement element, InterfaceType type, List<JS.Expression> args,
       {bool isConst = false, ConstructorName ctorNode}) {
     if (element == null) {
       return _throwUnsafe('unresolved constructor: ${type?.name ?? '<null>'}'
@@ -4369,13 +4380,11 @@ class CodeGenerator extends Object
 
     var classElem = type.element;
     if (_isObjectLiteral(classElem)) {
-      var args = emitArguments();
       return args.isEmpty ? js.call('{}') : args.single as JS.ObjectInitializer;
     }
 
-    var name = element.name;
     JS.Expression emitNew() {
-      var args = emitArguments();
+      var name = element.name;
       if (args.isEmpty && classElem.source.isInSystemLibrary) {
         // Skip the slow SDK factory constructors when possible.
         switch (classElem.name) {
@@ -4414,7 +4423,8 @@ class CodeGenerator extends Object
           : JS.New(ctor, args);
     }
 
-    return isConst ? _emitConst(emitNew) : emitNew();
+    var result = emitNew();
+    return isConst ? canonicalizeConstObject(result) : result;
   }
 
   bool _isObjectLiteral(Element classElem) {
@@ -4468,25 +4478,23 @@ class CodeGenerator extends Object
       return js.escapedString(stringValue);
     }
     if (type == types.symbolType) {
-      return _emitDartSymbol(value.toSymbolValue());
+      return emitDartSymbol(value.toSymbolValue());
     }
     if (type == types.typeType) {
       return _emitType(value.toTypeValue());
     }
     if (type is InterfaceType) {
       if (type.element == types.listType.element) {
-        return _cacheConst(() => _emitConstList(type.typeArguments[0],
-            value.toListValue().map(_emitDartObject).toList()));
+        return _emitConstList(type.typeArguments[0],
+            value.toListValue().map(_emitDartObject).toList());
       }
       if (type.element == types.mapType.element) {
-        return _cacheConst(() {
-          var entries = <JS.Expression>[];
-          value.toMapValue().forEach((key, value) {
-            entries.add(_emitDartObject(key));
-            entries.add(_emitDartObject(value));
-          });
-          return _emitConstMap(type, entries);
+        var entries = <JS.Expression>[];
+        value.toMapValue().forEach((key, value) {
+          entries.add(_emitDartObject(key));
+          entries.add(_emitDartObject(value));
         });
+        return _emitConstMap(type, entries);
       }
       if (value is DartObjectImpl && value.isUserDefinedObject) {
         var ctor = value.getInvocation();
@@ -4502,15 +4510,14 @@ class CodeGenerator extends Object
               classElem.fields.where((f) => f.type == type).elementAt(index);
           return _emitClassMemberElement(field, field.getter, null);
         }
-        return _emitInstanceCreationExpression(ctor.constructor, type, () {
-          var args = ctor.positionalArguments.map(_emitDartObject).toList();
-          var named = <JS.Property>[];
-          ctor.namedArguments.forEach((name, value) {
-            named.add(JS.Property(_propertyName(name), _emitDartObject(value)));
-          });
-          if (named.isNotEmpty) args.add(JS.ObjectInitializer(named));
-          return args;
-        }, isConst: true);
+        var args = ctor.positionalArguments.map(_emitDartObject).toList();
+        var named = <JS.Property>[];
+        ctor.namedArguments.forEach((name, value) {
+          named.add(JS.Property(_propertyName(name), _emitDartObject(value)));
+        });
+        if (named.isNotEmpty) args.add(JS.ObjectInitializer(named));
+        return _emitInstanceCreationExpression(ctor.constructor, type, args,
+            isConst: true);
       }
     }
     if (value is DartObjectImpl && type is FunctionType) {
@@ -4557,7 +4564,7 @@ class CodeGenerator extends Object
     return _emitInstanceCreationExpression(
         element,
         getType(constructor.type) as InterfaceType,
-        () => _emitArgumentList(node.argumentList),
+        _emitArgumentList(node.argumentList),
         isConst: node.isConst,
         ctorNode: constructor);
   }
@@ -4953,28 +4960,6 @@ class CodeGenerator extends Object
     addTemporaryVariable(idElement, nullable: nullable);
     return id;
   }
-
-  JS.Expression _cacheConst(JS.Expression expr()) {
-    var savedTypeParams = _typeParamInConst;
-    _typeParamInConst = [];
-
-    var jsExpr = expr();
-
-    bool usesTypeParams = _typeParamInConst.isNotEmpty;
-    _typeParamInConst = savedTypeParams;
-
-    // TODO(jmesserly): if it uses type params we can still hoist it up as far
-    // as it will go, e.g. at the level the generic class is defined where type
-    // params are available.
-    if (_currentFunction == null || usesTypeParams) return jsExpr;
-
-    var temp = JS.TemporaryId('const');
-    moduleItems.add(js.statement('let #;', [temp]));
-    return js.call('# || (# = #)', [temp, temp, jsExpr]);
-  }
-
-  JS.Expression _emitConst(JS.Expression expr()) =>
-      _cacheConst(() => runtimeCall('const(#)', expr()));
 
   /// Returns a new expression, which can be be used safely *once* on the
   /// left hand side, and *once* on the right side of an assignment.
@@ -5464,7 +5449,7 @@ class CodeGenerator extends Object
     var createStreamIter = _emitInstanceCreationExpression(
         streamIterator.element.unnamedConstructor,
         streamIterator,
-        () => [_visitExpression(iterable)]);
+        [_visitExpression(iterable)]);
     var iter = JS.TemporaryId('iter');
     var variable = identifier ?? loopVariable.identifier;
     var init = _visitExpression(identifier);
@@ -5701,24 +5686,7 @@ class CodeGenerator extends Object
 
   @override
   visitSymbolLiteral(SymbolLiteral node) {
-    return _emitConst(() => _emitDartSymbol(node.components.join('.')));
-  }
-
-  JS.Expression _emitDartSymbol(String name) {
-    // TODO(vsm): Handle qualified symbols correctly.
-    var last = name.substring(name.lastIndexOf('.') + 1);
-    var jsName = js.string(name, "'");
-    if (last.startsWith('_')) {
-      var nativeSymbol = emitPrivateNameSymbol(currentLibrary, last);
-      return js.call('new #.new(#, #)', [
-        _emitConstructorAccess(privateSymbolClass.type),
-        jsName,
-        nativeSymbol
-      ]);
-    } else {
-      return js
-          .call('#.new(#)', [_emitConstructorAccess(types.symbolType), jsName]);
-    }
+    return emitDartSymbol(node.components.join('.'));
   }
 
   @override
@@ -5728,8 +5696,7 @@ class CodeGenerator extends Object
     if (!node.isConst) {
       return _emitList(elementType, elements);
     }
-
-    return _cacheConst(() => _emitConstList(elementType, elements));
+    return _emitConstList(elementType, elements);
   }
 
   // TODO(nshahan) Cleanup after control flow collections experiments are removed.
@@ -5745,7 +5712,7 @@ class CodeGenerator extends Object
       }
       return js.call('#.from([#])', [setType, jsElements]);
     }
-    return _cacheConst(() =>
+    return cacheConst(
         runtimeCall('constSet(#, [#])', [_emitType(elementType), jsElements]));
   }
 
@@ -5753,7 +5720,8 @@ class CodeGenerator extends Object
       DartType elementType, List<JS.Expression> elements) {
     // dart.constList helper internally depends on _interceptors.JSArray.
     _declareBeforeUse(_jsArray);
-    return runtimeCall('constList([#], #)', [elements, _emitType(elementType)]);
+    return cacheConst(
+        runtimeCall('constList([#], #)', [elements, _emitType(elementType)]));
   }
 
   JS.Expression _emitList(DartType itemType, List<JS.Expression> items) {
@@ -5781,13 +5749,13 @@ class CodeGenerator extends Object
       }
       return js.call('new #.from([#])', [mapType, jsElements]);
     }
-    return _cacheConst(() => _emitConstMap(type, jsElements));
+    return _emitConstMap(type, jsElements);
   }
 
   JS.Expression _emitConstMap(InterfaceType type, List<JS.Expression> entries) {
     var typeArgs = type.typeArguments;
-    return runtimeCall('constMap(#, #, [#])',
-        [_emitType(typeArgs[0]), _emitType(typeArgs[1]), entries]);
+    return cacheConst(runtimeCall('constMap(#, #, [#])',
+        [_emitType(typeArgs[0]), _emitType(typeArgs[1]), entries]));
   }
 
   JS.Expression _emitMapImplType(InterfaceType type, {bool identity}) {

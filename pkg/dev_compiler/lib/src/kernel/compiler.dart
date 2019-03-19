@@ -32,7 +32,7 @@ import 'property_model.dart';
 import 'type_table.dart';
 
 class ProgramCompiler extends Object
-    with SharedCompiler<Library, Class>
+    with SharedCompiler<Library, Class, InterfaceType, FunctionNode>
     implements
         StatementVisitor<JS.Statement>,
         ExpressionVisitor<JS.Expression>,
@@ -99,8 +99,6 @@ class ProgramCompiler extends Object
   Library _currentLibrary;
 
   FunctionNode _currentFunction;
-
-  List<TypeParameter> _typeParamInConst;
 
   /// Whether we are currently generating code for the body of a `JS()` call.
   bool _isInForeignJS = false;
@@ -233,7 +231,20 @@ class ProgramCompiler extends Object
         syncIterableClass = sdk.getClass('dart:_js_helper', 'SyncIterable'),
         asyncStarImplClass = sdk.getClass('dart:async', '_AsyncStarImpl');
 
+  @override
   Uri get currentLibraryUri => _currentLibrary.importUri;
+
+  @override
+  Library get currentLibrary => _currentLibrary;
+
+  @override
+  FunctionNode get currentFunction => _currentFunction;
+
+  @override
+  InterfaceType get privateSymbolType => privateSymbolClass.rawType;
+
+  @override
+  InterfaceType get internalSymbolType => coreTypes.internalSymbolClass.rawType;
 
   bool get emitMetadata => options.emitMetadata;
 
@@ -1119,25 +1130,6 @@ class ProgramCompiler extends Object
     return runtimeStatement('addTypeTests(#, #)', [defaultInst, isClassSymbol]);
   }
 
-  JS.Expression _emitDartSymbol(String symbolName) {
-    // TODO(vsm): Handle qualified symbols correctly.
-    var last = symbolName.split('.').last;
-    var name = js.escapedString(symbolName, "'");
-    if (last.startsWith('_')) {
-      var nativeSymbol = emitPrivateNameSymbol(_currentLibrary, last);
-      return js.call('new #.new(#, #)', [
-        _emitConstructorAccess(privateSymbolClass.rawType),
-        name,
-        nativeSymbol
-      ]);
-    } else {
-      return js.call('new #.new(#)', [
-        _emitConstructorAccess(coreTypes.internalSymbolClass.rawType),
-        name
-      ]);
-    }
-  }
-
   void _emitDartSymbols(
       Iterable<JS.TemporaryId> vars, List<JS.ModuleItem> body) {
     for (var id in vars) {
@@ -1901,7 +1893,7 @@ class ProgramCompiler extends Object
       ..sourceInformation = _nodeEnd(node.fileEndOffset);
   }
 
-  /// Emits an expression that lets you access statics on a [type] from code.
+  @override
   JS.Expression emitConstructorAccess(InterfaceType type) {
     return _emitJSInterop(type.classNode) ?? visitInterfaceType(type);
   }
@@ -2725,7 +2717,6 @@ class ProgramCompiler extends Object
   visitTypeParameterType(type) => _emitTypeParameter(type.parameter);
 
   JS.Identifier _emitTypeParameter(TypeParameter t) {
-    _typeParamInConst?.add(t);
     return JS.Identifier(getTypeParameterName(t));
   }
 
@@ -4623,12 +4614,10 @@ class ProgramCompiler extends Object
   visitConstructorInvocation(ConstructorInvocation node) {
     var ctor = node.target;
     var args = node.arguments;
-    JS.Expression emitNew() {
-      return JS.New(_emitConstructorName(node.constructedType, ctor),
-          _emitArgumentList(args, types: false));
-    }
+    var result = JS.New(_emitConstructorName(node.constructedType, ctor),
+        _emitArgumentList(args, types: false));
 
-    return node.isConst ? _emitConst(emitNew) : emitNew();
+    return node.isConst ? canonicalizeConstObject(result) : result;
   }
 
   JS.Expression _emitFactoryInvocation(StaticInvocation node) {
@@ -4681,12 +4670,10 @@ class ProgramCompiler extends Object
       }
     }
 
-    JS.Expression emitNew() {
-      return JS.Call(_emitConstructorName(type, ctor),
-          _emitArgumentList(args, types: false));
-    }
+    var result = JS.Call(_emitConstructorName(type, ctor),
+        _emitArgumentList(args, types: false));
 
-    return node.isConst ? _emitConst(emitNew) : emitNew();
+    return node.isConst ? canonicalizeConstObject(result) : result;
   }
 
   JS.Expression _emitJSInteropNew(Member ctor, Arguments args) {
@@ -4863,31 +4850,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitSymbolLiteral(SymbolLiteral node) {
-    return _emitConst(() => _emitDartSymbol(node.value));
-  }
-
-  JS.Expression _cacheConst(JS.Expression expr()) {
-    var savedTypeParams = _typeParamInConst;
-    _typeParamInConst = [];
-
-    var jsExpr = expr();
-
-    bool usesTypeParams = _typeParamInConst.isNotEmpty;
-    _typeParamInConst = savedTypeParams;
-
-    // TODO(jmesserly): if it uses type params we can still hoist it up as far
-    // as it will go, e.g. at the level the generic class is defined where type
-    // params are available.
-    if (_currentFunction == null || usesTypeParams) return jsExpr;
-
-    var temp = JS.TemporaryId('const');
-    moduleItems.add(js.statement('let #;', [temp]));
-    return js.call('# || (# = #)', [temp, temp, jsExpr]);
-  }
-
-  JS.Expression _emitConst(JS.Expression expr()) =>
-      _cacheConst(() => runtimeCall('const(#)', expr()));
+  visitSymbolLiteral(SymbolLiteral node) => emitDartSymbol(node.value);
 
   @override
   visitTypeLiteral(TypeLiteral node) => _emitTypeLiteral(node.type);
@@ -4914,12 +4877,12 @@ class ProgramCompiler extends Object
   @override
   visitListLiteral(ListLiteral node) {
     var elementType = node.typeArgument;
+    var elements = _visitExpressionList(node.expressions);
     // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
-      return _emitList(elementType, _visitExpressionList(node.expressions));
+      return _emitList(elementType, elements);
     }
-    return _cacheConst(() =>
-        _emitConstList(elementType, _visitExpressionList(node.expressions)));
+    return _emitConstList(elementType, elements);
   }
 
   @override
@@ -4934,17 +4897,18 @@ class ProgramCompiler extends Object
       return js.call(
           '#.from([#])', [setType, _visitExpressionList(node.expressions)]);
     }
-    return _cacheConst(() => runtimeCall('constSet(#, [#])', [
-          _emitType(node.typeArgument),
-          _visitExpressionList(node.expressions)
-        ]));
+    return cacheConst(runtimeCall('constSet(#, [#])', [
+      _emitType(node.typeArgument),
+      _visitExpressionList(node.expressions)
+    ]));
   }
 
   JS.Expression _emitConstList(
       DartType elementType, List<JS.Expression> elements) {
     // dart.constList helper internally depends on _interceptors.JSArray.
     _declareBeforeUse(_jsArrayClass);
-    return runtimeCall('constList([#], #)', [elements, _emitType(elementType)]);
+    return cacheConst(
+        runtimeCall('constList([#], #)', [elements, _emitType(elementType)]));
   }
 
   JS.Expression _emitList(DartType itemType, List<JS.Expression> items) {
@@ -4962,13 +4926,10 @@ class ProgramCompiler extends Object
 
   @override
   visitMapLiteral(MapLiteral node) {
-    emitEntries() {
-      var entries = <JS.Expression>[];
-      for (var e in node.entries) {
-        entries.add(_visitExpression(e.key));
-        entries.add(_visitExpression(e.value));
-      }
-      return JS.ArrayInitializer(entries);
+    var entries = <JS.Expression>[];
+    for (var e in node.entries) {
+      entries.add(_visitExpression(e.key));
+      entries.add(_visitExpression(e.value));
     }
 
     // TODO(markzipan): remove const check when we use front-end const eval
@@ -4978,10 +4939,10 @@ class ProgramCompiler extends Object
       if (node.entries.isEmpty) {
         return js.call('new #.new()', [mapType]);
       }
-      return js.call('new #.from(#)', [mapType, emitEntries()]);
+      return js.call('new #.from([#])', [mapType, entries]);
     }
-    return _cacheConst(() => runtimeCall('constMap(#, #, #)',
-        [_emitType(node.keyType), _emitType(node.valueType), emitEntries()]));
+    return cacheConst(runtimeCall('constMap(#, #, [#])',
+        [_emitType(node.keyType), _emitType(node.valueType), entries]));
   }
 
   @override
@@ -5159,44 +5120,35 @@ class ProgramCompiler extends Object
   // are emitted via their normal expression nodes.
   @override
   defaultConstant(Constant node) => _emitInvalidNode(node);
+
   @override
-  visitSymbolConstant(node) {
-    return _emitConst(() => _emitDartSymbol(node.name));
-  }
+  visitSymbolConstant(node) => emitDartSymbol(node.name);
 
   @override
   visitMapConstant(node) {
-    emitEntries() {
-      var entries = <JS.Expression>[];
-      for (var e in node.entries) {
-        entries.add(visitConstant(e.key));
-        entries.add(visitConstant(e.value));
-      }
-      return JS.ArrayInitializer(entries);
+    var entries = <JS.Expression>[];
+    for (var e in node.entries) {
+      entries.add(visitConstant(e.key));
+      entries.add(visitConstant(e.value));
     }
 
-    return _cacheConst(() => runtimeCall('constMap(#, #, #)',
-        [_emitType(node.keyType), _emitType(node.valueType), emitEntries()]));
+    return cacheConst(runtimeCall('constMap(#, #, [#])',
+        [_emitType(node.keyType), _emitType(node.valueType), entries]));
   }
 
   @override
-  visitListConstant(node) => visitConstantList(node.typeArgument, node.entries);
-
-  /// Visits [Constant] with [_visitConstant].
-  visitConstantList(DartType typeArgument, List<Constant> entries) {
-    return _cacheConst(() =>
-        _emitConstList(typeArgument, entries.map(visitConstant).toList()));
-  }
+  visitListConstant(node) => _emitConstList(
+      node.typeArgument, node.entries.map(visitConstant).toList());
 
   @override
   visitSetConstant(node) {
     // Set literals are currently desugared in the frontend.
     // Implement this method before flipping the supportsSetLiterals flag
     // in DevCompilerTarget to true.
-    return _cacheConst(() => runtimeCall('constSet(#, #)', [
-          _emitType(node.typeArgument),
-          visitConstantList(node.typeArgument, node.entries)
-        ]));
+    return cacheConst(runtimeCall('constSet(#, [#])', [
+      _emitType(node.typeArgument),
+      node.entries.map(visitConstant).toList()
+    ]));
   }
 
   @override
@@ -5214,12 +5166,11 @@ class ProgramCompiler extends Object
     }
 
     var type = visitInterfaceType(node.getType(types) as InterfaceType);
-    JS.Expression prototype = js("#.prototype", [type]);
-    JS.Property proto_prop = JS.Property(_propertyName("__proto__"), prototype);
-    List<JS.Property> properties = [proto_prop]
+    var prototype = js.call("#.prototype", [type]);
+    var properties = [JS.Property(_propertyName("__proto__"), prototype)]
       ..addAll(node.fieldValues.entries.map(entryToProperty));
-    var objectInit = JS.ObjectInitializer(properties, multiline: true);
-    return _emitConst(() => objectInit);
+    return canonicalizeConstObject(
+        JS.ObjectInitializer(properties, multiline: true));
   }
 
   @override
