@@ -275,7 +275,6 @@ class ClassTable {
   void UpdatePromoted();
 
   // Used by the generated code.
-  ClassHeapStats** TableAddressFor(intptr_t cid);
   static intptr_t TableOffsetFor(intptr_t cid);
 
   // Used by the generated code.
@@ -293,14 +292,21 @@ class ClassTable {
   void ResetAllocationAccumulators();
 
   void PrintToJSONObject(JSONObject* object);
+
+  void SetTraceAllocationFor(intptr_t cid, bool trace) {
+    ClassHeapStats* stats = PreliminaryStatsAt(cid);
+    stats->set_trace_allocation(trace);
+  }
+  bool TraceAllocationFor(intptr_t cid) {
+    ClassHeapStats* stats = PreliminaryStatsAt(cid);
+    return stats->trace_allocation();
+  }
 #endif  // !PRODUCT
 
   void AddOldTable(ClassAndSize* old_table);
   // Deallocates table copies. Do not call during concurrent access to table.
   void FreeOldTables();
 
-  void SetTraceAllocationFor(intptr_t cid, bool trace);
-  bool TraceAllocationFor(intptr_t cid);
 
  private:
   friend class GCMarker;
@@ -323,10 +329,13 @@ class ClassTable {
 
 #ifndef PRODUCT
   ClassHeapStats* class_heap_stats_table_;
-  ClassHeapStats* predefined_class_heap_stats_table_;
 
   // May not have updated size for variable size classes.
-  ClassHeapStats* PreliminaryStatsAt(intptr_t cid);
+  ClassHeapStats* PreliminaryStatsAt(intptr_t cid) {
+    ASSERT(cid > 0);
+    ASSERT(cid < top_);
+    return &class_heap_stats_table_[cid];
+  }
   void UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count = 1);
   void UpdateLiveNew(intptr_t cid, intptr_t size);
   void UpdateLiveNewGC(intptr_t cid, intptr_t size);

@@ -2115,15 +2115,13 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
     UNREACHABLE();
   }
 #ifndef PRODUCT
-  Isolate* isolate = thread->isolate();
-  ClassTable* class_table = isolate->class_table();
+  ClassTable* class_table = thread->isolate()->class_table();
   if (space == Heap::kNew) {
     class_table->UpdateAllocatedNew(cls_id, size);
   } else {
     class_table->UpdateAllocatedOld(cls_id, size);
   }
-  const Class& cls = Class::Handle(class_table->At(cls_id));
-  if (FLAG_profiler && cls.TraceAllocation(isolate)) {
+  if (class_table->TraceAllocationFor(cls_id)) {
     Profiler::SampleAllocation(thread, cls_id);
   }
 #endif  // !PRODUCT
