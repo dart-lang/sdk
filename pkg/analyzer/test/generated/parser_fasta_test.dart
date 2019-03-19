@@ -907,6 +907,21 @@ main() { // missing async
 @reflectiveTest
 class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
+  void test_binaryExpression_allOperators() {
+    // https://github.com/dart-lang/sdk/issues/36255
+    for (TokenType type in TokenType.all) {
+      if (type.precedence > 0) {
+        var source = 'a ${type.lexeme} b';
+        try {
+          parseExpression(source);
+        } on TestFailure {
+          // Ensure that there are no infinite loops or exceptions thrown
+          // by the parser. Test failures are fine.
+        }
+      }
+    }
+  }
+
   void test_listLiteral_spread() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
     ListLiteral list = parseExpression('[1, ...[2]]', errors: [

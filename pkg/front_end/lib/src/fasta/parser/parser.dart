@@ -3824,13 +3824,12 @@ class Parser {
             listener.handleUnaryPostfixAssignmentExpression(token.next);
             token = next;
           }
-        } else if (identical(tokenLevel, PREFIX_PRECEDENCE)) {
+        } else if (identical(tokenLevel, PREFIX_PRECEDENCE) &&
+            (identical(type, TokenType.BANG))) {
           // The '!' has prefix precedence but here it's being used as a
           // postfix operator to assert the expression has a non-null value.
-          if ((identical(type, TokenType.BANG))) {
-            listener.handleNonNullAssertExpression(token.next);
-            token = next;
-          }
+          listener.handleNonNullAssertExpression(token.next);
+          token = next;
         } else if (identical(tokenLevel, SELECTOR_PRECEDENCE)) {
           if (identical(type, TokenType.PERIOD) ||
               identical(type, TokenType.QUESTION_PERIOD)) {
