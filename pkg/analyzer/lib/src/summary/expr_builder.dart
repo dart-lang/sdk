@@ -46,7 +46,7 @@ class ExprBuilder {
 
   final List<UnlinkedExecutable> localFunctions;
 
-  final Map<String, ParameterElement> parametersInScope;
+  final _VariablesInScope variablesInScope;
 
   ExprBuilder(
     this.resynthesizer,
@@ -54,10 +54,9 @@ class ExprBuilder {
     this._uc, {
     this.requireValidConst: true,
     this.localFunctions,
-    Map<String, ParameterElement> parametersInScope,
+    _VariablesInScope variablesInScope,
     this.becomeSetOrMap: true,
-  })  : this.parametersInScope =
-            parametersInScope ?? _parametersInScope(context),
+  })  : this.variablesInScope = variablesInScope ?? _parametersInScope(context),
         this.isSpreadOrControlFlowEnabled = _isSpreadOrControlFlowEnabled(
             (resynthesizer.library.context.analysisOptions
                     as AnalysisOptionsImpl)
@@ -260,7 +259,7 @@ class ExprBuilder {
         case UnlinkedExprOperation.pushParameter:
           String name = _uc.strings[stringPtr++];
           SimpleIdentifier identifier = AstTestFactory.identifier3(name);
-          identifier.staticElement = parametersInScope[name];
+          identifier.staticElement = variablesInScope[name];
           _push(identifier);
           break;
         case UnlinkedExprOperation.ifNull:
@@ -829,12 +828,10 @@ class ExprBuilder {
     assert(popCount == 0);
     int functionIndex = _uc.ints[intPtr++];
     var localFunction = localFunctions[functionIndex];
-    var parametersInScope =
-        new Map<String, ParameterElement>.from(this.parametersInScope);
     var functionElement =
         new FunctionElementImpl.forSerialized(localFunction, context);
     for (ParameterElementImpl parameter in functionElement.parameters) {
-      parametersInScope[parameter.name] = parameter;
+      variablesInScope.push(parameter);
       if (parameter.unlinkedParam.type == null) {
         // Store a type of `dynamic` for the parameter; this prevents
         // resynthesis from trying to read a type out of the summary (which
@@ -858,12 +855,13 @@ class ExprBuilder {
       var bodyExpr = new ExprBuilder(
               resynthesizer, functionElement, localFunction.bodyExpr,
               requireValidConst: requireValidConst,
-              parametersInScope: parametersInScope,
+              variablesInScope: variablesInScope,
               localFunctions: localFunction.localFunctions)
           .build();
       functionBody = astFactory.expressionFunctionBody(asyncKeyword,
           TokenFactory.tokenFromType(TokenType.FUNCTION), bodyExpr, null);
     }
+    variablesInScope.pop(functionElement.parameters.length);
     FunctionExpressionImpl functionExpression = astFactory.functionExpression(
         null, AstTestFactory.formalParameterList(parameters), functionBody);
     functionExpression.declaredElement = functionElement;
@@ -992,16 +990,42 @@ class ExprBuilder {
   ///
   /// If [context] is (or contains) a constructor, then its parameters are used.
   /// Otherwise, no parameters are considered to be in scope.
-  static Map<String, ParameterElement> _parametersInScope(Element context) {
-    var result = <String, ParameterElement>{};
+  static _VariablesInScope _parametersInScope(Element context) {
+    var result = _VariablesInScope();
     for (Element e = context; e != null; e = e.enclosingElement) {
       if (e is ConstructorElement) {
         for (var parameter in e.parameters) {
-          result[parameter.name] = parameter;
+          result.push(parameter);
         }
         return result;
       }
     }
     return result;
+  }
+}
+
+/// Tracks the set of variables that are in scope while resynthesizing an
+/// expression from a summary.
+class _VariablesInScope {
+  final _variableElements = <VariableElement>[];
+
+  /// Looks up the variable with the given [name].  Returns `null` if no
+  /// variable is found.
+  VariableElement operator [](String name) {
+    for (int i = _variableElements.length - 1; i >= 0; i--) {
+      if (_variableElements[i].name == name) return _variableElements[i];
+    }
+    return null;
+  }
+
+  /// Un-does the effect of the last [count] calls to `push`.
+  void pop(int count) {
+    _variableElements.length -= count;
+  }
+
+  /// Stores a new declaration based on the given [variableElement].  The
+  /// declaration shadows any previous declaration with the same name.
+  void push(VariableElement variableElement) {
+    _variableElements.add(variableElement);
   }
 }
