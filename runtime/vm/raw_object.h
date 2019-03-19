@@ -2347,6 +2347,7 @@ class RawRegExp : public RawInstance {
 
   VISIT_FROM(RawObject*, num_bracket_expressions_)
   RawSmi* num_bracket_expressions_;
+  RawArray* capture_name_map_;
   RawString* pattern_;  // Pattern to be used for matching.
   union {
     RawFunction* function_;

@@ -9,6 +9,11 @@
 ### Dart VM
 
 * RegExp patterns can now use lookbehind assertions.
+* RegExp patterns can now use named capture groups and named backreferences.
+  Currently, named group matches can only be retrieved in Dart either by
+  the implicit index of the named group or by downcasting the returned Match
+  object to the type RegExpMatch. The RegExpMatch interface contains methods
+  for retrieving the available group names and retrieving a match by group name.
 
 ### Tool Changes
 

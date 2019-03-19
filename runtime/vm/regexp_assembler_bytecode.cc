@@ -441,6 +441,7 @@ static intptr_t Prepare(const RegExp& regexp,
     RegExpParser::ParseRegExp(pattern, multiline, compile_data);
 
     regexp.set_num_bracket_expressions(compile_data->capture_count);
+    regexp.set_capture_name_map(compile_data->capture_name_map);
     if (compile_data->simple) {
       regexp.set_is_simple();
     } else {

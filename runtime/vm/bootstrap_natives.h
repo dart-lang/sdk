@@ -103,6 +103,7 @@ namespace dart {
   V(RegExp_getIsMultiLine, 1)                                                  \
   V(RegExp_getIsCaseSensitive, 1)                                              \
   V(RegExp_getGroupCount, 1)                                                   \
+  V(RegExp_getGroupNameMap, 1)                                                 \
   V(RegExp_ExecuteMatch, 3)                                                    \
   V(RegExp_ExecuteMatchSticky, 3)                                              \
   V(List_new, 2)                                                               \

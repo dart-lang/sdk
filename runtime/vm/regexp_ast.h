@@ -277,7 +277,8 @@ class RegExpQuantifier : public RegExpTree {
 
 class RegExpCapture : public RegExpTree {
  public:
-  explicit RegExpCapture(intptr_t index) : body_(nullptr), index_(index) {}
+  explicit RegExpCapture(intptr_t index)
+      : body_(nullptr), index_(index), name_(nullptr) {}
   virtual void* Accept(RegExpVisitor* visitor, void* data);
   virtual RegExpNode* ToNode(RegExpCompiler* compiler, RegExpNode* on_success);
   static RegExpNode* ToNode(RegExpTree* body,
@@ -298,12 +299,15 @@ class RegExpCapture : public RegExpTree {
   // capture group is parsed.
   void set_body(RegExpTree* body) { body_ = body; }
   intptr_t index() const { return index_; }
+  const ZoneGrowableArray<uint16_t>* name() { return name_; }
+  void set_name(const ZoneGrowableArray<uint16_t>* name) { name_ = name; }
   static intptr_t StartRegister(intptr_t index) { return index * 2; }
   static intptr_t EndRegister(intptr_t index) { return index * 2 + 1; }
 
  private:
   RegExpTree* body_;
   intptr_t index_;
+  const ZoneGrowableArray<uint16_t>* name_;
 };
 
 class RegExpLookaround : public RegExpTree {
@@ -366,7 +370,9 @@ class RegExpLookaround : public RegExpTree {
 
 class RegExpBackReference : public RegExpTree {
  public:
-  explicit RegExpBackReference(RegExpCapture* capture) : capture_(capture) {}
+  RegExpBackReference() : capture_(nullptr), name_(nullptr) {}
+  explicit RegExpBackReference(RegExpCapture* capture)
+      : capture_(capture), name_(nullptr) {}
   virtual void* Accept(RegExpVisitor* visitor, void* data);
   virtual RegExpNode* ToNode(RegExpCompiler* compiler, RegExpNode* on_success);
   virtual RegExpBackReference* AsBackReference();
@@ -378,9 +384,13 @@ class RegExpBackReference : public RegExpTree {
   virtual intptr_t max_match() const { return kInfinity; }
   intptr_t index() const { return capture_->index(); }
   RegExpCapture* capture() const { return capture_; }
+  void set_capture(RegExpCapture* capture) { capture_ = capture; }
+  const ZoneGrowableArray<uint16_t>* name() { return name_; }
+  void set_name(const ZoneGrowableArray<uint16_t>* name) { name_ = name; }
 
  private:
   RegExpCapture* capture_;
+  const ZoneGrowableArray<uint16_t>* name_;
 };
 
 class RegExpEmpty : public RegExpTree {

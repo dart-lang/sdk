@@ -121,3 +121,30 @@ abstract class RegExp implements Pattern {
    */
   bool get isCaseSensitive;
 }
+
+/**
+ * A regular expression match.
+ *
+ * Regular expression matches are [Match]es, but also include the ability
+ * to retrieve the names for any named capture groups and to retrieve
+ * matches for named capture groups by name instead of their index.
+ */
+abstract class RegExpMatch implements Match {
+  /**
+   * The string matched by the group named [name].
+   *
+   * Returns the string matched by the capture group named [name], or
+   * `null` if no string was matched by that capture group as part of
+   * this match.
+   *
+   * The [name] must be the name of a named capture group in the regular
+   * expression creating this match (that is, the name must be in
+   * [groupNames]).
+   */
+  String namedGroup(String name);
+
+  /**
+   * The names of the captured groups in the match.
+   */
+  Iterable<String> get groupNames;
+}

@@ -21511,6 +21511,10 @@ void RegExp::set_num_bracket_expressions(intptr_t value) const {
   StoreSmi(&raw_ptr()->num_bracket_expressions_, Smi::New(value));
 }
 
+void RegExp::set_capture_name_map(const Array& array) const {
+  StorePointer(&raw_ptr()->capture_name_map_, array.raw());
+}
+
 RawRegExp* RegExp::New(Heap::Space space) {
   RegExp& result = RegExp::Handle();
   {

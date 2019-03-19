@@ -178,6 +178,7 @@ namespace dart {
   F(StackTrace, code_array_)                                                   \
   F(StackTrace, pc_offset_array_)                                              \
   F(RegExp, num_bracket_expressions_)                                          \
+  F(RegExp, capture_name_map_)                                                 \
   F(RegExp, pattern_)                                                          \
   F(RegExp, external_one_byte_function_)                                       \
   F(RegExp, external_two_byte_function_)                                       \

@@ -2149,8 +2149,12 @@ RawRegExp* RegExp::ReadFrom(SnapshotReader* reader,
   // Read and Set all the other fields.
   regex.StoreSmi(&regex.raw_ptr()->num_bracket_expressions_,
                  reader->ReadAsSmi());
+
+  *reader->ArrayHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
+  regex.set_capture_name_map(*reader->ArrayHandle());
   *reader->StringHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
   regex.set_pattern(*reader->StringHandle());
+
   regex.StoreNonPointer(&regex.raw_ptr()->num_registers_,
                         reader->Read<int32_t>());
   regex.StoreNonPointer(&regex.raw_ptr()->type_flags_, reader->Read<int8_t>());

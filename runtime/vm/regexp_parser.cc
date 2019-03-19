@@ -196,7 +196,9 @@ bool RegExpBuilder::AddQuantifierToAtom(
 
 RegExpParser::RegExpParser(const String& in, String* error, bool multiline)
     : zone_(Thread::Current()->zone()),
-      captures_(NULL),
+      captures_(nullptr),
+      named_captures_(nullptr),
+      named_back_references_(nullptr),
       in_(in),
       current_(kEndMarker),
       next_pos_(0),
@@ -206,7 +208,8 @@ RegExpParser::RegExpParser(const String& in, String* error, bool multiline)
       multiline_(multiline),
       simple_(false),
       contains_anchor_(false),
-      is_scanned_for_captures_(false) {
+      is_scanned_for_captures_(false),
+      has_named_captures_(false) {
   Advance();
 }
 
@@ -261,6 +264,7 @@ void RegExpParser::ReportError(const char* message) {
 //   Disjunction
 RegExpTree* RegExpParser::ParsePattern() {
   RegExpTree* result = ParseDisjunction();
+  PatchNamedBackReferences();
   ASSERT(!has_more());
   // If the result of parsing is a literal string atom, and it has the
   // same length as the input, then the atom is identical to the input.
@@ -282,8 +286,8 @@ RegExpTree* RegExpParser::ParsePattern() {
 //   Atom Quantifier
 RegExpTree* RegExpParser::ParseDisjunction() {
   // Used to store current state while parsing subexpressions.
-  RegExpParserState initial_state(NULL, INITIAL, RegExpLookaround::LOOKAHEAD, 0,
-                                  Z);
+  RegExpParserState initial_state(nullptr, INITIAL, RegExpLookaround::LOOKAHEAD,
+                                  0, nullptr, Z);
   RegExpParserState* stored_state = &initial_state;
   // Cache the builder in a local variable for quick access.
   RegExpBuilder* builder = initial_state.builder();
@@ -317,6 +321,10 @@ RegExpTree* RegExpParser::ParseDisjunction() {
 
         // Build result of subexpression.
         if (group_type == CAPTURE) {
+          if (stored_state->IsNamedCapture()) {
+            CreateNamedCaptureAtIndex(stored_state->capture_name(),
+                                      capture_index);
+          }
           RegExpCapture* capture = GetCapture(capture_index);
           capture->set_body(body);
           body = capture;
@@ -525,6 +533,18 @@ RegExpTree* RegExpParser::ParseDisjunction() {
             }
             break;
           }
+          case 'k':
+            // Either an identity escape or a named back-reference.  The two
+            // interpretations are mutually exclusive: '\k' is interpreted as
+            // an identity escape for non-Unicode patterns without named
+            // capture groups, and as the beginning of a named back-reference
+            // in all other cases.
+            if (HasNamedCaptures()) {
+              Advance(2);
+              ParseNamedBackReference(builder, stored_state);
+              break;
+            }
+            FALL_THROUGH;
           default:
             // Identity escape.
             builder->AddCharacter(Next());
@@ -618,6 +638,8 @@ static bool IsSpecialClassEscape(uint32_t c) {
 RegExpParser::RegExpParserState* RegExpParser::ParseOpenParenthesis(
     RegExpParserState* state) {
   RegExpLookaround::Type lookaround_type = state->lookaround_type();
+  bool is_named_capture = false;
+  const RegExpCaptureName* capture_name = nullptr;
   SubexpressionType subexpr_type = CAPTURE;
   Advance();
   if (current() == '?') {
@@ -642,11 +664,16 @@ RegExpParser::RegExpParserState* RegExpParser::ParseOpenParenthesis(
           Advance(2);
           lookaround_type = RegExpLookaround::LOOKBEHIND;
           subexpr_type = POSITIVE_LOOKAROUND;
+          break;
         } else if (Next() == '!') {
           Advance(2);
           lookaround_type = RegExpLookaround::LOOKBEHIND;
           subexpr_type = NEGATIVE_LOOKAROUND;
+          break;
         }
+        is_named_capture = true;
+        has_named_captures_ = true;
+        Advance();
         break;
       default:
         ReportError("Invalid group");
@@ -660,10 +687,14 @@ RegExpParser::RegExpParserState* RegExpParser::ParseOpenParenthesis(
       UNREACHABLE();
     }
     captures_started_++;
+
+    if (is_named_capture) {
+      capture_name = ParseCaptureGroupName();
+    }
   }
   // Store current state and begin new disjunction parsing.
   return new RegExpParserState(state, subexpr_type, lookaround_type,
-                               captures_started_, Z);
+                               captures_started_, capture_name, Z);
 }
 
 // In order to know whether an escape is a backreference or not we have to scan
@@ -698,7 +729,25 @@ void RegExpParser::ScanForCaptures() {
         break;
       }
       case '(':
-        if (current() != '?') capture_count++;
+        // At this point we could be in
+        // * a non-capturing group '(:',
+        // * a lookbehind assertion '(?<=' '(?<!'
+        // * or a named capture '(?<'.
+        //
+        // Of these, only named captures are capturing groups.
+        if (current() == '?') {
+          Advance();
+          if (current() != '<') break;
+
+          Advance();
+          if (current() == '=' || current() == '!') break;
+
+          // Found a possible named capture. It could turn out to be a syntax
+          // error (e.g. an unterminated or invalid name), but that distinction
+          // does not matter for our purposes.
+          has_named_captures_ = true;
+        }
+        capture_count++;
         break;
     }
   }
@@ -743,6 +792,147 @@ bool RegExpParser::ParseBackReferenceIndex(intptr_t* index_out) {
   return true;
 }
 
+namespace {
+
+inline constexpr bool IsIdentifierStart(uint16_t ch) {
+  return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || ch == '_' ||
+         ch == '$';
+}
+
+inline constexpr bool IsIdentifierPart(uint16_t ch) {
+  return IsIdentifierStart(ch) || (ch >= '0' && ch <= '9');
+}
+
+bool IsSameName(const RegExpCaptureName* name1,
+                const RegExpCaptureName* name2) {
+  if (name1->length() != name2->length()) return false;
+  for (intptr_t i = 0; i < name1->length(); i++) {
+    if (name1->At(i) != name2->At(i)) return false;
+  }
+  return true;
+}
+
+}  // end namespace
+
+const RegExpCaptureName* RegExpParser::ParseCaptureGroupName() {
+  auto name = new (Z) RegExpCaptureName();
+
+  bool at_start = true;
+  while (true) {
+    const uint16_t c = current();
+    Advance();
+
+    // The backslash char is misclassified as both ID_Start and ID_Continue.
+    if (c == '\\') {
+      ReportError("Invalid capture group name");
+      UNREACHABLE();
+    }
+
+    if (at_start) {
+      if (!IsIdentifierStart(c)) {
+        ReportError("Invalid capture group name");
+        UNREACHABLE();
+      }
+      name->Add(c);
+      at_start = false;
+    } else {
+      if (c == '>') {
+        break;
+      } else if (IsIdentifierPart(c)) {
+        name->Add(c);
+      } else {
+        ReportError("Invalid capture group name");
+        UNREACHABLE();
+      }
+    }
+  }
+
+  return name;
+}
+
+intptr_t RegExpParser::GetNamedCaptureIndex(const RegExpCaptureName* name) {
+  for (const auto& capture : *named_captures_) {
+    if (IsSameName(name, capture->name())) return capture->index();
+  }
+  return -1;
+}
+
+void RegExpParser::CreateNamedCaptureAtIndex(const RegExpCaptureName* name,
+                                             intptr_t index) {
+  ASSERT(0 < index && index <= captures_started_);
+  ASSERT(name != nullptr);
+
+  if (named_captures_ == nullptr) {
+    named_captures_ = new (Z) ZoneGrowableArray<RegExpCapture*>(1);
+  } else {
+    // Check for duplicates and bail if we find any. Currently O(n^2).
+    if (GetNamedCaptureIndex(name) >= 0) {
+      ReportError("Duplicate capture group name");
+      UNREACHABLE();
+    }
+  }
+
+  RegExpCapture* capture = GetCapture(index);
+  ASSERT(capture->name() == nullptr);
+
+  capture->set_name(name);
+  named_captures_->Add(capture);
+}
+
+bool RegExpParser::ParseNamedBackReference(RegExpBuilder* builder,
+                                           RegExpParserState* state) {
+  // The parser is assumed to be on the '<' in \k<name>.
+  if (current() != '<') {
+    ReportError("Invalid named reference");
+    UNREACHABLE();
+  }
+
+  Advance();
+  const RegExpCaptureName* name = ParseCaptureGroupName();
+  if (name == nullptr) {
+    return false;
+  }
+
+  if (state->IsInsideCaptureGroup(name)) {
+    builder->AddEmpty();
+  } else {
+    RegExpBackReference* atom = new (Z) RegExpBackReference();
+    atom->set_name(name);
+
+    builder->AddAtom(atom);
+
+    if (named_back_references_ == nullptr) {
+      named_back_references_ =
+          new (Z) ZoneGrowableArray<RegExpBackReference*>(1);
+    }
+    named_back_references_->Add(atom);
+  }
+
+  return true;
+}
+
+void RegExpParser::PatchNamedBackReferences() {
+  if (named_back_references_ == nullptr) return;
+
+  if (named_captures_ == nullptr) {
+    ReportError("Invalid named capture referenced");
+    return;
+  }
+
+  // Look up and patch the actual capture for each named back reference.
+  // Currently O(n^2), optimize if necessary.
+  for (intptr_t i = 0; i < named_back_references_->length(); i++) {
+    RegExpBackReference* ref = named_back_references_->At(i);
+    intptr_t index = GetNamedCaptureIndex(ref->name());
+
+    if (index < 0) {
+      ReportError("Invalid named capture referenced");
+      UNREACHABLE();
+    }
+    ref->set_capture(GetCapture(index));
+  }
+}
+
 RegExpCapture* RegExpParser::GetCapture(intptr_t index) {
   // The index for the capture groups are one-based. Its index in the list is
   // zero-based.
@@ -758,6 +948,39 @@ RegExpCapture* RegExpParser::GetCapture(intptr_t index) {
   return captures_->At(index - 1);
 }
 
+RawArray* RegExpParser::CreateCaptureNameMap() {
+  if (named_captures_ == nullptr || named_captures_->is_empty()) {
+    return Array::null();
+  }
+
+  const intptr_t len = named_captures_->length() * 2;
+
+  const Array& array = Array::Handle(Array::New(len));
+
+  auto& name = String::Handle();
+  auto& smi = Smi::Handle();
+  for (intptr_t i = 0; i < named_captures_->length(); i++) {
+    RegExpCapture* capture = named_captures_->At(i);
+    name =
+        String::FromUTF16(capture->name()->data(), capture->name()->length());
+    smi = Smi::New(capture->index());
+    array.SetAt(i * 2, name);
+    array.SetAt(i * 2 + 1, smi);
+  }
+
+  return array.raw();
+}
+
+bool RegExpParser::HasNamedCaptures() {
+  if (has_named_captures_ || is_scanned_for_captures_) {
+    return has_named_captures_;
+  }
+
+  ScanForCaptures();
+  ASSERT(is_scanned_for_captures_);
+  return has_named_captures_;
+}
+
 bool RegExpParser::RegExpParserState::IsInsideCaptureGroup(intptr_t index) {
   for (RegExpParserState* s = this; s != nullptr; s = s->previous_state()) {
     if (s->group_type() != CAPTURE) continue;
@@ -765,6 +988,16 @@ bool RegExpParser::RegExpParserState::IsInsideCaptureGroup(intptr_t index) {
     if (index == s->capture_index()) return true;
     // Abort if index is larger than what has been parsed up till this state.
     if (index > s->capture_index()) return false;
+  }
+  return false;
+}
+
+bool RegExpParser::RegExpParserState::IsInsideCaptureGroup(
+    const RegExpCaptureName* name) {
+  ASSERT(name != nullptr);
+  for (RegExpParserState* s = this; s != nullptr; s = s->previous_state()) {
+    if (s->capture_name() == nullptr) continue;
+    if (IsSameName(s->capture_name(), name)) return true;
   }
   return false;
 }
@@ -1092,6 +1325,7 @@ void RegExpParser::ParseRegExp(const String& input,
   intptr_t capture_count = parser.captures_started();
   result->simple = tree->IsAtom() && parser.simple() && capture_count == 0;
   result->contains_anchor = parser.contains_anchor();
+  result->capture_name_map = parser.CreateCaptureNameMap();
   result->capture_count = capture_count;
 }
 

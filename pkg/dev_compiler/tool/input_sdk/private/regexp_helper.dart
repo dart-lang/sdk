@@ -159,7 +159,7 @@ class JSSyntaxRegExp implements RegExp {
   bool get isCaseSensitive => _isCaseSensitive;
 }
 
-class _MatchImplementation implements Match {
+class _MatchImplementation implements RegExpMatch {
   final Pattern pattern;
   // Contains a JS RegExp match object.
   // It is an Array of String values with extra "index" and "input" properties.
@@ -184,6 +184,26 @@ class _MatchImplementation implements Match {
       out.add(group(i));
     }
     return out;
+  }
+
+  String namedGroup(String name) {
+    var groups = JS('Object', '#.groups', _match);
+    if (groups != null) {
+      var result = JS('String|Null', '#[#]', groups, name);
+      if (result != null || JS('bool', '# in #', name, groups)) {
+        return result;
+      }
+    }
+    throw ArgumentError.value(name, "name", "Not a capture group name");
+  }
+
+  Iterable<String> get groupNames {
+    var groups = JS('Object', '#.groups', _match);
+    if (groups != null) {
+      var keys = JSArray<String>.of(JS('', 'Object.keys(#)', groups));
+      return SubListIterable(keys, 0, null);
+    }
+    return Iterable.empty();
   }
 }
 

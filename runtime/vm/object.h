@@ -8990,6 +8990,7 @@ class RegExp : public Instance {
   RawSmi* num_bracket_expressions() const {
     return raw_ptr()->num_bracket_expressions_;
   }
+  RawArray* capture_name_map() const { return raw_ptr()->capture_name_map_; }
 
   RawTypedData* bytecode(bool is_one_byte, bool sticky) const {
     if (sticky) {
@@ -9046,6 +9047,7 @@ class RegExp : public Instance {
                     const TypedData& bytecode) const;
 
   void set_num_bracket_expressions(intptr_t value) const;
+  void set_capture_name_map(const Array& array) const;
   void set_is_global() const { set_flags(flags() | kGlobal); }
   void set_is_ignore_case() const { set_flags(flags() | kIgnoreCase); }
   void set_is_multi_line() const { set_flags(flags() | kMultiLine); }

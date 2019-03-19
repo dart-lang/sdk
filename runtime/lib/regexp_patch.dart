@@ -104,6 +104,8 @@ class RegExp {
       new LinkedList<_RegExpHashKey>();
 
   int get _groupCount;
+  Iterable<String> get _groupNames;
+  int _groupNameIndex(String name);
 }
 
 // Represents both a key in the regular expression cache as well as its
@@ -133,7 +135,7 @@ class _RegExpHashValue {
   _RegExpHashValue(this.regexp, this.key);
 }
 
-class _RegExpMatch implements Match {
+class _RegExpMatch implements RegExpMatch {
   _RegExpMatch(this._regexp, this.input, this._match);
 
   int get start => _start(0);
@@ -175,6 +177,18 @@ class _RegExpMatch implements Match {
   int get groupCount => _regexp._groupCount;
 
   Pattern get pattern => _regexp;
+
+  String namedGroup(String name) {
+    var idx = _regexp._groupNameIndex(name);
+    if (idx < 0) {
+      throw ArgumentError("Not a capture group name: ${name}");
+    }
+    return group(idx);
+  }
+
+  Iterable<String> get groupNames {
+    return _regexp._groupNames;
+  }
 
   final RegExp _regexp;
   final String input;
@@ -239,6 +253,28 @@ class _RegExp implements RegExp {
   bool get isCaseSensitive native "RegExp_getIsCaseSensitive";
 
   int get _groupCount native "RegExp_getGroupCount";
+
+  // Returns a List [String, int, String, int, ...] where each
+  // String is the name of a capture group and the following
+  // int is that capture group's index.
+  List get _groupNameList native "RegExp_getGroupNameMap";
+
+  Iterable<String> get _groupNames sync* {
+    final nameList = _groupNameList;
+    for (var i = 0; i < nameList.length; i += 2) {
+      yield nameList[i] as String;
+    }
+  }
+
+  int _groupNameIndex(String name) {
+    var nameList = _groupNameList;
+    for (var i = 0; i < nameList.length; i += 2) {
+      if (name == nameList[i]) {
+        return nameList[i + 1];
+      }
+    }
+    return -1;
+  }
 
   // Byte map of one byte characters with a 0xff if the character is a word
   // character (digit, letter or underscore) and 0x00 otherwise.

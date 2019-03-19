@@ -155,10 +155,13 @@ class JSSyntaxRegExp implements RegExp {
   bool get isCaseSensitive => _isCaseSensitive;
 }
 
-class _MatchImplementation implements Match {
+class _MatchImplementation implements RegExpMatch {
   final Pattern pattern;
   // Contains a JS RegExp match object.
   // It is an Array of String values with extra 'index' and 'input' properties.
+  // If there were named capture groups, there will also be an extra 'groups'
+  // property containing an object with capture group names as keys and
+  // matched strings as values.
   // We didn't force it to be JSArray<String>, so it is JSArray<dynamic>, but
   // containing String or `undefined` values.
   final JSArray _match;
@@ -192,6 +195,27 @@ class _MatchImplementation implements Match {
       out.add(group(i));
     }
     return out;
+  }
+
+  String namedGroup(String name) {
+    var groups = JS('Object', '#.groups', _match);
+    if (groups != null) {
+      var result = JS('String|Null', '#[#]', groups, name);
+      if (result != null || JS('bool', '# in #', name, groups)) {
+        return result;
+      }
+    }
+    throw ArgumentError.value(name, "name", "Not a capture group name");
+  }
+
+  Iterable<String> get groupNames {
+    var groups = JS('Object', '#.groups', _match);
+    if (groups != null) {
+      var keys = new JSArray<String>.markGrowable(
+          JS('returns:JSExtendableArray;new:true', 'Object.keys(#)', groups));
+      return SubListIterable(keys, 0, null);
+    }
+    return Iterable.empty();
   }
 }
 
