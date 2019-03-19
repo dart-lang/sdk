@@ -13,48 +13,8 @@ import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(EqualValuesInConstSetTest);
     defineReflectiveTests(StaticWarningCodeTest);
   });
-}
-
-@reflectiveTest
-class EqualValuesInConstSetTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  test_simpleValues() async {
-    Source source = addSource('var s = const {0, 1, 0};');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.EQUAL_VALUES_IN_CONST_SET]);
-    verify([source]);
-  }
-
-  test_valuesWithEqualTypeParams() async {
-    Source source = addSource(r'''
-class A<T> {
-  const A();
-}
-var s = const {A<int>(), A<int>()};
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.EQUAL_VALUES_IN_CONST_SET]);
-    verify([source]);
-  }
-
-  test_valuesWithUnequalTypeParams() async {
-    // No error should be produced because A<int> and A<num> are different
-    // types.
-    Source source = addSource(r'''
-class A<T> {
-  const A();
-}
-const s = {A<int>(), A<num>()};
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
 }
 
 @reflectiveTest
@@ -998,37 +958,6 @@ void f() {
     InstanceCreationExpression init = a.variables.variables[0].initializer;
     expect(init.staticType,
         classA.declaredElement.type.instantiate([typeProvider.intType]));
-  }
-
-  test_equalKeysInMap() async {
-    Source source = addSource("var m = {'a' : 0, 'b' : 1, 'a' : 2};");
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
-    verify([source]);
-  }
-
-  test_equalKeysInMap_withEqualTypeParams() async {
-    Source source = addSource(r'''
-class A<T> {
-  const A();
-}
-var m = {const A<int>(): 0, const A<int>(): 1};''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
-    verify([source]);
-  }
-
-  test_equalKeysInMap_withUnequalTypeParams() async {
-    // No error should be produced because A<int> and A<num> are different
-    // types.
-    Source source = addSource(r'''
-class A<T> {
-  const A();
-}
-var m = {const A<int>(): 0, const A<num>(): 1};''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
   }
 
   test_exportDuplicatedLibraryNamed() async {

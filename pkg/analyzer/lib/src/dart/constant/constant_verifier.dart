@@ -147,7 +147,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       DartType elementType = nodeType.typeArguments[0];
       var verifier = _ConstLiteralVerifier(
         this,
-        isConst: true,
         errorCode: CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
         forList: true,
         listElementType: elementType,
@@ -167,56 +166,55 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     super.visitSetOrMapLiteral(node);
-    bool isConst = node.isConst;
     if (node.isSet) {
-      if (isConst) {
+      if (node.isConst) {
         InterfaceType nodeType = node.staticType;
         var elementType = nodeType.typeArguments[0];
         var duplicateElements = <Expression>[];
         var verifier = _ConstLiteralVerifier(
           this,
-          isConst: isConst,
           errorCode: CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT,
           forSet: true,
           setElementType: elementType,
           setUniqueValues: Set<DartObject>(),
-          setDuplicateElements: duplicateElements,
+          setDuplicateExpressions: duplicateElements,
         );
         for (CollectionElement element in node.elements2) {
           verifier.verify(element);
         }
         for (var duplicateElement in duplicateElements) {
           _errorReporter.reportErrorForNode(
-            StaticWarningCode.EQUAL_VALUES_IN_CONST_SET,
+            CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
             duplicateElement,
           );
         }
       }
     } else if (node.isMap) {
-      InterfaceType nodeType = node.staticType;
-      var keyType = nodeType.typeArguments[0];
-      var valueType = nodeType.typeArguments[1];
-      bool reportEqualKeys = true;
-      var duplicateKeyElements = <Expression>[];
-      var verifier = _ConstLiteralVerifier(
-        this,
-        isConst: isConst,
-        errorCode: CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT,
-        forMap: true,
-        mapKeyType: keyType,
-        mapValueType: valueType,
-        mapUniqueKeys: Set<DartObject>(),
-        mapDuplicateKeyElements: duplicateKeyElements,
-      );
-      for (CollectionElement entry in node.elements2) {
-        verifier.verify(entry);
-      }
-      if (reportEqualKeys) {
-        for (var duplicateKeyElement in duplicateKeyElements) {
-          _errorReporter.reportErrorForNode(
-            StaticWarningCode.EQUAL_KEYS_IN_MAP,
-            duplicateKeyElement,
-          );
+      if (node.isConst) {
+        InterfaceType nodeType = node.staticType;
+        var keyType = nodeType.typeArguments[0];
+        var valueType = nodeType.typeArguments[1];
+        bool reportEqualKeys = true;
+        var duplicateKeyElements = <Expression>[];
+        var verifier = _ConstLiteralVerifier(
+          this,
+          errorCode: CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT,
+          forMap: true,
+          mapKeyType: keyType,
+          mapValueType: valueType,
+          mapUniqueKeys: Set<DartObject>(),
+          mapDuplicateKeyExpressions: duplicateKeyElements,
+        );
+        for (CollectionElement entry in node.elements2) {
+          verifier.verify(entry);
+        }
+        if (reportEqualKeys) {
+          for (var duplicateKeyElement in duplicateKeyElements) {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+              duplicateKeyElement,
+            );
+          }
         }
       }
     }
@@ -647,32 +645,30 @@ class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
 
 class _ConstLiteralVerifier {
   final ConstantVerifier verifier;
-  final bool isConst;
   final Set<DartObject> mapUniqueKeys;
-  final List<Expression> mapDuplicateKeyElements;
+  final List<Expression> mapDuplicateKeyExpressions;
   final ErrorCode errorCode;
   final DartType listElementType;
   final DartType mapKeyType;
   final DartType mapValueType;
   final DartType setElementType;
   final Set<DartObject> setUniqueValues;
-  final List<CollectionElement> setDuplicateElements;
+  final List<CollectionElement> setDuplicateExpressions;
   final bool forList;
   final bool forMap;
   final bool forSet;
 
   _ConstLiteralVerifier(
     this.verifier, {
-    this.isConst,
     this.mapUniqueKeys,
-    this.mapDuplicateKeyElements,
+    this.mapDuplicateKeyExpressions,
     this.errorCode,
     this.listElementType,
     this.mapKeyType,
     this.mapValueType,
     this.setElementType,
     this.setUniqueValues,
-    this.setDuplicateElements,
+    this.setDuplicateExpressions,
     this.forList = false,
     this.forMap = false,
     this.forSet = false,
@@ -680,8 +676,6 @@ class _ConstLiteralVerifier {
 
   bool verify(CollectionElement element) {
     if (element is Expression) {
-      if (!isConst) return true;
-
       var value = verifier._validate(element, errorCode);
       if (value == null) return false;
 
@@ -695,13 +689,9 @@ class _ConstLiteralVerifier {
 
       return true;
     } else if (element is ForElement) {
-      if (!isConst) return true;
-
       verifier._errorReporter.reportErrorForNode(errorCode, element);
       return false;
     } else if (element is IfElement) {
-      if (!isConst) return true;
-
       var conditionValue = verifier._validate(element.condition, errorCode);
       var conditionBool = conditionValue?.toBoolValue();
 
@@ -726,8 +716,6 @@ class _ConstLiteralVerifier {
     } else if (element is MapLiteralEntry) {
       return _validateMapLiteralEntry(element);
     } else if (element is SpreadElement) {
-      if (!isConst) return true;
-
       var value = verifier._validate(element.expression, errorCode);
       if (value == null) return false;
 
@@ -821,6 +809,15 @@ class _ConstLiteralVerifier {
       }
     }
 
+    if (forSet) {
+      var iterableValue = listValue ?? setValue;
+      for (var item in iterableValue) {
+        if (!setUniqueValues.add(item)) {
+          setDuplicateExpressions.add(element.expression);
+        }
+      }
+    }
+
     return true;
   }
 
@@ -830,78 +827,60 @@ class _ConstLiteralVerifier {
     var keyExpression = entry.key;
     var valueExpression = entry.value;
 
-    if (isConst) {
-      var keyValue = verifier._validate(
-        keyExpression,
-        CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
-      );
-      var valueValue = verifier._validate(
-        valueExpression,
-        CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
-      );
+    var keyValue = verifier._validate(
+      keyExpression,
+      CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
+    );
+    var valueValue = verifier._validate(
+      valueExpression,
+      CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
+    );
 
-      if (keyValue != null) {
-        var keyType = keyValue.type;
+    if (keyValue != null) {
+      var keyType = keyValue.type;
 
-        if (!verifier._evaluationEngine
-            .runtimeTypeMatch(keyValue, mapKeyType)) {
-          verifier._errorReporter.reportErrorForNode(
-            StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-            keyExpression,
-            [keyType, mapKeyType],
-          );
-        }
-
-        if (verifier._implementsEqualsWhenNotAllowed(keyType)) {
-          verifier._errorReporter.reportErrorForNode(
-            CompileTimeErrorCode
-                .CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-            keyExpression,
-            [keyType],
-          );
-        }
-
-        verifier._reportErrorIfFromDeferredLibrary(
+      if (!verifier._evaluationEngine.runtimeTypeMatch(keyValue, mapKeyType)) {
+        verifier._errorReporter.reportErrorForNode(
+          StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
           keyExpression,
-          CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
-        );
-
-        if (!mapUniqueKeys.add(keyValue)) {
-          mapDuplicateKeyElements.add(keyExpression);
-        }
-      }
-
-      if (valueValue != null) {
-        if (!verifier._evaluationEngine
-            .runtimeTypeMatch(valueValue, mapValueType)) {
-          verifier._errorReporter.reportErrorForNode(
-            StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
-            valueExpression,
-            [valueValue.type, mapValueType],
-          );
-        }
-
-        verifier._reportErrorIfFromDeferredLibrary(
-          valueExpression,
-          CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
+          [keyType, mapKeyType],
         );
       }
-    } else {
-      // Note: we throw the errors away because this isn't actually a const.
-      var nullErrorReporter = new ErrorReporter(
-        AnalysisErrorListener.NULL_LISTENER,
-        verifier._errorReporter.source,
-      );
-      var keyValue = keyExpression.accept(
-        new ConstantVisitor(verifier._evaluationEngine, nullErrorReporter),
+
+      if (verifier._implementsEqualsWhenNotAllowed(keyType)) {
+        verifier._errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          keyExpression,
+          [keyType],
+        );
+      }
+
+      verifier._reportErrorIfFromDeferredLibrary(
+        keyExpression,
+        CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
       );
 
-      if (keyValue != null) {
-        if (!mapUniqueKeys.add(keyValue)) {
-          mapDuplicateKeyElements.add(keyExpression);
-        }
+      if (!mapUniqueKeys.add(keyValue)) {
+        mapDuplicateKeyExpressions.add(keyExpression);
       }
     }
+
+    if (valueValue != null) {
+      if (!verifier._evaluationEngine
+          .runtimeTypeMatch(valueValue, mapValueType)) {
+        verifier._errorReporter.reportErrorForNode(
+          StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+          valueExpression,
+          [valueValue.type, mapValueType],
+        );
+      }
+
+      verifier._reportErrorIfFromDeferredLibrary(
+        valueExpression,
+        CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
+      );
+    }
+
     return true;
   }
 
@@ -919,7 +898,7 @@ class _ConstLiteralVerifier {
         DartObjectImpl keyValue = entry.key;
         if (keyValue != null) {
           if (!mapUniqueKeys.add(keyValue)) {
-            mapDuplicateKeyElements.add(element.expression);
+            mapDuplicateKeyExpressions.add(element.expression);
           }
         }
       }
@@ -957,7 +936,7 @@ class _ConstLiteralVerifier {
     );
 
     if (!setUniqueValues.add(value)) {
-      setDuplicateElements.add(expression);
+      setDuplicateExpressions.add(expression);
     }
 
     return true;

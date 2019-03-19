@@ -980,6 +980,22 @@ class CompileTimeErrorCode extends ErrorCode {
               "correcting one of the names to reference a different named parameter.");
 
   /**
+   * 16.10 Maps: It is a compile-time error if two keys of a constant map
+   * literal are equal according to their `==` operator (16.27).
+   */
+  static const CompileTimeErrorCode EQUAL_KEYS_IN_CONST_MAP =
+      const CompileTimeErrorCode('EQUAL_KEYS_IN_CONST_MAP',
+          "Two keys in a constant map literal can't be equal.");
+
+  /**
+   * 16.11 Sets: It is a compile-time error if two elements of a constant set
+   * literal are equal according to their `==` operator (16.27).
+   */
+  static const CompileTimeErrorCode EQUAL_ELEMENTS_IN_CONST_SET =
+      const CompileTimeErrorCode('EQUAL_ELEMENTS_IN_CONST_SET',
+          "Two values in a constant set can't be equal.");
+
+  /**
    * SDK implementation libraries can be exported only by other SDK libraries.
    *
    * Parameters:
@@ -3717,21 +3733,6 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode('CONST_WITH_ABSTRACT_CLASS',
           "Abstract classes can't be created with a 'const' expression.",
           correction: "Try creating an instance of a subtype.");
-
-  /**
-   * 12.7 Maps: It is a static warning if the values of any two keys in a map
-   * literal are equal.
-   */
-  static const StaticWarningCode EQUAL_KEYS_IN_MAP = const StaticWarningCode(
-      'EQUAL_KEYS_IN_MAP', "Two keys in a map literal can't be equal.");
-
-  /**
-   * It is a compile-time error if any two of the values in a constant set are
-   * equal according to `==`.
-   */
-  static const StaticWarningCode EQUAL_VALUES_IN_CONST_SET =
-      const StaticWarningCode('EQUAL_VALUES_IN_CONST_SET',
-          "Two values in a constant set can't be equal.");
 
   /**
    * 14.2 Exports: It is a static warning to export two different libraries with
