@@ -347,9 +347,8 @@ class Driver with HasContextMixin implements CommandLineStarter {
           File file = resourceProvider.getFile(path);
           String content = file.readAsStringSync();
           LineInfo lineInfo = new LineInfo.fromContent(content);
-          List<AnalysisError> errors =
-              GenerateOptionsErrorsTask.analyzeAnalysisOptions(
-                  file.createSource(), content, analysisDriver.sourceFactory);
+          List<AnalysisError> errors = analyzeAnalysisOptions(
+              file.createSource(), content, analysisDriver.sourceFactory);
           formatter.formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
           for (AnalysisError error in errors) {
             ErrorSeverity severity = determineProcessedSeverity(

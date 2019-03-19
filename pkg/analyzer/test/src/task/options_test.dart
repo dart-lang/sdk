@@ -36,9 +36,6 @@ main() {
   });
 }
 
-final isGenerateOptionsErrorsTask =
-    new TypeMatcher<GenerateOptionsErrorsTask>();
-
 @reflectiveTest
 class ContextConfigurationTest {
   final AnalysisOptions analysisOptions = AnalysisOptionsImpl();

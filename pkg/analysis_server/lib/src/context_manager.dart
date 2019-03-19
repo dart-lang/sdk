@@ -846,11 +846,10 @@ class ContextManagerImpl implements ContextManager {
     try {
       String content = _readFile(path);
       LineInfo lineInfo = _computeLineInfo(content);
-      List<AnalysisError> errors =
-          GenerateOptionsErrorsTask.analyzeAnalysisOptions(
-              resourceProvider.getFile(path).createSource(),
-              content,
-              driver.sourceFactory);
+      List<AnalysisError> errors = analyzeAnalysisOptions(
+          resourceProvider.getFile(path).createSource(),
+          content,
+          driver.sourceFactory);
       AnalyzerConverter converter = new AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errors,
           lineInfo: lineInfo, options: driver.analysisOptions);
