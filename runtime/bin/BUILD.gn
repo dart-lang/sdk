@@ -647,6 +647,7 @@ source_set("dart_snapshot_cc") {
 source_set("dart_kernel_platform_cc") {
   visibility = [ ":*" ]
   deps = [
+    ":gen_kernel_bytecode_dill",
     ":kernel_service_dill_linkable",
     ":platform_strong_dill_linkable",
   ]

@@ -46,6 +46,7 @@ pushd "$tmpdir"
 mkdir abiversions
 cp "$sdk_dir/$2/vm_platform_strong.dill" "abiversions/vm_platform_strong.dill"
 cp "$sdk_dir/$2/gen/kernel_service.dill" "abiversions/kernel_service.dill"
+cp "$sdk_dir/$2/gen_kernel_bytecode.dill" "abiversions/gen_kernel_bytecode.dill"
 
 cipd create \
   -name dart/abiversions/$abi_version \
