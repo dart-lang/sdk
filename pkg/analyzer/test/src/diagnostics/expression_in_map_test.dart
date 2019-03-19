@@ -19,16 +19,38 @@ main() {
 
 @reflectiveTest
 class ExpressionInMapTest extends DriverResolutionTest {
+  bool get isUiAsCode => analysisOptions.experimentStatus.spread_collections;
+
   test_map() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var m = <String, int>{'a', 'b' : 2};
-''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER]);
+''',
+      isUiAsCode
+          ? [
+              CompileTimeErrorCode.EXPRESSION_IN_MAP,
+            ]
+          : [
+              ParserErrorCode.EXPECTED_TOKEN,
+              ParserErrorCode.MISSING_IDENTIFIER
+            ],
+    );
   }
 
   test_map_const() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var m = <String, int>{'a', 'b' : 2};
-''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER]);
+''',
+      isUiAsCode
+          ? [
+              CompileTimeErrorCode.EXPRESSION_IN_MAP,
+            ]
+          : [
+              ParserErrorCode.EXPECTED_TOKEN,
+              ParserErrorCode.MISSING_IDENTIFIER
+            ],
+    );
   }
 }
 

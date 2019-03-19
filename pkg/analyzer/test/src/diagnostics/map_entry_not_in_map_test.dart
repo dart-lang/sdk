@@ -19,16 +19,26 @@ main() {
 
 @reflectiveTest
 class MapEntryNotInMapTest extends DriverResolutionTest {
+  bool get isUiAsCode => analysisOptions.experimentStatus.spread_collections;
+
   test_set() async {
     await assertErrorsInCode('''
 var c = <int>{1:2};
-''', [ParserErrorCode.UNEXPECTED_TOKEN]);
+''', [
+      isUiAsCode
+          ? CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP
+          : ParserErrorCode.UNEXPECTED_TOKEN
+    ]);
   }
 
   test_set_const() async {
     await assertErrorsInCode('''
 var c = const <int>{1:2};
-''', [ParserErrorCode.UNEXPECTED_TOKEN]);
+''', [
+      isUiAsCode
+          ? CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP
+          : ParserErrorCode.UNEXPECTED_TOKEN
+    ]);
   }
 }
 
