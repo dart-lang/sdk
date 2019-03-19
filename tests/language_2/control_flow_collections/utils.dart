@@ -48,6 +48,11 @@ T expectString<T>(dynamic value) {
   return value;
 }
 
+Iterable<T> expectIntIterable<T>(dynamic value) {
+  Expect.identical(int, T);
+  return value;
+}
+
 Set<T> expectIntSet<T>() {
   Expect.identical(int, T);
   return Set();

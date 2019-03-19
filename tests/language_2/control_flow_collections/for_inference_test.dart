@@ -60,8 +60,8 @@ void testLoopVariableInference() {
   Expect.type<List<int>>([for (var i = 1; i < 2; i++) i]);
   Expect.type<List<String>>([for (var i = 1; i < 2; i++) i.toRadixString(10)]);
 
-  // Loop variable type is not pushed into iterable.
-  Expect.listEquals(<int>[1], [for (int i in expectDynamic([1])) i]);
+  // Loop variable type is pushed into sequence.
+  Expect.listEquals(<int>[1], [for (int i in expectIntIterable([1])) i]);
 
   // Loop variable type is pushed into initializer.
   Expect.listEquals(<int>[1], [for (int i = expectInt(1); i < 2; i++) i]);
@@ -71,26 +71,31 @@ void testTopDownInference() {
   // Lists.
 
   // The context element type is pushed into the body.
-  Expect.listEquals(<int>[1], <int>[for (; false;) expectInt(1)]);
+  Expect.listEquals(<int>[1], <int>[for (var i = 0; i < 1; i++) expectInt(1)]);
 
   // Bottom up-inference from elements is not pushed back down into the body.
-  Expect.listEquals(<int>[1, 2], [1, for (; false;) expectDynamic(2)]);
+  Expect.listEquals(<int>[1, 2],
+      [1, for (var i = 0; i < 1; i++) expectDynamic(2)]);
 
   // Maps.
 
   // The context element type is pushed into the body.
-  Expect.mapEquals(<int, String>{1: "s"},
-      <int, String>{for (; false;) expectInt(1): expectString("s")});
+  Expect.mapEquals(<int, String>{1: "s"}, <int, String>{
+    for (var i = 0; i < 1; i++) expectInt(1): expectString("s")
+  });
 
   // Bottom up-inference from elements is not pushed back down into the body.
-  Expect.mapEquals(<int, String>{1: "s", 2: "t"},
-      {1: "s", for (; false;) expectDynamic(2): expectDynamic("t")});
+  Expect.mapEquals(<int, String>{1: "s", 2: "t"}, {
+    1: "s",
+    for (var i = 0; i < 1; i++) expectDynamic(2): expectDynamic("t")
+  });
 
   // Sets.
 
   // The context element type is pushed into the body.
-  Expect.setEquals(<int>{1}, <int>{for (; false;) expectInt(1)});
+  Expect.setEquals(<int>{1}, <int>{for (var i = 0; i < 1; i++) expectInt(1)});
 
   // Bottom up-inference from elements is not pushed back down into the body.
-  Expect.setEquals(<int>{1, 2}, {1, for (; false;) expectDynamic(2)});
+  Expect.setEquals(<int>{1, 2},
+      {1, for (var i = 0; i < 1; i++) expectDynamic(2)});
 }
