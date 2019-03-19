@@ -356,8 +356,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
    * then add the navigation region from the [node] to the [element].
    */
   void _addUriDirectiveRegion(UriBasedDirective node, Element element) {
-    if (element != null) {
-      Source source = element.source;
+    Source source = element?.source;
+    if (source != null) {
       if (resourceProvider.getResource(source.fullName).exists) {
         computer._addRegionForNode(node.uri, element);
       }
