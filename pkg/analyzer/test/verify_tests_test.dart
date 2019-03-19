@@ -46,6 +46,8 @@ void buildTestsIn(
       String name = child.shortName;
       if (name == 'test_all.dart') {
         testAllFile = child;
+      } else if (name.endsWith('_integration_test.dart')) {
+        // ignored
       } else if (name.endsWith('_test.dart')) {
         testFileNames.add(name);
       }
